@@ -33,18 +33,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
     mv /root/.local/bin/uv /usr/local/bin/uv
 
-# Copy project files needed for dependency installation
-COPY pyproject.toml README.md ./
-COPY src/ ./src/
+# ============================================
+# Layer 1: scitex[all] (FIRST - pulls heavy deps, rarely changes)
+# ============================================
+# Installs PyTorch, CUDA, scipy, scikit-learn, etc. (~15 min cold, 0s cached).
+# This layer stays cached unless you bump the scitex version pin below.
+# When scitex-cloud version bumps, this layer is untouched.
+RUN uv pip install --system --no-cache "scitex[all]==2.19.5"
 
-# Install scitex-cloud and its Django dependencies
-# Pin version explicitly — changing this busts Docker layer cache.
-ARG SCITEX_CLOUD_VERSION=0.10.7-alpha
-RUN echo "scitex-cloud==${SCITEX_CLOUD_VERSION}" && \
-    uv pip install --system --no-cache ".[django,test]" && \
-    uv pip install --system daphne==4.1.2 psycopg2-binary
-
-# Install Playwright browsers (before scitex for better cache efficiency)
+# Install Playwright browsers (stable, cached separately)
 RUN --mount=type=cache,target=/root/.cache/ms-playwright \
     python -m playwright install chromium && \
     python -m playwright install-deps
@@ -93,11 +90,14 @@ RUN APPTAINER_VERSION=1.3.4 && \
     && apptainer --version
 
 # ============================================
-# Install scitex (LAST for cache efficiency)
+# Layer 2: scitex-cloud Django app (LAST - changes most often)
 # ============================================
-# When scitex version changes, only this layer rebuilds.
-# Playwright, SLURM, Apptainer layers stay cached.
-RUN uv pip install --system --no-cache "scitex[all]==2.19.5"
+# Heavy deps already satisfied from scitex[all] above.
+# Version bumps only rebuild this layer (~30s) instead of everything (~15 min).
+COPY pyproject.toml README.md ./
+COPY src/ ./src/
+RUN uv pip install --system --no-cache ".[django,test]" && \
+    uv pip install --system daphne==4.1.2 psycopg2-binary
 
 # ============================================
 # Stage 2: Node.js Tools Builder
