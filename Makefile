@@ -115,6 +115,7 @@ SHELL := /bin/bash
 	apptainer-freeze \
 	apptainer-sandbox \
 	apptainer-sandbox-maintain \
+	apptainer-sandbox-update \
 	apptainer-sandbox-list \
 	apptainer-sandbox-rollback \
 	apptainer-sandbox-cleanup \
@@ -315,6 +316,7 @@ help-all:
 	@echo -e "  ENV=<env> rebuild-no-cache   Docker rebuild without cache"
 	@echo -e "  apptainer-build              Build Apptainer SIF (smart, skips if unchanged)"
 	@echo -e "  apptainer-sandbox            Build versioned sandbox from .def"
+	@echo -e "  apptainer-sandbox-update     Incremental pip install (fast, no rebuild)"
 	@echo -e "  apptainer-sandbox-maintain   Open writable shell in sandbox (admin)"
 	@echo -e "  apptainer-sandbox-list       List versioned sandboxes"
 	@echo -e "  apptainer-sandbox-rollback   Roll back to previous sandbox"
@@ -599,6 +601,9 @@ apptainer-freeze:
 
 apptainer-sandbox: ## Build versioned sandbox from .def (timestamped)
 	@deployment/singularity/build.sh --sandbox
+
+apptainer-sandbox-update: ## Incremental pip install into sandbox (fast)
+	@deployment/singularity/build-scripts/update_sandbox.sh
 
 apptainer-sandbox-maintain: ## Open writable shell in sandbox (admin only)
 	@apptainer exec --writable --fakeroot deployment/singularity/current-sandbox /bin/bash
