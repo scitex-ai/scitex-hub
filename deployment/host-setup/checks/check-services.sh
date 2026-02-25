@@ -83,3 +83,42 @@ if [ "$OPENALEX_OK" = "ok" ]; then
 else
     echo -e "  ${YELLOW}[WARN] OpenAlex Local: not available${NC}"
 fi
+
+# scitex-container module check (host-mounted, required for terminal)
+CONTAINER_MOD_OK=$(docker exec "$CONTAINER" python -c "
+import scitex_container
+print('ok')
+" 2>/dev/null | tail -1 || echo "")
+if [ "$CONTAINER_MOD_OK" = "ok" ]; then
+    echo -e "  [OK] scitex-container: mounted"
+else
+    echo -e "  ${RED}[FAIL] scitex-container: not mounted (terminals will fail)${NC}"
+    echo -e "    Fix: restart Django container to pick up volume mount"
+fi
+
+# Vite manifest check (static files built correctly)
+VITE_OK=$(docker exec "$CONTAINER" python -c "
+import json, os
+manifest = '/app/staticfiles/vite/.vite/manifest.json'
+if os.path.exists(manifest):
+    with open(manifest) as f:
+        data = json.load(f)
+    print('ok' if len(data) > 0 else '')
+else:
+    print('')
+" 2>/dev/null | tail -1 || echo "")
+if [ "$VITE_OK" = "ok" ]; then
+    echo -e "  [OK] Vite: static files built"
+else
+    echo -e "  ${RED}[FAIL] Vite: manifest missing (styles/JS may be broken)${NC}"
+    echo -e "    Fix: restart Django container (entrypoint runs vite build)"
+fi
+
+# Pending migrations check
+MIGRATIONS_OK=$(docker exec "$CONTAINER" python manage.py showmigrations --plan 2>/dev/null | grep -c '^\[ \]' || echo "0")
+if [ "$MIGRATIONS_OK" = "0" ]; then
+    echo -e "  [OK] Migrations: all applied"
+else
+    echo -e "  ${YELLOW}[WARN] Migrations: ${MIGRATIONS_OK} pending${NC}"
+    echo -e "    Fix: restart Django container (entrypoint runs migrate)"
+fi
