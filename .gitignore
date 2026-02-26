@@ -868,3 +868,5 @@ viewed.md
 example_plot.yaml
 scripts/assets/workflow_out/
 deployment/singularity/
+deployment/docker/docker_prod/Dockerfile_v01.prod
+static/figrecipe/
