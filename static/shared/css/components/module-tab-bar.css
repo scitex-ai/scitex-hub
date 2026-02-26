@@ -39,9 +39,20 @@
 }
 
 .module-tab-btn.active {
+  position: relative;
   background: var(--workspace-bg-active, rgba(177, 186, 196, 0.12));
   color: var(--workspace-text-primary, #e6edf3);
-  border-bottom: 2px solid var(--tab-accent, var(--accent-blue, #388bfd));
+}
+
+.module-tab-btn.active::after {
+  content: "";
+  position: absolute;
+  bottom: 1px;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--tab-accent, var(--accent-blue, #388bfd));
 }
 
 /* Per-module tab accent — syncs underline with module content accent */

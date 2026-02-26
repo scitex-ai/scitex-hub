@@ -284,8 +284,8 @@
   --module-accent-tint: var(--module-accent-modulemaker-tint);
 }
 
-/* Fallback: modules without data-pane-type headers get accent on the container */
-[data-module-accent]:not(:has([data-pane-type="module"])) {
+/* Fallback: module pane without data-pane-type headers gets accent on its container */
+#main-content[data-module-accent]:not(:has([data-pane-type="module"])) {
   border-top: 3px solid var(--module-accent-color, transparent);
 }
 
