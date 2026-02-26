@@ -46,7 +46,7 @@ def _filter_modules_for_user(request, modules):
         return modules
 
     try:
-        from apps.marketplace_app.models import ModuleInstallation
+        from apps.marketplace_app.models import MarketplaceModule, ModuleInstallation
 
         installations = {
             inst.module.module_name: inst
@@ -54,15 +54,18 @@ def _filter_modules_for_user(request, modules):
                 user=request.user
             ).select_related("module")
         }
+
+        # Populate marketplace status from MarketplaceModule directly
+        mp_statuses = dict(
+            MarketplaceModule.objects.filter(
+                module_name__in=[m.name for m in modules]
+            ).values_list("module_name", "status")
+        )
+        for mod in modules:
+            mod.status = mp_statuses.get(mod.name, "")
     except Exception:
         # marketplace_app not migrated yet or other DB issue
         return modules
-
-    # Populate marketplace status on each module
-    for mod in modules:
-        inst = installations.get(mod.name)
-        if inst and inst.module:
-            mod.status = inst.module.status or ""
 
     if not installations:
         # No installations = first-time user, show all modules

@@ -96,6 +96,11 @@ function updateActiveTab(name: string): void {
     const isActive = href.includes(`/${name}/`);
     btn.classList.toggle("active", isActive);
   });
+  // Set module accent color on the module pane (framework-level, not per-app)
+  const pane = document.getElementById("main-content");
+  if (pane) {
+    pane.setAttribute("data-module-accent", name);
+  }
 }
 
 function init(): void {
@@ -105,6 +110,17 @@ function init(): void {
 
   // Populate known modules from DOM (set by registry context processor).
   KNOWN_MODULES = getKnownModules();
+
+  // Set accent for the initially active module.
+  const activeTab = document.querySelector(".module-tab-btn.active");
+  if (activeTab) {
+    const mod =
+      (activeTab as HTMLElement).dataset.module ??
+      extractModule(
+        (activeTab as HTMLAnchorElement).getAttribute("href") ?? "",
+      );
+    if (mod) updateActiveTab(mod);
+  }
 
   // Intercept tab bar clicks.
   document.querySelectorAll(".module-tab-btn").forEach((btn) => {

@@ -51,13 +51,12 @@
              data-slug="{{ current_project.slug }}"
              data-mode="hub"></div>
     {% endif %}
-    <div class="hub-workspace">
+    <div class="hub-workspace" data-module-accent="hub">
         <!-- Sidebar removed: unified workspace provides the file tree via ws-worktree-pane -->
         <!-- Main Area -->
         <main class="hub-main">
-            <div style="padding:0.5rem 1rem;">
-                <span class="badge badge-wip">WIP</span>
-            </div>
+            <!-- Quick actions bar -->
+            <div style="padding:0.5rem 1rem;"></div>
             {% if quick_ref %}
                 <div class="hub-quick-ref"
                      style="margin:0 1rem 1rem;
