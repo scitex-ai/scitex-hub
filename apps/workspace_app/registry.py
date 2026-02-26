@@ -214,7 +214,7 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         keyboard_shortcut="R",
         order=50,
         default_enabled=False,
-        ai_hint="Pipeline DAG editor: create, chain, and run reproducible computational workflows with status tracking.",
+        ai_hint="Verification system: trace manuscript claims (statistics, figures, tables) back through computational chains to source data.",
         accent_color="clew",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
