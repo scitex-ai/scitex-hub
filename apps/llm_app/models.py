@@ -173,3 +173,45 @@ class LLMUsageLog(models.Model):
     def __str__(self):
         status = "Success" if self.success else "Failed"
         return f"{self.app_name}/{self.feature} - {self.model_used} ({status})"
+
+
+class ChatSession(models.Model):
+    """A named chat conversation belonging to a user."""
+
+    user = models.ForeignKey(
+        "auth.User",
+        on_delete=models.CASCADE,
+        related_name="chat_sessions",
+    )
+    title = models.CharField(max_length=200, default="New chat")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_archived = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        indexes = [models.Index(fields=["user", "-updated_at"])]
+
+    def __str__(self):
+        return f"{self.user.username}: {self.title}"
+
+
+class ChatMessage(models.Model):
+    """A single message within a chat session."""
+
+    session = models.ForeignKey(
+        ChatSession,
+        on_delete=models.CASCADE,
+        related_name="messages",
+    )
+    role = models.CharField(max_length=10)  # user | assistant | error
+    text = models.TextField()
+    tools_used = models.JSONField(default=list, blank=True)
+    media = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"[{self.role}] {self.text[:60]}"

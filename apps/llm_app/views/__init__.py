@@ -16,9 +16,16 @@ from apps.llm_app.views.providers import (
     api_reveal_key,
     api_test_provider,
 )
+from apps.llm_app.views.sessions import (
+    api_session_add_message,
+    api_session_detail,
+    api_session_messages,
+    api_sessions,
+)
 from apps.llm_app.views.skills import api_agent_context, api_get_skill, api_list_skills
 from apps.llm_app.views.stt import api_stt, api_stt_models
-from apps.llm_app.views.usage import api_usage_chart, usage_dashboard
+from apps.llm_app.views.upload import api_copy_project_files, api_upload_files
+from apps.llm_app.views.usage import api_save_limits, api_usage_chart, usage_dashboard
 
 __all__ = [
     "api_bash_exec",
@@ -43,5 +50,12 @@ __all__ = [
     "api_eval_js",
     "api_ui_action",
     "usage_dashboard",
+    "api_upload_files",
+    "api_copy_project_files",
+    "api_save_limits",
     "api_usage_chart",
+    "api_sessions",
+    "api_session_detail",
+    "api_session_messages",
+    "api_session_add_message",
 ]

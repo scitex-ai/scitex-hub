@@ -54,8 +54,31 @@ urlpatterns = [
     path("api/context/", views.api_get_context, name="api_get_context"),
     path("api/eval-js/", views.api_eval_js, name="api_eval_js"),
     path("api/ui-action/", views.api_ui_action, name="api_ui_action"),
+    # File upload for AI chat drops
+    path("api/upload/", views.api_upload_files, name="api_upload_files"),
+    path(
+        "api/copy-files/", views.api_copy_project_files, name="api_copy_project_files"
+    ),
+    # Chat sessions CRUD
+    path("api/sessions/", views.api_sessions, name="api_sessions"),
+    path(
+        "api/sessions/<int:session_id>/",
+        views.api_session_detail,
+        name="api_session_detail",
+    ),
+    path(
+        "api/sessions/<int:session_id>/messages/",
+        views.api_session_messages,
+        name="api_session_messages",
+    ),
+    path(
+        "api/sessions/<int:session_id>/messages/add/",
+        views.api_session_add_message,
+        name="api_session_add_message",
+    ),
     # Usage dashboard
     path("usage/", views.usage_dashboard, name="usage_dashboard"),
+    path("api/usage/limits/", views.api_save_limits, name="api_save_limits"),
     path(
         "api/usage/chart/<str:chart_type>/",
         views.api_usage_chart,
