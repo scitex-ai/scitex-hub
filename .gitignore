@@ -870,3 +870,6 @@ scripts/assets/workflow_out/
 deployment/singularity/
 deployment/docker/docker_prod/Dockerfile_v01.prod
 static/figrecipe/
+/.claude-worktree-symlinks
+# Claude worktree symlink
+/misc

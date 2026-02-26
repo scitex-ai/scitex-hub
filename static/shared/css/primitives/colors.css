@@ -94,6 +94,25 @@
   --workspace-ruler-bg: #e0dfdd; /* Warm ruler background */
   --workspace-ruler-border: #d0cfcd; /* Warm ruler borders */
 
+  /* Module accent colors - top border for module-specific pane headers
+     Light mode: deeper/saturated to contrast against warm white backgrounds */
+  --module-accent-color: transparent; /* Default: no accent (shared panes) */
+  --module-accent-tint: transparent; /* Default: no tint (shared panes) */
+  --module-accent-writer: #a07040; /* Deep amber - manuscripts, writing */
+  --module-accent-writer-tint: rgba(160, 112, 64, 0.07);
+  --module-accent-scholar: #3d7a5e; /* Deep sage - academic, knowledge */
+  --module-accent-scholar-tint: rgba(61, 122, 94, 0.07);
+  --module-accent-visualizer: #2e7070; /* Deep teal - data visualization */
+  --module-accent-visualizer-tint: rgba(46, 112, 112, 0.07);
+  --module-accent-console: #3e6080; /* Deep steel blue - terminal, code */
+  --module-accent-console-tint: rgba(62, 96, 128, 0.07);
+  --module-accent-clew: #8a6a4a; /* Earth brown - pipelines, workflows */
+  --module-accent-clew-tint: rgba(138, 106, 74, 0.07);
+  --module-accent-hub: #6a5a8a; /* Muted purple - dashboard, overview */
+  --module-accent-hub-tint: rgba(106, 90, 138, 0.07);
+  --module-accent-example: #8a6030; /* Warm orange-brown - demos, templates */
+  --module-accent-example-tint: rgba(138, 96, 48, 0.07);
+
   /* Workspace icon color scheme (TOGGLE: swap _icon-green ↔ _icon-white below) */
   /* Green scheme */
   --_icon-green-primary: #5a9a7e;
@@ -249,6 +268,24 @@
   --workspace-slider-active: #8b949e; /* Slider handle active */
   --workspace-ruler-bg: #161b22; /* Rulers and guides background */
   --workspace-ruler-border: #21262d; /* Ruler borders */
+
+  /* Module accent colors - dark mode */
+  --module-accent-color: transparent;
+  --module-accent-tint: transparent;
+  --module-accent-writer: #d4a87a;
+  --module-accent-writer-tint: rgba(212, 168, 122, 0.08);
+  --module-accent-scholar: #6ba89a;
+  --module-accent-scholar-tint: rgba(107, 168, 154, 0.08);
+  --module-accent-visualizer: #6ab0b0;
+  --module-accent-visualizer-tint: rgba(106, 176, 176, 0.08);
+  --module-accent-console: #7a9ab8;
+  --module-accent-console-tint: rgba(122, 154, 184, 0.08);
+  --module-accent-clew: #b89070; /* Earth brown - pipelines, workflows */
+  --module-accent-clew-tint: rgba(184, 144, 112, 0.08);
+  --module-accent-hub: #9a8ab8; /* Soft purple - dashboard, overview */
+  --module-accent-hub-tint: rgba(154, 138, 184, 0.08);
+  --module-accent-example: #c08850; /* Warm orange - demos, templates */
+  --module-accent-example-tint: rgba(192, 136, 80, 0.08);
 
   /* Workspace icon color scheme (TOGGLE: swap _icon-green ↔ _icon-white below) */
   /* Green scheme (dark mode) */

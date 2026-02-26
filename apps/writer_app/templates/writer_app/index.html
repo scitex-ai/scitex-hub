@@ -7,6 +7,9 @@
     {% if project %}- {{ project.name }}{% endif %}
 {% endblock %}
 {% block extra_css %}
+    <!-- Writer variables (module accent color, theme tokens) -->
+    <link rel="stylesheet"
+          href="{% static 'writer_app/css/shared/variables.css' %}?v={{ build_id }}" />
     <!-- Critical CSS - loaded immediately (editor, PDF, core UI) -->
     <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
@@ -159,6 +162,7 @@
     {% else %}
         <!-- Writer workspace — file tree provided by shared worktree pane in three-column layout -->
         <div class="writer-workspace"
+             data-module-accent="writer"
              data-ai-hint="Writer workspace: LaTeX manuscript editor, PDF preview, figures/tables/citations management">
             <!-- Main content: editor + preview -->
             <div class="writer-container"

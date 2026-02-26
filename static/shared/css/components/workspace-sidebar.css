@@ -227,6 +227,51 @@
 }
 
 /* ===========================================================================
+   MODULE ACCENT BORDER
+   Subtle top-border accent on module-specific pane headers.
+   Headers with data-pane-type="module" display the accent;
+   shared pane headers (AI, Files, Editor) remain unaffected.
+
+   Usage: Add data-module-accent="writer" on the module container,
+   and data-pane-type="module" on each module-specific pane header.
+   =========================================================================== */
+
+[data-pane-type="module"] {
+  border-top: 3px solid var(--module-accent-color, transparent);
+  background: var(--module-accent-tint, transparent);
+}
+
+/* Per-module accent color scoping (cascades to child pane headers) */
+[data-module-accent="writer"] {
+  --module-accent-color: var(--module-accent-writer);
+  --module-accent-tint: var(--module-accent-writer-tint);
+}
+[data-module-accent="scholar"] {
+  --module-accent-color: var(--module-accent-scholar);
+  --module-accent-tint: var(--module-accent-scholar-tint);
+}
+[data-module-accent="visualizer"] {
+  --module-accent-color: var(--module-accent-visualizer);
+  --module-accent-tint: var(--module-accent-visualizer-tint);
+}
+[data-module-accent="console"] {
+  --module-accent-color: var(--module-accent-console);
+  --module-accent-tint: var(--module-accent-console-tint);
+}
+[data-module-accent="clew"] {
+  --module-accent-color: var(--module-accent-clew);
+  --module-accent-tint: var(--module-accent-clew-tint);
+}
+[data-module-accent="hub"] {
+  --module-accent-color: var(--module-accent-hub);
+  --module-accent-tint: var(--module-accent-hub-tint);
+}
+[data-module-accent="example"] {
+  --module-accent-color: var(--module-accent-example);
+  --module-accent-tint: var(--module-accent-example-tint);
+}
+
+/* ===========================================================================
    RESPONSIVE
    =========================================================================== */
 

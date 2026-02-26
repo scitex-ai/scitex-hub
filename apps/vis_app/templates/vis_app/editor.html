@@ -38,6 +38,7 @@
 {% endblock %}
 {% block content %}
     <div class="vis-editor-container"
+         data-module-accent="visualizer"
          {% if current_project %} data-project-owner="{{ current_project.owner.username }}" data-project-slug="{{ current_project.slug }}" data-workspace-tree-url="/{{ current_project.owner.username }}/{{ current_project.slug }}/api/file-tree/"{% endif %}>
         <!-- ========================================================================
          MAIN CONTENT AREA
@@ -67,7 +68,7 @@
                     <div class="split-pane split-pane-left collapsible-panel"
                          id="data-pane"
                          data-hide-title-expanded>
-                        <div class="pane-header">
+                        <div class="pane-header" data-pane-type="module">
                             <!-- Data Dropdown (replaces tabs for horizontal space efficiency) -->
                             <div class="data-dropdown-container" id="data-dropdown-container">
                                 <button class="data-dropdown-toggle"
@@ -145,7 +146,7 @@
                     <div class="split-pane split-pane-right collapsible-panel"
                          id="canvas-pane"
                          data-hide-title-expanded>
-                        <div class="pane-header">
+                        <div class="pane-header" data-pane-type="module">
                             <button class="pane-resize-btn panel-toggle-btn right-panel-toggle"
                                     id="canvas-pane-toggle"
                                     title="Toggle Canvas Pane">
@@ -343,7 +344,7 @@
             <div class="vis-properties collapsible-panel"
                  id="vis-properties"
                  {% if figrecipe_embedded %}style="display:none"{% endif %}>
-                <div class="properties-header">
+                <div class="properties-header" data-pane-type="module">
                     <button class="properties-toggle-btn panel-toggle-btn right-panel-toggle"
                             id="properties-toggle"
                             title="Toggle details (Zen: F11/Alt+Z)">
