@@ -228,23 +228,11 @@
         });
     });
 
-    /** Reorder the module tab bar to match marketplace order */
+    /** Delegate to shared module-reorder for cross-component sync */
     function syncTabBar(orderedNames) {
-        var tabBar = document.querySelector('.module-tab-bar');
-        if (!tabBar) return;
-        var tabBtns = Array.prototype.slice.call(tabBar.querySelectorAll('.module-tab-btn'));
-        var tabMap = {};
-        tabBtns.forEach(function (btn) { tabMap[btn.dataset.module] = btn; });
-
-        orderedNames.forEach(function (name) {
-            if (tabMap[name]) tabBar.appendChild(tabMap[name]);
-        });
-        /* Append any remaining tabs not in the order list (e.g. non-reordered) */
-        tabBtns.forEach(function (btn) {
-            if (orderedNames.indexOf(btn.dataset.module) === -1) {
-                tabBar.appendChild(btn);
-            }
-        });
+        if (window._moduleReorder) {
+            window._moduleReorder.syncTabBar(orderedNames);
+        }
     }
 
     /* ── Category tabs ─────────────────────────────── */

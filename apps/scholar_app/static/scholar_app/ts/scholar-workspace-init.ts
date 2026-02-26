@@ -10,24 +10,36 @@ import "./search/pdf-download";
 // Import search main functionality (auto-initializes on DOM ready)
 import "./search/search-main";
 
+// Import inline column resizers
+import { initInlineResizers } from "./common/inline-resizer";
+
 async function initScholarWorkspace(): Promise<void> {
-  // Lazy-load Library tab module on first activation
+  // Initialize inline column resizers for all tabs
+  initInlineResizers();
+  // Library tab initialization
+  let libraryInitialized = false;
+  const loadLibrary = async () => {
+    if (libraryInitialized) return;
+    libraryInitialized = true;
+    try {
+      const { initLibraryManager } = await import("./library/library-manager");
+      initLibraryManager();
+      console.log("[Scholar] Library manager initialized");
+    } catch (error) {
+      console.error("[Scholar] Failed to load library manager:", error);
+    }
+  };
+
+  // Lazy-load on tab click
   const libraryTab = document.querySelector('[data-tab="library"]');
   if (libraryTab) {
-    libraryTab.addEventListener(
-      "click",
-      async () => {
-        try {
-          const { initLibraryManager } =
-            await import("./library/library-manager");
-          initLibraryManager();
-          console.log("[Scholar] Library manager initialized");
-        } catch (error) {
-          console.error("[Scholar] Failed to load library manager:", error);
-        }
-      },
-      { once: true },
-    );
+    libraryTab.addEventListener("click", loadLibrary, { once: true });
+  }
+
+  // Also init immediately if library is the active tab (default landing)
+  const hash = window.location.hash.slice(1);
+  if (!hash || hash === "library") {
+    loadLibrary();
   }
 
   console.log("[Scholar] Workspace initialized");

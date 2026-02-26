@@ -109,6 +109,55 @@
 }
 
 /* ==========================================================================
+   Tab Drag-to-Reorder — visual feedback during tab reordering
+   ========================================================================== */
+
+.module-tab-btn[draggable="true"] {
+  cursor: grab;
+}
+
+.module-tab-btn[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.module-tab-btn.tab-dragging {
+  opacity: 0.3;
+  border-style: dashed;
+}
+
+.module-tab-btn.tab-drag-before {
+  position: relative;
+  margin-left: 12px;
+}
+
+.module-tab-btn.tab-drag-before::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--tab-accent, var(--accent-blue, #388bfd));
+}
+
+.module-tab-btn.tab-drag-after {
+  position: relative;
+  margin-right: 12px;
+}
+
+.module-tab-btn.tab-drag-after::after {
+  content: "";
+  position: absolute;
+  right: -7px;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--tab-accent, var(--accent-blue, #388bfd));
+}
+
+/* ==========================================================================
    Module Tab Context Menu — right-click actions
    ========================================================================== */
 

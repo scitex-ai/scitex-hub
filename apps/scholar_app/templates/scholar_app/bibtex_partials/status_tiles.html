@@ -4,15 +4,17 @@
       href="{% static 'scholar_app/css/bibtex/bibtex-status-tiles.css' %}?v={{ build_id }}" />
 <!-- BibTeX Status Tiles - For Right Panel -->
 <div class="bibtex-status-tiles">
-    <!-- Enrichment Progress Tile (always visible, shows status) -->
+    <!-- Enrichment Progress Tile -->
     <div id="enrichmentRunningIndicator"
-         class="bibtex-tile bibtex-tile--expanded"
-         data-panel="enrichment-progress">
-        <div class="bibtex-tile__header">
+         class="bibtex-tile"
+         data-panel-id="bibtex-enrichment">
+        <div class="bibtex-tile__header"
+             onclick="window._toggleInlinePanel && window._toggleInlinePanel(this)">
             <div class="bibtex-tile__title">
                 <div id="progressPulseDot" class="green-pulse-dot" style="display: none;"></div>
                 <i class="fas fa-magic"></i> Enrichment
             </div>
+            <i class="fas fa-chevron-down bibtex-tile__toggle"></i>
         </div>
         <div class="bibtex-tile__content">
             <div class="bibtex-progress">
@@ -32,8 +34,9 @@
         </div>
     </div>
     <!-- Recent Jobs Tile -->
-    <div class="bibtex-tile bibtex-tile--expanded" data-panel="recent-jobs">
-        <div class="bibtex-tile__header" onclick="toggleBibtexPanel(this)">
+    <div class="bibtex-tile" data-panel-id="bibtex-recent-jobs">
+        <div class="bibtex-tile__header"
+             onclick="window._toggleInlinePanel && window._toggleInlinePanel(this)">
             <div class="bibtex-tile__title">
                 <i class="fas fa-history"></i> Recent Jobs
             </div>

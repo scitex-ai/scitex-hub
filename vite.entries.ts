@@ -305,6 +305,7 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       rootDir,
       "static/shared/ts/module-tab-switcher.ts",
     ),
+    "shared/module-reorder": r(rootDir, "static/shared/ts/module-reorder.ts"),
     "shared/utils/input-history": r(
       rootDir,
       "static/shared/ts/utils/input-history.ts",
@@ -425,7 +426,8 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       "apps/clew_app/static/clew_app/ts/clew-init.ts",
     ),
 
-    // Hub app (tree init moved to shared/workspace-tree-init)
+    // Hub app
+    "hub_app/index": r(rootDir, "apps/hub_app/static/hub_app/ts/index.ts"),
 
     // Workspace shell SPA
     "workspace_app/workspace-shell": r(

@@ -142,15 +142,17 @@
                                 <div class="compilation-status-indicators">
                                     <!-- 1. Preview Compilation Status LED -->
                                     <div class="status-indicator-group"
-                                         onclick="togglePreviewLog()"
-                                         title="Preview status (click to view log)">
+                                         onclick="if(window.handlePreviewClick){window.handlePreviewClick()}else{togglePreviewLog()}"
+                                         title="Click to compile preview"
+                                         style="cursor: pointer">
                                         <span class="status-indicator-label">Preview</span>
                                         <span class="status-lamp-dot" id="preview-status-lamp" data-status="idle"></span>
                                     </div>
                                     <!-- 2. Full Compilation Status LED -->
                                     <div class="status-indicator-group"
-                                         onclick="toggleFullLog()"
-                                         title="Full compilation status (click to view log)">
+                                         onclick="if(window.handleFullCompileClick){window.handleFullCompileClick()}else{toggleFullLog()}"
+                                         title="Click to compile full manuscript"
+                                         style="cursor: pointer">
                                         <span class="status-indicator-label">Full</span>
                                         <span class="status-lamp-dot" id="fullcompile-status-lamp" data-status="idle"></span>
                                     </div>

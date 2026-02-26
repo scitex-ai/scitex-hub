@@ -84,7 +84,7 @@
         .bibtex-tile {
             background: var(--workspace-bg-secondary, var(--color-canvas-subtle)) !important;
             border-color: var(--color-border-default) !important;
-            border-radius: 0 !important;
+            border-radius: 6px !important;
         }
 
         .bibtex-card__header,
@@ -96,7 +96,7 @@
         .bibtex-dropzone {
             background: var(--workspace-bg-monaco, #1e1e1e) !important;
             border-color: var(--color-border-default) !important;
-            border-radius: 0 !important;
+            border-radius: 6px !important;
         }
 
         .bibtex-dropzone:hover {
@@ -151,13 +151,15 @@
             min-height: 0;
         }
 
-        .scholar-details-content {
-            display: none;
+        /* Tabs with inline side panels use row layout */
+        #tab-search.active,
+        #tab-bibtex.active,
+        #tab-graph.active {
+            flex-direction: row;
+            overflow: hidden;
         }
 
-        .scholar-details-content.active {
-            display: block;
-        }
+        /* scholar-details-content removed — all details are inline in tabs */
 
         /* ========================================
        UNIFIED TAB CONTAINER STYLES
@@ -182,7 +184,7 @@
         .scholar-tab-content .search-card {
             background: var(--workspace-bg-secondary, #151515);
             border: 1px solid var(--workspace-border-default, #3a3a3a);
-            border-radius: 0;
+            border-radius: 6px;
         }
 
         .scholar-tab-content .graph-card__header,
@@ -305,9 +307,9 @@
         .scholar-details-content .sidebar-section,
         .scholar-details-content .bibtex-tile,
         .scholar-details-content .accordion-row {
-            background: var(--workspace-bg-secondary, #151515);
+            background: var(--workspace-bg-secondary, #1e1e1e);
             border: 1px solid var(--workspace-border-default, #3a3a3a);
-            border-radius: 0;
+            border-radius: 6px;
             margin-bottom: 8px;
         }
 
@@ -317,22 +319,23 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 12px;
+            padding: 12px;
             cursor: pointer;
             transition: background 0.15s;
             background: var(--workspace-bg-tertiary, #1a1a1a);
+            border-radius: 6px 6px 0 0;
         }
 
         .scholar-details-content .sidebar-section__header:hover,
         .scholar-details-content .bibtex-tile__header:hover,
         .scholar-details-content .accordion-row-header:hover {
-            background: var(--workspace-bg-secondary, #151515);
+            background: var(--workspace-bg-tertiary, #1a1a1a);
         }
 
         .scholar-details-content .sidebar-section__title,
         .scholar-details-content .bibtex-tile__title {
             margin: 0;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
             color: var(--text-primary, #d4e1e8);
             display: flex;
@@ -343,7 +346,7 @@
         .scholar-details-content .sidebar-section__title i,
         .scholar-details-content .bibtex-tile__title i {
             color: var(--workspace-icon-primary, #059669) !important;
-            font-size: 11px;
+            font-size: 12px;
         }
 
         .scholar-details-content .sidebar-section__content,
@@ -351,7 +354,7 @@
         .scholar-details-content .accordion-row-content {
             padding: 12px;
             border-top: 1px solid var(--workspace-border-default, #3a3a3a);
-            background: var(--workspace-bg-secondary, #151515);
+            background: var(--workspace-bg-secondary, #1e1e1e);
         }
 
         /* Light mode unified overrides */
@@ -443,7 +446,7 @@
              data-collapse-key="scitex-workspace-sidebar-collapsed"
              data-toggle-btn="sidebar-toggle"></div>
         <!-- Main content area -->
-        <main class="scholar-main" data-module-accent="scholar">
+        <main class="scholar-main">
             <div class="pane-header" data-pane-type="module">
                 <nav class="scholar-tabs">
                     <a href="#library" class="scholar-tab" data-tab="library">
@@ -465,11 +468,18 @@
             <div class="pane-content">
                 <!-- Search Tab Content -->
                 <div id="tab-search" class="scholar-tab-content" data-tab="search">
-                    <div class="scholar-search-container">
+                    <div class="scholar-search-container" style="flex:1; min-width:0; overflow-y:auto;">
                         {% include "scholar_app/search_partials/search.html" with show_results=True %}
                     </div>
-                    <!-- Configuration for JavaScript -->
-                    <div id="scholar-config-data" data-bibtex-upload-url="{% url 'scholar_app:bibtex_upload' %}" data-resource-status-url="{% url 'scholar_app:bibtex_resource_status' %}" data-scitex-search-url="{% url 'scholar_app:api_scitex_search' %}" data-scitex-capabilities-url="{% url 'scholar_app:api_scitex_capabilities' %}" data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-user-projects='[{% for project in user_projects %}{"id": {{ project.id }}, "name": "{{ project.name|escapejs }}"}
+                    <div class="scholar-tab-resizer" id="search-resizer"></div>
+                    <div class="search-controls-inline"
+                         style="width:280px;
+                                flex-shrink:0;
+                                overflow-y:auto;
+                                border-left:1px solid var(--workspace-border-default, #30363d);
+                                padding:8px">{% include "scholar_app/search_partials/search_controls.html" %}</div>
+                    <!-- Configuration for JavaScript (hidden, not a flex child) -->
+                    <div id="scholar-config-data" style="display:none" data-bibtex-upload-url="{% url 'scholar_app:bibtex_upload' %}" data-resource-status-url="{% url 'scholar_app:bibtex_resource_status' %}" data-scitex-search-url="{% url 'scholar_app:api_scitex_search' %}" data-scitex-capabilities-url="{% url 'scholar_app:api_scitex_capabilities' %}" data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-user-projects='[{% for project in user_projects %}{"id": {{ project.id }}, "name": "{{ project.name|escapejs }}"}
                         {% if not forloop.last %},{% endif %}
                     {% endfor %}
                     ]' data-current-project='{% if current_project %}{"id": {{ current_project.id }}, "name": "{{ current_project.name|escapejs }}"}
@@ -481,17 +491,26 @@
             {% endfor %}
             ]' {% endif %}></div>
     </div>
-    <!-- BibTeX Tab Content -->
+    <!-- BibTeX Tab Content: 2-column layout (enrich | status tiles) -->
     <div id="tab-bibtex" class="scholar-tab-content" data-tab="bibtex">
-        {% include "scholar_app/bibtex_partials/enrich.html" %}
-        <!-- AI2 Prompt Modal -->
-        {% if current_project %}
-            {% include "writer_app/compilation_view_partials/ai2_modal.html" %}
-        {% endif %}
+        <div class="bibtex-main-content" style="flex:1; min-width:0; overflow-y:auto;">
+            {% include "scholar_app/bibtex_partials/enrich.html" %}
+            <!-- AI2 Prompt Modal -->
+            {% if current_project %}
+                {% include "writer_app/compilation_view_partials/ai2_modal.html" %}
+            {% endif %}
+        </div>
+        <div class="scholar-tab-resizer" id="bibtex-resizer"></div>
+        <div class="bibtex-controls-inline"
+             style="width:280px;
+                    flex-shrink:0;
+                    overflow-y:auto;
+                    border-left:1px solid var(--workspace-border-default, #30363d);
+                    padding:8px">{% include "scholar_app/bibtex_partials/status_tiles.html" %}</div>
     </div>
-    <!-- Graph Tab Content -->
+    <!-- Graph Tab Content: 2-column layout (graph | sidebar) -->
     <div id="tab-graph" class="scholar-tab-content" data-tab="graph">
-        <div class="citation-graph-container">
+        <div class="citation-graph-container" style="flex:1; min-width:0;">
             <div class="graph-input-section">
                 <div class="graph-card">
                     <div class="graph-card__header">
@@ -615,61 +634,17 @@
                         onclick="document.getElementById('graphError').classList.add('hidden')">Dismiss</button>
             </div>
         </div>
-    </div>
-    <!-- Library Tab Content -->
-    <div id="tab-library" class="scholar-tab-content" data-tab="library">
-        <div class="library-tab-inner">{% include "scholar_app/library_partials/library_main.html" %}</div>
-        <div class="library-resizer panel-resizer"
-             data-panel-resizer
-             data-target=".library-tab-inner"
-             data-direction="left"
-             data-min-width="200"
-             data-max-width="600"></div>
-        <div class="library-details-panel">
-            {% include "scholar_app/library_partials/library_details.html" %}
-            {% include "scholar_app/library_partials/library_import_export.html" %}
-        </div>
-    </div>
-</main>
-<!-- Properties resizer (auto-initialized via data attributes) -->
-<div class="panel-resizer"
-     id="main-resizer"
-     data-panel-resizer
-     data-storage-prefix="scitex-scholar-"
-     data-target=".scholar-properties"
-     data-direction="right"
-     data-min-width="40"
-     data-default-width="320"
-     data-storage-key="properties-width"
-     data-collapse-key="scholar-properties-collapsed"
-     data-toggle-btn="properties-toggle"></div>
-<!-- Right details panel -->
-<aside class="scholar-properties collapsible-panel" id="scholar-properties">
-    <div class="properties-header">
-        <button class="properties-toggle panel-toggle-btn right-panel-toggle"
-                id="properties-toggle"
-                title="Toggle details (Zen: F11/Alt+Z)">
-            <i class="fas fa-chevron-right"></i>
-        </button>
-        <span class="panel-title">
-            <i class="fas fa-sliders-h"></i> Details
-        </span>
-    </div>
-    <div class="properties-content" id="scholar-details-panel">
-        <!-- Search Details -->
-        <div id="details-search" class="scholar-details-content" data-tab="search">
-            {% include "scholar_app/search_partials/search_controls.html" %}
-        </div>
-        <!-- BibTeX Details -->
-        <div id="details-bibtex" class="scholar-details-content" data-tab="bibtex">
-            {% include "scholar_app/bibtex_partials/status_tiles.html" %}
-        </div>
-        <!-- Graph Details -->
-        <div id="details-graph" class="scholar-details-content" data-tab="graph">
+        <div class="scholar-tab-resizer" id="graph-resizer"></div>
+        <div class="graph-controls-inline"
+             style="width:280px;
+                    flex-shrink:0;
+                    overflow-y:auto;
+                    border-left:1px solid var(--workspace-border-default, #30363d);
+                    padding:8px">
             <div class="graph-sidebar">
-                <div class="sidebar-section">
+                <div class="sidebar-section collapsed" data-panel-id="graph-service-status">
                     <div class="sidebar-section__header"
-                         onclick="this.parentElement.classList.toggle('collapsed')">
+                         onclick="window._toggleInlinePanel && window._toggleInlinePanel(this)">
                         <h5 class="sidebar-section__title">
                             <i class="fas fa-heartbeat"></i> Service Status
                         </h5>
@@ -684,9 +659,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="sidebar-section">
+                <div class="sidebar-section collapsed" data-panel-id="graph-how-it-works">
                     <div class="sidebar-section__header"
-                         onclick="this.parentElement.classList.toggle('collapsed')">
+                         onclick="window._toggleInlinePanel && window._toggleInlinePanel(this)">
                         <h5 class="sidebar-section__title">
                             <i class="fas fa-info-circle"></i> How It Works
                         </h5>
@@ -718,9 +693,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="sidebar-section">
+                <div class="sidebar-section collapsed" data-panel-id="graph-controls">
                     <div class="sidebar-section__header"
-                         onclick="this.parentElement.classList.toggle('collapsed')">
+                         onclick="window._toggleInlinePanel && window._toggleInlinePanel(this)">
                         <h5 class="sidebar-section__title">
                             <i class="fas fa-keyboard"></i> Controls
                         </h5>
@@ -749,12 +724,19 @@
                 </div>
             </div>
         </div>
-        <!-- Library Details -->
-        <div id="details-library" class="scholar-details-content" data-tab="library">
+    </div>
+    <!-- Library Tab: 3-column layout (paper list | details | integrations) -->
+    <div id="tab-library" class="scholar-tab-content" data-tab="library">
+        <div class="library-tab-inner">{% include "scholar_app/library_partials/library_main.html" %}</div>
+        <div class="library-resizer" id="library-resizer"></div>
+        <div class="library-details-panel" id="library-details-panel">
             {% include "scholar_app/library_partials/library_details.html" %}
         </div>
+        <div class="library-integrations-panel" id="library-integrations-panel">
+            {% include "scholar_app/library_partials/library_import_export.html" %}
+        </div>
     </div>
-</aside>
+</main>
 </div>
 {% endblock %}
 {% block extra_js %}
@@ -897,9 +879,54 @@
             }
         })();
 
-        // Panel Toggle - REMOVED: Now handled by WorkspacePanelResizer
-        // The sidebar-toggle and properties-toggle buttons are managed by
-        // static/shared/ts/components/workspace-panel-resizer.ts
-        // which provides unified panel resizing and collapse functionality.
+        // Inline panel toggle with localStorage persistence
+        window._toggleInlinePanel = function(headerEl) {
+            var panel = headerEl.closest('.sidebar-section, .bibtex-tile, .mig-card');
+            if (!panel) return;
+            var panelId = panel.dataset.panelId;
+
+            // Toggle state
+            if (panel.classList.contains('sidebar-section')) {
+                panel.classList.toggle('collapsed');
+            } else if (panel.classList.contains('bibtex-tile')) {
+                panel.classList.toggle('bibtex-tile--expanded');
+            } else if (panel.classList.contains('mig-card')) {
+                panel.classList.toggle('collapsed');
+            }
+
+            // Save to localStorage
+            if (panelId) {
+                var isOpen = !panel.classList.contains('collapsed') &&
+                             (panel.classList.contains('bibtex-tile--expanded') || !panel.classList.contains('bibtex-tile'));
+                try {
+                    var stored = JSON.parse(localStorage.getItem('scholar-panel-states') || '{}');
+                    stored[panelId] = isOpen;
+                    localStorage.setItem('scholar-panel-states', JSON.stringify(stored));
+                } catch(e) {}
+            }
+        };
+
+        // Restore panel states from localStorage on load
+        (function restorePanelStates() {
+            try {
+                var stored = JSON.parse(localStorage.getItem('scholar-panel-states') || '{}');
+                Object.keys(stored).forEach(function(id) {
+                    var panel = document.querySelector('[data-panel-id="' + id + '"]');
+                    if (!panel) return;
+                    var isOpen = stored[id];
+
+                    if (panel.classList.contains('sidebar-section')) {
+                        if (isOpen) panel.classList.remove('collapsed');
+                        else panel.classList.add('collapsed');
+                    } else if (panel.classList.contains('bibtex-tile')) {
+                        if (isOpen) panel.classList.add('bibtex-tile--expanded');
+                        else panel.classList.remove('bibtex-tile--expanded');
+                    } else if (panel.classList.contains('mig-card')) {
+                        if (isOpen) panel.classList.remove('collapsed');
+                        else panel.classList.add('collapsed');
+                    }
+                });
+            } catch(e) {}
+        })();
     </script>
 {% endblock %}

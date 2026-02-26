@@ -1,89 +1,19 @@
 {% load static %}
 
-<!-- Stats Bar -->
-<div class="library-stats-bar" id="library-stats-bar">
-    <div class="library-stat-item" data-status="to_read">
-        <div class="library-stat-icon">
-            <i class="fas fa-bookmark"></i>
-        </div>
-        <div class="library-stat-content">
-            <div class="library-stat-label">To Read</div>
-            <div class="library-stat-count" id="stat-to-read">0</div>
-        </div>
+<!-- Hidden file input for BibTeX import (referenced by JS) -->
+<input type="file" id="bibtex-file-input" accept=".bib" hidden />
+<!-- Unified toolbar: collection filter + search + sort -->
+<div class="library-toolbar">
+    <div class="library-collection-filter" id="library-collection-filter">
+        <button class="library-collection-pill active" data-collection="all">All</button>
+        <!-- Additional collections loaded via JS -->
     </div>
-    <div class="library-stat-item" data-status="reading">
-        <div class="library-stat-icon">
-            <i class="fas fa-book-open"></i>
-        </div>
-        <div class="library-stat-content">
-            <div class="library-stat-label">Reading</div>
-            <div class="library-stat-count" id="stat-reading">0</div>
-        </div>
-    </div>
-    <div class="library-stat-item" data-status="read">
-        <div class="library-stat-icon">
-            <i class="fas fa-check-circle"></i>
-        </div>
-        <div class="library-stat-content">
-            <div class="library-stat-label">Read</div>
-            <div class="library-stat-count" id="stat-read">0</div>
-        </div>
-    </div>
-    <div class="library-stat-item" data-status="referenced">
-        <div class="library-stat-icon">
-            <i class="fas fa-quote-right"></i>
-        </div>
-        <div class="library-stat-content">
-            <div class="library-stat-label">Referenced</div>
-            <div class="library-stat-count" id="stat-referenced">0</div>
-        </div>
-    </div>
-    <div class="library-stat-item" data-status="favorite">
-        <div class="library-stat-icon">
-            <i class="fas fa-star"></i>
-        </div>
-        <div class="library-stat-content">
-            <div class="library-stat-label">Favorite</div>
-            <div class="library-stat-count" id="stat-favorite">0</div>
-        </div>
-    </div>
-</div>
-<!-- Action Bar -->
-<div class="library-action-bar">
-    <div class="library-actions-left">
-        <button class="library-action-btn" id="library-import-btn">
-            <i class="fas fa-file-upload"></i>
-            <span>Import BibTeX</span>
-        </button>
-        <input type="file" id="bibtex-file-input" accept=".bib" hidden />
-        <button class="library-action-btn" id="library-export-all-btn">
-            <i class="fas fa-file-download"></i>
-            <span>Export BibTeX</span>
-        </button>
-        <button class="library-action-btn" id="export-ris-button">
-            <i class="fas fa-file-export"></i>
-            <span>Export RIS</span>
-        </button>
-    </div>
-    <div class="library-actions-right">
-        <button class="library-action-btn" id="library-refresh-btn">
-            <i class="fas fa-sync-alt"></i>
-        </button>
-    </div>
-</div>
-<!-- Collection Filter -->
-<div class="library-collection-filter" id="library-collection-filter">
-    <button class="library-collection-pill active" data-collection="all">All</button>
-    <!-- Additional collections loaded via JS -->
-</div>
-<!-- Search/Filter Bar -->
-<div class="library-search-bar">
     <div class="library-search-input-wrapper">
         <i class="fas fa-search library-search-icon"></i>
         <input type="text"
                class="library-search-input"
                id="library-search-input"
-               placeholder="Search papers by title or author..." />
+               placeholder="Search papers..." />
         <button class="library-search-clear" id="library-search-clear" hidden>
             <i class="fas fa-times"></i>
         </button>

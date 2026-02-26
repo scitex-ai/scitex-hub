@@ -82,17 +82,4 @@
 {% vite_script 'scholar_app/shared/collapsible-panels' %}
 {% vite_script 'scholar_app/bibtex/bibtex-enrichment' %}
 {% vite_script 'scholar_app/bibtex/queue-management' %}
-<script>
-// Toggle panel function for tiles
-function toggleBibtexPanel(header) {
-    const tile = header.closest('.bibtex-tile');
-    tile.classList.toggle('bibtex-tile--expanded');
-}
-
-// Initialize all tiles as expanded by default
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.bibtex-tile').forEach(tile => {
-        tile.classList.add('bibtex-tile--expanded');
-    });
-});
-</script>
+<script>// Toggle is now handled by window._toggleInlinePanel with localStorage persistence</script>

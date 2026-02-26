@@ -17,9 +17,10 @@
 /* Card container */
 .mig-card {
   border: 1px solid var(--workspace-border-default, #3a3a3a);
-  border-radius: 4px;
+  border-radius: 6px;
   overflow: hidden;
   margin-bottom: 8px;
+  background: var(--workspace-bg-secondary, #1e1e1e);
 }
 
 /* Header */
@@ -27,45 +28,47 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.6rem 0.85rem;
-  background: var(--workspace-bg-secondary, #151515);
+  padding: 12px;
+  background: var(--workspace-bg-tertiary, #1a1a1a);
   cursor: pointer;
   user-select: none;
   border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 6px 6px 0 0;
 }
 
 .mig-card__header:hover {
   background: var(--workspace-bg-tertiary, #1a1a1a);
 }
 
-/* Title — uppercase like Zotero cards */
+/* Title */
 .mig-card__title {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary, #d4e1e8);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  gap: 8px;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .mig-card__title i {
-  font-size: 0.7rem;
+  color: var(--workspace-icon-primary, #059669);
+  font-size: 12px;
 }
 
 /* Chevron */
 .mig-card__chevron {
   color: var(--text-muted, #6c8ba0);
-  font-size: 0.65rem;
+  font-size: 10px;
   transition: transform 0.2s ease;
 }
 
 /* Content */
 .mig-card__content {
-  padding: 0.85rem;
-  background: var(--workspace-bg-secondary, #151515);
+  padding: 12px;
+  background: var(--workspace-bg-secondary, #1e1e1e);
 }
 
 /* Collapsed state */

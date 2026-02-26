@@ -13,6 +13,7 @@
 .sidebar-section {
   background: var(--workspace-bg-secondary);
   border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
 }
 
 .sidebar-section.collapsed .sidebar-section__content {
@@ -27,10 +28,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 12px;
+  padding: 12px;
   cursor: pointer;
   user-select: none;
   transition: background 0.15s;
+  border-radius: 6px 6px 0 0;
 }
 
 .sidebar-section__header:hover {
@@ -39,7 +41,7 @@
 
 .sidebar-section__title {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   display: flex;
@@ -49,7 +51,7 @@
 
 .sidebar-section__title i {
   color: var(--workspace-icon-primary);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .sidebar-section__toggle {

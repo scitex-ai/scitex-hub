@@ -93,6 +93,10 @@
   --workspace-slider-active: #5f5e5d; /* Slider handle active */
   --workspace-ruler-bg: #e0dfdd; /* Warm ruler background */
   --workspace-ruler-border: #d0cfcd; /* Warm ruler borders */
+  --workspace-text-primary: #24292f; /* Dark text on light backgrounds */
+  --workspace-text-secondary: #57606a; /* Muted text on light backgrounds */
+  --workspace-bg-hover: rgba(0, 0, 0, 0.04); /* Subtle hover on light bg */
+  --workspace-bg-active: rgba(0, 0, 0, 0.08); /* Subtle active on light bg */
 
   /* Module accent colors - top border for module-specific pane headers
      Light mode: deeper/saturated to contrast against warm white backgrounds */
@@ -274,6 +278,15 @@
   --workspace-slider-active: #8b949e; /* Slider handle active */
   --workspace-ruler-bg: #161b22; /* Rulers and guides background */
   --workspace-ruler-border: #21262d; /* Ruler borders */
+  --workspace-text-primary: #e6edf3; /* Light text on dark backgrounds */
+  --workspace-text-secondary: #8b949e; /* Muted text on dark backgrounds */
+  --workspace-bg-hover: rgba(177, 186, 196, 0.08); /* Subtle hover on dark bg */
+  --workspace-bg-active: rgba(
+    177,
+    186,
+    196,
+    0.12
+  ); /* Subtle active on dark bg */
 
   /* Module accent colors - dark mode */
   --module-accent-color: transparent;

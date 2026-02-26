@@ -62,7 +62,9 @@ def _filter_modules_for_user(request, modules):
             ).values_list("module_name", "status")
         )
         for mod in modules:
-            mod.status = mp_statuses.get(mod.name, "")
+            db_status = mp_statuses.get(mod.name)
+            if db_status:
+                mod.status = db_status
     except Exception:
         # marketplace_app not migrated yet or other DB issue
         return modules

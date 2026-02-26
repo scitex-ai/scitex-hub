@@ -104,14 +104,7 @@ function updateActiveTab(name: string): void {
 }
 
 function init(): void {
-  // Only activate when the three-column workspace layout is present.
-  if (!document.querySelector("#workspace-three-col.workspace-three-col"))
-    return;
-
-  // Populate known modules from DOM (set by registry context processor).
-  KNOWN_MODULES = getKnownModules();
-
-  // Set accent for the initially active module.
+  // Always set accent for the initially active module (server-rendered).
   const activeTab = document.querySelector(".module-tab-btn.active");
   if (activeTab) {
     const mod =
@@ -121,6 +114,13 @@ function init(): void {
       );
     if (mod) updateActiveTab(mod);
   }
+
+  // Tab switching via fetch only works with three-column workspace layout.
+  if (!document.querySelector("#workspace-three-col.workspace-three-col"))
+    return;
+
+  // Populate known modules from DOM (set by registry context processor).
+  KNOWN_MODULES = getKnownModules();
 
   // Intercept tab bar clicks.
   document.querySelectorAll(".module-tab-btn").forEach((btn) => {
