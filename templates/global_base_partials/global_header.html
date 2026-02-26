@@ -190,7 +190,36 @@
                     {% endif %}
                 </div>
             </div>
-            <!-- Navigation moved to module tab bar — header is for global actions only -->
+            <!-- Navigation: shown only on non-workspace pages (tab bar handles workspace nav) -->
+            {% if not is_workspace_page %}
+                <nav class="header-nav">
+                    <a href="/hub/"
+                       class="header-nav-item"
+                       data-tooltip="Project hub (Alt+H)"
+                       data-shortcut="H">
+                        {% module_icon "hub" "nav" %}
+                        <span class="nav-label">Hub</span>
+                    </a>
+                    <a href="/writer/"
+                       class="header-nav-item"
+                       data-tooltip="Manuscript writing (Alt+W)"
+                       data-shortcut="W">
+                        {% module_icon "writer" "nav" %}
+                        <span class="nav-label">Writer</span>
+                    </a>
+                    <a href="/scholar/"
+                       class="header-nav-item"
+                       data-tooltip="Citation Management (Alt+S)"
+                       data-shortcut="S">
+                        {% module_icon "scholar" "nav" %}
+                        <span class="nav-label">Scholar</span>
+                    </a>
+                    <a href="/marketplace/" class="header-nav-item" data-tooltip="App Marketplace">
+                        {% module_icon "marketplace" "nav" %}
+                        <span class="nav-label">Apps</span>
+                    </a>
+                </nav>
+            {% endif %}
         </div>
         <!-- Project Selector (authenticated users + visitors only) -->
         <div class="header-project-selector"
