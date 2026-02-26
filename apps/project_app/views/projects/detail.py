@@ -7,17 +7,17 @@ Display project details with GitHub-style file browser and README.
 """
 
 from __future__ import annotations
+
 import logging
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
 
-from ...models import Project, ProjectWatch, ProjectStar, ProjectFork
 from ...decorators import project_access_required
+from ...models import ProjectFork, ProjectStar, ProjectWatch
 from .detail_helpers import (
+    get_branches,
     get_directory_contents,
     get_readme_content,
-    get_branches,
 )
 
 logger = logging.getLogger(__name__)
@@ -57,28 +57,29 @@ def project_detail(request, username, slug):
             return proxy_manager.proxy_request(request, port)
         except ValueError:
             from django.http import HttpResponse
+
             return HttpResponse(
                 f"Invalid port parameter: {port_param}",
                 status=400,
-                content_type='text/plain'
+                content_type="text/plain",
             )
         except Exception as e:
             from django.http import HttpResponse
+
             logger.error(f"Port proxy error: {e}", exc_info=True)
             return HttpResponse(
-                f"Proxy error: {str(e)}",
-                status=500,
-                content_type='text/plain'
+                f"Proxy error: {str(e)}", status=500, content_type="text/plain"
             )
 
     mode = request.GET.get("mode", "overview")
     view = request.GET.get("view", "default")
 
-    # Track last active repository for this user
+    # Track last active repository — only for projects the user owns
     if request.user.is_authenticated and hasattr(request.user, "profile"):
-        if request.user.profile.last_active_repository != project:
-            request.user.profile.last_active_repository = project
-            request.user.profile.save(update_fields=["last_active_repository"])
+        if project.owner_id == request.user.id:
+            if request.user.profile.last_active_repository != project:
+                request.user.profile.last_active_repository = project
+                request.user.profile.save(update_fields=["last_active_repository"])
 
     # Handle concatenated view
     if view == "concatenated":
@@ -135,9 +136,10 @@ def project_detail(request, username, slug):
 
     # Get Gitea URLs for clone button
     from django.conf import settings
-    gitea_url = getattr(settings, 'SCITEX_CLOUD_GITEA_URL', 'http://127.0.0.1:3000')
-    gitea_ssh_domain = getattr(settings, 'SCITEX_CLOUD_GIT_DOMAIN', '127.0.0.1')
-    gitea_ssh_port = getattr(settings, 'SCITEX_CLOUD_GITEA_SSH_PORT', '2222')
+
+    gitea_url = getattr(settings, "SCITEX_CLOUD_GITEA_URL", "http://127.0.0.1:3000")
+    gitea_ssh_domain = getattr(settings, "SCITEX_CLOUD_GIT_DOMAIN", "127.0.0.1")
+    gitea_ssh_port = getattr(settings, "SCITEX_CLOUD_GITEA_SSH_PORT", "2222")
 
     gitea_https_url = f"{gitea_url}/{project.owner.username}/{project.slug}.git"
     # Use SSH URI format with explicit port: ssh://user@host:port/path

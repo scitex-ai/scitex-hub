@@ -422,10 +422,16 @@ async def run_tool_loop_streaming(
 
             # Emit media references for frontend rendering
             if project_root:
-                from apps.llm_app.services.media_detect import extract_media_refs
+                from apps.llm_app.services.media_detect import (
+                    extract_media_from_json,
+                    extract_media_refs,
+                )
 
                 media = extract_media_refs(result_text, project_root)
+                if not media:
+                    media = extract_media_from_json(result_text, project_root)
                 if media:
+                    logger.info("Media detected from %s: %s", tool_name, media)
                     yield {"type": "tool_result", "name": tool_name, "media": media}
 
             messages.append(

@@ -10,7 +10,9 @@ import { readActiveProjectSlug } from "./components/global-ai-chat/context";
 import { AIPanelChatMode } from "./components/global-ai-chat/chat-mode";
 import { AIPanelConsoleMode } from "./components/global-ai-chat/console-mode";
 import { initEvalJsRelay } from "./components/global-ai-chat/eval-js-relay";
+import { initFileDrop } from "./components/global-ai-chat/file-drop";
 import { AIPanelJobsMode } from "./components/global-ai-chat/jobs-mode";
+import { SessionsPanel } from "./components/global-ai-chat/sessions-panel";
 import { fetchAndPopulateSttModels } from "./components/global-ai-chat/stt-models";
 import { fetchAndPopulateLlmModels } from "./components/global-ai-chat/llm-model-selector";
 import { fetchMcpStatus } from "./components/global-ai-chat/mcp-status";
@@ -19,6 +21,7 @@ import {
   fetchCurrentModel,
   setModelBadge,
 } from "./components/global-ai-chat/model-badge";
+import { initKeyboardShortcuts } from "./components/keyboard-shortcuts";
 
 const PANEL_OPEN_KEY = "scitex_ai_open";
 
@@ -63,6 +66,7 @@ class GlobalAIChat {
   private chatMode: AIPanelChatMode | null = null;
   private consoleMode: AIPanelConsoleMode | null = null;
   private jobsMode: AIPanelJobsMode | null = null;
+  private sessionsPanel: SessionsPanel | null = null;
 
   init(): void {
     this.fab = document.getElementById("scitex-ai-fab");
@@ -85,6 +89,10 @@ class GlobalAIChat {
     this.modelBadge = document.getElementById("scitex-ai-model-badge");
 
     if (!this.panel) return;
+
+    // File drop support — attach to entire chat view for a bigger drop target
+    const chatView = document.getElementById("scitex-ai-chat-view");
+    if (chatView && this.inputEl) initFileDrop(chatView, this.inputEl);
 
     // Initialise chat mode (encapsulates messaging logic)
     this.chatMode = new AIPanelChatMode();
@@ -147,22 +155,37 @@ class GlobalAIChat {
       if (!this.inputEl) return;
       this.inputEl.style.height = "auto";
       this.inputEl.style.height =
-        Math.min(this.inputEl.scrollHeight, 96) + "px";
+        Math.min(this.inputEl.scrollHeight, 192) + "px";
     });
 
-    document.addEventListener("keydown", (e: KeyboardEvent) => {
-      if (e.altKey && e.key === "a") {
-        const t = e.target as HTMLElement;
-        if (
-          !t.closest("#monaco-editor") &&
-          !t.closest(".xterm") &&
-          !t.closest(".CodeMirror")
-        ) {
-          e.preventDefault();
-          this.toggle();
-        }
-      }
-    });
+    // Sessions panel
+    const sessionsListEl = document.getElementById("scitex-ai-sessions-list");
+    if (sessionsListEl && this.chatMode) {
+      this.sessionsPanel = new SessionsPanel();
+      this.sessionsPanel.init(
+        sessionsListEl,
+        (messages, sessionId) => {
+          this.chatMode?.loadSessionMessages(messages, sessionId);
+        },
+        () => this.chatMode?.clearChat(),
+      );
+      this.chatMode.setSessionsPanel(this.sessionsPanel);
+    }
+
+    // Copy & clear chat buttons
+    document
+      .getElementById("scitex-ai-copy-chat")
+      ?.addEventListener("click", () => {
+        void this.chatMode?.copyChat();
+      });
+    document
+      .getElementById("scitex-ai-clear-chat")
+      ?.addEventListener("click", () => {
+        this.chatMode?.clearChat();
+      });
+
+    // Centralized keyboard shortcuts (replaces inline Alt+A handler)
+    initKeyboardShortcuts();
 
     this.context.page = window.location.href;
     const slug = readActiveProjectSlug();
@@ -174,6 +197,8 @@ class GlobalAIChat {
     if (this.isOpen) {
       this.panel?.removeAttribute("aria-hidden");
       document.body.classList.add("scitex-ai-open");
+      // Panel already expanded — scroll after layout settles
+      setTimeout(() => this.chatMode?.scrollToBottom(), 100);
     }
 
     const savedModel = sessionStorage.getItem(MODEL_KEY);
@@ -429,7 +454,10 @@ class GlobalAIChat {
     document.body.classList.add("scitex-ai-open");
     sessionStorage.setItem(PANEL_OPEN_KEY, "1");
     localStorage.setItem("scitex-ai-panel-collapsed", "false");
-    setTimeout(() => this.inputEl?.focus(), 260);
+    setTimeout(() => {
+      this.inputEl?.focus();
+      this.chatMode?.scrollToBottom();
+    }, 260);
   }
 
   private close(): void {

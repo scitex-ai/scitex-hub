@@ -243,17 +243,20 @@
   color: var(--text-primary);
   padding: 8px 12px;
   font-size: 0.85rem;
-  border-radius: 0;
+  border-radius: 6px;
 }
 
 .library-search-input {
   width: 100%;
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  background: var(--workspace-bg-primary, #0d0d0d);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
   color: var(--text-primary);
-  padding: 8px 12px;
-  font-size: 0.9rem;
-  border-radius: 0;
+  padding: 10px 12px;
+  font-size: 14px;
+  border-radius: 6px;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .library-search-input::placeholder {
@@ -262,7 +265,8 @@
 
 .library-search-input:focus {
   outline: none;
-  border-color: var(--icon-primary);
+  border-color: var(--workspace-icon-primary, #059669);
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15);
 }
 
 /* Papers Container */

@@ -10,7 +10,20 @@
   padding: 4px 8px;
   border-top: 1px solid var(--workspace-border-default);
   background: var(--workspace-bg-secondary);
-  flex-shrink: 0; /* Don't shrink git panel */
+  flex-shrink: 0;
+}
+
+.wft-git-panel.collapsed .wft-git-panel-body {
+  display: none;
+}
+
+.wft-git-chevron {
+  font-size: 9px;
+  transition: transform 0.15s ease;
+}
+
+.wft-git-panel:not(.collapsed) .wft-git-chevron {
+  transform: rotate(90deg);
 }
 
 .wft-git-panel-header {
@@ -18,6 +31,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 6px;
+  cursor: pointer;
 }
 
 .wft-git-panel-title {

@@ -189,6 +189,26 @@ def _derive_app_name(context: dict) -> str:
     return "llm_app"
 
 
+async def _with_keepalive(aiter, interval_s: float = 15.0):
+    """Wrap an async iterator with SSE keepalive comments.
+
+    Sends ``: keepalive`` comments when no data arrives within *interval_s*
+    seconds, preventing proxies and browsers from closing idle connections.
+    """
+    import asyncio
+    import json as _json
+
+    ait = aiter.__aiter__()
+    while True:
+        try:
+            event = await asyncio.wait_for(ait.__anext__(), timeout=interval_s)
+            yield f"data: {_json.dumps(event)}\n\n"
+        except asyncio.TimeoutError:
+            yield ": keepalive\n\n"
+        except StopAsyncIteration:
+            break
+
+
 @transaction.non_atomic_requests
 @login_required
 @require_http_methods(["POST"])
@@ -299,13 +319,15 @@ async def api_chat_stream(request):
                         yield f"data: {_json.dumps({'type': 'chunk', 'text': delta.content})}\n\n"
                 await sync_to_async(increment_campaign_usage)(request)
             else:
-                async for event in service.complete_with_tools_streaming(
-                    messages=messages,
-                    app_name=app_name,
-                    feature="ai_chat_stream",
-                    project_root=project_root_str,
+                async for event in _with_keepalive(
+                    service.complete_with_tools_streaming(
+                        messages=messages,
+                        app_name=app_name,
+                        feature="ai_chat_stream",
+                        project_root=project_root_str,
+                    )
                 ):
-                    yield f"data: {_json.dumps(event)}\n\n"
+                    yield event
         except Exception as e:
             yield f"data: {_json.dumps({'type': 'error', 'error': str(e)})}\n\n"
         yield "data: [DONE]\n\n"

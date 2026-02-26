@@ -277,9 +277,16 @@ class UserProfile(models.Model):
 
         If last_active_repository is unset, picks the first project and
         persists the choice so subsequent requests are fast.
+        Only returns projects owned by the user.
         """
         if self.last_active_repository_id:
-            return self.last_active_repository
+            lar = self.last_active_repository
+            # Only return if user owns this project
+            if lar.owner_id == self.user_id:
+                return lar
+            # Clear stale cross-user reference
+            self.last_active_repository = None
+            self.save(update_fields=["last_active_repository"])
         first = self.get_user_projects().first()
         if first:
             self.last_active_repository = first

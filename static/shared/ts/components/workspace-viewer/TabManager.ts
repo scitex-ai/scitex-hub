@@ -1,20 +1,11 @@
 /**
- * TabManager - Simplified tab manager for the shared workspace viewer.
+ * TabManager - Single-file tracker for the shared workspace viewer.
  *
- * Features:
- * - Permanent *scratch* tab (always first, non-closeable, non-draggable)
- * - localStorage persistence, drag-and-drop reorder, tab switching
- *
- * Differences from console_app FileTabManager:
- * - No FileCreationHelper dependency
- * - No ModalManager dependency
- * - No inline rename
+ * Displays the current filename with a close button. No multi-tab support.
+ * Opening a new file replaces the current one.
  */
 
 import type { TabInfo } from "./types.ts";
-
-/** Path for the context buffer — matches the on-disk file. */
-export const SCRATCH_PATH = "scitex/CONTEXT.md";
 
 interface TabManagerConfig {
   container: HTMLElement;
@@ -24,13 +15,11 @@ interface TabManagerConfig {
 }
 
 export class TabManager {
-  private tabs: Map<string, TabInfo> = new Map();
-  private activeTab: string | null = null;
+  private currentFile: TabInfo | null = null;
   private container: HTMLElement;
   private storageKey: string;
   private onSwitch: (path: string) => void;
   private onClose: (path: string) => void;
-  private draggedPath: string | null = null;
 
   constructor(config: TabManagerConfig) {
     this.container = config.container;
@@ -39,76 +28,62 @@ export class TabManager {
     this.onClose = config.onClose;
   }
 
-  /** Add a tab if not already open, then switch to it. */
+  /** Open a file, replacing the current one. */
   openTab(info: TabInfo): void {
-    if (!this.tabs.has(info.path)) {
-      this.tabs.set(info.path, info);
-    }
-    this.switchTab(info.path);
+    this.currentFile = info;
+    this.render();
+    this.saveState();
+    this.onSwitch(info.path);
   }
 
-  /** Remove a tab and switch to an adjacent one if needed. */
+  /** Close the current file and show empty state. */
   closeTab(path: string): void {
-    if (path === SCRATCH_PATH) return; // scratch tab cannot be closed
-    if (!this.tabs.has(path)) return;
-
-    const keys = Array.from(this.tabs.keys());
-    const idx = keys.indexOf(path);
-
-    this.tabs.delete(path);
-
-    if (this.activeTab === path) {
-      const remaining = Array.from(this.tabs.keys());
-      const nextKey = remaining[Math.min(idx, remaining.length - 1)] ?? null;
-      this.activeTab = nextKey;
-      if (nextKey) {
-        this.onSwitch(nextKey);
-      }
-    }
-
+    if (!this.currentFile || this.currentFile.path !== path) return;
+    const closedPath = this.currentFile.path;
+    this.currentFile = null;
     this.render();
     this.saveState();
-    this.onClose(path);
+    this.onClose(closedPath);
   }
 
-  /** Activate a tab and update the UI. */
+  /** Switch — with a single file, only fires if the path matches. */
   switchTab(path: string): void {
-    if (!this.tabs.has(path)) return;
-    this.activeTab = path;
-    this.render();
-    this.saveState();
+    if (!this.currentFile || this.currentFile.path !== path) return;
     this.onSwitch(path);
   }
 
   getActiveTab(): string | null {
-    return this.activeTab;
+    return this.currentFile?.path ?? null;
   }
 
-  /** Rebuild the tab bar from the current tabs map. */
+  /** Render the current filename label (or nothing if empty). */
   render(): void {
     this.container.innerHTML = "";
+    if (!this.currentFile) return;
 
-    this.tabs.forEach((info, path) => {
-      const tab = this.createTabElement(path, info);
-      this.container.appendChild(tab);
-    });
+    const label = document.createElement("span");
+    label.className = "ws-viewer-current-file";
+    label.textContent =
+      this.currentFile.title ||
+      this.currentFile.path.split("/").pop() ||
+      this.currentFile.path;
+    label.title = this.currentFile.path;
+    this.container.appendChild(label);
 
-    // "+" button to open a file from the worktree
-    const addBtn = document.createElement("button");
-    addBtn.className = "ws-viewer-tab-add";
-    addBtn.innerHTML = "+";
-    addBtn.title = "Open file";
-    addBtn.addEventListener("click", () => {
-      document.dispatchEvent(new CustomEvent("workspace-file-pick"));
-    });
-    this.container.appendChild(addBtn);
+    const closeBtn = document.createElement("span");
+    closeBtn.className = "ws-viewer-file-close";
+    closeBtn.innerHTML = "&times;";
+    closeBtn.title = "Close file";
+    closeBtn.addEventListener("click", () =>
+      this.closeTab(this.currentFile!.path),
+    );
+    this.container.appendChild(closeBtn);
   }
 
   saveState(): void {
-    const state = Array.from(this.tabs.values());
     localStorage.setItem(
       this.storageKey,
-      JSON.stringify({ tabs: state, active: this.activeTab }),
+      JSON.stringify({ file: this.currentFile }),
     );
   }
 
@@ -117,124 +92,13 @@ export class TabManager {
       const raw = localStorage.getItem(this.storageKey);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed.tabs)) return null;
-      return parsed.tabs as TabInfo[];
+      // Legacy format (tabs array)
+      if (Array.isArray(parsed.tabs)) return parsed.tabs as TabInfo[];
+      // New format (single file)
+      if (parsed.file) return [parsed.file] as TabInfo[];
+      return null;
     } catch {
       return null;
     }
-  }
-
-  // --- Private helpers ---
-
-  private createTabElement(path: string, info: TabInfo): HTMLElement {
-    const isActive = path === this.activeTab;
-
-    const tab = document.createElement("div");
-    tab.className = `ws-viewer-tab${isActive ? " active" : ""}`;
-    tab.dataset.path = path;
-    tab.title = path;
-
-    const nameSpan = document.createElement("span");
-    nameSpan.className = "ws-viewer-tab-name";
-    nameSpan.textContent = info.title || path.split("/").pop() || path;
-    tab.appendChild(nameSpan);
-
-    if (path === SCRATCH_PATH) {
-      // Pinned icon — CONTEXT.md cannot be closed
-      const pinIcon = document.createElement("span");
-      pinIcon.className = "ws-viewer-tab-pin";
-      pinIcon.innerHTML = '<i class="fas fa-thumbtack"></i>';
-      pinIcon.title = "Pinned";
-      tab.appendChild(pinIcon);
-    } else {
-      const closeBtn = document.createElement("span");
-      closeBtn.className = "ws-viewer-tab-close";
-      closeBtn.innerHTML = "&times;";
-      closeBtn.title = "Close";
-      closeBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        this.closeTab(path);
-      });
-      tab.appendChild(closeBtn);
-    }
-
-    tab.addEventListener("click", () => this.switchTab(path));
-
-    this.setupDragDrop(tab, path);
-
-    return tab;
-  }
-
-  private setupDragDrop(tab: HTMLElement, path: string): void {
-    if (path === SCRATCH_PATH) {
-      tab.draggable = false;
-      return;
-    }
-    tab.draggable = true;
-
-    tab.addEventListener("dragstart", (e) => {
-      this.draggedPath = path;
-      tab.classList.add("dragging");
-      if (e.dataTransfer) {
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", path);
-      }
-    });
-
-    tab.addEventListener("dragend", () => {
-      this.draggedPath = null;
-      tab.classList.remove("dragging");
-      this.container
-        .querySelectorAll(".ws-viewer-tab")
-        .forEach((t) => t.classList.remove("drag-over"));
-    });
-
-    tab.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      if (this.draggedPath && this.draggedPath !== path) {
-        tab.classList.add("drag-over");
-      }
-    });
-
-    tab.addEventListener("dragleave", () => tab.classList.remove("drag-over"));
-
-    tab.addEventListener("drop", (e) => {
-      e.preventDefault();
-      tab.classList.remove("drag-over");
-      if (this.draggedPath && this.draggedPath !== path) {
-        this.reorderTabs(this.draggedPath, path);
-      }
-    });
-  }
-
-  private reorderTabs(draggedPath: string, targetPath: string): void {
-    // Never move the scratch tab, and never drop before it
-    if (draggedPath === SCRATCH_PATH) return;
-    if (targetPath === SCRATCH_PATH) return;
-
-    const entries = Array.from(this.tabs.entries());
-    const fromIdx = entries.findIndex(([p]) => p === draggedPath);
-    const toIdx = entries.findIndex(([p]) => p === targetPath);
-    if (fromIdx === -1 || toIdx === -1) return;
-
-    const [dragged] = entries.splice(fromIdx, 1);
-    let insertIdx = fromIdx < toIdx ? toIdx - 1 : toIdx;
-
-    // Ensure nothing is placed before index 0 (scratch)
-    if (
-      entries.length > 0 &&
-      entries[0][0] === SCRATCH_PATH &&
-      insertIdx === 0
-    ) {
-      insertIdx = 1;
-    }
-
-    entries.splice(insertIdx, 0, dragged);
-
-    this.tabs.clear();
-    entries.forEach(([p, info]) => this.tabs.set(p, info));
-
-    this.render();
-    this.saveState();
   }
 }

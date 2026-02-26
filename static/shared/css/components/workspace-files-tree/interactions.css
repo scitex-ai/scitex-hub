@@ -5,11 +5,11 @@
 
 /* ========== Drag-and-drop styles ========== */
 .wft-item[draggable="true"] {
-  cursor: grab;
+  cursor: pointer;
 }
 
 .wft-item[draggable="true"]:active {
-  cursor: grabbing;
+  cursor: pointer;
 }
 
 .wft-item.wft-dragging {

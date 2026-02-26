@@ -7,8 +7,9 @@ Centralized utilities for project management across all apps (Writer, Scholar, e
 This prevents code duplication and ensures consistent project selection logic.
 """
 
-from apps.project_app.models import Project
 import logging
+
+from apps.project_app.models import Project
 
 logger = logging.getLogger(__name__)
 
@@ -67,14 +68,19 @@ def get_current_project(request, user=None):
             # Clear invalid session
             request.session.pop("current_project_id", None)
 
-    # For authenticated users, try header selector
+    # For authenticated users, try header selector (only if user owns the project)
     if is_authenticated:
         if hasattr(user, "profile") and user.profile.last_active_repository:
-            current_project = user.profile.last_active_repository
-            logger.info(
-                f"Using last_active_repository for user {user.username}: {current_project.name}"
-            )
-            return current_project
+            lar = user.profile.last_active_repository
+            if lar.owner_id == user.id:
+                logger.info(
+                    f"Using last_active_repository for user {user.username}: {lar.name}"
+                )
+                return lar
+            else:
+                logger.info(
+                    f"Skipping last_active_repository (owned by {lar.owner}): {lar.name}"
+                )
 
     # Fallback: try session-based project selection by slug
     current_project_slug = request.session.get("current_project_slug")

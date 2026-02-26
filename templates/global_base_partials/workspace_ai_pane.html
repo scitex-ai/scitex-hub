@@ -24,16 +24,13 @@
                         bottom:0;
                         z-index:1"></div>
             <div class="sidebar-header scitex-ai-panel-header" id="scitex-ai-panel-header">
-                <button class="panel-toggle-btn" id="scitex-ai-toggle" title="AI Agent (Alt+A)">
+                <button class="panel-toggle-btn" id="scitex-ai-toggle" title="AI Chat (Alt+A)">
                     <i class="fas fa-chevron-right"></i>
                 </button>
-                <span class="sidebar-title">AI Agent</span>
-                <span class="scitex-ai-panel-title">
-                    <i class="fas fa-robot"></i> AI Agent
-                </span>
+                <span class="sidebar-title" id="scitex-ai-collapsed-title">Chat & Console</span>
                 <div class="scitex-ai-mode-toggle">
                     <button class="scitex-ai-mode-btn active" data-mode="chat" title="AI Chat">
-                        <i class="fas fa-comments"></i> Chat
+                        <i class="fas fa-robot"></i> Chat
                     </button>
                     <button class="scitex-ai-mode-btn" data-mode="console" title="Terminal">
                         <i class="fas fa-terminal"></i> Console
@@ -47,6 +44,12 @@
                     </button>
                 </div>
                 <div class="scitex-ai-panel-actions">
+                    <button class="scitex-ai-action-btn" id="scitex-ai-copy-chat" title="Copy chat">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                    <button class="scitex-ai-action-btn" id="scitex-ai-clear-chat" title="Clear chat">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
                     <button class="scitex-ai-action-btn"
                             title="Keyboard Shortcuts"
                             onclick="window.showShortcutsModal()">
@@ -57,6 +60,12 @@
             <div class="sidebar-content scitex-ai-body">
                 <!-- Chat mode -->
                 <div id="scitex-ai-chat-view" class="scitex-ai-view active">
+                    <div class="scitex-ai-sessions-bar">
+                        <button class="scitex-ai-new-chat" title="New chat">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <div id="scitex-ai-sessions-list" class="scitex-ai-sessions-list"></div>
+                    </div>
                     <div id="scitex-ai-messages" class="scitex-ai-messages">
                         <div class="scitex-ai-empty">
                             <i class="fas fa-robot"></i>
@@ -65,17 +74,18 @@
                         </div>
                     </div>
                     <div class="scitex-ai-input-area">
-                        <textarea id="scitex-ai-input"
-                                  class="scitex-ai-input"
-                                  rows="3"
-                                  placeholder="Ask AI agent... (Enter to send)"
-                                  autocomplete="off"></textarea>
-                        <button id="scitex-ai-mic" class="scitex-ai-mic" title="Voice input">
-                            <i class="fas fa-microphone"></i>
-                        </button>
-                        <button id="scitex-ai-send" class="scitex-ai-send" title="Send (Enter)">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
+                        <span id="scitex-ai-model-badge" class="scitex-ai-model-badge"></span>
+                        <div class="scitex-ai-input-wrap">
+                            <textarea id="scitex-ai-input"
+                                      class="scitex-ai-input"
+                                      rows="1"
+                                      placeholder="Ask anything"
+                                      autocomplete="off"></textarea>
+                            <button id="scitex-ai-mic" class="scitex-ai-mic" title="Voice input">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                        </div>
+                        <button id="scitex-ai-send" class="scitex-ai-send" hidden></button>
                     </div>
                 </div>
                 <!-- Console/Terminal mode -->
@@ -99,7 +109,7 @@
                         <div class="ai-settings-row">
                             <label class="scitex-ai-settings-label">
                                 <i class="fas fa-brain"></i> LLM Model
-                                <span id="scitex-ai-model-badge" class="scitex-ai-model-badge"></span>
+                                <span id="scitex-ai-config-model-badge" class="scitex-ai-model-badge"></span>
                             </label>
                             <select id="scitex-ai-llm-model" class="ai-settings-select" title="LLM model for chat"></select>
                         </div>

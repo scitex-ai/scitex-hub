@@ -196,23 +196,13 @@ async function executeStep(step: UIStep): Promise<void> {
       break;
     }
 
-    case "write-scratch": {
-      const viewer = (window as any).workspaceViewer;
-      if (viewer && step.content !== undefined) {
-        viewer.writeScratch(step.content);
-        // Switch to scratch tab
-        await viewer.openFile("*scratch*");
-      }
+    case "write-scratch":
+    case "append-scratch":
+      // Scratch buffer (CONTEXT.md) has been removed
+      console.warn(
+        "[ui-action] Scratch buffer actions are no longer supported",
+      );
       break;
-    }
-
-    case "append-scratch": {
-      const viewer = (window as any).workspaceViewer;
-      if (viewer && step.content !== undefined) {
-        viewer.appendScratch(step.content);
-      }
-      break;
-    }
   }
 }
 

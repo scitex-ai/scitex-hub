@@ -25,6 +25,7 @@ django.setup()
 
 # Import routing after Django setup (must come after django.setup())
 from apps.console_app import routing as code_routing  # noqa: E402
+from apps.llm_app import routing as llm_routing  # noqa: E402
 from apps.project_app import routing as project_routing  # noqa: E402
 from apps.writer_app import routing as writer_routing  # noqa: E402
 
@@ -35,6 +36,7 @@ websocket_urlpatterns = (
     writer_routing.websocket_urlpatterns
     + code_routing.websocket_urlpatterns
     + project_routing.websocket_urlpatterns
+    + llm_routing.websocket_urlpatterns
 )
 
 # ---------------------------------------------------------------------------

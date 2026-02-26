@@ -4,7 +4,7 @@
  */
 
 export interface MediaRef {
-  type: "image" | "pdf" | "csv" | "plotly" | "mermaid";
+  type: "image" | "pdf" | "csv" | "plotly" | "mermaid" | "audio" | "video";
   path: string;
   ext: string;
 }
@@ -35,6 +35,10 @@ export function renderMedia(
       return renderImage(ref, username, slug);
     case "csv":
       return renderCsv(ref, username, slug);
+    case "audio":
+      return renderAudio(ref, username, slug);
+    case "video":
+      return renderVideo(ref, username, slug);
     case "pdf":
       return renderFileLink(ref, username, slug, "fa-file-pdf");
     case "plotly":
@@ -108,6 +112,52 @@ function renderCsv(ref: MediaRef, username: string, slug: string): HTMLElement {
     .catch(() => {
       wrapper.textContent = `Could not load: ${filename(ref.path)}`;
     });
+
+  return wrapper;
+}
+
+function renderAudio(
+  ref: MediaRef,
+  username: string,
+  slug: string,
+): HTMLElement {
+  const wrapper = document.createElement("div");
+  wrapper.className = "scitex-ai-media scitex-ai-media-audio";
+
+  const audio = document.createElement("audio");
+  audio.controls = true;
+  audio.preload = "metadata";
+  audio.src = blobUrl(username, slug, ref.path);
+  wrapper.appendChild(audio);
+
+  const caption = document.createElement("span");
+  caption.className = "scitex-ai-media-caption";
+  caption.textContent = filename(ref.path);
+  wrapper.appendChild(caption);
+
+  return wrapper;
+}
+
+function renderVideo(
+  ref: MediaRef,
+  username: string,
+  slug: string,
+): HTMLElement {
+  const wrapper = document.createElement("div");
+  wrapper.className = "scitex-ai-media scitex-ai-media-video";
+
+  const video = document.createElement("video");
+  video.controls = true;
+  video.preload = "metadata";
+  video.style.maxWidth = "100%";
+  video.style.borderRadius = "4px";
+  video.src = blobUrl(username, slug, ref.path);
+  wrapper.appendChild(video);
+
+  const caption = document.createElement("span");
+  caption.className = "scitex-ai-media-caption";
+  caption.textContent = filename(ref.path);
+  wrapper.appendChild(caption);
 
   return wrapper;
 }
