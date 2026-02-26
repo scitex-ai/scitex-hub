@@ -10,7 +10,8 @@ import { runUIActions, UIActionArgs } from "../ui-action/index";
 
 let ws: WebSocket | null = null;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-const RECONNECT_MS = 3000;
+let reconnectDelay = 3000;
+const MAX_RECONNECT_MS = 60000;
 
 function getWsUrl(): string {
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
@@ -68,6 +69,7 @@ function connect(): void {
   ws = new WebSocket(getWsUrl());
 
   ws.addEventListener("open", () => {
+    reconnectDelay = 3000; // Reset backoff on successful connect
     if (reconnectTimer) {
       clearTimeout(reconnectTimer);
       reconnectTimer = null;
@@ -91,7 +93,8 @@ function scheduleReconnect(): void {
   reconnectTimer = setTimeout(() => {
     reconnectTimer = null;
     connect();
-  }, RECONNECT_MS);
+  }, reconnectDelay);
+  reconnectDelay = Math.min(reconnectDelay * 2, MAX_RECONNECT_MS);
 }
 
 /**

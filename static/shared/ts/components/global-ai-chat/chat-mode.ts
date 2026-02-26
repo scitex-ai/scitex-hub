@@ -20,6 +20,7 @@ import { processStream } from "./stream-handler";
 import { execBashCommand } from "./bash-exec";
 import { loadHistory, pushHistory } from "./history";
 import { getCsrfToken } from "../../utils/csrf";
+import type { SessionsPanel } from "./sessions-panel";
 
 interface AiContext {
   page?: string;
@@ -63,6 +64,9 @@ export class AIPanelChatMode {
   // Shared context reference (mutated externally)
   private context: AiContext = {};
 
+  // Sessions panel reference (set externally)
+  private sessionsPanel: SessionsPanel | null = null;
+
   // Auto-scroll: true when user is at/near bottom, false when scrolled up
   private _userAtBottom = true;
 
@@ -86,23 +90,99 @@ export class AIPanelChatMode {
       this._userAtBottom =
         el.scrollHeight - el.scrollTop - el.clientHeight < 40;
     });
+
+    // MutationObserver: auto-scroll when new content is added to messages
+    if (this.messagesEl) {
+      const el = this.messagesEl;
+      const mo = new MutationObserver(() => {
+        if (!this._userAtBottom) return;
+        el.scrollTop = 999999;
+      });
+      mo.observe(el, { childList: true, subtree: true });
+    }
   }
 
-  /** Scroll to bottom if user hasn't manually scrolled up */
+  /** Scroll to bottom — always scroll during active chat */
   scrollToBottomIfNeeded(): void {
-    if (!this.messagesEl || !this._userAtBottom) return;
-    this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
+    if (!this.messagesEl) return;
+    this.messagesEl.scrollTop = 999999;
   }
 
   /** Force scroll to bottom (e.g. on restore, user sends message) */
   scrollToBottom(): void {
     if (!this.messagesEl) return;
     this._userAtBottom = true;
-    this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
+    this.messagesEl.scrollTop = 999999;
   }
 
   setContext(context: AiContext): void {
     this.context = context;
+  }
+
+  setSessionsPanel(sp: SessionsPanel): void {
+    this.sessionsPanel = sp;
+  }
+
+  /** Load messages from a session into the chat area */
+  loadSessionMessages(
+    messages: Array<{
+      role: "user" | "assistant" | "error";
+      text: string;
+      tools_used: string[];
+      media: Array<{ type: string; path: string; ext: string }>;
+    }>,
+    _sessionId: number,
+  ): void {
+    if (!this.messagesEl) return;
+    this.messagesEl.innerHTML = "";
+    const slug = readActiveProjectSlug() || "";
+    const user =
+      document.querySelector<HTMLElement>("[data-project-owner]")?.dataset
+        .projectOwner || "";
+    for (const msg of messages) {
+      const el = this.createMsgEl(msg.role);
+      if (msg.role === "assistant" && msg.text) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "ai-md-segment";
+        wrapper.innerHTML = renderMarkdown(msg.text);
+        highlightCodeBlocks(wrapper);
+        fixExternalLinks(wrapper);
+        el.appendChild(wrapper);
+      } else {
+        el.appendChild(document.createTextNode(msg.text));
+      }
+      if (msg.tools_used?.length) appendToolTags(el, msg.tools_used);
+      if (msg.media?.length && user && slug)
+        for (const ref of msg.media)
+          el.appendChild(renderMedia(ref, user, slug));
+    }
+    this.scrollToBottom();
+    const iv = setInterval(() => {
+      if (this.messagesEl) this.messagesEl.scrollTop = 999999;
+    }, 100);
+    setTimeout(() => clearInterval(iv), 3000);
+  }
+
+  /** Clear chat and show empty state */
+  clearChat(): void {
+    this.clearConversation();
+  }
+
+  /** Copy all chat messages as plain text to clipboard */
+  async copyChat(): Promise<void> {
+    if (!this.messagesEl) return;
+    const msgs = this.messagesEl.querySelectorAll(".scitex-ai-msg");
+    const lines: string[] = [];
+    msgs.forEach((el) => {
+      const role = el.classList.contains("user") ? "You" : "AI";
+      lines.push(`${role}: ${(el as HTMLElement).innerText.trim()}`);
+    });
+    const text = lines.join("\n\n");
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      /* clipboard not available */
+    }
   }
 
   /* ── Conversation ──────────────────────────────────────────── */
@@ -144,8 +224,12 @@ export class AIPanelChatMode {
         for (const ref of msg.media)
           el.appendChild(renderMedia(ref, user, slug));
     }
-    // Scroll to bottom after restoring conversation
+    // Scroll to bottom repeatedly — images may load/fail and shift layout
     this.scrollToBottom();
+    const iv = setInterval(() => {
+      if (this.messagesEl) this.messagesEl.scrollTop = 999999;
+    }, 100);
+    setTimeout(() => clearInterval(iv), 3000);
   }
 
   createMsgEl(role: "user" | "assistant" | "error"): HTMLElement {
@@ -204,6 +288,13 @@ export class AIPanelChatMode {
       return;
     }
 
+    // Chat commands
+    if (prompt === "/clear") {
+      this.clearChat();
+      this.inputEl.value = "";
+      return;
+    }
+
     this.currentAudio?.pause();
     this.currentAudio = null;
     this.messagesEl.querySelector(".scitex-ai-empty")?.remove();
@@ -215,9 +306,17 @@ export class AIPanelChatMode {
     this.inputEl.value = "";
     this.inputEl.style.height = "auto";
 
+    // Auto-create session if none active
+    if (this.sessionsPanel && !this.sessionsPanel.currentSessionId) {
+      const title = prompt.length > 50 ? prompt.slice(0, 47) + "..." : prompt;
+      await this.sessionsPanel.createSession(title);
+    }
+    // Save user message to session
+    void this.sessionsPanel?.saveMessage("user", prompt);
+
     const typing = document.createElement("div");
     typing.className = "scitex-ai-typing";
-    typing.textContent = "Thinking...";
+    typing.textContent = "Thinking";
     this.messagesEl.appendChild(typing);
     this.busy = true;
     this.sendBtn!.disabled = true;
@@ -272,6 +371,13 @@ export class AIPanelChatMode {
         autoSpeak: this.autoSpeak,
         scrollIfNeeded: () => this.scrollToBottomIfNeeded(),
       });
+      // Save assistant response to session
+      const assistantText = msgEl.textContent ?? "";
+      void this.sessionsPanel?.saveMessage("assistant", assistantText);
+      // Ensure scroll to bottom after response completes (with delay for layout)
+      this.scrollToBottom();
+      setTimeout(() => this.scrollToBottom(), 200);
+      setTimeout(() => this.scrollToBottom(), 500);
     } catch (err) {
       typing.remove();
       const errEl = this.createMsgEl("error");

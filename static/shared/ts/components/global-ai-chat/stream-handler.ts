@@ -70,7 +70,10 @@ export async function processStream(
       }
       previewEl.innerHTML = renderMarkdown(textBuf);
       if (ctx.scrollIfNeeded) ctx.scrollIfNeeded();
-      else ctx.messagesEl.scrollTop = ctx.messagesEl.scrollHeight;
+      else
+        requestAnimationFrame(() => {
+          ctx.messagesEl.scrollTop = ctx.messagesEl.scrollHeight;
+        });
     }, RENDER_DEBOUNCE_MS);
   }
 
@@ -148,7 +151,10 @@ export async function processStream(
             msgEl.appendChild(renderMedia(ref, contextUser, contextSlug));
           }
           if (ctx.scrollIfNeeded) ctx.scrollIfNeeded();
-          else ctx.messagesEl.scrollTop = ctx.messagesEl.scrollHeight;
+          else
+            requestAnimationFrame(() => {
+              ctx.messagesEl.scrollTop = ctx.messagesEl.scrollHeight;
+            });
         }
       } else if (event.type === "error") {
         finalizeTextSegment();

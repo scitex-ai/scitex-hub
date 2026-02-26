@@ -43,8 +43,9 @@
   display: flex !important;
   flex-direction: column;
   overflow: hidden !important;
-  overflow-y: hidden !important;
   flex: 1;
+  min-width: 0;
+  min-height: 0;
   border-bottom: none !important;
 }
 

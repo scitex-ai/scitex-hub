@@ -121,6 +121,27 @@ export class AIPanelConsoleMode {
       }
     });
 
+    // File drop support — paste file paths into terminal
+    container.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+      container.classList.add("drop-target");
+    });
+    container.addEventListener("dragleave", () => {
+      container.classList.remove("drop-target");
+    });
+    container.addEventListener("drop", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      container.classList.remove("drop-target");
+      const raw = e.dataTransfer?.getData("text/plain") ?? "";
+      const paths = raw.split(";").filter(Boolean);
+      if (paths.length > 0 && this.ws?.readyState === WebSocket.OPEN) {
+        this.ws.send(paths.join(" "));
+      }
+    });
+
     // Right-click shortcuts: single=1, double=2, triple=3, quadruple=4
     // Sends the digit, waits 500ms, then sends Enter
     let rightClickCount = 0;
