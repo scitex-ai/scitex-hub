@@ -492,7 +492,6 @@
     <!-- Graph Tab Content -->
     <div id="tab-graph" class="scholar-tab-content" data-tab="graph">
         <div class="citation-graph-container">
-            <!-- Input Section -->
             <div class="graph-input-section">
                 <div class="graph-card">
                     <div class="graph-card__header">
@@ -502,41 +501,59 @@
                         </div>
                     </div>
                     <div class="graph-card__body">
-                        <p class="graph-description">
-                            Build a citation network from a DOI to discover related papers through bibliographic coupling and co-citation analysis.
-                        </p>
+                        <div class="graph-input-tabs">
+                            <button class="graph-input-tab active" data-input-mode="search">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                            <button class="graph-input-tab" data-input-mode="library">
+                                <i class="fas fa-bookmark"></i> Library
+                            </button>
+                        </div>
                         <form id="graphForm" class="graph-form">
-                            <div class="form-row">
-                                <div class="form-group form-group--doi">
-                                    <label for="doiInput" class="form-label">Enter DOI</label>
-                                    <div class="input-wrapper">
-                                        <input type="text"
-                                               id="doiInput"
-                                               name="doi"
-                                               class="form-input"
-                                               placeholder="e.g., 10.1038/s41586-020-2008-3"
-                                               required />
-                                        <button type="submit" class="btn-build" id="buildGraphBtn">
-                                            <i class="fas fa-project-diagram"></i>
-                                            <span>Build Graph</span>
-                                        </button>
+                            <!-- Search input (default) -->
+                            <div id="graphInputSearch" class="graph-input-panel">
+                                <div class="form-row">
+                                    <div class="form-group form-group--doi">
+                                        <div class="input-wrapper">
+                                            <input type="text"
+                                                   id="graphSearchInput"
+                                                   class="form-input"
+                                                   placeholder="Search by topic, DOI, title, or keywords..." />
+                                            <button type="button" class="btn-build" id="graphSearchBtn">
+                                                <i class="fas fa-search"></i>
+                                                <span>Build</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group--options">
+                                        <select id="topN" name="top_n" class="form-select">
+                                            <option value="10">10</option>
+                                            <option value="20" selected>20</option>
+                                            <option value="30">30</option>
+                                            <option value="50">50</option>
+                                        </select>
                                     </div>
                                 </div>
-                                <div class="form-group form-group--options">
-                                    <label for="topN" class="form-label">Related Papers</label>
-                                    <select id="topN" name="top_n" class="form-select">
-                                        <option value="10">10 papers</option>
-                                        <option value="20" selected>20 papers</option>
-                                        <option value="30">30 papers</option>
-                                        <option value="50">50 papers</option>
-                                    </select>
+                                <div id="graphSearchResults" class="graph-search-results hidden"></div>
+                            </div>
+                            <!-- Library picker -->
+                            <div id="graphInputLibrary" class="graph-input-panel hidden">
+                                <div id="graphLibraryList" class="graph-library-list">
+                                    <p class="graph-library-loading">
+                                        <i class="fas fa-spinner fa-spin"></i> Loading library...
+                                    </p>
                                 </div>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
-            <!-- Graph Visualization Area -->
+            <div id="graphTabsBar" class="graph-tabs-bar hidden">
+                <div id="graphTabsList" class="graph-tabs-list"></div>
+                <button id="graphSaveBtn" class="graph-tab graph-tab--save hidden" title="Save graph">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
             <div id="graphVisualization" class="graph-visualization hidden">
                 <div class="graph-card graph-card--full">
                     <div class="graph-card__header">
@@ -545,11 +562,27 @@
                             <span id="graphTitle">Citation Network</span>
                         </div>
                         <div class="graph-controls">
+                            <div class="edge-filter-group" title="Toggle edge types">
+                                <button class="edge-filter-btn active"
+                                        data-edge-type="coupling"
+                                        title="Bibliographic coupling">
+                                    <span class="edge-color-dot edge-dot-coupling"></span>Coupling
+                                </button>
+                                <button class="edge-filter-btn active" data-edge-type="cocitation" title="Co-citation">
+                                    <span class="edge-color-dot edge-dot-cocitation"></span>Co-cite
+                                </button>
+                                <button class="edge-filter-btn active" data-edge-type="direct" title="Direct citation">
+                                    <span class="edge-color-dot edge-dot-direct"></span>Direct
+                                </button>
+                            </div>
                             <button class="btn-control" id="fitViewBtn" title="Fit to View">
                                 <i class="fas fa-expand"></i>
                             </button>
                             <button class="btn-control" id="resetZoomBtn" title="Reset Zoom">
                                 <i class="fas fa-compress-arrows-alt"></i>
+                            </button>
+                            <button class="btn-control" id="graphSaveBtn2" title="Save Graph">
+                                <i class="fas fa-save"></i>
                             </button>
                             <button class="btn-control" id="downloadSvgBtn" title="Download SVG">
                                 <i class="fas fa-download"></i>
@@ -558,18 +591,15 @@
                     </div>
                     <div class="graph-card__body graph-canvas-wrapper">
                         <div id="graphCanvas"></div>
-                        <!-- Node Details Panel (appears on node click) -->
                         <div id="nodeDetailsPanel" class="node-details-panel hidden"></div>
                     </div>
                 </div>
             </div>
-            <!-- Related Papers List -->
             <div id="relatedPapersList" class="related-papers-section hidden">
                 <div class="graph-card">
                     <div class="graph-card__header">
                         <div class="graph-card__title">
-                            <i class="fas fa-list-ol"></i>
-                            <span>Related Papers</span>
+                            <i class="fas fa-list-ol"></i><span>Related Papers</span>
                         </div>
                     </div>
                     <div class="graph-card__body">
@@ -577,16 +607,7 @@
                     </div>
                 </div>
             </div>
-            <!-- Loading State -->
-            <div id="graphLoading" class="graph-loading hidden">
-                <div class="loading-spinner">
-                    <div class="spinner-ring"></div>
-                    <div class="spinner-ring"></div>
-                    <div class="spinner-ring"></div>
-                </div>
-                <p class="loading-text">Building citation network...</p>
-            </div>
-            <!-- Error State -->
+            <div id="graphLoading" class="graph-loading hidden"></div>
             <div id="graphError" class="graph-error hidden">
                 <i class="fas fa-exclamation-triangle"></i>
                 <p id="graphErrorMessage"></p>
@@ -595,11 +616,20 @@
             </div>
         </div>
     </div>
-</div>
-<!-- Library Tab Content -->
-<div id="tab-library" class="scholar-tab-content" data-tab="library">
-    {% include "scholar_app/library_partials/library_main.html" %}
-</div>
+    <!-- Library Tab Content -->
+    <div id="tab-library" class="scholar-tab-content" data-tab="library">
+        <div class="library-tab-inner">{% include "scholar_app/library_partials/library_main.html" %}</div>
+        <div class="library-resizer panel-resizer"
+             data-panel-resizer
+             data-target=".library-tab-inner"
+             data-direction="left"
+             data-min-width="200"
+             data-max-width="600"></div>
+        <div class="library-details-panel">
+            {% include "scholar_app/library_partials/library_details.html" %}
+            {% include "scholar_app/library_partials/library_import_export.html" %}
+        </div>
+    </div>
 </main>
 <!-- Properties resizer (auto-initialized via data attributes) -->
 <div class="panel-resizer"
