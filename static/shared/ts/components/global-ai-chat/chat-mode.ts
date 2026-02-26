@@ -63,6 +63,9 @@ export class AIPanelChatMode {
   // Shared context reference (mutated externally)
   private context: AiContext = {};
 
+  // Auto-scroll: true when user is at/near bottom, false when scrolled up
+  private _userAtBottom = true;
+
   init(refs: ChatModeRefs, context: AiContext, autoSpeak: boolean): void {
     this.messagesEl = refs.messagesEl;
     this.inputEl = refs.inputEl;
@@ -75,6 +78,27 @@ export class AIPanelChatMode {
     this.autoSpeak = autoSpeak;
     this.recorder = new VoiceRecorder(refs.volBars, this.micBtn);
     this.history = loadHistory();
+
+    // Track user scroll position — auto-scroll only when at bottom
+    this.messagesEl?.addEventListener("scroll", () => {
+      if (!this.messagesEl) return;
+      const el = this.messagesEl;
+      this._userAtBottom =
+        el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+    });
+  }
+
+  /** Scroll to bottom if user hasn't manually scrolled up */
+  scrollToBottomIfNeeded(): void {
+    if (!this.messagesEl || !this._userAtBottom) return;
+    this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
+  }
+
+  /** Force scroll to bottom (e.g. on restore, user sends message) */
+  scrollToBottom(): void {
+    if (!this.messagesEl) return;
+    this._userAtBottom = true;
+    this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
   }
 
   setContext(context: AiContext): void {
@@ -120,13 +144,15 @@ export class AIPanelChatMode {
         for (const ref of msg.media)
           el.appendChild(renderMedia(ref, user, slug));
     }
+    // Scroll to bottom after restoring conversation
+    this.scrollToBottom();
   }
 
   createMsgEl(role: "user" | "assistant" | "error"): HTMLElement {
     const el = document.createElement("div");
     el.className = `scitex-ai-msg ${role}`;
     this.messagesEl?.appendChild(el);
-    this.messagesEl!.scrollTop = this.messagesEl!.scrollHeight;
+    this.scrollToBottomIfNeeded();
     return el;
   }
 
@@ -181,6 +207,8 @@ export class AIPanelChatMode {
     this.currentAudio?.pause();
     this.currentAudio = null;
     this.messagesEl.querySelector(".scitex-ai-empty")?.remove();
+    // User is actively chatting — always scroll to bottom
+    this._userAtBottom = true;
     const userEl = this.createMsgEl("user");
     userEl.textContent = prompt;
     saveMessage({ role: "user", text: prompt });
@@ -242,6 +270,7 @@ export class AIPanelChatMode {
         modelBadge: this.modelBadge,
         speak: (t) => void this.speak(t),
         autoSpeak: this.autoSpeak,
+        scrollIfNeeded: () => this.scrollToBottomIfNeeded(),
       });
     } catch (err) {
       typing.remove();

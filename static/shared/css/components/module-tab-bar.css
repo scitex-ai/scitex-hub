@@ -44,6 +44,27 @@
   border-bottom: 2px solid var(--accent-blue, #388bfd);
 }
 
+/* Status badges (WIP, Beta) on tab labels */
+.tab-status-badge {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 3px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.tab-status-wip {
+  background: rgba(210, 153, 34, 0.2);
+  color: #d29922;
+}
+
+.tab-status-beta {
+  background: rgba(130, 80, 223, 0.2);
+  color: #a371f7;
+}
+
 /* ==========================================================================
    Module Tab Context Menu — right-click actions
    ========================================================================== */
