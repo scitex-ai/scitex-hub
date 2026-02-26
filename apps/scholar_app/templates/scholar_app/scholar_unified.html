@@ -446,6 +446,10 @@
         <main class="scholar-main" data-module-accent="scholar">
             <div class="pane-header" data-pane-type="module">
                 <nav class="scholar-tabs">
+                    <a href="#library" class="scholar-tab" data-tab="library">
+                        <i class="fas fa-book-reader"></i> Library
+                        {% if library_count %}<span class="scholar-tab-badge">{{ library_count }}</span>{% endif %}
+                    </a>
                     <a href="#search" class="scholar-tab" data-tab="search">
                         <i class="fas fa-search"></i> Search
                     </a>
@@ -453,11 +457,7 @@
                         <i class="fas fa-wand-magic-sparkles"></i> Metadata Enrichment
                     </a>
                     <a href="#graph" class="scholar-tab" data-tab="graph">
-                        <i class="fas fa-project-diagram"></i> Citation Graph <span class="badge badge-wip">WIP</span>
-                    </a>
-                    <a href="#library" class="scholar-tab" data-tab="library">
-                        <i class="fas fa-book-reader"></i> Library <span class="badge badge-wip">WIP</span>
-                        {% if library_count %}<span class="scholar-tab-badge">{{ library_count }}</span>{% endif %}
+                        <i class="fas fa-project-diagram"></i> Citation Graph
                     </a>
                 </nav>
                 <div class="pane-header-actions"></div>
@@ -786,8 +786,8 @@
     <!-- Tab Switching Script -->
     <script>
         (function() {
-            const TAB_ORDER = ['search', 'bibtex', 'graph', 'library'];
-            const DEFAULT_TAB = 'search';
+            const TAB_ORDER = ['library', 'search', 'bibtex', 'graph'];
+            const DEFAULT_TAB = 'library';
 
             function getActiveTab() {
                 const hash = window.location.hash.slice(1);
