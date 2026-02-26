@@ -47,6 +47,9 @@
                     <button class="scitex-ai-action-btn" id="scitex-ai-copy-chat" title="Copy chat">
                         <i class="fas fa-copy"></i>
                     </button>
+                    <button class="scitex-ai-action-btn" id="scitex-ai-print-chat" title="Print chat">
+                        <i class="fas fa-print"></i>
+                    </button>
                     <button class="scitex-ai-action-btn" id="scitex-ai-clear-chat" title="Clear chat">
                         <i class="fas fa-trash-alt"></i>
                     </button>
@@ -105,50 +108,15 @@
                 </div>
                 <!-- Config mode -->
                 <div id="scitex-ai-config-view" class="scitex-ai-view">
-                    <div class="scitex-ai-config-content">
-                        <div class="ai-settings-row">
-                            <label class="scitex-ai-settings-label">
-                                <i class="fas fa-brain"></i> LLM Model
-                                <span id="scitex-ai-config-model-badge" class="scitex-ai-model-badge"></span>
-                            </label>
-                            <select id="scitex-ai-llm-model" class="ai-settings-select" title="LLM model for chat"></select>
-                        </div>
-                        <div class="ai-settings-row">
-                            <label class="scitex-ai-settings-label">
-                                <i class="fas fa-microphone"></i> STT Model
-                            </label>
-                            <select id="scitex-ai-stt-model"
-                                    class="ai-settings-select scitex-ai-stt-model"
-                                    title="STT model"
-                                    style="display:none"></select>
-                        </div>
-                        <div class="ai-settings-row ai-settings-mcp">
-                            <label class="scitex-ai-settings-label">
-                                <i class="fas fa-plug"></i> MCP Tools
-                            </label>
-                            <span id="scitex-ai-mcp-badge" class="ai-mcp-badge" title="MCP tools status">
-                                <i class="fas fa-circle ai-mcp-dot"></i>
-                                <span class="ai-mcp-count">--</span>
-                            </span>
-                        </div>
-                        <div class="ai-settings-section" id="ai-agent-sources">
-                            <label class="scitex-ai-settings-label">
-                                <i class="fas fa-sitemap"></i> Available Sources for Agents
-                            </label>
-                            <div id="ai-agent-sources-content" class="ai-agent-sources">
-                                <div class="ai-source-loading">Loading...</div>
-                            </div>
-                        </div>
-                        <div class="ai-settings-links">
-                            <a href="/auth/settings/mcp-tools/" title="MCP tool preferences">
-                                <i class="fas fa-puzzle-piece"></i> MCP Settings
-                            </a>
-                            <a href="/auth/settings/ai-providers/" title="AI provider keys">
-                                <i class="fas fa-key"></i> AI Providers
-                            </a>
-                        </div>
+                    <div class="scitex-ai-config-content" style="position:relative">
+                        <span id="ai-config-toast" class="ai-config-toast"><i class="fas fa-check"></i> Saved</span>
+                        <div id="ai-agent-sources-content"></div>
                     </div>
                 </div>
+                <!-- Hidden elements for JS compatibility -->
+                <select id="scitex-ai-llm-model" style="display:none" title="LLM model"></select>
+                <select id="scitex-ai-stt-model" style="display:none" title="STT model"></select>
+                <span id="scitex-ai-mcp-badge" style="display:none"><span class="ai-mcp-count">--</span></span>
             </div>
         </div>
     </div>

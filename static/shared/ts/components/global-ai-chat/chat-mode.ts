@@ -185,6 +185,14 @@ export class AIPanelChatMode {
     }
   }
 
+  /** Print the chat conversation via browser print dialog */
+  printChat(): void {
+    if (!this.messagesEl) return;
+    document.body.classList.add("scitex-print-chat");
+    window.print();
+    document.body.classList.remove("scitex-print-chat");
+  }
+
   /* ── Conversation ──────────────────────────────────────────── */
 
   clearConversation(): void {

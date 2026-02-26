@@ -132,10 +132,9 @@ def _build_system_prompt(context: dict, user, sync_to_async=None) -> str:
 
     base_prompt = export_chat_prompt()
 
-    # Append project file guidance
+    # Append project file guidance — tool list is auto-discovered from MCP
     base_prompt += (
-        "When working with project files use the project_* tools "
-        "(project_list_files, project_read_file, project_write_file, project_search_files). "
+        "When working with project files use the project_* tools. "
         "Always pass the exact root_path shown in this prompt.\n"
     )
 

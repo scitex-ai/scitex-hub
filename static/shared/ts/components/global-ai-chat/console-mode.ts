@@ -5,6 +5,7 @@
  */
 
 import { speakText } from "./speech";
+import { registerZoomZone } from "../context-zoom";
 
 const XTERM_JS_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js";
 const XTERM_CSS_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css";
@@ -163,6 +164,22 @@ export class AIPanelConsoleMode {
           }, 500);
         }
       }, RIGHT_CLICK_WINDOW);
+    });
+
+    // Context-aware zoom for terminal
+    registerZoomZone({
+      el: container,
+      getSize: () => this.terminal?.options?.fontSize ?? 13,
+      setSize: (px) => {
+        if (this.terminal) {
+          this.terminal.options.fontSize = px;
+          this.fit();
+        }
+      },
+      min: 8,
+      max: 24,
+      default: 13,
+      storageKey: "scitex-terminal-font-size",
     });
 
     // Listen for theme changes

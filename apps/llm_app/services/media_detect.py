@@ -42,11 +42,21 @@ def extract_media_from_json(
     refs: list[dict[str, Any]] = []
     seen: set[str] = set()
 
+    # Collect candidate paths from known keys
+    candidates: list[str] = []
     for key in _PATH_KEYS:
         val = data.get(key)
-        if not val or not isinstance(val, str):
-            continue
+        if val and isinstance(val, str):
+            candidates.append(val)
 
+    # Also handle "new_files" array (from project_exec_python)
+    new_files = data.get("new_files")
+    if isinstance(new_files, list):
+        for f in new_files:
+            if isinstance(f, str):
+                candidates.append(f)
+
+    for val in candidates:
         p = Path(val)
 
         if p.is_absolute():

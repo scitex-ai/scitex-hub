@@ -1,0 +1,411 @@
+/* Config Mode — MCP Tool Toggle Cards (compact sidebar variant) */
+
+.scitex-ai-config-content {
+  padding: 8px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+/* ── Category Sections ───────────────────────── */
+
+.ai-config-category {
+  margin-bottom: 6px;
+}
+
+.ai-config-category-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 4px;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.ai-config-category-header:hover {
+  background: var(--bg-muted);
+}
+
+.ai-config-category-chevron {
+  font-size: 10px;
+  color: var(--text-muted);
+  width: 12px;
+  text-align: center;
+  transition: transform 0.2s;
+}
+
+.ai-config-category.expanded .ai-config-category-chevron {
+  transform: rotate(90deg);
+}
+
+.ai-config-category-name {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ai-config-category-count {
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--bg-muted);
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
+/* ── Toggle Grid (single-column for sidebar) ── */
+
+.ai-config-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+  padding: 2px 0 4px 16px;
+  max-height: 0;
+  overflow: hidden;
+}
+
+.ai-config-category.expanded .ai-config-grid {
+  max-height: none;
+  overflow: visible;
+}
+
+/* ── Compact Toggle Card ────────────────────── */
+
+.ai-config-card {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--bg-surface);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.ai-config-card:hover {
+  border-color: var(--color-cta);
+}
+
+.ai-config-card.enabled {
+  border-color: var(--success-color);
+  background: var(--bg-page);
+}
+
+.ai-config-card-icon {
+  width: 14px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.ai-config-card.enabled .ai-config-card-icon {
+  color: var(--success-color);
+}
+
+.ai-config-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ai-config-card-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.ai-config-card-desc {
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-config-card-badge {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--bg-muted);
+  padding: 0 5px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.ai-config-card.enabled .ai-config-card-badge {
+  color: var(--success-color);
+  background: var(--color-success-bg);
+}
+
+/* ── Module (cards-in-cards) ─────────────────── */
+
+.ai-config-module .ai-config-module-chevron {
+  font-size: 10px;
+  color: var(--text-muted);
+  width: 12px;
+  text-align: center;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.ai-config-module.expanded .ai-config-module-chevron {
+  transform: rotate(90deg);
+}
+
+.ai-config-module .ai-config-tool-cards {
+  max-height: 0;
+  overflow: hidden;
+}
+
+.ai-config-module.expanded .ai-config-tool-cards {
+  max-height: none;
+  overflow: visible;
+}
+
+/* ── Mini Toggle Switch (28 × 16) ────────────── */
+
+.ai-config-toggle {
+  position: relative;
+  width: 28px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.ai-config-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.ai-config-slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: var(--border-default);
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.ai-config-slider::before {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  left: 2px;
+  top: 2px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+}
+
+.ai-config-toggle input:checked + .ai-config-slider {
+  background: var(--success-color);
+}
+
+.ai-config-toggle input:checked + .ai-config-slider::before {
+  transform: translateX(12px);
+}
+
+/* ── Expandable Tool List (skill details) ───── */
+
+.ai-config-tools-list {
+  margin: 3px 0 0 20px;
+}
+
+.ai-config-tools-list summary {
+  font-size: 10px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.ai-config-tools-list summary::before {
+  content: "\25B8 ";
+  font-size: 9px;
+}
+
+.ai-config-tools-list[open] summary::before {
+  content: "\25BE ";
+}
+
+.ai-config-tools-list summary:hover {
+  color: var(--color-cta);
+}
+
+.ai-config-tools-list ul {
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: none;
+}
+
+.ai-config-tools-list li {
+  line-height: 1.5;
+  padding: 1px 0;
+}
+
+.ai-config-tools-list li code {
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--bg-muted);
+  padding: 0 3px;
+  border-radius: 2px;
+  word-break: break-all;
+}
+
+/* ── Individual Tool Cards ─────────────────── */
+
+.ai-config-tool-cards {
+  padding: 2px 0 4px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ai-config-tool-card {
+  padding: 5px 8px;
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  background: var(--bg-surface);
+}
+
+.ai-config-tool-name {
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.ai-config-tool-name code {
+  color: var(--text-primary);
+  background: none;
+  padding: 0;
+}
+
+.ai-config-tool-returns {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.ai-config-tool-desc {
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-bottom: 3px;
+}
+
+.ai-config-tool-params {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.ai-config-param {
+  font-size: 10px;
+  background: var(--bg-muted);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--text-secondary);
+}
+
+.ai-config-param code {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: none;
+  padding: 0;
+}
+
+.ai-config-param em {
+  font-style: normal;
+  color: var(--text-muted);
+}
+
+.ai-config-param-req {
+  color: var(--warning-color);
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.ai-config-param-def {
+  color: var(--text-muted);
+  font-size: 9px;
+}
+
+/* ── Active Tag ─────────────────────────────── */
+
+.ai-config-active-tag {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--success-color);
+  background: var(--color-success-bg);
+  padding: 0 4px;
+  border-radius: 4px;
+  margin-left: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* ── Context Preview ──────────────────────────── */
+
+.ai-config-context-preview {
+  margin-top: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  background: var(--bg-surface);
+}
+
+/* ── Save Toast ────────────────────────────── */
+
+.ai-config-toast {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 11px;
+  color: var(--success-color);
+  background: var(--bg-surface);
+  border: 1px solid var(--success-color);
+  padding: 3px 10px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 10;
+}
+
+.ai-config-toast.visible {
+  opacity: 1;
+}
+
+/* ── Download Button ───────────────────────── */
+
+.ai-context-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  margin-top: 8px;
+}
+
+.ai-context-download-btn:hover {
+  border-color: var(--color-cta);
+  color: var(--color-cta);
+}

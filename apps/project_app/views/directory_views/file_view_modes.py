@@ -27,15 +27,33 @@ logger = logging.getLogger(__name__)
 
 def handle_raw_mode(full_file_path, file_name, file_ext, mode):
     """Handle raw/download mode - serve file directly."""
-    content_type = "text/plain; charset=utf-8"
-    if file_ext == ".pdf":
-        content_type = "application/pdf"
-    elif file_ext in [".png"]:
-        content_type = "image/png"
-    elif file_ext in [".jpg", ".jpeg"]:
-        content_type = "image/jpeg"
-    elif file_ext in [".gif"]:
-        content_type = "image/gif"
+    _MIME_MAP = {
+        # Documents
+        ".pdf": "application/pdf",
+        # Images
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".gif": "image/gif",
+        ".svg": "image/svg+xml",
+        ".webp": "image/webp",
+        ".bmp": "image/bmp",
+        # Audio
+        ".mp3": "audio/mpeg",
+        ".wav": "audio/wav",
+        ".ogg": "audio/ogg",
+        ".flac": "audio/flac",
+        ".aac": "audio/aac",
+        ".m4a": "audio/mp4",
+        ".weba": "audio/webm",
+        # Video
+        ".mp4": "video/mp4",
+        ".webm": "video/webm",
+        ".avi": "video/x-msvideo",
+        ".mov": "video/quicktime",
+        ".mkv": "video/x-matroska",
+    }
+    content_type = _MIME_MAP.get(file_ext, "text/plain; charset=utf-8")
 
     with open(full_file_path, "rb") as f:
         response = HttpResponse(f.read(), content_type=content_type)

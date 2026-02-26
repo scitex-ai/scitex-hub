@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods
 
 from apps.console_app.services.agents_config import DEFAULT_MCP_GROUPS
 
@@ -255,9 +255,15 @@ def mcp_settings(request):
 
 
 @login_required
-@require_POST
+@require_http_methods(["GET", "POST"])
 def mcp_settings_api(request):
-    """AJAX endpoint for saving MCP tool preferences."""
+    """AJAX endpoint for reading/saving MCP tool preferences."""
+    if request.method == "GET":
+        prefs = request.user.profile.mcp_preferences or {}
+        categories = _build_categories_context(prefs)
+        mcp_status = _get_mcp_status()
+        return JsonResponse({"categories": categories, "status": mcp_status})
+
     try:
         data = json.loads(request.body)
     except (json.JSONDecodeError, ValueError):
