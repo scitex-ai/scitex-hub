@@ -47,6 +47,9 @@
                     <button class="scitex-ai-action-btn" id="scitex-ai-copy-chat" title="Copy chat">
                         <i class="fas fa-copy"></i>
                     </button>
+                    <button class="scitex-ai-action-btn" id="scitex-ai-print-chat" title="Print chat">
+                        <i class="fas fa-print"></i>
+                    </button>
                     <button class="scitex-ai-action-btn" id="scitex-ai-clear-chat" title="Clear chat">
                         <i class="fas fa-trash-alt"></i>
                     </button>
@@ -75,12 +78,20 @@
                     </div>
                     <div class="scitex-ai-input-area">
                         <span id="scitex-ai-model-badge" class="scitex-ai-model-badge"></span>
+                        <div id="scitex-ai-image-previews" class="scitex-ai-image-previews"></div>
                         <div class="scitex-ai-input-wrap">
                             <textarea id="scitex-ai-input"
                                       class="scitex-ai-input"
                                       rows="1"
                                       placeholder="Ask anything"
                                       autocomplete="off"></textarea>
+                            <button id="scitex-ai-camera" class="scitex-ai-input-btn" title="Attach image">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                            <button id="scitex-ai-sketch" class="scitex-ai-input-btn" title="Draw sketch">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <input type="file" id="scitex-ai-image-file" accept="image/*" multiple hidden />
                             <button id="scitex-ai-mic" class="scitex-ai-mic" title="Voice input">
                                 <i class="fas fa-microphone"></i>
                             </button>
@@ -91,7 +102,23 @@
                 <!-- Console/Terminal mode -->
                 <div id="scitex-ai-console-view" class="scitex-ai-view">
                     <div id="scitex-ai-console-terminal" class="scitex-ai-console-terminal"></div>
-                    <span id="scitex-ai-console-status" class="scitex-ai-console-status"></span>
+                    <div class="scitex-ai-console-toolbar">
+                        <span id="scitex-ai-console-status" class="scitex-ai-console-status"></span>
+                        <div class="scitex-ai-console-toolbar-btns">
+                            <button id="scitex-ai-console-camera"
+                                    class="scitex-ai-input-btn"
+                                    title="Webcam capture">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                            <button id="scitex-ai-console-sketch" class="scitex-ai-input-btn" title="Draw sketch">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <button id="scitex-ai-console-mic" class="scitex-ai-input-btn" title="Voice input">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                            <input type="file" id="scitex-ai-console-image-file" accept="image/*" multiple hidden />
+                        </div>
+                    </div>
                 </div>
                 <!-- Jobs mode -->
                 <div id="scitex-ai-jobs-view" class="scitex-ai-view">
@@ -105,7 +132,8 @@
                 </div>
                 <!-- Config mode -->
                 <div id="scitex-ai-config-view" class="scitex-ai-view">
-                    <div class="scitex-ai-config-content">
+                    <div class="scitex-ai-config-content" style="position:relative">
+                        <span id="ai-config-toast" class="ai-config-toast"><i class="fas fa-check"></i> Saved</span>
                         <div class="ai-settings-row">
                             <label class="scitex-ai-settings-label">
                                 <i class="fas fa-brain"></i> LLM Model
@@ -131,22 +159,7 @@
                                 <span class="ai-mcp-count">--</span>
                             </span>
                         </div>
-                        <div class="ai-settings-section" id="ai-agent-sources">
-                            <label class="scitex-ai-settings-label">
-                                <i class="fas fa-sitemap"></i> Available Sources for Agents
-                            </label>
-                            <div id="ai-agent-sources-content" class="ai-agent-sources">
-                                <div class="ai-source-loading">Loading...</div>
-                            </div>
-                        </div>
-                        <div class="ai-settings-links">
-                            <a href="/auth/settings/mcp-tools/" title="MCP tool preferences">
-                                <i class="fas fa-puzzle-piece"></i> MCP Settings
-                            </a>
-                            <a href="/auth/settings/ai-providers/" title="AI provider keys">
-                                <i class="fas fa-key"></i> AI Providers
-                            </a>
-                        </div>
+                        <div id="ai-agent-sources-content"></div>
                     </div>
                 </div>
             </div>

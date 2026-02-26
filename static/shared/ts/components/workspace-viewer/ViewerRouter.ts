@@ -12,6 +12,7 @@ import {
   PdfViewer,
   CsvViewer,
   MermaidViewer,
+  GraphvizViewer,
   AudioViewer,
   VideoViewer,
 } from "./viewers/index.ts";
@@ -53,6 +54,8 @@ export class ViewerRouter {
         return new CsvViewer();
       case "mermaid":
         return new MermaidViewer();
+      case "graphviz":
+        return new GraphvizViewer();
       case "audio":
         return new AudioViewer();
       case "video":

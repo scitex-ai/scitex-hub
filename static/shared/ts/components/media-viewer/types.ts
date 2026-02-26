@@ -3,7 +3,13 @@
  */
 
 /** File types for viewer (CSV handled by media-editor) */
-export type ViewerFileType = "text" | "image" | "pdf" | "binary" | "mermaid";
+export type ViewerFileType =
+  | "text"
+  | "image"
+  | "pdf"
+  | "binary"
+  | "mermaid"
+  | "graphviz";
 
 /** All file types including editable ones */
 export type FileType = ViewerFileType | "csv";
@@ -39,6 +45,9 @@ export const CSV_EXTENSIONS = new Set([".csv", ".tsv"]);
 
 /** Mermaid diagram file extensions */
 export const MERMAID_EXTENSIONS = new Set([".mmd", ".mermaid"]);
+
+/** Graphviz diagram file extensions */
+export const GRAPHVIZ_EXTENSIONS = new Set([".dot", ".gv"]);
 
 /** Binary file extensions that cannot be displayed as text */
 export const BINARY_EXTENSIONS = new Set([
@@ -80,6 +89,7 @@ export function detectFileType(filePath: string): FileType {
   if (PDF_EXTENSIONS.has(ext)) return "pdf";
   if (CSV_EXTENSIONS.has(ext)) return "csv";
   if (MERMAID_EXTENSIONS.has(ext)) return "mermaid";
+  if (GRAPHVIZ_EXTENSIONS.has(ext)) return "graphviz";
   if (BINARY_EXTENSIONS.has(ext)) return "binary";
   return "text";
 }

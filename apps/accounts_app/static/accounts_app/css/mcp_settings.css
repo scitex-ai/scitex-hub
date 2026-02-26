@@ -9,8 +9,8 @@
   border-radius: 6px;
   margin-bottom: 20px;
   font-size: 13px;
-  border: 1px solid var(--border-color, #30363d);
-  background: var(--card-bg, #161b22);
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface);
 }
 
 .mcp-status-dot {
@@ -18,20 +18,20 @@
 }
 
 .mcp-status-healthy .mcp-status-dot {
-  color: var(--success-color, #3fb950);
+  color: var(--success-color);
 }
 
 .mcp-status-warning .mcp-status-dot {
-  color: var(--warning-color, #d29922);
+  color: var(--warning-color);
 }
 
 .mcp-status-error .mcp-status-dot,
 .mcp-status-unavailable .mcp-status-dot {
-  color: var(--danger-color, #f85149);
+  color: var(--error-color);
 }
 
 .mcp-status-text {
-  color: var(--text-secondary, #8b949e);
+  color: var(--text-secondary);
 }
 
 /* Category Sections */
@@ -42,12 +42,12 @@
 .mcp-category-title {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-muted, #8b949e);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0 0 10px;
   padding-bottom: 6px;
-  border-bottom: 1px solid var(--border-color, #30363d);
+  border-bottom: 1px solid var(--border-default);
 }
 
 /* Tool Grid */
@@ -62,9 +62,9 @@
 .mcp-toggle-card {
   display: block;
   padding: 12px 14px;
-  border: 1px solid var(--border-color, #30363d);
+  border: 1px solid var(--border-default);
   border-radius: 8px;
-  background: var(--card-bg, #161b22);
+  background: var(--bg-surface);
   cursor: pointer;
   transition:
     border-color 0.15s,
@@ -73,7 +73,7 @@
 }
 
 .mcp-toggle-card:hover {
-  border-color: var(--accent-color, #58a6ff);
+  border-color: var(--color-cta);
 }
 
 .mcp-toggle-card:active {
@@ -81,8 +81,8 @@
 }
 
 .mcp-toggle-card.enabled {
-  border-color: var(--success-color, #3fb950);
-  background: var(--card-bg-active, #0d1117);
+  border-color: var(--success-color);
+  background: var(--bg-page);
 }
 
 /* Card Header */
@@ -96,48 +96,48 @@
 .mcp-toggle-header i {
   width: 16px;
   text-align: center;
-  color: var(--text-muted, #8b949e);
+  color: var(--text-muted);
   font-size: 13px;
 }
 
 .mcp-toggle-card.enabled .mcp-toggle-header i {
-  color: var(--success-color, #3fb950);
+  color: var(--success-color);
 }
 
 .mcp-toggle-name {
   flex: 1;
   font-weight: 600;
   font-size: 13px;
-  color: var(--text-primary, #c9d1d9);
+  color: var(--text-primary);
 }
 
 /* Tool Count Badge */
 .mcp-badge {
   font-size: 11px;
   font-weight: 500;
-  color: var(--text-muted, #8b949e);
-  background: var(--bg-tertiary, #21262d);
+  color: var(--text-muted);
+  background: var(--bg-muted);
   padding: 1px 6px;
   border-radius: 10px;
   line-height: 1.4;
 }
 
 .mcp-toggle-card.enabled .mcp-badge {
-  color: var(--success-color, #3fb950);
-  background: rgba(63, 185, 80, 0.1);
+  color: var(--success-color);
+  background: var(--color-success-bg);
 }
 
 /* Description */
 .mcp-toggle-desc {
   margin: 0 0 4px;
   font-size: 12px;
-  color: var(--text-muted, #8b949e);
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
 .mcp-toggle-key {
   font-size: 11px;
-  color: var(--text-dimmed, #484f58);
+  color: var(--text-muted);
 }
 
 /* Expandable Tool List */
@@ -147,7 +147,7 @@
 
 .mcp-tools-list summary {
   font-size: 11px;
-  color: var(--text-dimmed, #484f58);
+  color: var(--text-muted);
   cursor: pointer;
   user-select: none;
   list-style: none;
@@ -163,7 +163,7 @@
 }
 
 .mcp-tools-list summary:hover {
-  color: var(--accent-color, #58a6ff);
+  color: var(--color-cta);
 }
 
 .mcp-tools-list ul {
@@ -181,8 +181,8 @@
 
 .mcp-tools-list li code {
   font-size: 10px;
-  color: var(--text-dimmed, #484f58);
-  background: var(--code-bg, #0d1117);
+  color: var(--text-muted);
+  background: var(--bg-muted);
   padding: 0 3px;
   border-radius: 2px;
 }
@@ -205,7 +205,7 @@
   position: absolute;
   inset: 0;
   border-radius: 10px;
-  background: var(--toggle-off, #30363d);
+  background: var(--border-default);
   transition: background 0.2s;
   cursor: pointer;
 }
@@ -223,7 +223,7 @@
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background: var(--success-color, #3fb950);
+  background: var(--success-color);
 }
 
 .toggle-switch input:checked + .toggle-slider::before {
@@ -244,7 +244,7 @@
   align-items: center;
   gap: 4px;
   font-size: 13px;
-  color: var(--success-color, #3fb950);
+  color: var(--success-color);
   padding: 4px 10px;
   animation: mcp-toast-fade 0.3s ease;
 }
@@ -263,20 +263,20 @@
 /* Info Box */
 .mcp-info {
   font-size: 13px;
-  color: var(--text-muted, #8b949e);
+  color: var(--text-muted);
   padding: 12px;
-  border: 1px solid var(--border-color, #30363d);
+  border: 1px solid var(--border-default);
   border-radius: 6px;
-  background: var(--card-bg, #161b22);
+  background: var(--bg-surface);
 }
 
 .mcp-info i {
-  color: var(--accent-color, #58a6ff);
+  color: var(--color-cta);
   margin-right: 4px;
 }
 
 .mcp-info code {
-  background: var(--code-bg, #0d1117);
+  background: var(--bg-muted);
   padding: 1px 5px;
   border-radius: 3px;
   font-size: 12px;

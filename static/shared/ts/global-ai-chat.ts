@@ -22,6 +22,12 @@ import {
   setModelBadge,
 } from "./components/global-ai-chat/model-badge";
 import { initKeyboardShortcuts } from "./components/keyboard-shortcuts";
+import { AIPanelConfigMode } from "./components/global-ai-chat/config-mode";
+import {
+  initContextZoom,
+  registerFontZoom,
+  registerZoomZone,
+} from "./components/context-zoom";
 
 const PANEL_OPEN_KEY = "scitex_ai_open";
 
@@ -66,6 +72,7 @@ class GlobalAIChat {
   private chatMode: AIPanelChatMode | null = null;
   private consoleMode: AIPanelConsoleMode | null = null;
   private jobsMode: AIPanelJobsMode | null = null;
+  private configMode: AIPanelConfigMode | null = null;
   private sessionsPanel: SessionsPanel | null = null;
 
   init(): void {
@@ -106,6 +113,16 @@ class GlobalAIChat {
         sttModelSelect: this.sttModelSelect,
         modelBadge: this.modelBadge,
         volBars: [],
+        imagePreviewEl: document.getElementById("scitex-ai-image-previews"),
+        imageFileInput: document.getElementById(
+          "scitex-ai-image-file",
+        ) as HTMLInputElement,
+        cameraBtn: document.getElementById(
+          "scitex-ai-camera",
+        ) as HTMLButtonElement,
+        sketchBtn: document.getElementById(
+          "scitex-ai-sketch",
+        ) as HTMLButtonElement,
       },
       this.context,
       false,
@@ -116,6 +133,7 @@ class GlobalAIChat {
     if (this.llmModelSelect)
       fetchAndPopulateLlmModels(this.llmModelSelect, this.modelBadge);
     fetchMcpStatus(this.mcpBadge);
+    this.setupModelBadgeSwitcher();
 
     document.body.classList.add("scitex-ai-present");
 
@@ -179,6 +197,11 @@ class GlobalAIChat {
         void this.chatMode?.copyChat();
       });
     document
+      .getElementById("scitex-ai-print-chat")
+      ?.addEventListener("click", () => {
+        this.printActiveView();
+      });
+    document
       .getElementById("scitex-ai-clear-chat")
       ?.addEventListener("click", () => {
         this.chatMode?.clearChat();
@@ -186,6 +209,31 @@ class GlobalAIChat {
 
     // Centralized keyboard shortcuts (replaces inline Alt+A handler)
     initKeyboardShortcuts();
+
+    // Context-aware zoom: Ctrl+Wheel / Ctrl++/-/0 per pane (uses CSS zoom)
+    initContextZoom();
+    // AI panel views
+    registerFontZoom("#scitex-ai-chat-view", "scitex-ai-chat-zoom");
+    registerFontZoom("#scitex-ai-jobs-list", "scitex-ai-jobs-zoom");
+    registerFontZoom(".scitex-ai-config-content", "scitex-ai-config-zoom");
+    // Workspace panes (exist only on workspace pages)
+    registerFontZoom(".ws-worktree-tree-area", "scitex-worktree-zoom");
+    registerFontZoom("#ws-viewer-preview", "scitex-viewer-preview-zoom");
+    registerFontZoom("#main-content", "scitex-module-zoom");
+    // Monaco editor: passthrough — it handles its own Ctrl+Wheel zoom
+    const monacoEl = document.getElementById("ws-viewer-monaco");
+    if (monacoEl) {
+      registerZoomZone({
+        el: monacoEl,
+        getSize: () => 13,
+        setSize: () => {},
+        min: 8,
+        max: 32,
+        default: 13,
+        storageKey: "scitex-monaco-passthrough",
+        passthrough: true,
+      });
+    }
 
     this.context.page = window.location.href;
     const slug = readActiveProjectSlug();
@@ -202,8 +250,15 @@ class GlobalAIChat {
     }
 
     const savedModel = sessionStorage.getItem(MODEL_KEY);
-    if (savedModel) setModelBadge(this.modelBadge, savedModel);
-    fetchCurrentModel((m, c) => setModelBadge(this.modelBadge, m, c));
+    const savedDisplay = sessionStorage.getItem("scitex_ai_model_display");
+    if (savedModel)
+      setModelBadge(
+        this.modelBadge,
+        savedModel,
+        false,
+        savedDisplay || undefined,
+      );
+    fetchCurrentModel((m, c, d) => setModelBadge(this.modelBadge, m, c, d));
 
     // Start eval-js WebSocket relay for MCP tool bridge
     initEvalJsRelay();
@@ -232,135 +287,66 @@ class GlobalAIChat {
     });
   }
 
-  /* ── Agent Sources ────────────────────────────────────────── */
+  /* ── Model Badge Click → Inline Switcher ───────────────── */
+
+  private setupModelBadgeSwitcher(): void {
+    if (!this.modelBadge || !this.llmModelSelect) return;
+    this.modelBadge.style.cursor = "pointer";
+    this.modelBadge.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const old = document.getElementById("ai-model-dropdown");
+      if (old) {
+        old.remove();
+        return;
+      }
+      if (!this.llmModelSelect!.options.length) return;
+      const dd = document.createElement("div");
+      dd.id = "ai-model-dropdown";
+      dd.className = "ai-model-dropdown";
+      for (const opt of Array.from(this.llmModelSelect!.options)) {
+        if (opt.disabled) continue;
+        const item = document.createElement("div");
+        item.className = "ai-model-dropdown-item";
+        if (opt.selected) item.classList.add("selected");
+        item.textContent = opt.textContent;
+        item.addEventListener("click", () => {
+          this.llmModelSelect!.value = opt.value;
+          this.llmModelSelect!.dispatchEvent(new Event("change"));
+          dd.remove();
+        });
+        dd.appendChild(item);
+      }
+      this.modelBadge!.style.position = "relative";
+      this.modelBadge!.appendChild(dd);
+      const close = (ev: MouseEvent) => {
+        if (!dd.contains(ev.target as Node) && ev.target !== this.modelBadge) {
+          dd.remove();
+          document.removeEventListener("click", close);
+        }
+      };
+      setTimeout(() => document.addEventListener("click", close), 0);
+    });
+  }
+
+  /* ── Print Active View ──────────────────────────────── */
+
+  private printActiveView(): void {
+    // Expand all collapsed sections for print
+    document
+      .querySelectorAll(".ai-config-category, .ai-config-module")
+      .forEach((el) => el.classList.add("expanded"));
+    document.body.classList.add("scitex-print-ai");
+    window.print();
+    document.body.classList.remove("scitex-print-ai");
+  }
+
+  /* ── Agent Sources (delegated to config-mode.ts) ─────────── */
 
   private async populateAgentSources(): Promise<void> {
     const container = document.getElementById("ai-agent-sources-content");
     if (!container) return;
-
-    try {
-      // Fetch skills, hints, and current page context in parallel
-      const [skillsResp, pageHints] = await Promise.all([
-        fetch("/llm/api/skills/").then((r) => r.json()),
-        Promise.resolve(this.chatMode?.collectPageHints() ?? []),
-      ]);
-
-      const skills = skillsResp.skills || {};
-      const currentPage = window.location.pathname;
-
-      let html = "";
-
-      // Active skill for current page
-      const activeSkill = Object.values(skills).find((s: any) =>
-        s.page_patterns?.some(
-          (p: string) =>
-            currentPage.includes(p) ||
-            currentPage.startsWith(p.replace(/\/$/, "")),
-        ),
-      ) as any;
-
-      if (activeSkill) {
-        html += `<div class="ai-source-group">`;
-        html += `<div class="ai-source-group-title"><i class="fas fa-star ai-source-active"></i> Active Skill</div>`;
-        html += `<div class="ai-source-item"><i class="fas fa-check-circle ai-source-active"></i> ${activeSkill.display_name}</div>`;
-        if (activeSkill.capabilities) {
-          for (const cap of activeSkill.capabilities) {
-            html += `<div class="ai-source-item"><i class="fas fa-chevron-right"></i> ${cap}</div>`;
-          }
-        }
-        if (activeSkill.tool_prefixes?.length) {
-          html += `<div class="ai-source-item"><i class="fas fa-tools"></i> Tools: ${activeSkill.tool_prefixes.join(", ")}</div>`;
-        }
-        html += `</div>`;
-      }
-
-      // Page hints
-      if (pageHints.length > 0) {
-        html += `<div class="ai-source-group">`;
-        html += `<div class="ai-source-group-title"><i class="fas fa-lightbulb"></i> Page Hints (${pageHints.length})</div>`;
-        for (const hint of pageHints) {
-          const short = hint.length > 80 ? hint.slice(0, 77) + "..." : hint;
-          html += `<div class="ai-source-item" title="${hint.replace(/"/g, "&quot;")}"><i class="fas fa-info-circle"></i> ${short}</div>`;
-        }
-        html += `</div>`;
-      }
-
-      // All registered skills
-      const skillNames = Object.keys(skills);
-      if (skillNames.length > 0) {
-        html += `<div class="ai-source-group">`;
-        html += `<div class="ai-source-group-title"><i class="fas fa-book"></i> All Skills (${skillNames.length})</div>`;
-        for (const name of skillNames) {
-          const s = skills[name];
-          const isActive = activeSkill?.app_name === name;
-          const icon = isActive ? "check-circle ai-source-active" : "circle";
-          html += `<div class="ai-source-item"><i class="fas fa-${icon}"></i> ${s.display_name}</div>`;
-        }
-        html += `</div>`;
-      }
-
-      // MCP tools info
-      const mcpCount = document.querySelector(".ai-mcp-count")?.textContent;
-      if (mcpCount && mcpCount !== "--") {
-        html += `<div class="ai-source-group">`;
-        html += `<div class="ai-source-group-title"><i class="fas fa-plug"></i> MCP Tools</div>`;
-        html += `<div class="ai-source-item"><i class="fas fa-wrench"></i> ${mcpCount} tools available</div>`;
-        html += `</div>`;
-      }
-
-      // Download button
-      html += `<div class="ai-source-group ai-source-download">`;
-      html += `<button class="ai-context-download-btn" title="Download full agent context as JSON">`;
-      html += `<i class="fas fa-download"></i> Download Agent Context`;
-      html += `</button></div>`;
-
-      container.innerHTML =
-        html || '<div class="ai-source-loading">No sources detected</div>';
-
-      // Bind download handler
-      container
-        .querySelector(".ai-context-download-btn")
-        ?.addEventListener("click", () =>
-          this.downloadAgentContext(pageHints, currentPage),
-        );
-    } catch (err) {
-      container.innerHTML =
-        '<div class="ai-source-loading">Failed to load sources</div>';
-    }
-  }
-
-  private async downloadAgentContext(
-    pageHints: string[],
-    page: string,
-  ): Promise<void> {
-    try {
-      const csrf =
-        document.querySelector<HTMLInputElement>("[name=csrfmiddlewaretoken]")
-          ?.value ??
-        (document.cookie.match(/csrftoken=([^;]+)/)?.[1] || "");
-
-      const resp = await fetch("/llm/api/agent-context/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrf,
-        },
-        body: JSON.stringify({ page, page_hints: pageHints }),
-      });
-
-      const data = await resp.json();
-      const blob = new Blob([JSON.stringify(data, null, 2)], {
-        type: "application/json",
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `agent-context-${new Date().toISOString().slice(0, 19).replace(/:/g, "")}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      console.error("[AI] Failed to download agent context");
-    }
+    if (!this.configMode) this.configMode = new AIPanelConfigMode();
+    void this.configMode.populate(container, this.chatMode);
   }
 
   /* ── Mode Toggle (Chat / Console / Jobs) ───────────────────── */
@@ -408,7 +394,21 @@ class GlobalAIChat {
     const statusEl = document.getElementById("scitex-ai-console-status");
     if (!containerEl) return;
     if (!this.consoleMode) this.consoleMode = new AIPanelConsoleMode();
-    void this.consoleMode.init(containerEl, statusEl);
+    const toolbar = {
+      cameraBtn: document.getElementById(
+        "scitex-ai-console-camera",
+      ) as HTMLButtonElement | null,
+      sketchBtn: document.getElementById(
+        "scitex-ai-console-sketch",
+      ) as HTMLButtonElement | null,
+      micBtn: document.getElementById(
+        "scitex-ai-console-mic",
+      ) as HTMLButtonElement | null,
+      fileInput: document.getElementById(
+        "scitex-ai-console-image-file",
+      ) as HTMLInputElement | null,
+    };
+    void this.consoleMode.init(containerEl, statusEl, toolbar);
   }
 
   private initJobsMode(): void {

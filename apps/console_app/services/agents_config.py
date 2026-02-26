@@ -70,33 +70,77 @@ def _build_local_json() -> dict:
 
 
 def _build_agents_md(project_name: str) -> str:
-    """Build AGENTS.md with platform context for AI coding tools."""
-    return (
-        f"# {project_name}\n\n"
-        "SciTeX Cloud project with access to 145+ MCP tools.\n\n"
-        "## Platform\n\n"
-        "You are running inside an Apptainer container on SciTeX Cloud — a browser-based\n"
-        "scientific research platform. The web app has modules at these URL prefixes:\n\n"
-        "- `/hub/` — Project dashboard and activity feed\n"
-        "- `/scholar/` — Literature search (CrossRef/OpenAlex), bibliography, citation graphs\n"
-        "- `/console/` — File browser, terminal, code execution\n"
-        "- `/writer/` — LaTeX manuscript editor with live preview\n"
-        "- `/workspace/` — Unified 3-column layout (AI | worktree | module)\n"
-        "- `/vis/` — Data visualization and figure management\n"
-        "- `/clew/` — Pipeline DAG editor and execution\n\n"
-        "## MCP Tools\n\n"
-        "The `scitex` MCP server provides tools for:\n"
-        "- **PLT**: plotting, figure composition, cropping\n"
-        "- **STATS**: 23 statistical tests with effect sizes and power analysis\n"
-        "- **SCHOLAR**: paper search, PDF download, BibTeX enrichment\n"
-        "- **WRITER**: LaTeX compilation, figures, tables, bibliography\n"
-        "- **CLEW**: pipeline creation, chaining, execution\n"
-        "- **INTROSPECT**: Python API inspection (signatures, source, docstrings)\n"
-        "- **DIAGRAM**: Mermaid/Graphviz diagram creation\n"
-        "- **TEMPLATE**: project template cloning\n\n"
-        "Run `agents sync` to push this config to your AI coding tool.\n"
-        "Run `/mcp` in Claude Code to list all available tools.\n"
+    """Build AGENTS.md with platform context for AI coding tools.
+
+    Uses the skills registry to dynamically list installed app modules
+    and their capabilities, so the content stays up-to-date as apps
+    are added or removed.
+    """
+    parts = [
+        f"# {project_name}\n",
+        "SciTeX Cloud project with access to 145+ MCP tools.\n",
+        "## Platform\n",
+        "You are running inside an Apptainer container on SciTeX Cloud — a browser-based",
+        "scientific research platform.\n",
+    ]
+
+    # Dynamic module listing from skills registry
+    try:
+        from apps.llm_app.skills.registry import build_aggregated_context
+
+        ctx = build_aggregated_context()
+        if ctx:
+            parts.append(ctx)
+    except Exception:
+        parts.append("## Web App Modules\n")
+        parts.append("Run `/skills` in Claude Code to see available modules.\n")
+
+    parts.extend(
+        [
+            "## MCP Tools\n",
+            "The `scitex` MCP server provides 145+ tools.",
+            "Run `agents sync` to push this config to your AI coding tool.",
+            "Run `/mcp` in Claude Code to list all available tools.\n",
+        ]
     )
+
+    return "\n".join(parts)
+
+
+def _build_claude_md(project_name: str) -> str:
+    """Build CLAUDE.md for Claude Code — dynamic from skills registry."""
+    parts = [
+        f"# {project_name}\n",
+        "## Platform\n",
+        "You are on **SciTeX Cloud** — a browser-based scientific research platform.",
+        "This project runs inside an Apptainer container with Python 3.11 and the",
+        "`scitex` package pre-installed. The MCP server is connected.\n",
+    ]
+    try:
+        from apps.llm_app.skills.registry import build_aggregated_context
+
+        ctx = build_aggregated_context()
+        if ctx:
+            parts.append(ctx)
+    except Exception:
+        pass
+    parts.extend(
+        [
+            "## Usage\n",
+            "```python",
+            "import scitex as stx\n",
+            "@stx.session",
+            "def main(plt=stx.INJECTED, logger=stx.INJECTED):",
+            '    stx.io.save(data, "results.csv")',
+            "    return 0",
+            "```\n",
+            "## MCP Tools\n",
+            "145+ tools available. Run `/mcp` in Claude Code to list them.",
+            "Run `/skills` to see full SciTeX Cloud capabilities.",
+            "`stx-show <file>` in terminal displays images/plots in the browser.\n",
+        ]
+    )
+    return "\n".join(parts)
 
 
 def ensure_agents_config(
@@ -268,37 +312,10 @@ def ensure_claude_config(
                 )
                 created = True
 
-            # Project-level CLAUDE.md
+            # Project-level CLAUDE.md — dynamic from skills registry
             claude_md = project_path / "CLAUDE.md"
             if not claude_md.exists():
-                claude_md.write_text(
-                    f"# {project_name}\n\n"
-                    "## Platform\n\n"
-                    "You are on **SciTeX Cloud** — a browser-based scientific research platform.\n"
-                    "This project runs inside an Apptainer container with Python 3.11 and the\n"
-                    "`scitex` package pre-installed. The MCP server is connected.\n\n"
-                    "## Web App Modules\n\n"
-                    "The platform URL structure:\n"
-                    "- `/hub/` — Project dashboard\n"
-                    "- `/scholar/` — Literature search & bibliography\n"
-                    "- `/console/` — File browser & terminal\n"
-                    "- `/writer/` — LaTeX manuscript editor\n"
-                    "- `/workspace/` — Unified 3-column layout\n"
-                    "- `/vis/` — Data visualization\n"
-                    "- `/clew/` — Pipeline DAG editor\n\n"
-                    "## Usage\n\n"
-                    "```python\n"
-                    "import scitex as stx\n\n"
-                    "@stx.session\n"
-                    "def main(plt=stx.INJECTED, logger=stx.INJECTED):\n"
-                    '    stx.io.save(data, "results.csv")\n'
-                    "    return 0\n"
-                    "```\n\n"
-                    "## MCP Tools\n\n"
-                    "145+ tools available. Run `/mcp` in Claude Code to list them.\n"
-                    "Run `/skills` to see full SciTeX Cloud capabilities.\n"
-                    "`stx-show <file>` in terminal displays images/plots in the browser.\n"
-                )
+                claude_md.write_text(_build_claude_md(project_name))
                 created = True
 
         if created:

@@ -4,3 +4,4 @@ export { CsvViewer } from "./CsvViewer.ts";
 export { MermaidViewer } from "./MermaidViewer.ts";
 export { AudioViewer } from "./AudioViewer.ts";
 export { VideoViewer } from "./VideoViewer.ts";
+export { GraphvizViewer } from "./GraphvizViewer.ts";

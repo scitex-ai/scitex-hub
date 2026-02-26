@@ -17,6 +17,22 @@ import { detectFileType, LANGUAGE_MAP, type TabInfo } from "./types.ts";
 
 type ViewMode = "edit" | "preview";
 
+/** Extensions that support edit (Monaco) + preview (rendered) toggle */
+const PREVIEWABLE_EXTENSIONS = new Set([
+  ".md",
+  ".mmd",
+  ".mermaid",
+  ".dot",
+  ".gv",
+  ".csv",
+  ".tsv",
+]);
+
+function isPreviewable(filePath: string): boolean {
+  const ext = filePath.substring(filePath.lastIndexOf(".")).toLowerCase();
+  return PREVIEWABLE_EXTENSIONS.has(ext);
+}
+
 export interface WorkspaceViewerConfig {
   tabsContainer: HTMLElement;
   monacoContainer: HTMLElement;
@@ -144,10 +160,21 @@ export class WorkspaceViewer {
   }
 
   private async renderFile(filePath: string): Promise<void> {
-    const isMd = filePath.endsWith(".md");
-    this.showModeToggle(isMd);
+    const previewable = isPreviewable(filePath);
+    this.showModeToggle(previewable);
 
     const fileType = detectFileType(filePath);
+
+    // Previewable media types (mermaid, graphviz, csv) go through Monaco in edit mode
+    if (previewable && fileType !== "text") {
+      if (this.viewMode === "edit") {
+        await this.showTextFile(filePath);
+      } else {
+        await this.showMediaFile(filePath);
+      }
+      return;
+    }
+
     if (fileType === "text") {
       await this.showTextFile(filePath);
     } else {
@@ -211,30 +238,35 @@ export class WorkspaceViewer {
 
   // --- View mode toggle ---
 
-  /** Double-click (left or right) toggles edit/preview for markdown files. */
+  /** Double-click (left or right) toggles edit/preview for previewable files. */
   private initDoubleClickToggle(): void {
-    const toggleIfMarkdown = () => {
+    const toggleIfPreviewable = () => {
       const active = this.tabManager.getActiveTab();
       if (!active) return;
-      if (active.endsWith(".md")) {
+      if (isPreviewable(active)) {
         this.setViewMode(this.viewMode === "edit" ? "preview" : "edit");
       }
     };
 
-    // Right-double-click on content areas (Monaco / preview)
+    // Right-double-click on content areas (Monaco / preview / media)
     let lastRightClick = 0;
     const handleRightDblClick = (e: MouseEvent) => {
       const now = Date.now();
       if (now - lastRightClick < 400) {
         e.preventDefault();
         e.stopPropagation();
-        toggleIfMarkdown();
+        toggleIfPreviewable();
         lastRightClick = 0;
       } else {
         lastRightClick = now;
       }
     };
     this.monacoContainer.addEventListener(
+      "contextmenu",
+      handleRightDblClick,
+      true,
+    );
+    this.mediaContainer.addEventListener(
       "contextmenu",
       handleRightDblClick,
       true,
@@ -252,7 +284,7 @@ export class WorkspaceViewer {
       const tab = (e.target as HTMLElement).closest(".ws-viewer-tab");
       if (!tab) return;
       e.preventDefault();
-      toggleIfMarkdown();
+      toggleIfPreviewable();
     });
 
     // Right-double-click on tabs
@@ -264,7 +296,7 @@ export class WorkspaceViewer {
       if (now - lastTabRightClick < 400) {
         e.preventDefault();
         e.stopPropagation();
-        toggleIfMarkdown();
+        toggleIfPreviewable();
         lastTabRightClick = 0;
       } else {
         lastTabRightClick = now;
@@ -285,8 +317,8 @@ export class WorkspaceViewer {
     localStorage.setItem("ws-viewer-mode", mode);
     this.updateToggleIcon();
     const active = this.tabManager.getActiveTab();
-    if (active && active.endsWith(".md")) {
-      this.applyViewMode();
+    if (active && isPreviewable(active)) {
+      this.applyViewMode(active);
     }
   }
 
@@ -308,21 +340,34 @@ export class WorkspaceViewer {
       this.modeToggle.style.display = show ? "inline-flex" : "none";
   }
 
-  private applyViewMode(): void {
+  private async applyViewMode(filePath?: string): Promise<void> {
+    const active = filePath || this.tabManager.getActiveTab() || "";
+    const isMd = active.endsWith(".md");
     const hasPreview = !!this.previewContainer && !!this.previewPanel;
+
     if (this.viewMode === "edit") {
+      this.mediaContainer.style.display = "none";
+      if (this.previewContainer) this.previewContainer.style.display = "none";
       this.monacoContainer.style.display = "block";
       this.monacoContainer.style.width = "100%";
-      if (this.previewContainer) this.previewContainer.style.display = "none";
+      // For non-md previewable types, load source into Monaco
+      if (!isMd && active) {
+        await this.showTextFile(active);
+      }
     } else {
       this.monacoContainer.style.display = "none";
-      if (hasPreview) {
+      if (isMd && hasPreview) {
+        // Markdown: use dedicated preview panel
+        this.mediaContainer.style.display = "none";
         this.previewContainer!.style.display = "block";
         this.previewContainer!.style.width = "100%";
-        // For markdown preview, get content from the editor
         if (this.monacoEditor) {
           this.previewPanel!.render(this.monacoEditor.getValue());
         }
+      } else if (active) {
+        // Non-md previewable: render via media viewer (mermaid, graphviz, csv)
+        if (this.previewContainer) this.previewContainer.style.display = "none";
+        await this.showMediaFile(active);
       }
     }
     if (this.monacoEditor && this.monacoContainer.style.display !== "none") {

@@ -25,6 +25,7 @@ import { ImageViewer } from "./ImageViewer.ts";
 import { PdfViewer } from "./PdfViewer.ts";
 import { BinaryPlaceholder } from "./BinaryPlaceholder.ts";
 import { MermaidViewer } from "./MermaidViewer.ts";
+import { GraphvizViewer } from "./GraphvizViewer.ts";
 // CsvEditor from media-editor module
 import { CsvEditor } from "../media-editor/CsvEditor.ts";
 
@@ -36,6 +37,7 @@ export class MediaViewer {
   private pdfViewer: PdfViewer;
   private csvEditor: CsvEditor;
   private mermaidViewer: MermaidViewer;
+  private graphvizViewer: GraphvizViewer;
   private binaryPlaceholder: BinaryPlaceholder;
   private editorElement: HTMLElement | null = null;
 
@@ -46,6 +48,7 @@ export class MediaViewer {
     // CsvEditor uses MediaEditorConfig which is compatible with MediaViewerConfig
     this.csvEditor = new CsvEditor(config as any);
     this.mermaidViewer = new MermaidViewer(config);
+    this.graphvizViewer = new GraphvizViewer(config);
     this.binaryPlaceholder = new BinaryPlaceholder(config);
     this.initContainer();
   }
@@ -149,6 +152,9 @@ export class MediaViewer {
         break;
       case "mermaid":
         await this.mermaidViewer.render(this.container, filePath);
+        break;
+      case "graphviz":
+        await this.graphvizViewer.render(this.container, filePath);
         break;
       case "binary":
         this.binaryPlaceholder.render(this.container, filePath);

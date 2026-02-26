@@ -420,6 +420,28 @@ async def run_tool_loop_streaming(
 
             yield {"type": "tool_end", "name": tool_name}
 
+            # Emit file operation events for visual feedback
+            try:
+                result_data = json.loads(result_text)
+                if isinstance(result_data, dict):
+                    file_ops = []
+                    # project_write_file: created/modified
+                    if tool_name == "project_write_file" and result_data.get("success"):
+                        file_ops.append(
+                            {"path": result_data.get("path", ""), "op": "created"}
+                        )
+                    # exec tools: new_files, moved_files, deleted_files
+                    for f in result_data.get("new_files", []):
+                        file_ops.append({"path": f, "op": "created"})
+                    for f in result_data.get("moved_files", []):
+                        file_ops.append({"path": f, "op": "moved"})
+                    for f in result_data.get("deleted_files", []):
+                        file_ops.append({"path": f, "op": "deleted"})
+                    if file_ops:
+                        yield {"type": "file_ops", "ops": file_ops, "tool": tool_name}
+            except (json.JSONDecodeError, TypeError):
+                pass
+
             # Emit media references for frontend rendering
             if project_root:
                 from apps.llm_app.services.media_detect import (

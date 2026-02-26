@@ -53,6 +53,7 @@ export class VoiceRecorder {
     this.mediaRecorder?.stop();
     this._isRecording = false;
     this.micBtn?.classList.remove("recording");
+    this.micBtn?.classList.add("transcribing");
     this._stopVisualizer();
   }
 
@@ -120,13 +121,12 @@ export class VoiceRecorder {
       if (data.error) {
         console.error("[STT] Server error:", data.error);
       } else if (data.text) {
-        console.info(
-          `[STT] Transcribed using ${data.model ?? "unknown model"}`,
-        );
         onTranscript(data.text);
       }
     } catch (err) {
       console.error("[STT] Request failed:", err);
+    } finally {
+      this.micBtn?.classList.remove("transcribing");
     }
   }
 }

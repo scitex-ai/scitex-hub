@@ -4,7 +4,15 @@
  */
 
 export interface MediaRef {
-  type: "image" | "pdf" | "csv" | "plotly" | "mermaid" | "audio" | "video";
+  type:
+    | "image"
+    | "pdf"
+    | "csv"
+    | "plotly"
+    | "mermaid"
+    | "graphviz"
+    | "audio"
+    | "video";
   path: string;
   ext: string;
 }
@@ -44,7 +52,9 @@ export function renderMedia(
     case "plotly":
       return renderFileLink(ref, username, slug, "fa-chart-line");
     case "mermaid":
-      return renderFileLink(ref, username, slug, "fa-project-diagram");
+      return renderMermaid(ref, username, slug);
+    case "graphviz":
+      return renderGraphviz(ref, username, slug);
     default:
       return renderFileLink(ref, username, slug, "fa-file");
   }
@@ -158,6 +168,90 @@ function renderVideo(
   caption.className = "scitex-ai-media-caption";
   caption.textContent = filename(ref.path);
   wrapper.appendChild(caption);
+
+  return wrapper;
+}
+
+function renderMermaid(
+  ref: MediaRef,
+  username: string,
+  slug: string,
+): HTMLElement {
+  const wrapper = document.createElement("div");
+  wrapper.className = "scitex-ai-media scitex-ai-mermaid-diagram";
+  wrapper.textContent = "Loading diagram...";
+
+  fetch(blobUrl(username, slug, ref.path))
+    .then((r) => {
+      const ct = r.headers.get("content-type") || "";
+      return ct.includes("application/json")
+        ? r.json().then((j: any) => j.content ?? "")
+        : r.text();
+    })
+    .then(async (code: string) => {
+      code = code.trim();
+      if (!code) {
+        wrapper.textContent = "(empty diagram)";
+        return;
+      }
+      const { default: mermaid } = await import("mermaid");
+      mermaid.initialize({
+        startOnLoad: false,
+        theme:
+          document.documentElement.getAttribute("data-theme") === "dark"
+            ? "dark"
+            : "default",
+        securityLevel: "loose",
+      });
+      const id = `mmd-media-${Date.now()}`;
+      wrapper.innerHTML = `<div class="mermaid" id="${id}">${code}</div>`;
+      await mermaid.run({ nodes: [wrapper.querySelector(".mermaid")!] });
+      const caption = document.createElement("span");
+      caption.className = "scitex-ai-media-caption";
+      caption.textContent = filename(ref.path);
+      wrapper.appendChild(caption);
+    })
+    .catch(() => {
+      wrapper.innerHTML = `<a class="scitex-ai-media-file" href="${viewUrl(username, slug, ref.path)}" target="_blank"><i class="fas fa-project-diagram"></i>${filename(ref.path)}</a>`;
+    });
+
+  return wrapper;
+}
+
+function renderGraphviz(
+  ref: MediaRef,
+  username: string,
+  slug: string,
+): HTMLElement {
+  const wrapper = document.createElement("div");
+  wrapper.className = "scitex-ai-media scitex-ai-mermaid-diagram";
+  wrapper.textContent = "Loading diagram...";
+
+  fetch(blobUrl(username, slug, ref.path))
+    .then((r) => {
+      const ct = r.headers.get("content-type") || "";
+      return ct.includes("application/json")
+        ? r.json().then((j: any) => j.content ?? "")
+        : r.text();
+    })
+    .then(async (code: string) => {
+      code = code.trim();
+      if (!code) {
+        wrapper.textContent = "(empty diagram)";
+        return;
+      }
+      const { Graphviz } = await import("@hpcc-js/wasm-graphviz");
+      const graphviz = await Graphviz.load();
+      const svg = graphviz.dot(code);
+      wrapper.innerHTML = svg;
+      const caption = document.createElement("span");
+      caption.className = "scitex-ai-media-caption";
+      caption.textContent = filename(ref.path);
+      wrapper.appendChild(caption);
+    })
+    .catch(() => {
+      wrapper.innerHTML = `<a class="scitex-ai-media-file" href="${viewUrl(username, slug, ref.path)}" target="_blank"><i class="fas fa-project-diagram"></i>${filename(ref.path)}</a>`;
+    });
 
   return wrapper;
 }

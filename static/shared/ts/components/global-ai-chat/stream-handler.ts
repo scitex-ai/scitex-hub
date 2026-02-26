@@ -143,6 +143,30 @@ export async function processStream(
       } else if (event.type === "context") {
         contextUser = event.username as string;
         contextSlug = event.slug as string;
+      } else if (event.type === "file_ops") {
+        const ops = event.ops as { path: string; op: string }[];
+        if (ops?.length) {
+          for (const op of ops) {
+            const badge = document.createElement("span");
+            badge.className = `scitex-ai-file-op scitex-ai-file-op--${op.op}`;
+            const icon =
+              op.op === "created"
+                ? "fa-plus-circle"
+                : op.op === "modified"
+                  ? "fa-pen"
+                  : op.op === "moved"
+                    ? "fa-arrow-right"
+                    : "fa-trash";
+            const parts = op.path.split("/");
+            const fname = parts.pop() || op.path;
+            const dir = parts.length > 0 ? parts.join("/") + "/" : "";
+            badge.innerHTML = dir
+              ? `<i class="fas ${icon}"></i> <span class="scitex-ai-file-op-dir">${dir}</span>${fname}`
+              : `<i class="fas ${icon}"></i> ${fname}`;
+            msgEl.appendChild(badge);
+          }
+          if (ctx.scrollIfNeeded) ctx.scrollIfNeeded();
+        }
       } else if (event.type === "tool_result") {
         const media = event.media as MediaRef[] | undefined;
         if (media?.length && contextUser && contextSlug) {
@@ -172,7 +196,15 @@ export async function processStream(
   finalizeTextSegment();
 
   // Refresh file tree if AI wrote files
-  if (toolsUsed.includes("project_write_file") && window.workspaceFilesTree) {
+  const fileTools = [
+    "project_write_file",
+    "project_exec_python",
+    "project_exec_shell",
+  ];
+  if (
+    toolsUsed.some((t) => fileTools.includes(t)) &&
+    window.workspaceFilesTree
+  ) {
     setTimeout(() => {
       window.workspaceFilesTree?.refresh();
       const treeEl = document.getElementById("file-tree");

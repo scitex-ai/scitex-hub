@@ -238,7 +238,7 @@ export class TreeRenderer {
     // Folder name
     html += `<span class="wft-name">${this.escapeHtml(item.name)}`;
     if (item.is_symlink && item.symlink_target) {
-      html += `<span class="wft-symlink"> → ${this.escapeHtml(item.symlink_target)}</span>`;
+      html += `<span class="wft-symlink"> -> ${this.escapeHtml(item.symlink_target)}</span>`;
     }
     html += `</span>`;
 
@@ -291,7 +291,7 @@ export class TreeRenderer {
     html += `<span class="wft-name">${this.escapeHtml(item.name)}`;
 
     if (item.is_symlink && item.symlink_target) {
-      html += `<span class="wft-symlink"> → ${this.escapeHtml(item.symlink_target)}</span>`;
+      html += `<span class="wft-symlink"> -> ${this.escapeHtml(item.symlink_target)}</span>`;
     }
     html += `</span>`;
 

@@ -3,6 +3,7 @@ from django.views.generic import RedirectView
 
 from .views import (
     account_settings,
+    ai_limits_api,
     ai_providers,
     api_generate_ssh_key,
     api_keys,
@@ -53,5 +54,10 @@ urlpatterns = [
         "api/mcp-preferences/",
         mcp_settings_api,
         name="mcp_settings_api",
+    ),
+    path(
+        "api/ai-limits/",
+        ai_limits_api,
+        name="ai_limits_api",
     ),
 ]

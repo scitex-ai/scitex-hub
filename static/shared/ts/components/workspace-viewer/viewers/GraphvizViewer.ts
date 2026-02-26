@@ -1,12 +1,12 @@
 /**
- * MermaidViewer - Fetches .mmd file content and renders it as a Mermaid diagram.
- * Uses lazy import of mermaid to avoid bundling overhead in other entry points.
+ * GraphvizViewer - Fetches .dot/.gv file content and renders as a Graphviz diagram.
+ * Uses lazy import of @hpcc-js/wasm-graphviz to avoid bundling overhead.
  */
 
 import type { Viewer } from "../types.ts";
 import { getFileUrl } from "../file-loader.ts";
 
-export class MermaidViewer implements Viewer {
+export class GraphvizViewer implements Viewer {
   private abortController: AbortController | null = null;
 
   async render(
@@ -44,27 +44,18 @@ export class MermaidViewer implements Viewer {
     }
 
     try {
-      const { default: mermaid } = await import("mermaid");
-      mermaid.initialize({
-        startOnLoad: false,
-        theme:
-          document.documentElement.getAttribute("data-theme") === "dark"
-            ? "dark"
-            : "default",
-        securityLevel: "loose",
-      });
+      const { Graphviz } = await import("@hpcc-js/wasm-graphviz");
+      const graphviz = await Graphviz.load();
+      const svg = graphviz.dot(code);
 
-      const id = `mmd-${Date.now()}`;
       const wrapper = document.createElement("div");
       wrapper.style.cssText = "padding:16px; overflow:auto; height:100%;";
-      wrapper.innerHTML = `<div class="mermaid" id="${id}">${code}</div>`;
+      wrapper.innerHTML = svg;
 
       container.innerHTML = "";
       container.appendChild(wrapper);
-
-      await mermaid.run({ nodes: [wrapper.querySelector(".mermaid")!] });
     } catch (err) {
-      console.error("[MermaidViewer] Render error:", err);
+      console.error("[GraphvizViewer] Render error:", err);
       container.innerHTML = `
         <div style="color:#e55; padding:10px;">
           Failed to render diagram: ${err instanceof Error ? err.message : String(err)}

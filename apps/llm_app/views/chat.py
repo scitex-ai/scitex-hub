@@ -6,7 +6,27 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 
 from apps.llm_app.services import UserLLMService
-from apps.llm_app.utils import litellm_model_string
+from apps.llm_app.utils import LLM_PROVIDERS, litellm_model_string
+from apps.llm_app.views.sse_utils import build_multimodal_user_msg, with_keepalive
+
+
+def _model_display_name(service_id: str, model_id: str) -> str:
+    """Derive a human-friendly model name from provider + model ID.
+
+    Strips provider prefix and date suffixes dynamically — no hardcoding.
+    """
+    import re
+
+    provider = LLM_PROVIDERS.get(service_id, {})
+    provider_display = provider.get("display", service_id).split("(")[0].strip()
+    # Strip provider prefix (e.g. "gemini/" from "gemini/gemini-2.0-flash")
+    prefix = provider.get("model_prefix", "")
+    base = model_id
+    if prefix and base.startswith(prefix):
+        base = base[len(prefix) :]
+    # Strip date suffix (e.g. "-20241022")
+    base = re.sub(r"-\d{8}$", "", base)
+    return f"{provider_display} · {base}"
 
 
 @login_required
@@ -23,10 +43,12 @@ def api_current_model(request):
 
         if is_campaign_enabled():
             config = get_campaign_config()
+            model_id = config["model"]
             return JsonResponse(
                 {
                     "success": True,
-                    "model": f"anthropic/{config['model']}",
+                    "model": f"anthropic/{model_id}",
+                    "display": _model_display_name("anthropic", model_id),
                     "campaign": True,
                 }
             )
@@ -34,8 +56,15 @@ def api_current_model(request):
     model = litellm_model_string(
         service.connection.service, service.llm_connection.default_model
     )
+    display = _model_display_name(
+        service.connection.service, service.llm_connection.default_model
+    )
     return JsonResponse(
-        {"success": True, "model": model or service.llm_connection.default_model}
+        {
+            "success": True,
+            "model": model or service.llm_connection.default_model,
+            "display": display,
+        }
     )
 
 
@@ -132,10 +161,9 @@ def _build_system_prompt(context: dict, user, sync_to_async=None) -> str:
 
     base_prompt = export_chat_prompt()
 
-    # Append project file guidance
+    # Append project file guidance — tool list is auto-discovered from MCP
     base_prompt += (
-        "When working with project files use the project_* tools "
-        "(project_list_files, project_read_file, project_write_file, project_search_files). "
+        "When working with project files use the project_* tools. "
         "Always pass the exact root_path shown in this prompt.\n"
     )
 
@@ -189,26 +217,6 @@ def _derive_app_name(context: dict) -> str:
     return "llm_app"
 
 
-async def _with_keepalive(aiter, interval_s: float = 15.0):
-    """Wrap an async iterator with SSE keepalive comments.
-
-    Sends ``: keepalive`` comments when no data arrives within *interval_s*
-    seconds, preventing proxies and browsers from closing idle connections.
-    """
-    import asyncio
-    import json as _json
-
-    ait = aiter.__aiter__()
-    while True:
-        try:
-            event = await asyncio.wait_for(ait.__anext__(), timeout=interval_s)
-            yield f"data: {_json.dumps(event)}\n\n"
-        except asyncio.TimeoutError:
-            yield ": keepalive\n\n"
-        except StopAsyncIteration:
-            break
-
-
 @transaction.non_atomic_requests
 @login_required
 @require_http_methods(["POST"])
@@ -238,9 +246,10 @@ async def api_chat_stream(request):
         system_prompt, request.user, context.get("project_slug", "")
     )
 
+    user_msg = build_multimodal_user_msg(prompt, data.get("attachments", []))
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": prompt},
+        user_msg,
     ]
 
     # Derive app_name from page context for accurate usage tracking
@@ -319,7 +328,7 @@ async def api_chat_stream(request):
                         yield f"data: {_json.dumps({'type': 'chunk', 'text': delta.content})}\n\n"
                 await sync_to_async(increment_campaign_usage)(request)
             else:
-                async for event in _with_keepalive(
+                async for event in with_keepalive(
                     service.complete_with_tools_streaming(
                         messages=messages,
                         app_name=app_name,
@@ -364,9 +373,10 @@ async def api_chat(request):
         system_prompt, request.user, context.get("project_slug", "")
     )
 
+    user_msg = build_multimodal_user_msg(prompt, data.get("attachments", []))
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": prompt},
+        user_msg,
     ]
 
     app_name = _derive_app_name(context)

@@ -4,10 +4,13 @@
 """File tree API endpoint for writer app."""
 
 from __future__ import annotations
+
 import logging
+
 from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods
 from django.shortcuts import get_object_or_404
+from django.views.decorators.http import require_http_methods
+
 from apps.project_app.models import Project
 
 logger = logging.getLogger(__name__)
@@ -30,10 +33,7 @@ def file_tree_view(request, project_id=None):
             project_id = request.GET.get("project_id")
 
         if not project_id:
-            return JsonResponse({
-                "success": False,
-                "error": "No project ID provided"
-            })
+            return JsonResponse({"success": False, "error": "No project ID provided"})
 
         project = get_object_or_404(Project, id=project_id)
 
@@ -47,9 +47,8 @@ def file_tree_view(request, project_id=None):
         else:
             # For visitor users, check if this is their allocated visitor project
             visitor_project_id = request.session.get("visitor_project_id")
-            has_access = (
-                project.visibility == "public"
-                or (visitor_project_id and project.id == visitor_project_id)
+            has_access = project.visibility == "public" or (
+                visitor_project_id and project.id == visitor_project_id
             )
 
         if not has_access:
@@ -64,10 +63,9 @@ def file_tree_view(request, project_id=None):
         project_path = manager.get_project_root_path(project)
 
         if not project_path or not project_path.exists():
-            return JsonResponse({
-                "success": False,
-                "error": "Project directory not found"
-            })
+            return JsonResponse(
+                {"success": False, "error": "Project directory not found"}
+            )
 
         def build_tree(path, max_depth=5, current_depth=0):
             """Build file tree recursively (deeper for full navigation)"""
@@ -93,11 +91,20 @@ def file_tree_view(request, project_id=None):
                         continue
 
                     rel_path = item.relative_to(project_path)
+
+                    # Detect symlinks
+                    is_symlink = item.is_symlink()
                     item_data = {
                         "name": item.name,
                         "type": "directory" if item.is_dir() else "file",
                         "path": str(rel_path),
+                        "is_symlink": is_symlink,
                     }
+                    if is_symlink:
+                        try:
+                            item_data["symlink_target"] = str(item.readlink())
+                        except OSError:
+                            pass
 
                     # Add children for directories (deeper depth for full tree)
                     if item.is_dir() and current_depth < max_depth:
@@ -117,10 +124,7 @@ def file_tree_view(request, project_id=None):
 
     except Exception as e:
         logger.error(f"Error getting file tree: {e}", exc_info=True)
-        return JsonResponse({
-            "success": False,
-            "error": str(e)
-        })
+        return JsonResponse({"success": False, "error": str(e)})
 
 
 # EOF

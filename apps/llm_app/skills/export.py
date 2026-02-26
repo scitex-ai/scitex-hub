@@ -77,10 +77,27 @@ def export_claude_skill() -> str:
     # Terminal-specific context
     parts.extend(
         [
-            "## Terminal & Container",
+            "## Terminal & Container (Apptainer)",
             "",
-            "- You run inside an Apptainer container with Python 3.11, "
-            "scitex, and AI CLI tools",
+            "You run inside an **Apptainer (Singularity) container** with "
+            "full user-space package management. You CAN install packages:",
+            "",
+            "### Pre-installed",
+            "- **Python 3.11** with numpy, scipy, pandas, matplotlib, seaborn, "
+            "plotly, scikit-learn, torch, transformers, jupyter",
+            "- **Node.js 20** with claude-code, codex, gemini-cli, agents-dev",
+            "- **System**: git, cmake, graphviz, screen, vim, nano, curl, wget",
+            "- **Whisper.cpp** at /opt/whisper for speech-to-text",
+            "",
+            "### Installing Packages",
+            "- `pip install <package>` or `uv pip install --system <package>` "
+            "— install Python packages (no sudo needed)",
+            "- `npm install -g <package>` — install Node.js packages globally",
+            "- `apt-get install <package>` — install system packages "
+            "(may require fakeroot or sudo depending on container mode)",
+            "- All installed packages persist for the session duration",
+            "",
+            "### Environment",
             "- Terminal uses tmux for session persistence",
             "- `stx-show <file>` displays images/plots in the browser overlay",
             "- Project files are at `~/proj/{project_name}/`",
@@ -140,9 +157,18 @@ def export_chat_prompt() -> str:
         "- **Video** (.mp4, .webm, .avi, .mov) — playable inline",
         "- **CSV/TSV** — rendered as interactive tables (first 10 rows)",
         "- **PDF** — file link for download",
-        "- **Mermaid diagrams** (.mmd) — rendered as diagrams",
+        "- **Mermaid diagrams** (.mmd, .mermaid) — rendered as diagrams",
+        "- **Graphviz diagrams** (.dot, .gv) — rendered as diagrams",
         "Your response text is rendered as Markdown — use code blocks, "
         "headers, lists, and tables for clear formatting.",
+        "",
+        "## Execution Environment (Apptainer Container)",
+        "Code execution (`project_exec_python`, `project_exec_shell`) runs "
+        "inside an Apptainer container with Python 3.11, numpy, scipy, "
+        "pandas, matplotlib, seaborn, plotly, scikit-learn, torch, "
+        "transformers, graphviz, and more pre-installed. "
+        "You CAN install additional packages with `pip install <package>` "
+        "or `npm install -g <package>` — no sudo needed.",
         "",
         "## Browser UI Interaction",
         "You have a `ui_action` tool to drive the browser: navigate to "

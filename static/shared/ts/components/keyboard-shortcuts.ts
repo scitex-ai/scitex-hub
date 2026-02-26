@@ -129,12 +129,34 @@ function toggleAIPanel(): void {
   const input = document.getElementById(
     "scitex-ai-input",
   ) as HTMLTextAreaElement | null;
+  const terminal = document.getElementById("scitex-ai-console-terminal");
 
   if (panel?.classList.contains("collapsed")) {
+    // Expand panel and focus the active mode (chat input or console)
     (fab ?? toggle)?.click();
-    setTimeout(() => input?.focus(), 260);
+    setTimeout(() => {
+      const isConsole = terminal?.closest(".scitex-ai-view.active");
+      if (isConsole && (window as any).aiPanelConsole) {
+        (window as any).aiPanelConsole.focus();
+      } else {
+        input?.focus();
+      }
+    }, 260);
   } else {
-    (fab ?? toggle)?.click();
+    // Panel is open — check if focus is already inside
+    const hasFocus = panel?.contains(document.activeElement);
+    if (hasFocus) {
+      // Already focused inside panel → collapse it
+      (fab ?? toggle)?.click();
+    } else {
+      // Focus is elsewhere → bring focus to panel
+      const isConsole = terminal?.closest(".scitex-ai-view.active");
+      if (isConsole && (window as any).aiPanelConsole) {
+        (window as any).aiPanelConsole.focus();
+      } else {
+        input?.focus();
+      }
+    }
   }
 }
 

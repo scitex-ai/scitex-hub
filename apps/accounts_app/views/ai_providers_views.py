@@ -5,6 +5,7 @@ from decimal import Decimal, InvalidOperation
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from django.views.decorators.http import require_http_methods
 
 from apps.integrations_app.models import IntegrationConnection
 from apps.llm_app.models import LLMConnection
@@ -153,3 +154,83 @@ def ai_providers(request):
         "accounts_app/ai_providers.html",
         {"providers": providers},
     )
+
+
+def _get_active_llm(user):
+    """Get the active LLM connection for a user, or None."""
+    from apps.llm_app.services import UserLLMService
+
+    svc = UserLLMService(user)
+    if svc.connection and svc.llm_connection:
+        return svc.llm_connection
+    return None
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def ai_limits_api(request):
+    """AJAX endpoint for reading/saving daily limits from the AI panel Config tab.
+
+    GET  → returns current limits for the active provider
+    POST → updates limits, synced with /accounts/settings/ai-providers/
+    """
+    import json
+    from decimal import Decimal, InvalidOperation
+
+    from django.http import JsonResponse
+
+    llm = _get_active_llm(request.user)
+    if not llm:
+        return JsonResponse(
+            {
+                "success": False,
+                "configured": False,
+                "configure_url": "/accounts/settings/ai-providers/",
+            }
+        )
+
+    if request.method == "GET":
+        return JsonResponse(
+            {
+                "success": True,
+                "configured": True,
+                "limits": {
+                    "daily_request_limit": llm.daily_request_limit,
+                    "daily_token_limit": llm.daily_token_limit,
+                    "daily_cost_limit_usd": (
+                        float(llm.daily_cost_limit_usd)
+                        if llm.daily_cost_limit_usd is not None
+                        else None
+                    ),
+                },
+            }
+        )
+
+    # POST — update limits
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    update_fields = []
+
+    for field in ("daily_request_limit", "daily_token_limit"):
+        if field in data:
+            val = data[field]
+            setattr(llm, field, int(val) if val not in (None, "", "null") else None)
+            update_fields.append(field)
+
+    if "daily_cost_limit_usd" in data:
+        val = data["daily_cost_limit_usd"]
+        try:
+            llm.daily_cost_limit_usd = (
+                Decimal(str(val)) if val not in (None, "", "null") else None
+            )
+        except InvalidOperation:
+            return JsonResponse({"error": "Invalid cost value"}, status=400)
+        update_fields.append("daily_cost_limit_usd")
+
+    if update_fields:
+        llm.save(update_fields=update_fields)
+
+    return JsonResponse({"success": True})

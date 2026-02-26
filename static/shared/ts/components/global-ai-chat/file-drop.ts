@@ -6,27 +6,7 @@
  * - External OS file drops: uploads to user's downloads directory
  */
 
-function getCsrf(): string {
-  return (
-    document.querySelector<HTMLInputElement>("[name=csrfmiddlewaretoken]")
-      ?.value ??
-    (document.cookie.match(/csrftoken=([^;]+)/)?.[1] || "")
-  );
-}
-
-async function uploadFiles(files: FileList): Promise<string[]> {
-  const form = new FormData();
-  for (let i = 0; i < files.length; i++) form.append("files", files[i]);
-
-  const resp = await fetch("/llm/api/upload/", {
-    method: "POST",
-    headers: { "X-CSRFToken": getCsrf() },
-    body: form,
-  });
-  if (!resp.ok) throw new Error(`Upload failed: ${resp.status}`);
-  const data = (await resp.json()) as { paths: string[] };
-  return data.paths;
-}
+import { uploadFiles } from "../../utils/file-upload";
 
 function notifyFilesAttached(
   paths: string[],

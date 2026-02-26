@@ -110,10 +110,71 @@ export function renderMarkdown(text: string): string {
 /** Highlight code blocks after inserting markdown HTML into DOM */
 export function highlightCodeBlocks(container: HTMLElement): void {
   const hljs = (window as any).hljs;
-  if (!hljs) return;
   container.querySelectorAll<HTMLElement>("pre code").forEach((block) => {
-    hljs.highlightElement(block);
+    // Render mermaid code blocks as diagrams
+    if (
+      block.classList.contains("language-mermaid") ||
+      block.classList.contains("mermaid")
+    ) {
+      renderMermaidBlock(block);
+      return;
+    }
+    // Render graphviz/dot code blocks as diagrams
+    if (
+      block.classList.contains("language-dot") ||
+      block.classList.contains("language-graphviz")
+    ) {
+      renderGraphvizBlock(block);
+      return;
+    }
+    if (hljs) hljs.highlightElement(block);
   });
+}
+
+/** Render a mermaid code block as an SVG diagram inline */
+async function renderMermaidBlock(block: HTMLElement): Promise<void> {
+  const code = block.textContent?.trim();
+  if (!code) return;
+  const pre = block.parentElement;
+  if (!pre || pre.tagName !== "PRE") return;
+  try {
+    const { default: mermaid } = await import("mermaid");
+    mermaid.initialize({
+      startOnLoad: false,
+      theme:
+        document.documentElement.getAttribute("data-theme") === "dark"
+          ? "dark"
+          : "default",
+      securityLevel: "loose",
+    });
+    const id = `mmd-chat-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const wrapper = document.createElement("div");
+    wrapper.className = "scitex-ai-mermaid-diagram";
+    wrapper.innerHTML = `<div class="mermaid" id="${id}">${code}</div>`;
+    pre.replaceWith(wrapper);
+    await mermaid.run({ nodes: [wrapper.querySelector(".mermaid")!] });
+  } catch (err) {
+    console.error("[MermaidRender]", err);
+  }
+}
+
+/** Render a graphviz/dot code block as an SVG diagram inline */
+async function renderGraphvizBlock(block: HTMLElement): Promise<void> {
+  const code = block.textContent?.trim();
+  if (!code) return;
+  const pre = block.parentElement;
+  if (!pre || pre.tagName !== "PRE") return;
+  try {
+    const { Graphviz } = await import("@hpcc-js/wasm-graphviz");
+    const graphviz = await Graphviz.load();
+    const svg = graphviz.dot(code);
+    const wrapper = document.createElement("div");
+    wrapper.className = "scitex-ai-mermaid-diagram";
+    wrapper.innerHTML = svg;
+    pre.replaceWith(wrapper);
+  } catch (err) {
+    console.error("[GraphvizRender]", err);
+  }
 }
 
 /** Make external links open in new tab */
