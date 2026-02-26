@@ -30,6 +30,12 @@ STATUS_CHOICES = [
     ("deprecated", "Deprecated"),
 ]
 
+VISIBILITY_CHOICES = [
+    ("private", "Private"),
+    ("unlisted", "Unlisted"),
+    ("public", "Public"),
+]
+
 
 class MarketplaceModule(models.Model):
     """Catalog entry for a workspace module."""
@@ -79,8 +85,8 @@ class MarketplaceModule(models.Model):
     )
     visibility = models.CharField(
         max_length=10,
-        choices=[("public", "Public"), ("unlisted", "Unlisted")],
-        default="public",
+        choices=VISIBILITY_CHOICES,
+        default="private",
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -88,7 +94,7 @@ class MarketplaceModule(models.Model):
 
     class Meta:
         ordering = ["-star_count", "-install_count"]
-        verbose_name = "Marketplace Module"
+        verbose_name = "Marketplace App"
 
     def __str__(self):
         return f"{self.module_name} ({self.category})"
@@ -122,7 +128,7 @@ class ModuleVersion(models.Model):
     class Meta:
         unique_together = ("module", "version")
         ordering = ["-released_at"]
-        verbose_name = "Module Version"
+        verbose_name = "App Version"
 
     def __str__(self):
         return f"{self.module.module_name} v{self.version}"
@@ -145,7 +151,7 @@ class ModuleInstallation(models.Model):
     class Meta:
         unique_together = ("user", "module")
         ordering = ["tab_order"]
-        verbose_name = "Module Installation"
+        verbose_name = "App Installation"
 
     def __str__(self):
         status = "enabled" if self.is_enabled else "disabled"
@@ -171,6 +177,41 @@ class ModuleStar(models.Model):
         return f"{self.user.username} starred {self.module.module_name}"
 
 
+class ModuleSubmission(models.Model):
+    """Tracks module publication requests (private → public via admin review)."""
+
+    STATUS_CHOICES = [
+        ("pending", "Pending Review"),
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
+    ]
+
+    module = models.ForeignKey(
+        MarketplaceModule, on_delete=models.CASCADE, related_name="submissions"
+    )
+    submitted_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="module_submissions"
+    )
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
+    reviewer = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reviewed_submissions",
+    )
+    review_note = models.TextField(blank=True)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-submitted_at"]
+        verbose_name = "App Submission"
+
+    def __str__(self):
+        return f"{self.module.module_name} — {self.get_status_display()}"
+
+
 class ModuleReview(models.Model):
     """User review and rating for a module."""
 
@@ -192,7 +233,7 @@ class ModuleReview(models.Model):
     class Meta:
         unique_together = ("user", "module")
         ordering = ["-created_at"]
-        verbose_name = "Module Review"
+        verbose_name = "App Review"
 
     def __str__(self):
         return (

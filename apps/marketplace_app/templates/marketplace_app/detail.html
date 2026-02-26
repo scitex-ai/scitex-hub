@@ -18,7 +18,13 @@
             </div>
             <div class="mp-detail-meta">
                 <div class="mp-detail-title-row">
-                    <h1 class="mp-detail-title">{{ mp_module.module_name }}</h1>
+                    <h1 class="mp-detail-title">
+                        {% if skill %}
+                            {{ skill.display_name }}
+                        {% else %}
+                            {{ mp_module.module_name }}
+                        {% endif %}
+                    </h1>
                     <div class="mp-detail-badges">
                         <span class="mp-category-badge mp-category-{{ mp_module.category }}">{{ mp_module.get_category_display }}</span>
                         {% if mp_module.is_builtin %}
@@ -29,6 +35,21 @@
                         {% if mp_module.is_verified %}
                             <span class="mp-badge mp-badge-verified">
                                 <i class="fas fa-shield-alt" aria-hidden="true"></i> Verified
+                            </span>
+                        {% endif %}
+                        {% if mp_module.visibility == "private" %}
+                            <span class="mp-badge mp-badge-private">
+                                <i class="fas fa-lock" aria-hidden="true"></i> Private
+                            </span>
+                        {% endif %}
+                        {% if reg_module and reg_module.keyboard_shortcut %}
+                            <span class="mp-badge mp-badge-shortcut">
+                                <i class="fas fa-keyboard" aria-hidden="true"></i> Alt+{{ reg_module.keyboard_shortcut }}
+                            </span>
+                        {% endif %}
+                        {% if reg_module and reg_module.license %}
+                            <span class="mp-badge mp-badge-license">
+                                <i class="fas fa-balance-scale" aria-hidden="true"></i> {{ reg_module.license }}
                             </span>
                         {% endif %}
                     </div>
@@ -55,7 +76,12 @@
                         </span>
                     {% endif %}
                 </div>
-                {% if mp_module.short_description %}<p class="mp-detail-short-desc">{{ mp_module.short_description }}</p>{% endif %}
+                {# Short desc: prefer DB, fallback to registry ai_hint #}
+                {% if mp_module.short_description %}
+                    <p class="mp-detail-short-desc">{{ mp_module.short_description }}</p>
+                {% elif reg_module and reg_module.ai_hint %}
+                    <p class="mp-detail-short-desc">{{ reg_module.ai_hint }}</p>
+                {% endif %}
             </div>
             <div class="mp-detail-actions">
                 {% if user.is_authenticated %}
@@ -110,16 +136,108 @@
                         <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Login to install
                     </a>
                 {% endif %}
+                {% if mp_module.author %}
+                    <a href="/{{ mp_module.author.username }}/{{ mp_module.module_name }}/"
+                       class="mp-btn-action mp-btn-secondary">
+                        <i class="fas fa-external-link-alt" aria-hidden="true"></i> View in Hub
+                    </a>
+                {% endif %}
+                {% if pending_submission %}
+                    <span class="mp-badge mp-badge-wip">
+                        <i class="fas fa-clock" aria-hidden="true"></i> Under Review
+                    </span>
+                {% elif mp_module.visibility == "private" and mp_module.author == user %}
+                    <button class="mp-btn-action mp-btn-primary"
+                            id="mp-publish-btn"
+                            data-module="{{ mp_module.module_name }}">
+                        <i class="fas fa-globe" aria-hidden="true"></i> Publish
+                    </button>
+                {% endif %}
                 <a href="/marketplace/" class="mp-btn-action mp-btn-secondary">
                     <i class="fas fa-arrow-left" aria-hidden="true"></i> Browse
                 </a>
             </div>
         </div>
-        <!-- Long description -->
-        {% if mp_module.long_description %}
+        <!-- About: DB long_description, fallback to skill.description -->
+        {% if mp_module.long_description or skill and skill.description %}
             <section class="mp-detail-section">
-                <h2 class="mp-section-title">About</h2>
-                <div class="mp-detail-long-desc">{{ mp_module.long_description|linebreaks }}</div>
+                <h2 class="mp-section-title">
+                    <i class="fas fa-info-circle" aria-hidden="true"></i> About
+                </h2>
+                <div class="mp-detail-long-desc">
+                    {% if mp_module.long_description %}
+                        {{ mp_module.long_description|linebreaks }}
+                    {% elif skill %}
+                        {{ skill.description }}
+                    {% endif %}
+                </div>
+            </section>
+        {% endif %}
+        <!-- Capabilities (from skill registry) -->
+        {% if skill and skill.capabilities %}
+            <section class="mp-detail-section">
+                <h2 class="mp-section-title">
+                    <i class="fas fa-bolt" aria-hidden="true"></i> Capabilities
+                </h2>
+                <ul class="mp-capabilities-list">
+                    {% for cap in skill.capabilities %}
+                        <li>
+                            <i class="fas fa-check" aria-hidden="true"></i> {{ cap }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+        <!-- Supported file types (from module registry) -->
+        {% if reg_module and reg_module.allowed_extensions %}
+            <section class="mp-detail-section">
+                <h2 class="mp-section-title">
+                    <i class="fas fa-file-alt" aria-hidden="true"></i> Supported File Types
+                </h2>
+                <div class="mp-file-types">
+                    {% for ext in reg_module.allowed_extensions %}<code class="mp-file-ext">{{ ext }}</code>{% endfor %}
+                </div>
+            </section>
+        {% endif %}
+        <!-- AI integration (from skill registry) -->
+        {% if skill and skill.tool_prefixes or skill and skill.mcp_tool_examples %}
+            <section class="mp-detail-section">
+                <h2 class="mp-section-title">
+                    <i class="fas fa-robot" aria-hidden="true"></i> AI Integration
+                </h2>
+                {% if skill.tool_prefixes %}
+                    <div class="mp-info-row">
+                        <span class="mp-info-label">Tool prefixes</span>
+                        <span class="mp-info-value">
+                            {% for prefix in skill.tool_prefixes %}
+                                <code>{{ prefix }}*</code>
+                                {% if not forloop.last %}{% endif %}
+                            {% endfor %}
+                        </span>
+                    </div>
+                {% endif %}
+                {% if skill.mcp_tool_examples %}
+                    <div class="mp-info-row">
+                        <span class="mp-info-label">Example tools</span>
+                        <span class="mp-info-value">
+                            {% for tool in skill.mcp_tool_examples %}
+                                <code>{{ tool }}</code>
+                                {% if not forloop.last %}{% endif %}
+                            {% endfor %}
+                        </span>
+                    </div>
+                {% endif %}
+                {% if skill.page_patterns %}
+                    <div class="mp-info-row">
+                        <span class="mp-info-label">URL patterns</span>
+                        <span class="mp-info-value">
+                            {% for pat in skill.page_patterns %}
+                                <code>{{ pat }}</code>
+                                {% if not forloop.last %}{% endif %}
+                            {% endfor %}
+                        </span>
+                    </div>
+                {% endif %}
             </section>
         {% endif %}
         <!-- External links -->
@@ -208,7 +326,7 @@
     var uninstallBtn = document.getElementById('mp-uninstall-btn');
     if (uninstallBtn) {
         uninstallBtn.addEventListener('click', function () {
-            if (!confirm('Uninstall this module?')) { return; }
+            if (!confirm('Uninstall this app?')) { return; }
             uninstallBtn.disabled = true;
             postApi('/marketplace/api/' + uninstallBtn.dataset.module + '/uninstall/',
                 function () { location.reload(); },
@@ -241,6 +359,22 @@
                     countEl.textContent = data.star_count;
                 }
             }, function () { starBtn.disabled = false; });
+        });
+    }
+
+    var publishBtn = document.getElementById('mp-publish-btn');
+    if (publishBtn) {
+        publishBtn.addEventListener('click', function () {
+            if (!confirm('Submit this app for marketplace review?')) { return; }
+            publishBtn.disabled = true;
+            postApi('/marketplace/api/' + publishBtn.dataset.module + '/submit/',
+                function () { location.reload(); },
+                function (data) {
+                    publishBtn.disabled = false;
+                    if (data.errors) { alert('Validation errors:\n' + data.errors.join('\n')); }
+                    else if (data.error) { alert(data.error); }
+                }
+            );
         });
     }
 

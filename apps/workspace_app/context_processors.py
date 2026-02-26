@@ -58,6 +58,12 @@ def _filter_modules_for_user(request, modules):
         # marketplace_app not migrated yet or other DB issue
         return modules
 
+    # Populate marketplace status on each module
+    for mod in modules:
+        inst = installations.get(mod.name)
+        if inst and inst.module:
+            mod.status = inst.module.status or ""
+
     if not installations:
         # No installations = first-time user, show all modules
         return modules
