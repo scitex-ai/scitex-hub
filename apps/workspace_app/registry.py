@@ -50,6 +50,9 @@ class ModuleConfig:
     # Sort order in tab bar (lower = leftmost)
     order: int = 50
 
+    # Visibility defaults
+    default_enabled: bool = True  # Show in tab bar for new users (no installations)
+
     # Runtime state (set by context processor, not persisted)
     is_active: bool = False
     status: str = ""  # Marketplace status: stable, wip, beta, deprecated
@@ -210,6 +213,7 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         body_class="clew-page",
         keyboard_shortcut="R",
         order=50,
+        default_enabled=False,
         ai_hint="Pipeline DAG editor: create, chain, and run reproducible computational workflows with status tracking.",
         accent_color="clew",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],

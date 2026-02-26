@@ -68,8 +68,8 @@ def _filter_modules_for_user(request, modules):
         return modules
 
     if not installations:
-        # No installations = first-time user, show all modules
-        return modules
+        # No installations = first-time user, show default-enabled modules
+        return [m for m in modules if m.default_enabled]
 
     # Show modules unless explicitly disabled via installation record
     visible = []
