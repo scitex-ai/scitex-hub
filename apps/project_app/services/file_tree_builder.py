@@ -99,13 +99,24 @@ def build_project_file_tree(project) -> Optional[dict]:
                 except OSError:
                     mtime = 0
 
+                is_symlink = item.is_symlink()
+                symlink_target = None
+                if is_symlink:
+                    try:
+                        symlink_target = str(item.readlink())
+                    except OSError:
+                        pass
+
                 item_data = {
                     "name": item.name,
                     "type": "directory" if item.is_dir() else "file",
                     "path": rel_path_str,
                     "git_status": git_status,
                     "mtime": mtime,
+                    "is_symlink": is_symlink,
                 }
+                if symlink_target:
+                    item_data["symlink_target"] = symlink_target
 
                 if item.is_dir() and current_depth < max_depth:
                     item_data["children"] = _build_tree(

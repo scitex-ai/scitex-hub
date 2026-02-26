@@ -21,6 +21,9 @@ import { execBashCommand } from "./bash-exec";
 import { loadHistory, pushHistory } from "./history";
 import { getCsrfToken } from "../../utils/csrf";
 import type { SessionsPanel } from "./sessions-panel";
+import { ImageInputManager } from "./image-input";
+import { SketchCanvas } from "./sketch-canvas";
+import { WebcamCapture } from "./webcam-capture";
 
 interface AiContext {
   page?: string;
@@ -40,6 +43,10 @@ export interface ChatModeRefs {
   sttModelSelect: HTMLSelectElement | null;
   modelBadge: HTMLElement | null;
   volBars: HTMLElement[];
+  imagePreviewEl: HTMLElement | null;
+  imageFileInput: HTMLInputElement | null;
+  cameraBtn: HTMLButtonElement | null;
+  sketchBtn: HTMLButtonElement | null;
 }
 
 export class AIPanelChatMode {
@@ -55,6 +62,9 @@ export class AIPanelChatMode {
   private autoSpeak = false;
   private currentAudio: HTMLAudioElement | null = null;
   private recorder: VoiceRecorder | null = null;
+  private imageInput: ImageInputManager | null = null;
+  private sketchCanvas: SketchCanvas | null = null;
+  private webcamCapture: WebcamCapture | null = null;
 
   // C-p / C-n history (readline-style)
   private history: string[] = [];
@@ -82,6 +92,27 @@ export class AIPanelChatMode {
     this.autoSpeak = autoSpeak;
     this.recorder = new VoiceRecorder(refs.volBars, this.micBtn);
     this.history = loadHistory();
+
+    // Image, webcam, and sketch support
+    if (refs.imagePreviewEl && refs.imageFileInput) {
+      this.imageInput = new ImageInputManager(
+        refs.imagePreviewEl,
+        refs.imageFileInput,
+      );
+      if (this.inputEl) this.imageInput.bindPaste(this.inputEl);
+      this.sketchCanvas = new SketchCanvas(this.imageInput);
+      this.webcamCapture = new WebcamCapture(
+        this.imageInput,
+        refs.imageFileInput,
+      );
+      refs.cameraBtn?.addEventListener(
+        "click",
+        () => void this.webcamCapture?.open(),
+      );
+      refs.sketchBtn?.addEventListener("click", () =>
+        this.sketchCanvas?.open(),
+      );
+    }
 
     // Track user scroll position — auto-scroll only when at bottom
     this.messagesEl?.addEventListener("scroll", () => {
@@ -310,7 +341,16 @@ export class AIPanelChatMode {
     this._userAtBottom = true;
     const userEl = this.createMsgEl("user");
     userEl.textContent = prompt;
+    // Show inline thumbnails in the user message if images attached
+    this.imageInput?.renderInlineThumbsInto(userEl);
     saveMessage({ role: "user", text: prompt });
+
+    // Collect image attachments before clearing
+    const images = this.imageInput?.hasAttachments()
+      ? await this.imageInput.getAttachmentsAsBase64()
+      : [];
+    this.imageInput?.clearAttachments();
+
     this.inputEl.value = "";
     this.inputEl.style.height = "auto";
 
@@ -340,7 +380,11 @@ export class AIPanelChatMode {
           "Content-Type": "application/json",
           "X-CSRFToken": getCsrfToken(),
         },
-        body: JSON.stringify({ prompt, context: this.context }),
+        body: JSON.stringify({
+          prompt,
+          context: this.context,
+          ...(images.length > 0 && { attachments: images }),
+        }),
       });
 
       if (!resp.ok || !resp.body) {

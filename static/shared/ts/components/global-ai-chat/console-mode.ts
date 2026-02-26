@@ -1,11 +1,34 @@
-/**
- * AI Panel Console Mode
- * Lazy-loads xterm.js and connects to the terminal WebSocket broker.
- * Provides an embedded CLI terminal for running Claude Code, Gemini CLI, Codex.
- */
+/** AI Panel Console Mode — xterm.js terminal with camera/sketch/mic toolbar. */
 
 import { speakText } from "./speech";
 import { registerZoomZone } from "../context-zoom";
+import { uploadFiles } from "../../utils/file-upload";
+import { SketchCanvas } from "./sketch-canvas";
+import { WebcamCapture } from "./webcam-capture";
+import { VoiceRecorder } from "./recorder";
+import { getCsrfToken } from "../../utils/csrf";
+
+/** Adapter: WebcamCapture/SketchCanvas → upload image → type path into terminal */
+function makeImageSink(send: (t: string) => void) {
+  return {
+    addImageFromDataUrl(dataUrl: string, mime: string) {
+      const b = atob(dataUrl.split(",")[1]);
+      const u8 = Uint8Array.from(b, (c) => c.charCodeAt(0));
+      const ext = mime === "image/jpeg" ? "jpg" : "png";
+      const f = new File([u8], `capture.${ext}`, { type: mime });
+      const dt = new DataTransfer();
+      dt.items.add(f);
+      void uploadFiles(dt.files).then((p) => send(p.join(" ")));
+    },
+  };
+}
+
+export interface ConsoleToolbarRefs {
+  cameraBtn: HTMLButtonElement | null;
+  sketchBtn: HTMLButtonElement | null;
+  micBtn: HTMLButtonElement | null;
+  fileInput: HTMLInputElement | null;
+}
 
 const XTERM_JS_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js";
 const XTERM_CSS_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css";
@@ -65,10 +88,12 @@ export class AIPanelConsoleMode {
   private resizeObserver: ResizeObserver | null = null;
   private resizeTimeout: ReturnType<typeof setTimeout> | null = null;
   private themeObserver: MutationObserver | null = null;
+  private recorder: VoiceRecorder | null = null;
 
   async init(
     container: HTMLElement,
     statusEl: HTMLElement | null,
+    toolbar?: ConsoleToolbarRefs,
   ): Promise<void> {
     this.container = container;
     this.statusEl = statusEl;
@@ -136,7 +161,25 @@ export class AIPanelConsoleMode {
       e.preventDefault();
       e.stopPropagation();
       container.classList.remove("drop-target");
-      const raw = e.dataTransfer?.getData("text/plain") ?? "";
+      const dt = e.dataTransfer;
+      if (!dt) return;
+      // External OS file drops — upload then type paths into terminal
+      if (dt.files && dt.files.length > 0) {
+        void (async () => {
+          try {
+            const paths = await uploadFiles(dt.files);
+            if (this.ws?.readyState === WebSocket.OPEN) {
+              const formatted = paths.join(" ");
+              this.ws.send(formatted);
+            }
+          } catch (err) {
+            console.error("[Console] File upload error:", err);
+          }
+        })();
+        return;
+      }
+      // Internal file tree drops
+      const raw = dt.getData("text/plain") ?? "";
       const paths = raw.split(";").filter(Boolean);
       if (paths.length > 0 && this.ws?.readyState === WebSocket.OPEN) {
         this.ws.send(paths.join(" "));
@@ -208,6 +251,32 @@ export class AIPanelConsoleMode {
       if (ev.altKey && ev.key === "a") return false;
       return true;
     });
+
+    if (toolbar) {
+      const send = (t: string) => {
+        if (this.ws?.readyState === WebSocket.OPEN) this.ws.send(t);
+      };
+      const sink = makeImageSink(send);
+      if (toolbar.cameraBtn && toolbar.fileInput) {
+        const cam = new WebcamCapture(sink as any, toolbar.fileInput);
+        toolbar.cameraBtn.addEventListener("click", () => void cam.open());
+      }
+      if (toolbar.sketchBtn) {
+        const sk = new SketchCanvas(sink as any);
+        toolbar.sketchBtn.addEventListener("click", () => sk.open());
+      }
+      if (toolbar.micBtn) {
+        this.recorder = new VoiceRecorder([], toolbar.micBtn);
+        toolbar.micBtn.addEventListener("click", () => {
+          if (this.recorder?.isRecording) this.recorder.stop();
+          else
+            this.recorder?.start(
+              () => getCsrfToken(),
+              (t) => send(t),
+            );
+        });
+      }
+    }
 
     this.connect();
   }

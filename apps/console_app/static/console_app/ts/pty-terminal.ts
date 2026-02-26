@@ -3,10 +3,6 @@
  * Provides full interactive terminal with IPython, vim, etc.
  */
 
-console.log(
-  "[DEBUG] apps/console_app/static/console_app/ts/pty-terminal.ts loaded",
-);
-
 export class PTYTerminal {
   private term: any;
   private ws: WebSocket | null = null;
@@ -92,16 +88,9 @@ export class PTYTerminal {
       try {
         const imageAddon = new ImageAddon();
         this.term.loadAddon(imageAddon);
-        console.log(
-          "[PTY] ✓ ImageAddon loaded successfully - inline images enabled",
-        );
-      } catch (err) {
-        console.error("[PTY] ✗ Failed to load ImageAddon:", err);
+      } catch {
+        /* ImageAddon unavailable */
       }
-    } else {
-      console.warn(
-        "[PTY] ⚠ ImageAddon not available - window.ImageAddon is undefined",
-      );
     }
 
     // Handle user input
@@ -214,6 +203,50 @@ export class PTYTerminal {
           }, 500);
         }
       }, RIGHT_CLICK_WINDOW);
+    });
+
+    // File drop support — upload external OS files, type paths
+    containerEl.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+      containerEl.classList.add("drop-target");
+    });
+    containerEl.addEventListener("dragleave", () => {
+      containerEl.classList.remove("drop-target");
+    });
+    containerEl.addEventListener("drop", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      containerEl.classList.remove("drop-target");
+      const dt = e.dataTransfer;
+      if (!dt) return;
+      if (dt.files && dt.files.length > 0) {
+        const csrf =
+          document.querySelector<HTMLInputElement>("[name=csrfmiddlewaretoken]")
+            ?.value ??
+          (document.cookie.match(/csrftoken=([^;]+)/)?.[1] || "");
+        const form = new FormData();
+        for (let i = 0; i < dt.files.length; i++)
+          form.append("files", dt.files[i]);
+        void fetch("/llm/api/upload/", {
+          method: "POST",
+          headers: { "X-CSRFToken": csrf },
+          body: form,
+        })
+          .then((r) => r.json())
+          .then((d: any) => {
+            if (this.ws?.readyState === WebSocket.OPEN)
+              this.ws.send(d.paths.join(" "));
+          })
+          .catch((err) => console.error("[PTY] Upload error:", err));
+        return;
+      }
+      const raw = dt.getData("text/plain") ?? "";
+      const paths = raw.split(";").filter(Boolean);
+      if (paths.length > 0 && this.ws?.readyState === WebSocket.OPEN) {
+        this.ws.send(paths.join(" "));
+      }
     });
 
     console.log("[PTY] xterm.js initialized");

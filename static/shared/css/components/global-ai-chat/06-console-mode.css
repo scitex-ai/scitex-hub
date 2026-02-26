@@ -49,3 +49,33 @@
   font-family: monospace;
   font-size: 0.625rem;
 }
+
+/* Console toolbar (status + camera/sketch/mic buttons) */
+.scitex-ai-console-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.2rem 0.5rem;
+  border-top: 1px solid var(--border-default, #30363d);
+  background: var(--bg-tertiary, #0d1117);
+  font-size: 0.6875rem;
+}
+
+.scitex-ai-console-toolbar-btns {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.scitex-ai-console-toolbar-btns .scitex-ai-input-btn {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.35rem;
+}
+
+/* Drop target visual feedback (console + pty terminal) */
+.scitex-ai-console-terminal.drop-target,
+.pty-terminal-container.drop-target {
+  outline: 2px dashed var(--accent-primary, #3b82f6);
+  outline-offset: -2px;
+}

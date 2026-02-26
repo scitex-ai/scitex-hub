@@ -2,7 +2,7 @@
 
 # Profile views
 # AI providers views
-from .ai_providers_views import ai_providers
+from .ai_providers_views import ai_limits_api, ai_providers
 
 # API keys views
 from .api_keys_views import api_keys
@@ -49,6 +49,7 @@ __all__ = [
     "repository_health",
     # AI providers views
     "ai_providers",
+    "ai_limits_api",
     # MCP settings views
     "mcp_settings",
     "mcp_settings_api",

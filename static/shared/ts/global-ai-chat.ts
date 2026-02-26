@@ -113,6 +113,16 @@ class GlobalAIChat {
         sttModelSelect: this.sttModelSelect,
         modelBadge: this.modelBadge,
         volBars: [],
+        imagePreviewEl: document.getElementById("scitex-ai-image-previews"),
+        imageFileInput: document.getElementById(
+          "scitex-ai-image-file",
+        ) as HTMLInputElement,
+        cameraBtn: document.getElementById(
+          "scitex-ai-camera",
+        ) as HTMLButtonElement,
+        sketchBtn: document.getElementById(
+          "scitex-ai-sketch",
+        ) as HTMLButtonElement,
       },
       this.context,
       false,
@@ -200,16 +210,16 @@ class GlobalAIChat {
     // Centralized keyboard shortcuts (replaces inline Alt+A handler)
     initKeyboardShortcuts();
 
-    // Context-aware zoom: Ctrl+Wheel / Ctrl++/-/0 per pane
+    // Context-aware zoom: Ctrl+Wheel / Ctrl++/-/0 per pane (uses CSS zoom)
     initContextZoom();
     // AI panel views
-    registerFontZoom("#scitex-ai-messages", "scitex-ai-chat-font-size");
-    registerFontZoom("#scitex-ai-jobs-list", "scitex-ai-jobs-font-size");
-    registerFontZoom(".scitex-ai-config-content", "scitex-ai-config-font-size");
+    registerFontZoom("#scitex-ai-chat-view", "scitex-ai-chat-zoom");
+    registerFontZoom("#scitex-ai-jobs-list", "scitex-ai-jobs-zoom");
+    registerFontZoom(".scitex-ai-config-content", "scitex-ai-config-zoom");
     // Workspace panes (exist only on workspace pages)
-    registerFontZoom(".ws-worktree-tree-area", "scitex-worktree-font-size", 13);
-    registerFontZoom("#ws-viewer-preview", "scitex-viewer-preview-font-size");
-    registerFontZoom("#main-content", "scitex-module-font-size");
+    registerFontZoom(".ws-worktree-tree-area", "scitex-worktree-zoom");
+    registerFontZoom("#ws-viewer-preview", "scitex-viewer-preview-zoom");
+    registerFontZoom("#main-content", "scitex-module-zoom");
     // Monaco editor: passthrough — it handles its own Ctrl+Wheel zoom
     const monacoEl = document.getElementById("ws-viewer-monaco");
     if (monacoEl) {
@@ -240,8 +250,15 @@ class GlobalAIChat {
     }
 
     const savedModel = sessionStorage.getItem(MODEL_KEY);
-    if (savedModel) setModelBadge(this.modelBadge, savedModel);
-    fetchCurrentModel((m, c) => setModelBadge(this.modelBadge, m, c));
+    const savedDisplay = sessionStorage.getItem("scitex_ai_model_display");
+    if (savedModel)
+      setModelBadge(
+        this.modelBadge,
+        savedModel,
+        false,
+        savedDisplay || undefined,
+      );
+    fetchCurrentModel((m, c, d) => setModelBadge(this.modelBadge, m, c, d));
 
     // Start eval-js WebSocket relay for MCP tool bridge
     initEvalJsRelay();
@@ -377,7 +394,21 @@ class GlobalAIChat {
     const statusEl = document.getElementById("scitex-ai-console-status");
     if (!containerEl) return;
     if (!this.consoleMode) this.consoleMode = new AIPanelConsoleMode();
-    void this.consoleMode.init(containerEl, statusEl);
+    const toolbar = {
+      cameraBtn: document.getElementById(
+        "scitex-ai-console-camera",
+      ) as HTMLButtonElement | null,
+      sketchBtn: document.getElementById(
+        "scitex-ai-console-sketch",
+      ) as HTMLButtonElement | null,
+      micBtn: document.getElementById(
+        "scitex-ai-console-mic",
+      ) as HTMLButtonElement | null,
+      fileInput: document.getElementById(
+        "scitex-ai-console-image-file",
+      ) as HTMLInputElement | null,
+    };
+    void this.consoleMode.init(containerEl, statusEl, toolbar);
   }
 
   private initJobsMode(): void {

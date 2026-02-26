@@ -388,6 +388,72 @@
   opacity: 1;
 }
 
+/* ── Daily Limits ─────────────────────────── */
+
+.ai-config-limits-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-config-limit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-config-limit-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.ai-config-limit-input {
+  flex: 1;
+  padding: 3px 6px;
+  font-size: 11px;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  max-width: 140px;
+}
+
+.ai-config-limit-input:focus {
+  outline: none;
+  border-color: var(--color-accent-fg, #58a6ff);
+}
+
+.ai-config-limit-input::placeholder {
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.ai-config-limits-unconfigured {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 6px;
+}
+
+.ai-config-limits-unconfigured a {
+  color: var(--color-accent-fg, #58a6ff);
+  text-decoration: none;
+}
+
+.ai-config-limits-unconfigured a:hover {
+  text-decoration: underline;
+}
+
+.ai-config-settings-link {
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.ai-config-settings-link:hover {
+  color: var(--color-accent-fg, #58a6ff);
+}
+
 /* ── Download Button ───────────────────────── */
 
 .ai-context-download-btn {

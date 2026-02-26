@@ -9,11 +9,13 @@
 export interface ZoomZone {
   el: HTMLElement;
   getSize: () => number;
-  setSize: (px: number) => void;
+  setSize: (val: number) => void;
   min: number;
   max: number;
   default: number;
   storageKey: string;
+  /** Step per scroll tick (default 1 for px, 0.05 for CSS zoom) */
+  step?: number;
   /** If true, zone handles zoom internally — just preventDefault */
   passthrough?: boolean;
 }
@@ -46,10 +48,16 @@ export function registerZoomZone(zone: ZoomZone): void {
   });
 }
 
-function adjustZoom(zone: ZoomZone, delta: number): void {
+function adjustZoom(zone: ZoomZone, direction: number): void {
   if (zone.passthrough) return;
+  const step = zone.step ?? 1;
   const current = zone.getSize();
-  const next = Math.min(zone.max, Math.max(zone.min, current + delta));
+  const raw = current + direction * step;
+  // Round to avoid float drift (e.g. 1.0500000000000003)
+  const next = Math.min(
+    zone.max,
+    Math.max(zone.min, Math.round(raw * 1000) / 1000),
+  );
   zone.setSize(next);
   localStorage.setItem(zone.storageKey, String(next));
 }
@@ -69,7 +77,8 @@ export function initContextZoom(): void {
   document.addEventListener(
     "wheel",
     (e) => {
-      if (!e.ctrlKey || !activeZone) return;
+      if (!e.ctrlKey) return;
+      if (!activeZone) return;
       e.preventDefault();
       if (activeZone.passthrough) return;
       const delta = e.deltaY < 0 ? 1 : -1;
@@ -97,31 +106,32 @@ export function initContextZoom(): void {
       resetZoom(activeZone);
     }
   });
-
-  console.log("[ContextZoom] Initialized");
 }
 
 /**
- * Convenience: register a CSS font-size zoom zone by selector.
+ * Convenience: register a CSS-zoom zone by selector.
+ * Uses the `zoom` property so ALL content (text, padding, borders) scales uniformly,
+ * even when child elements have explicit px font sizes.
  * Returns true if the element was found and registered.
  */
 export function registerFontZoom(
   selector: string,
   storageKey: string,
-  defaultSize = 13,
+  _defaultSize = 13,
   opts?: { passthrough?: boolean; min?: number; max?: number },
 ): boolean {
   const el = document.querySelector<HTMLElement>(selector);
   if (!el) return false;
   registerZoomZone({
     el,
-    getSize: () => parseFloat(getComputedStyle(el).fontSize) || defaultSize,
-    setSize: (px) => {
-      el.style.fontSize = `${px}px`;
+    getSize: () => parseFloat(el.style.zoom || "1"),
+    setSize: (val) => {
+      el.style.zoom = String(val);
     },
-    min: opts?.min ?? 10,
-    max: opts?.max ?? 24,
-    default: defaultSize,
+    min: opts?.min ?? 0.6,
+    max: opts?.max ?? 2.0,
+    default: 1.0,
+    step: 0.05,
     storageKey,
     passthrough: opts?.passthrough,
   });
