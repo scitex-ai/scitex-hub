@@ -66,111 +66,41 @@
 }
 
 /* ============================================================
-   Tab bar (inside header)
+   Current file label (inside header)
    ============================================================ */
 
 .ws-viewer-tabs {
   display: flex;
-  gap: 1px;
-  overflow-x: auto;
-  overflow-y: hidden;
+  align-items: center;
+  gap: 6px;
   flex: 1;
   min-width: 0;
   margin-left: 8px;
-  scrollbar-width: none;
 }
 
-.ws-viewer-tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.ws-viewer-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  border-radius: 6px 6px 0 0;
-  color: var(--text-secondary, #6c8ba0);
+.ws-viewer-current-file {
   font-size: 13px;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  max-width: 180px;
-}
-
-.ws-viewer-tab:hover {
-  background: var(--bg-tertiary, #1a1a1a);
   color: var(--text-primary, #d4e1e8);
-}
-
-.ws-viewer-tab.active {
-  color: var(--text-primary, #d4e1e8);
-  font-weight: 600;
-  border-bottom: 2px solid var(--accent-primary, #3b82f6);
-  background: transparent;
-}
-
-.ws-viewer-tab-name {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.ws-viewer-tab-close {
+.ws-viewer-file-close {
   font-size: 0.75rem;
-  opacity: 0.5;
+  opacity: 0.4;
   padding: 0 2px;
   line-height: 1;
   color: var(--text-muted, #8b949e);
   cursor: pointer;
   transition: opacity 0.15s;
-}
-
-.ws-viewer-tab:hover .ws-viewer-tab-close {
-  opacity: 1;
-}
-
-.ws-viewer-tab-close:hover {
-  color: var(--danger-color, #f85149);
-}
-
-/* Drag-and-drop */
-.ws-viewer-tab.dragging {
-  opacity: 0.4;
-}
-
-.ws-viewer-tab.drag-over {
-  border-left: 2px solid var(--accent-color, #58a6ff);
-}
-
-/* ============================================================
-   Add tab (+) button
-   ============================================================ */
-
-.ws-viewer-tab-add {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  background: transparent;
-  border: 1px solid var(--border-default, #30363d);
-  border-radius: 4px;
-  color: var(--text-muted, #8b949e);
-  font-size: 14px;
-  cursor: pointer;
-  margin-left: 4px;
-  transition: all 0.15s ease;
   flex-shrink: 0;
 }
 
-.ws-viewer-tab-add:hover {
-  background: var(--bg-tertiary, #1a1a1a);
-  color: var(--text-primary, #d4e1e8);
-  border-color: var(--accent-primary, #3b82f6);
+.ws-viewer-file-close:hover {
+  opacity: 1;
+  color: var(--danger-color, #f85149);
 }
 
 /* ============================================================
@@ -196,21 +126,6 @@
 .ws-viewer-shortcuts-btn:hover {
   opacity: 1;
   color: var(--text-primary, #d4e1e8);
-}
-
-/* ============================================================
-   Scratch tab — always first, non-closeable, distinct style
-   ============================================================ */
-
-.ws-viewer-tab[data-path="scitex/CONTEXT.md"] {
-  font-style: italic;
-}
-
-.ws-viewer-tab-pin {
-  font-size: 0.65rem;
-  opacity: 0.4;
-  color: var(--text-muted, #8b949e);
-  transform: rotate(45deg);
 }
 
 /* ============================================================
@@ -248,6 +163,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: 100%;
   height: 100%;
   gap: 0.5rem;
   color: var(--text-muted, #8b949e);

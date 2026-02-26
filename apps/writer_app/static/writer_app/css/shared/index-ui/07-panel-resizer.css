@@ -22,8 +22,8 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  left: -4px;
-  right: -4px;
+  left: -10px;
+  right: -10px;
   cursor: col-resize;
   z-index: 100;
 }

@@ -113,11 +113,11 @@
    ========================================================================== */
 
 .module-tab-btn[draggable="true"] {
-  cursor: grab;
+  cursor: pointer;
 }
 
 .module-tab-btn[draggable="true"]:active {
-  cursor: grabbing;
+  cursor: pointer;
 }
 
 .module-tab-btn.tab-dragging {

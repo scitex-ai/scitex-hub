@@ -134,9 +134,10 @@ export class TreeRenderer {
       summary.staged > 0 || summary.modified > 0 || summary.untracked > 0;
 
     return `
-      <div class="wft-git-panel">
-        <div class="wft-git-panel-header">
+      <div class="wft-git-panel collapsed">
+        <div class="wft-git-panel-header" data-action="git-toggle-panel">
           <div class="wft-git-panel-title">
+            <i class="fas fa-chevron-right wft-git-chevron"></i>
             <i class="fab fa-git-alt"></i>
             <span>Git</span>
           </div>
@@ -152,25 +153,27 @@ export class TreeRenderer {
             </button>
           </div>
         </div>
-        <div class="wft-git-status-summary">
-          ${
-            hasChanges
-              ? `
-            ${summary.staged > 0 ? `<span class="staged" title="${summary.staged} file(s) staged for commit"><i class="fas fa-check"></i> ${summary.staged}</span>` : ""}
-            ${summary.modified > 0 ? `<span class="modified" title="${summary.modified} file(s) with unstaged changes"><i class="fas fa-pen"></i> ${summary.modified}</span>` : ""}
-            ${summary.untracked > 0 ? `<span class="untracked" title="${summary.untracked} untracked file(s)"><i class="fas fa-question"></i> ${summary.untracked}</span>` : ""}
-          `
-              : `<span class="clean" title="Working tree clean"><i class="fas fa-check-circle"></i> Clean</span>`
-          }
-        </div>
-        <textarea class="wft-commit-input" placeholder="Commit message..." rows="1" ${!hasStaged ? 'disabled title="Stage files first to enable commit"' : 'title="Enter commit message"'}></textarea>
-        <div class="wft-git-panel-actions" style="justify-content: flex-end;">
-          <button class="wft-git-panel-btn primary" data-action="git-commit" title="Commit staged changes" ${!hasStaged ? "disabled" : ""}>
-            <i class="fas fa-check"></i> Commit
-          </button>
-          <button class="wft-git-panel-btn primary" data-action="git-commit-push" title="Commit and push to remote" ${!hasStaged ? "disabled" : ""}>
-            <i class="fas fa-upload"></i> Commit & Push
-          </button>
+        <div class="wft-git-panel-body">
+          <div class="wft-git-status-summary">
+            ${
+              hasChanges
+                ? `
+              ${summary.staged > 0 ? `<span class="staged" title="${summary.staged} file(s) staged for commit"><i class="fas fa-check"></i> ${summary.staged}</span>` : ""}
+              ${summary.modified > 0 ? `<span class="modified" title="${summary.modified} file(s) with unstaged changes"><i class="fas fa-pen"></i> ${summary.modified}</span>` : ""}
+              ${summary.untracked > 0 ? `<span class="untracked" title="${summary.untracked} untracked file(s)"><i class="fas fa-question"></i> ${summary.untracked}</span>` : ""}
+            `
+                : `<span class="clean" title="Working tree clean"><i class="fas fa-check-circle"></i> Clean</span>`
+            }
+          </div>
+          <textarea class="wft-commit-input" placeholder="Commit message..." rows="1" ${!hasStaged ? 'disabled title="Stage files first to enable commit"' : 'title="Enter commit message"'}></textarea>
+          <div class="wft-git-panel-actions" style="justify-content: flex-end;">
+            <button class="wft-git-panel-btn primary" data-action="git-commit" title="Commit staged changes" ${!hasStaged ? "disabled" : ""}>
+              <i class="fas fa-check"></i> Commit
+            </button>
+            <button class="wft-git-panel-btn primary" data-action="git-commit-push" title="Commit and push to remote" ${!hasStaged ? "disabled" : ""}>
+              <i class="fas fa-upload"></i> Commit & Push
+            </button>
+          </div>
         </div>
       </div>`;
   }

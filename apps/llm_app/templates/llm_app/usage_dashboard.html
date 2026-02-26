@@ -65,8 +65,8 @@
         }
 
         .usage-period-btn.active {
-            background: var(--color-accent-emphasis, #1f6feb);
-            border-color: var(--color-accent-emphasis, #1f6feb);
+            background: #1f6feb;
+            border-color: #1f6feb;
             color: #fff;
         }
 
@@ -84,7 +84,13 @@
             margin-bottom: 12px;
         }
 
-        .usage-chart-section img {
+        .usage-charts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .usage-charts-grid img {
             width: 100%;
             height: auto;
         }
@@ -123,6 +129,31 @@
             font-size: 2.5rem;
             margin-bottom: 12px;
             opacity: 0.4;
+        }
+
+        .usage-limit-input {
+            width: 140px;
+            padding: 4px 8px;
+            font-size: 13px;
+            background: var(--color-canvas-default, #0d1117);
+            border: 1px solid var(--color-border-default, #30363d);
+            color: var(--color-fg-default, #e6edf3);
+            text-align: right;
+        }
+
+        .usage-limit-input:focus {
+            outline: none;
+            border-color: #1f6feb;
+        }
+
+        .usage-limits-save {
+            float: right;
+            padding: 4px 12px;
+            font-size: 12px;
+            background: #1f6feb;
+            border: none;
+            color: #fff;
+            cursor: pointer;
         }
     </style>
 {% endblock %}
@@ -189,30 +220,22 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Charts -->
+                        <!-- Charts (unified) -->
                         <div class="usage-chart-section">
                             <div class="usage-chart-section__title">
-                                <i class="fas fa-dollar-sign"></i> Cost Over Time
+                                <i class="fas fa-chart-line"></i> Charts
                             </div>
-                            <img src="{% url 'llm_app:api_usage_chart' chart_type='cost' %}?days={{ days }}"
-                                 alt="Cost chart"
-                                 loading="lazy" />
-                        </div>
-                        <div class="usage-chart-section">
-                            <div class="usage-chart-section__title">
-                                <i class="fas fa-coins"></i> Token Usage
+                            <div class="usage-charts-grid">
+                                <img src="{% url 'llm_app:api_usage_chart' chart_type='cost' %}?days={{ days }}"
+                                     alt="Cost chart"
+                                     loading="lazy" />
+                                <img src="{% url 'llm_app:api_usage_chart' chart_type='tokens' %}?days={{ days }}"
+                                     alt="Tokens chart"
+                                     loading="lazy" />
+                                <img src="{% url 'llm_app:api_usage_chart' chart_type='model_breakdown' %}?days={{ days }}"
+                                     alt="Model breakdown"
+                                     loading="lazy" />
                             </div>
-                            <img src="{% url 'llm_app:api_usage_chart' chart_type='tokens' %}?days={{ days }}"
-                                 alt="Tokens chart"
-                                 loading="lazy" />
-                        </div>
-                        <div class="usage-chart-section">
-                            <div class="usage-chart-section__title">
-                                <i class="fas fa-chart-pie"></i> Usage by Model
-                            </div>
-                            <img src="{% url 'llm_app:api_usage_chart' chart_type='model_breakdown' %}?days={{ days }}"
-                                 alt="Model breakdown"
-                                 loading="lazy" />
                         </div>
                         <!-- App Breakdown Table -->
                         {% if stats.by_app %}
@@ -242,36 +265,46 @@
                                 </table>
                             </div>
                         {% endif %}
-                        <!-- Rate Limits -->
+                        <!-- Rate Limits (editable) -->
                         <div class="usage-chart-section">
                             <div class="usage-chart-section__title">
-                                <i class="fas fa-tachometer-alt"></i> Rate Limits
+                                <i class="fas fa-tachometer-alt"></i> Daily Limits
+                                <button id="usage-limits-save" class="usage-limits-save">Save</button>
                             </div>
                             <table class="usage-app-table">
                                 <tbody>
                                     <tr>
-                                        <td>Daily request limit</td>
+                                        <td>Request limit</td>
                                         <td>
-                                            {{ stats.today.requests }} /
-                                            {{ stats.rate_limits.daily_request_limit|default:"∞" }}
+                                            <input type="number"
+                                                   class="usage-limit-input"
+                                                   id="limit-requests"
+                                                   value="{{ stats.rate_limits.daily_request_limit|default_if_none:'' }}"
+                                                   placeholder="∞ (unlimited)"
+                                                   min="0" />
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Daily token limit</td>
+                                        <td>Token limit</td>
                                         <td>
-                                            {{ stats.today.tokens }} /
-                                            {{ stats.rate_limits.daily_token_limit|default:"∞" }}
+                                            <input type="number"
+                                                   class="usage-limit-input"
+                                                   id="limit-tokens"
+                                                   value="{{ stats.rate_limits.daily_token_limit|default_if_none:'' }}"
+                                                   placeholder="∞ (unlimited)"
+                                                   min="0" />
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Daily cost limit</td>
+                                        <td>Cost limit (USD)</td>
                                         <td>
-                                            ${{ stats.today.cost_usd|floatformat:2 }} /
-                                            {% if stats.rate_limits.daily_cost_limit_usd %}
-                                                ${{ stats.rate_limits.daily_cost_limit_usd|floatformat:2 }}
-                                            {% else %}
-                                                ∞
-                                            {% endif %}
+                                            <input type="number"
+                                                   class="usage-limit-input"
+                                                   id="limit-cost"
+                                                   value="{{ stats.rate_limits.daily_cost_limit_usd|default_if_none:'' }}"
+                                                   placeholder="∞ (unlimited)"
+                                                   min="0"
+                                                   step="0.01" />
                                         </td>
                                     </tr>
                                 </tbody>
@@ -284,4 +317,37 @@
             </main>
         </div>
     </div>
+{% endblock %}
+{% block extra_js %}
+    <script>
+(function() {
+    // Comma-format all numeric values in usage cards and table cells
+    document.querySelectorAll('.usage-card__value, .usage-card__sub, .usage-app-table td').forEach(function(el) {
+        el.innerHTML = el.innerHTML.replace(/\b(\d{4,})\b/g, function(m) {
+            return Number(m).toLocaleString();
+        });
+    });
+
+    // Daily limits — Save button POSTs to API
+    var saveBtn = document.getElementById('usage-limits-save');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', function() {
+            var csrf = document.querySelector('[name=csrfmiddlewaretoken]');
+            csrf = csrf ? csrf.value : (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '';
+            fetch('{% url "llm_app:api_save_limits" %}', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf},
+                body: JSON.stringify({
+                    daily_request_limit: document.getElementById('limit-requests').value || null,
+                    daily_token_limit: document.getElementById('limit-tokens').value || null,
+                    daily_cost_limit_usd: document.getElementById('limit-cost').value || null
+                })
+            }).then(function(r) {
+                if (r.ok) { saveBtn.textContent = 'Saved!'; saveBtn.style.background = '#3fb950'; setTimeout(function() { saveBtn.textContent = 'Save'; saveBtn.style.background = ''; }, 2000); }
+                else { saveBtn.textContent = 'Error'; saveBtn.style.background = '#da3633'; }
+            });
+        });
+    }
+})();
+    </script>
 {% endblock %}

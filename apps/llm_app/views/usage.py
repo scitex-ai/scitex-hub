@@ -114,3 +114,48 @@ def _empty_chart_png() -> bytes:
     plt.close(fig)
     buf.seek(0)
     return buf.read()
+
+
+@login_required
+def api_save_limits(request):
+    """Save daily usage limits (request, token, cost)."""
+    import json
+    from decimal import Decimal, InvalidOperation
+
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+
+    service = UserLLMService(user=request.user)
+    if not service.llm_connection:
+        return JsonResponse({"error": "No LLM connection"}, status=404)
+
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    llm = service.llm_connection
+
+    # Parse each limit — empty string or null means unlimited (None)
+    req_limit = body.get("daily_request_limit")
+    llm.daily_request_limit = int(req_limit) if req_limit not in (None, "") else None
+
+    tok_limit = body.get("daily_token_limit")
+    llm.daily_token_limit = int(tok_limit) if tok_limit not in (None, "") else None
+
+    cost_limit = body.get("daily_cost_limit_usd")
+    try:
+        llm.daily_cost_limit_usd = (
+            Decimal(str(cost_limit)) if cost_limit not in (None, "") else None
+        )
+    except (InvalidOperation, TypeError):
+        llm.daily_cost_limit_usd = None
+
+    llm.save(
+        update_fields=[
+            "daily_request_limit",
+            "daily_token_limit",
+            "daily_cost_limit_usd",
+        ]
+    )
+    return JsonResponse({"ok": True})

@@ -1,14 +1,15 @@
 /**
- * CsvViewer - Fetches CSV content and renders it as an HTML table.
- * Supports a toggle between table view and raw text view.
- * No DataTableManager dependency — simple and self-contained.
+ * CsvViewer - Uses the shared DataTableManager for rich spreadsheet rendering.
+ * Supports table view (with selection, copy/paste, column resize) and raw text toggle.
  */
 
 import type { Viewer } from "../types.ts";
 import { getFileUrl } from "../file-loader.ts";
+import { DataTableManager } from "../../data-table/DataTableManager.ts";
 
 export class CsvViewer implements Viewer {
   private abortController: AbortController | null = null;
+  private tableManager: DataTableManager | null = null;
 
   async render(
     container: HTMLElement,
@@ -44,9 +45,17 @@ export class CsvViewer implements Viewer {
     wrapper.appendChild(toolbar);
 
     const content = document.createElement("div");
-    content.style.cssText = "flex:1; overflow:auto; padding:8px;";
+    content.style.cssText = "flex:1; overflow:auto; padding:0;";
     wrapper.appendChild(content);
     container.appendChild(wrapper);
+
+    // Table container needs a unique ID for DataTableManager
+    const tableId = "ws-viewer-csv-table";
+    const tableContainer = document.createElement("div");
+    tableContainer.id = tableId;
+    tableContainer.className = "data-table-container";
+    tableContainer.style.cssText = "width:100%; height:100%;";
+    content.appendChild(tableContainer);
 
     content.innerHTML =
       '<div style="color:#888; padding:10px;">Loading...</div>';
@@ -57,7 +66,13 @@ export class CsvViewer implements Viewer {
     try {
       const resp = await fetch(apiUrl, { signal: this.abortController.signal });
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      rawText = await resp.text();
+      const ct = resp.headers.get("content-type") || "";
+      if (ct.includes("application/json")) {
+        const json = await resp.json();
+        rawText = json.content ?? "";
+      } else {
+        rawText = await resp.text();
+      }
     } catch (err: any) {
       if (err.name === "AbortError") return;
       content.innerHTML = `<div style="color:#e55; padding:10px;">Failed to load: ${fileName}</div>`;
@@ -66,45 +81,31 @@ export class CsvViewer implements Viewer {
 
     const renderTable = () => {
       content.innerHTML = "";
-      const rows = parseCsv(rawText);
-      if (rows.length === 0) {
-        content.innerHTML =
-          '<div style="color:#888; padding:10px;">Empty file</div>';
-        return;
-      }
-      const table = document.createElement("table");
-      table.style.cssText =
-        "border-collapse:collapse; font-size:0.85em; white-space:nowrap;";
+      content.style.padding = "0";
+      const tc = document.createElement("div");
+      tc.id = tableId;
+      tc.className = "data-table-container";
+      tc.style.cssText = "width:100%; height:100%;";
+      content.appendChild(tc);
 
-      const thead = document.createElement("thead");
-      const headerRow = document.createElement("tr");
-      for (const cell of rows[0]) {
-        const th = document.createElement("th");
-        th.textContent = cell;
-        th.style.cssText =
-          "padding:4px 8px; border:1px solid #444; background:#2a2a2a; font-weight:600; position:sticky; top:0;";
-        headerRow.appendChild(th);
+      try {
+        this.tableManager = new DataTableManager({
+          container: `#${tableId}`,
+          readOnly: true,
+        });
+        this.tableManager.loadFromCSVContent(rawText, fileName);
+        this.tableManager.renderEditableDataTable();
+        this.tableManager.setupColumnResizing();
+      } catch (err) {
+        console.error("[CsvViewer] DataTableManager error:", err);
+        content.innerHTML = "";
+        renderFallbackTable(content, rawText);
       }
-      thead.appendChild(headerRow);
-      table.appendChild(thead);
-
-      const tbody = document.createElement("tbody");
-      for (let i = 1; i < rows.length; i++) {
-        const tr = document.createElement("tr");
-        for (const cell of rows[i]) {
-          const td = document.createElement("td");
-          td.textContent = cell;
-          td.style.cssText = "padding:3px 8px; border:1px solid #333;";
-          tr.appendChild(td);
-        }
-        tbody.appendChild(tr);
-      }
-      table.appendChild(tbody);
-      content.appendChild(table);
     };
 
     const renderRaw = () => {
       content.innerHTML = "";
+      content.style.padding = "8px";
       const pre = document.createElement("pre");
       pre.style.cssText =
         "margin:0; font-size:0.85em; white-space:pre; color:#ccc;";
@@ -125,49 +126,33 @@ export class CsvViewer implements Viewer {
   destroy(): void {
     this.abortController?.abort();
     this.abortController = null;
+    this.tableManager = null;
   }
 }
 
-/**
- * Parse CSV text into a 2D array of strings.
- * Handles double-quoted fields containing commas and escaped quotes.
- */
-function parseCsv(text: string): string[][] {
-  const rows: string[][] = [];
-  const lines = text.split(/\r?\n/);
-  for (const line of lines) {
-    if (line.trim() === "") continue;
-    rows.push(parseCsvLine(line));
+/** Simple fallback if DataTableManager fails to render. */
+function renderFallbackTable(container: HTMLElement, rawText: string): void {
+  const rows = rawText.split(/\r?\n/).filter((l) => l.trim());
+  if (rows.length === 0) {
+    container.innerHTML =
+      '<div style="color:#888; padding:10px;">Empty file</div>';
+    return;
   }
-  return rows;
-}
-
-function parseCsvLine(line: string): string[] {
-  const fields: string[] = [];
-  let field = "";
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (inQuotes) {
-      if (ch === '"' && line[i + 1] === '"') {
-        field += '"';
-        i++;
-      } else if (ch === '"') {
-        inQuotes = false;
-      } else {
-        field += ch;
-      }
-    } else {
-      if (ch === '"') {
-        inQuotes = true;
-      } else if (ch === ",") {
-        fields.push(field);
-        field = "";
-      } else {
-        field += ch;
-      }
+  const table = document.createElement("table");
+  table.style.cssText =
+    "border-collapse:collapse; font-size:0.85em; white-space:nowrap;";
+  for (let i = 0; i < rows.length; i++) {
+    const tr = document.createElement("tr");
+    const cells = rows[i].split(",");
+    for (const cell of cells) {
+      const el = document.createElement(i === 0 ? "th" : "td");
+      el.textContent = cell;
+      el.style.cssText =
+        "padding:3px 8px; border:1px solid #333;" +
+        (i === 0 ? "background:#2a2a2a; font-weight:600;" : "");
+      tr.appendChild(el);
     }
+    table.appendChild(tr);
   }
-  fields.push(field);
-  return fields;
+  container.appendChild(table);
 }

@@ -59,8 +59,8 @@ function initWorkspaceViewer(): void {
 
   window.workspaceViewer = viewer;
 
-  // Hide empty state — scratch tab is always open
-  if (emptyState) emptyState.style.display = "none";
+  // Show empty state until a file is opened
+  if (emptyState) emptyState.style.display = "";
 
   // Listen for file-select events from ANY tree container (worktree pane or module tree).
   // The event has bubbles: true, so listening on document catches them all.

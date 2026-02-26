@@ -230,7 +230,8 @@ def api_select_project(request):
 
     # Set as current project in session and profile
     set_current_project(request, project)
-    if hasattr(request.user, "profile"):
+    # Only set last_active_repository for projects the user owns
+    if hasattr(request.user, "profile") and project.owner_id == request.user.id:
         request.user.profile.last_active_repository = project
         request.user.profile.save(update_fields=["last_active_repository"])
 
