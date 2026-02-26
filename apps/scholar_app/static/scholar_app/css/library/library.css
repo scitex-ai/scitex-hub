@@ -1,5 +1,42 @@
 /* Scholar Library Tab - Main List Styles */
 
+/* Split Layout: paper list (left) + details panel (right) */
+#tab-library {
+  flex-direction: row !important;
+  overflow: hidden;
+}
+
+.library-tab-inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.library-details-panel {
+  width: 360px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  border-left: 1px solid
+    var(--border-color, var(--workspace-border-default, #30363d));
+  background: var(--bg-primary, var(--workspace-bg-primary, #0d1117));
+}
+
+.library-resizer {
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.library-resizer:hover {
+  background: var(--icon-primary, var(--workspace-icon-primary, #388bfd));
+}
+
 /* Tab Badge */
 .scholar-tab-badge {
   display: inline-flex;

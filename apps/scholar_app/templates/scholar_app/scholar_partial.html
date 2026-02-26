@@ -242,7 +242,10 @@
          data-direction="left"
          data-min-width="200"
          data-max-width="600"></div>
-    <div class="library-details-panel">{% include "scholar_app/library_partials/library_details.html" %}</div>
+    <div class="library-details-panel">
+        {% include "scholar_app/library_partials/library_details.html" %}
+        {% include "scholar_app/library_partials/library_import_export.html" %}
+    </div>
 </div>
 </div>
 </section>
