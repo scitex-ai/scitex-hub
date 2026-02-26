@@ -1,46 +1,5 @@
 /* Scholar Library Tab - Main List Styles */
 
-/* ─── Three-pane layout: collections | paper list | details ──── */
-#tab-library.active {
-  flex-direction: row !important;
-}
-
-/* Override generic .scholar-tab-content > div:first-child { flex:1; padding:16px }
-   so the paper list pane uses its own sizing */
-#tab-library > .library-tab-inner {
-  flex: 0 0 auto;
-  padding: 0;
-}
-
-/* Paper list column — left pane, resizable via library-resizer */
-.library-tab-inner {
-  width: 400px;
-  flex-shrink: 0;
-  flex-grow: 0;
-  min-width: 200px;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border-right: 1px solid var(--workspace-border-default);
-}
-
-/* Details panel column — right pane, grows to fill remaining space */
-.library-details-panel {
-  flex: 1;
-  min-width: 200px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  background-color: var(--workspace-bg-primary);
-  display: flex;
-  flex-direction: column;
-}
-
-/* Resizer handle between paper list and details */
-.library-resizer {
-  flex-shrink: 0;
-}
-
 /* Tab Badge */
 .scholar-tab-badge {
   display: inline-flex;
@@ -51,155 +10,198 @@
   padding: 0 5px;
   font-size: 0.7rem;
   font-weight: 600;
-  background-color: var(--workspace-icon-primary);
+  background-color: var(--icon-primary);
   color: white;
   border-radius: 9px;
   margin-left: 4px;
 }
 
-/* ─── Toolbar: stat chips + icon-only actions ─────────────────── */
-.library-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 12px;
-  border-bottom: 1px solid var(--workspace-border-default);
-  background-color: var(--workspace-bg-primary);
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
+/* Stats Bar */
 .library-stats-bar {
   display: flex;
   flex-direction: row;
-  gap: 4px;
-  flex: 1;
-  min-width: 0;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-primary);
   overflow-x: auto;
 }
 
-/* Compact stat chip: count + label side by side */
 .library-stat {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  background-color: var(--workspace-bg-secondary);
-  border: 1px solid var(--workspace-border-default);
+  gap: 2px;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
   cursor: pointer;
-  transition:
-    background-color 0.15s,
-    border-color 0.15s;
-  white-space: nowrap;
+  transition: all 0.2s;
+  min-width: 80px;
   border-radius: 0;
 }
 
 .library-stat:hover {
-  background-color: var(--workspace-bg-tertiary);
+  background-color: var(--bg-quaternary);
 }
 
 .library-stat.active {
-  background-color: var(--workspace-icon-primary);
+  background-color: var(--icon-primary);
   color: white;
-  border-color: var(--workspace-icon-primary);
+  border-color: var(--icon-primary);
 }
 
 .library-stat-count {
-  font-weight: 600;
-  font-size: 0.8rem;
+  font-weight: bold;
+  font-size: 1.1rem;
 }
 
 .library-stat-label {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
 .library-stat.active .library-stat-label {
-  color: rgba(255, 255, 255, 0.85);
+  color: white;
 }
 
-/* Icon-only action buttons */
-.library-toolbar-actions {
+/* Actions Bar */
+.library-action-bar {
   display: flex;
-  gap: 4px;
-  flex-shrink: 0;
+  flex-direction: row;
+  justify-content: space-between;
   align-items: center;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-primary);
 }
 
-.library-toolbar-divider {
-  display: inline-block;
-  width: 1px;
-  height: 18px;
-  background-color: var(--workspace-border-default);
-  margin: 0 2px;
+.library-actions-left,
+.library-actions-right {
+  display: flex;
+  gap: 8px;
 }
 
 .library-action-btn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 4px;
   background-color: transparent;
-  border: 1px solid var(--workspace-border-default);
+  border: 1px solid var(--border-color);
   color: var(--text-primary);
-  padding: 4px 8px;
+  padding: 6px 12px;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: background-color 0.15s;
+  transition: all 0.2s;
   border-radius: 0;
 }
 
 .library-action-btn:hover {
-  background-color: var(--workspace-bg-secondary);
+  background-color: var(--bg-tertiary);
 }
 
 .library-action-btn:active {
-  background-color: var(--workspace-bg-tertiary);
-}
-
-.library-action-btn.active {
-  background-color: var(--workspace-icon-primary);
-  color: white;
-  border-color: var(--workspace-icon-primary);
+  background-color: var(--bg-quaternary);
 }
 
 .library-action-btn i {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }
 
-/* ─── Search Row: input + sort ─────────────────────────────────── */
-.library-search-row {
+/* Collection Filter */
+.library-collection-filter {
   display: flex;
+  flex-direction: row;
+  gap: 4px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-primary);
+  overflow-x: auto;
+}
+
+.library-collection-pill {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-bottom: 1px solid var(--workspace-border-default);
-  background-color: var(--workspace-bg-primary);
-  flex-shrink: 0;
-  overflow: hidden;
+  gap: 4px;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.library-collection-pill:hover {
+  background-color: var(--bg-quaternary);
+}
+
+.library-collection-pill.active {
+  background-color: var(--icon-primary);
+  color: white;
+  border-color: var(--icon-primary);
+}
+
+/* Search Bar */
+.library-search-bar {
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-primary);
 }
 
 .library-search-input-wrapper {
   flex: 1;
-  min-width: 0;
   position: relative;
 }
 
 .library-search-icon {
   position: absolute;
-  left: 8px;
+  left: 10px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+}
+
+.library-search-input-wrapper .library-search-input {
+  padding-left: 32px;
+}
+
+.library-search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.library-filter-controls {
+  flex-shrink: 0;
+}
+
+.library-filter-select {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  border-radius: 0;
 }
 
 .library-search-input {
   width: 100%;
-  background-color: var(--workspace-bg-secondary);
-  border: 1px solid var(--workspace-border-default);
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
   color: var(--text-primary);
-  padding: 5px 28px;
-  font-size: 0.85rem;
+  padding: 8px 12px;
+  font-size: 0.9rem;
   border-radius: 0;
 }
 
@@ -209,33 +211,10 @@
 
 .library-search-input:focus {
   outline: none;
-  border-color: var(--workspace-icon-primary);
+  border-color: var(--icon-primary);
 }
 
-.library-search-clear {
-  position: absolute;
-  right: 6px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-}
-
-.library-filter-select {
-  flex-shrink: 0;
-  background-color: var(--workspace-bg-secondary);
-  border: 1px solid var(--workspace-border-default);
-  color: var(--text-primary);
-  padding: 5px 8px;
-  font-size: 0.8rem;
-  border-radius: 0;
-}
-
-/* ─── Papers Container ────────────────────────────────────────── */
+/* Papers Container */
 .library-papers-container {
   display: flex;
   flex-direction: column;
@@ -243,12 +222,13 @@
   overflow: hidden;
 }
 
+/* Papers List */
 .library-papers-list {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   flex: 1;
-  background-color: var(--workspace-bg-primary);
+  background-color: var(--bg-primary);
 }
 
 /* Loading */
@@ -266,39 +246,39 @@
   font-size: 0.9rem;
 }
 
-/* ─── Paper Cards ─────────────────────────────────────────────── */
+/* Paper Cards */
 .library-paper-card {
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--workspace-border-default);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
   cursor: pointer;
   transition: background-color 0.15s;
   border-left: 3px solid transparent;
 }
 
 .library-paper-card:hover {
-  background-color: var(--workspace-bg-secondary);
+  background-color: var(--bg-tertiary);
 }
 
 .library-paper-card.selected {
-  background-color: var(--workspace-bg-secondary);
-  border-left-color: var(--workspace-icon-primary);
+  background-color: var(--bg-tertiary);
+  border-left-color: var(--icon-primary);
 }
 
 .library-paper-title {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 2px;
+  margin-bottom: 4px;
   line-height: 1.3;
 }
 
 .library-paper-meta {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
-  margin-bottom: 3px;
+  margin-bottom: 6px;
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 8px;
 }
 
 .library-paper-badges {
@@ -312,8 +292,8 @@
 .library-status-badge {
   display: inline-flex;
   align-items: center;
-  padding: 1px 5px;
-  font-size: 0.68rem;
+  padding: 2px 6px;
+  font-size: 0.7rem;
   font-weight: 500;
   border-radius: 0;
   border: 1px solid;
@@ -349,11 +329,11 @@
 .library-importance-stars {
   display: inline-flex;
   gap: 2px;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
 }
 
 .library-importance-stars .star-filled {
-  color: var(--workspace-icon-primary);
+  color: var(--icon-primary);
 }
 .library-importance-stars .star-empty {
   color: var(--text-muted);
@@ -363,12 +343,12 @@
 .library-tag {
   display: inline-flex;
   align-items: center;
-  padding: 1px 5px;
-  font-size: 0.68rem;
-  background-color: var(--workspace-bg-tertiary);
-  border: 1px solid var(--workspace-border-default);
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  background-color: var(--bg-quaternary);
+  border: 1px solid var(--border-color);
   color: var(--text-secondary);
-  border-radius: 0;
+  border-radius: 3px;
 }
 
 /* Empty State */
@@ -383,17 +363,17 @@
 }
 
 .library-empty-state i {
-  font-size: 2.5rem;
-  margin-bottom: 0.75rem;
-  opacity: 0.4;
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
 }
 
-.library-empty-title {
-  font-size: 1rem;
+.library-empty-state-title {
+  font-size: 1.1rem;
   font-weight: 600;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.5rem;
 }
 
-.library-empty-description {
-  font-size: 0.85rem;
+.library-empty-state-description {
+  font-size: 0.9rem;
 }

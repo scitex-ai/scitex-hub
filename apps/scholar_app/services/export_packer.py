@@ -15,10 +15,14 @@ from datetime import datetime
 from typing import Any, Dict, List
 
 from django.contrib.auth.models import User
-from scitex.scholar.formatting import FORMAT_EXTENSIONS, to_bibtex, to_ris
 
 from ..models import Collection, LibraryExport, SearchIndex
-from .citation_formats import paper_from_orm
+from .citation_formats import (
+    FORMAT_EXTENSIONS,
+    paper_from_orm,
+    to_bibtex,
+    to_ris,
+)
 
 logger = logging.getLogger(__name__)
 

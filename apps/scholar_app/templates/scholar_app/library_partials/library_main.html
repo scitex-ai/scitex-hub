@@ -1,86 +1,121 @@
 {% load static %}
 
-<!-- Toolbar: stat chips (left) + icon-only actions (right) -->
-<div class="library-toolbar">
-    <div class="library-stats-bar" id="library-stats-bar">
-        <!-- JS fills this with .library-stat chips -->
+<!-- Stats Bar -->
+<div class="library-stats-bar" id="library-stats-bar">
+    <div class="library-stat-item" data-status="to_read">
+        <div class="library-stat-icon">
+            <i class="fas fa-bookmark"></i>
+        </div>
+        <div class="library-stat-content">
+            <div class="library-stat-label">To Read</div>
+            <div class="library-stat-count" id="stat-to-read">0</div>
+        </div>
     </div>
-    <div class="library-toolbar-actions">
-        <button class="library-action-btn" id="library-refresh-btn" title="Refresh">
+    <div class="library-stat-item" data-status="reading">
+        <div class="library-stat-icon">
+            <i class="fas fa-book-open"></i>
+        </div>
+        <div class="library-stat-content">
+            <div class="library-stat-label">Reading</div>
+            <div class="library-stat-count" id="stat-reading">0</div>
+        </div>
+    </div>
+    <div class="library-stat-item" data-status="read">
+        <div class="library-stat-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="library-stat-content">
+            <div class="library-stat-label">Read</div>
+            <div class="library-stat-count" id="stat-read">0</div>
+        </div>
+    </div>
+    <div class="library-stat-item" data-status="referenced">
+        <div class="library-stat-icon">
+            <i class="fas fa-quote-right"></i>
+        </div>
+        <div class="library-stat-content">
+            <div class="library-stat-label">Referenced</div>
+            <div class="library-stat-count" id="stat-referenced">0</div>
+        </div>
+    </div>
+    <div class="library-stat-item" data-status="favorite">
+        <div class="library-stat-icon">
+            <i class="fas fa-star"></i>
+        </div>
+        <div class="library-stat-content">
+            <div class="library-stat-label">Favorite</div>
+            <div class="library-stat-count" id="stat-favorite">0</div>
+        </div>
+    </div>
+</div>
+<!-- Action Bar -->
+<div class="library-action-bar">
+    <div class="library-actions-left">
+        <button class="library-action-btn" id="library-import-btn">
+            <i class="fas fa-file-upload"></i>
+            <span>Import BibTeX</span>
+        </button>
+        <input type="file" id="bibtex-file-input" accept=".bib" hidden />
+        <button class="library-action-btn" id="library-export-all-btn">
+            <i class="fas fa-file-download"></i>
+            <span>Export BibTeX</span>
+        </button>
+        <button class="library-action-btn" id="export-ris-button">
+            <i class="fas fa-file-export"></i>
+            <span>Export RIS</span>
+        </button>
+    </div>
+    <div class="library-actions-right">
+        <button class="library-action-btn" id="library-refresh-btn">
             <i class="fas fa-sync-alt"></i>
         </button>
     </div>
 </div>
-<!-- Search row: input + sort + collection pills -->
-<div class="library-search-row">
+<!-- Collection Filter -->
+<div class="library-collection-filter" id="library-collection-filter">
+    <button class="library-collection-pill active" data-collection="all">All</button>
+    <!-- Additional collections loaded via JS -->
+</div>
+<!-- Search/Filter Bar -->
+<div class="library-search-bar">
     <div class="library-search-input-wrapper">
         <i class="fas fa-search library-search-icon"></i>
         <input type="text"
                class="library-search-input"
                id="library-search-input"
-               placeholder="Search papers..." />
+               placeholder="Search papers by title or author..." />
         <button class="library-search-clear" id="library-search-clear" hidden>
             <i class="fas fa-times"></i>
         </button>
     </div>
-    <select class="library-filter-select" id="library-sort-select">
-        <option value="date_added_desc">Newest</option>
-        <option value="date_added_asc">Oldest</option>
-        <option value="importance_desc">Importance ↓</option>
-        <option value="importance_asc">Importance ↑</option>
-        <option value="year_desc">Year ↓</option>
-        <option value="year_asc">Year ↑</option>
-        <option value="title_asc">Title A–Z</option>
-        <option value="title_desc">Title Z–A</option>
-    </select>
-    <!-- Collection filtering moved to sidebar -->
+    <div class="library-filter-controls">
+        <select class="library-filter-select" id="library-sort-select">
+            <option value="date_added_desc">Date Added (Newest)</option>
+            <option value="date_added_asc">Date Added (Oldest)</option>
+            <option value="importance_desc">Importance (High to Low)</option>
+            <option value="importance_asc">Importance (Low to High)</option>
+            <option value="year_desc">Publication Year (Newest)</option>
+            <option value="year_asc">Publication Year (Oldest)</option>
+            <option value="title_asc">Title (A-Z)</option>
+            <option value="title_desc">Title (Z-A)</option>
+        </select>
+    </div>
 </div>
 <!-- Paper List -->
 <div class="library-papers-container">
     <div class="library-papers-list" id="library-papers-list">
-        <!-- Loading spinner (content injected by inspiring-spinner.ts) -->
-        <div class="library-loading" id="library-loading"></div>
+        <!-- Loading spinner -->
+        <div class="library-loading" id="library-loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <div class="library-loading-text">Loading papers...</div>
+        </div>
         <!-- Empty state -->
         <div class="library-empty-state" id="library-empty-state" hidden>
-            <i class="fas fa-book-open"></i>
+            <i class="fas fa-books"></i>
             <div class="library-empty-title">No papers in your library</div>
             <div class="library-empty-description">Import a BibTeX file or add papers from the Search tab to get started.</div>
         </div>
         <!-- Paper cards loaded via JS -->
-        <!-- Inline fallback: resolve loading state even if Vite module is slow -->
-        <script>
-        (function() {
-            fetch('/scholar/api/library/papers/', { credentials: 'same-origin' })
-                .then(function(r) {
-                    if (!r.ok) throw new Error('HTTP ' + r.status);
-                    return r.json();
-                })
-                .then(function(data) {
-                    var loadingEl = document.getElementById('library-loading');
-                    if (!loadingEl || loadingEl.style.display === 'none') return;
-                    var papers = data.papers || [];
-                    if (papers.length === 0) {
-                        loadingEl.style.display = 'none';
-                        var emptyEl = document.getElementById('library-empty-state');
-                        if (emptyEl) {
-                            emptyEl.removeAttribute('hidden');
-                            emptyEl.style.display = '';
-                        }
-                    }
-                })
-                .catch(function() {
-                    var loadingEl = document.getElementById('library-loading');
-                    if (!loadingEl || loadingEl.style.display === 'none') return;
-                    loadingEl.style.display = 'none';
-                    var emptyEl = document.getElementById('library-empty-state');
-                    if (emptyEl) {
-                        emptyEl.removeAttribute('hidden');
-                        emptyEl.style.display = '';
-                        emptyEl.querySelector('.library-empty-title').textContent = 'No papers in your library';
-                    }
-                });
-        })();
-        </script>
     </div>
 </div>
 <!-- Paper Card Template (for JS cloning) -->

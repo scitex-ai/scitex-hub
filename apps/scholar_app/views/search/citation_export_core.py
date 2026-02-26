@@ -1,54 +1,60 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Citation export core — thin wrappers around scitex.scholar.formatting.
+"""Citation export core — thin wrappers around citation_formats.
 
 Maintains backward-compatible API for callers that use positional args.
-All formatting logic lives in ``scitex.scholar.formatting``.
+All formatting logic lives in ``services.citation_formats``.
 """
 
 from __future__ import annotations
 
+import re
+
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from scitex.scholar.formatting import (
-    generate_cite_key,
-    make_citation_key,
-    paper_normalize,
-    sanitize_filename,
+
+from ...services.citation_formats import (
+    paper_from_dict,
     to_bibtex,
     to_endnote,
     to_ris,
 )
 
-__all__ = [
-    "generate_cite_key",
-    "make_citation_key",
-    "generate_bibtex",
-    "generate_endnote",
-    "generate_ris",
-    "get_file_extension",
-    "sanitize_filename",
-]
-
 
 @require_http_methods(["POST"])
 @login_required
 def export_citation(request):
-    """Placeholder for export_citation."""
+    """Placeholder for export_citation — TODO: implement."""
     return JsonResponse({"error": "Not implemented"}, status=501)
 
 
 def generate_citation(paper_data, format_type):
     """Generate citation in the specified format from a dict."""
-    paper = paper_normalize(paper_data)
-    paper["cite_key"] = generate_cite_key(paper)
+    paper = paper_from_dict(paper_data)
+    paper["cite_key"] = generate_citation_key(
+        paper_data.get("authors", ""), paper_data.get("year", "")
+    )
 
     dispatch = {"bibtex": to_bibtex, "endnote": to_endnote, "ris": to_ris}
     func = dispatch.get(format_type.lower())
     if func is None:
         return None
     return func(paper)
+
+
+def generate_citation_key(authors, year):
+    """Generate a citation key from authors string and year."""
+    try:
+        if authors and isinstance(authors, str):
+            first_author = authors.split(",")[0].split(" and ")[0].strip()
+            first_author = first_author.replace("Dr.", "").replace("Prof.", "").strip()
+            last_name = first_author.split()[-1] if first_author.split() else "Unknown"
+            last_name = "".join(c for c in last_name if c.isalnum())
+            return f"{last_name}{year}"
+        return f"Unknown{year}"
+    except (IndexError, AttributeError, TypeError, ValueError):
+        return f"Paper{year}"
 
 
 def generate_bibtex(
@@ -100,6 +106,13 @@ def generate_ris(title, authors, journal, year, doi, url, volume, pages, pmid):
         "pmid": pmid or "",
     }
     return to_ris(paper)
+
+
+def sanitize_filename(filename):
+    """Sanitize filename for safe download."""
+    filename = re.sub(r'[<>:"/\\|?*]', "_", filename)
+    filename = filename[:50]
+    return re.sub(r"\s+", "_", filename.strip())
 
 
 def get_file_extension(format_type):

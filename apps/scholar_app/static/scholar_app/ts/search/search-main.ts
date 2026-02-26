@@ -224,7 +224,32 @@ function initAbstractToggle(): void {
   });
 }
 
-// Save selected button is handled by toolbar-handlers.ts (bulk save via API)
+/**
+ * Initialize save selected button
+ */
+function initSaveSelected(): void {
+  const btn = document.getElementById("saveSelectedBtn");
+  if (!btn) return;
+
+  btn.addEventListener("click", () => {
+    const papers = getSelectedPapers();
+    if (papers.length === 0) {
+      alert("No papers selected. Click on papers to select them.");
+      return;
+    }
+    const saved = JSON.parse(
+      localStorage.getItem("scitex_saved_papers") || "[]",
+    );
+    const newPapers = papers.filter(
+      (p) => !saved.some((s: PaperData) => s.title === p.title),
+    );
+    saved.push(...newPapers);
+    localStorage.setItem("scitex_saved_papers", JSON.stringify(saved));
+    alert(
+      `Saved ${newPapers.length.toLocaleString()} paper(s) to library. (${(papers.length - newPapers.length).toLocaleString()} already saved)`,
+    );
+  });
+}
 
 /**
  * Initialize open URLs button
@@ -317,7 +342,7 @@ function initSelectionListener(): void {
 export function initSearchMain(): void {
   initSearchHelp();
   initAbstractToggle();
-  // initSaveSelected removed — handled by toolbar-handlers.ts (bulk save via API)
+  initSaveSelected();
   initOpenUrls();
   initBibtexExport();
   initCopyShortcut();

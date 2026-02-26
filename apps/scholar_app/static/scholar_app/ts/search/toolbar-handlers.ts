@@ -150,6 +150,26 @@ export function setupToolbarHandlers(): void {
     handleAbstractToggle(this);
   });
 
+  // Save Selected button
+  attachHandler("saveSelectedBtn", function () {
+    const papers = getSelectedPapers();
+    if (papers.length === 0) {
+      alert("No papers selected. Click on papers to select them.");
+      return;
+    }
+    const saved = JSON.parse(
+      localStorage.getItem("scitex_saved_papers") || "[]",
+    );
+    const newPapers = papers.filter(
+      (p) => !saved.some((s: { title: string }) => s.title === p.title),
+    );
+    saved.push(...newPapers);
+    localStorage.setItem("scitex_saved_papers", JSON.stringify(saved));
+    alert(
+      `Saved ${newPapers.length.toLocaleString()} paper(s) to library. (${(papers.length - newPapers.length).toLocaleString()} already saved)`,
+    );
+  });
+
   // Open URLs button
   attachHandler("openUrlsBtn", function () {
     const papers = getSelectedPapers();
@@ -308,10 +328,6 @@ function setupPdfDownloadHandlers(): void {
 }
 
 // Initialize handlers on page load
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", function () {
-    setupToolbarHandlers();
-  });
-} else {
+document.addEventListener("DOMContentLoaded", () => {
   setupToolbarHandlers();
-}
+});

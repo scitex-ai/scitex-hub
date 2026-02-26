@@ -16,11 +16,16 @@ from uuid import UUID
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
-from scitex.scholar.formatting import to_bibtex, to_csv_row, to_endnote, to_ris
 
 from ...models import Collection
 from ...models import SearchIndex as Paper
-from ...services.citation_formats import paper_from_orm
+from ...services.citation_formats import (
+    paper_from_orm,
+    to_bibtex,
+    to_csv_row,
+    to_endnote,
+    to_ris,
+)
 
 logger = logging.getLogger(__name__)
 
