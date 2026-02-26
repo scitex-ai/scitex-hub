@@ -1,0 +1,79 @@
+{% comment %}
+Hub inline user profile — returned by /hub/api/user-profile/?username=X
+{% endcomment %}
+<div class="hub-content">
+    <div class="hub-user-profile">
+        <div class="hub-user-sidebar">
+            <div class="hub-user-avatar">
+                {% if profile_user.profile.avatar %}
+                    <img src="{{ profile_user.profile.avatar.url }}"
+                         alt="{{ profile_user.username }}"
+                         style="width:100%;
+                                height:100%;
+                                border-radius:50%;
+                                object-fit:cover" />
+                {% else %}
+                    {{ profile_user.username|slice:":1"|upper }}
+                {% endif %}
+            </div>
+            <h2 style="margin:0; font-size:1.25rem">{{ profile_user.get_full_name|default:profile_user.username }}</h2>
+            <p class="text-muted" style="margin:0.25rem 0 1rem">@{{ profile_user.username }}</p>
+            {% if profile_user.profile.bio %}
+                <p style="font-size:0.9rem; margin-bottom:1rem">{{ profile_user.profile.bio }}</p>
+            {% endif %}
+            <div class="project-meta" style="flex-direction:column; gap:0.5rem">
+                {% if profile_user.profile.institution %}
+                    <span class="meta-item">
+                        <i class="fas fa-university"></i> {{ profile_user.profile.institution }}
+                    </span>
+                {% endif %}
+                {% if profile_user.profile.location %}
+                    <span class="meta-item">
+                        <i class="fas fa-map-marker-alt"></i> {{ profile_user.profile.location }}
+                    </span>
+                {% endif %}
+                <span class="meta-item">
+                    <i class="fas fa-calendar-alt"></i> Joined {{ profile_user.date_joined|date:"M Y" }}
+                </span>
+            </div>
+            <div class="project-meta" style="margin-top:0.75rem">
+                <span class="meta-item">
+                    <strong>{{ followers_count }}</strong>&nbsp;followers
+                </span>
+                <span class="meta-item">
+                    <strong>{{ following_count }}</strong>&nbsp;following
+                </span>
+            </div>
+        </div>
+        <div class="hub-user-repos">
+            <h3 style="margin:0 0 1rem; font-size:1rem">
+                {% if is_own_projects %}
+                    Your Repositories
+                {% else %}
+                    Repositories
+                {% endif %}
+            </h3>
+            {% if projects %}
+                {% for project in projects %}
+                    <div class="project-card mb-3">
+                        <div class="project-card-header">
+                            <h3>
+                                <a href="#" class="hub-explore-repo" data-project-id="{{ project.id }}">{{ project.name }}</a>
+                            </h3>
+                            <span class="badge badge-{{ project.visibility }}">{{ project.visibility }}</span>
+                        </div>
+                        <div class="project-card-body">
+                            {% if project.description %}<p class="text-muted">{{ project.description|truncatewords:20 }}</p>{% endif %}
+                            <div class="project-meta">
+                                {% if project.primary_language %}<span class="language-badge">{{ project.primary_language }}</span>{% endif %}
+                                <span class="meta-item">Updated {{ project.updated_at|timesince }} ago</span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted">No visible repositories</p>
+            {% endif %}
+        </div>
+    </div>
+</div>

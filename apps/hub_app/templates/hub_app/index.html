@@ -39,123 +39,34 @@
     <link rel="stylesheet" href="{% static 'project_app/css/shared/buttons.css' %}" />
     <link rel="stylesheet"
           href="{% static 'project_app/css/repository/file_browser.css' %}" />
+    <!-- Issues & PR CSS (for inline tab rendering) -->
+    <link rel="stylesheet" href="{% static 'project_app/css/issues/list.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/pull_requests/list.css' %}" />
     <!-- Hub specific styles -->
     <link rel="stylesheet" href="{% static 'hub_app/css/hub.css' %}" />
+    <link rel="stylesheet" href="{% static 'hub_app/css/hub-file-viewer.css' %}" />
 {% endblock %}
 {% block content %}
-    {% if current_project %}
-        <div id="workspace-project-config"
-             style="display: none"
-             data-project-id="{{ current_project.id }}"
-             data-username="{{ current_project.owner.username }}"
-             data-slug="{{ current_project.slug }}"
-             data-mode="hub"></div>
-    {% endif %}
     <div class="hub-workspace">
-        <!-- Sidebar removed: unified workspace provides the file tree via ws-worktree-pane -->
         <!-- Main Area -->
         <main class="hub-main">
-            <!-- Quick actions bar -->
-            <div style="padding:0.5rem 1rem;"></div>
-            {% if quick_ref %}
-                <div class="hub-quick-ref"
-                     style="margin:0 1rem 1rem;
-                            padding:0.75rem 1rem;
-                            background:var(--workspace-bg-secondary, #161b22);
-                            border:1px solid var(--workspace-border-default, #30363d);
-                            border-radius:6px;
-                            font-size:0.85rem;
-                            line-height:1.6">
-                    <h4 style="margin:0 0 0.5rem; font-size:0.9rem; color:var(--text-primary, #e6edf3)">
-                        <i class="fas fa-info-circle"></i> Quick Reference
-                    </h4>
-                    <div style="color:var(--text-muted, #8b949e);">
-                        <div style="margin-bottom:0.4rem;">
-                            <strong>SSH Access:</strong>
-                            {% if quick_ref.is_dev %}
-                                <code style="background:var(--workspace-bg-tertiary, #0d1117);
-                                             padding:2px 6px;
-                                             border-radius:3px">ssh -p {{ quick_ref.ssh_port }} {{ quick_ref.username }}@{{ quick_ref.ssh_hostname }}</code>
-                            {% else %}
-                                Via <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/"
-    target="_blank">cloudflared</a> tunnel &mdash; see <a href="/accounts/settings/ssh-keys/">SSH Keys</a>
-                            {% endif %}
-                        </div>
-                        <div style="margin-bottom:0.4rem;">
-                            <strong>Shortcuts:</strong>
-                            <kbd style="background:var(--workspace-bg-tertiary, #0d1117);
-                                        padding:1px 5px;
-                                        border-radius:3px;
-                                        font-size:0.8rem">Alt+A</kbd> AI Panel &nbsp;
-                            <kbd style="background:var(--workspace-bg-tertiary, #0d1117);
-                                        padding:1px 5px;
-                                        border-radius:3px;
-                                        font-size:0.8rem">Alt+S</kbd> Scholar &nbsp;
-                            <kbd style="background:var(--workspace-bg-tertiary, #0d1117);
-                                        padding:1px 5px;
-                                        border-radius:3px;
-                                        font-size:0.8rem">Alt+W</kbd> Writer &nbsp;
-                            <kbd style="background:var(--workspace-bg-tertiary, #0d1117);
-                                        padding:1px 5px;
-                                        border-radius:3px;
-                                        font-size:0.8rem">?</kbd> All shortcuts
-                        </div>
-                        <div>
-                            <strong>Links:</strong>
-                            <a href="/accounts/settings/ssh-keys/">SSH Keys</a> &middot;
-                            <a href="/server-status/">Server Status</a> &middot;
-                            <a href="/keyboard-shortcuts/">All Shortcuts</a>
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
-            {% if current_project %}
-                <!-- GitHub-style file browser (reusing project_app partials) -->
-                <div class="hub-browse-container">
-                    {% include 'project_app/repository/browse_partials/browse_header.html' %}
-                    {% include 'project_app/repository/browse_partials/browse_tabs.html' with active_tab='code' %}
-                    {% include 'project_app/repository/browse_partials/browse_empty_state.html' %}
-                    {% include 'project_app/repository/browse_partials/browse_file_browser.html' %}
-                    {% include 'project_app/repository/browse_partials/browse_readme.html' %}
-                </div>
-            {% else %}
-                <!-- No project selected: show projects overview -->
-                <div class="hub-content">
-                    <div class="hub-header mb-4">
-                        <h1>Your Projects</h1>
-                        {% if projects_count > 0 %}
-                            <p class="text-muted">{{ projects_count }} project{{ projects_count|pluralize }}</p>
-                        {% endif %}
-                    </div>
-                    {% if user_projects %}
-                        <div class="hub-section mb-4">
-                            <div class="projects-grid">
-                                {% for proj in user_projects %}
-                                    <div class="project-card">
-                                        <div class="project-card-header">
-                                            <h3>
-                                                <a href="/{{ proj.owner.username }}/{{ proj.slug }}/">{{ proj.name }}</a>
-                                            </h3>
-                                            <span class="badge badge-{{ proj.visibility }}">{{ proj.visibility }}</span>
-                                        </div>
-                                        <div class="project-card-body">
-                                            <p class="text-muted">{{ proj.description|truncatewords:20 }}</p>
-                                            <div class="project-meta">
-                                                {% if proj.primary_language %}<span class="language-badge">{{ proj.primary_language }}</span>{% endif %}
-                                                <span class="meta-item">
-                                                    <i class="fas fa-star"></i> {{ proj.projectstar_set.count }}
-                                                </span>
-                                                <span class="meta-item">Updated {{ proj.updated_at|timesince }} ago</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
-            {% endif %}
-            <!-- Secondary content removed -->
+            <!-- Dashboard | Explore mode switcher -->
+            <div class="hub-mode-switcher" id="hub-mode-switcher">
+                <a href="#" class="hub-mode hub-mode-active" data-hub-mode="dashboard">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+                <a href="#" class="hub-mode" data-hub-mode="explore">
+                    <i class="fas fa-compass"></i> Explore
+                </a>
+            </div>
+            <!-- Dynamic main content: project workspace or projects overview -->
+            <div id="hub-main-content">
+                {% if current_project %}
+                    {% include 'hub_app/partials/project_workspace.html' with project=current_project %}
+                {% else %}
+                    {% include 'hub_app/partials/projects_overview.html' %}
+                {% endif %}
+            </div>
         </main>
         <!-- Details resizer (auto-initialized via data attributes) -->
         <div class="panel-resizer"
@@ -191,6 +102,8 @@
     {% vite_hmr_client %}
     {% tree_preseed_script current_project %}
     {% vite_script 'shared/workspace-tree-init' %}
+    <!-- Hub JS always loaded (handles both project workspace and projects overview) -->
+    {% vite_script 'hub_app/index' %}
     {% if current_project %}
         <!-- Browse scripts (reused from project_app) -->
         <div id="project-data"

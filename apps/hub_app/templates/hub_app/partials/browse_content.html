@@ -1,0 +1,17 @@
+{% comment %}
+Hub inline file browser content — returned by /hub/api/browse/?path=...
+Replaces the file browser table when navigating within the Hub pane.
+{% endcomment %}
+{% if breadcrumbs %}
+    <nav class="hub-breadcrumb" aria-label="File path">
+        <a href="#" class="hub-breadcrumb-link" data-hub-path="">{{ project.slug }}</a>
+        {% for crumb in breadcrumbs %}
+            <span class="hub-breadcrumb-sep">/</span>
+            <a href="#" class="hub-breadcrumb-link" data-hub-path="{{ crumb.path }}">{{ crumb.name }}</a>
+        {% endfor %}
+    </nav>
+{% endif %}
+{% include 'project_app/repository/browse_partials/browse_file_browser.html' %}
+{% if readme_html %}
+    {% include 'project_app/repository/browse_partials/browse_readme.html' %}
+{% endif %}

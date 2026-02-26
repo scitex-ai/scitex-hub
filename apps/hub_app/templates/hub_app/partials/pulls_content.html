@@ -1,0 +1,135 @@
+{% comment %}
+Hub inline PR list — returned by /hub/api/pulls/
+Renders pull request list within the Hub workspace pane.
+{% endcomment %}
+<div class="hub-tab-content">
+    <div class="issues-header">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="issues-stats">
+                <a href="#"
+                   class="issues-tab hub-pulls-filter {% if state_filter == 'open' %}active{% endif %}"
+                   data-hub-pulls-state="open">
+                    <svg width="16"
+                         height="16"
+                         viewBox="0 0 16 16"
+                         fill="currentColor"
+                         style="display:inline-block;
+                                vertical-align:text-bottom">
+                        <path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z" />
+                    </svg>
+                    {{ open_count }} Open
+                </a>
+                <a href="#"
+                   class="issues-tab hub-pulls-filter {% if state_filter == 'closed' %}active{% endif %}"
+                   data-hub-pulls-state="closed">
+                    <svg width="16"
+                         height="16"
+                         viewBox="0 0 16 16"
+                         fill="currentColor"
+                         style="display:inline-block;
+                                vertical-align:text-bottom">
+                        <path d="M11.28 6.78a.75.75 0 0 0-1.06-1.06L7.25 8.69 5.78 7.22a.75.75 0 0 0-1.06 1.06l2 2a.75.75 0 0 0 1.06 0l3.5-3.5Z" />
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0Zm-1.5 0a6.5 6.5 0 1 0-13 0 6.5 6.5 0 0 0 13 0Z" />
+                    </svg>
+                    {{ closed_count }} Closed
+                </a>
+                <a href="#"
+                   class="issues-tab hub-pulls-filter {% if state_filter == 'merged' %}active{% endif %}"
+                   data-hub-pulls-state="merged">
+                    <svg width="16"
+                         height="16"
+                         viewBox="0 0 16 16"
+                         fill="currentColor"
+                         style="display:inline-block;
+                                vertical-align:text-bottom">
+                        <path d="M5.45 5.154A4.25 4.25 0 0 0 9.25 7.5h1.378a2.251 2.251 0 1 1 0 1.5H9.25A5.734 5.734 0 0 1 5 7.123v3.505a2.25 2.25 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.95-.218ZM4.25 13.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm8.5-4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z" />
+                    </svg>
+                    {{ merged_count }} Merged
+                </a>
+            </div>
+            {% if can_create %}
+                <a href="/{{ project.owner.username }}/{{ project.slug }}/pulls/new/"
+                   class="btn btn-success btn-sm">
+                    <svg width="16"
+                         height="16"
+                         viewBox="0 0 16 16"
+                         fill="currentColor"
+                         style="display:inline-block;
+                                vertical-align:text-bottom;
+                                margin-right:4px">
+                        <path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z" />
+                    </svg>
+                    New pull request
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    {% if prs %}
+        <div class="issue-list">
+            {% for pr in prs %}
+                <div class="issue-item">
+                    <div class="issue-main">
+                        <div class="issue-icon {% if pr.state == 'open' %}open{% elif pr.state == 'merged' %}merged{% else %}closed{% endif %}">
+                            {% if pr.state == 'merged' %}
+                                <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+                                    <path d="M5.45 5.154A4.25 4.25 0 0 0 9.25 7.5h1.378a2.251 2.251 0 1 1 0 1.5H9.25A5.734 5.734 0 0 1 5 7.123v3.505a2.25 2.25 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.95-.218ZM4.25 13.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm8.5-4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z" />
+                                </svg>
+                            {% elif pr.state == 'open' %}
+                                <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+                                    <path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z" />
+                                </svg>
+                            {% else %}
+                                <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+                                    <path d="M11.28 6.78a.75.75 0 0 0-1.06-1.06L7.25 8.69 5.78 7.22a.75.75 0 0 0-1.06 1.06l2 2a.75.75 0 0 0 1.06 0l3.5-3.5Z" />
+                                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0Zm-1.5 0a6.5 6.5 0 1 0-13 0 6.5 6.5 0 0 0 13 0Z" />
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <div class="issue-content">
+                            <div class="issue-title-row">
+                                <a href="/{{ project.owner.username }}/{{ project.slug }}/pulls/{{ pr.number }}/"
+                                   class="issue-title hub-pr-link">{{ pr.title }}</a>
+                            </div>
+                            <div class="issue-meta">
+                                #{{ pr.number }} opened {{ pr.created_at|timesince }} ago by
+                                {{ pr.author.username }}
+                                {% if pr.source_branch and pr.target_branch %}
+                                    <span style="margin-left:0.5rem;font-size:0.75rem">
+                                        <code style="padding:1px 4px;
+                                                     background:var(--workspace-bg-quaternary);
+                                                     border-radius:3px">{{ pr.source_branch }}</code>
+                                        &rarr;
+                                        <code style="padding:1px 4px;
+                                                     background:var(--workspace-bg-quaternary);
+                                                     border-radius:3px">{{ pr.target_branch }}</code>
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state" style="padding:2rem;text-align:center">
+            <svg width="48"
+                 height="48"
+                 viewBox="0 0 16 16"
+                 fill="currentColor"
+                 style="color:var(--workspace-text-muted);
+                        margin-bottom:1rem">
+                <path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z" />
+            </svg>
+            <h3 style="color:var(--workspace-text-primary);font-size:1rem;margin-bottom:0.5rem">No pull requests found</h3>
+            <p style="color:var(--workspace-text-muted);font-size:0.85rem">
+                {% if state_filter == 'closed' %}
+                    There are no closed pull requests yet.
+                {% elif state_filter == 'merged' %}
+                    There are no merged pull requests yet.
+                {% else %}
+                    There are no open pull requests yet.
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
+</div>
