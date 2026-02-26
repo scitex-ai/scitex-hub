@@ -29,6 +29,7 @@ From: python:3.11-slim
     echo "Installing system dependencies..."
     apt-get install -y --no-install-recommends \
         build-essential \
+        cmake \
         git \
         wget \
         curl \
@@ -45,6 +46,7 @@ From: python:3.11-slim
         fontconfig \
         parallel \
         locales \
+        graphviz \
         && rm -rf /var/lib/apt/lists/*
 
     # Generate locale
@@ -108,6 +110,22 @@ From: python:3.11-slim
         @google/gemini-cli \
         @agents-dev/cli
 
+    # Build whisper.cpp for speech-to-text
+    echo "Building whisper.cpp..."
+    git clone --depth 1 https://github.com/ggerganov/whisper.cpp.git /tmp/whisper.cpp
+    cmake -S /tmp/whisper.cpp -B /tmp/whisper-build
+    cmake --build /tmp/whisper-build --target whisper-cli -j$(nproc)
+    mkdir -p /opt/whisper/bin /opt/whisper/models
+    cp /tmp/whisper-build/bin/whisper-cli /opt/whisper/bin/whisper-cli
+    rm -rf /tmp/whisper.cpp /tmp/whisper-build
+
+    # Download whisper models (tiny + base for speed/accuracy trade-off)
+    echo "Downloading whisper models..."
+    wget -q -O /opt/whisper/models/ggml-tiny.en.bin \
+        "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en.bin"
+    wget -q -O /opt/whisper/models/ggml-base.en.bin \
+        "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin"
+
     # Create standard directories
     mkdir -p /workspace /logs /opt/dev
     chmod 755 /workspace /logs /opt/dev
@@ -120,7 +138,7 @@ From: python:3.11-slim
     export PYTHONUNBUFFERED=1
     export PYTHONDONTWRITEBYTECODE=1
     export PYTHONPATH=/workspace:$PYTHONPATH
-    export PATH=/usr/local/bin:$HOME/.npm-global/bin:$PATH
+    export PATH=/opt/whisper/bin:/usr/local/bin:$HOME/.npm-global/bin:$PATH
     export WORKSPACE=/workspace
 
 %runscript
@@ -141,6 +159,8 @@ print('Arial font:', 'OK' if 'Arial' in fonts else 'MISSING')
 "
     node --version
     claude --version 2>/dev/null && echo "Claude Code OK" || echo "WARN: claude not installed"
+    /opt/whisper/bin/whisper-cli --help >/dev/null 2>&1 && echo "whisper-cli OK" || echo "WARN: whisper-cli not found"
+    test -f /opt/whisper/models/ggml-tiny.en.bin && echo "whisper tiny model OK" || echo "WARN: whisper tiny model missing"
     echo "Base tests passed!"
 
 # EOF

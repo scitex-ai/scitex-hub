@@ -9,6 +9,7 @@ export type FileType =
   | "pdf"
   | "csv"
   | "mermaid"
+  | "graphviz"
   | "audio"
   | "video"
   | "binary";
@@ -47,6 +48,12 @@ export const LANGUAGE_MAP: { [key: string]: string } = {
   ".tex": "latex",
   ".bib": "bibtex",
   ".txt": "plaintext",
+  ".mmd": "markdown",
+  ".mermaid": "markdown",
+  ".dot": "plaintext",
+  ".gv": "plaintext",
+  ".csv": "plaintext",
+  ".tsv": "plaintext",
 };
 
 /** Image file extensions */
@@ -69,6 +76,9 @@ export const CSV_EXTENSIONS = new Set([".csv", ".tsv"]);
 
 /** Mermaid diagram file extensions */
 export const MERMAID_EXTENSIONS = new Set([".mmd", ".mermaid"]);
+
+/** Graphviz diagram file extensions */
+export const GRAPHVIZ_EXTENSIONS = new Set([".dot", ".gv"]);
 
 /** Audio file extensions */
 export const AUDIO_EXTENSIONS = new Set([
@@ -129,6 +139,7 @@ export function detectFileType(filePath: string): FileType {
   if (PDF_EXTENSIONS.has(ext)) return "pdf";
   if (CSV_EXTENSIONS.has(ext)) return "csv";
   if (MERMAID_EXTENSIONS.has(ext)) return "mermaid";
+  if (GRAPHVIZ_EXTENSIONS.has(ext)) return "graphviz";
   if (AUDIO_EXTENSIONS.has(ext)) return "audio";
   if (VIDEO_EXTENSIONS.has(ext)) return "video";
   if (BINARY_EXTENSIONS.has(ext)) return "binary";
