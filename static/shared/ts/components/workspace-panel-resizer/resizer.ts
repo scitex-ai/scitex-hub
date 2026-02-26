@@ -177,6 +177,7 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
     resizer.classList.add("active");
+    targetPanel.dataset.wprDragging = "true";
     disableTransitions();
     e.preventDefault();
   };
@@ -265,6 +266,11 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
     document.body.style.userSelect = "";
     resizer.classList.remove("active");
     enableTransitions();
+
+    // Clear drag flag after click event has been processed (rAF delay)
+    requestAnimationFrame(() => {
+      delete targetPanel.dataset.wprDragging;
+    });
 
     // Save propagation target width if we were propagating
     if (propagationTarget) {

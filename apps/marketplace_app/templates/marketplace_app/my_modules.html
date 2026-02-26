@@ -2,7 +2,7 @@
 
 {% load static %}
 
-{% block title %}My Modules{% endblock %}
+{% block title %}My Apps{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'marketplace_app/css/marketplace.css' %}" />
 {% endblock %}
@@ -10,14 +10,14 @@
     <div class="marketplace-container">
         <div class="mp-my-header">
             <h1 class="mp-my-title">
-                <i class="fas fa-cubes" aria-hidden="true"></i> My Modules
+                <i class="fas fa-cubes" aria-hidden="true"></i> My Apps
             </h1>
             <a href="/marketplace/" class="mp-btn-action mp-btn-secondary">
                 <i class="fas fa-store" aria-hidden="true"></i> Browse Marketplace
             </a>
         </div>
         {% if installations %}
-            <ul class="mp-my-list" aria-label="Installed modules">
+            <ul class="mp-my-list" aria-label="Installed apps">
                 {% for inst in installations %}
                     <li class="mp-my-item {% if not inst.is_enabled %}mp-my-item--disabled{% endif %}"
                         data-module="{{ inst.module.module_name }}">
@@ -64,9 +64,9 @@
         {% else %}
             <div class="marketplace-empty-state">
                 <i class="fas fa-cubes" aria-hidden="true"></i>
-                <p class="marketplace-empty-title">No modules installed yet</p>
+                <p class="marketplace-empty-title">No apps installed yet</p>
                 <p class="marketplace-empty-description">
-                    <a href="/marketplace/">Browse the marketplace</a> to discover and install modules.
+                    <a href="/marketplace/">Browse the marketplace</a> to discover and install apps.
                 </p>
             </div>
         {% endif %}

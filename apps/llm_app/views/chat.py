@@ -15,6 +15,21 @@ def api_current_model(request):
     """Return the model name that will be used for the next chat request."""
     service = UserLLMService(request.user)
     if not service.connection or not service.llm_connection:
+        # Fall back to campaign mode if available
+        from apps.llm_app.services.campaign_service import (
+            get_campaign_config,
+            is_campaign_enabled,
+        )
+
+        if is_campaign_enabled():
+            config = get_campaign_config()
+            return JsonResponse(
+                {
+                    "success": True,
+                    "model": f"anthropic/{config['model']}",
+                    "campaign": True,
+                }
+            )
         return JsonResponse({"success": False, "model": None})
     model = litellm_model_string(
         service.connection.service, service.llm_connection.default_model
@@ -106,30 +121,30 @@ def api_tts_relay(request):
 
 
 def _build_system_prompt(context: dict, user, sync_to_async=None) -> str:
-    """Build system prompt with skill-aware context injection."""
-    from apps.llm_app.skills import build_system_prompt, get_skill_for_page
+    """Build system prompt with skill-aware context injection.
 
-    base_prompt = (
-        "You are a scientific research assistant integrated into the SciTeX platform. "
-        "You have access to tools for statistics, plotting, literature search, "
-        "diagram creation, and manuscript writing. Use them when appropriate.\n"
+    Uses the rich base prompt from export_chat_prompt() which includes
+    web app structure, all skills, key patterns, and MCP tool groups —
+    matching the depth that terminal agents receive via SKILL.md.
+    """
+    from apps.llm_app.skills import build_system_prompt, get_skill_for_page
+    from apps.llm_app.skills.export import export_chat_prompt
+
+    base_prompt = export_chat_prompt()
+
+    # Append project file guidance
+    base_prompt += (
         "When working with project files use the project_* tools "
         "(project_list_files, project_read_file, project_write_file, project_search_files). "
-        "Always pass the exact root_path shown in this prompt.\n\n"
-        "## Media Rendering\n"
-        "When MCP tools create files (plt_plot, project_write_file, etc.), "
-        "images and plots are automatically rendered inline in this chat. "
-        "Supported: .png, .jpg, .svg, .gif (inline images), .csv/.tsv (interactive tables), "
-        ".pdf (file links), .mmd (diagram links). "
-        "Your response text is rendered as Markdown — use code blocks, headers, lists, "
-        "and tables for clear formatting."
+        "Always pass the exact root_path shown in this prompt.\n"
     )
+
     if context.get("project"):
         base_prompt += f"\nCurrent project: {context['project']}"
     if context.get("current_file"):
         base_prompt += f"\nUser is viewing: {context['current_file']}"
 
-    # Skill-aware enhancement
+    # Skill-aware enhancement (active skill for current page)
     page = context.get("page", "")
     skill = get_skill_for_page(page) if page else None
     page_hints = context.get("page_hints", [])
@@ -212,15 +227,33 @@ async def api_chat_stream(request):
     app_name = _derive_app_name(context)
 
     service = await sync_to_async(_ULS)(user=request.user)
+    use_campaign = False
     if not service.connection:
-        return JsonResponse(
-            {
-                "success": False,
-                "error": "No AI provider configured.",
-                "settings_url": "/accounts/settings/ai-providers/",
-            },
-            status=400,
+        # Check campaign mode before returning error
+        from apps.llm_app.services.campaign_service import (
+            check_campaign_rate_limit,
+            increment_campaign_usage,
+            is_campaign_enabled,
         )
+
+        if not is_campaign_enabled():
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "No AI provider configured.",
+                    "settings_url": "/accounts/settings/ai-providers/",
+                },
+                status=400,
+            )
+        allowed, remaining, err_msg = await sync_to_async(check_campaign_rate_limit)(
+            request
+        )
+        if not allowed:
+            return JsonResponse(
+                {"success": False, "error": err_msg, "campaign": True},
+                status=429,
+            )
+        use_campaign = True
 
     # Resolve project root for media detection in tool results
     project_slug = context.get("project_slug", "")
@@ -252,13 +285,27 @@ async def api_chat_stream(request):
                 f"data: {_json.dumps({'type': 'context', 'username': username, 'slug': project_slug})}\n\n"
             )
         try:
-            async for event in service.complete_with_tools_streaming(
-                messages=messages,
-                app_name=app_name,
-                feature="ai_chat_stream",
-                project_root=project_root_str,
-            ):
-                yield f"data: {_json.dumps(event)}\n\n"
+            if use_campaign:
+                from apps.llm_app.services.campaign_service import (
+                    campaign_complete_streaming,
+                )
+
+                resp = await campaign_complete_streaming(messages)
+                full_text = ""
+                async for chunk in resp:
+                    delta = chunk.choices[0].delta
+                    if delta.content:
+                        full_text += delta.content
+                        yield f"data: {_json.dumps({'type': 'chunk', 'text': delta.content})}\n\n"
+                await sync_to_async(increment_campaign_usage)(request)
+            else:
+                async for event in service.complete_with_tools_streaming(
+                    messages=messages,
+                    app_name=app_name,
+                    feature="ai_chat_stream",
+                    project_root=project_root_str,
+                ):
+                    yield f"data: {_json.dumps(event)}\n\n"
         except Exception as e:
             yield f"data: {_json.dumps({'type': 'error', 'error': str(e)})}\n\n"
         yield "data: [DONE]\n\n"
@@ -304,14 +351,58 @@ async def api_chat(request):
 
     service = await sync_to_async(UserLLMService)(user=request.user)
     if not service.connection:
-        return JsonResponse(
-            {
-                "success": False,
-                "error": "No AI provider configured.",
-                "settings_url": "/accounts/settings/ai-providers/",
-            },
-            status=400,
+        # Check campaign mode before returning error
+        from apps.llm_app.services.campaign_service import (
+            campaign_complete_streaming,
+            check_campaign_rate_limit,
+            increment_campaign_usage,
+            is_campaign_enabled,
         )
+
+        if not is_campaign_enabled():
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "No AI provider configured.",
+                    "settings_url": "/accounts/settings/ai-providers/",
+                },
+                status=400,
+            )
+        allowed, remaining, err_msg = await sync_to_async(check_campaign_rate_limit)(
+            request
+        )
+        if not allowed:
+            return JsonResponse(
+                {"success": False, "error": err_msg, "campaign": True},
+                status=429,
+            )
+
+        try:
+            import time
+
+            t0 = time.monotonic()
+            resp = await campaign_complete_streaming(messages)
+            full_text = ""
+            async for chunk in resp:
+                delta = chunk.choices[0].delta
+                if delta.content:
+                    full_text += delta.content
+            elapsed = int((time.monotonic() - t0) * 1000)
+            await sync_to_async(increment_campaign_usage)(request)
+            return JsonResponse(
+                {
+                    "success": True,
+                    "text": full_text,
+                    "tools_used": [],
+                    "response_time_ms": elapsed,
+                    "campaign": True,
+                }
+            )
+        except Exception as e:
+            return JsonResponse(
+                {"success": False, "error": f"Campaign chat failed: {e}"},
+                status=500,
+            )
 
     try:
         result = await service.complete_with_tools(

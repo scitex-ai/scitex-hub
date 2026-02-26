@@ -7,15 +7,15 @@
 .marketplace-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem 1.25rem 2rem;
+  padding: 0.5rem 1rem 1rem;
 }
 
 /* ─── Top Bar ──────────────────────────────────────────────────── */
 .marketplace-topbar {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
 }
 
 /* Category tab row */
@@ -32,11 +32,13 @@
   align-items: center;
   padding: 4px 12px;
   font-size: 0.82rem;
+  font-family: inherit;
   color: var(--text-primary);
   background-color: transparent;
   border: 1px solid transparent;
   border-radius: 0;
   text-decoration: none;
+  cursor: pointer;
   transition:
     background-color 0.15s,
     border-color 0.15s;
@@ -71,6 +73,8 @@
   position: relative;
   display: flex;
   align-items: center;
+  flex: 1;
+  min-width: 200px;
 }
 
 .marketplace-search-icon {
@@ -134,20 +138,8 @@
 /* ─── Module Grid ──────────────────────────────────────────────── */
 .marketplace-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-}
-
-@media (max-width: 900px) {
-  .marketplace-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 560px) {
-  .marketplace-grid {
-    grid-template-columns: 1fr;
-  }
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
 }
 
 /* ─── Empty State ──────────────────────────────────────────────── */

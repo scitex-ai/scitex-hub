@@ -1,0 +1,126 @@
+{% comment %}
+Hub inline issues list — returned by /hub/api/issues/
+Renders issue list within the Hub workspace pane.
+{% endcomment %}
+<div class="hub-tab-content">
+    <div class="issues-header">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="issues-stats">
+                <a href="#"
+                   class="issues-tab hub-issues-filter {% if state_filter == 'open' %}active{% endif %}"
+                   data-hub-issues-state="open">
+                    <svg width="16"
+                         height="16"
+                         viewBox="0 0 16 16"
+                         fill="currentColor"
+                         style="display:inline-block;
+                                vertical-align:text-bottom">
+                        <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
+                        <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z" />
+                    </svg>
+                    {{ open_count }} Open
+                </a>
+                <a href="#"
+                   class="issues-tab hub-issues-filter {% if state_filter == 'closed' %}active{% endif %}"
+                   data-hub-issues-state="closed">
+                    <svg width="16"
+                         height="16"
+                         viewBox="0 0 16 16"
+                         fill="currentColor"
+                         style="display:inline-block;
+                                vertical-align:text-bottom">
+                        <path d="M11.28 6.78a.75.75 0 0 0-1.06-1.06L7.25 8.69 5.78 7.22a.75.75 0 0 0-1.06 1.06l2 2a.75.75 0 0 0 1.06 0l3.5-3.5Z" />
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0Zm-1.5 0a6.5 6.5 0 1 0-13 0 6.5 6.5 0 0 0 13 0Z" />
+                    </svg>
+                    {{ closed_count }} Closed
+                </a>
+            </div>
+            <a href="/{{ project.owner.username }}/{{ project.slug }}/issues/new/"
+               class="btn btn-success btn-sm">
+                <svg width="16"
+                     height="16"
+                     viewBox="0 0 16 16"
+                     fill="currentColor"
+                     style="display:inline-block;
+                            vertical-align:text-bottom;
+                            margin-right:4px">
+                    <path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z" />
+                </svg>
+                New issue
+            </a>
+        </div>
+    </div>
+    {% if issues %}
+        <div class="issue-list">
+            {% for issue in issues %}
+                <div class="issue-item">
+                    <div class="issue-main">
+                        <div class="issue-icon {% if issue.state == 'open' %}open{% else %}closed{% endif %}">
+                            {% if issue.state == 'open' %}
+                                <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+                                    <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
+                                    <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z" />
+                                </svg>
+                            {% else %}
+                                <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+                                    <path d="M11.28 6.78a.75.75 0 0 0-1.06-1.06L7.25 8.69 5.78 7.22a.75.75 0 0 0-1.06 1.06l2 2a.75.75 0 0 0 1.06 0l3.5-3.5Z" />
+                                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0Zm-1.5 0a6.5 6.5 0 1 0-13 0 6.5 6.5 0 0 0 13 0Z" />
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <div class="issue-content">
+                            <div class="issue-title-row">
+                                <a href="/{{ project.owner.username }}/{{ project.slug }}/issues/{{ issue.number }}/"
+                                   class="issue-title hub-issue-link">{{ issue.title }}</a>
+                                {% if issue.labels.all %}
+                                    <div class="issue-labels">
+                                        {% for label in issue.labels.all %}
+                                            <span class="issue-label" style="background-color:{{ label.color }};">{{ label.name }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="issue-meta">
+                                #{{ issue.number }} opened {{ issue.created_at|timesince }} ago by
+                                {{ issue.author.username }}
+                                {% if issue.get_comment_count > 0 %}
+                                    <span style="margin-left:1rem">
+                                        <svg width="16"
+                                             height="16"
+                                             viewBox="0 0 16 16"
+                                             fill="currentColor"
+                                             style="display:inline-block;
+                                                    vertical-align:text-bottom">
+                                            <path d="M0 2.75C0 1.784.784 1 1.75 1h12.5c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.458 1.458 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-8.5a.25.25 0 0 0-.25-.25Z" />
+                                        </svg>
+                                        {{ issue.get_comment_count }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state" style="padding:2rem;text-align:center">
+            <svg width="48"
+                 height="48"
+                 viewBox="0 0 16 16"
+                 fill="currentColor"
+                 style="color:var(--workspace-text-muted);
+                        margin-bottom:1rem">
+                <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
+                <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z" />
+            </svg>
+            <h3 style="color:var(--workspace-text-primary);font-size:1rem;margin-bottom:0.5rem">No issues found</h3>
+            <p style="color:var(--workspace-text-muted);font-size:0.85rem">
+                {% if state_filter == 'closed' %}
+                    There are no closed issues yet.
+                {% else %}
+                    There are no open issues yet. Create a new issue to get started.
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
+</div>

@@ -68,7 +68,7 @@ def build_srun_cmd(
     screen_session: str = "scitex-0",
 ) -> list[str]:
     """Build ``srun`` + ``apptainer`` command, injecting Django config automatically."""
-    return build_srun_command(
+    cmd = build_srun_command(
         container_path=container_path,
         username=username,
         host_user_dir=host_user_dir,
@@ -83,6 +83,9 @@ def build_srun_cmd(
         slurm_memory_gb=SLURM_MEMORY_GB,
         screen_session=screen_session,
     )
+    # Use full path for screen to avoid PATH issues in login shell
+    cmd = [arg.replace("exec screen ", "exec /usr/bin/screen ") for arg in cmd]
+    return cmd
 
 
 # EOF

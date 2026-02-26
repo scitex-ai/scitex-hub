@@ -55,7 +55,8 @@
                 {% include 'global_base_partials/workspace_viewer_pane.html' %}
             {% endif %}
             <main id="main-content"
-                  class="{% if is_workspace_page and user.is_authenticated %}ws-module-pane{% endif %}">
+                  class="{% if is_workspace_page and user.is_authenticated %}ws-module-pane{% endif %}"
+                  {% if active_module_name %}data-module-accent="{{ active_module_name }}"{% endif %}>
                 {% block content %}{% endblock %}
             </main>
         </div>

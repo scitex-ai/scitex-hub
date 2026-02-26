@@ -20,5 +20,15 @@ register(
             "Save papers to library collections",
         ],
         page_patterns=["/scholar/"],
+        url_prefix="/scholar/",
+        module_description=(
+            "Literature management: search papers (CrossRef/OpenAlex/Semantic Scholar), "
+            "manage bibliography, explore citation graphs, download PDFs."
+        ),
+        mcp_tool_examples=[
+            "scholar_search_papers",
+            "scholar_fetch_papers",
+            "crossref_search",
+        ],
     )
 )

@@ -18,6 +18,14 @@ urlpatterns = [
     path("api/<str:module_name>/star/", views.api_star, name="api_star"),
     path("api/<str:module_name>/unstar/", views.api_unstar, name="api_unstar"),
     path("api/<str:module_name>/review/", views.api_review, name="api_review"),
+    path(
+        "api/<str:module_name>/submit/", views.api_submit_for_review, name="api_submit"
+    ),
+    path(
+        "api/submissions/<int:submission_id>/review/",
+        views.api_review_submission,
+        name="api_review_submission",
+    ),
     # Detail — catch-all last
     path("<str:module_name>/", views.detail, name="detail"),
 ]

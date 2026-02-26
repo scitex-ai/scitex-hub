@@ -10,10 +10,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from scitex import logging
-from scitex.scholar import ensure_workspace
-from scitex.scholar.formatting import make_citation_key
 
-from .citation_export_core import generate_bibtex
+from .citation_export_core import generate_bibtex, generate_citation_key
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +28,7 @@ def save_paper(request):
     """
     from apps.project_app.models import Project
     from apps.project_app.services.bibliography_manager import (
+        ensure_bibliography_structure,
         regenerate_bibliography,
     )
 
@@ -69,9 +68,11 @@ def save_paper(request):
 
     try:
         # Extract first author's last name for citation key
+        # Search results use "First Last, First Last" format
+        # generate_citation_key expects "Last, First" or single name
         first_author = (authors or "Unknown").split(",")[0].strip()
         last_name = first_author.split()[-1] if first_author.split() else "Unknown"
-        citation_key = make_citation_key(last_name, year)
+        citation_key = generate_citation_key(last_name, year)
         bibtex_entry = generate_bibtex(
             citation_key,
             title,
@@ -91,7 +92,7 @@ def save_paper(request):
             )
 
         project_path = Path(project.git_clone_path)
-        ensure_workspace(project_path)
+        ensure_bibliography_structure(project_path)
 
         bib_dir = project_path / "scitex" / "scholar" / "bib_files"
         bib_dir.mkdir(parents=True, exist_ok=True)
@@ -124,158 +125,8 @@ def save_paper(request):
 @require_http_methods(["POST"])
 @login_required
 def save_papers_bulk(request):
-    """Save a batch of search result papers to the user's project bibliography.
-
-    Accepts JSON: {project_id, papers: [{title, authors, year, doi, ...}]}
-    - Max 500 papers per request (frontend sends batches)
-    - Generates BibTeX via scitex.scholar.formatting.papers_to_format()
-    - Writes ONE .bib file per batch
-    - Regenerates merged bibliography once at end
-    """
-    import json
-
-    from scitex.scholar.formatting import paper_from_search_result, papers_to_format
-
-    from apps.project_app.models import Project
-    from apps.project_app.services.bibliography_manager import regenerate_bibliography
-
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
-
-    project_id = data.get("project_id")
-    papers = data.get("papers", [])
-
-    if not project_id:
-        return JsonResponse(
-            {"success": False, "error": "No project selected"}, status=400
-        )
-    if not papers:
-        return JsonResponse(
-            {"success": False, "error": "No papers provided"}, status=400
-        )
-    if len(papers) > 500:
-        return JsonResponse(
-            {"success": False, "error": "Max 500 papers per batch"}, status=400
-        )
-
-    try:
-        project = Project.objects.get(id=project_id, owner=request.user)
-    except Project.DoesNotExist:
-        return JsonResponse(
-            {"success": False, "error": "Project not found"}, status=404
-        )
-
-    if not project.git_clone_path:
-        return JsonResponse(
-            {"success": False, "error": "Project has no git repository"},
-            status=400,
-        )
-
-    try:
-        project_path = Path(project.git_clone_path)
-        ensure_workspace(
-            project_path
-        )  # Creates scitex/scholar/{bib_files,library,prompts}
-
-        bib_dir = project_path / "scitex" / "scholar" / "bib_files"
-
-        # Normalize papers via scitex and generate BibTeX
-        normalized = [paper_from_search_result(p) for p in papers]
-        bibtex_content = papers_to_format(normalized, "bibtex")
-
-        # Write single batch file
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        filename = f"search_bulk_{timestamp}.bib"
-        bib_file = bib_dir / filename
-        bib_file.write_text(bibtex_content, encoding="utf-8")
-
-        logger.info(f"Bulk saved {len(papers)} papers to: {bib_file}")
-
-        # Regenerate merged bibliography once
-        results = regenerate_bibliography(project_path, project.name)
-
-        # Also create Library records so papers appear in Library tab
-        library_saved = _upsert_library_records(request.user, project, papers)
-
-        return JsonResponse(
-            {
-                "success": True,
-                "saved": len(papers),
-                "library_saved": library_saved,
-                "file_path": f"scitex/scholar/bib_files/{filename}",
-                "total_citations": results.get("scholar_count", 0),
-                "duplicates_removed": results.get("duplicates_removed", 0),
-            }
-        )
-
-    except Exception as e:
-        logger.error(f"Bulk save failed: {e}", exc_info=True)
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
-
-
-def _upsert_library_records(user, project, papers):
-    """Create SearchIndex + UserLibrary records so papers appear in Library tab.
-
-    Uses get_or_create keyed on DOI/title to avoid duplicates.
-    Best-effort — errors here should not fail the bulk save.
-    """
-    from apps.scholar_app.models.core import SearchIndex
-    from apps.scholar_app.models.library.models import UserLibrary
-
-    saved = 0
-    for p in papers:
-        try:
-            title = (p.get("title") or "").strip()
-            if not title:
-                continue
-
-            doi = (p.get("doi") or "").strip() or None
-            year = p.get("year")
-            pub_date = None
-            if year:
-                try:
-                    pub_date = datetime(int(year), 1, 1).date()
-                except (ValueError, TypeError):
-                    pass
-
-            # Upsert SearchIndex by DOI (unique) or title match
-            if doi:
-                paper_obj, _ = SearchIndex.objects.get_or_create(
-                    doi=doi,
-                    defaults={
-                        "title": title,
-                        "abstract": p.get("abstract", ""),
-                        "publication_date": pub_date,
-                        "source": "manual",
-                    },
-                )
-            else:
-                paper_obj, _ = SearchIndex.objects.get_or_create(
-                    title=title,
-                    doi=None,
-                    defaults={
-                        "abstract": p.get("abstract", ""),
-                        "publication_date": pub_date,
-                        "source": "manual",
-                    },
-                )
-
-            # Upsert UserLibrary
-            _, created = UserLibrary.objects.get_or_create(
-                user=user,
-                paper=paper_obj,
-                defaults={"project": project},
-            )
-            if created:
-                saved += 1
-
-        except Exception as e:
-            logger.debug(f"Library upsert skipped for '{p.get('title', '')[:50]}': {e}")
-            continue
-
-    return saved
+    """Placeholder for save_papers_bulk - TODO: implement"""
+    return JsonResponse({"error": "Not implemented"}, status=501)
 
 
 @require_http_methods(["POST"])

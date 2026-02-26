@@ -1,5 +1,6 @@
 from .registry import (
     Skill,
+    build_aggregated_context,
     build_system_prompt,
     get_all_skills,
     get_skill,
@@ -9,6 +10,7 @@ from .registry import (
 
 __all__ = [
     "Skill",
+    "build_aggregated_context",
     "build_system_prompt",
     "get_all_skills",
     "get_skill",

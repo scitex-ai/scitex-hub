@@ -1,9 +1,11 @@
 <!-- Library Import/Export Controls for Right Panel -->
 <div class="search-controls-panel">
     <!-- Service Status -->
-    <div class="mig-card collapsed" id="section-library-status">
+    <div class="mig-card collapsed"
+         id="section-library-status"
+         data-panel-id="lib-service-status">
         <div class="mig-card__header"
-             onclick="this.closest('.mig-card').classList.toggle('collapsed')">
+             onclick="window._toggleInlinePanel && window._toggleInlinePanel(this)">
             <h6 class="mig-card__title">
                 <i class="fas fa-heartbeat"></i> Service Status
             </h6>
@@ -23,9 +25,11 @@
         </div>
     </div>
     <!-- BibTeX / RIS -->
-    <div class="mig-card collapsed" id="section-bibtex-ris">
+    <div class="mig-card collapsed"
+         id="section-bibtex-ris"
+         data-panel-id="lib-bibtex-ris">
         <div class="mig-card__header"
-             onclick="this.closest('.mig-card').classList.toggle('collapsed')">
+             onclick="window._toggleInlinePanel && window._toggleInlinePanel(this)">
             <h6 class="mig-card__title">
                 <i class="fas fa-file-alt" style="color:#e8a838;"></i> BibTeX / RIS
             </h6>
@@ -55,11 +59,14 @@
         </div>
     </div>
     <!-- Zotero -->
-    <div class="mig-card collapsed" id="section-zotero">
+    <div class="mig-card collapsed"
+         id="section-zotero"
+         data-panel-id="lib-zotero"
+         title="Import from / Export to Zotero">
         <div class="mig-card__header"
-             onclick="this.closest('.mig-card').classList.toggle('collapsed')">
+             onclick="window._toggleInlinePanel && window._toggleInlinePanel(this)">
             <h6 class="mig-card__title">
-                <i class="fas fa-book" style="color:#cc2936;"></i> Zotero
+                <i class="fas fa-book" style="color:#cc2936;"></i> &#x2194; Zotero
                 <span class="badge badge-wip badge-sm">WIP</span>
             </h6>
             <i class="fas fa-chevron-down mig-card__chevron"></i>
@@ -106,74 +113,13 @@
             <div id="zotero-export-result" class="mig-card__status" style="display:none;"></div>
         </div>
     </div>
-    <!-- Overleaf -->
-    <div class="mig-card collapsed" id="section-overleaf">
-        <div class="mig-card__header"
-             onclick="this.closest('.mig-card').classList.toggle('collapsed')">
-            <h6 class="mig-card__title">
-                <i class="fas fa-leaf" style="color:#47a141;"></i> Overleaf
-                <span class="badge badge-wip badge-sm">WIP</span>
-            </h6>
-            <i class="fas fa-chevron-down mig-card__chevron"></i>
-        </div>
-        <div class="mig-card__content">
-            <p class="mig-card__hint">Import/Export via Writer app Overleaf integration.</p>
-        </div>
-    </div>
-    <!-- Prism (OpenAI) -->
-    <div class="mig-card collapsed" id="section-prism">
-        <div class="mig-card__header"
-             onclick="this.closest('.mig-card').classList.toggle('collapsed')">
-            <h6 class="mig-card__title">
-                <i class="fas fa-atom" style="color:#10a37f;"></i> Prism (OpenAI)
-                <span class="badge badge-wip badge-sm">WIP</span>
-            </h6>
-            <i class="fas fa-chevron-down mig-card__chevron"></i>
-        </div>
-        <div class="mig-card__content">
-            <p class="mig-card__hint">
-                Prism does not currently offer a public API for programmatic migration.
-                Use the following workflows to transfer your work.
-            </p>
-            <label class="mig-card__label">
-                <i class="fas fa-sign-in-alt" style="color:#10a37f;"></i> Import from Prism
-            </label>
-            <ol class="mig-card__steps">
-                <li>
-                    In Prism, export your project as a <strong>ZIP file</strong> (LaTeX project)
-                </li>
-                <li>
-                    Use <strong>Overleaf Import</strong> to import the ZIP into SciTeX
-                </li>
-                <li>
-                    Or export <strong>BibTeX</strong> from Prism and use <strong>Zotero Import</strong>
-                </li>
-            </ol>
-            <label class="mig-card__label">
-                <i class="fas fa-sign-out-alt" style="color:#10a37f;"></i> Export to Prism
-            </label>
-            <ol class="mig-card__steps">
-                <li>
-                    Use <strong>Overleaf Export</strong> to download your project as a ZIP
-                </li>
-                <li>In Prism, import the ZIP as a new project</li>
-            </ol>
-            <p class="mig-card__hint">
-                <i class="fas fa-info-circle"></i>
-                No vendor lock-in — freely move between SciTeX, Prism, Overleaf, and Zotero.
-            </p>
-            <a href="https://help.openai.com/en/articles/20001050-troubleshooting-and-getting-help-in-prism"
-               target="_blank"
-               rel="noopener noreferrer"
-               class="mig-card__btn">
-                <i class="fas fa-external-link-alt"></i> Prism Migration Docs
-            </a>
-        </div>
-    </div>
+    <!-- Overleaf and Prism integrations are in the Writer app -->
     <!-- Connected Papers -->
-    <div class="mig-card collapsed" id="section-connected-papers">
+    <div class="mig-card collapsed"
+         id="section-connected-papers"
+         data-panel-id="lib-connected-papers">
         <div class="mig-card__header"
-             onclick="this.closest('.mig-card').classList.toggle('collapsed')">
+             onclick="window._toggleInlinePanel && window._toggleInlinePanel(this)">
             <h6 class="mig-card__title">
                 <i class="fas fa-project-diagram" style="color:#6c7ae0;"></i> Connected Papers
                 <span class="badge badge-wip badge-sm">WIP</span>

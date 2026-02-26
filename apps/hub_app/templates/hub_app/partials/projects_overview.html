@@ -1,0 +1,41 @@
+{% comment %}
+Hub projects overview — shown when no project is selected.
+Returned by /hub/api/projects-overview/ for inline back-navigation.
+{% endcomment %}
+<div class="hub-content">
+    <div class="hub-header mb-4">
+        <h1>Your Projects</h1>
+        {% if projects_count > 0 %}
+            <p class="text-muted">{{ projects_count }} project{{ projects_count|pluralize }}</p>
+        {% endif %}
+    </div>
+    {% if user_projects %}
+        <div class="hub-section mb-4">
+            <div class="projects-grid">
+                {% for proj in user_projects %}
+                    <div class="project-card">
+                        <div class="project-card-header">
+                            <h3>
+                                <a href="#"
+                                   class="hub-project-link"
+                                   data-project-id="{{ proj.id }}"
+                                   data-project-slug="{{ proj.slug }}">{{ proj.name }}</a>
+                            </h3>
+                            <span class="badge badge-{{ proj.visibility }}">{{ proj.visibility }}</span>
+                        </div>
+                        <div class="project-card-body">
+                            <p class="text-muted">{{ proj.description|truncatewords:20 }}</p>
+                            <div class="project-meta">
+                                {% if proj.primary_language %}<span class="language-badge">{{ proj.primary_language }}</span>{% endif %}
+                                <span class="meta-item">
+                                    <i class="fas fa-star"></i> {{ proj.projectstar_set.count }}
+                                </span>
+                                <span class="meta-item">Updated {{ proj.updated_at|timesince }} ago</span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>

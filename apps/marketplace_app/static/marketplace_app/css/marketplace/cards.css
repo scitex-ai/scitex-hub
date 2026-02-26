@@ -1,8 +1,10 @@
-/* Marketplace — module card styles */
+/* Marketplace — module card styles (horizontal row layout) */
 
 .mp-card {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
   background-color: var(--workspace-bg-primary, var(--bg-primary));
   border: 1px solid var(--workspace-border-default, var(--border-color));
   transition:
@@ -12,16 +14,18 @@
 
 .mp-card:hover {
   border-color: var(--workspace-icon-primary, var(--accent));
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
+/* Link wraps icon + info, takes available space */
 .mp-card-link {
   flex: 1;
   display: flex;
-  flex-direction: column;
-  padding: 0.85rem;
+  align-items: center;
+  gap: 10px;
   text-decoration: none;
   color: inherit;
+  min-width: 0;
 }
 
 .mp-card-link:hover {
@@ -29,73 +33,65 @@
   color: inherit;
 }
 
-.mp-card-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.65rem;
-  margin-bottom: 0.5rem;
-}
-
+/* Icon — compact */
 .mp-card-icon {
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.05));
   border: 1px solid var(--workspace-border-default, var(--border-color));
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: var(--workspace-icon-primary, var(--accent));
 }
 
-.mp-card-title-area {
+/* Info block — title row + description */
+.mp-card-info {
   flex: 1;
   min-width: 0;
 }
 
+.mp-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .mp-card-title {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 4px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.mp-card-badges {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  align-items: center;
+  margin-left: auto;
+}
+
+.mp-card-description {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 2px 0 0;
+  line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.mp-card-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.mp-card-description {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  margin: 0;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* Card footer */
-.mp-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.6rem 0.85rem;
-  border-top: 1px solid var(--workspace-border-default, var(--border-color));
-  background-color: var(--workspace-bg-secondary, rgba(0, 0, 0, 0.08));
-  gap: 8px;
-}
-
+/* Stats — right-aligned */
 .mp-card-stats {
   display: flex;
   gap: 10px;
   align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .mp-stat {
@@ -111,9 +107,96 @@
   color: #f6c90e;
 }
 
+.mp-hub-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.mp-card:hover .mp-hub-link {
+  opacity: 0.6;
+}
+
+.mp-hub-link:hover {
+  color: var(--workspace-icon-primary, var(--accent));
+  opacity: 1 !important;
+}
+
+/* Actions — rightmost */
 .mp-card-actions {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
+}
+
+/* Drag handle */
+.mp-drag-handle {
+  flex-shrink: 0;
+  width: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  opacity: 0;
+  cursor: grab;
+  transition: opacity 0.15s;
+}
+
+.mp-card:hover .mp-drag-handle,
+.mp-card[draggable="true"] .mp-drag-handle {
+  opacity: 0.5;
+}
+
+.mp-drag-handle:hover {
+  opacity: 1 !important;
+}
+
+/* Drag-to-reorder */
+.mp-card[draggable="true"] {
+  cursor: grab;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    margin 0.2s ease,
+    opacity 0.15s;
+}
+
+.mp-card-dragging {
+  opacity: 0.3;
+  border-style: dashed;
+}
+
+/* Gap indicators — cards shift to make room */
+.mp-card-drag-above {
+  margin-top: 40px;
+  position: relative;
+}
+
+.mp-card-drag-above::before {
+  content: "";
+  position: absolute;
+  top: -22px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--workspace-icon-primary, var(--accent));
+  border-radius: 1px;
+}
+
+.mp-card-drag-below {
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.mp-card-drag-below::after {
+  content: "";
+  position: absolute;
+  bottom: -22px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--workspace-icon-primary, var(--accent));
+  border-radius: 1px;
 }

@@ -60,6 +60,9 @@ function initPanelInteractions(): void {
     const panel = target.closest(COLLAPSED_SELECTORS);
     if (!panel) return;
 
+    // Skip if WPR drag just collapsed this panel (mouseup→click race)
+    if ((panel as HTMLElement).dataset?.wprDragging) return;
+
     const toggleBtn = findToggleBtn(panel);
     if (toggleBtn && target !== toggleBtn && !toggleBtn.contains(target)) {
       lastExpandTime = Date.now();

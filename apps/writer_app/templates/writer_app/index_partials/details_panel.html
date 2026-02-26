@@ -1,6 +1,6 @@
 <!-- Details Panel (rightmost panel) -->
 <aside class="writer-details collapsible-panel" id="writer-details">
-    <div class="details-header">
+    <div class="details-header" data-pane-type="module">
         <button class="details-toggle panel-toggle-btn right-panel-toggle"
                 id="details-toggle"
                 title="Toggle details (Ctrl+Shift+D) (Zen: F11/Alt+Z)">
@@ -28,7 +28,8 @@
                     </label>
                 </div>
                 <button id="details-preview-compile-btn"
-                        class="btn btn-sm btn-outline-success w-100 mb-2">
+                        class="btn btn-sm btn-outline-success w-100 mb-2"
+                        onclick="if(window.handlePreviewClick){window.handlePreviewClick()}">
                     <i class="fas fa-play me-1"></i> Compile Preview
                 </button>
                 <div id="details-preview-log" class="details-compilation-log">Compilation log will be shown here</div>
@@ -62,7 +63,9 @@
                         <span>Include Tables</span>
                     </label>
                 </div>
-                <button id="details-full-compile-btn" class="btn btn-sm btn-outline-success w-100 mb-2">
+                <button id="details-full-compile-btn"
+                        class="btn btn-sm btn-outline-success w-100 mb-2"
+                        onclick="if(window.handleFullCompileClick){window.handleFullCompileClick()}">
                     <i class="fas fa-rocket me-1"></i> Compile Full
                 </button>
                 <button id="details-compile-btn"
@@ -74,10 +77,12 @@
             </div>
         </div>
         <!-- Overleaf -->
-        <div class="mig-card collapsed" data-section="overleaf">
+        <div class="mig-card collapsed"
+             data-section="overleaf"
+             title="Import from / Export to Overleaf">
             <div class="mig-card__header">
                 <h6 class="mig-card__title">
-                    <i class="fas fa-leaf" style="color:#47a141;"></i> Overleaf
+                    <i class="fas fa-leaf" style="color:#47a141;"></i> &#x2194; Overleaf
                     <span class="badge badge-wip badge-sm">WIP</span>
                 </h6>
                 <i class="fas fa-chevron-down mig-card__chevron"></i>
@@ -110,10 +115,12 @@
             </div>
         </div>
         <!-- Prism (OpenAI) -->
-        <div class="mig-card collapsed" data-section="prism">
+        <div class="mig-card collapsed"
+             data-section="prism"
+             title="Import from / Export to Prism (OpenAI)">
             <div class="mig-card__header">
                 <h6 class="mig-card__title">
-                    <i class="fas fa-atom" style="color:#10a37f;"></i> Prism (OpenAI)
+                    <i class="fas fa-atom" style="color:#10a37f;"></i> &#x2194; Prism (OpenAI)
                     <span class="badge badge-wip badge-sm">WIP</span>
                 </h6>
                 <i class="fas fa-chevron-down mig-card__chevron"></i>

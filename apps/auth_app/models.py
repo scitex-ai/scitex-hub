@@ -1,10 +1,10 @@
-from django.db import models
-from django.contrib.auth.models import User
 import random
 import string
 from datetime import timedelta
-from django.utils import timezone
 
+from django.contrib.auth.models import User
+from django.db import models
+from django.utils import timezone
 
 # Japanese Academic domains to recognize
 JAPANESE_ACADEMIC_DOMAINS = [
@@ -193,7 +193,7 @@ class EmailVerification(models.Model):
         return f"{self.email} - {self.code}"
 
     def save(self, *args, **kwargs):
-        if not self.console:
+        if not self.code:
             self.code = self.generate_code()
         if not self.expires_at:
             self.expires_at = timezone.now() + timedelta(minutes=10)
@@ -330,10 +330,11 @@ class LoginHistory(models.Model):
         )
 
 
+import logging
+
+from django.contrib.auth.signals import user_logged_in
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
-from django.contrib.auth.signals import user_logged_in
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -356,7 +357,7 @@ def save_user_profile(sender, instance, **kwargs):
 def delete_gitea_user(sender, instance, **kwargs):
     """Delete corresponding Gitea user when Django user is deleted"""
     try:
-        from apps.gitea_app.api_client import GiteaClient, GiteaAPIError
+        from apps.gitea_app.api_client import GiteaAPIError, GiteaClient
 
         client = GiteaClient()
         client.delete_user(instance.username)

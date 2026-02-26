@@ -30,7 +30,7 @@ class ModuleConfig:
     app_name: str  # Django app name, e.g. "writer_app"
 
     # Icon (one of icon_fa or icon_svg_tab/icon_svg_nav)
-    icon_fa: str = ""  # FontAwesome class, e.g. "fa-pen"
+    icon_fa: str = ""  # Full FontAwesome class, e.g. "fas fa-pen"
     icon_svg_tab: str = ""  # Custom SVG for tab bar
     icon_svg_nav: str = ""  # Custom SVG for nav bar
 
@@ -50,8 +50,19 @@ class ModuleConfig:
     # Sort order in tab bar (lower = leftmost)
     order: int = 50
 
+    # Visibility defaults
+    default_enabled: bool = True  # Show in tab bar for new users (no installations)
+
     # Runtime state (set by context processor, not persisted)
     is_active: bool = False
+    status: str = ""  # Marketplace status: stable, wip, beta, deprecated
+
+    # LLM integration
+    ai_hint: str = ""  # Short description for data-ai-hint (shown to LLM)
+    accent_color: str = ""  # Module accent identifier (maps to CSS --module-accent-X)
+
+    # Legal
+    license: str = "AGPL-3.0"  # SPDX identifier, default matches SciTeX project license
 
     # File tree configuration
     tree_mode: str = ""  # WorkspaceMode in types.ts (defaults to name)
@@ -125,12 +136,14 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         name="writer",
         label="Writer",
         app_name="writer_app",
-        icon_fa="fa-pen",
+        icon_fa="fas fa-pen",
         partial_template="writer_app/writer_partial.html",
         context_builder="apps.writer_app.views.index.main.build_writer_context",
         body_class="writer-page",
         keyboard_shortcut="W",
         order=10,
+        ai_hint="Scientific manuscript editor: LaTeX editing with live preview, figure/table management, bibliography, PDF compilation.",
+        accent_color="writer",
         allowed_extensions=[
             ".tex",
             ".bib",
@@ -156,11 +169,13 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         name="scholar",
         label="Scholar",
         app_name="scholar_app",
-        icon_fa="fa-graduation-cap",
+        icon_fa="fas fa-graduation-cap",
         partial_template="scholar_app/scholar_partial.html",
         body_class="scholar-page",
         keyboard_shortcut="S",
         order=20,
+        ai_hint="Literature management: search papers (CrossRef/OpenAlex/Semantic Scholar), manage bibliography, explore citation graphs, download PDFs.",
+        accent_color="scholar",
         allowed_extensions=[".bib"],
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv", "build"],
     ),
@@ -168,11 +183,13 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         name="vis",
         label="Vis",
         app_name="vis_app",
-        icon_fa="fa-chart-line",
+        icon_fa="fas fa-chart-line",
         partial_template="vis_app/vis_partial.html",
         body_class="vis-workspace",
         keyboard_shortcut="V",
         order=30,
+        ai_hint="Data visualization and figure management: view plots, manage figure recipes, export publication-ready figures.",
+        accent_color="visualizer",
         allowed_extensions=[
             ".png",
             ".jpg",
@@ -196,66 +213,81 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         body_class="clew-page",
         keyboard_shortcut="R",
         order=50,
+        default_enabled=False,
+        ai_hint="Verification system: trace manuscript claims (statistics, figures, tables) back through computational chains to source data.",
+        accent_color="clew",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
     ModuleConfig(
         name="hub",
         label="Hub",
         app_name="hub_app",
-        icon_fa="fa-project-diagram",
+        icon_fa="fas fa-project-diagram",
         partial_template="hub_app/index_partial.html",
         context_builder="apps.hub_app.views.index.build_hub_context",
         body_class="hub-page",
         keyboard_shortcut="H",
         order=60,
+        ai_hint="Project dashboard showing all user projects, activity feed, and quick actions.",
+        accent_color="hub",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
     ModuleConfig(
         name="tools",
         label="Tools",
         app_name="public_app",
-        icon_fa="fa-tools",
+        icon_fa="fas fa-tools",
         partial_template="public_app/pages/tools_partial.html",
         context_builder="apps.public_app.views.tools_views.build_tools_context",
         body_class="tools-page",
         keyboard_shortcut="T",
         order=70,
+        ai_hint="Shared utilities and tools for project management.",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
     ModuleConfig(
         name="example",
-        label="Example",
+        label="Example App",
         app_name="example_app",
-        icon_fa="fa-puzzle-piece",
+        icon_fa="fas fa-puzzle-piece",
         partial_template="example_app/index_partial.html",
         context_builder="apps.example_app.views.build_example_context",
         body_class="example-page",
         keyboard_shortcut="E",
         order=80,
+        status="wip",
+        default_enabled=False,
+        ai_hint="Interactive examples demonstrating scitex features (plotting, stats, IO, sessions).",
+        accent_color="example",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
     ModuleConfig(
         name="marketplace",
-        label="Marketplace",
+        label="App Marketplace",
         app_name="marketplace_app",
-        icon_fa="fa-store",
+        icon_fa="fas fa-store",
         partial_template="marketplace_app/browse_partial.html",
         context_builder="apps.marketplace_app.views.build_marketplace_context",
         body_class="marketplace-page",
         keyboard_shortcut="M",
         order=90,
+        status="wip",
+        ai_hint="Browse, install, and publish community modules.",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
     ModuleConfig(
         name="modulemaker",
-        label="Module Maker",
+        label="App Maker",
         app_name="modulemaker_app",
-        icon_fa="fa-puzzle-piece",
+        icon_fa="fas fa-puzzle-piece",
         partial_template="modulemaker_app/my_modules_partial.html",
         context_builder="apps.modulemaker_app.views.build_usermod_context",
         body_class="modulemaker-page",
         keyboard_shortcut="K",
         order=85,
+        status="wip",
+        default_enabled=False,
+        ai_hint="Create, edit, and manage custom workspace modules.",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
 ]
@@ -333,66 +365,9 @@ def discover_external_modules() -> None:
 
 
 # ---------------------------------------------------------------------------
-# ModuleTestMixin — reusable test base for inline module tests
+# ModuleTestMixin — re-exported for backwards compatibility
 # ---------------------------------------------------------------------------
-class ModuleTestMixin:
-    """
-    Include in any module's tests.py to get automatic registration validation.
-
-    Usage:
-        from django.test import TestCase
-        from apps.workspace_app.registry import ModuleTestMixin
-
-        class WriterModuleTest(ModuleTestMixin, TestCase):
-            module_name = "writer"
-    """
-
-    module_name: str = ""  # Must be set by subclass
-
-    @classmethod
-    def setUpTestData(cls):
-        from django.contrib.auth import get_user_model
-
-        User = get_user_model()
-        cls.user = User.objects.create_user(
-            username="test-module-user",
-            password="TestPass123!",  # pragma: allowlist secret
-        )
-
-    def test_module_registered(self):
-        """Module exists in the registry."""
-        mod = get_module(self.module_name)
-        self.assertIsNotNone(mod, f"Module '{self.module_name}' not in registry")
-
-    def test_partial_template_exists(self):
-        """Partial template file exists on disk."""
-        from django.template.loader import get_template
-
-        mod = get_module(self.module_name)
-        if mod and mod.partial_template:
-            try:
-                get_template(mod.partial_template)
-            except Exception as e:
-                self.fail(f"Template '{mod.partial_template}' not found: {e}")
-
-    def test_icon_registered(self):
-        """Module has an icon (FA or SVG)."""
-        mod = get_module(self.module_name)
-        self.assertTrue(
-            mod.icon_fa or mod.icon_svg_tab,
-            f"Module '{self.module_name}' has no icon",
-        )
-
-    def test_context_builder_importable(self):
-        """If a context builder is set, it must be importable."""
-        mod = get_module(self.module_name)
-        if mod and mod.context_builder:
-            builder = _import_builder(mod.context_builder)
-            self.assertIsNotNone(
-                builder,
-                f"Cannot import context builder: {mod.context_builder}",
-            )
-
+from apps.workspace_app.test_mixin import ModuleTestMixin  # noqa: F401
 
 # Run external module discovery at import time
 discover_external_modules()

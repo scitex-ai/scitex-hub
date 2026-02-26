@@ -318,6 +318,41 @@
   color: var(--workspace-icon-primary);
 }
 
+/* Hub dynamic content area — smooth transitions */
+.hub-browse-dynamic {
+  transition: opacity 0.15s ease;
+}
+
+/* Hub breadcrumb navigation */
+.hub-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--workspace-text-muted);
+}
+
+.hub-breadcrumb-link {
+  color: var(--workspace-icon-primary);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.hub-breadcrumb-link:hover {
+  text-decoration: underline;
+}
+
+.hub-breadcrumb-sep {
+  color: var(--workspace-text-muted);
+}
+
+.hub-breadcrumb-current {
+  color: var(--workspace-text-primary);
+  font-weight: 500;
+}
+
 /* Responsive design */
 @media (max-width: 1024px) {
   .hub-details {
@@ -334,15 +369,104 @@
     padding: 0.5rem;
   }
 
-  .hub-cards {
-    grid-template-columns: 1fr;
-  }
-
-  .quick-actions {
-    grid-template-columns: 1fr;
-  }
-
+  .hub-cards,
+  .quick-actions,
   .projects-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Mode Switcher (Dashboard | Explore) */
+.hub-mode-switcher {
+  display: flex;
+  padding: 0 1rem;
+  border-bottom: 1px solid var(--workspace-border-default);
+}
+
+.hub-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.6rem 1rem;
+  color: var(--workspace-text-muted);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.hub-mode:hover {
+  color: var(--workspace-text-primary);
+}
+
+.hub-mode-active {
+  color: var(--workspace-text-primary);
+  border-bottom-color: var(--workspace-icon-primary);
+}
+
+/* Explore tabs (Repositories | Users) */
+.hub-explore-tabs {
+  display: flex;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--workspace-border-default);
+}
+
+.hub-explore-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  color: var(--workspace-text-muted);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  font-size: 0.85rem;
+}
+
+.hub-explore-tab:hover,
+.hub-explore-tab.active {
+  color: var(--workspace-text-primary);
+}
+
+.hub-explore-tab.active {
+  border-bottom-color: var(--workspace-icon-primary);
+}
+
+/* User profile inline */
+.hub-user-profile {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.hub-user-sidebar {
+  width: 250px;
+  flex-shrink: 0;
+}
+
+.hub-user-repos {
+  flex: 1;
+  min-width: 0;
+}
+
+.hub-user-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--workspace-icon-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* Utilities */
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
 }

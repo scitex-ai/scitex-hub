@@ -1,0 +1,272 @@
+[
+  {
+    "journal": "Nature Reviews Neuroscience",
+    "issn": "1471-003X",
+    "calc_if": 42.0,
+    "jcr_if": 28.7,
+    "ratio": 1.4634146341463414,
+    "citations": 3908,
+    "articles": 93
+  },
+  {
+    "journal": "Nature Neuroscience",
+    "issn": "1097-6256",
+    "calc_if": 33.4,
+    "jcr_if": 21.2,
+    "ratio": 1.5754716981132075,
+    "citations": 9825,
+    "articles": 294
+  },
+  {
+    "journal": "Neuron",
+    "issn": "0896-6273",
+    "calc_if": 21.0,
+    "jcr_if": 14.7,
+    "ratio": 1.4285714285714286,
+    "citations": 9873,
+    "articles": 471
+  },
+  {
+    "journal": "Trends in Neurosciences",
+    "issn": "0166-2236",
+    "calc_if": 17.8,
+    "jcr_if": 14.6,
+    "ratio": 1.2191780821917808,
+    "citations": 2298,
+    "articles": 129
+  },
+  {
+    "journal": "Annual Review of Neuroscience",
+    "issn": "0147-006X",
+    "calc_if": 18.4,
+    "jcr_if": 12.1,
+    "ratio": 1.5206611570247932,
+    "citations": 904,
+    "articles": 49
+  },
+  {
+    "journal": "Brain",
+    "issn": "0006-8950",
+    "calc_if": 13.0,
+    "jcr_if": 10.6,
+    "ratio": 1.2264150943396226,
+    "citations": 8719,
+    "articles": 673
+  },
+  {
+    "journal": "Molecular Psychiatry",
+    "issn": "1359-4184",
+    "calc_if": 13.0,
+    "jcr_if": 9.6,
+    "ratio": 1.3541666666666667,
+    "citations": 10749,
+    "articles": 825
+  },
+  {
+    "journal": "Biological Psychiatry",
+    "issn": "0006-3223",
+    "calc_if": 10.3,
+    "jcr_if": 9.6,
+    "ratio": 1.0729166666666667,
+    "citations": 3731,
+    "articles": 362
+  },
+  {
+    "journal": "Progress in Neurobiology",
+    "issn": "0301-0082",
+    "calc_if": 8.1,
+    "jcr_if": 6.7,
+    "ratio": 1.208955223880597,
+    "citations": 1445,
+    "articles": 179
+  },
+  {
+    "journal": "Current Opinion in Neurobiology",
+    "issn": "0959-4388",
+    "calc_if": 7.1,
+    "jcr_if": 4.8,
+    "ratio": 1.4791666666666667,
+    "citations": 1622,
+    "articles": 228
+  },
+  {
+    "journal": "NeuroImage",
+    "issn": "1053-8119",
+    "calc_if": 6.9,
+    "jcr_if": 4.7,
+    "ratio": 1.4680851063829787,
+    "citations": 11608,
+    "articles": 1690
+  },
+  {
+    "journal": "Cerebral Cortex",
+    "issn": "1047-3211",
+    "calc_if": 4.3,
+    "jcr_if": 2.9,
+    "ratio": 1.4827586206896552,
+    "citations": 4237,
+    "articles": 996
+  },
+  {
+    "journal": "Journal of Neurophysiology",
+    "issn": "0022-3077",
+    "calc_if": 3.2,
+    "jcr_if": 2.1,
+    "ratio": 1.5238095238095237,
+    "citations": 1765,
+    "articles": 553
+  },
+  {
+    "journal": "Frontiers in Neuroscience",
+    "issn": "1662-453X",
+    "calc_if": 4.3,
+    "jcr_if": 3.2,
+    "ratio": 1.3437499999999998,
+    "citations": 16828,
+    "articles": 3939
+  },
+  {
+    "journal": "Journal of Neuroscience",
+    "issn": "0270-6474",
+    "calc_if": 6.2,
+    "jcr_if": 4.4,
+    "ratio": 1.409090909090909,
+    "citations": 8356,
+    "articles": 1351
+  },
+  {
+    "journal": "Neuropsychopharmacology",
+    "issn": "0893-133X",
+    "calc_if": 9.2,
+    "jcr_if": 6.6,
+    "ratio": 1.3939393939393938,
+    "citations": 3897,
+    "articles": 425
+  },
+  {
+    "journal": "Brain Stimulation",
+    "issn": "1935-861X",
+    "calc_if": null,
+    "jcr_if": 7.6,
+    "ratio": null,
+    "citations": 0,
+    "articles": 0
+  },
+  {
+    "journal": "eLife",
+    "issn": "2050-084X",
+    "calc_if": 9.5,
+    "jcr_if": 6.4,
+    "ratio": 1.484375,
+    "citations": 36478,
+    "articles": 3847
+  },
+  {
+    "journal": "Nature Biomedical Engineering",
+    "issn": "2157-846X",
+    "calc_if": 32.4,
+    "jcr_if": 26.8,
+    "ratio": 1.208955223880597,
+    "citations": 7451,
+    "articles": 230
+  },
+  {
+    "journal": "Biomaterials",
+    "issn": "0142-9612",
+    "calc_if": 13.4,
+    "jcr_if": 12.8,
+    "ratio": 1.046875,
+    "citations": 14765,
+    "articles": 1098
+  },
+  {
+    "journal": "Journal of Neural Engineering",
+    "issn": "1741-2552",
+    "calc_if": 4.8,
+    "jcr_if": 3.7,
+    "ratio": 1.2972972972972971,
+    "citations": 3385,
+    "articles": 706
+  },
+  {
+    "journal": "IEEE Trans Biomedical Engineering",
+    "issn": "0018-9294",
+    "calc_if": 5.2,
+    "jcr_if": 4.4,
+    "ratio": 1.1818181818181817,
+    "citations": 3307,
+    "articles": 633
+  },
+  {
+    "journal": "IEEE Trans Neural Syst Rehabil Eng",
+    "issn": "1534-4320",
+    "calc_if": 6.2,
+    "jcr_if": 4.8,
+    "ratio": 1.2916666666666667,
+    "citations": 3611,
+    "articles": 585
+  },
+  {
+    "journal": "Biomedical Engineering Online",
+    "issn": "1475-925X",
+    "calc_if": 4.5,
+    "jcr_if": 2.9,
+    "ratio": 1.5517241379310345,
+    "citations": 932,
+    "articles": 208
+  },
+  {
+    "journal": "Nature",
+    "issn": "0028-0836",
+    "calc_if": 60.7,
+    "jcr_if": 50.5,
+    "ratio": 1.201980198019802,
+    "citations": 130487,
+    "articles": 2151
+  },
+  {
+    "journal": "Science",
+    "issn": "0036-8075",
+    "calc_if": 50.9,
+    "jcr_if": 44.7,
+    "ratio": 1.1387024608501117,
+    "citations": 74343,
+    "articles": 1462
+  },
+  {
+    "journal": "Cell",
+    "issn": "0092-8674",
+    "calc_if": 62.3,
+    "jcr_if": 45.5,
+    "ratio": 1.3692307692307693,
+    "citations": 39714,
+    "articles": 637
+  },
+  {
+    "journal": "The Lancet",
+    "issn": "0140-6736",
+    "calc_if": 99.5,
+    "jcr_if": 98.4,
+    "ratio": 1.011178861788618,
+    "citations": 49442,
+    "articles": 497
+  },
+  {
+    "journal": "New England Journal of Medicine",
+    "issn": "0028-4793",
+    "calc_if": 92.5,
+    "jcr_if": 96.2,
+    "ratio": 0.9615384615384616,
+    "citations": 45529,
+    "articles": 492
+  },
+  {
+    "journal": "JAMA",
+    "issn": "0098-7484",
+    "calc_if": 50.1,
+    "jcr_if": 63.1,
+    "ratio": 0.7939778129952456,
+    "citations": 19246,
+    "articles": 384
+  }
+]

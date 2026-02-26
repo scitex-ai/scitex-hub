@@ -19,6 +19,7 @@ export interface StreamContext {
   modelBadge: HTMLElement | null;
   speak: (text: string) => void;
   autoSpeak: boolean;
+  scrollIfNeeded?: () => void;
 }
 
 const RENDER_DEBOUNCE_MS = 150;
@@ -68,7 +69,8 @@ export async function processStream(
         msgEl.appendChild(previewEl);
       }
       previewEl.innerHTML = renderMarkdown(textBuf);
-      ctx.messagesEl.scrollTop = ctx.messagesEl.scrollHeight;
+      if (ctx.scrollIfNeeded) ctx.scrollIfNeeded();
+      else ctx.messagesEl.scrollTop = ctx.messagesEl.scrollHeight;
     }, RENDER_DEBOUNCE_MS);
   }
 
@@ -145,7 +147,8 @@ export async function processStream(
             mediaRefs.push(ref);
             msgEl.appendChild(renderMedia(ref, contextUser, contextSlug));
           }
-          ctx.messagesEl.scrollTop = ctx.messagesEl.scrollHeight;
+          if (ctx.scrollIfNeeded) ctx.scrollIfNeeded();
+          else ctx.messagesEl.scrollTop = ctx.messagesEl.scrollHeight;
         }
       } else if (event.type === "error") {
         finalizeTextSegment();

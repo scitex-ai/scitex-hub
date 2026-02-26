@@ -19,5 +19,15 @@ register(
             "Manage claims and cross-references",
         ],
         page_patterns=["/writer/"],
+        url_prefix="/writer/",
+        module_description=(
+            "Scientific manuscript editor: LaTeX editing with live preview, "
+            "figure/table management, bibliography, PDF compilation."
+        ),
+        mcp_tool_examples=[
+            "writer_compile_manuscript",
+            "writer_add_figure",
+            "writer_add_bibentry",
+        ],
     )
 )

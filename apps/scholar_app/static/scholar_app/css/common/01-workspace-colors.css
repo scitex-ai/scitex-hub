@@ -19,20 +19,29 @@ html {
 body.scholar-page,
 .scholar-page,
 body.workspace-page.scholar-page {
-  background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+  background: var(
+    --workspace-bg-primary,
+    var(--color-canvas-default)
+  ) !important;
 }
 
 /* Main content area background */
 body.scholar-page #main-content,
 body.scholar-page main,
 body.scholar-page .scholar-workspace {
-  background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+  background: var(
+    --workspace-bg-primary,
+    var(--color-canvas-default)
+  ) !important;
 }
 
 /* Force footer to match */
 body.scholar-page footer,
 body.scholar-page .footer {
-  background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+  background: var(
+    --workspace-bg-primary,
+    var(--color-canvas-default)
+  ) !important;
   border-top: 1px solid var(--color-border-default) !important;
 }
 
@@ -48,9 +57,12 @@ body.scholar-page .panel-content,
 body.scholar-page .card-body,
 body.scholar-page .bibtex-card,
 body.scholar-page .bibtex-tile {
-  background: var(--workspace-bg-secondary, var(--color-canvas-subtle)) !important;
+  background: var(
+    --workspace-bg-secondary,
+    var(--color-canvas-subtle)
+  ) !important;
   border-color: var(--color-border-default) !important;
-  border-radius: 0 !important;
+  border-radius: 6px !important;
 }
 
 /* Override panel headers */
@@ -58,39 +70,54 @@ body.scholar-page .panel-header,
 body.scholar-page .card-header,
 body.scholar-page .bibtex-card__header,
 body.scholar-page .bibtex-tile__header {
-  background: var(--workspace-bg-tertiary, var(--color-canvas-inset)) !important;
+  background: var(
+    --workspace-bg-tertiary,
+    var(--color-canvas-inset)
+  ) !important;
   border-color: var(--color-border-default) !important;
 }
 
-/* Remove bluish border-radius (flat design) */
+/* Card border-radius */
 body.scholar-page .card,
 body.scholar-page .panel,
 body.scholar-page .split-panel {
-  border-radius: 0 !important;
+  border-radius: 6px !important;
 }
 
 /* BibTeX components - workspace colors */
 body.scholar-page .bibtex-enrichment-container {
-  background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+  background: var(
+    --workspace-bg-primary,
+    var(--color-canvas-default)
+  ) !important;
   padding: 0 !important;
 }
 
 body.scholar-page .bibtex-card,
 body.scholar-page .bibtex-tile {
-  background: var(--workspace-bg-secondary, var(--color-canvas-subtle)) !important;
+  background: var(
+    --workspace-bg-secondary,
+    var(--color-canvas-subtle)
+  ) !important;
   border-color: var(--color-border-default) !important;
-  border-radius: 0 !important;
+  border-radius: 6px !important;
 }
 
 body.scholar-page .bibtex-card__header,
 body.scholar-page .bibtex-tile__header {
-  background: var(--workspace-bg-tertiary, var(--color-canvas-inset)) !important;
+  background: var(
+    --workspace-bg-tertiary,
+    var(--color-canvas-inset)
+  ) !important;
   border-color: var(--color-border-default) !important;
 }
 
 body.scholar-page .bibtex-tile__content {
   border-color: var(--color-border-default) !important;
-  background: var(--workspace-bg-secondary, var(--color-canvas-subtle)) !important;
+  background: var(
+    --workspace-bg-secondary,
+    var(--color-canvas-subtle)
+  ) !important;
 }
 
 body.scholar-page .bibtex-dropzone {
@@ -105,12 +132,18 @@ body.scholar-page .bibtex-dropzone:hover {
 }
 
 body.scholar-page .bibtex-status-item {
-  background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+  background: var(
+    --workspace-bg-primary,
+    var(--color-canvas-default)
+  ) !important;
   border-radius: 0 !important;
 }
 
 body.scholar-page .terminal-log {
-  background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+  background: var(
+    --workspace-bg-primary,
+    var(--color-canvas-default)
+  ) !important;
   border-color: var(--color-border-default) !important;
   border-radius: 0 !important;
 }
@@ -125,13 +158,19 @@ body.scholar-page .bibtex-card__title i {
 body.scholar-page .scholar-sidebar,
 body.scholar-page .scholar-main,
 body.scholar-page .scholar-properties {
-  background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+  background: var(
+    --workspace-bg-primary,
+    var(--color-canvas-default)
+  ) !important;
 }
 
 body.scholar-page .scholar-sidebar .sidebar-header,
 body.scholar-page .scholar-main .pane-header,
 body.scholar-page .scholar-properties .properties-header {
-  background: var(--workspace-bg-secondary, var(--color-canvas-subtle)) !important;
+  background: var(
+    --workspace-bg-secondary,
+    var(--color-canvas-subtle)
+  ) !important;
   border-color: var(--color-border-default) !important;
 }
 
@@ -145,7 +184,10 @@ body.scholar-page .scholar-properties .properties-content {
 body.scholar-page .scholar-main .pane-content {
   padding: 0 !important;
   margin: 0 !important;
-  background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+  background: var(
+    --workspace-bg-primary,
+    var(--color-canvas-default)
+  ) !important;
 }
 
 /* ===============================================
@@ -155,6 +197,9 @@ body.scholar-page .scholar-main .pane-content {
 
 :root[data-theme="light"] body.scholar-page .scholar-sidebar .sidebar-content,
 :root[data-theme="light"] body.scholar-page .scholar-sidebar #file-tree,
-:root[data-theme="light"] body.scholar-page .scholar-properties .properties-content {
+:root[data-theme="light"]
+  body.scholar-page
+  .scholar-properties
+  .properties-content {
   background: #ffffff !important;
 }

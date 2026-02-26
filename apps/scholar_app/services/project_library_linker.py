@@ -141,11 +141,9 @@ class ProjectLibraryLinker:
             "success": success,
             "symlink_created": symlink_created,
             "bibtex_synced": bibtex_synced,
-            "message": (
-                f"Paper linked to project {project.name}"
-                if success
-                else "Partial failure in linking paper"
-            ),
+            "message": f"Paper linked to project {project.name}"
+            if success
+            else "Partial failure in linking paper",
         }
 
     def unlink_paper_from_project(self, user_library_entry, project) -> Dict[str, any]:
@@ -222,11 +220,9 @@ class ProjectLibraryLinker:
             "success": success,
             "symlink_removed": symlink_removed,
             "bibtex_synced": bibtex_synced,
-            "message": (
-                f"Paper unlinked from project {project.name}"
-                if success
-                else "Partial failure in unlinking paper"
-            ),
+            "message": f"Paper unlinked from project {project.name}"
+            if success
+            else "Partial failure in unlinking paper",
         }
 
     def sync_project_bibtex(self, project) -> Dict[str, any]:
@@ -332,30 +328,6 @@ class ProjectLibraryLinker:
             .select_related("paper")
             .order_by("-saved_at")
         )
-
-    def setup_project_workspace(self, project) -> Dict[str, str]:
-        """Ensure scholar workspace exists for a project.
-
-        Delegates to scitex.scholar.ensure_workspace().
-        Returns workspace paths for display in the UI.
-
-        Args:
-            project: Project instance
-
-        Returns:
-            Dict with workspace path strings
-        """
-        from scitex.scholar import ensure_workspace
-
-        project_dir = project.get_local_path()
-        workspace = ensure_workspace(project_dir)
-
-        return {
-            "workspace_dir": str(workspace),
-            "bib_dir": str(workspace / "bib_files"),
-            "library_dir": str(workspace / "library"),
-            "project_bib": str(project_dir / "scitex" / "scholar" / "project.bib"),
-        }
 
     def get_linkable_papers(self) -> QuerySet:
         """

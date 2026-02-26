@@ -60,4 +60,44 @@ class ModuleReviewAdmin(admin.ModelAdmin):
     list_filter = ("rating",)
 
 
+from .models import ModuleSubmission  # noqa: E402
+
+
+@admin.register(ModuleSubmission)
+class ModuleSubmissionAdmin(admin.ModelAdmin):
+    list_display = (
+        "module",
+        "submitted_by",
+        "status",
+        "reviewer",
+        "submitted_at",
+        "reviewed_at",
+    )
+    list_filter = ("status",)
+    search_fields = ("module__module_name", "submitted_by__username")
+    readonly_fields = ("submitted_at",)
+    actions = ["approve_submissions", "reject_submissions"]
+
+    @admin.action(description="Approve selected submissions")
+    def approve_submissions(self, request, queryset):
+        from django.utils import timezone
+
+        for sub in queryset.filter(status="pending"):
+            sub.status = "approved"
+            sub.reviewer = request.user
+            sub.reviewed_at = timezone.now()
+            sub.save(update_fields=["status", "reviewer", "reviewed_at"])
+            sub.module.visibility = "public"
+            sub.module.is_verified = True
+            sub.module.save(update_fields=["visibility", "is_verified"])
+
+    @admin.action(description="Reject selected submissions")
+    def reject_submissions(self, request, queryset):
+        from django.utils import timezone
+
+        queryset.filter(status="pending").update(
+            status="rejected", reviewer=request.user, reviewed_at=timezone.now()
+        )
+
+
 # EOF

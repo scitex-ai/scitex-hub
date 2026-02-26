@@ -85,11 +85,11 @@ class Migration(migrations.Migration):
                 "indexes": [
                     models.Index(
                         fields=["project", "status"],
-                        name="code_app_pr_project_f0648e_idx",
+                        name="console_app_project_21dcb3_idx",
                     ),
-                    models.Index(fields=["port"], name="code_app_pr_port_5d50ec_idx"),
+                    models.Index(fields=["port"], name="console_app_port_7cd8b1_idx"),
                     models.Index(
-                        fields=["last_accessed"], name="code_app_pr_last_ac_e1fc44_idx"
+                        fields=["last_accessed"], name="console_app_last_ac_e2a6fc_idx"
                     ),
                 ],
             },

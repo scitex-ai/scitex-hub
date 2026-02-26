@@ -56,7 +56,7 @@ body.scholar-page .scholar-workspace {
     var(--color-canvas-subtle)
   ) !important;
   border-color: var(--color-border-default) !important;
-  border-radius: 0 !important;
+  border-radius: 6px !important;
 }
 
 .bibtex-card__header,
@@ -127,6 +127,27 @@ body.scholar-page footer {
 .scholar-tab-content.active {
   display: flex;
   flex-direction: column;
+}
+
+/* Tabs with inline side panels use row layout */
+#tab-search.active,
+#tab-bibtex.active,
+#tab-graph.active {
+  flex-direction: row;
+  overflow: hidden;
+}
+
+/* Inline tab resizer handle */
+.scholar-tab-resizer {
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.scholar-tab-resizer:hover {
+  background: var(--icon-primary, var(--workspace-icon-primary, #388bfd));
 }
 
 .scholar-details-content {
@@ -287,9 +308,9 @@ body.scholar-page footer {
 .scholar-details-content .sidebar-section,
 .scholar-details-content .bibtex-tile,
 .scholar-details-content .accordion-row {
-  background: var(--workspace-bg-secondary, #151515);
+  background: var(--workspace-bg-secondary, #1e1e1e);
   border: 1px solid var(--workspace-border-default, #3a3a3a);
-  border-radius: 0;
+  border-radius: 6px;
   margin-bottom: 8px;
 }
 
@@ -299,22 +320,23 @@ body.scholar-page footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 12px;
+  padding: 12px;
   cursor: pointer;
   transition: background 0.15s;
   background: var(--workspace-bg-tertiary, #1a1a1a);
+  border-radius: 6px 6px 0 0;
 }
 
 .scholar-details-content .sidebar-section__header:hover,
 .scholar-details-content .bibtex-tile__header:hover,
 .scholar-details-content .accordion-row-header:hover {
-  background: var(--workspace-bg-secondary, #151515);
+  background: var(--workspace-bg-tertiary, #1a1a1a);
 }
 
 .scholar-details-content .sidebar-section__title,
 .scholar-details-content .bibtex-tile__title {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary, #d4e1e8);
   display: flex;
@@ -325,7 +347,7 @@ body.scholar-page footer {
 .scholar-details-content .sidebar-section__title i,
 .scholar-details-content .bibtex-tile__title i {
   color: var(--workspace-icon-primary, #059669) !important;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .scholar-details-content .sidebar-section__content,
@@ -333,7 +355,65 @@ body.scholar-page footer {
 .scholar-details-content .accordion-row-content {
   padding: 12px;
   border-top: 1px solid var(--workspace-border-default, #3a3a3a);
-  background: var(--workspace-bg-secondary, #151515);
+  background: var(--workspace-bg-secondary, #1e1e1e);
+}
+
+/* Inline side panels — match Writer details-content styling */
+.search-controls-inline,
+.bibtex-controls-inline,
+.graph-controls-inline {
+  padding: 8px;
+}
+
+.search-controls-inline .sidebar-section,
+.search-controls-inline .mig-card,
+.bibtex-controls-inline .bibtex-tile,
+.bibtex-controls-inline .mig-card,
+.graph-controls-inline .sidebar-section,
+.graph-controls-inline .mig-card {
+  background: var(--workspace-bg-secondary, #1e1e1e);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.search-controls-inline .sidebar-section__header,
+.search-controls-inline .mig-card__header,
+.bibtex-controls-inline .bibtex-tile__header,
+.bibtex-controls-inline .mig-card__header,
+.graph-controls-inline .sidebar-section__header,
+.graph-controls-inline .mig-card__header {
+  padding: 12px;
+  border-radius: 6px 6px 0 0;
+}
+
+.search-controls-inline .sidebar-section__title,
+.search-controls-inline .mig-card__title,
+.bibtex-controls-inline .bibtex-tile__title,
+.bibtex-controls-inline .mig-card__title,
+.graph-controls-inline .sidebar-section__title,
+.graph-controls-inline .mig-card__title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.search-controls-inline .sidebar-section__title i,
+.search-controls-inline .mig-card__title i,
+.bibtex-controls-inline .bibtex-tile__title i,
+.bibtex-controls-inline .mig-card__title i,
+.graph-controls-inline .sidebar-section__title i,
+.graph-controls-inline .mig-card__title i {
+  font-size: 12px;
+}
+
+.search-controls-inline .sidebar-section__content,
+.search-controls-inline .mig-card__content,
+.bibtex-controls-inline .bibtex-tile__content,
+.bibtex-controls-inline .mig-card__content,
+.graph-controls-inline .sidebar-section__content,
+.graph-controls-inline .mig-card__content {
+  padding: 12px;
+  border-top: 1px solid var(--workspace-border-default, #3a3a3a);
 }
 
 /* Light mode unified overrides */

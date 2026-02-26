@@ -1,4 +1,42 @@
 <style>
+    /* Anchor offset for sticky headers */
+    #mcp-overview span[id],
+    #mcp-connect span[id],
+    #mcp-auth span[id],
+    #mcp-tools span[id],
+    span#overview,
+    span#connect,
+    span#authentication,
+    span#auth,
+    span#available-tools,
+    span#tools {
+        scroll-margin-top: 80px;
+    }
+
+    section[id] {
+        scroll-margin-top: 80px;
+    }
+
+    /* Linkable section headers */
+    .api-section h2 .anchor-link {
+        opacity: 0;
+        margin-left: 0.3em;
+        font-size: 0.7em;
+        color: var(--text-muted, #888);
+        text-decoration: none;
+        transition: opacity 0.15s;
+        vertical-align: middle;
+    }
+
+    .api-section h2:hover .anchor-link {
+        opacity: 0.6;
+    }
+
+    .api-section h2 .anchor-link:hover {
+        opacity: 1;
+        color: var(--accent-primary, #6ba89a);
+    }
+
     #mcp-tools .api-table th:first-child,
     #mcp-tools .api-table td:first-child {
         width: 240px;
@@ -35,17 +73,76 @@
         font-size: 0.85em;
         margin: 0.4em 0 0.1em;
     }
+
+    /* Connect tabs */
+    .mcp-connect-tabs {
+        display: flex;
+        gap: 0.5em;
+        margin-bottom: 1.2em;
+    }
+
+    .mcp-tab {
+        padding: 0.5em 1.2em;
+        border: 1px solid var(--border-color, #333);
+        border-radius: 6px;
+        background: transparent;
+        color: var(--text-muted, #888);
+        cursor: pointer;
+        font-size: 0.9em;
+        transition: all 0.15s;
+    }
+
+    .mcp-tab:hover {
+        color: var(--text-primary, #e6edf3);
+        border-color: var(--text-muted, #888);
+    }
+
+    .mcp-tab.active {
+        background: var(--accent-primary, #6ba89a);
+        color: #fff;
+        border-color: var(--accent-primary, #6ba89a);
+    }
+
+    .mcp-tab i {
+        margin-right: 0.3em;
+    }
+
+    .mcp-tab-panel {
+        display: none;
+    }
+
+    .mcp-tab-panel.active {
+        display: block;
+    }
+
+    .api-callout-success {
+        border-left: 3px solid var(--accent-primary, #6ba89a);
+        background: rgba(107, 168, 154, 0.08);
+        padding: 0.8em 1em;
+        border-radius: 4px;
+        display: flex;
+        gap: 0.6em;
+        align-items: flex-start;
+        margin-bottom: 1em;
+    }
+
+    .api-callout-success i {
+        color: var(--accent-primary, #6ba89a);
+        margin-top: 0.15em;
+    }
 </style>
 <!-- MCP Overview -->
+<span id="overview"></span>
 <section id="mcp-overview" class="api-section">
     <h2>
         <i class="fas fa-robot"></i> MCP Server Overview
+        <a href="#overview" class="anchor-link" title="Link to this section">#</a>
     </h2>
     <p>
         SciTeX exposes a <strong>Model Context Protocol (MCP)</strong> server at
         <code>https://scitex.ai/mcp</code>.
         Connect any MCP-compatible AI client — Claude Desktop, Claude Code, or your own agent —
-        to get direct access to 100+ scientific tools: plotting, statistics, literature management,
+        to get direct access to {{ mcp_tool_count|default:"200+" }} scientific tools: plotting, statistics, literature management,
         LaTeX compilation, and more.
     </p>
     <div class="api-callout api-callout-info">
@@ -57,21 +154,77 @@
     </div>
 </section>
 <!-- Connect a Client -->
+<span id="connect"></span>
 <section id="mcp-connect" class="api-section">
     <h2>
         <i class="fas fa-plug"></i> Connect a Client
+        <a href="#connect" class="anchor-link" title="Link to this section">#</a>
     </h2>
-    <p>
-        Add the following to your MCP client configuration and replace <code>YOUR_API_KEY</code>:
-    </p>
-    <h4>
-        Claude Desktop / Claude Code (<code>claude_desktop_config.json</code>)
-    </h4>
-    <div class="code-block">
-        <div class="code-header">
-            <span>JSON</span>
+    <!-- Local / Cloud toggle tabs -->
+    <div class="mcp-connect-tabs">
+        <button class="mcp-tab active" data-target="mcp-local">
+            <i class="fas fa-laptop"></i> Local (Free)
+        </button>
+        <button class="mcp-tab" data-target="mcp-cloud">
+            <i class="fas fa-cloud"></i> Cloud (API Key)
+        </button>
+    </div>
+    <!-- LOCAL panel -->
+    <div id="mcp-local" class="mcp-tab-panel active">
+        <div class="api-callout api-callout-success">
+            <i class="fas fa-gift"></i>
+            <div>
+                <strong>No API key needed.</strong>
+                Install <code>scitex</code> locally and get all {{ mcp_tool_count|default:"200+" }} tools for free, running on your own machine.
+            </div>
         </div>
-        <pre><code>{
+        <h4>1. Install</h4>
+        <div class="code-block">
+            <div class="code-header">
+                <span>Shell</span>
+            </div>
+            <pre><code>pip install scitex[all]     # Full installation (recommended)
+pip install scitex[plt,stats,scholar]  # Typical research setup
+pip install scitex          # Core only (minimal)</code></pre>
+        </div>
+        <h4>2. Configure Claude Desktop / Claude Code</h4>
+        <p>
+            Add the following to <code>~/.claude/settings.json</code> or <code>claude_desktop_config.json</code>:
+        </p>
+        <div class="code-block">
+            <div class="code-header">
+                <span>JSON</span>
+            </div>
+            <pre><code>{
+  "mcpServers": {
+    "scitex": {
+      "command": "scitex",
+      "args": ["mcp", "start"]
+    }
+  }
+}</code></pre>
+        </div>
+        <h4>3. That's it</h4>
+        <p>
+            Your AI client now has access to all {{ mcp_tool_count|default:"200+" }} SciTeX tools —
+            plotting, statistics, LaTeX compilation, literature management, and more —
+            running entirely on your local machine.
+        </p>
+    </div>
+    <!-- CLOUD panel -->
+    <div id="mcp-cloud" class="mcp-tab-panel">
+        <p>
+            Connect to the hosted MCP server at <code>https://scitex.ai/mcp</code>.
+            Requires an <a href="{% url 'accounts_app:api_keys' %}">API key</a>.
+        </p>
+        <h4>
+            Claude Desktop / Claude Code (<code>claude_desktop_config.json</code>)
+        </h4>
+        <div class="code-block">
+            <div class="code-header">
+                <span>JSON</span>
+            </div>
+            <pre><code>{
   "mcpServers": {
     "scitex": {
       "type": "streamable-http",
@@ -80,13 +233,13 @@
     }
   }
 }</code></pre>
-    </div>
-    <h4>Python (fastmcp client)</h4>
-    <div class="code-block">
-        <div class="code-header">
-            <span>Python</span>
         </div>
-        <pre><code>from fastmcp import Client
+        <h4>Python (fastmcp client)</h4>
+        <div class="code-block">
+            <div class="code-header">
+                <span>Python</span>
+            </div>
+            <pre><code>from fastmcp import Client
 async with Client(
     "https://scitex.ai/mcp",
     headers={"Authorization": "Bearer YOUR_API_KEY"},
@@ -97,12 +250,15 @@ async with Client(
         "data": [[1, 2, 3], [4, 5, 6]],
     })
     print(result)</code></pre>
+        </div>
     </div>
 </section>
 <!-- Authentication -->
+<span id="authentication"></span><span id="auth"></span>
 <section id="mcp-auth" class="api-section">
     <h2>
         <i class="fas fa-lock"></i> Authentication
+        <a href="#authentication" class="anchor-link" title="Link to this section">#</a>
     </h2>
     <p>
         All requests to <code>/mcp</code> require a Bearer token in the <code>Authorization</code> header.
@@ -140,19 +296,191 @@ async with Client(
         </div>
     </div>
 </section>
+<!-- Configuration -->
+<span id="configuration"></span><span id="config"></span>
+<section id="mcp-config" class="api-section">
+    <h2>
+        <i class="fas fa-sliders-h"></i> Configuration
+        <a href="#configuration" class="anchor-link" title="Link to this section">#</a>
+    </h2>
+    <p>
+        Control which tool groups the MCP server exposes using environment variables.
+        Set <code>SCITEX_MCP_USE_&lt;GROUP&gt;=0</code> to disable a group.
+        All groups are enabled by default.
+    </p>
+    <h4>Tool Group Toggles</h4>
+    <table class="api-table">
+        <thead>
+            <tr>
+                <th>Variable</th>
+                <th>Group</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_PLT</code>
+                </td>
+                <td>Plotting &amp; visualization</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_DIAGRAM</code>
+                </td>
+                <td>Mermaid / Graphviz diagrams</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_STATS</code>
+                </td>
+                <td>Statistical tests &amp; analysis</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_SCHOLAR</code>
+                </td>
+                <td>Literature &amp; PDF management</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_DATASET</code>
+                </td>
+                <td>Dataset search &amp; fetch</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_WRITER</code>
+                </td>
+                <td>LaTeX manuscript compilation</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_INTROSPECT</code>
+                </td>
+                <td>Python API introspection</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_PROJECT</code>
+                </td>
+                <td>Project file management</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_TEMPLATE</code>
+                </td>
+                <td>Project templates</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_CLEW</code>
+                </td>
+                <td>Experiment tracking</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_AUDIO</code>
+                </td>
+                <td>Text-to-speech</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_CAPTURE</code>
+                </td>
+                <td>Screenshot capture</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_SOCIAL</code>
+                </td>
+                <td>Social media posting</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_UI</code>
+                </td>
+                <td>Desktop notifications</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_DEV</code>
+                </td>
+                <td>Developer tools</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_LINTER</code>
+                </td>
+                <td>Code linting</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_USAGE</code>
+                </td>
+                <td>Usage tracking</td>
+            </tr>
+        </tbody>
+    </table>
+    <h4>Example: Minimal Setup</h4>
+    <div class="code-block">
+        <div class="code-header">
+            <span>Shell</span>
+        </div>
+        <pre><code># Only enable plotting and statistics
+export SCITEX_MCP_USE_PLT=1
+export SCITEX_MCP_USE_STATS=1
+
+# Disable everything else
+export SCITEX_MCP_USE_SCHOLAR=0
+export SCITEX_MCP_USE_WRITER=0
+export SCITEX_MCP_USE_DIAGRAM=0
+# ... set other groups to 0</code></pre>
+    </div>
+    <h4>Using .env.d Files</h4>
+    <p>
+        For persistent configuration, copy the
+        <a href="https://github.com/ywatanabe1989/scitex-python/tree/main/.env.d.examples"
+           target="_blank">example env files</a>
+        and source them:
+    </p>
+    <div class="code-block">
+        <div class="code-header">
+            <span>Shell</span>
+        </div>
+        <pre><code># Copy examples to your local config
+cp -r .env.d.examples .env.d
+# Edit toggles
+$EDITOR .env.d/02_mcp.env
+# Source all config
+source .env.d/entry.src</code></pre>
+    </div>
+    <div class="api-callout api-callout-info">
+        <i class="fas fa-info-circle"></i>
+        <div>
+            These toggles only affect the MCP server. Python imports (<code>import scitex</code>)
+            and CLI commands (<code>scitex plt ...</code>) are unaffected.
+        </div>
+    </div>
+</section>
 <!-- Available Tools (generated from mcp_tools context) -->
+<span id="available-tools"></span><span id="tools"></span>
 <section id="mcp-tools" class="api-section">
     <h2>
         <i class="fas fa-tools"></i> Available Tools
+        <a href="#available-tools" class="anchor-link" title="Link to this section">#</a>
     </h2>
     <p>
-        {{ mcp_tools|length }} categories. Click tool rows to expand parameters &amp; return types.
-        Call <code>client.list_tools()</code> for the live list.
+        <strong>{{ mcp_tool_count|default:"200+" }} tools</strong> across {{ mcp_tools|length }} categories.
+        Click tool rows to expand parameters &amp; return types.
+        Call <code>client.list_tools()</code> for the live list, or fetch
+        <code><a href="/api/mcp/tools/">/api/mcp/tools/</a></code> for the full JSON catalog.
     </p>
     {% for category in mcp_tools %}
+        <span id="{{ category.prefix|cut:'_*' }}"></span>
         <h4>
             <i class="fas {{ category.icon }}"></i>
             {{ category.category }} — <code>{{ category.prefix }}</code>
+            <span style="font-size: 0.8em; color: var(--text-muted, #888);">({{ category.count }} tools)</span>
         </h4>
         <table class="api-table">
             <thead>
@@ -212,3 +540,13 @@ async with Client(
         </table>
     {% endfor %}
 </section>
+<script>
+    document.querySelectorAll('.mcp-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.mcp-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.mcp-tab-panel').forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById(tab.dataset.target).classList.add('active');
+        });
+    });
+</script>

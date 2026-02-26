@@ -50,6 +50,7 @@ logger = logging.getLogger("scitex")  # noqa: STX-I007
 
 # Re-export for backward compatibility
 __all__ = [
+    "mcp_tools_api",
     "read_image_metadata",
     "docx2tex_convert",
     "plot_endpoint",
@@ -63,6 +64,23 @@ __all__ = [
     "stats_power",
     "stats_recommend",
 ]
+
+
+@require_http_methods(["GET"])
+def mcp_tools_api(request):
+    """Return the full MCP tool catalog as JSON.
+
+    Public endpoint — no authentication required.
+    Used by external clients to discover available MCP tools.
+    """
+    from apps.public_app.config.mcp_tools import get_mcp_tools_json
+
+    try:
+        data = get_mcp_tools_json()
+        return JsonResponse(data)
+    except Exception as exc:
+        logger.exception("Failed to list MCP tools")
+        return JsonResponse({"error": str(exc)}, status=500)
 
 
 @csrf_exempt

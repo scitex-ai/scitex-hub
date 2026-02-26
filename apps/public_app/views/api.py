@@ -120,6 +120,7 @@ def api_docs_section(request, section):
         from apps.public_app.config.mcp_tools import MCP_TOOLS
 
         context["mcp_tools"] = MCP_TOOLS
+        context["mcp_tool_count"] = sum(c["count"] for c in MCP_TOOLS)
 
     return render(request, "public_app/pages/api_docs_section.html", context)
 

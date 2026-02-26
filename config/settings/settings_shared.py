@@ -258,6 +258,15 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
 SITE_URL = os.getenv("SCITEX_CLOUD_SITE_URL", "http://127.0.0.1:8000")
 
+# Campaign Chat Mode
+SCITEX_CLOUD_CAMPAIGN_ANTHROPIC_API_KEY = os.getenv(
+    "SCITEX_CLOUD_CAMPAIGN_ANTHROPIC_API_KEY", ""
+)
+SCITEX_CLOUD_CAMPAIGN_MODEL = os.getenv(
+    "SCITEX_CLOUD_CAMPAIGN_MODEL", "claude-haiku-4-5-20251001"
+)
+SCITEX_CLOUD_CAMPAIGN_DAILY_LIMIT = os.getenv("SCITEX_CLOUD_CAMPAIGN_DAILY_LIMIT", "10")
+
 # ---------------------------------------
 # Sub-module imports (celery, logging, auth, integrations)
 # ---------------------------------------

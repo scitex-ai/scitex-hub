@@ -18,5 +18,15 @@ register(
             "Introspect Python modules and APIs",
         ],
         page_patterns=["/console/", "/files/"],
+        url_prefix="/console/",
+        module_description=(
+            "Development environment: file browser, terminal (SLURM + Apptainer), "
+            "code execution, Jupyter notebooks."
+        ),
+        mcp_tool_examples=[
+            "project_list_files",
+            "project_read_file",
+            "introspect_signature",
+        ],
     )
 )

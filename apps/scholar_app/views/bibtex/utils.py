@@ -11,12 +11,10 @@ Core enrichment job processing logic.
 import asyncio
 import logging
 import shutil
-from datetime import datetime
 from pathlib import Path
-
+from datetime import datetime
 from django.conf import settings
 from django.utils import timezone
-
 from ...models import BibTeXEnrichmentJob
 
 logger = logging.getLogger(__name__)
@@ -69,7 +67,7 @@ def process_bibtex_job(job):
         # Get user-specific SCITEX directory (thread-safe approach)
         from apps.scholar_app.integrations.scitex_scholar import get_user_scitex_dir
 
-        session_key = getattr(job, "session_key", None)
+        session_key = getattr(job, 'session_key', None)
         user_scitex_dir = get_user_scitex_dir(job.user, session_key=session_key)
         logger.info(f"Using SCITEX_DIR: {user_scitex_dir} for job {job.id}")
 
@@ -93,9 +91,9 @@ def process_bibtex_job(job):
         logger.info(f"Starting BibTeX job {job.id}")
 
         # Import scholar components
-        from scitex.scholar import ScholarConfig
         from scitex.scholar.pipelines import ScholarPipelineMetadataParallel
         from scitex.scholar.storage import BibTeXHandler
+        from scitex.scholar import ScholarConfig
 
         # Create user-specific config (thread-safe)
         scholar_config = ScholarConfig(scholar_dir=user_scitex_dir)
@@ -139,7 +137,7 @@ def process_bibtex_job(job):
             job.status = "failed"
             job.error_message = "Enrichment process timed out after 10 minutes."
             job.completed_at = timezone.now()
-            job.processing_log += "\n\n✗ TIMEOUT: Job exceeded 10-minute limit"
+            job.processing_log += f"\n\n✗ TIMEOUT: Job exceeded 10-minute limit"
             job.save(
                 update_fields=[
                     "status",
@@ -178,21 +176,20 @@ def process_bibtex_job(job):
         # Gitea Integration
         if job.project and job.project.git_clone_path:
             try:
-                # Ensure scholar structure exists
-                from scitex.scholar import ensure as ensure_scholar
-
+                from apps.project_app.services.git_service import auto_commit_file
                 from apps.project_app.services.bibliography_manager import (
                     ensure_bibliography_structure,
                     regenerate_bibliography,
                 )
 
-                ensure_scholar(job.project.git_clone_path)
+                # Create directory
                 project_bib_dir = (
                     Path(job.project.git_clone_path)
                     / "scitex"
                     / "scholar"
                     / "bib_files"
                 )
+                project_bib_dir.mkdir(parents=True, exist_ok=True)
 
                 # Generate filenames
                 original_name = (
@@ -232,9 +229,7 @@ def process_bibtex_job(job):
                 # Auto-commit disabled - users should commit manually when ready
                 # Changes will show in git gutter until committed
                 job.enrichment_summary["gitea_commit"] = False
-                job.enrichment_summary["gitea_message"] = (
-                    "Auto-commit disabled - commit manually when ready"
-                )
+                job.enrichment_summary["gitea_message"] = "Auto-commit disabled - commit manually when ready"
 
             except Exception as gitea_error:
                 logger.error(f"Gitea integration error: {gitea_error}")

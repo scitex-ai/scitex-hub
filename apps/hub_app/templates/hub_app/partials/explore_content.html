@@ -1,0 +1,77 @@
+{% comment %}
+Hub Explore — inline repos and users discovery.
+Returned by /hub/api/explore/?tab=repositories|users
+{% endcomment %}
+<div class="hub-content">
+    <div class="hub-header mb-4">
+        <h1>Explore</h1>
+        <p class="text-muted">Discover public projects and researchers</p>
+    </div>
+    <nav class="hub-explore-tabs">
+        <a href="#"
+           class="hub-explore-tab {% if tab == 'repositories' %}active{% endif %}"
+           data-explore-tab="repositories">
+            <i class="fas fa-book"></i> Repositories
+        </a>
+        <a href="#"
+           class="hub-explore-tab {% if tab == 'users' %}active{% endif %}"
+           data-explore-tab="users">
+            <i class="fas fa-users"></i> Users
+        </a>
+    </nav>
+    {% if tab == 'repositories' %}
+        {% if repositories %}
+            {% for repo in repositories %}
+                <div class="project-card mb-3">
+                    <div class="project-card-header">
+                        <h3>
+                            <a href="#" class="hub-explore-repo" data-project-id="{{ repo.id }}">{{ repo.owner.username }}/{{ repo.name }}</a>
+                        </h3>
+                        <span class="badge badge-{{ repo.visibility }}">{{ repo.visibility }}</span>
+                    </div>
+                    <div class="project-card-body">
+                        {% if repo.description %}<p class="text-muted">{{ repo.description|truncatewords:20 }}</p>{% endif %}
+                        <div class="project-meta">
+                            {% if repo.primary_language %}<span class="language-badge">{{ repo.primary_language }}</span>{% endif %}
+                            <span class="meta-item">
+                                <i class="fas fa-star"></i> {{ repo.star_count }}
+                            </span>
+                            <span class="meta-item">Updated {{ repo.updated_at|timesince }} ago</span>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted" style="text-align:center; padding:2rem">
+                No public repositories yet. Be the first to create one!
+            </p>
+        {% endif %}
+    {% elif tab == 'users' %}
+        <div class="projects-grid">
+            {% if users %}
+                {% for u in users %}
+                    <div class="project-card">
+                        <div class="project-card-header">
+                            <h3>
+                                <a href="#" class="hub-explore-user" data-username="{{ u.username }}">{{ u.get_full_name|default:u.username }}</a>
+                            </h3>
+                        </div>
+                        <div class="project-card-body">
+                            <p class="text-muted">@{{ u.username }}</p>
+                            <div class="project-meta">
+                                <span class="meta-item">
+                                    <i class="fas fa-book"></i> {{ u.repo_count }} repos
+                                </span>
+                                <span class="meta-item">
+                                    <i class="fas fa-users"></i> {{ u.follower_count }} followers
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted" style="text-align:center; padding:2rem">No users to display</p>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>

@@ -1,158 +1,178 @@
 /* Status tiles in right panel - workspace colors */
 .bibtex-status-tiles {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .bibtex-status-tiles .bibtex-tile {
-    background: var(--workspace-bg-secondary, #151515);
-    border: none;
-    border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
-    border-radius: 0;
+  background: var(--workspace-bg-secondary, #1e1e1e);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 6px;
 }
 
 .bibtex-status-tiles .bibtex-tile:last-child {
-    border-bottom: none;
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
 }
 
 .bibtex-status-tiles .bibtex-tile__header {
-    background: var(--workspace-bg-tertiary, #1a1a1a);
-    border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
-    padding: 10px 12px;
+  background: var(--workspace-bg-tertiary, #1a1a1a);
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+  padding: 12px;
+  border-radius: 6px 6px 0 0;
 }
 
 .bibtex-status-tiles .bibtex-tile__title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-primary, #d4e1e8);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #d4e1e8);
 }
 
 .bibtex-status-tiles .bibtex-tile__title i {
-    color: var(--workspace-icon-primary, #6ba89a);
+  color: var(--workspace-icon-primary, #6ba89a);
+}
+
+/* Collapsed state — content hidden */
+.bibtex-status-tiles
+  .bibtex-tile:not(.bibtex-tile--expanded)
+  .bibtex-tile__content {
+  display: none;
+}
+
+.bibtex-status-tiles
+  .bibtex-tile:not(.bibtex-tile--expanded)
+  .bibtex-tile__header {
+  border-bottom: none;
+  border-radius: 6px;
+}
+
+.bibtex-status-tiles
+  .bibtex-tile:not(.bibtex-tile--expanded)
+  .bibtex-tile__toggle {
+  transform: rotate(-90deg);
 }
 
 .bibtex-status-tiles .bibtex-tile__content {
-    background: var(--workspace-bg-secondary, #151515);
-    border-top: none;
-    padding: 12px;
+  background: var(--workspace-bg-secondary, #1e1e1e);
+  border-top: 1px solid var(--workspace-border-default, #3a3a3a);
+  padding: 12px;
+}
+
+.bibtex-status-tiles .bibtex-tile__toggle {
+  color: var(--text-muted, #6c8ba0);
+  font-size: 10px;
+  transition: transform 0.2s ease;
 }
 
 .bibtex-status-tiles .bibtex-status-item {
-    background: var(--workspace-bg-primary, #0d0d0d);
-    border-radius: 0;
+  background: var(--workspace-bg-primary, #0d0d0d);
+  border-radius: 0;
 }
 
 .bibtex-status-tiles .terminal-log {
-    background: var(--workspace-bg-primary, #0d0d0d);
-    border: 1px solid var(--workspace-border-default, #3a3a3a);
-    border-radius: 0;
-    font-size: 11px;
-    max-height: 150px;
+  background: var(--workspace-bg-primary, #0d0d0d);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 0;
+  font-size: 11px;
+  max-height: 150px;
 }
 
 .bibtex-status-tiles .bibtex-empty-state {
-    padding: 20px 10px;
+  padding: 20px 10px;
 }
 
 /* Enrichment Progress Tile */
 .bibtex-status-tiles .bibtex-tile__title .green-pulse-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    background: var(--scitex-color-03, #6ba89a);
-    border-radius: 50%;
-    margin-right: 6px;
-    animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.9); }
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--scitex-color-03, #6ba89a);
+  border-radius: 50%;
+  margin-right: 6px;
 }
 
 .bibtex-running__subtitle {
-    color: var(--text-muted, #768390);
-    font-size: 12px;
-    margin-bottom: 10px;
+  color: var(--text-muted, #768390);
+  font-size: 12px;
+  margin-bottom: 10px;
 }
 
 .bibtex-status-tiles .bibtex-progress {
-    margin-bottom: 10px;
+  margin-bottom: 10px;
 }
 
 .bibtex-status-tiles .bibtex-progress__bar {
-    height: 6px;
-    background: var(--workspace-bg-primary, #0d0d0d);
-    border-radius: 3px;
-    overflow: hidden;
-    margin-bottom: 6px;
+  height: 6px;
+  background: var(--workspace-bg-primary, #0d0d0d);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 6px;
 }
 
 .bibtex-status-tiles .bibtex-progress__fill {
-    height: 100%;
-    background: var(--scitex-color-03, #6ba89a);
-    transition: width 0.3s ease;
-    width: 0%;
+  height: 100%;
+  background: var(--scitex-color-03, #6ba89a);
+  transition: width 0.3s ease;
+  width: 0%;
 }
 
 .bibtex-status-tiles .bibtex-progress__labels {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: var(--text-muted, #768390);
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted, #768390);
 }
 
 /* Hidden elements */
 .hidden {
-    display: none;
+  display: none;
 }
 
 /* Light theme overrides */
 [data-theme="light"] .bibtex-status-tiles .bibtex-tile {
-    background: var(--workspace-bg-secondary, #ffffff);
-    border-bottom-color: var(--workspace-border-default, #d0d7de);
+  background: var(--workspace-bg-secondary, #ffffff);
+  border-color: var(--workspace-border-default, #d0d7de);
 }
 
 [data-theme="light"] .bibtex-status-tiles .bibtex-tile__header {
-    background: var(--workspace-bg-tertiary, #f6f8fa);
-    border-bottom-color: var(--workspace-border-default, #d0d7de);
+  background: var(--workspace-bg-tertiary, #f6f8fa);
+  border-bottom-color: var(--workspace-border-default, #d0d7de);
 }
 
 [data-theme="light"] .bibtex-status-tiles .bibtex-tile__title {
-    color: var(--text-primary, #24292f);
+  color: var(--text-primary, #24292f);
 }
 
 [data-theme="light"] .bibtex-status-tiles .bibtex-tile__content {
-    background: var(--workspace-bg-secondary, #ffffff);
+  background: var(--workspace-bg-secondary, #ffffff);
 }
 
 [data-theme="light"] .bibtex-status-tiles .bibtex-progress__bar {
-    background: var(--workspace-border-default, #d0d7de);
+  background: var(--workspace-border-default, #d0d7de);
 }
 
 [data-theme="light"] .bibtex-status-tiles .bibtex-progress__fill {
-    background: var(--status-success, #2ea043);
+  background: var(--status-success, #2ea043);
 }
 
 [data-theme="light"] .bibtex-status-tiles .terminal-log {
-    background: var(--workspace-bg-tertiary, #f6f8fa);
-    border-color: var(--workspace-border-default, #d0d7de);
-    color: var(--text-primary, #24292f);
+  background: var(--workspace-bg-tertiary, #f6f8fa);
+  border-color: var(--workspace-border-default, #d0d7de);
+  color: var(--text-primary, #24292f);
 }
 
 [data-theme="light"] .bibtex-status-tiles .bibtex-status-item {
-    background: var(--workspace-bg-tertiary, #f6f8fa);
+  background: var(--workspace-bg-tertiary, #f6f8fa);
 }
 
 [data-theme="light"] .bibtex-status-tiles .bibtex-empty-state {
-    color: var(--text-muted, #57606a);
+  color: var(--text-muted, #57606a);
 }
 
 [data-theme="light"] .bibtex-running__subtitle {
-    color: var(--text-muted, #57606a);
+  color: var(--text-muted, #57606a);
 }
 
 [data-theme="light"] .bibtex-status-tiles .bibtex-progress__labels {
-    color: var(--text-muted, #57606a);
+  color: var(--text-muted, #57606a);
 }

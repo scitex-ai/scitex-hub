@@ -182,3 +182,104 @@
   margin: 2px 0 0;
   font-style: italic;
 }
+
+/* Capabilities list */
+.mp-capabilities-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mp-capabilities-list li {
+  padding: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--workspace-border-default, var(--border-color));
+}
+
+.mp-capabilities-list li:last-child {
+  border-bottom: none;
+}
+
+.mp-capabilities-list li i {
+  color: var(--color-success-fg, #3fb950);
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+}
+
+/* File types */
+.mp-file-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mp-file-ext {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-family: monospace;
+  background: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  color: var(--text-primary);
+}
+
+/* AI integration info rows */
+.mp-info-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--workspace-border-default, var(--border-color));
+}
+
+.mp-info-row:last-child {
+  border-bottom: none;
+}
+
+.mp-info-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.mp-info-value {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mp-info-value code {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  font-family: monospace;
+  background: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  color: var(--text-primary);
+}
+
+/* Keyboard shortcut badge */
+.mp-badge-shortcut {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  background: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+/* License badge */
+.mp-badge-license {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  background: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  color: var(--text-muted);
+}

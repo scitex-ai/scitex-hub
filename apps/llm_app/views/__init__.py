@@ -6,6 +6,7 @@ from apps.llm_app.views.chat import (
     api_tts,
     api_tts_relay,
 )
+from apps.llm_app.views.context import api_eval_js, api_get_context, api_ui_action
 from apps.llm_app.views.providers import (
     api_add_provider,
     api_available_providers,
@@ -38,6 +39,9 @@ __all__ = [
     "api_list_skills",
     "api_get_skill",
     "api_agent_context",
+    "api_get_context",
+    "api_eval_js",
+    "api_ui_action",
     "usage_dashboard",
     "api_usage_chart",
 ]

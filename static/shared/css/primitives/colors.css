@@ -93,6 +93,35 @@
   --workspace-slider-active: #5f5e5d; /* Slider handle active */
   --workspace-ruler-bg: #e0dfdd; /* Warm ruler background */
   --workspace-ruler-border: #d0cfcd; /* Warm ruler borders */
+  --workspace-text-primary: #24292f; /* Dark text on light backgrounds */
+  --workspace-text-secondary: #57606a; /* Muted text on light backgrounds */
+  --workspace-bg-hover: rgba(0, 0, 0, 0.04); /* Subtle hover on light bg */
+  --workspace-bg-active: rgba(0, 0, 0, 0.08); /* Subtle active on light bg */
+
+  /* Module accent colors - top border for module-specific pane headers
+     Light mode: deeper/saturated to contrast against warm white backgrounds */
+  --module-accent-color: transparent; /* Default: no accent (shared panes) */
+  --module-accent-tint: transparent; /* Default: no tint (shared panes) */
+  --module-accent-writer: #a07040; /* Deep amber - manuscripts, writing */
+  --module-accent-writer-tint: rgba(160, 112, 64, 0.07);
+  --module-accent-scholar: #3d7a5e; /* Deep sage - academic, knowledge */
+  --module-accent-scholar-tint: rgba(61, 122, 94, 0.07);
+  --module-accent-visualizer: #2e7070; /* Deep teal - data visualization */
+  --module-accent-visualizer-tint: rgba(46, 112, 112, 0.07);
+  --module-accent-console: #3e6080; /* Deep steel blue - terminal, code */
+  --module-accent-console-tint: rgba(62, 96, 128, 0.07);
+  --module-accent-clew: #8a6a4a; /* Earth brown - pipelines, workflows */
+  --module-accent-clew-tint: rgba(138, 106, 74, 0.07);
+  --module-accent-hub: #6a5a8a; /* Muted purple - dashboard, overview */
+  --module-accent-hub-tint: rgba(106, 90, 138, 0.07);
+  --module-accent-example: #8a6030; /* Warm orange-brown - demos, templates */
+  --module-accent-example-tint: rgba(138, 96, 48, 0.07);
+  --module-accent-tools: #5a7a5a; /* Sage green - utilities, helpers */
+  --module-accent-tools-tint: rgba(90, 122, 90, 0.07);
+  --module-accent-marketplace: #7a5a6a; /* Muted rose - store, browsing */
+  --module-accent-marketplace-tint: rgba(122, 90, 106, 0.07);
+  --module-accent-modulemaker: #5a6a8a; /* Slate blue - creation, building */
+  --module-accent-modulemaker-tint: rgba(90, 106, 138, 0.07);
 
   /* Workspace icon color scheme (TOGGLE: swap _icon-green ↔ _icon-white below) */
   /* Green scheme */
@@ -249,6 +278,39 @@
   --workspace-slider-active: #8b949e; /* Slider handle active */
   --workspace-ruler-bg: #161b22; /* Rulers and guides background */
   --workspace-ruler-border: #21262d; /* Ruler borders */
+  --workspace-text-primary: #e6edf3; /* Light text on dark backgrounds */
+  --workspace-text-secondary: #8b949e; /* Muted text on dark backgrounds */
+  --workspace-bg-hover: rgba(177, 186, 196, 0.08); /* Subtle hover on dark bg */
+  --workspace-bg-active: rgba(
+    177,
+    186,
+    196,
+    0.12
+  ); /* Subtle active on dark bg */
+
+  /* Module accent colors - dark mode */
+  --module-accent-color: transparent;
+  --module-accent-tint: transparent;
+  --module-accent-writer: #d4a87a;
+  --module-accent-writer-tint: rgba(212, 168, 122, 0.08);
+  --module-accent-scholar: #6ba89a;
+  --module-accent-scholar-tint: rgba(107, 168, 154, 0.08);
+  --module-accent-visualizer: #6ab0b0;
+  --module-accent-visualizer-tint: rgba(106, 176, 176, 0.08);
+  --module-accent-console: #7a9ab8;
+  --module-accent-console-tint: rgba(122, 154, 184, 0.08);
+  --module-accent-clew: #b89070; /* Earth brown - pipelines, workflows */
+  --module-accent-clew-tint: rgba(184, 144, 112, 0.08);
+  --module-accent-hub: #9a8ab8; /* Soft purple - dashboard, overview */
+  --module-accent-hub-tint: rgba(154, 138, 184, 0.08);
+  --module-accent-example: #c08850; /* Warm orange - demos, templates */
+  --module-accent-example-tint: rgba(192, 136, 80, 0.08);
+  --module-accent-tools: #8ab88a; /* Sage green - utilities, helpers */
+  --module-accent-tools-tint: rgba(138, 184, 138, 0.08);
+  --module-accent-marketplace: #b88a9a; /* Soft rose - store, browsing */
+  --module-accent-marketplace-tint: rgba(184, 138, 154, 0.08);
+  --module-accent-modulemaker: #8a9ab8; /* Soft slate - creation, building */
+  --module-accent-modulemaker-tint: rgba(138, 154, 184, 0.08);
 
   /* Workspace icon color scheme (TOGGLE: swap _icon-green ↔ _icon-white below) */
   /* Green scheme (dark mode) */

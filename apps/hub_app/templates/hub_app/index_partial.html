@@ -1,4 +1,3 @@
-
 {% load static %}
 
 {% block module_css %}
@@ -32,8 +31,10 @@
                 {% include 'project_app/repository/browse_partials/browse_header.html' %}
                 {% include 'project_app/repository/browse_partials/browse_tabs.html' with active_tab='code' %}
                 {% include 'project_app/repository/browse_partials/browse_empty_state.html' %}
-                {% include 'project_app/repository/browse_partials/browse_file_browser.html' %}
-                {% include 'project_app/repository/browse_partials/browse_readme.html' %}
+                <div class="hub-browse-dynamic">
+                    {% include 'project_app/repository/browse_partials/browse_file_browser.html' %}
+                    {% include 'project_app/repository/browse_partials/browse_readme.html' %}
+                </div>
             </div>
         {% else %}
             <div class="hub-partial-no-project p-4 text-center text-muted">

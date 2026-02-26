@@ -54,6 +54,9 @@
   min-height: 36px;
   padding: 0 8px;
   gap: 4px;
+  overflow-x: auto;
+  min-width: 0;
+  flex: 1;
 }
 
 .scholar-tab {

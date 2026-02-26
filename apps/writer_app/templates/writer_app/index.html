@@ -7,6 +7,9 @@
     {% if project %}- {{ project.name }}{% endif %}
 {% endblock %}
 {% block extra_css %}
+    <!-- Writer variables (module accent color, theme tokens) -->
+    <link rel="stylesheet"
+          href="{% static 'writer_app/css/shared/variables.css' %}?v={{ build_id }}" />
     <!-- Critical CSS - loaded immediately (editor, PDF, core UI) -->
     <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
@@ -26,6 +29,8 @@
           href="{% static 'writer_app/css/components/pdfjs-viewer.css' %}?v={{ build_id }}" />
     <link rel="stylesheet"
           href="{% static 'shared/css/components/alerts.css' %}?v={{ build_id }}" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/migration-cards.css' %}?v={{ build_id }}" />
     <link rel="stylesheet"
           href="{% static 'shared/css/components/terminal-log.css' %}?v={{ build_id }}" />
     <!-- Writer Index UI Components CSS Modules (refactored from monolithic index-ui-components.css) -->

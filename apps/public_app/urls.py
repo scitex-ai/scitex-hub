@@ -240,6 +240,11 @@ urlpatterns = [
     ),
     # API endpoints
     path(
+        "api/mcp/tools/",
+        api_views.mcp_tools_api,
+        name="api_mcp_tools",
+    ),
+    path(
         "api/read-image-metadata/",
         api_views.read_image_metadata,
         name="api_read_image_metadata",

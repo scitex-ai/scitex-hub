@@ -177,9 +177,9 @@ class Migration(migrations.Migration):
                 "ordering": ["-date"],
                 "indexes": [
                     models.Index(
-                        fields=["user", "month"], name="code_app_re_user_id_434016_idx"
+                        fields=["user", "month"], name="console_app_user_id_bab55c_idx"
                     ),
-                    models.Index(fields=["date"], name="code_app_re_date_d156e2_idx"),
+                    models.Index(fields=["date"], name="console_app_date_4d3ab0_idx"),
                 ],
                 "unique_together": {("user", "date")},
             },
@@ -303,13 +303,13 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name="codeexecutionjob",
             index=models.Index(
-                fields=["user", "status"], name="code_app_co_user_id_a8fbc3_idx"
+                fields=["user", "status"], name="console_app_user_id_010fb7_idx"
             ),
         ),
         migrations.AddIndex(
             model_name="codeexecutionjob",
             index=models.Index(
-                fields=["created_at"], name="code_app_co_created_7321f1_idx"
+                fields=["created_at"], name="console_app_created_057b1e_idx"
             ),
         ),
     ]

@@ -102,7 +102,70 @@
   color: var(--text-primary);
 }
 
-/* Card-level toggle & uninstall buttons */
+/* Status dropdown (Installed/Disabled badge → menu) */
+.mp-status-dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+.mp-status-trigger {
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.mp-status-trigger .mp-caret {
+  font-size: 0.6rem;
+  margin-left: 3px;
+  opacity: 0.5;
+}
+
+.mp-status-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  white-space: nowrap;
+  background: var(--workspace-bg-secondary, #151515);
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  z-index: 50;
+  padding: 4px 0;
+}
+
+.mp-status-dropdown.open .mp-status-menu {
+  display: block;
+}
+
+.mp-status-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 5px 14px;
+  font-size: 0.78rem;
+  color: var(--text-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.mp-status-item:hover {
+  background: var(--workspace-bg-tertiary, rgba(255, 255, 255, 0.06));
+}
+
+.mp-status-item--danger {
+  color: #fc8181;
+}
+
+.mp-status-item--danger:hover {
+  background: rgba(252, 129, 129, 0.1);
+}
+
+/* Legacy: card-level toggle & uninstall buttons */
 .mp-installed-actions {
   display: inline-flex;
   align-items: center;

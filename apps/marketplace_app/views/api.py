@@ -1,143 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Marketplace views — browse, detail, my modules, and AJAX API endpoints.
-"""
+"""Marketplace API views — install, star, review, submit, and admin endpoints."""
 
 from __future__ import annotations
 
 import json
-import logging
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 
-from apps.project_app.services.project_utils import get_current_project
-from apps.workspace_app.registry import get_module
-
-from .models import (
+from ..models import (
     MarketplaceModule,
     ModuleInstallation,
     ModuleReview,
     ModuleStar,
 )
-
-logger = logging.getLogger(__name__)
-
-# Module-level flag — ensures built-in modules exist on first marketplace visit
-_builtins_ensured = False
+from .helpers import can_view_module, ensure_builtin_modules
 
 
-def _ensure_builtin_modules():
-    """Ensure all built-in modules exist in DB. Runs once per process."""
-    global _builtins_ensured
-    if _builtins_ensured:
-        return
-
-    from apps.workspace_app.registry import get_all_modules
-
-    registered_names = {m.name for m in get_all_modules()}
-    existing_names = set(
-        MarketplaceModule.objects.filter(is_builtin=True).values_list(
-            "module_name", flat=True
-        )
-    )
-
-    if registered_names <= existing_names:
-        _builtins_ensured = True
-        return
-
-    try:
-        from .management.commands.seed_marketplace import ensure_builtin_modules
-
-        created, _ = ensure_builtin_modules()
-        if created:
-            logger.info("[marketplace] Auto-seeded %d built-in modules", created)
-    except Exception:
-        logger.exception("[marketplace] Failed to auto-seed built-in modules")
-    _builtins_ensured = True
-
-
-# ---------------------------------------------------------------------------
-# Page views
-# ---------------------------------------------------------------------------
-def build_marketplace_context(request, current_project=None):
-    """Context builder for SPA tab switching."""
-    return _browse_context(request, current_project)
-
-
-def browse(request):
-    """Marketplace browse page — grid of module cards."""
-    current_project = (
-        get_current_project(request) if request.user.is_authenticated else None
-    )
-    context = _browse_context(request, current_project)
-    return render(request, "marketplace_app/browse.html", context)
-
-
-def detail(request, module_name):
-    """Module detail page — description, reviews, install button."""
-    _ensure_builtin_modules()
-    mp_module = get_object_or_404(MarketplaceModule, module_name=module_name)
-    reg_module = get_module(module_name)
-
-    is_installed = False
-    is_starred = False
-    user_review = None
-    if request.user.is_authenticated:
-        is_installed = ModuleInstallation.objects.filter(
-            user=request.user, module=mp_module
-        ).exists()
-        is_starred = ModuleStar.objects.filter(
-            user=request.user, module=mp_module
-        ).exists()
-        user_review = ModuleReview.objects.filter(
-            user=request.user, module=mp_module
-        ).first()
-
-    reviews = mp_module.reviews.select_related("user")[:20]
-    versions = mp_module.versions.all()[:10]
-
-    return render(
-        request,
-        "marketplace_app/detail.html",
-        {
-            "mp_module": mp_module,
-            "reg_module": reg_module,
-            "is_installed": is_installed,
-            "is_starred": is_starred,
-            "user_review": user_review,
-            "reviews": reviews,
-            "versions": versions,
-        },
-    )
-
-
-@login_required
-def my_modules(request):
-    """User's installed modules with enable/disable toggles."""
-    installations = (
-        ModuleInstallation.objects.filter(user=request.user)
-        .select_related("module")
-        .order_by("tab_order")
-    )
-    return render(
-        request,
-        "marketplace_app/my_modules.html",
-        {"installations": installations},
-    )
-
-
-# ---------------------------------------------------------------------------
-# API endpoints
-# ---------------------------------------------------------------------------
 @login_required
 @require_http_methods(["POST"])
 def api_install(request, module_name):
     """Install a module (add to user's workspace)."""
     mp_module = get_object_or_404(MarketplaceModule, module_name=module_name)
+    if not can_view_module(request.user, mp_module):
+        return JsonResponse(
+            {"success": False, "error": "Module not available."}, status=403
+        )
 
     _, created = ModuleInstallation.objects.get_or_create(
         user=request.user,
@@ -198,14 +89,13 @@ def api_uninstall(request, module_name):
 @require_http_methods(["POST"])
 def api_toggle(request, module_name):
     """Toggle module enabled/disabled state."""
-    _ensure_builtin_modules()
+    ensure_builtin_modules()
     mp_module = get_object_or_404(MarketplaceModule, module_name=module_name)
     installation = ModuleInstallation.objects.filter(
         user=request.user, module=mp_module
     ).first()
 
     if not installation:
-        # No record = implicitly enabled → toggle creates disabled record
         installation = ModuleInstallation.objects.create(
             user=request.user,
             module=mp_module,
@@ -343,67 +233,82 @@ def api_reorder(request):
     return JsonResponse({"success": True, "message": "Tab order updated."})
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-def _browse_context(request, current_project=None):
-    """Build browse page context."""
-    _ensure_builtin_modules()
-    category = request.GET.get("category", "")
-    sort = request.GET.get("sort", "popular")
-    q = request.GET.get("q", "")
+@login_required
+@require_http_methods(["POST"])
+def api_submit_for_review(request, module_name):
+    """Submit a private module for marketplace publication review."""
+    mp_module = get_object_or_404(
+        MarketplaceModule, module_name=module_name, author=request.user
+    )
 
-    modules = MarketplaceModule.objects.filter(visibility="public")
+    from ..models import ModuleSubmission
+    from ..validators import validate_module_for_publication
 
-    if category:
-        modules = modules.filter(category=category)
-    if q:
-        modules = modules.filter(module_name__icontains=q)
+    errors = validate_module_for_publication(mp_module)
+    if errors:
+        return JsonResponse({"success": False, "errors": errors}, status=400)
 
-    if sort == "newest":
-        modules = modules.order_by("-created_at")
-    elif sort == "rating":
-        modules = modules.order_by("-avg_rating", "-star_count")
-    else:
-        modules = modules.order_by("-star_count", "-install_count")
-
-    # Annotate with user-specific state
-    installed_names = set()
-    starred_names = set()
-    if request.user.is_authenticated:
-        installed_names = set(
-            ModuleInstallation.objects.filter(user=request.user).values_list(
-                "module__module_name", flat=True
-            )
-        )
-        starred_names = set(
-            ModuleStar.objects.filter(user=request.user).values_list(
-                "module__module_name", flat=True
-            )
+    if ModuleSubmission.objects.filter(module=mp_module, status="pending").exists():
+        return JsonResponse(
+            {"success": False, "error": "A submission is already pending review."},
+            status=400,
         )
 
-    module_list = []
-    for mp in modules:
-        reg = get_module(mp.module_name)
-        module_list.append(
-            {
-                "mp": mp,
-                "reg": reg,
-                "is_installed": mp.module_name in installed_names,
-                "is_starred": mp.module_name in starred_names,
-            }
+    ModuleSubmission.objects.create(module=mp_module, submitted_by=request.user)
+    return JsonResponse({"success": True, "message": "Submitted for review."})
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_review_submission(request, submission_id):
+    """Admin approves or rejects a module submission."""
+    if not request.user.is_staff:
+        return JsonResponse({"success": False, "error": "Staff only."}, status=403)
+
+    from django.utils import timezone
+
+    from ..models import ModuleSubmission
+
+    submission = get_object_or_404(ModuleSubmission, id=submission_id)
+    if submission.status != "pending":
+        return JsonResponse(
+            {"success": False, "error": "Submission already reviewed."}, status=400
         )
 
-    from .models import CATEGORY_CHOICES
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON."}, status=400)
 
-    return {
-        "current_project": current_project,
-        "modules": module_list,
-        "categories": CATEGORY_CHOICES,
-        "active_category": category,
-        "active_sort": sort,
-        "search_query": q,
-    }
+    action = data.get("action")  # "approve" or "reject"
+    note = data.get("note", "")
+
+    if action == "approve":
+        submission.status = "approved"
+        submission.reviewer = request.user
+        submission.review_note = note
+        submission.reviewed_at = timezone.now()
+        submission.save()
+        submission.module.visibility = "public"
+        submission.module.is_verified = True
+        submission.module.save(update_fields=["visibility", "is_verified"])
+        return JsonResponse(
+            {"success": True, "message": f"Approved {submission.module.module_name}."}
+        )
+    elif action == "reject":
+        submission.status = "rejected"
+        submission.reviewer = request.user
+        submission.review_note = note
+        submission.reviewed_at = timezone.now()
+        submission.save()
+        return JsonResponse(
+            {"success": True, "message": f"Rejected {submission.module.module_name}."}
+        )
+
+    return JsonResponse(
+        {"success": False, "error": "action must be 'approve' or 'reject'."},
+        status=400,
+    )
 
 
 # EOF

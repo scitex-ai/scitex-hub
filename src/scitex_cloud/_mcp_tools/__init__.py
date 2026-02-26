@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 from .api import register_api_tools
+from .context import register_context_tools
 from .gitea import register_gitea_tools
 
 __all__ = ["register_all_tools"]
@@ -15,6 +16,7 @@ def register_all_tools(mcp) -> None:
     """Register all module tools with the FastMCP server."""
     register_gitea_tools(mcp)
     register_api_tools(mcp)
+    register_context_tools(mcp)
 
 
 # EOF

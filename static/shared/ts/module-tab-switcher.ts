@@ -96,10 +96,26 @@ function updateActiveTab(name: string): void {
     const isActive = href.includes(`/${name}/`);
     btn.classList.toggle("active", isActive);
   });
+  // Set module accent color on the module pane (framework-level, not per-app)
+  const pane = document.getElementById("main-content");
+  if (pane) {
+    pane.setAttribute("data-module-accent", name);
+  }
 }
 
 function init(): void {
-  // Only activate when the three-column workspace layout is present.
+  // Always set accent for the initially active module (server-rendered).
+  const activeTab = document.querySelector(".module-tab-btn.active");
+  if (activeTab) {
+    const mod =
+      (activeTab as HTMLElement).dataset.module ??
+      extractModule(
+        (activeTab as HTMLAnchorElement).getAttribute("href") ?? "",
+      );
+    if (mod) updateActiveTab(mod);
+  }
+
+  // Tab switching via fetch only works with three-column workspace layout.
   if (!document.querySelector("#workspace-three-col.workspace-three-col"))
     return;
 

@@ -159,6 +159,11 @@
   padding: 0 !important; /* workspace pages need no extra padding */
 }
 
+/* Override body.workspace-page #main-content { overflow: hidden } for module pane scrolling */
+body.workspace-page #main-content.ws-module-pane {
+  overflow: auto;
+}
+
 /* Suppress body-level margin-left/right rules that the fixed AI panel sets.
    Inside the three-col layout the panel is inline (position: relative),
    so no margin compensation is needed on #main-content. */
@@ -254,16 +259,21 @@ body.scitex-ai-open #workspace-three-col #main-content {
   color: var(--danger-color, #f85149);
 }
 
-/* Agent sources section */
+/* Agent sources section — expand to fill remaining space */
 .ai-settings-section {
   padding-top: 0.25rem;
   border-top: 1px solid var(--border-default, #30363d);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .ai-agent-sources {
   font-size: 0.7rem;
   color: var(--text-secondary, #8b949e);
-  max-height: 200px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
 }

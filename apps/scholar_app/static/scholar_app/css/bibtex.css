@@ -78,33 +78,12 @@
   justify-content: center;
 }
 
-/* Green pulsing dot */
+/* Green status dot (no animation) */
 .green-pulse-dot {
-  position: absolute;
-  width: 20px;
-  height: 20px;
+  width: 8px;
+  height: 8px;
   background: var(--success-color);
   border-radius: 50%;
-  top: 5px;
-  right: 5px;
-  animation: pulse-green 2s ease-in-out infinite;
-  box-shadow: 0 0 0 0 var(--success-color);
-  z-index: 2;
-}
-
-@keyframes pulse-green {
-  0% {
-    box-shadow: 0 0 0 0 rgba(74, 155, 126, 0.7);
-    transform: scale(1);
-  }
-  50% {
-    box-shadow: 0 0 0 10px rgba(74, 155, 126, 0);
-    transform: scale(1.1);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(74, 155, 126, 0);
-    transform: scale(1);
-  }
 }
 
 /* Spinner wrapper */
@@ -116,40 +95,17 @@
   z-index: 1;
 }
 
-/* Additional pulse animation for the spinner */
-@keyframes spin-pulse {
-  0% {
-    transform: rotate(0deg) scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: rotate(180deg) scale(1.05);
-    opacity: 0.9;
-  }
-  100% {
-    transform: rotate(360deg) scale(1);
-    opacity: 1;
-  }
-}
-
+/* Spinner */
 .spinner-wrapper .fa-spinner {
-  animation: spin-pulse 1.5s linear infinite;
+  animation: fa-spin 1.5s linear infinite;
 }
 
-/* Glow effect for running indicator */
-#enrichmentRunningIndicator {
-  animation: border-glow 2s ease-in-out infinite;
-}
-
-@keyframes border-glow {
-  0%,
-  100% {
-    border-color: var(--success-color);
-    box-shadow: 0 4px 12px rgba(74, 155, 126, 0.15);
+@keyframes fa-spin {
+  0% {
+    transform: rotate(0deg);
   }
-  50% {
-    border-color: var(--success-color);
-    box-shadow: 0 4px 20px rgba(74, 155, 126, 0.35);
+  100% {
+    transform: rotate(360deg);
   }
 }
 

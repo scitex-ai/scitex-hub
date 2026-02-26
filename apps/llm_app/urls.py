@@ -50,6 +50,10 @@ urlpatterns = [
     path("api/skills/<str:app_name>/", views.api_get_skill, name="api_get_skill"),
     # Agent context: full snapshot of what AI agents receive (downloadable)
     path("api/agent-context/", views.api_agent_context, name="api_agent_context"),
+    # Cloud context API for MCP tools / AI agents
+    path("api/context/", views.api_get_context, name="api_get_context"),
+    path("api/eval-js/", views.api_eval_js, name="api_eval_js"),
+    path("api/ui-action/", views.api_ui_action, name="api_ui_action"),
     # Usage dashboard
     path("usage/", views.usage_dashboard, name="usage_dashboard"),
     path(

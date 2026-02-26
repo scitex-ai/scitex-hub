@@ -32,7 +32,7 @@ _DESCRIPTIONS = {
     "scholar": "Literature search, BibTeX management, and citation enrichment powered by scitex.scholar.",
     "vis": "Data visualization workspace for creating publication-ready figures.",
     "console": "Python console with file browser for running scripts and managing project files.",
-    "clew": "Research discovery — explore connected papers, authors, and citation networks.",
+    "clew": "Verification system — trace manuscript claims (statistics, figures, tables) back through computational chains to source data.",
     "hub": "Project dashboard showing recent activity, file browser, and quick actions.",
     "tools": "Collection of standalone research utilities — converters, calculators, and helpers.",
     "example": "Reference implementation for module developers. Copy this to create your own module.",
@@ -41,7 +41,7 @@ _DESCRIPTIONS = {
 }
 
 # Modules under active development
-_WIP_MODULES = {"modulemaker", "example", "clew", "vis"}
+_WIP_MODULES = {"modulemaker", "example", "clew", "vis", "marketplace"}
 
 
 def ensure_builtin_modules(author_username="ywatanabe"):

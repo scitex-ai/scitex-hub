@@ -1,0 +1,48 @@
+{% comment %}
+Hub inline file viewer — returned by /hub/api/file/?path=...
+Displays file content within the Hub pane without navigating away.
+{% endcomment %}
+{% if breadcrumbs %}
+    <nav class="hub-breadcrumb" aria-label="File path">
+        <a href="#" class="hub-breadcrumb-link" data-hub-path="">{{ project.slug }}</a>
+        {% for crumb in breadcrumbs %}
+            <span class="hub-breadcrumb-sep">/</span>
+            {% if crumb.is_last %}
+                <span class="hub-breadcrumb-current">{{ crumb.name }}</span>
+            {% else %}
+                <a href="#" class="hub-breadcrumb-link" data-hub-path="{{ crumb.path }}">{{ crumb.name }}</a>
+            {% endif %}
+        {% endfor %}
+    </nav>
+{% endif %}
+<div class="hub-file-viewer">
+    <div class="hub-file-header">
+        <span class="hub-file-name">{{ file_name }}</span>
+        <span class="hub-file-size">{{ file_size|filesizeformat }}</span>
+    </div>
+    <div class="hub-file-content">
+        {% if render_type == "image" %}
+            <div class="hub-file-image-wrap">
+                <img src="/{{ project.owner.username }}/{{ project.slug }}/blob/{{ file_path }}?mode=raw"
+                     alt="{{ file_name }}"
+                     class="hub-file-image" />
+            </div>
+        {% elif render_type == "pdf" %}
+            <div class="hub-file-pdf-wrap">
+                <iframe src="/{{ project.owner.username }}/{{ project.slug }}/blob/{{ file_path }}?mode=raw"
+                        class="hub-file-pdf"></iframe>
+            </div>
+        {% elif render_type == "markdown" and file_html %}
+            <div class="markdown-body hub-file-markdown">{{ file_html|safe }}</div>
+        {% elif render_type == "code" or render_type == "text" %}
+            <div class="hub-file-code-wrap">
+                <pre><code {% if language %}class="language-{{ language }}"{% endif %}>{{ file_content }}</code></pre>
+            </div>
+        {% elif render_type == "binary" %}
+            <div class="hub-file-binary">
+                <i class="fas fa-file-archive"></i>
+                <p>{{ file_content }}</p>
+            </div>
+        {% endif %}
+    </div>
+</div>

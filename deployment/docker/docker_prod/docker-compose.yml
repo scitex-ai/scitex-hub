@@ -72,6 +72,7 @@ services:
       - OPENALEX_LOCAL_DB=/data/openalex/openalex.db
       - OPENALEX_LOCAL_MODE=db
       - SCITEX_DIR=/app/.scitex
+      - BUILD_ID=b0a2a30c
     depends_on:
       pgbouncer:
         condition: service_healthy
@@ -197,6 +198,7 @@ services:
       - SCITEX_CLOUD_ENV=prod
       - PYTHONUNBUFFERED=1
       - SCITEX_DIR=/app/.scitex
+      - BUILD_ID=b0a2a30c
 
     depends_on:
       pgbouncer:
@@ -237,6 +239,7 @@ services:
       - SCITEX_CLOUD_ENV=prod
       - PYTHONUNBUFFERED=1
       - SCITEX_DIR=/app/.scitex
+      - BUILD_ID=b0a2a30c
 
     depends_on:
       pgbouncer:
@@ -273,6 +276,7 @@ services:
       - SCITEX_CLOUD_ENV=prod
       - PYTHONUNBUFFERED=1
       - SCITEX_DIR=/app/.scitex
+      - BUILD_ID=b0a2a30c
 
     depends_on:
       - redis

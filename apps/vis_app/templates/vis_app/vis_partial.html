@@ -1,517 +1,519 @@
-
 {% load static vite tree_preseed %}
 
-    <!-- Vis CSS -- moved to <head> by unified-workspace.ts -->
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
-    <!-- Vis Editor CSS Modules (refactored from monolithic vis.css) -->
-    <link rel="stylesheet" href="{% static 'vis_app/css/vis/variables.css' %}" />
-    <link rel="stylesheet" href="{% static 'vis_app/css/vis/layout.css' %}" />
-    <link rel="stylesheet" href="{% static 'vis_app/css/vis/ribbon.css' %}" />
-    <link rel="stylesheet" href="{% static 'vis_app/css/vis/sidebar.css' %}" />
-    <link rel="stylesheet" href="{% static 'vis_app/css/vis/workspace.css' %}" />
-    <link rel="stylesheet" href="{% static 'vis_app/css/vis/properties-panel.css' %}" />
-    <link rel="stylesheet" href="{% static 'vis_app/css/vis/status-bar.css' %}" />
-    <link rel="stylesheet" href="{% static 'vis_app/css/vis/theme.css' %}" />
-    <link rel="stylesheet" href="{% static 'vis_app/css/vis/split-view.css' %}" />
-    <!-- Shared data-table CSS (used by vis, code apps) -->
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/data-table/index.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/data-table/data-table.css' %}" />
-    <link rel="stylesheet" href="{% static 'vis_app/css/vis/controls.css' %}" />
-    <link rel="stylesheet" href="{% static 'vis_app/css/vis/drag-drop.css' %}" />
-    <link rel="stylesheet" href="{% static 'vis_app/css/vis/resize-handles.css' %}" />
-    <link rel="stylesheet" href="{% static 'vis_app/css/vis/tree.css' %}" />
-    <link rel="stylesheet" href="{% static 'vis_app/css/vis/scrollbars.css' %}" />
-    <link rel="stylesheet" href="{% static 'vis_app/css/editor-inline.css' %}" />
-    <link rel="stylesheet" href="{% static 'vis_app/css/vis/gallery-categories.css' %}" />
-    <link rel="stylesheet" href="{% static 'vis_app/css/vis/stats.css' %}" />
-    <link rel="stylesheet" href="{% static 'vis_app/css/vis/bundle-gallery.css' %}" />
-    <style>
-        /* Hide vis sidebar -- unified workspace provides its own file tree */
-        .vis-sidebar {
-            display: none !important;
-        }
+<!-- Vis CSS -- moved to <head> by unified-workspace.ts -->
+<link rel="stylesheet"
+      href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
+<link rel="stylesheet"
+      href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
+<!-- Vis Editor CSS Modules (refactored from monolithic vis.css) -->
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/variables.css' %}" />
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/layout.css' %}" />
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/ribbon.css' %}" />
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/sidebar.css' %}" />
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/workspace.css' %}" />
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/properties-panel.css' %}" />
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/status-bar.css' %}" />
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/theme.css' %}" />
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/split-view.css' %}" />
+<!-- Shared data-table CSS (used by vis, code apps) -->
+<link rel="stylesheet"
+      href="{% static 'shared/css/components/data-table/index.css' %}" />
+<link rel="stylesheet"
+      href="{% static 'shared/css/components/data-table/data-table.css' %}" />
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/controls.css' %}" />
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/drag-drop.css' %}" />
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/resize-handles.css' %}" />
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/tree.css' %}" />
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/scrollbars.css' %}" />
+<link rel="stylesheet" href="{% static 'vis_app/css/editor-inline.css' %}" />
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/gallery-categories.css' %}" />
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/stats.css' %}" />
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/bundle-gallery.css' %}" />
+<style>
+    /* Hide vis sidebar -- unified workspace provides its own file tree */
+    .vis-sidebar {
+        display: none !important;
+    }
 
-        /* Hide the sidebar resizer that targets .vis-sidebar */
-        #sidebar-resizer[data-target=".vis-sidebar"] {
-            display: none !important;
-        }
+    /* Hide the sidebar resizer that targets .vis-sidebar */
+    #sidebar-resizer[data-target=".vis-sidebar"] {
+        display: none !important;
+    }
 
-        /* Make vis-editor-container fill available space */
-        .vis-editor-container {
-            display: flex;
-            flex: 1;
-            height: 100%;
-            overflow: hidden;
-        }
+    /* Make vis-editor-container fill available space */
+    .vis-editor-container {
+        display: flex;
+        flex: 1;
+        height: 100%;
+        overflow: hidden;
+    }
 
-        /* Make vis-main fill all remaining space (no sidebar) */
-        .vis-main {
-            flex: 1;
-            display: flex;
-            height: 100%;
-            overflow: hidden;
-        }
-    </style>
-    <!-- ========================================================================
+    /* Make vis-main fill all remaining space (no sidebar) */
+    .vis-main {
+        flex: 1;
+        display: flex;
+        height: 100%;
+        overflow: hidden;
+    }
+</style>
+<!-- ========================================================================
      VIS EDITOR CONTAINER
      ======================================================================== -->
-    <div class="vis-editor-container"
-         {% if current_project %}data-project-owner="{{ current_project.owner.username }}" data-project-slug="{{ current_project.slug }}" data-workspace-tree-url="/{{ current_project.owner.username }}/{{ current_project.slug }}/api/file-tree/"{% endif %}>
-        <!-- ========================================================================
+<div class="vis-editor-container"
+     {% if current_project %}data-project-owner="{{ current_project.owner.username }}" data-project-slug="{{ current_project.slug }}" data-workspace-tree-url="/{{ current_project.owner.username }}/{{ current_project.slug }}/api/file-tree/"{% endif %}>
+    <!-- ========================================================================
          MAIN CONTENT AREA
          ======================================================================== -->
-        <div class="vis-main">
-            <!-- .vis-sidebar and sidebar-resizer are omitted:
+    <div class="vis-main">
+        <!-- .vis-sidebar and sidebar-resizer are omitted:
                  the unified workspace provides its own left file tree sidebar -->
-            <!-- CENTER WORKSPACE -->
-            <div class="vis-workspace">
-                <!-- figrecipe Editor (iframe) -->
-                <iframe id="figrecipe-frame"
-                        src="{% if figrecipe_embedded %}/vis-react/figrecipe/?mode=embedded{% endif %}"
-                        style="{% if figrecipe_embedded %}display:block;{% else %}display:none;{% endif %}
-                               width:100%;
-                               height:100%;
-                               border:none;
-                               position:absolute;
-                               inset:0;
-                               z-index:10;
-                               background:var(--bg-primary)"
-                        allow="clipboard-read; clipboard-write">
-                </iframe>
-                <!-- Split View: Data Table + Canvas (hidden in figrecipe embedded mode) -->
-                <div class="workspace-split-view" {% if figrecipe_embedded %}style="display:none"{% endif %}>
-                    <!-- Left: Data Table -->
-                    <div class="split-pane split-pane-left collapsible-panel"
-                         id="data-pane"
-                         data-hide-title-expanded>
-                        <div class="pane-header">
-                            <!-- Data Dropdown (replaces tabs for horizontal space efficiency) -->
-                            <div class="data-dropdown-container" id="data-dropdown-container">
-                                <button class="data-dropdown-toggle"
-                                        id="data-dropdown-toggle"
-                                        title="Select data table">
-                                    <i class="fas fa-table"></i>
-                                    <span class="data-dropdown-label" id="data-dropdown-label">No tables</span>
-                                    <i class="fas fa-chevron-down data-dropdown-arrow"></i>
-                                </button>
-                                <div class="data-dropdown-menu" id="data-dropdown-menu">
-                                    <!-- Dropdown items will be inserted here by DataTabManager -->
-                                </div>
-                                <button class="data-new-btn" id="data-tab-new" title="New data table">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                            <span class="badge badge-wip" style="margin-left:4px">WIP</span>
-                            <div class="pane-header-buttons">
-                                <!-- Import/Header/Index moved to right-click context menu -->
-                                <button class="pane-header-btn"
-                                        id="export-plot-csv-btn"
-                                        title="Export current plot data as CSV">
-                                    <i class="fas fa-file-export"></i>
-                                </button>
-                                <button class="pane-header-btn" id="transform-sort" title="Sort data">
-                                    <i class="fas fa-sort"></i>
-                                </button>
-                                <button class="pane-header-btn" id="transform-filter" title="Filter data">
-                                    <i class="fas fa-filter"></i>
-                                </button>
-                                <button class="pane-header-btn"
-                                        id="table-help-btn"
-                                        title="Show keyboard shortcuts and usage tips">
-                                    <i class="fas fa-keyboard"></i>
-                                </button>
-                                <!-- Revert to Original (shown when data is modified) -->
-                                <button class="pane-header-btn revert-btn"
-                                        id="revert-data-btn"
-                                        title="Revert to original gallery data"
-                                        style="display: none">
-                                    <i class="fas fa-undo"></i>
-                                    <span>Revert</span>
-                                </button>
-                            </div>
-                            <button class="pane-resize-btn panel-toggle-btn left-panel-toggle"
-                                    id="data-pane-toggle"
-                                    title="Toggle Data Pane">
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <span class="panel-title">Data</span>
-                        </div>
-                        <div class="pane-content">
-                            <div class="data-table-container" id="data-table-container">
-                                <div class="empty-state" id="data-empty-state">
-                                    <i class="fas fa-table"></i>
-                                    <p>No data loaded</p>
-                                    <small>Import CSV or Excel, or drag & drop files here</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Resizer between Data Table and Canvas -->
-                    <div class="split-resizer panel-resizer"
-                         id="split-resizer"
-                         data-panel-resizer
-                         data-storage-prefix="scitex-vis-"
-                         data-target="#data-pane"
-                         data-direction="left"
-                         data-min-width="40"
-                         data-default-width="400"
-                         data-storage-key="data-pane-width"
-                         data-collapse-key="data-pane-collapsed"
-                         data-toggle-btn="data-pane-toggle"></div>
-                    <!-- Right: Canvas -->
-                    <div class="split-pane split-pane-right collapsible-panel"
-                         id="canvas-pane"
-                         data-hide-title-expanded>
-                        <div class="pane-header">
-                            <button class="pane-resize-btn panel-toggle-btn right-panel-toggle"
-                                    id="canvas-pane-toggle"
-                                    title="Toggle Canvas Pane">
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                            <span class="panel-title">Canvas</span>
-                            <!-- Figure Dropdown (replaces tabs for horizontal space efficiency) -->
-                            <div class="figure-dropdown-container" id="figure-dropdown-container">
-                                <button class="figure-dropdown-toggle"
-                                        id="figure-dropdown-toggle"
-                                        title="Select figure">
-                                    <i class="fas fa-paint-brush"></i>
-                                    <span class="figure-dropdown-label" id="figure-dropdown-label">No figures</span>
-                                    <i class="fas fa-chevron-down figure-dropdown-arrow"></i>
-                                </button>
-                                <div class="figure-dropdown-menu" id="figure-dropdown-menu">
-                                    <!-- Dropdown items will be inserted here by CanvasTabManager -->
-                                </div>
-                                <button class="figure-new-btn" id="canvas-tab-new" title="New figure">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                            <span class="badge badge-wip" style="margin-left:4px">WIP</span>
-                            <!-- Gallery Category Buttons (hover to see plot types) -->
-                            <div class="gallery-categories" id="gallery-categories">
-                                <button class="category-btn"
-                                        data-category="line"
-                                        title="Line plots: time series, trends">
-                                    <i class="fas fa-chart-line"></i>
-                                    <span>Line</span>
-                                </button>
-                                <button class="category-btn" data-category="scatter" title="Scatter & point plots">
-                                    <i class="fas fa-braille"></i>
-                                    <span>Scatter</span>
-                                </button>
-                                <button class="category-btn" data-category="categorical" title="Bar, box, violin plots">
-                                    <i class="fas fa-chart-bar"></i>
-                                    <span>Categorical</span>
-                                </button>
-                                <button class="category-btn" data-category="distribution" title="Histograms, KDE, ECDF">
-                                    <i class="fas fa-chart-column"></i>
-                                    <span>Distribution</span>
-                                </button>
-                                <button class="category-btn" data-category="statistical" title="Mean/CI, error bars">
-                                    <i class="fas fa-square-root-variable"></i>
-                                    <span>Statistical</span>
-                                </button>
-                                <button class="category-btn" data-category="grid" title="Heatmaps, images, matrices">
-                                    <i class="fas fa-th"></i>
-                                    <span>Grid</span>
-                                </button>
-                                <button class="category-btn" data-category="area" title="Fill regions, ranges">
-                                    <i class="fas fa-chart-area"></i>
-                                    <span>Area</span>
-                                </button>
-                                <button class="category-btn" data-category="contour" title="Contour lines">
-                                    <i class="fas fa-layer-group"></i>
-                                    <span>Contour</span>
-                                </button>
-                                <button class="category-btn" data-category="vector" title="Quiver, streamlines">
-                                    <i class="fas fa-arrows-alt"></i>
-                                    <span>Vector</span>
-                                </button>
-                                <button class="category-btn" data-category="special" title="Pie, raster, annotations">
-                                    <i class="fas fa-shapes"></i>
-                                    <span>Special</span>
-                                </button>
-                                <!-- Dev: Plot All button -->
-                                <button class="category-btn dev-btn"
-                                        id="plot-all-types-btn"
-                                        title="[Dev] Load all plot types for testing">
-                                    <i class="fas fa-th-large"></i>
-                                    <span>All</span>
-                                </button>
-                            </div>
-                            <!-- Thumbnail popup (shown on hover) -->
-                            <div class="gallery-popup" id="gallery-popup">
-                                <div class="popup-header">
-                                    <span class="popup-title">Select Plot Type</span>
-                                    <span class="popup-category"></span>
-                                </div>
-                                <div class="popup-grid" id="popup-grid">
-                                    <!-- Thumbnails loaded dynamically -->
-                                </div>
-                            </div>
-                            <div class="pane-header-buttons pane-header-right">
-                                <!-- Debug: Show Hit Regions Toggle -->
-                                <button class="pane-header-btn debug-btn"
-                                        id="toggle-hit-regions"
-                                        title="Toggle hit region overlay (debug)">
-                                    <i class="fas fa-bullseye"></i>
-                                </button>
-                                <!-- Download Dropdown -->
-                                <div class="dropdown-container" id="download-dropdown">
-                                    <button class="pane-header-btn dropdown-toggle"
-                                            id="download-btn"
-                                            title="Download figure (PNG, SVG, PDF, JPEG, FIGZ)">
-                                        <i class="fas fa-download"></i>
-                                    </button>
-                                    <div class="dropdown-menu" id="download-menu">
-                                        <button class="dropdown-item" id="export-png" data-format="png">
-                                            <i class="fas fa-file-image"></i> PNG <span class="format-hint">(300 DPI)</span>
-                                        </button>
-                                        <button class="dropdown-item" id="export-svg" data-format="svg">
-                                            <i class="fas fa-bezier-curve"></i> SVG <span class="format-hint">(Vector)</span>
-                                        </button>
-                                        <button class="dropdown-item" id="export-pdf" data-format="pdf">
-                                            <i class="fas fa-file-pdf"></i> PDF
-                                        </button>
-                                        <button class="dropdown-item" id="export-jpeg" data-format="jpeg">
-                                            <i class="fas fa-file-image"></i> JPEG <span class="format-hint">(95%)</span>
-                                        </button>
-                                        <div class="dropdown-divider"></div>
-                                        <button class="dropdown-item" id="export-figz" data-format="figz">
-                                            <i class="fas fa-file-archive"></i> FIGZ Bundle <span class="format-hint">(.figz)</span>
-                                        </button>
-                                        <button class="dropdown-item" id="export-figz-d" data-format="figz-d">
-                                            <i class="fas fa-folder-open"></i> FIGZ.D Bundle <span class="format-hint">(.figz.d)</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <button class="pane-header-btn" id="btn-save" title="Save plot">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                </button>
-                                <!-- Theme Toggle Button -->
-                                <button class="pane-header-btn theme-toggle-btn"
-                                        id="canvas-theme-toggle"
-                                        title="Toggle light/dark theme">
-                                    <span class="theme-icon">🌓</span>
-                                </button>
-                                <!-- Keyboard Shortcuts Help -->
-                                <button class="pane-header-btn" id="btn-shortcuts-help" title="Keyboard shortcuts (?)">
-                                    <i class="fas fa-keyboard"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="pane-content canvas-content">
-                            <!-- Rulers Area: 3x3 CSS Grid layout (like vis app) -->
-                            <div class="vis-rulers-area" id="rulers-area">
-                                <!-- Top-left corner (click ruler labels to toggle mm/inch) -->
-                                <div class="ruler-corner ruler-corner-tl"></div>
-                                <!-- Top ruler -->
-                                <svg class="ruler ruler-horizontal ruler-top" id="ruler-h">
-                                </svg>
-                                <!-- Top-right corner -->
-                                <div class="ruler-corner ruler-corner-tr"></div>
-                                <!-- Left ruler -->
-                                <svg class="ruler ruler-vertical ruler-left" id="ruler-v">
-                                </svg>
-                                <!-- Canvas container -->
-                                <div class="vis-canvas-container" id="canvas-container">
-                                    <canvas id="vis-canvas"></canvas>
-                                </div>
-                                <!-- Right ruler -->
-                                <svg class="ruler ruler-vertical ruler-right" id="ruler-r">
-                                </svg>
-                                <!-- Bottom-left corner -->
-                                <div class="ruler-corner ruler-corner-bl"></div>
-                                <!-- Bottom ruler -->
-                                <svg class="ruler ruler-horizontal ruler-bottom" id="ruler-b">
-                                </svg>
-                                <!-- Bottom-right corner -->
-                                <div class="ruler-corner ruler-corner-br"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Resizer between Canvas and Properties -->
-                    <div class="split-resizer panel-resizer"
-                         id="canvas-resizer"
-                         data-panel-resizer
-                         data-storage-prefix="scitex-vis-"
-                         data-target="#canvas-pane"
-                         data-direction="left"
-                         data-min-width="40"
-                         data-default-width="600"
-                         data-storage-key="canvas-pane-width"
-                         data-collapse-key="canvas-pane-collapsed"
-                         data-toggle-btn="canvas-pane-toggle"></div>
-                </div>
-            </div>
-            <!-- Properties Resizer (hidden in figrecipe embedded mode — figrecipe has its own) -->
-            <div class="panel-resizer"
-                 id="workspace-resizer"
-                 data-panel-resizer
-                 data-storage-prefix="scitex-vis-"
-                 data-target=".vis-properties"
-                 data-direction="right"
-                 data-min-width="40"
-                 data-default-width="320"
-                 data-storage-key="properties-width"
-                 data-collapse-key="vis-properties-collapsed"
-                 data-toggle-btn="properties-toggle"
-                 {% if figrecipe_embedded %}style="display:none"{% endif %}></div>
-            <!-- RIGHT DETAILS PANEL (hidden in figrecipe embedded mode) -->
-            <div class="vis-properties collapsible-panel" id="vis-properties"
+        <!-- CENTER WORKSPACE -->
+        <div class="vis-workspace">
+            <!-- figrecipe Editor (iframe) -->
+            <iframe id="figrecipe-frame"
+                    src="{% if figrecipe_embedded %}/vis-react/figrecipe/?mode=embedded{% endif %}"
+                    style="{% if figrecipe_embedded %}display:block;
+                           {% else %}display:none;
+                           {% endif %} width:100%;
+                           height:100%;
+                           border:none;
+                           position:absolute;
+                           inset:0;
+                           z-index:10;
+                           background:var(--bg-primary)"
+                    allow="clipboard-read; clipboard-write">
+            </iframe>
+            <!-- Split View: Data Table + Canvas (hidden in figrecipe embedded mode) -->
+            <div class="workspace-split-view"
                  {% if figrecipe_embedded %}style="display:none"{% endif %}>
-                <div class="properties-header">
-                    <button class="properties-toggle-btn panel-toggle-btn right-panel-toggle"
-                            id="properties-toggle"
-                            title="Toggle details (Zen: F11/Alt+Z)">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                    <span class="panel-title">
-                        <i class="fas fa-sliders-h"></i> Details
-                    </span>
-                </div>
-                <!-- Selected Item Info -->
-                <div class="selected-item-info">
-                    <div class="selected-item-header">
-                        <i class="fas fa-info-circle selected-item-icon"></i>
-                        <span class="selected-item-type">No selection</span>
-                    </div>
-                    <div class="selected-item-label">Select an item from the tree to view properties</div>
-                </div>
-                <!-- Properties Tabs -->
-                <div class="properties-tabs">
-                    <button class="properties-tab active" data-tab="current">
-                        <i class="fas fa-edit"></i> Current
-                    </button>
-                    <button class="properties-tab" data-tab="defaults">
-                        <i class="fas fa-palette"></i> Preset
-                    </button>
-                </div>
-                <div class="properties-content">
-                    <!-- Current Properties Tab Content -->
-                    <div id="tab-current" class="properties-tab-content active">
-                        <div id="dynamic-properties" class="dynamic-properties">
-                            <!-- Content will be dynamically populated based on selection -->
+                <!-- Left: Data Table -->
+                <div class="split-pane split-pane-left collapsible-panel"
+                     id="data-pane"
+                     data-hide-title-expanded>
+                    <div class="pane-header" data-pane-type="module">
+                        <!-- Data Dropdown (replaces tabs for horizontal space efficiency) -->
+                        <div class="data-dropdown-container" id="data-dropdown-container">
+                            <button class="data-dropdown-toggle"
+                                    id="data-dropdown-toggle"
+                                    title="Select data table">
+                                <i class="fas fa-table"></i>
+                                <span class="data-dropdown-label" id="data-dropdown-label">No tables</span>
+                                <i class="fas fa-chevron-down data-dropdown-arrow"></i>
+                            </button>
+                            <div class="data-dropdown-menu" id="data-dropdown-menu">
+                                <!-- Dropdown items will be inserted here by DataTabManager -->
+                            </div>
+                            <button class="data-new-btn" id="data-tab-new" title="New data table">
+                                <i class="fas fa-plus"></i>
+                            </button>
                         </div>
+                        <span class="badge badge-wip" style="margin-left:4px">WIP</span>
+                        <div class="pane-header-buttons">
+                            <!-- Import/Header/Index moved to right-click context menu -->
+                            <button class="pane-header-btn"
+                                    id="export-plot-csv-btn"
+                                    title="Export current plot data as CSV">
+                                <i class="fas fa-file-export"></i>
+                            </button>
+                            <button class="pane-header-btn" id="transform-sort" title="Sort data">
+                                <i class="fas fa-sort"></i>
+                            </button>
+                            <button class="pane-header-btn" id="transform-filter" title="Filter data">
+                                <i class="fas fa-filter"></i>
+                            </button>
+                            <button class="pane-header-btn"
+                                    id="table-help-btn"
+                                    title="Show keyboard shortcuts and usage tips">
+                                <i class="fas fa-keyboard"></i>
+                            </button>
+                            <!-- Revert to Original (shown when data is modified) -->
+                            <button class="pane-header-btn revert-btn"
+                                    id="revert-data-btn"
+                                    title="Revert to original gallery data"
+                                    style="display: none">
+                                <i class="fas fa-undo"></i>
+                                <span>Revert</span>
+                            </button>
+                        </div>
+                        <button class="pane-resize-btn panel-toggle-btn left-panel-toggle"
+                                id="data-pane-toggle"
+                                title="Toggle Data Pane">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span class="panel-title">Data</span>
                     </div>
-                    <!-- Defaults Tab Content -->
-                    <div id="tab-defaults" class="properties-tab-content">
-                        <div id="defaults-properties" class="defaults-properties">
-                            <!-- Live Figure Preview -->
-                            <div class="preset-visual-guide preset-figure-preview">
-                                <div class="blueprint-title">
-                                    <span>
-                                        <i class="fas fa-chart-line"></i> Style Preview
-                                    </span>
-                                    <button id="preview-refresh-btn" class="preview-refresh-btn" title="Refresh preview">
-                                        <i class="fas fa-sync-alt"></i> Refresh
-                                    </button>
-                                </div>
-                                <div class="figure-preview-container">
-                                    <img id="live-preview-image"
-                                         alt="Style Preview"
-                                         style="display: none;
-                                                max-width: 100%;
-                                                height: auto" />
-                                    <div id="preview-loading-overlay" class="preview-loading" style="display: none;">
-                                        <i class="fas fa-spinner fa-spin"></i> Rendering...
-                                    </div>
-                                    <div id="preview-placeholder" class="preview-placeholder">
-                                        <i class="fas fa-image"></i>
-                                        <span>Click Refresh to see preview</span>
-                                    </div>
-                                </div>
-                                <!-- Quick label editors below preview -->
-                                <div class="preview-label-editors">
-                                    <div class="label-editor-row">
-                                        <label>Title</label>
-                                        <input id="diagram-title-input"
-                                               type="text"
-                                               value="Title"
-                                               data-field="title"
-                                               placeholder="Figure title" />
-                                    </div>
-                                    <div class="label-editor-row">
-                                        <label>X Label</label>
-                                        <input id="diagram-xlabel-input"
-                                               type="text"
-                                               value="X Label"
-                                               data-field="xlabel"
-                                               placeholder="X-axis label" />
-                                    </div>
-                                    <div class="label-editor-row">
-                                        <label>Y Label</label>
-                                        <input id="diagram-ylabel-input"
-                                               type="text"
-                                               value="Y Label"
-                                               data-field="ylabel"
-                                               placeholder="Y-axis label" />
-                                    </div>
-                                </div>
-                                <div class="preview-info">
-                                    <span id="preview-timestamp">Click Refresh to see live matplotlib preview</span>
-                                </div>
-                            </div>
-                            <!-- Preset Selector & Actions -->
-                            <div class="preset-controls">
-                                <div class="preset-selector-row">
-                                    <label class="property-label">Style Preset</label>
-                                    <select id="preset-selector" class="property-select">
-                                        <option value="">SciTeX Default</option>
-                                    </select>
-                                </div>
-                                <div class="preset-actions">
-                                    <button id="preset-save-btn"
-                                            class="scitex-btn scitex-btn-secondary"
-                                            title="Save to account storage">
-                                        <i class="fas fa-save"></i> Save
-                                    </button>
-                                    <button id="preset-import-btn"
-                                            class="scitex-btn scitex-btn-secondary"
-                                            title="Import YAML from file">
-                                        <i class="fas fa-file-import"></i> Import
-                                    </button>
-                                    <button id="preset-export-btn"
-                                            class="scitex-btn scitex-btn-secondary"
-                                            title="Export current preset as YAML">
-                                        <i class="fas fa-file-export"></i> Export
-                                    </button>
-                                    <button id="preset-apply-btn"
-                                            class="scitex-btn scitex-btn-primary"
-                                            title="Apply changes and refresh preview">
-                                        <i class="fas fa-check"></i> Apply
-                                    </button>
-                                </div>
-                            </div>
-                            <!-- YAML Configuration Editor -->
-                            <div class="preset-yaml-editor">
-                                <label class="property-label">
-                                    <i class="fas fa-code"></i> YAML Configuration
-                                </label>
-                                <textarea id="preset-yaml-textarea" class="preset-yaml-textarea" spellcheck="false"></textarea>
-                                <div class="yaml-status" id="yaml-status">
-                                    <i class="fas fa-info-circle"></i> Edit YAML and click Apply to update preview
-                                </div>
+                    <div class="pane-content">
+                        <div class="data-table-container" id="data-table-container">
+                            <div class="empty-state" id="data-empty-state">
+                                <i class="fas fa-table"></i>
+                                <p>No data loaded</p>
+                                <small>Import CSV or Excel, or drag & drop files here</small>
                             </div>
                         </div>
                     </div>
-                    <!-- Hidden file input for YAML import -->
-                    <input type="file" id="yaml-import-input" accept=".yaml,.yml" style="display: none;" />
-                    <!-- Templates Section (extracted to include) -->
-                    {% include "vis_app/includes/property-templates.html" %}
-                    <!-- End of Templates Section -->
                 </div>
+                <!-- Resizer between Data Table and Canvas -->
+                <div class="split-resizer panel-resizer"
+                     id="split-resizer"
+                     data-panel-resizer
+                     data-storage-prefix="scitex-vis-"
+                     data-target="#data-pane"
+                     data-direction="left"
+                     data-min-width="40"
+                     data-default-width="400"
+                     data-storage-key="data-pane-width"
+                     data-collapse-key="data-pane-collapsed"
+                     data-toggle-btn="data-pane-toggle"></div>
+                <!-- Right: Canvas -->
+                <div class="split-pane split-pane-right collapsible-panel"
+                     id="canvas-pane"
+                     data-hide-title-expanded>
+                    <div class="pane-header" data-pane-type="module">
+                        <button class="pane-resize-btn panel-toggle-btn right-panel-toggle"
+                                id="canvas-pane-toggle"
+                                title="Toggle Canvas Pane">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <span class="panel-title">Canvas</span>
+                        <!-- Figure Dropdown (replaces tabs for horizontal space efficiency) -->
+                        <div class="figure-dropdown-container" id="figure-dropdown-container">
+                            <button class="figure-dropdown-toggle"
+                                    id="figure-dropdown-toggle"
+                                    title="Select figure">
+                                <i class="fas fa-paint-brush"></i>
+                                <span class="figure-dropdown-label" id="figure-dropdown-label">No figures</span>
+                                <i class="fas fa-chevron-down figure-dropdown-arrow"></i>
+                            </button>
+                            <div class="figure-dropdown-menu" id="figure-dropdown-menu">
+                                <!-- Dropdown items will be inserted here by CanvasTabManager -->
+                            </div>
+                            <button class="figure-new-btn" id="canvas-tab-new" title="New figure">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <span class="badge badge-wip" style="margin-left:4px">WIP</span>
+                        <!-- Gallery Category Buttons (hover to see plot types) -->
+                        <div class="gallery-categories" id="gallery-categories">
+                            <button class="category-btn"
+                                    data-category="line"
+                                    title="Line plots: time series, trends">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Line</span>
+                            </button>
+                            <button class="category-btn" data-category="scatter" title="Scatter & point plots">
+                                <i class="fas fa-braille"></i>
+                                <span>Scatter</span>
+                            </button>
+                            <button class="category-btn" data-category="categorical" title="Bar, box, violin plots">
+                                <i class="fas fa-chart-bar"></i>
+                                <span>Categorical</span>
+                            </button>
+                            <button class="category-btn" data-category="distribution" title="Histograms, KDE, ECDF">
+                                <i class="fas fa-chart-column"></i>
+                                <span>Distribution</span>
+                            </button>
+                            <button class="category-btn" data-category="statistical" title="Mean/CI, error bars">
+                                <i class="fas fa-square-root-variable"></i>
+                                <span>Statistical</span>
+                            </button>
+                            <button class="category-btn" data-category="grid" title="Heatmaps, images, matrices">
+                                <i class="fas fa-th"></i>
+                                <span>Grid</span>
+                            </button>
+                            <button class="category-btn" data-category="area" title="Fill regions, ranges">
+                                <i class="fas fa-chart-area"></i>
+                                <span>Area</span>
+                            </button>
+                            <button class="category-btn" data-category="contour" title="Contour lines">
+                                <i class="fas fa-layer-group"></i>
+                                <span>Contour</span>
+                            </button>
+                            <button class="category-btn" data-category="vector" title="Quiver, streamlines">
+                                <i class="fas fa-arrows-alt"></i>
+                                <span>Vector</span>
+                            </button>
+                            <button class="category-btn" data-category="special" title="Pie, raster, annotations">
+                                <i class="fas fa-shapes"></i>
+                                <span>Special</span>
+                            </button>
+                            <!-- Dev: Plot All button -->
+                            <button class="category-btn dev-btn"
+                                    id="plot-all-types-btn"
+                                    title="[Dev] Load all plot types for testing">
+                                <i class="fas fa-th-large"></i>
+                                <span>All</span>
+                            </button>
+                        </div>
+                        <!-- Thumbnail popup (shown on hover) -->
+                        <div class="gallery-popup" id="gallery-popup">
+                            <div class="popup-header">
+                                <span class="popup-title">Select Plot Type</span>
+                                <span class="popup-category"></span>
+                            </div>
+                            <div class="popup-grid" id="popup-grid">
+                                <!-- Thumbnails loaded dynamically -->
+                            </div>
+                        </div>
+                        <div class="pane-header-buttons pane-header-right">
+                            <!-- Debug: Show Hit Regions Toggle -->
+                            <button class="pane-header-btn debug-btn"
+                                    id="toggle-hit-regions"
+                                    title="Toggle hit region overlay (debug)">
+                                <i class="fas fa-bullseye"></i>
+                            </button>
+                            <!-- Download Dropdown -->
+                            <div class="dropdown-container" id="download-dropdown">
+                                <button class="pane-header-btn dropdown-toggle"
+                                        id="download-btn"
+                                        title="Download figure (PNG, SVG, PDF, JPEG, FIGZ)">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <div class="dropdown-menu" id="download-menu">
+                                    <button class="dropdown-item" id="export-png" data-format="png">
+                                        <i class="fas fa-file-image"></i> PNG <span class="format-hint">(300 DPI)</span>
+                                    </button>
+                                    <button class="dropdown-item" id="export-svg" data-format="svg">
+                                        <i class="fas fa-bezier-curve"></i> SVG <span class="format-hint">(Vector)</span>
+                                    </button>
+                                    <button class="dropdown-item" id="export-pdf" data-format="pdf">
+                                        <i class="fas fa-file-pdf"></i> PDF
+                                    </button>
+                                    <button class="dropdown-item" id="export-jpeg" data-format="jpeg">
+                                        <i class="fas fa-file-image"></i> JPEG <span class="format-hint">(95%)</span>
+                                    </button>
+                                    <div class="dropdown-divider"></div>
+                                    <button class="dropdown-item" id="export-figz" data-format="figz">
+                                        <i class="fas fa-file-archive"></i> FIGZ Bundle <span class="format-hint">(.figz)</span>
+                                    </button>
+                                    <button class="dropdown-item" id="export-figz-d" data-format="figz-d">
+                                        <i class="fas fa-folder-open"></i> FIGZ.D Bundle <span class="format-hint">(.figz.d)</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <button class="pane-header-btn" id="btn-save" title="Save plot">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </button>
+                            <!-- Theme Toggle Button -->
+                            <button class="pane-header-btn theme-toggle-btn"
+                                    id="canvas-theme-toggle"
+                                    title="Toggle light/dark theme">
+                                <span class="theme-icon">🌓</span>
+                            </button>
+                            <!-- Keyboard Shortcuts Help -->
+                            <button class="pane-header-btn" id="btn-shortcuts-help" title="Keyboard shortcuts (?)">
+                                <i class="fas fa-keyboard"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="pane-content canvas-content">
+                        <!-- Rulers Area: 3x3 CSS Grid layout (like vis app) -->
+                        <div class="vis-rulers-area" id="rulers-area">
+                            <!-- Top-left corner (click ruler labels to toggle mm/inch) -->
+                            <div class="ruler-corner ruler-corner-tl"></div>
+                            <!-- Top ruler -->
+                            <svg class="ruler ruler-horizontal ruler-top" id="ruler-h">
+                            </svg>
+                            <!-- Top-right corner -->
+                            <div class="ruler-corner ruler-corner-tr"></div>
+                            <!-- Left ruler -->
+                            <svg class="ruler ruler-vertical ruler-left" id="ruler-v">
+                            </svg>
+                            <!-- Canvas container -->
+                            <div class="vis-canvas-container" id="canvas-container">
+                                <canvas id="vis-canvas"></canvas>
+                            </div>
+                            <!-- Right ruler -->
+                            <svg class="ruler ruler-vertical ruler-right" id="ruler-r">
+                            </svg>
+                            <!-- Bottom-left corner -->
+                            <div class="ruler-corner ruler-corner-bl"></div>
+                            <!-- Bottom ruler -->
+                            <svg class="ruler ruler-horizontal ruler-bottom" id="ruler-b">
+                            </svg>
+                            <!-- Bottom-right corner -->
+                            <div class="ruler-corner ruler-corner-br"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Resizer between Canvas and Properties -->
+                <div class="split-resizer panel-resizer"
+                     id="canvas-resizer"
+                     data-panel-resizer
+                     data-storage-prefix="scitex-vis-"
+                     data-target="#canvas-pane"
+                     data-direction="left"
+                     data-min-width="40"
+                     data-default-width="600"
+                     data-storage-key="canvas-pane-width"
+                     data-collapse-key="canvas-pane-collapsed"
+                     data-toggle-btn="canvas-pane-toggle"></div>
+            </div>
+        </div>
+        <!-- Properties Resizer (hidden in figrecipe embedded mode — figrecipe has its own) -->
+        <div class="panel-resizer"
+             id="workspace-resizer"
+             data-panel-resizer
+             data-storage-prefix="scitex-vis-"
+             data-target=".vis-properties"
+             data-direction="right"
+             data-min-width="40"
+             data-default-width="320"
+             data-storage-key="properties-width"
+             data-collapse-key="vis-properties-collapsed"
+             data-toggle-btn="properties-toggle"
+             {% if figrecipe_embedded %}style="display:none"{% endif %}></div>
+        <!-- RIGHT DETAILS PANEL (hidden in figrecipe embedded mode) -->
+        <div class="vis-properties collapsible-panel"
+             id="vis-properties"
+             {% if figrecipe_embedded %}style="display:none"{% endif %}>
+            <div class="properties-header" data-pane-type="module">
+                <button class="properties-toggle-btn panel-toggle-btn right-panel-toggle"
+                        id="properties-toggle"
+                        title="Toggle details (Zen: F11/Alt+Z)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <span class="panel-title">
+                    <i class="fas fa-sliders-h"></i> Details
+                </span>
+            </div>
+            <!-- Selected Item Info -->
+            <div class="selected-item-info">
+                <div class="selected-item-header">
+                    <i class="fas fa-info-circle selected-item-icon"></i>
+                    <span class="selected-item-type">No selection</span>
+                </div>
+                <div class="selected-item-label">Select an item from the tree to view properties</div>
+            </div>
+            <!-- Properties Tabs -->
+            <div class="properties-tabs">
+                <button class="properties-tab active" data-tab="current">
+                    <i class="fas fa-edit"></i> Current
+                </button>
+                <button class="properties-tab" data-tab="defaults">
+                    <i class="fas fa-palette"></i> Preset
+                </button>
+            </div>
+            <div class="properties-content">
+                <!-- Current Properties Tab Content -->
+                <div id="tab-current" class="properties-tab-content active">
+                    <div id="dynamic-properties" class="dynamic-properties">
+                        <!-- Content will be dynamically populated based on selection -->
+                    </div>
+                </div>
+                <!-- Defaults Tab Content -->
+                <div id="tab-defaults" class="properties-tab-content">
+                    <div id="defaults-properties" class="defaults-properties">
+                        <!-- Live Figure Preview -->
+                        <div class="preset-visual-guide preset-figure-preview">
+                            <div class="blueprint-title">
+                                <span>
+                                    <i class="fas fa-chart-line"></i> Style Preview
+                                </span>
+                                <button id="preview-refresh-btn" class="preview-refresh-btn" title="Refresh preview">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                            </div>
+                            <div class="figure-preview-container">
+                                <img id="live-preview-image"
+                                     alt="Style Preview"
+                                     style="display: none;
+                                            max-width: 100%;
+                                            height: auto" />
+                                <div id="preview-loading-overlay" class="preview-loading" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin"></i> Rendering...
+                                </div>
+                                <div id="preview-placeholder" class="preview-placeholder">
+                                    <i class="fas fa-image"></i>
+                                    <span>Click Refresh to see preview</span>
+                                </div>
+                            </div>
+                            <!-- Quick label editors below preview -->
+                            <div class="preview-label-editors">
+                                <div class="label-editor-row">
+                                    <label>Title</label>
+                                    <input id="diagram-title-input"
+                                           type="text"
+                                           value="Title"
+                                           data-field="title"
+                                           placeholder="Figure title" />
+                                </div>
+                                <div class="label-editor-row">
+                                    <label>X Label</label>
+                                    <input id="diagram-xlabel-input"
+                                           type="text"
+                                           value="X Label"
+                                           data-field="xlabel"
+                                           placeholder="X-axis label" />
+                                </div>
+                                <div class="label-editor-row">
+                                    <label>Y Label</label>
+                                    <input id="diagram-ylabel-input"
+                                           type="text"
+                                           value="Y Label"
+                                           data-field="ylabel"
+                                           placeholder="Y-axis label" />
+                                </div>
+                            </div>
+                            <div class="preview-info">
+                                <span id="preview-timestamp">Click Refresh to see live matplotlib preview</span>
+                            </div>
+                        </div>
+                        <!-- Preset Selector & Actions -->
+                        <div class="preset-controls">
+                            <div class="preset-selector-row">
+                                <label class="property-label">Style Preset</label>
+                                <select id="preset-selector" class="property-select">
+                                    <option value="">SciTeX Default</option>
+                                </select>
+                            </div>
+                            <div class="preset-actions">
+                                <button id="preset-save-btn"
+                                        class="scitex-btn scitex-btn-secondary"
+                                        title="Save to account storage">
+                                    <i class="fas fa-save"></i> Save
+                                </button>
+                                <button id="preset-import-btn"
+                                        class="scitex-btn scitex-btn-secondary"
+                                        title="Import YAML from file">
+                                    <i class="fas fa-file-import"></i> Import
+                                </button>
+                                <button id="preset-export-btn"
+                                        class="scitex-btn scitex-btn-secondary"
+                                        title="Export current preset as YAML">
+                                    <i class="fas fa-file-export"></i> Export
+                                </button>
+                                <button id="preset-apply-btn"
+                                        class="scitex-btn scitex-btn-primary"
+                                        title="Apply changes and refresh preview">
+                                    <i class="fas fa-check"></i> Apply
+                                </button>
+                            </div>
+                        </div>
+                        <!-- YAML Configuration Editor -->
+                        <div class="preset-yaml-editor">
+                            <label class="property-label">
+                                <i class="fas fa-code"></i> YAML Configuration
+                            </label>
+                            <textarea id="preset-yaml-textarea" class="preset-yaml-textarea" spellcheck="false"></textarea>
+                            <div class="yaml-status" id="yaml-status">
+                                <i class="fas fa-info-circle"></i> Edit YAML and click Apply to update preview
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Hidden file input for YAML import -->
+                <input type="file" id="yaml-import-input" accept=".yaml,.yml" style="display: none;" />
+                <!-- Templates Section (extracted to include) -->
+                {% include "vis_app/includes/property-templates.html" %}
+                <!-- End of Templates Section -->
             </div>
         </div>
     </div>
-    {% include "vis_app/includes/modals.html" %}
-    {% include "vis_app/includes/shortcuts-modal.html" %}
-    <!-- figrecipe integration: open recipe files in embedded editor -->
-    <script>
+</div>
+{% include "vis_app/includes/modals.html" %}
+{% include "vis_app/includes/shortcuts-modal.html" %}
+<!-- figrecipe integration: open recipe files in embedded editor -->
+<script>
     (function() {
       var RECIPE_EXTS = ['.yaml', '.yml'];
       var frame = document.getElementById('figrecipe-frame');
@@ -559,12 +561,12 @@
         }
       });
     })();
-    </script>
-    <!-- Binary toggle for data/canvas panes (must load before panel-resizer to intercept) -->
-    {% vite_script 'vis_app/vis-panel-toggle' %}
-    {% tree_preseed_script current_project %}
-    <!-- Fabric.js for canvas manipulation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
-    <!-- Vis app modules (Vite) -->
-    {% vite_script 'vis_app/editor-inline' %}
-    {% vite_script 'vis_app/vis-editor' %}
+</script>
+<!-- Binary toggle for data/canvas panes (must load before panel-resizer to intercept) -->
+{% vite_script 'vis_app/vis-panel-toggle' %}
+{% tree_preseed_script current_project %}
+<!-- Fabric.js for canvas manipulation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+<!-- Vis app modules (Vite) -->
+{% vite_script 'vis_app/editor-inline' %}
+{% vite_script 'vis_app/vis-editor' %}

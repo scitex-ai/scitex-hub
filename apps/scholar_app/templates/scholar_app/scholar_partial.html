@@ -65,7 +65,7 @@
                 flex-direction:column;
                 overflow:hidden;
                 min-width:0">
-    <div class="pane-header">
+    <div class="pane-header" data-pane-type="module">
         <nav class="scholar-tabs">
             <a href="#library" class="scholar-tab" data-tab="library">
                 <i class="fas fa-book-reader"></i> Library
@@ -241,7 +241,10 @@
          data-direction="left"
          data-min-width="200"
          data-max-width="600"></div>
-    <div class="library-details-panel">{% include "scholar_app/library_partials/library_details.html" %}</div>
+    <div class="library-details-panel">
+        {% include "scholar_app/library_partials/library_details.html" %}
+        {% include "scholar_app/library_partials/library_import_export.html" %}
+    </div>
 </div>
 </div>
 </section>
