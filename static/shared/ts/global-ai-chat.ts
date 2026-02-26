@@ -9,6 +9,7 @@ export {}; // Make this a module so declare global augmentation is valid
 import { readActiveProjectSlug } from "./components/global-ai-chat/context";
 import { AIPanelChatMode } from "./components/global-ai-chat/chat-mode";
 import { AIPanelConsoleMode } from "./components/global-ai-chat/console-mode";
+import { initEvalJsRelay } from "./components/global-ai-chat/eval-js-relay";
 import { AIPanelJobsMode } from "./components/global-ai-chat/jobs-mode";
 import { fetchAndPopulateSttModels } from "./components/global-ai-chat/stt-models";
 import { fetchAndPopulateLlmModels } from "./components/global-ai-chat/llm-model-selector";
@@ -178,6 +179,9 @@ class GlobalAIChat {
     const savedModel = sessionStorage.getItem(MODEL_KEY);
     if (savedModel) setModelBadge(this.modelBadge, savedModel);
     fetchCurrentModel((m, c) => setModelBadge(this.modelBadge, m, c));
+
+    // Start eval-js WebSocket relay for MCP tool bridge
+    initEvalJsRelay();
 
     window.scitexAI = {
       setContext: (ctx) => {

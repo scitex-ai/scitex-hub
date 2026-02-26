@@ -16,5 +16,11 @@ register(
             "Generate Mermaid DAG visualizations",
         ],
         page_patterns=["/clew/"],
+        url_prefix="/clew/",
+        module_description=(
+            "Pipeline DAG editor: create, chain, and run reproducible "
+            "computational workflows with status tracking."
+        ),
+        mcp_tool_examples=["clew_run", "clew_chain", "clew_status"],
     )
 )

@@ -9,6 +9,7 @@ from rich.console import Console
 
 from .. import __version__
 from .completion import completion
+from .context import context as context_group
 from .deploy import deploy
 from .docker import docker
 from .gitea import gitea
@@ -80,6 +81,7 @@ main.add_command(deploy)
 main.add_command(docker)
 main.add_command(gitea)
 main.add_command(mcp)
+main.add_command(context_group, "context")
 main.add_command(status)
 main.add_command(logs)
 main.add_command(completion)

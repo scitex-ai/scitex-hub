@@ -1,65 +1,43 @@
 """
-Export registered app skills as Claude Code skill files.
+Export registered app skills for different consumers.
 
-Compiles all apps/*/skill.py registrations into a single SKILL.md
-suitable for placement in .claude/skills/scitex-cloud/.
+All context is derived from apps/*/skill.py registrations via
+build_aggregated_context(). No hardcoded module lists or tool tables —
+each app declares its own scope and the aggregator collects them.
 
-Includes:
-- Registered app skills (capabilities, tool prefixes)
-- Web app structure (URL patterns, module descriptions)
-- Platform navigation guidance
-- MCP tool interaction patterns
+Consumers:
+- export_claude_skill() → SKILL.md for Claude Code terminal agents
+- export_chat_prompt() → System prompt for browser-based chat LLM
 """
 
-from .registry import get_all_skills
+from .registry import build_aggregated_context, get_all_skills
 
-# ---------------------------------------------------------------------------
-# Web app module descriptions — dynamically enriches the SKILL.md
-# These are keyed by URL prefix and describe each major web app module.
-# When a new app is added, add an entry here so the agent knows about it.
-# ---------------------------------------------------------------------------
-_WEB_APP_MODULES = {
-    "/hub/": {
-        "name": "Hub",
-        "description": "Project dashboard showing all user projects, activity feed, and quick actions.",
-    },
-    "/scholar/": {
-        "name": "Scholar",
-        "description": "Literature management: search papers (CrossRef/OpenAlex/Semantic Scholar), manage bibliography, explore citation graphs, download PDFs.",
-    },
-    "/console/": {
-        "name": "Console",
-        "description": "Development environment: file browser, terminal (SLURM + Apptainer), code execution, Jupyter notebooks.",
-    },
-    "/writer/": {
-        "name": "Writer",
-        "description": "Scientific manuscript editor: LaTeX editing with live preview, figure/table management, bibliography, PDF compilation.",
-    },
-    "/workspace/": {
-        "name": "Workspace",
-        "description": "Unified three-column layout: AI pane (left) | worktree (middle) | module content (right). Modules switch without losing AI/worktree state.",
-    },
-    "/vis/": {
-        "name": "Visualizer",
-        "description": "Data visualization and figure management: view plots, manage figure recipes, export publication-ready figures.",
-    },
-    "/clew/": {
-        "name": "Clew",
-        "description": "Pipeline DAG editor: create, chain, and run reproducible computational workflows with status tracking.",
-    },
-    "/marketplace/": {
-        "name": "Marketplace",
-        "description": "Discover and install community-shared templates, pipelines, and tools.",
-    },
-    "/modulemaker/": {
-        "name": "Module Maker",
-        "description": "Create custom scitex modules from templates with guided setup.",
-    },
-    "/example/": {
-        "name": "Examples",
-        "description": "Interactive examples demonstrating scitex features (plotting, stats, IO, sessions).",
-    },
-}
+
+def _build_skills_detail() -> str:
+    """Build detailed skill sections (for Claude Code SKILL.md)."""
+    skills = get_all_skills()
+    if not skills:
+        return "(No app skills registered yet — check apps/*/skill.py)\n"
+
+    parts: list[str] = []
+    for _name, skill in sorted(skills.items()):
+        parts.append(f"### {skill.display_name}")
+        parts.append("")
+        parts.append(skill.description)
+        parts.append("")
+        if skill.page_patterns:
+            patterns = ", ".join(f"`{p}`" for p in skill.page_patterns)
+            parts.append(f"Active on pages: {patterns}")
+            parts.append("")
+        if skill.capabilities:
+            for cap in skill.capabilities:
+                parts.append(f"- {cap}")
+            parts.append("")
+        if skill.tool_prefixes:
+            prefixes = ", ".join(f"`{p}*`" for p in skill.tool_prefixes)
+            parts.append(f"MCP tool prefixes: {prefixes}")
+            parts.append("")
+    return "\n".join(parts)
 
 
 def export_claude_skill() -> str:
@@ -68,87 +46,47 @@ def export_claude_skill() -> str:
     Returns:
         Markdown string in Claude Code skill format with YAML frontmatter.
     """
-    skills = get_all_skills()
-
     parts = [
         "---",
         "name: scitex-cloud",
-        "description: SciTeX Cloud research platform with 145+ MCP tools for plotting, statistics, literature management, manuscript writing, pipeline execution, and more.",
+        "description: SciTeX Cloud research platform with MCP tools for "
+        "plotting, statistics, literature management, manuscript writing, "
+        "pipeline execution, and more.",
         "---",
         "",
         "# SciTeX Cloud",
         "",
         "SciTeX Cloud is a browser-based scientific research platform.",
         "You are running inside an Apptainer container with full terminal access.",
-        "The `scitex` MCP server is connected and provides 145+ tools.",
+        "The `scitex` MCP server is connected.",
         "",
     ]
 
-    # ── Web App Structure ──────────────────────────────────────
+    # Aggregated from all apps/*/skill.py
+    parts.append(build_aggregated_context())
+
+    # Detailed skill descriptions (terminal agents benefit from full detail)
     parts.extend(
         [
-            "## Web App Structure",
+            "## Registered App Skills (Detail)",
             "",
-            "The platform is organized into modules, each at a URL prefix.",
-            "Projects follow GitHub-style URLs: `/{username}/{project}/`.",
-            "",
+            _build_skills_detail(),
         ]
     )
 
-    for url, mod in sorted(_WEB_APP_MODULES.items()):
-        parts.append(f"- **{mod['name']}** (`{url}`) — {mod['description']}")
-    parts.append("")
-
+    # Terminal-specific context
     parts.extend(
         [
-            "### Navigation",
+            "## Terminal & Container",
             "",
-            "- Tab bar at top switches between modules (Hub, Scholar, Console, Writer, etc.)",
-            "- Workspace layout: AI pane (left) | worktree file tree (middle) | module content (right)",
-            "- AI pane has three modes: Chat (LLM), Console (terminal), Jobs (SLURM)",
-            "- Double-click AI panel header to toggle between Chat and Console",
-            "- `Alt+A` toggles the AI panel open/closed",
+            "- You run inside an Apptainer container with Python 3.11, "
+            "scitex, and AI CLI tools",
+            "- Terminal uses tmux for session persistence",
+            "- `stx-show <file>` displays images/plots in the browser overlay",
+            "- Project files are at `~/proj/{project_name}/`",
+            "- Output from `@stx.session` goes to "
+            "`script_out/FINISHED_SUCCESS/{session_id}/`",
             "",
-        ]
-    )
-
-    # ── Registered App Skills ──────────────────────────────────
-    parts.extend(
-        [
-            "## Registered App Skills",
-            "",
-        ]
-    )
-
-    if skills:
-        for name, skill in sorted(skills.items()):
-            parts.append(f"### {skill.display_name}")
-            parts.append("")
-            parts.append(skill.description)
-            parts.append("")
-            if skill.page_patterns:
-                patterns = ", ".join(f"`{p}`" for p in skill.page_patterns)
-                parts.append(f"Active on pages: {patterns}")
-                parts.append("")
-            if skill.capabilities:
-                for cap in skill.capabilities:
-                    parts.append(f"- {cap}")
-                parts.append("")
-            if skill.tool_prefixes:
-                prefixes = ", ".join(f"`{p}*`" for p in skill.tool_prefixes)
-                parts.append(f"MCP tool prefixes: {prefixes}")
-                parts.append("")
-    else:
-        parts.extend(
-            [
-                "(No app skills registered yet — check apps/*/skill.py)",
-                "",
-            ]
-        )
-
-    # ── Quick Start ────────────────────────────────────────────
-    parts.extend(
-        [
             "## Quick Start",
             "",
             "```python",
@@ -165,58 +103,45 @@ def export_claude_skill() -> str:
         ]
     )
 
-    # ── Key Patterns ───────────────────────────────────────────
-    parts.extend(
-        [
-            "## Key Patterns",
-            "",
-            "- `stx.io.save(obj, path)` — universal save (30+ formats, auto CSV for figures)",
-            "- `stx.io.load(path)` — universal load",
-            "- `stx.stats.test_*(g1, g2)` — 23 statistical tests with effect sizes and power",
-            "- `stx.plt.subplots()` — publication-ready figures with data tracking",
-            "- `@stx.session` — reproducible experiment tracking with auto-CLI",
-            "",
-        ]
-    )
+    return "\n".join(parts)
 
-    # ── MCP Tools ──────────────────────────────────────────────
-    parts.extend(
-        [
-            "## MCP Tools",
-            "",
-            "The `scitex` MCP server provides tools organized by group:",
-            "",
-            "| Group | Description | Example Tools |",
-            "|-------|-------------|---------------|",
-            "| PLT | Plotting & figures | `plt_plot`, `plt_compose`, `plt_crop` |",
-            "| STATS | Statistical tests | `stats_run_test`, `stats_power_analysis` |",
-            "| SCHOLAR | Literature search | `scholar_search_papers`, `scholar_fetch_papers` |",
-            "| WRITER | Manuscript editing | `writer_compile_manuscript`, `writer_add_figure` |",
-            "| CLEW | Pipeline execution | `clew_run`, `clew_chain`, `clew_status` |",
-            "| DIAGRAM | Mermaid/Graphviz | `plt_diagram_create`, `plt_diagram_render` |",
-            "| INTROSPECT | Python API inspection | `introspect_signature`, `introspect_source` |",
-            "| TEMPLATE | Project templates | `template_clone_template` |",
-            "| DATASET | Research datasets | `dataset_search`, `dataset_db_build` |",
-            "| AUDIO | Text-to-speech | `audio_speak` |",
-            "| CAPTURE | Screenshots | `capture_capture_screenshot` |",
-            "",
-            "Run `/mcp` in Claude Code to list all available tools.",
-            "",
-        ]
-    )
 
-    # ── Terminal Interaction ────────────────────────────────────
-    parts.extend(
-        [
-            "## Terminal & Container",
-            "",
-            "- You run inside an Apptainer container with Python 3.11, scitex, and AI CLI tools",
-            "- Terminal uses tmux for session persistence",
-            "- `stx-show <file>` displays images/plots in the browser overlay",
-            "- Project files are at `~/proj/{project_name}/`",
-            "- Output from `@stx.session` goes to `script_out/FINISHED_SUCCESS/{session_id}/`",
-            "",
-        ]
-    )
+def export_chat_prompt() -> str:
+    """Build a rich system prompt for the AI chat pane.
+
+    Dynamically aggregated from all registered app skills — the same
+    source of truth as export_claude_skill(), but tailored for the
+    browser-based chat agent (no terminal/container info, adds media
+    rendering guidance and UI interaction capabilities).
+
+    Returns:
+        Base system prompt string (active skill and page hints are
+        appended by build_system_prompt() separately).
+    """
+    parts = [
+        "You are a scientific research assistant on SciTeX Cloud, "
+        "a browser-based scientific research platform. "
+        "You have access to MCP tools and can drive the browser UI. "
+        "Use tools when appropriate to help the user.",
+        "",
+        "## Media Rendering",
+        "When MCP tools create or write files, supported types are "
+        "rendered inline in this chat:",
+        "- **Images** (.png, .jpg, .svg, .gif) — displayed inline",
+        "- **CSV/TSV** — rendered as interactive tables (first 10 rows)",
+        "- **PDF** — file link for download",
+        "- **Mermaid diagrams** (.mmd) — rendered as diagrams",
+        "Your response text is rendered as Markdown — use code blocks, "
+        "headers, lists, and tables for clear formatting.",
+        "",
+        "## Browser UI Interaction",
+        "You have a `ui_action` tool to drive the browser: navigate to "
+        "pages, highlight elements, click buttons, fill inputs, and scroll. "
+        "Use it for demos, tutorials, and helping users navigate the platform.",
+        "",
+    ]
+
+    # Aggregated from all apps/*/skill.py — same source as terminal agents
+    parts.append(build_aggregated_context())
 
     return "\n".join(parts)

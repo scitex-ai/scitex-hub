@@ -121,30 +121,30 @@ def api_tts_relay(request):
 
 
 def _build_system_prompt(context: dict, user, sync_to_async=None) -> str:
-    """Build system prompt with skill-aware context injection."""
-    from apps.llm_app.skills import build_system_prompt, get_skill_for_page
+    """Build system prompt with skill-aware context injection.
 
-    base_prompt = (
-        "You are a scientific research assistant integrated into the SciTeX platform. "
-        "You have access to tools for statistics, plotting, literature search, "
-        "diagram creation, and manuscript writing. Use them when appropriate.\n"
+    Uses the rich base prompt from export_chat_prompt() which includes
+    web app structure, all skills, key patterns, and MCP tool groups —
+    matching the depth that terminal agents receive via SKILL.md.
+    """
+    from apps.llm_app.skills import build_system_prompt, get_skill_for_page
+    from apps.llm_app.skills.export import export_chat_prompt
+
+    base_prompt = export_chat_prompt()
+
+    # Append project file guidance
+    base_prompt += (
         "When working with project files use the project_* tools "
         "(project_list_files, project_read_file, project_write_file, project_search_files). "
-        "Always pass the exact root_path shown in this prompt.\n\n"
-        "## Media Rendering\n"
-        "When MCP tools create files (plt_plot, project_write_file, etc.), "
-        "images and plots are automatically rendered inline in this chat. "
-        "Supported: .png, .jpg, .svg, .gif (inline images), .csv/.tsv (interactive tables), "
-        ".pdf (file links), .mmd (diagram links). "
-        "Your response text is rendered as Markdown — use code blocks, headers, lists, "
-        "and tables for clear formatting."
+        "Always pass the exact root_path shown in this prompt.\n"
     )
+
     if context.get("project"):
         base_prompt += f"\nCurrent project: {context['project']}"
     if context.get("current_file"):
         base_prompt += f"\nUser is viewing: {context['current_file']}"
 
-    # Skill-aware enhancement
+    # Skill-aware enhancement (active skill for current page)
     page = context.get("page", "")
     skill = get_skill_for_page(page) if page else None
     page_hints = context.get("page_hints", [])

@@ -274,6 +274,64 @@ class CloudClient:
             data={"project_id": project_id, "path": path},
         )
 
+    def get_context(self, page: str = "") -> dict:
+        """Get web app context for AI agents.
+
+        Parameters
+        ----------
+        page : str, optional
+            Current page URL (e.g. /writer/).
+
+        Returns
+        -------
+        dict
+            Context including username, active skill, all skills,
+            available actions, and aggregated context.
+        """
+        return self._request("GET", "/llm/api/context/", data={"page": page})
+
+    def eval_js(self, code: str, timeout: int = 10) -> dict:
+        """Evaluate JavaScript in the user's browser.
+
+        Parameters
+        ----------
+        code : str
+            JavaScript code to evaluate.
+        timeout : int, optional
+            Max seconds to wait for result.
+
+        Returns
+        -------
+        dict
+            Evaluation result from the browser.
+        """
+        return self._request(
+            "POST",
+            "/llm/api/eval-js/",
+            data={"code": code, "timeout": timeout},
+        )
+
+    def ui_action(self, steps: list, delay_ms: int = 900) -> dict:
+        """Drive browser UI actions via WebSocket relay.
+
+        Parameters
+        ----------
+        steps : list
+            Action steps (navigate, highlight, click, fill, scroll, clear).
+        delay_ms : int, optional
+            Delay between steps in milliseconds.
+
+        Returns
+        -------
+        dict
+            Result with number of steps sent.
+        """
+        return self._request(
+            "POST",
+            "/llm/api/ui-action/",
+            data={"steps": steps, "delay_ms": delay_ms},
+        )
+
     def status(self) -> dict:
         """Check cloud service status.
 
