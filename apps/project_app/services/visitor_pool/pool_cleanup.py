@@ -23,24 +23,41 @@ class PoolCleanup:
 
     VISITOR_USER_PREFIX = "visitor-"
 
+    # Idle timeout - release slot if no activity for this many minutes
+    IDLE_TIMEOUT_MINUTES = 30
+
     @classmethod
     def cleanup_expired_allocations(cls) -> int:
         """
-        Free visitor slots with expired sessions and reset their workspaces.
+        Free visitor slots with expired sessions OR idle sessions.
 
-        Deletes all projects owned by expired visitors and resets to clean state.
+        Releases slots if:
+        1. Session has expired (past expires_at)
+        2. No activity for IDLE_TIMEOUT_MINUTES (idle timeout)
+
+        Deletes all projects owned by freed visitors and resets to clean state.
 
         Returns:
             int: Number of slots freed
         """
+        from datetime import timedelta
         from .workspace_manager import WorkspaceManager
 
-        expired = VisitorAllocation.objects.filter(
-            is_active=True, expires_at__lt=timezone.now()
+        now = timezone.now()
+        idle_cutoff = now - timedelta(minutes=cls.IDLE_TIMEOUT_MINUTES)
+
+        # Find expired OR idle allocations
+        from django.db.models import Q
+        expired_or_idle = VisitorAllocation.objects.filter(
+            Q(is_active=True) & (
+                Q(expires_at__lt=now) |  # Expired
+                Q(last_activity__lt=idle_cutoff) |  # Idle timeout
+                Q(last_activity__isnull=True, allocated_at__lt=idle_cutoff)  # Never active
+            )
         )
 
         count = 0
-        for allocation in expired:
+        for allocation in expired_or_idle:
             visitor_username = f"{cls.VISITOR_USER_PREFIX}{allocation.visitor_number:03d}"
 
             try:
@@ -69,8 +86,11 @@ class PoolCleanup:
             allocation.is_active = False
             allocation.save()
             count += 1
+
+            # Log with reason
+            reason = "expired" if allocation.expires_at < now else "idle"
             logger.info(
-                f"[VisitorPool] Freed expired slot: {visitor_username}"
+                f"[VisitorPool] Freed {reason} slot: {visitor_username}"
             )
 
         return count
