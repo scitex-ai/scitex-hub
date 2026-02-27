@@ -83,8 +83,20 @@ def build_srun_cmd(
         slurm_memory_gb=SLURM_MEMORY_GB,
         screen_session=screen_session,
     )
-    # Use full path for screen to avoid PATH issues in login shell
-    cmd = [arg.replace("exec screen ", "exec /usr/bin/screen ") for arg in cmd]
+    # Use full path for screen and set SCREENDIR to avoid inode overflow on NAS.
+    # Screen requires SCREENDIR to have mode 700, so we create a user-specific dir.
+    cmd = [
+        arg.replace(
+            "exec screen ",
+            "mkdir -p /tmp/screen-$USER && chmod 700 /tmp/screen-$USER && "
+            "export SCREENDIR=/tmp/screen-$USER && exec /usr/bin/screen "
+        ).replace(
+            "exec /usr/bin/screen ",
+            "mkdir -p /tmp/screen-$USER && chmod 700 /tmp/screen-$USER && "
+            "export SCREENDIR=/tmp/screen-$USER && exec /usr/bin/screen "
+        )
+        for arg in cmd
+    ]
     return cmd
 
 
