@@ -1,7 +1,11 @@
 """Terminal broker server — manages PTY sessions outside Daphne's asyncio loop.
 
 Sessions persist across client disconnects. Reconnecting clients with
-the same (username, screen_session) reattach to the existing PTY fd.
+the same (username, session_name) reattach to the existing PTY fd.
+
+Supports two modes (controlled by SCITEX_SHARED_ALLOCATION env var):
+- Legacy: one srun per terminal tab
+- Shared: one sbatch per (user, project), shells via srun --overlap
 """
 
 import base64
@@ -13,8 +17,6 @@ import socket
 import struct
 import sys
 import threading
-import uuid
-from pathlib import Path
 from typing import Dict, Optional
 
 from .session import TerminalSession
@@ -23,15 +25,29 @@ logger = logging.getLogger(__name__)
 
 SOCKET_PATH = "/tmp/scitex-terminal-broker.sock"
 
+# Feature flag: when True, use shared sbatch allocation per (user, project)
+SHARED_ALLOCATION = os.environ.get("SCITEX_SHARED_ALLOCATION", "").lower() in (
+    "true",
+    "1",
+    "yes",
+)
+
 
 class TerminalBroker:
     """Broker server managing PTY sessions outside Daphne's asyncio loop."""
 
     def __init__(self, socket_path: str = SOCKET_PATH):
         self.socket_path = socket_path
+        # Legacy mode: 1 srun per tab
         self.sessions: Dict[str, TerminalSession] = {}
-        # Index: (username, screen_session) → session_id for reattach
-        self.session_index: Dict[tuple, str] = {}
+        self.session_index: Dict[tuple, str] = {}  # (username, screen_session) -> id
+        # Shared allocation mode: 1 sbatch per (user, project), N shells inside
+        self.allocations: Dict[str, object] = {}  # alloc_id -> Allocation
+        self.alloc_index: Dict[tuple, str] = {}  # (username, project_slug) -> alloc_id
+        self.shells: Dict[str, object] = {}  # shell_id -> Shell
+        self.shell_index: Dict[tuple, str] = (
+            {}
+        )  # (username, screen_session) -> shell_id
         self.server_socket: Optional[socket.socket] = None
         self.running = False
         self.lock = threading.Lock()
@@ -72,10 +88,7 @@ class TerminalBroker:
                     logger.error(f"Accept error: {e}")
 
     def _handle_client(self, client: socket.socket):
-        """Handle a client connection.
-
-        On disconnect, the screen session persists for future reattach.
-        """
+        """Handle a client connection."""
         session_id = None
         try:
             while True:
@@ -109,16 +122,11 @@ class TerminalBroker:
         except Exception as e:
             logger.debug(f"Client handler error: {e}")
         finally:
-            # Detach only — screen session persists for reattach
             if session_id:
-                with self.lock:
-                    session = self.sessions.get(session_id)
-                if session:
-                    session.running = False
-                    logger.info(f"Session {session_id}: client detached")
+                logger.info(f"Session {session_id}: client detached")
             try:
                 client.close()
-            except:
+            except Exception:
                 pass
 
     def _send_message(self, sock: socket.socket, msg: dict):
@@ -127,7 +135,7 @@ class TerminalBroker:
         sock.sendall(struct.pack(">I", len(data)) + data)
 
     def _handle_message(self, msg: dict, client: socket.socket) -> Optional[dict]:
-        """Handle incoming message."""
+        """Route incoming message to the appropriate handler."""
         action = msg.get("action")
 
         if action == "spawn":
@@ -138,89 +146,61 @@ class TerminalBroker:
             return self._handle_resize(msg)
         elif action == "close":
             return self._handle_close(msg)
+        elif action == "restart":
+            return self._handle_restart(msg, client)
+        elif action == "stop_allocation":
+            return self._handle_stop_allocation(msg)
         else:
             return {"status": "error", "error": f"Unknown action: {action}"}
 
+    def _make_output_callback(self, client: socket.socket):
+        """Create an output callback that sends PTY data to the client."""
+
+        def output_cb(sid, data):
+            try:
+                self._send_message(
+                    client,
+                    {
+                        "action": "output",
+                        "session_id": sid,
+                        "data": base64.b64encode(data).decode("ascii"),
+                    },
+                )
+            except Exception:
+                pass
+
+        return output_cb
+
+    # ------------------------------------------------------------------
+    # Spawn / Restart — dispatched to legacy or shared handler modules
+    # ------------------------------------------------------------------
+
     def _handle_spawn(self, msg: dict, client: socket.socket) -> dict:
-        """Handle spawn request. Reattaches to existing session if available."""
-        username = msg["username"]
-        screen_session = msg.get("screen_session", "scitex-0")
-        key = (username, screen_session)
+        """Dispatch spawn to shared or legacy mode."""
+        if SHARED_ALLOCATION:
+            from ._handlers_shared import handle_spawn_shared
 
-        # Check for existing session to reattach
-        with self.lock:
-            existing_id = self.session_index.get(key)
-            existing = self.sessions.get(existing_id) if existing_id else None
-            if existing and existing.fd is not None:
-                existing.client_socket = client
-                existing.running = True
-                logger.info(f"Session {existing_id}: reattaching client")
+            return handle_spawn_shared(self, msg, client)
 
-                def reattach_cb(sid, data):
-                    try:
-                        self._send_message(
-                            client,
-                            {
-                                "action": "output",
-                                "session_id": sid,
-                                "data": base64.b64encode(data).decode("ascii"),
-                            },
-                        )
-                    except:
-                        pass
+        from ._handlers_legacy import handle_spawn_legacy
 
-                existing.start_reader(reattach_cb)
+        return handle_spawn_legacy(self, msg, client)
 
-                # Force screen to redraw by sending SIGWINCH
-                if existing.pid and existing.pid > 0:
-                    try:
-                        os.kill(existing.pid, signal.SIGWINCH)
-                    except ProcessLookupError:
-                        pass
+    def _handle_restart(self, msg: dict, client: socket.socket) -> dict:
+        """Dispatch restart to legacy handler."""
+        from ._handlers_legacy import handle_restart_legacy
 
-                return {"status": "ok", "session_id": existing_id}
+        return handle_restart_legacy(self, msg, client)
 
-        # No existing session — spawn new one
-        session_id = str(uuid.uuid4())
-        try:
-            session = TerminalSession(
-                session_id=session_id,
-                username=username,
-                user_data_dir=Path(msg["user_data_dir"]),
-                project_dir=Path(msg["project_dir"]),
-                container_path=msg["container_path"],
-                project_slug=msg["project_slug"],
-                screen_session=screen_session,
-            )
-            session.client_socket = client
+    def _handle_stop_allocation(self, msg: dict) -> dict:
+        """Stop a shared allocation and all its shells."""
+        from ._handlers_shared import handle_stop_allocation
 
-            if not session.spawn():
-                return {"status": "error", "error": "Failed to spawn PTY"}
+        return handle_stop_allocation(self, msg)
 
-            def output_cb(sid, data):
-                try:
-                    self._send_message(
-                        client,
-                        {
-                            "action": "output",
-                            "session_id": sid,
-                            "data": base64.b64encode(data).decode("ascii"),
-                        },
-                    )
-                except:
-                    pass
-
-            session.start_reader(output_cb)
-
-            with self.lock:
-                self.sessions[session_id] = session
-                self.session_index[key] = session_id
-
-            return {"status": "ok", "session_id": session_id}
-
-        except Exception as e:
-            logger.error(f"Spawn error: {e}")
-            return {"status": "error", "error": str(e)}
+    # ------------------------------------------------------------------
+    # Input / Resize / Close — work with both sessions and shells
+    # ------------------------------------------------------------------
 
     def _handle_input(self, msg: dict) -> Optional[dict]:
         """Handle input from client."""
@@ -228,10 +208,10 @@ class TerminalBroker:
         data = base64.b64decode(msg.get("data", ""))
 
         with self.lock:
-            session = self.sessions.get(session_id)
+            target = self.sessions.get(session_id) or self.shells.get(session_id)
 
-        if session:
-            session.write(data)
+        if target:
+            target.write(data)
         return None
 
     def _handle_resize(self, msg: dict) -> Optional[dict]:
@@ -241,32 +221,46 @@ class TerminalBroker:
         cols = msg.get("cols", 80)
 
         with self.lock:
-            session = self.sessions.get(session_id)
+            target = self.sessions.get(session_id) or self.shells.get(session_id)
 
-        if session:
-            session.resize(rows, cols)
+        if target:
+            target.resize(rows, cols)
         return None
 
     def _handle_close(self, msg: dict) -> dict:
         """Handle close request."""
         session_id = msg.get("session_id")
-        self._close_session(session_id)
-        return {"status": "ok"}
+        # Check shells first (shared mode), then legacy sessions
+        with self.lock:
+            shell = self.shells.pop(session_id, None)
+            alloc = None
+            if shell:
+                self.shell_index = {
+                    k: v for k, v in self.shell_index.items() if v != session_id
+                }
+                alloc = self.allocations.get(shell.allocation_id)
+        if shell:
+            shell.close()
+            if alloc:
+                alloc.decrement_shells()
+            return {"status": "ok"}
 
-    def _close_session(self, session_id: str):
-        """Close and remove a session."""
+        # Legacy session close
         with self.lock:
             session = self.sessions.pop(session_id, None)
-            # Clean up index
             self.session_index = {
                 k: v for k, v in self.session_index.items() if v != session_id
             }
-
         if session:
             session.close()
+        return {"status": "ok"}
+
+    # ------------------------------------------------------------------
+    # Lifecycle
+    # ------------------------------------------------------------------
 
     def stop(self):
-        """Stop the broker."""
+        """Stop the broker and clean up all sessions/allocations."""
         self.running = False
 
         with self.lock:
@@ -275,10 +269,15 @@ class TerminalBroker:
             self.sessions.clear()
             self.session_index.clear()
 
+        # Clean up shared allocations
+        from ._handlers_shared import stop_all_allocations
+
+        stop_all_allocations(self)
+
         if self.server_socket:
             try:
                 self.server_socket.close()
-            except:
+            except Exception:
                 pass
 
         if os.path.exists(self.socket_path):

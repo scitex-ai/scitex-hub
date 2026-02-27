@@ -80,3 +80,30 @@
 }
 
 /* .terminal-toggle styling handled by shared .panel-toggle-btn in collapsible-panel.css */
+
+/* Session status badge */
+.terminal-status-badge {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.terminal-status-badge:empty {
+  display: none;
+}
+
+.terminal-status-badge.status-warning {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+}
+
+.terminal-status-badge.status-error {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+}
+
+.code-terminal-panel.collapsed .terminal-panel-top .terminal-status-badge {
+  display: none;
+}

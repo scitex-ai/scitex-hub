@@ -40,6 +40,7 @@ class TerminalBrokerClient:
         self.writer: Optional[asyncio.StreamWriter] = None
         self.session_id: Optional[str] = None
         self.output_callback: Optional[Callable[[bytes], None]] = None
+        self.session_state_callback: Optional[Callable[[dict], None]] = None
         self._reader_task: Optional[asyncio.Task] = None
         self._connected = False
 
@@ -59,6 +60,10 @@ class TerminalBrokerClient:
     def set_output_callback(self, callback: Callable[[bytes], None]):
         """Set callback for PTY output."""
         self.output_callback = callback
+
+    def set_session_state_callback(self, callback: Callable[[dict], None]):
+        """Set callback for session state changes (exited, running, dead)."""
+        self.session_state_callback = callback
 
     async def spawn(
         self,
@@ -143,11 +148,34 @@ class TerminalBrokerClient:
             }
         )
 
+    async def restart(self):
+        """Send restart request to broker (explicit user restart)."""
+        if not self._connected or not self.session_id:
+            return
+        await self._send_message(
+            {
+                "action": "restart",
+                "session_id": self.session_id,
+            }
+        )
+
+    async def stop_allocation(self, username: str, project_slug: str):
+        """Request broker to stop a shared allocation and all its shells."""
+        if not self._connected:
+            return
+        await self._send_message(
+            {
+                "action": "stop_allocation",
+                "username": username,
+                "project_slug": project_slug,
+            }
+        )
+
     async def disconnect_only(self):
         """Disconnect client socket without killing the terminal session.
 
-        The screen session continues running inside the container (via SLURM).
-        A future WebSocket connection can reattach to the same screen session.
+        The session continues running inside the container (via SLURM).
+        A future WebSocket connection can reattach to the same session.
         """
         if self._reader_task:
             self._reader_task.cancel()
@@ -242,15 +270,19 @@ class TerminalBrokerClient:
 
                 action = msg.get("action")
                 if action == "output":
-                    # PTY output - decode and send to callback
                     if self.output_callback:
                         data = base64.b64decode(msg.get("data", ""))
                         try:
                             self.output_callback(data)
                         except Exception as e:
                             logger.debug(f"Output callback error: {e}")
+                elif action == "session_state":
+                    if self.session_state_callback:
+                        try:
+                            self.session_state_callback(msg)
+                        except Exception as e:
+                            logger.debug(f"Session state callback error: {e}")
                 elif msg.get("status"):
-                    # Response to a command - store for waiting coroutine
                     self._last_response = msg
 
         except asyncio.CancelledError:

@@ -1,0 +1,198 @@
+"""Shared allocation handlers for the terminal broker.
+
+These functions implement the sbatch + srun --overlap spawn pattern.
+They receive the broker instance as the first argument to access
+shared state (allocations, shells, indexes).
+"""
+
+import logging
+import socket
+import threading
+import time
+import uuid
+from pathlib import Path
+
+from ._handler_utils import respawn_pty, send_state
+from .allocation import Allocation, AllocationState
+from .session import SessionState
+from .shell import MAX_RESPAWNS as SHELL_MAX_RESPAWNS
+from .shell import Shell
+
+logger = logging.getLogger(__name__)
+
+
+def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
+    """Shared spawn: one sbatch per (user, project), shells via srun --overlap."""
+    username = msg["username"]
+    project_slug = msg["project_slug"]
+    screen_session = msg.get("screen_session", "scitex-0")
+    shell_key = (username, screen_session)
+    alloc_key = (username, project_slug)
+
+    # 1. Check for existing shell to reattach
+    with broker.lock:
+        existing_shell_id = broker.shell_index.get(shell_key)
+        existing_shell = (
+            broker.shells.get(existing_shell_id) if existing_shell_id else None
+        )
+        if (
+            existing_shell
+            and existing_shell.state == SessionState.RUNNING
+            and existing_shell.fd is not None
+        ):
+            existing_shell.on_exit_callback = _make_shell_exit_cb(broker, client)
+            existing_shell.start_reader(broker._make_output_callback(client))
+            logger.info(f"Shell {existing_shell_id[:8]}: reattaching")
+            return {"status": "ok", "session_id": existing_shell_id}
+
+    # 2. Get or create allocation
+    with broker.lock:
+        alloc_id = broker.alloc_index.get(alloc_key)
+        alloc = broker.allocations.get(alloc_id) if alloc_id else None
+
+    if not alloc or alloc.state == AllocationState.DEAD:
+        alloc = Allocation(
+            username=username,
+            project_slug=project_slug,
+            container_path=msg["container_path"],
+            host_user_dir=Path(msg["user_data_dir"]),
+            host_project_dir=Path(msg["project_dir"]),
+        )
+        send_state(broker, client, "", "allocation_starting")
+
+        if not alloc.start():
+            return {"status": "error", "error": "Failed to start SLURM allocation"}
+        with broker.lock:
+            broker.allocations[alloc.allocation_id] = alloc
+            broker.alloc_index[alloc_key] = alloc.allocation_id
+
+    elif alloc.state == AllocationState.STARTING:
+        # Another tab is already starting this allocation — wait
+        deadline = time.time() + 60
+        while time.time() < deadline and alloc.state == AllocationState.STARTING:
+            time.sleep(1)
+        if alloc.state != AllocationState.READY:
+            return {"status": "error", "error": "Allocation startup timed out"}
+
+    # 3. Spawn shell inside allocation
+    shell_id = str(uuid.uuid4())
+    shell = Shell(
+        shell_id=shell_id,
+        allocation_id=alloc.allocation_id,
+        username=username,
+        screen_session=screen_session,
+        command=alloc.get_shell_command(),
+    )
+
+    if not shell.spawn():
+        return {"status": "error", "error": "Failed to spawn shell in allocation"}
+
+    shell.on_exit_callback = _make_shell_exit_cb(broker, client)
+    shell.start_reader(broker._make_output_callback(client))
+    alloc.increment_shells()
+
+    with broker.lock:
+        broker.shells[shell_id] = shell
+        broker.shell_index[shell_key] = shell_id
+
+    return {"status": "ok", "session_id": shell_id}
+
+
+def _make_shell_exit_cb(broker, client: socket.socket):
+    """Create exit callback for shell auto-respawn."""
+
+    def on_exit(pty_id):
+        with broker.lock:
+            shell = broker.shells.get(pty_id)
+        if not shell or shell.state != SessionState.RUNNING:
+            return
+
+        shell.cleanup_fd()
+        shell.state = SessionState.EXITED
+        send_state(broker, client, pty_id, "exited")
+
+        # Check if allocation is still alive
+        with broker.lock:
+            alloc = broker.allocations.get(shell.allocation_id)
+        if alloc and not alloc.check_alive():
+            shell.state = SessionState.DEAD
+            alloc.decrement_shells()
+            send_state(broker, client, pty_id, "dead")
+            return
+
+        if shell.spawn_count < SHELL_MAX_RESPAWNS:
+            backoff = min(2 ** (shell.spawn_count - 1), 4)
+            timer = threading.Timer(
+                backoff, _respawn_shell, args=(broker, pty_id, client)
+            )
+            timer.daemon = True
+            timer.start()
+        else:
+            shell.state = SessionState.DEAD
+            if alloc:
+                alloc.decrement_shells()
+
+    return on_exit
+
+
+def _respawn_shell(broker, pty_id: str, client: socket.socket):
+    """Respawn a shell after exit."""
+    with broker.lock:
+        shell = broker.shells.get(pty_id)
+    if not shell or shell.state == SessionState.DEAD:
+        return
+
+    def on_fail():
+        with broker.lock:
+            alloc = broker.allocations.get(shell.allocation_id)
+        if alloc:
+            alloc.decrement_shells()
+
+    respawn_pty(broker, shell, client, _make_shell_exit_cb, on_fail=on_fail)
+
+
+def handle_stop_allocation(broker, msg: dict) -> dict:
+    """Stop a shared allocation and all its shells."""
+    username = msg.get("username", "")
+    project_slug = msg.get("project_slug", "")
+    alloc_key = (username, project_slug)
+
+    with broker.lock:
+        alloc_id = broker.alloc_index.pop(alloc_key, None)
+        alloc = broker.allocations.pop(alloc_id, None) if alloc_id else None
+        if alloc:
+            dead_shells = [
+                sid
+                for sid, s in broker.shells.items()
+                if s.allocation_id == alloc.allocation_id
+            ]
+            for sid in dead_shells:
+                shell = broker.shells.pop(sid, None)
+                if shell:
+                    shell.close()
+            broker.shell_index = {
+                k: v for k, v in broker.shell_index.items() if v not in dead_shells
+            }
+
+    if alloc:
+        alloc.stop()
+        return {"status": "ok"}
+    return {"status": "error", "error": "No allocation found"}
+
+
+def stop_all_allocations(broker):
+    """Stop all allocations and shells during broker shutdown."""
+    with broker.lock:
+        for shell in list(broker.shells.values()):
+            shell.close()
+        broker.shells.clear()
+        broker.shell_index.clear()
+        allocs = list(broker.allocations.values())
+        broker.allocations.clear()
+        broker.alloc_index.clear()
+
+    for alloc in allocs:
+        alloc.stop()
+
+
+# EOF

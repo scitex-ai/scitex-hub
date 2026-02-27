@@ -295,6 +295,17 @@
                     <span>Jobs</span>
                     <span id="jobs-badge" class="panel-tab-badge" style="display: none;">0</span>
                 </button>
+                <button id="btn-terminal-restart"
+                        class="btn-code-action panel-header-btn"
+                        title="Restart terminal session">
+                    <i class="fas fa-redo"></i>
+                </button>
+                <button id="btn-release-resources"
+                        class="btn-code-action panel-header-btn"
+                        title="Release SLURM allocation">
+                    <i class="fas fa-power-off"></i>
+                </button>
+                <span id="terminal-session-status" class="terminal-status-badge"></span>
                 <button id="btn-copy-terminal"
                         class="btn-code-action panel-header-btn"
                         title="Copy terminal log">
