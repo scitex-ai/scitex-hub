@@ -26,7 +26,7 @@
                             </div>
                             <p class="card-text text-muted mb-4">{{ module.description }}</p>
                             {% if module.available %}
-                                <a href="{% url 'docs:index' %}{{ module.slug }}/" class="btn btn-primary">
+                                <a href="{% url 'docs_app:index' %}{{ module.slug }}/" class="btn btn-primary">
                                     <i class="fas fa-book-open me-2"></i>View Documentation
                                 </a>
                             {% else %}
@@ -51,12 +51,12 @@
                 <li class="mb-2">
                     <i class="fas fa-check-circle text-success me-2"></i>
                     <strong>Python Package:</strong> Install with <code>pip install scitex</code> and check the
-                    <a href="{% url 'docs:python' %}">Python documentation</a> for usage
+                    <a href="{% url 'docs_app:python' %}">Python documentation</a> for usage
                 </li>
                 <li class="mb-2">
                     <i class="fas fa-check-circle text-success me-2"></i>
                     <strong>REST API:</strong> Integrate SciTeX Cloud into your applications via the
-                    <a href="{% url 'docs:api' %}">REST API reference</a>
+                    <a href="{% url 'docs_app:api' %}">REST API reference</a>
                 </li>
             </ul>
         </div>

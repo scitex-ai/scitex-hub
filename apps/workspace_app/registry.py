@@ -276,6 +276,20 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
     ModuleConfig(
+        name="docs",
+        label="Docs",
+        app_name="docs_app",
+        icon_fa="fas fa-book",
+        partial_template="docs_app/docs_partial.html",
+        context_builder="apps.docs_app.views.build_docs_context",
+        body_class="docs-page",
+        keyboard_shortcut="D",
+        order=95,
+        ai_hint="Documentation: Python packages, MCP tools, SSH access, API reference, self-hosting guide, licensing.",
+        accent_color="docs",
+        hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
+    ),
+    ModuleConfig(
         name="modulemaker",
         label="App Maker",
         app_name="modulemaker_app",
@@ -315,10 +329,17 @@ def get_module_names() -> set[str]:
     return set(_registry_by_name.keys())
 
 
+# Non-module paths that should still render inside the workspace layout.
+_WORKSPACE_EXTRA_PREFIXES = ("/accounts/",)
+
+
 def is_workspace_path(path: str) -> bool:
-    """Check if a URL path belongs to a workspace module."""
+    """Check if a URL path belongs to a workspace module or extra workspace page."""
     for name in _registry_by_name:
         if f"/{name}/" in path:
+            return True
+    for prefix in _WORKSPACE_EXTRA_PREFIXES:
+        if path.startswith(prefix):
             return True
     return False
 

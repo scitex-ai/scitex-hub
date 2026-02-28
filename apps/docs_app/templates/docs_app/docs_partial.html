@@ -20,16 +20,12 @@
                     </span>
                 </a>
             {% endfor %}
-            <!-- Export buttons -->
+            <!-- Export buttons (TODO: restore download endpoint) -->
             <div class="docs-nav-footer">
-                <a href="{% url 'docs_app:download' fmt='md' %}"
-                   class="docs-export-btn"
-                   title="Download as Markdown">
+                <a href="/docs/?fmt=md" class="docs-export-btn" title="Download as Markdown">
                     <i class="fas fa-file-alt"></i> Markdown
                 </a>
-                <a href="{% url 'docs_app:download' fmt='pdf' %}"
-                   class="docs-export-btn"
-                   title="Download as PDF">
+                <a href="/docs/?fmt=pdf" class="docs-export-btn" title="Download as PDF">
                     <i class="fas fa-file-pdf"></i> PDF
                 </a>
             </div>
