@@ -56,6 +56,17 @@ library_patterns = [
         library_views.api_remove_library_paper,
         name="api_remove_library_paper",
     ),
+    # Integration status stubs (return available=false until implemented)
+    path(
+        "api/library/zotero/status/",
+        library_views.api_zotero_status,
+        name="api_zotero_status",
+    ),
+    path(
+        "api/library/connected-papers/status/",
+        library_views.api_connected_papers_status,
+        name="api_connected_papers_status",
+    ),
 ]
 
 # Project linking endpoints (separate module)
