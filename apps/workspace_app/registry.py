@@ -335,6 +335,9 @@ _WORKSPACE_EXTRA_PREFIXES = ("/accounts/",)
 
 def is_workspace_path(path: str) -> bool:
     """Check if a URL path belongs to a workspace module or extra workspace page."""
+    # Root path "/" is the hub dashboard for authenticated users
+    if path == "/":
+        return True
     for name in _registry_by_name:
         if f"/{name}/" in path:
             return True
@@ -346,6 +349,9 @@ def is_workspace_path(path: str) -> bool:
 
 def extract_module_from_path(path: str) -> Optional[str]:
     """Extract module name from URL path. Returns None if not a module path."""
+    # Root path "/" maps to hub module
+    if path == "/":
+        return "hub"
     for name in _registry_by_name:
         if f"/{name}/" in path:
             return name

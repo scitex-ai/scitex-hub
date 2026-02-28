@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.db import models
 from django.http import Http404
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, render
 
 from ...models import Project
 
@@ -35,9 +35,15 @@ def user_profile(request, username):
     if username.lower() in [path.lower() for path in RESERVED_PATHS]:
         raise Http404("This path is reserved and not a valid username")
 
-    # Authenticated users see profile inside Hub
+    # Authenticated users see profile inside Hub workspace (rendered at /<username>/)
     if request.user.is_authenticated:
-        return redirect(f"/hub/?view=profile&username={username}")
+        from apps.hub_app.views.index import _build_profile_context, build_hub_context
+
+        context = build_hub_context(request, current_project=None)
+        context["hub_view_mode"] = "profile"
+        context["hub_profile_username"] = username
+        context.update(_build_profile_context(request, username))
+        return render(request, "hub_app/index.html", context)
 
     # First, try to find a user with this username
     try:

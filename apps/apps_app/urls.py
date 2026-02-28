@@ -19,6 +19,11 @@ urlpatterns = [
     path("api/<str:module_name>/unstar/", views.api_unstar, name="api_unstar"),
     path("api/<str:module_name>/review/", views.api_review, name="api_review"),
     path(
+        "api/<str:module_name>/config/",
+        views.api_update_config,
+        name="api_update_config",
+    ),
+    path(
         "api/<str:module_name>/submit/", views.api_submit_for_review, name="api_submit"
     ),
     path(

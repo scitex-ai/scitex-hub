@@ -1,6 +1,11 @@
 {% load module_icons %}
 
 {% if user.is_authenticated %}
+    <script>
+    window.SCITEX_MODULE_COLORS = {
+      {% for mod in workspace_modules %}{% if mod.accent_color %}"{{ mod.name }}": "{{ mod.accent_color }}",{% endif %}{% endfor %}
+    };
+    </script>
     <div class="ws-apps-pane" id="ws-apps-pane">
         <div id="ws-apps-sidebar">
             <div id="ws-apps-resizer"
@@ -24,7 +29,8 @@
                        class="ws-apps-nav-item module-tab-btn{% if mod.is_active %} active{% endif %}"
                        data-module="{{ mod.name }}"
                        aria-label="{{ mod.label }}"
-                       title="{{ mod.label }}">{% module_icon mod.name %}<span class="ws-apps-nav-label">{{ mod.label }}</span></a>
+                       title="{{ mod.label }}"
+                       {% if mod.accent_color %}style="--tab-accent: {{ mod.accent_color }}"{% endif %}>{% module_icon mod.name %}<span class="ws-apps-nav-label">{{ mod.label }}</span></a>
                 {% endfor %}
             </nav>
         </div>

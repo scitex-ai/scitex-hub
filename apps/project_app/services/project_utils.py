@@ -50,7 +50,9 @@ def get_current_project(request, user=None):
     current_project_id = request.session.get("current_project_id")
     if current_project_id:
         try:
-            current_project = Project.objects.get(id=current_project_id)
+            current_project = Project.objects.select_related("owner").get(
+                id=current_project_id
+            )
             # Verify user has permission to view
             if current_project.can_view(user):
                 logger.info(
@@ -86,7 +88,9 @@ def get_current_project(request, user=None):
     current_project_slug = request.session.get("current_project_slug")
     if current_project_slug:
         try:
-            current_project = Project.objects.get(slug=current_project_slug, owner=user)
+            current_project = Project.objects.select_related("owner").get(
+                slug=current_project_slug, owner=user
+            )
             logger.info(
                 f"Using session project for user {user.username}: {current_project.name}"
             )
@@ -98,7 +102,9 @@ def get_current_project(request, user=None):
 
     # Final fallback: get first project or None
     try:
-        current_project = Project.objects.filter(owner=user).first()
+        current_project = (
+            Project.objects.filter(owner=user).select_related("owner").first()
+        )
         if current_project:
             logger.info(
                 f"Using first user project for {user.username}: {current_project.name}"

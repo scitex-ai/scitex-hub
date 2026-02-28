@@ -168,7 +168,16 @@ function initHub(): void {
       return;
     }
 
-    // Header links (owner, repo name) — back to root
+    // Header owner link — navigate to /<username>/ profile
+    const ownerLink = target.closest(
+      "a.repo-header-owner",
+    ) as HTMLAnchorElement | null;
+    if (ownerLink) {
+      // Let the browser navigate to /<username>/
+      return;
+    }
+
+    // Header repo name link — back to files root
     const headerLink = target.closest(
       ".repo-header a",
     ) as HTMLAnchorElement | null;
@@ -249,21 +258,8 @@ async function loadExplore(tab: string): Promise<void> {
 
 async function loadUserProfile(username: string): Promise<void> {
   if (!username) return;
-  const content = document.getElementById("hub-main-content");
-  if (!content) return;
-  content.style.opacity = "0.5";
-
-  history.pushState(
-    { view: "profile", username },
-    "",
-    `/hub/?view=profile&username=${encodeURIComponent(username)}`,
-  );
-
-  const data = await hubGet(
-    `/hub/api/user-profile/?username=${encodeURIComponent(username)}`,
-  );
-  if (data?.success) content.innerHTML = data.html;
-  content.style.opacity = "1";
+  // Navigate to /<username>/ (rendered server-side like GitHub)
+  window.location.href = `/${encodeURIComponent(username)}/`;
 }
 
 async function backToProjects(): Promise<void> {
@@ -271,7 +267,7 @@ async function backToProjects(): Promise<void> {
   if (!content) return;
   content.style.opacity = "0.5";
 
-  history.pushState({ view: "dashboard" }, "", "/hub/");
+  history.pushState({ view: "dashboard" }, "", "/");
 
   const data = await hubGet("/hub/api/projects-overview/");
   if (data?.success) content.innerHTML = data.html;

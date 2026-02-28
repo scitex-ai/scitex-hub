@@ -20,17 +20,24 @@ def workspace_context(request):
     path = request.path
     is_ws = is_workspace_path(path)
 
+    # Root path "/" is only a workspace for authenticated users (anon sees landing)
+    if path == "/" and not request.user.is_authenticated:
+        is_ws = False
+
     # User profile pages (/<username>/...) should also show workspace chrome
     if not is_ws and request.user.is_authenticated:
         is_ws = _is_user_profile_path(path)
 
     active_name = extract_module_from_path(path) if is_ws else None
     # Pages with a real module match get workspace sidebars (AI, worktree, viewer).
+    # User profile pages (/<username>/) also get panes — they render inside Hub.
     # Extra workspace paths (e.g. /accounts/) get the tab bar but no sidebars.
     has_panes = is_ws and active_name is not None
-    # Non-module workspace pages (accounts, profile) belong under Hub
+    # Non-module workspace pages: user profiles get panes, others don't
     if is_ws and active_name is None:
         active_name = "hub"
+        if request.user.is_authenticated and _is_user_profile_path(path):
+            has_panes = True
 
     all_modules = get_all_modules()
     modules = _filter_modules_for_user(request, all_modules)
@@ -132,9 +139,11 @@ def _filter_modules_for_user(request, modules):
         if inst is None:
             # No record = default visible, keep registry order
             mod.order = (idx + 1) * 10
+            mod.accent_color = ""
             visible.append(mod)
         elif inst.is_enabled:
             mod.order = inst.tab_order
+            mod.accent_color = (inst.config or {}).get("accent_color", "")
             visible.append(mod)
 
     visible.sort(key=lambda m: m.order)

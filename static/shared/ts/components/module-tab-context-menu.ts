@@ -1,11 +1,23 @@
 /**
- * Module Tab Context Menu — right-click on module tabs to manage them.
+ * Module Tab Context Menu — right-click on module tabs or apps nav to manage them.
  *
- * Actions: Disable, Uninstall, View in Apps.
+ * Actions: Disable, Uninstall, Accent Color, View in Apps.
  * Uses existing apps API endpoints.
  */
 
 const APPS_API = "/apps/api";
+
+const COLOR_SWATCHES = [
+  { name: "Default", value: "" },
+  { name: "Blue", value: "#388bfd" },
+  { name: "Green", value: "#3d7a5e" },
+  { name: "Purple", value: "#6a5a8a" },
+  { name: "Amber", value: "#a07040" },
+  { name: "Teal", value: "#2e7070" },
+  { name: "Rose", value: "#7a5a6a" },
+  { name: "Red", value: "#d35050" },
+  { name: "Slate", value: "#5a6a8a" },
+];
 
 function getCsrfToken(): string {
   return (
@@ -21,6 +33,7 @@ function getCsrfToken(): string {
 
 async function apiPost(
   url: string,
+  body?: object,
 ): Promise<{ success: boolean; error?: string; message?: string }> {
   const resp = await fetch(url, {
     method: "POST",
@@ -29,6 +42,7 @@ async function apiPost(
       "X-CSRFToken": getCsrfToken(),
     },
     credentials: "same-origin",
+    body: body ? JSON.stringify(body) : undefined,
   });
   return resp.json();
 }
@@ -63,6 +77,13 @@ function showMenu(x: number, y: number, moduleName: string): void {
     },
     { separator: true },
     {
+      label: "Accent Color",
+      icon: "fa-palette",
+      cls: "module-ctx-color",
+      action: () => showColorSubmenu(menu, moduleName),
+    },
+    { separator: true },
+    {
       label: "View in Apps",
       icon: "fa-store",
       cls: "",
@@ -88,7 +109,9 @@ function showMenu(x: number, y: number, moduleName: string): void {
     `;
     el.addEventListener("click", (e) => {
       e.stopPropagation();
-      hideMenu();
+      if (item.cls !== "module-ctx-color") {
+        hideMenu();
+      }
       item.action!();
     });
     menu.appendChild(el);
@@ -110,6 +133,81 @@ function showMenu(x: number, y: number, moduleName: string): void {
   }
 
   activeMenu = menu;
+}
+
+function showColorSubmenu(parentMenu: HTMLElement, moduleName: string): void {
+  // Toggle: remove if already open
+  const existing = parentMenu.querySelector(".module-ctx-color-panel");
+  if (existing) {
+    existing.remove();
+    return;
+  }
+
+  const panel = document.createElement("div");
+  panel.className = "module-ctx-color-panel";
+
+  for (const swatch of COLOR_SWATCHES) {
+    const dot = document.createElement("button");
+    dot.className = "module-ctx-swatch";
+    dot.title = swatch.name;
+    if (swatch.value) {
+      dot.style.background = swatch.value;
+    } else {
+      dot.classList.add("module-ctx-swatch-default");
+    }
+    dot.addEventListener("click", (e) => {
+      e.stopPropagation();
+      hideMenu();
+      setModuleColor(moduleName, swatch.value);
+    });
+    panel.appendChild(dot);
+  }
+  parentMenu.appendChild(panel);
+}
+
+async function setModuleColor(
+  moduleName: string,
+  color: string,
+): Promise<void> {
+  const data = await apiPost(`${APPS_API}/${moduleName}/config/`, {
+    config: { accent_color: color || null },
+  });
+  if (!data.success) {
+    console.error("[module-ctx] Config error:", data.error);
+    return;
+  }
+  applyModuleColor(moduleName, color);
+}
+
+function applyModuleColor(moduleName: string, color: string): void {
+  // Apply to tab bar + apps nav items
+  const sel = `[data-module="${moduleName}"]`;
+  document.querySelectorAll<HTMLElement>(sel).forEach((el) => {
+    if (color) {
+      el.style.setProperty("--tab-accent", color);
+    } else {
+      el.style.removeProperty("--tab-accent");
+    }
+  });
+
+  // Apply to the module pane top accent bar (#main-content[data-module-accent])
+  const pane = document.querySelector<HTMLElement>(
+    `#main-content[data-module-accent="${moduleName}"]`,
+  );
+  if (pane) {
+    if (color) {
+      pane.style.setProperty("--module-accent-color", color);
+    } else {
+      pane.style.removeProperty("--module-accent-color");
+    }
+  }
+}
+
+function applySavedColors(): void {
+  const colors = (window as any).SCITEX_MODULE_COLORS || {};
+  for (const [name, color] of Object.entries(colors)) {
+    if (color) applyModuleColor(name, color as string);
+  }
 }
 
 async function toggleModule(name: string): Promise<void> {
@@ -140,22 +238,37 @@ async function uninstallModule(name: string): Promise<void> {
   }
 }
 
-function init(): void {
-  const tabBar = document.querySelector(".module-tab-bar");
-  if (!tabBar) return;
-
-  tabBar.addEventListener("contextmenu", (e) => {
+function handleContextMenu(selector: string) {
+  return (e: Event) => {
     const target = (e.target as HTMLElement).closest(
-      ".module-tab-btn",
+      selector,
     ) as HTMLElement | null;
     if (!target) return;
-
     const moduleName = target.dataset.module;
     if (!moduleName) return;
-
     e.preventDefault();
     showMenu((e as MouseEvent).clientX, (e as MouseEvent).clientY, moduleName);
-  });
+  };
+}
+
+function init(): void {
+  // Tab bar
+  const tabBar = document.querySelector(".module-tab-bar");
+  if (tabBar) {
+    tabBar.addEventListener(
+      "contextmenu",
+      handleContextMenu(".module-tab-btn"),
+    );
+  }
+
+  // Apps nav pane
+  const appsNav = document.querySelector(".ws-apps-nav");
+  if (appsNav) {
+    appsNav.addEventListener(
+      "contextmenu",
+      handleContextMenu(".ws-apps-nav-item"),
+    );
+  }
 
   // Dismiss on click outside or Escape
   document.addEventListener("mousedown", (e) => {
@@ -166,6 +279,9 @@ function init(): void {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") hideMenu();
   });
+
+  // Apply saved accent colors
+  applySavedColors();
 }
 
 if (document.readyState === "loading") {

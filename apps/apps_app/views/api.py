@@ -226,11 +226,23 @@ def api_reorder(request):
         )
     }
 
+    # Build AppsModule lookup for auto-creating missing installations
+    all_modules = {m.module_name: m for m in AppsModule.objects.all()}
+
     for idx, name in enumerate(order):
+        tab_order = (idx + 1) * 10
         if name in installations:
             inst = installations[name]
-            inst.tab_order = (idx + 1) * 10
+            inst.tab_order = tab_order
             inst.save(update_fields=["tab_order"])
+        elif name in all_modules:
+            # Auto-create installation for modules without one (e.g. clew)
+            inst, _created = ModuleInstallation.objects.update_or_create(
+                user=request.user,
+                module=all_modules[name],
+                defaults={"is_enabled": True, "tab_order": tab_order},
+            )
+            installations[name] = inst
 
     return JsonResponse({"success": True, "message": "Tab order updated."})
 
@@ -258,6 +270,36 @@ def api_submit_for_review(request, module_name):
 
     ModuleSubmission.objects.create(module=app_module, submitted_by=request.user)
     return JsonResponse({"success": True, "message": "Submitted for review."})
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_update_config(request, module_name):
+    """Update per-user config for a module installation."""
+    app_module = get_object_or_404(AppsModule, module_name=module_name)
+    inst = ModuleInstallation.objects.filter(
+        user=request.user, module=app_module
+    ).first()
+    if not inst:
+        return JsonResponse(
+            {"success": False, "error": "Module not installed."}, status=400
+        )
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON."}, status=400)
+
+    # Merge incoming keys into existing config
+    config = inst.config or {}
+    for key, value in data.get("config", {}).items():
+        if value is None:
+            config.pop(key, None)
+        else:
+            config[key] = value
+    inst.config = config
+    inst.save(update_fields=["config"])
+    return JsonResponse({"success": True, "config": inst.config})
 
 
 @login_required

@@ -13,7 +13,8 @@ Order is determined by each module's `order` field in registry.py.
             <a href="/{{ mod.name }}/"
                class="module-tab-btn{% if mod.is_active %} active{% endif %}"
                data-module="{{ mod.name }}"
-               aria-label="{{ mod.label }}">
+               aria-label="{{ mod.label }}"
+               {% if mod.accent_color %}style="--tab-accent: {{ mod.accent_color }}"{% endif %}>
                 {% module_icon mod.name %}
                 <span class="tab-label">{{ mod.label }}</span>
                 {% if mod.status == "wip" or mod.name == "apps" %}

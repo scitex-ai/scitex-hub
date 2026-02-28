@@ -167,7 +167,7 @@ def _add_file_browser_context(request, project, context):
     """Add file browser data to context (reuses project_app helpers)."""
     from django.conf import settings
 
-    from apps.project_app.models import ProjectFork, ProjectStar, ProjectWatch
+    from apps.project_app.models import ProjectStar, ProjectWatch
     from apps.project_app.services.project_filesystem import (
         get_project_filesystem_manager,
     )
@@ -186,10 +186,17 @@ def _add_file_browser_context(request, project, context):
         current_branch = project.current_branch or "develop"
         branches, current_branch = get_branches(project_path, current_branch)
 
-        # Social counts
-        watch_count = ProjectWatch.objects.filter(project=project).count()
-        star_count = ProjectStar.objects.filter(project=project).count()
-        fork_count = ProjectFork.objects.filter(original_project=project).count()
+        # Social counts — aggregate into fewer queries
+        from django.db.models import Count
+
+        social = Project.objects.filter(pk=project.pk).aggregate(
+            watch_count=Count("project_watchers"),
+            star_count=Count("project_stars_set"),
+            fork_count=Count("project_forks_set"),
+        )
+        watch_count = social["watch_count"]
+        star_count = social["star_count"]
+        fork_count = social["fork_count"]
         is_watching = ProjectWatch.objects.filter(
             user=request.user, project=project
         ).exists()

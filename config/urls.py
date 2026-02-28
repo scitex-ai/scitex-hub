@@ -21,6 +21,7 @@ from django.views.static import serve
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from apps.accounts_app.api.user_views import api_search_users
+from apps.hub_app.views.dispatch import root_dispatch
 from apps.integrations_app.views_events import list_events, receive_event
 from apps.project_app.views import (
     accept_invitation,
@@ -112,7 +113,9 @@ RESERVED_PATHS = get_reserved_paths()
 urlpatterns = [
     # Critical health check endpoint (must come before username catch-all)
     path("healthz/", healthz, name="healthz"),
-    # Basics
+    # Root: authenticated → hub dashboard, anonymous → landing page
+    path("", root_dispatch, name="root"),
+    # Public pages (about, setup, contact, etc.) — all under their own prefixes
     path("", include("apps.public_app.urls")),
     path("admin/", admin.site.urls),
     path("accounts/", include(("apps.accounts_app.urls", "accounts_app"))),
@@ -120,7 +123,9 @@ urlpatterns = [
     # Social authentication (Google, ORCID) via django-allauth
     path("auth/social/", include("allauth.urls")),
     # Main Modules
-    path("hub/", include(("apps.hub_app.urls", "hub_app"))),
+    # Hub API stays at /hub/api/ (used by JS), page redirects to /
+    path("hub/api/", include("apps.hub_app.urls.api")),
+    path("hub/", RedirectView.as_view(url="/", permanent=True), name="hub_redirect"),
     path("scholar/", include(("apps.scholar_app.urls", "scholar_app"))),
     path("console/", include(("apps.console_app.urls", "console_app"))),
     path("vis/", include(("apps.vis_app.urls", "vis"))),
