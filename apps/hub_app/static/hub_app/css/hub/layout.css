@@ -84,7 +84,7 @@
 /* Hub content wrapper */
 .hub-content {
   max-width: 1200px;
-  padding: 1rem;
+  padding: 1.5rem 2rem;
 }
 
 /* Hub header (no-project state) */

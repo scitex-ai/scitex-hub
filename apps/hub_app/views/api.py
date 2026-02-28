@@ -349,4 +349,22 @@ def api_user_profile(request):
     return JsonResponse({"success": True, "html": html})
 
 
+@login_required
+@require_http_methods(["POST"])
+def api_avatar_upload(request):
+    """POST /hub/api/avatar-upload/ — Upload avatar via AJAX."""
+    from apps.accounts_app.models import UserProfile
+
+    if "avatar" not in request.FILES:
+        return JsonResponse(
+            {"success": False, "error": "No avatar file provided"}, status=400
+        )
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    profile.avatar = request.FILES["avatar"]
+    profile.save(update_fields=["avatar"])
+
+    return JsonResponse({"success": True, "avatar_url": profile.avatar.url})
+
+
 # EOF

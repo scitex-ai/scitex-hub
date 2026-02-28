@@ -41,6 +41,11 @@ urlpatterns = [
         api_views.api_user_profile,
         name="api_user_profile",
     ),
+    path(
+        "avatar-upload/",
+        api_views.api_avatar_upload,
+        name="api_avatar_upload",
+    ),
 ]
 
 # EOF

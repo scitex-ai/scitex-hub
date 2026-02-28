@@ -18,7 +18,7 @@
 }
 
 .project-card:hover {
-  border-color: var(--workspace-icon-primary);
+  border-color: var(--module-accent-hub);
 }
 
 .project-card-header {
@@ -35,7 +35,7 @@
 }
 
 .project-card-header h3 a {
-  color: var(--workspace-icon-primary);
+  color: var(--module-accent-hub);
   text-decoration: none;
 }
 
