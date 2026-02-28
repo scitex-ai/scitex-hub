@@ -110,26 +110,14 @@ def build_docs_context(request, current_project=None):
 # Views
 # ---------------------------------------------------------------------------
 def docs_index(request):
-    """Documentation landing page (standalone, outside workspace)."""
-    context = {
-        "modules": [
-            {
-                "name": "Python Package",
-                "slug": "python",
-                "description": "SciTeX Python package (pip install scitex)",
-                "icon": "scitex_logos/scitex-icons/scitex-icon-navy.svg",
-                "available": _check_docs_available("python"),
-            },
-            {
-                "name": "REST API",
-                "slug": "api",
-                "description": "REST API reference for SciTeX Cloud",
-                "icon": "scitex_logos/scitex-icons/scitex-icon-navy.svg",
-                "available": True,
-            },
-        ]
-    }
-    return render(request, "docs_app/docs_index.html", context)
+    """Documentation page — renders inside workspace layout.
+
+    The workspace context processor detects /docs/ and activates the docs
+    module, which loads docs_partial.html (sidebar + AJAX content).
+    We just need to render a minimal template that extends global_base.html
+    so the workspace layout kicks in.
+    """
+    return render(request, "docs_app/docs_index.html")
 
 
 def docs_content(request, slug):
@@ -137,7 +125,26 @@ def docs_content(request, slug):
     page = _PAGES_BY_SLUG.get(slug)
     if not page:
         raise Http404(f"Documentation page '{slug}' not found")
-    return render(request, page["template"], {"slug": slug})
+    context = {
+        "slug": slug,
+        "base_template": "docs_app/docs_fragment_base.html",
+    }
+    # Inject MCP tools data for MCP pages
+    if slug in ("mcp-tools-local", "mcp-tools-https"):
+        context.update(_get_mcp_context())
+    return render(request, page["template"], context)
+
+
+def _get_mcp_context() -> dict:
+    """Build MCP tools context from the scitex MCP server registry."""
+    try:
+        from apps.public_app.config.mcp_tools import get_mcp_tools
+
+        tools = get_mcp_tools()
+        total = sum(c["count"] for c in tools)
+        return {"mcp_tools": tools, "mcp_tool_count": total}
+    except Exception:
+        return {"mcp_tools": [], "mcp_tool_count": 0}
 
 
 def docs_python(request):
