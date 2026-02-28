@@ -44,6 +44,42 @@ def api_get_file_content(request, file_path):
         return JsonResponse({"error": "Unauthorized"}, status=403)
 
     try:
+        # TRIP projects: on-demand SSH file access
+        if project.project_type == "trip":
+            from django.http import HttpResponse
+
+            from apps.project_app.services.trip_backend import get_trip_backend
+
+            backend = get_trip_backend(project)
+            if not backend.exists(file_path):
+                return JsonResponse({"error": "File not found"}, status=404)
+            if not backend.is_file(file_path):
+                return JsonResponse({"error": "Not a file"}, status=400)
+            if raw:
+                data = backend.read_file_bytes(file_path)
+                content_type, _ = mimetypes.guess_type(file_path)
+                if content_type is None:
+                    content_type = "application/octet-stream"
+                response = HttpResponse(data, content_type=content_type)
+                filename = (
+                    file_path.rsplit("/", 1)[-1] if "/" in file_path else file_path
+                )
+                disposition = "attachment" if download else "inline"
+                response["Content-Disposition"] = (
+                    f'{disposition}; filename="{filename}"'
+                )
+                return response
+            content = backend.read_file(file_path)
+            return JsonResponse(
+                {
+                    "success": True,
+                    "content": content,
+                    "path": file_path,
+                    "language": _detect_language(file_path),
+                    "project_type": "trip",
+                }
+            )
+
         # Get project path (works for both local and remote projects)
         from apps.project_app.services.project_service_manager import (
             ProjectServiceManager,

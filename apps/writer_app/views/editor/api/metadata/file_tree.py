@@ -54,6 +54,18 @@ def file_tree_view(request, project_id=None):
         if not has_access:
             return JsonResponse({"success": False, "error": "Permission denied"})
 
+        # TRIP projects: build tree via paramiko SFTP
+        if project.project_type == "trip":
+            from apps.project_app.services.trip_backend import get_trip_backend
+
+            backend = get_trip_backend(project)
+            tree = backend.build_tree(max_depth=5)
+            return JsonResponse({"success": True, "tree": tree})
+
+        # Remote SSHFS projects: mount and use standard Path ops
+        if project.project_type == "remote":
+            return _build_remote_tree_response(project)
+
         # Get project directory
         from apps.project_app.services.project_filesystem import (
             get_project_filesystem_manager,
@@ -124,6 +136,56 @@ def file_tree_view(request, project_id=None):
 
     except Exception as e:
         logger.error(f"Error getting file tree: {e}", exc_info=True)
+        return JsonResponse({"success": False, "error": str(e)})
+
+
+def _build_remote_tree_response(project):
+    """Build file tree JSON response for remote SSHFS project."""
+    try:
+        from apps.project_app.services.project_service_manager import (
+            ProjectServiceManager,
+        )
+
+        project_path = ProjectServiceManager(project).get_project_path()
+
+        if not project_path or not project_path.exists():
+            return JsonResponse(
+                {"success": False, "error": "Remote directory not accessible"}
+            )
+
+        def build_tree(path, max_depth=5, current_depth=0):
+            items = []
+            try:
+                for item in sorted(
+                    path.iterdir(), key=lambda x: (not x.is_dir(), x.name.lower())
+                ):
+                    if item.name.startswith("."):
+                        continue
+                    if item.name in ["__pycache__", "node_modules", ".venv", "venv"]:
+                        continue
+
+                    item_data = {
+                        "name": item.name,
+                        "type": "directory" if item.is_dir() else "file",
+                        "path": str(item.relative_to(project_path)),
+                        "is_symlink": item.is_symlink(),
+                    }
+
+                    if item.is_dir() and current_depth < max_depth:
+                        item_data["children"] = build_tree(
+                            item, max_depth, current_depth + 1
+                        )
+
+                    items.append(item_data)
+            except PermissionError:
+                pass
+            return items
+
+        tree = build_tree(project_path)
+        return JsonResponse({"success": True, "tree": tree})
+
+    except Exception as e:
+        logger.error(f"Remote file tree error: {e}", exc_info=True)
         return JsonResponse({"success": False, "error": str(e)})
 
 
