@@ -62,14 +62,15 @@
 .collapsible-panel.collapsed .panel-title {
   display: flex;
   justify-content: center;
-  writing-mode: vertical-lr;
-  text-orientation: mixed;
-  transform: rotate(180deg);
-  font-size: 11px;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  align-items: center;
+  font-size: 0; /* hide text, show icon only */
   margin: 0;
+}
+
+.collapsible-panel.collapsed .panel-title i {
+  display: block;
+  font-size: 14px;
+  color: var(--text-secondary);
 }
 
 /* Collapsed toggle button: compact */
@@ -426,17 +427,17 @@
   padding: 4px;
 }
 
-/* Sidebar title: top-aligned vertical text when collapsed. */
+/* Sidebar title: icon-only when collapsed. */
 .collapsed .sidebar-header .sidebar-title {
   display: flex;
   justify-content: center;
-  writing-mode: vertical-lr;
-  text-orientation: mixed;
-  transform: rotate(180deg);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  align-items: center;
+  font-size: 0; /* hide text, show icon only */
   margin: 0;
+}
+
+.collapsed .sidebar-header .sidebar-title i {
+  display: block;
+  font-size: 14px;
+  color: var(--text-secondary);
 }

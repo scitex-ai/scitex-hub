@@ -20,6 +20,9 @@ export function restoreWidth(
   panel: HTMLElement,
 ): void {
   try {
+    // Fixed-width panels keep their CSS width — never override from localStorage
+    if (config.fixedWidth) return;
+
     if (panel.classList.contains("collapsed")) {
       panel.style.width = "";
       panel.style.flexShrink = "";

@@ -124,6 +124,7 @@ export function autoInitPanels(): void {
       defaultWidth: resizer.dataset.defaultWidth
         ? parseInt(resizer.dataset.defaultWidth, 10)
         : undefined,
+      fixedWidth: resizer.hasAttribute("data-fixed-width"),
     };
 
     if (!config.targetPanel) {

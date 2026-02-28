@@ -42,20 +42,23 @@
                 {% endfor %}
             </div>
         {% endif %}
-        <!-- Module Tab Bar — workspace navigation (hub, console, writer, scholar, vis, clew) -->
-        {% include 'global_base_partials/module_tab_bar.html' %}
-        <!-- Page content: three-col on authenticated workspace pages, plain otherwise -->
+        <!-- Module Tab Bar — shown OUTSIDE workspace for non-pane pages -->
+        {% if not workspace_has_panes or not user.is_authenticated %}
+            {% include 'global_base_partials/module_tab_bar.html' %}
+        {% endif %}
+        <!-- Page content: five-col on authenticated workspace pages with panes, plain otherwise -->
         <div id="workspace-three-col"
-             class="{% if is_workspace_page and user.is_authenticated %}workspace-three-col{% endif %}">
-            {% if is_workspace_page and user.is_authenticated %}
+             class="{% if workspace_has_panes and user.is_authenticated %}workspace-three-col{% endif %}">
+            {% if workspace_has_panes and user.is_authenticated %}
                 {% include 'global_base_partials/workspace_ai_pane.html' %}
                 {% block workspace_worktree_pane %}
                     {% include 'global_base_partials/workspace_worktree_pane.html' %}
                 {% endblock %}
                 {% include 'global_base_partials/workspace_viewer_pane.html' %}
+                {% include 'global_base_partials/workspace_apps_pane.html' %}
             {% endif %}
             <main id="main-content"
-                  class="{% if is_workspace_page and user.is_authenticated %}ws-module-pane{% endif %}"
+                  class="{% if workspace_has_panes and user.is_authenticated %}ws-module-pane{% endif %}"
                   {% if active_module_name %}data-module-accent="{{ active_module_name }}"{% endif %}>
                 {% block content %}{% endblock %}
             </main>

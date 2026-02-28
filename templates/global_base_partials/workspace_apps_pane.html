@@ -1,0 +1,32 @@
+{% load module_icons %}
+
+{% if user.is_authenticated %}
+    <div class="ws-apps-pane" id="ws-apps-pane">
+        <div id="ws-apps-sidebar">
+            <div id="ws-apps-resizer"
+                 class="panel-resizer"
+                 data-panel-resizer
+                 data-target="#ws-apps-sidebar"
+                 data-direction="left"
+                 data-min-width="40"
+                 data-default-width="40"
+                 data-fixed-width
+                 data-storage-key="ws-apps-width"
+                 style="position:absolute;
+                        right:0;
+                        top:0;
+                        bottom:0;
+                        z-index:1"></div>
+            <nav class="sidebar-content ws-apps-nav"
+                 data-workspace-modules="{{ workspace_module_names_csv }}">
+                {% for mod in workspace_modules %}
+                    <a href="/{{ mod.name }}/"
+                       class="ws-apps-nav-item module-tab-btn{% if mod.is_active %} active{% endif %}"
+                       data-module="{{ mod.name }}"
+                       aria-label="{{ mod.label }}"
+                       title="{{ mod.label }}">{% module_icon mod.name %}</a>
+                {% endfor %}
+            </nav>
+        </div>
+    </div>
+{% endif %}

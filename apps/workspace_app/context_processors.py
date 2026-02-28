@@ -19,7 +19,18 @@ def workspace_context(request):
     """Provide workspace module info to all templates."""
     path = request.path
     is_ws = is_workspace_path(path)
+
+    # User profile pages (/<username>/...) should also show workspace chrome
+    if not is_ws and request.user.is_authenticated:
+        is_ws = _is_user_profile_path(path)
+
     active_name = extract_module_from_path(path) if is_ws else None
+    # Pages with a real module match get workspace sidebars (AI, worktree, viewer).
+    # Extra workspace paths (e.g. /accounts/) get the tab bar but no sidebars.
+    has_panes = is_ws and active_name is not None
+    # Non-module workspace pages (accounts, profile) belong under Hub
+    if is_ws and active_name is None:
+        active_name = "hub"
 
     all_modules = get_all_modules()
     modules = _filter_modules_for_user(request, all_modules)
@@ -31,13 +42,54 @@ def workspace_context(request):
     if active_name:
         active_mod = next((m for m in modules if m.name == active_name), None)
 
+    # Capitalized display name for the module header (e.g. "Hub", "Writer")
+    active_label = (
+        active_mod.label if active_mod and hasattr(active_mod, "label") else None
+    )
+    if not active_label and active_name:
+        active_label = active_name.capitalize()
+
     return {
         "is_workspace_page": is_ws,
+        "workspace_has_panes": has_panes,
         "workspace_modules": modules,
         "workspace_module_names_csv": ",".join(m.name for m in modules),
         "active_module_name": active_name,
         "active_module": active_mod,
+        "active_module_label": active_label,
     }
+
+
+def _is_user_profile_path(path: str) -> bool:
+    """Check if path is a user profile page (/<username>/...)."""
+    parts = [p for p in path.strip("/").split("/") if p]
+    if not parts:
+        return False
+    first = parts[0]
+    # Skip registered module names
+    from .registry import _registry_by_name
+
+    if first in _registry_by_name:
+        return False
+    # Skip known non-user URL prefixes
+    _NON_USER_PREFIXES = {
+        "admin",
+        "api",
+        "static",
+        "media",
+        "auth",
+        "healthz",
+        "new",
+        "files",
+        "accounts",
+        "public",
+        "invite",
+        "dev",
+        "docs",
+        "server-status",
+        "__reload__",
+    }
+    return first not in _NON_USER_PREFIXES
 
 
 def _filter_modules_for_user(request, modules):
