@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 
 from apps.apps_app.models import (
-    MarketplaceModule,
+    AppsModule,
     ModuleInstallation,
     ModuleReview,
     ModuleStar,
@@ -24,7 +24,7 @@ class MarketplaceBrowseTest(TestCase):
             username="browse-user",
             password="TestPass123!",  # pragma: allowlist secret
         )
-        cls.module = MarketplaceModule.objects.create(
+        cls.module = AppsModule.objects.create(
             module_name="t-browse",
             short_description="LaTeX editor.",
             category="writing",
@@ -50,7 +50,7 @@ class MarketplaceDetailTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.module = MarketplaceModule.objects.create(
+        cls.module = AppsModule.objects.create(
             module_name="t-detail",
             short_description="Literature manager.",
             category="reference",
@@ -75,12 +75,12 @@ class MarketplaceInstallTest(TestCase):
             username="install-user",
             password="TestPass123!",  # pragma: allowlist secret
         )
-        cls.module = MarketplaceModule.objects.create(
+        cls.module = AppsModule.objects.create(
             module_name="t-install",
             category="visualization",
             visibility="public",
         )
-        cls.builtin = MarketplaceModule.objects.create(
+        cls.builtin = AppsModule.objects.create(
             module_name="t-builtin",
             category="writing",
             is_builtin=True,
@@ -146,7 +146,7 @@ class MarketplaceStarTest(TestCase):
             username="star-user",
             password="TestPass123!",  # pragma: allowlist secret
         )
-        cls.module = MarketplaceModule.objects.create(
+        cls.module = AppsModule.objects.create(
             module_name="t-star",
             category="utility",
             visibility="public",
@@ -184,7 +184,7 @@ class MarketplaceReviewTest(TestCase):
             username="review-user",
             password="TestPass123!",  # pragma: allowlist secret
         )
-        cls.module = MarketplaceModule.objects.create(
+        cls.module = AppsModule.objects.create(
             module_name="t-review",
             category="reference",
             visibility="public",
@@ -245,10 +245,10 @@ class MarketplaceReorderTest(TestCase):
             username="reorder-user",
             password="TestPass123!",  # pragma: allowlist secret
         )
-        cls.mod_a = MarketplaceModule.objects.create(
+        cls.mod_a = AppsModule.objects.create(
             module_name="t-reorder-a", category="other", visibility="public"
         )
-        cls.mod_b = MarketplaceModule.objects.create(
+        cls.mod_b = AppsModule.objects.create(
             module_name="t-reorder-b", category="other", visibility="public"
         )
 
@@ -281,7 +281,7 @@ class MarketplaceAuthTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.module = MarketplaceModule.objects.create(
+        cls.module = AppsModule.objects.create(
             module_name="t-auth", category="other", visibility="public"
         )
 

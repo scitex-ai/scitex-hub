@@ -9,7 +9,7 @@ from django.db import IntegrityError
 from django.test import TestCase
 
 from apps.apps_app.models import (
-    MarketplaceModule,
+    AppsModule,
     ModuleInstallation,
     ModuleReview,
     ModuleStar,
@@ -17,8 +17,8 @@ from apps.apps_app.models import (
 )
 
 
-class MarketplaceModuleTest(TestCase):
-    """Tests for MarketplaceModule model."""
+class AppsModuleTest(TestCase):
+    """Tests for AppsModule model."""
 
     @classmethod
     def setUpTestData(cls):
@@ -26,7 +26,7 @@ class MarketplaceModuleTest(TestCase):
             username="test-author",
             password="TestPass123!",  # pragma: allowlist secret
         )
-        cls.module = MarketplaceModule.objects.create(
+        cls.module = AppsModule.objects.create(
             module_name="test-module",
             author=cls.author,
             short_description="A test module.",
@@ -40,7 +40,7 @@ class MarketplaceModuleTest(TestCase):
 
     def test_unique_module_name(self):
         with self.assertRaises(IntegrityError):
-            MarketplaceModule.objects.create(
+            AppsModule.objects.create(
                 module_name="test-module",
                 category="other",
             )
@@ -57,9 +57,7 @@ class ModuleVersionTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.module = MarketplaceModule.objects.create(
-            module_name="ver-test", category="other"
-        )
+        cls.module = AppsModule.objects.create(module_name="ver-test", category="other")
 
     def test_create_version(self):
         v = ModuleVersion.objects.create(
@@ -82,7 +80,7 @@ class ModuleInstallationTest(TestCase):
             username="test-installer",
             password="TestPass123!",  # pragma: allowlist secret
         )
-        cls.module = MarketplaceModule.objects.create(
+        cls.module = AppsModule.objects.create(
             module_name="install-test", category="utility"
         )
 
@@ -117,7 +115,7 @@ class ModuleStarTest(TestCase):
             username="test-starrer",
             password="TestPass123!",  # pragma: allowlist secret
         )
-        cls.module = MarketplaceModule.objects.create(
+        cls.module = AppsModule.objects.create(
             module_name="star-test", category="other"
         )
 
@@ -145,7 +143,7 @@ class ModuleReviewTest(TestCase):
             username="test-reviewer",
             password="TestPass123!",  # pragma: allowlist secret
         )
-        cls.module = MarketplaceModule.objects.create(
+        cls.module = AppsModule.objects.create(
             module_name="review-test", category="other"
         )
 

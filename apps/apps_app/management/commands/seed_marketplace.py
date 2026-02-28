@@ -9,7 +9,7 @@ Usage: python manage.py seed_marketplace
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
-from apps.apps_app.models import MarketplaceModule, ModuleVersion
+from apps.apps_app.models import AppsModule, ModuleVersion
 from apps.workspace_app.registry import get_all_modules
 
 # Map module names to categories
@@ -45,7 +45,7 @@ _WIP_MODULES = {"modulemaker", "example", "clew", "vis", "marketplace"}
 
 
 def ensure_builtin_modules(author_username="ywatanabe"):
-    """Ensure all built-in registry modules have MarketplaceModule records.
+    """Ensure all built-in registry modules have AppsModule records.
 
     Idempotent: uses update_or_create so safe to call multiple times.
     Returns (created_count, updated_count).
@@ -68,7 +68,7 @@ def ensure_builtin_modules(author_username="ywatanabe"):
             "status": "wip" if mod.name in _WIP_MODULES else "stable",
         }
 
-        obj, was_created = MarketplaceModule.objects.update_or_create(
+        obj, was_created = AppsModule.objects.update_or_create(
             module_name=mod.name,
             defaults=defaults,
         )

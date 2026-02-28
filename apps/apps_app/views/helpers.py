@@ -9,7 +9,7 @@ import logging
 from apps.workspace_app.registry import get_module
 
 from ..models import (
-    MarketplaceModule,
+    AppsModule,
     ModuleInstallation,
     ModuleStar,
 )
@@ -30,9 +30,7 @@ def ensure_builtin_modules():
 
     registered_names = {m.name for m in get_all_modules()}
     existing_names = set(
-        MarketplaceModule.objects.filter(is_builtin=True).values_list(
-            "module_name", flat=True
-        )
+        AppsModule.objects.filter(is_builtin=True).values_list("module_name", flat=True)
     )
 
     if registered_names <= existing_names:
@@ -67,7 +65,7 @@ def browse_context(request, current_project=None):
     """Build browse page context — all modules returned, filtering is client-side."""
     ensure_builtin_modules()
 
-    modules = MarketplaceModule.objects.filter(visibility="public").order_by(
+    modules = AppsModule.objects.filter(visibility="public").order_by(
         "-star_count", "-install_count"
     )
 

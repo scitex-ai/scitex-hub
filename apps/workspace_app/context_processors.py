@@ -46,7 +46,7 @@ def _filter_modules_for_user(request, modules):
         return modules
 
     try:
-        from apps.apps_app.models import MarketplaceModule, ModuleInstallation
+        from apps.apps_app.models import AppsModule, ModuleInstallation
 
         installations = {
             inst.module.module_name: inst
@@ -55,9 +55,9 @@ def _filter_modules_for_user(request, modules):
             ).select_related("module")
         }
 
-        # Populate marketplace status from MarketplaceModule directly
+        # Populate marketplace status from AppsModule directly
         mp_statuses = dict(
-            MarketplaceModule.objects.filter(
+            AppsModule.objects.filter(
                 module_name__in=[m.name for m in modules]
             ).values_list("module_name", "status")
         )

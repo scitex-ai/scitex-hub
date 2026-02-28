@@ -5,7 +5,7 @@
 from django.contrib import admin
 
 from .models import (
-    MarketplaceModule,
+    AppsModule,
     ModuleInstallation,
     ModuleReview,
     ModuleStar,
@@ -13,8 +13,8 @@ from .models import (
 )
 
 
-@admin.register(MarketplaceModule)
-class MarketplaceModuleAdmin(admin.ModelAdmin):
+@admin.register(AppsModule)
+class AppsModuleAdmin(admin.ModelAdmin):
     list_display = (
         "module_name",
         "category",

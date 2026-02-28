@@ -3,7 +3,7 @@
 """
 Marketplace models — catalog, installations, stars, and reviews for workspace modules.
 
-Every module (built-in or external) gets a MarketplaceModule entry.
+Every module (built-in or external) gets a AppsModule entry.
 Users manage their workspace via ModuleInstallation records.
 """
 
@@ -37,7 +37,7 @@ VISIBILITY_CHOICES = [
 ]
 
 
-class MarketplaceModule(models.Model):
+class AppsModule(models.Model):
     """Catalog entry for a workspace module."""
 
     # Links to registry (ModuleConfig.name)

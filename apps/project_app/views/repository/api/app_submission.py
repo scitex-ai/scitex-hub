@@ -13,7 +13,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from apps.apps_app.models import (
     CATEGORY_CHOICES,
-    MarketplaceModule,
+    AppsModule,
     ModuleSubmission,
 )
 from apps.project_app.models import Project
@@ -145,9 +145,9 @@ def api_app_submit(request, username, slug):
         ]
     )
 
-    # Create or update MarketplaceModule
+    # Create or update AppsModule
     module_name = f"user_{project.owner.username}_{project.slug}".replace("-", "_")
-    mp_module, _created = MarketplaceModule.objects.get_or_create(
+    mp_module, _created = AppsModule.objects.get_or_create(
         module_name=module_name,
         defaults={
             "author": project.owner,

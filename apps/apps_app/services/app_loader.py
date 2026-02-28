@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def load_single_app(mp_module):
-    """Register a single approved MarketplaceModule into the workspace registry.
+    """Register a single approved AppsModule into the workspace registry.
 
     Builds a ModuleConfig from the marketplace module metadata and project info,
     then calls register_module() to make it available in the tab bar.
@@ -48,9 +48,9 @@ def load_approved_apps():
 
     Called during startup or after an approval to refresh the registry.
     """
-    from apps.apps_app.models import MarketplaceModule
+    from apps.apps_app.models import AppsModule
 
-    approved = MarketplaceModule.objects.filter(
+    approved = AppsModule.objects.filter(
         visibility="public",
         project__isnull=False,
     ).select_related("project")

@@ -11,7 +11,7 @@ from apps.project_app.services.project_utils import get_current_project
 from apps.workspace_app.registry import get_module
 
 from ..models import (
-    MarketplaceModule,
+    AppsModule,
     ModuleInstallation,
     ModuleReview,
     ModuleStar,
