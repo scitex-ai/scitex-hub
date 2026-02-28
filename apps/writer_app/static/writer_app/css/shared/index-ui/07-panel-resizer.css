@@ -2,10 +2,10 @@
    PANEL RESIZER (Matches Scholar pattern)
    ========================================= */
 
-/* Writer editor/preview resizer — override shared panel-resizer.css
+/* Writer panel resizers — override shared panel-resizer.css
    which sets `flex: 0 0 1px !important;` on all .panel-resizer elements.
-   ID selector + !important gives higher specificity. */
-#panel-resizer.panel-resizer {
+   Applies to both editor/preview split and details panel resizers. */
+.writer-workspace .panel-resizer {
   width: 4px;
   min-width: 4px;
   max-width: 4px;
@@ -20,7 +20,7 @@
 }
 
 /* Wider invisible hit area for easier grabbing (24px total) */
-#panel-resizer.panel-resizer::before {
+.writer-workspace .panel-resizer::before {
   content: "";
   position: absolute;
   top: 0;
@@ -31,8 +31,8 @@
   z-index: 100;
 }
 
-#panel-resizer.panel-resizer:hover,
-#panel-resizer.panel-resizer.active {
+.writer-workspace .panel-resizer:hover,
+.writer-workspace .panel-resizer.active {
   background: var(--workspace-icon-primary, #059669);
 }
 

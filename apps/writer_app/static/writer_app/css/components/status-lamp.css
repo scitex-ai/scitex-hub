@@ -13,6 +13,7 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  cursor: pointer;
 }
 
 /* Status indicator label text */

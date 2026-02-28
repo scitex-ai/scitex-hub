@@ -173,15 +173,15 @@ export class PDFColorThemeManager {
     const theme = PDF_COLOR_THEMES[this.colorMode];
     const iconEl = btn.querySelector(".theme-icon");
 
-    // Map color modes to emoji - show what the PDF SHOULD look like
+    // Map color modes to FA icon classes
     // Moon = dark mode (black bg, white text), Sun = light mode (white bg, black text)
-    const iconMap: Record<PDFColorMode, string> = {
-      dark: "🌙", // Moon emoji = Dark mode (BLACK background, WHITE text)
-      light: "☀️", // Sun emoji = Light mode (WHITE background, BLACK text)
+    const iconClassMap: Record<PDFColorMode, string> = {
+      dark: "fas fa-moon",
+      light: "fas fa-sun",
     };
 
     if (iconEl) {
-      iconEl.textContent = iconMap[this.colorMode];
+      iconEl.className = `${iconClassMap[this.colorMode]} theme-icon`;
     }
 
     btn.setAttribute("title", `PDF Theme: ${theme.label} (Click to toggle)`);

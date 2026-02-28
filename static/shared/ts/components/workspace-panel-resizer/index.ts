@@ -93,6 +93,30 @@ export class WorkspacePanelResizer {
 export const workspacePanelResizer = new WorkspacePanelResizer();
 
 let _autoInitDone = false;
+const _initializedIds = new Set<string>();
+
+/** Build a PanelConfig from a resizer element's data attributes */
+function configFromElement(resizer: HTMLElement): PanelConfig | null {
+  const config: PanelConfig = {
+    resizerId: resizer.id,
+    targetPanel: resizer.dataset.target || "",
+    minWidth: parseInt(resizer.dataset.minWidth || "40", 10),
+    storageKey: resizer.dataset.storageKey || "panel-width",
+    resizeDirection: (resizer.dataset.direction || "left") as "left" | "right",
+    toggleButtonId: resizer.dataset.toggleBtn,
+    collapseStorageKey: resizer.dataset.collapseKey,
+    defaultWidth: resizer.dataset.defaultWidth
+      ? parseInt(resizer.dataset.defaultWidth, 10)
+      : undefined,
+    fixedWidth: resizer.hasAttribute("data-fixed-width"),
+  };
+
+  if (!config.targetPanel) {
+    console.warn("[WorkspacePanelResizer] Missing data-target on", resizer);
+    return null;
+  }
+  return config;
+}
 
 export function autoInitPanels(): void {
   if (_autoInitDone) {
@@ -111,28 +135,11 @@ export function autoInitPanels(): void {
     const storagePrefix = resizer.dataset.storagePrefix || "scitex-";
     const instance = new WorkspacePanelResizer(storagePrefix);
 
-    const config: PanelConfig = {
-      resizerId: resizer.id,
-      targetPanel: resizer.dataset.target || "",
-      minWidth: parseInt(resizer.dataset.minWidth || "40", 10),
-      storageKey: resizer.dataset.storageKey || "panel-width",
-      resizeDirection: (resizer.dataset.direction || "left") as
-        | "left"
-        | "right",
-      toggleButtonId: resizer.dataset.toggleBtn,
-      collapseStorageKey: resizer.dataset.collapseKey,
-      defaultWidth: resizer.dataset.defaultWidth
-        ? parseInt(resizer.dataset.defaultWidth, 10)
-        : undefined,
-      fixedWidth: resizer.hasAttribute("data-fixed-width"),
-    };
-
-    if (!config.targetPanel) {
-      console.warn("[WorkspacePanelResizer] Missing data-target on", resizer);
-      return;
-    }
+    const config = configFromElement(resizer);
+    if (!config) return;
 
     instance.initPanel(config);
+    _initializedIds.add(resizer.id);
   });
 
   console.log(
@@ -151,10 +158,56 @@ export function autoInitPanels(): void {
   });
 }
 
+/**
+ * Initialize any [data-panel-resizer] elements that were added after autoInitPanels.
+ * Called automatically on htmx:afterSettle for HTMX-injected content.
+ */
+export function initNewPanels(): void {
+  const resizers = document.querySelectorAll("[data-panel-resizer]");
+  let count = 0;
+
+  document.body.classList.add("no-transition");
+
+  resizers.forEach((el) => {
+    const resizer = el as HTMLElement;
+    if (!resizer.id || _initializedIds.has(resizer.id)) return;
+
+    const storagePrefix = resizer.dataset.storagePrefix || "scitex-";
+    const instance = new WorkspacePanelResizer(storagePrefix);
+
+    const config = configFromElement(resizer);
+    if (!config) return;
+
+    instance.initPanel(config);
+    _initializedIds.add(resizer.id);
+    count++;
+  });
+
+  if (count > 0) {
+    console.log(
+      `[WorkspacePanelResizer] Late-initialized ${count} new panel(s)`,
+    );
+  }
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document
+        .querySelectorAll(".workspace-three-col, .workspace-shell")
+        .forEach((el) => el.classList.add("panels-ready"));
+      document.body.classList.remove("no-transition");
+    });
+  });
+}
+
 if (typeof document !== "undefined") {
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", autoInitPanels);
   } else {
     autoInitPanels();
   }
+
+  // Re-initialize panels after HTMX content swaps (e.g., writer loaded as partial)
+  document.addEventListener("htmx:afterSettle", () => {
+    initNewPanels();
+  });
 }

@@ -60,7 +60,7 @@
                             <button id="monaco-theme-toggle"
                                     class="btn btn-sm btn-outline-secondary"
                                     title="Toggle editor theme">
-                                <span class="theme-icon">🌙</span>
+                                <i class="fas fa-moon theme-icon"></i>
                             </button>
                             <!-- Keyboard Shortcuts Button -->
                             <button id="shortcuts-btn"
@@ -97,8 +97,7 @@
                     <div id="writer-monaco-editor" class="writer-monaco-editor"></div>
                     <!-- Hidden textarea for fallback/compatibility -->
                     <textarea id="latex-editor-textarea"
-                              class="latex-editor-textarea"
-                              style="display: none"
+                              class="latex-editor-textarea hidden"
                               placeholder="LaTeX code..."></textarea>
                 </div>
                 <!-- Resizable Panel Divider -->
@@ -124,9 +123,7 @@
                     <!-- PDF View (default visible) -->
                     <div id="pdf-view" class="right-panel-view">
                         <!-- PDF Header (hidden template - content copied to shared header) -->
-                        <div class="panel-header panel-header-template"
-                             id="pdf-panel-header"
-                             style="display: none !important">
+                        <div class="panel-header panel-header-template" id="pdf-panel-header">
                             <div class="header-left">
                                 <!-- View Toggle -->
                                 {% include "writer_app/index_partials/panel_view_switcher.html" with active_view="pdf" %}
@@ -143,16 +140,14 @@
                                     <!-- 1. Preview Compilation Status LED -->
                                     <div class="status-indicator-group"
                                          onclick="if(window.handlePreviewClick){window.handlePreviewClick()}else{togglePreviewLog()}"
-                                         title="Click to compile preview"
-                                         style="cursor: pointer">
+                                         title="Click to compile preview">
                                         <span class="status-indicator-label">Preview</span>
                                         <span class="status-lamp-dot" id="preview-status-lamp" data-status="idle"></span>
                                     </div>
                                     <!-- 2. Full Compilation Status LED -->
                                     <div class="status-indicator-group"
                                          onclick="if(window.handleFullCompileClick){window.handleFullCompileClick()}else{toggleFullLog()}"
-                                         title="Click to compile full manuscript"
-                                         style="cursor: pointer">
+                                         title="Click to compile full manuscript">
                                         <span class="status-indicator-label">Full</span>
                                         <span class="status-lamp-dot" id="fullcompile-status-lamp" data-status="idle"></span>
                                     </div>
@@ -215,7 +210,7 @@
                                         class="btn btn-sm btn-outline-secondary"
                                         title="PDF Theme: Light (Click to toggle)"
                                         onclick="window.togglePdfColorMode && window.togglePdfColorMode()">
-                                    <span class="theme-icon">☀️</span>
+                                    <i class="fas fa-sun theme-icon"></i>
                                 </button>
                             </div>
                         </div>
@@ -225,9 +220,7 @@
                     <!-- Citations View (hidden by default) -->
                     <div id="citations-view" class="right-panel-view" hidden>
                         <!-- Citations Header (hidden template - content copied to shared header) -->
-                        <div class="panel-header panel-header-template"
-                             id="citations-panel-header"
-                             style="display: none !important">
+                        <div class="panel-header panel-header-template" id="citations-panel-header">
                             <div class="header-left">
                                 <!-- View Toggle -->
                                 {% include "writer_app/index_partials/panel_view_switcher.html" with active_view="citations" %}
@@ -272,9 +265,7 @@
                     <!-- Figures View (hidden by default) -->
                     <div id="figures-view" class="right-panel-view" hidden>
                         <!-- Figures Header (hidden template - content copied to shared header) -->
-                        <div class="panel-header panel-header-template"
-                             id="figures-panel-header"
-                             style="display: none !important">
+                        <div class="panel-header panel-header-template" id="figures-panel-header">
                             <div class="header-left">
                                 <!-- View Toggle -->
                                 {% include "writer_app/index_partials/panel_view_switcher.html" with active_view="figures" %}
@@ -320,9 +311,7 @@
                     <!-- Tables View (hidden by default) -->
                     <div id="tables-view" class="right-panel-view" hidden>
                         <!-- Tables Panel Header (hidden template - content copied to shared header) -->
-                        <div class="panel-header panel-header-template"
-                             id="tables-panel-header"
-                             style="display: none !important">
+                        <div class="panel-header panel-header-template" id="tables-panel-header">
                             <div class="header-left">
                                 {% include "writer_app/index_partials/panel_view_switcher.html" with active_view="tables" %}
                             </div>
@@ -339,9 +328,7 @@
                     <!-- History View (hidden by default) -->
                     <div id="history-view" class="right-panel-view" hidden>
                         <!-- History Panel Header (hidden template - content copied to shared header) -->
-                        <div class="panel-header panel-header-template"
-                             id="history-panel-header"
-                             style="display: none !important">
+                        <div class="panel-header panel-header-template" id="history-panel-header">
                             <div class="header-left">
                                 {% include "writer_app/index_partials/panel_view_switcher.html" with active_view="history" %}
                             </div>
@@ -418,111 +405,6 @@
             </div>
             <!-- Success/Error Messages -->
             <div id="compilation-result-inline"></div>
-        </div>
-        <!-- Compilation Panel (hidden by default) -->
-        <div id="compilation-panel" class="split-editor">
-            <!-- Horizontal: Compile Button & Log -->
-            <div class="compilation-grid">
-                <!-- Left: Compile/Stop Button -->
-                <div class="compilation-buttons">
-                    <button id="compile-btn-panel" class="btn btn-primary w-100 btn-lg mb-2">
-                        <i class="fas fa-file-pdf me-2"></i>Compile PDF
-                    </button>
-                    <button id="quick-compile-btn-panel" class="btn btn-outline-primary w-100 mb-2">
-                        <i class="fas fa-bolt me-2"></i>Quick Compile (text only)
-                    </button>
-                    <button id="stop-compile-btn" class="btn btn-danger w-100">
-                        <i class="fas fa-stop me-2"></i>Stop
-                    </button>
-                </div>
-                <!-- Right: Log Viewer (fills available space) -->
-                <div id="compilation-log-panel" class="compilation-log-panel">Click "Compile PDF" to start compilation...</div>
-            </div>
-            <!-- Side-by-Side PDFs with Outlines -->
-            <div class="pdf-comparison-grid">
-                <!-- Manuscript PDF (Left) -->
-                <div class="flex-column">
-                    <div class="flex-center-between mb-2">
-                        <h6>
-                            <i class="fas fa-file-pdf text-danger me-2"></i>Manuscript
-                        </h6>
-                        <div>
-                            <button id="toggle-outline-main"
-                                    class="btn btn-sm btn-outline-secondary me-1"
-                                    title="Toggle outline">
-                                <i class="fas fa-list"></i>
-                            </button>
-                            <a id="pdf-view-link-panel"
-                               href="#"
-                               target="_blank"
-                               class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-external-link-alt"></i>
-                            </a>
-                            <a id="pdf-download-link-panel"
-                               href="#"
-                               download
-                               class="btn btn-sm btn-outline-secondary">
-                                <i class="fas fa-download"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="pdf-pdf-container">
-                        <div id="pdf-outline-main" class="pdf-outline-panel">
-                            <div class="pdf-outline-title">Outline</div>
-                            <div id="pdf-outline-items-main"></div>
-                        </div>
-                        <div id="pdf-viewer-panel">
-                            <div class="pdf-viewer-loading">
-                                <i class="fas fa-spinner fa-spin me-2"></i>Loading PDF...
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Diff PDF (Right) -->
-                <div class="flex-column">
-                    <div class="flex-center-between mb-2">
-                        <h6>
-                            <i class="fas fa-code-branch text-info me-2"></i>Diff PDF
-                            (Changes)
-                        </h6>
-                        <div>
-                            <button id="toggle-outline-diff"
-                                    class="btn btn-sm btn-outline-secondary me-1"
-                                    title="Toggle outline">
-                                <i class="fas fa-list"></i>
-                            </button>
-                            <a id="diff-pdf-view-link-panel"
-                               href="#"
-                               target="_blank"
-                               class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-external-link-alt"></i>
-                            </a>
-                            <a id="diff-pdf-download-link-panel"
-                               href="#"
-                               download
-                               class="btn btn-sm btn-outline-secondary">
-                                <i class="fas fa-download"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="pdf-pdf-container">
-                        <div id="pdf-outline-diff" class="pdf-outline-panel">
-                            <div class="pdf-outline-title">Outline</div>
-                            <div id="pdf-outline-items-diff"></div>
-                        </div>
-                        <div>
-                            <div id="diff-pdf-placeholder">
-                                <div>
-                                    <i class="fas fa-info-circle fa-2x mb-3"></i>
-                                    <p>Diff PDF will appear after compilation</p>
-                                    <small>Shows tracked changes from previous version</small>
-                                </div>
-                            </div>
-                            <div id="diff-pdf-viewer-panel"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>

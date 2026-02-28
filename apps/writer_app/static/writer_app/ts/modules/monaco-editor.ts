@@ -478,7 +478,14 @@ export class EnhancedEditor {
     const isDark = currentTheme === "scitex-dark" || currentTheme === "vs-dark";
     const newTheme = isDark ? "scitex-light" : "scitex-dark";
     monaco.editor.setTheme(newTheme);
-    console.log(`[Editor] Monaco theme toggled to: ${newTheme}`);
+
+    // Update toggle button icon
+    const iconEl = document.querySelector("#monaco-theme-toggle .theme-icon");
+    if (iconEl) {
+      iconEl.className = isDark
+        ? "fas fa-sun theme-icon"
+        : "fas fa-moon theme-icon";
+    }
   }
 
   /**

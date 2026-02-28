@@ -302,3 +302,18 @@
 [data-theme="light"] .details-toggle:hover {
   background: var(--workspace-bg-tertiary);
 }
+
+/* Icon brand colors for migration cards */
+.icon-overleaf {
+  color: #47a141;
+}
+
+.icon-prism {
+  color: #10a37f;
+}
+
+/* Migration card separator */
+.mig-card__separator {
+  border-color: var(--workspace-border-default, #3a3a3a);
+  margin: 8px 0;
+}

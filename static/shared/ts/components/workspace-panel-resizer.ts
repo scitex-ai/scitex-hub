@@ -7,4 +7,5 @@ export {
   WorkspacePanelResizer,
   workspacePanelResizer,
   autoInitPanels,
+  initNewPanels,
 } from "./workspace-panel-resizer/index";
