@@ -30,15 +30,17 @@
                 aria-label="Toggle header collapse">
             <i class="fas fa-chevron-up"></i>
         </button>
-        <!-- Django Messages -->
+        <!-- Django Messages (success hidden — only show errors/warnings) -->
         {% if messages %}
             <div class="container django-messages-container">
                 {% for message in messages %}
-                    <div class="django-alert alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}"
-                         role="alert">
-                        {{ message|safe }}
-                        <button type="button" class="alert-close-btn" aria-label="Close">&times;</button>
-                    </div>
+                    {% if message.tags != 'success' %}
+                        <div class="django-alert alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}"
+                             role="alert">
+                            {{ message|safe }}
+                            <button type="button" class="alert-close-btn" aria-label="Close">&times;</button>
+                        </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         {% endif %}
