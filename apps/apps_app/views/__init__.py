@@ -11,11 +11,11 @@ from .api import (
     api_uninstall,
     api_unstar,
 )
-from .pages import browse, build_marketplace_context, detail, my_modules
+from .pages import browse, build_apps_context, detail, my_modules
 
 __all__ = [
     "browse",
-    "build_marketplace_context",
+    "build_apps_context",
     "detail",
     "my_modules",
     "api_install",

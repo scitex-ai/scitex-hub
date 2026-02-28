@@ -1,17 +1,17 @@
-/* Marketplace — layout: container, top bar, search, sort, grid, empty state
+/* Apps — layout: container, top bar, search, sort, grid, empty state
  * Uses project CSS variables: --workspace-bg-*, --workspace-border-default,
  * --workspace-icon-primary, --text-primary, --text-muted, --accent, --border-color
  */
 
 /* ─── Container ────────────────────────────────────────────────── */
-.marketplace-container {
+.apps-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0.5rem 1rem 1rem;
 }
 
 /* ─── Top Bar ──────────────────────────────────────────────────── */
-.marketplace-topbar {
+.apps-topbar {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -19,7 +19,7 @@
 }
 
 /* Category tab row */
-.marketplace-category-tabs {
+.apps-category-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
@@ -27,7 +27,7 @@
   padding-bottom: 4px;
 }
 
-.marketplace-cat-tab {
+.apps-cat-tab {
   display: inline-flex;
   align-items: center;
   padding: 4px 12px;
@@ -45,31 +45,31 @@
   white-space: nowrap;
 }
 
-.marketplace-cat-tab:hover {
+.apps-cat-tab:hover {
   background-color: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.05));
   border-color: var(--workspace-border-default, var(--border-color));
 }
 
-.marketplace-cat-tab.active {
+.apps-cat-tab.active {
   background-color: var(--workspace-icon-primary, var(--accent));
   color: #fff;
   border-color: var(--workspace-icon-primary, var(--accent));
 }
 
 /* Search + sort row */
-.marketplace-search-sort {
+.apps-search-sort {
   display: flex;
   gap: 8px;
   align-items: center;
   flex-wrap: wrap;
 }
 
-.marketplace-search-form {
+.apps-search-form {
   flex: 1;
   min-width: 200px;
 }
 
-.marketplace-search-wrapper {
+.apps-search-wrapper {
   position: relative;
   display: flex;
   align-items: center;
@@ -77,7 +77,7 @@
   min-width: 200px;
 }
 
-.marketplace-search-icon {
+.apps-search-icon {
   position: absolute;
   left: 8px;
   color: var(--text-muted);
@@ -85,7 +85,7 @@
   pointer-events: none;
 }
 
-.marketplace-search-input {
+.apps-search-input {
   width: 100%;
   background-color: var(--workspace-bg-secondary, var(--bg-primary));
   border: 1px solid var(--workspace-border-default, var(--border-color));
@@ -97,15 +97,15 @@
   transition: border-color 0.15s;
 }
 
-.marketplace-search-input::placeholder {
+.apps-search-input::placeholder {
   color: var(--text-muted);
 }
 
-.marketplace-search-input:focus {
+.apps-search-input:focus {
   border-color: var(--workspace-icon-primary, var(--accent));
 }
 
-.marketplace-search-clear {
+.apps-search-clear {
   position: absolute;
   right: 6px;
   background: none;
@@ -117,15 +117,15 @@
   font-size: 0.85rem;
 }
 
-.marketplace-search-clear:hover {
+.apps-search-clear:hover {
   color: var(--text-primary);
 }
 
-.marketplace-sort-form {
+.apps-sort-form {
   flex-shrink: 0;
 }
 
-.marketplace-sort-select {
+.apps-sort-select {
   background-color: var(--workspace-bg-secondary, var(--bg-primary));
   border: 1px solid var(--workspace-border-default, var(--border-color));
   color: var(--text-primary);
@@ -136,14 +136,14 @@
 }
 
 /* ─── Module Grid ──────────────────────────────────────────────── */
-.marketplace-grid {
+.apps-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.5rem;
 }
 
 /* ─── Empty State ──────────────────────────────────────────────── */
-.marketplace-empty-state {
+.apps-empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -153,19 +153,19 @@
   text-align: center;
 }
 
-.marketplace-empty-state > i {
+.apps-empty-state > i {
   font-size: 3rem;
   margin-bottom: 1rem;
   opacity: 0.35;
 }
 
-.marketplace-empty-title {
+.apps-empty-title {
   font-size: 1.05rem;
   font-weight: 600;
   margin-bottom: 0.4rem;
   color: var(--text-primary);
 }
 
-.marketplace-empty-description {
+.apps-empty-description {
   font-size: 0.88rem;
 }

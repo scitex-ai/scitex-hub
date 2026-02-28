@@ -19,7 +19,7 @@ from ..models import (
 from .helpers import browse_context, can_view_module, ensure_builtin_modules
 
 
-def build_marketplace_context(request, current_project=None):
+def build_apps_context(request, current_project=None):
     """Context builder for SPA tab switching."""
     return browse_context(request, current_project)
 

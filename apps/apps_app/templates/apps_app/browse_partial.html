@@ -1,8 +1,8 @@
 {% load static %}
 
 <link rel="stylesheet" href="{% static 'marketplace_app/css/marketplace.css' %}" />
-<div class="marketplace-container">
-    <div class="marketplace-header"
+<div class="apps-container">
+    <div class="apps-header"
          style="display:flex;
                 align-items:center;
                 gap:8px;
@@ -12,30 +12,30 @@
         <span class="badge badge-wip">WIP</span>
     </div>
     <!-- Top bar: category filter tabs, search, sort -->
-    <div class="marketplace-topbar">
-        <nav class="marketplace-category-tabs" aria-label="App categories">
-            <button type="button" class="marketplace-cat-tab active" data-filter-category="">All</button>
+    <div class="apps-topbar">
+        <nav class="apps-category-tabs" aria-label="App categories">
+            <button type="button" class="apps-cat-tab active" data-filter-category="">All</button>
             {% for cat_key, cat_label in categories %}
-                <button type="button" class="marketplace-cat-tab" data-filter-category="{{ cat_key }}">{{ cat_label }}</button>
+                <button type="button" class="apps-cat-tab" data-filter-category="{{ cat_key }}">{{ cat_label }}</button>
             {% endfor %}
         </nav>
-        <div class="marketplace-search-sort">
-            <div class="marketplace-search-wrapper">
-                <i class="fas fa-search marketplace-search-icon" aria-hidden="true"></i>
+        <div class="apps-search-sort">
+            <div class="apps-search-wrapper">
+                <i class="fas fa-search apps-search-icon" aria-hidden="true"></i>
                 <input type="text"
                        id="mp-search-input"
-                       class="marketplace-search-input"
+                       class="apps-search-input"
                        placeholder="Search apps... (Ctrl+K)"
                        aria-label="Search apps" />
                 <button type="button"
-                        class="marketplace-search-clear"
+                        class="apps-search-clear"
                         id="mp-search-clear"
                         style="display:none"
                         aria-label="Clear search">
                     <i class="fas fa-times" aria-hidden="true"></i>
                 </button>
             </div>
-            <select id="mp-sort-select" class="marketplace-sort-select" aria-label="Sort apps">
+            <select id="mp-sort-select" class="apps-sort-select" aria-label="Sort apps">
                 <option value="popular" selected>Popular</option>
                 <option value="newest">Newest</option>
                 <option value="rating">Rating</option>
@@ -43,15 +43,15 @@
         </div>
     </div>
     <!-- Module grid (always contains ALL modules; filtering is client-side) -->
-    <div class="marketplace-grid" id="mp-grid">
+    <div class="apps-grid" id="mp-grid">
         {% for mod_item in modules %}
             {% include "marketplace_app/partials/module_card.html" %}
         {% endfor %}
     </div>
-    <div class="marketplace-empty-state" id="mp-empty" style="display:none">
+    <div class="apps-empty-state" id="mp-empty" style="display:none">
         <i class="fas fa-store-slash" aria-hidden="true"></i>
-        <p class="marketplace-empty-title">No apps found</p>
-        <p class="marketplace-empty-description" id="mp-empty-desc">No apps match your search.</p>
+        <p class="apps-empty-title">No apps found</p>
+        <p class="apps-empty-description" id="mp-empty-desc">No apps match your search.</p>
     </div>
 </div>
 <script>
@@ -62,7 +62,7 @@
     var searchInput = document.getElementById('mp-search-input');
     var clearBtn = document.getElementById('mp-search-clear');
     var sortSelect = document.getElementById('mp-sort-select');
-    var tabs = document.querySelectorAll('.marketplace-cat-tab');
+    var tabs = document.querySelectorAll('.apps-cat-tab');
     var cards = grid ? Array.prototype.slice.call(grid.querySelectorAll('.mp-card')) : [];
     var activeCategory = '';
 
@@ -264,7 +264,7 @@
     /* Ctrl+K — focus search */
     document.addEventListener('keydown', function (e) {
         if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-            var container = document.querySelector('.marketplace-container');
+            var container = document.querySelector('.apps-container');
             if (container && container.offsetParent !== null) {
                 e.preventDefault();
                 searchInput.focus();

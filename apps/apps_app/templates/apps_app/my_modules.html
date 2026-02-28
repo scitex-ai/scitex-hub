@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{% static 'marketplace_app/css/marketplace.css' %}" />
 {% endblock %}
 {% block content %}
-    <div class="marketplace-container">
+    <div class="apps-container">
         <div class="mp-my-header">
             <h1 class="mp-my-title">
                 <i class="fas fa-cubes" aria-hidden="true"></i> My Apps
@@ -62,10 +62,10 @@
                 {% endfor %}
             </ul>
         {% else %}
-            <div class="marketplace-empty-state">
+            <div class="apps-empty-state">
                 <i class="fas fa-cubes" aria-hidden="true"></i>
-                <p class="marketplace-empty-title">No apps installed yet</p>
-                <p class="marketplace-empty-description">
+                <p class="apps-empty-title">No apps installed yet</p>
+                <p class="apps-empty-description">
                     <a href="/marketplace/">Browse the marketplace</a> to discover and install apps.
                 </p>
             </div>
