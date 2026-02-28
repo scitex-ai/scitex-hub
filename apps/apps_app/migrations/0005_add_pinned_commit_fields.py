@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("marketplace_app", "0004_alter_marketplacemodule_options_and_more"),
+        ("apps_app", "0004_alter_marketplacemodule_options_and_more"),
     ]
 
     operations = [

@@ -119,7 +119,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="installations",
-                        to="marketplace_app.marketplacemodule",
+                        to="apps_app.marketplacemodule",
                     ),
                 ),
                 (
@@ -168,7 +168,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="reviews",
-                        to="marketplace_app.marketplacemodule",
+                        to="apps_app.marketplacemodule",
                     ),
                 ),
                 (
@@ -204,7 +204,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="stars_rel",
-                        to="marketplace_app.marketplacemodule",
+                        to="apps_app.marketplacemodule",
                     ),
                 ),
                 (
@@ -243,7 +243,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="versions",
-                        to="marketplace_app.marketplacemodule",
+                        to="apps_app.marketplacemodule",
                     ),
                 ),
             ],

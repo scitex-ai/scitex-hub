@@ -38,11 +38,14 @@ def ensure_builtin_modules():
         return
 
     try:
+        from django.db import transaction
+
         from ..management.commands.seed_apps import (
             ensure_builtin_modules as seed_builtins,
         )
 
-        created, _ = seed_builtins()
+        with transaction.atomic():
+            created, _ = seed_builtins()
         if created:
             logger.info("[apps] Auto-seeded %d built-in modules", created)
     except Exception:

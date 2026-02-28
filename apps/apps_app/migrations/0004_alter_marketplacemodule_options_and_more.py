@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("marketplace_app", "0003_alter_marketplacemodule_visibility_modulesubmission"),
+        ("apps_app", "0003_alter_marketplacemodule_visibility_modulesubmission"),
         ("project_app", "0027_project_app_category_project_app_license_and_more"),
     ]
 

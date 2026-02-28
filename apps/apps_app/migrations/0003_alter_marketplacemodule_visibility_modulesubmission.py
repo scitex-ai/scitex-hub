@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("marketplace_app", "0002_add_status_field"),
+        ("apps_app", "0002_add_status_field"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -58,7 +58,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="submissions",
-                        to="marketplace_app.marketplacemodule",
+                        to="apps_app.marketplacemodule",
                     ),
                 ),
                 (
