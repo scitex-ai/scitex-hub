@@ -1,0 +1,751 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}App Maker — SciTeX Documentation{% endblock %}
+{% block meta_description %}
+    Create, edit, and share custom workspace modules for SciTeX Cloud. Build your own research tools with the App Maker framework.
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container py-2">
+        <header class="minimal-hero" style="text-align: center">
+            <div class="api-hero-header" style="justify-content: center">
+                <h1 class="minimal-hero-title">App Maker</h1>
+                <div class="api-hero-actions">
+                    <span class="api-version-badge">WIP</span>
+                </div>
+            </div>
+        </header>
+    </div>
+    <div class="container py-2">
+        <div class="api-layout">
+            <!-- Sidebar -->
+            <aside class="api-sidebar">
+                <nav class="api-nav">
+                    <div class="api-nav-group">
+                        <div class="api-nav-group-label">Sections</div>
+                        <div class="api-nav-section">
+                            <h4>
+                                <a href="#overview">Overview</a>
+                            </h4>
+                        </div>
+                        <div class="api-nav-section">
+                            <h4>
+                                <a href="#architecture">Architecture</a>
+                            </h4>
+                        </div>
+                        <div class="api-nav-section">
+                            <h4>
+                                <a href="#module-config">ModuleConfig</a>
+                            </h4>
+                        </div>
+                        <div class="api-nav-section">
+                            <h4>
+                                <a href="#create-module">Create a Module</a>
+                            </h4>
+                        </div>
+                        <div class="api-nav-section">
+                            <h4>
+                                <a href="#templates">Templates</a>
+                            </h4>
+                        </div>
+                        <div class="api-nav-section">
+                            <h4>
+                                <a href="#context-builder">Context Builder</a>
+                            </h4>
+                        </div>
+                        <div class="api-nav-section">
+                            <h4>
+                                <a href="#skill">LLM Skill</a>
+                            </h4>
+                        </div>
+                        <div class="api-nav-section">
+                            <h4>
+                                <a href="#testing">Testing</a>
+                            </h4>
+                        </div>
+                        <div class="api-nav-section">
+                            <h4>
+                                <a href="#apps">Apps Catalog</a>
+                            </h4>
+                        </div>
+                        <div class="api-nav-section">
+                            <h4>
+                                <a href="#user-modules">User Modules</a>
+                            </h4>
+                        </div>
+                        <div class="api-nav-section">
+                            <h4>
+                                <a href="#external">External Packages</a>
+                            </h4>
+                        </div>
+                    </div>
+                </nav>
+            </aside>
+            <!-- Main content -->
+            <main class="api-main">
+                <!-- Overview -->
+                <span id="overview"></span>
+                <section class="api-section">
+                    <h2>
+                        <i class="fas fa-puzzle-piece"></i> Overview
+                    </h2>
+                    <p>
+                        SciTeX workspace modules are self-contained apps that appear as tabs in the workspace.
+                        Each module gets its own URL, AJAX-loaded partial, keyboard shortcut, and LLM skill integration.
+                    </p>
+                    <p>There are three ways to add modules:</p>
+                    <table class="api-table">
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>For</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <strong>Built-in</strong>
+                                </td>
+                                <td>Core modules (Writer, Scholar, Vis, Hub, Console, Tools)</td>
+                                <td>Stable</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>App Maker</strong>
+                                </td>
+                                <td>User-authored Python modules via web editor</td>
+                                <td>WIP</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>External Package</strong>
+                                </td>
+                                <td>pip-installable modules discovered via entry points</td>
+                                <td>WIP</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+                <!-- Architecture -->
+                <span id="architecture"></span>
+                <section class="api-section">
+                    <h2>
+                        <i class="fas fa-layer-group"></i> Architecture
+                    </h2>
+                    <p>Every workspace module consists of these layers:</p>
+                    <table class="api-table">
+                        <thead>
+                            <tr>
+                                <th>Layer</th>
+                                <th>File</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <strong>1. Registry</strong>
+                                </td>
+                                <td>
+                                    <code>workspace_app/registry.py</code>
+                                </td>
+                                <td>ModuleConfig entry &mdash; single source of truth</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>2. Views</strong>
+                                </td>
+                                <td>
+                                    <code>your_app/views.py</code>
+                                </td>
+                                <td>Full page view + context builder function</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>3. Templates</strong>
+                                </td>
+                                <td>
+                                    <code>your_app/templates/</code>
+                                </td>
+                                <td>
+                                    <code>index.html</code> (full page) + <code>index_partial.html</code> (AJAX)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>4. URLs</strong>
+                                </td>
+                                <td>
+                                    <code>config/urls.py</code>
+                                </td>
+                                <td>
+                                    <code>path("your/", include(("apps.your_app.urls", "your_app")))</code>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>5. Skill</strong>
+                                </td>
+                                <td>
+                                    <code>your_app/skill.py</code>
+                                </td>
+                                <td>LLM integration &mdash; capabilities, tool prefixes</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>6. Tests</strong>
+                                </td>
+                                <td>
+                                    <code>your_app/tests.py</code>
+                                </td>
+                                <td>ModuleTestMixin validates all layers automatically</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="api-callout api-callout-info">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            The <strong>Example App</strong> at <a href="/example/">/example/</a> is the authoritative reference implementation. Copy its structure for new modules.
+                        </div>
+                    </div>
+                </section>
+                <!-- ModuleConfig -->
+                <span id="module-config"></span>
+                <section class="api-section">
+                    <h2>
+                        <i class="fas fa-cog"></i> ModuleConfig
+                    </h2>
+                    <p>
+                        Every module is defined by a <code>ModuleConfig</code> dataclass in <code>workspace_app/registry.py</code>:
+                    </p>
+                    <table class="api-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <code>name</code>
+                                </td>
+                                <td>str</td>
+                                <td>
+                                    URL slug (e.g., <code>"writer"</code>)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>label</code>
+                                </td>
+                                <td>str</td>
+                                <td>
+                                    Display name (e.g., <code>"Writer"</code>)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>app_name</code>
+                                </td>
+                                <td>str</td>
+                                <td>
+                                    Django app name (e.g., <code>"writer_app"</code>)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>icon_fa</code>
+                                </td>
+                                <td>str</td>
+                                <td>
+                                    FontAwesome class (e.g., <code>"fas fa-pen"</code>)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>partial_template</code>
+                                </td>
+                                <td>str</td>
+                                <td>AJAX partial template path</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>context_builder</code>
+                                </td>
+                                <td>str</td>
+                                <td>Dotted path to context function</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>keyboard_shortcut</code>
+                                </td>
+                                <td>str</td>
+                                <td>Alt+key shortcut (single letter)</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>order</code>
+                                </td>
+                                <td>int</td>
+                                <td>Tab bar position (lower = leftmost)</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>status</code>
+                                </td>
+                                <td>str</td>
+                                <td>
+                                    <code>"stable"</code>, <code>"wip"</code>, <code>"beta"</code>, <code>"deprecated"</code>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>default_enabled</code>
+                                </td>
+                                <td>bool</td>
+                                <td>Show in tab bar for new users</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>ai_hint</code>
+                                </td>
+                                <td>str</td>
+                                <td>Short description for LLM context</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>accent_color</code>
+                                </td>
+                                <td>str</td>
+                                <td>CSS variable name for module accent</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+                <!-- Create a Module -->
+                <span id="create-module"></span>
+                <section class="api-section">
+                    <h2>
+                        <i class="fas fa-plus-circle"></i> Create a Module
+                    </h2>
+                    <p>Minimum file structure:</p>
+                    <pre><code>apps/mymodule_app/
+├── __init__.py
+├── apps.py                      # Django AppConfig
+├── views.py                     # index_view + build_mymodule_context
+├── urls.py                      # path("", views.index_view, name="index")
+├── skill.py                     # LLM skill registration
+├── tests.py                     # ModuleTestMixin validation
+├── templates/mymodule_app/
+│   ├── index.html              # extends "global_base.html"
+│   └── index_partial.html      # standalone AJAX partial
+└── static/mymodule_app/
+    └── css/mymodule.css</code></pre>
+                    <p style="margin-top: 1rem">
+                        <strong>Step 1.</strong> Add ModuleConfig to <code>workspace_app/registry.py</code>:
+                    </p>
+                    <pre><code>ModuleConfig(
+    name="mymodule",
+    label="My Module",
+    app_name="mymodule_app",
+    icon_fa="fas fa-widget",
+    partial_template="mymodule_app/index_partial.html",
+    context_builder="apps.mymodule_app.views.build_mymodule_context",
+    keyboard_shortcut="Y",
+    order=75,
+    ai_hint="Short description for LLM context",
+    accent_color="mymodule",
+)</code></pre>
+                    <p>
+                        <strong>Step 2.</strong> Add URL pattern to <code>config/urls.py</code>:
+                    </p>
+                    <pre><code>path("mymodule/", include(("apps.mymodule_app.urls", "mymodule_app"))),</code></pre>
+                </section>
+                <!-- Templates -->
+                <span id="templates"></span>
+                <section class="api-section">
+                    <h2>
+                        <i class="fas fa-file-code"></i> Templates
+                    </h2>
+                    <p>
+                        Each module needs two templates. The <strong>full page</strong> template extends
+                        <code>global_base.html</code> and is served on direct URL access. The <strong>partial</strong>
+                        template is standalone HTML loaded via AJAX when switching tabs (SPA behavior).
+                    </p>
+                    <p>
+                        <strong><code>index.html</code></strong> &mdash; Full page:
+                    </p>
+                    <pre><code>{% verbatim %}{% extends "global_base.html" %}
+{% block content %}
+    {% include "mymodule_app/index_partial.html" %}
+{% endblock %}{% endverbatim %}</code></pre>
+                    <p>
+                        <strong><code>index_partial.html</code></strong> &mdash; AJAX partial:
+                    </p>
+                    <pre><code>&lt;div class="workspace-project-config" data-mode="mymodule"&gt;
+    &lt;!-- Your module content here --&gt;
+    &lt;h2&gt;My Module&lt;/h2&gt;
+    &lt;p&gt;Module content...&lt;/p&gt;
+&lt;/div&gt;</code></pre>
+                    <div class="api-callout api-callout-info">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            The <code>data-mode</code> attribute must match your module's <code>name</code> in the registry.
+                            The tab switcher uses this for SPA navigation without page reloads.
+                        </div>
+                    </div>
+                </section>
+                <!-- Context Builder -->
+                <span id="context-builder"></span>
+                <section class="api-section">
+                    <h2>
+                        <i class="fas fa-database"></i> Context Builder
+                    </h2>
+                    <p>
+                        The context builder function is called on both full page loads and AJAX partial loads.
+                        It must accept <code>request</code> and <code>current_project</code>:
+                    </p>
+                    <pre><code>def build_mymodule_context(request, current_project=None):
+    """Called by workspace shell for SPA tab switching."""
+    return {
+        "current_project": current_project,
+        "my_data": MyModel.objects.filter(
+            project=current_project
+        ) if current_project else [],
+    }
+
+def index_view(request):
+    """Full page view at /mymodule/."""
+    project = get_current_project(request)
+    context = build_mymodule_context(request, project)
+    return render(request, "mymodule_app/index.html", context)</code></pre>
+                </section>
+                <!-- LLM Skill -->
+                <span id="skill"></span>
+                <section class="api-section">
+                    <h2>
+                        <i class="fas fa-robot"></i> LLM Skill Registration
+                    </h2>
+                    <p>
+                        Register a Skill so AI assistants understand your module's capabilities.
+                        Create <code>skill.py</code> in your app:
+                    </p>
+                    <pre><code>from apps.llm_app.skills import Skill, register
+register(
+    Skill(
+        app_name="mymodule",
+        display_name="My Module - Description",
+        description="Detailed description for LLM context...",
+        capabilities=[
+            "Do something useful",
+            "Process data",
+        ],
+        page_patterns=["/mymodule/"],
+        url_prefix="/mymodule/",
+        module_description="One-line summary.",
+    )
+)</code></pre>
+                </section>
+                <!-- Testing -->
+                <span id="testing"></span>
+                <section class="api-section">
+                    <h2>
+                        <i class="fas fa-check-circle"></i> Testing
+                    </h2>
+                    <p>
+                        <code>ModuleTestMixin</code> automatically validates all module layers.
+                        Create <code>tests.py</code>:
+                    </p>
+                    <pre><code>from django.test import TestCase
+from apps.workspace_app.test_mixin import ModuleTestMixin
+
+class MyModuleTest(ModuleTestMixin, TestCase):
+    module_name = "mymodule"</code></pre>
+                    <p>This validates:</p>
+                    <table class="api-table">
+                        <thead>
+                            <tr>
+                                <th>Check</th>
+                                <th>What it verifies</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <code>test_module_registered</code>
+                                </td>
+                                <td>Module exists in registry</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>test_partial_template_exists</code>
+                                </td>
+                                <td>AJAX partial template file exists</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>test_icon_registered</code>
+                                </td>
+                                <td>Has FontAwesome or SVG icon</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>test_context_builder_importable</code>
+                                </td>
+                                <td>Context builder function is callable</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>test_ai_hint_defined</code>
+                                </td>
+                                <td>LLM hint text is non-empty</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>test_accent_color_css_exists</code>
+                                </td>
+                                <td>
+                                    CSS variable <code>--module-accent-{name}</code> defined
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>test_skill_registered</code>
+                                </td>
+                                <td>Skill exists in LLM registry</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+                <!-- Apps Catalog -->
+                <span id="apps"></span>
+                <section class="api-section">
+                    <h2>
+                        <i class="fas fa-store"></i> Apps Catalog
+                    </h2>
+                    <p>
+                        The <a href="/apps/">Apps catalog</a> is a catalog of all workspace modules.
+                        Users can browse, install, star, review, and reorder modules.
+                    </p>
+                    <table class="api-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <strong>Install / Uninstall</strong>
+                                </td>
+                                <td>Add or remove modules from your tab bar</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Enable / Disable</strong>
+                                </td>
+                                <td>Toggle module visibility (built-ins cannot be uninstalled, only disabled)</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Reorder</strong>
+                                </td>
+                                <td>Drag to reorder tab positions (syncs across tab bar and apps catalog)</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Star</strong>
+                                </td>
+                                <td>Bookmark favorite modules</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Review</strong>
+                                </td>
+                                <td>Rate (1&ndash;5) and comment on modules</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Publish</strong>
+                                </td>
+                                <td>Submit user modules for public listing (requires admin review)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 1rem">
+                        Built-in modules are auto-seeded into the apps catalog on first visit.
+                        Categories: writing, visualization, data, analysis, reference, utility.
+                    </p>
+                </section>
+                <!-- User Modules -->
+                <span id="user-modules"></span>
+                <section class="api-section">
+                    <h2>
+                        <i class="fas fa-user-cog"></i> User Modules (App Maker)
+                    </h2>
+                    <p>
+                        The <a href="/appmaker/">App Maker</a> lets authenticated users create custom modules
+                        from Python source code directly in the browser.
+                    </p>
+                    <table class="api-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <code>slug</code>
+                                </td>
+                                <td>Unique identifier per user</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>label</code>
+                                </td>
+                                <td>Display name</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>source_code</code>
+                                </td>
+                                <td>Python source (validated for security)</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>icon</code>
+                                </td>
+                                <td>FontAwesome icon class</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>category</code>
+                                </td>
+                                <td>writing, visualization, data, analysis, reference, utility</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>visibility</code>
+                                </td>
+                                <td>
+                                    <code>private</code>, <code>group</code> (shared with project), <code>public</code>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>version</code>
+                                </td>
+                                <td>Semantic version string</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>dependencies</code>
+                                </td>
+                                <td>JSON list of required packages</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 1rem">
+                        <strong>API endpoints:</strong>
+                    </p>
+                    <table class="api-table">
+                        <thead>
+                            <tr>
+                                <th>Endpoint</th>
+                                <th>Method</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <code>/appmaker/api/create/</code>
+                                </td>
+                                <td>POST</td>
+                                <td>Create a new module</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>/appmaker/api/&lt;slug&gt;/update/</code>
+                                </td>
+                                <td>POST</td>
+                                <td>Update module source and metadata</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>/appmaker/api/&lt;slug&gt;/run/</code>
+                                </td>
+                                <td>POST</td>
+                                <td>Execute module (sandboxed)</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>/appmaker/api/&lt;slug&gt;/delete/</code>
+                                </td>
+                                <td>POST</td>
+                                <td>Soft-delete module</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="api-callout api-callout-info">
+                        <i class="fas fa-shield-alt"></i>
+                        <div>
+                            User-submitted source code is scanned for forbidden patterns
+                            (<code>os.system</code>, <code>subprocess</code>, <code>eval</code>, <code>exec</code>, <code>open</code>, etc.)
+                            before execution.
+                        </div>
+                    </div>
+                </section>
+                <!-- External Packages -->
+                <span id="external"></span>
+                <section class="api-section">
+                    <h2>
+                        <i class="fas fa-plug"></i> External Packages
+                    </h2>
+                    <p>
+                        pip-installable packages can register modules via Python entry points.
+                        The registry auto-discovers them at startup:
+                    </p>
+                    <pre><code># In your package's setup.py or pyproject.toml:
+[project.entry-points.scitex_modules]
+my_module = "my_package.registry:MODULE_CONFIG"</code></pre>
+                    <p>
+                        Where <code>MODULE_CONFIG</code> is a <code>ModuleConfig</code> instance:
+                    </p>
+                    <pre><code># my_package/registry.py
+from apps.workspace_app.registry import ModuleConfig
+
+MODULE_CONFIG = ModuleConfig(
+    name="my_module",
+    label="My Module",
+    app_name="my_module_app",
+    icon_fa="fas fa-star",
+    partial_template="my_module_app/index_partial.html",
+    context_builder="my_package.views.build_context",
+    order=100,
+    ai_hint="Description for LLM...",
+    accent_color="my_module",
+)</code></pre>
+                    <div class="api-callout api-callout-info">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            External module discovery uses Python's <code>importlib.metadata.entry_points(group="scitex_modules")</code>.
+                            Install the package and restart SciTeX &mdash; the module appears automatically.
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+{% endblock %}

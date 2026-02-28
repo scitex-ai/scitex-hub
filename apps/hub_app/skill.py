@@ -14,8 +14,8 @@ register(
             "Quick-navigate to any module",
             "Create new projects",
         ],
-        page_patterns=["/hub/"],
-        url_prefix="/hub/",
+        page_patterns=["/"],
+        url_prefix="/",
         module_description=(
             "Project dashboard showing all user projects, activity feed, "
             "and quick actions."

@@ -24,7 +24,9 @@ class PoolAllocator:
 
     VISITOR_USER_PREFIX = "visitor-"
     POOL_SIZE = None  # Will be set by VisitorPool
-    SESSION_LIFETIME_HOURS = 1
+    SESSION_LIFETIME_HOURS = 1  # Base session time (extended on activity)
+    SESSION_EXTENSION_MINUTES = 30  # Extend by this much on activity
+    IDLE_TIMEOUT_MINUTES = 30  # Release slot if idle longer than this
     SESSION_KEY_PROJECT_ID = "visitor_project_id"
     SESSION_KEY_VISITOR_ID = "visitor_user_id"
     SESSION_KEY_ALLOCATION_TOKEN = "visitor_allocation_token"

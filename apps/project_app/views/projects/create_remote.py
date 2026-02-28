@@ -7,19 +7,20 @@ Create remote projects mounted via SSHFS.
 """
 
 import logging
-import subprocess
 
-from django.shortcuts import redirect
 from django.contrib import messages
-from django.utils.safestring import mark_safe
+from django.shortcuts import redirect
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 
 from ...models import Project, RemoteCredential, RemoteProjectConfig
 
 logger = logging.getLogger(__name__)
 
 
-def create_remote_project(request, name, description, remote_credential_id, remote_path):
+def create_remote_project(
+    request, name, description, remote_credential_id, remote_path
+):
     """
     Create a remote project (SSHFS mount, no Git).
 
@@ -69,65 +70,74 @@ def create_remote_project(request, name, description, remote_credential_id, remo
         return redirect("project_create")
 
     # Create remote project
-    return _create_remote_project_db(request, name, description, credential, remote_path, slug)
+    return _create_remote_project_db(
+        request, name, description, credential, remote_path, slug
+    )
 
 
 def _test_ssh_connection(request, credential, remote_path):
     """
-    Test SSH connection to remote host.
+    Test SSH connection to remote host via paramiko.
 
     Returns True if successful, False otherwise.
     """
-    logger.info(f"Testing SSH connection for remote project")
+    import paramiko
 
-    ssh_key_path = credential.private_key_path
-    cmd = [
-        "ssh",
-        "-p",
-        str(credential.ssh_port),
-        "-i",
-        ssh_key_path,
-        "-o",
-        "StrictHostKeyChecking=accept-new",
-        "-o",
-        "ConnectTimeout=10",
-        f"{credential.ssh_username}@{credential.ssh_host}",
-        f"test -d {remote_path} && echo 'OK' || echo 'NOT_FOUND'",
-    ]
+    logger.info("Testing SSH connection for remote project via paramiko")
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        if result.returncode != 0:
-            messages.error(
-                request,
-                mark_safe(
-                    f"SSH connection failed: {result.stderr}<br>"
-                    f"Please verify your credentials and try again."
-                ),
-            )
-            return False
+        client.connect(
+            hostname=credential.ssh_host,
+            port=credential.ssh_port,
+            username=credential.ssh_username,
+            key_filename=credential.private_key_path,
+            timeout=10,
+        )
 
-        if "NOT_FOUND" in result.stdout:
+        # Test if remote path exists
+        stdin, stdout, stderr = client.exec_command(
+            f'test -d "{remote_path}" && echo OK || echo NOT_FOUND'
+        )
+        result = stdout.read().decode().strip()
+
+        if result == "NOT_FOUND":
             messages.warning(
                 request,
                 mark_safe(
-                    f"⚠️  Remote directory not found: {remote_path}<br>"
+                    f"Remote directory not found: <code>{remote_path}</code><br>"
                     f"The directory will be created when you access the project."
                 ),
             )
 
+        client.close()
         return True
 
-    except subprocess.TimeoutExpired:
-        messages.error(request, "SSH connection timeout. Please check your network and try again.")
+    except paramiko.AuthenticationException:
+        messages.error(
+            request,
+            "SSH authentication failed. Check your SSH key and credentials.",
+        )
+        return False
+    except paramiko.SSHException as e:
+        messages.error(request, f"SSH connection error: {e}")
+        return False
+    except TimeoutError:
+        messages.error(
+            request,
+            "SSH connection timeout. Check your network and remote host.",
+        )
         return False
     except Exception as e:
-        messages.error(request, f"Connection test failed: {str(e)}")
+        messages.error(request, f"Connection test failed: {e}")
         return False
 
 
-def _create_remote_project_db(request, name, description, credential, remote_path, slug):
+def _create_remote_project_db(
+    request, name, description, credential, remote_path, slug
+):
     """
     Create remote project in database.
 

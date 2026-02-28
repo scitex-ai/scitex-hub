@@ -16,40 +16,20 @@ logger = logging.getLogger(__name__)
 
 
 def get_available_templates():
-    """Get available project templates - SciTeX minimal is now the default."""
-    return [
-        {
-            "id": "minimal",
-            "name": "SciTeX Minimal",
-            "description": "Minimal SciTeX structure with writer, scholar, visualizer, and console",
-            "features": [
-                "writer/ - LaTeX manuscript writing",
-                "scholar/ - Bibliography management",
-                "visualizer/ - Figure creation",
-                "console/ - Code execution",
-            ],
-        },
-        {
-            "id": "research",
-            "name": "Research Project (Full)",
-            "description": "Full scientific workflow structure with all components",
-            "features": [
-                "scripts/ - Analysis and preprocessing scripts",
-                "data/ - Raw and processed data management",
-                "docs/ - Manuscripts, notes, and references",
-            ],
-        },
-        {
-            "id": "pip_project",
-            "name": "Python Package",
-            "description": "Pip-installable package template",
-            "features": [
-                "src/ - Package source code",
-                "tests/ - Unit and integration tests",
-                "CI/CD - GitHub Actions workflows",
-            ],
-        },
-    ]
+    """Get available project templates from scitex package (source of truth)."""
+    try:
+        from scitex.template import get_available_templates_info
+
+        return get_available_templates_info()
+    except ImportError:
+        logger.warning("scitex.template not available, using empty template list")
+        return []
+
+
+def get_template_map():
+    """Get templates as a dict keyed by id for direct lookup in templates."""
+    templates = get_available_templates()
+    return {t["id"]: t for t in templates}
 
 
 def validate_project_name(request, name):
@@ -67,7 +47,10 @@ def validate_project_name(request, name):
         return False, error_message
 
     if Project.objects.filter(name=name, owner=request.user).exists():
-        return False, f'You already have a project named "{name}". Please choose a different name.'
+        return (
+            False,
+            f'You already have a project named "{name}". Please choose a different name.',
+        )
 
     return True, None
 
@@ -102,7 +85,10 @@ def verify_gitea_availability(request, user, unique_slug):
     except Exception as e:
         # Log warning but don't fail - Gitea might be temporarily unavailable
         logger.warning(f"Could not verify Gitea repository availability: {e}")
-        return True, "Could not verify repository name with Gitea. Proceeding with caution."
+        return (
+            True,
+            "Could not verify repository name with Gitea. Proceeding with caution.",
+        )
 
 
 def generate_unique_slug(name, user):

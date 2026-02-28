@@ -49,8 +49,6 @@ export async function loadTexFile(
     if (data.success && data.content !== undefined) {
       editor.setContent(data.content);
       console.log("[FileLoader] File content set in editor");
-      showToast(`Loaded: ${filePath}`, "success");
-
       // Dispatch event to trigger PDF preview compilation
       window.dispatchEvent(
         new CustomEvent("writer:fileContentLoaded", {

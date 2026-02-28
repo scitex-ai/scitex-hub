@@ -1,0 +1,130 @@
+/* Python Packages page — hero (visible on standalone page, hidden in workspace) */
+.pkg-hero {
+  text-align: center;
+}
+
+.pkg-hero-header {
+  justify-content: center;
+}
+
+/* Package cards */
+.pkg-card {
+  background: var(--workspace-bg-secondary, #161b22);
+  border: 1px solid var(--workspace-border-default, #30363d);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.pkg-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pkg-header strong {
+  font-size: 13px;
+}
+
+.pkg-module {
+  font-size: 11px;
+  color: var(--text-muted, #8b949e);
+}
+
+.pkg-desc {
+  margin: 4px 0 6px;
+  color: var(--text-secondary, #c9d1d9);
+  font-size: 12px;
+}
+
+.pkg-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pkg-link {
+  font-size: 11px;
+  color: var(--text-secondary, #8b949e);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--workspace-border-default, #30363d);
+  transition: all 0.15s;
+}
+
+.pkg-link:hover {
+  color: var(--text-primary, #e6edf3);
+  border-color: var(--text-secondary, #8b949e);
+  text-decoration: none;
+}
+
+.pkg-link-docs {
+  color: var(--accent-blue, #58a6ff);
+  border-color: var(--accent-blue, #58a6ff);
+}
+
+.pkg-link-docs:hover {
+  background: rgba(88, 166, 255, 0.1);
+  color: var(--accent-blue, #58a6ff);
+}
+
+/* RTD embed — fill entire pane when open */
+.rtd-embed-active {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
+/* Hide all content above the embed so iframe gets full height */
+.rtd-embed-active > .container {
+  display: none !important;
+}
+
+.rtd-embed-container {
+  border: 1px solid var(--workspace-border-default, #30363d);
+  border-radius: 6px 6px 0 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.rtd-embed-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: var(--workspace-bg-secondary, #161b22);
+  border-bottom: 1px solid var(--workspace-border-default, #30363d);
+  flex-shrink: 0;
+}
+
+.rtd-embed-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary, #e6edf3);
+}
+
+.rtd-embed-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.rtd-embed-iframe {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  background: #fff;
+}
+
+/* Hidden by default */
+.rtd-embed-container.hidden {
+  display: none !important;
+}

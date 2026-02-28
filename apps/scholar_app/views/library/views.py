@@ -48,6 +48,7 @@ def api_library_papers(request):
             entries = (
                 UserLibrary.objects.filter(user=request.user)
                 .select_related("paper")
+                .prefetch_related("paper__authors")
                 .order_by("-saved_at")
             )
             papers = []
@@ -60,20 +61,29 @@ def api_library_papers(request):
                         "title": p.title if p else "Unknown",
                         "doi": p.doi if p else None,
                         "journal": p.journal if p else None,
-                        "year": p.publication_date.year
-                        if p and p.publication_date
-                        else None,
-                        "authors": p.authors if p else None,
-                        "abstract": p.abstract
-                        if p and hasattr(p, "abstract")
-                        else None,
+                        "year": (
+                            p.publication_date.year
+                            if p and p.publication_date
+                            else None
+                        ),
+                        "authors": (
+                            ", ".join(
+                                f"{a.first_name} {a.last_name}".strip()
+                                for a in p.authors.all()
+                            )
+                            if p
+                            else None
+                        ),
+                        "abstract": (
+                            p.abstract if p and hasattr(p, "abstract") else None
+                        ),
                         "reading_status": entry.reading_status,
                         "importance_rating": entry.importance_rating,
                         "personal_notes": entry.personal_notes,
                         "tags": entry.tags,
-                        "saved_at": entry.saved_at.isoformat()
-                        if entry.saved_at
-                        else None,
+                        "saved_at": (
+                            entry.saved_at.isoformat() if entry.saved_at else None
+                        ),
                     }
                 )
 
@@ -97,7 +107,7 @@ def api_library_papers(request):
             )
         except Exception as e:
             logger.error(f"Error fetching library papers: {e}")
-            return JsonResponse({"success": False, "error": str(e)}, status=400)
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
 
     elif request.method == "POST":
         # Add paper to library
@@ -232,6 +242,22 @@ def api_remove_library_paper(request, paper_id):
     except Exception as e:
         logger.error(f"Error removing library paper: {e}")
         return JsonResponse({"success": False, "error": str(e)}, status=400)
+
+
+@require_http_methods(["GET"])
+def api_zotero_status(request):
+    """Stub: Zotero integration not yet implemented."""
+    return JsonResponse(
+        {"available": False, "error": "Zotero integration not yet available"}
+    )
+
+
+@require_http_methods(["GET"])
+def api_connected_papers_status(request):
+    """Stub: Connected Papers integration not yet implemented."""
+    return JsonResponse(
+        {"available": False, "error": "Connected Papers integration not yet available"}
+    )
 
 
 # EOF

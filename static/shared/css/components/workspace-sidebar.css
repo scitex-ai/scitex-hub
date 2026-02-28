@@ -137,8 +137,9 @@
 }
 
 .workspace-sidebar.collapsed .sidebar-header {
-  padding: 0;
-  justify-content: center;
+  padding: 8px 0 0;
+  justify-content: flex-start;
+  align-items: center;
   height: 100%;
   flex-direction: column;
   border-bottom: none;
@@ -153,21 +154,25 @@
   display: none;
 }
 
-/* Show sidebar title vertically when collapsed, centered in panel.
-   No flex:1 — let parent's justify-content:center align the toggle+title
-   group in the middle, consistent with DATA/CANVAS/DETAILS panels. */
+/* Show sidebar title with icon + label when collapsed, stacked vertically. */
 .workspace-sidebar.collapsed .sidebar-title {
   display: flex;
-  justify-content: center;
-  writing-mode: vertical-lr;
-  text-orientation: mixed;
-  transform: rotate(180deg);
-  font-size: 11px;
-  font-weight: 600;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 500;
   color: var(--text-secondary, #8ba7b8);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin: 0;
+  margin: 8px 0 0;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Icon visible, top-aligned */
+.workspace-sidebar.collapsed .sidebar-title i {
+  display: block;
+  font-size: 14px;
+  color: var(--text-secondary, #8ba7b8);
 }
 
 .workspace-sidebar.collapsed .sidebar-toggle,
@@ -275,9 +280,9 @@
   --module-accent-color: var(--module-accent-tools);
   --module-accent-tint: var(--module-accent-tools-tint);
 }
-[data-module-accent="marketplace"] {
-  --module-accent-color: var(--module-accent-marketplace);
-  --module-accent-tint: var(--module-accent-marketplace-tint);
+[data-module-accent="apps"] {
+  --module-accent-color: var(--module-accent-apps);
+  --module-accent-tint: var(--module-accent-apps-tint);
 }
 [data-module-accent="modulemaker"] {
   --module-accent-color: var(--module-accent-modulemaker);

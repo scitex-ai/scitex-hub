@@ -22,13 +22,7 @@
                 <button class="panel-toggle-btn" id="ws-worktree-toggle" title="Toggle file tree">
                     <i class="fas fa-chevron-right"></i>
                 </button>
-                <span class="sidebar-title">
-                    {% if current_project %}
-                        {{ current_project.owner.username }}/{{ current_project.slug }}
-                    {% else %}
-                        Files
-                    {% endif %}
-                </span>
+                <span class="sidebar-title" title="Files"><i class="fas fa-folder"></i> Files</span>
                 <span class="sidebar-title-full">
                     <i class="fas fa-folder-open"></i>
                     {% if current_project %}

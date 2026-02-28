@@ -21,6 +21,7 @@ def user_profile(request, username):
     User or organization profile page (GitHub-style /<username>/ or /<org-slug>/)
 
     Public view - no login required (like GitHub)
+    Authenticated users are redirected to Hub inline profile.
 
     Supports tabs via query parameter:
     - /<username>/ or /<username>?tab=overview - Overview
@@ -33,6 +34,16 @@ def user_profile(request, username):
 
     if username.lower() in [path.lower() for path in RESERVED_PATHS]:
         raise Http404("This path is reserved and not a valid username")
+
+    # Authenticated users see profile inside Hub workspace (rendered at /<username>/)
+    if request.user.is_authenticated:
+        from apps.hub_app.views.index import _build_profile_context, build_hub_context
+
+        context = build_hub_context(request, current_project=None)
+        context["hub_view_mode"] = "profile"
+        context["hub_profile_username"] = username
+        context.update(_build_profile_context(request, username))
+        return render(request, "hub_app/index.html", context)
 
     # First, try to find a user with this username
     try:
@@ -97,9 +108,9 @@ def organization_profile(request, org):
         "organization": org,
         "projects": projects,
         "is_member": is_member,
-        "is_admin": org.can_edit(request.user)
-        if request.user.is_authenticated
-        else False,
+        "is_admin": (
+            org.can_edit(request.user) if request.user.is_authenticated else False
+        ),
         "member_count": org.members.count(),
         "active_tab": "repositories",
     }

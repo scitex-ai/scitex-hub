@@ -8,7 +8,6 @@ Utilities for fetching repository file information and README content.
 
 import logging
 import subprocess
-from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -42,9 +41,7 @@ def get_git_info(path, project_path):
         )
 
         if result.returncode == 0 and result.stdout.strip():
-            author, time_ago, message, commit_hash = (
-                result.stdout.strip().split("|", 3)
-            )
+            author, time_ago, message, commit_hash = result.stdout.strip().split("|", 3)
             return {
                 "author": author,
                 "time_ago": time_ago,
@@ -57,26 +54,113 @@ def get_git_info(path, project_path):
     return {"author": "", "time_ago": "", "message": "", "hash": ""}
 
 
-def get_directory_contents(project_path):
+def get_batch_git_info(project_path, names):
+    """
+    Get git info for multiple files/dirs in a single subprocess call.
+
+    Runs one `git log` with --name-only over recent commits to find the last
+    commit touching each requested name.  This replaces N individual `git log
+    -1` calls with a single call, dramatically reducing subprocess overhead.
+
+    Args:
+        project_path: Root path of the project (Path or str)
+        names: Iterable of file/directory base-names to look up
+
+    Returns:
+        dict mapping each name to {author, time_ago, message, hash}.
+        Names with no git history are absent from the dict.
+    """
+    names = list(names)
+    if not names:
+        return {}
+
+    result = {}
+    names_set = set(names)
+
+    try:
+        # Fetch enough recent commits so every file is likely covered.
+        # Using len*3 gives a reasonable budget; fall back to individual
+        # lookups for anything still missing afterwards.
+        depth = max(len(names) * 3, 30)
+        proc = subprocess.run(
+            [
+                "git",
+                "log",
+                "--format=%an|%ar|%s|%h",
+                "--name-only",
+                "-n",
+                str(depth),
+                "--",
+            ]
+            + names,
+            cwd=project_path,
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+
+        if proc.returncode != 0:
+            return {}
+
+        current_info = None
+        for line in proc.stdout.splitlines():
+            stripped = line.strip()
+            if not stripped:
+                continue
+
+            # Commit header lines have exactly 3 "|" separators from our format
+            parts = stripped.split("|", 3)
+            if len(parts) == 4:
+                current_info = {
+                    "author": parts[0],
+                    "time_ago": parts[1],
+                    "message": parts[2][:80],
+                    "hash": parts[3],
+                }
+            elif current_info is not None:
+                # This is a filename produced by --name-only
+                basename = stripped.split("/")[-1]
+                if basename in names_set and basename not in result:
+                    result[basename] = current_info
+                    if len(result) == len(names_set):
+                        break  # All files accounted for
+
+    except Exception as exc:
+        logger.debug(f"Error in get_batch_git_info: {exc}")
+
+    return result
+
+
+def get_directory_contents(project_path, skip_git=False):
     """
     Get files and directories in project root with git info.
 
     Args:
         project_path: Root path of the project
+        skip_git: If True, skip git info lookups (for remote/trip projects)
 
     Returns:
         tuple: (files_list, dirs_list)
     """
     files = []
     dirs = []
+    empty_git = {"author": "", "time_ago": "", "message": "", "hash": ""}
 
     if not project_path or not project_path.exists():
         return files, dirs
 
     try:
-        for item in project_path.iterdir():
-            # Show all files including dotfiles
-            git_info = get_git_info(item, project_path)
+        items = list(project_path.iterdir())
+
+        # Batch-fetch git info for all items in a single subprocess call
+        if skip_git:
+            batch_git = {}
+        else:
+            all_names = [item.name for item in items]
+            batch_git = get_batch_git_info(project_path, all_names)
+
+        for item in items:
+            git_info = batch_git.get(item.name, empty_git)
 
             if item.is_file():
                 files.append(
@@ -134,6 +218,7 @@ def get_readme_content(project_path):
             readme_content = readme_path.read_text(encoding="utf-8")
             # Convert markdown to HTML
             import markdown
+
             readme_html = markdown.markdown(
                 readme_content,
                 extensions=["fenced_code", "tables", "nl2br"],

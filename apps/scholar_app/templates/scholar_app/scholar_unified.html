@@ -774,7 +774,17 @@
     {% vite_script 'scholar_app/common/project-selector' %}
     <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
+    <script>
+    (function() {
+        var _d = window.define, _r = window.require;
+        window.define = undefined; window.require = undefined;
+        var s = document.createElement("script");
+        s.src = "https://cdn.plot.ly/plotly-2.27.0.min.js";
+        s.charset = "utf-8";
+        s.onload = function() { window.define = _d; window.require = _r; };
+        document.head.appendChild(s);
+    })();
+    </script>
     <!-- Search Scripts -->
     {% vite_script 'scholar_app/search/nouislider-init' %}
     {% vite_script 'scholar_app/search/panel-toggle' %}

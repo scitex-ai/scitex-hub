@@ -1,0 +1,272 @@
+<article class="ap-card"
+         data-module="{{ mod_item.app.module_name }}"
+         data-category="{{ mod_item.app.category }}"
+         data-stars="{{ mod_item.app.star_count }}"
+         data-installs="{{ mod_item.app.install_count }}"
+         data-rating="{{ mod_item.app.avg_rating|default_if_none:0 }}"
+         data-created="{{ mod_item.app.created_at|date:'U' }}"
+         data-installed="{{ mod_item.is_installed|yesno:'1,0' }}"
+         data-enabled="{{ mod_item.is_enabled|yesno:'1,0' }}"
+         data-tab-order="{{ mod_item.tab_order }}">
+    {% if mod_item.is_installed %}
+        <span class="ap-drag-handle" aria-hidden="true"><i class="fas fa-grip-vertical"></i></span>
+    {% endif %}
+    <a href="/apps/{{ mod_item.app.module_name }}/"
+       class="ap-card-link"
+       aria-label="View {{ mod_item.app.module_name }}">
+        <div class="ap-card-icon">
+            {% if mod_item.reg and mod_item.reg.icon_fa %}
+                <i class="{{ mod_item.reg.icon_fa }}" aria-hidden="true"></i>
+            {% else %}
+                <i class="fas fa-puzzle-piece" aria-hidden="true"></i>
+            {% endif %}
+        </div>
+        <div class="ap-card-info">
+            <div class="ap-card-title-row">
+                <h3 class="ap-card-title">{{ mod_item.app.module_name }}</h3>
+                <div class="ap-card-badges">
+                    <span class="ap-category-badge ap-category-{{ mod_item.app.category }}">{{ mod_item.app.get_category_display }}</span>
+                    {% if mod_item.app.status == "wip" %}
+                        <span class="ap-badge ap-badge-wip" title="Work in progress">
+                            <i class="fas fa-wrench" aria-hidden="true"></i> WIP
+                        </span>
+                    {% elif mod_item.app.status == "beta" %}
+                        <span class="ap-badge ap-badge-beta" title="Beta">
+                            <i class="fas fa-flask" aria-hidden="true"></i> Beta
+                        </span>
+                    {% elif mod_item.app.status == "deprecated" %}
+                        <span class="ap-badge ap-badge-deprecated" title="Deprecated">
+                            <i class="fas fa-archive" aria-hidden="true"></i> Deprecated
+                        </span>
+                    {% endif %}
+                    {% if mod_item.app.visibility == "private" %}
+                        <span class="ap-badge ap-badge-private" title="Private app">
+                            <i class="fas fa-lock" aria-hidden="true"></i> Private
+                        </span>
+                    {% endif %}
+                    {% if mod_item.app.is_builtin %}
+                        <span class="ap-badge ap-badge-builtin" title="Built-in app">
+                            <i class="fas fa-cube" aria-hidden="true"></i> Built-in
+                        </span>
+                    {% endif %}
+                    {% if mod_item.app.is_verified %}
+                        <span class="ap-badge ap-badge-verified" title="Verified app">
+                            <i class="fas fa-shield-alt" aria-hidden="true"></i> Verified
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% if mod_item.app.short_description %}
+                <p class="ap-card-description">{{ mod_item.app.short_description }}</p>
+            {% endif %}
+        </div>
+    </a>
+    <div class="ap-card-stats">
+        <span class="ap-stat" title="Stars">
+            <i class="fas fa-star" aria-hidden="true"></i>
+            {{ mod_item.app.star_count }}
+        </span>
+        <span class="ap-stat" title="Installs">
+            <i class="fas fa-download" aria-hidden="true"></i>
+            {{ mod_item.app.install_count }}
+        </span>
+        {% if mod_item.app.avg_rating %}
+            <span class="ap-stat" title="Rating">
+                <i class="fas fa-star-half-alt" aria-hidden="true"></i>
+                {{ mod_item.app.avg_rating }}
+            </span>
+        {% endif %}
+        {% if mod_item.app.author %}
+            <a href="/{{ mod_item.app.author.username }}/{{ mod_item.app.module_name }}/"
+               class="ap-stat ap-hub-link"
+               title="View in Hub"
+               onclick="event.stopPropagation();">
+                <i class="fas fa-external-link-alt" aria-hidden="true"></i>
+            </a>
+        {% endif %}
+    </div>
+    <div class="ap-card-actions">
+        {% if user.is_authenticated %}
+            <button class="ap-btn-star {% if mod_item.is_starred %}ap-btn-star--active{% endif %}"
+                    data-module="{{ mod_item.app.module_name }}"
+                    data-starred="{{ mod_item.is_starred|yesno:'true,false' }}"
+                    aria-label="{% if mod_item.is_starred %}Unstar{% else %}Star{% endif %} {{ mod_item.app.module_name }}"
+                    title="{% if mod_item.is_starred %}Unstar{% else %}Star{% endif %}">
+                <i class="{% if mod_item.is_starred %}fas{% else %}far{% endif %} fa-star"
+                   aria-hidden="true"></i>
+            </button>
+            {% if mod_item.is_installed %}
+                <div class="ap-status-dropdown" data-module="{{ mod_item.app.module_name }}">
+                    <button type="button"
+                            class="{% if mod_item.is_enabled %}ap-badge-installed{% else %}ap-badge-disabled{% endif %} ap-status-trigger"
+                            data-enabled="{{ mod_item.is_enabled|yesno:'true,false' }}">
+                        {% if mod_item.is_enabled %}
+                            <i class="fas fa-check" aria-hidden="true"></i> Installed <i class="fas fa-caret-down ap-caret" aria-hidden="true"></i>
+                        {% else %}
+                            <i class="fas fa-ban" aria-hidden="true"></i> Disabled <i class="fas fa-caret-down ap-caret" aria-hidden="true"></i>
+                        {% endif %}
+                    </button>
+                    <div class="ap-status-menu">
+                        <button type="button"
+                                class="ap-status-item ap-btn-toggle"
+                                data-module="{{ mod_item.app.module_name }}">
+                            {% if mod_item.is_enabled %}
+                                <i class="fas fa-pause" aria-hidden="true"></i> Disable
+                            {% else %}
+                                <i class="fas fa-play" aria-hidden="true"></i> Enable
+                            {% endif %}
+                        </button>
+                        {% if not mod_item.app.is_builtin %}
+                            <button type="button"
+                                    class="ap-status-item ap-status-item--danger ap-btn-uninstall"
+                                    data-module="{{ mod_item.app.module_name }}">
+                                <i class="fas fa-trash" aria-hidden="true"></i> Uninstall
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <button class="ap-btn-install"
+                        data-module="{{ mod_item.app.module_name }}"
+                        aria-label="Install {{ mod_item.app.module_name }}">
+                    <i class="fas fa-download" aria-hidden="true"></i> Install
+                </button>
+            {% endif %}
+        {% else %}
+            <a href="/accounts/login/?next=/apps/" class="ap-btn-install ap-btn-login">
+                <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Login to install
+            </a>
+        {% endif %}
+    </div>
+</article>
+<script>
+(function () {
+    function getCsrf() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+               document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+    }
+
+    /* Status dropdown toggle */
+    document.querySelectorAll('.ap-status-trigger').forEach(function (trigger) {
+        trigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var dropdown = trigger.closest('.ap-status-dropdown');
+            var wasOpen = dropdown.classList.contains('open');
+            document.querySelectorAll('.ap-status-dropdown.open').forEach(function (d) {
+                d.classList.remove('open');
+            });
+            if (!wasOpen) dropdown.classList.add('open');
+        });
+    });
+    document.addEventListener('click', function () {
+        document.querySelectorAll('.ap-status-dropdown.open').forEach(function (d) {
+            d.classList.remove('open');
+        });
+    });
+
+    document.querySelectorAll('.ap-btn-install:not(.ap-btn-login)').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var moduleName = btn.dataset.module;
+            btn.disabled = true;
+            fetch('/apps/api/' + moduleName + '/install/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/json' }
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.success) {
+                    btn.outerHTML = '<span class="ap-badge-installed"><i class="fas fa-check"></i> Installed</span>';
+                } else {
+                    btn.disabled = false;
+                    console.error('Install failed:', data.error);
+                }
+            })
+            .catch(function (err) {
+                btn.disabled = false;
+                console.error('Install error:', err);
+            });
+        });
+    });
+
+    document.querySelectorAll('.ap-btn-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var moduleName = btn.dataset.module;
+            btn.disabled = true;
+            fetch('/apps/api/' + moduleName + '/toggle/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/json' }
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                btn.disabled = false;
+                if (data.success) {
+                    location.reload();
+                } else {
+                    console.error('Toggle failed:', data.error);
+                }
+            })
+            .catch(function (err) {
+                btn.disabled = false;
+                console.error('Toggle error:', err);
+            });
+        });
+    });
+
+    document.querySelectorAll('.ap-btn-uninstall').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var moduleName = btn.dataset.module;
+            if (!confirm('Uninstall ' + moduleName + '?')) return;
+            btn.disabled = true;
+            fetch('/apps/api/' + moduleName + '/uninstall/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/json' }
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                btn.disabled = false;
+                if (data.success) {
+                    location.reload();
+                } else {
+                    console.error('Uninstall failed:', data.error);
+                }
+            })
+            .catch(function (err) {
+                btn.disabled = false;
+                console.error('Uninstall error:', err);
+            });
+        });
+    });
+
+    document.querySelectorAll('.ap-btn-star').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var moduleName = btn.dataset.module;
+            var starred = btn.dataset.starred === 'true';
+            var endpoint = starred ? '/apps/api/' + moduleName + '/unstar/'
+                                   : '/apps/api/' + moduleName + '/star/';
+            btn.disabled = true;
+            fetch(endpoint, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/json' }
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                btn.disabled = false;
+                if (data.success) {
+                    var nowStarred = !starred;
+                    btn.dataset.starred = nowStarred ? 'true' : 'false';
+                    btn.classList.toggle('ap-btn-star--active', nowStarred);
+                    btn.querySelector('i').className = (nowStarred ? 'fas' : 'far') + ' fa-star';
+                    btn.setAttribute('aria-label', (nowStarred ? 'Unstar ' : 'Star ') + moduleName);
+                    btn.setAttribute('title', nowStarred ? 'Unstar' : 'Star');
+                } else {
+                    console.error('Star toggle failed:', data.error);
+                }
+            })
+            .catch(function (err) {
+                btn.disabled = false;
+                console.error('Star error:', err);
+            });
+        });
+    });
+}());
+</script>

@@ -1,0 +1,158 @@
+<form class="ap-review-form" id="ap-review-form" novalidate>
+    {% csrf_token %}
+    <h3 class="ap-review-form-title">
+        {% if user_review %}
+            Edit Your Review
+        {% else %}
+            Write a Review
+        {% endif %}
+    </h3>
+    <!-- Star rating -->
+    <fieldset class="ap-rating-fieldset">
+        <legend class="ap-review-label">Rating</legend>
+        <div class="ap-star-rating" role="group" aria-label="Select rating">
+            {% for i in "12345" %}
+                <button type="button"
+                        class="ap-star-btn"
+                        data-value="{{ i }}"
+                        aria-label="{{ i }} star{% if i != '1' %}s{% endif %}">
+                    <i class="far fa-star" aria-hidden="true"></i>
+                </button>
+            {% endfor %}
+        </div>
+        <input type="hidden"
+               name="rating"
+               id="ap-rating-value"
+               value="{% if user_review %}{{ user_review.rating }}{% endif %}" />
+        <span class="ap-rating-hint" id="ap-rating-hint" aria-live="polite"></span>
+    </fieldset>
+    <!-- Title -->
+    <div class="ap-review-field">
+        <label class="ap-review-label" for="ap-review-title">Title</label>
+        <input type="text"
+               id="ap-review-title"
+               name="title"
+               class="ap-review-input"
+               maxlength="100"
+               placeholder="Summary of your experience"
+               value="{% if user_review %}{{ user_review.title }}{% endif %}" />
+    </div>
+    <!-- Body -->
+    <div class="ap-review-field">
+        <label class="ap-review-label" for="ap-review-body">Review</label>
+        <textarea id="ap-review-body"
+                  name="body"
+                  class="ap-review-textarea"
+                  rows="4"
+                  placeholder="Share details about your experience with this app...">{% if user_review %}{{ user_review.body }}{% endif %}</textarea>
+    </div>
+    <div class="ap-review-form-footer">
+        <button type="submit" class="ap-btn-action ap-btn-primary" id="ap-review-submit">
+            <i class="fas fa-paper-plane" aria-hidden="true"></i>
+            {% if user_review %}
+                Update Review
+            {% else %}
+                Submit Review
+            {% endif %}
+        </button>
+        <span class="ap-review-status" id="ap-review-status" aria-live="polite"></span>
+    </div>
+</form>
+<script>
+(function () {
+    var RATING_LABELS = ['', 'Poor', 'Fair', 'Good', 'Very good', 'Excellent'];
+
+    function getCsrf() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+               document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+    }
+
+    var form = document.getElementById('ap-review-form');
+    if (!form) { return; }
+
+    var ratingInput = document.getElementById('ap-rating-value');
+    var ratingHint = document.getElementById('ap-rating-hint');
+    var starBtns = form.querySelectorAll('.ap-star-btn');
+    var submitBtn = document.getElementById('ap-review-submit');
+    var statusEl = document.getElementById('ap-review-status');
+
+    function renderStars(value) {
+        starBtns.forEach(function (btn) {
+            var v = parseInt(btn.dataset.value, 10);
+            var icon = btn.querySelector('i');
+            if (icon) {
+                icon.className = v <= value ? 'fas fa-star' : 'far fa-star';
+            }
+            btn.classList.toggle('ap-star-btn--active', v <= value);
+        });
+        ratingHint.textContent = value ? RATING_LABELS[value] : '';
+    }
+
+    // Restore saved rating
+    var saved = parseInt(ratingInput.value, 10);
+    if (saved) { renderStars(saved); }
+
+    starBtns.forEach(function (btn) {
+        btn.addEventListener('mouseenter', function () {
+            renderStars(parseInt(btn.dataset.value, 10));
+        });
+        btn.addEventListener('mouseleave', function () {
+            renderStars(parseInt(ratingInput.value, 10) || 0);
+        });
+        btn.addEventListener('click', function () {
+            var v = parseInt(btn.dataset.value, 10);
+            ratingInput.value = v;
+            renderStars(v);
+        });
+    });
+
+    // Determine module name from URL path
+    var moduleName = window.location.pathname.replace(/^\/apps\//, '').replace(/\/$/, '');
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var rating = parseInt(ratingInput.value, 10);
+        if (!rating || rating < 1 || rating > 5) {
+            statusEl.textContent = 'Please select a rating.';
+            statusEl.className = 'ap-review-status ap-review-status--error';
+            return;
+        }
+
+        submitBtn.disabled = true;
+        statusEl.textContent = 'Submitting...';
+        statusEl.className = 'ap-review-status';
+
+        fetch('/apps/api/' + moduleName + '/review/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrf(),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                rating: rating,
+                title: form.querySelector('#ap-review-title').value.trim(),
+                body: form.querySelector('#ap-review-body').value.trim()
+            })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            submitBtn.disabled = false;
+            if (data.success) {
+                statusEl.textContent = data.message || 'Review submitted.';
+                statusEl.className = 'ap-review-status ap-review-status--success';
+                // Reload reviews list after a short delay
+                setTimeout(function () { location.reload(); }, 1200);
+            } else {
+                statusEl.textContent = data.error || 'Submission failed.';
+                statusEl.className = 'ap-review-status ap-review-status--error';
+            }
+        })
+        .catch(function (err) {
+            submitBtn.disabled = false;
+            statusEl.textContent = 'An error occurred. Please try again.';
+            statusEl.className = 'ap-review-status ap-review-status--error';
+            console.error('Review submit error:', err);
+        });
+    });
+}());
+</script>

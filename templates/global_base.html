@@ -25,7 +25,7 @@
         {% include 'global_base_partials/global_header.html' %}
         <!-- Header Collapse Toggle (OUTSIDE header for CSS sibling selector) -->
         <button id="header-collapse-toggle"
-                class="header-collapse-toggle panel-toggle-btn"
+                class="header-collapse-toggle"
                 data-tooltip="Toggle header"
                 aria-label="Toggle header collapse">
             <i class="fas fa-chevron-up"></i>
@@ -42,24 +42,36 @@
                 {% endfor %}
             </div>
         {% endif %}
-        <!-- Module Tab Bar — workspace navigation (hub, console, writer, scholar, vis, clew) -->
-        {% include 'global_base_partials/module_tab_bar.html' %}
-        <!-- Page content: three-col on authenticated workspace pages, plain otherwise -->
+        <!-- Module Tab Bar — shown OUTSIDE workspace for non-pane pages -->
+        {% if not workspace_has_panes or not user.is_authenticated %}
+            {% include 'global_base_partials/module_tab_bar.html' %}
+        {% endif %}
+        <!-- Page content: five-col on authenticated workspace pages with panes, plain otherwise -->
         <div id="workspace-three-col"
-             class="{% if is_workspace_page and user.is_authenticated %}workspace-three-col{% endif %}">
-            {% if is_workspace_page and user.is_authenticated %}
+             class="{% if workspace_has_panes and user.is_authenticated %}workspace-three-col{% endif %}">
+            {% if workspace_has_panes and user.is_authenticated %}
                 {% include 'global_base_partials/workspace_ai_pane.html' %}
                 {% block workspace_worktree_pane %}
                     {% include 'global_base_partials/workspace_worktree_pane.html' %}
                 {% endblock %}
                 {% include 'global_base_partials/workspace_viewer_pane.html' %}
+                {% include 'global_base_partials/workspace_apps_pane.html' %}
             {% endif %}
             <main id="main-content"
-                  class="{% if is_workspace_page and user.is_authenticated %}ws-module-pane{% endif %}"
+                  class="{% if workspace_has_panes and user.is_authenticated %}ws-module-pane{% endif %}"
                   {% if active_module_name %}data-module-accent="{{ active_module_name }}"{% endif %}>
                 {% block content %}{% endblock %}
             </main>
         </div>
+        <!-- Footer Collapse Toggle (OUTSIDE footer for body-class-based CSS) -->
+        {% if workspace_has_panes and user.is_authenticated %}
+            <button id="footer-collapse-toggle"
+                    class="footer-collapse-toggle"
+                    data-tooltip="Toggle footer"
+                    aria-label="Toggle footer collapse">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        {% endif %}
         {% include 'global_base_partials/global_footer.html' %}
         {% if not is_workspace_page %}
             {% include 'global_base_partials/global_ai_panel.html' %}

@@ -5,6 +5,22 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.13-alpha] - 2026-02-27
+
+### Added
+- **Shared SLURM allocation**: 1 sbatch job per (user, project) with N terminal shells via srun --overlap, reducing SLURM job count
+- **Release Resources button**: Allow users to release shared SLURM allocation from terminal toolbar
+- **BasePTY base class**: Common PTY lifecycle shared by TerminalSession and Shell (76% code reduction in Shell)
+
+### Fixed
+- **Terminal JSON leak**: Session state messages no longer appear as raw text (OSC escape protocol)
+- **whoami identity**: Terminal now shows correct username instead of root (passwd remapping in writable-tmpfs overlay)
+- **Auto-respawn**: Shell exit triggers proper respawn within shared allocation
+
+### Changed
+- Broker handlers split into legacy and shared modules with common utilities
+- Terminal input handlers extracted to separate TypeScript module
+
 ## [0.10.8-alpha] - 2026-02-25
 
 ### Added

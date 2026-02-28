@@ -4,19 +4,25 @@ Hub inline user profile — returned by /hub/api/user-profile/?username=X
 <div class="hub-content">
     <div class="hub-user-profile">
         <div class="hub-user-sidebar">
-            <div class="hub-user-avatar">
-                {% if profile_user.profile.avatar %}
-                    <img src="{{ profile_user.profile.avatar.url }}"
-                         alt="{{ profile_user.username }}"
-                         style="width:100%;
-                                height:100%;
-                                border-radius:50%;
-                                object-fit:cover" />
-                {% else %}
-                    {{ profile_user.username|slice:":1"|upper }}
+            <label class="hub-user-avatar-wrapper"
+                   {% if is_own_projects %}for="hub-avatar-input" title="Change avatar"{% endif %}>
+                <div class="hub-user-avatar" id="hub-user-avatar">
+                    {% if profile_user.profile.avatar %}
+                        <img src="{{ profile_user.profile.avatar.url }}"
+                             alt="{{ profile_user.username }}"
+                             class="hub-user-avatar-img" />
+                    {% else %}
+                        {{ profile_user.username|slice:":1"|upper }}
+                    {% endif %}
+                </div>
+                {% if is_own_projects %}
+                    <span class="hub-avatar-overlay">
+                        <i class="fas fa-camera"></i>
+                    </span>
+                    <input type="file" id="hub-avatar-input" accept="image/*" hidden />
                 {% endif %}
-            </div>
-            <h2 style="margin:0; font-size:1.25rem">{{ profile_user.get_full_name|default:profile_user.username }}</h2>
+            </label>
+            <h2>{{ profile_user.get_full_name|default:profile_user.username }}</h2>
             <p class="text-muted" style="margin:0.25rem 0 1rem">@{{ profile_user.username }}</p>
             {% if profile_user.profile.bio %}
                 <p style="font-size:0.9rem; margin-bottom:1rem">{{ profile_user.profile.bio }}</p>
@@ -44,9 +50,14 @@ Hub inline user profile — returned by /hub/api/user-profile/?username=X
                     <strong>{{ following_count }}</strong>&nbsp;following
                 </span>
             </div>
+            {% if is_own_projects %}
+                <a href="/accounts/settings/profile/" class="hub-profile-settings-btn">
+                    <i class="fas fa-cog"></i> Edit profile
+                </a>
+            {% endif %}
         </div>
         <div class="hub-user-repos">
-            <h3 style="margin:0 0 1rem; font-size:1rem">
+            <h3>
                 {% if is_own_projects %}
                     Your Repositories
                 {% else %}
@@ -77,3 +88,47 @@ Hub inline user profile — returned by /hub/api/user-profile/?username=X
         </div>
     </div>
 </div>
+<script>
+(function() {
+    const input = document.getElementById('hub-avatar-input');
+    if (!input) return;
+
+    input.addEventListener('change', async function() {
+        const file = this.files[0];
+        if (!file) return;
+
+        const avatarEl = document.getElementById('hub-user-avatar');
+        avatarEl.style.opacity = '0.5';
+
+        const formData = new FormData();
+        formData.append('avatar', file);
+
+        try {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value
+                || document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+            const resp = await fetch('/hub/api/avatar-upload/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken },
+                body: formData,
+            });
+            const data = await resp.json();
+            if (data.success) {
+                avatarEl.style.transition = 'opacity 0.3s ease';
+                avatarEl.innerHTML = '<img src="' + data.avatar_url + '" alt="avatar" class="hub-user-avatar-img" />';
+                avatarEl.style.opacity = '1';
+                // Sync global header avatar
+                const headerAvatar = document.querySelector('.header-avatar');
+                if (headerAvatar) {
+                    headerAvatar.innerHTML = '<img src="' + data.avatar_url + '" alt="avatar" />';
+                }
+            } else {
+                avatarEl.style.opacity = '1';
+                console.error('Avatar upload failed:', data.error);
+            }
+        } catch (err) {
+            avatarEl.style.opacity = '1';
+            console.error('Avatar upload error:', err);
+        }
+    });
+})();
+</script>

@@ -520,8 +520,8 @@ restart: validate
 		echo -e "$(YELLOW)   • make ENV=$$RUNNING restart     # Restart current $$RUNNING$(NC)"; \
 		exit 1; \
 	fi
-	@echo -e "$(CYAN)🔄 Restarting $(ENV) environment...$(NC)"
-	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) restart
+	@echo -e "$(CYAN)🔄 Restarting $(ENV) environment (with volume remount)...$(NC)"
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) up -d --force-recreate
 	@./scripts/deploy/wait-healthy.sh $(ENV) 120
 
 reload: validate
@@ -538,8 +538,8 @@ reload: validate
 		echo -e "$(YELLOW)   • make ENV=$$RUNNING reload      # Reload current $$RUNNING$(NC)"; \
 		exit 1; \
 	fi
-	@echo -e "$(CYAN)⚡ Quick reload...$(NC)"
-	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) restart django
+	@echo -e "$(CYAN)⚡ Quick reload (Django only, with volume remount)...$(NC)"
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) up -d --force-recreate django
 	@echo -e "$(GREEN)✅ $(ENV) reloaded$(NC)"
 
 stop: validate-docker

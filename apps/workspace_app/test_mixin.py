@@ -2,7 +2,7 @@
 ModuleTestMixin — reusable test base for module registration validation.
 
 Validates that a workspace module has all required registry fields,
-skill registration, CSS accent colors, and marketplace-ready metadata.
+skill registration, CSS accent colors, and apps-ready metadata.
 
 Usage:
     from django.test import TestCase
@@ -132,7 +132,7 @@ class ModuleTestMixin:
                 f"CSS variable '{var_name}' not found in colors.css",
             )
 
-    # --- Skill checks (marketplace-ready) ---
+    # --- Skill checks (apps-ready) ---
 
     def test_skill_registered(self):
         """Module has a Skill registration for LLM integration."""
@@ -148,7 +148,7 @@ class ModuleTestMixin:
             pass  # llm_app not available in test environment
 
     def test_skill_display_name(self):
-        """Skill has a display_name for marketplace title."""
+        """Skill has a display_name for apps catalog title."""
         try:
             from apps.llm_app.skills import get_skill
 
@@ -162,7 +162,7 @@ class ModuleTestMixin:
             pass
 
     def test_skill_description(self):
-        """Skill has a description for marketplace about section."""
+        """Skill has a description for apps catalog about section."""
         try:
             from apps.llm_app.skills import get_skill
 
@@ -176,7 +176,7 @@ class ModuleTestMixin:
             pass
 
     def test_skill_capabilities(self):
-        """Skill has capabilities for marketplace listing."""
+        """Skill has capabilities for apps catalog listing."""
         try:
             from apps.llm_app.skills import get_skill
 

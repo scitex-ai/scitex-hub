@@ -1,0 +1,35 @@
+{% if reviews %}
+    <ul class="ap-review-list" aria-label="User reviews">
+        {% for review in reviews %}
+            <li class="ap-review-item">
+                <div class="ap-review-header">
+                    <div class="ap-review-avatar" aria-hidden="true">{{ review.user.username|slice:":1"|upper }}</div>
+                    <div class="ap-review-user-info">
+                        <span class="ap-review-username">{{ review.user.username }}</span>
+                        <div class="ap-review-stars" aria-label="Rating: {{ review.rating }} out of 5">
+                            {% for i in "12345" %}
+                                <i class="{% if forloop.counter <= review.rating %}fas{% else %}far{% endif %} fa-star"
+                                   aria-hidden="true"></i>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <time class="ap-review-date" datetime="{{ review.created_at|date:'c' }}">
+                        {{ review.created_at|date:"Y-m-d" }}
+                    </time>
+                </div>
+                {% if review.title %}<h4 class="ap-review-title-text">{{ review.title }}</h4>{% endif %}
+                {% if review.body %}<p class="ap-review-body">{{ review.body }}</p>{% endif %}
+                {% if review.is_from_installer %}
+                    <span class="ap-badge ap-badge-verified ap-badge-sm">
+                        <i class="fas fa-download" aria-hidden="true"></i> Verified Install
+                    </span>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <div class="ap-review-empty">
+        <i class="far fa-comment-dots" aria-hidden="true"></i>
+        <p>No reviews yet. Be the first to review this app.</p>
+    </div>
+{% endif %}

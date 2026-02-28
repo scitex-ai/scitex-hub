@@ -457,8 +457,8 @@ function initializeHeaderCollapse(): void {
   // Set initial tooltip
   updateHeaderToggleTooltip(toggleBtn, isCollapsed);
 
-  // Toggle on click
-  toggleBtn.addEventListener("click", () => {
+  // Shared toggle function
+  const doToggle = () => {
     const willCollapse = !header.classList.contains("collapsed");
     header.classList.toggle("collapsed");
 
@@ -474,6 +474,22 @@ function initializeHeaderCollapse(): void {
         detail: { collapsed: willCollapse },
       }),
     );
+  };
+
+  // Toggle on button click
+  toggleBtn.addEventListener("click", doToggle);
+
+  // Single click on collapsed header → expand
+  header.addEventListener("click", () => {
+    if (header.classList.contains("collapsed")) doToggle();
+  });
+
+  // Double-click on expanded header → collapse
+  header.addEventListener("dblclick", (e: MouseEvent) => {
+    if (!header.classList.contains("collapsed")) {
+      e.preventDefault();
+      doToggle();
+    }
   });
 }
 

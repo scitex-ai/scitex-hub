@@ -16,4 +16,6 @@ export interface PanelConfig {
   collapseStorageKey?: string;
   /** Optional: Default width when not collapsed */
   defaultWidth?: number;
+  /** Optional: Panel width is fixed — resizer only propagates to adjacent panels */
+  fixedWidth?: boolean;
 }

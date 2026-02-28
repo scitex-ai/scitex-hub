@@ -8,32 +8,38 @@ Functions for journal impact factors, citations, and open access checking.
 Extracted from monolithic views.py for better modularity.
 """
 
+import threading
+
 from scitex import logging
 
 # Set up logger
 logger = logging.getLogger(__name__)
 
-# Global impact factor instance (singleton pattern)
-_impact_factor_instance = None
+# Thread-local storage for impact factor instance (SQLite is not thread-safe)
+_local = threading.local()
 
 
 def get_impact_factor_instance():
-    """Get or create the impact factor instance."""
-    global _impact_factor_instance
-    if _impact_factor_instance is None:
+    """Get or create a thread-local impact factor instance.
+
+    Each thread gets its own Factor() instance to avoid SQLite threading errors.
+    The impact_factor package uses SQLite internally, and SQLite connections
+    cannot be shared across threads safely in async environments like Daphne.
+    """
+    if not hasattr(_local, 'impact_factor_instance'):
         try:
             from impact_factor.core import Factor
 
-            _impact_factor_instance = Factor()
+            _local.impact_factor_instance = Factor()
         except ImportError:
             print(
                 "Warning: impact_factor package not available. Using fallback method."
             )
-            _impact_factor_instance = False
+            _local.impact_factor_instance = False
         except Exception as e:
             print(f"Warning: Failed to initialize impact_factor: {e}")
-            _impact_factor_instance = False
-    return _impact_factor_instance
+            _local.impact_factor_instance = False
+    return _local.impact_factor_instance
 
 
 def get_journal_impact_factor(journal_name):

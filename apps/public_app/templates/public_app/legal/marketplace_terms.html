@@ -1,0 +1,93 @@
+{% extends "global_base.html" %}
+
+{% block title %}Marketplace Terms - SciTeX{% endblock %}
+{% block content %}
+    <div style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
+        <h1>
+            <i class="fas fa-file-contract"></i> Marketplace Submission Terms
+        </h1>
+        <p style="color: var(--text-secondary); margin-bottom: 32px;">Last updated: February 2026</p>
+        <section style="margin-bottom: 32px;">
+            <h2>1. Submission Requirements</h2>
+            <p>By submitting an app to the SciTeX Marketplace, you agree to the following:</p>
+            <ul>
+                <li>Your app does not contain malicious code, backdoors, or security vulnerabilities.</li>
+                <li>
+                    Your app includes a valid <code>LICENSE</code> file with a recognized open-source license
+                    (AGPL-3.0, MIT, Apache-2.0, or BSD-3-Clause).
+                </li>
+                <li>
+                    Your app includes a <code>README.md</code> with a clear description of its functionality.
+                </li>
+                <li>Your app passes the automated validation checks (structure, security scan).</li>
+                <li>You have the right to distribute the code under the chosen license.</li>
+            </ul>
+        </section>
+        <section style="margin-bottom: 32px;">
+            <h2>2. Code of Conduct</h2>
+            <p>App authors must adhere to the following standards:</p>
+            <ul>
+                <li>
+                    <strong>No harmful content:</strong> Apps must not contain hate speech, harassment,
+                    or content that promotes violence.
+                </li>
+                <li>
+                    <strong>No data exfiltration:</strong> Apps must not collect, transmit, or store user
+                    data without explicit consent and clear documentation.
+                </li>
+                <li>
+                    <strong>No resource abuse:</strong> Apps must not intentionally consume excessive
+                    CPU, memory, or network resources.
+                </li>
+                <li>
+                    <strong>Transparency:</strong> Apps must clearly document what they do,
+                    including any external API calls or network activity.
+                </li>
+                <li>
+                    <strong>Respect for users:</strong> Apps must not interfere with other installed
+                    modules or degrade the user experience.
+                </li>
+            </ul>
+        </section>
+        <section style="margin-bottom: 32px;">
+            <h2>3. Review Process</h2>
+            <p>All submissions are reviewed by the SciTeX team before publication:</p>
+            <ul>
+                <li>Automated security scanning for dangerous patterns.</li>
+                <li>Manual review of code structure and functionality.</li>
+                <li>Validation of license compliance.</li>
+                <li>Review typically completes within 3-5 business days.</li>
+            </ul>
+            <p>Submissions may be rejected with feedback. Authors may address issues and resubmit.</p>
+        </section>
+        <section style="margin-bottom: 32px;">
+            <h2>4. Takedown Policy</h2>
+            <p>SciTeX reserves the right to remove any published app for the following reasons:</p>
+            <ul>
+                <li>Security vulnerability discovered after publication.</li>
+                <li>Violation of these terms or the code of conduct.</li>
+                <li>Valid DMCA or intellectual property complaint.</li>
+                <li>App becomes abandoned and poses a security risk.</li>
+            </ul>
+            <p>
+                Authors will be notified via email before takedown when possible,
+                with an opportunity to address the issue.
+            </p>
+        </section>
+        <section style="margin-bottom: 32px;">
+            <h2>5. Licensing</h2>
+            <p>
+                See <a href="/docs/licenses/">SciTeX Plugin License Exception</a> for details
+                on the three-tier licensing model. Apps using the SciTeX workspace API are not
+                derivative works of the AGPL-licensed core.
+            </p>
+        </section>
+        <section>
+            <h2>6. Changes to Terms</h2>
+            <p>
+                These terms may be updated from time to time. Continued use of the marketplace
+                after changes constitutes acceptance of the updated terms.
+            </p>
+        </section>
+    </div>
+{% endblock %}

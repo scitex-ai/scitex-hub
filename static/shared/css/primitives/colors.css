@@ -118,8 +118,8 @@
   --module-accent-example-tint: rgba(138, 96, 48, 0.07);
   --module-accent-tools: #5a7a5a; /* Sage green - utilities, helpers */
   --module-accent-tools-tint: rgba(90, 122, 90, 0.07);
-  --module-accent-marketplace: #7a5a6a; /* Muted rose - store, browsing */
-  --module-accent-marketplace-tint: rgba(122, 90, 106, 0.07);
+  --module-accent-apps: #7a5a6a; /* Muted rose - store, browsing */
+  --module-accent-apps-tint: rgba(122, 90, 106, 0.07);
   --module-accent-modulemaker: #5a6a8a; /* Slate blue - creation, building */
   --module-accent-modulemaker-tint: rgba(90, 106, 138, 0.07);
 
@@ -307,8 +307,8 @@
   --module-accent-example-tint: rgba(192, 136, 80, 0.08);
   --module-accent-tools: #8ab88a; /* Sage green - utilities, helpers */
   --module-accent-tools-tint: rgba(138, 184, 138, 0.08);
-  --module-accent-marketplace: #b88a9a; /* Soft rose - store, browsing */
-  --module-accent-marketplace-tint: rgba(184, 138, 154, 0.08);
+  --module-accent-apps: #b88a9a; /* Soft rose - store, browsing */
+  --module-accent-apps-tint: rgba(184, 138, 154, 0.08);
   --module-accent-modulemaker: #8a9ab8; /* Soft slate - creation, building */
   --module-accent-modulemaker-tint: rgba(138, 154, 184, 0.08);
 

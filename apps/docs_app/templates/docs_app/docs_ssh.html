@@ -1,0 +1,274 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}SSH Access — SciTeX Documentation{% endblock %}
+{% block content %}
+    <div class="container py-5" style="max-width: 900px">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'docs_app:index' %}">Documentation</a>
+                </li>
+                <li class="breadcrumb-item active">SSH Access</li>
+            </ol>
+        </nav>
+        <h1 class="mb-4">
+            <i class="fas fa-terminal me-2"></i>SSH Access
+        </h1>
+        <p class="lead text-muted mb-5">
+            Connect to your SciTeX Cloud workspace via SSH for terminal access,
+            file editing, and remote development.
+        </p>
+        <!-- Quick Start -->
+        <span id="quick-start"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-bolt"></i> Quick Start
+            </h2>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5>Development</h5>
+                    <pre class="bg-dark text-light p-3 rounded"><code>ssh -p 2200 your-username@127.0.0.1</code></pre>
+                    <h5 class="mt-3">Production</h5>
+                    <pre class="bg-dark text-light p-3 rounded"><code>ssh your-username@ssh.scitex.ai</code></pre>
+                </div>
+            </div>
+        </section>
+        <!-- Key Registration -->
+        <span id="key-registration"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-key"></i> SSH Key Registration
+            </h2>
+            <p>
+                SSH public key authentication is required for shell access.
+                Register your key using one of these methods:
+            </p>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <strong>Method 1: Web UI (Recommended)</strong>
+                </div>
+                <div class="card-body">
+                    <ol>
+                        <li>
+                            Go to <a href="/accounts/settings/ssh-keys/">Account Settings &rarr; SSH Keys</a>
+                        </li>
+                        <li>
+                            Paste your public key (e.g., contents of <code>~/.ssh/id_ed25519.pub</code>)
+                        </li>
+                        <li>Click "Add Key"</li>
+                    </ol>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <strong>Method 2: ssh-copy-id</strong>
+                </div>
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code># Development
+ssh-copy-id -p 2200 your-username@127.0.0.1
+
+# Production
+ssh-copy-id your-username@ssh.scitex.ai</code></pre>
+                    <p class="text-muted small mt-2">
+                        You'll be prompted for your SciTeX Cloud password.
+                        The gateway registers your key automatically.
+                    </p>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <strong>Method 3: Interactive (Password SSH)</strong>
+                </div>
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code># SSH with password — opens key registration prompt
+ssh -p 2200 your-username@127.0.0.1</code></pre>
+                    <p class="text-muted small mt-2">
+                        Password authentication opens an interactive session where you
+                        can paste your public key directly.
+                    </p>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <strong>Method 4: SciTeX CLI</strong>
+                </div>
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code>scitex-cloud ssh-copy-id --env dev
+scitex cloud ssh-copy-id --env dev</code></pre>
+                </div>
+            </div>
+        </section>
+        <!-- Editor Integration -->
+        <span id="editors"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-edit"></i> Editor Integration
+            </h2>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <strong>Emacs TRAMP</strong>
+                </div>
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code>;; Development (port 2200)
+C-x C-f /ssh:your-username@127.0.0.1#2200:/home/your-username/
+
+;; Production
+C-x C-f /ssh:your-username@ssh.scitex.ai:/home/your-username/</code></pre>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <strong>VS Code Remote SSH</strong>
+                </div>
+                <div class="card-body">
+                    <p>
+                        Add to <code>~/.ssh/config</code>:
+                    </p>
+                    <pre class="bg-dark text-light p-3 rounded"><code># Development
+Host scitex-dev
+    HostName 127.0.0.1
+    Port 2200
+    User your-username
+
+# Production
+Host scitex
+    HostName ssh.scitex.ai
+    User your-username</code></pre>
+                    <p class="mt-2">
+                        Then use "Remote-SSH: Connect to Host" and select
+                        <code>scitex-dev</code> or <code>scitex</code>.
+                    </p>
+                </div>
+            </div>
+        </section>
+        <!-- Cloudflare Tunnel (Production) -->
+        <span id="cloudflare"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-cloud"></i> Cloudflare Tunnel (Production)
+            </h2>
+            <p>
+                Production SSH goes through Cloudflare Access.
+                Install <code>cloudflared</code> and add to <code>~/.ssh/config</code>:
+            </p>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code>Host ssh.scitex.ai
+    ProxyCommand cloudflared access ssh --hostname %h
+    User your-username</code></pre>
+                    <p class="text-muted small mt-2">
+                        Install cloudflared:
+                        <code>brew install cloudflare/cloudflare/cloudflared</code> (macOS)
+                        or see
+                        <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/"
+                           target="_blank">Cloudflare docs</a>.
+                    </p>
+                </div>
+            </div>
+        </section>
+        <!-- Troubleshooting -->
+        <span id="troubleshooting"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-wrench"></i> Troubleshooting
+            </h2>
+            <div class="accordion" id="troubleshootingAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#ts-permission">"Permission denied (publickey)"</button>
+                    </h2>
+                    <div id="ts-permission" class="accordion-collapse collapse">
+                        <div class="accordion-body">
+                            <ul>
+                                <li>Register your SSH key first (see Key Registration above)</li>
+                                <li>
+                                    Check your key is listed:
+                                    <a href="/accounts/settings/ssh-keys/">Account Settings</a>
+                                </li>
+                                <li>
+                                    Try with verbose: <code>ssh -vvv -p 2200 user@host</code>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#ts-hostkey">"Host key verification failed"</button>
+                    </h2>
+                    <div id="ts-hostkey" class="accordion-collapse collapse">
+                        <div class="accordion-body">
+                            <p>The server's host key may have changed after a restart. Clear the old entry:</p>
+                            <pre class="bg-dark text-light p-3 rounded"><code>ssh-keygen -R "[127.0.0.1]:2200"</code></pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#ts-broker">"Terminal Broker not available"</button>
+                    </h2>
+                    <div id="ts-broker" class="accordion-collapse collapse">
+                        <div class="accordion-body">
+                            <p>The terminal broker service may not be running. Check:</p>
+                            <pre class="bg-dark text-light p-3 rounded"><code># Check broker status
+ls -la /tmp/scitex-terminal-broker.sock
+
+# Check SLURM
+scontrol ping</code></pre>
+                            <p>Contact your administrator if the broker is not running.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#ts-noproject">"No projects found"</button>
+                    </h2>
+                    <div id="ts-noproject" class="accordion-collapse collapse">
+                        <div class="accordion-body">
+                            <p>
+                                Log into the web interface first to create your default project,
+                                then try SSH again.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- CLI Reference -->
+        <span id="cli"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-terminal"></i> CLI Reference
+            </h2>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code># Connect via SSH
+scitex-cloud ssh --env dev
+scitex cloud ssh --env dev
+
+# Register SSH key
+scitex-cloud ssh-copy-id --env dev
+scitex cloud ssh-copy-id --env dev
+
+# Options
+scitex-cloud ssh --user myuser --port 2200
+scitex-cloud ssh -- -L 8888:localhost:8888  # Port forwarding</code></pre>
+                </div>
+            </div>
+        </section>
+    </div>
+{% endblock %}

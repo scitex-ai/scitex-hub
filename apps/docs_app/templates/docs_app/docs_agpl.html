@@ -1,0 +1,164 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}AGPL-3.0 — SciTeX Documentation{% endblock %}
+{% block meta_description %}
+    SciTeX is 100% open source under AGPL-3.0. Every line of code is publicly available, auditable, modifiable, and re-distributable.
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container py-2">
+        <header class="minimal-hero" style="text-align: center">
+            <div class="api-hero-header" style="justify-content: center">
+                <h1 class="minimal-hero-title">AGPL v3.0</h1>
+                <div class="api-hero-actions">
+                    <span class="api-version-badge">Open Source</span>
+                </div>
+            </div>
+        </header>
+    </div>
+    <div class="container py-2">
+        <!-- Our Commitment -->
+        <span id="commitment"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-handshake"></i> Our Commitment
+            </h2>
+            <p>
+                SciTeX is <strong>100% open source</strong>. Every line of code &mdash; from the Python toolkit to this cloud platform &mdash; is publicly available, auditable, modifiable, and re-distributable.
+            </p>
+            <p>We believe research infrastructure should be owned by the community, not locked behind corporate walls.</p>
+            <p>
+                Based on the
+                <a href="https://www.gnu.org/philosophy/free-sw.en.html" target="_blank">four freedoms of software</a>,
+                our ecosystem supports the four essential freedoms for researchers.
+            </p>
+        </section>
+        <!-- Four Freedoms -->
+        <span id="four-freedoms"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-balance-scale"></i> The Four Freedoms for Researchers
+            </h2>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Freedom</th>
+                        <th>Software</th>
+                        <th>For Researchers</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>0. Use</strong>
+                        </td>
+                        <td>Run the program for any purpose</td>
+                        <td>
+                            Use SciTeX freely for any research &mdash; academic, clinical, or industrial &mdash; without licensing restrictions or fees
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>1. Study</strong>
+                        </td>
+                        <td>Study how the program works, and change it</td>
+                        <td>
+                            Inspect every algorithm, every statistical test, every data transformation &mdash; full transparency for reproducible science
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>2. Share</strong>
+                        </td>
+                        <td>Redistribute copies so you can help others</td>
+                        <td>
+                            Share SciTeX with collaborators, students, and other labs &mdash; no seat licenses, no institutional agreements needed
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>3. Improve</strong>
+                        </td>
+                        <td>Distribute your modified versions to others</td>
+                        <td>Adapt SciTeX for your field, add domain-specific modules, and contribute improvements back to the community</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="api-callout api-callout-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>Your outputs are yours.</strong> The license applies to the software, not to the papers, figures, or data you create with it. Your research remains your intellectual property.
+                </div>
+            </div>
+        </section>
+        <!-- Why AGPL -->
+        <span id="why-agpl"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-gavel"></i> Why AGPL-3.0
+            </h2>
+            <p>
+                <strong>Ensures perpetual freedom.</strong> The GNU Affero General Public License guarantees that SciTeX &mdash; and any derivative works &mdash; will remain open source forever. No one can take this code and make it proprietary.
+            </p>
+            <p>
+                <strong>Protects the network effect.</strong> Even if someone runs a modified version as a service, they must share their improvements. The community benefits from every enhancement.
+            </p>
+            <p>
+                <strong>Copyleft by design.</strong> Unlike permissive licenses (MIT, BSD), AGPL ensures that freedom propagates. Modifications stay open, building a commons that grows rather than fragments.
+            </p>
+        </section>
+        <!-- The Problem -->
+        <span id="closed-tools"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-exclamation-triangle"></i> The Problem with Closed Tools
+            </h2>
+            <p>
+                Research software often disappears. Companies shut down, products get discontinued, pricing changes. When that happens, years of workflows, data formats, and institutional knowledge become obsolete.
+            </p>
+            <p>
+                Closed tools also create invisible dependencies. You can't verify what's happening to your data. You can't adapt the tool to your specific needs. You're trusting a black box with your research.
+            </p>
+        </section>
+        <!-- For Researchers -->
+        <span id="researchers"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-flask"></i> What This Means for Researchers
+            </h2>
+            <p>
+                <strong>Reproducibility without dependency.</strong> Your workflows can be reproduced by anyone, anywhere, forever &mdash; not contingent on a company's survival or pricing decisions.
+            </p>
+            <p>
+                <strong>Transparency in computation.</strong> See exactly how your data is processed. Audit the statistics. Verify the transformations. No hidden algorithms.
+            </p>
+            <p>
+                <strong>Freedom to adapt.</strong> Need a specific feature for your lab? Fork the code. Modify it. Contribute back if you want. You're not waiting on a product roadmap.
+            </p>
+            <p>
+                <strong>No vendor lock-in.</strong> Export your data anytime. Self-host if needed. Switch tools without losing years of work.
+            </p>
+        </section>
+        <!-- Vision -->
+        <span id="vision"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-eye"></i> Long-term Vision
+            </h2>
+            <p>
+                Science advances through shared knowledge. The tools we use to produce science should follow the same principle. Closed research infrastructure creates artificial barriers &mdash; between labs, between institutions, between generations of researchers.
+            </p>
+            <p>
+                We envision a future where research tools are public goods: maintained by the community, improved by practitioners, trusted because they're transparent. Where a graduate student in any country has access to the same infrastructure as well-funded institutions.
+            </p>
+            <p>
+                Open source isn't just a license choice. It's a commitment to making scientific computing more equitable, more reproducible, and more durable.
+            </p>
+        </section>
+    </div>
+{% endblock %}

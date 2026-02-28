@@ -1,0 +1,159 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static vite %}
+
+{% block title %}Python Packages — SciTeX Documentation{% endblock %}
+{% block content %}
+    <link rel="stylesheet"
+          href="{% static 'docs_app/css/docs-python-packages.css' %}?v={{ build_id }}" />
+    <div class="container py-2">
+        <header class="minimal-hero pkg-hero">
+            <div class="api-hero-header pkg-hero-header">
+                <h1 class="minimal-hero-title">
+                    <i class="fab fa-python"></i> Python Packages
+                </h1>
+            </div>
+        </header>
+    </div>
+    <div class="container py-2">
+        <p class="lead text-muted">
+            The SciTeX ecosystem of Python packages for scientific research automation.
+            Each package has full documentation on ReadTheDocs.
+        </p>
+        <!-- Core Packages -->
+        <span id="core"></span><span id="packages"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fab fa-python"></i> Core Packages
+            </h2>
+            {% for pkg in core_packages %}
+                <div class="pkg-card">
+                    <div class="pkg-header">
+                        <strong>{{ pkg.pip_name }}</strong>
+                        <code class="pkg-module">{{ pkg.module }}</code>
+                        {% if pkg.version %}<span class="api-version-badge">v{{ pkg.version }}</span>{% endif %}
+                    </div>
+                    <p class="pkg-desc">{{ pkg.description }}</p>
+                    <div class="pkg-links">
+                        <a href="{{ pkg.docs_url }}" target="_blank" class="pkg-link pkg-link-docs">
+                            <i class="fas fa-book"></i> ReadTheDocs
+                        </a>
+                        <a href="{{ pkg.github_url }}" target="_blank" class="pkg-link">
+                            <i class="fab fa-github"></i> GitHub
+                        </a>
+                        {% if pkg.pypi_version %}
+                            <a href="https://pypi.org/project/{{ pkg.pip_name }}/"
+                               target="_blank"
+                               class="pkg-link">
+                                <i class="fas fa-cube"></i> PyPI
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </section>
+        <!-- Standalone Packages -->
+        <span id="standalone"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-cubes"></i> Standalone Packages
+            </h2>
+            <p>
+                Each package can be installed independently via <code>pip install &lt;name&gt;</code>
+                or accessed through the main <code>scitex</code> package.
+            </p>
+            {% for pkg in standalone_packages %}
+                <div class="pkg-card">
+                    <div class="pkg-header">
+                        <strong>{{ pkg.pip_name }}</strong>
+                        <code class="pkg-module">{{ pkg.module }}</code>
+                        {% if pkg.version %}<span class="api-version-badge">v{{ pkg.version }}</span>{% endif %}
+                    </div>
+                    <p class="pkg-desc">{{ pkg.description }}</p>
+                    <div class="pkg-links">
+                        <a href="{{ pkg.docs_url }}" target="_blank" class="pkg-link pkg-link-docs">
+                            <i class="fas fa-book"></i> ReadTheDocs
+                        </a>
+                        <a href="{{ pkg.github_url }}" target="_blank" class="pkg-link">
+                            <i class="fab fa-github"></i> GitHub
+                        </a>
+                        {% if pkg.pypi_version %}
+                            <a href="https://pypi.org/project/{{ pkg.pip_name }}/"
+                               target="_blank"
+                               class="pkg-link">
+                                <i class="fas fa-cube"></i> PyPI
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </section>
+        <!-- Installation -->
+        <span id="installation"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-download"></i> Installation
+            </h2>
+            <div class="code-block">
+                <div class="code-header">
+                    <span>Shell</span>
+                </div>
+                <pre><code>pip install scitex[all]     # Full installation (recommended)
+pip install scitex[plt,stats,scholar]  # Typical research setup
+pip install scitex          # Core only (minimal)</code></pre>
+            </div>
+            <h4 class="mt-3">Individual packages</h4>
+            <div class="code-block">
+                <div class="code-header">
+                    <span>Shell</span>
+                </div>
+                <pre><code>{% for pkg in standalone_packages %}pip install {{ pkg.pip_name }}
+{% endfor %}</code></pre>
+            </div>
+        </section>
+        <!-- Quick Start -->
+        <span id="quick-start"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-bolt"></i> Quick Start
+            </h2>
+            <div class="code-block">
+                <div class="code-header">
+                    <span>Python</span>
+                </div>
+                <pre><code>import scitex as stx
+@stx.session
+def main(
+    param1="default",      # Auto-CLI: --param1
+    CONFIG=stx.INJECTED,   # Auto-injected config
+    plt=stx.INJECTED,      # Pre-configured matplotlib
+    logger=stx.INJECTED,   # Session logger
+):
+    """Docstring becomes --help description."""
+    # Outputs auto-organized: script_out/FINISHED_SUCCESS/&lt;session_id&gt;/
+    stx.io.save(results, "results.csv")
+    return 0</code></pre>
+            </div>
+        </section>
+    </div>
+    <!-- Embedded RTD viewer — outside .container so it can fill remaining pane height -->
+    <div id="rtd-embed-container" class="rtd-embed-container hidden">
+        <div class="rtd-embed-toolbar">
+            <span id="rtd-embed-title" class="rtd-embed-title"></span>
+            <div class="rtd-embed-actions">
+                <a id="rtd-embed-external"
+                   href="#"
+                   target="_blank"
+                   class="pkg-link"
+                   title="Open in new tab">
+                    <i class="fas fa-external-link-alt"></i> Open in new tab
+                </a>
+                <button id="rtd-embed-close" class="pkg-link" title="Close">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            </div>
+        </div>
+        <iframe id="rtd-embed-iframe" class="rtd-embed-iframe" src="" frameborder="0"></iframe>
+    </div>
+    {% vite_script 'docs_app/rtd-embed' %}
+{% endblock %}

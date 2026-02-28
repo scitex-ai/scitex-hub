@@ -1,0 +1,167 @@
+/**
+ * Hub Widgets — cards, activity list, quick actions, account links
+ */
+
+/* Hub cards */
+.hub-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.hub-card {
+  background: var(--workspace-bg-tertiary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.hub-card-header {
+  background: var(--workspace-bg-quaternary);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--workspace-border-default);
+}
+
+.hub-card-header h2 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--workspace-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hub-card-header h2 i {
+  color: var(--workspace-icon-primary);
+}
+
+.hub-card-body {
+  padding: 0.75rem;
+  color: var(--workspace-text-primary);
+}
+
+/* Activity list */
+.activity-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.activity-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  color: var(--workspace-text-muted);
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--workspace-border-default);
+}
+
+.activity-list li:last-child {
+  border-bottom: none;
+}
+
+.activity-icon {
+  flex-shrink: 0;
+  color: var(--workspace-icon-primary);
+}
+
+.activity-text {
+  flex: 1;
+  color: var(--workspace-text-primary);
+}
+
+.activity-time {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--workspace-text-muted);
+}
+
+/* Quick actions */
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+  background: var(--workspace-bg-quaternary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--workspace-text-primary);
+  font-size: 0.8rem;
+  transition: border-color 0.2s;
+}
+
+.action-btn:hover {
+  border-color: var(--workspace-icon-primary);
+}
+
+.action-btn i {
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+  color: var(--workspace-icon-primary);
+}
+
+/* Account quick links card */
+.hub-account-card {
+  background: var(--workspace-bg-tertiary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.hub-account-card-header {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--workspace-border-default);
+}
+
+.hub-account-card-header h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--workspace-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hub-account-card-header h3 i {
+  color: var(--workspace-icon-primary);
+}
+
+.hub-account-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0;
+}
+
+.hub-account-links a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--workspace-text-primary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--workspace-border-default);
+  transition: background 0.15s;
+}
+
+.hub-account-links a:hover {
+  background: var(--workspace-bg-quaternary);
+}
+
+.hub-account-links a i {
+  color: var(--workspace-text-muted);
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}

@@ -12,7 +12,7 @@ register(
             "Create modules from templates",
             "Edit module source code",
             "Preview and test modules",
-            "Publish to marketplace",
+            "Publish to apps catalog",
         ],
         page_patterns=["/modulemaker/"],
         url_prefix="/modulemaker/",

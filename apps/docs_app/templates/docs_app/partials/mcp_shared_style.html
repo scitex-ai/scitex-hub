@@ -1,0 +1,74 @@
+<style>
+    /* Anchor offset for sticky headers */
+    span#overview,
+    span#connect,
+    span#client-setup,
+    span#install,
+    span#setup,
+    span#authentication,
+    span#auth,
+    span#available-tools,
+    span#tools,
+    span#opt-out,
+    span#configuration,
+    span#config {
+        scroll-margin-top: 80px;
+    }
+
+    section[id] {
+        scroll-margin-top: 80px;
+    }
+
+    .mcp-tools-table .api-table th:first-child,
+    .mcp-tools-table .api-table td:first-child {
+        width: 240px;
+        min-width: 240px;
+        white-space: nowrap;
+    }
+
+    .mcp-tools-table details summary {
+        cursor: pointer;
+        font-size: 0.85em;
+        color: var(--accent-primary, #4a9eff);
+        margin-top: 0.3em;
+    }
+
+    .mcp-tools-table .api-table-sm {
+        margin: 0.5em 0;
+        font-size: 0.85em;
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .mcp-tools-table .api-table-sm th,
+    .mcp-tools-table .api-table-sm td {
+        padding: 0.25em 0.5em;
+        border: 1px solid var(--border-color, #333);
+    }
+
+    .mcp-tools-table .api-table-sm th {
+        background: var(--bg-tertiary, #1a1a2e);
+        font-weight: 600;
+    }
+
+    .mcp-tools-table .returns {
+        font-size: 0.85em;
+        margin: 0.4em 0 0.1em;
+    }
+
+    .api-callout-success {
+        border-left: 3px solid var(--accent-primary, #6ba89a);
+        background: rgba(107, 168, 154, 0.08);
+        padding: 0.8em 1em;
+        border-radius: 4px;
+        display: flex;
+        gap: 0.6em;
+        align-items: flex-start;
+        margin-bottom: 1em;
+    }
+
+    .api-callout-success i {
+        color: var(--accent-primary, #6ba89a);
+        margin-top: 0.15em;
+    }
+</style>

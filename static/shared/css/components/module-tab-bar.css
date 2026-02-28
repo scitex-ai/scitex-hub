@@ -80,8 +80,8 @@
 .module-tab-btn[data-module="example"] {
   --tab-accent: var(--module-accent-example);
 }
-.module-tab-btn[data-module="marketplace"] {
-  --tab-accent: var(--module-accent-marketplace);
+.module-tab-btn[data-module="apps"] {
+  --tab-accent: var(--module-accent-apps);
 }
 .module-tab-btn[data-module="modulemaker"] {
   --tab-accent: var(--module-accent-modulemaker);
@@ -211,4 +211,50 @@
 
 .module-ctx-uninstall:hover .module-ctx-icon {
   color: var(--color-danger-fg, #f85149);
+}
+
+/* ==========================================================================
+   Color Picker Panel — inline swatches inside context menu
+   ========================================================================== */
+
+.module-ctx-color-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--workspace-border-default, #30363d);
+}
+
+.module-ctx-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition:
+    transform 0.1s,
+    border-color 0.1s;
+  padding: 0;
+}
+
+.module-ctx-swatch:hover {
+  transform: scale(1.2);
+  border-color: var(--color-fg-default, #e6edf3);
+}
+
+.module-ctx-swatch-default {
+  background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+  position: relative;
+}
+
+.module-ctx-swatch-default::after {
+  content: "\00d7";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: white;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }

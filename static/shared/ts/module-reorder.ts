@@ -2,7 +2,7 @@
  * Module Reorder — shared drag-drop utilities for module ordering.
  *
  * Auto-initializes tab bar drag-drop on load.
- * Exposes window._moduleReorder for marketplace inline scripts.
+ * Exposes window._moduleReorder for apps inline scripts.
  */
 
 /** CSRF token helper */
@@ -17,7 +17,7 @@ function getCsrf(): string {
 
 /** POST the new module order to the backend */
 export function postModuleOrder(order: string[]): Promise<void> {
-  return fetch("/marketplace/api/reorder/", {
+  return fetch("/apps/api/reorder/", {
     method: "POST",
     headers: {
       "X-CSRFToken": getCsrf(),
@@ -26,7 +26,7 @@ export function postModuleOrder(order: string[]): Promise<void> {
     body: JSON.stringify({ order }),
   }).then(() => {
     syncTabBar(order);
-    syncMarketplaceGrid(order);
+    syncAppsGrid(order);
   });
 }
 
@@ -57,8 +57,8 @@ export function syncTabBar(orderedNames: string[]): void {
   });
 }
 
-/** Reorder marketplace grid DOM to match given order */
-export function syncMarketplaceGrid(orderedNames: string[]): void {
+/** Reorder apps grid DOM to match given order */
+export function syncAppsGrid(orderedNames: string[]): void {
   const grid = document.getElementById("mp-grid");
   if (!grid) return;
 
@@ -215,13 +215,13 @@ function initTabBarDragDrop(): void {
   });
 }
 
-// Expose on window for inline scripts (marketplace browse)
+// Expose on window for inline scripts (apps browse)
 declare global {
   interface Window {
     _moduleReorder: {
       postModuleOrder: typeof postModuleOrder;
       syncTabBar: typeof syncTabBar;
-      syncMarketplaceGrid: typeof syncMarketplaceGrid;
+      syncAppsGrid: typeof syncAppsGrid;
       makeReorderable: typeof makeReorderable;
     };
   }
@@ -230,7 +230,7 @@ declare global {
 window._moduleReorder = {
   postModuleOrder,
   syncTabBar,
-  syncMarketplaceGrid,
+  syncAppsGrid,
   makeReorderable,
 };
 

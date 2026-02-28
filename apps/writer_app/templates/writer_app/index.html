@@ -10,81 +10,7 @@
     <!-- Writer variables (module accent color, theme tokens) -->
     <link rel="stylesheet"
           href="{% static 'writer_app/css/shared/variables.css' %}?v={{ build_id }}" />
-    <!-- Critical CSS - loaded immediately (editor, PDF, core UI) -->
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
-    <!-- Shared Panel Resizer CSS (unified with Scholar, Console, Visualizer) -->
-    <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/file-tabs.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/editor/tex-view-main.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/editor/index-editor-panels.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/editor/pdf-view-main.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/components/pdfjs-viewer.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/alerts.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/migration-cards.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/terminal-log.css' %}?v={{ build_id }}" />
-    <!-- Writer Index UI Components CSS Modules (refactored from monolithic index-ui-components.css) -->
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/index-ui/00-index-ui.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/index-ui/01-panel-header.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/index-ui/02-latex-panel.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/index-ui/03-preview-panel.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/index-ui/04-toolbar.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/index-ui/05-compilation-output.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/index-ui/06-split-view.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/index-ui/07-panel-resizer.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/index-ui/08-save-status.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/index-ui/09-button-styling.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/index-ui/10-dark-mode.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/index-ui/11-responsive.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/index-ui/12-initialization-prompt.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/index-ui/13-accessibility.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/index-ui/15-details-panel.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/components/status-lamp.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/components/shortcuts-modal.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/components/sidebar-controls.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/editor/main-editor-inline.css' %}?v={{ build_id }}" />
-    <!-- File tabs CSS (same as /code/ page) -->
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/editor/file-tabs.css' %}?v={{ build_id }}" />
-    <!-- Panel-specific CSS (included directly for reliable loading) -->
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/editor/citations-panel/index.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/editor/figures-panel/index.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/editor/tables-panel.css' %}?v={{ build_id }}" />
-    <!-- Monaco Editor CSS -->
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.min.css" />
+    {% include "writer_app/index_partials/_writer_css.html" %}
     {% include "writer_app/index_partials/codemirror_css.html" %}
 {% endblock %}
 {% block writer_content %}
@@ -234,17 +160,7 @@
       csrfToken: '{{ csrf_token }}'
   };
 
-  // Log visitor allocation info
-  if (window.WRITER_CONFIG.isVisitor && window.WRITER_CONFIG.visitorUsername) {
-      console.log('%c[VisitorPool] ✓ Allocated:', 'color: #4CAF50; font-weight: bold', window.WRITER_CONFIG.visitorUsername);
-      console.log('%c[VisitorPool] Project ID:', 'color: #2196F3', window.WRITER_CONFIG.projectId);
-      console.log('%c[VisitorPool] Project:', 'color: #2196F3', window.WRITER_CONFIG.projectName);
-  } else if (window.WRITER_CONFIG.isAuthenticated) {
-      console.log('%c[Writer] User:', 'color: #4CAF50; font-weight: bold', window.WRITER_CONFIG.username);
-      console.log('%c[Writer] Project ID:', 'color: #2196F3', window.WRITER_CONFIG.projectId);
-  }
-
-  // Inject project context into global AI panel so AI knows which project is active
+  // Inject project context into global AI panel
   document.addEventListener("DOMContentLoaded", () => {
       if (window.scitexAI && window.WRITER_CONFIG.projectSlug) {
           window.scitexAI.setContext({
@@ -277,98 +193,24 @@
         {% vite_hmr_client %}
         {% tree_preseed_script project %}
         {% vite_script 'writer_app/index' %}
-        <!-- Real-Time Collaboration Script - temporarily disabled (file not found)
-        <script type="module" src="{% static 'shared/js/collaboration/writer/index.js' %}?v={{ build_id|default:'dev' }}"></script>
-        -->
         {% if project %}
-            <!-- Fallback Panel Switcher (in case TypeScript module hasn't loaded yet) -->
+            <!-- Fallback panel switcher (overridden by TypeScript module when loaded) -->
             <script>
-            // Define switchRightPanel early so onclick handlers work immediately
-            // This will be overridden by the TypeScript module when it loads
             if (typeof window.switchRightPanel !== 'function') {
                 window.switchRightPanel = function(view) {
-                    console.log('[Writer] switchRightPanel called (inline fallback):', view);
-
-                    const views = ['pdf', 'citations', 'figures', 'tables', 'history', 'collaboration'];
-                    const viewElements = {
-                        pdf: document.getElementById('pdf-view'),
-                        citations: document.getElementById('citations-view'),
-                        figures: document.getElementById('figures-view'),
-                        tables: document.getElementById('tables-view'),
-                        history: document.getElementById('history-view'),
-                        collaboration: document.getElementById('collaboration-view')
-                    };
-
-                    // Hide all views
-                    views.forEach(v => {
-                        const el = viewElements[v];
-                        if (el) el.hidden = true;
+                    var views = ['pdf', 'citations', 'figures', 'tables', 'history', 'collaboration'];
+                    views.forEach(function(v) {
+                        var el = document.getElementById(v + '-view');
+                        if (el) el.hidden = (v !== view);
                     });
-
-                    // Show selected view
-                    const targetView = viewElements[view];
-                    if (targetView) {
-                        targetView.hidden = false;
-                        console.log('[Writer] Switched to', view, 'panel');
-                    }
-
-                    // Update button states
-                    document.querySelectorAll('.view-switch-btn').forEach(btn => {
-                        const btnView = btn.getAttribute('onclick')?.match(/switchRightPanel\('(\w+)'\)/)?.[1];
-                        if (btnView === view) {
-                            btn.classList.add('active');
-                        } else {
-                            btn.classList.remove('active');
-                        }
+                    document.querySelectorAll('.view-switch-btn').forEach(function(btn) {
+                        var match = btn.getAttribute('onclick') || '';
+                        var btnView = (match.match(/switchRightPanel\('(\w+)'\)/) || [])[1];
+                        btn.classList.toggle('active', btnView === view);
                     });
-
-                    // Update shared header (preserve toggle button and panel-title)
-                    const sharedHeader = document.getElementById('right-panel-header');
-                    const targetHeader = document.getElementById(view + '-panel-header');
-                    if (sharedHeader && targetHeader) {
-                        const headerLeft = sharedHeader.querySelector('.header-left');
-                        var headerRight = sharedHeader.querySelector('.header-right');
-
-                        if (headerLeft) {
-                            // Remove dynamic content, keep toggle btn + panel-title
-                            Array.from(headerLeft.children).forEach(function(child) {
-                                if (child.id !== 'preview-toggle-btn' && !child.classList.contains('panel-title')) {
-                                    child.remove();
-                                }
-                            });
-                            var templateLeft = targetHeader.querySelector('.header-left');
-                            if (templateLeft) {
-                                Array.from(templateLeft.children).forEach(function(child) {
-                                    headerLeft.appendChild(child.cloneNode(true));
-                                });
-                            }
-                        }
-
-                        if (headerRight) {
-                            var templateRight = targetHeader.querySelector('.header-right');
-                            headerRight.innerHTML = templateRight ? templateRight.innerHTML : '';
-                        } else {
-                            var templateRight = targetHeader.querySelector('.header-right');
-                            if (templateRight) {
-                                sharedHeader.appendChild(templateRight.cloneNode(true));
-                            }
-                        }
-                    }
                 };
             }
             </script>
-            <!--
-            Workspace Files Tree for Writer
-            NOTE: The inline script has been refactored to external TypeScript modules.
-            All functionality is now handled by:
-            - writer_app/ts/index.ts (main entry point, loaded above)
-            - writer_app/ts/writer/initialization/FileTreeSetup.ts (file tree)
-            - writer_app/ts/writer/ui/sidebar-resizer.ts (sidebar resizing, auto-initializes)
-            - writer_app/ts/writer/config/doctype-config.ts (doctype configuration)
-            - writer_app/ts/writer/sections/section-extraction.ts (section management)
-
-            If you need to debug, check the browser console for [Writer] and [FileTreeSetup] logs.
-        -->
         {% endif %}
     {% endif %}
 {% endblock %}

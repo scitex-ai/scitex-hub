@@ -44,6 +44,7 @@ def cache_buster(request):
                     Path(settings.BASE_DIR) / "apps/console_app/static/console_app/css",
                     Path(settings.BASE_DIR) / "apps/vis_app/static/vis_app/css",
                     Path(settings.BASE_DIR) / "apps/public_app/static/public_app/css",
+                    Path(settings.BASE_DIR) / "apps/docs_app/static/docs_app/css",
                 ]
                 max_mtime = 0
                 for static_dir in static_dirs:

@@ -6,6 +6,7 @@ import logging
 
 from django.shortcuts import redirect, render
 
+from apps.project_app.models import Project
 from apps.project_app.services.project_utils import get_current_project
 
 logger = logging.getLogger(__name__)
@@ -45,7 +46,6 @@ def build_hub_context(request, current_project=None):
         context["needs_project_creation"] = True
 
     # Get user's projects for overview (reusing project_app models)
-    from apps.project_app.models import Project
 
     user_projects = Project.objects.filter(owner=request.user).order_by("-updated_at")[
         :6
@@ -101,6 +101,17 @@ def index_view(request):
             },
         )
 
+    # Handle ?view=profile&username=X — render profile inside Hub
+    view_mode = request.GET.get("view", "")
+    profile_username = request.GET.get("username", "")
+
+    if view_mode == "profile" and profile_username:
+        context = build_hub_context(request, current_project=None)
+        context["hub_view_mode"] = "profile"
+        context["hub_profile_username"] = profile_username
+        context.update(_build_profile_context(request, profile_username))
+        return render(request, "hub_app/index.html", context)
+
     # Get current project from header dropdown
     current_project = get_current_project(request, user=request.user)
 
@@ -113,11 +124,50 @@ def index_view(request):
     return render(request, "hub_app/index.html", context)
 
 
+def _build_profile_context(request, username):
+    """Build profile context for inline Hub rendering (reuses social_app)."""
+    from django.contrib.auth.models import User
+    from django.db import models
+    from django.shortcuts import get_object_or_404
+
+    from apps.social_app.models import UserFollow
+
+    profile_user = get_object_or_404(User, username=username)
+
+    user_projects = Project.objects.filter(owner=profile_user)
+    if request.user != profile_user:
+        if request.user.is_authenticated:
+            user_projects = user_projects.filter(
+                models.Q(visibility="public") | models.Q(memberships__user=request.user)
+            ).distinct()
+        else:
+            user_projects = user_projects.filter(visibility="public")
+
+    user_projects = user_projects.order_by("-updated_at")[:20]
+
+    followers_count = UserFollow.get_followers_count(profile_user)
+    following_count = UserFollow.get_following_count(profile_user)
+    is_following = (
+        UserFollow.is_following(request.user, profile_user)
+        if request.user.is_authenticated
+        else False
+    )
+
+    return {
+        "profile_user": profile_user,
+        "projects": user_projects,
+        "followers_count": followers_count,
+        "following_count": following_count,
+        "is_following": is_following,
+        "is_own_projects": request.user == profile_user,
+    }
+
+
 def _add_file_browser_context(request, project, context):
     """Add file browser data to context (reuses project_app helpers)."""
     from django.conf import settings
 
-    from apps.project_app.models import ProjectFork, ProjectStar, ProjectWatch
+    from apps.project_app.models import ProjectStar, ProjectWatch
     from apps.project_app.services.project_filesystem import (
         get_project_filesystem_manager,
     )
@@ -136,10 +186,17 @@ def _add_file_browser_context(request, project, context):
         current_branch = project.current_branch or "develop"
         branches, current_branch = get_branches(project_path, current_branch)
 
-        # Social counts
-        watch_count = ProjectWatch.objects.filter(project=project).count()
-        star_count = ProjectStar.objects.filter(project=project).count()
-        fork_count = ProjectFork.objects.filter(original_project=project).count()
+        # Social counts — aggregate into fewer queries
+        from django.db.models import Count
+
+        social = Project.objects.filter(pk=project.pk).aggregate(
+            watch_count=Count("project_watchers"),
+            star_count=Count("project_stars_set"),
+            fork_count=Count("project_forks_set"),
+        )
+        watch_count = social["watch_count"]
+        star_count = social["star_count"]
+        fork_count = social["fork_count"]
         is_watching = ProjectWatch.objects.filter(
             user=request.user, project=project
         ).exists()

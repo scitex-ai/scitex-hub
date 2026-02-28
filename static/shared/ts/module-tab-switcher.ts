@@ -50,6 +50,10 @@ async function switchModule(name: string): Promise<void> {
 
   pane.classList.add("switching");
 
+  // Lock height to prevent layout shift during content swap.
+  const prevHeight = pane.offsetHeight;
+  pane.style.minHeight = `${prevHeight}px`;
+
   try {
     const resp = await fetch(`${CONTENT_BASE}${name}/`, {
       headers: { "X-Workspace-Shell": "1" },
@@ -71,15 +75,25 @@ async function switchModule(name: string): Promise<void> {
     location.href = `/${name}/`;
   } finally {
     pane.classList.remove("switching");
+    // Release height lock after new content has rendered.
+    requestAnimationFrame(() => {
+      pane.style.minHeight = "";
+    });
   }
 }
 
 /**
  * Re-execute inline <script> elements injected via innerHTML.
  * Browsers do not run scripts inserted this way automatically.
+ * Skips import maps (only one allowed per document) and link/style tags.
  */
 function reExecScripts(container: HTMLElement): void {
   container.querySelectorAll("script").forEach((old) => {
+    // Skip import maps — they conflict with the already-registered map
+    if (old.type === "importmap") {
+      old.remove();
+      return;
+    }
     const replacement = document.createElement("script");
     Array.from(old.attributes).forEach((attr) =>
       replacement.setAttribute(attr.name, attr.value),

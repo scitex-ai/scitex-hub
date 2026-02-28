@@ -1,0 +1,114 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}App Maker: Admins — SciTeX Documentation{% endblock %}
+{% block meta_description %}
+    Administrator guide for managing external packages, apps review, and module moderation.
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container py-2">
+        <header class="minimal-hero" style="text-align: center">
+            <div class="api-hero-header" style="justify-content: center">
+                <h1 class="minimal-hero-title">App Maker: For Administrators</h1>
+                <div class="api-hero-actions">
+                    <span class="api-version-badge">WIP</span>
+                </div>
+            </div>
+        </header>
+    </div>
+    <div class="container py-2">
+        <!-- External Packages -->
+        <span id="external"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-plug"></i> External Packages
+            </h2>
+            <p>
+                pip-installable packages can register modules via Python entry points.
+                The registry auto-discovers them at startup:
+            </p>
+            <pre><code># In your package's setup.py or pyproject.toml:
+[project.entry-points.scitex_modules]
+my_module = "my_package.registry:MODULE_CONFIG"</code></pre>
+            <p>
+                Where <code>MODULE_CONFIG</code> is a <code>ModuleConfig</code> instance:
+            </p>
+            <pre><code># my_package/registry.py
+from apps.workspace_app.registry import ModuleConfig
+
+MODULE_CONFIG = ModuleConfig(
+    name="my_module",
+    label="My Module",
+    app_name="my_module_app",
+    icon_fa="fas fa-star",
+    partial_template="my_module_app/index_partial.html",
+    context_builder="my_package.views.build_context",
+    order=100,
+    ai_hint="Description for LLM...",
+    accent_color="my_module",
+)</code></pre>
+            <div class="api-callout api-callout-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    External module discovery uses Python's <code>importlib.metadata.entry_points(group="scitex_modules")</code>.
+                    Install the package and restart SciTeX &mdash; the module appears automatically.
+                </div>
+            </div>
+        </section>
+        <!-- Moderation -->
+        <span id="moderation"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-shield-alt"></i> Moderation
+            </h2>
+            <p>Administrators review user-submitted modules before they appear in the public apps catalog.</p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Task</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Code Review</strong>
+                        </td>
+                        <td>Check submitted source code for security issues and forbidden patterns</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Approve / Reject</strong>
+                        </td>
+                        <td>Approve modules for public listing or reject with feedback</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Module Removal</strong>
+                        </td>
+                        <td>Remove published modules that violate guidelines</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>User Reports</strong>
+                        </td>
+                        <td>Handle user reports about malicious or broken modules</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="api-callout api-callout-info">
+                <i class="fas fa-shield-alt"></i>
+                <div>
+                    Source code is automatically scanned for forbidden patterns
+                    (<code>os.system</code>, <code>subprocess</code>, <code>eval</code>, <code>exec</code>, <code>open</code>, etc.)
+                    before any module can be published.
+                </div>
+            </div>
+        </section>
+    </div>
+{% endblock %}

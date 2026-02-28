@@ -50,7 +50,7 @@
                 <button class="module-filter-btn" data-mode="clew" title="Highlight clew-related files">
                     <i class="fas fa-lightbulb"></i>
                 </button>
-            {% elif '/hub/' in request.path %}
+            {% elif '/hub/' in request.path or request.path == '/' %}
                 <button class="module-filter-btn" data-mode="hub" title="Highlight hub-related files">
                     <i class="fas fa-lightbulb"></i>
                 </button>

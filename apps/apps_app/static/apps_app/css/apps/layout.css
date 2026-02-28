@@ -1,0 +1,171 @@
+/* Apps — layout: container, top bar, search, sort, grid, empty state
+ * Uses project CSS variables: --workspace-bg-*, --workspace-border-default,
+ * --workspace-icon-primary, --text-primary, --text-muted, --accent, --border-color
+ */
+
+/* ─── Container ────────────────────────────────────────────────── */
+.apps-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.5rem 1rem 1rem;
+}
+
+/* ─── Top Bar ──────────────────────────────────────────────────── */
+.apps-topbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Category tab row */
+.apps-category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 1px solid var(--workspace-border-default, var(--border-color));
+  padding-bottom: 4px;
+}
+
+.apps-cat-tab {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: 0;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+  white-space: nowrap;
+}
+
+.apps-cat-tab:hover {
+  background-color: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.05));
+  border-color: var(--workspace-border-default, var(--border-color));
+}
+
+.apps-cat-tab.active {
+  background-color: var(--workspace-icon-primary, var(--accent));
+  color: #fff;
+  border-color: var(--workspace-icon-primary, var(--accent));
+}
+
+/* Search + sort row */
+.apps-search-sort {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.apps-search-form {
+  flex: 1;
+  min-width: 200px;
+}
+
+.apps-search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 200px;
+}
+
+.apps-search-icon {
+  position: absolute;
+  left: 8px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  pointer-events: none;
+}
+
+.apps-search-input {
+  width: 100%;
+  background-color: var(--workspace-bg-secondary, var(--bg-primary));
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  color: var(--text-primary);
+  padding: 5px 28px;
+  font-size: 0.85rem;
+  border-radius: 0;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.apps-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.apps-search-input:focus {
+  border-color: var(--workspace-icon-primary, var(--accent));
+}
+
+.apps-search-clear {
+  position: absolute;
+  right: 6px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  font-size: 0.85rem;
+}
+
+.apps-search-clear:hover {
+  color: var(--text-primary);
+}
+
+.apps-sort-form {
+  flex-shrink: 0;
+}
+
+.apps-sort-select {
+  background-color: var(--workspace-bg-secondary, var(--bg-primary));
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  color: var(--text-primary);
+  padding: 5px 8px;
+  font-size: 0.82rem;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+/* ─── Module Grid ──────────────────────────────────────────────── */
+.apps-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+/* ─── Empty State ──────────────────────────────────────────────── */
+.apps-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.apps-empty-state > i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.35;
+}
+
+.apps-empty-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: var(--text-primary);
+}
+
+.apps-empty-description {
+  font-size: 0.88rem;
+}

@@ -33,6 +33,21 @@ def api_save_file(request):
         if not project.can_edit(request.user):
             return JsonResponse({"error": "Unauthorized"}, status=403)
 
+        # TRIP projects: on-demand SSH file access
+        if project.project_type == "trip":
+            from apps.project_app.services.trip_backend import get_trip_backend
+
+            backend = get_trip_backend(project)
+            backend.write_file(file_path, content)
+            return JsonResponse(
+                {
+                    "success": True,
+                    "message": "File saved successfully",
+                    "path": file_path,
+                    "project_type": "trip",
+                }
+            )
+
         # Get project path (works for both local and remote projects)
         from apps.project_app.services.project_service_manager import (
             ProjectServiceManager,

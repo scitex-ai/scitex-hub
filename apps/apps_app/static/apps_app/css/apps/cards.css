@@ -1,0 +1,202 @@
+/* Apps — module card styles (horizontal row layout) */
+
+.ap-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background-color: var(--workspace-bg-primary, var(--bg-primary));
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.ap-card:hover {
+  border-color: var(--workspace-icon-primary, var(--accent));
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Link wraps icon + info, takes available space */
+.ap-card-link {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+}
+
+.ap-card-link:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Icon — compact */
+.ap-card-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  font-size: 1rem;
+  color: var(--workspace-icon-primary, var(--accent));
+}
+
+/* Info block — title row + description */
+.ap-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ap-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ap-card-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.ap-card-badges {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  align-items: center;
+  margin-left: auto;
+}
+
+.ap-card-description {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 2px 0 0;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Stats — right-aligned */
+.ap-card-stats {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.ap-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.ap-stat i.fa-star,
+.ap-stat i.fa-star-half-alt {
+  color: #f6c90e;
+}
+
+.ap-hub-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.ap-card:hover .ap-hub-link {
+  opacity: 0.6;
+}
+
+.ap-hub-link:hover {
+  color: var(--workspace-icon-primary, var(--accent));
+  opacity: 1 !important;
+}
+
+/* Actions — rightmost */
+.ap-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Drag handle */
+.ap-drag-handle {
+  flex-shrink: 0;
+  width: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  opacity: 0;
+  cursor: grab;
+  transition: opacity 0.15s;
+}
+
+.ap-card:hover .ap-drag-handle,
+.ap-card[draggable="true"] .ap-drag-handle {
+  opacity: 0.5;
+}
+
+.ap-drag-handle:hover {
+  opacity: 1 !important;
+}
+
+/* Drag-to-reorder */
+.ap-card[draggable="true"] {
+  cursor: grab;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    margin 0.2s ease,
+    opacity 0.15s;
+}
+
+.ap-card-dragging {
+  opacity: 0.3;
+  border-style: dashed;
+}
+
+/* Gap indicators — cards shift to make room */
+.ap-card-drag-above {
+  margin-top: 40px;
+  position: relative;
+}
+
+.ap-card-drag-above::before {
+  content: "";
+  position: absolute;
+  top: -22px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--workspace-icon-primary, var(--accent));
+  border-radius: 1px;
+}
+
+.ap-card-drag-below {
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.ap-card-drag-below::after {
+  content: "";
+  position: absolute;
+  bottom: -22px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--workspace-icon-primary, var(--accent));
+  border-radius: 1px;
+}

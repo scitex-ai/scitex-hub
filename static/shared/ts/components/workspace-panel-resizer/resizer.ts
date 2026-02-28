@@ -29,7 +29,7 @@ function findAdjacentPanel(
   if (!targetPanel) return null;
 
   const paneContainer = targetPanel.closest(
-    ".ws-ai-pane, .ws-worktree-pane, .ws-module-pane, .ws-viewer-pane",
+    ".ws-ai-pane, .ws-worktree-pane, .ws-viewer-pane, .ws-apps-pane, .ws-module-pane",
   );
   if (!paneContainer) return null;
 
@@ -155,6 +155,23 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
     propagationTarget = null;
     primaryCollapsed = false;
 
+    // Fixed-width panels skip collapse/expand — go straight to propagation
+    if (config.fixedWidth) {
+      isResizing = true;
+      startX = e.clientX;
+      startWidth = targetPanel.offsetWidth;
+      primaryCollapsed = true; // skip primary resize entirely
+
+      // Find adjacent panel to propagate to based on drag direction
+      // We'll determine actual direction in mousemove
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+      resizer.classList.add("active");
+      disableTransitions();
+      e.preventDefault();
+      return;
+    }
+
     if (wasCollapsed) {
       targetPanel.classList.remove("collapsed");
       targetPanel.style.width = `${config.minWidth}px`;
@@ -184,6 +201,23 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!isResizing) return;
+
+    // Fixed-width panel: propagate to adjacent panel based on drag direction
+    if (config.fixedWidth && !propagationTarget) {
+      const delta = e.clientX - startX;
+      if (Math.abs(delta) < 3) return; // dead zone
+      const dragDir = delta < 0 ? "shrink-left" : "shrink-right";
+      const adjacent = findAdjacentPanel(config, dragDir);
+      if (adjacent) {
+        propagationTarget = {
+          panel: adjacent.panel,
+          config: adjacent.config,
+          startWidth: adjacent.panel.offsetWidth,
+          startX: e.clientX,
+        };
+      }
+      return;
+    }
 
     // Once the primary panel has collapsed, only handle propagation
     if (primaryCollapsed && !propagationTarget) return;

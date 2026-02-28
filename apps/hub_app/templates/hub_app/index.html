@@ -61,41 +61,16 @@
             </div>
             <!-- Dynamic main content: project workspace or projects overview -->
             <div id="hub-main-content">
-                {% if current_project %}
+                {% if hub_view_mode == "profile" %}
+                    {% include 'hub_app/partials/user_profile_content.html' %}
+                {% elif current_project %}
                     {% include 'hub_app/partials/project_workspace.html' with project=current_project %}
                 {% else %}
                     {% include 'hub_app/partials/projects_overview.html' %}
                 {% endif %}
             </div>
         </main>
-        <!-- Details resizer (auto-initialized via data attributes) -->
-        <div class="panel-resizer"
-             id="details-resizer"
-             data-panel-resizer
-             data-storage-prefix="scitex-hub-"
-             data-target=".hub-details"
-             data-direction="right"
-             data-min-width="40"
-             data-default-width="280"
-             data-storage-key="details-width"
-             data-collapse-key="hub-details-collapsed"
-             data-toggle-btn="details-toggle"></div>
-        <!-- Right Panel - Details -->
-        <aside class="hub-details collapsible-panel" id="hub-details">
-            <div class="details-header">
-                <button class="details-toggle panel-toggle-btn right-panel-toggle"
-                        id="details-toggle"
-                        title="Toggle details (Ctrl+Shift+D)">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-                <span class="panel-title">
-                    <i class="fas fa-sliders-h"></i> Details
-                </span>
-            </div>
-            <div class="details-content" id="hub-details-content">
-                <p class="text-muted small">Select a file or project for details</p>
-            </div>
-        </aside>
+        <!-- Details panel removed — Hub uses full-width layout -->
     </div>
 {% endblock %}
 {% block extra_js %}

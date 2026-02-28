@@ -1,0 +1,91 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}MCP Tools (Local) — SciTeX Documentation{% endblock %}
+{% block meta_description %}
+    Install {{ mcp_tool_count }}+ MCP tools locally for free: plotting, statistics, literature, LaTeX, and more.
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container py-2">
+        <header class="minimal-hero" style="text-align: center">
+            <div class="api-hero-header" style="justify-content: center">
+                <h1 class="minimal-hero-title">MCP Tools (Local)</h1>
+                <div class="api-hero-actions">
+                    <span class="api-version-badge">{{ mcp_tool_count }}+ tools</span>
+                </div>
+            </div>
+        </header>
+    </div>
+    <div class="container py-2">
+        {% include "docs_app/partials/mcp_shared_style.html" %}
+        <!-- Overview -->
+        <span id="overview"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-robot"></i> Overview
+            </h2>
+            <p>
+                Install <code>scitex</code> locally and get <strong>{{ mcp_tool_count|default:"200+" }} MCP tools</strong>
+                running entirely on your own machine — <strong>free, no API key needed</strong>.
+                Plotting, statistics, literature management, LaTeX compilation, and more.
+            </p>
+            <div class="api-callout api-callout-success">
+                <i class="fas fa-gift"></i>
+                <div>
+                    <strong>Completely free.</strong>
+                    All tools run locally. No account, no API key, no network dependency.
+                </div>
+            </div>
+        </section>
+        <!-- Install & Setup -->
+        <span id="install"></span><span id="setup"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-download"></i> Install &amp; Setup
+            </h2>
+            <h4>1. Install</h4>
+            <div class="code-block">
+                <div class="code-header">
+                    <span>Shell</span>
+                </div>
+                <pre><code>pip install scitex[all]     # Full installation (recommended)
+pip install scitex[plt,stats,scholar]  # Typical research setup
+pip install scitex          # Core only (minimal)</code></pre>
+            </div>
+            <h4>2. Configure Claude Desktop / Claude Code</h4>
+            <p>
+                Add the following to <code>~/.claude/settings.json</code> or <code>claude_desktop_config.json</code>:
+            </p>
+            <div class="code-block">
+                <div class="code-header">
+                    <span>JSON</span>
+                </div>
+                <pre><code>{
+  "mcpServers": {
+    "scitex": {
+      "command": "scitex",
+      "args": ["mcp", "start"]
+    }
+  }
+}</code></pre>
+            </div>
+            <h4>3. That's it</h4>
+            <p>
+                Your AI client now has access to all {{ mcp_tool_count|default:"200+" }} SciTeX tools —
+                plotting, statistics, LaTeX compilation, literature management, and more —
+                running entirely on your local machine.
+            </p>
+        </section>
+        <!-- Available Tools -->
+        <span id="available-tools"></span><span id="tools"></span>
+        {% include "docs_app/partials/mcp_available_tools.html" %}
+        <!-- Opt Out -->
+        <span id="configuration"></span><span id="config"></span><span id="opt-out"></span>
+        {% include "docs_app/partials/mcp_opt_out.html" %}
+    </div>
+{% endblock %}

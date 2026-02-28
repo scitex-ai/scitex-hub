@@ -1,265 +1,117 @@
 {% load static %}
 
-<footer class="site-footer">
-    <div class="container">
-        <div class="footer-content footer-4-columns">
-            <!-- Column 1: Brand -->
-            <div class="footer-section footer-brand">
-                <div class="footer-logo">
-                    <h3>SciTeX</h3>
+<footer class="site-footer" id="site-footer">
+    <div class="footer-inner">
+        <div class="container">
+            <div class="footer-content footer-4-columns">
+                <!-- Column 1: Brand -->
+                <div class="footer-section footer-brand">
+                    <div class="footer-logo">
+                        <h3>SciTeX</h3>
+                    </div>
+                    <p class="footer-tagline">{{ SITE_TAGLINE }}</p>
+                    <div class="footer-social">
+                        <a href="https://github.com/ywatanabe1989" title="GitHub"><i class="fab fa-github"></i></a>
+                        <a href="https://app.slack.com/client/T08TMR9RZQR/C08TMRA20AD" title="Slack"><i class="fab fa-slack"></i></a>
+                        <a href="https://twitter.com/SciTeX_AI" title="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="https://www.linkedin.com/company/scitex-ai" title="LinkedIn (Company)"><i class="fab fa-linkedin"></i></a>
+                        <a href="https://www.linkedin.com/in/yusuke-watanabe-870953170/"
+                           title="LinkedIn (Founder)"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="https://www.youtube.com/@SciTeX-Official" title="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                    <p class="footer-contact">
+                        <a href="mailto:support@scitex.ai"><i class="fas fa-envelope"></i> support@scitex.ai</a>
+                    </p>
+                    <p class="footer-copyright">
+                        &copy; 2025–2026 SciTeX. All rights reserved. <span class="footer-version">v{{ SCITEX_CLOUD_VERSION }}</span>
+                    </p>
                 </div>
-                <p class="footer-tagline">{{ SITE_TAGLINE }}</p>
-                <div class="footer-social">
-                    <a href="https://github.com/ywatanabe1989" title="GitHub"><i class="fab fa-github"></i></a>
-                    <a href="https://app.slack.com/client/T08TMR9RZQR/C08TMRA20AD" title="Slack"><i class="fab fa-slack"></i></a>
-                    <a href="https://twitter.com/SciTeX_AI" title="Twitter"><i class="fab fa-twitter"></i></a>
-                    <a href="https://www.linkedin.com/company/scitex-ai" title="LinkedIn (Company)"><i class="fab fa-linkedin"></i></a>
-                    <a href="https://www.linkedin.com/in/yusuke-watanabe-870953170/"
-                       title="LinkedIn (Founder)"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="https://www.youtube.com/@SciTeX-Official" title="YouTube"><i class="fab fa-youtube"></i></a>
-                </div>
-                <p class="footer-contact">
-                    <a href="mailto:support@scitex.ai"><i class="fas fa-envelope"></i> support@scitex.ai</a>
-                </p>
-                <p class="footer-copyright">
-                    &copy; 2025–2026 SciTeX. All rights reserved. <span class="footer-version">v{{ SCITEX_CLOUD_VERSION }}</span>
-                </p>
-            </div>
-            <!-- Column 2: Community -->
-            <div class="footer-section">
-                <h3>Community</h3>
-                <ul class="footer-links">
-                    <li>
-                        <a href="{% url 'public_app:about' %}">About</a>
-                    </li>
-                    <li>
-                        <a href="{% url 'public_app:contributors' %}">Contributors</a>
-                    </li>
-                    <li>
-                        <a href="{% url 'public_app:publications' %}">Publications</a>
-                    </li>
-                    <li>
-                        <a href="{% url 'public_app:pricing' %}">Premium</a>
-                    </li>
-                    <li>
-                        <a href="{% url 'public_app:setup' %}">Self-Hosting Guide</a>
-                    </li>
-                </ul>
-            </div>
-            <!-- Column 3: Developers (two-column layout) -->
-            <div class="footer-section footer-section-wide">
-                <h3>Developers</h3>
-                <div class="footer-links-2col">
+                <!-- Column 2: Community -->
+                <div class="footer-section">
+                    <h3>Community</h3>
                     <ul class="footer-links">
                         <li>
-                            <a href="{% url 'public_app:api-docs' %}">Web API Docs</a>
+                            <a href="{% url 'public_app:about' %}">About</a>
                         </li>
                         <li>
-                            <a href="{% url 'dev_app:tests_category' category='web-api' %}">Web API Tests</a>
+                            <a href="{% url 'public_app:contributors' %}">Contributors</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:releases' %}">Releases</a>
-                        </li>
-                    </ul>
-                    <ul class="footer-links">
-                        <li>
-                            <a href="/scitex-ai/scitex-cloud/issues">Bug Reports</a>
+                            <a href="{% url 'public_app:publications' %}">Publications</a>
                         </li>
                         <li>
-                            <a href="{% url 'dev_app:design' %}">Design System</a>
+                            <a href="{% url 'public_app:pricing' %}">Premium</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:server_status' %}">Server Status</a>
+                            <a href="{% url 'public_app:setup' %}">Self-Hosting Guide</a>
                         </li>
                     </ul>
                 </div>
-            </div>
-            <!-- Column 4: Legal -->
-            <div class="footer-section">
-                <h3>Legal</h3>
-                <ul class="footer-links">
-                    <li>
-                        <a href="{% url 'public_app:terms' %}">Terms</a>
-                    </li>
-                    <li>
-                        <a href="{% url 'public_app:privacy' %}">Privacy</a>
-                    </li>
-                    <li>
-                        <a href="{% url 'public_app:cookies' %}">Cookies</a>
-                    </li>
-                </ul>
+                <!-- Column 3: Developers (two-column layout) -->
+                <div class="footer-section footer-section-wide">
+                    <h3>Developers</h3>
+                    <div class="footer-links-2col">
+                        <ul class="footer-links">
+                            <li>
+                                <a href="{% url 'public_app:api-docs' %}">Web API Docs</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'dev_app:tests_category' category='web-api' %}">Web API Tests</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'public_app:releases' %}">Releases</a>
+                            </li>
+                        </ul>
+                        <ul class="footer-links">
+                            <li>
+                                <a href="/scitex-ai/scitex-cloud/issues">Bug Reports</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'dev_app:design' %}">Design System</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'public_app:server_status' %}">Server Status</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- Column 4: Legal -->
+                <div class="footer-section">
+                    <h3>Legal</h3>
+                    <ul class="footer-links">
+                        <li>
+                            <a href="{% url 'public_app:terms' %}">Terms</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'public_app:privacy' %}">Privacy</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'public_app:cookies' %}">Cookies</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
+        <!-- Dev-only buttons (hidden in production) -->
+        {% if DEBUG %}
+            <div class="footer-dev-tools">
+                <span class="dev-tools-label">Dev Tools:</span>
+                <button id="page-refresh-btn" class="dev-tool-btn" title="Refresh page (Ctrl+Shift+R)">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button id="clear-localstorage-btn"
+                        class="dev-tool-btn"
+                        title="Clear localStorage cache"
+                        onclick="if(confirm('Clear all localStorage? This will reset theme preferences and cached data.')) { localStorage.clear(); location.reload(); }">
+                    <i class="fas fa-eraser"></i> Clear Cache
+                </button>
+                <button id="init-visitor-pool-btn"
+                        class="dev-tool-btn"
+                        title="Initialize Visitor Pool (Dev)"
+                        onclick="initVisitorPool()">
+                    <i class="fas fa-users-cog"></i> Init Visitors
+                </button>
+            </div>
+        {% endif %}
     </div>
-    <!-- Dev-only buttons (hidden in production) -->
-    {% if DEBUG %}
-        <div class="footer-dev-tools">
-            <span class="dev-tools-label">Dev Tools:</span>
-            <button id="page-refresh-btn" class="dev-tool-btn" title="Refresh page (Ctrl+Shift+R)">
-                <i class="fas fa-sync-alt"></i> Refresh
-            </button>
-            <button id="clear-localstorage-btn"
-                    class="dev-tool-btn"
-                    title="Clear localStorage cache"
-                    onclick="if(confirm('Clear all localStorage? This will reset theme preferences and cached data.')) { localStorage.clear(); location.reload(); }">
-                <i class="fas fa-eraser"></i> Clear Cache
-            </button>
-            <button id="init-visitor-pool-btn"
-                    class="dev-tool-btn"
-                    title="Initialize Visitor Pool (Dev)"
-                    onclick="initVisitorPool()">
-                <i class="fas fa-users-cog"></i> Init Visitors
-            </button>
-        </div>
-    {% endif %}
 </footer>
-<style>
-    .footer-4-columns {
-        display: grid;
-        grid-template-columns: 2fr 1fr 2fr 1fr;
-        gap: 40px;
-    }
-
-    .footer-links-2col {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0 20px;
-    }
-
-    .footer-section-wide {
-        /* Wider section for two-column content */
-    }
-
-    .footer-brand {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .footer-logo {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .footer-logo img {
-        width: 40px;
-        height: 40px;
-    }
-
-    .footer-logo h3 {
-        margin: 0;
-    }
-
-    .footer-tagline {
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-        margin: 0;
-    }
-
-    .footer-contact {
-        font-size: 0.85rem;
-        margin: 0;
-    }
-
-    .footer-contact a {
-        color: var(--text-secondary);
-        text-decoration: none;
-    }
-
-    .footer-contact a:hover {
-        color: var(--color-accent-fg);
-    }
-
-    .footer-contact i {
-        margin-right: 6px;
-        opacity: 0.7;
-    }
-
-    .footer-copyright {
-        font-size: 0.75rem;
-        color: var(--text-tertiary, var(--text-secondary));
-        margin: 0;
-        margin-top: auto;
-    }
-
-    @media (max-width: 992px) {
-        .footer-4-columns {
-            grid-template-columns: 2fr 1fr 1fr;
-            gap: 30px;
-        }
-
-        .footer-brand {
-            grid-column: 1 / -1;
-        }
-
-        .footer-links-2col {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .footer-4-columns {
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
-
-        .footer-brand {
-            grid-column: 1 / -1;
-            text-align: center;
-        }
-
-        .footer-logo {
-            justify-content: center;
-        }
-
-        .footer-social {
-            justify-content: center;
-        }
-    }
-
-    /* Dev Tools Bar */
-    .footer-dev-tools {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        padding: 6px 16px;
-        background: transparent;
-        border-top: 1px solid var(--border-muted, rgba(128, 128, 128, 0.2));
-        font-size: 0.75rem;
-        opacity: 0.6;
-    }
-
-    .footer-dev-tools:hover {
-        opacity: 1;
-    }
-
-    .dev-tools-label {
-        font-weight: 500;
-        color: var(--text-muted, #888);
-    }
-
-    .dev-tool-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 3px 8px;
-        border: 1px solid var(--border-muted, rgba(128, 128, 128, 0.3));
-        border-radius: 3px;
-        background: transparent;
-        color: var(--text-muted, #888);
-        font-size: 0.7rem;
-        cursor: pointer;
-        transition: all 0.15s ease;
-    }
-
-    .dev-tool-btn:hover {
-        background: var(--bg-secondary, rgba(128, 128, 128, 0.1));
-        color: var(--text-primary, #333);
-    }
-
-    .dev-tool-btn i {
-        font-size: 0.65rem;
-    }
-</style>

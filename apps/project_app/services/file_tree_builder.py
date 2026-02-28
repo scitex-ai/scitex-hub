@@ -22,6 +22,14 @@ def build_project_file_tree(project) -> Optional[dict]:
     matching the format expected by TreeDataLoader's sessionStorage cache,
     or None if the project directory doesn't exist.
     """
+    # TRIP projects: build tree via paramiko SFTP
+    if project.project_type == "trip":
+        return _build_trip_file_tree(project)
+
+    # Remote SSHFS projects: mount and use standard Path ops (no git)
+    if project.project_type == "remote":
+        return _build_remote_file_tree(project)
+
     from apps.project_app.services.project_filesystem import (
         get_project_filesystem_manager,
     )
@@ -209,3 +217,79 @@ def build_project_file_tree(project) -> Optional[dict]:
         "treeData": tree,
         "gitSummary": {"staged": staged, "modified": modified, "untracked": untracked},
     }
+
+
+def _build_remote_file_tree(project) -> Optional[dict]:
+    """Build file tree for remote SSHFS project via mounted path."""
+    try:
+        from apps.project_app.services.project_service_manager import (
+            ProjectServiceManager,
+        )
+
+        project_path = ProjectServiceManager(project).get_project_path()
+
+        if not project_path or not project_path.exists():
+            return None
+
+        def _build_tree(path, max_depth=10, current_depth=0):
+            items = []
+            try:
+                for item in sorted(
+                    path.iterdir(), key=lambda x: (not x.is_dir(), x.name.lower())
+                ):
+                    if item.name.startswith("."):
+                        continue
+                    if item.name in ["__pycache__", "node_modules", ".venv", "venv"]:
+                        continue
+
+                    rel_path_str = str(item.relative_to(project_path))
+                    try:
+                        mtime = item.stat().st_mtime
+                    except OSError:
+                        mtime = 0
+
+                    item_data = {
+                        "name": item.name,
+                        "type": "directory" if item.is_dir() else "file",
+                        "path": rel_path_str,
+                        "git_status": None,
+                        "mtime": mtime,
+                        "is_symlink": item.is_symlink(),
+                    }
+
+                    if item.is_dir() and current_depth < max_depth:
+                        item_data["children"] = _build_tree(
+                            item, max_depth, current_depth + 1
+                        )
+
+                    items.append(item_data)
+            except PermissionError:
+                pass
+            return items
+
+        tree = _build_tree(project_path)
+        return {
+            "success": True,
+            "treeData": tree,
+            "gitSummary": {"staged": 0, "modified": 0, "untracked": 0},
+        }
+    except Exception as e:
+        logger.error(f"Remote file tree error: {e}")
+        return None
+
+
+def _build_trip_file_tree(project) -> Optional[dict]:
+    """Build file tree for TRIP project via paramiko SFTP."""
+    try:
+        from apps.project_app.services.trip_backend import get_trip_backend
+
+        backend = get_trip_backend(project)
+        tree = backend.build_tree()
+        return {
+            "success": True,
+            "treeData": tree,
+            "gitSummary": {"staged": 0, "modified": 0, "untracked": 0},
+        }
+    except Exception as e:
+        logger.error(f"TRIP file tree error: {e}")
+        return None

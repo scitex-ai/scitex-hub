@@ -1,146 +1,148 @@
 {% extends 'global_base.html' %}
+
 {% load static %}
+
 {% block title %}
     {{
     module_name }} Documentation - SciTeX
 {% endblock %}
 {% block extra_css %}
     <style>
-  /* Documentation container styles - full width */
-  .docs-container {
-    max-width: none;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-  }
+        /* Documentation container styles - full width */
+        .docs-container {
+            max-width: none;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
 
-  .docs-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 2rem;
-    margin-bottom: 0;
-  }
+        .docs-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            margin-bottom: 0;
+        }
 
-  .docs-content {
-    background: white;
-    padding: 2rem;
-    box-shadow: none;
-    width: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
-  }
+        .docs-content {
+            background: white;
+            padding: 2rem;
+            box-shadow: none;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
 
-  /* Sphinx RTD theme layout optimization */
+        /* Sphinx RTD theme layout optimization */
 
-  /* Remove default RTD grid layout and use flexbox */
-  .docs-content .wy-grid-for-nav {
-    display: flex !important;
-    position: relative;
-  }
+        /* Remove default RTD grid layout and use flexbox */
+        .docs-content .wy-grid-for-nav {
+            display: flex !important;
+            position: relative;
+        }
 
-  /* Sidebar: fixed 300px width on the left */
-  .docs-content .wy-nav-side {
-    width: 300px !important;
-    flex-shrink: 0;
-    position: fixed !important;
-    left: 0;
-    top: 0;
-    height: 100vh;
-    overflow-y: auto;
-    z-index: 200;
-    background: #343131;
-  }
+        /* Sidebar: fixed 300px width on the left */
+        .docs-content .wy-nav-side {
+            width: 300px !important;
+            flex-shrink: 0;
+            position: fixed !important;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 200;
+            background: #343131;
+        }
 
-  /* Content wrapper: takes remaining space with left margin */
-  .docs-content .wy-nav-content-wrap {
-    margin-left: 300px !important;
-    width: calc(100% - 300px) !important;
-    background: white;
-  }
+        /* Content wrapper: takes remaining space with left margin */
+        .docs-content .wy-nav-content-wrap {
+            margin-left: 300px !important;
+            width: calc(100% - 300px) !important;
+            background: white;
+        }
 
-  /* Content width: full width within available space */
-  .docs-content .wy-nav-content {
-    max-width: 100% !important;
-    padding: 1.5rem 3rem;
-    background: white;
-  }
+        /* Content width: full width within available space */
+        .docs-content .wy-nav-content {
+            max-width: 100% !important;
+            padding: 1.5rem 3rem;
+            background: white;
+        }
 
-  /* Body for nav container */
-  .docs-content .wy-body-for-nav {
-    background: white;
-  }
+        /* Body for nav container */
+        .docs-content .wy-body-for-nav {
+            background: white;
+        }
 
-  /* Document content area */
-  .docs-content .document,
-  .docs-content .rst-content {
-    font-family:
-      -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
-      Arial, sans-serif;
-    line-height: 1.6;
-    color: #333;
-    max-width: none !important;
-  }
+        /* Document content area */
+        .docs-content .document,
+        .docs-content .rst-content {
+            font-family:
+                -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+                Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: none !important;
+        }
 
-  /* Responsive: stack sidebar on mobile */
-  @media (max-width: 768px) {
-    .docs-content .wy-nav-side {
-      width: 100% !important;
-      position: relative !important;
-      height: auto;
-    }
+        /* Responsive: stack sidebar on mobile */
+        @media (max-width: 768px) {
+            .docs-content .wy-nav-side {
+                width: 100% !important;
+                position: relative !important;
+                height: auto;
+            }
 
-    .docs-content .wy-nav-content-wrap {
-      margin-left: 0 !important;
-      width: 100% !important;
-    }
-  }
+            .docs-content .wy-nav-content-wrap {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+        }
 
-  .docs-content h1,
-  .docs-content h2,
-  .docs-content h3,
-  .docs-content h4 {
-    color: #1e293b;
-    margin-top: 1.5em;
-    margin-bottom: 0.5em;
-  }
+        .docs-content h1,
+        .docs-content h2,
+        .docs-content h3,
+        .docs-content h4 {
+            color: #1e293b;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
 
-  .docs-content code {
-    background: #f8f9fa;
-    padding: 0.2em 0.4em;
-    border-radius: 3px;
-    font-size: 0.9em;
-  }
+        .docs-content code {
+            background: #f8f9fa;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
 
-  .docs-content pre {
-    background: #1e293b;
-    color: #e2e8f0;
-    padding: 1rem;
-    border-radius: 6px;
-    overflow-x: auto;
-  }
+        .docs-content pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
 
-  .docs-content a {
-    color: #667eea;
-    text-decoration: none;
-  }
+        .docs-content a {
+            color: #667eea;
+            text-decoration: none;
+        }
 
-  .docs-content a:hover {
-    text-decoration: underline;
-  }
+        .docs-content a:hover {
+            text-decoration: underline;
+        }
 
-  .docs-breadcrumb {
-    background: transparent;
-    padding: 0;
-    margin-bottom: 1rem;
-  }
+        .docs-breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin-bottom: 1rem;
+        }
 
-  .docs-breadcrumb a {
-    color: #64748b;
-  }
+        .docs-breadcrumb a {
+            color: #64748b;
+        }
 
-  .docs-breadcrumb a:hover {
-    color: #1e293b;
-  }
+        .docs-breadcrumb a:hover {
+            color: #1e293b;
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -151,7 +153,7 @@
                 <nav aria-label="breadcrumb" class="docs-breadcrumb">
                     <ol class="breadcrumb text-white-50">
                         <li class="breadcrumb-item">
-                            <a href="{% url 'docs:index' %}" class="text-white">Documentation</a>
+                            <a href="{% url 'docs_app:index' %}" class="text-white">Documentation</a>
                         </li>
                         <li class="breadcrumb-item active text-white" aria-current="page">{{ module_name }}</li>
                     </ol>

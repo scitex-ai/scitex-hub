@@ -1,0 +1,217 @@
+/* Apps — review form and review list styles */
+
+/* ─── Review Form ──────────────────────────────────────────────── */
+.ap-review-form {
+  padding: 1rem;
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  background-color: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.02));
+  margin-bottom: 1rem;
+}
+
+.ap-review-form-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.85rem;
+}
+
+.ap-rating-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+}
+
+.ap-rating-fieldset legend,
+.ap-review-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.ap-star-rating {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.ap-star-btn {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  font-size: 1.3rem;
+  color: var(--text-muted);
+  transition:
+    color 0.1s,
+    transform 0.1s;
+  line-height: 1;
+}
+
+.ap-star-btn:hover,
+.ap-star-btn--active {
+  color: #f6c90e;
+  transform: scale(1.15);
+}
+
+.ap-star-btn i {
+  pointer-events: none;
+}
+
+.ap-rating-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  min-height: 1em;
+  display: block;
+}
+
+.ap-review-field {
+  margin-bottom: 0.75rem;
+}
+
+.ap-review-input,
+.ap-review-textarea {
+  width: 100%;
+  background-color: var(--workspace-bg-primary, var(--bg-primary));
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  color: var(--text-primary);
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  border-radius: 0;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.ap-review-input:focus,
+.ap-review-textarea:focus {
+  border-color: var(--workspace-icon-primary, var(--accent));
+}
+
+.ap-review-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.ap-review-form-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ap-review-status {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.ap-review-status--success {
+  color: #68d391;
+}
+
+.ap-review-status--error {
+  color: #fc8181;
+}
+
+/* ─── Review List ──────────────────────────────────────────────── */
+.ap-review-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ap-review-item {
+  padding: 0.85rem;
+  border-bottom: 1px solid var(--workspace-border-default, var(--border-color));
+}
+
+.ap-review-item:last-child {
+  border-bottom: none;
+}
+
+.ap-review-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.ap-review-avatar {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: var(--workspace-icon-primary, var(--accent));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.ap-review-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ap-review-username {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ap-review-stars {
+  display: flex;
+  gap: 2px;
+  font-size: 0.8rem;
+}
+
+.ap-review-stars .fa-star {
+  color: #f6c90e;
+}
+
+.ap-review-stars .far.fa-star {
+  color: var(--text-muted);
+}
+
+.ap-review-date {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.ap-review-title-text {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+
+.ap-review-body {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0 0 6px;
+  line-height: 1.5;
+}
+
+.ap-review-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  color: var(--text-muted);
+  text-align: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.ap-review-empty i {
+  font-size: 2rem;
+  opacity: 0.35;
+}

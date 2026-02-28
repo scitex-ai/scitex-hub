@@ -25,6 +25,9 @@ services:
       # scitex-code for citation_graph module (until published to PyPI)
       - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
 
+      # scitex-container for terminal command building (until published to PyPI)
+      - /home/ywatanabe/proj/scitex-container/src/scitex_container:/usr/local/lib/python3.11/site-packages/scitex_container:ro
+
       # User workspace data directory (must match SCITEX_SLURM_USER_DATA_ROOT for terminal passwd files)
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
 

@@ -1,0 +1,208 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}App Maker: Users — SciTeX Documentation{% endblock %}
+{% block meta_description %}
+    Browse the Apps catalog and create custom apps with the App Maker browser editor.
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container py-2">
+        <header class="minimal-hero" style="text-align: center">
+            <div class="api-hero-header" style="justify-content: center">
+                <h1 class="minimal-hero-title">App Maker: For Users</h1>
+                <div class="api-hero-actions">
+                    <span class="api-version-badge">WIP</span>
+                </div>
+            </div>
+        </header>
+    </div>
+    <div class="container py-2">
+        <!-- Apps -->
+        <span id="apps"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-store"></i> Apps Catalog
+            </h2>
+            <p>
+                The <a href="/apps/">Apps catalog</a> is a catalog of all workspace modules.
+                Users can browse, install, star, review, and reorder modules.
+            </p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Install / Uninstall</strong>
+                        </td>
+                        <td>Add or remove modules from your tab bar</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Enable / Disable</strong>
+                        </td>
+                        <td>Toggle module visibility (built-ins cannot be uninstalled, only disabled)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Reorder</strong>
+                        </td>
+                        <td>Drag to reorder tab positions (syncs across tab bar and apps catalog)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Star</strong>
+                        </td>
+                        <td>Bookmark favorite modules</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Review</strong>
+                        </td>
+                        <td>Rate (1&ndash;5) and comment on modules</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Publish</strong>
+                        </td>
+                        <td>Submit user modules for public listing (requires admin review)</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="margin-top: 1rem">
+                Built-in modules are auto-seeded into the apps catalog on first visit.
+                Categories: writing, visualization, data, analysis, reference, utility.
+            </p>
+        </section>
+        <!-- User Modules -->
+        <span id="user-modules"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-user-cog"></i> User Modules (App Maker)
+            </h2>
+            <p>
+                The <a href="/appmaker/">App Maker</a> lets authenticated users create custom modules
+                from Python source code directly in the browser.
+            </p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>slug</code>
+                        </td>
+                        <td>Unique identifier per user</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>label</code>
+                        </td>
+                        <td>Display name</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>source_code</code>
+                        </td>
+                        <td>Python source (validated for security)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>icon</code>
+                        </td>
+                        <td>FontAwesome icon class</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>category</code>
+                        </td>
+                        <td>writing, visualization, data, analysis, reference, utility</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>visibility</code>
+                        </td>
+                        <td>
+                            <code>private</code>, <code>group</code> (shared with project), <code>public</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>version</code>
+                        </td>
+                        <td>Semantic version string</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>dependencies</code>
+                        </td>
+                        <td>JSON list of required packages</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="margin-top: 1rem">
+                <strong>API endpoints:</strong>
+            </p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Endpoint</th>
+                        <th>Method</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>/appmaker/api/create/</code>
+                        </td>
+                        <td>POST</td>
+                        <td>Create a new module</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>/appmaker/api/&lt;slug&gt;/update/</code>
+                        </td>
+                        <td>POST</td>
+                        <td>Update module source and metadata</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>/appmaker/api/&lt;slug&gt;/run/</code>
+                        </td>
+                        <td>POST</td>
+                        <td>Execute module (sandboxed)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>/appmaker/api/&lt;slug&gt;/delete/</code>
+                        </td>
+                        <td>POST</td>
+                        <td>Soft-delete module</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="api-callout api-callout-info">
+                <i class="fas fa-shield-alt"></i>
+                <div>
+                    User-submitted source code is scanned for forbidden patterns
+                    (<code>os.system</code>, <code>subprocess</code>, <code>eval</code>, <code>exec</code>, <code>open</code>, etc.)
+                    before execution.
+                </div>
+            </div>
+        </section>
+    </div>
+{% endblock %}

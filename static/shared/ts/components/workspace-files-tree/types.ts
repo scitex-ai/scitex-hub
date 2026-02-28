@@ -13,7 +13,7 @@ export type WorkspaceMode =
   | "files"
   | "tools"
   | "example"
-  | "marketplace"
+  | "apps"
   | "explorer"
   | "all";
 
@@ -163,7 +163,7 @@ export const MODE_FILTERS: Record<WorkspaceMode, Partial<FilterConfig>> = {
     allowedExtensions: [],
     hiddenPatterns: ["__pycache__", "node_modules", ".git", ".venv"],
   },
-  marketplace: {
+  apps: {
     allowedExtensions: [],
     hiddenPatterns: ["__pycache__", "node_modules", ".git", ".venv"],
   },
@@ -193,7 +193,7 @@ export const DEFAULT_EXPAND_PATHS: Record<WorkspaceMode, string[]> = {
   files: [],
   tools: [],
   example: [],
-  marketplace: [],
+  apps: [],
   explorer: [],
   all: [],
 };

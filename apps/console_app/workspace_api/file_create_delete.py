@@ -33,6 +33,23 @@ def api_create_file(request):
         if not project.can_edit(request.user):
             return JsonResponse({"error": "Unauthorized"}, status=403)
 
+        # TRIP projects: on-demand SSH file access
+        if project.project_type == "trip":
+            from apps.project_app.services.trip_backend import get_trip_backend
+
+            backend = get_trip_backend(project)
+            if backend.exists(file_path):
+                return JsonResponse({"error": "File already exists"}, status=400)
+            backend.write_file(file_path, content)
+            return JsonResponse(
+                {
+                    "success": True,
+                    "message": "File created successfully",
+                    "path": file_path,
+                    "project_type": "trip",
+                }
+            )
+
         # Get project path (works for both local and remote projects)
         from apps.project_app.services.project_service_manager import (
             ProjectServiceManager,
@@ -92,6 +109,23 @@ def api_delete_file(request):
         # Write access: owner or collaborator with write/admin permission_level
         if not project.can_edit(request.user):
             return JsonResponse({"error": "Unauthorized"}, status=403)
+
+        # TRIP projects: on-demand SSH file access
+        if project.project_type == "trip":
+            from apps.project_app.services.trip_backend import get_trip_backend
+
+            backend = get_trip_backend(project)
+            if not backend.exists(file_path):
+                return JsonResponse({"error": "File/folder not found"}, status=404)
+            backend.delete(file_path)
+            return JsonResponse(
+                {
+                    "success": True,
+                    "message": "Deleted successfully",
+                    "path": file_path,
+                    "project_type": "trip",
+                }
+            )
 
         # Get project path (works for both local and remote projects)
         from apps.project_app.services.project_service_manager import (

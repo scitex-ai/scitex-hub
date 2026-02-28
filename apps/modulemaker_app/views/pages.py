@@ -37,7 +37,7 @@ def editor(request, slug=None):
             UserModule, slug=slug, author=request.user, is_active=True
         )
 
-    from apps.marketplace_app.models import CATEGORY_CHOICES
+    from apps.apps_app.models import CATEGORY_CHOICES
 
     return render(
         request,

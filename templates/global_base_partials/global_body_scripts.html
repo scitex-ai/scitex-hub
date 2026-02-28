@@ -29,9 +29,8 @@
     document.addEventListener('submit', function(e) {
         var form = e.target;
         if (form.tagName !== 'FORM') return;
-        var action = form.getAttribute('action');
         var method = (form.getAttribute('method') || '').toLowerCase();
-        if (action && method === 'post') return;
+        if (method === 'post') return;
         e.preventDefault();
     }, true);
 
@@ -214,6 +213,8 @@
 {% vite_script 'shared/collapsible-panel-click-expand' %}
 <!-- Global Header Scripts (Vite) -->
 {% vite_script 'shared/components/header' %}
+<!-- Footer Collapse Toggle (mirrors header collapse pattern) -->
+{% vite_script 'shared/components/footer-collapse' %}
 <!-- Project Selector (multiple dropdown support) -->
 {% vite_script 'shared/components/project-selector' %}
 <!-- Analytics (module usage tracking) -->
@@ -231,12 +232,14 @@
 {% vite_script 'shared/global-ai-chat' %}
 <!-- Module Tab Switcher (AJAX tab switching for three-col workspace layout) -->
 {% vite_script 'shared/module-tab-switcher' %}
-<!-- Module Reorder (drag-drop ordering, persists to backend, syncs tab bar + marketplace) -->
+<!-- Module Reorder (drag-drop ordering, persists to backend, syncs tab bar + apps) -->
 {% vite_script 'shared/module-reorder' %}
 <!-- Ctrl+P/N input history for all text inputs -->
 {% vite_script 'shared/utils/input-history' %}
 <!-- Module Tab Context Menu (right-click to manage modules) -->
 {% vite_script 'shared/components/module-tab-context-menu' %}
+<!-- Nav Prefetch — preload module pages on hover for instant switching -->
+{% vite_script 'shared/components/nav-prefetch' %}
 <!-- Mobile Notice Banner Dismiss -->
 <script>
     (function() {

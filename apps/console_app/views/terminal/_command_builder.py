@@ -15,6 +15,9 @@ from scitex_container.apptainer import (
     build_dev_pythonpath,
     build_exec_args,
     build_host_mount_binds,
+    build_instance_start_script,
+    build_sbatch_command,
+    build_shell_in_allocation_command,
     build_srun_command,
     is_sandbox,
 )
@@ -36,6 +39,9 @@ __all__ = [
     "build_host_mount_binds",
     "build_apptainer_args",
     "build_srun_command",
+    "build_instance_start_script_cmd",
+    "build_sbatch_cmd",
+    "build_shell_in_allocation_cmd",
 ]
 
 
@@ -68,7 +74,7 @@ def build_srun_cmd(
     screen_session: str = "scitex-0",
 ) -> list[str]:
     """Build ``srun`` + ``apptainer`` command, injecting Django config automatically."""
-    cmd = build_srun_command(
+    return build_srun_command(
         container_path=container_path,
         username=username,
         host_user_dir=host_user_dir,
@@ -83,9 +89,60 @@ def build_srun_cmd(
         slurm_memory_gb=SLURM_MEMORY_GB,
         screen_session=screen_session,
     )
-    # Use full path for screen to avoid PATH issues in login shell
-    cmd = [arg.replace("exec screen ", "exec /usr/bin/screen ") for arg in cmd]
-    return cmd
+
+
+def build_instance_start_script_cmd(
+    container_path: str,
+    username: str,
+    host_user_dir: Path,
+    host_project_dir: Path,
+    project_slug: str,
+    instance_name: str,
+) -> str:
+    """Build instance start script, injecting Django config automatically."""
+    return build_instance_start_script(
+        container_path=container_path,
+        username=username,
+        host_user_dir=host_user_dir,
+        host_project_dir=host_project_dir,
+        project_slug=project_slug,
+        instance_name=instance_name,
+        dev_repos=DEV_REPOS or None,
+        host_mounts=HOST_MOUNTS or None,
+        texlive_prefix=HOST_TEXLIVE_PREFIX,
+    )
+
+
+def build_sbatch_cmd(
+    instance_name: str,
+    script_path: str,
+    username: str = "",
+    project_slug: str = "",
+) -> list[str]:
+    """Build ``sbatch`` command, injecting Django SLURM config automatically."""
+    return build_sbatch_command(
+        instance_name=instance_name,
+        script_path=script_path,
+        slurm_partition=SLURM_PARTITION,
+        slurm_time_limit=SLURM_TIME_LIMIT,
+        slurm_cpus=SLURM_CPUS,
+        slurm_memory_gb=SLURM_MEMORY_GB,
+        username=username,
+        project_slug=project_slug,
+    )
+
+
+def build_shell_in_allocation_cmd(
+    job_id: str,
+    instance_name: str,
+    username: str = "",
+) -> list[str]:
+    """Build ``srun --overlap`` command to attach shell inside existing allocation."""
+    return build_shell_in_allocation_command(
+        job_id=job_id,
+        instance_name=instance_name,
+        username=username,
+    )
 
 
 # EOF

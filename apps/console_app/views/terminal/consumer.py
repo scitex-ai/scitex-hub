@@ -1,23 +1,9 @@
 """
-Real PTY Terminal for Code Workspace
-WebSocket-based interactive terminal with full PTY support
+Real PTY Terminal — WebSocket consumer with full PTY support.
 
-Architecture (preferred - via broker):
-    Django WebSocket → Terminal Broker (Unix Socket) → srun --pty → Apptainer shell
-
-Architecture (fallback - direct, deprecated):
-    Django WebSocket → pty.fork() → srun --pty → Apptainer shell
-
-The broker architecture is preferred because:
-- pty.fork() runs in a separate process, not in Daphne's asyncio loop
-- SIGCHLD handling is clean and reliable
-- No risk of asyncio/signal conflicts that cause deadlocks
-
-Security:
-    - SLURM handles resource isolation (CPU, memory, time)
-    - Apptainer provides container isolation (no root, UID preserved)
-    - Filesystem quotas at OS level
-    - No Docker socket exposure
+Broker (preferred): Django WS → Terminal Broker → srun → Apptainer → bash
+Direct (fallback):  Django WS → pty.fork() → srun → Apptainer → bash
+TRIP/Remote:        Django WS → pty.fork() → ssh → remote bash
 """
 
 import asyncio
@@ -189,6 +175,18 @@ class TerminalConsumer(AsyncWebsocketConsumer):
         else:
             self.speech_group = None
 
+        # TRIP / Remote: SSH directly into remote machine
+        if self.project.project_type == "trip":
+            from .trip_spawn import spawn_trip_ssh
+
+            await spawn_trip_ssh(self)
+            return
+        if self.project.project_type == "remote":
+            from .remote_spawn import spawn_remote_ssh
+
+            await spawn_remote_ssh(self)
+            return
+
         # Try broker first, fall back to direct mode
         if await _check_broker():
             logger.info("Using terminal broker for PTY")
@@ -254,6 +252,16 @@ class TerminalConsumer(AsyncWebsocketConsumer):
                 )
 
             self.broker_client.set_output_callback(on_output)
+
+            # Set session state callback to forward as JSON control messages
+            # Use custom OSC escape so client can distinguish from terminal output
+            def on_session_state(msg: dict):
+                import json
+
+                payload = json.dumps(msg)
+                asyncio.create_task(self.send(text_data=f"\x1b]9997;{payload}\x07"))
+
+            self.broker_client.set_session_state_callback(on_session_state)
 
             session_id = await self.broker_client.spawn(
                 username=username,
@@ -374,6 +382,14 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             if text_data.startswith("resize:"):
                 _, rows, cols = text_data.split(":")
                 await self._resize(int(rows), int(cols))
+            elif text_data == "restart:":
+                if self.use_broker and self.broker_client:
+                    await self.broker_client.restart()
+            elif text_data == "stop_allocation:":
+                if self.use_broker and self.broker_client:
+                    username = self.project.owner.username
+                    project_slug = self.project.slug
+                    await self.broker_client.stop_allocation(username, project_slug)
             else:
                 await self._write_input(text_data.encode("utf-8"))
         except Exception as e:
@@ -443,8 +459,8 @@ class TerminalConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         """Clean up on disconnect.
 
-        Broker mode: Only disconnect the client socket. The screen session
-        continues running inside the container so the user can reattach later.
+        Broker mode: Only disconnect the client socket. The PTY session
+        continues running so the user can reattach later.
 
         Direct mode (fallback): Kill the PTY process (no persistence).
         """
@@ -453,7 +469,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_discard(self.speech_group, self.channel_name)
 
         if self.use_broker and self.broker_client:
-            # Broker mode: detach only — screen session persists for reattach
+            # Broker mode: detach only — session persists for reattach
             await self.broker_client.disconnect_only()
             self.broker_client = None
         else:

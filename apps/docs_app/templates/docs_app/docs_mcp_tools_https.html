@@ -1,0 +1,137 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}MCP Tools (Https) — SciTeX Documentation{% endblock %}
+{% block meta_description %}
+    Connect to {{ mcp_tool_count }}+ hosted MCP tools at scitex.ai: plotting, statistics, literature, LaTeX, and more.
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container py-2">
+        <header class="minimal-hero" style="text-align: center">
+            <div class="api-hero-header" style="justify-content: center">
+                <h1 class="minimal-hero-title">MCP Tools (Https)</h1>
+                <div class="api-hero-actions">
+                    <span class="api-version-badge">{{ mcp_tool_count }}+ tools</span>
+                </div>
+            </div>
+        </header>
+    </div>
+    <div class="container py-2">
+        {% include "docs_app/partials/mcp_shared_style.html" %}
+        <!-- Overview -->
+        <span id="overview"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-cloud"></i> Overview
+            </h2>
+            <p>
+                SciTeX exposes a hosted <strong>Model Context Protocol (MCP)</strong> server at
+                <code>https://scitex.ai/mcp</code>.
+                Connect any MCP-compatible AI client — Claude Desktop, Claude Code, or your own agent —
+                to get direct access to {{ mcp_tool_count|default:"200+" }} scientific tools without local installation.
+            </p>
+            <div class="api-callout api-callout-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>Requires an API key</strong> with <em>MCP tools</em> or <em>Full Access</em> scope.
+                    Generate one at <a href="/accounts/settings/api-keys/">Settings &rarr; API Keys</a>.
+                </div>
+            </div>
+        </section>
+        <!-- Client Setup -->
+        <span id="connect"></span><span id="client-setup"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-plug"></i> Client Setup
+            </h2>
+            <p>
+                Connect to the hosted MCP server at <code>https://scitex.ai/mcp</code>.
+                Requires an <a href="/accounts/settings/api-keys/">API key</a>.
+            </p>
+            <h4>
+                Claude Desktop / Claude Code (<code>claude_desktop_config.json</code>)
+            </h4>
+            <div class="code-block">
+                <div class="code-header">
+                    <span>JSON</span>
+                </div>
+                <pre><code>{
+  "mcpServers": {
+    "scitex": {
+      "type": "streamable-http",
+      "url": "https://scitex.ai/mcp",
+      "headers": { "Authorization": "Bearer YOUR_API_KEY" }
+    }
+  }
+}</code></pre>
+            </div>
+            <h4>Python (fastmcp client)</h4>
+            <div class="code-block">
+                <div class="code-header">
+                    <span>Python</span>
+                </div>
+                <pre><code>from fastmcp import Client
+async with Client(
+    "https://scitex.ai/mcp",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+) as client:
+    tools = await client.list_tools()
+    result = await client.call_tool("stats_run_test", {
+        "test_name": "ttest_ind",
+        "data": [[1, 2, 3], [4, 5, 6]],
+    })
+    print(result)</code></pre>
+            </div>
+        </section>
+        <!-- Authentication -->
+        <span id="authentication"></span><span id="auth"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-lock"></i> Authentication
+            </h2>
+            <p>
+                All requests to <code>/mcp</code> require a Bearer token in the <code>Authorization</code> header.
+            </p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Header</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>Authorization</code>
+                        </td>
+                        <td>
+                            <code>Bearer YOUR_API_KEY</code>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <h4>Required Scope</h4>
+            <p>
+                The API key must have the <code>mcp</code> scope or <code>*</code> (Full Access).
+                Keys with only <code>project:read</code> or <code>scholar:read</code> will be rejected
+                with <code>401 Unauthorized</code>.
+            </p>
+            <div class="api-callout api-callout-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    <strong>Keep your key secret.</strong>
+                    API keys are shown only once at creation. If compromised, deactivate or delete it from
+                    <a href="/accounts/settings/api-keys/">Settings &rarr; API Keys</a>.
+                </div>
+            </div>
+        </section>
+        <!-- Available Tools -->
+        <span id="available-tools"></span><span id="tools"></span>
+        {% include "docs_app/partials/mcp_available_tools.html" %}
+    </div>
+{% endblock %}

@@ -1,0 +1,7 @@
+{# Fragment base for AJAX content loading — renders CSS + content only #}
+<template style="display:none">
+    {% block title %}{% endblock %}
+    {% block meta_description %}{% endblock %}
+</template>
+{% block extra_css %}{% endblock %}
+{% block content %}{% endblock %}

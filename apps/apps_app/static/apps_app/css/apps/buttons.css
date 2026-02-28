@@ -1,0 +1,241 @@
+/* Apps — button styles: action, install, star, toggle */
+
+/* Primary action buttons (detail page, my_modules) */
+.ap-btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  background-color: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.05));
+  color: var(--text-primary);
+  cursor: pointer;
+  border-radius: 0;
+  text-decoration: none;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+
+.ap-btn-action:hover {
+  background-color: var(--workspace-bg-tertiary, rgba(255, 255, 255, 0.1));
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.ap-btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ap-btn-primary {
+  background-color: var(--workspace-icon-primary, var(--accent));
+  border-color: var(--workspace-icon-primary, var(--accent));
+  color: #fff;
+}
+
+.ap-btn-primary:hover {
+  background-color: var(--workspace-icon-primary, var(--accent));
+  filter: brightness(1.15);
+  color: #fff;
+}
+
+.ap-btn-secondary {
+  background-color: transparent;
+  border-color: var(--workspace-border-default, var(--border-color));
+  color: var(--text-muted);
+}
+
+.ap-btn-danger {
+  background-color: transparent;
+  border-color: #fc8181;
+  color: #fc8181;
+}
+
+.ap-btn-danger:hover {
+  background-color: rgba(252, 129, 129, 0.1);
+  color: #fc8181;
+}
+
+.ap-btn-sm {
+  padding: 3px 7px;
+  font-size: 0.75rem;
+}
+
+/* Card-level install button */
+.ap-btn-install {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  border: 1px solid var(--workspace-icon-primary, var(--accent));
+  background-color: var(--workspace-icon-primary, var(--accent));
+  color: #fff;
+  cursor: pointer;
+  border-radius: 0;
+  text-decoration: none;
+  transition: filter 0.15s;
+}
+
+.ap-btn-install:hover {
+  filter: brightness(1.15);
+  text-decoration: none;
+  color: #fff;
+}
+
+.ap-btn-install:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ap-btn-login {
+  background-color: transparent;
+  border-color: var(--workspace-border-default, var(--border-color));
+  color: var(--text-muted);
+}
+
+.ap-btn-login:hover {
+  filter: none;
+  color: var(--text-primary);
+}
+
+/* Status dropdown (Installed/Disabled badge → menu) */
+.ap-status-dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+.ap-status-trigger {
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.ap-status-trigger .ap-caret {
+  font-size: 0.6rem;
+  margin-left: 3px;
+  opacity: 0.5;
+}
+
+.ap-status-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  white-space: nowrap;
+  background: var(--workspace-bg-secondary, #151515);
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  z-index: 50;
+  padding: 4px 0;
+}
+
+.ap-status-dropdown.open .ap-status-menu {
+  display: block;
+}
+
+.ap-status-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 5px 14px;
+  font-size: 0.78rem;
+  color: var(--text-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.ap-status-item:hover {
+  background: var(--workspace-bg-tertiary, rgba(255, 255, 255, 0.06));
+}
+
+.ap-status-item--danger {
+  color: #fc8181;
+}
+
+.ap-status-item--danger:hover {
+  background: rgba(252, 129, 129, 0.1);
+}
+
+/* Legacy: card-level toggle & uninstall buttons */
+.ap-installed-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ap-btn-toggle,
+.ap-btn-uninstall {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background-color: transparent;
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 0;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background-color 0.15s;
+  font-size: 0.78rem;
+  padding: 0;
+}
+
+.ap-btn-toggle:hover {
+  color: #f6ad55;
+  border-color: #f6ad55;
+  background-color: rgba(246, 173, 85, 0.1);
+}
+
+.ap-btn-uninstall:hover {
+  color: #fc8181;
+  border-color: #fc8181;
+  background-color: rgba(252, 129, 129, 0.1);
+}
+
+.ap-btn-toggle:disabled,
+.ap-btn-uninstall:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Card-level star button */
+.ap-btn-star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background-color: transparent;
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 0;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+  font-size: 0.85rem;
+  padding: 0;
+}
+
+.ap-btn-star:hover,
+.ap-btn-star--active {
+  color: #f6c90e;
+  border-color: #f6c90e;
+}
+
+.ap-btn-star:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
