@@ -230,3 +230,167 @@
     margin-bottom: var(--spacing-sm);
   }
 }
+
+/* =========================
+   Four-Column Grid (from footer template)
+   ========================= */
+
+.footer-4-columns {
+  display: grid;
+  grid-template-columns: 2fr 1fr 2fr 1fr;
+  gap: 40px;
+}
+
+.footer-links-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 20px;
+}
+
+/* =========================
+   Footer Brand
+   ========================= */
+
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer-logo img {
+  width: 40px;
+  height: 40px;
+}
+
+.footer-logo h3 {
+  margin: 0;
+}
+
+.footer-tagline {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* =========================
+   Footer Contact & Copyright
+   ========================= */
+
+.footer-contact {
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.footer-contact a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.footer-contact a:hover {
+  color: var(--color-accent-fg);
+}
+
+.footer-contact i {
+  margin-right: 6px;
+  opacity: 0.7;
+}
+
+.footer-copyright {
+  font-size: 0.75rem;
+  color: var(--text-tertiary, var(--text-secondary));
+  margin: 0;
+  margin-top: auto;
+}
+
+/* =========================
+   Footer Dev Tools Bar
+   ========================= */
+
+.footer-dev-tools {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px 16px;
+  background: transparent;
+  border-top: 1px solid var(--border-muted, rgba(128, 128, 128, 0.2));
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.footer-dev-tools:hover {
+  opacity: 1;
+}
+
+.dev-tools-label {
+  font-weight: 500;
+  color: var(--text-muted, #888);
+}
+
+.dev-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid var(--border-muted, rgba(128, 128, 128, 0.3));
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text-muted, #888);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dev-tool-btn:hover {
+  background: var(--bg-secondary, rgba(128, 128, 128, 0.1));
+  color: var(--text-primary, #333);
+}
+
+.dev-tool-btn i {
+  font-size: 0.65rem;
+}
+
+/* =========================
+   Responsive (Four-Column)
+   ========================= */
+
+@media (max-width: 992px) {
+  .footer-4-columns {
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 30px;
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
+
+  .footer-links-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 576px) {
+  .footer-4-columns {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
+    text-align: center;
+  }
+
+  .footer-logo {
+    justify-content: center;
+  }
+
+  .footer-social {
+    justify-content: center;
+  }
+}

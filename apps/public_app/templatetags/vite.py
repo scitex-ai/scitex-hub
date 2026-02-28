@@ -186,6 +186,8 @@ def _entry_to_ts_path(entry_name: str) -> str:
         "accounts_app/account-settings": "apps/accounts_app/static/accounts_app/ts/account-settings.ts",
         "accounts_app/ssh_keys": "apps/accounts_app/static/accounts_app/ts/ssh_keys.ts",
         "accounts_app/remote_credentials": "apps/accounts_app/static/accounts_app/ts/remote_credentials.ts",
+        # Docs app
+        "docs_app/rtd-embed": "apps/docs_app/static/docs_app/ts/rtd-embed.ts",
         # Social app
         "social_app/explore-inline": "apps/social_app/static/social_app/ts/explore-inline.ts",
         # Scholar app - additional
@@ -230,6 +232,7 @@ def _entry_to_ts_path(entry_name: str) -> str:
         "shared/utils/highlight-js-bibtex": "static/shared/ts/utils/highlight-js-bibtex.ts",
         "shared/workspace-panel-resizer": "static/shared/ts/components/workspace-panel-resizer.ts",
         "shared/collapsible-panel-click-expand": "static/shared/ts/components/collapsible-panel-click-expand.ts",
+        "shared/components/footer-collapse": "static/shared/ts/components/footer-collapse.ts",
         "shared/utils/analytics": "static/shared/ts/utils/analytics.ts",
         "shared/utils/visitor-heartbeat": "static/shared/ts/utils/visitor-heartbeat.ts",
         "shared/components/product-tour": "static/shared/ts/components/product-tour.ts",

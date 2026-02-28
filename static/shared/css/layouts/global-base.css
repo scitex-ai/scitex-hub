@@ -126,7 +126,11 @@ body.workspace-page #main-content .unified-workspace-outer {
 }
 
 body.workspace-page .site-footer {
-  display: none; /* Hide footer completely for workspace pages (Code, Vis, Writer) */
+  display: block;
+  margin-top: 0;
+  overflow: hidden;
+  transition: height 0.3s ease;
+  flex-shrink: 0;
 }
 
 /* =========================

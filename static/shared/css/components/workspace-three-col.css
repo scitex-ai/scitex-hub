@@ -20,7 +20,8 @@
   background: var(--bg-primary, #0d1117);
 }
 
-/* When global header is collapsed (6px), reclaim its space */
+/* When global header is collapsed (6px), reclaim its space.
+   Footer-specific overrides are in footer-collapse.css. */
 .global-header.collapsed ~ .workspace-three-col {
   height: calc(100vh - 6px);
 }

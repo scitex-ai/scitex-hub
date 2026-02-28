@@ -25,7 +25,7 @@
         {% include 'global_base_partials/global_header.html' %}
         <!-- Header Collapse Toggle (OUTSIDE header for CSS sibling selector) -->
         <button id="header-collapse-toggle"
-                class="header-collapse-toggle panel-toggle-btn"
+                class="header-collapse-toggle"
                 data-tooltip="Toggle header"
                 aria-label="Toggle header collapse">
             <i class="fas fa-chevron-up"></i>
@@ -63,6 +63,15 @@
                 {% block content %}{% endblock %}
             </main>
         </div>
+        <!-- Footer Collapse Toggle (OUTSIDE footer for body-class-based CSS) -->
+        {% if workspace_has_panes and user.is_authenticated %}
+            <button id="footer-collapse-toggle"
+                    class="footer-collapse-toggle"
+                    data-tooltip="Toggle footer"
+                    aria-label="Toggle footer collapse">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        {% endif %}
         {% include 'global_base_partials/global_footer.html' %}
         {% if not is_workspace_page %}
             {% include 'global_base_partials/global_ai_panel.html' %}
