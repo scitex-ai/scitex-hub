@@ -160,7 +160,7 @@
 #ws-apps-sidebar {
   position: relative;
   height: 100%;
-  width: 40px;
+  width: 56px;
   background: var(--bg-secondary, #161b22);
   border-right: 1px solid var(--border-default, #30363d);
   overflow-y: auto;
@@ -182,9 +182,11 @@
 
 .ws-apps-nav-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 10px 0;
+  gap: 4px;
+  padding: 8px 2px;
   border: none;
   border-radius: 0;
   background: transparent;
@@ -216,6 +218,18 @@
   min-width: 16px;
   text-align: center;
   font-size: 14px;
+}
+
+.ws-apps-nav-label {
+  font-size: 9px;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 48px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
 /* ============================================================

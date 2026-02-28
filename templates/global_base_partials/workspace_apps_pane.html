@@ -8,8 +8,8 @@
                  data-panel-resizer
                  data-target="#ws-apps-sidebar"
                  data-direction="left"
-                 data-min-width="40"
-                 data-default-width="40"
+                 data-min-width="56"
+                 data-default-width="56"
                  data-fixed-width
                  data-storage-key="ws-apps-width"
                  style="position:absolute;
@@ -24,7 +24,7 @@
                        class="ws-apps-nav-item module-tab-btn{% if mod.is_active %} active{% endif %}"
                        data-module="{{ mod.name }}"
                        aria-label="{{ mod.label }}"
-                       title="{{ mod.label }}">{% module_icon mod.name %}</a>
+                       title="{{ mod.label }}">{% module_icon mod.name %}<span class="ws-apps-nav-label">{{ mod.label }}</span></a>
                 {% endfor %}
             </nav>
         </div>

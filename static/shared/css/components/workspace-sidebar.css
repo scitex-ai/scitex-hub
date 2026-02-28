@@ -154,20 +154,25 @@
   display: none;
 }
 
-/* Show sidebar title as icon-only when collapsed, top-aligned. */
+/* Show sidebar title with icon + label when collapsed, stacked vertically. */
 .workspace-sidebar.collapsed .sidebar-title {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  font-size: 0; /* hide text */
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text-secondary, #8ba7b8);
   margin: 8px 0 0;
+  white-space: nowrap;
+  line-height: 1;
 }
 
-/* Icon visible, top-aligned, rotated to match collapsed orientation */
+/* Icon visible, top-aligned */
 .workspace-sidebar.collapsed .sidebar-title i {
   display: block;
   font-size: 14px;
   color: var(--text-secondary, #8ba7b8);
-  transform: rotate(0deg);
 }
 
 .workspace-sidebar.collapsed .sidebar-toggle,
