@@ -1,0 +1,286 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}Python Packages — SciTeX Documentation{% endblock %}
+{% block content %}
+    <div class="container py-5" style="max-width: 900px">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'docs_app:index' %}">Documentation</a>
+                </li>
+                <li class="breadcrumb-item active">Python Packages</li>
+            </ol>
+        </nav>
+        <h1 class="mb-4">
+            <i class="fab fa-python me-2"></i>Python Packages
+        </h1>
+        <p class="lead text-muted mb-5">The SciTeX ecosystem of Python packages for scientific research automation.</p>
+        <!-- Ecosystem Diagram -->
+        <span id="overview"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-project-diagram"></i> Ecosystem Overview
+            </h2>
+            <div class="card mt-3">
+                <div class="card-body" style="text-align: center">
+                    <img src="{% static 'public_app/images/workflow.svg' %}"
+                         alt="SciTeX Ecosystem Overview"
+                         style="max-width: 600px;
+                                width: 100%;
+                                height: auto;
+                                border-radius: 4px"
+                         loading="lazy" />
+                </div>
+            </div>
+        </section>
+        <!-- Core Packages -->
+        <span id="packages"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fab fa-python"></i> Core Packages
+            </h2>
+            <div class="card mt-3">
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-3">Package</th>
+                                <th>Module</th>
+                                <th>Version</th>
+                                <th>Description</th>
+                                <th class="text-center">Links</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="ps-3">
+                                    <strong>scitex</strong>
+                                </td>
+                                <td>
+                                    <code>scitex</code>
+                                </td>
+                                <td>
+                                    <code>{{ ecosystem_versions.scitex|default:"—" }}</code>
+                                </td>
+                                <td>Main Python package with unified API for scientific research</td>
+                                <td class="text-center text-nowrap">
+                                    <a href="https://github.com/ywatanabe1989/scitex-python"
+                                       target="_blank"
+                                       title="GitHub"><i class="fab fa-github me-2"></i></a>
+                                    <a href="https://scitex-python.readthedocs.io" target="_blank" title="Docs"><i class="fas fa-book"></i></a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ps-3">
+                                    <strong>scitex-cloud</strong>
+                                </td>
+                                <td>
+                                    <code>scitex.cloud</code>
+                                </td>
+                                <td>
+                                    <code>{{ SCITEX_CLOUD_VERSION|default:"—" }}</code>
+                                </td>
+                                <td>Django web application (this site)</td>
+                                <td class="text-center text-nowrap">
+                                    <a href="https://github.com/ywatanabe1989/scitex-cloud"
+                                       target="_blank"
+                                       title="GitHub"><i class="fab fa-github me-2"></i></a>
+                                    <a href="https://scitex-cloud.readthedocs.io" target="_blank" title="Docs"><i class="fas fa-book"></i></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <!-- Standalone Packages -->
+        <span id="standalone"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-cubes"></i> Standalone Packages
+            </h2>
+            <p>
+                Each standalone package can be installed independently or accessed
+                through the main <code>scitex</code> package.
+            </p>
+            <div class="card mt-3">
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-3">Package</th>
+                                <th>Module</th>
+                                <th>Version</th>
+                                <th>Description</th>
+                                <th class="text-center">Links</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="ps-3">
+                                    <strong>figrecipe</strong>
+                                </td>
+                                <td>
+                                    <code>scitex.plt</code>
+                                </td>
+                                <td>
+                                    <code>{{ ecosystem_versions.figrecipe|default:"—" }}</code>
+                                </td>
+                                <td>Publication-ready matplotlib figures with auto CSV export</td>
+                                <td class="text-center text-nowrap">
+                                    <a href="https://github.com/ywatanabe1989/figrecipe"
+                                       target="_blank"
+                                       title="GitHub"><i class="fab fa-github me-2"></i></a>
+                                    <a href="https://figrecipe.readthedocs.io" target="_blank" title="Docs"><i class="fas fa-book"></i></a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ps-3">
+                                    <strong>scitex-writer</strong>
+                                </td>
+                                <td>
+                                    <code>scitex.writer</code>
+                                </td>
+                                <td>
+                                    <code>{{ ecosystem_versions.scitex_writer|default:"—" }}</code>
+                                </td>
+                                <td>LaTeX manuscript compilation with journal templates</td>
+                                <td class="text-center text-nowrap">
+                                    <a href="https://github.com/ywatanabe1989/scitex-writer"
+                                       target="_blank"
+                                       title="GitHub"><i class="fab fa-github me-2"></i></a>
+                                    <a href="https://scitex-writer.readthedocs.io" target="_blank" title="Docs"><i class="fas fa-book"></i></a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ps-3">
+                                    <strong>scitex-dataset</strong>
+                                </td>
+                                <td>
+                                    <code>scitex.dataset</code>
+                                </td>
+                                <td>
+                                    <code>{{ ecosystem_versions.scitex_dataset|default:"—" }}</code>
+                                </td>
+                                <td>Scientific dataset search across OpenNeuro, DANDI, PhysioNet</td>
+                                <td class="text-center text-nowrap">
+                                    <a href="https://github.com/ywatanabe1989/scitex-dataset"
+                                       target="_blank"
+                                       title="GitHub"><i class="fab fa-github me-2"></i></a>
+                                    <a href="https://scitex-dataset.readthedocs.io" target="_blank" title="Docs"><i class="fas fa-book"></i></a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ps-3">
+                                    <strong>scitex-linter</strong>
+                                </td>
+                                <td>
+                                    <code>scitex.linter</code>
+                                </td>
+                                <td>
+                                    <code>{{ ecosystem_versions.scitex_linter|default:"—" }}</code>
+                                </td>
+                                <td>SciTeX coding style linter for Python scripts</td>
+                                <td class="text-center text-nowrap">
+                                    <a href="https://github.com/ywatanabe1989/scitex-linter"
+                                       target="_blank"
+                                       title="GitHub"><i class="fab fa-github me-2"></i></a>
+                                    <a href="https://scitex-linter.readthedocs.io" target="_blank" title="Docs"><i class="fas fa-book"></i></a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ps-3">
+                                    <strong>crossref-local</strong>
+                                </td>
+                                <td>
+                                    <code>scitex.scholar.crossref_scitex</code>
+                                </td>
+                                <td>
+                                    <code>{{ ecosystem_versions.crossref_local|default:"—" }}</code>
+                                </td>
+                                <td>Local CrossRef database (167M+ papers)</td>
+                                <td class="text-center text-nowrap">
+                                    <a href="https://github.com/ywatanabe1989/crossref-local"
+                                       target="_blank"
+                                       title="GitHub"><i class="fab fa-github me-2"></i></a>
+                                    <a href="https://crossref-local.readthedocs.io" target="_blank" title="Docs"><i class="fas fa-book"></i></a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ps-3">
+                                    <strong>openalex-local</strong>
+                                </td>
+                                <td>
+                                    <code>scitex.scholar.openalex_scitex</code>
+                                </td>
+                                <td>
+                                    <code>{{ ecosystem_versions.openalex_local|default:"—" }}</code>
+                                </td>
+                                <td>Local OpenAlex database (250M+ papers)</td>
+                                <td class="text-center text-nowrap">
+                                    <a href="https://github.com/ywatanabe1989/openalex-local"
+                                       target="_blank"
+                                       title="GitHub"><i class="fab fa-github me-2"></i></a>
+                                    <a href="https://openalex-local.readthedocs.io" target="_blank" title="Docs"><i class="fas fa-book"></i></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <!-- Installation -->
+        <span id="installation"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-download"></i> Installation
+            </h2>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <strong>Main package (includes all sub-modules)</strong>
+                </div>
+                <div class="card-body">
+                    <pre data-language="bash"><code class="language-bash">pip install scitex</code></pre>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <strong>Standalone packages</strong>
+                </div>
+                <div class="card-body">
+                    <pre data-language="bash"><code class="language-bash">pip install figrecipe          # Publication-ready figures
+pip install scitex-writer      # LaTeX manuscript compilation
+pip install scitex-dataset     # Scientific dataset search
+pip install scitex-linter      # Coding style linter
+pip install crossref-local     # Local CrossRef database
+pip install openalex-local     # Local OpenAlex database</code></pre>
+                </div>
+            </div>
+        </section>
+        <!-- Quick Start -->
+        <span id="quick-start"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-bolt"></i> Quick Start
+            </h2>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre data-language="python"><code class="language-python">import scitex as stx
+@stx.session
+def main(
+    param1="default",      # Auto-CLI: --param1
+    CONFIG=stx.INJECTED,   # Auto-injected config
+    plt=stx.INJECTED,      # Pre-configured matplotlib
+    logger=stx.INJECTED,   # Session logger
+):
+    """Docstring becomes --help description."""
+    # Outputs auto-organized: script_out/FINISHED_SUCCESS/&lt;session_id&gt;/
+    stx.io.save(results, "results.csv")
+    return 0</code></pre>
+                </div>
+            </div>
+        </section>
+    </div>
+{% endblock %}

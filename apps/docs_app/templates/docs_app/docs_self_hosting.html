@@ -1,0 +1,713 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}Self-Hosting Guide — SciTeX{% endblock %}
+{% block meta_description %}
+    Deploy your own SciTeX Cloud instance — a complete research platform with literature management, manuscript writing, visualization, and AI agent support.
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container py-2">
+        <header class="minimal-hero" style="text-align: center">
+            <div class="api-hero-header" style="justify-content: center">
+                <h1 class="minimal-hero-title">Self-Hosting Guide</h1>
+                <div class="api-hero-actions">
+                    <span class="api-version-badge">Docker + Apptainer</span>
+                </div>
+            </div>
+        </header>
+    </div>
+    <div class="container py-2">
+        <!-- What You Get -->
+        <span id="what-you-get"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-box-open"></i> What You Get
+            </h2>
+            <p>
+                SciTeX Cloud is a self-hostable research platform.
+                One <code>make start</code> gives you a full Django application with:
+            </p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Module</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Scholar</strong>
+                        </td>
+                        <td>Literature search across CrossRef, PubMed, arXiv, and OpenAlex. BibTeX management and citation tracking.</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Writer</strong>
+                        </td>
+                        <td>LaTeX manuscript editor with BibTeX integration, figure/table management, and IMRAD templates.</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Vis</strong>
+                        </td>
+                        <td>Data visualization and interactive figure editing.</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Console</strong>
+                        </td>
+                        <td>Web-based terminal for running Python and Bash in isolated Apptainer containers via SLURM.</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Hub</strong>
+                        </td>
+                        <td>
+                            Project file browser with GitHub-style <code>/username/project/</code> URLs, backed by Gitea.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Research Tools</strong>
+                        </td>
+                        <td>Statistics, PDF manipulation, citation scraping, QR generation, and more.</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>MCP Server</strong>
+                        </td>
+                        <td>
+                            200+ tools for AI agents (Claude, Cursor, etc.) to search literature, manage citations, generate figures, and run statistics.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- Architecture -->
+        <span id="architecture"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-layer-group"></i> Architecture
+            </h2>
+            <p>Docker Compose orchestrates all services. Only one environment (dev/staging/prod) runs at a time.</p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Image</th>
+                        <th>Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Django</strong>
+                        </td>
+                        <td>scitex-cloud-dev-django</td>
+                        <td>Web application, REST API, WebSocket (Daphne ASGI in prod)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>PostgreSQL</strong>
+                        </td>
+                        <td>postgres:15-alpine</td>
+                        <td>Primary database for all application data</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>PgBouncer</strong>
+                        </td>
+                        <td>edoburu/pgbouncer</td>
+                        <td>Connection pooling proxy (production)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Redis</strong>
+                        </td>
+                        <td>redis:7-alpine</td>
+                        <td>Cache, Celery broker, WebSocket channel layer</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Celery Worker</strong>
+                        </td>
+                        <td>Same as Django</td>
+                        <td>Async tasks: AI, search, compute, vis queues (concurrency=4)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Celery Beat</strong>
+                        </td>
+                        <td>Same as Django</td>
+                        <td>Periodic task scheduler (django_celery_beat)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Flower</strong>
+                        </td>
+                        <td>Same as Django</td>
+                        <td>Celery monitoring dashboard (dev only)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Gitea</strong>
+                        </td>
+                        <td>gitea/gitea:latest</td>
+                        <td>Self-hosted Git server for project repositories</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Nginx</strong>
+                        </td>
+                        <td>nginx</td>
+                        <td>Reverse proxy, static files, gzip (production)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Umami</strong>
+                        </td>
+                        <td>ghcr.io/umami-software</td>
+                        <td>Privacy-focused analytics (no external tracking)</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="margin-top: 1rem">Optional local databases for offline paper search:</p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Database</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>CrossRef Local</strong>
+                        </td>
+                        <td>167M+ papers in a local SQLite database. Fast, offline metadata search with citation graph analysis.</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>OpenAlex Local</strong>
+                        </td>
+                        <td>284M+ scholarly works with full-text search, abstracts, and impact factors.</td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- Infrastructure Diagram -->
+            <div style="margin-top: 1.5rem; text-align: center">
+                <img src="{% static 'public_app/images/architecture/ARCHITECTURE_02.svg' %}"
+                     alt="Infrastructure Deployment Diagram"
+                     style="max-width: 100%;
+                            border-radius: 8px"
+                     loading="lazy" />
+            </div>
+        </section>
+        <!-- Quick Start -->
+        <span id="quick-start"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-rocket"></i> Quick Start
+            </h2>
+            <p>Three commands to get everything running:</p>
+            <pre><code>git clone https://github.com/ywatanabe1989/scitex-cloud.git
+cd scitex-cloud
+make start</code></pre>
+            <div class="api-callout api-callout-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    Access at <a href="http://localhost:8000">localhost:8000</a>.
+                    Test user: <code>test-user</code> / <code>Password123!</code>
+                </div>
+            </div>
+        </section>
+        <!-- Prerequisites -->
+        <span id="prerequisites"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-clipboard-check"></i> Prerequisites
+            </h2>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Requirement</th>
+                        <th>Version</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Linux, macOS, or Windows (WSL2)</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>Docker with Docker Compose v2</td>
+                        <td>24.0+</td>
+                    </tr>
+                    <tr>
+                        <td>Git</td>
+                        <td>2.30+</td>
+                    </tr>
+                    <tr>
+                        <td>RAM</td>
+                        <td>4 GB min (8 GB recommended)</td>
+                    </tr>
+                    <tr>
+                        <td>Apptainer (for Console terminal)</td>
+                        <td>1.2+ (optional)</td>
+                    </tr>
+                    <tr>
+                        <td>SLURM (for job scheduling)</td>
+                        <td>24.05+ (optional)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- Development Setup -->
+        <span id="dev-setup"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-code"></i> Development Setup
+            </h2>
+            <p>
+                <strong>1. Clone and configure</strong>
+            </p>
+            <pre><code>git clone https://github.com/ywatanabe1989/scitex-cloud.git
+cd scitex-cloud
+cp deployment/docker/envs/.env.example deployment/docker/docker_dev/.env</code></pre>
+            <p>
+                <strong>2. Set secret key</strong> (edit <code>.env</code>)
+            </p>
+            <pre><code>SCITEX_CLOUD_DJANGO_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')
+SCITEX_CLOUD_POSTGRES_PASSWORD=your-dev-password</code></pre>
+            <p>
+                <strong>3. Start services</strong>
+            </p>
+            <pre><code>make ENV=dev start
+make status</code></pre>
+            <div class="api-callout api-callout-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    Development mode includes hot-reload for Python, TypeScript, and templates. Changes reflect immediately without rebuilding.
+                </div>
+            </div>
+        </section>
+        <!-- Production Setup -->
+        <span id="prod-setup"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-server"></i> Production Setup
+            </h2>
+            <p>For deploying on a home server, NAS, or VPS:</p>
+            <p>
+                <strong>1. Prepare the host</strong>
+            </p>
+            <pre><code># Create scitex system user (UID 1000)
+sudo deployment/host-setup/scripts/create-scitex-user.sh
+
+# Validate host readiness
+make ENV=prod check-host</code></pre>
+            <p>
+                <strong>2. Create production environment</strong>
+            </p>
+            <pre><code>cp deployment/docker/envs/.env.example deployment/docker/docker_prod/.env</code></pre>
+            <p>
+                <strong>3. Configure for production</strong> (edit <code>.env</code>)
+            </p>
+            <pre><code>DEBUG=False
+SCITEX_CLOUD_DOMAIN=scitex.example.com
+SCITEX_CLOUD_SITE_URL=https://scitex.example.com
+SCITEX_CLOUD_ENABLE_SSL_REDIRECT=true
+SCITEX_CLOUD_DJANGO_SECRET_KEY=your-strong-secret-key</code></pre>
+            <p>
+                <strong>4. Build and start</strong>
+            </p>
+            <pre><code>make ENV=prod build
+make ENV=prod start
+make status</code></pre>
+            <div class="api-callout api-callout-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    Production uses Daphne (ASGI) behind Nginx, with PgBouncer for database connection pooling. Only one environment runs at a time &mdash; starting prod stops dev automatically.
+                </div>
+            </div>
+        </section>
+        <!-- Environment Configuration -->
+        <span id="environment"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-cog"></i> Environment Configuration
+            </h2>
+            <p>
+                The <code>.env.example</code> template contains 270+ configurable variables.
+                Copy it to <code>deployment/docker/docker_{dev,prod}/.env</code> and customize.
+            </p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Key Variables</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Server</strong>
+                        </td>
+                        <td>
+                            <code>SCITEX_CLOUD_DOMAIN</code>, <code>SCITEX_CLOUD_SITE_URL</code>, <code>SCITEX_CLOUD_ALLOWED_HOSTS</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Database</strong>
+                        </td>
+                        <td>
+                            <code>SCITEX_CLOUD_POSTGRES_DB</code>, <code>SCITEX_CLOUD_POSTGRES_USER</code>, <code>SCITEX_CLOUD_POSTGRES_PASSWORD</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Email</strong>
+                        </td>
+                        <td>
+                            <code>SCITEX_CLOUD_EMAIL_HOST</code>, <code>SCITEX_CLOUD_EMAIL_PORT</code>, <code>SCITEX_CLOUD_EMAIL_USE_TLS</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Gitea</strong>
+                        </td>
+                        <td>
+                            <code>SCITEX_CLOUD_GITEA_URL_DEV</code>, <code>SCITEX_CLOUD_GITEA_ADMIN_USERNAME</code>, <code>SCITEX_CLOUD_GITEA_TOKEN_DEV</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Scholar</strong>
+                        </td>
+                        <td>
+                            <code>SCITEX_SCHOLAR_ENGINES</code>, <code>SCITEX_SCHOLAR_CROSSREF_EMAIL</code>, <code>SCITEX_SCHOLAR_MAX_WORKERS</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>SLURM</strong>
+                        </td>
+                        <td>
+                            <code>SCITEX_CLOUD_SLURM_HOST</code>, <code>SCITEX_CLOUD_SLURM_CONTAINER_PATH</code>, <code>SCITEX_CLOUD_USER_DATA_ROOT</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Quotas</strong>
+                        </td>
+                        <td>
+                            <code>SCITEX_CLOUD_QUOTA_SLURM_MAX_CONCURRENT_JOBS</code>, <code>SCITEX_CLOUD_QUOTA_STORAGE_TOTAL_GB</code>, <code>SCITEX_CLOUD_QUOTA_MAX_PROJECTS</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>OAuth</strong>
+                        </td>
+                        <td>
+                            <code>SCITEX_CLOUD_GOOGLE_CLIENT_ID</code>, <code>SCITEX_CLOUD_ORCID_CLIENT_ID</code>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- Ports & Services -->
+        <span id="ports"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-network-wired"></i> Ports &amp; Services
+            </h2>
+            <p>Default port assignments for development:</p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Port</th>
+                        <th>Service</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>8000</code>
+                        </td>
+                        <td>Django</td>
+                        <td>Main web application</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>5433</code>
+                        </td>
+                        <td>PostgreSQL</td>
+                        <td>Database (mapped from 5432)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>6379</code>
+                        </td>
+                        <td>Redis</td>
+                        <td>Cache and message broker</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>3001</code>
+                        </td>
+                        <td>Gitea</td>
+                        <td>Git server HTTP (mapped from 3000)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>3300</code>
+                        </td>
+                        <td>Umami</td>
+                        <td>Analytics dashboard</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>5555</code>
+                        </td>
+                        <td>Flower</td>
+                        <td>Celery monitoring (dev only)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>2200</code>
+                        </td>
+                        <td>SSH Gateway</td>
+                        <td>SSH access to containers</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>5678</code>
+                        </td>
+                        <td>Debugpy</td>
+                        <td>Python debugger (dev only)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>5173</code>
+                        </td>
+                        <td>Vite HMR</td>
+                        <td>TypeScript hot-reload (dev only)</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="api-callout api-callout-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    In production, only the SSH gateway port (2200) is exposed directly. HTTP traffic goes through Nginx and optionally a Cloudflare Tunnel.
+                </div>
+            </div>
+        </section>
+        <!-- Apptainer -->
+        <span id="apptainer"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-cube"></i> Apptainer Containers
+            </h2>
+            <p>
+                The Console terminal runs user code in isolated <a href="https://apptainer.org" target="_blank" rel="noopener">Apptainer</a> (formerly Singularity) containers, scheduled via SLURM.
+            </p>
+            <p>
+                <strong>Pre-built image includes:</strong>
+            </p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Contents</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Python</strong>
+                        </td>
+                        <td>Python 3.11 + SciTeX ecosystem (scitex, figrecipe, scitex-writer, crossref-local, openalex-local)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>AI CLI</strong>
+                        </td>
+                        <td>Node.js 20 + Claude Code, Codex, Gemini CLI, agents</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>LaTeX</strong>
+                        </td>
+                        <td>Full texlive suite for manuscript compilation</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Dev Tools</strong>
+                        </td>
+                        <td>ipdb, black, flake8, Microsoft core fonts</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="margin-top: 1rem">
+                <strong>Build from definition file:</strong>
+            </p>
+            <pre><code>cd deployment/singularity
+apptainer build scitex-cloud-shared-v0.1.0.sif scitex-cloud-shared-v0.1.0.def</code></pre>
+            <p>
+                <strong>Test with writable sandbox:</strong>
+            </p>
+            <pre><code>apptainer exec --fakeroot --writable current-sandbox/ python3 -c "import scitex; print(scitex.__version__)"</code></pre>
+        </section>
+        <!-- Host Setup -->
+        <span id="host-setup"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-desktop"></i> Host Setup (Production)
+            </h2>
+            <p>
+                For production on a NAS or server, the host machine needs some configuration. Non-destructive validation scripts check readiness:
+            </p>
+            <pre><code># Validate host (non-destructive checks)
+deployment/host-setup/checks/check-slurm.sh       # SLURM daemon &amp; partitions
+deployment/host-setup/checks/check-users.sh        # scitex user (UID 1000)
+deployment/host-setup/checks/check-apptainer.sh    # Apptainer availability
+deployment/host-setup/checks/check-services.sh     # Service health</code></pre>
+            <p style="margin-top: 1rem">
+                <strong>Setup scripts</strong> (require sudo):
+            </p>
+            <pre><code># Create scitex system user
+sudo deployment/host-setup/scripts/create-scitex-user.sh
+
+# Restart SLURM for new user
+sudo deployment/host-setup/scripts/restart-slurm-for-new-user.sh
+
+# Test terminal connectivity
+deployment/host-setup/scripts/test-terminal-connection.sh</code></pre>
+        </section>
+        <!-- CLI-Only Install -->
+        <span id="cli-only"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-terminal"></i> CLI-Only Install
+            </h2>
+            <p>Use the Python toolkit and MCP server without Docker:</p>
+            <pre><code>pip install scitex              # Python toolkit
+pip install scitex[mcp]         # Toolkit + MCP server
+pip install scitex[all]         # Everything
+
+scitex --version
+scitex --help</code></pre>
+        </section>
+        <!-- MCP Server -->
+        <span id="mcp-server"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-robot"></i> MCP Server for AI Agents
+            </h2>
+            <p>Connect AI assistants (Claude, Cursor, etc.) to your SciTeX instance:</p>
+            <pre><code>scitex mcp start                # Start MCP server
+scitex mcp doctor               # Diagnose setup
+scitex mcp installation          # Client config</code></pre>
+            <div class="api-callout api-callout-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    See <a href="{% url 'docs_app:mcp_tools' %}">MCP Tools Documentation</a> for the full list of 200+ available tools.
+                </div>
+            </div>
+        </section>
+        <!-- Common Commands -->
+        <span id="commands"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-keyboard"></i> Common Commands
+            </h2>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>make ENV=dev start</code>
+                        </td>
+                        <td>Start development environment</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>make ENV=prod start</code>
+                        </td>
+                        <td>Start production environment</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>make stop</code>
+                        </td>
+                        <td>Stop all services</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>make restart</code>
+                        </td>
+                        <td>Restart services</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>make status</code>
+                        </td>
+                        <td>Health check all services</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>make logs</code>
+                        </td>
+                        <td>View all container logs</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>make migrate</code>
+                        </td>
+                        <td>Run database migrations</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>make db-backup</code>
+                        </td>
+                        <td>Backup PostgreSQL database</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>make rebuild</code>
+                        </td>
+                        <td>Rebuild Docker images</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>make help</code>
+                        </td>
+                        <td>Show all available commands</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="api-callout api-callout-info" style="margin-top: 1.5rem">
+                <i class="fas fa-book"></i>
+                <div>
+                    For troubleshooting and advanced configuration, see the
+                    <a href="https://github.com/ywatanabe1989/scitex-cloud#readme"
+                       target="_blank"
+                       rel="noopener">full documentation on GitHub</a>.
+                </div>
+            </div>
+        </section>
+    </div>
+{% endblock %}

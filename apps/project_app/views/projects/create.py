@@ -26,7 +26,7 @@ from .create_handlers import (
 )
 from .create_helpers import (
     generate_unique_slug,
-    get_available_templates,
+    get_template_map,
     validate_project_name,
     verify_gitea_availability,
 )
@@ -37,10 +37,7 @@ logger = logging.getLogger(__name__)
 
 @login_required
 def project_create(request):
-    """Create new project with GitLab-style landing page"""
-    # Get creation type from query param for GET requests
-    create_type = request.GET.get("type", None)
-
+    """Create new project — unified tabbed page."""
     if request.method == "POST":
         name = request.POST.get("name", "").strip()
         description = request.POST.get("description", "").strip()
@@ -73,34 +70,33 @@ def project_create(request):
         if not name and git_url and init_type in ["github", "git"]:
             name = Project.extract_repo_name_from_url(git_url)
 
-        # Determine which template to use for error display
-        error_template_map = {
-            "gitea": "project_app/projects/create_blank.html",
-            "template": "project_app/projects/create_template.html",
-            "github": "project_app/projects/create_import.html",
-            "git": "project_app/projects/create_import.html",
-        }
-        error_template = error_template_map.get(
-            init_type, "project_app/projects/create_blank.html"
-        )
+        # Map init_type + template_type to active tab for error re-display
+        if project_type == "remote":
+            active_tab = "remote"
+        elif init_type == "template":
+            _tpl_tab = {"minimal": "minimal", "research": "full", "app": "app"}
+            active_tab = _tpl_tab.get(template_type, "minimal")
+        else:
+            _tab_map = {"github": "import", "git": "import", "gitea": "blank"}
+            active_tab = _tab_map.get(init_type, "minimal")
 
         # Validate project name
         is_valid, error_msg = validate_project_name(request, name)
         if not is_valid:
             messages.error(request, error_msg)
-            available_templates = get_available_templates()
             remote_credentials = RemoteCredential.objects.filter(
                 user=request.user, is_active=True
             ).order_by("name")
             context = {
-                "available_templates": available_templates,
+                "template_map": get_template_map(),
                 "remote_credentials": remote_credentials,
+                "active_tab": active_tab,
                 "name": name,
                 "description": description,
                 "init_type": init_type,
                 "git_url": git_url,
             }
-            return render(request, error_template, context)
+            return render(request, "project_app/projects/create.html", context)
 
         # Generate slug and verify Gitea availability
         unique_slug = generate_unique_slug(name, request.user)
@@ -109,18 +105,18 @@ def project_create(request):
         )
         if not is_available:
             messages.error(request, mark_safe(gitea_msg))
-            available_templates = get_available_templates()
             remote_credentials = RemoteCredential.objects.filter(
                 user=request.user, is_active=True
             ).order_by("name")
             context = {
-                "available_templates": available_templates,
+                "template_map": get_template_map(),
                 "remote_credentials": remote_credentials,
+                "active_tab": active_tab,
                 "name": name,
                 "description": description,
                 "init_type": init_type,
             }
-            return render(request, error_template, context)
+            return render(request, "project_app/projects/create.html", context)
         elif gitea_msg:  # Warning case
             messages.warning(request, gitea_msg)
 
@@ -159,27 +155,18 @@ def project_create(request):
 
         return redirect(f"/{request.user.username}/{project.slug}/")
 
-    # GET request - route to appropriate template based on type param
-    available_templates = get_available_templates()
+    # GET request - unified tabbed page (type= param selects initial tab via JS)
+    template_map = get_template_map()
     remote_credentials = RemoteCredential.objects.filter(
         user=request.user, is_active=True
     ).order_by("name")
 
     context = {
-        "available_templates": available_templates,
+        "template_map": template_map,
         "remote_credentials": remote_credentials,
     }
 
-    # Route to specific form template based on type parameter
-    template_map = {
-        "blank": "project_app/projects/create_blank.html",
-        "template": "project_app/projects/create_template.html",
-        "import": "project_app/projects/create_import.html",
-        "remote": "project_app/projects/create_remote.html",
-    }
-
-    template_name = template_map.get(create_type, "project_app/projects/create.html")
-    return render(request, template_name, context)
+    return render(request, "project_app/projects/create.html", context)
 
 
 # EOF

@@ -1,0 +1,230 @@
+<!-- App Submission Modal -->
+<div class="modal-overlay" id="app-submit-modal" style="display:none;">
+    <div class="modal-dialog" style="max-width:520px;">
+        <div class="modal-header">
+            <h3>Submit to Marketplace</h3>
+            <button class="modal-close" onclick="closeAppSubmitModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <!-- Validation Results -->
+            <div id="app-validation-section">
+                <h4>Validation</h4>
+                <div id="app-validation-status" class="text-muted">
+                    <i class="fas fa-spinner fa-spin"></i> Running checks...
+                </div>
+                <ul id="app-validation-errors" class="list-unstyled" style="display:none;">
+                </ul>
+            </div>
+            <hr />
+            <!-- Submission Form -->
+            <form id="app-submit-form">
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label for="app-license">License</label>
+                    <select id="app-license" class="form-control">
+                        <option value="AGPL-3.0" selected>AGPL-3.0 (default)</option>
+                        <option value="MIT">MIT</option>
+                        <option value="Apache-2.0">Apache-2.0</option>
+                        <option value="BSD-3-Clause">BSD-3-Clause</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label for="app-visibility">Visibility</label>
+                    <select id="app-visibility" class="form-control">
+                        <option value="private">Private (lab/team only)</option>
+                        <option value="unlisted">Unlisted (accessible by URL)</option>
+                        <option value="public">Public (listed on Marketplace)</option>
+                    </select>
+                    <small class="text-muted">Private apps are only visible to collaborators. Unlisted apps require a direct link.</small>
+                </div>
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label for="app-category">Category</label>
+                    <select id="app-category" class="form-control">
+                        <option value="">-- Select --</option>
+                        <option value="writing">Writing</option>
+                        <option value="visualization">Visualization</option>
+                        <option value="data">Data</option>
+                        <option value="analysis">Analysis</option>
+                        <option value="reference">Reference</option>
+                        <option value="utility">Utility</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label for="app-description">Short Description</label>
+                    <input type="text"
+                           id="app-description"
+                           class="form-control"
+                           maxlength="200"
+                           placeholder="{{ project.description|truncatechars:200 }}"
+                           value="{{ project.description|truncatechars:200 }}" />
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeAppSubmitModal()">Cancel</button>
+            <button class="btn btn-primary" id="app-submit-btn" onclick="submitApp()" disabled>
+                <i class="fas fa-rocket"></i> Submit
+            </button>
+        </div>
+    </div>
+</div>
+<style>
+    #app-submit-modal .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, .5);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #app-submit-modal .modal-dialog {
+        background: var(--bg-primary, #1e1e2e);
+        border-radius: 8px;
+        padding: 20px;
+        width: 100%;
+    }
+
+    #app-submit-modal .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    #app-submit-modal .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.4rem;
+        cursor: pointer;
+        color: var(--text-secondary, #ccc);
+    }
+
+    #app-submit-modal .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 16px;
+    }
+
+    #app-submit-modal .validation-ok {
+        color: var(--success, #a6e3a1);
+    }
+
+    #app-submit-modal .validation-fail {
+        color: var(--danger, #f38ba8);
+    }
+</style>
+<script>
+function openAppSubmitModal() {
+    const modal = document.getElementById('app-submit-modal');
+    modal.style.display = 'flex';
+    runAppValidation();
+}
+
+function closeAppSubmitModal() {
+    document.getElementById('app-submit-modal').style.display = 'none';
+}
+
+async function runAppValidation() {
+    const statusEl = document.getElementById('app-validation-status');
+    const errorsEl = document.getElementById('app-validation-errors');
+    const submitBtn = document.getElementById('app-submit-btn');
+
+    statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running checks...';
+    errorsEl.style.display = 'none';
+    errorsEl.innerHTML = '';
+    submitBtn.disabled = true;
+
+    try {
+        const resp = await fetch('/{{ project.owner.username }}/{{ project.slug }}/api/app/validate/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value
+                    || document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '',
+                'Content-Type': 'application/json',
+            },
+        });
+        const data = await resp.json();
+
+        if (data.success) {
+            statusEl.innerHTML = '<i class="fas fa-check-circle validation-ok"></i> All checks passed';
+            submitBtn.disabled = false;
+        } else {
+            statusEl.innerHTML = '<i class="fas fa-times-circle validation-fail"></i> Issues found:';
+            errorsEl.style.display = 'block';
+            (data.errors || []).forEach(err => {
+                const li = document.createElement('li');
+                li.textContent = err;
+                li.className = 'validation-fail';
+                errorsEl.appendChild(li);
+            });
+        }
+    } catch (e) {
+        statusEl.innerHTML = '<i class="fas fa-exclamation-triangle validation-fail"></i> Validation failed';
+    }
+}
+
+async function scaffoldApp() {
+    if (!confirm('Initialize app template files in this project?')) return;
+    try {
+        const resp = await fetch('/{{ project.owner.username }}/{{ project.slug }}/api/app/scaffold/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value
+                    || document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '',
+                'Content-Type': 'application/json',
+            },
+        });
+        const data = await resp.json();
+        if (data.success) {
+            alert('Scaffolded ' + data.created_files.length + ' files: ' + data.created_files.join(', '));
+            location.reload();
+        } else {
+            alert('Scaffold failed: ' + (data.error || 'Unknown error'));
+        }
+    } catch (e) {
+        alert('Network error during scaffold');
+    }
+}
+
+async function submitApp() {
+    const btn = document.getElementById('app-submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+    const payload = {
+        license: document.getElementById('app-license').value,
+        category: document.getElementById('app-category').value,
+        visibility: document.getElementById('app-visibility').value,
+        short_description: document.getElementById('app-description').value,
+    };
+
+    try {
+        const resp = await fetch('/{{ project.owner.username }}/{{ project.slug }}/api/app/submit/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value
+                    || document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+        const data = await resp.json();
+
+        if (data.success) {
+            closeAppSubmitModal();
+            location.reload();
+        } else {
+            alert('Submission failed: ' + (data.errors || [data.error]).join('\n'));
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-rocket"></i> Submit';
+        }
+    } catch (e) {
+        alert('Network error during submission');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-rocket"></i> Submit';
+    }
+}
+</script>

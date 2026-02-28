@@ -1,0 +1,380 @@
+/* Docs workspace module layout */
+.docs-workspace {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.docs-sidebar {
+  width: 200px;
+  min-width: 200px;
+  border-right: 1px solid var(--workspace-border-default, #30363d);
+  background: var(--workspace-bg-secondary, #161b22);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.docs-nav {
+  padding: 8px 0;
+}
+
+.docs-nav-header {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary, #8b949e);
+}
+
+.docs-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  color: var(--text-secondary, #c9d1d9);
+  text-decoration: none;
+  font-size: 13px;
+  border-right: 2px solid transparent;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.docs-nav-item:hover {
+  background: var(--workspace-bg-hover, #1c2128);
+  color: var(--text-primary, #e6edf3);
+  text-decoration: none;
+}
+
+.docs-nav-item.active {
+  background: var(--workspace-bg-hover, #1c2128);
+  color: var(--text-primary, #e6edf3);
+  border-right-color: var(--accent-blue, #58a6ff);
+}
+
+.docs-nav-item i {
+  width: 16px;
+  text-align: center;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.docs-nav-item.active i {
+  opacity: 1;
+}
+
+/* Content area */
+.docs-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+  transition: opacity 0.15s ease;
+}
+
+.docs-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px;
+  color: var(--text-tertiary, #8b949e);
+  font-size: 14px;
+}
+
+.docs-error {
+  padding: 40px;
+  color: var(--color-danger, #f85149);
+  text-align: center;
+  font-size: 14px;
+}
+
+/* Audience badges */
+.docs-badges {
+  margin-left: auto;
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.docs-badge {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 8px;
+  font-weight: 500;
+  line-height: 1.4;
+  opacity: 0.7;
+}
+
+.docs-badge--user {
+  background: rgba(88, 166, 255, 0.15);
+  color: #58a6ff;
+}
+
+.docs-badge--dev {
+  background: rgba(240, 136, 62, 0.15);
+  color: #f0883e;
+}
+
+.docs-badge--admin {
+  background: rgba(248, 81, 73, 0.15);
+  color: #f85149;
+}
+
+/* Export buttons */
+.docs-nav-footer {
+  display: flex;
+  gap: 6px;
+  padding: 12px;
+  margin-top: 8px;
+  border-top: 1px solid var(--workspace-border-default, #30363d);
+}
+
+.docs-export-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  color: var(--text-tertiary, #8b949e);
+  text-decoration: none;
+  border: 1px solid var(--workspace-border-default, #30363d);
+  border-radius: 4px;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.docs-export-btn:hover {
+  background: var(--workspace-bg-hover, #1c2128);
+  color: var(--text-primary, #e6edf3);
+  text-decoration: none;
+}
+
+/* Override api-layout within docs workspace to avoid nested sidebars being too wide */
+.docs-content .api-layout {
+  max-width: 100%;
+}
+
+.docs-content .container {
+  max-width: 100%;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* Suppress hero headers inside workspace (redundant with sidebar) */
+.docs-content .minimal-hero {
+  display: none;
+}
+
+/* Add top margin before first card */
+.docs-content .api-section:first-of-type,
+.docs-content span:first-child + .api-section,
+.docs-content > .container .api-section:first-of-type {
+  margin-top: 8px;
+}
+
+/* Folded sections — auto-wrap api-section in collapsible cards */
+.docs-content .api-section {
+  border: 1px solid var(--workspace-border-default, #30363d);
+  border-radius: 6px;
+  margin-bottom: 10px !important;
+  padding-bottom: 0 !important;
+  border-bottom: 1px solid var(--workspace-border-default, #30363d) !important;
+  overflow: hidden;
+}
+
+.docs-content .api-section-toggle {
+  display: flex !important;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--workspace-bg-secondary, #161b22);
+  border: none;
+  color: var(--text-primary, #e6edf3);
+  font-size: 13px !important;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  line-height: 1.3;
+}
+
+.docs-content .api-section-toggle:hover {
+  background: var(--workspace-bg-hover, #1c2128);
+}
+
+.docs-content .api-section-toggle .fold-icon {
+  font-size: 9px !important;
+  transition: transform 0.15s ease;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+/* Override sections.css .api-section-title bloat inside toggle */
+.docs-content .api-section-toggle .api-section-title {
+  flex: 1;
+  font-size: 13px !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+  border-bottom: none !important;
+}
+
+.docs-content .api-section-link {
+  margin-left: auto;
+  padding: 2px 6px;
+  font-size: 11px;
+  color: var(--text-tertiary, #8b949e);
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.docs-content .api-section-toggle:hover .api-section-link {
+  opacity: 0.6;
+}
+
+.docs-content .api-section-link:hover {
+  opacity: 1 !important;
+  color: var(--accent-blue, #58a6ff);
+}
+
+.docs-content .api-section.open .fold-icon {
+  transform: rotate(90deg);
+}
+
+.docs-content .api-section-body {
+  display: none;
+  padding: 8px 10px;
+}
+
+.docs-content .api-section.open .api-section-body {
+  display: block;
+}
+
+/* Hide original h2 inside folded sections (moved to toggle) */
+.docs-content .api-section-body > h2,
+.docs-content .api-section .api-section-body h2:first-child {
+  display: none !important;
+}
+
+/* Suppress container padding inside docs workspace */
+.docs-content .container {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.docs-content .py-2 {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.docs-content .py-5 {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Suppress breadcrumbs and standalone h1 inside workspace (redundant with sidebar) */
+.docs-content nav[aria-label="breadcrumb"] {
+  display: none;
+}
+
+.docs-content > .container > h1,
+.docs-content .container > h1 {
+  display: none;
+}
+
+.docs-content > .container > .lead {
+  display: none;
+}
+
+/* Tables inside docs sections — scrollable wrapper */
+.docs-content .card-body.p-0 {
+  overflow-x: auto;
+}
+
+.docs-content .table {
+  color: var(--text-primary, #e6edf3);
+  border-color: var(--workspace-border-default, #30363d);
+  margin-bottom: 0;
+  min-width: 800px;
+}
+
+.docs-content .table th {
+  color: var(--text-secondary, #c9d1d9);
+  background: var(--workspace-bg-secondary, #161b22);
+  border-color: var(--workspace-border-default, #30363d);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.docs-content .table td {
+  color: var(--text-primary, #e6edf3);
+  border-color: var(--workspace-border-default, #30363d);
+  font-size: 13px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.docs-content .table td:nth-child(4) {
+  white-space: normal;
+  min-width: 200px;
+}
+
+.docs-content .table td code {
+  color: var(--accent-blue, #58a6ff);
+  background: rgba(88, 166, 255, 0.1);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.docs-content .table td a {
+  color: var(--text-tertiary, #8b949e);
+}
+
+.docs-content .table td a:hover {
+  color: var(--accent-blue, #58a6ff);
+}
+
+.docs-content .table tbody tr:hover {
+  background: var(--workspace-bg-hover, #1c2128);
+}
+
+/* Card borders inside docs sections */
+.docs-content .api-section-body .card {
+  border-color: var(--workspace-border-default, #30363d);
+  background: var(--workspace-bg-primary, #0d1117);
+}
+
+.docs-content .api-section-body .card-header {
+  background: var(--workspace-bg-secondary, #161b22);
+  border-color: var(--workspace-border-default, #30363d);
+  color: var(--text-primary, #e6edf3);
+  font-size: 13px;
+}
+
+/* Code blocks inside docs sections */
+.docs-content .api-section-body pre {
+  font-size: 12px;
+  margin-bottom: 0;
+}
+
+/* Description text */
+.docs-content .api-section-body > p {
+  color: var(--text-secondary, #c9d1d9);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.docs-content .api-section-body > p code {
+  color: var(--accent-blue, #58a6ff);
+  background: rgba(88, 166, 255, 0.1);
+  padding: 1px 5px;
+  border-radius: 3px;
+}

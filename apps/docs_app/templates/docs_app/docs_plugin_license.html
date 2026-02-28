@@ -1,0 +1,115 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% block title %}Plugin License Exception - SciTeX{% endblock %}
+{% block content %}
+    <div class="docs-content">
+        <h1>
+            <i class="fas fa-balance-scale"></i> SciTeX Plugin License Exception
+        </h1>
+        <span id="three-tier-licensing"></span>
+        <section class="api-section">
+            <h2>Three-Tier Licensing</h2>
+            <p>SciTeX uses a layered licensing model that maximizes openness while protecting user freedom:</p>
+            <div style="display: grid; gap: 16px; margin: 20px 0;">
+                <div style="border: 1px solid var(--border-default);
+                            border-radius: 6px;
+                            padding: 16px">
+                    <h3 style="margin-top: 0;">
+                        <span class="mp-badge mp-badge-builtin" style="font-size: 0.8rem;">Tier 1</span>
+                        Core Platform &mdash; AGPL-3.0
+                    </h3>
+                    <p>
+                        The SciTeX Cloud platform, workspace framework, and all built-in modules are licensed under the
+                        <a href="/docs/agpl-3.0/">GNU Affero General Public License v3.0</a>.
+                    </p>
+                    <ul>
+                        <li>Ensures the platform remains open source</li>
+                        <li>Modifications to the core must be shared</li>
+                        <li>Network use triggers copyleft obligations</li>
+                    </ul>
+                </div>
+                <div style="border: 1px solid var(--border-default);
+                            border-radius: 6px;
+                            padding: 16px">
+                    <h3 style="margin-top: 0;">
+                        <span class="mp-badge mp-badge-verified" style="font-size: 0.8rem;">Tier 2</span>
+                        Plugin SDK &mdash; Apache-2.0
+                    </h3>
+                    <p>
+                        The SciTeX workspace API interfaces, module registration protocol, and template contracts
+                        are provided under the Apache License 2.0.
+                    </p>
+                    <ul>
+                        <li>
+                            Apps using the SDK API are <strong>not</strong> derivative works of the AGPL core
+                        </li>
+                        <li>Compatible with proprietary and open-source licenses</li>
+                        <li>Patent grant included</li>
+                    </ul>
+                </div>
+                <div style="border: 1px solid var(--border-default);
+                            border-radius: 6px;
+                            padding: 16px">
+                    <h3 style="margin-top: 0;">
+                        <span class="mp-badge mp-badge-license" style="font-size: 0.8rem;">Tier 3</span>
+                        User Apps &mdash; Author's Choice
+                    </h3>
+                    <p>
+                        Apps published on the SciTeX Marketplace may use any license the author chooses,
+                        including proprietary licenses.
+                    </p>
+                    <ul>
+                        <li>Supported: AGPL-3.0, MIT, Apache-2.0, BSD-3-Clause</li>
+                        <li>
+                            License must be declared in the project's <code>LICENSE</code> file
+                        </li>
+                        <li>License badge displayed on marketplace listing</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        <span id="for-app-developers"></span>
+        <section class="api-section">
+            <h2>What This Means for App Developers</h2>
+            <p>
+                If your app only uses the SciTeX workspace API (registering modules, rendering templates,
+                using the file tree, calling MCP tools), it is <strong>not</strong> a derivative work of
+                the AGPL-licensed core. You are free to license your app however you wish.
+            </p>
+            <p>
+                If your app modifies or incorporates SciTeX core code (not just calling its APIs),
+                then AGPL obligations apply to those modifications.
+            </p>
+        </section>
+        <span id="summary"></span>
+        <section class="api-section">
+            <h2>Summary</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border-default);">
+                        <th style="text-align: left; padding: 8px;">Component</th>
+                        <th style="text-align: left; padding: 8px;">License</th>
+                        <th style="text-align: left; padding: 8px;">Copyleft?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-bottom: 1px solid var(--border-default);">
+                        <td style="padding: 8px;">SciTeX Cloud Platform</td>
+                        <td style="padding: 8px;">AGPL-3.0</td>
+                        <td style="padding: 8px;">Yes (strong)</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--border-default);">
+                        <td style="padding: 8px;">Plugin SDK / API</td>
+                        <td style="padding: 8px;">Apache-2.0</td>
+                        <td style="padding: 8px;">No</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;">User Marketplace Apps</td>
+                        <td style="padding: 8px;">Author's choice</td>
+                        <td style="padding: 8px;">Depends on chosen license</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+{% endblock %}

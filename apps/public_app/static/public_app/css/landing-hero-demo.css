@@ -1,0 +1,225 @@
+/* ============================================================================
+ * Hero Demo Video Preview
+ * ============================================================================
+ * Extracted from landing-hero-fix.css for maintainability
+ * Styles for the demo video player, thumbnails, controls, and description
+ * ========================================================================== */
+
+.demo-link {
+  display: block;
+  text-decoration: none;
+}
+
+.demo-display {
+  position: relative;
+  cursor: pointer;
+}
+
+.demo-thumbnail {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.demo-play-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  color: white;
+  font-size: 1.5rem;
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+.demo-display:hover .demo-play-overlay {
+  background: rgba(0, 0, 0, 0.7);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.demo-overlay {
+  display: none;
+}
+
+.demo-text {
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.demo-duration {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.85rem;
+  font-weight: 400;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  margin-top: 0.25rem;
+}
+
+.demo-workflow {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.75rem;
+  font-weight: 400;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  max-width: 90%;
+  line-height: 1.4;
+}
+
+/* Video element styling */
+.demo-video {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+/* Description below video */
+.demo-description {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  gap: 1rem;
+}
+
+.demo-info-left {
+  flex: 1;
+  text-align: left;
+}
+
+.demo-info-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.speed-label {
+  font-size: 0.9rem;
+  color: var(--text-primary, #1c1c1c);
+  font-weight: 500;
+}
+
+[data-theme="dark"] .speed-label {
+  color: var(--text-primary, #c9d1d9);
+}
+
+/* Speed select */
+.speed-select {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid var(--border-default, #d0d7de);
+  border-radius: 4px;
+  background: var(--bg-secondary, #f3f2f0);
+  color: var(--text-primary, #1c1c1c);
+  cursor: pointer;
+}
+
+[data-theme="dark"] .speed-select {
+  background: var(--bg-tertiary, #21262d);
+  border-color: var(--border-default, #30363d);
+  color: var(--text-primary, #c9d1d9);
+}
+
+.demo-workflow-text {
+  color: var(--text-primary, #1c1c1c);
+  font-size: 1.1rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+[data-theme="dark"] .demo-workflow-text {
+  color: var(--text-primary, #c9d1d9);
+}
+
+/* Demo badge */
+.demo-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--text-muted);
+  border-radius: 4px;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+/* Watch More Demos link */
+.watch-more-demos {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary, #1c1c1c);
+  text-decoration: none;
+  border: 1px solid var(--border-default, #c0c0c0);
+  border-radius: 6px;
+  background: var(--bg-secondary, #f3f2f0);
+  transition: all 0.2s ease;
+}
+
+.watch-more-demos:hover {
+  background: var(--bg-tertiary, #eaeef2);
+  border-color: var(--border-active, #0969da);
+  color: var(--color-accent-fg, #0969da);
+  text-decoration: none;
+}
+
+.watch-more-demos i {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .watch-more-demos {
+  color: var(--text-primary);
+  background: var(--bg-muted);
+  border-color: var(--border-default);
+}
+
+[data-theme="dark"] .watch-more-demos:hover {
+  background: var(--bg-surface);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+}
+
+/* ============================================================================
+ * Responsive - Demo specific
+ * ========================================================================== */
+
+@media (max-width: 576px) {
+  .demo-text {
+    font-size: 0.9rem;
+  }
+
+  .demo-duration {
+    font-size: 0.75rem;
+  }
+
+  .demo-workflow {
+    font-size: 0.65rem;
+    padding: 0.4rem 0.75rem;
+  }
+}

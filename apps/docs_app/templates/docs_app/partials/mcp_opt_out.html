@@ -1,0 +1,163 @@
+<section class="api-section">
+    <h2>
+        <i class="fas fa-sliders-h"></i> Opt Out
+    </h2>
+    <p>
+        Control which tool groups the MCP server exposes using environment variables.
+        Set <code>SCITEX_MCP_USE_&lt;GROUP&gt;=0</code> to disable a group.
+        All groups are enabled by default.
+    </p>
+    <h4>Tool Group Toggles</h4>
+    <table class="api-table">
+        <thead>
+            <tr>
+                <th>Variable</th>
+                <th>Group</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_PLT</code>
+                </td>
+                <td>Plotting &amp; visualization</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_DIAGRAM</code>
+                </td>
+                <td>Mermaid / Graphviz diagrams</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_STATS</code>
+                </td>
+                <td>Statistical tests &amp; analysis</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_SCHOLAR</code>
+                </td>
+                <td>Literature &amp; PDF management</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_DATASET</code>
+                </td>
+                <td>Dataset search &amp; fetch</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_WRITER</code>
+                </td>
+                <td>LaTeX manuscript compilation</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_INTROSPECT</code>
+                </td>
+                <td>Python API introspection</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_PROJECT</code>
+                </td>
+                <td>Project file management</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_TEMPLATE</code>
+                </td>
+                <td>Project templates</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_CLEW</code>
+                </td>
+                <td>Experiment tracking</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_AUDIO</code>
+                </td>
+                <td>Text-to-speech</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_CAPTURE</code>
+                </td>
+                <td>Screenshot capture</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_SOCIAL</code>
+                </td>
+                <td>Social media posting</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_UI</code>
+                </td>
+                <td>Desktop notifications</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_DEV</code>
+                </td>
+                <td>Developer tools</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_LINTER</code>
+                </td>
+                <td>Code linting</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>SCITEX_MCP_USE_USAGE</code>
+                </td>
+                <td>Usage tracking</td>
+            </tr>
+        </tbody>
+    </table>
+    <h4>Example: Minimal Setup</h4>
+    <div class="code-block">
+        <div class="code-header">
+            <span>Shell</span>
+        </div>
+        <pre><code># Only enable plotting and statistics
+export SCITEX_MCP_USE_PLT=1
+export SCITEX_MCP_USE_STATS=1
+
+# Disable everything else
+export SCITEX_MCP_USE_SCHOLAR=0
+export SCITEX_MCP_USE_WRITER=0
+export SCITEX_MCP_USE_DIAGRAM=0
+# ... set other groups to 0</code></pre>
+    </div>
+    <h4>Using .env.d Files</h4>
+    <p>
+        For persistent configuration, copy the
+        <a href="https://github.com/ywatanabe1989/scitex-python/tree/main/.env.d.examples"
+           target="_blank">example env files</a>
+        and source them:
+    </p>
+    <div class="code-block">
+        <div class="code-header">
+            <span>Shell</span>
+        </div>
+        <pre><code># Copy examples to your local config
+cp -r .env.d.examples .env.d
+# Edit toggles
+$EDITOR .env.d/02_mcp.env
+# Source all config
+source .env.d/entry.src</code></pre>
+    </div>
+    <div class="api-callout api-callout-info">
+        <i class="fas fa-info-circle"></i>
+        <div>
+            These toggles only affect the MCP server. Python imports (<code>import scitex</code>)
+            and CLI commands (<code>scitex plt ...</code>) are unaffected.
+        </div>
+    </div>
+</section>

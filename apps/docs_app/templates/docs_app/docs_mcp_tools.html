@@ -1,0 +1,25 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}MCP Tools — SciTeX Documentation{% endblock %}
+{% block meta_description %}
+    {{ mcp_tool_count }}+ MCP tools for scientific research: plotting, statistics, literature, LaTeX, and more.
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container py-2">
+        <header class="minimal-hero" style="text-align: center">
+            <div class="api-hero-header" style="justify-content: center">
+                <h1 class="minimal-hero-title">MCP Tools Documentation</h1>
+                <div class="api-hero-actions">
+                    <span class="api-version-badge">{{ mcp_tool_count }}+ tools</span>
+                </div>
+            </div>
+        </header>
+    </div>
+    <div class="container py-2">{% include "public_app/pages/api-docs-partials/mcp-api.html" %}</div>
+{% endblock %}
