@@ -3,7 +3,7 @@
 """
 Seed the marketplace with entries for all built-in registry modules.
 
-Usage: python manage.py seed_marketplace
+Usage: python manage.py seed_apps
 """
 
 from django.contrib.auth.models import User

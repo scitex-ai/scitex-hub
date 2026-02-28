@@ -38,7 +38,7 @@ def ensure_builtin_modules():
         return
 
     try:
-        from ..management.commands.seed_marketplace import (
+        from ..management.commands.seed_apps import (
             ensure_builtin_modules as seed_builtins,
         )
 
