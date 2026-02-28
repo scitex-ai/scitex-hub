@@ -8,7 +8,6 @@ Utilities for fetching repository file information and README content.
 
 import logging
 import subprocess
-from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -42,9 +41,7 @@ def get_git_info(path, project_path):
         )
 
         if result.returncode == 0 and result.stdout.strip():
-            author, time_ago, message, commit_hash = (
-                result.stdout.strip().split("|", 3)
-            )
+            author, time_ago, message, commit_hash = result.stdout.strip().split("|", 3)
             return {
                 "author": author,
                 "time_ago": time_ago,
@@ -57,26 +54,27 @@ def get_git_info(path, project_path):
     return {"author": "", "time_ago": "", "message": "", "hash": ""}
 
 
-def get_directory_contents(project_path):
+def get_directory_contents(project_path, skip_git=False):
     """
     Get files and directories in project root with git info.
 
     Args:
         project_path: Root path of the project
+        skip_git: If True, skip git info lookups (for remote/trip projects)
 
     Returns:
         tuple: (files_list, dirs_list)
     """
     files = []
     dirs = []
+    empty_git = {"author": "", "time_ago": "", "message": "", "hash": ""}
 
     if not project_path or not project_path.exists():
         return files, dirs
 
     try:
         for item in project_path.iterdir():
-            # Show all files including dotfiles
-            git_info = get_git_info(item, project_path)
+            git_info = empty_git if skip_git else get_git_info(item, project_path)
 
             if item.is_file():
                 files.append(
@@ -134,6 +132,7 @@ def get_readme_content(project_path):
             readme_content = readme_path.read_text(encoding="utf-8")
             # Convert markdown to HTML
             import markdown
+
             readme_html = markdown.markdown(
                 readme_content,
                 extensions=["fenced_code", "tables", "nl2br"],

@@ -1,28 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Project Create Remote View
+Project Create TRIP View
 
-Create remote projects mounted via SSHFS.
+Create TRIP projects with on-demand SSH access (no mount, no local copy).
+Inspired by Emacs TRAMP — Transparent Remote Interaction Protocols.
 """
 
 import logging
 
+import paramiko
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
-from ...models import Project, RemoteCredential, RemoteProjectConfig
+from ...models import Project, RemoteCredential, TripProjectConfig
 
 logger = logging.getLogger(__name__)
 
 
-def create_remote_project(
-    request, name, description, remote_credential_id, remote_path
-):
+def create_trip_project(request, name, description, remote_credential_id, remote_path):
     """
-    Create a remote project (SSHFS mount, no Git).
+    Create a TRIP project (on-demand SSH, no mount, no local copy).
 
     Args:
         request: HTTP request
@@ -30,13 +30,9 @@ def create_remote_project(
         description: Project description
         remote_credential_id: ID of RemoteCredential to use
         remote_path: Absolute path on remote system
-
-    Returns:
-        HTTP response (redirect or render)
     """
-    # Validate inputs
     if not all([name, remote_credential_id, remote_path]):
-        messages.error(request, "All fields are required for remote projects")
+        messages.error(request, "All fields are required for TRIP projects")
         return redirect("project_create")
 
     # Get remote credential
@@ -48,13 +44,13 @@ def create_remote_project(
         messages.error(request, "Invalid remote credential selected")
         return redirect("project_create")
 
-    # Validate repository name
+    # Validate project name
     is_valid, error_message = Project.validate_repository_name(name)
     if not is_valid:
         messages.error(request, error_message)
         return redirect("project_create")
 
-    # Check if name already exists for this user
+    # Check uniqueness
     if Project.objects.filter(name=name, owner=request.user).exists():
         messages.error(
             request,
@@ -65,25 +61,23 @@ def create_remote_project(
     # Generate slug
     slug = Project.generate_unique_slug(name, owner=request.user)
 
-    # Test SSH connection before creating project
-    if not _test_ssh_connection(request, credential, remote_path):
+    # Test SSH connection via paramiko
+    if not _test_trip_connection(request, credential, remote_path):
         return redirect("project_create")
 
-    # Create remote project
-    return _create_remote_project_db(
+    # Create project + config
+    return _create_trip_project_db(
         request, name, description, credential, remote_path, slug
     )
 
 
-def _test_ssh_connection(request, credential, remote_path):
+def _test_trip_connection(request, credential, remote_path):
     """
-    Test SSH connection to remote host via paramiko.
+    Test SSH connection via paramiko.
 
     Returns True if successful, False otherwise.
     """
-    import paramiko
-
-    logger.info("Testing SSH connection for remote project via paramiko")
+    logger.info("Testing TRIP SSH connection via paramiko")
 
     try:
         client = paramiko.SSHClient()
@@ -108,7 +102,7 @@ def _test_ssh_connection(request, credential, remote_path):
                 request,
                 mark_safe(
                     f"Remote directory not found: <code>{remote_path}</code><br>"
-                    f"The directory will be created when you access the project."
+                    f"It will be accessible once created on the remote system."
                 ),
             )
 
@@ -118,7 +112,7 @@ def _test_ssh_connection(request, credential, remote_path):
     except paramiko.AuthenticationException:
         messages.error(
             request,
-            "SSH authentication failed. Check your SSH key and credentials.",
+            "SSH authentication failed. Check your SSH key and passphrase.",
         )
         return False
     except paramiko.SSHException as e:
@@ -135,60 +129,50 @@ def _test_ssh_connection(request, credential, remote_path):
         return False
 
 
-def _create_remote_project_db(
-    request, name, description, credential, remote_path, slug
-):
-    """
-    Create remote project in database.
-
-    Returns HTTP response.
-    """
+def _create_trip_project_db(request, name, description, credential, remote_path, slug):
+    """Create TRIP project in database."""
     try:
         project = Project.objects.create(
             name=name,
             slug=slug,
             description=description,
             owner=request.user,
-            project_type="remote",  # ✅ Remote project
-            visibility="private",  # Remote projects default to private
+            project_type="trip",
+            visibility="private",
         )
 
-        # Create remote configuration
-        remote_config = RemoteProjectConfig.objects.create(
+        TripProjectConfig.objects.create(
             project=project,
-            ssh_host=credential.ssh_host,
-            ssh_port=credential.ssh_port,
-            ssh_username=credential.ssh_username,
             remote_credential=credential,
             remote_path=remote_path,
-            is_mounted=False,  # Not mounted yet
         )
-
-        project.remote_config = remote_config
-        project.save()
 
         # Update credential last used timestamp
         credential.last_used_at = timezone.now()
         credential.save()
 
         logger.info(
-            f"✅ Remote project created: {request.user.username}/{slug} "
-            f"→ {credential.ssh_username}@{credential.ssh_host}:{remote_path}"
+            f"TRIP project created: {request.user.username}/{slug} "
+            f"-> {credential.ssh_username}@{credential.ssh_host}:{remote_path}"
         )
 
         messages.success(
             request,
             mark_safe(
-                f'✅ Remote project "{name}" created successfully!<br>'
-                f"Files will be accessed from: {credential.ssh_username}@{credential.ssh_host}:{remote_path}"
+                f'TRIP project "{name}" created!<br>'
+                f"SSH: {credential.ssh_username}@{credential.ssh_host}:{remote_path}"
             ),
         )
 
-        return redirect("project_app:detail", username=request.user.username, slug=slug)
+        return redirect(
+            "project_app:detail",
+            username=request.user.username,
+            slug=slug,
+        )
 
     except Exception as e:
-        logger.error(f"Failed to create remote project: {e}")
-        messages.error(request, f"Failed to create remote project: {str(e)}")
+        logger.error(f"Failed to create TRIP project: {e}")
+        messages.error(request, f"Failed to create TRIP project: {e}")
         return redirect("project_create")
 
 

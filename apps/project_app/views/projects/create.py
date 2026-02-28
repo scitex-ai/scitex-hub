@@ -59,6 +59,14 @@ def project_create(request):
                 request, name, description, remote_credential_id, remote_path
             )
 
+        # Handle TRIP project creation separately
+        if project_type == "trip":
+            from .create_trip import create_trip_project
+
+            return create_trip_project(
+                request, name, description, remote_credential_id, remote_path
+            )
+
         # Initialize directory manager for all init types (local projects only)
         from apps.project_app.services.project_filesystem import (
             get_project_filesystem_manager,

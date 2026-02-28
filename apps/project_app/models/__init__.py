@@ -48,6 +48,7 @@ from .pull_requests import (
 from .remote import (
     RemoteCredential,
     RemoteProjectConfig,
+    TripProjectConfig,
 )
 from .repository import (
     Project,
@@ -74,6 +75,7 @@ __all__ = [
     # Remote project models
     "RemoteCredential",
     "RemoteProjectConfig",
+    "TripProjectConfig",
     # Collaboration models
     "ProjectWatch",
     "ProjectStar",

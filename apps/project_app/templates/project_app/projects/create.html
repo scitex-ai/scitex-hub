@@ -48,10 +48,12 @@
                         class="create-menu-item"
                         role="tab"
                         data-tab="remote"
-                        aria-selected="false">
-                    Remote Mount
-                    <span class="badge badge-wip create-menu-badge">WIP</span>
-                </button>
+                        aria-selected="false">Remote Mount</button>
+                <button type="button"
+                        class="create-menu-item"
+                        role="tab"
+                        data-tab="trip"
+                        aria-selected="false">Remote TRIP</button>
                 <button type="button"
                         class="create-menu-item"
                         role="tab"
@@ -213,6 +215,50 @@
                             </div>
                         {% endif %}
                     </div>
+                    <!-- ===== Remote TRIP ===== -->
+                    <div class="tab-fields" data-for-tab="trip" style="display: none">
+                        {% if remote_credentials %}
+                            <div class="form-group">
+                                <label class="form-label" for="trip_credential_id">
+                                    Remote credential <span class="required">*</span>
+                                </label>
+                                <select name="remote_credential_id"
+                                        id="trip_credential_id"
+                                        class="form-control"
+                                        required
+                                        disabled>
+                                    <option value="">Select a remote system...</option>
+                                    {% for cred in remote_credentials %}
+                                        <option value="{{ cred.id }}">{{ cred.name }} ({{ cred.ssh_username }}@{{ cred.ssh_host }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="trip_remote_path">
+                                    Remote path <span class="required">*</span>
+                                </label>
+                                <input type="text"
+                                       name="remote_path"
+                                       id="trip_remote_path"
+                                       class="form-control"
+                                       style="font-family: 'SF Mono', Monaco, monospace"
+                                       placeholder="/home/username/projects/my-project"
+                                       required
+                                       disabled />
+                                <p class="help-text">Absolute path on the remote system.</p>
+                            </div>
+                            <div class="info-box">
+                                <strong>TRIP</strong> (Transparent Remote Interaction Protocols):
+                                Files accessed on-demand via SSH. No local copy. No SSHFS mount.
+                                Terminal connects directly to the remote machine.
+                            </div>
+                        {% else %}
+                            <div class="create-no-credentials">
+                                <p>Add a remote credential to use TRIP.</p>
+                                <a href="{% url 'accounts_app:remote_credentials' %}" class="btn btn-primary">Add Remote Credential</a>
+                            </div>
+                        {% endif %}
+                    </div>
                     <!-- ===== Blank Project ===== -->
                     <div class="tab-fields" data-for-tab="blank" style="display: none"></div>
                     <!-- Form Actions -->
@@ -241,6 +287,7 @@
             app:     { initType: "template", projectType: "local", templateType: "app",      label: "Create project" },
             import:  { initType: "github",   projectType: "local", templateType: "",          label: "Import project" },
             remote:  { initType: "",          projectType: "remote", templateType: "",         label: "Connect filesystem" },
+            trip:    { initType: "",          projectType: "trip",   templateType: "",         label: "Connect via TRIP" },
             blank:   { initType: "gitea",     projectType: "local", templateType: "",          label: "Create project" },
         };
 
@@ -274,7 +321,7 @@
             projectTypeEl.value = config.projectType;
             templateTypeEl.value = config.templateType;
             submitBtn.textContent = config.label;
-            submitBtn.disabled = name === "remote" && !hasCreds;
+            submitBtn.disabled = (name === "remote" || name === "trip") && !hasCreds;
 
             history.replaceState(null, "", "?type=" + name);
         }

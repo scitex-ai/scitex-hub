@@ -21,12 +21,13 @@ Example usage:
     >>> success, stats, error = manager.initialize_scitex_structure()
 """
 
-import subprocess
 import logging
-import shutil
 import re
+import shutil
+import subprocess
 from pathlib import Path
-from typing import Tuple, Optional, Dict
+from typing import Dict, Optional, Tuple
+
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -60,17 +61,21 @@ class ProjectServiceManager:
             >>> path = manager.get_project_path()
             >>> files = list(path.rglob("*.py"))
         """
-        if self.project.project_type == 'local':
+        if self.project.project_type == "local":
             # Return Gitea repository path
             from apps.project_app.services.project_filesystem import (
-                get_project_filesystem_manager
+                get_project_filesystem_manager,
             )
+
             dir_mgr = get_project_filesystem_manager(self.project.owner)
             return dir_mgr.get_project_root_path(self.project)
 
-        elif self.project.project_type == 'remote':
+        elif self.project.project_type == "remote":
             # Return SSHFS mount point (auto-mount if needed)
-            from apps.project_app.services.remote_project_manager import RemoteProjectManager
+            from apps.project_app.services.remote_project_manager import (
+                RemoteProjectManager,
+            )
+
             remote_mgr = RemoteProjectManager(self.project)
 
             # Ensure mounted
@@ -80,6 +85,12 @@ class ProjectServiceManager:
 
             # Return mount point
             return remote_mgr.mount_point
+
+        elif self.project.project_type == "trip":
+            raise ValueError(
+                "TRIP projects have no local path. "
+                "Use TripFileBackend for file operations."
+            )
 
         else:
             raise ValueError(f"Unknown project type: {self.project.project_type}")
@@ -104,10 +115,12 @@ class ProjectServiceManager:
             >>> if success:
             >>>     print(f"Created {stats['files_created']} files")
         """
-        if self.project.project_type == 'local':
+        if self.project.project_type == "local":
             return self._initialize_local()
-        elif self.project.project_type == 'remote':
+        elif self.project.project_type == "remote":
             return self._initialize_remote()
+        elif self.project.project_type == "trip":
+            return False, {}, "SciTeX initialization not supported for TRIP projects"
         else:
             return False, {}, f"Unknown project type: {self.project.project_type}"
 
@@ -122,7 +135,9 @@ class ProjectServiceManager:
             (success, stats, error_message)
         """
         # Get template directory
-        template_dir = Path(settings.BASE_DIR) / 'templates' / 'research-master' / 'scitex'
+        template_dir = (
+            Path(settings.BASE_DIR) / "templates" / "research-master" / "scitex"
+        )
 
         if not template_dir.exists():
             return False, {}, f"Template not found: {template_dir}"
@@ -137,17 +152,17 @@ class ProjectServiceManager:
             return False, {}, "Project directory not found"
 
         # Target: {project_path}/scitex/
-        target_dir = project_path / 'scitex'
+        target_dir = project_path / "scitex"
 
         try:
             stats = {
-                'files_created': 0,
-                'files_skipped': 0,
-                'bytes_transferred': 0,
+                "files_created": 0,
+                "files_skipped": 0,
+                "bytes_transferred": 0,
             }
 
             # Walk through template and copy files (non-destructive)
-            for src_file in template_dir.rglob('*'):
+            for src_file in template_dir.rglob("*"):
                 if src_file.is_file():
                     # Relative path within scitex/
                     rel_path = src_file.relative_to(template_dir)
@@ -155,7 +170,7 @@ class ProjectServiceManager:
 
                     # Skip if exists (non-destructive)
                     if dest_file.exists():
-                        stats['files_skipped'] += 1
+                        stats["files_skipped"] += 1
                         continue
 
                     # Create parent directories
@@ -164,8 +179,8 @@ class ProjectServiceManager:
                     # Copy file
                     shutil.copy2(src_file, dest_file)
 
-                    stats['files_created'] += 1
-                    stats['bytes_transferred'] += src_file.stat().st_size
+                    stats["files_created"] += 1
+                    stats["bytes_transferred"] += src_file.stat().st_size
 
             logger.info(
                 f"✅ SciTeX structure initialized (local): "
@@ -198,13 +213,15 @@ class ProjectServiceManager:
             (success, stats, error_message)
         """
         # Get template directory
-        template_dir = Path(settings.BASE_DIR) / 'templates' / 'research-master' / 'scitex'
+        template_dir = (
+            Path(settings.BASE_DIR) / "templates" / "research-master" / "scitex"
+        )
 
         if not template_dir.exists():
             return False, {}, f"Template not found: {template_dir}"
 
         # Get remote config
-        if not hasattr(self.project, 'remote_config') or not self.project.remote_config:
+        if not hasattr(self.project, "remote_config") or not self.project.remote_config:
             return False, {}, "No remote configuration"
 
         config = self.project.remote_config
@@ -214,8 +231,7 @@ class ProjectServiceManager:
 
         # Remote target
         remote_target = (
-            f"{config.ssh_username}@{config.ssh_host}:"
-            f"{config.remote_path}/scitex/"
+            f"{config.ssh_username}@{config.ssh_host}:{config.remote_path}/scitex/"
         )
 
         # Rsync command - NON-DESTRUCTIVE
@@ -223,11 +239,12 @@ class ProjectServiceManager:
             "rsync",
             "-avz",
             "--progress",
-            "--ignore-existing",    # Don't override existing files ✅
-            "--stats",              # Get statistics
-            "-e", f"ssh -p {config.ssh_port} -i {ssh_key_path} -o StrictHostKeyChecking=accept-new",
-            f"{template_dir}/",     # Source: SciTeX template
-            remote_target,          # Target: remote/scitex/
+            "--ignore-existing",  # Don't override existing files ✅
+            "--stats",  # Get statistics
+            "-e",
+            f"ssh -p {config.ssh_port} -i {ssh_key_path} -o StrictHostKeyChecking=accept-new",
+            f"{template_dir}/",  # Source: SciTeX template
+            remote_target,  # Target: remote/scitex/
         ]
 
         try:
@@ -241,7 +258,7 @@ class ProjectServiceManager:
                 capture_output=True,
                 text=True,
                 timeout=300,  # 5 minutes
-                check=True
+                check=True,
             )
 
             # Parse rsync stats from output
@@ -278,25 +295,25 @@ class ProjectServiceManager:
             Stats dictionary
         """
         stats = {
-            'files_created': 0,
-            'files_skipped': 0,
-            'bytes_transferred': 0,
+            "files_created": 0,
+            "files_skipped": 0,
+            "bytes_transferred": 0,
         }
 
         # Extract statistics from rsync output
         # "Number of created files: 42"
-        match = re.search(r'Number of created files:\s*(\d+)', output)
+        match = re.search(r"Number of created files:\s*(\d+)", output)
         if match:
-            stats['files_created'] = int(match.group(1))
+            stats["files_created"] = int(match.group(1))
 
         # "Number of regular files transferred: 15"
-        match = re.search(r'Number of regular files transferred:\s*(\d+)', output)
+        match = re.search(r"Number of regular files transferred:\s*(\d+)", output)
         if match:
-            stats['files_created'] = int(match.group(1))
+            stats["files_created"] = int(match.group(1))
 
         # "Total transferred file size: 123456 bytes"
-        match = re.search(r'Total transferred file size:\s*([\d,]+)', output)
+        match = re.search(r"Total transferred file size:\s*([\d,]+)", output)
         if match:
-            stats['bytes_transferred'] = int(match.group(1).replace(',', ''))
+            stats["bytes_transferred"] = int(match.group(1).replace(",", ""))
 
         return stats

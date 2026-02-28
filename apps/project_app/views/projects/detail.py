@@ -103,20 +103,24 @@ def project_detail(request, username, slug):
 
     # Default mode: overview - GitHub-style file browser with README
     # Get project directory and file list
-    from apps.project_app.services.project_filesystem import (
-        get_project_filesystem_manager,
-    )
+    is_remote_type = project.project_type in ("remote", "trip")
 
-    manager = get_project_filesystem_manager(project.owner)
-    project_path = manager.get_project_root_path(project)
+    project_path = _get_project_path(project)
 
-    # Get directory contents and README
-    files, dirs = get_directory_contents(project_path)
-    readme_content, readme_html = get_readme_content(project_path)
+    # Get directory contents and README (skip git info for remote/trip)
+    if project_path and project_path.exists():
+        files, dirs = get_directory_contents(project_path, skip_git=is_remote_type)
+        readme_content, readme_html = get_readme_content(project_path)
+    else:
+        files, dirs = [], []
+        readme_content, readme_html = None, None
 
-    # Get branches for branch selector
+    # Get branches (skip for remote/trip — no local .git)
     current_branch = project.current_branch or "develop"
-    branches, current_branch = get_branches(project_path, current_branch)
+    if is_remote_type:
+        branches = []
+    else:
+        branches, current_branch = get_branches(project_path, current_branch)
 
     # Get social interaction counts
     watch_count = ProjectWatch.objects.filter(project=project).count()
@@ -134,17 +138,20 @@ def project_detail(request, username, slug):
             user=request.user, project=project
         ).exists()
 
-    # Get Gitea URLs for clone button
-    from django.conf import settings
+    # Get Gitea URLs for clone button (only for local projects)
+    gitea_https_url = ""
+    gitea_ssh_url = ""
+    download_zip_url = ""
+    if not is_remote_type:
+        from django.conf import settings
 
-    gitea_url = getattr(settings, "SCITEX_CLOUD_GITEA_URL", "http://127.0.0.1:3000")
-    gitea_ssh_domain = getattr(settings, "SCITEX_CLOUD_GIT_DOMAIN", "127.0.0.1")
-    gitea_ssh_port = getattr(settings, "SCITEX_CLOUD_GITEA_SSH_PORT", "2222")
+        gitea_url = getattr(settings, "SCITEX_CLOUD_GITEA_URL", "http://127.0.0.1:3000")
+        gitea_ssh_domain = getattr(settings, "SCITEX_CLOUD_GIT_DOMAIN", "127.0.0.1")
+        gitea_ssh_port = getattr(settings, "SCITEX_CLOUD_GITEA_SSH_PORT", "2222")
 
-    gitea_https_url = f"{gitea_url}/{project.owner.username}/{project.slug}.git"
-    # Use SSH URI format with explicit port: ssh://user@host:port/path
-    gitea_ssh_url = f"ssh://git@{gitea_ssh_domain}:{gitea_ssh_port}/{project.owner.username}/{project.slug}.git"
-    download_zip_url = f"{gitea_url}/{project.owner.username}/{project.slug}/archive/{current_branch}.zip"
+        gitea_https_url = f"{gitea_url}/{project.owner.username}/{project.slug}.git"
+        gitea_ssh_url = f"ssh://git@{gitea_ssh_domain}:{gitea_ssh_port}/{project.owner.username}/{project.slug}.git"
+        download_zip_url = f"{gitea_url}/{project.owner.username}/{project.slug}/archive/{current_branch}.zip"
 
     context = {
         "project": project,
@@ -166,6 +173,22 @@ def project_detail(request, username, slug):
         "download_zip_url": download_zip_url,
     }
     return render(request, "project_app/repository/browse.html", context)
+
+
+def _get_project_path(project):
+    """Get filesystem path for any project type via ProjectServiceManager."""
+    if project.project_type == "trip":
+        # TRIP has no local path — return None
+        return None
+    try:
+        from apps.project_app.services.project_service_manager import (
+            ProjectServiceManager,
+        )
+
+        return ProjectServiceManager(project).get_project_path()
+    except Exception as exc:
+        logger.warning(f"Could not resolve project path: {exc}")
+        return None
 
 
 # EOF
