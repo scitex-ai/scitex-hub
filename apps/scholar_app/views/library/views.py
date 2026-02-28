@@ -48,6 +48,7 @@ def api_library_papers(request):
             entries = (
                 UserLibrary.objects.filter(user=request.user)
                 .select_related("paper")
+                .prefetch_related("paper__authors")
                 .order_by("-saved_at")
             )
             papers = []
@@ -65,7 +66,14 @@ def api_library_papers(request):
                             if p and p.publication_date
                             else None
                         ),
-                        "authors": p.authors if p else None,
+                        "authors": (
+                            ", ".join(
+                                f"{a.first_name} {a.last_name}".strip()
+                                for a in p.authors.all()
+                            )
+                            if p
+                            else None
+                        ),
                         "abstract": (
                             p.abstract if p and hasattr(p, "abstract") else None
                         ),

@@ -8,30 +8,15 @@ import { LibraryPaper, UpdatePaperData } from "./types";
 import { LibraryAPI } from "./api";
 import { LibraryFilters } from "./filters";
 import { LibraryRenderers } from "./renderers";
-import {
-  startInspiringSpinner,
-  type SpinnerHandle,
-} from "../../../../../../static/shared/ts/components/inspiring-spinner";
-
 class LibraryManager {
   private papers: LibraryPaper[] = [];
   private filteredPapers: LibraryPaper[] = [];
   private selectedPaperId: string | null = null;
   private activeStatusFilter: string | null = null;
   private searchQuery: string = "";
-  private loadingSpinner: SpinnerHandle | null = null;
 
   async initialize(): Promise<void> {
-    const loadingEl = document.getElementById("library-loading");
-    if (loadingEl) {
-      this.loadingSpinner = startInspiringSpinner(
-        loadingEl,
-        "Loading papers...",
-      );
-    }
     await this.fetchPapers();
-    this.loadingSpinner?.stop();
-    this.loadingSpinner = null;
     this.renderStats();
     this.applyFilters();
     this.renderPaperList();
