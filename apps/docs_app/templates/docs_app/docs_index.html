@@ -1,4 +1,6 @@
 {% extends 'global_base.html' %}
 
 {% block title %}Documentation — SciTeX{% endblock %}
-{% block content %}{# Content rendered by docs_partial.html via workspace module system #}{% endblock %}
+{% block content %}
+    {% include 'docs_app/docs_partial.html' %}
+{% endblock %}

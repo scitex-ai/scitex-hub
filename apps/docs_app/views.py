@@ -110,14 +110,9 @@ def build_docs_context(request, current_project=None):
 # Views
 # ---------------------------------------------------------------------------
 def docs_index(request):
-    """Documentation page — renders inside workspace layout.
-
-    The workspace context processor detects /docs/ and activates the docs
-    module, which loads docs_partial.html (sidebar + AJAX content).
-    We just need to render a minimal template that extends global_base.html
-    so the workspace layout kicks in.
-    """
-    return render(request, "docs_app/docs_index.html")
+    """Documentation page — renders inside workspace layout with docs partial."""
+    context = build_docs_context(request)
+    return render(request, "docs_app/docs_index.html", context)
 
 
 def docs_content(request, slug):
