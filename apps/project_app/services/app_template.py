@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""App template scaffolding — creates required files for a marketplace app in Gitea."""
+"""App template scaffolding — creates required files for an app in Gitea."""
 
 from __future__ import annotations
 
@@ -157,7 +157,7 @@ def _agents_json(name):
 def _readme_md(name, label):
     return f"""# {label}
 
-A SciTeX Marketplace App.
+A SciTeX App.
 
 ## Structure
 
@@ -172,7 +172,7 @@ A SciTeX Marketplace App.
 
 1. Edit templates and views to build your app
 2. Test locally in the SciTeX workspace
-3. Submit to the Marketplace when ready
+3. Submit to the Apps catalog when ready
 
 ## License
 

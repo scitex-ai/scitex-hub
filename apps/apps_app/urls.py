@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Marketplace URL configuration."""
+"""Apps URL configuration."""
 
 from django.urls import path
 

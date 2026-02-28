@@ -1,1 +1,1 @@
-"""Marketplace services package."""
+"""Apps services package."""

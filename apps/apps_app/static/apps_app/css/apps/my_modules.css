@@ -1,6 +1,6 @@
-/* Marketplace — my modules page styles */
+/* Apps — my modules page styles */
 
-.mp-my-header {
+.ap-my-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -9,14 +9,14 @@
   gap: 8px;
 }
 
-.mp-my-title {
+.ap-my-title {
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
 }
 
-.mp-my-list {
+.ap-my-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -25,7 +25,7 @@
   border: 1px solid var(--workspace-border-default, var(--border-color));
 }
 
-.mp-my-item {
+.ap-my-item {
   display: flex;
   align-items: center;
   gap: 0.85rem;
@@ -35,19 +35,19 @@
   transition: background-color 0.15s;
 }
 
-.mp-my-item:last-child {
+.ap-my-item:last-child {
   border-bottom: none;
 }
 
-.mp-my-item:hover {
+.ap-my-item:hover {
   background-color: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.03));
 }
 
-.mp-my-item--disabled {
+.ap-my-item--disabled {
   opacity: 0.55;
 }
 
-.mp-my-icon {
+.ap-my-icon {
   flex-shrink: 0;
   width: 32px;
   height: 32px;
@@ -60,7 +60,7 @@
   font-size: 0.95rem;
 }
 
-.mp-my-info {
+.ap-my-info {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -68,18 +68,18 @@
   gap: 2px;
 }
 
-.mp-my-name {
+.ap-my-name {
   font-size: 0.92rem;
   font-weight: 600;
   color: var(--text-primary);
   text-decoration: none;
 }
 
-.mp-my-name:hover {
+.ap-my-name:hover {
   text-decoration: underline;
 }
 
-.mp-my-desc {
+.ap-my-desc {
   font-size: 0.8rem;
   color: var(--text-muted);
   white-space: nowrap;
@@ -87,19 +87,19 @@
   text-overflow: ellipsis;
 }
 
-.mp-my-meta {
+.ap-my-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
   align-items: center;
 }
 
-.mp-my-installed-date {
+.ap-my-installed-date {
   font-size: 0.72rem;
   color: var(--text-muted);
 }
 
-.mp-my-controls {
+.ap-my-controls {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -107,7 +107,7 @@
 }
 
 /* Toggle switch */
-.mp-toggle-switch {
+.ap-toggle-switch {
   position: relative;
   display: inline-flex;
   cursor: pointer;
@@ -115,14 +115,14 @@
   height: 20px;
 }
 
-.mp-toggle-input {
+.ap-toggle-input {
   opacity: 0;
   width: 0;
   height: 0;
   position: absolute;
 }
 
-.mp-toggle-slider {
+.ap-toggle-slider {
   position: absolute;
   inset: 0;
   background-color: var(--workspace-bg-tertiary, rgba(255, 255, 255, 0.1));
@@ -131,7 +131,7 @@
   transition: background-color 0.2s;
 }
 
-.mp-toggle-slider::before {
+.ap-toggle-slider::before {
   content: "";
   position: absolute;
   height: 14px;
@@ -145,17 +145,17 @@
     background-color 0.2s;
 }
 
-.mp-toggle-input:checked + .mp-toggle-slider {
+.ap-toggle-input:checked + .ap-toggle-slider {
   border-color: var(--workspace-icon-primary, var(--accent));
   background-color: rgba(66, 153, 225, 0.2);
 }
 
-.mp-toggle-input:checked + .mp-toggle-slider::before {
+.ap-toggle-input:checked + .ap-toggle-slider::before {
   transform: translateX(18px);
   background-color: var(--workspace-icon-primary, var(--accent));
 }
 
-.mp-toggle-input:disabled + .mp-toggle-slider {
+.ap-toggle-input:disabled + .ap-toggle-slider {
   opacity: 0.4;
   cursor: not-allowed;
 }

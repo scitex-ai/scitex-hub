@@ -55,7 +55,7 @@ class ModuleConfig:
 
     # Runtime state (set by context processor, not persisted)
     is_active: bool = False
-    status: str = ""  # Marketplace status: stable, wip, beta, deprecated
+    status: str = ""  # Module status: stable, wip, beta, deprecated
 
     # LLM integration
     ai_hint: str = ""  # Short description for data-ai-hint (shown to LLM)

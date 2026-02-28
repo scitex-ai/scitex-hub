@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Marketplace models — catalog, installations, stars, and reviews for workspace modules.
+Apps models — catalog, installations, stars, and reviews for workspace modules.
 
-Every module (built-in or external) gets a AppsModule entry.
+Every module (built-in or external) gets an AppsModule entry.
 Users manage their workspace via ModuleInstallation records.
 """
 
@@ -94,7 +94,7 @@ class AppsModule(models.Model):
 
     class Meta:
         ordering = ["-star_count", "-install_count"]
-        verbose_name = "Marketplace App"
+        verbose_name = "App"
 
     def __str__(self):
         return f"{self.module_name} ({self.category})"
@@ -114,10 +114,10 @@ class AppsModule(models.Model):
 
 
 class ModuleVersion(models.Model):
-    """Version history for a marketplace module."""
+    """Version history for an app module."""
 
     module = models.ForeignKey(
-        MarketplaceModule, on_delete=models.CASCADE, related_name="versions"
+        AppsModule, on_delete=models.CASCADE, related_name="versions"
     )
     version = models.CharField(max_length=20)
     changelog = models.TextField(blank=True)
@@ -141,7 +141,7 @@ class ModuleInstallation(models.Model):
         User, on_delete=models.CASCADE, related_name="installed_modules"
     )
     module = models.ForeignKey(
-        MarketplaceModule, on_delete=models.CASCADE, related_name="installations"
+        AppsModule, on_delete=models.CASCADE, related_name="installations"
     )
     is_enabled = models.BooleanField(default=True)
     tab_order = models.IntegerField(default=50)
@@ -165,7 +165,7 @@ class ModuleStar(models.Model):
         User, on_delete=models.CASCADE, related_name="starred_modules"
     )
     module = models.ForeignKey(
-        MarketplaceModule, on_delete=models.CASCADE, related_name="stars_rel"
+        AppsModule, on_delete=models.CASCADE, related_name="stars_rel"
     )
     starred_at = models.DateTimeField(auto_now_add=True)
 
@@ -187,7 +187,7 @@ class ModuleSubmission(models.Model):
     ]
 
     module = models.ForeignKey(
-        MarketplaceModule, on_delete=models.CASCADE, related_name="submissions"
+        AppsModule, on_delete=models.CASCADE, related_name="submissions"
     )
     submitted_by = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="module_submissions"
@@ -219,7 +219,7 @@ class ModuleReview(models.Model):
         User, on_delete=models.CASCADE, related_name="module_reviews"
     )
     module = models.ForeignKey(
-        MarketplaceModule, on_delete=models.CASCADE, related_name="reviews"
+        AppsModule, on_delete=models.CASCADE, related_name="reviews"
     )
     rating = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)]

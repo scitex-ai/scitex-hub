@@ -80,8 +80,8 @@
 .module-tab-btn[data-module="example"] {
   --tab-accent: var(--module-accent-example);
 }
-.module-tab-btn[data-module="marketplace"] {
-  --tab-accent: var(--module-accent-marketplace);
+.module-tab-btn[data-module="apps"] {
+  --tab-accent: var(--module-accent-apps);
 }
 .module-tab-btn[data-module="modulemaker"] {
   --tab-accent: var(--module-accent-modulemaker);

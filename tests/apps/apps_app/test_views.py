@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Tests for marketplace views and API endpoints."""
+"""Tests for apps views and API endpoints."""
 
 import json
 
@@ -15,7 +15,7 @@ from apps.apps_app.models import (
 )
 
 
-class MarketplaceBrowseTest(TestCase):
+class AppsBrowseTest(TestCase):
     """Tests for the browse page."""
 
     @classmethod
@@ -33,19 +33,19 @@ class MarketplaceBrowseTest(TestCase):
         )
 
     def test_browse_page_200(self):
-        resp = self.client.get("/marketplace/")
+        resp = self.client.get("/apps/")
         self.assertEqual(resp.status_code, 200)
 
     def test_browse_with_category_filter(self):
-        resp = self.client.get("/marketplace/?category=writing")
+        resp = self.client.get("/apps/?category=writing")
         self.assertEqual(resp.status_code, 200)
 
     def test_browse_with_search(self):
-        resp = self.client.get("/marketplace/?q=t-browse")
+        resp = self.client.get("/apps/?q=t-browse")
         self.assertEqual(resp.status_code, 200)
 
 
-class MarketplaceDetailTest(TestCase):
+class AppsDetailTest(TestCase):
     """Tests for the detail page."""
 
     @classmethod
@@ -58,15 +58,15 @@ class MarketplaceDetailTest(TestCase):
         )
 
     def test_detail_page_200(self):
-        resp = self.client.get("/marketplace/t-detail/")
+        resp = self.client.get("/apps/t-detail/")
         self.assertEqual(resp.status_code, 200)
 
     def test_detail_page_404(self):
-        resp = self.client.get("/marketplace/nonexistent/")
+        resp = self.client.get("/apps/nonexistent/")
         self.assertEqual(resp.status_code, 404)
 
 
-class MarketplaceInstallTest(TestCase):
+class AppsInstallTest(TestCase):
     """Tests for install/uninstall/toggle APIs."""
 
     @classmethod
@@ -94,7 +94,7 @@ class MarketplaceInstallTest(TestCase):
         )
 
     def test_install(self):
-        resp = self.client.post("/marketplace/api/t-install/install/")
+        resp = self.client.post("/apps/api/t-install/install/")
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         self.assertTrue(data["success"])
@@ -105,13 +105,13 @@ class MarketplaceInstallTest(TestCase):
         )
 
     def test_double_install(self):
-        self.client.post("/marketplace/api/t-install/install/")
-        resp = self.client.post("/marketplace/api/t-install/install/")
+        self.client.post("/apps/api/t-install/install/")
+        resp = self.client.post("/apps/api/t-install/install/")
         self.assertEqual(resp.status_code, 400)
 
     def test_uninstall(self):
         ModuleInstallation.objects.create(user=self.user, module=self.module)
-        resp = self.client.post("/marketplace/api/t-install/uninstall/")
+        resp = self.client.post("/apps/api/t-install/uninstall/")
         self.assertEqual(resp.status_code, 200)
         self.assertFalse(
             ModuleInstallation.objects.filter(
@@ -121,7 +121,7 @@ class MarketplaceInstallTest(TestCase):
 
     def test_uninstall_builtin_blocked(self):
         ModuleInstallation.objects.create(user=self.user, module=self.builtin)
-        resp = self.client.post("/marketplace/api/t-builtin/uninstall/")
+        resp = self.client.post("/apps/api/t-builtin/uninstall/")
         self.assertEqual(resp.status_code, 400)
         self.assertIn("Built-in", resp.json()["error"])
 
@@ -129,15 +129,15 @@ class MarketplaceInstallTest(TestCase):
         ModuleInstallation.objects.create(
             user=self.user, module=self.module, is_enabled=True
         )
-        resp = self.client.post("/marketplace/api/t-install/toggle/")
+        resp = self.client.post("/apps/api/t-install/toggle/")
         self.assertEqual(resp.status_code, 200)
         self.assertFalse(resp.json()["is_enabled"])
 
-        resp = self.client.post("/marketplace/api/t-install/toggle/")
+        resp = self.client.post("/apps/api/t-install/toggle/")
         self.assertTrue(resp.json()["is_enabled"])
 
 
-class MarketplaceStarTest(TestCase):
+class AppsStarTest(TestCase):
     """Tests for star/unstar APIs."""
 
     @classmethod
@@ -159,23 +159,23 @@ class MarketplaceStarTest(TestCase):
         )
 
     def test_star(self):
-        resp = self.client.post("/marketplace/api/t-star/star/")
+        resp = self.client.post("/apps/api/t-star/star/")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()["star_count"], 1)
 
     def test_double_star(self):
-        self.client.post("/marketplace/api/t-star/star/")
-        resp = self.client.post("/marketplace/api/t-star/star/")
+        self.client.post("/apps/api/t-star/star/")
+        resp = self.client.post("/apps/api/t-star/star/")
         self.assertEqual(resp.status_code, 400)
 
     def test_unstar(self):
         ModuleStar.objects.create(user=self.user, module=self.module)
-        resp = self.client.post("/marketplace/api/t-star/unstar/")
+        resp = self.client.post("/apps/api/t-star/unstar/")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()["star_count"], 0)
 
 
-class MarketplaceReviewTest(TestCase):
+class AppsReviewTest(TestCase):
     """Tests for review API."""
 
     @classmethod
@@ -198,7 +198,7 @@ class MarketplaceReviewTest(TestCase):
 
     def test_create_review(self):
         resp = self.client.post(
-            "/marketplace/api/t-review/review/",
+            "/apps/api/t-review/review/",
             data=json.dumps({"rating": 5, "title": "Excellent", "body": "Love it."}),
             content_type="application/json",
         )
@@ -212,7 +212,7 @@ class MarketplaceReviewTest(TestCase):
             user=self.user, module=self.module, rating=3, title="OK"
         )
         resp = self.client.post(
-            "/marketplace/api/t-review/review/",
+            "/apps/api/t-review/review/",
             data=json.dumps({"rating": 5, "title": "Better now"}),
             content_type="application/json",
         )
@@ -221,7 +221,7 @@ class MarketplaceReviewTest(TestCase):
 
     def test_invalid_rating(self):
         resp = self.client.post(
-            "/marketplace/api/t-review/review/",
+            "/apps/api/t-review/review/",
             data=json.dumps({"rating": 0, "title": "Bad"}),
             content_type="application/json",
         )
@@ -229,14 +229,14 @@ class MarketplaceReviewTest(TestCase):
 
     def test_invalid_json(self):
         resp = self.client.post(
-            "/marketplace/api/t-review/review/",
+            "/apps/api/t-review/review/",
             data="not json",
             content_type="application/json",
         )
         self.assertEqual(resp.status_code, 400)
 
 
-class MarketplaceReorderTest(TestCase):
+class AppsReorderTest(TestCase):
     """Tests for reorder API."""
 
     @classmethod
@@ -266,7 +266,7 @@ class MarketplaceReorderTest(TestCase):
 
     def test_reorder(self):
         resp = self.client.post(
-            "/marketplace/api/reorder/",
+            "/apps/api/reorder/",
             data=json.dumps({"order": ["t-reorder-b", "t-reorder-a"]}),
             content_type="application/json",
         )
@@ -276,7 +276,7 @@ class MarketplaceReorderTest(TestCase):
         self.assertGreater(inst_a.tab_order, inst_b.tab_order)
 
 
-class MarketplaceAuthTest(TestCase):
+class AppsAuthTest(TestCase):
     """Tests that API endpoints require authentication."""
 
     @classmethod
@@ -286,15 +286,15 @@ class MarketplaceAuthTest(TestCase):
         )
 
     def test_install_requires_login(self):
-        resp = self.client.post("/marketplace/api/t-auth/install/")
+        resp = self.client.post("/apps/api/t-auth/install/")
         self.assertEqual(resp.status_code, 302)  # Redirect to login
 
     def test_star_requires_login(self):
-        resp = self.client.post("/marketplace/api/t-auth/star/")
+        resp = self.client.post("/apps/api/t-auth/star/")
         self.assertEqual(resp.status_code, 302)
 
     def test_review_requires_login(self):
-        resp = self.client.post("/marketplace/api/t-auth/review/")
+        resp = self.client.post("/apps/api/t-auth/review/")
         self.assertEqual(resp.status_code, 302)
 
 

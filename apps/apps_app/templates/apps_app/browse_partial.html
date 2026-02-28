@@ -1,6 +1,6 @@
 {% load static %}
 
-<link rel="stylesheet" href="{% static 'marketplace_app/css/marketplace.css' %}" />
+<link rel="stylesheet" href="{% static 'apps_app/css/apps.css' %}" />
 <div class="apps-container">
     <div class="apps-header"
          style="display:flex;
@@ -8,7 +8,7 @@
                 gap:8px;
                 padding:4px 0 0;
                 margin-bottom:8px">
-        <span style="font-weight:600;">Marketplace</span>
+        <span style="font-weight:600;">Apps</span>
         <span class="badge badge-wip">WIP</span>
     </div>
     <!-- Top bar: category filter tabs, search, sort -->
@@ -23,19 +23,19 @@
             <div class="apps-search-wrapper">
                 <i class="fas fa-search apps-search-icon" aria-hidden="true"></i>
                 <input type="text"
-                       id="mp-search-input"
+                       id="ap-search-input"
                        class="apps-search-input"
                        placeholder="Search apps... (Ctrl+K)"
                        aria-label="Search apps" />
                 <button type="button"
                         class="apps-search-clear"
-                        id="mp-search-clear"
+                        id="ap-search-clear"
                         style="display:none"
                         aria-label="Clear search">
                     <i class="fas fa-times" aria-hidden="true"></i>
                 </button>
             </div>
-            <select id="mp-sort-select" class="apps-sort-select" aria-label="Sort apps">
+            <select id="ap-sort-select" class="apps-sort-select" aria-label="Sort apps">
                 <option value="popular" selected>Popular</option>
                 <option value="newest">Newest</option>
                 <option value="rating">Rating</option>
@@ -43,27 +43,27 @@
         </div>
     </div>
     <!-- Module grid (always contains ALL modules; filtering is client-side) -->
-    <div class="apps-grid" id="mp-grid">
+    <div class="apps-grid" id="ap-grid">
         {% for mod_item in modules %}
-            {% include "marketplace_app/partials/module_card.html" %}
+            {% include "apps_app/partials/module_card.html" %}
         {% endfor %}
     </div>
-    <div class="apps-empty-state" id="mp-empty" style="display:none">
+    <div class="apps-empty-state" id="ap-empty" style="display:none">
         <i class="fas fa-store-slash" aria-hidden="true"></i>
         <p class="apps-empty-title">No apps found</p>
-        <p class="apps-empty-description" id="mp-empty-desc">No apps match your search.</p>
+        <p class="apps-empty-description" id="ap-empty-desc">No apps match your search.</p>
     </div>
 </div>
 <script>
 (function () {
-    var grid = document.getElementById('mp-grid');
-    var emptyEl = document.getElementById('mp-empty');
-    var emptyDesc = document.getElementById('mp-empty-desc');
-    var searchInput = document.getElementById('mp-search-input');
-    var clearBtn = document.getElementById('mp-search-clear');
-    var sortSelect = document.getElementById('mp-sort-select');
+    var grid = document.getElementById('ap-grid');
+    var emptyEl = document.getElementById('ap-empty');
+    var emptyDesc = document.getElementById('ap-empty-desc');
+    var searchInput = document.getElementById('ap-search-input');
+    var clearBtn = document.getElementById('ap-search-clear');
+    var sortSelect = document.getElementById('ap-sort-select');
     var tabs = document.querySelectorAll('.apps-cat-tab');
-    var cards = grid ? Array.prototype.slice.call(grid.querySelectorAll('.mp-card')) : [];
+    var cards = grid ? Array.prototype.slice.call(grid.querySelectorAll('.ap-card')) : [];
     var activeCategory = '';
 
     /* ── Helpers ────────────────────────────────────── */
@@ -146,8 +146,8 @@
     }
 
     function clearDragClasses() {
-        grid.querySelectorAll('.mp-card-drag-above, .mp-card-drag-below').forEach(function (c) {
-            c.classList.remove('mp-card-drag-above', 'mp-card-drag-below');
+        grid.querySelectorAll('.ap-card-drag-above, .ap-card-drag-below').forEach(function (c) {
+            c.classList.remove('ap-card-drag-above', 'ap-card-drag-below');
         });
     }
 
@@ -157,13 +157,13 @@
 
         card.addEventListener('dragstart', function (e) {
             draggedCard = card;
-            card.classList.add('mp-card-dragging');
+            card.classList.add('ap-card-dragging');
             e.dataTransfer.effectAllowed = 'move';
         });
 
         card.addEventListener('dragend', function () {
             draggedCard = null;
-            card.classList.remove('mp-card-dragging');
+            card.classList.remove('ap-card-dragging');
             clearDragClasses();
         });
 
@@ -178,10 +178,10 @@
 
             clearDragClasses();
             if (e.clientY < midY) {
-                card.classList.add('mp-card-drag-above');
+                card.classList.add('ap-card-drag-above');
                 dropPosition = 'before';
             } else {
-                card.classList.add('mp-card-drag-below');
+                card.classList.add('ap-card-drag-below');
                 dropPosition = 'after';
             }
         });
@@ -189,7 +189,7 @@
         card.addEventListener('dragleave', function (e) {
             /* Only clear if actually leaving this card (not entering a child) */
             if (!card.contains(e.relatedTarget)) {
-                card.classList.remove('mp-card-drag-above', 'mp-card-drag-below');
+                card.classList.remove('ap-card-drag-above', 'ap-card-drag-below');
             }
         });
 
@@ -206,7 +206,7 @@
             }
 
             /* Update cards array and tab_order data attributes */
-            cards = Array.prototype.slice.call(grid.querySelectorAll('.mp-card'));
+            cards = Array.prototype.slice.call(grid.querySelectorAll('.ap-card'));
             var order = [];
             var idx = 0;
             cards.forEach(function (c) {
@@ -218,7 +218,7 @@
             });
 
             /* Persist to server + sync tab bar */
-            fetch('/marketplace/api/reorder/', {
+            fetch('/apps/api/reorder/', {
                 method: 'POST',
                 headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/json' },
                 body: JSON.stringify({ order: order })

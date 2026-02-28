@@ -1,7 +1,7 @@
-/* Marketplace — button styles: action, install, star, toggle */
+/* Apps — button styles: action, install, star, toggle */
 
 /* Primary action buttons (detail page, my_modules) */
-.mp-btn-action {
+.ap-btn-action {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -19,53 +19,53 @@
     border-color 0.15s;
 }
 
-.mp-btn-action:hover {
+.ap-btn-action:hover {
   background-color: var(--workspace-bg-tertiary, rgba(255, 255, 255, 0.1));
   text-decoration: none;
   color: var(--text-primary);
 }
 
-.mp-btn-action:disabled {
+.ap-btn-action:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.mp-btn-primary {
+.ap-btn-primary {
   background-color: var(--workspace-icon-primary, var(--accent));
   border-color: var(--workspace-icon-primary, var(--accent));
   color: #fff;
 }
 
-.mp-btn-primary:hover {
+.ap-btn-primary:hover {
   background-color: var(--workspace-icon-primary, var(--accent));
   filter: brightness(1.15);
   color: #fff;
 }
 
-.mp-btn-secondary {
+.ap-btn-secondary {
   background-color: transparent;
   border-color: var(--workspace-border-default, var(--border-color));
   color: var(--text-muted);
 }
 
-.mp-btn-danger {
+.ap-btn-danger {
   background-color: transparent;
   border-color: #fc8181;
   color: #fc8181;
 }
 
-.mp-btn-danger:hover {
+.ap-btn-danger:hover {
   background-color: rgba(252, 129, 129, 0.1);
   color: #fc8181;
 }
 
-.mp-btn-sm {
+.ap-btn-sm {
   padding: 3px 7px;
   font-size: 0.75rem;
 }
 
 /* Card-level install button */
-.mp-btn-install {
+.ap-btn-install {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -80,47 +80,47 @@
   transition: filter 0.15s;
 }
 
-.mp-btn-install:hover {
+.ap-btn-install:hover {
   filter: brightness(1.15);
   text-decoration: none;
   color: #fff;
 }
 
-.mp-btn-install:disabled {
+.ap-btn-install:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.mp-btn-login {
+.ap-btn-login {
   background-color: transparent;
   border-color: var(--workspace-border-default, var(--border-color));
   color: var(--text-muted);
 }
 
-.mp-btn-login:hover {
+.ap-btn-login:hover {
   filter: none;
   color: var(--text-primary);
 }
 
 /* Status dropdown (Installed/Disabled badge → menu) */
-.mp-status-dropdown {
+.ap-status-dropdown {
   position: relative;
   display: inline-flex;
 }
 
-.mp-status-trigger {
+.ap-status-trigger {
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
 }
 
-.mp-status-trigger .mp-caret {
+.ap-status-trigger .ap-caret {
   font-size: 0.6rem;
   margin-left: 3px;
   opacity: 0.5;
 }
 
-.mp-status-menu {
+.ap-status-menu {
   display: none;
   position: absolute;
   top: calc(100% + 4px);
@@ -133,11 +133,11 @@
   padding: 4px 0;
 }
 
-.mp-status-dropdown.open .mp-status-menu {
+.ap-status-dropdown.open .ap-status-menu {
   display: block;
 }
 
-.mp-status-item {
+.ap-status-item {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -153,27 +153,27 @@
   white-space: nowrap;
 }
 
-.mp-status-item:hover {
+.ap-status-item:hover {
   background: var(--workspace-bg-tertiary, rgba(255, 255, 255, 0.06));
 }
 
-.mp-status-item--danger {
+.ap-status-item--danger {
   color: #fc8181;
 }
 
-.mp-status-item--danger:hover {
+.ap-status-item--danger:hover {
   background: rgba(252, 129, 129, 0.1);
 }
 
 /* Legacy: card-level toggle & uninstall buttons */
-.mp-installed-actions {
+.ap-installed-actions {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
-.mp-btn-toggle,
-.mp-btn-uninstall {
+.ap-btn-toggle,
+.ap-btn-uninstall {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -192,26 +192,26 @@
   padding: 0;
 }
 
-.mp-btn-toggle:hover {
+.ap-btn-toggle:hover {
   color: #f6ad55;
   border-color: #f6ad55;
   background-color: rgba(246, 173, 85, 0.1);
 }
 
-.mp-btn-uninstall:hover {
+.ap-btn-uninstall:hover {
   color: #fc8181;
   border-color: #fc8181;
   background-color: rgba(252, 129, 129, 0.1);
 }
 
-.mp-btn-toggle:disabled,
-.mp-btn-uninstall:disabled {
+.ap-btn-toggle:disabled,
+.ap-btn-uninstall:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
 /* Card-level star button */
-.mp-btn-star {
+.ap-btn-star {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -229,13 +229,13 @@
   padding: 0;
 }
 
-.mp-btn-star:hover,
-.mp-btn-star--active {
+.ap-btn-star:hover,
+.ap-btn-star--active {
   color: #f6c90e;
   border-color: #f6c90e;
 }
 
-.mp-btn-star:disabled {
+.ap-btn-star:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }

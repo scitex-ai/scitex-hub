@@ -1,4 +1,10 @@
-/* Project Creation — Tabbed Form Page */
+/* Project Creation — Two-Column Layout */
+
+.create-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
 
 .create-title {
   text-align: center;
@@ -9,47 +15,72 @@
 }
 
 /* ============================================
-   Tab Navigation
+   Two-Column Layout
    ============================================ */
 
-.create-tabs {
+.create-two-col {
   display: flex;
-  border-bottom: 1px solid var(--color-border-default, #30363d);
-  margin-bottom: 1.5rem;
-  gap: 0;
-  overflow-x: auto;
+  gap: 1.5rem;
+  align-items: flex-start;
 }
 
-.create-tab {
-  padding: 0.75rem 1rem;
+/* ============================================
+   Left Sidebar Menu
+   ============================================ */
+
+.create-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.create-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.625rem 0.75rem;
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--color-fg-muted, #8b949e);
   background: none;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-left: 2px solid transparent;
+  border-radius: 0 6px 6px 0;
   cursor: pointer;
+  text-align: left;
   transition:
-    color 0.2s ease,
-    border-color 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  white-space: nowrap;
+    color 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
-.create-tab:hover {
+.create-menu-item:hover {
   color: var(--color-fg-default, #c9d1d9);
+  background: var(--color-canvas-subtle, #161b22);
 }
 
-.create-tab.active {
+.create-menu-item.active {
   color: var(--color-fg-default, #c9d1d9);
-  border-bottom-color: var(--color-accent-emphasis, #238636);
+  background: var(--color-canvas-subtle, #161b22);
+  border-left-color: var(--color-accent-emphasis, #238636);
 }
 
-.create-tab-badge {
+.create-menu-badge {
   font-size: 0.55rem;
   vertical-align: middle;
+  margin-left: auto;
+}
+
+/* ============================================
+   Right Main Content
+   ============================================ */
+
+.create-main {
+  flex: 1;
+  min-width: 0;
 }
 
 /* No credentials fallback in remote tab */
@@ -65,49 +96,9 @@
 }
 
 /* ============================================
-   Form Container
+   Form Card
    ============================================ */
 
-.create-form-container {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
-}
-
-.create-form-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.back-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
-  color: var(--color-fg-muted, #8b949e);
-  text-decoration: none;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
-}
-
-.back-link:hover {
-  background: var(--color-canvas-subtle, #161b22);
-  color: var(--color-fg-default, #c9d1d9);
-}
-
-.form-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0;
-  color: var(--color-fg-default, #c9d1d9);
-}
-
-/* Form Card */
 .create-form-card {
   background: var(--color-canvas-subtle, #161b22);
   border: 1px solid var(--color-border-default, #30363d);

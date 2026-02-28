@@ -1,28 +1,28 @@
-/* Marketplace — review form and review list styles */
+/* Apps — review form and review list styles */
 
 /* ─── Review Form ──────────────────────────────────────────────── */
-.mp-review-form {
+.ap-review-form {
   padding: 1rem;
   border: 1px solid var(--workspace-border-default, var(--border-color));
   background-color: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.02));
   margin-bottom: 1rem;
 }
 
-.mp-review-form-title {
+.ap-review-form-title {
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 0.85rem;
 }
 
-.mp-rating-fieldset {
+.ap-rating-fieldset {
   border: none;
   padding: 0;
   margin: 0 0 0.75rem;
 }
 
-.mp-rating-fieldset legend,
-.mp-review-label {
+.ap-rating-fieldset legend,
+.ap-review-label {
   display: block;
   font-size: 0.82rem;
   font-weight: 500;
@@ -30,13 +30,13 @@
   margin-bottom: 4px;
 }
 
-.mp-star-rating {
+.ap-star-rating {
   display: flex;
   gap: 4px;
   margin-bottom: 4px;
 }
 
-.mp-star-btn {
+.ap-star-btn {
   background: none;
   border: none;
   padding: 2px 4px;
@@ -49,29 +49,29 @@
   line-height: 1;
 }
 
-.mp-star-btn:hover,
-.mp-star-btn--active {
+.ap-star-btn:hover,
+.ap-star-btn--active {
   color: #f6c90e;
   transform: scale(1.15);
 }
 
-.mp-star-btn i {
+.ap-star-btn i {
   pointer-events: none;
 }
 
-.mp-rating-hint {
+.ap-rating-hint {
   font-size: 0.78rem;
   color: var(--text-muted);
   min-height: 1em;
   display: block;
 }
 
-.mp-review-field {
+.ap-review-field {
   margin-bottom: 0.75rem;
 }
 
-.mp-review-input,
-.mp-review-textarea {
+.ap-review-input,
+.ap-review-textarea {
   width: 100%;
   background-color: var(--workspace-bg-primary, var(--bg-primary));
   border: 1px solid var(--workspace-border-default, var(--border-color));
@@ -85,38 +85,38 @@
   box-sizing: border-box;
 }
 
-.mp-review-input:focus,
-.mp-review-textarea:focus {
+.ap-review-input:focus,
+.ap-review-textarea:focus {
   border-color: var(--workspace-icon-primary, var(--accent));
 }
 
-.mp-review-textarea {
+.ap-review-textarea {
   resize: vertical;
   min-height: 80px;
 }
 
-.mp-review-form-footer {
+.ap-review-form-footer {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
 }
 
-.mp-review-status {
+.ap-review-status {
   font-size: 0.82rem;
   color: var(--text-muted);
 }
 
-.mp-review-status--success {
+.ap-review-status--success {
   color: #68d391;
 }
 
-.mp-review-status--error {
+.ap-review-status--error {
   color: #fc8181;
 }
 
 /* ─── Review List ──────────────────────────────────────────────── */
-.mp-review-list {
+.ap-review-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -124,23 +124,23 @@
   flex-direction: column;
 }
 
-.mp-review-item {
+.ap-review-item {
   padding: 0.85rem;
   border-bottom: 1px solid var(--workspace-border-default, var(--border-color));
 }
 
-.mp-review-item:last-child {
+.ap-review-item:last-child {
   border-bottom: none;
 }
 
-.mp-review-header {
+.ap-review-header {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 6px;
 }
 
-.mp-review-avatar {
+.ap-review-avatar {
   flex-shrink: 0;
   width: 30px;
   height: 30px;
@@ -154,53 +154,53 @@
   font-weight: 600;
 }
 
-.mp-review-user-info {
+.ap-review-user-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.mp-review-username {
+.ap-review-username {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.mp-review-stars {
+.ap-review-stars {
   display: flex;
   gap: 2px;
   font-size: 0.8rem;
 }
 
-.mp-review-stars .fa-star {
+.ap-review-stars .fa-star {
   color: #f6c90e;
 }
 
-.mp-review-stars .far.fa-star {
+.ap-review-stars .far.fa-star {
   color: var(--text-muted);
 }
 
-.mp-review-date {
+.ap-review-date {
   margin-left: auto;
   font-size: 0.75rem;
   color: var(--text-muted);
 }
 
-.mp-review-title-text {
+.ap-review-title-text {
   font-size: 0.88rem;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 4px;
 }
 
-.mp-review-body {
+.ap-review-body {
   font-size: 0.85rem;
   color: var(--text-muted);
   margin: 0 0 6px;
   line-height: 1.5;
 }
 
-.mp-review-empty {
+.ap-review-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -211,7 +211,7 @@
   font-size: 0.9rem;
 }
 
-.mp-review-empty i {
+.ap-review-empty i {
   font-size: 2rem;
   opacity: 0.35;
 }

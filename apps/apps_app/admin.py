@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Marketplace admin configuration."""
+"""Apps admin configuration."""
 
 from django.contrib import admin
 

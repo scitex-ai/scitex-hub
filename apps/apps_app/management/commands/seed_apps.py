@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Seed the marketplace with entries for all built-in registry modules.
+Seed the apps catalog with entries for all built-in registry modules.
 
 Usage: python manage.py seed_apps
 """
@@ -22,7 +22,7 @@ _CATEGORY_MAP = {
     "hub": "utility",
     "tools": "utility",
     "example": "other",
-    "marketplace": "utility",
+    "apps": "utility",
     "modulemaker": "utility",
 }
 
@@ -36,12 +36,12 @@ _DESCRIPTIONS = {
     "hub": "Project dashboard showing recent activity, file browser, and quick actions.",
     "tools": "Collection of standalone research utilities — converters, calculators, and helpers.",
     "example": "Reference implementation for module developers. Copy this to create your own module.",
-    "marketplace": "Browse, install, and manage workspace modules.",
+    "apps": "Browse, install, and manage workspace modules.",
     "modulemaker": "Create, edit, and manage custom workspace modules with @stx.module.",
 }
 
 # Modules under active development
-_WIP_MODULES = {"modulemaker", "example", "clew", "vis", "marketplace"}
+_WIP_MODULES = {"modulemaker", "example", "clew", "vis", "apps"}
 
 
 def ensure_builtin_modules(author_username="ywatanabe"):
@@ -90,7 +90,7 @@ def ensure_builtin_modules(author_username="ywatanabe"):
 
 
 class Command(BaseCommand):
-    help = "Seed marketplace with built-in module entries"
+    help = "Seed apps catalog with built-in module entries"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -103,7 +103,7 @@ class Command(BaseCommand):
         created, updated = ensure_builtin_modules(author_username=options["author"])
         self.stdout.write(
             self.style.SUCCESS(
-                f"Done. Created {created}, updated {updated} marketplace entries."
+                f"Done. Created {created}, updated {updated} apps catalog entries."
             )
         )
 

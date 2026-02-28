@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""App Validator — check Gitea repo structure before marketplace submission."""
+"""App Validator — check Gitea repo structure before apps submission."""
 
 from __future__ import annotations
 

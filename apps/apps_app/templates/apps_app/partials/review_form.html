@@ -1,6 +1,6 @@
-<form class="mp-review-form" id="mp-review-form" novalidate>
+<form class="ap-review-form" id="ap-review-form" novalidate>
     {% csrf_token %}
-    <h3 class="mp-review-form-title">
+    <h3 class="ap-review-form-title">
         {% if user_review %}
             Edit Your Review
         {% else %}
@@ -8,12 +8,12 @@
         {% endif %}
     </h3>
     <!-- Star rating -->
-    <fieldset class="mp-rating-fieldset">
-        <legend class="mp-review-label">Rating</legend>
-        <div class="mp-star-rating" role="group" aria-label="Select rating">
+    <fieldset class="ap-rating-fieldset">
+        <legend class="ap-review-label">Rating</legend>
+        <div class="ap-star-rating" role="group" aria-label="Select rating">
             {% for i in "12345" %}
                 <button type="button"
-                        class="mp-star-btn"
+                        class="ap-star-btn"
                         data-value="{{ i }}"
                         aria-label="{{ i }} star{% if i != '1' %}s{% endif %}">
                     <i class="far fa-star" aria-hidden="true"></i>
@@ -22,32 +22,32 @@
         </div>
         <input type="hidden"
                name="rating"
-               id="mp-rating-value"
+               id="ap-rating-value"
                value="{% if user_review %}{{ user_review.rating }}{% endif %}" />
-        <span class="mp-rating-hint" id="mp-rating-hint" aria-live="polite"></span>
+        <span class="ap-rating-hint" id="ap-rating-hint" aria-live="polite"></span>
     </fieldset>
     <!-- Title -->
-    <div class="mp-review-field">
-        <label class="mp-review-label" for="mp-review-title">Title</label>
+    <div class="ap-review-field">
+        <label class="ap-review-label" for="ap-review-title">Title</label>
         <input type="text"
-               id="mp-review-title"
+               id="ap-review-title"
                name="title"
-               class="mp-review-input"
+               class="ap-review-input"
                maxlength="100"
                placeholder="Summary of your experience"
                value="{% if user_review %}{{ user_review.title }}{% endif %}" />
     </div>
     <!-- Body -->
-    <div class="mp-review-field">
-        <label class="mp-review-label" for="mp-review-body">Review</label>
-        <textarea id="mp-review-body"
+    <div class="ap-review-field">
+        <label class="ap-review-label" for="ap-review-body">Review</label>
+        <textarea id="ap-review-body"
                   name="body"
-                  class="mp-review-textarea"
+                  class="ap-review-textarea"
                   rows="4"
                   placeholder="Share details about your experience with this app...">{% if user_review %}{{ user_review.body }}{% endif %}</textarea>
     </div>
-    <div class="mp-review-form-footer">
-        <button type="submit" class="mp-btn-action mp-btn-primary" id="mp-review-submit">
+    <div class="ap-review-form-footer">
+        <button type="submit" class="ap-btn-action ap-btn-primary" id="ap-review-submit">
             <i class="fas fa-paper-plane" aria-hidden="true"></i>
             {% if user_review %}
                 Update Review
@@ -55,7 +55,7 @@
                 Submit Review
             {% endif %}
         </button>
-        <span class="mp-review-status" id="mp-review-status" aria-live="polite"></span>
+        <span class="ap-review-status" id="ap-review-status" aria-live="polite"></span>
     </div>
 </form>
 <script>
@@ -67,14 +67,14 @@
                document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
     }
 
-    var form = document.getElementById('mp-review-form');
+    var form = document.getElementById('ap-review-form');
     if (!form) { return; }
 
-    var ratingInput = document.getElementById('mp-rating-value');
-    var ratingHint = document.getElementById('mp-rating-hint');
-    var starBtns = form.querySelectorAll('.mp-star-btn');
-    var submitBtn = document.getElementById('mp-review-submit');
-    var statusEl = document.getElementById('mp-review-status');
+    var ratingInput = document.getElementById('ap-rating-value');
+    var ratingHint = document.getElementById('ap-rating-hint');
+    var starBtns = form.querySelectorAll('.ap-star-btn');
+    var submitBtn = document.getElementById('ap-review-submit');
+    var statusEl = document.getElementById('ap-review-status');
 
     function renderStars(value) {
         starBtns.forEach(function (btn) {
@@ -83,7 +83,7 @@
             if (icon) {
                 icon.className = v <= value ? 'fas fa-star' : 'far fa-star';
             }
-            btn.classList.toggle('mp-star-btn--active', v <= value);
+            btn.classList.toggle('ap-star-btn--active', v <= value);
         });
         ratingHint.textContent = value ? RATING_LABELS[value] : '';
     }
@@ -107,22 +107,22 @@
     });
 
     // Determine module name from URL path
-    var moduleName = window.location.pathname.replace(/^\/marketplace\//, '').replace(/\/$/, '');
+    var moduleName = window.location.pathname.replace(/^\/apps\//, '').replace(/\/$/, '');
 
     form.addEventListener('submit', function (e) {
         e.preventDefault();
         var rating = parseInt(ratingInput.value, 10);
         if (!rating || rating < 1 || rating > 5) {
             statusEl.textContent = 'Please select a rating.';
-            statusEl.className = 'mp-review-status mp-review-status--error';
+            statusEl.className = 'ap-review-status ap-review-status--error';
             return;
         }
 
         submitBtn.disabled = true;
         statusEl.textContent = 'Submitting...';
-        statusEl.className = 'mp-review-status';
+        statusEl.className = 'ap-review-status';
 
-        fetch('/marketplace/api/' + moduleName + '/review/', {
+        fetch('/apps/api/' + moduleName + '/review/', {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCsrf(),
@@ -130,8 +130,8 @@
             },
             body: JSON.stringify({
                 rating: rating,
-                title: form.querySelector('#mp-review-title').value.trim(),
-                body: form.querySelector('#mp-review-body').value.trim()
+                title: form.querySelector('#ap-review-title').value.trim(),
+                body: form.querySelector('#ap-review-body').value.trim()
             })
         })
         .then(function (r) { return r.json(); })
@@ -139,18 +139,18 @@
             submitBtn.disabled = false;
             if (data.success) {
                 statusEl.textContent = data.message || 'Review submitted.';
-                statusEl.className = 'mp-review-status mp-review-status--success';
+                statusEl.className = 'ap-review-status ap-review-status--success';
                 // Reload reviews list after a short delay
                 setTimeout(function () { location.reload(); }, 1200);
             } else {
                 statusEl.textContent = data.error || 'Submission failed.';
-                statusEl.className = 'mp-review-status mp-review-status--error';
+                statusEl.className = 'ap-review-status ap-review-status--error';
             }
         })
         .catch(function (err) {
             submitBtn.disabled = false;
             statusEl.textContent = 'An error occurred. Please try again.';
-            statusEl.className = 'mp-review-status mp-review-status--error';
+            statusEl.className = 'ap-review-status ap-review-status--error';
             console.error('Review submit error:', err);
         });
     });

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Marketplace view helpers — shared utilities for pages and API."""
+"""Apps view helpers — shared utilities for pages and API."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from ..models import (
 
 logger = logging.getLogger(__name__)
 
-# Module-level flag — ensures built-in modules exist on first marketplace visit
+# Module-level flag — ensures built-in modules exist on first apps visit
 _builtins_ensured = False
 
 
@@ -44,17 +44,17 @@ def ensure_builtin_modules():
 
         created, _ = seed_builtins()
         if created:
-            logger.info("[marketplace] Auto-seeded %d built-in modules", created)
+            logger.info("[apps] Auto-seeded %d built-in modules", created)
     except Exception:
-        logger.exception("[marketplace] Failed to auto-seed built-in modules")
+        logger.exception("[apps] Failed to auto-seed built-in modules")
     _builtins_ensured = True
 
 
-def can_view_module(user, mp_module):
+def can_view_module(user, app_module):
     """Check if user can view this module based on visibility."""
-    if mp_module.visibility == "public" or mp_module.is_builtin:
+    if app_module.visibility == "public" or app_module.is_builtin:
         return True
-    if user.is_authenticated and mp_module.author == user:
+    if user.is_authenticated and app_module.author == user:
         return True
     if user.is_authenticated and user.is_staff:
         return True
@@ -100,7 +100,7 @@ def browse_context(request, current_project=None):
             tab_order = reg.order if reg else 50
         module_list.append(
             {
-                "mp": mp,
+                "app": mp,
                 "reg": reg,
                 "is_installed": installed,
                 "is_enabled": enabled,

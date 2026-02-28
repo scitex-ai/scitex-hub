@@ -41,7 +41,7 @@ def workspace_context(request):
 
 
 def _filter_modules_for_user(request, modules):
-    """Filter and reorder modules based on user's marketplace installations."""
+    """Filter and reorder modules based on user's apps installations."""
     if not request.user.is_authenticated:
         return modules
 
@@ -55,7 +55,7 @@ def _filter_modules_for_user(request, modules):
             ).select_related("module")
         }
 
-        # Populate marketplace status from AppsModule directly
+        # Populate apps status from AppsModule directly
         mp_statuses = dict(
             AppsModule.objects.filter(
                 module_name__in=[m.name for m in modules]

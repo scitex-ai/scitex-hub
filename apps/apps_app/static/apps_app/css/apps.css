@@ -1,0 +1,8 @@
+/* Apps — main entry point: imports all partials */
+@import url("apps/layout.css");
+@import url("apps/cards.css");
+@import url("apps/badges.css");
+@import url("apps/buttons.css");
+@import url("apps/detail.css");
+@import url("apps/my_modules.css");
+@import url("apps/reviews.css");

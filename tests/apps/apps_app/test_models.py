@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Tests for marketplace models."""
+"""Tests for apps models."""
 
 from decimal import Decimal
 

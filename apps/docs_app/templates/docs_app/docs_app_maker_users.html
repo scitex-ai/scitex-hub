@@ -4,7 +4,7 @@
 
 {% block title %}App Maker: Users — SciTeX Documentation{% endblock %}
 {% block meta_description %}
-    Browse the Marketplace and create custom apps with the App Maker browser editor.
+    Browse the Apps catalog and create custom apps with the App Maker browser editor.
 {% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
@@ -22,14 +22,14 @@
         </header>
     </div>
     <div class="container py-2">
-        <!-- Marketplace -->
-        <span id="marketplace"></span>
+        <!-- Apps -->
+        <span id="apps"></span>
         <section class="api-section">
             <h2>
-                <i class="fas fa-store"></i> Marketplace
+                <i class="fas fa-store"></i> Apps Catalog
             </h2>
             <p>
-                The <a href="/marketplace/">Marketplace</a> is a catalog of all workspace modules.
+                The <a href="/apps/">Apps catalog</a> is a catalog of all workspace modules.
                 Users can browse, install, star, review, and reorder modules.
             </p>
             <table class="api-table">
@@ -56,7 +56,7 @@
                         <td>
                             <strong>Reorder</strong>
                         </td>
-                        <td>Drag to reorder tab positions (syncs across tab bar and marketplace)</td>
+                        <td>Drag to reorder tab positions (syncs across tab bar and apps catalog)</td>
                     </tr>
                     <tr>
                         <td>
@@ -79,7 +79,7 @@
                 </tbody>
             </table>
             <p style="margin-top: 1rem">
-                Built-in modules are auto-seeded into the marketplace on first visit.
+                Built-in modules are auto-seeded into the apps catalog on first visit.
                 Categories: writing, visualization, data, analysis, reference, utility.
             </p>
         </section>

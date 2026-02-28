@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Marketplace page views — browse, detail, my modules."""
+"""Apps page views — browse, detail, my modules."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ def build_apps_context(request, current_project=None):
 
 
 def browse(request):
-    """Marketplace browse page — grid of module cards."""
+    """Apps browse page — grid of module cards."""
     current_project = (
         get_current_project(request) if request.user.is_authenticated else None
     )
@@ -36,8 +36,8 @@ def browse(request):
 def detail(request, module_name):
     """Module detail page — description, reviews, install button."""
     ensure_builtin_modules()
-    mp_module = get_object_or_404(MarketplaceModule, module_name=module_name)
-    if not can_view_module(request.user, mp_module):
+    app_module = get_object_or_404(AppsModule, module_name=module_name)
+    if not can_view_module(request.user, app_module):
         from django.http import Http404
 
         raise Http404
@@ -48,17 +48,17 @@ def detail(request, module_name):
     user_review = None
     if request.user.is_authenticated:
         is_installed = ModuleInstallation.objects.filter(
-            user=request.user, module=mp_module
+            user=request.user, module=app_module
         ).exists()
         is_starred = ModuleStar.objects.filter(
-            user=request.user, module=mp_module
+            user=request.user, module=app_module
         ).exists()
         user_review = ModuleReview.objects.filter(
-            user=request.user, module=mp_module
+            user=request.user, module=app_module
         ).first()
 
-    reviews = mp_module.reviews.select_related("user")[:20]
-    versions = mp_module.versions.all()[:10]
+    reviews = app_module.reviews.select_related("user")[:20]
+    versions = app_module.versions.all()[:10]
 
     # Skill data for capabilities section
     from apps.llm_app.skills import get_skill
@@ -67,18 +67,18 @@ def detail(request, module_name):
 
     # Submission status for owner
     pending_submission = None
-    if request.user.is_authenticated and mp_module.author == request.user:
+    if request.user.is_authenticated and app_module.author == request.user:
         from ..models import ModuleSubmission
 
         pending_submission = ModuleSubmission.objects.filter(
-            module=mp_module, status="pending"
+            module=app_module, status="pending"
         ).first()
 
     return render(
         request,
         "apps_app/detail.html",
         {
-            "mp_module": mp_module,
+            "app_module": app_module,
             "reg_module": reg_module,
             "skill": skill,
             "is_installed": is_installed,

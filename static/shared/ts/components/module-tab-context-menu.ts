@@ -1,11 +1,11 @@
 /**
  * Module Tab Context Menu — right-click on module tabs to manage them.
  *
- * Actions: Disable, Uninstall, View in Marketplace.
- * Uses existing marketplace API endpoints.
+ * Actions: Disable, Uninstall, View in Apps.
+ * Uses existing apps API endpoints.
  */
 
-const MARKETPLACE_API = "/marketplace/api";
+const APPS_API = "/apps/api";
 
 function getCsrfToken(): string {
   return (
@@ -63,11 +63,11 @@ function showMenu(x: number, y: number, moduleName: string): void {
     },
     { separator: true },
     {
-      label: "View in Marketplace",
+      label: "View in Apps",
       icon: "fa-store",
       cls: "",
       action: () => {
-        window.location.href = `/marketplace/${moduleName}/`;
+        window.location.href = `/apps/${moduleName}/`;
       },
     },
   ];
@@ -114,7 +114,7 @@ function showMenu(x: number, y: number, moduleName: string): void {
 
 async function toggleModule(name: string): Promise<void> {
   try {
-    const data = await apiPost(`${MARKETPLACE_API}/${name}/toggle/`);
+    const data = await apiPost(`${APPS_API}/${name}/toggle/`);
     if (data.success) {
       location.reload();
     } else {
@@ -128,7 +128,7 @@ async function toggleModule(name: string): Promise<void> {
 
 async function uninstallModule(name: string): Promise<void> {
   try {
-    const data = await apiPost(`${MARKETPLACE_API}/${name}/uninstall/`);
+    const data = await apiPost(`${APPS_API}/${name}/uninstall/`);
     if (data.success) {
       location.reload();
     } else {

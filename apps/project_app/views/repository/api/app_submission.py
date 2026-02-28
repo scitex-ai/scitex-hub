@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""App Submission API — validate, submit, and check status for marketplace apps."""
+"""App Submission API — validate, submit, and check status for apps."""
 
 from __future__ import annotations
 
@@ -66,7 +66,7 @@ def api_app_validate(request, username, slug):
 
 @require_POST
 def api_app_submit(request, username, slug):
-    """Submit project to the marketplace.
+    """Submit project to the apps catalog.
 
     POST /api/projects/<username>/<slug>/app/submit/
     Body (JSON): {license, category, short_description}
@@ -147,7 +147,7 @@ def api_app_submit(request, username, slug):
 
     # Create or update AppsModule
     module_name = f"user_{project.owner.username}_{project.slug}".replace("-", "_")
-    mp_module, _created = AppsModule.objects.get_or_create(
+    app_module, _created = AppsModule.objects.get_or_create(
         module_name=module_name,
         defaults={
             "author": project.owner,
@@ -159,17 +159,17 @@ def api_app_submit(request, username, slug):
         },
     )
     if not _created:
-        mp_module.short_description = short_description
-        mp_module.category = category or mp_module.category
-        mp_module.project = project
-        mp_module.visibility = visibility
-        mp_module.save(
+        app_module.short_description = short_description
+        app_module.category = category or app_module.category
+        app_module.project = project
+        app_module.visibility = visibility
+        app_module.save(
             update_fields=["short_description", "category", "project", "visibility"]
         )
 
     # Create submission record
     ModuleSubmission.objects.create(
-        module=mp_module,
+        module=app_module,
         submitted_by=request.user,
         status="pending",
     )

@@ -71,7 +71,7 @@ def _build_files(name, label):
         f"    padding: 20px;\n"
         f"}}\n"
     )
-    files["README.md"] = f"# {label}\n\nA SciTeX Marketplace App.\n"
+    files["README.md"] = f"# {label}\n\nA SciTeX App.\n"
     return files
 
 
@@ -94,7 +94,7 @@ def _gitea_create_file(base_url, token, owner, repo, filepath, content, branch="
 
 @click.group()
 def app():
-    """Manage SciTeX marketplace apps."""
+    """Manage SciTeX apps."""
 
 
 @app.command("init")

@@ -1,4 +1,4 @@
-"""Marketplace views package."""
+"""Apps views package."""
 
 from .api import (
     api_install,

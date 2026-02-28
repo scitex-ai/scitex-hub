@@ -2,25 +2,24 @@
 
 {% load static %}
 
-{% block title %}Review Queue - Marketplace{% endblock %}
+{% block title %}Review Queue - Apps{% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'marketplace_app/css/marketplace.css' %}?v={{ build_id }}" />
+    <link rel="stylesheet" href="{% static 'apps_app/css/apps.css' %}?v={{ build_id }}" />
 {% endblock %}
 {% block content %}
     <div class="apps-container">
-        <div class="mp-detail-header" style="margin-bottom: 24px;">
-            <div class="mp-detail-meta">
-                <h1 class="mp-detail-title">
+        <div class="ap-detail-header" style="margin-bottom: 24px;">
+            <div class="ap-detail-meta">
+                <h1 class="ap-detail-title">
                     <i class="fas fa-clipboard-check" aria-hidden="true"></i> Review Queue
                 </h1>
-                <p class="mp-detail-short-desc">Pending app submissions for marketplace review</p>
+                <p class="ap-detail-short-desc">Pending app submissions for apps review</p>
             </div>
         </div>
         {% if submissions %}
-            <div class="mp-review-list">
+            <div class="ap-review-list">
                 {% for sub in submissions %}
-                    <div class="mp-review-item"
+                    <div class="ap-review-item"
                          id="submission-{{ sub.id }}"
                          style="background: var(--bg-secondary, #161b22);
                                 border: 1px solid var(--border-default, #30363d);
@@ -33,12 +32,12 @@
                                     gap: 16px">
                             <div style="flex: 1;">
                                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                    <a href="/marketplace/{{ sub.module.module_name }}/"
+                                    <a href="/apps/{{ sub.module.module_name }}/"
                                        style="font-size: 1.1rem;
                                               font-weight: 600;
                                               color: var(--text-primary)">{{ sub.module.module_name }}</a>
-                                    <span class="mp-category-badge mp-category-{{ sub.module.category }}">{{ sub.module.get_category_display }}</span>
-                                    <span class="mp-badge mp-badge-wip">
+                                    <span class="ap-category-badge ap-category-{{ sub.module.category }}">{{ sub.module.get_category_display }}</span>
+                                    <span class="ap-badge ap-badge-wip">
                                         <i class="fas fa-clock" aria-hidden="true"></i> Pending
                                     </span>
                                 </div>
@@ -76,7 +75,7 @@
                                                  font-size: 0.85rem;
                                                  resize: vertical"></textarea>
                                 <div style="display: flex; gap: 8px;">
-                                    <button class="mp-btn-action mp-btn-primary review-action-btn"
+                                    <button class="ap-btn-action ap-btn-primary review-action-btn"
                                             data-id="{{ sub.id }}"
                                             data-action="approve"
                                             style="flex: 1;
@@ -84,7 +83,7 @@
                                                    font-size: 0.85rem">
                                         <i class="fas fa-check" aria-hidden="true"></i> Approve
                                     </button>
-                                    <button class="mp-btn-action mp-btn-danger review-action-btn"
+                                    <button class="ap-btn-action ap-btn-danger review-action-btn"
                                             data-id="{{ sub.id }}"
                                             data-action="reject"
                                             style="flex: 1;
@@ -121,7 +120,7 @@
                 var action = btn.dataset.action;
                 var note = document.getElementById('note-' + id).value;
                 btn.disabled = true;
-                fetch('/marketplace/api/submissions/' + id + '/review/', {
+                fetch('/apps/api/submissions/' + id + '/review/', {
                     method: 'POST',
                     headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: action, note: note })

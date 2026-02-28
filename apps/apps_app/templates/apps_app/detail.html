@@ -2,117 +2,117 @@
 
 {% load static %}
 
-{% block title %}{{ mp_module.module_name }} - Marketplace{% endblock %}
+{% block title %}{{ app_module.module_name }} - Apps{% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'marketplace_app/css/marketplace.css' %}" />
+    <link rel="stylesheet" href="{% static 'apps_app/css/apps.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="apps-container">
-        <div class="mp-detail-header">
-            <div class="mp-detail-icon">
+        <div class="ap-detail-header">
+            <div class="ap-detail-icon">
                 {% if reg_module and reg_module.icon_fa %}
                     <i class="{{ reg_module.icon_fa }}" aria-hidden="true"></i>
                 {% else %}
                     <i class="fas fa-puzzle-piece" aria-hidden="true"></i>
                 {% endif %}
             </div>
-            <div class="mp-detail-meta">
-                <div class="mp-detail-title-row">
-                    <h1 class="mp-detail-title">
+            <div class="ap-detail-meta">
+                <div class="ap-detail-title-row">
+                    <h1 class="ap-detail-title">
                         {% if skill %}
                             {{ skill.display_name }}
                         {% else %}
-                            {{ mp_module.module_name }}
+                            {{ app_module.module_name }}
                         {% endif %}
                     </h1>
-                    <div class="mp-detail-badges">
-                        <span class="mp-category-badge mp-category-{{ mp_module.category }}">{{ mp_module.get_category_display }}</span>
-                        {% if mp_module.is_builtin %}
-                            <span class="mp-badge mp-badge-builtin">
+                    <div class="ap-detail-badges">
+                        <span class="ap-category-badge ap-category-{{ app_module.category }}">{{ app_module.get_category_display }}</span>
+                        {% if app_module.is_builtin %}
+                            <span class="ap-badge ap-badge-builtin">
                                 <i class="fas fa-cube" aria-hidden="true"></i> Built-in
                             </span>
                         {% endif %}
-                        {% if mp_module.is_verified %}
-                            <span class="mp-badge mp-badge-verified">
+                        {% if app_module.is_verified %}
+                            <span class="ap-badge ap-badge-verified">
                                 <i class="fas fa-shield-alt" aria-hidden="true"></i> Verified
                             </span>
                         {% endif %}
-                        {% if mp_module.visibility == "private" %}
-                            <span class="mp-badge mp-badge-private">
+                        {% if app_module.visibility == "private" %}
+                            <span class="ap-badge ap-badge-private">
                                 <i class="fas fa-lock" aria-hidden="true"></i> Private
                             </span>
                         {% endif %}
                         {% if reg_module and reg_module.keyboard_shortcut %}
-                            <span class="mp-badge mp-badge-shortcut">
+                            <span class="ap-badge ap-badge-shortcut">
                                 <i class="fas fa-keyboard" aria-hidden="true"></i> Alt+{{ reg_module.keyboard_shortcut }}
                             </span>
                         {% endif %}
                         {% if reg_module and reg_module.license %}
-                            <span class="mp-badge mp-badge-license">
+                            <span class="ap-badge ap-badge-license">
                                 <i class="fas fa-balance-scale" aria-hidden="true"></i> {{ reg_module.license }}
                             </span>
                         {% endif %}
                     </div>
                 </div>
-                {% if mp_module.author %}
-                    <p class="mp-detail-author">
+                {% if app_module.author %}
+                    <p class="ap-detail-author">
                         <i class="fas fa-user" aria-hidden="true"></i>
-                        by {{ mp_module.author.get_full_name|default:mp_module.author.username }}
+                        by {{ app_module.author.get_full_name|default:app_module.author.username }}
                     </p>
                 {% endif %}
-                <div class="mp-detail-stats">
-                    <span class="mp-stat">
+                <div class="ap-detail-stats">
+                    <span class="ap-stat">
                         <i class="fas fa-star" aria-hidden="true"></i>
-                        <span id="mp-star-count">{{ mp_module.star_count }}</span> stars
+                        <span id="ap-star-count">{{ app_module.star_count }}</span> stars
                     </span>
-                    <span class="mp-stat">
+                    <span class="ap-stat">
                         <i class="fas fa-download" aria-hidden="true"></i>
-                        {{ mp_module.install_count }} installs
+                        {{ app_module.install_count }} installs
                     </span>
-                    {% if mp_module.avg_rating %}
-                        <span class="mp-stat">
+                    {% if app_module.avg_rating %}
+                        <span class="ap-stat">
                             <i class="fas fa-star-half-alt" aria-hidden="true"></i>
-                            {{ mp_module.avg_rating }}/5
+                            {{ app_module.avg_rating }}/5
                         </span>
                     {% endif %}
                 </div>
                 {# Short desc: prefer DB, fallback to registry ai_hint #}
-                {% if mp_module.short_description %}
-                    <p class="mp-detail-short-desc">{{ mp_module.short_description }}</p>
+                {% if app_module.short_description %}
+                    <p class="ap-detail-short-desc">{{ app_module.short_description }}</p>
                 {% elif reg_module and reg_module.ai_hint %}
-                    <p class="mp-detail-short-desc">{{ reg_module.ai_hint }}</p>
+                    <p class="ap-detail-short-desc">{{ reg_module.ai_hint }}</p>
                 {% endif %}
             </div>
-            <div class="mp-detail-actions">
+            <div class="ap-detail-actions">
                 {% if user.is_authenticated %}
                     <!-- Install / Uninstall -->
                     {% if is_installed %}
-                        {% if not mp_module.is_builtin %}
-                            <button class="mp-btn-action mp-btn-danger"
-                                    id="mp-uninstall-btn"
-                                    data-module="{{ mp_module.module_name }}"
-                                    aria-label="Uninstall {{ mp_module.module_name }}">
+                        {% if not app_module.is_builtin %}
+                            <button class="ap-btn-action ap-btn-danger"
+                                    id="ap-uninstall-btn"
+                                    data-module="{{ app_module.module_name }}"
+                                    aria-label="Uninstall {{ app_module.module_name }}">
                                 <i class="fas fa-trash-alt" aria-hidden="true"></i> Uninstall
                             </button>
                         {% else %}
-                            <span class="mp-badge-installed">
+                            <span class="ap-badge-installed">
                                 <i class="fas fa-cube" aria-hidden="true"></i> Built-in
                             </span>
                         {% endif %}
                     {% else %}
-                        <button class="mp-btn-action mp-btn-primary"
-                                id="mp-install-btn"
-                                data-module="{{ mp_module.module_name }}"
-                                aria-label="Install {{ mp_module.module_name }}">
+                        <button class="ap-btn-action ap-btn-primary"
+                                id="ap-install-btn"
+                                data-module="{{ app_module.module_name }}"
+                                aria-label="Install {{ app_module.module_name }}">
                             <i class="fas fa-download" aria-hidden="true"></i> Install
                         </button>
                     {% endif %}
                     <!-- Star / Unstar -->
-                    <button class="mp-btn-action {% if is_starred %}mp-btn-star--active{% endif %}"
-                            id="mp-star-btn"
-                            data-module="{{ mp_module.module_name }}"
+                    <button class="ap-btn-action {% if is_starred %}ap-btn-star--active{% endif %}"
+                            id="ap-star-btn"
+                            data-module="{{ app_module.module_name }}"
                             data-starred="{{ is_starred|yesno:'true,false' }}"
-                            aria-label="{% if is_starred %}Unstar{% else %}Star{% endif %} {{ mp_module.module_name }}">
+                            aria-label="{% if is_starred %}Unstar{% else %}Star{% endif %} {{ app_module.module_name }}">
                         <i class="{% if is_starred %}fas{% else %}far{% endif %} fa-star"
                            aria-hidden="true"></i>
                         {% if is_starred %}
@@ -123,50 +123,50 @@
                     </button>
                     <!-- Enable / Disable (only if installed) -->
                     {% if is_installed %}
-                        <button class="mp-btn-action"
-                                id="mp-toggle-btn"
-                                data-module="{{ mp_module.module_name }}"
-                                aria-label="Toggle {{ mp_module.module_name }}">
+                        <button class="ap-btn-action"
+                                id="ap-toggle-btn"
+                                data-module="{{ app_module.module_name }}"
+                                aria-label="Toggle {{ app_module.module_name }}">
                             <i class="fas fa-toggle-on" aria-hidden="true"></i> Toggle
                         </button>
                     {% endif %}
                 {% else %}
-                    <a href="/accounts/login/?next=/marketplace/{{ mp_module.module_name }}/"
-                       class="mp-btn-action mp-btn-primary">
+                    <a href="/accounts/login/?next=/apps/{{ app_module.module_name }}/"
+                       class="ap-btn-action ap-btn-primary">
                         <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Login to install
                     </a>
                 {% endif %}
-                {% if mp_module.author %}
-                    <a href="/{{ mp_module.author.username }}/{{ mp_module.module_name }}/"
-                       class="mp-btn-action mp-btn-secondary">
+                {% if app_module.author %}
+                    <a href="/{{ app_module.author.username }}/{{ app_module.module_name }}/"
+                       class="ap-btn-action ap-btn-secondary">
                         <i class="fas fa-external-link-alt" aria-hidden="true"></i> View in Hub
                     </a>
                 {% endif %}
                 {% if pending_submission %}
-                    <span class="mp-badge mp-badge-wip">
+                    <span class="ap-badge ap-badge-wip">
                         <i class="fas fa-clock" aria-hidden="true"></i> Under Review
                     </span>
-                {% elif mp_module.visibility == "private" and mp_module.author == user %}
-                    <button class="mp-btn-action mp-btn-primary"
-                            id="mp-publish-btn"
-                            data-module="{{ mp_module.module_name }}">
+                {% elif app_module.visibility == "private" and app_module.author == user %}
+                    <button class="ap-btn-action ap-btn-primary"
+                            id="ap-publish-btn"
+                            data-module="{{ app_module.module_name }}">
                         <i class="fas fa-globe" aria-hidden="true"></i> Publish
                     </button>
                 {% endif %}
-                <a href="/marketplace/" class="mp-btn-action mp-btn-secondary">
+                <a href="/apps/" class="ap-btn-action ap-btn-secondary">
                     <i class="fas fa-arrow-left" aria-hidden="true"></i> Browse
                 </a>
             </div>
         </div>
         <!-- About: DB long_description, fallback to skill.description -->
-        {% if mp_module.long_description or skill and skill.description %}
-            <section class="mp-detail-section">
-                <h2 class="mp-section-title">
+        {% if app_module.long_description or skill and skill.description %}
+            <section class="ap-detail-section">
+                <h2 class="ap-section-title">
                     <i class="fas fa-info-circle" aria-hidden="true"></i> About
                 </h2>
-                <div class="mp-detail-long-desc">
-                    {% if mp_module.long_description %}
-                        {{ mp_module.long_description|linebreaks }}
+                <div class="ap-detail-long-desc">
+                    {% if app_module.long_description %}
+                        {{ app_module.long_description|linebreaks }}
                     {% elif skill %}
                         {{ skill.description }}
                     {% endif %}
@@ -175,11 +175,11 @@
         {% endif %}
         <!-- Capabilities (from skill registry) -->
         {% if skill and skill.capabilities %}
-            <section class="mp-detail-section">
-                <h2 class="mp-section-title">
+            <section class="ap-detail-section">
+                <h2 class="ap-section-title">
                     <i class="fas fa-bolt" aria-hidden="true"></i> Capabilities
                 </h2>
-                <ul class="mp-capabilities-list">
+                <ul class="ap-capabilities-list">
                     {% for cap in skill.capabilities %}
                         <li>
                             <i class="fas fa-check" aria-hidden="true"></i> {{ cap }}
@@ -190,25 +190,25 @@
         {% endif %}
         <!-- Supported file types (from module registry) -->
         {% if reg_module and reg_module.allowed_extensions %}
-            <section class="mp-detail-section">
-                <h2 class="mp-section-title">
+            <section class="ap-detail-section">
+                <h2 class="ap-section-title">
                     <i class="fas fa-file-alt" aria-hidden="true"></i> Supported File Types
                 </h2>
-                <div class="mp-file-types">
-                    {% for ext in reg_module.allowed_extensions %}<code class="mp-file-ext">{{ ext }}</code>{% endfor %}
+                <div class="ap-file-types">
+                    {% for ext in reg_module.allowed_extensions %}<code class="ap-file-ext">{{ ext }}</code>{% endfor %}
                 </div>
             </section>
         {% endif %}
         <!-- AI integration (from skill registry) -->
         {% if skill and skill.tool_prefixes or skill and skill.mcp_tool_examples %}
-            <section class="mp-detail-section">
-                <h2 class="mp-section-title">
+            <section class="ap-detail-section">
+                <h2 class="ap-section-title">
                     <i class="fas fa-robot" aria-hidden="true"></i> AI Integration
                 </h2>
                 {% if skill.tool_prefixes %}
-                    <div class="mp-info-row">
-                        <span class="mp-info-label">Tool prefixes</span>
-                        <span class="mp-info-value">
+                    <div class="ap-info-row">
+                        <span class="ap-info-label">Tool prefixes</span>
+                        <span class="ap-info-value">
                             {% for prefix in skill.tool_prefixes %}
                                 <code>{{ prefix }}*</code>
                                 {% if not forloop.last %}{% endif %}
@@ -217,9 +217,9 @@
                     </div>
                 {% endif %}
                 {% if skill.mcp_tool_examples %}
-                    <div class="mp-info-row">
-                        <span class="mp-info-label">Example tools</span>
-                        <span class="mp-info-value">
+                    <div class="ap-info-row">
+                        <span class="ap-info-label">Example tools</span>
+                        <span class="ap-info-value">
                             {% for tool in skill.mcp_tool_examples %}
                                 <code>{{ tool }}</code>
                                 {% if not forloop.last %}{% endif %}
@@ -228,9 +228,9 @@
                     </div>
                 {% endif %}
                 {% if skill.page_patterns %}
-                    <div class="mp-info-row">
-                        <span class="mp-info-label">URL patterns</span>
-                        <span class="mp-info-value">
+                    <div class="ap-info-row">
+                        <span class="ap-info-label">URL patterns</span>
+                        <span class="ap-info-value">
                             {% for pat in skill.page_patterns %}
                                 <code>{{ pat }}</code>
                                 {% if not forloop.last %}{% endif %}
@@ -241,21 +241,21 @@
             </section>
         {% endif %}
         <!-- External links -->
-        {% if mp_module.homepage_url or mp_module.repository_url %}
-            <section class="mp-detail-section">
-                <h2 class="mp-section-title">Links</h2>
-                <div class="mp-detail-links">
-                    {% if mp_module.homepage_url %}
-                        <a href="{{ mp_module.homepage_url }}"
-                           class="mp-link"
+        {% if app_module.homepage_url or app_module.repository_url %}
+            <section class="ap-detail-section">
+                <h2 class="ap-section-title">Links</h2>
+                <div class="ap-detail-links">
+                    {% if app_module.homepage_url %}
+                        <a href="{{ app_module.homepage_url }}"
+                           class="ap-link"
                            target="_blank"
                            rel="noopener noreferrer">
                             <i class="fas fa-home" aria-hidden="true"></i> Homepage
                         </a>
                     {% endif %}
-                    {% if mp_module.repository_url %}
-                        <a href="{{ mp_module.repository_url }}"
-                           class="mp-link"
+                    {% if app_module.repository_url %}
+                        <a href="{{ app_module.repository_url }}"
+                           class="ap-link"
                            target="_blank"
                            rel="noopener noreferrer">
                             <i class="fas fa-code-branch" aria-hidden="true"></i> Repository
@@ -266,30 +266,30 @@
         {% endif %}
         <!-- Version history -->
         {% if versions %}
-            <section class="mp-detail-section">
-                <h2 class="mp-section-title">Version History</h2>
-                <ul class="mp-version-list">
+            <section class="ap-detail-section">
+                <h2 class="ap-section-title">Version History</h2>
+                <ul class="ap-version-list">
                     {% for v in versions %}
-                        <li class="mp-version-item">
-                            <div class="mp-version-header">
-                                <span class="mp-version-number">v{{ v.version }}</span>
-                                {% if v.is_stable %}<span class="mp-badge mp-badge-stable">Stable</span>{% endif %}
-                                <span class="mp-version-date">{{ v.released_at|date:"Y-m-d" }}</span>
+                        <li class="ap-version-item">
+                            <div class="ap-version-header">
+                                <span class="ap-version-number">v{{ v.version }}</span>
+                                {% if v.is_stable %}<span class="ap-badge ap-badge-stable">Stable</span>{% endif %}
+                                <span class="ap-version-date">{{ v.released_at|date:"Y-m-d" }}</span>
                             </div>
-                            {% if v.changelog %}<p class="mp-version-changelog">{{ v.changelog }}</p>{% endif %}
-                            {% if v.min_scitex_version %}<p class="mp-version-req">Requires SciTeX &ge; {{ v.min_scitex_version }}</p>{% endif %}
+                            {% if v.changelog %}<p class="ap-version-changelog">{{ v.changelog }}</p>{% endif %}
+                            {% if v.min_scitex_version %}<p class="ap-version-req">Requires SciTeX &ge; {{ v.min_scitex_version }}</p>{% endif %}
                         </li>
                     {% endfor %}
                 </ul>
             </section>
         {% endif %}
         <!-- Reviews -->
-        <section class="mp-detail-section" id="mp-reviews">
-            <h2 class="mp-section-title">Reviews</h2>
+        <section class="ap-detail-section" id="ap-reviews">
+            <h2 class="ap-section-title">Reviews</h2>
             {% if user.is_authenticated %}
-                {% include "marketplace_app/partials/review_form.html" %}
+                {% include "apps_app/partials/review_form.html" %}
             {% endif %}
-            {% include "marketplace_app/partials/review_list.html" %}
+            {% include "apps_app/partials/review_list.html" %}
         </section>
     </div>
     <script>
@@ -312,49 +312,49 @@
         .catch(function (err) { console.error('Fetch error:', err); if (onError) { onError({}); } });
     }
 
-    var installBtn = document.getElementById('mp-install-btn');
+    var installBtn = document.getElementById('ap-install-btn');
     if (installBtn) {
         installBtn.addEventListener('click', function () {
             installBtn.disabled = true;
-            postApi('/marketplace/api/' + installBtn.dataset.module + '/install/',
+            postApi('/apps/api/' + installBtn.dataset.module + '/install/',
                 function () { location.reload(); },
                 function () { installBtn.disabled = false; }
             );
         });
     }
 
-    var uninstallBtn = document.getElementById('mp-uninstall-btn');
+    var uninstallBtn = document.getElementById('ap-uninstall-btn');
     if (uninstallBtn) {
         uninstallBtn.addEventListener('click', function () {
             if (!confirm('Uninstall this app?')) { return; }
             uninstallBtn.disabled = true;
-            postApi('/marketplace/api/' + uninstallBtn.dataset.module + '/uninstall/',
+            postApi('/apps/api/' + uninstallBtn.dataset.module + '/uninstall/',
                 function () { location.reload(); },
                 function () { uninstallBtn.disabled = false; }
             );
         });
     }
 
-    var starBtn = document.getElementById('mp-star-btn');
+    var starBtn = document.getElementById('ap-star-btn');
     if (starBtn) {
         starBtn.addEventListener('click', function () {
             var starred = starBtn.dataset.starred === 'true';
             var endpoint = starred
-                ? '/marketplace/api/' + starBtn.dataset.module + '/unstar/'
-                : '/marketplace/api/' + starBtn.dataset.module + '/star/';
+                ? '/apps/api/' + starBtn.dataset.module + '/unstar/'
+                : '/apps/api/' + starBtn.dataset.module + '/star/';
             starBtn.disabled = true;
             postApi(endpoint, function (data) {
                 starBtn.disabled = false;
                 var nowStarred = !starred;
                 starBtn.dataset.starred = nowStarred ? 'true' : 'false';
-                starBtn.classList.toggle('mp-btn-star--active', nowStarred);
+                starBtn.classList.toggle('ap-btn-star--active', nowStarred);
                 starBtn.querySelector('i').className = (nowStarred ? 'fas' : 'far') + ' fa-star';
                 starBtn.textContent = ' ' + (nowStarred ? 'Unstar' : 'Star');
                 starBtn.prepend(Object.assign(document.createElement('i'), {
                     className: (nowStarred ? 'fas' : 'far') + ' fa-star',
                     ariaHidden: 'true'
                 }));
-                var countEl = document.getElementById('mp-star-count');
+                var countEl = document.getElementById('ap-star-count');
                 if (countEl && data.star_count !== undefined) {
                     countEl.textContent = data.star_count;
                 }
@@ -362,12 +362,12 @@
         });
     }
 
-    var publishBtn = document.getElementById('mp-publish-btn');
+    var publishBtn = document.getElementById('ap-publish-btn');
     if (publishBtn) {
         publishBtn.addEventListener('click', function () {
-            if (!confirm('Submit this app for marketplace review?')) { return; }
+            if (!confirm('Submit this app for apps review?')) { return; }
             publishBtn.disabled = true;
-            postApi('/marketplace/api/' + publishBtn.dataset.module + '/submit/',
+            postApi('/apps/api/' + publishBtn.dataset.module + '/submit/',
                 function () { location.reload(); },
                 function (data) {
                     publishBtn.disabled = false;
@@ -378,11 +378,11 @@
         });
     }
 
-    var toggleBtn = document.getElementById('mp-toggle-btn');
+    var toggleBtn = document.getElementById('ap-toggle-btn');
     if (toggleBtn) {
         toggleBtn.addEventListener('click', function () {
             toggleBtn.disabled = true;
-            postApi('/marketplace/api/' + toggleBtn.dataset.module + '/toggle/',
+            postApi('/apps/api/' + toggleBtn.dataset.module + '/toggle/',
                 function (data) {
                     toggleBtn.disabled = false;
                     var icon = toggleBtn.querySelector('i');

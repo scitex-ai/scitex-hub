@@ -16,7 +16,7 @@ Order is determined by each module's `order` field in registry.py.
                aria-label="{{ mod.label }}">
                 {% module_icon mod.name %}
                 <span class="tab-label">{{ mod.label }}</span>
-                {% if mod.status == "wip" or mod.name == "marketplace" %}
+                {% if mod.status == "wip" or mod.name == "apps" %}
                     <span class="tab-status-badge tab-status-wip" title="Work in progress">WIP</span>
                 {% endif %}
                 {% if mod.status == "beta" %}<span class="tab-status-badge tab-status-beta" title="Beta">Beta</span>{% endif %}
