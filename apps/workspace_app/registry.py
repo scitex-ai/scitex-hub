@@ -262,9 +262,9 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
     ModuleConfig(
-        name="marketplace",
-        label="App Marketplace",
-        app_name="marketplace_app",
+        name="apps",
+        label="Apps",
+        app_name="apps_app",
         icon_fa="fas fa-store",
         partial_template="apps_app/browse_partial.html",
         context_builder="apps.apps_app.views.build_apps_context",

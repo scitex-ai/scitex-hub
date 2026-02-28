@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Marketplace app configuration."""
+"""Apps (formerly Marketplace) app configuration."""
 
 from django.apps import AppConfig
 
 
-class MarketplaceAppConfig(AppConfig):
+class AppsAppConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "apps.marketplace_app"
-    verbose_name = "Marketplace"
+    name = "apps.apps_app"
+    verbose_name = "Apps"
 
 
 # EOF
