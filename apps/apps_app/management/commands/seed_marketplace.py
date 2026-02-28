@@ -9,7 +9,7 @@ Usage: python manage.py seed_marketplace
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
-from apps.marketplace_app.models import MarketplaceModule, ModuleVersion
+from apps.apps_app.models import MarketplaceModule, ModuleVersion
 from apps.workspace_app.registry import get_all_modules
 
 # Map module names to categories

@@ -9,100 +9,287 @@
     <link rel="stylesheet" href="{% static 'project_app/css/create_landing.css' %}" />
 {% endblock %}
 {% block content %}
-    <div class="create-landing-container">
-        <!-- Breadcrumb -->
+    <div class="create-form-container">
         {% include 'project_app/projects/create_partials/create_breadcrumb.html' %}
         <h1 class="create-title">Create new project</h1>
-        <div class="create-cards-grid">
-            <!-- Card 1: Create blank project -->
-            <a href="{% url 'project_create' %}?type=blank" class="create-card">
-                <div class="card-icon">
-                    <svg viewBox="0 0 24 24"
-                         width="48"
-                         height="48"
-                         fill="none"
-                         stroke="currentColor"
-                         stroke-width="1.5">
-                        <rect x="3" y="3" width="18" height="18" rx="2" />
-                        <line x1="12" y1="8" x2="12" y2="16" />
-                        <line x1="8" y1="12" x2="16" y2="12" />
-                    </svg>
-                </div>
-                <div class="card-content">
-                    <h2 class="card-title">Create blank project</h2>
-                    <p class="card-description">
-                        Create a blank project to store your files, plan your work, and collaborate on research.
+        <!-- Tab Navigation -->
+        <nav class="create-tabs" role="tablist">
+            <button type="button"
+                    class="create-tab active"
+                    role="tab"
+                    data-tab="minimal"
+                    aria-selected="true">
+                SciTeX Minimal
+                <span class="badge badge-success create-tab-badge">Recommended</span>
+            </button>
+            <button type="button"
+                    class="create-tab"
+                    role="tab"
+                    data-tab="full"
+                    aria-selected="false">
+                SciTeX Full
+                <span class="badge badge-wip create-tab-badge">WIP</span>
+            </button>
+            <button type="button"
+                    class="create-tab"
+                    role="tab"
+                    data-tab="app"
+                    aria-selected="false">
+                SciTeX App
+                <span class="badge badge-wip create-tab-badge">WIP</span>
+            </button>
+            <button type="button"
+                    class="create-tab"
+                    role="tab"
+                    data-tab="import"
+                    aria-selected="false">Import from GitHub/GitLab</button>
+            <button type="button"
+                    class="create-tab"
+                    role="tab"
+                    data-tab="remote"
+                    aria-selected="false">
+                Remote Mount
+                <span class="badge badge-wip create-tab-badge">WIP</span>
+            </button>
+            <button type="button"
+                    class="create-tab"
+                    role="tab"
+                    data-tab="blank"
+                    aria-selected="false">Blank Project</button>
+        </nav>
+        <!-- Single form with tab-switching -->
+        <form method="post"
+              action="{% url 'project_create' %}"
+              class="create-form-card"
+              id="create-project-form"
+              data-has-credentials="{{ remote_credentials|yesno:'true,false' }}">
+            {% csrf_token %}
+            <input type="hidden" name="init_type" id="hidden-init-type" value="template" />
+            <input type="hidden" name="project_type" id="hidden-project-type" value="local" />
+            <input type="hidden" name="template_type" id="hidden-template-type" value="minimal" />
+            <!-- Import: repo URL (before name) -->
+            <div class="tab-fields" data-for-tab="import" style="display: none">
+                <div class="form-group">
+                    <label class="form-label" for="git_url">
+                        Repository URL <span class="required">*</span>
+                    </label>
+                    <input type="text"
+                           name="git_url"
+                           id="git_url"
+                           class="form-control"
+                           placeholder="https://github.com/username/repository"
+                           value="{{ git_url|default:'' }}"
+                           required
+                           disabled />
+                    <p class="help-text">
+                        HTTPS or SSH:
+                        <code>https://github.com/user/repo</code> or
+                        <code>git@github.com:user/repo.git</code>
                     </p>
                 </div>
-            </a>
-            <!-- Card 2: Create from template -->
-            <a href="{% url 'project_create' %}?type=template" class="create-card">
-                <div class="card-icon">
-                    <svg viewBox="0 0 24 24"
-                         width="48"
-                         height="48"
-                         fill="none"
-                         stroke="currentColor"
-                         stroke-width="1.5">
-                        <rect x="3" y="3" width="18" height="18" rx="2" />
-                        <rect x="6" y="6" width="5" height="5" rx="1" />
-                        <rect x="13" y="6" width="5" height="5" rx="1" />
-                        <rect x="6" y="13" width="5" height="5" rx="1" />
-                        <circle cx="15.5" cy="15.5" r="2.5" stroke="var(--color-accent)" stroke-width="2" />
-                        <line x1="17.5" y1="17.5" x2="20" y2="20" stroke="var(--color-accent)" stroke-width="2" />
-                    </svg>
+            </div>
+            <!-- Shared: Name + Description -->
+            {% include 'project_app/projects/create_partials/create_name_field.html' %}
+            <div class="form-group">
+                <label class="form-label" for="description">
+                    Description <span style="color: var(--color-fg-muted)">(optional)</span>
+                </label>
+                <textarea name="description"
+                          id="description"
+                          class="form-control"
+                          placeholder="A brief description of your project...">{{ description|default:'' }}</textarea>
+            </div>
+            <!-- ===== Tab: SciTeX Minimal ===== -->
+            <div class="tab-fields" data-for-tab="minimal">
+                <input type="hidden" name="init_scitex" value="true" />
+                <div class="form-group">
+                    <p class="option-description">
+                        {{ template_map.minimal.description|default:"Minimal project with writer + scholar workspaces" }}
+                    </p>
+                    {% if template_map.minimal.tree %}<pre class="template-tree">{{ template_map.minimal.tree }}</pre>{% endif %}
                 </div>
-                <div class="card-content">
-                    <h2 class="card-title">Create from template</h2>
-                    <p class="card-description">
-                        Create a project pre-populated with SciTeX research templates to get you started quickly.
+            </div>
+            <!-- ===== Tab: SciTeX Full ===== -->
+            <div class="tab-fields" data-for-tab="full" style="display: none">
+                <input type="hidden" name="init_scitex" value="true" disabled />
+                <div class="form-group">
+                    <p class="option-description">
+                        {{ template_map.research.description|default:"Full scientific workflow with data analysis, experiments, and paper writing" }}
+                    </p>
+                    {% if template_map.research.tree %}<pre class="template-tree">{{ template_map.research.tree }}</pre>{% endif %}
+                </div>
+            </div>
+            <!-- ===== Tab: SciTeX App ===== -->
+            <div class="tab-fields" data-for-tab="app" style="display: none">
+                <input type="hidden" name="init_scitex" value="true" disabled />
+                <div class="form-group">
+                    <p class="option-description">
+                        {{ template_map.app.description|default:"Pip-installable Python package for building reusable SciTeX apps" }}
+                    </p>
+                    {% if template_map.app.tree %}<pre class="template-tree">{{ template_map.app.tree }}</pre>{% endif %}
+                </div>
+            </div>
+            <!-- ===== Tab: Import from GitHub/GitLab ===== -->
+            <div class="tab-fields" data-for-tab="import" style="display: none">
+                <div class="form-group">
+                    <label class="form-label" for="github_token">
+                        Access Token
+                        <span style="color: var(--color-fg-muted)">(for private repos)</span>
+                    </label>
+                    <input type="password"
+                           name="github_token"
+                           id="github_token"
+                           class="form-control"
+                           placeholder="{% if user.profile.github_token %}Using saved token{% else %}Enter token for private repos{% endif %}"
+                           disabled />
+                    <p class="help-text">
+                        {% if user.profile.github_token %}
+                            Token saved in
+                            <a href="{% url 'accounts_app:profile_edit' %}">profile settings</a>
+                        {% else %}
+                            Create token:
+                            <a href="https://github.com/settings/tokens" target="_blank">GitHub</a> |
+                            <a href="https://gitlab.com/-/profile/personal_access_tokens" target="_blank">GitLab</a>
+                        {% endif %}
                     </p>
                 </div>
-            </a>
-            <!-- Card 3: Import project -->
-            <a href="{% url 'project_create' %}?type=import" class="create-card">
-                <div class="card-icon">
-                    <svg viewBox="0 0 24 24"
-                         width="48"
-                         height="48"
-                         fill="none"
-                         stroke="currentColor"
-                         stroke-width="1.5">
-                        <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
-                        <polyline points="7,9 12,4 17,9" />
-                        <line x1="12" y1="4" x2="12" y2="16" />
-                    </svg>
+                <div class="form-group">
+                    <label class="form-label">Initialize with SciTeX</label>
+                    <div class="option-group">
+                        <label class="option-item">
+                            <input type="checkbox" name="init_scitex" value="true" checked disabled />
+                            <div class="option-content">
+                                <div class="option-label">Initialize SciTeX structure</div>
+                                <div class="option-description">Add Writer, Scholar, Code, and Viz directories.</div>
+                            </div>
+                        </label>
+                    </div>
                 </div>
-                <div class="card-content">
-                    <h2 class="card-title">Import project</h2>
-                    <p class="card-description">Migrate your data from an external source like GitHub, GitLab, or any Git repository.</p>
-                </div>
-            </a>
-            <!-- Card 4: Connect remote filesystem -->
-            <a href="{% url 'project_create' %}?type=remote" class="create-card">
-                <div class="card-icon">
-                    <svg viewBox="0 0 24 24"
-                         width="48"
-                         height="48"
-                         fill="none"
-                         stroke="currentColor"
-                         stroke-width="1.5">
-                        <circle cx="12" cy="12" r="9" />
-                        <ellipse cx="12" cy="12" rx="4" ry="9" />
-                        <line x1="3" y1="12" x2="21" y2="12" />
-                        <path d="M12 3a15 15 0 010 18" stroke-dasharray="2,2" />
-                    </svg>
-                </div>
-                <div class="card-content">
-                    <h2 class="card-title">Connect remote filesystem</h2>
-                    <p class="card-description">Access files on a remote server via SSH without copying data locally.</p>
-                </div>
-            </a>
-        </div>
+            </div>
+            <!-- ===== Tab: Remote Mount ===== -->
+            <div class="tab-fields" data-for-tab="remote" style="display: none">
+                {% if remote_credentials %}
+                    <div class="form-group">
+                        <label class="form-label" for="remote_credential_id">
+                            Remote credential <span class="required">*</span>
+                        </label>
+                        <select name="remote_credential_id"
+                                id="remote_credential_id"
+                                class="form-control"
+                                required
+                                disabled>
+                            <option value="">Select a remote system...</option>
+                            {% for cred in remote_credentials %}
+                                <option value="{{ cred.id }}">{{ cred.name }} ({{ cred.ssh_username }}@{{ cred.ssh_host }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="remote_path">
+                            Remote path <span class="required">*</span>
+                        </label>
+                        <input type="text"
+                               name="remote_path"
+                               id="remote_path"
+                               class="form-control"
+                               style="font-family: 'SF Mono', Monaco, monospace"
+                               placeholder="/home/username/projects/my-project"
+                               value="{{ remote_path|default:'' }}"
+                               required
+                               disabled />
+                        <p class="help-text">Absolute path on the remote system.</p>
+                    </div>
+                    <div class="warning-box">
+                        <strong>Note:</strong> Files accessed on-demand via SSHFS. No local copy.
+                        Git operations not available for remote projects.
+                    </div>
+                {% else %}
+                    <div class="create-no-credentials">
+                        <p>Add a remote credential before creating remote projects.</p>
+                        <a href="{% url 'accounts_app:ssh_keys' %}#remote-credentials"
+                           class="btn btn-primary">Add Remote Credential</a>
+                    </div>
+                {% endif %}
+            </div>
+            <!-- ===== Tab: Blank Project (no extra fields) ===== -->
+            <div class="tab-fields" data-for-tab="blank" style="display: none"></div>
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <a href="/{{ user.username }}/projects/" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary" id="create-submit-btn">Create project</button>
+            </div>
+        </form>
         <div class="create-help-text">
             <p>
-                You can also create a project using the <a href="https://scitex.ai/docs/cli" target="_blank">SciTeX CLI</a>: <code>scitex project create my-project</code>
+                CLI: <code>scitex project create my-project</code>
+                (<a href="https://scitex.ai/docs/cli" target="_blank">docs</a>)
             </p>
         </div>
     </div>
+{% endblock %}
+{% block extra_js %}
+    {% include 'project_app/projects/create_partials/create_scripts.html' %}
+    <script>
+    (function () {
+        var TAB_CONFIG = {
+            minimal: { initType: "template", projectType: "local", templateType: "minimal",  label: "Create project" },
+            full:    { initType: "template", projectType: "local", templateType: "research", label: "Create project" },
+            app:     { initType: "template", projectType: "local", templateType: "app",      label: "Create project" },
+            import:  { initType: "github",   projectType: "local", templateType: "",          label: "Import project" },
+            remote:  { initType: "",          projectType: "remote", templateType: "",         label: "Connect filesystem" },
+            blank:   { initType: "gitea",     projectType: "local", templateType: "",          label: "Create project" },
+        };
+
+        var form = document.getElementById("create-project-form");
+        var tabs = document.querySelectorAll(".create-tab");
+        var initTypeEl = document.getElementById("hidden-init-type");
+        var projectTypeEl = document.getElementById("hidden-project-type");
+        var templateTypeEl = document.getElementById("hidden-template-type");
+        var submitBtn = document.getElementById("create-submit-btn");
+        var hasCreds = form.dataset.hasCredentials === "true";
+
+        function switchTab(name) {
+            var config = TAB_CONFIG[name];
+            if (!config) return;
+
+            tabs.forEach(function (t) {
+                var active = t.dataset.tab === name;
+                t.classList.toggle("active", active);
+                t.setAttribute("aria-selected", active);
+            });
+
+            document.querySelectorAll(".tab-fields").forEach(function (el) {
+                var show = el.dataset.forTab === name;
+                el.style.display = show ? "" : "none";
+                el.querySelectorAll("input, select, textarea").forEach(function (inp) {
+                    inp.disabled = !show;
+                });
+            });
+
+            initTypeEl.value = config.initType;
+            projectTypeEl.value = config.projectType;
+            templateTypeEl.value = config.templateType;
+            submitBtn.textContent = config.label;
+            submitBtn.disabled = name === "remote" && !hasCreds;
+
+            history.replaceState(null, "", "?type=" + name);
+        }
+
+        tabs.forEach(function (t) {
+            t.addEventListener("click", function () {
+                switchTab(t.dataset.tab);
+            });
+        });
+
+        // Initial tab from server context (POST error) or URL param
+        var serverTab = "{{ active_tab|default:'' }}";
+        var urlTab = new URLSearchParams(location.search).get("type");
+        var initial = serverTab && TAB_CONFIG[serverTab]
+            ? serverTab
+            : urlTab && TAB_CONFIG[urlTab]
+              ? urlTab
+              : "minimal";
+        if (initial !== "minimal") switchTab(initial);
+    })();
+    </script>
 {% endblock %}

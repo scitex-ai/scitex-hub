@@ -12,7 +12,7 @@ from __future__ import annotations
 from django.contrib.auth.models import User
 from django.db import models
 
-from apps.marketplace_app.models import CATEGORY_CHOICES
+from apps.apps_app.models import CATEGORY_CHOICES
 from apps.project_app.models import Project
 
 VISIBILITY_CHOICES = [

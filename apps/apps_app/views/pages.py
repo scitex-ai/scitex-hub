@@ -30,7 +30,7 @@ def browse(request):
         get_current_project(request) if request.user.is_authenticated else None
     )
     context = browse_context(request, current_project)
-    return render(request, "marketplace_app/browse.html", context)
+    return render(request, "apps_app/browse.html", context)
 
 
 def detail(request, module_name):
@@ -76,7 +76,7 @@ def detail(request, module_name):
 
     return render(
         request,
-        "marketplace_app/detail.html",
+        "apps_app/detail.html",
         {
             "mp_module": mp_module,
             "reg_module": reg_module,
@@ -101,7 +101,7 @@ def my_modules(request):
     )
     return render(
         request,
-        "marketplace_app/my_modules.html",
+        "apps_app/my_modules.html",
         {"installations": installations},
     )
 

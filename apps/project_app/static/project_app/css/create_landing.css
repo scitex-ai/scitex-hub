@@ -1,10 +1,4 @@
-/* GitLab-style Project Creation Landing Page */
-
-.create-landing-container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
-}
+/* Project Creation — Tabbed Form Page */
 
 .create-title {
   text-align: center;
@@ -14,128 +8,68 @@
   color: var(--color-fg-default);
 }
 
-/* Card Grid - 2x2 layout like GitLab */
-.create-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
+/* ============================================
+   Tab Navigation
+   ============================================ */
 
-@media (max-width: 768px) {
-  .create-cards-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Individual Card Styling */
-.create-card {
+.create-tabs {
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 1.25rem;
-  padding: 1.5rem;
-  background: var(--color-canvas-subtle, #161b22);
-  border: 1px solid var(--color-border-default, #30363d);
-  border-radius: 6px;
-  text-decoration: none;
-  color: inherit;
+  border-bottom: 1px solid var(--color-border-default, #30363d);
+  margin-bottom: 1.5rem;
+  gap: 0;
+  overflow-x: auto;
+}
+
+.create-tab {
+  padding: 0.75rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-fg-muted, #8b949e);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
   transition:
-    border-color 0.2s ease,
-    background 0.2s ease,
-    transform 0.15s ease;
-  min-height: 120px;
-}
-
-.create-card:hover {
-  border-color: var(--color-accent-emphasis, #238636);
-  background: var(--color-canvas-default, #0d1117);
-  transform: translateY(-2px);
-}
-
-.create-card:focus {
-  outline: 2px solid var(--color-accent-emphasis, #238636);
-  outline-offset: 2px;
-}
-
-/* Card Icon */
-.card-icon {
-  flex-shrink: 0;
-  width: 64px;
-  height: 64px;
+    color 0.2s ease,
+    border-color 0.2s ease;
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: var(--color-canvas-default, #0d1117);
-  border-radius: 8px;
-  border: 1px solid var(--color-border-muted, #21262d);
+  gap: 0.5rem;
+  white-space: nowrap;
 }
 
-.card-icon svg {
-  color: var(--color-fg-muted, #8b949e);
-  transition: color 0.2s ease;
-}
-
-.create-card:hover .card-icon svg {
-  color: var(--color-accent-emphasis, #238636);
-}
-
-/* Card Content */
-.card-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.card-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
+.create-tab:hover {
   color: var(--color-fg-default, #c9d1d9);
 }
 
-.card-description {
-  font-size: 0.875rem;
-  line-height: 1.5;
-  margin: 0;
-  color: var(--color-fg-muted, #8b949e);
+.create-tab.active {
+  color: var(--color-fg-default, #c9d1d9);
+  border-bottom-color: var(--color-accent-emphasis, #238636);
 }
 
-/* Help Text at Bottom */
-.create-help-text {
+.create-tab-badge {
+  font-size: 0.55rem;
+  vertical-align: middle;
+}
+
+/* No credentials fallback in remote tab */
+.create-no-credentials {
   text-align: center;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--color-border-muted, #21262d);
-}
-
-.create-help-text p {
-  margin: 0;
-  font-size: 0.875rem;
+  padding: 2rem 1rem;
   color: var(--color-fg-muted, #8b949e);
+  font-size: 0.875rem;
 }
 
-.create-help-text a {
-  color: var(--color-accent-fg, #58a6ff);
-  text-decoration: none;
-}
-
-.create-help-text a:hover {
-  text-decoration: underline;
-}
-
-.create-help-text code {
-  background: var(--color-canvas-subtle, #161b22);
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  font-family: "SF Mono", Monaco, "Courier New", monospace;
-  font-size: 0.8125rem;
+.create-no-credentials p {
+  margin: 0 0 1rem;
 }
 
 /* ============================================
-   Form Pages (shown when type= is specified)
+   Form Container
    ============================================ */
 
 .create-form-container {
-  max-width: 640px;
+  max-width: 720px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
 }
@@ -202,28 +136,28 @@
   color: var(--color-danger-fg, #f85149);
 }
 
-.form-control {
+form.create-form-card .form-control {
   width: 100%;
   padding: 0.625rem 0.75rem;
   font-size: 0.875rem;
-  background: var(--color-canvas-default, #0d1117);
+  background-color: var(--color-canvas-default, #0d1117);
   border: 1px solid var(--color-border-default, #30363d);
   border-radius: 6px;
   color: var(--color-fg-default, #c9d1d9);
   transition: border-color 0.2s ease;
 }
 
-.form-control:focus {
+form.create-form-card .form-control:focus {
   outline: none;
   border-color: var(--color-accent-emphasis, #238636);
   box-shadow: 0 0 0 3px rgba(35, 134, 54, 0.3);
 }
 
-.form-control::placeholder {
+form.create-form-card .form-control::placeholder {
   color: var(--color-fg-subtle, #484f58);
 }
 
-textarea.form-control {
+form.create-form-card textarea.form-control {
   min-height: 100px;
   resize: vertical;
 }
@@ -272,6 +206,19 @@ textarea.form-control {
 
 .option-content {
   flex: 1;
+}
+
+.template-tree {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.75rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--color-fg-muted, #8b949e);
+  background: var(--color-canvas-subtle, #161b22);
+  border: 1px solid var(--color-border-muted, #21262d);
+  border-radius: 4px;
+  overflow-x: auto;
 }
 
 .option-label {
@@ -332,6 +279,36 @@ textarea.form-control {
   background: var(--color-btn-primary-hover-bg);
   border-color: var(--color-btn-primary-hover-bg);
   color: var(--color-btn-primary-text);
+}
+
+/* Help Text at Bottom */
+.create-help-text {
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border-muted, #21262d);
+}
+
+.create-help-text p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-fg-muted, #8b949e);
+}
+
+.create-help-text a {
+  color: var(--color-accent-fg, #58a6ff);
+  text-decoration: none;
+}
+
+.create-help-text a:hover {
+  text-decoration: underline;
+}
+
+.create-help-text code {
+  background: var(--color-canvas-subtle, #161b22);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: "SF Mono", Monaco, "Courier New", monospace;
+  font-size: 0.8125rem;
 }
 
 /* Info Box */

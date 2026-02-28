@@ -46,7 +46,7 @@ def _filter_modules_for_user(request, modules):
         return modules
 
     try:
-        from apps.marketplace_app.models import MarketplaceModule, ModuleInstallation
+        from apps.apps_app.models import MarketplaceModule, ModuleInstallation
 
         installations = {
             inst.module.module_name: inst
@@ -66,7 +66,7 @@ def _filter_modules_for_user(request, modules):
             if db_status:
                 mod.status = db_status
     except Exception:
-        # marketplace_app not migrated yet or other DB issue
+        # apps_app not migrated yet or other DB issue
         return modules
 
     if not installations:

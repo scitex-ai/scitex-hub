@@ -11,7 +11,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
-from apps.marketplace_app.models import (
+from apps.apps_app.models import (
     CATEGORY_CHOICES,
     MarketplaceModule,
     ModuleSubmission,

@@ -33,7 +33,7 @@ def load_single_app(mp_module):
         label=label,
         app_name="marketplace_app",  # Served via marketplace infrastructure
         icon_fa="fas fa-puzzle-piece",
-        partial_template=f"marketplace_app/user_apps/{mp_module.module_name}_partial.html",
+        partial_template=f"apps_app/user_apps/{mp_module.module_name}_partial.html",
         order=90,  # After built-in modules
         default_enabled=False,  # User must install from marketplace
         ai_hint=mp_module.short_description or "",
@@ -48,7 +48,7 @@ def load_approved_apps():
 
     Called during startup or after an approval to refresh the registry.
     """
-    from apps.marketplace_app.models import MarketplaceModule
+    from apps.apps_app.models import MarketplaceModule
 
     approved = MarketplaceModule.objects.filter(
         visibility="public",
