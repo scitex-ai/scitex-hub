@@ -357,55 +357,6 @@
                 </div>
             </div>
         </div>
-        <!-- Inline Compilation Output (Initially Hidden) -->
-        <div id="compilation-output" class="compilation-output">
-            <!-- Compilation Log Toolbar -->
-            <div id="compilation-log-toolbar">
-                <div>
-                    <!-- Start Button -->
-                    <button id="compilation-log-start-btn"
-                            class="btn btn-sm btn-success"
-                            onclick="handleCompilationLogStart()"
-                            title="Start compilation">
-                        <i class="fas fa-play me-1"></i>Start
-                    </button>
-                    <!-- Stop Button -->
-                    <button id="compilation-log-stop-btn"
-                            class="btn btn-sm btn-danger"
-                            onclick="handleCompilationLogStop()"
-                            title="Stop compilation">
-                        <i class="fas fa-stop me-1"></i>Stop
-                    </button>
-                </div>
-                <!-- Close Button -->
-                <button id="compilation-log-close-btn"
-                        class="btn btn-sm btn-outline-secondary"
-                        onclick="handleCompilationLogClose()"
-                        title="Close log panel">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <!-- Progress Bar -->
-            <div id="compilation-progress-container">
-                <div>
-                    <span id="compilation-progress-percent">0%</span>
-                    <span id="compilation-progress-status">Initializing...</span>
-                </div>
-                <div>
-                    <div id="compilation-progress-bar"></div>
-                </div>
-            </div>
-            <!-- Alert Banner for Compilation Status -->
-            <div id="compilation-alert-banner">
-                <!-- Will be populated dynamically with alert-banner classes -->
-            </div>
-            <!-- Log Output (direct display without header/wrapper) -->
-            <div id="compilation-log-inline" class="terminal-log terminal-log--medium">
-                Click "Compile" to start compilation...
-            </div>
-            <!-- Success/Error Messages -->
-            <div id="compilation-result-inline"></div>
-        </div>
     </div>
 </div>
 <!-- Add Section Modal -->

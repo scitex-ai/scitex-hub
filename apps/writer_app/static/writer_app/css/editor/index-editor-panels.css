@@ -171,54 +171,6 @@
   position: relative;
 }
 
-/* Compilation Output */
-.compilation-output {
-  background: var(--bg-page);
-  border-top: 1px solid var(--workspace-border-default);
-  padding: 0;
-  max-height: 300px;
-  display: flex;
-  flex-direction: column;
-}
-
-.compilation-output-header {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--workspace-border-default);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--workspace-bg-secondary);
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.compilation-log-inline {
-  flex: 1;
-  padding: 0.75rem 1rem;
-  overflow-y: auto;
-  font-family: "Monaco", "Menlo", "Consolas", monospace;
-  font-size: 0.85rem;
-  line-height: 1.4;
-  color: var(--text-muted);
-  background: var(--bg-page);
-}
-
-.compilation-log-inline .error {
-  color: var(--status-error);
-  font-weight: 500;
-}
-
-.compilation-log-inline .warning {
-  color: var(--status-warning);
-  font-weight: 500;
-}
-
-.compilation-log-inline .success {
-  color: var(--status-success);
-  font-weight: 500;
-}
-
 /* Toolbar Styling */
 .writer-toolbar-sticky {
   display: flex;
@@ -329,10 +281,6 @@
 /* Dark theme - workspace colors */
 [data-theme="dark"] .panel-header {
   background: var(--workspace-bg-primary);
-}
-
-[data-theme="dark"] .compilation-output-header {
-  background: var(--workspace-bg-secondary);
 }
 
 [data-theme="dark"] .preview-panel {

@@ -1,67 +1,42 @@
 /**
  * Compilation Progress Management
- * Handles progress bars, percentages, and status updates
+ * Targets the Details panel for all compilation UI.
  */
 
 import { updateStatusLamp } from "./CompilationStatus";
-import { updateMinimizedStatus } from "./CompilationPanel";
+import { setActiveLogType, getActiveLogType } from "./CompilationLogs";
 
 /**
- * Show compilation progress UI
+ * Show compilation progress — clears the Details panel log and expands
+ * the relevant section.
  */
-export function showCompilationProgress(title: string = "Compiling Manuscript"): void {
-  const output = document.getElementById("compilation-output");
-  const icon = document.getElementById("compilation-icon");
-  const headerTitle = document.getElementById("compilation-header-title");
-  const progressContainer = document.getElementById(
-    "compilation-progress-container",
-  );
-  const resultDiv = document.getElementById("compilation-result-inline");
+export function showCompilationProgress(
+  title: string = "Compiling Manuscript",
+): void {
+  const logType = getActiveLogType();
+  const sectionKey = logType === "preview" ? "preview-log" : "full-log";
+  const detailsLogId =
+    logType === "preview" ? "details-preview-log" : "details-full-log";
+  const detailsLog = document.getElementById(detailsLogId);
 
-  if (!output) return;
+  if (detailsLog) {
+    detailsLog.textContent = "Starting compilation...\n";
 
-  // Update header
-  if (icon) {
-    icon.className = "fas fa-spinner fa-spin";
+    // Auto-expand the section
+    const section = detailsLog.closest("[data-section]") as HTMLElement;
+    if (section) {
+      section.classList.remove("collapsed");
+      try {
+        const states = JSON.parse(
+          localStorage.getItem("writer-details-sections") || "{}",
+        );
+        states[sectionKey] = false;
+        localStorage.setItem("writer-details-sections", JSON.stringify(states));
+      } catch {
+        /* ignore */
+      }
+    }
   }
-  if (headerTitle) {
-    headerTitle.textContent = title;
-  }
-
-  // Show progress bar
-  if (progressContainer) {
-    progressContainer.style.display = "block";
-  }
-
-  // Hide result
-  if (resultDiv) {
-    resultDiv.style.display = "none";
-    resultDiv.innerHTML = "";
-  }
-
-  // Reset progress
-  updateCompilationProgress(0, "Initializing...");
-
-  // Clear log
-  const log = document.getElementById("compilation-log-inline");
-  if (log) {
-    log.textContent = "Starting compilation...\n";
-  }
-
-  // Ensure log details are closed (minimized) by default
-  const logDetails = document.getElementById("compilation-log-details") as HTMLDetailsElement;
-  if (logDetails) {
-    logDetails.open = false;
-  }
-
-  // Update toolbar buttons: show Stop, hide Start
-  const startBtn = document.getElementById("compilation-log-start-btn");
-  const stopBtn = document.getElementById("compilation-log-stop-btn");
-  if (startBtn) startBtn.style.display = "none";
-  if (stopBtn) stopBtn.style.display = "inline-block";
-
-  // Show compilation output
-  output.style.display = "block";
 
   // Update status lamp and slim progress
   updateStatusLamp("compiling", "Compiling...");
@@ -69,34 +44,31 @@ export function showCompilationProgress(title: string = "Compiling Manuscript"):
 }
 
 /**
- * Hide compilation output
+ * Hide compilation progress — no-op since Details panel is persistent.
  */
 export function hideCompilationProgress(): void {
-  const output = document.getElementById("compilation-output");
-  if (output) {
-    output.style.display = "none";
-  }
+  // Details panel is always visible; nothing to hide.
 }
 
 /**
- * Update compilation progress
+ * Update compilation progress percentage.
+ * Updates the slim progress bar and status lamp.
  */
-export function updateCompilationProgress(percent: number, status: string): void {
-  const progressBar = document.getElementById("compilation-progress-bar");
-  const progressPercent = document.getElementById(
-    "compilation-progress-percent",
-  );
-  const progressStatus = document.getElementById("compilation-progress-status");
-
-  if (progressBar) progressBar.style.width = `${percent}%`;
-  if (progressPercent) progressPercent.textContent = `${percent}%`;
-  if (progressStatus) progressStatus.textContent = status;
-
-  // Also update minimized status if it's visible
-  updateMinimizedStatus(percent, status);
-
-  // Update slim progress bar
+export function updateCompilationProgress(
+  percent: number,
+  status: string,
+): void {
   updateSlimProgress(percent, status);
+
+  // Update details panel lamp text for active log type
+  const logType = getActiveLogType();
+  const lampId =
+    logType === "preview" ? "details-preview-lamp" : "details-full-lamp";
+  const lamp = document.getElementById(lampId);
+  if (lamp && percent > 0 && percent < 100) {
+    lamp.setAttribute("data-status", "compiling");
+    lamp.title = `${percent}% — ${status}`;
+  }
 }
 
 /**
@@ -114,12 +86,6 @@ export function updateSlimProgress(
   const slimEta = document.getElementById("slim-progress-eta");
 
   if (!slimProgress) return;
-
-  // DISABLED: Status lamp provides sufficient feedback, no need for progress bar
-  // Show slim progress during compilation
-  // if (progress > 0 && progress < 100) {
-  //   slimProgress.style.display = "block";
-  // }
 
   if (slimFill) {
     slimFill.style.width = `${progress}%`;
@@ -141,32 +107,5 @@ export function updateSlimProgress(
         slimProgress.style.display = "none";
       }
     }, 2000);
-  }
-}
-
-/**
- * Toggle compilation details panel
- */
-export function toggleCompilationDetails(): void {
-  const output = document.getElementById("compilation-output");
-  const slimProgress = document.getElementById("compilation-slim-progress");
-
-  if (!output) return;
-
-  const isVisible = output.style.display === "block";
-
-  if (isVisible) {
-    // Hide details (slim progress disabled - status lamp provides feedback)
-    output.style.display = "none";
-    // DISABLED: Status lamp provides sufficient feedback
-    // if (slimProgress) {
-    //   slimProgress.style.display = "block";
-    // }
-  } else {
-    // Show full details
-    output.style.display = "block";
-    if (slimProgress) {
-      slimProgress.style.display = "none";
-    }
   }
 }

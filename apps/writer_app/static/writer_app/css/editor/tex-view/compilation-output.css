@@ -1,37 +1,4 @@
-/* Inline Compilation Output */
-.compilation-output {
-  border-top: 1px solid var(--workspace-border-default);
-  background: var(--workspace-bg-secondary);
-  max-height: 300px;
-  display: flex;
-  flex-direction: column;
-}
-
-.compilation-output-header {
-  padding: 0.75rem 1rem;
-  background: var(--workspace-bg-primary);
-  border-bottom: 1px solid var(--workspace-border-default);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--workspace-text-primary);
-}
-
-.compilation-log-inline {
-  flex: 1;
-  padding: 1rem;
-  overflow-y: auto;
-  font-family: "Consolas", "Monaco", "Courier New", monospace;
-  font-size: 0.85rem;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  background: var(--bg-muted);
-  color: var(--text-primary);
-}
-
-/* Old styles kept for backward compatibility */
+/* Editor layout styles */
 .text-editor {
   flex: 1;
   display: flex;
@@ -99,4 +66,3 @@
   background: var(--workspace-bg-primary);
   color: var(--workspace-text-primary);
 }
-

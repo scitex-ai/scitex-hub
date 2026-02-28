@@ -1,9 +1,7 @@
 /**
  * Compilation UI Orchestrator
- * Central coordinator for all compilation UI functionality
- *
- * This module provides a unified interface for compilation UI management,
- * delegating to specialized modules for each concern.
+ * Central coordinator for all compilation UI functionality.
+ * All compilation UI writes to the Details panel (no inline panel).
  */
 
 // Progress Management
@@ -12,20 +10,17 @@ export {
   hideCompilationProgress,
   updateCompilationProgress,
   updateSlimProgress,
-  toggleCompilationDetails,
 } from "./compilation-ui/CompilationProgress";
 
 // Log Management
 export {
   appendCompilationLog,
   updateCompilationLog,
-  toggleCompilationPanel,
   togglePreviewLog,
   toggleFullLog,
-  handleCompilationLogStart,
-  handleCompilationLogStop,
-  handleCompilationLogClose,
   compilationLogs,
+  setActiveLogType,
+  getActiveLogType,
 } from "./compilation-ui/CompilationLogs";
 
 // Status Management
@@ -35,14 +30,5 @@ export {
   updateStatusLamp,
 } from "./compilation-ui/CompilationStatus";
 
-// Panel Management
-export {
-  minimizeCompilationOutput,
-  restoreCompilationOutput,
-  updateMinimizedStatus,
-} from "./compilation-ui/CompilationPanel";
-
 // Storage Management
-export {
-  restoreCompilationStatus,
-} from "./compilation-ui/CompilationStorage";
+export { restoreCompilationStatus } from "./compilation-ui/CompilationStorage";
