@@ -4,96 +4,51 @@
 
 {% block title %}Python Packages — SciTeX Documentation{% endblock %}
 {% block content %}
-    <div class="container py-5" style="max-width: 900px">
-        <nav aria-label="breadcrumb" class="mb-4">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item">
-                    <a href="{% url 'docs_app:index' %}">Documentation</a>
-                </li>
-                <li class="breadcrumb-item active">Python Packages</li>
-            </ol>
-        </nav>
-        <h1 class="mb-4">
-            <i class="fab fa-python me-2"></i>Python Packages
-        </h1>
-        <p class="lead text-muted mb-5">The SciTeX ecosystem of Python packages for scientific research automation.</p>
-        <!-- Ecosystem Diagram -->
-        <span id="overview"></span>
-        <section class="api-section">
-            <h2>
-                <i class="fas fa-project-diagram"></i> Ecosystem Overview
-            </h2>
-            <div class="card mt-3">
-                <div class="card-body" style="text-align: center">
-                    <img src="{% static 'public_app/images/workflow.svg' %}"
-                         alt="SciTeX Ecosystem Overview"
-                         style="max-width: 600px;
-                                width: 100%;
-                                height: auto;
-                                border-radius: 4px"
-                         loading="lazy" />
-                </div>
+    <div class="container py-2">
+        <header class="minimal-hero" style="text-align: center">
+            <div class="api-hero-header" style="justify-content: center">
+                <h1 class="minimal-hero-title">
+                    <i class="fab fa-python"></i> Python Packages
+                </h1>
             </div>
-        </section>
+        </header>
+    </div>
+    <div class="container py-2" style="max-width: 960px">
+        <p class="lead text-muted">
+            The SciTeX ecosystem of Python packages for scientific research automation.
+            Each package has full documentation on ReadTheDocs.
+        </p>
         <!-- Core Packages -->
-        <span id="packages"></span>
+        <span id="core"></span><span id="packages"></span>
         <section class="api-section">
             <h2>
                 <i class="fab fa-python"></i> Core Packages
             </h2>
-            <div class="card mt-3">
-                <div class="card-body p-0">
-                    <table class="table table-sm mb-0">
-                        <thead>
-                            <tr>
-                                <th class="ps-3">Package</th>
-                                <th>Module</th>
-                                <th>Version</th>
-                                <th>Description</th>
-                                <th class="text-center">Links</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="ps-3">
-                                    <strong>scitex</strong>
-                                </td>
-                                <td>
-                                    <code>scitex</code>
-                                </td>
-                                <td>
-                                    <code>{{ ecosystem_versions.scitex|default:"—" }}</code>
-                                </td>
-                                <td>Main Python package with unified API for scientific research</td>
-                                <td class="text-center text-nowrap">
-                                    <a href="https://github.com/ywatanabe1989/scitex-python"
-                                       target="_blank"
-                                       title="GitHub"><i class="fab fa-github me-2"></i></a>
-                                    <a href="https://scitex-python.readthedocs.io" target="_blank" title="Docs"><i class="fas fa-book"></i></a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="ps-3">
-                                    <strong>scitex-cloud</strong>
-                                </td>
-                                <td>
-                                    <code>scitex.cloud</code>
-                                </td>
-                                <td>
-                                    <code>{{ SCITEX_CLOUD_VERSION|default:"—" }}</code>
-                                </td>
-                                <td>Django web application (this site)</td>
-                                <td class="text-center text-nowrap">
-                                    <a href="https://github.com/ywatanabe1989/scitex-cloud"
-                                       target="_blank"
-                                       title="GitHub"><i class="fab fa-github me-2"></i></a>
-                                    <a href="https://scitex-cloud.readthedocs.io" target="_blank" title="Docs"><i class="fas fa-book"></i></a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+            {% for pkg in core_packages %}
+                <div class="pkg-card">
+                    <div class="pkg-header">
+                        <strong>{{ pkg.pip_name }}</strong>
+                        <code class="pkg-module">{{ pkg.module }}</code>
+                        {% if pkg.version %}<span class="api-version-badge">v{{ pkg.version }}</span>{% endif %}
+                    </div>
+                    <p class="pkg-desc">{{ pkg.description }}</p>
+                    <div class="pkg-links">
+                        <a href="{{ pkg.docs_url }}" target="_blank" class="pkg-link pkg-link-docs">
+                            <i class="fas fa-book"></i> ReadTheDocs
+                        </a>
+                        <a href="{{ pkg.github_url }}" target="_blank" class="pkg-link">
+                            <i class="fab fa-github"></i> GitHub
+                        </a>
+                        {% if pkg.pypi_version %}
+                            <a href="https://pypi.org/project/{{ pkg.pip_name }}/"
+                               target="_blank"
+                               class="pkg-link">
+                                <i class="fas fa-cube"></i> PyPI
+                            </a>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
+            {% endfor %}
         </section>
         <!-- Standalone Packages -->
         <span id="standalone"></span>
@@ -102,134 +57,34 @@
                 <i class="fas fa-cubes"></i> Standalone Packages
             </h2>
             <p>
-                Each standalone package can be installed independently or accessed
-                through the main <code>scitex</code> package.
+                Each package can be installed independently via <code>pip install &lt;name&gt;</code>
+                or accessed through the main <code>scitex</code> package.
             </p>
-            <div class="card mt-3">
-                <div class="card-body p-0">
-                    <table class="table table-sm mb-0">
-                        <thead>
-                            <tr>
-                                <th class="ps-3">Package</th>
-                                <th>Module</th>
-                                <th>Version</th>
-                                <th>Description</th>
-                                <th class="text-center">Links</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="ps-3">
-                                    <strong>figrecipe</strong>
-                                </td>
-                                <td>
-                                    <code>scitex.plt</code>
-                                </td>
-                                <td>
-                                    <code>{{ ecosystem_versions.figrecipe|default:"—" }}</code>
-                                </td>
-                                <td>Publication-ready matplotlib figures with auto CSV export</td>
-                                <td class="text-center text-nowrap">
-                                    <a href="https://github.com/ywatanabe1989/figrecipe"
-                                       target="_blank"
-                                       title="GitHub"><i class="fab fa-github me-2"></i></a>
-                                    <a href="https://figrecipe.readthedocs.io" target="_blank" title="Docs"><i class="fas fa-book"></i></a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="ps-3">
-                                    <strong>scitex-writer</strong>
-                                </td>
-                                <td>
-                                    <code>scitex.writer</code>
-                                </td>
-                                <td>
-                                    <code>{{ ecosystem_versions.scitex_writer|default:"—" }}</code>
-                                </td>
-                                <td>LaTeX manuscript compilation with journal templates</td>
-                                <td class="text-center text-nowrap">
-                                    <a href="https://github.com/ywatanabe1989/scitex-writer"
-                                       target="_blank"
-                                       title="GitHub"><i class="fab fa-github me-2"></i></a>
-                                    <a href="https://scitex-writer.readthedocs.io" target="_blank" title="Docs"><i class="fas fa-book"></i></a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="ps-3">
-                                    <strong>scitex-dataset</strong>
-                                </td>
-                                <td>
-                                    <code>scitex.dataset</code>
-                                </td>
-                                <td>
-                                    <code>{{ ecosystem_versions.scitex_dataset|default:"—" }}</code>
-                                </td>
-                                <td>Scientific dataset search across OpenNeuro, DANDI, PhysioNet</td>
-                                <td class="text-center text-nowrap">
-                                    <a href="https://github.com/ywatanabe1989/scitex-dataset"
-                                       target="_blank"
-                                       title="GitHub"><i class="fab fa-github me-2"></i></a>
-                                    <a href="https://scitex-dataset.readthedocs.io" target="_blank" title="Docs"><i class="fas fa-book"></i></a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="ps-3">
-                                    <strong>scitex-linter</strong>
-                                </td>
-                                <td>
-                                    <code>scitex.linter</code>
-                                </td>
-                                <td>
-                                    <code>{{ ecosystem_versions.scitex_linter|default:"—" }}</code>
-                                </td>
-                                <td>SciTeX coding style linter for Python scripts</td>
-                                <td class="text-center text-nowrap">
-                                    <a href="https://github.com/ywatanabe1989/scitex-linter"
-                                       target="_blank"
-                                       title="GitHub"><i class="fab fa-github me-2"></i></a>
-                                    <a href="https://scitex-linter.readthedocs.io" target="_blank" title="Docs"><i class="fas fa-book"></i></a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="ps-3">
-                                    <strong>crossref-local</strong>
-                                </td>
-                                <td>
-                                    <code>scitex.scholar.crossref_scitex</code>
-                                </td>
-                                <td>
-                                    <code>{{ ecosystem_versions.crossref_local|default:"—" }}</code>
-                                </td>
-                                <td>Local CrossRef database (167M+ papers)</td>
-                                <td class="text-center text-nowrap">
-                                    <a href="https://github.com/ywatanabe1989/crossref-local"
-                                       target="_blank"
-                                       title="GitHub"><i class="fab fa-github me-2"></i></a>
-                                    <a href="https://crossref-local.readthedocs.io" target="_blank" title="Docs"><i class="fas fa-book"></i></a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="ps-3">
-                                    <strong>openalex-local</strong>
-                                </td>
-                                <td>
-                                    <code>scitex.scholar.openalex_scitex</code>
-                                </td>
-                                <td>
-                                    <code>{{ ecosystem_versions.openalex_local|default:"—" }}</code>
-                                </td>
-                                <td>Local OpenAlex database (250M+ papers)</td>
-                                <td class="text-center text-nowrap">
-                                    <a href="https://github.com/ywatanabe1989/openalex-local"
-                                       target="_blank"
-                                       title="GitHub"><i class="fab fa-github me-2"></i></a>
-                                    <a href="https://openalex-local.readthedocs.io" target="_blank" title="Docs"><i class="fas fa-book"></i></a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+            {% for pkg in standalone_packages %}
+                <div class="pkg-card">
+                    <div class="pkg-header">
+                        <strong>{{ pkg.pip_name }}</strong>
+                        <code class="pkg-module">{{ pkg.module }}</code>
+                        {% if pkg.version %}<span class="api-version-badge">v{{ pkg.version }}</span>{% endif %}
+                    </div>
+                    <p class="pkg-desc">{{ pkg.description }}</p>
+                    <div class="pkg-links">
+                        <a href="{{ pkg.docs_url }}" target="_blank" class="pkg-link pkg-link-docs">
+                            <i class="fas fa-book"></i> ReadTheDocs
+                        </a>
+                        <a href="{{ pkg.github_url }}" target="_blank" class="pkg-link">
+                            <i class="fab fa-github"></i> GitHub
+                        </a>
+                        {% if pkg.pypi_version %}
+                            <a href="https://pypi.org/project/{{ pkg.pip_name }}/"
+                               target="_blank"
+                               class="pkg-link">
+                                <i class="fas fa-cube"></i> PyPI
+                            </a>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
+            {% endfor %}
         </section>
         <!-- Installation -->
         <span id="installation"></span>
@@ -237,26 +92,21 @@
             <h2>
                 <i class="fas fa-download"></i> Installation
             </h2>
-            <div class="card mt-3">
-                <div class="card-header">
-                    <strong>Main package (includes all sub-modules)</strong>
+            <div class="code-block">
+                <div class="code-header">
+                    <span>Shell</span>
                 </div>
-                <div class="card-body">
-                    <pre data-language="bash"><code class="language-bash">pip install scitex</code></pre>
-                </div>
+                <pre><code>pip install scitex[all]     # Full installation (recommended)
+pip install scitex[plt,stats,scholar]  # Typical research setup
+pip install scitex          # Core only (minimal)</code></pre>
             </div>
-            <div class="card mt-3">
-                <div class="card-header">
-                    <strong>Standalone packages</strong>
+            <h4 class="mt-3">Individual packages</h4>
+            <div class="code-block">
+                <div class="code-header">
+                    <span>Shell</span>
                 </div>
-                <div class="card-body">
-                    <pre data-language="bash"><code class="language-bash">pip install figrecipe          # Publication-ready figures
-pip install scitex-writer      # LaTeX manuscript compilation
-pip install scitex-dataset     # Scientific dataset search
-pip install scitex-linter      # Coding style linter
-pip install crossref-local     # Local CrossRef database
-pip install openalex-local     # Local OpenAlex database</code></pre>
-                </div>
+                <pre><code>{% for pkg in standalone_packages %}pip install {{ pkg.pip_name }}
+{% endfor %}</code></pre>
             </div>
         </section>
         <!-- Quick Start -->
@@ -265,9 +115,11 @@ pip install openalex-local     # Local OpenAlex database</code></pre>
             <h2>
                 <i class="fas fa-bolt"></i> Quick Start
             </h2>
-            <div class="card mt-3">
-                <div class="card-body">
-                    <pre data-language="python"><code class="language-python">import scitex as stx
+            <div class="code-block">
+                <div class="code-header">
+                    <span>Python</span>
+                </div>
+                <pre><code>import scitex as stx
 @stx.session
 def main(
     param1="default",      # Auto-CLI: --param1
@@ -279,8 +131,155 @@ def main(
     # Outputs auto-organized: script_out/FINISHED_SUCCESS/&lt;session_id&gt;/
     stx.io.save(results, "results.csv")
     return 0</code></pre>
-                </div>
             </div>
         </section>
+        <!-- Embedded RTD viewer -->
+        <div id="rtd-embed-container" class="rtd-embed-container" style="display:none">
+            <div class="rtd-embed-toolbar">
+                <span id="rtd-embed-title" class="rtd-embed-title"></span>
+                <div class="rtd-embed-actions">
+                    <a id="rtd-embed-external"
+                       href="#"
+                       target="_blank"
+                       class="pkg-link"
+                       title="Open in new tab">
+                        <i class="fas fa-external-link-alt"></i> Open in new tab
+                    </a>
+                    <button id="rtd-embed-close" class="pkg-link" title="Close" style="cursor:pointer">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                </div>
+            </div>
+            <iframe id="rtd-embed-iframe" class="rtd-embed-iframe" src="" frameborder="0"></iframe>
+        </div>
     </div>
+    <script>
+    (function() {
+        const container = document.getElementById('rtd-embed-container');
+        const iframe = document.getElementById('rtd-embed-iframe');
+        const title = document.getElementById('rtd-embed-title');
+        const extLink = document.getElementById('rtd-embed-external');
+        const closeBtn = document.getElementById('rtd-embed-close');
+        if (!container) return;
+
+        // Intercept RTD link clicks to embed inline
+        document.querySelectorAll('.pkg-link-docs').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = this.href;
+                const pkgName = this.closest('.pkg-card').querySelector('strong').textContent;
+                title.textContent = pkgName + ' — ReadTheDocs';
+                extLink.href = url;
+                iframe.src = url;
+                container.style.display = 'block';
+                container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        closeBtn.addEventListener('click', function() {
+            container.style.display = 'none';
+            iframe.src = '';
+        });
+    })();
+    </script>
+    <style>
+        .pkg-card {
+            background: var(--workspace-bg-secondary, #161b22);
+            border: 1px solid var(--workspace-border-default, #30363d);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .pkg-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .pkg-header strong {
+            font-size: 15px;
+        }
+
+        .pkg-module {
+            font-size: 12px;
+            color: var(--text-muted, #8b949e);
+        }
+
+        .pkg-desc {
+            margin: 8px 0;
+            color: var(--text-secondary, #c9d1d9);
+            font-size: 13px;
+        }
+
+        .pkg-links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .pkg-link {
+            font-size: 12px;
+            color: var(--text-secondary, #8b949e);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--workspace-border-default, #30363d);
+            transition: all 0.15s;
+        }
+
+        .pkg-link:hover {
+            color: var(--text-primary, #e6edf3);
+            border-color: var(--text-secondary, #8b949e);
+            text-decoration: none;
+        }
+
+        .pkg-link-docs {
+            color: var(--accent-blue, #58a6ff);
+            border-color: var(--accent-blue, #58a6ff);
+        }
+
+        .pkg-link-docs:hover {
+            background: rgba(88, 166, 255, 0.1);
+            color: var(--accent-blue, #58a6ff);
+        }
+
+        .rtd-embed-container {
+            margin-top: 16px;
+            border: 1px solid var(--workspace-border-default, #30363d);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .rtd-embed-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: var(--workspace-bg-secondary, #161b22);
+            border-bottom: 1px solid var(--workspace-border-default, #30363d);
+        }
+
+        .rtd-embed-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary, #e6edf3);
+        }
+
+        .rtd-embed-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .rtd-embed-iframe {
+            width: 100%;
+            height: 70vh;
+            min-height: 400px;
+            background: #fff;
+        }
+    </style>
 {% endblock %}
