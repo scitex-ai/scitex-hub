@@ -7,8 +7,8 @@
 
 /* Sidebar */
 .docs-sidebar {
-  width: 200px;
-  min-width: 200px;
+  width: 180px;
+  min-width: 180px;
   border-right: 1px solid var(--workspace-border-default, #30363d);
   background: var(--workspace-bg-secondary, #161b22);
   overflow-y: auto;
@@ -31,11 +31,11 @@
 .docs-nav-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
+  gap: 6px;
+  padding: 5px 10px;
   color: var(--text-secondary, #c9d1d9);
   text-decoration: none;
-  font-size: 13px;
+  font-size: 12px;
   border-right: 2px solid transparent;
   transition:
     background 0.15s ease,
@@ -159,8 +159,8 @@
 
 .docs-content .container {
   max-width: 100%;
-  padding-left: 16px;
-  padding-right: 16px;
+  padding-left: 12px;
+  padding-right: 12px;
 }
 
 /* Suppress hero headers inside workspace (redundant with sidebar) */
@@ -179,7 +179,7 @@
 .docs-content .api-section {
   border: 1px solid var(--workspace-border-default, #30363d);
   border-radius: 6px;
-  margin-bottom: 10px !important;
+  margin-bottom: 6px !important;
   padding-bottom: 0 !important;
   border-bottom: 1px solid var(--workspace-border-default, #30363d) !important;
   overflow: hidden;
@@ -190,11 +190,11 @@
   align-items: center;
   gap: 6px;
   width: 100%;
-  padding: 8px 12px;
+  padding: 6px 10px;
   background: var(--workspace-bg-secondary, #161b22);
   border: none;
   color: var(--text-primary, #e6edf3);
-  font-size: 13px !important;
+  font-size: 12px !important;
   font-weight: 600;
   cursor: pointer;
   text-align: left;
@@ -215,7 +215,7 @@
 /* Override sections.css .api-section-title bloat inside toggle */
 .docs-content .api-section-toggle .api-section-title {
   flex: 1;
-  font-size: 13px !important;
+  font-size: 12px !important;
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
   border-bottom: none !important;
@@ -249,7 +249,7 @@
 
 .docs-content .api-section-body {
   display: none;
-  padding: 8px 10px;
+  padding: 6px 10px;
 }
 
 .docs-content .api-section.open .api-section-body {
@@ -288,8 +288,42 @@
   display: none;
 }
 
-.docs-content > .container > .lead {
+.docs-content > .container > .lead,
+.docs-content .container > .lead {
   display: none;
+}
+
+/* Tighter section headers */
+.docs-content .api-section-body h2 {
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.docs-content .api-section-body h4 {
+  font-size: 13px;
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+/* Compact code blocks */
+.docs-content .code-block {
+  margin-bottom: 8px;
+}
+
+.docs-content .code-block .code-header {
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+.docs-content .code-block pre {
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+/* Version badges — compact */
+.docs-content .api-version-badge {
+  font-size: 10px;
+  padding: 1px 6px;
 }
 
 /* Tables inside docs sections — scrollable wrapper */

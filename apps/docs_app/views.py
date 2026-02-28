@@ -197,6 +197,18 @@ def _get_packages_context() -> dict:
             "socialia",
             False,
         ),
+        "scitex-container": (
+            "scitex_container",
+            "Apptainer/Singularity container definitions for SciTeX",
+            "scitex-container",
+            False,
+        ),
+        "scitex-tunnel": (
+            "scitex_tunnel",
+            "Secure SSH tunnel management for remote SciTeX services",
+            "scitex-tunnel",
+            False,
+        ),
     }
 
     core_packages = []

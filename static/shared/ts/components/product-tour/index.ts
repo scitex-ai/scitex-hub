@@ -237,11 +237,7 @@ function init(): void {
     setupTourButton();
   }
 
-  // Auto-start only on landing page for first-time visitors
-  if (isLandingPage && config && !hasCompletedTour(config.storageKey)) {
-    console.log("[ProductTour] Scheduling auto-start in 1s");
-    setTimeout(() => startTour(config), 1000);
-  }
+  // Tour is manual-only — use the tour button or showProductTour() to start
 
   if (!config) {
     console.log("[ProductTour] No tour configuration for this page");

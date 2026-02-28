@@ -157,10 +157,11 @@
                 }
                 link.remove();
             });
-            // Execute inline scripts
+            // Execute inline scripts (preserve type="module" for Vite)
             const scripts = contentArea.querySelectorAll('script');
             scripts.forEach(oldScript => {
                 const newScript = document.createElement('script');
+                if (oldScript.type) newScript.type = oldScript.type;
                 if (oldScript.src) {
                     newScript.src = oldScript.src;
                 } else {
