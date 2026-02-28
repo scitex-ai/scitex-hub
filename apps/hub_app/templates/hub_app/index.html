@@ -61,7 +61,9 @@
             </div>
             <!-- Dynamic main content: project workspace or projects overview -->
             <div id="hub-main-content">
-                {% if current_project %}
+                {% if hub_view_mode == "profile" %}
+                    {% include 'hub_app/partials/user_profile_content.html' %}
+                {% elif current_project %}
                     {% include 'hub_app/partials/project_workspace.html' with project=current_project %}
                 {% else %}
                     {% include 'hub_app/partials/projects_overview.html' %}

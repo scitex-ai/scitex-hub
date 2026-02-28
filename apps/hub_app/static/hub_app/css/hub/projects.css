@@ -1,0 +1,89 @@
+/**
+ * Hub Projects — grid, cards, metadata
+ */
+
+/* Projects grid */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.project-card {
+  background: var(--workspace-bg-tertiary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  transition: border-color 0.2s;
+}
+
+.project-card:hover {
+  border-color: var(--workspace-icon-primary);
+}
+
+.project-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.project-card-header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.project-card-header h3 a {
+  color: var(--workspace-icon-primary);
+  text-decoration: none;
+}
+
+.project-card-header h3 a:hover {
+  text-decoration: underline;
+}
+
+.project-card-header .badge {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.project-card-header .badge-public {
+  background-color: var(--status-success);
+  color: white;
+}
+
+.project-card-header .badge-private {
+  background-color: var(--workspace-text-muted);
+  color: white;
+}
+
+.project-card-body p {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  color: var(--workspace-text-muted);
+}
+
+.project-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--workspace-text-muted);
+}
+
+.project-meta .language-badge {
+  padding: 0.15rem 0.4rem;
+  background: var(--workspace-bg-quaternary);
+  border-radius: 4px;
+  font-weight: 500;
+  color: var(--workspace-text-primary);
+}
+
+.project-meta .meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
