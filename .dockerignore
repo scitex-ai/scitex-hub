@@ -86,6 +86,9 @@ Thumbs.db
 demo/
 test-paper-project/
 
+# Apptainer/Singularity (29GB+ — not needed for Docker builds)
+deployment/singularity/
+
 # Runtime data (mounted as volumes, not copied into image)
 data
 logs
