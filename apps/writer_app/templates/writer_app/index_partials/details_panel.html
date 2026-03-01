@@ -271,6 +271,17 @@
         });
     }
 
+    // Click collapsed details strip to expand
+    var detailsPanel = document.getElementById("writer-details");
+    if (detailsPanel) {
+        detailsPanel.addEventListener("click", function() {
+            if (detailsPanel.classList.contains("collapsed")) {
+                var toggleBtn = document.getElementById("details-toggle");
+                if (toggleBtn) toggleBtn.click();
+            }
+        });
+    }
+
     // Dropzone: drag-and-drop file upload
     var dropzone = document.getElementById("overleaf-dropzone");
     var fileInput = document.getElementById("overleaf-zip-input");

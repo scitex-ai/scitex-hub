@@ -43,7 +43,7 @@ export const WRITER_TOUR_STEPS: TourStep[] = [
     position: "left",
   },
   {
-    selector: ".view-switch-btn[onclick*='citations']",
+    selector: ".selector-nav-item[onclick*='citations']",
     title: "Citations & Scholar",
     description:
       "Click here to access your references. Import from Scholar " +

@@ -29,7 +29,7 @@
 
 .workspace-sidebar {
   width: 250px;
-  min-width: 40px;
+  min-width: var(--ui-collapsed-pane-width, 48px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -127,8 +127,8 @@
    =========================================================================== */
 
 .workspace-sidebar.collapsed {
-  width: 40px;
-  min-width: 40px;
+  width: var(--ui-collapsed-pane-width, 48px);
+  min-width: var(--ui-collapsed-pane-width, 48px);
   cursor: pointer;
 }
 
@@ -171,7 +171,7 @@
 /* Icon visible, top-aligned */
 .workspace-sidebar.collapsed .sidebar-title i {
   display: block;
-  font-size: 14px;
+  font-size: var(--ui-nav-icon-size, 20px);
   color: var(--text-secondary, #8ba7b8);
 }
 

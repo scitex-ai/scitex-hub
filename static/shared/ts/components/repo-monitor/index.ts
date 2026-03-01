@@ -17,7 +17,6 @@
 import { RepoMonitorClient } from "./RepoMonitorClient.ts";
 import { RepoMonitorFeed } from "./RepoMonitorFeed.ts";
 import { RepoMonitorFilter } from "./RepoMonitorFilter.ts";
-import { VerticalSplitResizer } from "./VerticalSplitResizer.ts";
 import type { MonitorConfig } from "./types.ts";
 
 const STORAGE_KEY = "repo-monitor-collapsed";
@@ -66,20 +65,18 @@ export function initMonitorToggle(): void {
 export function initRepoMonitor(config: MonitorConfig): void {
   const feedContainer = document.getElementById("repo-monitor-feed");
   const monitorArea = document.getElementById("ws-repo-monitor");
-  const resizerEl = document.getElementById("repo-monitor-resizer");
-  const treeArea = document.querySelector(
-    ".ws-worktree-tree-area",
-  ) as HTMLElement | null;
 
-  if (!feedContainer || !monitorArea || !resizerEl || !treeArea) {
+  if (!feedContainer || !monitorArea) {
     console.warn("[RepoMonitor] Missing required DOM elements — init skipped");
     return;
   }
 
+  // Vertical resizer is now auto-initialized by the unified resizer system
+  // via data-v-resizer attribute on #repo-monitor-resizer
+
   const client = new RepoMonitorClient(config.projectId);
   const feed = new RepoMonitorFeed(feedContainer);
   const filter = new RepoMonitorFilter(feed);
-  const resizer = new VerticalSplitResizer(resizerEl, treeArea, monitorArea);
 
   // Wire events
   client.onEvent((event) => feed.addEvent(event));
@@ -87,7 +84,6 @@ export function initRepoMonitor(config: MonitorConfig): void {
 
   // Listen for toggle events from initMonitorToggle
   window.addEventListener("repo-monitor:toggle", ((e: CustomEvent) => {
-    resizer.restoreState();
     if (e.detail.collapsed) {
       client.pause();
     } else {
@@ -98,12 +94,10 @@ export function initRepoMonitor(config: MonitorConfig): void {
   // Connect and initialize
   client.connect();
   filter.init();
-  resizer.restoreState();
 }
 
 // Named re-exports for consumers that need individual classes
 export { RepoMonitorClient } from "./RepoMonitorClient.ts";
 export { RepoMonitorFeed } from "./RepoMonitorFeed.ts";
 export { RepoMonitorFilter } from "./RepoMonitorFilter.ts";
-export { VerticalSplitResizer } from "./VerticalSplitResizer.ts";
 export type { FsEvent, FilterConfig, MonitorConfig } from "./types.ts";

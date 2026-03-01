@@ -67,13 +67,6 @@ export type { Section } from "./sections/section-extraction";
 // Inline script replacement (writer app init)
 export { initWriterApp } from "./inline-script/index";
 
-// Sidebar resizer
-export {
-  initSidebarResizer,
-  getSidebarWidth,
-  setSidebarWidth,
-} from "./ui/sidebar-resizer";
-
 // Panel toggle (expand/collapse)
 export {
   togglePanel as toggleWriterPanel,

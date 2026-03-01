@@ -192,24 +192,24 @@ export function switchRightPanel(
   const collaborationHeader = document.getElementById(
     "collaboration-panel-header",
   );
-  // Get all view switch buttons in all panel headers
+  // Get all view switch buttons (selector-nav-item in mode selector nav)
   const allPdfBtns = document.querySelectorAll(
-    '#show-pdf-btn, .view-switch-btn[onclick*="pdf"]',
+    '#show-pdf-btn, .selector-nav-item[onclick*="pdf"]',
   );
   const allCitationsBtns = document.querySelectorAll(
-    '#show-citations-btn, .view-switch-btn[onclick*="citations"]',
+    '#show-citations-btn, .selector-nav-item[onclick*="citations"]',
   );
   const allFiguresBtns = document.querySelectorAll(
-    '#show-figures-btn, .view-switch-btn[onclick*="figures"]',
+    '#show-figures-btn, .selector-nav-item[onclick*="figures"]',
   );
   const allTablesBtns = document.querySelectorAll(
-    '#show-tables-btn, .view-switch-btn[onclick*="tables"]',
+    '#show-tables-btn, .selector-nav-item[onclick*="tables"]',
   );
   const allHistoryBtns = document.querySelectorAll(
-    '#show-history-btn, .view-switch-btn[onclick*="history"]',
+    '#show-history-btn, .selector-nav-item[onclick*="history"]',
   );
   const allCollaborationBtns = document.querySelectorAll(
-    '#show-collaboration-btn, .view-switch-btn[onclick*="collaboration"]',
+    '#show-collaboration-btn, .selector-nav-item[onclick*="collaboration"]',
   );
   const previewPanel = document.querySelector(".preview-panel") as HTMLElement;
 
@@ -310,23 +310,7 @@ export function switchRightPanel(
 
       console.log(`[Writer] Updated shared header for ${view} view`);
 
-      // Update active state on buttons in the SHARED header
-      const sharedHeaderBtns =
-        sharedHeader.querySelectorAll(".view-switch-btn");
-      sharedHeaderBtns.forEach((btn) => {
-        const btnElement = btn as HTMLElement;
-        const onclickAttr = btnElement.getAttribute("onclick");
-        if (onclickAttr) {
-          if (onclickAttr.includes(`'${view}'`)) {
-            btnElement.classList.add("active");
-          } else {
-            btnElement.classList.remove("active");
-          }
-        }
-      });
-      console.log(
-        `[Writer] Updated active button state in shared header for ${view} view`,
-      );
+      console.log(`[Writer] Header content updated for ${view} view`);
     }
   }
 

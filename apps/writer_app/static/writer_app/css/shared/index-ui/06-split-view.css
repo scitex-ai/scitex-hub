@@ -49,15 +49,15 @@
   display: none !important;
 }
 
-/* Collapsed panel header fills full height for vertical text */
+/* Collapsed panel header fills full height — top-aligned like workspace panes */
 .split-view .latex-panel.collapsed > .panel-header,
 .split-view .preview-panel.collapsed > .panel-header {
   height: 100% !important;
   max-height: none !important;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 0;
+  justify-content: flex-start;
+  padding: 8px 0 0;
 }
 
 /* Hide header sub-elements when collapsed (keep toggle + panel-title) */
@@ -74,31 +74,52 @@
   display: none;
 }
 
-/* Collapsed header-left: vertical layout for toggle + title, center-aligned */
+/* Collapsed header-left: vertical layout, top-aligned like other panes */
 .split-view .latex-panel.collapsed > .panel-header .header-left,
 .split-view .preview-panel.collapsed > .panel-header .header-left {
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  flex: 1;
+  justify-content: flex-start;
+  flex: unset;
   width: 100%;
   overflow: hidden;
-  padding-top: 0.5rem;
+  padding-top: 0;
 }
 
-/* Collapsed panel title: vertical text matching workspace-sidebar style */
+/* Collapsed panel title: icon on top, horizontal label below (matching workspace sidebar) */
 .split-view .latex-panel.collapsed .panel-title,
 .split-view .preview-panel.collapsed .panel-title {
-  writing-mode: vertical-lr;
-  text-orientation: mixed;
-  transform: rotate(180deg);
-  white-space: nowrap;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 500;
   color: var(--text-secondary, #8ba7b8);
-  margin-top: 0.5rem;
+  margin: 8px 0 0;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Icon in collapsed panel title — upright, no rotation */
+.split-view .latex-panel.collapsed .panel-title i,
+.split-view .preview-panel.collapsed .panel-title i {
+  display: block;
+  font-size: 14px;
+  color: var(--workspace-icon-primary, #059669);
+}
+
+/* Hide toggle chevron in collapsed strip — clicking strip itself expands */
+.split-view .latex-panel.collapsed .panel-toggle-btn,
+.split-view .preview-panel.collapsed .panel-toggle-btn {
+  display: none;
+}
+
+/* Hide module accent decoration on collapsed panels */
+.split-view .latex-panel.collapsed > .panel-header[data-pane-type="module"],
+.split-view .preview-panel.collapsed > .panel-header[data-pane-type="module"] {
+  border-top: none;
+  background: transparent;
 }
 
 .split-view .latex-panel.collapsed > .panel-header .header-right,

@@ -211,10 +211,11 @@
 .ws-apps-nav-item i,
 .ws-apps-nav-item svg,
 .ws-apps-nav-item img {
-  width: 16px;
-  min-width: 16px;
+  width: var(--selector-nav-icon-size, var(--ui-nav-icon-size, 20px));
+  min-width: var(--selector-nav-icon-size, var(--ui-nav-icon-size, 20px));
+  height: var(--selector-nav-icon-size, var(--ui-nav-icon-size, 20px));
   text-align: center;
-  font-size: 14px;
+  font-size: var(--selector-nav-icon-size, var(--ui-nav-icon-size, 20px));
 }
 
 .ws-apps-nav-label {
@@ -246,7 +247,7 @@
 
 .ws-module-pane {
   flex: 1;
-  min-width: 40px;
+  min-width: var(--ui-collapsed-pane-width, 48px);
   overflow: auto;
   position: relative;
   padding: 0 !important; /* workspace pages need no extra padding */

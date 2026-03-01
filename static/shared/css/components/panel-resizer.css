@@ -7,10 +7,10 @@
 
 .panel-resizer,
 .split-resizer {
-  /* Size and layout - 1px visual border with expanded hit area */
-  width: 1px;
+  /* Size and layout - 2px visual border with expanded hit area */
+  width: 2px;
   height: 100%;
-  flex: 0 0 1px !important; /* Never grow or shrink, fixed at 1px */
+  flex: 0 0 2px !important;
   position: relative;
 
   /* Visual style */
@@ -32,23 +32,23 @@
   padding: 0;
 }
 
-/* Expanded hit area for easier grabbing - wider to compensate for thin visual */
+/* Expanded hit area: 12px each side = 26px total grabbable width */
 .panel-resizer::before,
 .split-resizer::before {
   content: "";
   position: absolute;
   top: 0;
   bottom: 0;
-  left: -8px; /* 8px on left + 1px element + 8px on right = 17px total grabbable width */
-  right: -8px;
+  left: -12px;
+  right: -12px;
   cursor: col-resize;
   z-index: 1;
 }
 
-/* Hover state */
+/* Hover state — accent green for visibility */
 .panel-resizer:hover,
 .split-resizer:hover {
-  background: var(--workspace-border-hover);
+  background: var(--workspace-icon-primary, #059669);
 }
 
 /* Active/dragging state */
@@ -56,7 +56,7 @@
 .split-resizer:active,
 .panel-resizer.active,
 .split-resizer.active {
-  background: var(--workspace-border-active);
+  background: var(--workspace-icon-primary, #059669);
 }
 
 /* ============================================================================

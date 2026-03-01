@@ -22,16 +22,18 @@
                         top:0;
                         bottom:0;
                         z-index:1"></div>
-            <nav class="sidebar-content ws-apps-nav"
+            <nav class="sidebar-content selector-nav ws-apps-nav"
+                 id="ws-app-selector"
+                 data-indicator="right"
                  data-workspace-modules="{{ workspace_module_names_csv }}">
                 {% for mod in workspace_modules %}
                     <a href="/{{ mod.name }}/"
-                       class="ws-apps-nav-item module-tab-btn{% if mod.is_active %} active{% endif %}"
+                       class="selector-nav-item ws-apps-nav-item module-tab-btn{% if mod.is_active %} active{% endif %}"
                        data-module="{{ mod.name }}"
                        aria-label="{{ mod.label }}"
                        title="{{ mod.label }}"
                        data-module-accent="{{ mod.name }}"
-                       {% if mod.accent_color %}style="--module-accent-color: {{ mod.accent_color }}"{% endif %}>{% module_icon mod.name %}<span class="ws-apps-nav-label">{{ mod.label }}</span></a>
+                       {% if mod.accent_color %}style="--module-accent-color: {{ mod.accent_color }}"{% endif %}>{% module_icon mod.name %}<span class="selector-nav-label ws-apps-nav-label">{{ mod.label }}</span></a>
                 {% endfor %}
             </nav>
         </div>

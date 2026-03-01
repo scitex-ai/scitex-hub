@@ -4,44 +4,56 @@
     <button type="button"
             class="view-switch-btn{% if active_view == 'pdf' %} active{% endif %}"
             onclick="switchRightPanel('pdf')"
-            title="PDF Preview">
+            title="PDF Preview"
+            data-bs-toggle="tooltip"
+            data-bs-placement="bottom">
         <i class="fas fa-file-pdf"></i>
-        <span class="visually-hidden">PDF Pane</span>
+        <span class="view-switch-label">PDF</span>
     </button>
     <button type="button"
             class="view-switch-btn{% if active_view == 'citations' %} active{% endif %}"
             onclick="switchRightPanel('citations')"
-            title="Citations">
+            title="Citations"
+            data-bs-toggle="tooltip"
+            data-bs-placement="bottom">
         <i class="fas fa-book"></i>
-        <span class="visually-hidden">Citations Pane</span>
+        <span class="view-switch-label">Cite</span>
     </button>
     <button type="button"
             class="view-switch-btn{% if active_view == 'figures' %} active{% endif %}"
             onclick="switchRightPanel('figures')"
-            title="Figures">
+            title="Figures"
+            data-bs-toggle="tooltip"
+            data-bs-placement="bottom">
         <i class="fas fa-image"></i>
-        <span class="visually-hidden">Figures Pane</span>
+        <span class="view-switch-label">Fig</span>
     </button>
     <button type="button"
             class="view-switch-btn{% if active_view == 'tables' %} active{% endif %}"
             onclick="switchRightPanel('tables')"
-            title="Tables">
+            title="Tables"
+            data-bs-toggle="tooltip"
+            data-bs-placement="bottom">
         <i class="fas fa-table"></i>
-        <span class="visually-hidden">Tables Pane</span>
+        <span class="view-switch-label">Table</span>
     </button>
     <button type="button"
             id="show-collaboration-btn"
             class="view-switch-btn{% if active_view == 'collaboration' %} active{% endif %}"
             onclick="switchRightPanel('collaboration')"
-            title="Collaboration">
+            title="Collaboration"
+            data-bs-toggle="tooltip"
+            data-bs-placement="bottom">
         <i class="fas fa-users"></i>
-        <span class="visually-hidden">Collaboration Pane</span>
+        <span class="view-switch-label">Collab</span>
     </button>
     <button type="button"
             class="view-switch-btn{% if active_view == 'history' %} active{% endif %}"
             onclick="switchRightPanel('history')"
-            title="Version History">
+            title="Version History"
+            data-bs-toggle="tooltip"
+            data-bs-placement="bottom">
         <i class="fas fa-history"></i>
-        <span class="visually-hidden">History Pane</span>
+        <span class="view-switch-label">History</span>
     </button>
 </div>

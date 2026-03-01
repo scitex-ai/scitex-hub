@@ -17,7 +17,7 @@ export {
 } from "./file_tree/index";
 export { LatexWrapper, type LatexWrapperOptions } from "./latex-wrapper";
 export { PDFPreviewManager, type PDFPreviewOptions } from "./pdf-preview/index";
-export { PanelResizer } from "./panel-resizer";
+// PanelResizer removed — now uses shared HorizontalResizer
 export {
   EditorControls,
   type EditorControlsOptions,
@@ -36,10 +36,7 @@ export {
   compilationSettings,
   type CompilationSettings,
 } from "./compilation-settings";
-export {
-  StatePersistenceManager,
-  statePersistence,
-} from "./state-persistence";
+export { StatePersistenceManager, statePersistence } from "./state-persistence";
 export {
   PDFScrollZoomHandler,
   type PDFScrollZoomOptions,
@@ -49,10 +46,7 @@ export {
 export { GitHistoryManager } from "./git-history";
 
 // New modular exports
-export {
-  setupDragAndDrop,
-  setupPDFScrollPriority,
-} from "./drag-drop";
+export { setupDragAndDrop, setupPDFScrollPriority } from "./drag-drop";
 export {
   getPageTheme,
   filterThemeOptions,
@@ -73,7 +67,4 @@ export {
   handleGitCommit,
   showCompilationOptionsModal,
 } from "./modals";
-export {
-  setupWorkspaceInitialization,
-  waitForMonaco,
-} from "./workspace-init";
+export { setupWorkspaceInitialization, waitForMonaco } from "./workspace-init";

@@ -46,6 +46,10 @@
   --icon-xl: 24px;
   --icon-2xl: 32px;
 
+  /* User-configurable UI sizing (overridable via preferences) */
+  --ui-nav-icon-size: var(--icon-lg); /* Nav icon size (default: 20px) */
+  --ui-collapsed-pane-width: 48px; /* Collapsed pane width */
+
   /* Legacy brand color references (deprecated - use semantic tokens instead) */
   --scitex-color-01: var(--_scitex-01);
   --scitex-color-01-dark: #222222;
