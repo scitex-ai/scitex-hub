@@ -9,7 +9,7 @@ from pathlib import Path
 
 import click
 
-from ..config.environments import ENVIRONMENTS, get_environment
+from .._config._environments import ENVIRONMENTS, get_environment
 
 
 @click.command()

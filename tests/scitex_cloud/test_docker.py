@@ -8,8 +8,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from scitex_cloud.config.environments import Environment
-from scitex_cloud.utils.docker import DockerManager
+from scitex_cloud._config._environments import Environment
+from scitex_cloud._utils._docker import DockerManager
 
 
 @pytest.fixture

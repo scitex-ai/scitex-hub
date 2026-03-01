@@ -8,6 +8,7 @@ import click
 from rich.console import Console
 
 from .. import __version__
+from .app import app  # noqa: F401
 from .completion import completion
 from .context import context as context_group
 from .deploy import deploy
@@ -76,6 +77,7 @@ def main(ctx):
 
 
 # Register command groups
+main.add_command(app)
 main.add_command(setup)
 main.add_command(deploy)
 main.add_command(docker)

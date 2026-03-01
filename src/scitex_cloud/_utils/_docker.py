@@ -8,7 +8,7 @@ import subprocess
 from pathlib import Path
 from typing import List, Optional
 
-from ..config.environments import Environment, get_environment
+from .._config._environments import Environment, get_environment
 
 
 class DockerManager:

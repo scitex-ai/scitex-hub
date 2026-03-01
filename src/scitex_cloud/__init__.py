@@ -20,8 +20,6 @@ MCP Server:
     scitex-cloud serve -t sse       # SSE (remote)
 """
 
-from __future__ import annotations
-
 
 def _get_version() -> str:
     """Read version from pyproject.toml (single source of truth)."""
@@ -43,9 +41,10 @@ def _get_version() -> str:
 __version__ = _get_version()
 __author__ = "SciTeX Team"
 
-from .api import CloudClient
-from .config.environments import Environment, get_environment
-from .utils.docker import DockerManager
+from ._api import CloudClient as CloudClient
+from ._config._environments import Environment as Environment
+from ._config._environments import get_environment as get_environment
+from ._utils._docker import DockerManager as DockerManager
 
 
 def get_version() -> str:

@@ -222,8 +222,8 @@ def mcp_list_tools(verbose: int, as_json: bool):
       -vvv    - Signatures + full description
     """
     try:
-        from ..mcp_server import FASTMCP_AVAILABLE
-        from ..mcp_server import mcp as mcp_server
+        from .._mcp_server import FASTMCP_AVAILABLE
+        from .._mcp_server import mcp as mcp_server
     except ImportError:
         click.secho("ERROR: Could not import MCP server", fg="red", err=True)
         click.echo("Install with: pip install scitex-cloud[mcp]")
@@ -303,7 +303,7 @@ def mcp_list_tools(verbose: int, as_json: bool):
 def run_mcp_server(transport: str, host: str, port: int):
     """Internal function to run MCP server."""
     try:
-        from ..mcp_server import run_server
+        from .._mcp_server import run_server
     except ImportError:
         click.echo(
             "MCP server requires fastmcp. Install with:\n"

@@ -28,7 +28,7 @@ def context():
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON")
 def context_get(page, as_json):
     """Get web app context: username, page, skills, available actions."""
-    from ..api import CloudClient
+    from .._api import CloudClient
 
     client = CloudClient()
     result = client.get_context(page)
@@ -64,7 +64,7 @@ def context_get(page, as_json):
 @click.option("--timeout", type=int, default=10, help="Timeout in seconds (max 30)")
 def context_eval(code, timeout):
     """Evaluate JavaScript in the user's browser."""
-    from ..api import CloudClient
+    from .._api import CloudClient
 
     client = CloudClient()
     result = client.eval_js(code, timeout)
@@ -89,7 +89,7 @@ def context_action(steps_json, delay):
         click.echo(click.style("Error: Invalid JSON", fg="red"), err=True)
         return
 
-    from ..api import CloudClient
+    from .._api import CloudClient
 
     client = CloudClient()
     result = client.ui_action(steps, delay)

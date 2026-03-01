@@ -5,7 +5,7 @@
 """Example: Working with environment configurations."""
 
 from scitex_cloud import get_environment
-from scitex_cloud.config.environments import ENVIRONMENTS
+from scitex_cloud._config._environments import ENVIRONMENTS
 
 print("1. List available environments:")
 for name, env in ENVIRONMENTS.items():

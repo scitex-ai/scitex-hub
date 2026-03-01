@@ -6,8 +6,8 @@
 
 import click
 
-from ..config.environments import ENVIRONMENTS, get_environment
-from ..utils.docker import DockerManager
+from .._config._environments import ENVIRONMENTS, get_environment
+from .._utils._docker import DockerManager
 
 
 @click.group()
