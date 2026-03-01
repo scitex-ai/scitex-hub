@@ -162,43 +162,5 @@ MODULE_CONFIG = ModuleConfig(
                 <li>App appears in the public browse catalog</li>
             </ol>
         </section>
-        <!-- External Packages -->
-        <span id="external"></span>
-        <section class="api-section">
-            <h2>
-                <i class="fas fa-plug"></i> External Packages
-            </h2>
-            <p>
-                pip-installable packages can register modules via Python entry points.
-                The registry auto-discovers them at startup:
-            </p>
-            <pre><code># In your package's setup.py or pyproject.toml:
-[project.entry-points.scitex_modules]
-my_module = "my_package.registry:MODULE_CONFIG"</code></pre>
-            <p>
-                Where <code>MODULE_CONFIG</code> is a <code>ModuleConfig</code> instance:
-            </p>
-            <pre><code># my_package/registry.py
-from apps.workspace_app.registry import ModuleConfig
-
-MODULE_CONFIG = ModuleConfig(
-    name="my_module",
-    label="My Module",
-    app_name="my_module_app",
-    icon_fa="fas fa-star",
-    partial_template="my_module_app/index_partial.html",
-    context_builder="my_package.views.build_context",
-    order=100,
-    ai_hint="Description for LLM...",
-    accent_color="my_module",
-)</code></pre>
-            <div class="api-callout api-callout-info">
-                <i class="fas fa-info-circle"></i>
-                <div>
-                    External module discovery uses Python's <code>importlib.metadata.entry_points(group="scitex_modules")</code>.
-                    Install the package and restart SciTeX &mdash; the module appears automatically.
-                </div>
-            </div>
-        </section>
     </div>
 {% endblock %}
