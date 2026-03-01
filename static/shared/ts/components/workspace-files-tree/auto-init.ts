@@ -11,6 +11,7 @@ import { initHiddenFilesToggle } from "./HiddenFilesToggle.ts";
 import { initGitStatusToggle } from "./GitStatusToggle.ts";
 import { initModuleFilterButtons } from "./ModuleFilterButtons.ts";
 import { initSortToggle } from "./SortToggle.ts";
+import { initRepoMonitor } from "../repo-monitor/index.ts";
 
 declare global {
   interface Window {
@@ -112,6 +113,13 @@ export async function autoInitWorktreePanes(): Promise<void> {
     if (window.scitexOnTreeDataLoaded) {
       const data = tree.getTreeData?.() ?? [];
       window.scitexOnTreeDataLoaded(data);
+    }
+
+    // Initialize repository monitor (reads project_id from DOM)
+    const monitorEl = document.getElementById("ws-repo-monitor");
+    const projectId = monitorEl?.dataset.projectId;
+    if (projectId && username && slug) {
+      initRepoMonitor({ projectId, username, slug });
     }
   }
 }

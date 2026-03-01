@@ -13,68 +13,441 @@
 {% endif %}
 <div class="example-workspace">
     <div class="example-content">
-        <div class="example-header">
-            <h2>
-                <i class="fas fa-puzzle-piece"></i> {{ module_name }} Module
-                <span class="badge badge-wip">WIP</span>
-            </h2>
-            <p class="example-description">{{ module_description }}</p>
+        <!-- ============================================================
+             1. HERO
+             ============================================================ -->
+        <div class="example-hero">
+            <div class="example-hero-eyebrow">
+                <i class="fas fa-puzzle-piece"></i> Plugin Reference
+            </div>
+            <h1>
+                <i class="fas fa-flask"></i>
+                {{ module_name }} App
+                <span class="badge-wip">V1</span>
+            </h1>
+            <p class="example-hero-desc">{{ module_description }}</p>
         </div>
-        <div class="example-card">
-            <h3>How to Create a New Module</h3>
-            <ol class="example-steps">
-                <li>
-                    <strong>Create the app:</strong>
-                    <code>apps/your_app/</code> with <code>__init__.py</code>,
-                    <code>apps.py</code>, <code>views.py</code>, <code>urls.py</code>
-                </li>
-                <li>
-                    <strong>Add templates:</strong>
-                    <code>templates/your_app/index.html</code> (extends global_base.html)
-                    and <code>index_partial.html</code> (standalone partial for AJAX)
-                </li>
-                <li>
-                    <strong>Create a context builder:</strong>
-                    <code>build_your_context(request, current_project=None)</code>
-                </li>
-                <li>
-                    <strong>Register in registry.py:</strong>
-                    Add a <code>ModuleConfig(...)</code> entry to <code>_BUILTIN_MODULES</code>
-                </li>
-                <li>
-                    <strong>Add URL pattern:</strong>
-                    <code>path("your/", include(("apps.your_app.urls", "your_app")))</code>
-                    in <code>config/urls.py</code>
-                </li>
-                <li>
-                    <strong>Add inline tests:</strong>
-                    Use <code>ModuleTestMixin</code> in <code>tests.py</code>
-                </li>
-            </ol>
-        </div>
-        <div class="example-card">
-            <h3>Module Features (from Registry)</h3>
-            <ul class="example-features">
-                {% for feature in features %}
-                    <li>
-                        <i class="fas fa-check"></i> {{ feature }}
-                    </li>
+        <!-- ============================================================
+             2. WORKSPACE FRAME STATUS — self-validating panel
+             ============================================================ -->
+        <p class="example-section-title">
+            <i class="fas fa-circle-check"></i> Workspace Frame Status
+        </p>
+        <div class="example-card" id="example-frame-status">
+            <h3>
+                <i class="fas fa-shield-halved"></i>
+                V1 Frame Compliance Check
+            </h3>
+            <p style="font-size:12px;
+                      color:var(--workspace-text-secondary,#8b949e);
+                      margin:0 0 14px">
+                This panel validates itself — it checks whether the current page is
+                rendered inside a compliant workspace frame. All items should show
+                <strong style="color:var(--success-color,#6ba89a)">PASS</strong>
+                when loaded via the workspace tab switcher.
+            </p>
+            <div class="example-checks-grid">
+                {% for check in workspace_frame_checks %}
+                    <div class="example-check-item" data-check-id="{{ check.id }}">
+                        <i class="fas {{ check.icon }} check-icon"></i>
+                        <span class="example-check-label">
+                            {{ check.label }}
+                            <br />
+                            <span class="example-check-id">#{{ check.id }}</span>
+                        </span>
+                        <span class="example-check-badge">...</span>
+                    </div>
                 {% endfor %}
-            </ul>
+            </div>
         </div>
-        <div class="example-card">
-            <h3>File Structure</h3>
-            <pre class="example-tree">apps/your_app/
-├── __init__.py
-├── apps.py              # AppConfig
-├── views.py             # index_view + build_context
-├── urls.py              # URL patterns
-├── tests.py             # Inline tests with ModuleTestMixin
-├── templates/your_app/
-│   ├── index.html           # Full page (extends global_base)
-│   └── index_partial.html   # AJAX partial (standalone)
-└── static/your_app/
-    └── css/your.css         # Module-specific styles</pre>
+        <!-- ============================================================
+             3. HOW THIS APP WORKS — 3-column pattern cards
+             ============================================================ -->
+        <p class="example-section-title">
+            <i class="fas fa-code"></i> How This App Works
+        </p>
+        <div class="example-three-col">
+            <!-- Template pattern -->
+            <div class="example-card">
+                <h3>
+                    <i class="fas fa-file-code"></i> Template
+                </h3>
+            <pre class="example-code"><span class="cm">{# index.html #}</span>
+            <span class="kw">{% extends</span> <span class="st">"global_base.html"</span> <span class="kw">%}</span>
+            <span class="kw">{% block</span> content <span class="kw">%}</span>
+          <span class="kw">{% include</span>
+        <span class="st">"app/partial.html"</span>
+  <span class="kw">%}</span>
+<span class="kw">{% endblock %}</span>
+
+<span class="cm">{# partial: standalone #}
+    {# no base extend #}
+    {# load static → card HTML #}</span></pre>
+</div>
+<!-- CSS pattern -->
+<div class="example-card">
+    <h3>
+        <i class="fas fa-palette"></i> CSS
+    </h3>
+    <pre class="example-code"><span class="cm">/* scope all rules */</span>
+<span class="kw">.your-workspace</span> {
+  padding: 24px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+<span class="cm">/* use CSS vars only */</span>
+<span class="kw">.your-card</span> {
+  background: <span class="fn">var(</span>
+    <span class="st">--workspace-bg-secondary</span>
+  <span class="fn">)</span>;
+  border: 1px solid <span class="fn">var(</span>
+    <span class="st">--workspace-border-default</span>
+  <span class="fn">)</span>;
+}</pre>
+</div>
+<!-- Python pattern -->
+<div class="example-card">
+    <h3>
+        <i class="fab fa-python"></i> Python
+    </h3>
+    <pre class="example-code"><span class="kw">def</span> <span class="fn">build_ctx</span>(
+    request,
+    project=None
+):
+    <span class="kw">return</span> {
+        <span class="st">"project"</span>: project,
+        <span class="st">"data"</span>: [...],
+    }
+
+<span class="kw">def</span> <span class="fn">index_view</span>(request):
+    proj = get_project(
+        request)
+    ctx = <span class="fn">build_ctx</span>(
+        request, proj)
+    <span class="kw">return</span> <span class="fn">render</span>(
+        request,
+        <span class="st">"app/index.html"</span>,
+        ctx)</pre>
+</div>
+</div>
+<!-- ============================================================
+             4. PLUGIN RULES — MUST / MUST NOT
+             ============================================================ -->
+<p class="example-section-title">
+    <i class="fas fa-gavel"></i> Plugin Rules
+</p>
+<div class="example-card">
+    <h3>
+        <i class="fas fa-list-check"></i> Contract for Workspace Modules
+    </h3>
+    <ul class="example-rules-list">
+        <li class="must">
+            <i class="fas fa-circle-check"></i>
+            MUST have <span class="example-inline-code">index.html</span> that extends
+            <span class="example-inline-code">global_base.html</span>
+        </li>
+        <li class="must">
+            <i class="fas fa-circle-check"></i>
+            MUST have <span class="example-inline-code">index_partial.html</span> as a standalone AJAX partial
+        </li>
+        <li class="must">
+            <i class="fas fa-circle-check"></i>
+            MUST register a <span class="example-inline-code">ModuleConfig</span> entry in
+            <span class="example-inline-code">registry.py</span>
+        </li>
+        <li class="must">
+            <i class="fas fa-circle-check"></i>
+            MUST provide <span class="example-inline-code">build_&lt;name&gt;_context(request, current_project)</span>
+        </li>
+        <li class="must">
+            <i class="fas fa-circle-check"></i>
+            MUST scope all CSS under a unique top-level class (e.g.
+            <span class="example-inline-code">.your-workspace</span>)
+        </li>
+        <li class="must">
+            <i class="fas fa-circle-check"></i>
+            MUST use <span class="example-inline-code">--workspace-*</span> CSS variables — no hardcoded colors
+        </li>
+        <li class="must-not">
+            <i class="fas fa-circle-xmark"></i>
+            MUST NOT exceed 512 lines per file (PY / TS / CSS) or 1024 lines (HTML)
+        </li>
+        <li class="must-not">
+            <i class="fas fa-circle-xmark"></i>
+            MUST NOT implement business logic in Django — delegate to
+            <span class="example-inline-code">scitex</span> package
+        </li>
+        <li class="must-not">
+            <i class="fas fa-circle-xmark"></i>
+            MUST NOT use silent fallbacks — raise and surface errors clearly
+        </li>
+        <li class="must-not">
+            <i class="fas fa-circle-xmark"></i>
+            MUST NOT hardcode model names, URLs, or dynamic lists
+        </li>
+    </ul>
+</div>
+<!-- ============================================================
+             5. AVAILABLE APIS — interactive demos
+             ============================================================ -->
+<p class="example-section-title">
+    <i class="fas fa-plug"></i> Available APIs
+</p>
+<div class="example-three-col">
+    <!-- Files API -->
+    <div class="example-card">
+        <h3>
+            <i class="fas fa-folder-open"></i> Files API
+        </h3>
+        <p style="font-size:12px;
+                  color:var(--workspace-text-secondary,#8b949e);
+                  margin:0 0 12px;
+                  line-height:1.5">Fetch the current project's worktree file listing via REST.</p>
+        <button class="example-api-btn" id="btn-files-api">
+            <i class="fas fa-play"></i> List project files
+        </button>
+        <div class="example-api-result" id="result-files-api">Click the button to call the API.</div>
+    </div>
+    <!-- Viewer API -->
+    <div class="example-card">
+        <h3>
+            <i class="fas fa-eye"></i> Viewer API
+        </h3>
+        <p style="font-size:12px;
+                  color:var(--workspace-text-secondary,#8b949e);
+                  margin:0 0 12px;
+                  line-height:1.5">Open a file in the Viewer sidebar without a page reload.</p>
+        <button class="example-api-btn" id="btn-viewer-api">
+            <i class="fas fa-play"></i> Open README in Viewer
+        </button>
+        <div class="example-api-result" id="result-viewer-api">Click the button to call the API.</div>
+    </div>
+    <!-- Theme variables -->
+    <div class="example-card">
+        <h3>
+            <i class="fas fa-droplet"></i> Theme Variables
+        </h3>
+        <p style="font-size:12px;
+                  color:var(--workspace-text-secondary,#8b949e);
+                  margin:0 0 12px;
+                  line-height:1.5">
+            Live <span class="example-inline-code">--workspace-*</span> CSS variables
+            resolved from the active theme.
+        </p>
+        <div class="example-swatches" id="theme-swatches">
+            <!-- populated by JS -->
         </div>
     </div>
 </div>
+<!-- ============================================================
+             6. FILE STRUCTURE
+             ============================================================ -->
+<p class="example-section-title">
+    <i class="fas fa-folder-tree"></i> File Structure
+</p>
+<div class="example-card">
+    <h3>
+        <i class="fas fa-sitemap"></i> Compliant Module Layout
+    </h3>
+    <pre class="example-tree"><span class="tree-dir">apps/your_app/</span>
+├── <span class="tree-file">__init__.py</span>
+├── <span class="tree-file">apps.py</span>          <span class="tree-comment"># AppConfig</span>
+├── <span class="tree-file">views.py</span>         <span class="tree-comment"># index_view + build_context</span>
+├── <span class="tree-file">urls.py</span>          <span class="tree-comment"># URL patterns</span>
+├── <span class="tree-file">tests.py</span>         <span class="tree-comment"># ModuleTestMixin</span>
+├── <span class="tree-dir">templates/your_app/</span>
+│   ├── <span class="tree-file">index.html</span>       <span class="tree-comment"># Full page (extends global_base)</span>
+│   └── <span class="tree-file">index_partial.html</span>  <span class="tree-comment"># AJAX partial (standalone)</span>
+└── <span class="tree-dir">static/your_app/</span>
+    └── <span class="tree-dir">css/</span>
+        └── <span class="tree-file">your.css</span>     <span class="tree-comment"># Scoped module styles</span></pre>
+</div>
+</div>
+<!-- /.example-content -->
+</div>
+<!-- /.example-workspace -->
+<script>
+(function () {
+    "use strict";
+
+    /* ------------------------------------------------------------------ */
+    /* 1. Workspace frame self-validation                                   */
+    /* ------------------------------------------------------------------ */
+    function runFrameChecks() {
+        var items = document.querySelectorAll(".example-check-item[data-check-id]");
+        items.forEach(function (item) {
+            var id = item.getAttribute("data-check-id");
+            var el = document.getElementById(id);
+            var badge = item.querySelector(".example-check-badge");
+            if (el) {
+                item.classList.add("pass");
+                item.classList.remove("fail");
+                if (badge) badge.textContent = "PASS";
+            } else {
+                item.classList.add("fail");
+                item.classList.remove("pass");
+                if (badge) badge.textContent = "FAIL";
+            }
+        });
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* 2. Files API demo                                                    */
+    /* ------------------------------------------------------------------ */
+    function initFilesApi() {
+        var btn = document.getElementById("btn-files-api");
+        var result = document.getElementById("result-files-api");
+        if (!btn || !result) return;
+
+        btn.addEventListener("click", function () {
+            result.textContent = "Fetching…";
+            result.className = "example-api-result loading";
+
+            var projectEl = document.getElementById("workspace-project-config");
+            var username = projectEl ? projectEl.getAttribute("data-username") : null;
+            var slug = projectEl ? projectEl.getAttribute("data-slug") : null;
+
+            if (!username || !slug) {
+                result.textContent = "No active project — select a project first.";
+                result.className = "example-api-result error";
+                return;
+            }
+
+            var url = "/api/worktree/?username=" + encodeURIComponent(username) +
+                      "&slug=" + encodeURIComponent(slug);
+
+            fetch(url, { credentials: "same-origin" })
+                .then(function (r) {
+                    if (!r.ok) throw new Error("HTTP " + r.status);
+                    return r.json();
+                })
+                .then(function (data) {
+                    var files = data.files || data.items || data;
+                    if (Array.isArray(files)) {
+                        result.textContent = files.slice(0, 8).map(function (f) {
+                            return (f.path || f.name || JSON.stringify(f));
+                        }).join("\n") + (files.length > 8 ? "\n… +" + (files.length - 8) + " more" : "");
+                    } else {
+                        result.textContent = JSON.stringify(data, null, 2).slice(0, 400);
+                    }
+                    result.className = "example-api-result";
+                })
+                .catch(function (err) {
+                    result.textContent = "Error: " + err.message;
+                    result.className = "example-api-result error";
+                });
+        });
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* 3. Viewer API demo                                                   */
+    /* ------------------------------------------------------------------ */
+    function initViewerApi() {
+        var btn = document.getElementById("btn-viewer-api");
+        var result = document.getElementById("result-viewer-api");
+        if (!btn || !result) return;
+
+        btn.addEventListener("click", function () {
+            result.textContent = "Sending request…";
+            result.className = "example-api-result loading";
+
+            var projectEl = document.getElementById("workspace-project-config");
+            var username = projectEl ? projectEl.getAttribute("data-username") : null;
+            var slug = projectEl ? projectEl.getAttribute("data-slug") : null;
+
+            if (!username || !slug) {
+                result.textContent = "No active project — select a project first.";
+                result.className = "example-api-result error";
+                return;
+            }
+
+            var csrfEl = document.querySelector("[name=csrfmiddlewaretoken]");
+            var csrf = csrfEl ? csrfEl.value : "";
+
+            fetch("/api/viewer/open/", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrf
+                },
+                body: JSON.stringify({
+                    username: username,
+                    slug: slug,
+                    path: "README.md"
+                })
+            })
+                .then(function (r) {
+                    return r.json().catch(function () { return { status: r.status }; });
+                })
+                .then(function (data) {
+                    result.textContent = JSON.stringify(data, null, 2);
+                    result.className = "example-api-result";
+                })
+                .catch(function (err) {
+                    result.textContent = "Error: " + err.message;
+                    result.className = "example-api-result error";
+                });
+        });
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* 4. Theme variable swatches                                           */
+    /* ------------------------------------------------------------------ */
+    var SWATCH_VARS = [
+        "--workspace-bg-primary",
+        "--workspace-bg-secondary",
+        "--workspace-bg-tertiary",
+        "--workspace-bg-elevated",
+        "--workspace-border-default",
+        "--workspace-text-primary",
+        "--workspace-text-secondary",
+        "--module-accent-example",
+        "--success-color",
+        "--warning-color",
+        "--error-color"
+    ];
+
+    function initSwatches() {
+        var container = document.getElementById("theme-swatches");
+        if (!container) return;
+
+        var style = getComputedStyle(document.documentElement);
+        SWATCH_VARS.forEach(function (varName) {
+            var val = style.getPropertyValue(varName).trim();
+            var wrap = document.createElement("div");
+            wrap.className = "example-swatch";
+
+            var swatch = document.createElement("div");
+            swatch.className = "example-swatch-color";
+            swatch.style.background = val || "transparent";
+
+            var label = document.createElement("div");
+            label.className = "example-swatch-label";
+            label.textContent = varName;
+
+            wrap.appendChild(swatch);
+            wrap.appendChild(label);
+            container.appendChild(wrap);
+        });
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Boot                                                                 */
+    /* ------------------------------------------------------------------ */
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", function () {
+            runFrameChecks();
+            initFilesApi();
+            initViewerApi();
+            initSwatches();
+        });
+    } else {
+        runFrameChecks();
+        initFilesApi();
+        initViewerApi();
+        initSwatches();
+    }
+}());
+</script>

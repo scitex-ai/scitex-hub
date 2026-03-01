@@ -33,6 +33,36 @@
   border-bottom: 1px solid var(--workspace-border-default);
 }
 
+/* New Project Button */
+.hub-repos-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.hub-new-project-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-btn-primary-text, #fff);
+  background: var(--color-btn-primary-bg, #238636);
+  border: 1px solid var(--color-btn-primary-border, rgba(240, 246, 252, 0.1));
+  border-radius: 6px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+.hub-new-project-btn:hover {
+  background: var(--color-btn-primary-hover-bg, #2ea043);
+  text-decoration: none;
+  color: var(--color-btn-primary-text, #fff);
+}
+
 /* Responsive design */
 @media (max-width: 1024px) {
   .hub-details {

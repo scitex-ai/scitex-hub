@@ -56,14 +56,22 @@ Hub inline user profile — returned by /hub/api/user-profile/?username=X
                 </a>
             {% endif %}
         </div>
-        <div class="hub-user-repos">
-            <h3>
+        <div class="hub-user-repos"
+             data-ai-hint="User's project repositories list with New Project button">
+            <div class="hub-repos-header">
+                <h3>
+                    {% if is_own_projects %}
+                        Your Repositories
+                    {% else %}
+                        Repositories
+                    {% endif %}
+                </h3>
                 {% if is_own_projects %}
-                    Your Repositories
-                {% else %}
-                    Repositories
+                    <a href="/new/" class="hub-new-project-btn" data-ai-hint="Create new project">
+                        <i class="fas fa-plus"></i> New
+                    </a>
                 {% endif %}
-            </h3>
+            </div>
             {% if projects %}
                 {% for project in projects %}
                     <div class="project-card mb-3">

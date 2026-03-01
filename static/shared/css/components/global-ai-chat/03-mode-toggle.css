@@ -12,18 +12,27 @@
 }
 
 .scitex-ai-mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
   cursor: pointer;
   color: var(--text-muted, #8b949e);
-  padding: 0.25rem 0.5rem;
+  padding: 6px 10px 4px;
   border-radius: 0;
-  font-size: 0.75rem;
+  font-size: 9px;
+  line-height: 1;
   transition:
     color 0.15s,
     border-color 0.15s;
   white-space: nowrap;
+}
+
+.scitex-ai-mode-btn i {
+  font-size: 14px;
 }
 
 .scitex-ai-mode-btn:hover {

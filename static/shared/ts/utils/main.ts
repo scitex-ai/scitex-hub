@@ -203,7 +203,7 @@ function initGlobalZenMode(): void {
   const workspaceSelectors = [
     ".writer-workspace", // Writer app
     ".code-workspace", // Code app
-    ".scholar-workspace", // Scholar app
+    ".scholar-main", // Scholar app (no wrapper; .scholar-main is in module pane)
     ".vis-editor-container", // Vis app
   ];
 
@@ -220,7 +220,7 @@ function initGlobalZenMode(): void {
   const sidebarSelectors = [
     ".writer-sidebar", // Writer app
     ".code-sidebar", // Code app
-    ".scholar-sidebar", // Scholar app
+    "#ws-worktree-sidebar", // Scholar app (uses workspace-level Files pane)
     ".vis-sidebar", // Vis app
   ];
 
@@ -234,7 +234,7 @@ function initGlobalZenMode(): void {
   const toggleIds: Record<string, { sidebar?: string; details?: string }> = {
     ".writer-sidebar": { sidebar: "sidebar-toggle", details: "details-toggle" },
     ".code-sidebar": { sidebar: "sidebar-toggle", details: "terminal-toggle" },
-    ".scholar-sidebar": {
+    "#ws-worktree-sidebar": {
       sidebar: "sidebar-toggle",
       details: "properties-toggle",
     },

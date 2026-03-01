@@ -296,6 +296,10 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       rootDir,
       "static/shared/ts/components/workspace-files-tree/auto-init.ts",
     ),
+    "shared/repo-monitor": r(
+      rootDir,
+      "static/shared/ts/components/repo-monitor/index.ts",
+    ),
     "shared/workspace-viewer-init": r(
       rootDir,
       "static/shared/ts/components/workspace-viewer/init.ts",

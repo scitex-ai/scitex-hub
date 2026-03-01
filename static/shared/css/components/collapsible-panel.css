@@ -427,8 +427,9 @@
   padding: 4px;
 }
 
-/* Sidebar title: icon-only when collapsed. */
-.collapsed .sidebar-header .sidebar-title {
+/* Sidebar title: icon-only when collapsed — scoped to collapsible-panel only.
+   workspace-sidebar has its own collapsed rules in workspace-sidebar.css */
+.collapsible-panel.collapsed .sidebar-header .sidebar-title {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -436,7 +437,7 @@
   margin: 0;
 }
 
-.collapsed .sidebar-header .sidebar-title i {
+.collapsible-panel.collapsed .sidebar-header .sidebar-title i {
   display: block;
   font-size: 14px;
   color: var(--text-secondary);
