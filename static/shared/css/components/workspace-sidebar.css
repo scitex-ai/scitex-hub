@@ -288,6 +288,10 @@
   --module-accent-color: var(--module-accent-modulemaker);
   --module-accent-tint: var(--module-accent-modulemaker-tint);
 }
+[data-module-accent="docs"] {
+  --module-accent-color: var(--module-accent-docs);
+  --module-accent-tint: var(--module-accent-docs-tint);
+}
 
 /* Fallback: module pane without data-pane-type headers gets accent on its container */
 #main-content[data-module-accent]:not(:has([data-pane-type="module"])) {
