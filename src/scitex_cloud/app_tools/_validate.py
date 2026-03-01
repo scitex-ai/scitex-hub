@@ -112,8 +112,10 @@ def validate_manifest(app_dir: str | Path) -> list[str]:
 
     # Validate name matches directory convention
     name = data.get("name", "")
-    if name and not name.endswith("_app"):
-        errors.append(f"manifest.json 'name' should end with '_app' (got: '{name}')")
+    if name and not (name.endswith("_app") or name.endswith("-app")):
+        errors.append(
+            f"manifest.json 'name' should end with '_app' or '-app' (got: '{name}')"
+        )
 
     # Validate version format
     version = data.get("version", "")

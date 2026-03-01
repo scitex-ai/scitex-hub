@@ -44,12 +44,14 @@ def app_init(target_dir, name, label, icon, description, overwrite):
     target = Path(target_dir).resolve()
     app_name = name or target.name
 
-    if not app_name.endswith("_app"):
+    if not (app_name.endswith("_app") or app_name.endswith("-app")):
+        sep = "-" if "-" in app_name else "_"
+        suffixed = f"{app_name}{sep}app"
         console.print(
-            f"[yellow]Warning:[/yellow] App name '{app_name}' does not end with '_app'. "
-            f"Adding suffix: '{app_name}_app'"
+            f"[yellow]Warning:[/yellow] App name '{app_name}' does not end with "
+            f"'_app' or '-app'. Adding suffix: '{suffixed}'"
         )
-        app_name = f"{app_name}_app"
+        app_name = suffixed
 
     console.print(f"[cyan]Scaffolding app:[/cyan] {app_name} in {target}")
 
