@@ -242,7 +242,7 @@
    =========================================================================== */
 
 [data-pane-type="module"] {
-  border-top: 3px solid var(--module-accent-color, transparent);
+  border-top: 4px solid var(--module-accent-color, transparent);
   background: var(--module-accent-tint, transparent);
 }
 
@@ -291,7 +291,7 @@
 
 /* Fallback: module pane without data-pane-type headers gets accent on its container */
 #main-content[data-module-accent]:not(:has([data-pane-type="module"])) {
-  border-top: 3px solid var(--module-accent-color, transparent);
+  border-top: 4px solid var(--module-accent-color, transparent);
 }
 
 /* ===========================================================================

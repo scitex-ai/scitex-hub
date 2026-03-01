@@ -40,6 +40,9 @@ async function switchModule(name: string): Promise<void> {
     document
       .getElementById("workspace-shell")
       ?.setAttribute("data-active-module", name);
+    // Update module pane accent for top-border highlight
+    const mainEl = document.getElementById("main-content");
+    if (mainEl) mainEl.setAttribute("data-module-accent", name);
   } catch (err) {
     console.error("[workspace-shell] Failed to load module:", name, err);
     pane.innerHTML = `<div style="padding:2rem;color:var(--text-muted)">

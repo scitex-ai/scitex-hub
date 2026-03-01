@@ -30,7 +30,8 @@
                        data-module="{{ mod.name }}"
                        aria-label="{{ mod.label }}"
                        title="{{ mod.label }}"
-                       {% if mod.accent_color %}style="--tab-accent: {{ mod.accent_color }}"{% endif %}>{% module_icon mod.name %}<span class="ws-apps-nav-label">{{ mod.label }}</span></a>
+                       data-module-accent="{{ mod.name }}"
+                       {% if mod.accent_color %}style="--module-accent-color: {{ mod.accent_color }}"{% endif %}>{% module_icon mod.name %}<span class="ws-apps-nav-label">{{ mod.label }}</span></a>
                 {% endfor %}
             </nav>
         </div>

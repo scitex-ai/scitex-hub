@@ -110,10 +110,23 @@ function updateActiveTab(name: string): void {
     const isActive = href.includes(`/${name}/`);
     btn.classList.toggle("active", isActive);
   });
-  // Set module accent color on the module pane (framework-level, not per-app)
+  // Set module accent on the pane — workspace-sidebar.css [data-module-accent] selectors
+  // resolve --module-accent-color which drives both tab highlight and pane top border.
   const pane = document.getElementById("main-content");
   if (pane) {
     pane.setAttribute("data-module-accent", name);
+    // Propagate user custom accent color from tab button inline style
+    const activeBtn = document.querySelector(
+      `.module-tab-btn[data-module="${name}"]`,
+    ) as HTMLElement | null;
+    const customAccent = activeBtn?.style.getPropertyValue(
+      "--module-accent-color",
+    );
+    if (customAccent) {
+      pane.style.setProperty("--module-accent-color", customAccent);
+    } else {
+      pane.style.removeProperty("--module-accent-color");
+    }
   }
 }
 
