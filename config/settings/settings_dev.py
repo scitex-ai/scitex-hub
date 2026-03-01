@@ -318,4 +318,12 @@ CELERY_BEAT_SCHEDULE["collect-server-metrics"] = {
 # Used to populate API docs code examples in Private mode (dev only)
 TEST_USER_PASSWORD = os.environ.get("TEST_USER_PASSWORD", "Password123!")
 
+# ---------------------------------------
+# Dev App Preview
+# ---------------------------------------
+# Add local app directories here to preview them without publishing.
+# Each entry is a filesystem path to a directory containing manifest.json.
+# Example: DEV_APPS = ["/home/user/my_app"]
+DEV_APPS = []
+
 # EOF
