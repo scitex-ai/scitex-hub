@@ -81,7 +81,7 @@ def _build_all_files(name, label, class_name, icon, description, manifest, licen
     files = {}
 
     # __init__.py
-    files["__init__.py"] = f'"""SciTeX App: {label}."""\n'
+    files["__init__.py"] = f'"""SciTeX Cloud App: {label}."""\n'
 
     # apps.py
     files["apps.py"] = _apps_py(name, label, class_name)
@@ -146,8 +146,8 @@ class {class_name}Config(AppConfig):
 
 
 def _views_py(name, label, description):
-    desc = description or f"A SciTeX app module for {label}."
-    return f'''"""Views for {label} workspace module."""
+    desc = description or f"A SciTeX Cloud app for {label}."
+    return f'''"""Views for {label} workspace app."""
 
 from __future__ import annotations
 
@@ -160,10 +160,10 @@ def build_{name}_context(request, current_project=None):
     """Context builder called by workspace registry for AJAX partial loads."""
     return {{
         "current_project": current_project,
-        "module_name": "{label}",
-        "module_description": "{desc}",
+        "app_name": "{label}",
+        "app_description": "{desc}",
         "features": [
-            "Workspace module integration",
+            "Workspace app integration",
             "AJAX partial loading",
             "Scoped CSS with theme variables",
         ],
@@ -201,7 +201,7 @@ urlpatterns = [
 def _tests_py(name, label):
     module_name = name.removesuffix("_app")
     class_label = label.replace(" ", "")
-    return f'''"""Tests for {label} workspace module."""
+    return f'''"""Tests for {label} workspace app."""
 
 from django.test import TestCase
 
@@ -229,9 +229,9 @@ class {class_label}ContextTest(TestCase):
         request.user = User(username="testuser")
 
         ctx = build_{name}_context(request)
-        self.assertIn("module_name", ctx)
-        self.assertEqual(ctx["module_name"], "{label}")
-        self.assertIn("module_description", ctx)
+        self.assertIn("app_name", ctx)
+        self.assertEqual(ctx["app_name"], "{label}")
+        self.assertIn("app_description", ctx)
         self.assertIn("features", ctx)
         self.assertIsInstance(ctx["features"], list)
 
@@ -241,7 +241,7 @@ class {class_label}ContextTest(TestCase):
 
 
 def _skill_py(name, label, description):
-    desc = description or f"A SciTeX app module for {label}."
+    desc = description or f"A SciTeX Cloud app for {label}."
     caps = _derive_capabilities(label, description)
     caps_str = json.dumps(caps, ensure_ascii=False)
     return f'''"""Skill registration for {label}."""
@@ -256,7 +256,7 @@ register(
         capabilities={caps_str},
         page_patterns=["/{name}/"],
         url_prefix="/{name}/",
-        module_description="{desc}",
+        app_description="{desc}",
     )
 )
 '''
@@ -283,16 +283,22 @@ def _derive_capabilities(label, description):
 
 
 def _manifest_json(name, label, icon, description, extra_manifest, license_id):
+    slug = name.replace("_", "-")
+    desc = description or "A SciTeX Cloud app."
     manifest = {
         "name": name,
+        "slug": slug,
         "label": label,
         "version": "0.1.0",
         "icon": icon,
-        "description": description or "A SciTeX app module.",
+        "subtitle": desc[:80],
+        "about": desc[:200],
+        "description": desc,
+        "author": "",
         "license": license_id,
         "capabilities": [],
         "allowed_extensions": [],
-        "wip": False,
+        "wip": True,
     }
     if extra_manifest:
         manifest.update(extra_manifest)
@@ -310,13 +316,15 @@ def _index_html(name, label):
 
 
 def _index_partial_html(name, label, icon):
-    return f"""<div class="{name}-container" data-module-accent data-pane-type="module">
-    <div class="{name}-header">
+    return f"""{{% load static %}}
+<div class="{name}-container" data-pane-type="app"
+     data-ai-hint="Main container for {label} app">
+    <div class="{name}-header" data-ai-hint="{label} app header">
         <h2><i class="{icon}"></i> {label}</h2>
         <p class="{name}-subtitle">Welcome to {label}. Edit this template to build your app.</p>
     </div>
 
-    <div class="{name}-content">
+    <div class="{name}-content" data-ai-hint="{label} content area">
         <div class="{name}-getting-started">
             <h3>Getting Started</h3>
             <ol class="{name}-steps">
@@ -345,7 +353,7 @@ def _index_partial_html(name, label, icon):
 
 
 def _app_css(name, label):
-    return f"""/* Styles for {label} workspace module */
+    return f"""/* Styles for {label} workspace app */
 
 .{name}-container {{
     max-width: 1200px;
@@ -360,19 +368,19 @@ def _app_css(name, label):
 .{name}-header h2 {{
     font-size: 1.5rem;
     font-weight: 600;
-    color: var(--color-fg-default, #c9d1d9);
+    color: var(--text-primary);
     margin: 0 0 0.5rem;
 }}
 
 .{name}-subtitle {{
     font-size: 0.875rem;
-    color: var(--color-fg-muted, #8b949e);
+    color: var(--text-secondary);
     margin: 0;
 }}
 
 .{name}-content {{
-    background: var(--color-canvas-subtle, #161b22);
-    border: 1px solid var(--color-border-default, #30363d);
+    background: var(--workspace-bg-secondary);
+    border: 1px solid var(--workspace-border-default);
     border-radius: 6px;
     padding: 2rem;
 }}
@@ -383,26 +391,26 @@ def _app_css(name, label):
 
 .{name}-getting-started h3 {{
     font-size: 1.125rem;
-    color: var(--color-fg-default, #c9d1d9);
+    color: var(--text-primary);
     margin: 0 0 1rem;
 }}
 
 .{name}-steps {{
     padding-left: 1.25rem;
-    color: var(--color-fg-muted, #8b949e);
+    color: var(--text-secondary);
     line-height: 1.8;
 }}
 
 .{name}-steps code {{
-    background: var(--color-canvas-default, #0d1117);
+    background: var(--workspace-bg-tertiary);
     padding: 0.2rem 0.4rem;
     border-radius: 4px;
     font-size: 0.8125rem;
 }}
 
 .{name}-card {{
-    background: var(--color-canvas-default, #0d1117);
-    border: 1px solid var(--color-border-default, #30363d);
+    background: var(--workspace-bg-tertiary);
+    border: 1px solid var(--workspace-border-default);
     border-radius: 6px;
     padding: 1.25rem;
     margin-bottom: 1rem;
@@ -411,7 +419,7 @@ def _app_css(name, label):
 .{name}-placeholder {{
     text-align: center;
     padding: 3rem 1rem;
-    color: var(--color-fg-muted, #8b949e);
+    color: var(--text-muted);
 }}
 
 .{name}-placeholder p {{
@@ -437,7 +445,7 @@ def _agents_json(name, label):
             "default": {
                 "name": f"{name}-agent",
                 "model": "claude-sonnet-4-6",
-                "instructions": f"You are a helpful assistant for the {label} module.",
+                "instructions": f"You are a helpful assistant for the {label} app.",
             }
         },
     }
@@ -445,7 +453,7 @@ def _agents_json(name, label):
 
 
 def _readme_md(name, label, description, license_id):
-    desc = description or "A SciTeX App plugin."
+    desc = description or "A SciTeX Cloud App plugin."
     return f"""# {label}
 
 {desc}
@@ -454,7 +462,7 @@ def _readme_md(name, label, description, license_id):
 
 ```
 {name}/
-  __init__.py          # Module init
+  __init__.py          # App init
   apps.py              # Django AppConfig
   views.py             # View functions and context builder
   urls.py              # URL routing

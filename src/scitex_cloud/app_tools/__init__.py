@@ -5,9 +5,11 @@ from ._license import generate_license_text
 from ._scaffold import scaffold
 from ._validate import (
     validate,
+    validate_css,
     validate_manifest,
     validate_security,
     validate_structure,
+    validate_templates,
 )
 
 __all__ = [
@@ -16,6 +18,8 @@ __all__ = [
     "validate_structure",
     "validate_security",
     "validate_manifest",
+    "validate_templates",
+    "validate_css",
     "generate_license_text",
     "dev_server",
 ]
