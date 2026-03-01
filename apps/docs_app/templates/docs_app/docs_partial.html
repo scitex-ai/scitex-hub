@@ -19,14 +19,16 @@
                     </span>
                 </a>
             {% endfor %}
-            <!-- Export buttons (TODO: restore download endpoint) -->
             <div class="docs-nav-footer">
-                <a href="/docs/?fmt=md" class="docs-export-btn" title="Download as Markdown">
+                <a href="/docs/export/python-packages/"
+                   class="docs-export-btn"
+                   id="docs-export-md"
+                   title="Download as Markdown">
                     <i class="fas fa-file-alt"></i> Markdown
                 </a>
-                <a href="/docs/?fmt=pdf" class="docs-export-btn" title="Download as PDF">
+                <button class="docs-export-btn" id="docs-export-pdf" title="Print as PDF">
                     <i class="fas fa-file-pdf"></i> PDF
-                </a>
+                </button>
             </div>
         </nav>
     </aside>
@@ -121,6 +123,26 @@
         });
     }
 
+    function updateExportButtons(slug) {
+        var mdBtn = document.getElementById('docs-export-md');
+        if (mdBtn) mdBtn.href = '/docs/export/' + slug + '/';
+        var pdfBtn = document.getElementById('docs-export-pdf');
+        if (pdfBtn) {
+            pdfBtn.onclick = function() {
+                var win = window.open('', '_blank');
+                var doc = win.document;
+                doc.open();
+                doc.write('<!DOCTYPE html><html><head><title>SciTeX Docs</title></head><body></body></html>');
+                doc.close();
+                var s = doc.createElement('style');
+                s.textContent = 'body{font-family:sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;color:#222}pre{background:#f5f5f5;padding:1rem;overflow-x:auto;border-radius:4px}code{font-family:monospace}h1,h2,h3{margin-top:1.5rem}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px;text-align:left}';
+                doc.head.appendChild(s);
+                doc.body.innerHTML = contentArea.innerHTML;
+                win.print();
+            };
+        }
+    }
+
     function loadDocPage(slug, anchorId) {
         if (!slug) return;
         currentSlug = slug;
@@ -128,6 +150,9 @@
         // Update URL hash to reflect current page
         const hashValue = anchorId ? slug + '--' + anchorId : slug;
         history.replaceState(null, '', '#' + hashValue);
+
+        // Update export buttons to current page
+        updateExportButtons(slug);
 
         // Update active state in sidebar
         navItems.forEach(item => {

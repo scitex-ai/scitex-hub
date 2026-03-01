@@ -13,6 +13,8 @@ urlpatterns = [
     path("", views.docs_index, name="index"),
     # Fragment content for workspace partial (AJAX)
     path("content/<slug:slug>/", views.docs_content, name="content"),
+    # Export documentation as Markdown
+    path("export/<slug:slug>/", views.docs_export, name="export"),
     # Python package documentation (scitex PyPI)
     path("python/", views.docs_python, name="python"),
     # REST API documentation

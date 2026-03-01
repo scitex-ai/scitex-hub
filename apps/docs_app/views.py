@@ -127,16 +127,50 @@ def docs_content(request, slug):
     page = _PAGES_BY_SLUG.get(slug)
     if not page:
         raise Http404(f"Documentation page '{slug}' not found")
+    context = _build_page_context(slug)
+    return render(request, page["template"], context)
+
+
+def docs_export(request, slug):
+    """Export a documentation page as Markdown."""
+    import html2text
+
+    page = _PAGES_BY_SLUG.get(slug)
+    if not page:
+        raise Http404(f"Documentation page '{slug}' not found")
+
+    context = _build_page_context(slug)
+    html_content = render(request, page["template"], context).content.decode()
+
+    converter = html2text.HTML2Text()
+    converter.body_width = 80
+    converter.ignore_links = False
+    converter.ignore_images = False
+    converter.protect_links = True
+    converter.wrap_links = False
+    markdown = converter.handle(html_content)
+
+    # Prepend title
+    title = page["label"]
+    markdown = f"# {title}\n\n{markdown}"
+
+    filename = f"scitex-docs-{slug}.md"
+    response = HttpResponse(markdown, content_type="text/markdown; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
+def _build_page_context(slug):
+    """Build template context for a documentation page."""
     context = {
         "slug": slug,
         "base_template": "docs_app/docs_fragment_base.html",
     }
-    # Inject page-specific context
     if slug in ("mcp-tools-local", "mcp-tools-https"):
         context.update(_get_mcp_context())
     elif slug == "python-packages":
         context.update(_get_packages_context())
-    return render(request, page["template"], context)
+    return context
 
 
 def _get_packages_context() -> dict:
