@@ -60,53 +60,143 @@ MODULE_CONFIG = ModuleConfig(
                 </div>
             </div>
         </section>
-        <!-- Moderation -->
-        <span id="moderation"></span>
+        <!-- Review Queue -->
+        <span id="review-queue"></span>
         <section class="api-section">
             <h2>
-                <i class="fas fa-shield-alt"></i> Moderation
+                <i class="fas fa-clipboard-list"></i> Review Queue
             </h2>
-            <p>Administrators review user-submitted modules before they appear in the public apps catalog.</p>
+            <p>
+                The review queue is at <a href="/apps/review/">/apps/review/</a> (staff only).
+                Pending submissions appear here after a user clicks &ldquo;Publish&rdquo;.
+            </p>
             <table class="api-table">
                 <thead>
                     <tr>
-                        <th>Task</th>
-                        <th>Description</th>
+                        <th>Action</th>
+                        <th>Effect</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>
-                            <strong>Code Review</strong>
+                            <strong>Approve</strong>
                         </td>
-                        <td>Check submitted source code for security issues and forbidden patterns</td>
+                        <td>
+                            Sets visibility to <code>public</code>, pins the current commit SHA,
+                            registers the app in the workspace registry, and notifies the author.
+                        </td>
                     </tr>
                     <tr>
                         <td>
-                            <strong>Approve / Reject</strong>
+                            <strong>Reject</strong>
                         </td>
-                        <td>Approve modules for public listing or reject with feedback</td>
+                        <td>
+                            Marks the submission as rejected with a note. The app stays private.
+                            Author receives email notification with the rejection reason.
+                        </td>
                     </tr>
                     <tr>
                         <td>
-                            <strong>Module Removal</strong>
+                            <strong>Request Changes</strong>
                         </td>
-                        <td>Remove published modules that violate guidelines</td>
-                    </tr>
-                    <tr>
                         <td>
-                            <strong>User Reports</strong>
+                            Sends the submission back to the author with specific feedback.
+                            The author can resubmit after addressing the issues.
                         </td>
-                        <td>Handle user reports about malicious or broken modules</td>
                     </tr>
                 </tbody>
             </table>
+        </section>
+        <!-- Moderation -->
+        <span id="moderation"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-shield-alt"></i> Moderation Checklist
+            </h2>
+            <p>When reviewing a submission, check:</p>
+            <ol>
+                <li>
+                    <strong>Security scan:</strong> Automated scan rejects <code>os.system</code>,
+                    <code>subprocess</code>, <code>eval</code>, <code>exec</code>, <code>open</code>
+                </li>
+                <li>
+                    <strong>Template safety:</strong> No overriding protected blocks
+                    (<code>content</code>, <code>extra_css</code>, <code>extra_js</code>, <code>title</code>)
+                </li>
+                <li>
+                    <strong>Manifest validity:</strong> Required fields present, valid SPDX license
+                </li>
+                <li>
+                    <strong>CSS scoping:</strong> All styles scoped under <code>[data-mode="..."]</code>
+                </li>
+                <li>
+                    <strong>No data exfiltration:</strong> No external fetch/XHR to third-party domains
+                </li>
+                <li>
+                    <strong>README quality:</strong> Clear description of what the app does
+                </li>
+            </ol>
+        </section>
+        <!-- Approval Effects -->
+        <span id="approval-effects"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-check-double"></i> What Happens on Approval
+            </h2>
+            <ol>
+                <li>
+                    Submission status &rarr; <code>approved</code>
+                </li>
+                <li>
+                    Module visibility &rarr; <code>public</code>, <code>is_verified</code> &rarr; true
+                </li>
+                <li>
+                    Latest Gitea commit SHA is pinned (<code>pinned_commit</code>)
+                </li>
+                <li>App is registered into the workspace module registry</li>
+                <li>
+                    Source project <code>app_status</code> updated
+                </li>
+                <li>Author receives email notification</li>
+                <li>App appears in the public browse catalog</li>
+            </ol>
+        </section>
+        <!-- External Packages -->
+        <span id="external"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-plug"></i> External Packages
+            </h2>
+            <p>
+                pip-installable packages can register modules via Python entry points.
+                The registry auto-discovers them at startup:
+            </p>
+            <pre><code># In your package's setup.py or pyproject.toml:
+[project.entry-points.scitex_modules]
+my_module = "my_package.registry:MODULE_CONFIG"</code></pre>
+            <p>
+                Where <code>MODULE_CONFIG</code> is a <code>ModuleConfig</code> instance:
+            </p>
+            <pre><code># my_package/registry.py
+from apps.workspace_app.registry import ModuleConfig
+
+MODULE_CONFIG = ModuleConfig(
+    name="my_module",
+    label="My Module",
+    app_name="my_module_app",
+    icon_fa="fas fa-star",
+    partial_template="my_module_app/index_partial.html",
+    context_builder="my_package.views.build_context",
+    order=100,
+    ai_hint="Description for LLM...",
+    accent_color="my_module",
+)</code></pre>
             <div class="api-callout api-callout-info">
-                <i class="fas fa-shield-alt"></i>
+                <i class="fas fa-info-circle"></i>
                 <div>
-                    Source code is automatically scanned for forbidden patterns
-                    (<code>os.system</code>, <code>subprocess</code>, <code>eval</code>, <code>exec</code>, <code>open</code>, etc.)
-                    before any module can be published.
+                    External module discovery uses Python's <code>importlib.metadata.entry_points(group="scitex_modules")</code>.
+                    Install the package and restart SciTeX &mdash; the module appears automatically.
                 </div>
             </div>
         </section>
