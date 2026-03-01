@@ -22,6 +22,11 @@
   max-width: 40px;
 }
 
+/* Hide toggle chevron when collapsed — clicking strip itself expands */
+.writer-details.collapsed .details-toggle {
+  display: none;
+}
+
 /* Icon direction is managed by WorkspacePanelResizer - no CSS transform needed */
 
 /* Header - match Scholar properties-header styling */

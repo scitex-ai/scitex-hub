@@ -72,6 +72,8 @@
 @import url("components/terminal-log.css");
 @import url("components/theme-cards.css");
 @import url("components/panel-resizer.css");
+@import url("components/resizer.css");
+@import url("components/selector-nav.css");
 @import url("components/collapsible-panel.css");
 @import url("components/migration-cards.css");
 @import url("utilities/scrollbars.css");

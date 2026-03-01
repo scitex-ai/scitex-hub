@@ -1,0 +1,110 @@
+<!-- Checkbox Component -->
+<section class="design-section container-section" id="checkbox">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z" />
+                <path d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.235.235 0 0 1 .02-.022z" />
+            </svg>
+            Checkbox
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/components/forms/</span>
+    </div>
+    <p class="text-intro">Standard checkboxes for selecting one or multiple options from a set.</p>
+    <div class="demo-box">
+        <h3 class="mb-4">Basic Checkboxes</h3>
+        <div class="component-demo"
+             style="display: flex;
+                    flex-direction: column;
+                    gap: 1rem">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="check1" checked />
+                <label class="form-check-label" for="check1">Default checkbox (checked)</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="check2" />
+                <label class="form-check-label" for="check2">Default checkbox (unchecked)</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="check3" disabled />
+                <label class="form-check-label" for="check3">Disabled checkbox</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="check4" checked disabled />
+                <label class="form-check-label" for="check4">Disabled checkbox (checked)</label>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Checkbox Group</h3>
+        <div class="component-demo">
+            <fieldset>
+                <legend style="color: var(--text-primary);
+                               font-weight: 600;
+                               margin-bottom: 0.75rem">Select your preferences:</legend>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="pref1" checked />
+                        <label class="form-check-label" for="pref1">Email notifications</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="pref2" />
+                        <label class="form-check-label" for="pref2">SMS notifications</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="pref3" checked />
+                        <label class="form-check-label" for="pref3">Push notifications</label>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Inline Checkboxes</h3>
+        <div class="component-demo"
+             style="display: flex;
+                    gap: 1.5rem;
+                    flex-wrap: wrap">
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="inline1" checked />
+                <label class="form-check-label" for="inline1">Option 1</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="inline2" />
+                <label class="form-check-label" for="inline2">Option 2</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="inline3" />
+                <label class="form-check-label" for="inline3">Option 3</label>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">HTML Examples</h3>
+        <pre data-language="html" style=" background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto; "><code class="language-html">&lt;!-- Basic Checkbox --&gt;
+&lt;div class="form-check"&gt;
+  &lt;input class="form-check-input" type="checkbox" id="check1" checked&gt;
+  &lt;label class="form-check-label" for="check1"&gt;
+    Checkbox label
+  &lt;/label&gt;
+&lt;/div&gt;
+
+&lt;!-- Disabled Checkbox --&gt;
+&lt;div class="form-check"&gt;
+  &lt;input class="form-check-input" type="checkbox" id="check2" disabled&gt;
+  &lt;label class="form-check-label" for="check2"&gt;
+    Disabled checkbox
+  &lt;/label&gt;
+&lt;/div&gt;
+
+&lt;!-- Inline Checkboxes --&gt;
+&lt;div class="form-check form-check-inline"&gt;
+  &lt;input class="form-check-input" type="checkbox" id="inline1"&gt;
+  &lt;label class="form-check-label" for="inline1"&gt;Option 1&lt;/label&gt;
+&lt;/div&gt;
+&lt;div class="form-check form-check-inline"&gt;
+  &lt;input class="form-check-input" type="checkbox" id="inline2"&gt;
+  &lt;label class="form-check-label" for="inline2"&gt;Option 2&lt;/label&gt;
+&lt;/div&gt;</code></pre>
+    </div>
+</section>

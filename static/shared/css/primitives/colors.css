@@ -46,6 +46,10 @@
   --icon-xl: 24px;
   --icon-2xl: 32px;
 
+  /* User-configurable UI sizing (overridable via preferences) */
+  --ui-nav-icon-size: var(--icon-lg); /* Nav icon size (default: 20px) */
+  --ui-collapsed-pane-width: 48px; /* Collapsed pane width */
+
   /* Legacy brand color references (deprecated - use semantic tokens instead) */
   --scitex-color-01: var(--_scitex-01);
   --scitex-color-01-dark: #222222;
@@ -122,6 +126,8 @@
   --module-accent-apps-tint: rgba(122, 90, 106, 0.07);
   --module-accent-modulemaker: #5a6a8a; /* Slate blue - creation, building */
   --module-accent-modulemaker-tint: rgba(90, 106, 138, 0.07);
+  --module-accent-docs: #4a6a9a; /* Deep blue - documentation, reference */
+  --module-accent-docs-tint: rgba(74, 106, 154, 0.07);
 
   /* Workspace icon color scheme (TOGGLE: swap _icon-green ↔ _icon-white below) */
   /* Green scheme */
@@ -311,6 +317,8 @@
   --module-accent-apps-tint: rgba(184, 138, 154, 0.08);
   --module-accent-modulemaker: #8a9ab8; /* Soft slate - creation, building */
   --module-accent-modulemaker-tint: rgba(138, 154, 184, 0.08);
+  --module-accent-docs: #7a9ac8; /* Soft blue - documentation, reference */
+  --module-accent-docs-tint: rgba(122, 154, 200, 0.08);
 
   /* Workspace icon color scheme (TOGGLE: swap _icon-green ↔ _icon-white below) */
   /* Green scheme (dark mode) */

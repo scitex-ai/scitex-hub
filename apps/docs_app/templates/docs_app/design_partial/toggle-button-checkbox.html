@@ -1,0 +1,126 @@
+<!-- Toggle Button Checkbox Component -->
+<section class="design-section container-section" id="toggle-button-checkbox">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M11.5 6.027a.5.5 0 1 1 .998.06L12 11.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h5.5a.5.5 0 0 1 0 1H3v8h8V6.527z" />
+                <path d="M15.354 1.646a.5.5 0 0 1 0 .708l-8 8a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7 9.293l7.646-7.647a.5.5 0 0 1 .708 0z" />
+            </svg>
+            Toggle Button Checkbox
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/components/forms/</span>
+    </div>
+    <p class="text-intro">Toggle switch styled as a button for binary on/off states.</p>
+    <div class="demo-box">
+        <h3 class="mb-4">Basic Toggle Buttons</h3>
+        <div class="component-demo"
+             style="display: flex;
+                    flex-direction: column;
+                    gap: 1.5rem">
+            <div class="toggle-switch">
+                <input type="checkbox" id="toggle1" class="toggle-input" checked />
+                <label for="toggle1" class="toggle-label">
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-text">Enable notifications</span>
+                </label>
+            </div>
+            <div class="toggle-switch">
+                <input type="checkbox" id="toggle2" class="toggle-input" />
+                <label for="toggle2" class="toggle-label">
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-text">Dark mode</span>
+                </label>
+            </div>
+            <div class="toggle-switch">
+                <input type="checkbox" id="toggle3" class="toggle-input" disabled />
+                <label for="toggle3" class="toggle-label">
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-text">Disabled toggle</span>
+                </label>
+            </div>
+            <div class="toggle-switch">
+                <input type="checkbox" id="toggle4" class="toggle-input" checked disabled />
+                <label for="toggle4" class="toggle-label">
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-text">Disabled (checked)</span>
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Compact Toggle Switches</h3>
+        <div class="component-demo"
+             style="display: flex;
+                    flex-direction: column;
+                    gap: 1rem">
+            <div class="toggle-switch toggle-switch-sm">
+                <input type="checkbox" id="toggle5" class="toggle-input" checked />
+                <label for="toggle5" class="toggle-label">
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-text">Small toggle (on)</span>
+                </label>
+            </div>
+            <div class="toggle-switch toggle-switch-sm">
+                <input type="checkbox" id="toggle6" class="toggle-input" />
+                <label for="toggle6" class="toggle-label">
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-text">Small toggle (off)</span>
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Toggle Without Text</h3>
+        <div class="component-demo"
+             style="display: flex;
+                    gap: 1.5rem;
+                    align-items: center">
+            <div class="toggle-switch">
+                <input type="checkbox" id="toggle7" class="toggle-input" checked />
+                <label for="toggle7" class="toggle-label">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="toggle-switch">
+                <input type="checkbox" id="toggle8" class="toggle-input" />
+                <label for="toggle8" class="toggle-label">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="toggle-switch toggle-switch-sm">
+                <input type="checkbox" id="toggle9" class="toggle-input" checked />
+                <label for="toggle9" class="toggle-label">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">HTML Examples</h3>
+        <pre data-language="html" style=" background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto; "><code class="language-html">&lt;!-- Basic Toggle Switch --&gt;
+&lt;div class="toggle-switch"&gt;
+  &lt;input type="checkbox" id="toggle1" class="toggle-input" checked&gt;
+  &lt;label for="toggle1" class="toggle-label"&gt;
+    &lt;span class="toggle-slider"&gt;&lt;/span&gt;
+    &lt;span class="toggle-text"&gt;Enable notifications&lt;/span&gt;
+  &lt;/label&gt;
+&lt;/div&gt;
+
+&lt;!-- Small Toggle Switch --&gt;
+&lt;div class="toggle-switch toggle-switch-sm"&gt;
+  &lt;input type="checkbox" id="toggle2" class="toggle-input"&gt;
+  &lt;label for="toggle2" class="toggle-label"&gt;
+    &lt;span class="toggle-slider"&gt;&lt;/span&gt;
+    &lt;span class="toggle-text"&gt;Small toggle&lt;/span&gt;
+  &lt;/label&gt;
+&lt;/div&gt;
+
+&lt;!-- Toggle Without Text --&gt;
+&lt;div class="toggle-switch"&gt;
+  &lt;input type="checkbox" id="toggle3" class="toggle-input" checked&gt;
+  &lt;label for="toggle3" class="toggle-label"&gt;
+    &lt;span class="toggle-slider"&gt;&lt;/span&gt;
+  &lt;/label&gt;
+&lt;/div&gt;</code></pre>
+    </div>
+</section>

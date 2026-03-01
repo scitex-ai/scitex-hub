@@ -182,6 +182,16 @@ DESIGN_SECTIONS = {
         "description": "Draggable panel resizer with expanded hit area.",
         "partial": "dev_app/design_partial/resizer.html",
     },
+    "workspace-layout": {
+        "title": "Workspace Layout",
+        "description": "Workspace pane structure, resizers, highlighters, and sizing rules.",
+        "partial": "dev_app/design_partial/workspace-layout.html",
+    },
+    "visitor-system": {
+        "title": "Visitor System",
+        "description": "Anonymous visitor pool, session management, and read-only fallback.",
+        "partial": "dev_app/design_partial/visitor-system.html",
+    },
 }
 
 

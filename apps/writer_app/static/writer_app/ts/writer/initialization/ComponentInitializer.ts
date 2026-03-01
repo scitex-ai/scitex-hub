@@ -5,7 +5,6 @@
 
 import {
   waitForMonaco,
-  PanelResizer,
   CitationsPanel,
   FiguresPanel,
   TablesPanel,
@@ -19,6 +18,7 @@ import {
   EditorControls,
   GitHistoryManager,
 } from "../../modules/index";
+import { HorizontalResizer } from "@/components/resizer";
 import { initPdfContextMenu } from "../../modules/pdf-scroll-zoom/pdf-context-menu";
 import { showToast } from "../../utils/index";
 import {
@@ -36,7 +36,7 @@ export interface InitializedComponents {
   figuresPanel: FiguresPanel;
   tablesPanel: TablesPanel;
   tablePreviewModal: TablePreviewModalOrchestrator;
-  panelResizer: PanelResizer;
+  panelResizer: HorizontalResizer | null;
   editorControls: any;
 }
 
@@ -93,7 +93,6 @@ export class ComponentInitializer {
 
     const [
       monacoReady,
-      panelResizer,
       citationsPanel,
       figuresPanel,
       tablesPanel,
@@ -102,7 +101,6 @@ export class ComponentInitializer {
       compilationManager,
     ] = await Promise.all([
       waitForMonaco(),
-      Promise.resolve(new PanelResizer()),
       Promise.resolve(new CitationsPanel()),
       Promise.resolve(new FiguresPanel()),
       Promise.resolve(new TablesPanel()),
@@ -111,17 +109,14 @@ export class ComponentInitializer {
       Promise.resolve(new CompilationManager("")),
     ]);
 
+    // Initialize editor/preview resizer with PDF optimization hooks
+    const panelResizer = this.initializeEditorResizer();
+
     // Make panels available globally
     (window as any).citationsPanel = citationsPanel;
     (window as any).figuresPanel = figuresPanel;
     (window as any).tablesPanel = tablesPanel;
     (window as any).tablePreviewModal = tablePreviewModal;
-
-    if (!panelResizer.isInitialized()) {
-      console.warn(
-        "[ComponentInitializer] Panel resizer could not be initialized",
-      );
-    }
 
     const phase1End = performance.now();
     console.log(
@@ -293,6 +288,48 @@ export class ComponentInitializer {
       maxZoom: 300,
       zoomStep: 10,
     });
+  }
+
+  /**
+   * Initialize editor/preview resizer with PDF optimization hooks
+   */
+  private initializeEditorResizer(): HorizontalResizer | null {
+    const resizerEl = document.getElementById("writer-editor-resizer");
+    if (!resizerEl) {
+      console.warn("[ComponentInitializer] Editor resizer element not found");
+      return null;
+    }
+
+    try {
+      return new HorizontalResizer(resizerEl, {
+        left: ".latex-panel",
+        right: ".preview-panel",
+        icon: "",
+        title: "Split",
+        isMostLeft: false,
+        isMostRight: false,
+        thresholdPx: 40,
+        isInApp: true,
+        storageKey: "scitex-writer-editor-split",
+        onDragStart: () => {
+          const pdfIframe = document.querySelector(
+            ".preview-panel iframe",
+          ) as HTMLElement;
+          if (pdfIframe) pdfIframe.style.visibility = "hidden";
+        },
+        onDragEnd: () => {
+          const pdfIframe = document.querySelector(
+            ".preview-panel iframe",
+          ) as HTMLElement;
+          if (pdfIframe) pdfIframe.style.visibility = "visible";
+          const pdfViewer = (window as any).pdfViewerInstance;
+          if (pdfViewer?.fitWidth) pdfViewer.fitWidth();
+        },
+      });
+    } catch (e) {
+      console.warn("[ComponentInitializer] Failed to init editor resizer:", e);
+      return null;
+    }
   }
 
   /**

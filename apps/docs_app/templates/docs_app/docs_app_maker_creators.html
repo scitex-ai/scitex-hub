@@ -528,6 +528,95 @@ register(
                 </tbody>
             </table>
         </section>
+        <!-- Shared UI Components -->
+        <span id="shared-ui"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-columns"></i> Shared UI Components
+            </h2>
+            <p>
+                The workspace frame provides reusable components. All styles are auto-loaded &mdash;
+                just add the HTML markup in your templates.
+            </p>
+            <h3>Resizer (Split Panels)</h3>
+            <p>Drag-resize and collapse between two panels:</p>
+            <pre><code>&lt;!-- Horizontal: sidebar | content --&gt;
+&lt;div class="my-sidebar"&gt;...&lt;/div&gt;
+&lt;div class="h-resizer" data-h-resizer
+     data-left=".my-sidebar"
+     data-right=".my-content"
+     data-most-left
+     data-threshold="40"
+     data-in-app&gt;&lt;/div&gt;
+&lt;div class="my-content"&gt;...&lt;/div&gt;</code></pre>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Attribute</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>data-h-resizer</code>
+                        </td>
+                        <td>
+                            Horizontal (left/right). Use <code>data-v-resizer</code> for vertical
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>data-left</code> / <code>data-right</code>
+                        </td>
+                        <td>CSS selectors for adjacent panels</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>data-most-left</code> / <code>data-most-right</code>
+                        </td>
+                        <td>Which side collapses when dragged below threshold</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>data-threshold</code>
+                        </td>
+                        <td>Collapse threshold in pixels (default: 40)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>data-in-app</code>
+                        </td>
+                        <td>
+                            <strong>Required</strong> for in-app resizers
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <h3>Selector Nav (Mode Switcher)</h3>
+            <p>Vertical icon+label navigation strip for switching views within your module:</p>
+            <pre><code>&lt;nav class="selector-nav" id="myapp-mode-selector" data-indicator="right"&gt;
+    &lt;button class="selector-nav-item active" onclick="switchMode('chart')"&gt;
+        &lt;i class="fas fa-chart-bar"&gt;&lt;/i&gt;
+        &lt;span class="selector-nav-label"&gt;Chart&lt;/span&gt;
+    &lt;/button&gt;
+    &lt;button class="selector-nav-item" onclick="switchMode('table')"&gt;
+        &lt;i class="fas fa-table"&gt;&lt;/i&gt;
+        &lt;span class="selector-nav-label"&gt;Table&lt;/span&gt;
+    &lt;/button&gt;
+&lt;/nav&gt;</code></pre>
+            <p>
+                Set <code>data-indicator="right"</code> for an active accent bar on the right edge.
+                Toggle <code>.active</code> class on <code>.selector-nav-item</code> via JavaScript.
+            </p>
+            <div class="api-callout api-callout-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    CSS files: <code>components/resizer.css</code> and <code>components/selector-nav.css</code>.
+                    Both are loaded globally &mdash; no extra imports needed.
+                </div>
+            </div>
+        </section>
         <!-- Publishing Workflow -->
         <span id="publishing"></span>
         <section class="api-section">
@@ -686,7 +775,7 @@ class MyModuleTest(ModuleTestMixin, TestCase):
                     <td>Yes (strong)</td>
                 </tr>
                 <tr>
-                    <td>Plugin SDK / API</td>
+                    <td>App Maker SDK / API</td>
                     <td>Apache-2.0</td>
                     <td>No</td>
                 </tr>

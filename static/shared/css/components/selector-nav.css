@@ -1,0 +1,161 @@
+/* ============================================================================
+ * Shared Selector Nav Component
+ * ============================================================================
+ * Reusable vertical icon+label navigation strip.
+ * Used by: App Selector (frame-level), Writer Mode Selector (in-app),
+ *          and any plugin that needs a vertical mode switcher.
+ *
+ * Usage:
+ *   <nav class="selector-nav" id="my-selector">
+ *     <a class="selector-nav-item active" href="...">
+ *       <i class="fas fa-icon"></i>
+ *       <span class="selector-nav-label">Label</span>
+ *     </a>
+ *   </nav>
+ *
+ * Or with buttons:
+ *   <nav class="selector-nav" id="my-selector">
+ *     <button class="selector-nav-item active" onclick="...">
+ *       <i class="fas fa-icon"></i>
+ *       <span class="selector-nav-label">Label</span>
+ *     </button>
+ *   </nav>
+ * ========================================================================== */
+
+/* ===========================================================================
+   NAV CONTAINER
+   =========================================================================== */
+
+.selector-nav {
+  --selector-nav-icon-size: var(--ui-nav-icon-size, 20px);
+  --selector-nav-label-size: 9px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 4px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-shrink: 0;
+  background: var(--workspace-bg-primary, #0d1117);
+}
+
+/* ===========================================================================
+   NAV ITEMS
+   =========================================================================== */
+
+.selector-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 2px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--workspace-text-secondary, #8b949e);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    color 0.15s;
+  line-height: 1;
+  font-weight: 400;
+  white-space: nowrap;
+  position: relative;
+}
+
+.selector-nav-item:hover {
+  background: var(--workspace-bg-hover, rgba(177, 186, 196, 0.08));
+  color: var(--workspace-text-primary, #e6edf3);
+  text-decoration: none;
+}
+
+.selector-nav-item.active {
+  color: var(--workspace-text-primary, #e6edf3);
+  background: var(--workspace-bg-active, rgba(177, 186, 196, 0.12));
+}
+
+/* ===========================================================================
+   NAV ITEM ICONS
+   =========================================================================== */
+
+.selector-nav-item i,
+.selector-nav-item svg,
+.selector-nav-item img {
+  width: var(--selector-nav-icon-size, 20px);
+  min-width: var(--selector-nav-icon-size, 20px);
+  height: var(--selector-nav-icon-size, 20px);
+  text-align: center;
+  font-size: var(--selector-nav-icon-size, 20px);
+}
+
+/* ===========================================================================
+   NAV ITEM LABELS
+   =========================================================================== */
+
+.selector-nav-label {
+  font-size: var(--selector-nav-label-size, 9px);
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 48px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* ===========================================================================
+   ACTIVE INDICATOR VARIANTS
+   Use data-indicator="left" or data-indicator="right" on .selector-nav
+   to show a colored edge bar on the active item.
+   Default: no indicator (just background highlight).
+   =========================================================================== */
+
+/* Left indicator (partial 4px bar on left edge, ~60% height, centered) */
+.selector-nav[data-indicator="left"] .selector-nav-item.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20%;
+  height: 60%;
+  width: 4px;
+  border-radius: 0 2px 2px 0;
+  background: var(
+    --module-accent-color,
+    var(--workspace-icon-primary, #059669)
+  );
+}
+
+/* Right indicator (partial 4px bar on right edge, ~60% height, centered) */
+.selector-nav[data-indicator="right"] .selector-nav-item.active::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 20%;
+  height: 60%;
+  width: 4px;
+  border-radius: 2px 0 0 2px;
+  background: var(
+    --module-accent-color,
+    var(--workspace-icon-primary, #059669)
+  );
+}
+
+/* ===========================================================================
+   DRAG-REORDER INDICATORS (optional, for sortable navs)
+   =========================================================================== */
+
+.selector-nav-item.nav-dragging {
+  opacity: 0.4;
+}
+
+.selector-nav-item.nav-drag-before {
+  box-shadow: inset 0 2px 0 0 var(--accent-blue, #388bfd);
+}
+
+.selector-nav-item.nav-drag-after {
+  box-shadow: inset 0 -2px 0 0 var(--accent-blue, #388bfd);
+}

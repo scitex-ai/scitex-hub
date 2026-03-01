@@ -21,10 +21,10 @@
   flex-shrink: 0;
 }
 
-/* Collapsed state - 40px width, cursor pointer for click-to-expand */
+/* Collapsed state - uses --ui-collapsed-pane-width (default 48px), cursor pointer for click-to-expand */
 .collapsible-panel.collapsed {
-  width: 40px !important;
-  min-width: 40px !important;
+  width: var(--ui-collapsed-pane-width, 48px) !important;
+  min-width: var(--ui-collapsed-pane-width, 48px) !important;
   cursor: pointer;
 }
 
@@ -37,16 +37,17 @@
   display: none;
 }
 
-/* Collapsed header: full height, center-aligned, vertical layout
+/* Collapsed header: full height, top-aligned, vertical layout
    Uses !important to override app-specific rules (e.g. writer's
    height: 50px !important, max-height: 50px) */
 .collapsible-panel.collapsed .panel-header {
-  padding: 0;
-  justify-content: center !important;
+  padding: 8px 0 0;
+  justify-content: flex-start !important;
   height: 100% !important;
   max-height: none !important;
   min-height: 0 !important;
   flex-direction: column;
+  align-items: center;
   border-bottom: none;
 }
 
@@ -59,18 +60,24 @@
   white-space: nowrap;
 }
 
+/* Collapsed: icon on top, horizontal label below (matching workspace sidebar) */
 .collapsible-panel.collapsed .panel-title {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  font-size: 0; /* hide text, show icon only */
-  margin: 0;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text-secondary, #8ba7b8);
+  margin: 8px 0 0;
+  white-space: nowrap;
+  line-height: 1;
 }
 
 .collapsible-panel.collapsed .panel-title i {
   display: block;
-  font-size: 14px;
-  color: var(--text-secondary);
+  font-size: var(--ui-nav-icon-size, 20px);
+  color: var(--workspace-icon-primary, #059669);
 }
 
 /* Collapsed toggle button: compact */
@@ -124,10 +131,10 @@
   background: rgba(5, 150, 105, 0.06) !important;
 }
 
-/* Collapsed header - centered toggle button */
+/* Collapsed header - compact horizontal padding */
 .collapsible-panel.collapsed .panel-header {
-  padding: 0 4px;
-  justify-content: center;
+  padding-left: 4px;
+  padding-right: 4px;
 }
 
 /* Header title */
@@ -371,7 +378,7 @@
   color: var(--workspace-text-primary);
 }
 
-/* Collapsed state for details/properties panels */
+/* Collapsed state for details/properties panels: hide content, keep title */
 .collapsed .details-header h4,
 .collapsed .details-header h5,
 .collapsed .properties-header h4,
@@ -381,10 +388,32 @@
   display: none;
 }
 
+/* Show panel-title in collapsed details/properties: icon on top, label below */
+.collapsed .details-header .panel-title,
+.collapsed .properties-header .panel-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text-secondary, #8ba7b8);
+  margin: 8px 0 0;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.collapsed .details-header .panel-title i,
+.collapsed .properties-header .panel-title i {
+  display: block;
+  font-size: var(--ui-nav-icon-size, 20px);
+  color: var(--workspace-icon-primary, #059669);
+}
+
 .collapsed .details-header,
 .collapsed .properties-header {
-  padding: 0;
-  justify-content: center;
+  padding: 8px 0 0;
+  justify-content: flex-start;
   align-items: center;
   height: 100%;
   flex-direction: column;
@@ -407,8 +436,10 @@
    =========================================================================== */
 
 .collapsed .sidebar-header {
-  padding: 0;
-  justify-content: center;
+  padding: 8px 0 0;
+  justify-content: flex-start;
+  flex-direction: column;
+  align-items: center;
 }
 
 .collapsed
@@ -427,18 +458,23 @@
   padding: 4px;
 }
 
-/* Sidebar title: icon-only when collapsed — scoped to collapsible-panel only.
+/* Sidebar title: icon on top, label below when collapsed — scoped to collapsible-panel.
    workspace-sidebar has its own collapsed rules in workspace-sidebar.css */
 .collapsible-panel.collapsed .sidebar-header .sidebar-title {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  font-size: 0; /* hide text, show icon only */
-  margin: 0;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text-secondary, #8ba7b8);
+  margin: 8px 0 0;
+  white-space: nowrap;
+  line-height: 1;
 }
 
 .collapsible-panel.collapsed .sidebar-header .sidebar-title i {
   display: block;
-  font-size: 14px;
-  color: var(--text-secondary);
+  font-size: var(--ui-nav-icon-size, 20px);
+  color: var(--workspace-icon-primary, #059669);
 }

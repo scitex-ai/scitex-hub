@@ -1,0 +1,137 @@
+<!-- Form Input Component -->
+<section class="design-section container-section" id="form-input">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2zm13 2.383-4.758 2.855L15 11.114v-5.73z" />
+            </svg>
+            Form Input
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/components/forms/</span>
+    </div>
+    <p class="text-intro">Text input fields for collecting user input in forms.</p>
+    <div class="demo-box">
+        <h3 class="mb-4">Basic Text Inputs</h3>
+        <div class="component-demo" style="max-width: 500px">
+            <div class="form-group" style="margin-bottom: 1.5rem">
+                <label for="input1" class="form-label">Text Input</label>
+                <input type="text"
+                       class="form-control"
+                       id="input1"
+                       placeholder="Enter text..." />
+            </div>
+            <div class="form-group" style="margin-bottom: 1.5rem">
+                <label for="input2" class="form-label">Email Input</label>
+                <input type="email"
+                       class="form-control"
+                       id="input2"
+                       placeholder="email@example.com" />
+            </div>
+            <div class="form-group" style="margin-bottom: 1.5rem">
+                <label for="input3" class="form-label">Password Input</label>
+                <input type="password"
+                       class="form-control"
+                       id="input3"
+                       placeholder="Password" />
+            </div>
+            <div class="form-group">
+                <label for="input4" class="form-label">Disabled Input</label>
+                <input type="text"
+                       class="form-control"
+                       id="input4"
+                       placeholder="Disabled"
+                       disabled />
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Input with Help Text</h3>
+        <div class="component-demo" style="max-width: 500px">
+            <div class="form-group">
+                <label for="input5" class="form-label">Username</label>
+                <input type="text"
+                       class="form-control"
+                       id="input5"
+                       placeholder="Enter username" />
+                <small class="form-text text-muted">Your username must be 3-20 characters long.</small>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Input Sizes</h3>
+        <div class="component-demo" style="max-width: 500px">
+            <div class="form-group" style="margin-bottom: 1rem">
+                <input type="text"
+                       class="form-control form-control-sm"
+                       placeholder="Small input" />
+            </div>
+            <div class="form-group" style="margin-bottom: 1rem">
+                <input type="text" class="form-control" placeholder="Default input" />
+            </div>
+            <div class="form-group">
+                <input type="text"
+                       class="form-control form-control-lg"
+                       placeholder="Large input" />
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Textarea</h3>
+        <div class="component-demo" style="max-width: 500px">
+            <div class="form-group">
+                <label for="textarea1" class="form-label">Message</label>
+                <textarea class="form-control"
+                          id="textarea1"
+                          rows="4"
+                          placeholder="Enter your message..."></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Input States</h3>
+        <div class="component-demo" style="max-width: 500px">
+            <div class="form-group" style="margin-bottom: 1.5rem">
+                <label for="input6" class="form-label">Valid Input</label>
+                <input type="text"
+                       class="form-control is-valid"
+                       id="input6"
+                       value="Valid input" />
+                <div class="valid-feedback">Looks good!</div>
+            </div>
+            <div class="form-group">
+                <label for="input7" class="form-label">Invalid Input</label>
+                <input type="text"
+                       class="form-control is-invalid"
+                       id="input7"
+                       value="Invalid input" />
+                <div class="invalid-feedback">Please provide a valid value.</div>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">HTML Examples</h3>
+        <pre data-language="html" style=" background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto; "><code class="language-html">&lt;!-- Basic Text Input --&gt;
+&lt;div class="form-group"&gt;
+  &lt;label for="input1" class="form-label"&gt;Label&lt;/label&gt;
+  &lt;input type="text" class="form-control" id="input1" placeholder="Placeholder"&gt;
+&lt;/div&gt;
+
+&lt;!-- Input with Help Text --&gt;
+&lt;div class="form-group"&gt;
+  &lt;label for="input2" class="form-label"&gt;Username&lt;/label&gt;
+  &lt;input type="text" class="form-control" id="input2"&gt;
+  &lt;small class="form-text text-muted"&gt;Help text here.&lt;/small&gt;
+&lt;/div&gt;
+
+&lt;!-- Textarea --&gt;
+&lt;div class="form-group"&gt;
+  &lt;label for="textarea1" class="form-label"&gt;Message&lt;/label&gt;
+  &lt;textarea class="form-control" id="textarea1" rows="4"&gt;&lt;/textarea&gt;
+&lt;/div&gt;
+
+&lt;!-- Input Sizes --&gt;
+&lt;input type="text" class="form-control form-control-sm"&gt;
+&lt;input type="text" class="form-control"&gt;
+&lt;input type="text" class="form-control form-control-lg"&gt;</code></pre>
+    </div>
+</section>

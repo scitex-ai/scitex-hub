@@ -1,0 +1,345 @@
+<!-- Code Blocks and Syntax Highlighting -->
+<section class="design-section container-section" id="code-blocks">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path fill-rule="evenodd" d="M4.72 3.22a.75.75 0 011.06 1.06L2.06 8l3.72 3.72a.75.75 0 11-1.06 1.06L.47 8.53a.75.75 0 010-1.06l4.25-4.25zm6.56 0a.75.75 0 10-1.06 1.06L13.94 8l-3.72 3.72a.75.75 0 101.06 1.06l4.25-4.25a.75.75 0 000-1.06l-4.25-4.25z">
+                </path>
+            </svg>
+            Code Blocks
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/common/code.css</span>
+    </div>
+    <p class="text-intro">
+        Code styling for inline code, code blocks, and syntax-highlighted programming content. Optimized for readability and consistency across light and dark themes.
+    </p>
+    <!-- Inline Code -->
+    <div class="demo-box">
+        <h3 class="mb-3">Inline Code</h3>
+        <p>
+            Use inline code for commands like <code>git commit</code> or variables like <code>MAX_SIZE = 1024</code> within text.
+        </p>
+        <pre class="code-block mt-3" data-language="html"><code class="language-html">&lt;code&gt;inline code&lt;/code&gt;</code></pre>
+    </div>
+    <!-- Code Block -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Code Block</h3>
+        <p>
+            For multi-line code, use <code>&lt;pre&gt;&lt;code&gt;</code> tags:
+        </p>
+        <pre class="code-block mt-3" data-language="python"><code class="language-python">def calculate_metrics(data):
+    """Calculate statistical metrics from dataset."""
+    mean = sum(data) / len(data)
+    variance = sum((x - mean) ** 2 for x in data) / len(data)
+    return {'mean': mean, 'variance': variance}</code></pre>
+    </div>
+    <!-- Font Stack -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Programming Font Stack</h3>
+        <p class="text-muted mb-3">Monospace fonts optimized for code readability</p>
+        <pre class="code-block" data-language="css"><code class="language-css">font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono',
+             Consolas, 'Courier New', monospace;
+font-size: 14px;
+font-weight: 400;
+line-height: 1.6;</code></pre>
+    </div>
+    <!-- Syntax Highlighting Themes -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Syntax Highlighting Themes</h3>
+        <p class="text-muted mb-3">
+            We support multiple themes for code highlighting. Try the dropdown selectors below to preview different themes. Users can set their preferred themes in <a href="/accounts/settings/appearance/">Account Settings → Appearance</a>.
+        </p>
+        <!-- Theme Selectors -->
+        <div class="row mt-4 mb-4">
+            <div class="col-md-6">
+                <label for="design-code-theme-dark-selector" class="form-label">Dark Mode Theme</label>
+                <select id="design-code-theme-dark-selector" class="form-select">
+                    <option value="nord">Nord (Recommended)</option>
+                    <option value="tokyo-night-dark">Tokyo Night Dark</option>
+                    <option value="dracula">Dracula</option>
+                    <option value="monokai">Monokai</option>
+                    <option value="atom-one-dark">Atom One Dark</option>
+                    <option value="github-dark">GitHub Dark</option>
+                    <option value="vs2015">VS2015</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="design-code-theme-light-selector" class="form-label">Light Mode Theme</label>
+                <select id="design-code-theme-light-selector" class="form-select">
+                    <option value="tokyo-night-light">Tokyo Night Light</option>
+                    <option value="atom-one-light">Atom One Light</option>
+                    <option value="github">GitHub Light</option>
+                    <option value="stackoverflow-light">StackOverflow Light</option>
+                    <option value="default">Default</option>
+                    <option value="xcode">Xcode</option>
+                </select>
+            </div>
+        </div>
+        <!-- Live Preview -->
+        <div class="mt-4">
+            <h4 class="h6 mb-2">Live Preview</h4>
+            <p class="text-muted mb-3" style="font-size: 14px;">
+                Change the dropdown above to see how different themes look. The preview updates in real-time.
+            </p>
+            <pre class="code-block" data-language="python"><code id="design-code-preview" class="language-python">def calculate_statistics(data):
+    """Calculate mean and variance from dataset."""
+    n = len(data)
+    mean = sum(data) / n
+    variance = sum((x - mean) ** 2 for x in data) / n
+
+    return {
+        'mean': mean,
+        'variance': variance,
+        'std_dev': variance ** 0.5
+    }
+
+# Example usage
+dataset = [1.2, 2.5, 3.7, 4.1, 5.9]
+stats = calculate_statistics(dataset)
+print(f"Mean: {stats['mean']:.2f}")</code></pre>
+        </div>
+        <!-- Theme List -->
+        <div class="row mt-5">
+            <div class="col-md-6">
+                <h4 class="h6 mb-2">Dark Mode Themes</h4>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <strong>Nord</strong>
+                        <span class="badge bg-info">Recommended</span>
+                        <br>
+                        <small class="text-muted">Arctic-inspired color palette with excellent readability</small>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Tokyo Night Dark</strong>
+                        <br>
+                        <small class="text-muted">Modern dark theme with vibrant colors</small>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Dracula</strong>
+                        <br>
+                        <small class="text-muted">Popular dark theme with high contrast</small>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Monokai</strong>
+                        <br>
+                        <small class="text-muted">Classic coding theme</small>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Atom One Dark</strong>
+                        <br>
+                        <small class="text-muted">Atom editor's dark theme</small>
+                    </li>
+                    <li class="mb-2">
+                        <strong>GitHub Dark</strong>
+                        <br>
+                        <small class="text-muted">GitHub's official dark theme</small>
+                    </li>
+                    <li class="mb-2">
+                        <strong>VS2015</strong>
+                        <br>
+                        <small class="text-muted">Visual Studio 2015 theme</small>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h4 class="h6 mb-2">Light Mode Themes</h4>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <strong>Tokyo Night Light</strong>
+                        <br>
+                        <small class="text-muted">Light variant of Tokyo Night</small>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Atom One Light</strong>
+                        <br>
+                        <small class="text-muted">Atom editor's light theme</small>
+                    </li>
+                    <li class="mb-2">
+                        <strong>GitHub Light</strong>
+                        <br>
+                        <small class="text-muted">GitHub's official light theme</small>
+                    </li>
+                    <li class="mb-2">
+                        <strong>StackOverflow Light</strong>
+                        <br>
+                        <small class="text-muted">Stack Overflow's light theme</small>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Default</strong>
+                        <br>
+                        <small class="text-muted">Standard light syntax highlighting</small>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Xcode</strong>
+                        <br>
+                        <small class="text-muted">Apple Xcode's light theme</small>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- Line Numbers -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Line Numbers</h3>
+        <p class="text-muted mb-3">
+            Code files in the file viewer automatically display line numbers with proper spacing and styling.
+        </p>
+        <pre class="code-block" data-language="css"><code class="language-css">/* Line numbers styling */
+.hljs-ln-numbers {
+    text-align: right;
+    padding-right: 24px;
+    padding-left: 16px;
+    border-right: 1px solid var(--color-border-muted);
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono',
+                 Consolas, 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.hljs-ln-code {
+    padding-left: 24px;
+}</code></pre>
+    </div>
+    <!-- Implementation -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Implementation</h3>
+        <p class="text-muted mb-3">We use highlight.js for syntax highlighting with dynamic theme switching.</p>
+        <pre class="code-block" data-language="html"><code class="language-html">&lt;!-- Load highlight.js --&gt;
+&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"&gt;&lt;/script&gt;
+
+&lt;!-- Apply highlighting --&gt;
+&lt;script&gt;
+  hljs.highlightElement(codeBlock);
+  hljs.lineNumbersBlock(codeBlock);
+&lt;/script&gt;</code></pre>
+    </div>
+    <!-- Best Practices -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Best Practices</h3>
+        <ul>
+            <li>
+                <strong>Use semantic HTML</strong> - Always use <code>&lt;code&gt;</code> for code snippets and <code>&lt;pre&gt;&lt;code&gt;</code> for code blocks
+            </li>
+            <li>
+                <strong>Specify language</strong> - Add <code>class="language-{lang}"</code> for proper syntax highlighting
+            </li>
+            <li>
+                <strong>Respect user preferences</strong> - Theme automatically adapts to user's selected code theme
+            </li>
+            <li>
+                <strong>Maintain readability</strong> - Ensure sufficient contrast and use monospace fonts
+            </li>
+            <li>
+                <strong>Line length</strong> - Keep code lines under 100 characters when possible for better readability
+            </li>
+        </ul>
+    </div>
+    <!-- Supported Languages -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Supported Languages</h3>
+        <p class="text-muted mb-3">We support 60+ programming and markup languages. Here are some examples:</p>
+        <!-- BibTeX Example -->
+        <div class="mt-3">
+            <h5 class="text-sm mb-2">BibTeX Bibliography</h5>
+            <pre class="code-block" data-language="bibtex"><code class="language-bibtex">@article{einstein1905,
+  author    = {Albert Einstein},
+  title     = {On the Electrodynamics of Moving Bodies},
+  journal   = {Annalen der Physik},
+  volume    = {17},
+  year      = {1905},
+  pages     = {891--921},
+  doi       = {10.1002/andp.19053221004}
+}</code></pre>
+        </div>
+        <!-- TypeScript Example -->
+        <div class="mt-3">
+            <h5 class="text-sm mb-2">TypeScript</h5>
+            <pre class="code-block" data-language="typescript"><code class="language-typescript">interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+async function fetchUser(id: number): Promise<User> {
+  const response = await fetch(`/api/users/${id}`);
+  return response.json();
+}</code></pre>
+        </div>
+        <!-- JSON Example -->
+        <div class="mt-3">
+            <h5 class="text-sm mb-2">JSON</h5>
+            <pre class="code-block" data-language="json"><code class="language-json">{
+  "project": "SciTeX Cloud",
+  "version": "1.0.0",
+  "features": {
+    "syntax_highlighting": true,
+    "multiple_languages": 60,
+    "dark_mode_support": true
+  }
+}</code></pre>
+        </div>
+        <!-- LaTeX Example -->
+        <div class="mt-3">
+            <h5 class="text-sm mb-2">LaTeX</h5>
+            <pre class="code-block" data-language="latex"><code class="language-latex">\documentclass{article}
+\usepackage{amsmath}
+
+\title{A Comprehensive Guide}
+\author{Jane Smith}
+
+\begin{document}
+\maketitle
+
+The quadratic formula is:
+\[x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}\]
+
+\end{document}</code></pre>
+        </div>
+        <!-- YAML Example -->
+        <div class="mt-3">
+            <h5 class="text-sm mb-2">YAML Configuration</h5>
+            <pre class="code-block" data-language="yaml"><code class="language-yaml">database:
+  engine: postgresql
+  host: localhost
+  port: 5432
+  credentials:
+    username: admin
+    password: ${DB_PASSWORD}
+
+logging:
+  level: INFO
+  handlers:
+    - console
+    - file</code></pre>
+        </div>
+    </div>
+    <!-- CSS Variables -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">
+            CSS Variables for Code <span class="badge bg-secondary badge-file-path">📁 /static/shared/css/common/code.css</span>
+        </h3>
+        <pre class="code-block" data-language="css"><code class="language-css">/* Code styling variables */
+:root {
+    /* Inline code */
+    --code-bg: var(--color-canvas-subtle);
+    --code-color: var(--color-fg-default);
+    --code-border: var(--color-border-default);
+    --code-padding: 0.2em 0.4em;
+    --code-border-radius: 3px;
+
+    /* Code blocks */
+    --code-block-bg: var(--color-canvas-default);
+    --code-block-padding: 16px;
+    --code-block-border-radius: 6px;
+    --code-block-border: 1px solid var(--color-border-default);
+
+    /* Font settings */
+    --code-font-family: 'SF Mono', Monaco, 'Cascadia Code',
+                        'Roboto Mono', Consolas, 'Courier New', monospace;
+    --code-font-size: 14px;
+    --code-font-weight: 400;
+    --code-line-height: 1.6;
+}</code></pre>
+    </div>
+</section>

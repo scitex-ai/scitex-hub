@@ -162,6 +162,16 @@ urlpatterns = [
         name="design_icons",
     ),
     path(
+        "design/workspace-layout/",
+        views.DesignWorkspaceLayoutView.as_view(),
+        name="design_workspace_layout",
+    ),
+    path(
+        "design/visitor-system/",
+        views.DesignVisitorSystemView.as_view(),
+        name="design_visitor_system",
+    ),
+    path(
         "design/all/",
         views.DesignAllView.as_view(),
         name="design_all",

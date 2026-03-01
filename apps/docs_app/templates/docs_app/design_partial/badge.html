@@ -1,0 +1,104 @@
+<!-- Badge Component -->
+<section class="design-section container-section" id="badge">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
+            </svg>
+            Badge
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/components/badges.css</span>
+    </div>
+    <p class="text-intro">
+        Small labels for categorization and status indication. Compact visual
+        indicators for counts, states, and categories.
+    </p>
+    <div class="demo-box">
+        <h3 class="mb-4">Badge Variants</h3>
+        <div class="component-demo" style="display: flex; gap: 0.75rem; flex-wrap: wrap">
+            <span class="badge badge-primary">Primary</span>
+            <span class="badge badge-secondary">Secondary</span>
+            <span class="badge badge-success">Success</span>
+            <span class="badge badge-warning">Warning</span>
+            <span class="badge badge-error">Error</span>
+            <span class="badge badge-info">Info</span>
+            <span class="badge badge-light">Light</span>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Badges with Counts</h3>
+        <div class="component-demo" style="display: flex; gap: 0.75rem; flex-wrap: wrap">
+            <span class="badge badge-primary">5</span>
+            <span class="badge badge-secondary">12</span>
+            <span class="badge badge-success">23</span>
+            <span class="badge badge-warning">8</span>
+            <span class="badge badge-error">3</span>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Status Badges</h3>
+        <div class="component-demo" style="display: flex; gap: 0.75rem; flex-wrap: wrap">
+            <span class="badge badge-success">Active</span>
+            <span class="badge badge-warning">Pending</span>
+            <span class="badge badge-error">Failed</span>
+            <span class="badge badge-info">In Progress</span>
+            <span class="badge badge-light">Draft</span>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-4">Developmental Status Badges</h3>
+        <div class="component-demo" style="display: flex; gap: 0.75rem; flex-wrap: wrap">
+            <span class="badge badge-bug">Bug</span>
+            <span class="badge badge-wip">WIP</span>
+            <span class="badge badge-alpha">Alpha</span>
+            <span class="badge badge-beta">Beta</span>
+            <span class="badge badge-stable">Stable</span>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Badges in Context</h3>
+        <div class="component-demo" style="display: flex; flex-direction: column; gap: 1rem">
+            <div>
+                <button class="btn btn-primary">
+                    Messages <span class="badge badge-light">4</span>
+                </button>
+            </div>
+            <div>
+                <button class="btn btn-secondary">
+                    Notifications <span class="badge badge-light">12</span>
+                </button>
+            </div>
+            <div>
+                <h3 style="margin: 0; color: var(--text-primary)">
+                    Feature Request <span class="badge badge-success">New</span>
+                </h3>
+            </div>
+            <div>
+                <h3 style="margin: 0; color: var(--text-primary)">
+                    Bug Report <span class="badge badge-error">Critical</span>
+                </h3>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">HTML Examples</h3>
+        <pre data-language="html" style=" background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto; "><code class="language-html">&lt;!-- Basic Badges --&gt;
+&lt;span class="badge badge-primary"&gt;Primary&lt;/span&gt;
+&lt;span class="badge badge-success"&gt;Success&lt;/span&gt;
+&lt;span class="badge badge-warning"&gt;Warning&lt;/span&gt;
+&lt;span class="badge badge-error"&gt;Error&lt;/span&gt;
+
+&lt;!-- Count Badges --&gt;
+&lt;span class="badge badge-primary"&gt;5&lt;/span&gt;
+&lt;span class="badge badge-secondary"&gt;12&lt;/span&gt;
+
+&lt;!-- Status Badges --&gt;
+&lt;span class="badge badge-success"&gt;Active&lt;/span&gt;
+&lt;span class="badge badge-warning"&gt;Pending&lt;/span&gt;
+
+&lt;!-- Badges in Context --&gt;
+&lt;button class="btn btn-primary"&gt;
+  Messages &lt;span class="badge badge-light"&gt;4&lt;/span&gt;
+&lt;/button&gt;</code></pre>
+    </div>
+</section>

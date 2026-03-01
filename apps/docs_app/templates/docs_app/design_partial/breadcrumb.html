@@ -1,0 +1,133 @@
+<!-- Breadcrumb Component -->
+<section class="design-section container-section" id="breadcrumb">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
+            </svg>
+            Breadcrumb
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/components/breadcrumb.css</span>
+    </div>
+    <p class="text-intro">
+        Navigation trail showing the current page's location within the site
+        hierarchy.
+    </p>
+    <div class="demo-box">
+        <h3 class="mb-4">Basic Breadcrumb</h3>
+        <div class="component-demo">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="#">Home</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="#">Library</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Data</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Breadcrumb with Icons</h3>
+        <div class="component-demo">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="#">🏠 Home</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="#">📁 Projects</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="#">📊 Analytics</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">📈 Dashboard</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Long Breadcrumb</h3>
+        <div class="component-demo">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="#">Home</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="#">Documentation</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="#">Components</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="#">Navigation</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Breadcrumb</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Breadcrumb Variants</h3>
+        <div class="component-demo"
+             style="display: flex;
+                    flex-direction: column;
+                    gap: 1.5rem">
+            <!-- Default separator (/) -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="#">Home</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="#">Products</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Details</li>
+                </ol>
+            </nav>
+            <!-- Arrow separator (→) -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb breadcrumb-arrow">
+                    <li class="breadcrumb-item">
+                        <a href="#">Home</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="#">Products</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Details</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">HTML Examples</h3>
+        <pre data-language="html" style=" background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto; "><code class="language-html">&lt;!-- Basic Breadcrumb --&gt;
+&lt;nav aria-label="breadcrumb"&gt;
+  &lt;ol class="breadcrumb"&gt;
+    &lt;li class="breadcrumb-item"&gt;&lt;a href="#"&gt;Home&lt;/a&gt;&lt;/li&gt;
+    &lt;li class="breadcrumb-item"&gt;&lt;a href="#"&gt;Library&lt;/a&gt;&lt;/li&gt;
+    &lt;li class="breadcrumb-item active" aria-current="page"&gt;Data&lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/nav&gt;
+
+&lt;!-- Breadcrumb with Icons --&gt;
+&lt;nav aria-label="breadcrumb"&gt;
+  &lt;ol class="breadcrumb"&gt;
+    &lt;li class="breadcrumb-item"&gt;&lt;a href="#"&gt;🏠 Home&lt;/a&gt;&lt;/li&gt;
+    &lt;li class="breadcrumb-item"&gt;&lt;a href="#"&gt;📁 Projects&lt;/a&gt;&lt;/li&gt;
+    &lt;li class="breadcrumb-item active" aria-current="page"&gt;Data&lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/nav&gt;
+
+&lt;!-- Arrow Separator --&gt;
+&lt;nav aria-label="breadcrumb"&gt;
+  &lt;ol class="breadcrumb breadcrumb-arrow"&gt;
+    &lt;li class="breadcrumb-item"&gt;&lt;a href="#"&gt;Home&lt;/a&gt;&lt;/li&gt;
+    &lt;li class="breadcrumb-item active"&gt;Data&lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/nav&gt;</code></pre>
+    </div>
+</section>

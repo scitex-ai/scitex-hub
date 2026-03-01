@@ -15,7 +15,6 @@ import {
   CompilationManager,
   FileTreeManager,
   PDFPreviewManager,
-  PanelResizer,
   EditorControls,
   CitationsPanel,
   FiguresPanel,

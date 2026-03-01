@@ -15,7 +15,7 @@
                                     title="Collapse editor (Ctrl+Shift+E)">
                                 <i class="fas fa-chevron-left"></i>
                             </button>
-                            <span class="panel-title">Editor (Writer)</span>
+                            <span class="panel-title"><i class="fas fa-code"></i> Editor</span>
                             <!-- Current File Display - hidden since file tree shows selection -->
                             <div class="current-file-display hidden" id="current-file-display">
                                 <i class="fas fa-file-alt"></i>
@@ -100,8 +100,10 @@
                               class="latex-editor-textarea hidden"
                               placeholder="LaTeX code..."></textarea>
                 </div>
-                <!-- Resizable Panel Divider -->
-                <div class="panel-resizer" id="panel-resizer" title="Drag to resize panels"></div>
+                <!-- Editor/Preview resizer (drag resize only;
+                     collapse/expand handled by panel-toggle.ts;
+                     programmatic init in ComponentInitializer for PDF hooks) -->
+                <div class="h-resizer" id="writer-editor-resizer"></div>
                 <div class="preview-panel collapsible-panel" data-hide-title-expanded>
                     <!-- Shared Right Panel Header (changes content based on active panel) -->
                     <div class="panel-header" data-pane-type="module" id="right-panel-header">
@@ -113,247 +115,288 @@
                                     title="Collapse preview (Ctrl+Shift+P)">
                                 <i class="fas fa-chevron-right"></i>
                             </button>
-                            <span class="panel-title">Preview+</span>
+                            <span class="panel-title"><i class="fas fa-eye"></i> Preview</span>
                             <!-- Dynamic left content injected by switchRightPanel() -->
                         </div>
                         <div class="header-right">
                             <!-- Dynamic right content injected by switchRightPanel() -->
                         </div>
                     </div>
-                    <!-- PDF View (default visible) -->
-                    <div id="pdf-view" class="right-panel-view">
-                        <!-- PDF Header (hidden template - content copied to shared header) -->
-                        <div class="panel-header panel-header-template" id="pdf-panel-header">
-                            <div class="header-left">
-                                <!-- View Toggle -->
-                                {% include "writer_app/index_partials/panel_view_switcher.html" with active_view="pdf" %}
-                                <!-- Compile Button (hidden, triggered from dropdown) -->
-                                <button id="compile-btn-toolbar"
-                                        class="btn btn-sm btn-primary hidden"
-                                        title="Compile entire manuscript to PDF (all sections combined)">
-                                    <i class="fas fa-rocket me-1"></i><span id="compile-btn-text">Compile Full Manuscript</span>
-                                </button>
-                            </div>
-                            <div class="header-right">
-                                <!-- Compilation Status Indicators (wrapped for tour highlight) -->
-                                <div class="compilation-status-indicators">
-                                    <!-- 1. Preview Compilation Status LED -->
-                                    <div class="status-indicator-group"
-                                         onclick="if(window.handlePreviewClick){window.handlePreviewClick()}else{togglePreviewLog()}"
-                                         title="Click to compile preview">
-                                        <span class="status-indicator-label">Preview</span>
-                                        <span class="status-lamp-dot" id="preview-status-lamp" data-status="idle"></span>
+                    <!-- Preview body: vertical view nav + content -->
+                    <div class="preview-body">
+                        <!-- Writer Mode Selector (shared selector-nav pattern) -->
+                        <nav class="selector-nav"
+                             id="writer-mode-selector"
+                             data-indicator="right"
+                             role="group">
+                            <button type="button"
+                                    class="selector-nav-item active"
+                                    onclick="switchRightPanel('pdf')"
+                                    title="PDF Preview">
+                                <i class="fas fa-file-pdf"></i>
+                                <span class="selector-nav-label">PDF</span>
+                            </button>
+                            <button type="button"
+                                    class="selector-nav-item"
+                                    onclick="switchRightPanel('citations')"
+                                    title="Citations">
+                                <i class="fas fa-book"></i>
+                                <span class="selector-nav-label">Cite</span>
+                            </button>
+                            <button type="button"
+                                    class="selector-nav-item"
+                                    onclick="switchRightPanel('figures')"
+                                    title="Figures">
+                                <i class="fas fa-image"></i>
+                                <span class="selector-nav-label">Fig</span>
+                            </button>
+                            <button type="button"
+                                    class="selector-nav-item"
+                                    onclick="switchRightPanel('tables')"
+                                    title="Tables">
+                                <i class="fas fa-table"></i>
+                                <span class="selector-nav-label">Table</span>
+                            </button>
+                            <button type="button"
+                                    id="show-collaboration-btn"
+                                    class="selector-nav-item"
+                                    onclick="switchRightPanel('collaboration')"
+                                    title="Collaboration">
+                                <i class="fas fa-users"></i>
+                                <span class="selector-nav-label">Collab</span>
+                            </button>
+                            <button type="button"
+                                    class="selector-nav-item"
+                                    onclick="switchRightPanel('history')"
+                                    title="Version History">
+                                <i class="fas fa-history"></i>
+                                <span class="selector-nav-label">History</span>
+                            </button>
+                        </nav>
+                        <!-- PDF View (default visible) -->
+                        <div id="pdf-view" class="right-panel-view">
+                            <!-- PDF Header (hidden template - content copied to shared header) -->
+                            <div class="panel-header panel-header-template" id="pdf-panel-header">
+                                <div class="header-left">
+                                    <!-- Compile Button (hidden, triggered from dropdown) -->
+                                    <button id="compile-btn-toolbar"
+                                            class="btn btn-sm btn-primary hidden"
+                                            title="Compile entire manuscript to PDF (all sections combined)">
+                                        <i class="fas fa-rocket me-1"></i><span id="compile-btn-text">Compile Full Manuscript</span>
+                                    </button>
+                                </div>
+                                <div class="header-right">
+                                    <!-- Compilation Status Indicators (wrapped for tour highlight) -->
+                                    <div class="compilation-status-indicators">
+                                        <!-- 1. Preview Compilation Status LED -->
+                                        <div class="status-indicator-group"
+                                             onclick="if(window.handlePreviewClick){window.handlePreviewClick()}else{togglePreviewLog()}"
+                                             title="Click to compile preview">
+                                            <span class="status-indicator-label">Preview</span>
+                                            <span class="status-lamp-dot" id="preview-status-lamp" data-status="idle"></span>
+                                        </div>
+                                        <!-- 2. Full Compilation Status LED -->
+                                        <div class="status-indicator-group"
+                                             onclick="if(window.handleFullCompileClick){window.handleFullCompileClick()}else{toggleFullLog()}"
+                                             title="Click to compile full manuscript">
+                                            <span class="status-indicator-label">Full</span>
+                                            <span class="status-lamp-dot" id="fullcompile-status-lamp" data-status="idle"></span>
+                                        </div>
                                     </div>
-                                    <!-- 2. Full Compilation Status LED -->
-                                    <div class="status-indicator-group"
-                                         onclick="if(window.handleFullCompileClick){window.handleFullCompileClick()}else{toggleFullLog()}"
-                                         title="Click to compile full manuscript">
-                                        <span class="status-indicator-label">Full</span>
-                                        <span class="status-lamp-dot" id="fullcompile-status-lamp" data-status="idle"></span>
+                                    <!-- 6. Download Current PDF Button -->
+                                    <button id="download-btn-toolbar"
+                                            class="btn btn-sm btn-outline-success"
+                                            title="Download PDF"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="bottom"
+                                            onclick="handleDownloadCurrentPDF(event)">
+                                        <i class="fas fa-download"></i>
+                                        <span class="visually-hidden">Download PDF</span>
+                                    </button>
+                                    <!-- 3. Compilation Settings Gear -->
+                                    <button id="compilation-settings-btn"
+                                            class="btn btn-sm btn-outline-secondary"
+                                            title="Compilation Settings">
+                                        <i class="fas fa-cog"></i>
+                                    </button>
+                                    <!-- Hidden checkboxes (controlled by settings modal) -->
+                                    <input type="checkbox"
+                                           id="auto-preview-checkbox-panel"
+                                           class="form-check-input hidden"
+                                           checked />
+                                    <input type="checkbox" id="auto-fullcompile-checkbox" class="form-check-input hidden" />
+                                    <!-- 4. PDF Zoom Selector (Size Dropdown) -->
+                                    <select id="pdf-zoom-select"
+                                            class="form-select form-select-sm"
+                                            aria-label="PDF Zoom Level">
+                                        <option value="fit-width" selected>Fit to Width</option>
+                                        <option value="50">50%</option>
+                                        <option value="75">75%</option>
+                                        <option value="100">100%</option>
+                                        <option value="125">125%</option>
+                                        <option value="150">150%</option>
+                                        <option value="200">200%</option>
+                                    </select>
+                                    <!-- 4.2 PDF Render Quality (DPI) Selector -->
+                                    <select id="pdf-dpi-select"
+                                            class="form-select form-select-sm"
+                                            aria-label="PDF Render Quality"
+                                            title="Render quality (DPI)">
+                                        <option value="1.0">Draft</option>
+                                        <option value="2.0" selected>Standard</option>
+                                        <option value="3.0">High</option>
+                                        <option value="4.0">Ultra</option>
+                                    </select>
+                                    <!-- 4.5 PDF Pan Mode Toggle Button -->
+                                    <button id="pdf-pan-mode-btn"
+                                            class="btn btn-sm btn-outline-secondary"
+                                            onclick="togglePdfPanMode()"
+                                            title="Toggle Hand/Pan Mode (Ctrl+Space H)"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="bottom">
+                                        <i class="fas fa-hand-paper"></i>
+                                    </button>
+                                    <!-- 5. PDF Theme Toggle (Light/Dark) -->
+                                    <button id="pdf-color-mode-btn"
+                                            class="btn btn-sm btn-outline-secondary"
+                                            title="PDF Theme: Light (Click to toggle)"
+                                            onclick="window.togglePdfColorMode && window.togglePdfColorMode()">
+                                        <i class="fas fa-sun theme-icon"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- PDF Content -->
+                            <div id="text-preview" class="text-preview"></div>
+                        </div>
+                        <!-- Citations View (hidden by default) -->
+                        <div id="citations-view" class="right-panel-view" hidden>
+                            <!-- Citations Header (hidden template - content copied to shared header) -->
+                            <div class="panel-header panel-header-template" id="citations-panel-header">
+                                <div class="header-left"></div>
+                                <div class="header-right">
+                                    <!-- 1. Citations Selection Count -->
+                                    <span id="citations-selected-toolbar">
+                                        <span id="citations-selected-count-toolbar">0</span>/<span id="citations-total-for-selection-toolbar">0</span> Selected
+                                    </span>
+                                    <!-- 2. Search Input (Compact) -->
+                                    <div>
+                                        <i class="fas fa-search"></i>
+                                        <input type="text"
+                                               id="citations-search-toolbar"
+                                               class="form-control form-control-sm"
+                                               placeholder="Search Citations..." />
+                                        <kbd>Ctrl+K</kbd>
                                     </div>
+                                    <!-- 3. Sort Select (Compact) -->
+                                    <div>
+                                        <i class="fas fa-sort-amount-down"></i>
+                                        <select id="citations-sort-toolbar" class="form-select form-select-sm">
+                                            <option value="citation-count">Citations ↓</option>
+                                            <option value="year-desc">Year ↓</option>
+                                            <option value="year-asc">Year ↑</option>
+                                            <option value="alpha">A→Z</option>
+                                        </select>
+                                    </div>
+                                    <!-- 4. Download Citations as BibTeX Button (Far Right) -->
+                                    <button class="btn btn-sm btn-outline-secondary"
+                                            id="download-citations-bibtex"
+                                            title="Download Citations (BibTeX)"
+                                            onclick="handleDownloadCitationsBibTeX(event)">
+                                        <i class="fas fa-download"></i>
+                                        <span class="visually-hidden">Download BibTeX</span>
+                                    </button>
                                 </div>
-                                <!-- 6. Download Current PDF Button -->
-                                <button id="download-btn-toolbar"
-                                        class="btn btn-sm btn-outline-success"
-                                        title="Download PDF"
-                                        data-bs-toggle="tooltip"
-                                        data-bs-placement="bottom"
-                                        onclick="handleDownloadCurrentPDF(event)">
-                                    <i class="fas fa-download"></i>
-                                    <span class="visually-hidden">Download PDF</span>
-                                </button>
-                                <!-- 3. Compilation Settings Gear -->
-                                <button id="compilation-settings-btn"
-                                        class="btn btn-sm btn-outline-secondary"
-                                        title="Compilation Settings">
-                                    <i class="fas fa-cog"></i>
-                                </button>
-                                <!-- Hidden checkboxes (controlled by settings modal) -->
-                                <input type="checkbox"
-                                       id="auto-preview-checkbox-panel"
-                                       class="form-check-input hidden"
-                                       checked />
-                                <input type="checkbox" id="auto-fullcompile-checkbox" class="form-check-input hidden" />
-                                <!-- 4. PDF Zoom Selector (Size Dropdown) -->
-                                <select id="pdf-zoom-select"
-                                        class="form-select form-select-sm"
-                                        aria-label="PDF Zoom Level">
-                                    <option value="fit-width" selected>Fit to Width</option>
-                                    <option value="50">50%</option>
-                                    <option value="75">75%</option>
-                                    <option value="100">100%</option>
-                                    <option value="125">125%</option>
-                                    <option value="150">150%</option>
-                                    <option value="200">200%</option>
-                                </select>
-                                <!-- 4.2 PDF Render Quality (DPI) Selector -->
-                                <select id="pdf-dpi-select"
-                                        class="form-select form-select-sm"
-                                        aria-label="PDF Render Quality"
-                                        title="Render quality (DPI)">
-                                    <option value="1.0">Draft</option>
-                                    <option value="2.0" selected>Standard</option>
-                                    <option value="3.0">High</option>
-                                    <option value="4.0">Ultra</option>
-                                </select>
-                                <!-- 4.5 PDF Pan Mode Toggle Button -->
-                                <button id="pdf-pan-mode-btn"
-                                        class="btn btn-sm btn-outline-secondary"
-                                        onclick="togglePdfPanMode()"
-                                        title="Toggle Hand/Pan Mode (Ctrl+Space H)"
-                                        data-bs-toggle="tooltip"
-                                        data-bs-placement="bottom">
-                                    <i class="fas fa-hand-paper"></i>
-                                </button>
-                                <!-- 5. PDF Theme Toggle (Light/Dark) -->
-                                <button id="pdf-color-mode-btn"
-                                        class="btn btn-sm btn-outline-secondary"
-                                        title="PDF Theme: Light (Click to toggle)"
-                                        onclick="window.togglePdfColorMode && window.togglePdfColorMode()">
-                                    <i class="fas fa-sun theme-icon"></i>
-                                </button>
                             </div>
+                            <!-- Citations Content -->
+                            {% include "writer_app/index_partials/citations_panel.html" %}
                         </div>
-                        <!-- PDF Content -->
-                        <div id="text-preview" class="text-preview"></div>
-                    </div>
-                    <!-- Citations View (hidden by default) -->
-                    <div id="citations-view" class="right-panel-view" hidden>
-                        <!-- Citations Header (hidden template - content copied to shared header) -->
-                        <div class="panel-header panel-header-template" id="citations-panel-header">
-                            <div class="header-left">
-                                <!-- View Toggle -->
-                                {% include "writer_app/index_partials/panel_view_switcher.html" with active_view="citations" %}
-                            </div>
-                            <div class="header-right">
-                                <!-- 1. Citations Selection Count -->
-                                <span id="citations-selected-toolbar">
-                                    <span id="citations-selected-count-toolbar">0</span>/<span id="citations-total-for-selection-toolbar">0</span> Selected
-                                </span>
-                                <!-- 2. Search Input (Compact) -->
-                                <div>
-                                    <i class="fas fa-search"></i>
-                                    <input type="text"
-                                           id="citations-search-toolbar"
-                                           class="form-control form-control-sm"
-                                           placeholder="Search Citations..." />
-                                    <kbd>Ctrl+K</kbd>
+                        <!-- Figures View (hidden by default) -->
+                        <div id="figures-view" class="right-panel-view" hidden>
+                            <!-- Figures Header (hidden template - content copied to shared header) -->
+                            <div class="panel-header panel-header-template" id="figures-panel-header">
+                                <div class="header-left"></div>
+                                <div class="header-right">
+                                    <!-- 1. Figures Selection Count -->
+                                    <span id="figures-selected-toolbar">
+                                        <span id="figures-selected-count-toolbar">0</span>/<span id="figures-total-for-selection-toolbar">0</span> Selected
+                                    </span>
+                                    <!-- 2. Search Input (Compact) -->
+                                    <div>
+                                        <i class="fas fa-search"></i>
+                                        <input type="text"
+                                               id="figures-search-toolbar"
+                                               class="form-control form-control-sm"
+                                               placeholder="Search Figures..." />
+                                        <kbd>Ctrl+Shift+F</kbd>
+                                    </div>
+                                    <!-- 3. Sort Select (Compact) -->
+                                    <div>
+                                        <i class="fas fa-sort-amount-down"></i>
+                                        <select id="figures-sort-toolbar" class="form-select form-select-sm">
+                                            <option value="name">Name A→Z</option>
+                                            <option value="name-desc">Name Z→A</option>
+                                            <option value="size">Size ↑</option>
+                                            <option value="size-desc">Size ↓</option>
+                                            <option value="recent">Recently Added</option>
+                                        </select>
+                                    </div>
+                                    <!-- 4. Upload Figure Button (Far Right) -->
+                                    <button class="btn btn-sm btn-outline-secondary"
+                                            id="upload-figure-btn"
+                                            title="Upload Figure"
+                                            onclick="handleUploadFigure(event)">
+                                        <i class="fas fa-upload"></i>
+                                        <span class="visually-hidden">Upload Figure</span>
+                                    </button>
                                 </div>
-                                <!-- 3. Sort Select (Compact) -->
-                                <div>
-                                    <i class="fas fa-sort-amount-down"></i>
-                                    <select id="citations-sort-toolbar" class="form-select form-select-sm">
-                                        <option value="citation-count">Citations ↓</option>
-                                        <option value="year-desc">Year ↓</option>
-                                        <option value="year-asc">Year ↑</option>
-                                        <option value="alpha">A→Z</option>
+                            </div>
+                            <!-- Figures Content -->
+                            {% include "writer_app/index_partials/figures_panel.html" %}
+                        </div>
+                        <!-- Tables View (hidden by default) -->
+                        <div id="tables-view" class="right-panel-view" hidden>
+                            <!-- Tables Panel Header (hidden template - content copied to shared header) -->
+                            <div class="panel-header panel-header-template" id="tables-panel-header">
+                                <div class="header-left"></div>
+                                <div class="header-right">
+                                    <!-- 1. Tables Selection Count -->
+                                    <span id="tables-selected-toolbar">
+                                        <span id="tables-selected-count-toolbar">0</span>/<span id="tables-total-for-selection-toolbar">0</span> Selected
+                                    </span>
+                                </div>
+                            </div>
+                            <!-- Tables Content -->
+                            {% include "writer_app/index_partials/tables_panel.html" %}
+                        </div>
+                        <!-- History View (hidden by default) -->
+                        <div id="history-view" class="right-panel-view" hidden>
+                            <!-- History Panel Header (hidden template - content copied to shared header) -->
+                            <div class="panel-header panel-header-template" id="history-panel-header">
+                                <div class="header-left"></div>
+                                <div class="header-right">
+                                    <!-- Branch Selector -->
+                                    <select id="gitBranchSelect" class="form-select form-select-sm">
+                                        <option value="main">Current Branch</option>
                                     </select>
+                                    <!-- Refresh Button -->
+                                    <button id="gitRefreshBtn"
+                                            class="btn btn-sm btn-outline-secondary"
+                                            title="Refresh history">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                    <!-- Git Status Badge -->
+                                    <span id="gitStatusBadge" class="badge bg-success">
+                                        <i class="fas fa-check-circle"></i> Working directory clean
+                                    </span>
                                 </div>
-                                <!-- 4. Download Citations as BibTeX Button (Far Right) -->
-                                <button class="btn btn-sm btn-outline-secondary"
-                                        id="download-citations-bibtex"
-                                        title="Download Citations (BibTeX)"
-                                        onclick="handleDownloadCitationsBibTeX(event)">
-                                    <i class="fas fa-download"></i>
-                                    <span class="visually-hidden">Download BibTeX</span>
-                                </button>
                             </div>
+                            <!-- History Content -->
+                            {% include "writer_app/index_partials/history_panel.html" %}
                         </div>
-                        <!-- Citations Content -->
-                        {% include "writer_app/index_partials/citations_panel.html" %}
+                        <!-- Collaboration View (hidden by default) -->
+                        {% include "writer_app/index_partials/collaboration_pane.html" %}
                     </div>
-                    <!-- Figures View (hidden by default) -->
-                    <div id="figures-view" class="right-panel-view" hidden>
-                        <!-- Figures Header (hidden template - content copied to shared header) -->
-                        <div class="panel-header panel-header-template" id="figures-panel-header">
-                            <div class="header-left">
-                                <!-- View Toggle -->
-                                {% include "writer_app/index_partials/panel_view_switcher.html" with active_view="figures" %}
-                            </div>
-                            <div class="header-right">
-                                <!-- 1. Figures Selection Count -->
-                                <span id="figures-selected-toolbar">
-                                    <span id="figures-selected-count-toolbar">0</span>/<span id="figures-total-for-selection-toolbar">0</span> Selected
-                                </span>
-                                <!-- 2. Search Input (Compact) -->
-                                <div>
-                                    <i class="fas fa-search"></i>
-                                    <input type="text"
-                                           id="figures-search-toolbar"
-                                           class="form-control form-control-sm"
-                                           placeholder="Search Figures..." />
-                                    <kbd>Ctrl+Shift+F</kbd>
-                                </div>
-                                <!-- 3. Sort Select (Compact) -->
-                                <div>
-                                    <i class="fas fa-sort-amount-down"></i>
-                                    <select id="figures-sort-toolbar" class="form-select form-select-sm">
-                                        <option value="name">Name A→Z</option>
-                                        <option value="name-desc">Name Z→A</option>
-                                        <option value="size">Size ↑</option>
-                                        <option value="size-desc">Size ↓</option>
-                                        <option value="recent">Recently Added</option>
-                                    </select>
-                                </div>
-                                <!-- 4. Upload Figure Button (Far Right) -->
-                                <button class="btn btn-sm btn-outline-secondary"
-                                        id="upload-figure-btn"
-                                        title="Upload Figure"
-                                        onclick="handleUploadFigure(event)">
-                                    <i class="fas fa-upload"></i>
-                                    <span class="visually-hidden">Upload Figure</span>
-                                </button>
-                            </div>
-                        </div>
-                        <!-- Figures Content -->
-                        {% include "writer_app/index_partials/figures_panel.html" %}
-                    </div>
-                    <!-- Tables View (hidden by default) -->
-                    <div id="tables-view" class="right-panel-view" hidden>
-                        <!-- Tables Panel Header (hidden template - content copied to shared header) -->
-                        <div class="panel-header panel-header-template" id="tables-panel-header">
-                            <div class="header-left">
-                                {% include "writer_app/index_partials/panel_view_switcher.html" with active_view="tables" %}
-                            </div>
-                            <div class="header-right">
-                                <!-- 1. Tables Selection Count -->
-                                <span id="tables-selected-toolbar">
-                                    <span id="tables-selected-count-toolbar">0</span>/<span id="tables-total-for-selection-toolbar">0</span> Selected
-                                </span>
-                            </div>
-                        </div>
-                        <!-- Tables Content -->
-                        {% include "writer_app/index_partials/tables_panel.html" %}
-                    </div>
-                    <!-- History View (hidden by default) -->
-                    <div id="history-view" class="right-panel-view" hidden>
-                        <!-- History Panel Header (hidden template - content copied to shared header) -->
-                        <div class="panel-header panel-header-template" id="history-panel-header">
-                            <div class="header-left">
-                                {% include "writer_app/index_partials/panel_view_switcher.html" with active_view="history" %}
-                            </div>
-                            <div class="header-right">
-                                <!-- Branch Selector -->
-                                <select id="gitBranchSelect" class="form-select form-select-sm">
-                                    <option value="main">Current Branch</option>
-                                </select>
-                                <!-- Refresh Button -->
-                                <button id="gitRefreshBtn"
-                                        class="btn btn-sm btn-outline-secondary"
-                                        title="Refresh history">
-                                    <i class="fas fa-sync-alt"></i>
-                                </button>
-                                <!-- Git Status Badge -->
-                                <span id="gitStatusBadge" class="badge bg-success">
-                                    <i class="fas fa-check-circle"></i> Working directory clean
-                                </span>
-                            </div>
-                        </div>
-                        <!-- History Content -->
-                        {% include "writer_app/index_partials/history_panel.html" %}
-                    </div>
-                    <!-- Collaboration View (hidden by default) -->
-                    {% include "writer_app/index_partials/collaboration_pane.html" %}
+                    <!-- end preview-body -->
                 </div>
             </div>
         </div>

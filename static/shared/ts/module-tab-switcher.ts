@@ -115,18 +115,9 @@ function updateActiveTab(name: string): void {
   const pane = document.getElementById("main-content");
   if (pane) {
     pane.setAttribute("data-module-accent", name);
-    // Propagate user custom accent color from tab button inline style
-    const activeBtn = document.querySelector(
-      `.module-tab-btn[data-module="${name}"]`,
-    ) as HTMLElement | null;
-    const customAccent = activeBtn?.style.getPropertyValue(
-      "--module-accent-color",
-    );
-    if (customAccent) {
-      pane.style.setProperty("--module-accent-color", customAccent);
-    } else {
-      pane.style.removeProperty("--module-accent-color");
-    }
+    // CSS [data-module-accent="<name>"] rules handle --module-accent-color resolution.
+    // Clear any stale inline override so CSS takes effect.
+    pane.style.removeProperty("--module-accent-color");
   }
 }
 

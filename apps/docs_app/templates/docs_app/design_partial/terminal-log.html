@@ -1,0 +1,271 @@
+<!-- Terminal Log Component -->
+<section class="design-section container-section" id="terminal-log">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25Z">
+                </path>
+                <path d="M7.25 8a.749.749 0 0 1-.22.53l-2.25 2.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L5.44 8 3.72 6.28a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.25 2.25c.141.14.22.331.22.53Zm1.5 1.5h3a.75.75 0 0 1 0 1.5h-3a.75.75 0 0 1 0-1.5Z">
+                </path>
+            </svg>
+            Terminal Log
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/components/terminal-log.css</span>
+    </div>
+    <p class="text-intro">
+        Terminal-style log display component for real-time process monitoring. Used
+        in BibTeX enrichment, batch operations, and long-running tasks with
+        monospace font and semantic color coding.
+    </p>
+    <!-- Basic Terminal Log -->
+    <div class="demo-box">
+        <h3 class="mb-3">Basic Terminal Log</h3>
+        <p class="text-muted mb-3">Default terminal log with monospace font and auto-scrolling</p>
+        <div class="terminal-log">
+            Initializing... Processing file: example.bib Found 10 entries Enriching
+            with abstracts and metadata... ✓ Complete
+        </div>
+    </div>
+    <!-- Terminal Log Message Types -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Message Types</h3>
+        <p class="text-muted mb-3">Different message types with semantic colors</p>
+        <div class="terminal-log">
+            <span class="terminal-log__success">✓ Success:</span> Operation completed
+            successfully <span class="terminal-log__error">✗ Error:</span> Failed to
+            process file
+            <span class="terminal-log__warning">⚠ Warning:</span> Missing required
+            field <span class="terminal-log__info">ℹ Info:</span> Processing 5 items
+            <span class="terminal-log__timestamp">[2025-10-24 20:50:35]</span> Task
+            started
+        </div>
+    </div>
+    <!-- Terminal Log Sizes -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Size Variants</h3>
+        <div class="row">
+            <div class="col-md-6">
+                <h4 class="h6 mb-2">Compact (100px)</h4>
+                <div class="terminal-log terminal-log--compact">Line 1 Line 2 Line 3 Line 4 Line 5</div>
+            </div>
+            <div class="col-md-6">
+                <h4 class="h6 mb-2">Medium (150px, default)</h4>
+                <div class="terminal-log terminal-log--medium">Line 1 Line 2 Line 3 Line 4 Line 5 Line 6 Line 7</div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <h4 class="h6 mb-2">Large (300px)</h4>
+                <div class="terminal-log terminal-log--large">
+                    Line 1 Line 2 Line 3 Line 4 Line 5 Line 6 Line 7 Line 8 Line 9 Line 10
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h4 class="h6 mb-2">Full (600px)</h4>
+                <div class="terminal-log terminal-log--full">
+                    Line 1 Line 2 Line 3 Line 4 Line 5 Line 6 Line 7 Line 8 Line 9 Line 10
+                    Line 11 Line 12 Line 13 Line 14 Line 15
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Terminal Log States -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">State Indicators</h3>
+        <div class="row">
+            <div class="col-md-4">
+                <h4 class="h6 mb-2">Processing</h4>
+                <div class="terminal-log terminal-log--processing terminal-log--compact">
+                    Processing... Analyzing data... Almost done...
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h4 class="h6 mb-2">Success</h4>
+                <div class="terminal-log terminal-log--success terminal-log--compact">
+                    ✓ All tests passed ✓ Build successful ✓ Deployment complete
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h4 class="h6 mb-2">Error</h4>
+                <div class="terminal-log terminal-log--error terminal-log--compact">
+                    ✗ Build failed ✗ Test suite failed ✗ Connection error
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Usage Example -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">HTML Usage</h3>
+        <pre class="code-block" data-language="html"><code class="language-html">&lt;!-- Basic terminal log --&gt;
+&lt;div class="terminal-log"&gt;
+  Processing...
+  &lt;span class="terminal-log__success"&gt;✓ Complete&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;!-- Terminal log with container and header --&gt;
+&lt;div class="terminal-log-container"&gt;
+  &lt;div class="terminal-log-container__header"&gt;
+    &lt;h3 class="terminal-log-container__title"&gt;Processing Log&lt;/h3&gt;
+    &lt;div class="terminal-log-container__actions"&gt;
+      &lt;button class="terminal-log-container__action"&gt;Copy&lt;/button&gt;
+      &lt;button class="terminal-log-container__action"&gt;Clear&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="terminal-log terminal-log--large terminal-log--processing"&gt;
+    &lt;span class="terminal-log__info"&gt;Starting process...&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+    </div>
+    <!-- JavaScript Integration -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">JavaScript Integration</h3>
+        <p class="text-muted mb-3">Append messages programmatically and auto-scroll to bottom</p>
+        <pre class="code-block" data-language="javascript"><code class="language-javascript">// Append log message and auto-scroll
+function appendLog(logElement, message, type = 'info') {
+  const span = document.createElement('span');
+  span.className = `terminal-log__${type}`;
+  span.textContent = message;
+
+  logElement.appendChild(document.createTextNode('\n'));
+  logElement.appendChild(span);
+
+  // Auto-scroll to bottom
+  logElement.scrollTop = logElement.scrollHeight;
+}
+
+// Usage
+const log = document.querySelector('.terminal-log');
+appendLog(log, '✓ Task completed', 'success');
+appendLog(log, '✗ Error occurred', 'error');
+appendLog(log, '⚠ Warning message', 'warning');
+appendLog(log, 'ℹ Information', 'info');</code></pre>
+    </div>
+    <!-- CSS Classes Reference -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">CSS Classes Reference</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Class</th>
+                    <th>Purpose</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>.terminal-log</code>
+                    </td>
+                    <td>Base terminal log container</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>.terminal-log--compact</code>
+                    </td>
+                    <td>Compact size (100px height)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>.terminal-log--medium</code>
+                    </td>
+                    <td>Medium size (150px height, default)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>.terminal-log--large</code>
+                    </td>
+                    <td>Large size (300px height)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>.terminal-log--full</code>
+                    </td>
+                    <td>Full size (600px height)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>.terminal-log--processing</code>
+                    </td>
+                    <td>Processing state (info color border)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>.terminal-log--success</code>
+                    </td>
+                    <td>Success state (success color border)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>.terminal-log--error</code>
+                    </td>
+                    <td>Error state (error color border)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>.terminal-log__success</code>
+                    </td>
+                    <td>Success message text (green)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>.terminal-log__error</code>
+                    </td>
+                    <td>Error message text (red)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>.terminal-log__warning</code>
+                    </td>
+                    <td>Warning message text (yellow)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>.terminal-log__info</code>
+                    </td>
+                    <td>Info message text (cyan)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>.terminal-log__timestamp</code>
+                    </td>
+                    <td>Timestamp text (muted)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>.terminal-log__cursor</code>
+                    </td>
+                    <td>Blinking cursor animation</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- Best Practices -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Best Practices</h3>
+        <ul>
+            <li>
+                <strong>Use semantic message types</strong> - Apply appropriate classes
+                for success, error, warning, and info messages
+            </li>
+            <li>
+                <strong>Auto-scroll</strong> - Always scroll to bottom when appending
+                new messages for real-time monitoring
+            </li>
+            <li>
+                <strong>Size appropriately</strong> - Use compact for simple tasks,
+                large for detailed logging
+            </li>
+            <li>
+                <strong>Add timestamps</strong> - Include timestamps for debugging and
+                tracking
+            </li>
+            <li>
+                <strong>Limit history</strong> - For long-running processes, consider
+                limiting log history to prevent memory issues
+            </li>
+            <li>
+                <strong>Provide controls</strong> - Add copy and clear buttons for user
+                convenience
+            </li>
+        </ul>
+    </div>
+</section>

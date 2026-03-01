@@ -76,7 +76,7 @@ function clearInlineStyles(panel: HTMLElement): void {
 export function togglePanel(panelType: PanelType): void {
   const editorPanel = document.querySelector(".latex-panel") as HTMLElement;
   const previewPanel = document.querySelector(".preview-panel") as HTMLElement;
-  const panelResizer = document.getElementById("panel-resizer");
+  const panelResizer = document.getElementById("writer-editor-resizer");
 
   // NOTE: Sidebar and Details toggle is handled by shared/workspace-panel-resizer.ts
   // This function only handles editor/preview toggle for the unique three-state behavior
@@ -216,7 +216,7 @@ export function restorePanelStates(): void {
   const state = getStoredState();
   const editorPanel = document.querySelector(".latex-panel") as HTMLElement;
   const previewPanel = document.querySelector(".preview-panel") as HTMLElement;
-  const panelResizer = document.getElementById("panel-resizer");
+  const panelResizer = document.getElementById("writer-editor-resizer");
 
   // NOTE: Sidebar and details state restoration is handled by WorkspacePanelResizer
 
@@ -257,7 +257,7 @@ export function initPanelToggle(): void {
   // NOTE: Sidebar and details toggle click handlers are now set up by
   // shared/workspace-panel-resizer.ts via data-toggle-btn attributes
 
-  // Double-click on panel headers to collapse/expand (no toggle buttons shown)
+  // Click/double-click on panel headers to collapse/expand
   const editorPanelEl = document.querySelector(".latex-panel") as HTMLElement;
   const previewPanelEl = document.querySelector(
     ".preview-panel",
@@ -268,10 +268,28 @@ export function initPanelToggle(): void {
   const previewHeader = previewPanelEl?.querySelector(
     ".panel-header",
   ) as HTMLElement;
+
+  // Double-click on header to collapse when expanded
   if (editorHeader)
     editorHeader.addEventListener("dblclick", () => togglePanel("editor"));
   if (previewHeader)
     previewHeader.addEventListener("dblclick", () => togglePanel("preview"));
+
+  // Single-click on collapsed strip to expand (toggle button is hidden via CSS)
+  if (editorPanelEl) {
+    editorPanelEl.addEventListener("click", () => {
+      if (editorPanelEl.classList.contains("collapsed")) {
+        togglePanel("editor");
+      }
+    });
+  }
+  if (previewPanelEl) {
+    previewPanelEl.addEventListener("click", () => {
+      if (previewPanelEl.classList.contains("collapsed")) {
+        togglePanel("preview");
+      }
+    });
+  }
 
   // Set up keyboard shortcuts for editor/preview only
   document.addEventListener("keydown", (e: KeyboardEvent) => {

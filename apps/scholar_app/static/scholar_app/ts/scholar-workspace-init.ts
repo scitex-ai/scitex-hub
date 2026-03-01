@@ -10,12 +10,9 @@ import "./search/pdf-download";
 // Import search main functionality (auto-initializes on DOM ready)
 import "./search/search-main";
 
-// Import inline column resizers
-import { initInlineResizers } from "./common/inline-resizer";
+// Inline resizers migrated to unified resizer system (data-h-resizer auto-init)
 
 async function initScholarWorkspace(): Promise<void> {
-  // Initialize inline column resizers for all tabs
-  initInlineResizers();
   // Library tab initialization
   let libraryInitialized = false;
   const loadLibrary = async () => {

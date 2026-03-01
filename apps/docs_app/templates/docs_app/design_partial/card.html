@@ -1,0 +1,170 @@
+<!-- Card Component -->
+<section class="design-section container-section" id="card">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z" />
+                <path d="M3 5.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM3 8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 8zm0 2.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5z" />
+            </svg>
+            Card
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/components/cards.css</span>
+    </div>
+    <p class="text-intro">
+        Flexible content containers with optional headers, body sections, and
+        footers for organizing related information.
+    </p>
+    <div class="demo-box">
+        <h3 class="mb-4">Basic Cards</h3>
+        <div style="display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                    gap: 1.5rem">
+            <!-- Basic Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Basic Card</h3>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        This is a basic card with header and body. It provides a simple
+                        container for content organization.
+                    </p>
+                </div>
+            </div>
+            <!-- Card with Subtitle -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Card with Subtitle</h5>
+                    <h6 class="card-subtitle">Includes subtitle text</h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">This card demonstrates subtitle text in the header section.</p>
+                </div>
+            </div>
+            <!-- Card with Footer -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Card with Actions</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">This card demonstrates action buttons in the footer section.</p>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-secondary btn-sm">Cancel</button>
+                    <button class="btn btn-primary btn-sm">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Interactive Cards</h3>
+        <div style="display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                    gap: 1.5rem">
+            <!-- Clickable Card -->
+            <div class="card card-clickable">
+                <div class="card-body">
+                    <h5 class="card-title">Clickable Card</h5>
+                    <p class="card-text">This card uses .card-clickable for hover and active states.</p>
+                </div>
+            </div>
+            <!-- Hoverable Card -->
+            <div class="card card-hover">
+                <div class="card-body">
+                    <h5 class="card-title">Hover Card</h5>
+                    <p class="card-text">This card uses .card-hover for hover effect only.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Color Variants</h3>
+        <div style="display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                    gap: 1.5rem">
+            <!-- Primary Card -->
+            <div class="card card-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Primary Card</h5>
+                    <p class="card-text">Card with primary color variant.</p>
+                </div>
+            </div>
+            <!-- Secondary Card -->
+            <div class="card card-secondary">
+                <div class="card-body">
+                    <h5 class="card-title">Secondary Card</h5>
+                    <p class="card-text">Card with secondary color variant.</p>
+                </div>
+            </div>
+            <!-- Accent Card -->
+            <div class="card card-accent">
+                <div class="card-body">
+                    <h5 class="card-title">Accent Card</h5>
+                    <p class="card-text">Card with accent color variant.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Specialized Cards</h3>
+        <div style="display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                    gap: 1.5rem">
+            <!-- Feature Card -->
+            <div class="card card--feature">
+                <div class="card-body">
+                    <h3>Feature Card</h3>
+                    <ul>
+                        <li>Feature one with checkmark</li>
+                        <li>Feature two with checkmark</li>
+                        <li>Feature three with checkmark</li>
+                    </ul>
+                </div>
+            </div>
+            <!-- Repository Card -->
+            <div class="card card--repo">
+                <div class="card-body">
+                    <h3>Repository Card</h3>
+                    <p>For project/repo listings with hover lift effect.</p>
+                </div>
+            </div>
+            <!-- Module Card -->
+            <div class="card card--module">
+                <div class="card-body">
+                    <h4>Module Card</h4>
+                    <p>For product/module showcases.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">HTML Examples</h3>
+        <pre data-language="html" style=" background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto; "><code class="language-html">&lt;!-- Basic Card --&gt;
+&lt;div class="card"&gt;
+  &lt;div class="card-header"&gt;
+    &lt;h5 class="card-title"&gt;Card Title&lt;/h5&gt;
+  &lt;/div&gt;
+  &lt;div class="card-body"&gt;
+    &lt;p class="card-text"&gt;Card content goes here.&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Card with Footer --&gt;
+&lt;div class="card"&gt;
+  &lt;div class="card-body"&gt;
+    &lt;p class="card-text"&gt;Content with actions.&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card-footer"&gt;
+    &lt;button class="btn btn-primary"&gt;Save&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Clickable Card --&gt;
+&lt;div class="card card-clickable"&gt;
+  &lt;div class="card-body"&gt;
+    &lt;h5 class="card-title"&gt;Interactive&lt;/h5&gt;
+    &lt;p class="card-text"&gt;Hover and click me!&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+    </div>
+</section>

@@ -1,0 +1,230 @@
+<!-- Segmented Radio Control Component -->
+<section class="design-section container-section" id="segmented-radio-control">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z" />
+            </svg>
+            Segmented Radio Control
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/components/forms/</span>
+    </div>
+    <p class="text-intro">
+        Segmented control component for mutually exclusive options styled as
+        connected buttons.
+    </p>
+    <div class="demo-box">
+        <h3 class="mb-4">Basic Segmented Control</h3>
+        <div class="component-demo">
+            <div class="btn-group btn-group-toggle"
+                 role="group"
+                 aria-label="Basic segmented control">
+                <input type="radio"
+                       class="btn-check"
+                       name="options1"
+                       id="option1a"
+                       autocomplete="off"
+                       checked />
+                <label class="btn btn-outline-primary" for="option1a">Option 1</label>
+                <input type="radio"
+                       class="btn-check"
+                       name="options1"
+                       id="option1b"
+                       autocomplete="off" />
+                <label class="btn btn-outline-primary" for="option1b">Option 2</label>
+                <input type="radio"
+                       class="btn-check"
+                       name="options1"
+                       id="option1c"
+                       autocomplete="off" />
+                <label class="btn btn-outline-primary" for="option1c">Option 3</label>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">View Selection</h3>
+        <div class="component-demo">
+            <div class="btn-group btn-group-toggle"
+                 role="group"
+                 aria-label="View selection">
+                <input type="radio"
+                       class="btn-check"
+                       name="view"
+                       id="view-grid"
+                       autocomplete="off"
+                       checked />
+                <label class="btn btn-outline-secondary" for="view-grid">📊 Grid</label>
+                <input type="radio"
+                       class="btn-check"
+                       name="view"
+                       id="view-list"
+                       autocomplete="off" />
+                <label class="btn btn-outline-secondary" for="view-list">📋 List</label>
+                <input type="radio"
+                       class="btn-check"
+                       name="view"
+                       id="view-cards"
+                       autocomplete="off" />
+                <label class="btn btn-outline-secondary" for="view-cards">🃏 Cards</label>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Time Period Selection</h3>
+        <div class="component-demo">
+            <div class="btn-group btn-group-toggle"
+                 role="group"
+                 aria-label="Time period">
+                <input type="radio"
+                       class="btn-check"
+                       name="period"
+                       id="period-day"
+                       autocomplete="off" />
+                <label class="btn btn-outline-primary" for="period-day">Day</label>
+                <input type="radio"
+                       class="btn-check"
+                       name="period"
+                       id="period-week"
+                       autocomplete="off"
+                       checked />
+                <label class="btn btn-outline-primary" for="period-week">Week</label>
+                <input type="radio"
+                       class="btn-check"
+                       name="period"
+                       id="period-month"
+                       autocomplete="off" />
+                <label class="btn btn-outline-primary" for="period-month">Month</label>
+                <input type="radio"
+                       class="btn-check"
+                       name="period"
+                       id="period-year"
+                       autocomplete="off" />
+                <label class="btn btn-outline-primary" for="period-year">Year</label>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Size Variants</h3>
+        <div class="component-demo"
+             style="display: flex;
+                    flex-direction: column;
+                    gap: 1.5rem;
+                    align-items: flex-start">
+            <!-- Small -->
+            <div>
+                <p style="color: var(--text-secondary);
+                          margin-bottom: 0.5rem;
+                          font-size: 0.875rem">Small</p>
+                <div class="btn-group btn-group-sm btn-group-toggle" role="group">
+                    <input type="radio"
+                           class="btn-check"
+                           name="size-sm"
+                           id="sm1"
+                           autocomplete="off"
+                           checked />
+                    <label class="btn btn-outline-secondary" for="sm1">Small 1</label>
+                    <input type="radio"
+                           class="btn-check"
+                           name="size-sm"
+                           id="sm2"
+                           autocomplete="off" />
+                    <label class="btn btn-outline-secondary" for="sm2">Small 2</label>
+                    <input type="radio"
+                           class="btn-check"
+                           name="size-sm"
+                           id="sm3"
+                           autocomplete="off" />
+                    <label class="btn btn-outline-secondary" for="sm3">Small 3</label>
+                </div>
+            </div>
+            <!-- Default -->
+            <div>
+                <p style="color: var(--text-secondary);
+                          margin-bottom: 0.5rem;
+                          font-size: 0.875rem">Default</p>
+                <div class="btn-group btn-group-toggle" role="group">
+                    <input type="radio"
+                           class="btn-check"
+                           name="size-md"
+                           id="md1"
+                           autocomplete="off"
+                           checked />
+                    <label class="btn btn-outline-secondary" for="md1">Default 1</label>
+                    <input type="radio"
+                           class="btn-check"
+                           name="size-md"
+                           id="md2"
+                           autocomplete="off" />
+                    <label class="btn btn-outline-secondary" for="md2">Default 2</label>
+                    <input type="radio"
+                           class="btn-check"
+                           name="size-md"
+                           id="md3"
+                           autocomplete="off" />
+                    <label class="btn btn-outline-secondary" for="md3">Default 3</label>
+                </div>
+            </div>
+            <!-- Large -->
+            <div>
+                <p style="color: var(--text-secondary);
+                          margin-bottom: 0.5rem;
+                          font-size: 0.875rem">Large</p>
+                <div class="btn-group btn-group-lg btn-group-toggle" role="group">
+                    <input type="radio"
+                           class="btn-check"
+                           name="size-lg"
+                           id="lg1"
+                           autocomplete="off"
+                           checked />
+                    <label class="btn btn-outline-secondary" for="lg1">Large 1</label>
+                    <input type="radio"
+                           class="btn-check"
+                           name="size-lg"
+                           id="lg2"
+                           autocomplete="off" />
+                    <label class="btn btn-outline-secondary" for="lg2">Large 2</label>
+                    <input type="radio"
+                           class="btn-check"
+                           name="size-lg"
+                           id="lg3"
+                           autocomplete="off" />
+                    <label class="btn btn-outline-secondary" for="lg3">Large 3</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">HTML Examples</h3>
+        <pre data-language="html" style=" background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto; "><code class="language-html">&lt;!-- Basic Segmented Control --&gt;
+&lt;div class="btn-group btn-group-toggle" role="group"&gt;
+  &lt;input type="radio" class="btn-check" name="options"
+         id="option1" autocomplete="off" checked&gt;
+  &lt;label class="btn btn-outline-primary" for="option1"&gt;
+    Option 1
+  &lt;/label&gt;
+
+  &lt;input type="radio" class="btn-check" name="options"
+         id="option2" autocomplete="off"&gt;
+  &lt;label class="btn btn-outline-primary" for="option2"&gt;
+    Option 2
+  &lt;/label&gt;
+
+  &lt;input type="radio" class="btn-check" name="options"
+         id="option3" autocomplete="off"&gt;
+  &lt;label class="btn btn-outline-primary" for="option3"&gt;
+    Option 3
+  &lt;/label&gt;
+&lt;/div&gt;
+
+&lt;!-- Small Size --&gt;
+&lt;div class="btn-group btn-group-sm btn-group-toggle"&gt;
+  &lt;!-- Radio buttons --&gt;
+&lt;/div&gt;
+
+&lt;!-- Large Size --&gt;
+&lt;div class="btn-group btn-group-lg btn-group-toggle"&gt;
+  &lt;!-- Radio buttons --&gt;
+&lt;/div&gt;</code></pre>
+    </div>
+</section>

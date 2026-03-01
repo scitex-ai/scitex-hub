@@ -143,3 +143,13 @@ class DesignHeroView(DesignSectionView):
 class DesignResizerView(DesignSectionView):
     def get(self, request):
         return super().get(request, "resizer")
+
+
+class DesignWorkspaceLayoutView(DesignSectionView):
+    def get(self, request):
+        return super().get(request, "workspace-layout")
+
+
+class DesignVisitorSystemView(DesignSectionView):
+    def get(self, request):
+        return super().get(request, "visitor-system")

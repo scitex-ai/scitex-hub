@@ -1,0 +1,167 @@
+<!-- Dropdown Menu Component -->
+<section class="design-section container-section" id="dropdown-menu">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
+            </svg>
+            Dropdown Menu
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/components/dropdown.css</span>
+    </div>
+    <p class="text-intro">Contextual menu overlay for displaying a list of links or actions.</p>
+    <div class="demo-box">
+        <h3 class="mb-4">Basic Dropdown</h3>
+        <div class="component-demo"
+             style="display: flex;
+                    gap: 1.5rem;
+                    flex-wrap: wrap">
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle"
+                        type="button"
+                        id="dropdown1"
+                        data-toggle="dropdown">Dropdown Button</button>
+                <div class="dropdown-menu" aria-labelledby="dropdown1">
+                    <a class="dropdown-item" href="#">Action</a>
+                    <a class="dropdown-item" href="#">Another action</a>
+                    <a class="dropdown-item" href="#">Something else</a>
+                </div>
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle"
+                        type="button"
+                        id="dropdown2"
+                        data-toggle="dropdown">Secondary Dropdown</button>
+                <div class="dropdown-menu" aria-labelledby="dropdown2">
+                    <a class="dropdown-item" href="#">Action</a>
+                    <a class="dropdown-item" href="#">Another action</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Dropdown with Dividers</h3>
+        <div class="component-demo">
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle"
+                        type="button"
+                        id="dropdown3"
+                        data-toggle="dropdown">Menu with Sections</button>
+                <div class="dropdown-menu" aria-labelledby="dropdown3">
+                    <a class="dropdown-item" href="#">Regular link</a>
+                    <a class="dropdown-item" href="#">Another link</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#">Separated link</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#">One more link</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Dropdown with Headers</h3>
+        <div class="component-demo">
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle"
+                        type="button"
+                        id="dropdown4"
+                        data-toggle="dropdown">Menu with Headers</button>
+                <div class="dropdown-menu" aria-labelledby="dropdown4">
+                    <h6 class="dropdown-header">Section 1</h6>
+                    <a class="dropdown-item" href="#">Action 1</a>
+                    <a class="dropdown-item" href="#">Action 2</a>
+                    <div class="dropdown-divider"></div>
+                    <h6 class="dropdown-header">Section 2</h6>
+                    <a class="dropdown-item" href="#">Action 3</a>
+                    <a class="dropdown-item" href="#">Action 4</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Dropdown with Disabled Items</h3>
+        <div class="component-demo">
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle"
+                        type="button"
+                        id="dropdown5"
+                        data-toggle="dropdown">Menu with Disabled Items</button>
+                <div class="dropdown-menu" aria-labelledby="dropdown5">
+                    <a class="dropdown-item" href="#">Active link</a>
+                    <a class="dropdown-item disabled"
+                       href="#"
+                       tabindex="-1"
+                       aria-disabled="true">Disabled link</a>
+                    <a class="dropdown-item" href="#">Another active link</a>
+                    <a class="dropdown-item disabled"
+                       href="#"
+                       tabindex="-1"
+                       aria-disabled="true">Another disabled link</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Dropdown Alignment</h3>
+        <div class="component-demo"
+             style="display: flex;
+                    gap: 1.5rem;
+                    flex-wrap: wrap">
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle"
+                        type="button"
+                        id="dropdown6"
+                        data-toggle="dropdown">Left-aligned (default)</button>
+                <div class="dropdown-menu" aria-labelledby="dropdown6">
+                    <a class="dropdown-item" href="#">Action</a>
+                    <a class="dropdown-item" href="#">Another action</a>
+                    <a class="dropdown-item" href="#">Something else</a>
+                </div>
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle"
+                        type="button"
+                        id="dropdown7"
+                        data-toggle="dropdown">Right-aligned</button>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown7">
+                    <a class="dropdown-item" href="#">Action</a>
+                    <a class="dropdown-item" href="#">Another action</a>
+                    <a class="dropdown-item" href="#">Something else</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">HTML Examples</h3>
+        <pre data-language="html" style=" background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto; "><code class="language-html">&lt;!-- Basic Dropdown --&gt;
+&lt;div class="dropdown"&gt;
+  &lt;button class="btn btn-primary dropdown-toggle" type="button"
+          id="dropdown1" data-toggle="dropdown"&gt;
+    Dropdown Button
+  &lt;/button&gt;
+  &lt;div class="dropdown-menu" aria-labelledby="dropdown1"&gt;
+    &lt;a class="dropdown-item" href="#"&gt;Action&lt;/a&gt;
+    &lt;a class="dropdown-item" href="#"&gt;Another action&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Dropdown with Dividers --&gt;
+&lt;div class="dropdown-menu"&gt;
+  &lt;a class="dropdown-item" href="#"&gt;Link 1&lt;/a&gt;
+  &lt;div class="dropdown-divider"&gt;&lt;/div&gt;
+  &lt;a class="dropdown-item" href="#"&gt;Link 2&lt;/a&gt;
+&lt;/div&gt;
+
+&lt;!-- Dropdown with Header --&gt;
+&lt;div class="dropdown-menu"&gt;
+  &lt;h6 class="dropdown-header"&gt;Section&lt;/h6&gt;
+  &lt;a class="dropdown-item" href="#"&gt;Action&lt;/a&gt;
+&lt;/div&gt;
+
+&lt;!-- Disabled Item --&gt;
+&lt;a class="dropdown-item disabled" href="#"
+   tabindex="-1" aria-disabled="true"&gt;
+  Disabled link
+&lt;/a&gt;</code></pre>
+    </div>
+</section>

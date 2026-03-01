@@ -436,8 +436,16 @@
                 <div class="scholar-search-container" style="flex:1; min-width:0; overflow-y:auto;">
                     {% include "scholar_app/search_partials/search.html" with show_results=True %}
                 </div>
-                <div class="scholar-tab-resizer" id="search-resizer"></div>
+                <div class="h-resizer scholar-tab-resizer"
+                     id="search-resizer"
+                     data-h-resizer
+                     data-in-app
+                     data-left=".scholar-search-container"
+                     data-right="#search-controls-panel"
+                     data-threshold="120"
+                     data-storage-key="scholar-search-split"></div>
                 <div class="search-controls-inline"
+                     id="search-controls-panel"
                      style="width:280px;
                             flex-shrink:0;
                             overflow-y:auto;
@@ -465,8 +473,16 @@
             {% include "writer_app/compilation_view_partials/ai2_modal.html" %}
         {% endif %}
     </div>
-    <div class="scholar-tab-resizer" id="bibtex-resizer"></div>
+    <div class="h-resizer scholar-tab-resizer"
+         id="bibtex-resizer"
+         data-h-resizer
+         data-in-app
+         data-left=".bibtex-main-content"
+         data-right="#bibtex-controls-panel"
+         data-threshold="120"
+         data-storage-key="scholar-bibtex-split"></div>
     <div class="bibtex-controls-inline"
+         id="bibtex-controls-panel"
          style="width:280px;
                 flex-shrink:0;
                 overflow-y:auto;
@@ -597,8 +613,16 @@
                     onclick="document.getElementById('graphError').classList.add('hidden')">Dismiss</button>
         </div>
     </div>
-    <div class="scholar-tab-resizer" id="graph-resizer"></div>
+    <div class="h-resizer scholar-tab-resizer"
+         id="graph-resizer"
+         data-h-resizer
+         data-in-app
+         data-left=".citation-graph-container"
+         data-right="#graph-controls-panel"
+         data-threshold="120"
+         data-storage-key="scholar-graph-split"></div>
     <div class="graph-controls-inline"
+         id="graph-controls-panel"
          style="width:280px;
                 flex-shrink:0;
                 overflow-y:auto;
@@ -691,7 +715,14 @@
 <!-- Library Tab: 3-column layout (paper list | details | integrations) -->
 <div id="tab-library" class="scholar-tab-content" data-tab="library">
     <div class="library-tab-inner">{% include "scholar_app/library_partials/library_main.html" %}</div>
-    <div class="library-resizer" id="library-resizer"></div>
+    <div class="h-resizer library-resizer"
+         id="library-resizer"
+         data-h-resizer
+         data-in-app
+         data-left=".library-tab-inner"
+         data-right="#library-details-panel"
+         data-threshold="120"
+         data-storage-key="scholar-library-split"></div>
     <div class="library-details-panel" id="library-details-panel">
         {% include "scholar_app/library_partials/library_details.html" %}
     </div>

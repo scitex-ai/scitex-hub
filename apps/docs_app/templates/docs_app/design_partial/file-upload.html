@@ -1,0 +1,119 @@
+<!-- File Upload Component -->
+<section class="design-section container-section" id="file-upload">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
+                <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z" />
+            </svg>
+            File Upload
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/components/forms/</span>
+    </div>
+    <p class="text-intro">File input controls for uploading documents, images, and other files.</p>
+    <div class="demo-box">
+        <h3 class="mb-4">Basic File Upload</h3>
+        <div class="component-demo" style="max-width: 500px">
+            <div class="form-group">
+                <label for="file1" class="form-label">Choose file</label>
+                <input type="file" class="form-control" id="file1" />
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Multiple File Upload</h3>
+        <div class="component-demo" style="max-width: 500px">
+            <div class="form-group">
+                <label for="file2" class="form-label">Choose multiple files</label>
+                <input type="file" class="form-control" id="file2" multiple />
+                <small class="form-text text-muted">You can select multiple files at once</small>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">File Upload with Accept Types</h3>
+        <div class="component-demo" style="max-width: 500px">
+            <div class="form-group" style="margin-bottom: 1.5rem">
+                <label for="file3" class="form-label">Images only</label>
+                <input type="file" class="form-control" id="file3" accept="image/*" />
+                <small class="form-text text-muted">Accepts: .jpg, .png, .gif, etc.</small>
+            </div>
+            <div class="form-group" style="margin-bottom: 1.5rem">
+                <label for="file4" class="form-label">Documents only</label>
+                <input type="file" class="form-control" id="file4" accept=".pdf,.doc,.docx" />
+                <small class="form-text text-muted">Accepts: .pdf, .doc, .docx</small>
+            </div>
+            <div class="form-group">
+                <label for="file5" class="form-label">CSV files only</label>
+                <input type="file" class="form-control" id="file5" accept=".csv" />
+                <small class="form-text text-muted">Accepts: .csv files</small>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Disabled File Upload</h3>
+        <div class="component-demo" style="max-width: 500px">
+            <div class="form-group">
+                <label for="file6" class="form-label">Disabled upload</label>
+                <input type="file" class="form-control" id="file6" disabled />
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Custom File Upload Button</h3>
+        <div class="component-demo" style="max-width: 500px">
+            <div class="custom-file-upload">
+                <label for="file7" class="btn btn-primary">📁 Choose File</label>
+                <input type="file" id="file7" style="display: none" />
+                <span class="file-name"
+                      style="margin-left: 1rem;
+                             color: var(--text-secondary)">No file chosen</span>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Drag and Drop Area (Visual Only)</h3>
+        <div class="component-demo">
+            <div class="file-drop-area"
+                 style="border: 2px dashed var(--border-default);
+                        border-radius: 8px;
+                        padding: 3rem;
+                        text-align: center;
+                        background-color: var(--bg-surface);
+                        cursor: pointer">
+                <div style="color: var(--text-secondary);
+                            font-size: 3rem;
+                            margin-bottom: 1rem">📤</div>
+                <p style="color: var(--text-primary);
+                          font-weight: 600;
+                          margin-bottom: 0.5rem">Drag and drop files here</p>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem">or</p>
+                <button class="btn btn-primary" type="button">Browse Files</button>
+                <p style="color: var(--text-muted);
+                          font-size: 0.875rem;
+                          margin-top: 1rem">Supported formats: JPG, PNG, PDF (max 10MB)</p>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">HTML Examples</h3>
+        <pre data-language="html" style=" background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto; "><code class="language-html">&lt;!-- Basic File Upload --&gt;
+&lt;div class="form-group"&gt;
+  &lt;label for="file1" class="form-label"&gt;Choose file&lt;/label&gt;
+  &lt;input type="file" class="form-control" id="file1"&gt;
+&lt;/div&gt;
+
+&lt;!-- Multiple Files --&gt;
+&lt;input type="file" class="form-control" multiple&gt;
+
+&lt;!-- Accept Specific Types --&gt;
+&lt;input type="file" class="form-control" accept="image/*"&gt;
+&lt;input type="file" class="form-control" accept=".pdf,.doc"&gt;
+
+&lt;!-- Custom Button --&gt;
+&lt;label for="file2" class="btn btn-primary"&gt;
+  Choose File
+&lt;/label&gt;
+&lt;input type="file" id="file2" style="display: none;"&gt;</code></pre>
+    </div>
+</section>
