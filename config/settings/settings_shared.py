@@ -152,7 +152,6 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [BASE_DIR / "templates"],
-        "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
@@ -169,6 +168,11 @@ TEMPLATES = [
                 "config.context_processors.site_branding",
                 "config.context_processors.scitex_env",
                 "apps.workspace_app.context_processors.workspace_context",
+            ],
+            "loaders": [
+                "django.template.loaders.filesystem.Loader",
+                "django.template.loaders.app_directories.Loader",
+                "apps.apps_app.template_loader.UserAppTemplateLoader",
             ],
         },
     },
