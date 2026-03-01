@@ -8,7 +8,7 @@
                  data-panel-resizer
                  data-target="#ws-worktree-sidebar"
                  data-direction="left"
-                 data-min-width="40"
+                 data-min-width="48"
                  data-default-width="240"
                  data-storage-key="ws-worktree-width"
                  data-collapse-key="ws-worktree-collapsed"
@@ -52,8 +52,18 @@
                         </div>
                     {% endif %}
                 </div>
-                <!-- Vertical split resizer -->
-                <div class="repo-monitor-resizer" id="repo-monitor-resizer"></div>
+                <!-- Vertical resizer: tree / repo monitor split -->
+                <div class="v-resizer"
+                     id="repo-monitor-resizer"
+                     data-v-resizer
+                     data-in-app
+                     data-top=".ws-worktree-tree-area"
+                     data-bottom=".ws-repo-monitor-area"
+                     data-icon="fa-clock-rotate-left"
+                     data-title="Recent"
+                     data-most-bottom
+                     data-threshold="48"
+                     data-storage-key="ws-repo-monitor-split"></div>
                 <!-- Repository Monitor -->
                 <div class="ws-repo-monitor-area collapsed"
                      id="ws-repo-monitor"

@@ -23,18 +23,19 @@
     <div class="writer-workspace">
         <!-- Main content: editor + preview -->
         <div class="writer-container">{% include "writer_app/index_partials/main_editor.html" %}</div>
-        <!-- Details resizer -->
-        <div class="panel-resizer"
+        <!-- Details resizer (unified resizer system) -->
+        <div class="h-resizer"
              id="writer-details-resizer"
-             data-panel-resizer
-             data-storage-prefix="scitex-writer-"
-             data-target=".writer-details"
-             data-direction="right"
-             data-min-width="40"
-             data-default-width="280"
-             data-storage-key="details-width"
-             data-collapse-key="writer-details-collapsed"
-             data-toggle-btn="details-toggle"></div>
+             data-h-resizer
+             data-in-app
+             data-left=".writer-container"
+             data-right=".writer-details"
+             data-icon="fa-chevron-right"
+             data-title="Details"
+             data-most-right
+             data-threshold="48"
+             data-storage-key="scitex-writer-details"
+             data-external-toggle="details-toggle"></div>
         <!-- Details panel (rightmost) -->
         {% include "writer_app/index_partials/details_panel.html" %}
     </div>

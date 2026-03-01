@@ -94,18 +94,18 @@
                  data-ai-hint="LaTeX editor with CodeMirror, live PDF preview, section navigation">
                 {% include "writer_app/index_partials/main_editor.html" %}
             </div>
-            <!-- Details resizer (auto-initialized via data attributes) -->
-            <div class="panel-resizer"
-                 id="details-resizer"
-                 data-panel-resizer
-                 data-storage-prefix="scitex-writer-"
-                 data-target=".writer-details"
-                 data-direction="right"
-                 data-min-width="40"
-                 data-default-width="280"
-                 data-storage-key="details-width"
-                 data-collapse-key="writer-details-collapsed"
-                 data-toggle-btn="details-toggle"></div>
+            <!-- Details resizer (unified resizer system) -->
+            <div class="h-resizer"
+                 id="writer-details-resizer"
+                 data-h-resizer
+                 data-in-app
+                 data-left=".writer-container"
+                 data-right=".writer-details"
+                 data-icon="fa-chevron-right"
+                 data-title="Details"
+                 data-most-right
+                 data-threshold="48"
+                 data-storage-key="scitex-writer-details"></div>
             <!-- Details panel (rightmost) -->
             {% include "writer_app/index_partials/details_panel.html" %}
         </div>
@@ -203,7 +203,7 @@
                         var el = document.getElementById(v + '-view');
                         if (el) el.hidden = (v !== view);
                     });
-                    document.querySelectorAll('.view-switch-btn').forEach(function(btn) {
+                    document.querySelectorAll('.selector-nav-item[onclick]').forEach(function(btn) {
                         var match = btn.getAttribute('onclick') || '';
                         var btnView = (match.match(/switchRightPanel\('(\w+)'\)/) || [])[1];
                         btn.classList.toggle('active', btnView === view);
