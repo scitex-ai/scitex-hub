@@ -134,18 +134,22 @@
   opacity: 0.5;
 }
 
-/* Vertical split: tree area + preview panel */
-.ws-worktree-split {
+/* Vertical split: tree area + monitor panel.
+   The element carries both .sidebar-content and .ws-worktree-split.
+   Override the default sidebar-content overflow-y: auto so the flex
+   split constrains children instead of growing to fit content. */
+.sidebar-content.ws-worktree-split {
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+  padding: 0;
 }
 
 .ws-worktree-tree-area {
   flex: 1;
   overflow-y: auto;
-  min-height: 80px;
+  min-height: 0;
 }
 
 /* ============================================================
