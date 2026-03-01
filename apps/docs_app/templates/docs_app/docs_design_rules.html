@@ -91,6 +91,35 @@
             width: 20px;
             height: 20px;
         }
+
+        /* Hide duplicate section headers (already shown in <summary>) */
+        .design-details .details-content>section>.section-header:first-child,
+        .design-details .details-content>section>h2:first-child {
+            display: none;
+        }
+
+        /* Collapsible code examples */
+        .design-details .code-collapse summary {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.75rem;
+            background: var(--bg-elevated, #161b22);
+            border: 1px solid var(--border-default, #333);
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--text-secondary, #8b949e);
+            margin-bottom: 0.5rem;
+        }
+
+        .design-details .code-collapse[open] summary {
+            border-radius: 4px 4px 0 0;
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .design-details .code-collapse pre {
+            margin-top: 0;
+            border-radius: 0 0 4px 4px;
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -254,18 +283,39 @@
             <div class="details-content">{% include 'docs_app/design_partial/alerts.html' %}</div>
         </details>
     </div>
-{% endblock %}
-{% block extra_js %}
-    {% load static %}
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            document.querySelectorAll("pre code").forEach(function(block) {
-                hljs.highlightElement(block);
-            });
-        });
+        (function() {
+            function init() {
+                var container = document.querySelector(".design-details");
+                if (!container) return;
+                // Highlight code blocks
+                document.querySelectorAll(".design-details pre code").forEach(function(block) {
+                    if (typeof hljs !== "undefined") hljs.highlightElement(block);
+                });
+                // Wrap code examples in collapsible <details>
+                document.querySelectorAll(".design-details .details-content pre").forEach(function(pre) {
+                    if (pre.closest(".code-collapse")) return;
+                    var code = pre.querySelector("code");
+                    var lang = "";
+                    if (code && code.className) {
+                        var m = code.className.match(/language-(\w+)/);
+                        if (m) lang = m[1].toUpperCase() + " ";
+                    }
+                    var details = document.createElement("details");
+                    details.className = "code-collapse";
+                    var summary = document.createElement("summary");
+                    summary.innerHTML = '<i class="fas fa-code" style="margin-right:0.4rem;font-size:0.75rem"></i>' + lang + "Example";
+                    details.appendChild(summary);
+                    pre.parentNode.insertBefore(details, pre);
+                    details.appendChild(pre);
+                });
+            }
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", init);
+            } else {
+                init();
+            }
+        })();
     </script>
-    <script src="{% static 'shared/js/code-blocks.js' %}"></script>
-    <script src="{% static 'dev_app/scripts/design.js' %}"></script>
 {% endblock %}
