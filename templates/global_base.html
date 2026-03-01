@@ -67,14 +67,12 @@
             </main>
         </div>
         <!-- Footer Collapse Toggle (OUTSIDE footer for body-class-based CSS) -->
-        {% if workspace_has_panes and user.is_authenticated %}
-            <button id="footer-collapse-toggle"
-                    class="footer-collapse-toggle"
-                    data-tooltip="Toggle footer"
-                    aria-label="Toggle footer collapse">
-                <i class="fas fa-chevron-down"></i>
-            </button>
-        {% endif %}
+        <button id="footer-collapse-toggle"
+                class="footer-collapse-toggle"
+                data-tooltip="Toggle footer"
+                aria-label="Toggle footer collapse">
+            <i class="fas fa-chevron-down"></i>
+        </button>
         {% include 'global_base_partials/global_footer.html' %}
         {% if not is_workspace_page %}
             {% include 'global_base_partials/global_ai_panel.html' %}

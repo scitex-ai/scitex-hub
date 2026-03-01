@@ -60,12 +60,12 @@
    Mirrors vertical .panel-resizer behavior.
    ========================= */
 
-body.workspace-page .site-footer {
+.site-footer {
   position: relative;
 }
 
 /* Invisible hover zone above the footer boundary — expanded hit area */
-body.workspace-page .site-footer::after {
+.site-footer::after {
   content: "";
   position: absolute;
   top: -8px;
@@ -77,14 +77,14 @@ body.workspace-page .site-footer::after {
 }
 
 /* Highlight the top border on hover (like vertical .panel-resizer:hover) */
-body.workspace-page .site-footer:hover {
+.site-footer:hover {
   border-top-color: var(--workspace-border-hover, #8b949e);
 }
 
 /* Reveal toggle button when hovering near footer boundary.
    Toggle is a preceding sibling, so use :has() instead of ~ */
-body.workspace-page:has(.site-footer:hover) .footer-collapse-toggle,
-body.workspace-page .footer-collapse-toggle:hover {
+body:has(.site-footer:hover) .footer-collapse-toggle,
+.footer-collapse-toggle:hover {
   opacity: 1;
   pointer-events: auto;
 }
@@ -137,18 +137,18 @@ body.footer-collapsed .footer-collapse-toggle i {
 }
 
 /* Collapsed footer: pointer cursor, hover reveals toggle + green glow */
-body.workspace-page .site-footer.collapsed {
+.site-footer.collapsed {
   cursor: pointer;
 }
 
-body.workspace-page .site-footer.collapsed:hover {
+.site-footer.collapsed:hover {
   background: rgba(5, 150, 105, 0.08) !important;
   box-shadow: inset 0 3px 10px -4px var(--workspace-icon-primary, #059669);
   border-top-color: var(--workspace-border-hover, #8b949e);
 }
 
 /* When collapsed strip is hovered, fully reveal the toggle */
-body.workspace-page:has(.site-footer.collapsed:hover) .footer-collapse-toggle {
+body:has(.site-footer.collapsed:hover) .footer-collapse-toggle {
   opacity: 1;
   pointer-events: auto;
 }
@@ -174,18 +174,6 @@ body.workspace-page .workspace-three-col {
    when footer is present on workspace pages */
 body.workspace-page:not(.landing-page) .workspace-three-col {
   height: auto !important;
-}
-
-/* =========================
-   Landing Page: No Toggle, No Slider
-   ========================= */
-
-body.landing-page .footer-collapse-toggle {
-  display: none;
-}
-
-body.landing-page .site-footer::after {
-  display: none;
 }
 
 /* =========================
