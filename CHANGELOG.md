@@ -5,6 +5,26 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0-alpha] - 2026-03-01
+
+### Added
+- **App Maker Phases 3-6**: Dynamic app loading on approval, marketplace UI (license/fork/README), plugin license exception, CLI publish/list, dev preview mode
+- **Global footer collapse**: Footer collapse/expand now works on all pages (landing + workspace) with button, smart slider, and double-click
+- **Console pane default expanded**: AI console pane starts expanded for immediate access
+- **Git context menu**: Right-click file tree shows git operations (stage, unstage, diff, revert)
+- **Multi-select in file tree**: Shift/Ctrl click for selecting multiple files
+- **Git remote API endpoint**: New API for managing git remotes
+- **Repo monitor filter UI**: Enhanced event type and path filtering with vertical split
+
+### Changed
+- **Unified accent color system**: Single `--module-accent-color` CSS variable replaces three separate systems (`--tab-accent`, `--module-pane-accent`, `--module-accent-color`)
+- **App tab indicator**: Active tab changed from bottom underline to right-side 4px border
+- **Docs consolidation**: Removed redundant sidebar from App Maker docs, merged licensing page into creator docs
+
+### Fixed
+- **Panel resizer cascade**: Improved smart collapse propagation through adjacent panels
+- **Repo monitor timestamps**: Converted to ISO 8601 format
+
 ## [0.10.13-alpha] - 2026-02-27
 
 ### Added
