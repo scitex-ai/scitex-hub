@@ -17,6 +17,7 @@ from django.utils.safestring import mark_safe
 
 from ...models import Project, RemoteCredential
 from .create_handlers import (
+    handle_app_template_creation,
     handle_empty_creation,
     handle_git_clone,
     handle_gitea_creation,
@@ -146,6 +147,8 @@ def project_create(request):
             success = handle_gitea_creation(request, project)
         elif init_type == "github":
             success = handle_github_import(request, project, manager, git_url)
+        elif init_type == "template" and template_type == "app":
+            success = handle_app_template_creation(request, project, manager)
         elif init_type == "template":
             success = handle_template_creation(request, project, manager, template_type)
         elif init_type == "git":

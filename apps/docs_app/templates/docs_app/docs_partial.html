@@ -8,7 +8,6 @@
     <!-- Sidebar: doc page navigation -->
     <aside class="docs-sidebar">
         <nav class="docs-nav">
-            <div class="docs-nav-header">Documentation</div>
             {% for page in docs_pages %}
                 <a href="#"
                    class="docs-nav-item{% if page.slug == active_doc %} active{% endif %}"

@@ -2,15 +2,6 @@
 
 <link rel="stylesheet" href="{% static 'apps_app/css/apps.css' %}" />
 <div class="apps-container">
-    <div class="apps-header"
-         style="display:flex;
-                align-items:center;
-                gap:8px;
-                padding:4px 0 0;
-                margin-bottom:8px">
-        <span style="font-weight:600;">Apps</span>
-        <span class="badge badge-wip">WIP</span>
-    </div>
     <!-- Top bar: category filter tabs, search, sort -->
     <div class="apps-topbar">
         <nav class="apps-category-tabs" aria-label="App categories">
@@ -232,6 +223,7 @@
     function syncTabBar(orderedNames) {
         if (window._moduleReorder) {
             window._moduleReorder.syncTabBar(orderedNames);
+            window._moduleReorder.syncAppsNav(orderedNames);
         }
     }
 

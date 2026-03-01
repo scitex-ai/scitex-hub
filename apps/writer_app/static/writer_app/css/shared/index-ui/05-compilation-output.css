@@ -1,31 +1,8 @@
 /* =========================================
-   COMPILATION OUTPUT PANEL
+   COMPILATION STATUS & PROGRESS
+   Status lamp, slim progress bar, and
+   Details panel compilation log styles.
    ========================================= */
-
-.compilation-output {
-  border: 1px solid var(--workspace-border-default);
-  border-radius: 6px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  margin-top: 1rem;
-  height: 300px;
-}
-
-.compilation-output-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 1.25rem;
-  background-color: var(--workspace-bg-secondary);
-  border-bottom: 1px solid var(--workspace-border-default);
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-}
 
 /* Compilation Status Lamp (LED-style indicator) */
 .compilation-status-lamp {
@@ -157,90 +134,3 @@
   color: var(--text-muted);
   font-size: 0.65rem;
 }
-
-/* Minimized compilation status button */
-.minimized-compilation-status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 0.75rem;
-  background: var(--workspace-bg-tertiary);
-  border: 1px solid var(--workspace-border-default);
-  border-radius: 4px;
-  color: var(--text-primary);
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-left: 0.5rem;
-}
-
-.minimized-compilation-status:hover {
-  background: var(--bg-page);
-  border-color: var(--color-accent-emphasis);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.minimized-compilation-status i {
-  color: var(--color-accent-emphasis);
-  font-size: 0.8rem;
-}
-
-.minimized-compilation-status span {
-  font-weight: 500;
-}
-
-#minimized-compilation-progress {
-  color: var(--text-muted);
-  font-size: 0.7rem;
-  margin-left: 0.25rem;
-}
-
-/* Compilation output minimized state */
-.compilation-output.minimized {
-  height: auto;
-  max-height: 50px;
-  overflow: hidden;
-}
-
-.compilation-output.minimized .compilation-log-details,
-.compilation-output.minimized #compilation-progress-container,
-.compilation-output.minimized #compilation-alert-banner,
-.compilation-output.minimized #compilation-result-inline {
-  display: none !important;
-}
-
-.compilation-output.minimized .compilation-output-header {
-  border-bottom: none;
-}
-
-.compilation-log-inline {
-  flex: 1;
-  padding: 1rem;
-  background: #0a0f1a;
-  color: #00ff00;
-  font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
-  font-size: 0.75rem;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  line-height: 1.4;
-  font-weight: 400;
-}
-
-/* Terminal log styling */
-.compilation-log-panel {
-  padding: 1rem;
-  background: #0a0f1a;
-  color: #00ff00;
-  border-radius: 0;
-  font-size: 0.75rem;
-  overflow-y: auto;
-  font-family:
-    "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
-  white-space: pre-wrap;
-  line-height: 1.4;
-  font-weight: 400;
-  border: 1px solid var(--workspace-border-default);
-  border-radius: 4px;
-}
-

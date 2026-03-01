@@ -305,7 +305,7 @@ def api_update_config(request, module_name):
 @login_required
 @require_http_methods(["POST"])
 def api_review_submission(request, submission_id):
-    """Admin approves or rejects a module submission."""
+    """Admin approves, rejects, or requests changes on a module submission."""
     if not request.user.is_staff:
         return JsonResponse({"success": False, "error": "Staff only."}, status=403)
 
@@ -314,7 +314,7 @@ def api_review_submission(request, submission_id):
     from ..models import ModuleSubmission
 
     submission = get_object_or_404(ModuleSubmission, id=submission_id)
-    if submission.status != "pending":
+    if submission.status not in ("pending", "changes_requested"):
         return JsonResponse(
             {"success": False, "error": "Submission already reviewed."}, status=400
         )
@@ -324,35 +324,134 @@ def api_review_submission(request, submission_id):
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON."}, status=400)
 
-    action = data.get("action")  # "approve" or "reject"
+    action = data.get("action")
     note = data.get("note", "")
+    now = timezone.now()
 
     if action == "approve":
         submission.status = "approved"
-        submission.reviewer = request.user
-        submission.review_note = note
-        submission.reviewed_at = timezone.now()
-        submission.save()
         submission.module.visibility = "public"
         submission.module.is_verified = True
         submission.module.save(update_fields=["visibility", "is_verified"])
-        return JsonResponse(
-            {"success": True, "message": f"Approved {submission.module.module_name}."}
-        )
+        # Pin commit and register into workspace
+        _activate_approved_app(submission.module)
     elif action == "reject":
         submission.status = "rejected"
-        submission.reviewer = request.user
-        submission.review_note = note
-        submission.reviewed_at = timezone.now()
-        submission.save()
+    elif action == "request_changes":
+        submission.status = "changes_requested"
+    else:
         return JsonResponse(
-            {"success": True, "message": f"Rejected {submission.module.module_name}."}
+            {
+                "success": False,
+                "error": "action must be 'approve', 'reject', or 'request_changes'.",
+            },
+            status=400,
         )
 
+    submission.reviewer = request.user
+    submission.review_note = note
+    submission.reviewed_at = now
+    submission.save()
+
+    # Sync status back to the linked Project
+    _sync_project_status(submission, now, request.user)
+
+    # Notify author
+    _notify_author(submission)
+
     return JsonResponse(
-        {"success": False, "error": "action must be 'approve' or 'reject'."},
-        status=400,
+        {
+            "success": True,
+            "message": f"{action.title()} {submission.module.module_name}.",
+        }
     )
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_fork(request, module_name):
+    """Fork a user app's source project into the requester's Gitea account."""
+    app_module = get_object_or_404(AppsModule, module_name=module_name)
+    if not app_module.project:
+        return JsonResponse(
+            {"success": False, "error": "No source project to fork."}, status=400
+        )
+    if app_module.is_builtin:
+        return JsonResponse(
+            {"success": False, "error": "Built-in modules cannot be forked."},
+            status=400,
+        )
+
+    try:
+        from apps.gitea_app.api_client import GiteaClient
+
+        client = GiteaClient()
+        owner = app_module.project.owner.username
+        repo = app_module.project.slug
+        result = client._request(
+            "POST",
+            f"/repos/{owner}/{repo}/forks",
+            json={"organization": request.user.username},
+        )
+        fork_url = f"/{request.user.username}/{result.get('name', repo)}/"
+        return JsonResponse({"success": True, "url": fork_url})
+    except Exception as exc:
+        return JsonResponse({"success": False, "error": str(exc)}, status=500)
+
+
+@require_http_methods(["GET"])
+def api_list_public(request):
+    """Public JSON listing of all public apps (unauthenticated)."""
+    modules = AppsModule.objects.filter(visibility="public").values(
+        "module_name",
+        "short_description",
+        "category",
+        "star_count",
+        "install_count",
+        "is_builtin",
+        "is_verified",
+        "status",
+    )
+    return JsonResponse({"success": True, "apps": list(modules)})
+
+
+def _activate_approved_app(app_module):
+    """Pin commit and register an approved app into the workspace registry."""
+    from ..services.app_loader import load_single_app, pin_commit
+
+    pin_commit(app_module)
+    load_single_app(app_module)
+
+
+def _sync_project_status(submission, now, reviewer):
+    """Update the source Project's app_status fields after review."""
+    project = getattr(submission.module, "project", None)
+    if project is None:
+        return
+    project.app_status = submission.status
+    project.app_reviewed_at = now
+    project.app_reviewer = reviewer
+    project.save(update_fields=["app_status", "app_reviewed_at", "app_reviewer"])
+
+
+def _notify_author(submission):
+    """Send email notification to the submission author."""
+    try:
+        from apps.project_app.services.email_service import EmailService
+
+        EmailService.send_app_review_complete(
+            user=submission.submitted_by,
+            module_name=submission.module.module_name,
+            status=submission.status,
+            note=submission.review_note,
+        )
+    except Exception:
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "Failed to send review notification for %s",
+            submission.module.module_name,
+        )
 
 
 # EOF

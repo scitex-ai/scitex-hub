@@ -28,6 +28,10 @@ def workspace_context(request):
     if not is_ws and request.user.is_authenticated:
         is_ws = _is_user_profile_path(path)
 
+    # /new/ renders inside workspace frame with Hub as active module
+    if path.rstrip("/") == "/new" and request.user.is_authenticated:
+        is_ws = True
+
     active_name = extract_module_from_path(path) if is_ws else None
     # Pages with a real module match get workspace sidebars (AI, worktree, viewer).
     # User profile pages (/<username>/) also get panes — they render inside Hub.
@@ -36,7 +40,9 @@ def workspace_context(request):
     # Non-module workspace pages: user profiles get panes, others don't
     if is_ws and active_name is None:
         active_name = "hub"
-        if request.user.is_authenticated and _is_user_profile_path(path):
+        if request.user.is_authenticated and (
+            _is_user_profile_path(path) or path.rstrip("/") == "/new"
+        ):
             has_panes = True
 
     all_modules = get_all_modules()
@@ -56,6 +62,18 @@ def workspace_context(request):
     if not active_label and active_name:
         active_label = active_name.capitalize()
 
+    # Expose current_project for the worktree pane and other global partials.
+    # Priority: request.project (set by @project_access_required), then fallback
+    # to get_current_project() which checks session/profile/first-owned project.
+    current_project = getattr(request, "project", None)
+    if current_project is None and has_panes and request.user.is_authenticated:
+        try:
+            from apps.project_app.services.project_utils import get_current_project
+
+            current_project = get_current_project(request)
+        except Exception:
+            pass
+
     return {
         "is_workspace_page": is_ws,
         "workspace_has_panes": has_panes,
@@ -64,6 +82,7 @@ def workspace_context(request):
         "active_module_name": active_name,
         "active_module": active_mod,
         "active_module_label": active_label,
+        "current_project": current_project,
     }
 
 

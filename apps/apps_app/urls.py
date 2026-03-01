@@ -10,6 +10,7 @@ urlpatterns = [
     # Pages
     path("", views.browse, name="browse"),
     path("my/", views.my_modules, name="my_modules"),
+    path("review/", views.review_queue, name="review_queue"),
     # API — must come before <str:module_name> catch-all
     path("api/reorder/", views.api_reorder, name="api_reorder"),
     path("api/<str:module_name>/install/", views.api_install, name="api_install"),
@@ -31,6 +32,8 @@ urlpatterns = [
         views.api_review_submission,
         name="api_review_submission",
     ),
+    path("api/<str:module_name>/fork/", views.api_fork, name="api_fork"),
+    path("api/list/", views.api_list_public, name="api_list_public"),
     # Detail — catch-all last
     path("<str:module_name>/", views.detail, name="detail"),
 ]

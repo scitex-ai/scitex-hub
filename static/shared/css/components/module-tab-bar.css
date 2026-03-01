@@ -44,47 +44,17 @@
   color: var(--workspace-text-primary, #e6edf3);
 }
 
+/* Active tab right-side accent — uses --module-accent-color from workspace-sidebar.css
+   (single source of truth for all accent highlighting: tab bar, pane headers, pane top border) */
 .module-tab-btn.active::after {
   content: "";
   position: absolute;
-  bottom: 1px;
-  left: 20%;
-  right: 20%;
-  height: 2px;
+  right: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 4px;
   border-radius: 1px;
-  background: var(--tab-accent, var(--accent-blue, #388bfd));
-}
-
-/* Per-module tab accent — syncs underline with module content accent */
-.module-tab-btn[data-module="writer"] {
-  --tab-accent: var(--module-accent-writer);
-}
-.module-tab-btn[data-module="scholar"] {
-  --tab-accent: var(--module-accent-scholar);
-}
-.module-tab-btn[data-module="vis"] {
-  --tab-accent: var(--module-accent-visualizer);
-}
-.module-tab-btn[data-module="console"] {
-  --tab-accent: var(--module-accent-console);
-}
-.module-tab-btn[data-module="clew"] {
-  --tab-accent: var(--module-accent-clew);
-}
-.module-tab-btn[data-module="hub"] {
-  --tab-accent: var(--module-accent-hub);
-}
-.module-tab-btn[data-module="tools"] {
-  --tab-accent: var(--module-accent-tools);
-}
-.module-tab-btn[data-module="example"] {
-  --tab-accent: var(--module-accent-example);
-}
-.module-tab-btn[data-module="apps"] {
-  --tab-accent: var(--module-accent-apps);
-}
-.module-tab-btn[data-module="modulemaker"] {
-  --tab-accent: var(--module-accent-modulemaker);
+  background: var(--module-accent-color, var(--accent-blue, #388bfd));
 }
 
 /* Status badges (WIP, Beta) on tab labels */
@@ -138,7 +108,7 @@
   bottom: 4px;
   width: 2px;
   border-radius: 1px;
-  background: var(--tab-accent, var(--accent-blue, #388bfd));
+  background: var(--module-accent-color, var(--accent-blue, #388bfd));
 }
 
 .module-tab-btn.tab-drag-after {
@@ -154,7 +124,7 @@
   bottom: 4px;
   width: 2px;
   border-radius: 1px;
-  background: var(--tab-accent, var(--accent-blue, #388bfd));
+  background: var(--module-accent-color, var(--accent-blue, #388bfd));
 }
 
 /* ==========================================================================

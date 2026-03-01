@@ -25,6 +25,7 @@ export interface ContextMenuActionCallbacks {
   downloadFile: (path: string) => void;
   extractBundle: (path: string) => Promise<void>;
   promptCreateSymlink: (path: string) => Promise<void>;
+  showFilter: () => void;
 }
 
 export class ContextMenuActionHandler {
@@ -52,6 +53,12 @@ export class ContextMenuActionHandler {
     this.fileActions = fileActions;
     this.gitActions = gitActions;
     this.callbacks = callbacks;
+  }
+
+  private getParentPath(path: string): string {
+    const parts = path.split("/");
+    parts.pop();
+    return parts.join("/");
   }
 
   /**
@@ -97,13 +104,21 @@ export class ContextMenuActionHandler {
         await this.handleDuplicate(path);
         break;
 
-      case "new-file":
-        await this.fileActions.createNewFile(path);
+      case "new-file": {
+        const fileDir = this.callbacks.isItemDirectory(path)
+          ? path
+          : this.getParentPath(path);
+        await this.fileActions.createNewFile(fileDir);
         break;
+      }
 
-      case "new-folder":
-        await this.fileActions.createNewFolder(path);
+      case "new-folder": {
+        const folderDir = this.callbacks.isItemDirectory(path)
+          ? path
+          : this.getParentPath(path);
+        await this.fileActions.createNewFolder(folderDir);
         break;
+      }
 
       case "create-symlink": {
         const pathsForSymlink = this.getPathsForOperation(path);
@@ -147,6 +162,35 @@ export class ContextMenuActionHandler {
         await this.gitActions.showDiff(path);
         break;
 
+      // Git bulk operations (from root context menu)
+      case "git-stage-all":
+        await this.gitActions.stageAll();
+        break;
+
+      case "git-unstage-all":
+        await this.gitActions.unstageAll();
+        break;
+
+      case "git-commit":
+        await this.handleGitCommit(false);
+        break;
+
+      case "git-commit-push":
+        await this.handleGitCommit(true);
+        break;
+
+      case "git-push":
+        await this.gitActions.push();
+        break;
+
+      case "git-pull":
+        await this.gitActions.pull();
+        break;
+
+      case "filter":
+        this.callbacks.showFilter();
+        break;
+
       // Tree operations
       case "refresh":
         await this.callbacks.refresh();
@@ -163,6 +207,16 @@ export class ContextMenuActionHandler {
       default:
         console.warn("[ContextMenuAction] Unknown action:", action);
     }
+  }
+
+  /**
+   * Handle git commit with prompt dialog
+   */
+  private async handleGitCommit(push: boolean): Promise<void> {
+    const label = push ? "Commit & Push" : "Commit";
+    const message = window.prompt(`${label} — Enter commit message:`);
+    if (!message || !message.trim()) return;
+    await this.gitActions.commit(message.trim(), push);
   }
 
   /**

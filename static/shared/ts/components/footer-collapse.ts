@@ -96,16 +96,15 @@ function setupBoundaryDrag(
 }
 
 function initializeFooterCollapse(): void {
-  if (document.body.classList.contains("landing-page")) return;
-
   const footer = document.getElementById("site-footer");
   const toggleBtn = document.getElementById("footer-collapse-toggle");
 
   if (!footer || !toggleBtn) return;
 
-  // Restore saved state (default: collapsed on workspace pages)
+  // Restore saved state (default: collapsed on workspace pages, expanded on landing)
   const saved = localStorage.getItem(FOOTER_COLLAPSE_KEY);
-  const isCollapsed = saved === null ? true : saved === "true";
+  const isWorkspace = document.body.classList.contains("workspace-page");
+  const isCollapsed = saved === null ? isWorkspace : saved === "true";
 
   if (isCollapsed) {
     footer.classList.add("collapsed");

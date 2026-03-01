@@ -38,7 +38,7 @@ export function mapStatusToCode(status: string): string {
  */
 export function mergeGitStatus(
   treeData: TreeItem[],
-  gitFiles: GitFileStat[]
+  gitFiles: GitFileStat[],
 ): void {
   // Create a map of path -> git status
   const statusMap = new Map<string, { status: string; staged: boolean }>();
@@ -102,13 +102,16 @@ export class GitActionDispatcher {
   private gitActions: any; // GitActions type
   private refresh: () => Promise<void>;
   private getContainer: () => HTMLElement | null;
-  private showMessage: (msg: string, type: "success" | "error" | "info") => void;
+  private showMessage: (
+    msg: string,
+    type: "success" | "error" | "info",
+  ) => void;
 
   constructor(
     gitActions: any,
     refresh: () => Promise<void>,
     getContainer: () => HTMLElement | null,
-    showMessage: (msg: string, type: "success" | "error" | "info") => void
+    showMessage: (msg: string, type: "success" | "error" | "info") => void,
   ) {
     this.gitActions = gitActions;
     this.refresh = refresh;
@@ -156,22 +159,9 @@ export class GitActionDispatcher {
   }
 
   private async handleCommit(push: boolean): Promise<void> {
-    const container = this.getContainer();
-    const input = container?.querySelector(
-      ".wft-commit-input"
-    ) as HTMLTextAreaElement;
-    if (!input) return;
-
-    const message = input.value.trim();
-    if (!message) {
-      this.showMessage("Please enter a commit message", "error");
-      input.focus();
-      return;
-    }
-
-    const success = await this.gitActions.commit(message, push);
-    if (success) {
-      input.value = "";
-    }
+    const label = push ? "Commit & Push" : "Commit";
+    const message = window.prompt(`${label} — Enter commit message:`);
+    if (!message || !message.trim()) return;
+    await this.gitActions.commit(message.trim(), push);
   }
 }

@@ -52,6 +52,30 @@
                         </div>
                     {% endif %}
                 </div>
+                <!-- Vertical split resizer -->
+                <div class="repo-monitor-resizer" id="repo-monitor-resizer"></div>
+                <!-- Repository Monitor -->
+                <div class="ws-repo-monitor-area collapsed"
+                     id="ws-repo-monitor"
+                     {% if current_project %}data-project-id="{{ current_project.id }}"{% endif %}>
+                    <div class="repo-monitor-header" id="repo-monitor-header">
+                        <i class="fas fa-clock-rotate-left"></i>
+                        <span>Recent</span>
+                        <span class="repo-monitor-status" id="repo-monitor-status"></span>
+                        <div class="repo-monitor-toolbar">
+                            <button id="repo-monitor-config-toggle" title="Filter settings">
+                                <i class="fas fa-gear"></i>
+                            </button>
+                            <button id="repo-monitor-pause-toggle" title="Pause/Resume">
+                                <i class="fas fa-pause"></i>
+                            </button>
+                            <button id="repo-monitor-clear" title="Clear feed">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="repo-monitor-content" id="repo-monitor-feed"></div>
+                </div>
             </div>
         </div>
     </div>

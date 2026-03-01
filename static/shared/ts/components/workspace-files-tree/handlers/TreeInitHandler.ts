@@ -64,6 +64,13 @@ export function initializeTreeHandlers(
   const resizeHandler = new ResizeHandler(container, config.mode);
   resizeHandler.initialize();
 
+  const searchUIHandler = new SearchUIHandler(container, searchHandler, {
+    setSearchQuery: callbacks.setSearchQuery,
+    clearSearch: callbacks.clearSearch,
+    selectFile: callbacks.selectFile,
+  });
+  searchUIHandler.render();
+
   const contextMenuActionHandler = new ContextMenuActionHandler(
     config,
     selectionHandler,
@@ -80,15 +87,9 @@ export function initializeTreeHandlers(
       downloadFile: (path) => fileOperations.downloadFile(path),
       extractBundle: (path) => fileOperations.extractBundle(path),
       promptCreateSymlink: (path) => fileOperations.promptCreateSymlink(path),
+      showFilter: () => searchUIHandler.show(),
     },
   );
-
-  const searchUIHandler = new SearchUIHandler(container, searchHandler, {
-    setSearchQuery: callbacks.setSearchQuery,
-    clearSearch: callbacks.clearSearch,
-    selectFile: callbacks.selectFile,
-  });
-  searchUIHandler.render();
 
   const workspaceKeyboardHandler = new WorkspaceKeyboardHandler(
     config,

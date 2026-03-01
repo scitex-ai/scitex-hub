@@ -12,9 +12,6 @@
  * - Initialization: Component initialization and event handler setup
  */
 
-// Compilation module
-export * from "./compilation/index";
-
 // Initialization modules
 export {
   ComponentInitializer,
@@ -71,10 +68,18 @@ export type { Section } from "./sections/section-extraction";
 export { initWriterApp } from "./inline-script/index";
 
 // Sidebar resizer
-export { initSidebarResizer, getSidebarWidth, setSidebarWidth } from "./ui/sidebar-resizer";
+export {
+  initSidebarResizer,
+  getSidebarWidth,
+  setSidebarWidth,
+} from "./ui/sidebar-resizer";
 
 // Panel toggle (expand/collapse)
-export { togglePanel as toggleWriterPanel, initPanelToggle, restorePanelStates } from "./ui/panel-toggle";
+export {
+  togglePanel as toggleWriterPanel,
+  initPanelToggle,
+  restorePanelStates,
+} from "./ui/panel-toggle";
 
 // Tab management
 export { WriterTabManager } from "./tabs/index";

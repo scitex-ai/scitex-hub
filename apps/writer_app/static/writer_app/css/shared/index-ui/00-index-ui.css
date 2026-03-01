@@ -10,10 +10,12 @@
   display: flex;
   height: 100%;
   overflow: hidden;
+  background: var(--workspace-bg-primary, #0d1117);
 }
 
 .writer-container {
   flex: 1;
   min-width: 0;
   overflow: hidden;
+  background: var(--workspace-bg-primary, #0d1117);
 }

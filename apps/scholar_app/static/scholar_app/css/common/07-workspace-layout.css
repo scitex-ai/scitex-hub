@@ -1,18 +1,10 @@
 /* ===============================================
-   Scholar Workspace Layout (Three-Panel Structure)
-   Using workspace colors for consistency with code/vis/writer
+   Scholar Workspace Layout
+   Scholar uses the shared workspace five-column layout.
+   This file styles the module pane (.scholar-main) only.
    =============================================== */
 
-/* Scholar workspace flex container */
-.scholar-workspace {
-  display: flex;
-  height: 100%;
-  overflow: hidden;
-  background: var(--workspace-bg-primary, #0d0d0d);
-  gap: 0;
-}
-
-/* Center panel: Main content */
+/* Module pane: Main content */
 .scholar-main {
   flex: 1;
   overflow: hidden; /* Prevent outer scrolling; children handle their own */
@@ -182,10 +174,6 @@
    NO ROUNDED CORNERS - Flat panel design
    =============================================== */
 
-.scholar-workspace,
-.scholar-sidebar,
-.scholar-sidebar .sidebar-header,
-.scholar-sidebar .sidebar-content,
 .scholar-main,
 .scholar-main .pane-header,
 .scholar-main .pane-content,
@@ -195,12 +183,12 @@
   border-radius: 0 !important;
 }
 
-/* Override any card/panel rounded corners in scholar workspace */
-.scholar-workspace .card,
-.scholar-workspace .panel,
-.scholar-workspace .search-card,
-.scholar-workspace .result-card,
-.scholar-workspace .paper-card {
+/* Override any card/panel rounded corners in scholar module pane */
+.scholar-main .card,
+.scholar-main .panel,
+.scholar-main .search-card,
+.scholar-main .result-card,
+.scholar-main .paper-card {
   border-radius: 0 !important;
 }
 

@@ -1,0 +1,309 @@
+/**
+ * @component Repository Monitor
+ * @description Real-time file change feed displayed in the bottom
+ *   section of the worktree (Files) pane.  Colour-coded entries
+ *   (green = created, yellow = modified, red = deleted) appear with
+ *   newest on top.  The panel is vertically resizable and collapsible.
+ * @category Components
+ * @darkmode true
+ */
+
+/* ============================================================
+   Container — bottom area of .ws-worktree-split
+   ============================================================ */
+
+.ws-repo-monitor-area {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 30%;
+  min-height: 40px;
+  overflow: hidden;
+  border-top: 1px solid var(--border-default, #30363d);
+}
+
+.ws-repo-monitor-area.collapsed {
+  flex: 0 0 24px !important;
+  min-height: 24px;
+}
+
+.ws-repo-monitor-area.collapsed .repo-monitor-content {
+  display: none;
+}
+
+/* ============================================================
+   Header bar — always visible, click to toggle
+   ============================================================ */
+
+.repo-monitor-header {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  height: 24px;
+  min-height: 24px;
+  background: var(--bg-secondary, #161b22);
+  font-size: 0.7rem;
+  color: var(--text-muted, #8b949e);
+  gap: 4px;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.repo-monitor-header:hover {
+  background: var(--bg-tertiary, #21262d);
+}
+
+.repo-monitor-header i {
+  font-size: 0.65rem;
+}
+
+.repo-monitor-status {
+  font-size: 0.6rem;
+  color: var(--text-dimmed, #484f58);
+  margin-left: 2px;
+}
+
+/* ============================================================
+   Toolbar — buttons inside the header
+   ============================================================ */
+
+.repo-monitor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.repo-monitor-toolbar button {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  color: var(--text-muted, #8b949e);
+  font-size: 0.65rem;
+  border-radius: 3px;
+  line-height: 1;
+}
+
+.repo-monitor-toolbar button:hover {
+  color: var(--text-primary, #c9d1d9);
+  background: var(--bg-tertiary, #21262d);
+}
+
+.repo-monitor-toolbar button.active {
+  color: var(--status-success, #6ba89a);
+}
+
+/* ============================================================
+   Feed content area — scrollable list of events
+   ============================================================ */
+
+.repo-monitor-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  min-height: 0;
+}
+
+/* ============================================================
+   Individual event entries
+   ============================================================ */
+
+.repo-monitor-entry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 8px;
+  font-size: 0.68rem;
+  font-family: var(--font-mono, "SFMono-Regular", "Consolas", monospace);
+  border-bottom: 1px solid var(--border-subtle, rgba(48, 54, 61, 0.5));
+  line-height: 1.6;
+}
+
+.repo-monitor-entry:hover {
+  background: var(--bg-tertiary, #21262d);
+  cursor: pointer;
+}
+
+/* Colour coding via semantic status tokens */
+.repo-monitor-entry.rm-create {
+  color: var(--status-success, #6ba89a);
+}
+
+.repo-monitor-entry.rm-modify {
+  color: var(--status-warning, #d4a87a);
+}
+
+.repo-monitor-entry.rm-delete {
+  color: var(--status-error, #c08888);
+}
+
+.repo-monitor-entry.rm-move {
+  color: var(--status-info, #8fa9cc);
+}
+
+/* Timestamp column */
+.rm-time {
+  color: var(--text-dimmed, #484f58);
+  min-width: 50px;
+  flex-shrink: 0;
+  font-size: 0.6rem;
+}
+
+/* Icon column */
+.rm-icon {
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 0.6rem;
+}
+
+/* File path — truncate with ellipsis */
+.rm-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+
+/* ============================================================
+   Vertical split resizer — between tree and monitor
+   ============================================================ */
+
+.repo-monitor-resizer {
+  height: 4px;
+  cursor: row-resize;
+  background: transparent;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* Wider hit area via pseudo-element */
+.repo-monitor-resizer::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+}
+
+.repo-monitor-resizer:hover,
+.repo-monitor-resizer.active {
+  background: var(--accent-color, #58a6ff);
+}
+
+/* ============================================================
+   Empty state
+   ============================================================ */
+
+.repo-monitor-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  font-size: 0.7rem;
+  color: var(--text-dimmed, #484f58);
+  font-style: italic;
+}
+
+/* ============================================================
+   Responsive — hide when sidebar is collapsed
+   ============================================================ */
+
+#ws-worktree-sidebar.collapsed .ws-repo-monitor-area,
+#ws-worktree-sidebar.collapsed .repo-monitor-resizer {
+  display: none;
+}
+
+/* ============================================================
+   Config panel — filter pattern editor (gear button popover)
+   ============================================================ */
+
+.repo-monitor-config-panel {
+  position: absolute;
+  bottom: 24px;
+  right: 0;
+  left: 0;
+  z-index: 100;
+  background: var(--bg-secondary, #161b22);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 0.7rem;
+  color: var(--text-primary, #c9d1d9);
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.rmc-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.rmc-desc {
+  font-size: 0.6rem;
+  color: var(--text-muted, #8b949e);
+  margin-bottom: 6px;
+}
+
+.rmc-label {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--text-muted, #8b949e);
+  margin-top: 6px;
+  margin-bottom: 2px;
+}
+
+.rmc-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-primary, #0d1117);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 3px;
+  color: var(--text-primary, #c9d1d9);
+  font-family: var(--font-mono, "SFMono-Regular", "Consolas", monospace);
+  font-size: 0.65rem;
+  padding: 4px 6px;
+  resize: vertical;
+}
+
+.rmc-textarea:focus {
+  outline: none;
+  border-color: var(--accent-color, #58a6ff);
+}
+
+.rmc-apply {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 4px 8px;
+  background: var(--accent-color, #58a6ff);
+  color: var(--bg-primary, #0d1117);
+  border: none;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rmc-apply:hover {
+  opacity: 0.9;
+}
+
+.rmc-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  color: var(--text-primary, #c9d1d9);
+  margin: 6px 0;
+  cursor: pointer;
+}
+
+.rmc-checkbox-row input[type="checkbox"] {
+  accent-color: var(--accent-color, #58a6ff);
+}

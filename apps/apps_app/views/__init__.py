@@ -1,7 +1,9 @@
 """Apps views package."""
 
 from .api import (
+    api_fork,
     api_install,
+    api_list_public,
     api_reorder,
     api_review,
     api_review_submission,
@@ -12,7 +14,7 @@ from .api import (
     api_unstar,
     api_update_config,
 )
-from .pages import browse, build_apps_context, detail, my_modules
+from .pages import browse, build_apps_context, detail, my_modules, review_queue
 
 __all__ = [
     "browse",
@@ -29,4 +31,7 @@ __all__ = [
     "api_submit_for_review",
     "api_review_submission",
     "api_update_config",
+    "api_fork",
+    "api_list_public",
+    "review_queue",
 ]

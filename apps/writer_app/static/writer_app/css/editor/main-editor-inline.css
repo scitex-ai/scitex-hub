@@ -273,75 +273,7 @@ label[for="theme-selector"],
   max-width: 150px;
 }
 
-/* Compilation Output - hidden; logs shown in Details panel instead */
-#compilation-output {
-  display: none !important;
-}
-
-.compilation-log-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid var(--color-border-default);
-  background: var(--color-canvas-subtle);
-}
-
-.compilation-log-toolbar-left {
-  display: flex;
-  gap: 0.5rem;
-}
-
-#compilation-log-stop-btn {
-  display: none;
-}
-
-#compilation-progress-container {
-  display: none;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--color-border-default);
-}
-
-.compilation-progress-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.4rem;
-  font-size: 0.85rem;
-}
-
-.compilation-progress-bg {
-  background: var(--color-canvas-subtle);
-  height: 6px;
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-#compilation-progress-bar {
-  background: var(--color-accent-emphasis);
-  height: 100%;
-  width: 0%;
-  transition: width 0.3s ease;
-  border-radius: 3px;
-}
-
-#compilation-alert-banner {
-  display: none;
-  padding: 0.75rem 1rem;
-}
-
-#compilation-log-inline {
-  border-radius: 0;
-  flex: 1;
-  min-height: 200px;
-}
-
-#compilation-result-inline {
-  display: none;
-  padding: 1rem;
-  border-top: 1px solid var(--color-border-default);
-}
-
-/* Compilation Panel */
+/* Compilation Panel (unused — compilation UI lives in Details panel) */
 #compilation-panel {
   display: none;
 }

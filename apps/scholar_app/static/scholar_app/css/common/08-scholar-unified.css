@@ -13,15 +13,13 @@ body.workspace-page.scholar-page,
   ) !important;
 }
 
-body.scholar-page #main-content,
-body.scholar-page .scholar-workspace {
+body.scholar-page #main-content {
   background: var(
     --workspace-bg-primary,
     var(--color-canvas-default)
   ) !important;
 }
 
-.scholar-sidebar,
 .scholar-main,
 .scholar-properties {
   background: var(
@@ -30,7 +28,6 @@ body.scholar-page .scholar-workspace {
   ) !important;
 }
 
-.scholar-sidebar .sidebar-header,
 .scholar-main .pane-header,
 .scholar-properties .properties-header {
   background: var(
@@ -40,7 +37,6 @@ body.scholar-page .scholar-workspace {
   border-color: var(--color-border-default) !important;
 }
 
-.scholar-sidebar .sidebar-content,
 .scholar-main .pane-content,
 .scholar-properties .properties-content {
   background: var(
@@ -92,8 +88,7 @@ body.scholar-page .scholar-workspace {
 .bibtex-tile__title i,
 .bibtex-card__title i,
 .pane-header h5 i,
-.properties-header h5 i,
-.sidebar-header h5 i {
+.properties-header h5 i {
   color: var(--scitex-color-03, var(--workspace-icon-primary)) !important;
 }
 
@@ -113,10 +108,7 @@ body.scholar-page .scholar-workspace {
   border-radius: 0 !important;
 }
 
-/* Hide footer on scholar workspace */
-body.scholar-page footer {
-  display: none !important;
-}
+/* Footer uses workspace-page shared toggle — no need to force-hide */
 
 /* Tab content visibility */
 .scholar-tab-content {

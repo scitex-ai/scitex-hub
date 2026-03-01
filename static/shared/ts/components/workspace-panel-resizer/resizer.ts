@@ -16,6 +16,40 @@ import { updateToggleIcon } from "./toggle";
 /** Shared collapse threshold — panel collapses when width drops to this */
 const COLLAPSE_WIDTH = 40;
 
+/** Minimum width the module pane (flex:1, no resizer) must retain.
+ *  Matches COLLAPSE_WIDTH so the module pane can shrink to collapse threshold. */
+const MIN_MODULE_WIDTH = 40;
+
+/** Calculate the maximum width a panel can grow to without pushing siblings
+ *  off-screen. Uses each sibling's ACTUAL current width (or MIN_MODULE_WIDTH
+ *  for the module pane) so the cap reflects reality, not just minimums.
+ */
+function getMaxAllowedWidth(panel: HTMLElement): number {
+  const paneEl =
+    panel.closest(
+      ".ws-ai-pane, .ws-worktree-pane, .ws-viewer-pane, .ws-apps-pane",
+    ) || panel.parentElement;
+  if (!paneEl) return Infinity;
+
+  const flexContainer = paneEl.closest(".workspace-three-col") as HTMLElement;
+  if (!flexContainer) return Infinity;
+
+  const containerWidth = flexContainer.clientWidth;
+  let reserved = 0;
+
+  for (const child of Array.from(flexContainer.children) as HTMLElement[]) {
+    if (child === paneEl) continue;
+    if (child.classList.contains("ws-module-pane")) {
+      reserved += MIN_MODULE_WIDTH;
+    } else {
+      // Use actual width — if collapsed, that's already COLLAPSE_WIDTH via CSS
+      reserved += child.offsetWidth;
+    }
+  }
+
+  return containerWidth - reserved;
+}
+
 /** Find the next non-collapsed resizable panel in the drag direction.
  *  Walks through siblings, skipping panes that are already collapsed or
  *  have no resizer (e.g., the module pane). This enables domino-style
@@ -225,10 +259,14 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
     // If we're in propagation mode, resize the adjacent panel instead
     if (propagationTarget) {
       const propDelta = e.clientX - propagationTarget.startX;
-      const propNewWidth =
+      let propNewWidth =
         config.resizeDirection === "left"
           ? propagationTarget.startWidth + propDelta
           : propagationTarget.startWidth - propDelta;
+
+      // Cap propagation target so it doesn't push siblings off-screen
+      const propMax = getMaxAllowedWidth(propagationTarget.panel);
+      if (propNewWidth > propMax) propNewWidth = propMax;
 
       if (propNewWidth < COLLAPSE_WIDTH) {
         // Collapse propagation target too, then try next panel
@@ -263,10 +301,14 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
 
     // Normal resize of the primary panel
     const delta = e.clientX - startX;
-    const newWidth =
+    let newWidth =
       config.resizeDirection === "left"
         ? startWidth + delta
         : startWidth - delta;
+
+    // Cap width so siblings always fit on screen
+    const maxWidth = getMaxAllowedWidth(targetPanel);
+    if (newWidth > maxWidth) newWidth = maxWidth;
 
     // Smart collapse: if dragged below threshold, collapse and propagate
     if (newWidth < COLLAPSE_WIDTH) {

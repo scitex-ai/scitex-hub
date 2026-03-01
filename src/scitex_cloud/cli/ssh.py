@@ -10,7 +10,7 @@ import sys
 
 import click
 
-from ..config.environments import ENVIRONMENTS, get_environment
+from .._config._environments import ENVIRONMENTS, get_environment
 
 # SSH port per environment (maps to Docker-exposed port 2200)
 SSH_PORTS = {

@@ -17,6 +17,7 @@ function getCsrf(): string {
 
 /** POST the new module order to the backend */
 export function postModuleOrder(order: string[]): Promise<void> {
+  console.debug("[Module Reorder] Saving order:", order);
   return fetch("/apps/api/reorder/", {
     method: "POST",
     headers: {
@@ -24,8 +25,18 @@ export function postModuleOrder(order: string[]): Promise<void> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ order }),
-  }).then(() => {
+  }).then((resp) => {
+    if (!resp.ok) {
+      console.error(
+        "[Module Reorder] API error:",
+        resp.status,
+        resp.statusText,
+      );
+      return;
+    }
+    console.debug("[Module Reorder] Saved successfully");
     syncTabBar(order);
+    syncAppsNav(order);
     syncAppsGrid(order);
   });
 }
@@ -57,12 +68,35 @@ export function syncTabBar(orderedNames: string[]): void {
   });
 }
 
+/** Reorder apps nav sidebar DOM to match given order */
+export function syncAppsNav(orderedNames: string[]): void {
+  const nav = document.querySelector(".ws-apps-nav");
+  if (!nav) return;
+
+  const items = Array.from(
+    nav.querySelectorAll<HTMLElement>(".ws-apps-nav-item"),
+  );
+  const itemMap: Record<string, HTMLElement> = {};
+  items.forEach((el) => {
+    const mod = el.dataset.module;
+    if (mod) itemMap[mod] = el;
+  });
+
+  orderedNames.forEach((name) => {
+    if (itemMap[name]) nav.appendChild(itemMap[name]);
+  });
+  items.forEach((el) => {
+    const mod = el.dataset.module ?? "";
+    if (!orderedNames.includes(mod)) nav.appendChild(el);
+  });
+}
+
 /** Reorder apps grid DOM to match given order */
 export function syncAppsGrid(orderedNames: string[]): void {
-  const grid = document.getElementById("mp-grid");
+  const grid = document.getElementById("ap-grid");
   if (!grid) return;
 
-  const cards = Array.from(grid.querySelectorAll<HTMLElement>(".mp-card"));
+  const cards = Array.from(grid.querySelectorAll<HTMLElement>(".ap-card"));
   const cardMap: Record<string, HTMLElement> = {};
   cards.forEach((card) => {
     const mod = card.dataset.module;
@@ -108,6 +142,7 @@ export function makeReorderable(
 ): void {
   let draggedEl: HTMLElement | null = null;
   let dropPosition: "before" | "after" = "before";
+  let didDrag = false;
 
   const items = () =>
     Array.from(container.querySelectorAll<HTMLElement>(opts.itemSelector));
@@ -124,16 +159,33 @@ export function makeReorderable(
     if (opts.isReorderable && !opts.isReorderable(item)) return;
     item.draggable = true;
 
+    // Prevent <a> click navigation after drag
+    item.addEventListener("click", (e: MouseEvent) => {
+      if (didDrag) {
+        e.preventDefault();
+        didDrag = false;
+      }
+    });
+
     item.addEventListener("dragstart", (e: DragEvent) => {
       draggedEl = item;
+      didDrag = true;
       item.classList.add(opts.dragClass);
-      if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = "move";
+        // Prevent browser's default link-drag for <a> elements
+        e.dataTransfer.setData("text/plain", "");
+      }
     });
 
     item.addEventListener("dragend", () => {
       if (draggedEl) draggedEl.classList.remove(opts.dragClass);
       draggedEl = null;
       clearClasses();
+      // Reset didDrag after a tick so the click handler can catch it
+      setTimeout(() => {
+        didDrag = false;
+      }, 0);
     });
 
     item.addEventListener("dragover", (e: DragEvent) => {
@@ -215,12 +267,31 @@ function initTabBarDragDrop(): void {
   });
 }
 
+/** Initialize apps nav sidebar drag-drop (vertical) */
+function initAppsNavDragDrop(): void {
+  const nav = document.querySelector<HTMLElement>(".ws-apps-nav");
+  if (!nav) return;
+
+  makeReorderable(nav, {
+    itemSelector: ".ws-apps-nav-item",
+    getModuleName: (el) => el.dataset.module ?? "",
+    dragClass: "nav-dragging",
+    beforeClass: "nav-drag-before",
+    afterClass: "nav-drag-after",
+    axis: "vertical",
+    onReorder: (order) => {
+      void postModuleOrder(order);
+    },
+  });
+}
+
 // Expose on window for inline scripts (apps browse)
 declare global {
   interface Window {
     _moduleReorder: {
       postModuleOrder: typeof postModuleOrder;
       syncTabBar: typeof syncTabBar;
+      syncAppsNav: typeof syncAppsNav;
       syncAppsGrid: typeof syncAppsGrid;
       makeReorderable: typeof makeReorderable;
     };
@@ -230,15 +301,21 @@ declare global {
 window._moduleReorder = {
   postModuleOrder,
   syncTabBar,
+  syncAppsNav,
   syncAppsGrid,
   makeReorderable,
 };
 
 // Auto-init
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initTabBarDragDrop);
-} else {
+function initAll(): void {
   initTabBarDragDrop();
+  initAppsNavDragDrop();
 }
 
-console.debug("[Module Reorder] Loaded — tab bar drag-drop active");
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initAll);
+} else {
+  initAll();
+}
+
+console.debug("[Module Reorder] Loaded — tab bar + apps nav drag-drop active");

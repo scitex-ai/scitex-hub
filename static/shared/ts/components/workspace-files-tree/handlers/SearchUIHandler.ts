@@ -1,8 +1,8 @@
 /**
  * Search UI Handler
  *
- * Always-visible search input for the workspace files tree.
- * Ctrl+K focuses it; Escape clears and blurs.
+ * Hidden by default. Ctrl+K or context menu "Filter" toggles visibility.
+ * Escape clears and hides.
  */
 
 import type { SearchHandler } from "./SearchHandler";
@@ -31,33 +31,29 @@ export class SearchUIHandler {
   }
 
   /**
-   * Render the search box (call once during init).
-   * The box is always visible at the top of the container.
+   * Build the search box DOM (hidden by default).
    */
   render(): void {
     if (this.searchBox) return;
 
     this.searchBox = document.createElement("div");
-    this.searchBox.className = "wft-search-box";
+    this.searchBox.className = "wft-search-box wft-search-hidden";
     this.searchBox.innerHTML = `
       <div class="wft-search-input-wrapper">
         <i class="fas fa-search wft-search-icon"></i>
         <input type="text" class="wft-search-input" placeholder="Filter files..." />
-        <kbd class="wft-search-kbd">Ctrl K</kbd>
         <button class="wft-search-clear" title="Clear (Esc)" style="display: none;">
           <i class="fas fa-times"></i>
         </button>
       </div>
     `;
 
-    // Insert at the bottom of the container
     this.container.appendChild(this.searchBox);
 
     this.input = this.searchBox.querySelector("input") as HTMLInputElement;
     const clearBtn = this.searchBox.querySelector(
       ".wft-search-clear",
     ) as HTMLButtonElement;
-    const kbd = this.searchBox.querySelector(".wft-search-kbd") as HTMLElement;
 
     // Handle input changes with debounce
     let debounceTimer: number | null = null;
@@ -66,9 +62,7 @@ export class SearchUIHandler {
       debounceTimer = window.setTimeout(() => {
         const val = this.input!.value;
         this.callbacks.setSearchQuery(val);
-        // Toggle clear button and kbd visibility
         clearBtn.style.display = val ? "flex" : "none";
-        kbd.style.display = val ? "none" : "flex";
       }, 150);
     });
 
@@ -77,13 +71,13 @@ export class SearchUIHandler {
       if (e.key === "Escape") {
         e.preventDefault();
         e.stopPropagation();
-        this.clear();
+        this.hideBox();
       } else if (e.key === "Enter") {
         e.preventDefault();
         const matches = this.searchHandler.getMatchingItems();
         if (matches.length > 0) {
           this.callbacks.selectFile(matches[0].path);
-          this.clear();
+          this.hideBox();
         }
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -91,49 +85,45 @@ export class SearchUIHandler {
       }
     });
 
-    // Hide kbd on focus, show on blur if empty
-    this.input.addEventListener("focus", () => {
-      kbd.style.display = "none";
-    });
-    this.input.addEventListener("blur", () => {
-      if (!this.input!.value) {
-        kbd.style.display = "flex";
-      }
-    });
-
     // Clear button
     clearBtn.addEventListener("click", () => {
-      this.clear();
+      this.input!.value = "";
+      this.callbacks.clearSearch();
+      clearBtn.style.display = "none";
       this.input!.focus();
     });
   }
 
   /**
-   * Focus the search input (triggered by Ctrl+K)
+   * Toggle search box visibility (triggered by Ctrl+K or context menu)
    */
   show(): void {
     if (!this.searchBox) this.render();
-    this.input?.focus();
-    this.input?.select();
+    if (this.searchBox!.classList.contains("wft-search-hidden")) {
+      this.searchBox!.classList.remove("wft-search-hidden");
+      this.input?.focus();
+      this.input?.select();
+    } else {
+      this.hideBox();
+    }
   }
 
   /**
-   * Clear search and blur
+   * Hide the search box and clear filter
    */
-  private clear(): void {
+  private hideBox(): void {
     if (this.input) {
       this.input.value = "";
       this.input.blur();
     }
     this.callbacks.clearSearch();
-    const clearBtn = this.searchBox?.querySelector(
-      ".wft-search-clear",
-    ) as HTMLElement | null;
-    const kbd = this.searchBox?.querySelector(
-      ".wft-search-kbd",
-    ) as HTMLElement | null;
-    if (clearBtn) clearBtn.style.display = "none";
-    if (kbd) kbd.style.display = "flex";
+    if (this.searchBox) {
+      this.searchBox.classList.add("wft-search-hidden");
+      const clearBtn = this.searchBox.querySelector(
+        ".wft-search-clear",
+      ) as HTMLElement | null;
+      if (clearBtn) clearBtn.style.display = "none";
+    }
     this.container.focus();
   }
 
@@ -141,13 +131,16 @@ export class SearchUIHandler {
    * Hide/remove search box (for cleanup)
    */
   hide(): void {
-    this.clear();
+    this.hideBox();
   }
 
   /**
-   * Check if search input is focused
+   * Check if search box is visible
    */
   isVisible(): boolean {
-    return document.activeElement === this.input;
+    return (
+      !!this.searchBox &&
+      !this.searchBox.classList.contains("wft-search-hidden")
+    );
   }
 }

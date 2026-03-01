@@ -19,6 +19,41 @@ from django.shortcuts import render
 
 from apps.project_app.services.project_utils import get_current_project
 
+# V1 workspace frame element IDs that every compliant module must exist within.
+# Used by the self-validation panel in the partial template.
+WORKSPACE_FRAME_CHECKS = [
+    {
+        "id": "workspace-three-col",
+        "label": "Three-column layout container",
+        "icon": "fa-table-columns",
+    },
+    {
+        "id": "ws-ai-pane",
+        "label": "AI agent pane",
+        "icon": "fa-robot",
+    },
+    {
+        "id": "ws-worktree-sidebar",
+        "label": "Worktree file sidebar",
+        "icon": "fa-folder-tree",
+    },
+    {
+        "id": "ws-viewer-sidebar",
+        "label": "Viewer sidebar",
+        "icon": "fa-eye",
+    },
+    {
+        "id": "ws-apps-sidebar",
+        "label": "Apps navigation sidebar",
+        "icon": "fa-grip-vertical",
+    },
+    {
+        "id": "main-content",
+        "label": "Main content pane",
+        "icon": "fa-window-maximize",
+    },
+]
+
 
 def build_example_context(request, current_project=None):
     """Build example-specific template context.
@@ -33,7 +68,10 @@ def build_example_context(request, current_project=None):
     return {
         "current_project": current_project,
         "module_name": "Example",
-        "module_description": "A reference workspace module for developers.",
+        "module_description": (
+            "Self-descriptive reference implementation for workspace app plugins."
+        ),
+        "workspace_frame_checks": WORKSPACE_FRAME_CHECKS,
         "features": [
             "ModuleConfig in registry.py (ai_hint, accent_color, icon, template)",
             "skill.py for LLM capabilities and tool prefixes",

@@ -1,9 +1,11 @@
 /**
  * Compilation Log Management
- * Handles log display, formatting, and message appending
+ * Writes compilation logs directly to the Details panel.
  */
 
-import { showToast } from "../ui";
+// Module-level active log type — replaces the old data-log-type attribute
+// on the now-removed #compilation-output element.
+let _activeLogType: "preview" | "full" = "full";
 
 // Store separate logs for preview and full compilation
 export const compilationLogs = {
@@ -12,14 +14,39 @@ export const compilationLogs = {
 };
 
 /**
- * Append to compilation log with semantic color coding and visual cues
+ * Set the active log type so subsequent log writes go to the correct
+ * Details panel section (preview or full).
+ */
+export function setActiveLogType(type: "preview" | "full"): void {
+  _activeLogType = type;
+}
+
+/**
+ * Get the active log type.
+ */
+export function getActiveLogType(): "preview" | "full" {
+  return _activeLogType;
+}
+
+/**
+ * Get the Details panel log element for the active compilation type.
+ */
+function getDetailsLog(): HTMLElement | null {
+  const id =
+    _activeLogType === "preview" ? "details-preview-log" : "details-full-log";
+  return document.getElementById(id);
+}
+
+/**
+ * Append to compilation log with semantic color coding and visual cues.
+ * Writes directly to the Details panel log area.
  */
 export function appendCompilationLog(
   message: string,
   type: "info" | "success" | "error" | "warning" | "processing" = "info",
   options?: { spinner?: boolean; dots?: boolean; id?: string },
 ): void {
-  const log = document.getElementById("compilation-log-inline");
+  const log = getDetailsLog();
   if (!log) return;
 
   // Create line container
@@ -40,20 +67,20 @@ export function appendCompilationLog(
 
   // Apply semantic color class based on message content or type
   if (
-    message.includes("✓") ||
+    message.includes("\u2713") ||
     message.includes("Success") ||
     type === "success"
   ) {
     span.className = "terminal-log__success";
   } else if (
-    message.includes("✗") ||
+    message.includes("\u2717") ||
     message.includes("Error") ||
     message.includes("Failed") ||
     type === "error"
   ) {
     span.className = "terminal-log__error";
   } else if (
-    message.includes("⚠") ||
+    message.includes("\u26A0") ||
     message.includes("Warning") ||
     type === "warning"
   ) {
@@ -110,20 +137,20 @@ export function updateCompilationLog(
     // Update color class
     span.className = "";
     if (
-      message.includes("✓") ||
+      message.includes("\u2713") ||
       message.includes("Success") ||
       type === "success"
     ) {
       span.className = "terminal-log__success";
     } else if (
-      message.includes("✗") ||
+      message.includes("\u2717") ||
       message.includes("Error") ||
       message.includes("Failed") ||
       type === "error"
     ) {
       span.className = "terminal-log__error";
     } else if (
-      message.includes("⚠") ||
+      message.includes("\u26A0") ||
       message.includes("Warning") ||
       type === "warning"
     ) {
@@ -135,125 +162,38 @@ export function updateCompilationLog(
 }
 
 /**
- * Toggle compilation panel visibility
- * Called when clicking on status indicators
+ * Expand a Details panel section by data-section key.
  */
-export function toggleCompilationPanel(type: "preview" | "full" = "full"): void {
-  const output = document.getElementById("compilation-output");
-  const logDiv = document.getElementById("compilation-log-inline");
-  if (!output || !logDiv) return;
-
-  // Check if we're switching log types
-  const currentType = output.getAttribute("data-log-type");
-  const isSwitchingType = currentType && currentType !== type;
-
-  // Store current log content before switching
-  if (currentType && logDiv.innerHTML) {
-    compilationLogs[currentType as "preview" | "full"] = logDiv.innerHTML;
-  }
-
-  // Set the log type
-  output.setAttribute("data-log-type", type);
-
-  // Load the appropriate log content
-  if (isSwitchingType || !logDiv.innerHTML) {
-    const savedLog = compilationLogs[type];
-    if (savedLog) {
-      logDiv.innerHTML = savedLog;
-    } else {
-      logDiv.innerHTML =
-        type === "preview"
-          ? "No preview compilation logs yet. Click the preview play button to compile."
-          : "No full compilation logs yet. Click the full play button to compile.";
+function expandDetailsSection(sectionKey: string): void {
+  const section = document.querySelector(
+    `#writer-details-content [data-section="${sectionKey}"]`,
+  );
+  if (section) {
+    section.classList.remove("collapsed");
+    try {
+      const states = JSON.parse(
+        localStorage.getItem("writer-details-sections") || "{}",
+      );
+      states[sectionKey] = false;
+      localStorage.setItem("writer-details-sections", JSON.stringify(states));
+    } catch {
+      /* ignore */
     }
-  }
-
-  // Toggle visibility
-  if (output.style.display === "none" || !output.style.display) {
-    output.style.display = "block";
-    console.log(`[Writer] ${type} compilation panel shown`);
-  } else {
-    output.style.display = "none";
-    console.log("[Writer] Compilation panel hidden");
   }
 }
 
 /**
- * Toggle preview compilation log
+ * Toggle preview compilation log — expands the preview section in Details panel.
  */
 export function togglePreviewLog(): void {
-  toggleCompilationPanel("preview");
+  setActiveLogType("preview");
+  expandDetailsSection("preview-log");
 }
 
 /**
- * Toggle full compilation log
+ * Toggle full compilation log — expands the full section in Details panel.
  */
 export function toggleFullLog(): void {
-  toggleCompilationPanel("full");
-}
-
-/**
- * Handle compilation log Start button
- * Starts the appropriate compilation based on current log type (preview or full)
- */
-export function handleCompilationLogStart(): void {
-  const output = document.getElementById("compilation-output");
-  if (!output) return;
-
-  const logType = output.getAttribute("data-log-type") as "preview" | "full" | null;
-
-  if (logType === "preview") {
-    // Start preview compilation
-    console.log("[Writer] Starting preview compilation from log toolbar");
-    if ((window as any).handlePreviewClick) {
-      (window as any).handlePreviewClick();
-    }
-  } else if (logType === "full") {
-    // Start full compilation
-    console.log("[Writer] Starting full compilation from log toolbar");
-    if ((window as any).handleFullCompileClick) {
-      (window as any).handleFullCompileClick();
-    }
-  } else {
-    showToast("Please click a status LED first to select compilation type", "warning");
-  }
-}
-
-/**
- * Handle compilation log Stop button
- * Stops the current compilation
- */
-export function handleCompilationLogStop(): void {
-  const output = document.getElementById("compilation-output");
-  if (!output) return;
-
-  const logType = output.getAttribute("data-log-type") as "preview" | "full" | null;
-
-  if (logType === "preview") {
-    // Stop preview compilation
-    console.log("[Writer] Stopping preview compilation from log toolbar");
-    const statusLamp = (window as any).statusLamp;
-    if (statusLamp) {
-      statusLamp.setPreviewStatus("idle");
-    }
-  } else if (logType === "full") {
-    // Stop full compilation
-    console.log("[Writer] Stopping full compilation from log toolbar");
-    const statusLamp = (window as any).statusLamp;
-    if (statusLamp) {
-      statusLamp.setFullCompileStatus("idle");
-    }
-  }
-}
-
-/**
- * Handle compilation log Close button
- * Closes the log panel
- */
-export function handleCompilationLogClose(): void {
-  const output = document.getElementById("compilation-output");
-  if (output) {
-    output.style.display = "none";
-    console.log("[Writer] Compilation log panel closed");
-  }
+  setActiveLogType("full");
+  expandDetailsSection("full-log");
 }

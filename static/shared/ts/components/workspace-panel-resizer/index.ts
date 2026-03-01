@@ -146,6 +146,24 @@ export function autoInitPanels(): void {
     `[WorkspacePanelResizer] Auto-initialized ${resizers.length} panel(s)`,
   );
 
+  // Smart collapse for the module pane (no resizer of its own — flex:1 fills remaining space).
+  // When other panels expand and squeeze the module pane below threshold, collapse it.
+  const modulePane = document.querySelector<HTMLElement>(".ws-module-pane");
+  if (modulePane) {
+    const MODULE_COLLAPSE_THRESHOLD = 80;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const w = entry.contentRect.width;
+        if (w < MODULE_COLLAPSE_THRESHOLD) {
+          modulePane.classList.add("collapsed");
+        } else {
+          modulePane.classList.remove("collapsed");
+        }
+      }
+    });
+    ro.observe(modulePane);
+  }
+
   // Mark panels as ready (makes them visible via CSS) and remove no-transition guard.
   // Double-rAF ensures all width changes have been painted before transitions re-enable.
   requestAnimationFrame(() => {

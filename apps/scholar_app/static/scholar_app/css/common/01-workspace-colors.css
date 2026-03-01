@@ -27,8 +27,7 @@ body.workspace-page.scholar-page {
 
 /* Main content area background */
 body.scholar-page #main-content,
-body.scholar-page main,
-body.scholar-page .scholar-workspace {
+body.scholar-page main {
   background: var(
     --workspace-bg-primary,
     var(--color-canvas-default)
@@ -155,7 +154,6 @@ body.scholar-page .bibtex-card__title i {
 }
 
 /* Scholar workspace panels */
-body.scholar-page .scholar-sidebar,
 body.scholar-page .scholar-main,
 body.scholar-page .scholar-properties {
   background: var(
@@ -164,7 +162,6 @@ body.scholar-page .scholar-properties {
   ) !important;
 }
 
-body.scholar-page .scholar-sidebar .sidebar-header,
 body.scholar-page .scholar-main .pane-header,
 body.scholar-page .scholar-properties .properties-header {
   background: var(
@@ -174,8 +171,6 @@ body.scholar-page .scholar-properties .properties-header {
   border-color: var(--color-border-default) !important;
 }
 
-body.scholar-page .scholar-sidebar .sidebar-content,
-body.scholar-page .scholar-sidebar #file-tree,
 body.scholar-page .scholar-properties .properties-content {
   background: var(--workspace-bg-monaco, #1e1e1e) !important;
 }
@@ -195,8 +190,6 @@ body.scholar-page .scholar-main .pane-content {
    data-theme is set on <html> element
    =============================================== */
 
-:root[data-theme="light"] body.scholar-page .scholar-sidebar .sidebar-content,
-:root[data-theme="light"] body.scholar-page .scholar-sidebar #file-tree,
 :root[data-theme="light"]
   body.scholar-page
   .scholar-properties

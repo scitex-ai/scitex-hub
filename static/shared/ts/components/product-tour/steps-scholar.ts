@@ -5,7 +5,7 @@ import { TourStep } from "./types";
 
 export const SCHOLAR_TOUR_STEPS: TourStep[] = [
   {
-    selector: "#scholar-sidebar",
+    selector: "#ws-worktree-sidebar",
     title: "Project Files",
     description:
       "Browse your current project's literature files. BibTeX files, PDFs, and notes are shared with your currently selected project.",
@@ -54,7 +54,7 @@ export const SCHOLAR_TOUR_STEPS: TourStep[] = [
     position: "top",
   },
   {
-    selector: ".scholar-properties, #scholar-details-panel",
+    selector: "#ws-worktree-sidebar, #scholar-details-panel",
     title: "Details Panel",
     description:
       "View enrichment status and job progress. Shows metadata for uploaded BibTeX entries.",

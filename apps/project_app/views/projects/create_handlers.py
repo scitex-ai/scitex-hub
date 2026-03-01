@@ -9,12 +9,8 @@ Handle different project initialization types (gitea, github, template, git, emp
 import logging
 from pathlib import Path
 
-from django.shortcuts import redirect, render
-from django.contrib import messages
 from django.conf import settings
-
-from ...models import Project
-from .create_helpers import get_available_templates
+from django.contrib import messages
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +113,7 @@ def handle_template_creation(request, project, manager, template_type):
         )
         return True
     else:
-        messages.error(request, f"Failed to create project with template")
+        messages.error(request, "Failed to create project with template")
         project.delete()
         return False
 
@@ -155,9 +151,70 @@ def handle_empty_creation(request, project, manager):
         messages.success(request, f'Project "{project.name}" created successfully')
         return True
     else:
-        messages.error(request, f"Failed to create project directory")
+        messages.error(request, "Failed to create project directory")
         project.delete()
         return False
+
+
+def handle_app_template_creation(request, project, manager):
+    """Handle SciTeX App template creation with full boilerplate."""
+    from scitex_cloud.app_tools import scaffold
+
+    # Create project directory first
+    success, path = manager.create_project_directory(project, use_template=False)
+    if not success:
+        messages.error(request, "Failed to create project directory")
+        project.delete()
+        return False
+
+    project_dir = Path(path) if isinstance(path, str) else path
+
+    # Build manifest from form fields
+    manifest = {
+        "author": request.user.get_full_name() or request.user.username,
+        "subtitle": request.POST.get("app_subtitle", "").strip(),
+        "capabilities": [
+            c.strip()
+            for c in request.POST.get("app_capabilities", "").split(",")
+            if c.strip()
+        ],
+        "allowed_extensions": [
+            e.strip()
+            for e in request.POST.get("app_filetypes", "").split(",")
+            if e.strip()
+        ],
+        "wip": request.POST.get("app_wip") == "true",
+        "ai_hint": request.POST.get("app_about", "").strip(),
+    }
+
+    # Scaffold complete app boilerplate via app_tools
+    app_name = project.slug.replace("-", "_")
+    if not app_name.endswith("_app"):
+        app_name = f"{app_name}_app"
+
+    try:
+        created = scaffold(
+            target_dir=str(project_dir),
+            name=app_name,
+            icon=request.POST.get("app_icon", "fas fa-puzzle-piece").strip(),
+            description=request.POST.get("app_about", "").strip(),
+            manifest=manifest,
+            license_id=request.POST.get("app_license", "AGPL-3.0").strip(),
+        )
+        logger.info("Scaffolded %d files for app %s", len(created), app_name)
+    except Exception as e:
+        logger.error("App scaffold failed for %s: %s", app_name, e)
+        messages.warning(
+            request,
+            f"Project created but scaffold incomplete: {e}",
+        )
+        return True
+
+    messages.success(
+        request,
+        f'App project "{project.name}" created with {len(created)} boilerplate files',
+    )
+    return True
 
 
 def handle_scitex_initialization(request, project, manager):
@@ -165,12 +222,12 @@ def handle_scitex_initialization(request, project, manager):
     success, writer_path = manager.initialize_scitex_writer_template(project)
     if success:
         messages.success(
-            request, f"SciTeX Writer template initialized at scitex/writer/"
+            request, "SciTeX Writer template initialized at scitex/writer/"
         )
     else:
         messages.warning(
             request,
-            f"Project created but SciTeX Writer template initialization failed",
+            "Project created but SciTeX Writer template initialization failed",
         )
 
 

@@ -205,6 +205,60 @@ export class GitActions {
     }
   }
 
+  /** Push to remote */
+  async push(): Promise<boolean> {
+    try {
+      const response = await fetch(this.getApiUrl("push"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": this.getCsrfToken(),
+        },
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        this.showMessage(data.message || "Pushed to remote", "success");
+        await this.refresh();
+        return true;
+      } else {
+        this.showMessage(data.error || "Failed to push", "error");
+        return false;
+      }
+    } catch (error) {
+      console.error("[GitActions] Push error:", error);
+      this.showMessage("Network error pushing to remote", "error");
+      return false;
+    }
+  }
+
+  /** Pull from remote */
+  async pull(): Promise<boolean> {
+    try {
+      const response = await fetch(this.getApiUrl("pull"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": this.getCsrfToken(),
+        },
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        this.showMessage(data.message || "Pulled from remote", "success");
+        await this.refresh();
+        return true;
+      } else {
+        this.showMessage(data.error || "Failed to pull", "error");
+        return false;
+      }
+    } catch (error) {
+      console.error("[GitActions] Pull error:", error);
+      this.showMessage("Network error pulling from remote", "error");
+      return false;
+    }
+  }
+
   /** Get history for a file/directory */
   async getHistory(path: string = "", limit: number = 20): Promise<any[]> {
     try {

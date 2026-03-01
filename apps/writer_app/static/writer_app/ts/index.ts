@@ -84,19 +84,12 @@ import {
   updateCompilationLog,
   showCompilationSuccess,
   showCompilationError,
-  minimizeCompilationOutput,
-  restoreCompilationOutput,
   compilationLogs,
-  toggleCompilationPanel,
   togglePreviewLog,
   toggleFullLog,
-  handleCompilationLogStart,
-  handleCompilationLogStop,
-  handleCompilationLogClose,
-  updateMinimizedStatus,
+  setActiveLogType,
   updateStatusLamp,
   updateSlimProgress,
-  toggleCompilationDetails,
   restoreCompilationStatus,
   populateSectionDropdownDirect,
   syncDropdownToSection,
@@ -427,18 +420,10 @@ export { handleCompileFull, switchSection };
 (window as any).updateCompilationLog = updateCompilationLog;
 (window as any).showCompilationSuccess = showCompilationSuccess;
 (window as any).showCompilationError = showCompilationError;
-(window as any).minimizeCompilationOutput = minimizeCompilationOutput;
-(window as any).restoreCompilationOutput = restoreCompilationOutput;
-(window as any).toggleCompilationPanel = toggleCompilationPanel;
 (window as any).togglePreviewLog = togglePreviewLog;
 (window as any).toggleFullLog = toggleFullLog;
-(window as any).handleCompilationLogStart = handleCompilationLogStart;
-(window as any).handleCompilationLogStop = handleCompilationLogStop;
-(window as any).handleCompilationLogClose = handleCompilationLogClose;
+(window as any).setActiveLogType = setActiveLogType;
 (window as any).compilationLogs = compilationLogs;
-(window as any).updateMinimizedStatus = updateMinimizedStatus;
 (window as any).updateStatusLamp = updateStatusLamp;
 (window as any).updateSlimProgress = updateSlimProgress;
-(window as any).toggleCompilationDetails = toggleCompilationDetails;
 (window as any).restoreCompilationStatus = restoreCompilationStatus;
-// (window as any).toggleCompilationLog = toggleCompilationLog; // Function not defined

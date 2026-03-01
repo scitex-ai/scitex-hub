@@ -3,8 +3,14 @@ Hub projects overview — shown when no project is selected.
 Returned by /hub/api/projects-overview/ for inline back-navigation.
 {% endcomment %}
 <div class="hub-content">
-    <div class="hub-header mb-4">
-        <h1>Your Projects</h1>
+    <div class="hub-header mb-4"
+         data-ai-hint="Projects overview dashboard with create button">
+        <div class="hub-repos-header">
+            <h1>Your Projects</h1>
+            <a href="/new/" class="hub-new-project-btn" data-ai-hint="Create new project">
+                <i class="fas fa-plus"></i> New Project
+            </a>
+        </div>
         {% if projects_count > 0 %}
             <p class="text-muted">{{ projects_count }} project{{ projects_count|pluralize }}</p>
         {% endif %}

@@ -30,15 +30,17 @@
                 aria-label="Toggle header collapse">
             <i class="fas fa-chevron-up"></i>
         </button>
-        <!-- Django Messages -->
+        <!-- Django Messages (success hidden — only show errors/warnings) -->
         {% if messages %}
             <div class="container django-messages-container">
                 {% for message in messages %}
-                    <div class="django-alert alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}"
-                         role="alert">
-                        {{ message|safe }}
-                        <button type="button" class="alert-close-btn" aria-label="Close">&times;</button>
-                    </div>
+                    {% if message.tags != 'success' %}
+                        <div class="django-alert alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}"
+                             role="alert">
+                            {{ message|safe }}
+                            <button type="button" class="alert-close-btn" aria-label="Close">&times;</button>
+                        </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         {% endif %}
@@ -59,19 +61,18 @@
             {% endif %}
             <main id="main-content"
                   class="{% if workspace_has_panes and user.is_authenticated %}ws-module-pane{% endif %}"
-                  {% if active_module_name %}data-module-accent="{{ active_module_name }}"{% endif %}>
+                  {% if active_module_name %}data-module-accent="{{ active_module_name }}"{% endif %}
+                  {% if active_module.accent_color %}style="--module-accent-color: {{ active_module.accent_color }}"{% endif %}>
                 {% block content %}{% endblock %}
             </main>
         </div>
         <!-- Footer Collapse Toggle (OUTSIDE footer for body-class-based CSS) -->
-        {% if workspace_has_panes and user.is_authenticated %}
-            <button id="footer-collapse-toggle"
-                    class="footer-collapse-toggle"
-                    data-tooltip="Toggle footer"
-                    aria-label="Toggle footer collapse">
-                <i class="fas fa-chevron-down"></i>
-            </button>
-        {% endif %}
+        <button id="footer-collapse-toggle"
+                class="footer-collapse-toggle"
+                data-tooltip="Toggle footer"
+                aria-label="Toggle footer collapse">
+            <i class="fas fa-chevron-down"></i>
+        </button>
         {% include 'global_base_partials/global_footer.html' %}
         {% if not is_workspace_page %}
             {% include 'global_base_partials/global_ai_panel.html' %}

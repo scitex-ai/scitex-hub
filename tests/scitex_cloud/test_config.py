@@ -8,7 +8,7 @@ import os
 
 import pytest
 
-from scitex_cloud.config.environments import (
+from scitex_cloud._config._environments import (
     ENVIRONMENTS,
     Environment,
     get_environment,

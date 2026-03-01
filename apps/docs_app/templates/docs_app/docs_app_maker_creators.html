@@ -368,75 +368,352 @@ register(
     )
 )</code></pre>
         </section>
-        <!-- Testing -->
-        <span id="testing"></span>
+        <!-- Manifest Schema -->
+        <span id="manifest"></span>
         <section class="api-section">
             <h2>
-                <i class="fas fa-check-circle"></i> Testing
+                <i class="fas fa-file-alt"></i> manifest.json
             </h2>
             <p>
-                <code>ModuleTestMixin</code> automatically validates all module layers:
+                Every app must include a <code>manifest.json</code> at the project root:
             </p>
-            <pre><code>from django.test import TestCase
-from apps.workspace_app.test_mixin import ModuleTestMixin
-
-class MyModuleTest(ModuleTestMixin, TestCase):
-    module_name = "mymodule"</code></pre>
-            <p>This validates:</p>
+            <pre><code>{
+    "name": "my_awesome_app",
+    "label": "My Awesome App",
+    "version": "0.1.0",
+    "description": "Short description of what the app does.",
+    "icon": "fas fa-rocket",
+    "license": "MIT",
+    "capabilities": ["data-visualization", "export"],
+    "min_scitex_version": "0.6.0",
+    "author": "Your Name",
+    "homepage": "https://example.com"
+}</code></pre>
             <table class="api-table">
                 <thead>
                     <tr>
-                        <th>Check</th>
-                        <th>What it verifies</th>
+                        <th>Field</th>
+                        <th>Required</th>
+                        <th>Description</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>
-                            <code>test_module_registered</code>
+                            <code>name</code>
                         </td>
-                        <td>Module exists in registry</td>
-                    </tr>
-                    <tr>
+                        <td>Yes</td>
                         <td>
-                            <code>test_partial_template_exists</code>
-                        </td>
-                        <td>AJAX partial template file exists</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <code>test_icon_registered</code>
-                        </td>
-                        <td>Has FontAwesome or SVG icon</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <code>test_context_builder_importable</code>
-                        </td>
-                        <td>Context builder function is callable</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <code>test_ai_hint_defined</code>
-                        </td>
-                        <td>LLM hint text is non-empty</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <code>test_accent_color_css_exists</code>
-                        </td>
-                        <td>
-                            CSS variable <code>--module-accent-{name}</code> defined
+                            Module name (must end with <code>_app</code>)
                         </td>
                     </tr>
                     <tr>
                         <td>
-                            <code>test_skill_registered</code>
+                            <code>label</code>
                         </td>
-                        <td>Skill exists in LLM registry</td>
+                        <td>No</td>
+                        <td>Display label in tab bar</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>version</code>
+                        </td>
+                        <td>Yes</td>
+                        <td>Semantic version</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>description</code>
+                        </td>
+                        <td>Yes</td>
+                        <td>Short description (max 200 chars)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>icon</code>
+                        </td>
+                        <td>No</td>
+                        <td>
+                            FontAwesome class (default: <code>fas fa-puzzle-piece</code>)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>license</code>
+                        </td>
+                        <td>Yes</td>
+                        <td>SPDX identifier (e.g. MIT, Apache-2.0, AGPL-3.0)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>capabilities</code>
+                        </td>
+                        <td>No</td>
+                        <td>List of capability tags</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>min_scitex_version</code>
+                        </td>
+                        <td>No</td>
+                        <td>Minimum compatible SciTeX version</td>
                     </tr>
                 </tbody>
             </table>
         </section>
-    </div>
+        <!-- CSS Variables -->
+        <span id="css-variables"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-palette"></i> CSS Variables &amp; Theming
+            </h2>
+            <p>
+                Use SciTeX CSS variables for consistent theming. Your CSS must be scoped
+                under <code>[data-mode="yourmodule"]</code> to prevent style leaks:
+            </p>
+            <pre><code>/* yourmodule_app/static/yourmodule_app/css/yourmodule.css */
+[data-mode="yourmodule"] {
+    --app-accent: var(--module-accent-yourmodule, #4a90d9);
+}
+[data-mode="yourmodule"] .my-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+}</code></pre>
+            <p>Available theme variables:</p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Variable</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>--bg-primary</code>
+                        </td>
+                        <td>Main background color</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--bg-secondary</code>
+                        </td>
+                        <td>Secondary/card background</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--text-primary</code>
+                        </td>
+                        <td>Main text color</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--text-muted</code>
+                        </td>
+                        <td>Subdued text color</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--border-subtle</code>
+                        </td>
+                        <td>Subtle border color</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--accent</code>
+                        </td>
+                        <td>Global accent color</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- Publishing Workflow -->
+        <span id="publishing"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-globe"></i> Publishing Workflow
+            </h2>
+            <ol>
+                <li>
+                    <strong>Scaffold:</strong> <code>scitex-cloud app init .</code> &mdash; creates all boilerplate
+                </li>
+                <li>
+                    <strong>Develop:</strong> Edit templates, views, and CSS in your project
+                </li>
+                <li>
+                    <strong>Validate:</strong> <code>scitex-cloud app validate .</code> &mdash; checks structure and security
+                </li>
+                <li>
+                    <strong>Publish:</strong> <code>scitex-cloud app publish .</code> or click &ldquo;Publish&rdquo; on the detail page
+                </li>
+                <li>
+                    <strong>Review:</strong> Admin reviews source code and approves/rejects
+                </li>
+                <li>
+                    <strong>Live:</strong> Approved app appears in the public Apps catalog
+                </li>
+            </ol>
+            <div class="api-callout api-callout-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    Source code is automatically scanned for forbidden patterns
+                    (<code>os.system</code>, <code>subprocess</code>, <code>eval</code>, <code>exec</code>)
+                    before submission. The commit SHA is pinned on approval for reproducibility.
+                </div>
+            </div>
+        </section>
+        <!-- Template Rules -->
+        <span id="template-rules"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-shield-alt"></i> Template Rules
+            </h2>
+            <p>User app templates are loaded from project directories with the following constraints:</p>
+            <ul>
+                <li>
+                    Templates <strong>must not</strong> override protected blocks: <code>extra_css</code>, <code>extra_js</code>, <code>content</code>, <code>title</code>
+                </li>
+                <li>Templates are standalone HTML fragments (AJAX partials), not full pages</li>
+                <li>
+                    The root element must have <code>data-mode="yourmodule"</code>
+                </li>
+                <li>
+                    No <code>
+                    {% verbatim %}
+                        {% extends %}
+
+                    {% endverbatim %}
+                </code> or
+                <code>
+                    {% verbatim %}
+                        {% load %}
+
+                    {% endverbatim %}
+                </code> tags allowed
+            </li>
+        </ul>
+    </section>
+    <!-- Testing -->
+    <span id="testing"></span>
+    <section class="api-section">
+        <h2>
+            <i class="fas fa-check-circle"></i> Testing
+        </h2>
+        <p>
+            <code>ModuleTestMixin</code> automatically validates all module layers:
+        </p>
+        <pre><code>from django.test import TestCase
+from apps.workspace_app.test_mixin import ModuleTestMixin
+
+class MyModuleTest(ModuleTestMixin, TestCase):
+    module_name = "mymodule"</code></pre>
+        <p>This validates:</p>
+        <table class="api-table">
+            <thead>
+                <tr>
+                    <th>Check</th>
+                    <th>What it verifies</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>test_module_registered</code>
+                    </td>
+                    <td>Module exists in registry</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>test_partial_template_exists</code>
+                    </td>
+                    <td>AJAX partial template file exists</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>test_icon_registered</code>
+                    </td>
+                    <td>Has FontAwesome or SVG icon</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>test_context_builder_importable</code>
+                    </td>
+                    <td>Context builder function is callable</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>test_ai_hint_defined</code>
+                    </td>
+                    <td>LLM hint text is non-empty</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>test_accent_color_css_exists</code>
+                    </td>
+                    <td>
+                        CSS variable <code>--module-accent-{name}</code> defined
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>test_skill_registered</code>
+                    </td>
+                    <td>Skill exists in LLM registry</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+    <!-- Licensing -->
+    <span id="licensing"></span>
+    <section class="api-section">
+        <h2>
+            <i class="fas fa-balance-scale"></i> Licensing
+        </h2>
+        <p>SciTeX uses a layered licensing model that maximizes openness while protecting user freedom:</p>
+        <table class="api-table">
+            <thead>
+                <tr>
+                    <th>Component</th>
+                    <th>License</th>
+                    <th>Copyleft?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>SciTeX Cloud Platform</td>
+                    <td>AGPL-3.0</td>
+                    <td>Yes (strong)</td>
+                </tr>
+                <tr>
+                    <td>Plugin SDK / API</td>
+                    <td>Apache-2.0</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <td>User Apps</td>
+                    <td>Author's choice</td>
+                    <td>Depends on chosen license</td>
+                </tr>
+            </tbody>
+        </table>
+        <p>
+            Apps using the SciTeX workspace API (registering modules, rendering templates,
+            using the file tree, calling MCP tools) are <strong>not</strong> derivative works of
+            the AGPL-licensed core. You are free to license your app however you wish.
+        </p>
+        <p>
+            If your app modifies or incorporates SciTeX core code (not just calling its APIs),
+            then AGPL obligations apply to those modifications.
+        </p>
+        <div class="api-callout api-callout-info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                Supported licenses: AGPL-3.0, MIT, Apache-2.0, BSD-3-Clause.
+                License must be declared in the project's <code>LICENSE</code> file
+                and is displayed as a badge on the apps catalog listing.
+            </div>
+        </div>
+    </section>
+</div>
 {% endblock %}

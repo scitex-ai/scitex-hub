@@ -247,6 +247,49 @@ class Project(
         default=False, help_text="Manuscript generated"
     )
 
+    # App Marketplace fields (nullable — only required at submission)
+    is_app = models.BooleanField(
+        default=False,
+        help_text="Whether this project is a SciTeX app plugin",
+    )
+    app_category = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        default="",
+        help_text="App category for marketplace listing",
+    )
+    app_license = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        default="AGPL-3.0",
+        help_text="SPDX license identifier for app distribution",
+    )
+    app_status = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        choices=[
+            ("draft", "Draft"),
+            ("submitted", "Submitted"),
+            ("under_review", "Under Review"),
+            ("approved", "Approved"),
+            ("rejected", "Rejected"),
+        ],
+        default="draft",
+        help_text="Marketplace submission status",
+    )
+    app_submitted_at = models.DateTimeField(blank=True, null=True)
+    app_reviewed_at = models.DateTimeField(blank=True, null=True)
+    app_reviewer = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reviewed_apps",
+    )
+
     # Home project flag — undeletable, always private, one per user
     is_home = models.BooleanField(
         default=False,

@@ -8,9 +8,9 @@
  * - Rectangle drag: select all items within drag region
  */
 
-import type { TreeItem } from '../types.ts';
-import { TreeStateManager } from '../TreeState.ts';
-import { TreeUtils } from './TreeUtils.ts';
+import type { TreeItem } from "../types.ts";
+import { TreeStateManager } from "../TreeState.ts";
+import { TreeUtils } from "./TreeUtils.ts";
 
 export class SelectionHandler {
   private stateManager: TreeStateManager;
@@ -31,7 +31,7 @@ export class SelectionHandler {
     getContainer: () => HTMLElement | null,
     getTreeData: () => TreeItem[],
     rerender: () => void,
-    selectFile: (path: string) => void
+    selectFile: (path: string) => void,
   ) {
     this.stateManager = stateManager;
     this.containerFn = getContainer;
@@ -47,9 +47,9 @@ export class SelectionHandler {
     const container = this.containerFn();
     if (!container) return;
 
-    container.addEventListener('mousedown', this.handleMouseDown);
-    document.addEventListener('mousemove', this.handleMouseMove);
-    document.addEventListener('mouseup', this.handleMouseUp);
+    container.addEventListener("mousedown", this.handleMouseDown);
+    document.addEventListener("mousemove", this.handleMouseMove);
+    document.addEventListener("mouseup", this.handleMouseUp);
   }
 
   /**
@@ -58,16 +58,16 @@ export class SelectionHandler {
   destroy(): void {
     const container = this.containerFn();
     if (container) {
-      container.removeEventListener('mousedown', this.handleMouseDown);
+      container.removeEventListener("mousedown", this.handleMouseDown);
     }
-    document.removeEventListener('mousemove', this.handleMouseMove);
-    document.removeEventListener('mouseup', this.handleMouseUp);
+    document.removeEventListener("mousemove", this.handleMouseMove);
+    document.removeEventListener("mouseup", this.handleMouseUp);
   }
 
   private handleMouseDown = (e: MouseEvent): void => {
     const target = e.target as HTMLElement;
     // Only start rect selection on empty areas (not on items or action buttons)
-    if (target.closest('.wft-item') || target.closest('.wft-action-btn') || target.closest('.wft-git-panel')) {
+    if (target.closest(".wft-item") || target.closest(".wft-action-btn")) {
       return;
     }
 
@@ -89,14 +89,14 @@ export class SelectionHandler {
     }
 
     // Create rectangle element
-    this.rectElement = document.createElement('div');
-    this.rectElement.className = 'wft-selection-rect';
-    this.rectElement.style.position = 'absolute';
+    this.rectElement = document.createElement("div");
+    this.rectElement.className = "wft-selection-rect";
+    this.rectElement.style.position = "absolute";
     this.rectElement.style.left = `${this.rectStartX}px`;
     this.rectElement.style.top = `${this.rectStartY}px`;
-    this.rectElement.style.width = '0';
-    this.rectElement.style.height = '0';
-    container.style.position = 'relative';
+    this.rectElement.style.width = "0";
+    this.rectElement.style.height = "0";
+    container.style.position = "relative";
     container.appendChild(this.rectElement);
   };
 
@@ -135,19 +135,25 @@ export class SelectionHandler {
     }
   };
 
-  private updateRectSelection(left: number, top: number, width: number, height: number): void {
+  private updateRectSelection(
+    left: number,
+    top: number,
+    width: number,
+    height: number,
+  ): void {
     const container = this.containerFn();
     if (!container) return;
 
     const selectedPaths = new Set(this.preRectSelection);
-    const items = container.querySelectorAll('.wft-item[data-path]');
+    const items = container.querySelectorAll(".wft-item[data-path]");
 
-    items.forEach(item => {
+    items.forEach((item) => {
       const itemRect = (item as HTMLElement).getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
 
       // Convert item position to relative coordinates
-      const itemLeft = itemRect.left - containerRect.left + container.scrollLeft;
+      const itemLeft =
+        itemRect.left - containerRect.left + container.scrollLeft;
       const itemTop = itemRect.top - containerRect.top + container.scrollTop;
       const itemRight = itemLeft + itemRect.width;
       const itemBottom = itemTop + itemRect.height;
@@ -156,16 +162,21 @@ export class SelectionHandler {
       const rectRight = left + width;
       const rectBottom = top + height;
 
-      if (itemLeft < rectRight && itemRight > left && itemTop < rectBottom && itemBottom > top) {
-        const path = item.getAttribute('data-path');
+      if (
+        itemLeft < rectRight &&
+        itemRight > left &&
+        itemTop < rectBottom &&
+        itemBottom > top
+      ) {
+        const path = item.getAttribute("data-path");
         if (path) {
           selectedPaths.add(path);
-          item.classList.add('selected');
+          item.classList.add("selected");
         }
       } else {
-        const path = item.getAttribute('data-path');
+        const path = item.getAttribute("data-path");
         if (path && !this.preRectSelection.has(path)) {
-          item.classList.remove('selected');
+          item.classList.remove("selected");
         }
       }
     });
@@ -178,10 +189,10 @@ export class SelectionHandler {
    */
   handleClick(path: string, e: MouseEvent): void {
     // Special case: empty path means root (clicking on root item or empty space)
-    if (path === '') {
+    if (path === "") {
       this.stateManager.clearSelection();
-      this.stateManager.setLastClickedPath('');
-      this.stateManager.setSelected('');  // Set root as selected
+      this.stateManager.setLastClickedPath("");
+      this.stateManager.setSelected(""); // Set root as selected
       this.updateAllSelectionClasses();
       return;
     }
@@ -191,8 +202,10 @@ export class SelectionHandler {
 
     // Expand parents if needed
     const parentPaths = TreeUtils.getParentPaths(path);
-    const needsExpand = parentPaths.some(p => !this.stateManager.isExpanded(p));
-    parentPaths.forEach(p => this.stateManager.expand(p));
+    const needsExpand = parentPaths.some(
+      (p) => !this.stateManager.isExpanded(p),
+    );
+    parentPaths.forEach((p) => this.stateManager.expand(p));
 
     if (e.ctrlKey || e.metaKey) {
       // Ctrl+click: toggle selection (works for files and directories)
@@ -204,9 +217,10 @@ export class SelectionHandler {
       // Normal click: single selection
       this.stateManager.selectSingle(path);
       // Trigger file select callback for files and bundle directories (.figz.d, .pltz.d)
-      const isBundleDir = item.type === 'directory' &&
-        (path.endsWith('.figz.d') || path.endsWith('.pltz.d'));
-      if (item.type === 'file' || isBundleDir) {
+      const isBundleDir =
+        item.type === "directory" &&
+        (path.endsWith(".figz.d") || path.endsWith(".pltz.d"));
+      if (item.type === "file" || isBundleDir) {
         this.selectFileFn(path);
       }
     }
@@ -256,8 +270,8 @@ export class SelectionHandler {
     if (!container) return [];
 
     const paths: string[] = [];
-    container.querySelectorAll('.wft-item[data-path]').forEach(el => {
-      const path = el.getAttribute('data-path');
+    container.querySelectorAll(".wft-item[data-path]").forEach((el) => {
+      const path = el.getAttribute("data-path");
       if (path) paths.push(path);
     });
     return paths;
@@ -270,13 +284,15 @@ export class SelectionHandler {
     const item = TreeUtils.findItem(path, this.getTreeDataFn());
     if (item) {
       const parentPaths = TreeUtils.getParentPaths(path);
-      const needsExpand = parentPaths.some(p => !this.stateManager.isExpanded(p));
-      parentPaths.forEach(p => this.stateManager.expand(p));
+      const needsExpand = parentPaths.some(
+        (p) => !this.stateManager.isExpanded(p),
+      );
+      parentPaths.forEach((p) => this.stateManager.expand(p));
 
       this.stateManager.selectSingle(path);
 
       // Only trigger file select callback for files
-      if (!skipCallback && item.type === 'file') {
+      if (!skipCallback && item.type === "file") {
         this.selectFileFn(path);
       }
 
@@ -290,7 +306,7 @@ export class SelectionHandler {
         const container = this.containerFn();
         const element = container?.querySelector(`[data-path="${path}"]`);
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       }, 100);
     } else {
@@ -308,19 +324,19 @@ export class SelectionHandler {
     const selectedPaths = this.stateManager.getSelectedPaths();
     const selectedPath = this.stateManager.getSelected();
 
-    container.querySelectorAll('.wft-item').forEach(el => {
-      const path = el.getAttribute('data-path');
+    container.querySelectorAll(".wft-item").forEach((el) => {
+      const path = el.getAttribute("data-path");
       // Handle root item (empty path)
-      if (path === '') {
-        if (selectedPath === '') {
-          el.classList.add('selected');
+      if (path === "") {
+        if (selectedPath === "") {
+          el.classList.add("selected");
         } else {
-          el.classList.remove('selected');
+          el.classList.remove("selected");
         }
       } else if (path && selectedPaths.has(path)) {
-        el.classList.add('selected');
+        el.classList.add("selected");
       } else {
-        el.classList.remove('selected');
+        el.classList.remove("selected");
       }
     });
   }
@@ -365,15 +381,15 @@ export class SelectionHandler {
 
     const container = this.containerFn();
     if (container) {
-      container.querySelectorAll('.wft-file.target').forEach(el => {
-        el.classList.remove('target');
-        el.querySelector('.wft-target-badge')?.remove();
+      container.querySelectorAll(".wft-file.target").forEach((el) => {
+        el.classList.remove("target");
+        el.querySelector(".wft-target-badge")?.remove();
       });
 
       const targetElement = container.querySelector(`[data-path="${path}"]`);
       if (targetElement) {
-        targetElement.classList.add('target');
-        targetElement.scrollIntoView({ behavior: 'instant', block: 'nearest' });
+        targetElement.classList.add("target");
+        targetElement.scrollIntoView({ behavior: "instant", block: "nearest" });
       }
     }
   }

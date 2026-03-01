@@ -11,6 +11,7 @@ import { initHiddenFilesToggle } from "./HiddenFilesToggle.ts";
 import { initGitStatusToggle } from "./GitStatusToggle.ts";
 import { initModuleFilterButtons } from "./ModuleFilterButtons.ts";
 import { initSortToggle } from "./SortToggle.ts";
+import { initMonitorToggle, initRepoMonitor } from "../repo-monitor/index.ts";
 
 declare global {
   interface Window {
@@ -113,12 +114,24 @@ export async function autoInitWorktreePanes(): Promise<void> {
       const data = tree.getTreeData?.() ?? [];
       window.scitexOnTreeDataLoaded(data);
     }
+
+    // Initialize repository monitor toggle (always — collapse/expand + localStorage)
+    initMonitorToggle();
+
+    // Initialize full monitor with WebSocket (only when project context available)
+    const monitorEl = document.getElementById("ws-repo-monitor");
+    const projectId = monitorEl?.dataset.projectId;
+    if (projectId && username && slug) {
+      initRepoMonitor({ projectId, username, slug });
+    }
   }
 }
 
 // Auto-run on DOMContentLoaded
 if (typeof document !== "undefined") {
   document.addEventListener("DOMContentLoaded", () => {
+    // Monitor toggle works even without a tree — always init
+    initMonitorToggle();
     // Primary init: module-owned trees via #workspace-project-config (hub, scholar, clew)
     autoInitWorkspaceTree();
     // Secondary init: shared worktree pane in three-column layout via [data-workspace-tree]

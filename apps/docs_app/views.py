@@ -69,13 +69,6 @@ DOCS_PAGES = [
         "badges": ["user", "dev"],
     },
     {
-        "slug": "plugin-license",
-        "label": "Licensing",
-        "icon": "fas fa-file-contract",
-        "template": "docs_app/docs_plugin_license.html",
-        "badges": ["user", "dev"],
-    },
-    {
         "slug": "self-hosting",
         "label": "Self-Hosting",
         "icon": "fas fa-server",

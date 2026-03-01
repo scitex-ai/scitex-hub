@@ -60,16 +60,6 @@ export class TreeRenderer {
     this.searchActive = matches.size > 0 || ancestors.size > 0;
   }
 
-  /** Render git panel HTML (for placement outside tree content) */
-  renderGitPanelHtml(gitSummary?: {
-    staged: number;
-    modified: number;
-    untracked: number;
-  }): string {
-    if (this.config.showGitStatus === false || !gitSummary) return "";
-    return this.renderGitPanel(gitSummary);
-  }
-
   setSortMode(mode: SortMode): void {
     this.sortMode = mode;
   }
@@ -121,61 +111,6 @@ export class TreeRenderer {
       <span class="wft-icon"><i class="fas fa-folder-tree"></i></span>
       <span class="wft-name wft-root-name">${this.escapeHtml(this.config.slug || "Project")}</span>
     </div>`;
-  }
-
-  /** Render git panel header with commit functionality */
-  private renderGitPanel(summary: {
-    staged: number;
-    modified: number;
-    untracked: number;
-  }): string {
-    const hasStaged = summary.staged > 0;
-    const hasChanges =
-      summary.staged > 0 || summary.modified > 0 || summary.untracked > 0;
-
-    return `
-      <div class="wft-git-panel collapsed">
-        <div class="wft-git-panel-header" data-action="git-toggle-panel">
-          <div class="wft-git-panel-title">
-            <i class="fas fa-chevron-right wft-git-chevron"></i>
-            <i class="fab fa-git-alt"></i>
-            <span>Git</span>
-          </div>
-          <div class="wft-git-panel-actions">
-            <button class="wft-git-panel-btn secondary" data-action="git-stage-all" title="Stage all changes">
-              <i class="fas fa-plus"></i>
-            </button>
-            <button class="wft-git-panel-btn secondary" data-action="git-unstage-all" title="Unstage all changes">
-              <i class="fas fa-minus"></i>
-            </button>
-            <button class="wft-git-panel-btn secondary" data-action="git-refresh" title="Refresh git status">
-              <i class="fas fa-sync-alt"></i>
-            </button>
-          </div>
-        </div>
-        <div class="wft-git-panel-body">
-          <div class="wft-git-status-summary">
-            ${
-              hasChanges
-                ? `
-              ${summary.staged > 0 ? `<span class="staged" title="${summary.staged} file(s) staged for commit"><i class="fas fa-check"></i> ${summary.staged}</span>` : ""}
-              ${summary.modified > 0 ? `<span class="modified" title="${summary.modified} file(s) with unstaged changes"><i class="fas fa-pen"></i> ${summary.modified}</span>` : ""}
-              ${summary.untracked > 0 ? `<span class="untracked" title="${summary.untracked} untracked file(s)"><i class="fas fa-question"></i> ${summary.untracked}</span>` : ""}
-            `
-                : `<span class="clean" title="Working tree clean"><i class="fas fa-check-circle"></i> Clean</span>`
-            }
-          </div>
-          <textarea class="wft-commit-input" placeholder="Commit message..." rows="1" ${!hasStaged ? 'disabled title="Stage files first to enable commit"' : 'title="Enter commit message"'}></textarea>
-          <div class="wft-git-panel-actions" style="justify-content: flex-end;">
-            <button class="wft-git-panel-btn primary" data-action="git-commit" title="Commit staged changes" ${!hasStaged ? "disabled" : ""}>
-              <i class="fas fa-check"></i> Commit
-            </button>
-            <button class="wft-git-panel-btn primary" data-action="git-commit-push" title="Commit and push to remote" ${!hasStaged ? "disabled" : ""}>
-              <i class="fas fa-upload"></i> Commit & Push
-            </button>
-          </div>
-        </div>
-      </div>`;
   }
 
   /** Render tree items recursively */

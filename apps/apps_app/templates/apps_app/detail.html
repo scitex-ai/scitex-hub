@@ -51,6 +51,10 @@
                             <span class="ap-badge ap-badge-license">
                                 <i class="fas fa-balance-scale" aria-hidden="true"></i> {{ reg_module.license }}
                             </span>
+                        {% elif app_module.project and app_module.project.app_license %}
+                            <span class="ap-badge ap-badge-license">
+                                <i class="fas fa-balance-scale" aria-hidden="true"></i> {{ app_module.project.app_license }}
+                            </span>
                         {% endif %}
                     </div>
                 </div>
@@ -142,6 +146,14 @@
                         <i class="fas fa-external-link-alt" aria-hidden="true"></i> View in Hub
                     </a>
                 {% endif %}
+                {% if user.is_authenticated and not app_module.is_builtin and app_module.project %}
+                    <button class="ap-btn-action ap-btn-secondary"
+                            id="ap-fork-btn"
+                            data-module="{{ app_module.module_name }}"
+                            aria-label="Fork {{ app_module.module_name }}">
+                        <i class="fas fa-code-branch" aria-hidden="true"></i> Fork
+                    </button>
+                {% endif %}
                 {% if pending_submission %}
                     <span class="ap-badge ap-badge-wip">
                         <i class="fas fa-clock" aria-hidden="true"></i> Under Review
@@ -171,6 +183,15 @@
                         {{ skill.description }}
                     {% endif %}
                 </div>
+            </section>
+        {% endif %}
+        <!-- README (from project dir) -->
+        {% if readme_html %}
+            <section class="ap-detail-section">
+                <h2 class="ap-section-title">
+                    <i class="fas fa-book-open" aria-hidden="true"></i> README
+                </h2>
+                <div class="ap-detail-readme">{{ readme_html|safe }}</div>
             </section>
         {% endif %}
         <!-- Capabilities (from skill registry) -->
@@ -373,6 +394,24 @@
                     publishBtn.disabled = false;
                     if (data.errors) { alert('Validation errors:\n' + data.errors.join('\n')); }
                     else if (data.error) { alert(data.error); }
+                }
+            );
+        });
+    }
+
+    var forkBtn = document.getElementById('ap-fork-btn');
+    if (forkBtn) {
+        forkBtn.addEventListener('click', function () {
+            if (!confirm('Fork this app to your account?')) { return; }
+            forkBtn.disabled = true;
+            postApi('/apps/api/' + forkBtn.dataset.module + '/fork/',
+                function (data) {
+                    if (data.url) { window.location.href = data.url; }
+                    else { location.reload(); }
+                },
+                function (data) {
+                    forkBtn.disabled = false;
+                    if (data.error) { alert(data.error); }
                 }
             );
         });

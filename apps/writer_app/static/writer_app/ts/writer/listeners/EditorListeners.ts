@@ -16,9 +16,6 @@ import {
 import {
   showToast,
   updateWordCountDisplay,
-  hideCompilationProgress,
-  minimizeCompilationOutput,
-  restoreCompilationOutput,
   restoreCompilationStatus,
 } from "../../utils/index";
 
@@ -237,39 +234,6 @@ export class EditorListeners {
     if (confirmCommitBtn) {
       confirmCommitBtn.addEventListener("click", async () => {
         await handleGitCommit(this.state);
-      });
-    }
-
-    // Setup minimize compilation output button
-    const minimizeBtn = document.getElementById("minimize-compilation-output");
-    if (minimizeBtn) {
-      minimizeBtn.addEventListener("click", () => {
-        minimizeCompilationOutput();
-      });
-    }
-
-    // Setup close compilation output button
-    const closeBtn = document.getElementById("close-compilation-output");
-    if (closeBtn) {
-      closeBtn.addEventListener("click", () => {
-        hideCompilationProgress();
-        // Also hide minimized status
-        const minimizedStatus = document.getElementById(
-          "minimized-compilation-status",
-        );
-        if (minimizedStatus) {
-          minimizedStatus.style.display = "none";
-        }
-      });
-    }
-
-    // Setup minimized compilation status button (click to restore)
-    const minimizedStatus = document.getElementById(
-      "minimized-compilation-status",
-    );
-    if (minimizedStatus) {
-      minimizedStatus.addEventListener("click", () => {
-        restoreCompilationOutput();
       });
     }
   }

@@ -184,9 +184,9 @@ function applyModuleColor(moduleName: string, color: string): void {
   const sel = `[data-module="${moduleName}"]`;
   document.querySelectorAll<HTMLElement>(sel).forEach((el) => {
     if (color) {
-      el.style.setProperty("--tab-accent", color);
+      el.style.setProperty("--module-accent-color", color);
     } else {
-      el.style.removeProperty("--tab-accent");
+      el.style.removeProperty("--module-accent-color");
     }
   });
 
