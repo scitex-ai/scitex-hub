@@ -308,8 +308,10 @@ def _manifest_json(name, label, icon, description, extra_manifest, license_id):
 def _index_html(name, label):
     return f"""{{% extends "global_base.html" %}}
 {{% load static %}}
-{{% block content %}}
+{{% block extra_css %}}
     <link rel="stylesheet" href="{{% static '{name}/css/{name}.css' %}}">
+{{% endblock %}}
+{{% block content %}}
     {{% include "{name}/index_partial.html" %}}
 {{% endblock %}}
 """
