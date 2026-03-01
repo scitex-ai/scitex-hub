@@ -20,6 +20,49 @@ import { RepoMonitorFilter } from "./RepoMonitorFilter.ts";
 import { VerticalSplitResizer } from "./VerticalSplitResizer.ts";
 import type { MonitorConfig } from "./types.ts";
 
+const STORAGE_KEY = "repo-monitor-collapsed";
+let toggleInitialized = false;
+
+/**
+ * Initialize the monitor header toggle (collapse/expand + localStorage).
+ * Always safe to call — works even without a project context.
+ * Idempotent: multiple calls are harmless.
+ */
+export function initMonitorToggle(): void {
+  if (toggleInitialized) return;
+
+  const monitorArea = document.getElementById("ws-repo-monitor");
+  const headerEl = document.getElementById("repo-monitor-header");
+  if (!monitorArea || !headerEl) return;
+
+  toggleInitialized = true;
+
+  // Restore persisted state
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved === "false") {
+    monitorArea.classList.remove("collapsed");
+  }
+
+  // Header click toggles collapse (toolbar buttons handled independently)
+  headerEl.addEventListener("click", (e) => {
+    if ((e.target as HTMLElement).closest(".repo-monitor-toolbar")) return;
+    monitorArea.classList.toggle("collapsed");
+    const isCollapsed = monitorArea.classList.contains("collapsed");
+    localStorage.setItem(STORAGE_KEY, String(isCollapsed));
+
+    // Notify resizer and client if they exist
+    window.dispatchEvent(
+      new CustomEvent("repo-monitor:toggle", {
+        detail: { collapsed: isCollapsed },
+      }),
+    );
+  });
+}
+
+/**
+ * Initialize the full repo monitor (WebSocket client, feed, filter, resizer).
+ * Requires a project context — call initMonitorToggle() first.
+ */
 export function initRepoMonitor(config: MonitorConfig): void {
   const feedContainer = document.getElementById("repo-monitor-feed");
   const monitorArea = document.getElementById("ws-repo-monitor");
@@ -27,7 +70,6 @@ export function initRepoMonitor(config: MonitorConfig): void {
   const treeArea = document.querySelector(
     ".ws-worktree-tree-area",
   ) as HTMLElement | null;
-  const headerEl = document.getElementById("repo-monitor-header");
 
   if (!feedContainer || !monitorArea || !resizerEl || !treeArea) {
     console.warn("[RepoMonitor] Missing required DOM elements — init skipped");
@@ -43,18 +85,15 @@ export function initRepoMonitor(config: MonitorConfig): void {
   client.onEvent((event) => feed.addEvent(event));
   filter.onFilterChange((filters) => client.reconfigure(filters));
 
-  // Header click toggles collapse (toolbar buttons handled independently)
-  headerEl?.addEventListener("click", (e) => {
-    if ((e.target as HTMLElement).closest(".repo-monitor-toolbar")) return;
-    monitorArea.classList.toggle("collapsed");
+  // Listen for toggle events from initMonitorToggle
+  window.addEventListener("repo-monitor:toggle", ((e: CustomEvent) => {
     resizer.restoreState();
-
-    if (monitorArea.classList.contains("collapsed")) {
+    if (e.detail.collapsed) {
       client.pause();
     } else {
       client.resume();
     }
-  });
+  }) as EventListener);
 
   // Connect and initialize
   client.connect();

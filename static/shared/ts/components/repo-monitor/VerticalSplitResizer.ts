@@ -4,8 +4,9 @@
  */
 
 const STORAGE_KEY = "scitex-repo-monitor-split-ratio";
+const MIN_PANEL_PX = 40;
 const COLLAPSE_THRESHOLD_PX = 40;
-const DEFAULT_TOP_RATIO = 0.6;
+const DEFAULT_TOP_RATIO = 0.7;
 
 export class VerticalSplitResizer {
   private resizer: HTMLElement;
@@ -21,6 +22,8 @@ export class VerticalSplitResizer {
   private boundMouseUp: (e: MouseEvent) => void;
   private rafId: number | null = null;
   private pendingY: number | null = null;
+  private restoreRetries = 0;
+  private readonly MAX_RESTORE_RETRIES = 10;
 
   constructor(
     resizer: HTMLElement,
@@ -69,11 +72,12 @@ export class VerticalSplitResizer {
 
   private applyResize(clientY: number): void {
     const delta = clientY - this.startY;
-    const newTopHeight = Math.max(
-      COLLAPSE_THRESHOLD_PX,
-      this.startTopHeight + delta,
+    // Enforce minimum on both panels
+    const newTopHeight = Math.min(
+      Math.max(MIN_PANEL_PX, this.startTopHeight + delta),
+      this.totalHeight - MIN_PANEL_PX,
     );
-    const newBottomHeight = Math.max(0, this.totalHeight - newTopHeight);
+    const newBottomHeight = this.totalHeight - newTopHeight;
 
     this.topPanel.style.flexBasis = `${newTopHeight}px`;
     this.bottomPanel.style.flexBasis = `${newBottomHeight}px`;
@@ -85,7 +89,7 @@ export class VerticalSplitResizer {
     }
   }
 
-  private onMouseUp(e: MouseEvent): void {
+  private onMouseUp(): void {
     if (!this.isDragging) return;
     this.isDragging = false;
     this.resizer.classList.remove("active");
@@ -103,15 +107,17 @@ export class VerticalSplitResizer {
       this.bottomPanel.getBoundingClientRect().height;
 
     if (bottomCollapsed) {
-      // Restore 50/50
-      const half = containerHeight / 2;
-      this.topPanel.style.flexBasis = `${half}px`;
-      this.bottomPanel.style.flexBasis = `${half}px`;
+      // Restore default split
+      const topH = containerHeight * DEFAULT_TOP_RATIO;
+      const bottomH = containerHeight - topH;
+      this.topPanel.style.flexBasis = `${topH}px`;
+      this.bottomPanel.style.flexBasis = `${bottomH}px`;
       this.bottomPanel.classList.remove("collapsed");
     } else {
-      // Collapse bottom
-      this.topPanel.style.flexBasis = `${containerHeight}px`;
-      this.bottomPanel.style.flexBasis = "0px";
+      // Collapse bottom — keep header visible (MIN_PANEL_PX)
+      const bottomH = MIN_PANEL_PX;
+      this.topPanel.style.flexBasis = `${containerHeight - bottomH}px`;
+      this.bottomPanel.style.flexBasis = `${bottomH}px`;
       this.bottomPanel.classList.add("collapsed");
     }
 
@@ -128,6 +134,8 @@ export class VerticalSplitResizer {
       const ratio = parseFloat(saved);
       if (!isNaN(ratio) && ratio >= 0 && ratio <= 1) {
         this.applyRatio(ratio);
+      } else {
+        this.applyRatio(DEFAULT_TOP_RATIO);
       }
     } catch {
       this.applyRatio(DEFAULT_TOP_RATIO);
@@ -138,10 +146,23 @@ export class VerticalSplitResizer {
     const container = this.topPanel.parentElement ?? document.documentElement;
     const totalHeight = container.getBoundingClientRect().height;
 
-    if (totalHeight === 0) return;
+    if (totalHeight === 0) {
+      // Container not rendered yet — retry on next frame
+      if (this.restoreRetries < this.MAX_RESTORE_RETRIES) {
+        this.restoreRetries++;
+        requestAnimationFrame(() => this.applyRatio(topRatio));
+      }
+      return;
+    }
+    this.restoreRetries = 0;
 
-    const topHeight = totalHeight * topRatio;
-    const bottomHeight = totalHeight * (1 - topRatio);
+    // Clamp so both panels get at least MIN_PANEL_PX
+    const minRatio = MIN_PANEL_PX / totalHeight;
+    const maxRatio = 1 - minRatio;
+    const clamped = Math.min(Math.max(topRatio, minRatio), maxRatio);
+
+    const topHeight = totalHeight * clamped;
+    const bottomHeight = totalHeight - topHeight;
 
     this.topPanel.style.flexBasis = `${topHeight}px`;
     this.bottomPanel.style.flexBasis = `${bottomHeight}px`;

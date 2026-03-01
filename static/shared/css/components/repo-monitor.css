@@ -15,7 +15,8 @@
 .ws-repo-monitor-area {
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  flex: 0 0 30%;
+  min-height: 40px;
   overflow: hidden;
   border-top: 1px solid var(--border-default, #30363d);
 }
@@ -216,4 +217,93 @@
 #ws-worktree-sidebar.collapsed .ws-repo-monitor-area,
 #ws-worktree-sidebar.collapsed .repo-monitor-resizer {
   display: none;
+}
+
+/* ============================================================
+   Config panel — filter pattern editor (gear button popover)
+   ============================================================ */
+
+.repo-monitor-config-panel {
+  position: absolute;
+  bottom: 24px;
+  right: 0;
+  left: 0;
+  z-index: 100;
+  background: var(--bg-secondary, #161b22);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 0.7rem;
+  color: var(--text-primary, #c9d1d9);
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.rmc-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.rmc-desc {
+  font-size: 0.6rem;
+  color: var(--text-muted, #8b949e);
+  margin-bottom: 6px;
+}
+
+.rmc-label {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--text-muted, #8b949e);
+  margin-top: 6px;
+  margin-bottom: 2px;
+}
+
+.rmc-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-primary, #0d1117);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 3px;
+  color: var(--text-primary, #c9d1d9);
+  font-family: var(--font-mono, "SFMono-Regular", "Consolas", monospace);
+  font-size: 0.65rem;
+  padding: 4px 6px;
+  resize: vertical;
+}
+
+.rmc-textarea:focus {
+  outline: none;
+  border-color: var(--accent-color, #58a6ff);
+}
+
+.rmc-apply {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 4px 8px;
+  background: var(--accent-color, #58a6ff);
+  color: var(--bg-primary, #0d1117);
+  border: none;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rmc-apply:hover {
+  opacity: 0.9;
+}
+
+.rmc-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  color: var(--text-primary, #c9d1d9);
+  margin: 6px 0;
+  cursor: pointer;
+}
+
+.rmc-checkbox-row input[type="checkbox"] {
+  accent-color: var(--accent-color, #58a6ff);
 }

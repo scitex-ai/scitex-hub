@@ -28,6 +28,10 @@ export class RepoMonitorFeed {
     this.container = container;
     this.statusBadge = document.getElementById(STATUS_BADGE_ID);
     this.container.addEventListener("click", this.handleEntryClick.bind(this));
+    this.container.addEventListener(
+      "contextmenu",
+      this.handleEntryContextMenu.bind(this),
+    );
   }
 
   addEvent(event: FsEvent): void {
@@ -117,10 +121,33 @@ export class RepoMonitorFeed {
   private formatTimestamp(ts: string): string {
     try {
       const d = new Date(ts);
+      if (isNaN(d.getTime())) {
+        // Fallback: if just "HH:MM:SS", return as-is
+        return ts;
+      }
       return d.toLocaleTimeString(undefined, { hour12: false });
     } catch {
       return ts;
     }
+  }
+
+  private handleEntryContextMenu(e: Event): void {
+    const me = e as MouseEvent;
+    const target = me.target as HTMLElement;
+    const entry = target.closest<HTMLElement>(".repo-monitor-entry");
+    if (!entry) return;
+
+    const path = entry.dataset.path;
+    if (!path) return;
+
+    me.preventDefault();
+    // Dispatch to workspace tree's context menu handler
+    document.dispatchEvent(
+      new CustomEvent("repo-monitor:contextmenu", {
+        detail: { path, x: me.clientX, y: me.clientY },
+        bubbles: true,
+      }),
+    );
   }
 
   private handleEntryClick(e: Event): void {
@@ -131,8 +158,9 @@ export class RepoMonitorFeed {
     const path = entry.dataset.path;
     if (!path) return;
 
+    // Dispatch same event as file tree so viewer opens the file
     document.dispatchEvent(
-      new CustomEvent("repo-monitor:file-select", { detail: { path } }),
+      new CustomEvent("file-select", { detail: { path }, bubbles: true }),
     );
   }
 

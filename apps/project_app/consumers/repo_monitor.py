@@ -260,7 +260,7 @@ class RepoMonitorConsumer(AsyncWebsocketConsumer):
         if len(parts) != 3:
             return None
 
-        timestamp, raw_event, abs_path = parts
+        raw_time, raw_event, abs_path = parts
 
         # inotifywait can emit comma-separated events (e.g. "CREATE,ISDIR")
         primary_event = raw_event.split(",")[0]
@@ -280,11 +280,16 @@ class RepoMonitorConsumer(AsyncWebsocketConsumer):
             if not any(p.search(rel_path) for p in self.whitelist_patterns):
                 return None
 
+        # inotifywait gives HH:MM:SS — prepend today's date for ISO 8601
+        from datetime import date
+
+        iso_timestamp = f"{date.today().isoformat()}T{raw_time}"
+
         return {
             "type": "fs_event",
             "event": normalized,
             "path": rel_path,
-            "timestamp": timestamp,
+            "timestamp": iso_timestamp,
         }
 
     def _build_exclude_pattern(self, filters: dict) -> str:
