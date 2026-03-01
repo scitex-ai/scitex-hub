@@ -333,6 +333,8 @@ def api_review_submission(request, submission_id):
         submission.module.visibility = "public"
         submission.module.is_verified = True
         submission.module.save(update_fields=["visibility", "is_verified"])
+        # Pin commit and register into workspace
+        _activate_approved_app(submission.module)
     elif action == "reject":
         submission.status = "rejected"
     elif action == "request_changes":
@@ -363,6 +365,62 @@ def api_review_submission(request, submission_id):
             "message": f"{action.title()} {submission.module.module_name}.",
         }
     )
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_fork(request, module_name):
+    """Fork a user app's source project into the requester's Gitea account."""
+    app_module = get_object_or_404(AppsModule, module_name=module_name)
+    if not app_module.project:
+        return JsonResponse(
+            {"success": False, "error": "No source project to fork."}, status=400
+        )
+    if app_module.is_builtin:
+        return JsonResponse(
+            {"success": False, "error": "Built-in modules cannot be forked."},
+            status=400,
+        )
+
+    try:
+        from apps.gitea_app.api_client import GiteaClient
+
+        client = GiteaClient()
+        owner = app_module.project.owner.username
+        repo = app_module.project.slug
+        result = client._request(
+            "POST",
+            f"/repos/{owner}/{repo}/forks",
+            json={"organization": request.user.username},
+        )
+        fork_url = f"/{request.user.username}/{result.get('name', repo)}/"
+        return JsonResponse({"success": True, "url": fork_url})
+    except Exception as exc:
+        return JsonResponse({"success": False, "error": str(exc)}, status=500)
+
+
+@require_http_methods(["GET"])
+def api_list_public(request):
+    """Public JSON listing of all public apps (unauthenticated)."""
+    modules = AppsModule.objects.filter(visibility="public").values(
+        "module_name",
+        "short_description",
+        "category",
+        "star_count",
+        "install_count",
+        "is_builtin",
+        "is_verified",
+        "status",
+    )
+    return JsonResponse({"success": True, "apps": list(modules)})
+
+
+def _activate_approved_app(app_module):
+    """Pin commit and register an approved app into the workspace registry."""
+    from ..services.app_loader import load_single_app, pin_commit
+
+    pin_commit(app_module)
+    load_single_app(app_module)
 
 
 def _sync_project_status(submission, now, reviewer):
