@@ -143,6 +143,15 @@
   text-decoration: none;
 }
 
+/* Per-section export bar (injected at top of content) */
+.docs-section-export {
+  display: flex;
+  gap: 6px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--workspace-border-default, #30363d);
+  background: var(--workspace-bg-secondary, #161b22);
+}
+
 /* Override api-layout within docs workspace to avoid nested sidebars being too wide */
 .docs-content .api-layout {
   max-width: 100%;

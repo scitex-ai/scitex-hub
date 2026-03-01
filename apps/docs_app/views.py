@@ -132,15 +132,48 @@ def docs_content(request, slug):
 
 
 def docs_export(request, slug):
-    """Export a documentation page as Markdown."""
+    """Export documentation as Markdown. Use slug='all' for all pages."""
+    ver = _get_project_version()
+
+    if slug == "all":
+        markdown = _export_all_pages(request, ver)
+        filename = f"scitex-cloud-v{ver}-docs-all.md"
+    else:
+        page = _PAGES_BY_SLUG.get(slug)
+        if not page:
+            raise Http404(f"Documentation page '{slug}' not found")
+        markdown = _export_single_page(request, page)
+        filename = f"scitex-cloud-v{ver}-docs-{slug}.md"
+
+    response = HttpResponse(markdown, content_type="text/markdown; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
+def _export_single_page(request, page) -> str:
+    """Render a single doc page to Markdown."""
+    converter = _make_html2text()
+    context = _build_page_context(page["slug"])
+    html = render(request, page["template"], context).content.decode()
+    md = converter.handle(html)
+    return f"# {page['label']}\n\n{md}"
+
+
+def _export_all_pages(request, ver) -> str:
+    """Render all doc pages into a single Markdown document."""
+    converter = _make_html2text()
+    parts = [f"# SciTeX Documentation (v{ver})\n"]
+    for page in DOCS_PAGES:
+        context = _build_page_context(page["slug"])
+        html = render(request, page["template"], context).content.decode()
+        md = converter.handle(html)
+        parts.append(f"\n---\n\n## {page['label']}\n\n{md}")
+    return "\n".join(parts)
+
+
+def _make_html2text():
+    """Create a configured html2text converter."""
     import html2text
-
-    page = _PAGES_BY_SLUG.get(slug)
-    if not page:
-        raise Http404(f"Documentation page '{slug}' not found")
-
-    context = _build_page_context(slug)
-    html_content = render(request, page["template"], context).content.decode()
 
     converter = html2text.HTML2Text()
     converter.body_width = 80
@@ -148,17 +181,7 @@ def docs_export(request, slug):
     converter.ignore_images = False
     converter.protect_links = True
     converter.wrap_links = False
-    markdown = converter.handle(html_content)
-
-    # Prepend title
-    title = page["label"]
-    markdown = f"# {title}\n\n{markdown}"
-
-    ver = _get_project_version()
-    filename = f"scitex-cloud-v{ver}-docs-{slug}.md"
-    response = HttpResponse(markdown, content_type="text/markdown; charset=utf-8")
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
-    return response
+    return converter
 
 
 def _build_page_context(slug):
