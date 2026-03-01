@@ -3,10 +3,9 @@ Project Instance Methods Mixin
 Contains: All instance methods for Project model
 """
 
-import re
 import logging
+import re
 from pathlib import Path
-
 
 logger = logging.getLogger(__name__)
 
@@ -274,6 +273,10 @@ class ProjectMethodsMixin:
         if not user or not user.is_authenticated:
             return False
 
+        # Read-only visitor can never edit
+        if user.username == "readonly-visitor":
+            return False
+
         # Owner can always edit
         if user == self.owner:
             return True
@@ -352,6 +355,7 @@ class ProjectMethodsMixin:
 
             # Update without triggering signals to avoid recursion
             from .project import Project
+
             Project.objects.filter(id=self.id).update(storage_used=total_size)
             self.storage_used = total_size
 

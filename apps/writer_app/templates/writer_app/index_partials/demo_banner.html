@@ -3,7 +3,17 @@
     <div class="alert-banner alert-banner-warning" style="margin-bottom: 0">
         <div class="warning-banner-container" style="text-align: center">
             <div class="warning-banner-content" style="justify-content: center">
-                {% if is_visitor %}
+                {% if is_readonly %}
+                    <i class="warning-banner-icon fas fa-lock"></i>
+                    <div class="warning-banner-text">
+                        <div class="warning-banner-title">Read-Only Mode</div>
+                        <div class="warning-banner-description">
+                            Editing is disabled.
+                            <a href="{% url 'auth_app:signup' %}"><strong>Sign up</strong></a> for
+                            full access or <a href="{% url 'auth_app:login' %}">log in</a>.
+                        </div>
+                    </div>
+                {% elif is_visitor %}
                     <i class="warning-banner-icon fas fa-exclamation-triangle"></i>
                     <div class="warning-banner-text">
                         <div class="warning-banner-title">Visitor Mode</div>

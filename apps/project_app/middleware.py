@@ -92,6 +92,8 @@ class VisitorAutoLoginMiddleware:
 
         # Auto-login as visitor for real browser requests
         try:
+            from django.contrib.auth.models import User
+
             from apps.project_app.services.visitor_pool import VisitorPool
 
             visitor_project, visitor_user = VisitorPool.allocate_visitor(
@@ -106,6 +108,25 @@ class VisitorAutoLoginMiddleware:
                 logger.info(
                     f"[Middleware] Auto-logged in visitor: {visitor_user.username} for {path}"
                 )
+            else:
+                # Pool full — fall back to shared readonly-visitor
+                try:
+                    readonly_user = User.objects.get(
+                        username=VisitorPool.READONLY_VISITOR_USERNAME
+                    )
+                    login(
+                        request,
+                        readonly_user,
+                        backend="django.contrib.auth.backends.ModelBackend",
+                    )
+                    request.session["is_readonly_visitor"] = True
+                    logger.info(
+                        f"[Middleware] Pool full, logged in as readonly-visitor for {path}"
+                    )
+                except User.DoesNotExist:
+                    logger.error(
+                        "[Middleware] readonly-visitor user not found — run create_visitor_pool"
+                    )
         except Exception as e:
             logger.error(f"[Middleware] Visitor auto-login failed: {e}")
 
@@ -133,7 +154,7 @@ class VisitorExpirationMiddleware:
         if not request.user.is_authenticated:
             return self.get_response(request)
 
-        # Skip if not a visitor user
+        # Skip if not a visitor user (readonly-visitor also skipped here)
         if not request.user.username.startswith("visitor-"):
             return self.get_response(request)
 

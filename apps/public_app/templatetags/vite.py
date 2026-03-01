@@ -227,6 +227,7 @@ def _entry_to_ts_path(entry_name: str) -> str:
         "shared/code-blocks": "static/shared/ts/code-blocks.ts",
         "shared/components/confirm-modal": "static/shared/ts/components/confirm-modal.ts",
         "shared/components/header": "static/shared/ts/components/header.ts",
+        "shared/components/dev-tools": "static/shared/ts/components/dev-tools.ts",
         "shared/components/workspace-files-tree": "static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree.ts",
         "shared/components/seekbar": "static/shared/ts/components/seekbar.ts",
         "shared/utils/highlight-js-bibtex": "static/shared/ts/utils/highlight-js-bibtex.ts",

@@ -27,6 +27,8 @@ from .charts import render_metric_chart
 from .server import server_status
 from .visitor import (
     visitor_expired,
+    visitor_fill_slots_api,
+    visitor_free_slots_api,
     visitor_heartbeat_api,
     visitor_pool_full,
     visitor_pool_initialize_api,
@@ -47,6 +49,8 @@ __all__ = [
     "visitor_expired",
     "visitor_pool_full",
     "visitor_pool_initialize_api",
+    "visitor_fill_slots_api",
+    "visitor_free_slots_api",
     "visitor_heartbeat_api",
     "visitor_resources_api",
     "render_metric_chart",

@@ -183,6 +183,80 @@ def visitor_expired(request):
     return render(request, "public_app/visitor_expired.html", context)
 
 
+@require_POST
+def visitor_fill_slots_api(request):
+    """
+    Fill all visitor pool slots (Dev only).
+
+    POST /api/visitor-pool/fill-slots/
+
+    Marks all allocations as active to simulate pool-full state.
+    Next anonymous visitor will get readonly-visitor mode.
+    """
+    if not settings.DEBUG:
+        return JsonResponse({"error": "Only available in development mode"}, status=403)
+
+    try:
+        import secrets
+        from datetime import timedelta
+
+        freed_first = VisitorAllocation.objects.filter(is_active=True).update(
+            is_active=False
+        )
+        filled = 0
+        pool_size = VisitorPool.POOL_SIZE
+        for i in range(1, pool_size + 1):
+            VisitorAllocation.objects.update_or_create(
+                visitor_number=i,
+                defaults={
+                    "session_key": f"dev-fill-{i}",
+                    "allocation_token": secrets.token_hex(32),
+                    "expires_at": timezone.now() + timedelta(hours=1),
+                    "is_active": True,
+                },
+            )
+            filled += 1
+
+        # Log out current user so they get reassigned as readonly-visitor
+        logout(request)
+
+        return JsonResponse(
+            {
+                "success": True,
+                "filled": filled,
+                "message": "All slots filled. Reload to enter read-only mode.",
+            }
+        )
+    except Exception as e:
+        logger.error(f"[VisitorPool] Fill slots failed: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@require_POST
+def visitor_free_slots_api(request):
+    """
+    Free all visitor pool slots (Dev only).
+
+    POST /api/visitor-pool/free-slots/
+    """
+    if not settings.DEBUG:
+        return JsonResponse({"error": "Only available in development mode"}, status=403)
+
+    try:
+        freed = VisitorAllocation.objects.filter(is_active=True).update(is_active=False)
+        logout(request)
+        return JsonResponse(
+            {
+                "success": True,
+                "freed": freed,
+                "message": "All slots freed. Reload to get a regular visitor slot.",
+            }
+        )
+    except Exception as e:
+        logger.error(f"[VisitorPool] Free slots failed: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
+
+
 def visitor_heartbeat_api(request):
     """
     Activity heartbeat endpoint for visitor session management.

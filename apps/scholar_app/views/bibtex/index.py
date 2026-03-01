@@ -14,6 +14,7 @@ from django.shortcuts import render
 def bibtex_enrichment(request):
     """BibTeX enrichment landing page - upload and manage enrichment jobs (visitor allowed)."""
     from apps.project_app.models import Project
+
     from ...models import BibTeXEnrichmentJob
 
     # Get user's recent enrichment jobs
@@ -57,7 +58,7 @@ def bibtex_enrichment(request):
         "recent_jobs": recent_jobs,
         "user_projects": user_projects,
         "current_project": current_project,
-        "is_visitor": not request.user.is_authenticated,
+        # is_visitor handled by context processor
         "show_save_prompt": not request.user.is_authenticated,
     }
 

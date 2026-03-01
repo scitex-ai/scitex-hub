@@ -17,6 +17,13 @@ logger = logging.getLogger(__name__)
 def api_save_file(request):
     """Save file content (supports both local and remote projects)."""
     try:
+        # Block read-only visitors immediately
+        if request.user.username == "readonly-visitor":
+            return JsonResponse(
+                {"error": "Read-only mode — sign up for full access"},
+                status=403,
+            )
+
         data = json.loads(request.body)
         project_id = data.get("project_id")
         file_path = data.get("path")

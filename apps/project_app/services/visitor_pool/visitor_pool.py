@@ -18,9 +18,9 @@ from django.contrib.auth.models import User
 
 from apps.project_app.models import Project
 
-from .pool_manager import PoolAllocator
-from .pool_initialization import PoolInitializer
 from .pool_cleanup import PoolCleanup
+from .pool_initialization import PoolInitializer
+from .pool_manager import PoolAllocator
 
 
 class VisitorPool:
@@ -33,10 +33,13 @@ class VisitorPool:
     With 1-hour sessions, 4 slots support up to 96 visitors per day.
     When visitors sign up, their data is automatically migrated to their new account.
     Slots are automatically freed and reused when sessions expire.
+
+    Read-only visitor: A shared account for when the pool is full.
     """
 
     VISITOR_USER_PREFIX = "visitor-"
     DEFAULT_PROJECT_PREFIX = "default-project-"
+    READONLY_VISITOR_USERNAME = "readonly-visitor"
     POOL_SIZE = int(os.environ.get("SCITEX_CLOUD_VISITOR_POOL_SIZE", 4))
     SESSION_LIFETIME_HOURS = 1
     SESSION_KEY_PROJECT_ID = "visitor_project_id"

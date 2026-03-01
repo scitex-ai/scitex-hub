@@ -34,9 +34,18 @@ def build_hub_context(request, current_project=None):
         "username": request.user.username,
     }
 
-    # Mark as demo if visitor
+    # Mark as demo/visitor if visitor-* or readonly-visitor
+    from apps.project_app.services.visitor_pool import VisitorPool
+
     if request.user.username.startswith("visitor-"):
         context["is_demo"] = True
+        context["is_visitor"] = True
+        context["visitor_username"] = request.user.username
+
+    if request.user.username == VisitorPool.READONLY_VISITOR_USERNAME:
+        context["is_demo"] = True
+        context["is_visitor"] = True
+        context["is_readonly"] = True
         context["visitor_username"] = request.user.username
 
     if current_project:

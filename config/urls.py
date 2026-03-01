@@ -113,7 +113,7 @@ RESERVED_PATHS = get_reserved_paths()
 urlpatterns = [
     # Critical health check endpoint (must come before username catch-all)
     path("healthz/", healthz, name="healthz"),
-    # Root: authenticated → hub dashboard, anonymous → landing page
+    # Root: authenticated users → hub, visitors → /landing/
     path("", root_dispatch, name="root"),
     # Public pages (about, setup, contact, etc.) — all under their own prefixes
     path("", include("apps.public_app.urls")),
@@ -123,9 +123,9 @@ urlpatterns = [
     # Social authentication (Google, ORCID) via django-allauth
     path("auth/social/", include("allauth.urls")),
     # Main Modules
-    # Hub API stays at /hub/api/ (used by JS), page redirects to /
+    # Hub workspace and API
     path("hub/api/", include("apps.hub_app.urls.api")),
-    path("hub/", RedirectView.as_view(url="/", permanent=True), name="hub_redirect"),
+    path("hub/", include("apps.hub_app.urls.index")),
     path("scholar/", include(("apps.scholar_app.urls", "scholar_app"))),
     path("console/", include(("apps.console_app.urls", "console_app"))),
     path("vis/", include(("apps.vis_app.urls", "vis"))),

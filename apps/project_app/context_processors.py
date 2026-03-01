@@ -37,10 +37,23 @@ def visitor_expiration_context(request):
     visitor_cpus = SLURM_QUOTAS.get("interactive_cpus", 2)
     visitor_memory_gb = SLURM_QUOTAS.get("interactive_memory_gb", 4)
 
-    # Check if user is an authenticated visitor (username starts with "visitor-")
+    # Check if user is an authenticated visitor
     is_visitor = False
+    is_readonly = False
     if request.user.is_authenticated:
         is_visitor = request.user.username.startswith("visitor-")
+        # Shared read-only visitor (pool overflow)
+        if request.user.username == VisitorPool.READONLY_VISITOR_USERNAME:
+            is_visitor = True
+            is_readonly = True
+            return {
+                "visitor_expires_at": None,
+                "visitor_username": request.user.username,
+                "is_visitor": True,
+                "is_readonly": True,
+                "visitor_cpus": visitor_cpus,
+                "visitor_memory_gb": visitor_memory_gb,
+            }
 
     # For authenticated visitors, get allocation from session
     if is_visitor:
@@ -56,6 +69,7 @@ def visitor_expiration_context(request):
                     "visitor_expires_at": allocation.expires_at,
                     "visitor_username": request.user.username,
                     "is_visitor": True,
+                    "is_readonly": False,
                     "visitor_cpus": visitor_cpus,
                     "visitor_memory_gb": visitor_memory_gb,
                 }
@@ -67,6 +81,7 @@ def visitor_expiration_context(request):
             "visitor_expires_at": None,
             "visitor_username": request.user.username,
             "is_visitor": True,
+            "is_readonly": False,
             "visitor_cpus": visitor_cpus,
             "visitor_memory_gb": visitor_memory_gb,
         }
@@ -98,6 +113,7 @@ def visitor_expiration_context(request):
                     "visitor_expires_at": allocation.expires_at,
                     "visitor_username": visitor_username,
                     "is_visitor": True,
+                    "is_readonly": False,
                     "visitor_cpus": visitor_cpus,
                     "visitor_memory_gb": visitor_memory_gb,
                 }
@@ -109,6 +125,7 @@ def visitor_expiration_context(request):
         "visitor_expires_at": None,
         "visitor_username": None,
         "is_visitor": False,
+        "is_readonly": False,
         "visitor_cpus": visitor_cpus,
         "visitor_memory_gb": visitor_memory_gb,
     }
