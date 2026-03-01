@@ -32,6 +32,8 @@ urlpatterns = [
         views.api_review_submission,
         name="api_review_submission",
     ),
+    path("api/<str:module_name>/fork/", views.api_fork, name="api_fork"),
+    path("api/list/", views.api_list_public, name="api_list_public"),
     # Detail — catch-all last
     path("<str:module_name>/", views.detail, name="detail"),
 ]

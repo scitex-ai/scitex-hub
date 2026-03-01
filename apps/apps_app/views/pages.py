@@ -74,6 +74,9 @@ def detail(request, module_name):
             module=app_module, status="pending"
         ).first()
 
+    # README from project directory
+    readme_html = _render_readme(app_module)
+
     return render(
         request,
         "apps_app/detail.html",
@@ -87,6 +90,7 @@ def detail(request, module_name):
             "reviews": reviews,
             "versions": versions,
             "pending_submission": pending_submission,
+            "readme_html": readme_html,
         },
     )
 
@@ -126,6 +130,31 @@ def review_queue(request):
         "apps_app/review_queue.html",
         {"submissions": submissions},
     )
+
+
+def _render_readme(app_module):
+    """Read and render README.md from the app's source project directory."""
+    if not app_module.project:
+        return ""
+    from django.conf import settings
+
+    project_dir = settings.BASE_DIR / "data" / "projects" / app_module.project.slug
+    for name in ("README.md", "readme.md", "README"):
+        readme_path = project_dir / name
+        if readme_path.is_file():
+            try:
+                import markdown
+
+                raw = readme_path.read_text(encoding="utf-8")
+                return markdown.markdown(
+                    raw, extensions=["fenced_code", "tables", "toc"]
+                )
+            except ImportError:
+                # markdown lib not installed — return raw text
+                return f"<pre>{readme_path.read_text(encoding='utf-8')}</pre>"
+            except Exception:
+                return ""
+    return ""
 
 
 # EOF
