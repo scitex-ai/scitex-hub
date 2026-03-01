@@ -26,7 +26,7 @@ def code_workspace(request):
     If visitor pool is exhausted, redirect to visitor-pool-full page.
     """
     context = {
-        "is_visitor": not request.user.is_authenticated,
+        # is_visitor handled by context processor
         "is_workspace_page": True,
         "module_name": "Code",
         "module_icon": "fa-code",

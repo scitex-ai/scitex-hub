@@ -22,29 +22,24 @@
                 </div>
                 <!-- Value proposition and CTA -->
                 <p class="hero-tagline">{{ SITE_TAGLINE }}</p>
-                <p class="hero-description">
-                    Python toolkit + MCP server for literature search, statistics, visualization, and manuscript writing. 70% less code.
-                </p>
-                <div class="hero-badges">
-                    <a href="{% url 'public_app:open_source' %}"
-                       class="hero-badge badge-success"
-                       style="text-decoration: none"
-                       title="Why Open Source Matters">
-                        <i class="fab fa-osi"></i> 100% Open Source
+                <div class="hero-cta">
+                    <a href="/hub/" class="hero-cta-button">Go to Workspace <span class="hero-cta-arrow">&rarr;</span></a>
+                </div>
+                <div class="hero-links">
+                    <a href="{% url 'public_app:open_source' %}" class="hero-link-button">
+                        <i class="fas fa-lock-open"></i> Why Open Source (AGPL v3.0) Matters
                     </a>
                     <a href="https://scitex-python.readthedocs.io/en/latest/"
-                       class="hero-badge badge-success"
-                       style="text-decoration: none"
-                       title="Full Documentation"
+                       class="hero-link-button"
                        target="_blank"
                        rel="noopener noreferrer">
-                        <i class="fas fa-book"></i> Python Documentation
+                        <i class="fas fa-cog"></i> Docs for 30+ Python Modules
                     </a>
-                    <a href="/docs/web-api/"
-                       class="hero-badge badge-success"
-                       style="text-decoration: none"
-                       title="Web API Documentation">
-                        <i class="fas fa-cloud"></i> Web API Documentation
+                    <a href="{% url 'docs_app:api' %}" class="hero-link-button">
+                        <i class="fas fa-compass"></i> Docs for 200+ MCP Tools
+                    </a>
+                    <a href="/docs/web-api/" class="hero-link-button">
+                        <i class="fas fa-cloud"></i> Docs for Web API
                     </a>
                 </div>
                 <div class="warning-banner"
@@ -56,20 +51,8 @@
                                 gap:0.5rem;
                                 flex-direction:column">
                         <div>
-                            <i class="fas fa-flask warning-banner-icon"></i>
-                            Alpha Release ({{ SCITEX_CLOUD_VERSION }}) — No guarantee for data persistence, API stability, or functionality. Local Python toolkit would be more stable.
-                        </div>
-                        <div style="margin-top:0.4rem">
-                            Bug reports, feature requests, and pull requests welcome:
+                            Alpha Release ({{ SCITEX_CLOUD_VERSION }}) — Data persistence and API stability are not guaranteed. For production use, install the local Python toolkit. Any contribution welcome:
                             <a href="mailto:support@scitex.ai" class="warning-banner-link"><u>support@scitex.ai</u></a>
-                            <a href="https://github.com/ywatanabe1989/scitex-python/issues"
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               class="warning-banner-link"><u>scitex-python</u></a>
-                            <a href="https://github.com/ywatanabe1989/scitex-cloud/issues"
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               class="warning-banner-link"><u>scitex-cloud</u></a>
                         </div>
                     </div>
                 </div>

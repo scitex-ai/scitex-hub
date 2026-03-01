@@ -111,6 +111,18 @@
                         onclick="initVisitorPool()">
                     <i class="fas fa-users-cog"></i> Init Visitors
                 </button>
+                <button id="fill-visitor-slots-btn"
+                        class="dev-tool-btn"
+                        title="Fill all visitor slots to trigger read-only mode"
+                        onclick="fillVisitorSlots()">
+                    <i class="fas fa-user-lock"></i> Fill Slots
+                </button>
+                <button id="free-visitor-slots-btn"
+                        class="dev-tool-btn"
+                        title="Free all visitor slots"
+                        onclick="freeVisitorSlots()">
+                    <i class="fas fa-user-check"></i> Free Slots
+                </button>
             </div>
         {% endif %}
     </div>

@@ -36,7 +36,7 @@ def build_writer_context(request, current_project=None):
         document_type = "manuscript"
 
     context = {
-        "is_visitor": not request.user.is_authenticated,
+        # is_visitor handled by context processor
         "writer_initialized": False,
         "document_type": document_type,
     }

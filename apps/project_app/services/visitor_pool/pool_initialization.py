@@ -67,6 +67,9 @@ class PoolInitializer:
             elif project_created:
                 project.delete()
 
+        # Initialize the shared readonly-visitor account
+        cls.initialize_readonly_visitor()
+
         if created_count > 0:
             logger.info(
                 f"[VisitorPool] Pool initialization complete: {created_count} new projects"
@@ -183,6 +186,42 @@ class PoolInitializer:
             WorkspaceManager.ensure_manuscript_record(project, project_root)
 
         return True
+
+    @classmethod
+    def initialize_readonly_visitor(cls) -> bool:
+        """
+        Create the shared readonly-visitor account and project.
+
+        This account is used when the pool is full — all overflow visitors
+        share it concurrently. Since it's read-only, no data conflicts occur.
+
+        Returns:
+            bool: True if created or already exists
+        """
+        username = "readonly-visitor"
+        project_slug = "default-project"
+
+        user, user_created = cls._create_visitor_user(username)
+        if user_created:
+            # Override email for readonly-visitor
+            user.email = f"{username}@visitor.scitex.local"
+            user.save(update_fields=["email"])
+            logger.info("[VisitorPool] Created readonly-visitor user")
+
+        from .gitea_integration import GiteaIntegration
+
+        GiteaIntegration.ensure_user_in_gitea(username, "readonly")
+
+        project, project_created = cls._create_default_project(user, project_slug)
+        if project_created:
+            # Override description for readonly
+            project.description = "Read-only demo — sign up for full access!"
+            project.save(update_fields=["description"])
+
+        success = cls._initialize_project_directory(user, project, project_slug)
+        if success:
+            logger.info("[VisitorPool] readonly-visitor initialized successfully")
+        return success
 
     @classmethod
     def reset_all_project_directories(cls, pool_size: int) -> int:

@@ -190,17 +190,7 @@
                     {% endif %}
                 </div>
             </div>
-            <!-- Navigation: shown only on non-workspace pages (tab bar handles workspace nav) -->
-            {% if not is_workspace_page %}
-                <nav class="header-nav">
-                    {% for mod in workspace_modules %}
-                        <a href="/{{ mod.name }}/" class="header-nav-item" data-module="{{ mod.name }}">
-                            {% module_icon mod.name "nav" %}
-                            <span class="nav-label">{{ mod.label }}</span>
-                        </a>
-                    {% endfor %}
-                </nav>
-            {% endif %}
+            <!-- Module navigation handled by module_tab_bar.html below header -->
         </div>
         <!-- Project Selector (authenticated users + visitors only) -->
         <div class="header-project-selector"
@@ -443,7 +433,9 @@
                             <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z" />
                         </svg>
                         <span id="visitor-mode-text">
-                            {% if visitor_username %}
+                            {% if is_readonly %}
+                                Read-Only Mode
+                            {% elif visitor_username %}
                                 Visitor #{{ visitor_username|slice:"8:" }}
                             {% else %}
                                 Visitor Mode
@@ -489,7 +481,11 @@
                                 <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
                                 <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z" />
                             </svg>
-                            Your work will be kept only during this session. To save to disk for future sessions, create an account.
+                            {% if is_readonly %}
+                                Read-only mode. You can browse and navigate but editing is disabled. Sign up for full access.
+                            {% else %}
+                                Your work will be kept only during this session. To save to disk for future sessions, create an account.
+                            {% endif %}
                         </div>
                         <!-- Allocated Resources -->
                         <div style="padding: 8px 16px;

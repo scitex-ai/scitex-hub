@@ -53,7 +53,7 @@ def figure_editor(request, figrecipe_embedded=False):
         )
 
     context = {
-        "is_visitor": False,
+        # is_visitor handled by context processor
         "module_name": "Vis",
         "module_icon": "fa-chart-line",
     }

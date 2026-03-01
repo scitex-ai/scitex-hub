@@ -20,6 +20,7 @@ app_name = "public_app"
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("landing/", views.index, name="landing"),
     path("cloud/", lambda request: redirect("public_app:index"), name="cloud"),
     # Concept and vision pages
     path("about/", views.about, name="about"),
@@ -96,6 +97,16 @@ urlpatterns = [
         "api/visitor-pool/initialize/",
         views.visitor_pool_initialize_api,
         name="visitor_pool_initialize_api",
+    ),
+    path(
+        "api/visitor-pool/fill-slots/",
+        views.visitor_fill_slots_api,
+        name="visitor_fill_slots_api",
+    ),
+    path(
+        "api/visitor-pool/free-slots/",
+        views.visitor_free_slots_api,
+        name="visitor_free_slots_api",
     ),
     path(
         "api/visitor/heartbeat/",

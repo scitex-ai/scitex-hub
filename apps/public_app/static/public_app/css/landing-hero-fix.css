@@ -11,7 +11,9 @@
 
 /* Add top margin to hero section */
 .hero-landing {
-  margin-top: 3rem; /* Creates space between header and hero section */
+  margin-top: 0;
+  padding-top: var(--spacing-lg) !important;
+  padding-bottom: var(--spacing-lg) !important;
 }
 
 /* Fix hero content alignment - left-align text */
@@ -412,6 +414,54 @@
 
 .hero-cta-button:active {
   transform: translateY(0);
+}
+
+/* Hero Link Buttons (Open Source, Docs, etc.) */
+.hero-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  max-width: 380px;
+}
+
+.hero-link-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.9rem;
+  color: var(--text-primary, #1c1c1c);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.hero-link-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  text-decoration: none;
+  color: var(--text-primary, #1c1c1c);
+  transform: translateX(4px);
+}
+
+.hero-link-button i {
+  width: 1.2em;
+  text-align: center;
+  opacity: 0.8;
+}
+
+[data-theme="dark"] .hero-link-button {
+  color: var(--text-primary, #e6edf3);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .hero-link-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary, #e6edf3);
 }
 
 .hero-cta-note {
