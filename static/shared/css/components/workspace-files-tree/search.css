@@ -1,13 +1,17 @@
 /**
  * Workspace Files Tree - Search Box
- * Always-visible file tree search/filter input with Ctrl+K badge
+ * Hidden by default, shown via Ctrl+K or context menu "Filter"
  */
 
 .wft-search-box {
   background: var(--workspace-bg-default);
-  border-bottom: 1px solid var(--workspace-border-default);
+  border-top: 1px solid var(--workspace-border-default);
   padding: 6px 8px;
   flex-shrink: 0;
+}
+
+.wft-search-box.wft-search-hidden {
+  display: none;
 }
 
 .wft-search-input-wrapper {
@@ -47,23 +51,6 @@
 .wft-search-input::placeholder {
   color: var(--color-fg-muted, #768390) !important;
   opacity: 1;
-}
-
-.wft-search-kbd {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  font-family: inherit;
-  font-size: 10px;
-  color: var(--color-fg-muted, #768390);
-  background: var(--workspace-bg-tertiary, rgba(255, 255, 255, 0.06));
-  border: 1px solid var(--workspace-border-default);
-  border-radius: 3px;
-  padding: 1px 5px;
-  line-height: 1.4;
-  flex-shrink: 0;
-  pointer-events: none;
-  white-space: nowrap;
 }
 
 .wft-search-clear {

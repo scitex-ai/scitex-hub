@@ -25,10 +25,7 @@ import type { ContextMenuActionHandler } from "./handlers/ContextMenuActionHandl
 import { TreeFileOperations } from "./handlers/TreeFileOperations.ts";
 import { TreeDataLoader } from "./handlers/TreeDataLoader.ts";
 import { showTreeMessage } from "./handlers/TreeMessageHandler.ts";
-import {
-  GitActionDispatcher,
-  type GitSummary,
-} from "./handlers/GitStatusHandler.ts";
+import { type GitSummary } from "./handlers/GitStatusHandler.ts";
 import type { SearchUIHandler } from "./handlers/SearchUIHandler.ts";
 import { initializeTreeHandlers } from "./handlers/TreeInitHandler.ts";
 import { getCsrfToken } from "../../utils/csrf.ts";
@@ -55,7 +52,6 @@ export class WorkspaceFilesTree {
   private searchHandler: SearchHandler;
   private workspaceKeyboardHandler: WorkspaceKeyboardHandler | null = null;
   private contextMenuActionHandler: ContextMenuActionHandler | null = null;
-  private gitActionDispatcher: GitActionDispatcher | null = null;
   private searchUIHandler: SearchUIHandler | null = null;
   private fileOperations: TreeFileOperations;
   private dataLoader: TreeDataLoader;
@@ -161,6 +157,12 @@ export class WorkspaceFilesTree {
       (path) => this.isItemDirectory(path),
       () => this.undoRedoHandler.canUndo(),
       () => this.undoRedoHandler.canRedo(),
+      () => this.selectionHandler.getSelectedPaths().length,
+      (path) => this.selectionHandler.getSelectedPaths().includes(path),
+      () => ({
+        staged: this.gitSummary.staged,
+        unstaged: this.gitSummary.modified + this.gitSummary.untracked,
+      }),
     );
     this.searchHandler = new SearchHandler(
       () => this.rerender(),
@@ -177,12 +179,6 @@ export class WorkspaceFilesTree {
       this.config,
       this.stateManager,
       (message) => this.showError(message),
-    );
-    this.gitActionDispatcher = new GitActionDispatcher(
-      this.gitActions,
-      () => this.refresh(),
-      () => this.container,
-      (msg, type) => this.showMessage(msg, type),
     );
     this.stateManager.subscribe(() => this.rerender());
   }
@@ -317,14 +313,6 @@ export class WorkspaceFilesTree {
       : { matches: new Set<string>(), ancestors: new Set<string>() };
     this.renderer.setSearchInfo(info.matches, info.ancestors);
     this.contentEl().innerHTML = this.renderer.render(data, this.gitSummary);
-    // Git panel: place after search box (under filter input)
-    this.container.querySelector(":scope > .wft-git-panel")?.remove();
-    const gitHtml = this.renderer.renderGitPanelHtml(this.gitSummary);
-    if (gitHtml) {
-      const sb = this.container.querySelector(":scope > .wft-search-box");
-      if (sb) sb.insertAdjacentHTML("afterend", gitHtml);
-      else this.container.insertAdjacentHTML("beforeend", gitHtml);
-    }
   }
 
   private rerender(): void {

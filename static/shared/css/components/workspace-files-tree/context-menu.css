@@ -103,6 +103,14 @@
   margin: 4px 8px;
 }
 
+/* Thick section divider — separates file ops from directory/git ops */
+.wft-context-separator.context-section-divider {
+  height: 2px;
+  margin: 6px 0;
+  background: var(--color-fg-muted, #768390);
+  opacity: 0.4;
+}
+
 /* ========== Context Menu Item Colors ========== */
 
 /* New file - Blue */

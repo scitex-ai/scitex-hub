@@ -12,39 +12,59 @@
 import type { ContextMenuHandler } from "./ContextMenuHandler";
 
 export function initContextMenu(
-    container: HTMLElement,
-    contextMenuHandler: ContextMenuHandler
+  container: HTMLElement,
+  contextMenuHandler: ContextMenuHandler,
 ): void {
-    container.addEventListener("contextmenu", (e) => {
-        e.preventDefault();
-        const target = e.target as HTMLElement;
-        const item = target.closest(".wft-item[data-path]");
+  container.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    const target = e.target as HTMLElement;
+    const item = target.closest(".wft-item[data-path]");
 
-        if (item) {
-            const path = item.getAttribute("data-path");
-            const isDir =
-                item.classList.contains("wft-folder") ||
-                item.classList.contains("wft-root") ||
-                path === "";
+    if (item) {
+      const path = item.getAttribute("data-path");
+      const isDir =
+        item.classList.contains("wft-folder") ||
+        item.classList.contains("wft-root") ||
+        path === "";
 
-            const gitStatusCode = item.getAttribute("data-git-status");
-            const gitStaged = item.getAttribute("data-git-staged") === "true";
-            const gitStatus = gitStatusCode
-                ? { status: gitStatusCode, staged: gitStaged }
-                : undefined;
+      const gitStatusCode = item.getAttribute("data-git-status");
+      const gitStaged = item.getAttribute("data-git-staged") === "true";
+      const gitStatus = gitStatusCode
+        ? { status: gitStatusCode, staged: gitStaged }
+        : undefined;
 
-            contextMenuHandler.show(
-                e.clientX,
-                e.clientY,
-                path || "",
-                isDir,
-                gitStatus
-            );
-        } else {
-            const treeArea = target.closest(".wft-tree, .workspace-files-tree");
-            if (treeArea) {
-                contextMenuHandler.showForRoot(e.clientX, e.clientY);
-            }
-        }
+      contextMenuHandler.show(
+        e.clientX,
+        e.clientY,
+        path || "",
+        isDir,
+        gitStatus,
+      );
+    } else {
+      const treeArea = target.closest(".wft-tree, .workspace-files-tree");
+      if (treeArea) {
+        contextMenuHandler.showForRoot(e.clientX, e.clientY);
+      }
+    }
+  });
+
+  // Right-click on toolbar (sidebar-header) → show root context menu
+  const sidebar = container.closest(".workspace-sidebar");
+  const toolbar = sidebar?.querySelector(":scope > .sidebar-header");
+  if (toolbar) {
+    toolbar.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      contextMenuHandler.showForRoot(
+        (e as MouseEvent).clientX,
+        (e as MouseEvent).clientY,
+      );
     });
+  }
+
+  // Right-click on Recent pane entries → show file context menu
+  document.addEventListener("repo-monitor:contextmenu", ((e: CustomEvent) => {
+    const { path, x, y } = e.detail;
+    // Show file context menu (not directory, no git status from monitor)
+    contextMenuHandler.show(x, y, path, false, undefined);
+  }) as EventListener);
 }

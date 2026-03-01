@@ -20,49 +20,9 @@ export class EventHandlers {
     private onGitAction?: (action: string, path: string) => void,
   ) {}
 
-  private gitPanelListenerAttached = false;
-
   attachEventListeners(container: HTMLElement): void {
     const treeEl = container.querySelector(".wft-tree");
     if (!treeEl) return;
-
-    // Git panel button clicks - use container-level delegation for reliability
-    // Only attach once since we use event delegation on container
-    if (!this.gitPanelListenerAttached) {
-      this.gitPanelListenerAttached = true;
-      console.log(
-        "[EventHandlers] Attaching container-level git panel listener",
-      );
-
-      container.addEventListener("click", (e) => {
-        const target = e.target as HTMLElement;
-
-        // Check if click is within git panel
-        const gitPanel = target.closest(".wft-git-panel");
-        if (!gitPanel) return;
-
-        const btn = target.closest("[data-action]") as HTMLElement;
-        if (!btn) return;
-
-        const action = btn.getAttribute("data-action");
-
-        // Toggle git panel collapse
-        if (action === "git-toggle-panel") {
-          e.preventDefault();
-          e.stopPropagation();
-          gitPanel.classList.toggle("collapsed");
-          return;
-        }
-
-        if (btn && !btn.hasAttribute("disabled") && this.onGitAction) {
-          e.preventDefault();
-          e.stopPropagation();
-          if (action) {
-            this.onGitAction(action, "");
-          }
-        }
-      });
-    }
 
     // File/folder click (ignore right-clicks - context menu handles those)
     treeEl.addEventListener("click", (evt) => {

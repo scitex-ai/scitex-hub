@@ -59,12 +59,12 @@
                      id="ws-repo-monitor"
                      {% if current_project %}data-project-id="{{ current_project.id }}"{% endif %}>
                     <div class="repo-monitor-header" id="repo-monitor-header">
-                        <i class="fas fa-satellite-dish"></i>
-                        <span>Monitor</span>
+                        <i class="fas fa-clock-rotate-left"></i>
+                        <span>Recent</span>
                         <span class="repo-monitor-status" id="repo-monitor-status"></span>
                         <div class="repo-monitor-toolbar">
-                            <button id="repo-monitor-gitignore-toggle" title="Respect .gitignore">
-                                <i class="fas fa-filter"></i>
+                            <button id="repo-monitor-config-toggle" title="Filter settings">
+                                <i class="fas fa-gear"></i>
                             </button>
                             <button id="repo-monitor-pause-toggle" title="Pause/Resume">
                                 <i class="fas fa-pause"></i>
