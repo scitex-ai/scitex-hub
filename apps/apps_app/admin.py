@@ -76,13 +76,17 @@ class ModuleSubmissionAdmin(admin.ModelAdmin):
     list_filter = ("status",)
     search_fields = ("module__module_name", "submitted_by__username")
     readonly_fields = ("submitted_at",)
-    actions = ["approve_submissions", "reject_submissions"]
+    actions = [
+        "approve_submissions",
+        "reject_submissions",
+        "request_changes_submissions",
+    ]
 
     @admin.action(description="Approve selected submissions")
     def approve_submissions(self, request, queryset):
         from django.utils import timezone
 
-        for sub in queryset.filter(status="pending"):
+        for sub in queryset.filter(status__in=("pending", "changes_requested")):
             sub.status = "approved"
             sub.reviewer = request.user
             sub.reviewed_at = timezone.now()
@@ -95,8 +99,18 @@ class ModuleSubmissionAdmin(admin.ModelAdmin):
     def reject_submissions(self, request, queryset):
         from django.utils import timezone
 
-        queryset.filter(status="pending").update(
+        queryset.filter(status__in=("pending", "changes_requested")).update(
             status="rejected", reviewer=request.user, reviewed_at=timezone.now()
+        )
+
+    @admin.action(description="Request changes on selected submissions")
+    def request_changes_submissions(self, request, queryset):
+        from django.utils import timezone
+
+        queryset.filter(status="pending").update(
+            status="changes_requested",
+            reviewer=request.user,
+            reviewed_at=timezone.now(),
         )
 
 

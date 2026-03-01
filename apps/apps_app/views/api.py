@@ -305,7 +305,7 @@ def api_update_config(request, module_name):
 @login_required
 @require_http_methods(["POST"])
 def api_review_submission(request, submission_id):
-    """Admin approves or rejects a module submission."""
+    """Admin approves, rejects, or requests changes on a module submission."""
     if not request.user.is_staff:
         return JsonResponse({"success": False, "error": "Staff only."}, status=403)
 
@@ -314,7 +314,7 @@ def api_review_submission(request, submission_id):
     from ..models import ModuleSubmission
 
     submission = get_object_or_404(ModuleSubmission, id=submission_id)
-    if submission.status != "pending":
+    if submission.status not in ("pending", "changes_requested"):
         return JsonResponse(
             {"success": False, "error": "Submission already reviewed."}, status=400
         )
@@ -324,35 +324,76 @@ def api_review_submission(request, submission_id):
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON."}, status=400)
 
-    action = data.get("action")  # "approve" or "reject"
+    action = data.get("action")
     note = data.get("note", "")
+    now = timezone.now()
 
     if action == "approve":
         submission.status = "approved"
-        submission.reviewer = request.user
-        submission.review_note = note
-        submission.reviewed_at = timezone.now()
-        submission.save()
         submission.module.visibility = "public"
         submission.module.is_verified = True
         submission.module.save(update_fields=["visibility", "is_verified"])
-        return JsonResponse(
-            {"success": True, "message": f"Approved {submission.module.module_name}."}
-        )
     elif action == "reject":
         submission.status = "rejected"
-        submission.reviewer = request.user
-        submission.review_note = note
-        submission.reviewed_at = timezone.now()
-        submission.save()
+    elif action == "request_changes":
+        submission.status = "changes_requested"
+    else:
         return JsonResponse(
-            {"success": True, "message": f"Rejected {submission.module.module_name}."}
+            {
+                "success": False,
+                "error": "action must be 'approve', 'reject', or 'request_changes'.",
+            },
+            status=400,
         )
 
+    submission.reviewer = request.user
+    submission.review_note = note
+    submission.reviewed_at = now
+    submission.save()
+
+    # Sync status back to the linked Project
+    _sync_project_status(submission, now, request.user)
+
+    # Notify author
+    _notify_author(submission)
+
     return JsonResponse(
-        {"success": False, "error": "action must be 'approve' or 'reject'."},
-        status=400,
+        {
+            "success": True,
+            "message": f"{action.title()} {submission.module.module_name}.",
+        }
     )
+
+
+def _sync_project_status(submission, now, reviewer):
+    """Update the source Project's app_status fields after review."""
+    project = getattr(submission.module, "project", None)
+    if project is None:
+        return
+    project.app_status = submission.status
+    project.app_reviewed_at = now
+    project.app_reviewer = reviewer
+    project.save(update_fields=["app_status", "app_reviewed_at", "app_reviewer"])
+
+
+def _notify_author(submission):
+    """Send email notification to the submission author."""
+    try:
+        from apps.project_app.services.email_service import EmailService
+
+        EmailService.send_app_review_complete(
+            user=submission.submitted_by,
+            module_name=submission.module.module_name,
+            status=submission.status,
+            note=submission.review_note,
+        )
+    except Exception:
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "Failed to send review notification for %s",
+            submission.module.module_name,
+        )
 
 
 # EOF

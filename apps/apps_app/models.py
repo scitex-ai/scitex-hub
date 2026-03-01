@@ -89,6 +89,24 @@ class AppsModule(models.Model):
         default="private",
     )
 
+    # Source project link (for user-submitted apps)
+    project = models.OneToOneField(
+        "project_app.Project",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="marketplace_module",
+        help_text="Source project (for user-submitted apps)",
+    )
+
+    # Pinned commit (set on approval)
+    pinned_commit = models.CharField(
+        max_length=40,
+        blank=True,
+        help_text="SHA of the approved commit (set on approval)",
+    )
+    pinned_at = models.DateTimeField(null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -188,6 +206,7 @@ class ModuleSubmission(models.Model):
         ("pending", "Pending Review"),
         ("approved", "Approved"),
         ("rejected", "Rejected"),
+        ("changes_requested", "Changes Requested"),
     ]
 
     module = models.ForeignKey(
@@ -196,7 +215,7 @@ class ModuleSubmission(models.Model):
     submitted_by = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="module_submissions"
     )
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     reviewer = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,

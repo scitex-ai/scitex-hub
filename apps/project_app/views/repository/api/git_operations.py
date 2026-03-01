@@ -20,6 +20,9 @@ Re-exports from specialized submodules:
 # Re-export all views for backward compatibility
 from .git_commit import api_git_commit, api_git_discard
 from .git_history import api_git_diff, api_git_history
+
+# Remote operations
+from .git_remote import api_git_pull, api_git_push
 from .git_staging import (
     api_git_stage,
     api_git_stage_all,
@@ -42,6 +45,9 @@ __all__ = [
     # History operations
     "api_git_history",
     "api_git_diff",
+    # Remote operations
+    "api_git_push",
+    "api_git_pull",
     # Utilities
     "get_project_path",
     "run_git_command",

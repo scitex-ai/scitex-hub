@@ -8,12 +8,12 @@ from django.db import migrations
 
 
 def rename_marketplace_to_apps(apps, schema_editor):
-    AppsModule = apps.get_model("apps_app", "AppsModule")
+    AppsModule = apps.get_model("apps_app", "MarketplaceModule")
     AppsModule.objects.filter(module_name="marketplace").update(module_name="apps")
 
 
 def rename_apps_to_marketplace(apps, schema_editor):
-    AppsModule = apps.get_model("apps_app", "AppsModule")
+    AppsModule = apps.get_model("apps_app", "MarketplaceModule")
     AppsModule.objects.filter(module_name="apps").update(module_name="marketplace")
 
 

@@ -106,4 +106,26 @@ def my_modules(request):
     )
 
 
+@login_required
+def review_queue(request):
+    """Staff-only review queue for pending app submissions."""
+    if not request.user.is_staff:
+        from django.http import Http404
+
+        raise Http404
+
+    from ..models import ModuleSubmission
+
+    submissions = (
+        ModuleSubmission.objects.filter(status__in=("pending", "changes_requested"))
+        .select_related("module", "submitted_by", "module__project")
+        .order_by("-submitted_at")
+    )
+    return render(
+        request,
+        "apps_app/review_queue.html",
+        {"submissions": submissions},
+    )
+
+
 # EOF

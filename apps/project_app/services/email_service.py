@@ -3,9 +3,10 @@
 # Email services for SciTeX Cloud
 # ----------------------------------------
 
-from django.core.mail import send_mail
-from django.conf import settings
 import logging
+
+from django.conf import settings
+from django.core.mail import send_mail
 
 logger = logging.getLogger(__name__)
 
@@ -68,17 +69,17 @@ class EmailService:
                     <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-logo-cropped.png" alt="SciTeX Logo" style="height: 60px; margin-bottom: 20px;">
                     <h2 style="margin-top: 20px;">Email Verification</h2>
                 </div>
-                
+
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                     <p>Hi there,</p>
                     <p>Use this verification code to complete your {context["verification_type"]}:</p>
-                    
+
                     <div style="text-align: center; margin: 30px 0;">
                         <div style="display: inline-block; background: #4a6baf; color: white; padding: 15px 30px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 3px;">
                             {otp_code}
                         </div>
                     </div>
-                    
+
                     <p><strong>Important:</strong></p>
                     <ul>
                         <li>This code expires in {context["expires_minutes"]} minutes</li>
@@ -86,7 +87,7 @@ class EmailService:
                         <li>Do not share this code with anyone</li>
                     </ul>
                 </div>
-                
+
                 <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; color: #666; font-size: 14px;">
                     <div style="text-align: center; margin-bottom: 15px;">
                         <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted-48x48.png" alt="SciTeX" style="height: 32px; opacity: 0.6;">
@@ -101,20 +102,20 @@ class EmailService:
 
             plain_message = f"""
             SciTeX - Email Verification
-            
+
             Hi there,
-            
+
             Use this verification code to complete your {context["verification_type"]}:
-            
+
             {otp_code}
-            
+
             Important:
             - This code expires in {context["expires_minutes"]} minutes
             - Your account must be verified within 1 hour or it will be deleted
             - Do not share this code with anyone
-            
+
             If you didn't request this verification, please ignore this email.
-            
+
             This is an automated message from SciTeX Cloud.
             """
 
@@ -160,11 +161,11 @@ class EmailService:
                     <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-logo-cropped.png" alt="SciTeX Logo" style="height: 60px; margin-bottom: 20px;">
                     <h2 style="margin-top: 20px;">Welcome to Scientific Excellence!</h2>
                 </div>
-                
+
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                     <p>Hi {user.first_name or user.username},</p>
                     <p>Welcome to SciTeX! Your email has been verified and your account is now active.</p>
-                    
+
                     <div style="margin: 20px 0;">
                         <h3 style="color: #4a6baf;">What you can do now:</h3>
                         <ul>
@@ -175,7 +176,7 @@ class EmailService:
                             <li><strong>SciTeX-Viz:</strong> Create stunning scientific visualizations</li>
                         </ul>
                     </div>
-                    
+
                     <div style="text-align: center; margin: 30px 0;">
                         <a href="{SITE_URL}/dashboard/" style="display: inline-block; background: #4a6baf; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
                             Go to Dashboard
@@ -198,22 +199,22 @@ class EmailService:
 
             plain_message = f"""
             Welcome to SciTeX!
-            
+
             Hi {user.first_name or user.username},
-            
+
             Welcome to SciTeX! Your email has been verified and your account is now active.
-            
+
             What you can do now:
             - SciTeX-Writer: Create and manage scientific documents
-            - SciTeX-Scholar: Search and explore scientific literature  
+            - SciTeX-Scholar: Search and explore scientific literature
             - SciTeX-Code: Manage your research code and analysis
             - SciTeX-Engine: AI-powered research assistance
             - SciTeX-Viz: Create stunning scientific visualizations
-            
+
             Visit your dashboard: {SITE_URL}/dashboard/
 
             Need help getting started? Check out our documentation at {SITE_URL}/docs/
-            
+
             Happy researching!
             The SciTeX Team
             """
@@ -257,11 +258,11 @@ class EmailService:
                     <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-logo-cropped.png" alt="SciTeX Logo" style="height: 60px; margin-bottom: 20px;">
                     <h2 style="margin-top: 20px; color: #e74c3c;">Account Deletion Scheduled</h2>
                 </div>
-                
+
                 <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                     <p><strong>Hi {user.first_name or user.username},</strong></p>
                     <p>Your SciTeX account has been scheduled for deletion.</p>
-                    
+
                     <div style="background: #ffffff; padding: 15px; border-radius: 5px; margin: 20px 0;">
                         <p><strong>Deletion Details:</strong></p>
                         <ul>
@@ -270,7 +271,7 @@ class EmailService:
                             <li><strong>Grace Period:</strong> 28 days</li>
                         </ul>
                     </div>
-                    
+
                     <p><strong>What happens next:</strong></p>
                     <ul>
                         <li>Your account will remain active for 28 days</li>
@@ -279,7 +280,7 @@ class EmailService:
                         <li>This includes: projects, documents, profile, and all associated data</li>
                     </ul>
                 </div>
-                
+
                 <div style="text-align: center; margin: 30px 0;">
                     <a href="{SITE_URL}/dashboard/settings/" style="display: inline-block; background: #e74c3c; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
                         Cancel Deletion
@@ -301,28 +302,28 @@ class EmailService:
 
             plain_message = f"""
             SciTeX Account Deletion Scheduled
-            
+
             Hi {user.first_name or user.username},
-            
+
             Your SciTeX account has been scheduled for deletion.
-            
+
             Deletion Details:
             - Account: {user.email}
             - Scheduled Date: {deletion_date.strftime("%B %d, %Y at %I:%M %p UTC")}
             - Grace Period: 28 days
-            
+
             What happens next:
             - Your account will remain active for 28 days
             - You can cancel deletion anytime during this period
             - After 28 days, all your data will be permanently deleted
             - This includes: projects, documents, profile, and all associated data
-            
+
             To cancel deletion, visit: {SITE_URL}/dashboard/settings/
-            
+
             If you didn't request this deletion, please log in immediately and cancel it, then change your password.
-            
+
             Need help? Contact us at support@scitex.ai
-            
+
             The SciTeX Team
             """
 
@@ -349,3 +350,132 @@ class EmailService:
                 f"Error sending deletion confirmation email to {user.email}: {str(e)}"
             )
             return False, f"Error sending email: {str(e)}"
+
+    @staticmethod
+    def send_app_submission_received(user, module_name):
+        """Send confirmation email when an app is submitted for review."""
+        try:
+            subject = "SciTeX - App Submission Received"
+            html_message = f"""
+            <!DOCTYPE html>
+            <html>
+            <body>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="text-align: left; margin-bottom: 30px;">
+                    <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-logo-cropped.png" alt="SciTeX Logo" style="height: 60px; margin-bottom: 20px;">
+                    <h2 style="margin-top: 20px;">App Submission Received</h2>
+                </div>
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <p>Hi {user.first_name or user.username},</p>
+                    <p>Your app <strong>{module_name}</strong> has been submitted for review.</p>
+                    <p>Our team will review your submission and you'll receive a notification once a decision is made. This usually takes 1-3 business days.</p>
+                </div>
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; color: #666; font-size: 14px;">
+                    <p>This is an automated message from SciTeX Cloud.</p>
+                </div>
+            </div>
+            </body>
+            </html>
+            """
+            plain_message = f"""
+            SciTeX - App Submission Received
+
+            Hi {user.first_name or user.username},
+
+            Your app {module_name} has been submitted for review.
+            Our team will review your submission and you'll receive a notification
+            once a decision is made. This usually takes 1-3 business days.
+
+            This is an automated message from SciTeX Cloud.
+            """
+            send_mail(
+                subject=subject,
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                html_message=html_message,
+                fail_silently=True,
+            )
+            logger.info(f"App submission email sent to {user.email} for {module_name}")
+        except Exception as e:
+            logger.error(f"Error sending submission email to {user.email}: {e}")
+
+    @staticmethod
+    def send_app_review_complete(user, module_name, status, note=""):
+        """Send notification email when an app review decision is made."""
+        try:
+            status_labels = {
+                "approved": (
+                    "Approved",
+                    "#28a745",
+                    "Your app is now live in the marketplace!",
+                ),
+                "rejected": (
+                    "Rejected",
+                    "#dc3545",
+                    "Unfortunately, your app did not pass review.",
+                ),
+                "changes_requested": (
+                    "Changes Requested",
+                    "#ffc107",
+                    "Please address the reviewer's feedback and resubmit.",
+                ),
+            }
+            label, color, description = status_labels.get(
+                status, (status.title(), "#6c757d", "")
+            )
+            note_html = (
+                f'<div style="background: #fff3cd; padding: 12px; border-radius: 4px; margin-top: 12px;"><strong>Reviewer note:</strong><br>{note}</div>'
+                if note
+                else ""
+            )
+
+            subject = f"SciTeX - App Review: {label}"
+            html_message = f"""
+            <!DOCTYPE html>
+            <html>
+            <body>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="text-align: left; margin-bottom: 30px;">
+                    <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-logo-cropped.png" alt="SciTeX Logo" style="height: 60px; margin-bottom: 20px;">
+                    <h2 style="margin-top: 20px;">App Review Complete</h2>
+                </div>
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <p>Hi {user.first_name or user.username},</p>
+                    <p>Your app <strong>{module_name}</strong> has been reviewed.</p>
+                    <div style="display: inline-block; background: {color}; color: white; padding: 6px 16px; border-radius: 4px; font-weight: bold; margin: 8px 0;">
+                        {label}
+                    </div>
+                    <p>{description}</p>
+                    {note_html}
+                </div>
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; color: #666; font-size: 14px;">
+                    <p>This is an automated message from SciTeX Cloud.</p>
+                </div>
+            </div>
+            </body>
+            </html>
+            """
+            note_plain = f"\nReviewer note: {note}" if note else ""
+            plain_message = f"""
+            SciTeX - App Review: {label}
+
+            Hi {user.first_name or user.username},
+
+            Your app {module_name} has been reviewed.
+            Status: {label}
+            {description}{note_plain}
+
+            This is an automated message from SciTeX Cloud.
+            """
+            send_mail(
+                subject=subject,
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                html_message=html_message,
+                fail_silently=True,
+            )
+            logger.info(f"App review email sent to {user.email}: {status}")
+        except Exception as e:
+            logger.error(f"Error sending review email to {user.email}: {e}")
