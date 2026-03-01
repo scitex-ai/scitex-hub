@@ -114,4 +114,100 @@ def app_dev(app_dir, port):
     dev_server(app_dir, port=port)
 
 
+@app.command("publish")
+@click.argument("app_dir", default=".", type=click.Path(exists=True))
+@click.option(
+    "--server",
+    "-s",
+    envvar="SCITEX_CLOUD_URL",
+    default="http://127.0.0.1:8000",
+    help="SciTeX Cloud server URL",
+)
+@click.option(
+    "--token",
+    "-t",
+    envvar="SCITEX_CLOUD_TOKEN",
+    required=True,
+    help="API authentication token",
+)
+def app_publish(app_dir, server, token):
+    """Validate and submit an app for publication review.
+
+    Runs local validation first, then submits to the server.
+
+    \b
+    Examples:
+        scitex-cloud app publish .
+        scitex-cloud app publish /path/to/my_app --server https://scitex.example.com
+    """
+    from scitex_cloud.app_tools import publish
+
+    console.print(f"[cyan]Publishing app from:[/cyan] {Path(app_dir).resolve()}")
+
+    result = publish(app_dir, server_url=server, token=token)
+
+    if result.get("success"):
+        console.print("[green]Submitted for review![/green]")
+    else:
+        errors = result.get("errors", [result.get("error", "Unknown error")])
+        console.print("[red]Failed:[/red]")
+        for err in errors:
+            console.print(f"  [red]x[/red] {err}")
+        raise SystemExit(1)
+
+
+@app.command("list")
+@click.option(
+    "--server",
+    "-s",
+    envvar="SCITEX_CLOUD_URL",
+    default="http://127.0.0.1:8000",
+    help="SciTeX Cloud server URL",
+)
+def app_list(server):
+    """List public apps available on the server.
+
+    \b
+    Examples:
+        scitex-cloud app list
+        scitex-cloud app list --server https://scitex.example.com
+    """
+    import requests
+
+    url = f"{server.rstrip('/')}/apps/api/list/"
+    try:
+        resp = requests.get(url, timeout=15)
+        data = resp.json()
+    except Exception as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise SystemExit(1)
+
+    apps = data.get("apps", [])
+    if not apps:
+        console.print("[yellow]No public apps found.[/yellow]")
+        return
+
+    from rich.table import Table
+
+    table = Table(title="Public Apps")
+    table.add_column("Name", style="cyan")
+    table.add_column("Category")
+    table.add_column("Stars", justify="right")
+    table.add_column("Installs", justify="right")
+    table.add_column("Status")
+    table.add_column("Description")
+
+    for a in apps:
+        table.add_row(
+            a["module_name"],
+            a["category"],
+            str(a["star_count"]),
+            str(a["install_count"]),
+            a["status"],
+            a.get("short_description", "")[:50],
+        )
+
+    console.print(table)
+
+
 # EOF
