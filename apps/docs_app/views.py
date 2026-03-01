@@ -154,7 +154,8 @@ def docs_export(request, slug):
     title = page["label"]
     markdown = f"# {title}\n\n{markdown}"
 
-    filename = f"scitex-docs-{slug}.md"
+    ver = _get_project_version()
+    filename = f"scitex-cloud-v{ver}-docs-{slug}.md"
     response = HttpResponse(markdown, content_type="text/markdown; charset=utf-8")
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
@@ -315,6 +316,18 @@ def docs_page(request, module, page):
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+def _get_project_version() -> str:
+    """Read version from pyproject.toml (single source of truth)."""
+    try:
+        toml_path = Path(settings.BASE_DIR) / "pyproject.toml"
+        for line in toml_path.read_text().splitlines():
+            if line.startswith("version"):
+                return line.split("=")[1].strip().strip('"')
+    except Exception:
+        pass
+    return "unknown"
+
+
 DOC_PATHS = {
     "python": "../scitex-code/docs/sphinx/build/html",
 }
