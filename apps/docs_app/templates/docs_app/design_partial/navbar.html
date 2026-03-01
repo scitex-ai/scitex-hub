@@ -1,0 +1,273 @@
+<!-- Navbar Component -->
+<section class="design-section container-section" id="navbar">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z" />
+            </svg>
+            Navbar
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/components/navbar.css</span>
+    </div>
+    <p class="text-intro">Top navigation bar with branding, links, and user actions.</p>
+    <div class="demo-box">
+        <h3 class="mb-4">Basic Navbar</h3>
+        <div class="component-demo">
+            <nav class="navbar"
+                 style="background-color: var(--bg-surface);
+                        border: 1px solid var(--border-default);
+                        border-radius: 6px;
+                        padding: 0.75rem 1.5rem">
+                <div style="display: flex; align-items: center; width: 100%">
+                    <a href="#"
+                       class="navbar-brand"
+                       style="font-weight: 700;
+                              font-size: 1.25rem;
+                              color: var(--text-primary);
+                              text-decoration: none">SciTeX</a>
+                    <ul class="navbar-nav"
+                        style="display: flex;
+                               list-style: none;
+                               margin: 0 0 0 auto;
+                               padding: 0;
+                               gap: 1.5rem">
+                        <li class="nav-item">
+                            <a href="#"
+                               class="nav-link"
+                               style="color: var(--text-primary);
+                                      text-decoration: none">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#"
+                               class="nav-link"
+                               style="color: var(--text-primary);
+                                      text-decoration: none">Features</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#"
+                               class="nav-link"
+                               style="color: var(--text-primary);
+                                      text-decoration: none">Pricing</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#"
+                               class="nav-link"
+                               style="color: var(--text-primary);
+                                      text-decoration: none">About</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Navbar with Search</h3>
+        <div class="component-demo">
+            <nav class="navbar"
+                 style="background-color: var(--bg-surface);
+                        border: 1px solid var(--border-default);
+                        border-radius: 6px;
+                        padding: 0.75rem 1.5rem">
+                <div style="display: flex; align-items: center; width: 100%; gap: 2rem">
+                    <a href="#"
+                       class="navbar-brand"
+                       style="font-weight: 700;
+                              font-size: 1.25rem;
+                              color: var(--text-primary);
+                              text-decoration: none">Brand</a>
+                    <form style="flex: 1; max-width: 400px">
+                        <input type="search"
+                               class="form-control"
+                               placeholder="Search..."
+                               style="width: 100%" />
+                    </form>
+                    <ul class="navbar-nav"
+                        style="display: flex;
+                               list-style: none;
+                               margin: 0;
+                               padding: 0;
+                               gap: 1rem">
+                        <li class="nav-item">
+                            <a href="#"
+                               class="nav-link"
+                               style="color: var(--text-primary);
+                                      text-decoration: none">Profile</a>
+                        </li>
+                        <li class="nav-item">
+                            <button class="btn btn-primary btn-sm">Sign In</button>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Navbar with Icons</h3>
+        <div class="component-demo">
+            <nav class="navbar"
+                 style="background-color: var(--bg-surface);
+                        border: 1px solid var(--border-default);
+                        border-radius: 6px;
+                        padding: 0.75rem 1.5rem">
+                <div style="display: flex; align-items: center; width: 100%">
+                    <a href="#"
+                       class="navbar-brand"
+                       style="font-weight: 700;
+                              font-size: 1.25rem;
+                              color: var(--text-primary);
+                              text-decoration: none">🔬 SciTeX</a>
+                    <ul class="navbar-nav"
+                        style="display: flex;
+                               list-style: none;
+                               margin: 0 0 0 auto;
+                               padding: 0;
+                               gap: 1.5rem;
+                               align-items: center">
+                        <li class="nav-item">
+                            <a href="#"
+                               class="nav-link"
+                               style="color: var(--text-primary);
+                                      text-decoration: none">🏠 Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#"
+                               class="nav-link"
+                               style="color: var(--text-primary);
+                                      text-decoration: none">📁 Projects</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#"
+                               class="nav-link"
+                               style="color: var(--text-primary);
+                                      text-decoration: none">⚙️ Settings</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#"
+                               style="color: var(--text-primary);
+                                      text-decoration: none;
+                                      font-size: 1.25rem">👤</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Dark Navbar</h3>
+        <div class="component-demo">
+            <nav class="navbar navbar-dark"
+                 style="background-color: var(--_scitex-01);
+                        border-radius: 6px;
+                        padding: 0.75rem 1.5rem">
+                <div style="display: flex; align-items: center; width: 100%">
+                    <a href="#"
+                       class="navbar-brand"
+                       style="font-weight: 700;
+                              font-size: 1.25rem;
+                              color: white;
+                              text-decoration: none">SciTeX</a>
+                    <ul class="navbar-nav"
+                        style="display: flex;
+                               list-style: none;
+                               margin: 0 0 0 auto;
+                               padding: 0;
+                               gap: 1.5rem">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" style="color: white; text-decoration: none">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" style="color: white; text-decoration: none">Features</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" style="color: white; text-decoration: none">Docs</a>
+                        </li>
+                        <li class="nav-item">
+                            <button class="btn btn-outline-primary"
+                                    style="color: white;
+                                           border-color: white">Login</button>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Navbar with Dropdown</h3>
+        <div class="component-demo">
+            <nav class="navbar"
+                 style="background-color: var(--bg-surface);
+                        border: 1px solid var(--border-default);
+                        border-radius: 6px;
+                        padding: 0.75rem 1.5rem">
+                <div style="display: flex; align-items: center; width: 100%">
+                    <a href="#"
+                       class="navbar-brand"
+                       style="font-weight: 700;
+                              font-size: 1.25rem;
+                              color: var(--text-primary);
+                              text-decoration: none">SciTeX</a>
+                    <ul class="navbar-nav"
+                        style="display: flex;
+                               list-style: none;
+                               margin: 0 0 0 auto;
+                               padding: 0;
+                               gap: 1.5rem;
+                               align-items: center">
+                        <li class="nav-item">
+                            <a href="#"
+                               class="nav-link"
+                               style="color: var(--text-primary);
+                                      text-decoration: none">Home</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a href="#"
+                               class="nav-link dropdown-toggle"
+                               style="color: var(--text-primary);
+                                      text-decoration: none">Products</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#"
+                               class="nav-link"
+                               style="color: var(--text-primary);
+                                      text-decoration: none">Support</a>
+                        </li>
+                        <li class="nav-item">
+                            <button class="btn btn-primary btn-sm">Get Started</button>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">HTML Examples</h3>
+        <pre data-language="html" style=" background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto; "><code class="language-html">&lt;!-- Basic Navbar --&gt;
+&lt;nav class="navbar"&gt;
+  &lt;a href="#" class="navbar-brand"&gt;Brand&lt;/a&gt;
+  &lt;ul class="navbar-nav"&gt;
+    &lt;li class="nav-item"&gt;
+      &lt;a href="#" class="nav-link"&gt;Home&lt;/a&gt;
+    &lt;/li&gt;
+    &lt;li class="nav-item"&gt;
+      &lt;a href="#" class="nav-link"&gt;Features&lt;/a&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+
+&lt;!-- Navbar with Search --&gt;
+&lt;nav class="navbar"&gt;
+  &lt;a href="#" class="navbar-brand"&gt;Brand&lt;/a&gt;
+  &lt;form class="navbar-search"&gt;
+    &lt;input type="search" placeholder="Search..."&gt;
+  &lt;/form&gt;
+  &lt;ul class="navbar-nav"&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Profile&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+
+&lt;!-- Dark Navbar --&gt;
+&lt;nav class="navbar navbar-dark"&gt;
+  &lt;!-- Content --&gt;
+&lt;/nav&gt;</code></pre>
+    </div>
+</section>

@@ -1,0 +1,322 @@
+<!-- Colors -->
+<section class="design-section container-section" id="colors">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4.5 5.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z" />
+            </svg>
+            Color Palette
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/primitives/colors.css</span>
+    </div>
+    <p class="text-intro">Semantic color system with automatic light/dark mode support.</p>
+    <div class="demo-box">
+        <h3 class="mb-4">Text Colors</h3>
+        <div class="color-palette mb-4">
+            <div style="background-color: var(--bg-page);
+                        padding: 1rem;
+                        border: 1px solid var(--border-default);
+                        border-radius: 6px">
+                <strong style="color: var(--text-primary)">--text-primary</strong>
+                <br />
+                <small style="color: var(--text-secondary)">Main text color</small>
+                <br />
+                <span style="display: block;
+                             color: var(--text-primary);
+                             margin-top: 0.5rem;
+                             font-size: 0.9rem">The primary text</span>
+            </div>
+            <div style="background-color: var(--bg-page);
+                        padding: 1rem;
+                        border: 1px solid var(--border-default);
+                        border-radius: 6px">
+                <strong style="color: var(--text-secondary)">--text-secondary</strong>
+                <br />
+                <small style="color: var(--text-muted)">Secondary text</small>
+                <br />
+                <span style="display: block;
+                             color: var(--text-secondary);
+                             margin-top: 0.5rem;
+                             font-size: 0.9rem">Secondary content</span>
+            </div>
+            <div style="background-color: var(--bg-page);
+                        padding: 1rem;
+                        border: 1px solid var(--border-default);
+                        border-radius: 6px">
+                <strong style="color: var(--text-muted)">--text-muted</strong>
+                <br />
+                <small style="color: var(--text-muted)">Muted text</small>
+                <br />
+                <span style="display: block;
+                             color: var(--text-muted);
+                             margin-top: 0.5rem;
+                             font-size: 0.9rem">Subtle text</span>
+            </div>
+            <div style="background-color: var(--bg-page);
+                        padding: 1rem;
+                        border: 1px solid var(--border-default);
+                        border-radius: 6px">
+                <strong style="color: var(--text-inverse)">--text-inverse</strong>
+                <br />
+                <small style="color: var(--text-muted)">Light on dark</small>
+                <br />
+                <span style="display: block;
+                             background-color: var(--_scitex-01);
+                             color: var(--text-inverse);
+                             padding: 0.25rem 0.5rem;
+                             border-radius: 3px;
+                             margin-top: 0.5rem;
+                             font-size: 0.9rem">Inverse text</span>
+            </div>
+        </div>
+        <h4 class="mt-4 mb-3">Background Colors</h4>
+        <div class="color-palette mb-4"
+             style="display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 1rem">
+            <div style="background-color: var(--bg-page);
+                        color: var(--text-primary);
+                        padding: 1rem;
+                        border: 1px solid var(--border-default);
+                        border-radius: 6px">
+                <strong>--bg-page</strong>
+                <br />
+                <small style="color: var(--text-secondary)">Page background</small>
+                <br />
+                <span style="display: block; font-size: 0.85rem; margin-top: 0.5rem">Main page background</span>
+            </div>
+            <div style="background-color: var(--bg-surface);
+                        color: var(--text-primary);
+                        padding: 1rem;
+                        border: 1px solid var(--border-default);
+                        border-radius: 6px">
+                <strong>--bg-surface</strong>
+                <br />
+                <small style="color: var(--text-secondary)">Surface background</small>
+                <br />
+                <span style="display: block; font-size: 0.85rem; margin-top: 0.5rem">Cards, panels</span>
+            </div>
+            <div style="background-color: var(--bg-muted);
+                        color: var(--text-primary);
+                        padding: 1rem;
+                        border: 1px solid var(--border-default);
+                        border-radius: 6px">
+                <strong>--bg-muted</strong>
+                <br />
+                <small style="color: var(--text-secondary)">Muted background</small>
+                <br />
+                <span style="display: block; font-size: 0.85rem; margin-top: 0.5rem">Secondary surfaces</span>
+            </div>
+        </div>
+        <h4 class="mt-4 mb-3">Border Colors</h4>
+        <div class="color-palette mb-4"
+             style="display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 1rem">
+            <div style="background-color: var(--bg-page);
+                        padding: 1rem;
+                        border: 2px solid var(--border-default);
+                        border-radius: 6px">
+                <strong style="color: var(--text-primary)">--border-default</strong>
+                <br />
+                <small style="color: var(--text-secondary)">Default border</small>
+            </div>
+            <div style="background-color: var(--bg-page);
+                        padding: 1rem;
+                        border: 2px solid var(--border-muted);
+                        border-radius: 6px">
+                <strong style="color: var(--text-primary)">--border-muted</strong>
+                <br />
+                <small style="color: var(--text-secondary)">Subtle border</small>
+            </div>
+        </div>
+        <h4 class="mt-4 mb-3">Status Colors</h4>
+        <div class="row">
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div style="background-color: var(--status-success);
+                            color: white;
+                            padding: 1.25rem;
+                            border-radius: 6px;
+                            text-align: center">
+                    <strong style="font-size: 1.1rem; display: block; margin-bottom: 0.5rem">✓ Success</strong>
+                    <small>#4a9b7e</small>
+                </div>
+                <small style="color: var(--text-secondary);
+                              display: block;
+                              margin-top: 0.5rem;
+                              text-align: center"><code>--status-success</code></small>
+            </div>
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div style="background-color: var(--status-warning);
+                            color: white;
+                            padding: 1.25rem;
+                            border-radius: 6px;
+                            text-align: center">
+                    <strong style="font-size: 1.1rem; display: block; margin-bottom: 0.5rem">⚠ Warning</strong>
+                    <small>#b8956a</small>
+                </div>
+                <small style="color: var(--text-secondary);
+                              display: block;
+                              margin-top: 0.5rem;
+                              text-align: center"><code>--status-warning</code></small>
+            </div>
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div style="background-color: var(--status-error);
+                            color: white;
+                            padding: 1.25rem;
+                            border-radius: 6px;
+                            text-align: center">
+                    <strong style="font-size: 1.1rem; display: block; margin-bottom: 0.5rem">✗ Error</strong>
+                    <small>#a67373</small>
+                </div>
+                <small style="color: var(--text-secondary);
+                              display: block;
+                              margin-top: 0.5rem;
+                              text-align: center"><code>--status-error</code></small>
+            </div>
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div style="background-color: var(--status-info);
+                            color: white;
+                            padding: 1.25rem;
+                            border-radius: 6px;
+                            text-align: center">
+                    <strong style="font-size: 1.1rem; display: block; margin-bottom: 0.5rem">ℹ Info</strong>
+                    <small>#6b8fb3</small>
+                </div>
+                <small style="color: var(--text-secondary);
+                              display: block;
+                              margin-top: 0.5rem;
+                              text-align: center"><code>--status-info</code></small>
+            </div>
+        </div>
+        <h4 class="mt-4 mb-3">Brand Colors (Primitives)</h4>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem">
+            These auto-switch between light (warm gray) and dark (cool-tinted) modes.
+        </p>
+        <div class="color-palette mb-4"
+             style="display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                    gap: 1rem">
+            <div style="background-color: var(--_scitex-01);
+                        color: var(--text-inverse);
+                        padding: 1rem;
+                        border-radius: 6px;
+                        text-align: center">
+                <strong style="display: block; font-size: 0.9rem">--_scitex-01</strong>
+                <small class="brand-color-val" data-var="--_scitex-01"></small>
+            </div>
+            <div style="background-color: var(--_scitex-02);
+                        color: var(--text-inverse);
+                        padding: 1rem;
+                        border-radius: 6px;
+                        text-align: center">
+                <strong style="display: block; font-size: 0.9rem">--_scitex-02</strong>
+                <small class="brand-color-val" data-var="--_scitex-02"></small>
+            </div>
+            <div style="background-color: var(--_scitex-03);
+                        color: white;
+                        padding: 1rem;
+                        border-radius: 6px;
+                        text-align: center">
+                <strong style="display: block; font-size: 0.9rem">--_scitex-03</strong>
+                <small class="brand-color-val" data-var="--_scitex-03"></small>
+            </div>
+            <div style="background-color: var(--_scitex-04);
+                        color: white;
+                        padding: 1rem;
+                        border-radius: 6px;
+                        text-align: center">
+                <strong style="display: block; font-size: 0.9rem">--_scitex-04</strong>
+                <small class="brand-color-val" data-var="--_scitex-04"></small>
+            </div>
+            <div style="background-color: var(--_scitex-05);
+                        color: white;
+                        padding: 1rem;
+                        border-radius: 6px;
+                        text-align: center">
+                <strong style="display: block; font-size: 0.9rem">--_scitex-05</strong>
+                <small class="brand-color-val" data-var="--_scitex-05"></small>
+            </div>
+            <div style="background-color: var(--_scitex-06);
+                        color: var(--_scitex-01);
+                        padding: 1rem;
+                        border-radius: 6px;
+                        text-align: center">
+                <strong style="display: block; font-size: 0.9rem">--_scitex-06</strong>
+                <small class="brand-color-val" data-var="--_scitex-06"></small>
+            </div>
+            <div style="background-color: var(--_scitex-07);
+                        color: var(--_scitex-01);
+                        padding: 1rem;
+                        border-radius: 6px;
+                        text-align: center">
+                <strong style="display: block; font-size: 0.9rem">--_scitex-07</strong>
+                <small class="brand-color-val" data-var="--_scitex-07"></small>
+            </div>
+            <div style="background-color: var(--_white);
+                        color: var(--_scitex-01);
+                        padding: 1rem;
+                        border-radius: 6px;
+                        text-align: center;
+                        border: 1px solid var(--border-default)">
+                <strong style="display: block; font-size: 0.9rem">--_white</strong>
+                <small class="brand-color-val" data-var="--_white"></small>
+            </div>
+            <div style="background-color: var(--_gray-subtle);
+                        color: var(--_scitex-01);
+                        padding: 1rem;
+                        border-radius: 6px;
+                        text-align: center;
+                        border: 1px solid var(--border-default)">
+                <strong style="display: block; font-size: 0.9rem">--_gray-subtle</strong>
+                <small class="brand-color-val" data-var="--_gray-subtle"></small>
+            </div>
+        </div>
+        <script>
+            document.querySelectorAll('.brand-color-val').forEach(el => {
+                const varName = el.dataset.var;
+                const value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+                el.textContent = value;
+            });
+        </script>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Usage Guide</h3>
+        <pre data-language="css" style=" background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto; "><code class="language-css">/* Semantic Tokens - use these in components */
+--text-primary           /* Main text */
+--text-secondary         /* Secondary text */
+--text-muted            /* Muted/disabled text */
+--text-inverse          /* Light text on dark backgrounds */
+
+--bg-page               /* Page background */
+--bg-surface            /* Card/panel backgrounds */
+--bg-muted              /* Subtle surface backgrounds */
+
+--border-default        /* Standard borders */
+--border-muted          /* Subtle borders */
+
+--status-success        /* #4a9b7e */
+--status-warning        /* #b8956a */
+--status-error          /* #a67373 */
+--status-info           /* #6b8fb3 */
+
+/* Workspace Colors - Light Theme (uses semantic tokens) */
+--bg-page                   /* #fefefe - Main panels */
+--bg-surface                /* #fafbfc - Secondary panels */
+--bg-muted                  /* #f6f8fa - Hover states */
+--border-default            /* #d0d7de - Default borders */
+--border-muted              /* #e0e4e8 - Subtle borders */
+
+/* Workspace Colors - Dark Theme */
+--workspace-bg-primary      /* #0d0d0d - Main panels */
+--workspace-bg-secondary    /* #151515 - Secondary panels */
+--workspace-bg-tertiary     /* #1a1a1a - Hover states */
+--workspace-bg-elevated     /* #1f1f1f - Elevated surfaces */
+--workspace-border-subtle   /* #1a1a1a - Subtle borders */
+--workspace-border-default  /* #252525 - Default borders, resizer */
+--workspace-border-hover    /* #3a3a3a - Hover state */
+--workspace-border-active   /* #4a4a4a - Active/dragging */
+--workspace-slider-hover    /* #5a5a5a - Slider handle hover */
+--workspace-slider-active   /* #6a6a6a - Slider handle active */</code></pre>
+    </div>
+</section>

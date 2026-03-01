@@ -1,0 +1,457 @@
+<!-- Icons -->
+<section class="design-section container-section" id="icons">
+    <div class="section-header">
+        <h2>
+            <i class="fas fa-icons section-header-icon"></i>
+            Icons
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/components/header.css</span>
+    </div>
+    <p class="text-intro">Icon system using FontAwesome icons with warm yellowish color scheme and consistent alignment.</p>
+
+    <!-- SciTeX Icon Generator -->
+    <div class="demo-box mt-4" id="scitex-icon-generator">
+        <h3 class="mb-3">
+            <i class="fas fa-magic"></i>
+            SciTeX Icon Generator
+        </h3>
+        <p>Interactive tool to create custom SciTeX logo variants with different colors, backgrounds, and effects.</p>
+
+        <div class="scitex-icon-gen-container">
+            <!-- Controls Panel -->
+            <div class="scitex-icon-gen-controls">
+                <!-- Snake Settings -->
+                <div class="scitex-icon-gen-section">
+                    <h4 class="scitex-icon-gen-section-title">Snake</h4>
+                    <div class="scitex-icon-gen-row">
+                        <label>Color:</label>
+                        <div class="scitex-icon-gen-colors" id="snake-colors"></div>
+                    </div>
+                    <div class="scitex-icon-gen-row">
+                        <label>
+                            <input type="checkbox" id="snake-camo-toggle"> Use Camo Pattern
+                        </label>
+                        <select id="snake-camo-style" disabled>
+                            <option value="Forest">Forest</option>
+                            <option value="Navy">Navy</option>
+                            <option value="Desert">Desert</option>
+                            <option value="Arctic">Arctic</option>
+                            <option value="Urban">Urban</option>
+                            <option value="Gray">Gray</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Background Settings -->
+                <div class="scitex-icon-gen-section">
+                    <h4 class="scitex-icon-gen-section-title">Background</h4>
+                    <div class="scitex-icon-gen-row">
+                        <label>
+                            <input type="checkbox" id="bg-transparent-toggle"> Transparent
+                        </label>
+                    </div>
+                    <div class="scitex-icon-gen-row">
+                        <label>Color:</label>
+                        <div class="scitex-icon-gen-colors" id="bg-colors"></div>
+                    </div>
+                    <div class="scitex-icon-gen-row">
+                        <label>
+                            <input type="checkbox" id="bg-camo-toggle"> Use Camo Pattern
+                        </label>
+                        <select id="bg-camo-style" disabled>
+                            <option value="Forest">Forest</option>
+                            <option value="Navy">Navy</option>
+                            <option value="Desert">Desert</option>
+                            <option value="Arctic">Arctic</option>
+                            <option value="Urban">Urban</option>
+                            <option value="Gray">Gray</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Text Settings -->
+                <div class="scitex-icon-gen-section">
+                    <h4 class="scitex-icon-gen-section-title">Text (Optional)</h4>
+                    <div class="scitex-icon-gen-row">
+                        <label>
+                            <input type="checkbox" id="text-toggle"> Add Text
+                        </label>
+                    </div>
+                    <div class="scitex-icon-gen-row">
+                        <label>Content:</label>
+                        <input type="text" id="text-content" value="scitex.ai" disabled>
+                    </div>
+                    <div class="scitex-icon-gen-row">
+                        <label>Position:</label>
+                        <select id="text-position" disabled>
+                            <option value="bottom">Bottom</option>
+                            <option value="center">Center</option>
+                            <option value="top">Top</option>
+                        </select>
+                    </div>
+                    <div class="scitex-icon-gen-row">
+                        <label>Text Color:</label>
+                        <div class="scitex-icon-gen-colors" id="text-colors"></div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="scitex-icon-gen-section">
+                    <h4 class="scitex-icon-gen-section-title">Actions</h4>
+                    <div class="scitex-icon-gen-actions">
+                        <button class="btn btn-primary" id="download-svg-btn">
+                            <i class="fas fa-download"></i> Download SVG
+                        </button>
+                        <button class="btn btn-secondary" id="copy-svg-btn">
+                            <i class="fas fa-copy"></i> Copy SVG
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Panel -->
+            <div class="scitex-icon-gen-preview">
+                <h4 class="scitex-icon-gen-section-title">Preview</h4>
+                <div class="scitex-icon-gen-preview-container" id="icon-preview">
+                    <!-- SVG will be rendered here -->
+                </div>
+                <div class="scitex-icon-gen-filename" id="icon-filename">
+                    scitex-icon-white-bg-navy.svg
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Navigation Icons -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Navigation Icons</h3>
+        <p>All navigation icons use FontAwesome 6.0.0 with a consistent warm yellowish color scheme.</p>
+        <div class="row g-3 mt-3">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <i class="fas fa-book-open nav-icon-fa" style="font-size: 16px; color: rgb(184, 164, 130);"></i>
+                            <span>Files</span>
+                        </div>
+                        <code class="d-block mt-2">&lt;i class="fas fa-book-open nav-icon-fa"&gt;&lt;/i&gt;</code>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <i class="fas fa-graduation-cap nav-icon-fa" style="font-size: 16px; color: rgb(184, 164, 130);"></i>
+                            <span>Scholar</span>
+                        </div>
+                        <code class="d-block mt-2">&lt;i class="fas fa-graduation-cap nav-icon-fa"&gt;&lt;/i&gt;</code>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <i class="fas fa-terminal nav-icon-fa" style="font-size: 16px; color: rgb(184, 164, 130);"></i>
+                            <span>Console</span>
+                        </div>
+                        <code class="d-block mt-2">&lt;i class="fas fa-terminal nav-icon-fa"&gt;&lt;/i&gt;</code>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <i class="fas fa-chart-line nav-icon-fa" style="font-size: 16px; color: rgb(184, 164, 130);"></i>
+                            <span>Visualizer</span>
+                        </div>
+                        <code class="d-block mt-2">&lt;i class="fas fa-chart-line nav-icon-fa"&gt;&lt;/i&gt;</code>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <i class="fas fa-pen nav-icon-fa" style="font-size: 16px; color: rgb(184, 164, 130);"></i>
+                            <span>Writer</span>
+                        </div>
+                        <code class="d-block mt-2">&lt;i class="fas fa-pen nav-icon-fa"&gt;&lt;/i&gt;</code>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <i class="fas fa-toolbox nav-icon-fa" style="font-size: 16px; color: rgb(184, 164, 130);"></i>
+                            <span>Tools</span>
+                        </div>
+                        <code class="d-block mt-2">&lt;i class="fas fa-toolbox nav-icon-fa"&gt;&lt;/i&gt;</code>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <i class="fas fa-compass nav-icon-fa" style="font-size: 16px; color: rgb(184, 164, 130);"></i>
+                            <span>Explore</span>
+                        </div>
+                        <code class="d-block mt-2">&lt;i class="fas fa-compass nav-icon-fa"&gt;&lt;/i&gt;</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Color System -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Icon Color System</h3>
+        <p>Icons use a warm yellowish color scheme that adapts between light and dark modes.</p>
+        <div class="row g-3 mt-3">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Light Mode</h5>
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <div style="width: 24px; height: 24px; background: rgb(184, 164, 130); border-radius: 4px;"></div>
+                                <code>rgb(184, 164, 130)</code>
+                                <span class="text-muted">Default</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div style="width: 24px; height: 24px; background: rgb(204, 184, 150); border-radius: 4px;"></div>
+                                <code>rgb(204, 184, 150)</code>
+                                <span class="text-muted">Hover/Active</span>
+                            </div>
+                        </div>
+                        <pre class="code-block" data-language="css"><code class="language-css">.nav-icon-fa {
+  color: rgb(184, 164, 130);
+  opacity: 0.85;
+}
+
+.header-nav-item:hover .nav-icon-fa {
+  color: rgb(204, 184, 150);
+  opacity: 1;
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>CSS Filters (for IMG icons)</h5>
+                        <p class="small text-muted">Applied to <code>.nav-icon</code> class for image-based icons</p>
+                        <pre class="code-block" data-language="css"><code class="language-css">/* Default state */
+.nav-icon {
+  filter: brightness(1) saturate(1)
+          sepia(0.5) hue-rotate(10deg)
+          opacity(0.85);
+}
+
+/* Hover/Active state */
+.header-nav-item:hover .nav-icon {
+  filter: brightness(1.1) saturate(1.2)
+          sepia(0.6) hue-rotate(15deg)
+          opacity(1);
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Icon Alignment -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Icon Alignment Guidelines</h3>
+        <p>Icons and text labels are vertically aligned using flexbox to ensure consistent appearance.</p>
+        <div class="row g-3 mt-3">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Structure</h5>
+                        <pre class="code-block" data-language="html"><code class="language-html">&lt;a href="/writer/" class="header-nav-item"&gt;
+    &lt;i class="fas fa-pen nav-icon-fa"
+       style="font-size: 16px"&gt;&lt;/i&gt;
+    &lt;span class="nav-label"&gt;Writer&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Alignment CSS</h5>
+                        <pre class="code-block" data-language="css"><code class="language-css">.nav-icon-fa {
+  height: 20px;
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.header-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1;
+}
+
+.nav-label {
+  line-height: 20px; /* Match icon height */
+  display: flex;
+  align-items: center;
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Usage Examples -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Usage Examples</h3>
+        <div class="row g-3 mt-3">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Navigation Item (Recommended)</h5>
+                        <div class="d-flex align-items-center gap-3 p-3 border rounded mb-3" style="background: var(--scitex-color-03);">
+                            <a href="#" class="header-nav-item" style="background: rgba(255,255,255,0.1); text-decoration: none;">
+                                <i class="fas fa-pen nav-icon-fa" style="font-size: 16px; color: rgb(184, 164, 130);"></i>
+                                <span class="nav-label">Writer</span>
+                            </a>
+                        </div>
+                        <pre class="code-block" data-language="html"><code class="language-html">&lt;a href="/writer/" class="header-nav-item"&gt;
+    &lt;i class="fas fa-pen nav-icon-fa" style="font-size: 16px"&gt;&lt;/i&gt;
+    &lt;span class="nav-label"&gt;Writer&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Best Practices -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Best Practices</h3>
+        <ul class="list-unstyled">
+            <li class="mb-3">
+                <span class="badge bg-success">✓</span>
+                <strong>Use FontAwesome for consistency</strong> - All navigation icons use FontAwesome 6.0.0 for visual consistency
+            </li>
+            <li class="mb-3">
+                <span class="badge bg-success">✓</span>
+                <strong>Apply proper CSS classes</strong> - Use <code>.nav-icon-fa</code> for FontAwesome icons, <code>.nav-icon-svg</code> for SVG icons
+            </li>
+            <li class="mb-3">
+                <span class="badge bg-success">✓</span>
+                <strong>Maintain alignment</strong> - Ensure icons and text are vertically centered using flexbox
+            </li>
+            <li class="mb-3">
+                <span class="badge bg-success">✓</span>
+                <strong>Use standard sizes</strong> - Navigation icons should be 16px (font-size) or 20px (container height)
+            </li>
+            <li class="mb-3">
+                <span class="badge bg-danger">✗</span>
+                <strong>Don't mix icon systems</strong> - Avoid mixing FontAwesome, SVG, and image icons in the same navigation
+            </li>
+            <li class="mb-3">
+                <span class="badge bg-danger">✗</span>
+                <strong>Don't hardcode colors</strong> - Use CSS classes and variables instead of inline styles
+            </li>
+        </ul>
+    </div>
+    <!-- CSS Reference -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">
+            Complete CSS Reference
+            <span class="badge bg-secondary badge-file-path">📁 /static/shared/css/components/header.css</span>
+        </h3>
+        <pre class="code-block" data-language="css"><code class="language-css">/* Navigation Icons - Enhanced with warm orange/yellowish colors */
+.nav-icon,
+.nav-icon-svg,
+.nav-icon-fa {
+  height: 20px;
+  width: 20px;
+  min-width: 20px;
+  opacity: 0.85;
+  transition: opacity 0.2s ease, transform 0.2s ease,
+              filter 0.2s ease, color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* SVG icons with currentColor */
+.nav-icon-svg {
+  color: rgb(184, 164, 130); /* Warm yellowish */
+  opacity: 0.85;
+}
+
+/* FontAwesome icons in light mode - yellowish */
+.nav-icon-fa {
+  color: rgb(184, 164, 130); /* Warm yellowish */
+  opacity: 0.85;
+}
+
+/* IMG icons in light mode - apply warm orange/yellowish filter */
+.nav-icon {
+  filter: brightness(1) saturate(1) sepia(0.5)
+          hue-rotate(10deg) opacity(0.85);
+}
+
+/* Header nav item alignment */
+.header-nav-item {
+  color: var(--scitex-color-01);
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+  font-size: 14px;
+  font-weight: 400;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  min-width: fit-content;
+  line-height: 1;
+}
+
+.header-nav-item .nav-label {
+  line-height: 20px; /* Match icon height for perfect alignment */
+  display: flex;
+  align-items: center;
+}
+
+/* Light mode hover/active for IMG icons - brighter orange/golden */
+.header-nav-item:hover .nav-icon,
+.header-nav-item.active .nav-icon {
+  filter: brightness(1.1) saturate(1.2) sepia(0.6)
+          hue-rotate(15deg) opacity(1);
+  transform: scale(1.05);
+}
+
+/* Light mode hover/active for SVG and FA icons */
+.header-nav-item:hover .nav-icon-svg,
+.header-nav-item.active .nav-icon-svg,
+.header-nav-item:hover .nav-icon-fa,
+.header-nav-item.active .nav-icon-fa {
+  color: rgb(204, 184, 150); /* Brighter yellowish on hover/active */
+  opacity: 1;
+}
+
+/* Dark mode */
+[data-theme="dark"] .nav-icon {
+  filter: brightness(1.1) saturate(1) sepia(0.4)
+          hue-rotate(10deg) opacity(0.9);
+}
+
+[data-theme="dark"] .header-nav-item:hover .nav-icon,
+[data-theme="dark"] .header-nav-item.active .nav-icon {
+  filter: brightness(1.3) saturate(1.2) sepia(0.5)
+          hue-rotate(15deg) opacity(1);
+}</code></pre>
+    </div>
+</section>

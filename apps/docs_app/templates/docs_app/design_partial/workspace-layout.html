@@ -1,0 +1,363 @@
+<!-- Workspace Layout Rules -->
+<section class="design-section container-section" id="workspace-layout">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H2z" />
+                <path d="M4 0v16M8 0v16M12 0v16" />
+            </svg>
+            Workspace Layout
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/templates/global_base.html</span>
+    </div>
+    <p class="text-intro">Rules governing the workspace pane structure, resizers, and visual hierarchy.</p>
+    <!-- Display Rule -->
+    <div class="demo-box">
+        <h3 class="mb-3">Display Rule</h3>
+        <pre style="background: var(--workspace-bg-primary, #0d0d0d);
+                    padding: 1rem;
+                    border-radius: 6px;
+                    color: var(--text-primary);
+                    font-family: monospace;
+                    overflow-x: auto"><code>| Console | Files | Viewer | App Selector (fixed) | Actual App |</code></pre>
+        <div class="row mt-4">
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Pane Rules</h5>
+                <ul style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">
+                    <li>All panes must be visible in the display &mdash; no overflow outside display edges</li>
+                    <li>
+                        All panes <strong>except App Selector</strong> are collapsible to <code>48px</code>
+                    </li>
+                    <li>App Selector has a fixed width (not resizable)</li>
+                    <li>
+                        All vertical separators between panes are <strong>smart resizers</strong> (HorizontalResizer)
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Console Pane</h5>
+                <ul style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">
+                    <li>Always visible in the display (sticky) &mdash; never hidden or scrolled away</li>
+                    <li>Must not grow tall when other panes have long content &mdash; keep height constrained</li>
+                    <li>Input area must remain easily accessible (when pushed too far down, it becomes hard to reach)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- Global Header/Footer -->
+    <div class="demo-box">
+        <h3 class="mb-3">Global Header &amp; Footer</h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary);">
+            Both global header and footer are minimizable via three interactions:
+        </p>
+        <div class="row mt-3">
+            <div class="col-md-4 mb-3">
+                <div style="background: var(--workspace-bg-primary, #0d0d0d);
+                            padding: 1.5rem;
+                            border-radius: 6px;
+                            border: 1px solid var(--workspace-border-default, #252525);
+                            text-align: center">
+                    <i class="fa fa-toggle-on" style="font-size: 1.5rem; color: var(--text-primary);"></i>
+                    <div style="margin-top: 0.5rem; color: var(--text-primary); font-size: 0.85rem;">
+                        <strong>Toggle Button</strong>
+                    </div>
+                    <small style="color: var(--text-secondary);">Click the collapse icon</small>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div style="background: var(--workspace-bg-primary, #0d0d0d);
+                            padding: 1.5rem;
+                            border-radius: 6px;
+                            border: 1px solid var(--workspace-border-default, #252525);
+                            text-align: center">
+                    <i class="fa fa-arrows-alt-v"
+                       style="font-size: 1.5rem;
+                              color: var(--text-primary)"></i>
+                    <div style="margin-top: 0.5rem; color: var(--text-primary); font-size: 0.85rem;">
+                        <strong>Smart Slider</strong>
+                    </div>
+                    <small style="color: var(--text-secondary);">Drag to resize vertically</small>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div style="background: var(--workspace-bg-primary, #0d0d0d);
+                            padding: 1.5rem;
+                            border-radius: 6px;
+                            border: 1px solid var(--workspace-border-default, #252525);
+                            text-align: center">
+                    <i class="fa fa-mouse-pointer"
+                       style="font-size: 1.5rem;
+                              color: var(--text-primary)"></i>
+                    <div style="margin-top: 0.5rem; color: var(--text-primary); font-size: 0.85rem;">
+                        <strong>Double-Click</strong>
+                    </div>
+                    <small style="color: var(--text-secondary);">Double-click empty space</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- App Highlighter System -->
+    <div class="demo-box">
+        <h3 class="mb-3">App Highlighter System</h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            Each app has a configurable accent color. Highlighters are always synchronized from a
+            <strong>single source of truth</strong> controlled by the workspace (not app-side).
+        </p>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">App Selector Indicator</h5>
+                <ul style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">
+                    <li>Right-side partial bar (4px wide, ~60% height, centered)</li>
+                    <li>
+                        Uses <code>::after</code> pseudo-element on active item
+                    </li>
+                    <li>
+                        Rounded inner corners (<code>border-radius: 2px 0 0 2px</code>)
+                    </li>
+                    <li>
+                        Color from <code>--module-accent-color</code>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">App Pane Top Border</h5>
+                <ul style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">
+                    <li>Top border on the actual app pane container</li>
+                    <li>Same accent color as the selector indicator</li>
+                    <li>
+                        Controlled by workspace via <code>data-module-accent</code> attribute
+                    </li>
+                    <li>Synchronized thickness with selector indicator</li>
+                </ul>
+            </div>
+        </div>
+        <h5 style="font-size: 0.95rem; margin-top: 1rem; margin-bottom: 0.75rem;">CSS Variable Cascade</h5>
+        <pre data-language="css" style="background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto;"><code class="language-css">/* 1. Root defines per-module accent colors */
+:root {
+  --module-accent-writer:  #059669;   /* emerald */
+  --module-accent-scholar: #2563eb;   /* blue */
+  --module-accent-vis:     #7c3aed;   /* violet */
+  --module-accent-console: #d97706;   /* amber */
+}
+
+/* 2. Workspace container sets active color via data attribute */
+[data-module-accent="writer"]  { --module-accent-color: var(--module-accent-writer); }
+[data-module-accent="scholar"] { --module-accent-color: var(--module-accent-scholar); }
+
+/* 3. All children inherit --module-accent-color automatically */
+.selector-nav-item.active::after {
+  background: var(--module-accent-color);
+}</code></pre>
+    </div>
+    <!-- Configurable Sizing -->
+    <div class="demo-box">
+        <h3 class="mb-3">Configurable Sizing (Accessibility)</h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            Icon sizes and collapsed pane widths are controlled by CSS custom properties
+            at <code>:root</code> level, making them configurable per-user for accessibility.
+        </p>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Variables</h5>
+                <pre data-language="css" style="background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto;"><code class="language-css">:root {
+  /* User-configurable */
+  --ui-nav-icon-size: var(--icon-lg);  /* 20px default */
+  --ui-collapsed-pane-width: 48px;
+}
+
+/* To change per user: */
+document.documentElement.style
+  .setProperty('--ui-nav-icon-size', '24px');</code></pre>
+            </div>
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Cascade Chain</h5>
+                <ul style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">
+                    <li>
+                        <code>colors.css (:root)</code> &rarr; defines <code>--ui-nav-icon-size</code>
+                    </li>
+                    <li>
+                        <code>selector-nav.css</code> &rarr; <code>--selector-nav-icon-size: var(--ui-nav-icon-size)</code>
+                    </li>
+                    <li>
+                        <code>workspace-three-col.css</code> &rarr; <code>font-size: var(--selector-nav-icon-size)</code>
+                    </li>
+                    <li>
+                        <code>collapsible-panel.css</code> &rarr; collapsed width from <code>--ui-collapsed-pane-width</code>
+                    </li>
+                    <li>
+                        Resizer TS defaults aligned to <code>48px</code> threshold
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- Resizer Architecture -->
+    <div class="demo-box">
+        <h3 class="mb-3">Unified Resizer Architecture</h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            Two resizer classes sharing a common base. Previously 6 scattered implementations;
+            now consolidated into <code>static/shared/ts/components/resizer/</code>.
+        </p>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">HorizontalResizer</h5>
+                <pre data-language="html" style="background-color: var(--bg-surface); padding: 0.75rem; border-radius: 6px; overflow-x: auto; font-size: 0.8rem;"><code class="language-html">&lt;div class="h-resizer" data-h-resizer
+     data-left=".console-pane"
+     data-right=".files-pane"
+     data-icon="fa-terminal"
+     data-title="Console"
+     data-most-left
+     data-threshold="48"&gt;
+&lt;/div&gt;</code></pre>
+            </div>
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">VerticalResizer</h5>
+                <pre data-language="html" style="background-color: var(--bg-surface); padding: 0.75rem; border-radius: 6px; overflow-x: auto; font-size: 0.8rem;"><code class="language-html">&lt;div class="v-resizer" data-v-resizer
+     data-top=".global-header"
+     data-bottom=".workspace-body"
+     data-icon="fa-chevron-up"
+     data-title="Header"
+     data-most-top
+     data-threshold="6"&gt;
+&lt;/div&gt;</code></pre>
+            </div>
+        </div>
+        <h5 style="font-size: 0.95rem; margin-top: 1rem; margin-bottom: 0.75rem;">Flag Reference</h5>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%;
+                          font-size: 0.85rem;
+                          color: var(--text-secondary);
+                          border-collapse: collapse">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--workspace-border-default, #252525);">
+                        <th style="text-align: left; padding: 0.5rem; color: var(--text-primary);">Flag</th>
+                        <th style="text-align: left; padding: 0.5rem; color: var(--text-primary);">Effect</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-bottom: 1px solid var(--workspace-border-default, #252525);">
+                        <td style="padding: 0.5rem;">
+                            <code>data-most-left</code>
+                        </td>
+                        <td style="padding: 0.5rem;">Left panel collapses when dragged below threshold</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--workspace-border-default, #252525);">
+                        <td style="padding: 0.5rem;">
+                            <code>data-most-right</code>
+                        </td>
+                        <td style="padding: 0.5rem;">Right panel collapses when dragged below threshold</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--workspace-border-default, #252525);">
+                        <td style="padding: 0.5rem;">
+                            <code>data-most-top</code>
+                        </td>
+                        <td style="padding: 0.5rem;">Top panel collapses when dragged below threshold</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--workspace-border-default, #252525);">
+                        <td style="padding: 0.5rem;">
+                            <code>data-most-bottom</code>
+                        </td>
+                        <td style="padding: 0.5rem;">Bottom panel collapses when dragged below threshold</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--workspace-border-default, #252525);">
+                        <td style="padding: 0.5rem;">
+                            <code>data-in-app</code>
+                        </td>
+                        <td style="padding: 0.5rem;">In-app resizer: no domino cascade, module-scoped storage</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.5rem;">
+                            <code>data-threshold</code>
+                        </td>
+                        <td style="padding: 0.5rem;">Collapse threshold in pixels (default: 48)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!-- Instance Map -->
+    <div class="demo-box">
+        <h3 class="mb-3">Resizer Instance Map</h3>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Frame-Level (4 horizontal + 2 vertical)</h5>
+                <ol style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
+                    <li>
+                        <strong>Console | Files</strong> &mdash; <code>data-most-left</code>
+                    </li>
+                    <li>
+                        <strong>Files | Viewer</strong> &mdash; both sides collapsible
+                    </li>
+                    <li>
+                        <strong>Viewer | App Selector</strong> &mdash; <code>data-most-left</code> (selector fixed)
+                    </li>
+                    <li>
+                        <strong>App Selector | App</strong> &mdash; <code>data-most-right</code> (selector fixed)
+                    </li>
+                    <li>
+                        <strong>Header</strong> &mdash; vertical, <code>data-most-top</code>
+                    </li>
+                    <li>
+                        <strong>Footer</strong> &mdash; vertical, <code>data-most-bottom</code>
+                    </li>
+                </ol>
+            </div>
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">In-App (4 horizontal + 1 vertical)</h5>
+                <ol style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
+                    <li>
+                        <strong>Writer: editor | preview</strong> &mdash; <code>data-most-right</code>
+                    </li>
+                    <li>
+                        <strong>Writer: content | details</strong> &mdash; <code>data-most-right</code>
+                    </li>
+                    <li>
+                        <strong>Scholar: main | detail</strong> &mdash; <code>data-most-right</code>
+                    </li>
+                    <li>
+                        <strong>Vis: sidebar | canvas</strong> &mdash; <code>data-most-left</code>
+                    </li>
+                    <li>
+                        <strong>Repo monitor: feed | filter</strong> &mdash; vertical, <code>data-most-bottom</code>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+    <!-- Lessons Learned -->
+    <div class="demo-box">
+        <h3 class="mb-3">Implementation Notes &amp; Lessons Learned</h3>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Architecture Decisions</h5>
+                <ul style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
+                    <li>6 resizer implementations consolidated to 2 classes + shared base (~780 lines replacing ~1,564)</li>
+                    <li>
+                        <code>isInApp</code> flag separates frame-level (domino cascade) from in-app (independent)
+                    </li>
+                    <li>
+                        Data-attribute auto-init: HTML declares config, TS scans <code>[data-h-resizer]</code> / <code>[data-v-resizer]</code>
+                    </li>
+                    <li>
+                        Partial accent bars (60% height <code>::after</code>) instead of full-height border for modern look
+                    </li>
+                    <li>Module accent colors as single source of truth on workspace container, not app-side</li>
+                </ul>
+            </div>
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Gotchas</h5>
+                <ul style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
+                    <li>CSS variable cascade: root &rarr; component &rarr; usage. Missing intermediate variable = broken fallback</li>
+                    <li>
+                        Collapsed pane width must be consistent across CSS (<code>--ui-collapsed-pane-width</code>), HTML (<code>data-threshold</code>), and TS defaults
+                    </li>
+                    <li>PDF iframe must be hidden during resizer drag (visibility hack) or it swallows mouse events</li>
+                    <li>Double-rAF needed to suppress CSS transitions during initial layout restore from localStorage</li>
+                    <li>
+                        <code>position: relative</code> required on <code>.selector-nav-item</code> for <code>::after</code> pseudo-element positioning
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,126 @@
+<!-- Tabs Component -->
+<section class="design-section container-section" id="tabs">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3.797a1.5 1.5 0 0 1 1.03.409l.5.5a.5.5 0 0 0 .354.146h5.319a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 11.5v-9z" />
+            </svg>
+            Tabs
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/components/tabs.css</span>
+    </div>
+    <p class="text-intro">Tab navigation for organizing content into separate views.</p>
+    <div class="demo-box">
+        <h3 class="mb-4">Basic Tabs (Underline Style - Default)</h3>
+        <div class="component-demo">
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#tab1" role="tab">Tab 1</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#tab2" role="tab">Tab 2</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#tab3" role="tab">Tab 3</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="#tab4" role="tab">Disabled</a>
+                </li>
+            </ul>
+            <div class="tab-content" style="margin-top: 1.5rem">
+                <div class="tab-pane active" id="tab1" role="tabpanel">
+                    <p style="color: var(--text-primary)">
+                        This is the content for Tab 1. Click on other tabs to see their
+                        content.
+                    </p>
+                </div>
+                <div class="tab-pane" id="tab2" role="tabpanel">
+                    <p style="color: var(--text-primary)">Content for Tab 2 goes here.</p>
+                </div>
+                <div class="tab-pane" id="tab3" role="tabpanel">
+                    <p style="color: var(--text-primary)">Content for Tab 3 is displayed here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Pills Style</h3>
+        <div class="component-demo">
+            <ul class="nav nav-pills" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#pill1" role="tab">Active</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#pill2" role="tab">Link</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#pill3" role="tab">Link</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="#pill4" role="tab">Disabled</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Vertical Tabs</h3>
+        <div class="component-demo">
+            <div style="display: flex; gap: 2rem">
+                <ul class="nav nav-pills flex-column"
+                    role="tablist"
+                    style="min-width: 150px">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#vtab1" role="tab">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#vtab2" role="tab">Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#vtab3" role="tab">Settings</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href="#vtab4" role="tab">Disabled</a>
+                    </li>
+                </ul>
+                <div class="tab-content" style="flex: 1">
+                    <div class="tab-pane active" id="vtab1" role="tabpanel">
+                        <h4 style="color: var(--text-primary); margin-bottom: 0.5rem">Home</h4>
+                        <p style="color: var(--text-secondary)">Home tab content goes here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">HTML Examples</h3>
+        <pre data-language="html" style=" background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto; "><code class="language-html">&lt;!-- Basic Tabs (Underline Style - Default) --&gt;
+&lt;ul class="nav nav-tabs" role="tablist"&gt;
+  &lt;li class="nav-item"&gt;
+    &lt;a class="nav-link active" href="#tab1" role="tab"&gt;Tab 1&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li class="nav-item"&gt;
+    &lt;a class="nav-link" href="#tab2" role="tab"&gt;Tab 2&lt;/a&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;!-- Pills Style --&gt;
+&lt;ul class="nav nav-pills"&gt;
+  &lt;li class="nav-item"&gt;
+    &lt;a class="nav-link active" href="#"&gt;Active&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li class="nav-item"&gt;
+    &lt;a class="nav-link" href="#"&gt;Link&lt;/a&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;!-- Vertical Pills --&gt;
+&lt;ul class="nav nav-pills flex-column"&gt;
+  &lt;li class="nav-item"&gt;
+    &lt;a class="nav-link active" href="#"&gt;Active&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li class="nav-item"&gt;
+    &lt;a class="nav-link" href="#"&gt;Link&lt;/a&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+    </div>
+</section>

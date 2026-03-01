@@ -1,0 +1,321 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}Visitor Lifecycle — SciTeX Documentation{% endblock %}
+{% block content %}
+    <div class="container py-5" style="max-width: 900px">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'docs_app:index' %}">Documentation</a>
+                </li>
+                <li class="breadcrumb-item active">Visitor Lifecycle</li>
+            </ol>
+        </nav>
+        <h1 class="mb-4">
+            <i class="fas fa-user-clock me-2"></i>Visitor Lifecycle
+        </h1>
+        <p class="lead text-muted mb-5">
+            Seamless anonymous visitor access without signup. Pre-allocated accounts
+            rotate through a configurable pool with automatic session management.
+        </p>
+        <!-- Flow -->
+        <span id="flow"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-route"></i> Lifecycle Flow
+            </h2>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <ol>
+                        <li>Browser request detected via User-Agent header</li>
+                        <li>
+                            <code>VisitorAutoLoginMiddleware</code> allocates a free slot
+                        </li>
+                        <li>
+                            Visitor gets <code>visitor-001</code> through <code>visitor-004</code>
+                        </li>
+                        <li>
+                            Each visitor has a pre-created <code>default-project</code>
+                        </li>
+                        <li>1-hour session with 30-min extensions on activity</li>
+                        <li>After expiry: auto-reallocated or shown expiry page</li>
+                    </ol>
+                    <h5 class="mt-3">Fallback Chain</h5>
+                    <ol>
+                        <li>
+                            <strong>Pool available</strong>: Full access as <code>visitor-NNN</code>
+                        </li>
+                        <li>
+                            <strong>Pool exhausted</strong>: Shared <code>readonly-visitor</code> (read-only)
+                        </li>
+                        <li>
+                            <strong>DEV mode</strong>: Pool auto-resets when full
+                        </li>
+                        <li>
+                            <strong>Signup</strong>: Work migrated to real account, slot freed
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+        <!-- Configuration -->
+        <span id="configuration"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-sliders-h"></i> Pool Configuration
+            </h2>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <table class="table table-sm table-dark">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Default</th>
+                                <th>Source</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Pool Size</td>
+                                <td>
+                                    <code>4</code>
+                                </td>
+                                <td>
+                                    <code>SCITEX_CLOUD_VISITOR_POOL_SIZE</code>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Session Lifetime</td>
+                                <td>
+                                    <code>1 hour</code>
+                                </td>
+                                <td>
+                                    <code>SESSION_LIFETIME_HOURS</code>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Extension on Activity</td>
+                                <td>
+                                    <code>30 min</code>
+                                </td>
+                                <td>
+                                    <code>SESSION_EXTENSION_MINUTES</code>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Idle Timeout</td>
+                                <td>
+                                    <code>30 min</code>
+                                </td>
+                                <td>
+                                    <code>IDLE_TIMEOUT_MINUTES</code>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Visitor CPUs</td>
+                                <td>
+                                    <code>2</code>
+                                </td>
+                                <td>SLURM_QUOTAS</td>
+                            </tr>
+                            <tr>
+                                <td>Visitor Memory</td>
+                                <td>
+                                    <code>4 GB</code>
+                                </td>
+                                <td>SLURM_QUOTAS</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <!-- Middleware -->
+        <span id="middleware"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-layer-group"></i> Middleware Stack
+            </h2>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5>VisitorAutoLoginMiddleware</h5>
+                    <ul>
+                        <li>Detects real browsers via User-Agent (Mozilla, Chrome, Safari)</li>
+                        <li>Skips bots, curl, wget, empty UA</li>
+                        <li>
+                            Allocates slot using <code>select_for_update(skip_locked=True)</code>
+                        </li>
+                        <li>Race-condition safe via database locking</li>
+                        <li>
+                            Falls back to <code>readonly-visitor</code> if pool exhausted
+                        </li>
+                    </ul>
+                    <h5 class="mt-3">VisitorExpirationMiddleware</h5>
+                    <ul>
+                        <li>Checks allocation token on every request</li>
+                        <li>Auto-reallocates seamlessly when session expires</li>
+                        <li>Transparent to user (no interruption)</li>
+                        <li>Falls back to expiration page only if pool is full</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        <!-- Template Context -->
+        <span id="template-context"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-code"></i> Template Context Flags
+            </h2>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <p>
+                        Injected into all templates via <code>visitor_expiration_context()</code> context processor.
+                    </p>
+                    <pre class="bg-dark text-light p-3 rounded"><code>{% verbatim %}{{ is_visitor }}{% endverbatim %}          {# True for visitor-* or readonly-visitor #}
+                        {% verbatim %}{{ is_readonly }}{% endverbatim %}         {# True for readonly-visitor (pool overflow) #}
+                        {% verbatim %}{{ visitor_expires_at }}{% endverbatim %}   {# Expiration timestamp for countdown #}
+                        {% verbatim %}{{ visitor_username }}{% endverbatim %}     {# "visitor-001", "readonly-visitor", etc. #}
+                        {% verbatim %}{{ visitor_cpus }}{% endverbatim %}         {# Resource quota: CPUs #}
+                    {% verbatim %}{{ visitor_memory_gb }}{% endverbatim %}    {# Resource quota: Memory in GB #}</code></pre>
+                    <h5 class="mt-3">Banner States</h5>
+                    <table class="table table-sm table-dark">
+                        <thead>
+                            <tr>
+                                <th>State</th>
+                                <th>Flag</th>
+                                <th>UI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Read-Only Mode</td>
+                                <td>
+                                    <code>is_readonly = True</code>
+                                </td>
+                                <td>Lock icon, editing disabled</td>
+                            </tr>
+                            <tr>
+                                <td>Visitor Mode</td>
+                                <td>
+                                    <code>is_visitor = True</code>
+                                </td>
+                                <td>Warning: data not saved</td>
+                            </tr>
+                            <tr>
+                                <td>Registered User</td>
+                                <td>Neither flag set</td>
+                                <td>Normal UI</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <!-- Security -->
+        <span id="security"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-shield-alt"></i> Session Keys &amp; Security
+            </h2>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code># Session storage keys
+SESSION_KEY_PROJECT_ID = "visitor_project_id"
+SESSION_KEY_VISITOR_ID = "visitor_user_id"
+SESSION_KEY_ALLOCATION_TOKEN = "visitor_allocation_token"
+
+# Allocation uses database locking
+VisitorAllocation.objects.filter(
+    visitor_number=visitor_num
+).select_for_update(skip_locked=True).first()
+
+# Token-based validation prevents session hijacking
+allocation_token = secrets.token_urlsafe(32)</code></pre>
+                </div>
+            </div>
+        </section>
+        <!-- Management -->
+        <span id="management"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-terminal"></i> Management Commands
+            </h2>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code># Create visitor pool (default: 4 slots)
+docker exec scitex-cloud-dev-django-1 python manage.py create_visitor_pool
+
+# Custom size
+docker exec scitex-cloud-dev-django-1 python manage.py create_visitor_pool --size 8
+
+# Check pool status
+docker exec scitex-cloud-dev-django-1 python manage.py create_visitor_pool --status
+
+# Reset pool (when stuck)
+docker exec scitex-cloud-dev-django-1 python manage.py reset_visitor_pool</code></pre>
+                </div>
+            </div>
+        </section>
+        <!-- Key Files -->
+        <span id="key-files"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-folder-open"></i> Key Files
+            </h2>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Backend</h5>
+                            <ul class="small">
+                                <li>
+                                    <code>apps/project_app/services/visitor_pool/visitor_pool.py</code>
+                                </li>
+                                <li>
+                                    <code>apps/project_app/services/visitor_pool/pool_manager.py</code>
+                                </li>
+                                <li>
+                                    <code>apps/project_app/services/visitor_pool/pool_initialization.py</code>
+                                </li>
+                                <li>
+                                    <code>apps/project_app/middleware.py</code>
+                                </li>
+                                <li>
+                                    <code>apps/project_app/context_processors.py</code>
+                                </li>
+                                <li>
+                                    <code>apps/project_app/models/core.py</code>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Frontend &amp; Templates</h5>
+                            <ul class="small">
+                                <li>
+                                    <code>apps/writer_app/.../demo_banner.html</code>
+                                </li>
+                                <li>
+                                    <code>apps/public_app/.../visitor_pool_full.html</code>
+                                </li>
+                                <li>
+                                    <code>apps/public_app/.../visitor_expired.html</code>
+                                </li>
+                                <li>
+                                    <code>apps/public_app/.../visitor_status.html</code>
+                                </li>
+                                <li>
+                                    <code>apps/public_app/views/status/visitor.py</code>
+                                </li>
+                                <li>
+                                    <code>tests/e2e/test_01_visitor_flow.py</code>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+{% endblock %}

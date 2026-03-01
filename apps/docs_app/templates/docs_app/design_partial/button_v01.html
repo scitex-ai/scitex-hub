@@ -1,0 +1,134 @@
+<!-- Button Component -->
+<section class="design-section container-section" id="button">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2zm13 2.383-4.758 2.855L15 11.114v-5.73zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741zM1 11.114l4.758-2.876L1 5.383v5.73z" />
+            </svg>
+            Button
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/components/buttons.css</span>
+    </div>
+    <p class="text-intro">
+        Versatile button component with multiple variants, sizes, and states for
+        interactive actions.
+    </p>
+    <div class="demo-box">
+        <h3 class="mb-4">Primary Variants</h3>
+        <div class="component-demo"
+             style="display: flex;
+                    gap: 0.75rem;
+                    flex-wrap: wrap">
+            <button class="btn btn-normal">Normal</button>
+            <button class="btn btn-primary">Primary</button>
+            <button class="btn btn-secondary">Secondary</button>
+            <button class="btn btn-accent">Accent</button>
+            <button class="btn btn-success">Success</button>
+            <button class="btn btn-warning">Warning</button>
+            <button class="btn btn-danger">Danger</button>
+            <button class="btn btn-info">Info</button>
+            <button class="btn btn-dark">Dark</button>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Outline Variants</h3>
+        <div class="component-demo"
+             style="display: flex;
+                    gap: 0.75rem;
+                    flex-wrap: wrap">
+            <button class="btn btn-outline-primary">Outline Primary</button>
+            <button class="btn btn-outline-secondary">Outline Secondary</button>
+            <button class="btn btn-outline-accent">Outline Accent</button>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Text Button</h3>
+        <div class="component-demo">
+            <button class="btn btn-text">Text Button</button>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Button Sizes</h3>
+        <div class="component-demo"
+             style="display: flex;
+                    gap: 0.75rem;
+                    flex-wrap: wrap;
+                    align-items: center">
+            <button class="btn btn-primary btn-sm">Small</button>
+            <button class="btn btn-primary">Default</button>
+            <button class="btn btn-primary btn-lg">Large</button>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Button States</h3>
+        <div class="component-demo"
+             style="display: flex;
+                    gap: 0.75rem;
+                    flex-wrap: wrap">
+            <button class="btn btn-primary">Default</button>
+            <button class="btn btn-primary" disabled>Disabled</button>
+            <button class="btn btn-primary btn-loading">
+                <span class="btn-text">Loading...</span>
+            </button>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Icon Buttons</h3>
+        <div class="component-demo"
+             style="display: flex;
+                    gap: 0.75rem;
+                    flex-wrap: wrap;
+                    align-items: center">
+            <button class="btn btn-primary btn-icon">🔍</button>
+            <button class="btn btn-primary btn-with-icon">
+                <span class="icon">📁</span> Upload
+            </button>
+            <button class="btn btn-secondary btn-icon btn-sm">⚙️</button>
+            <button class="btn btn-danger btn-icon btn-lg">🗑️</button>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Button Group</h3>
+        <div class="component-demo">
+            <div class="btn-group">
+                <button class="btn btn-primary">Left</button>
+                <button class="btn btn-primary">Middle</button>
+                <button class="btn btn-primary">Right</button>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Block Button</h3>
+        <div class="component-demo">
+            <button class="btn btn-primary btn-block">Full Width Button</button>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">HTML Examples</h3>
+        <pre data-language="html" style=" background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto; "><code class="language-html">&lt;!-- Basic Buttons --&gt;
+&lt;button class="btn btn-primary"&gt;Primary&lt;/button&gt;
+&lt;button class="btn btn-secondary"&gt;Secondary&lt;/button&gt;
+&lt;button class="btn btn-danger"&gt;Delete&lt;/button&gt;
+
+&lt;!-- Outline Buttons --&gt;
+&lt;button class="btn btn-outline-primary"&gt;Outline&lt;/button&gt;
+
+&lt;!-- Sizes --&gt;
+&lt;button class="btn btn-primary btn-sm"&gt;Small&lt;/button&gt;
+&lt;button class="btn btn-primary"&gt;Default&lt;/button&gt;
+&lt;button class="btn btn-primary btn-lg"&gt;Large&lt;/button&gt;
+
+&lt;!-- Icon Buttons --&gt;
+&lt;button class="btn btn-primary btn-icon"&gt;🔍&lt;/button&gt;
+&lt;button class="btn btn-primary btn-with-icon"&gt;
+  &lt;span class="icon"&gt;📁&lt;/span&gt; Upload
+&lt;/button&gt;
+
+&lt;!-- Button Group --&gt;
+&lt;div class="btn-group"&gt;
+  &lt;button class="btn btn-primary"&gt;Left&lt;/button&gt;
+  &lt;button class="btn btn-primary"&gt;Middle&lt;/button&gt;
+  &lt;button class="btn btn-primary"&gt;Right&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+    </div>
+</section>

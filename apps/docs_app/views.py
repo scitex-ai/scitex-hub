@@ -82,6 +82,20 @@ DOCS_PAGES = [
         "template": "docs_app/docs_app_maker_admins.html",
         "badges": ["admin"],
     },
+    {
+        "slug": "design-rules",
+        "label": "Design Rules",
+        "icon": "fas fa-ruler-combined",
+        "template": "docs_app/docs_design_rules.html",
+        "badges": ["dev"],
+    },
+    {
+        "slug": "visitor-lifecycle",
+        "label": "Visitor Lifecycle",
+        "icon": "fas fa-user-clock",
+        "template": "docs_app/docs_visitor_lifecycle.html",
+        "badges": ["dev"],
+    },
 ]
 
 _PAGES_BY_SLUG = {p["slug"]: p for p in DOCS_PAGES}

@@ -1,0 +1,300 @@
+<!-- Visitor / AppUser Test System -->
+<section class="design-section container-section" id="visitor-system">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z" />
+            </svg>
+            Visitor System (AppUser Test)
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/apps/project_app/services/visitor_pool/</span>
+    </div>
+    <p class="text-intro">
+        Seamless anonymous visitor access without signup. Pre-allocated visitor accounts
+        rotate through a configurable pool with automatic session management.
+    </p>
+    <!-- Architecture Overview -->
+    <div class="demo-box">
+        <h3 class="mb-3">Architecture Overview</h3>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Flow</h5>
+                <ol style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
+                    <li>Browser request detected via User-Agent</li>
+                    <li>
+                        <code>VisitorAutoLoginMiddleware</code> allocates a free slot
+                    </li>
+                    <li>
+                        Visitor gets <code>visitor-001</code> through <code>visitor-004</code>
+                    </li>
+                    <li>
+                        Each visitor has a pre-created <code>default-project</code>
+                    </li>
+                    <li>1-hour session with 30-min extensions on activity</li>
+                    <li>After expiry: auto-reallocated or shown expiry page</li>
+                </ol>
+            </div>
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Fallback Chain</h5>
+                <ol style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
+                    <li>
+                        <strong>Pool available</strong>: Full access as <code>visitor-NNN</code>
+                    </li>
+                    <li>
+                        <strong>Pool exhausted</strong>: Shared <code>readonly-visitor</code> (read-only)
+                    </li>
+                    <li>
+                        <strong>DEV mode</strong>: Pool auto-resets when full
+                    </li>
+                    <li>
+                        <strong>Signup</strong>: Work migrated to real account, slot freed
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+    <!-- Pool Configuration -->
+    <div class="demo-box">
+        <h3 class="mb-3">Pool Configuration</h3>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%;
+                          font-size: 0.85rem;
+                          color: var(--text-secondary);
+                          border-collapse: collapse">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--workspace-border-default, #252525);">
+                        <th style="text-align: left; padding: 0.5rem; color: var(--text-primary);">Parameter</th>
+                        <th style="text-align: left; padding: 0.5rem; color: var(--text-primary);">Default</th>
+                        <th style="text-align: left; padding: 0.5rem; color: var(--text-primary);">Source</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-bottom: 1px solid var(--workspace-border-default, #252525);">
+                        <td style="padding: 0.5rem;">Pool Size</td>
+                        <td style="padding: 0.5rem;">
+                            <code>4</code>
+                        </td>
+                        <td style="padding: 0.5rem;">
+                            <code>SCITEX_CLOUD_VISITOR_POOL_SIZE</code> env var
+                        </td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--workspace-border-default, #252525);">
+                        <td style="padding: 0.5rem;">Session Lifetime</td>
+                        <td style="padding: 0.5rem;">
+                            <code>1 hour</code>
+                        </td>
+                        <td style="padding: 0.5rem;">
+                            <code>SESSION_LIFETIME_HOURS</code>
+                        </td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--workspace-border-default, #252525);">
+                        <td style="padding: 0.5rem;">Extension on Activity</td>
+                        <td style="padding: 0.5rem;">
+                            <code>30 min</code>
+                        </td>
+                        <td style="padding: 0.5rem;">
+                            <code>SESSION_EXTENSION_MINUTES</code>
+                        </td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--workspace-border-default, #252525);">
+                        <td style="padding: 0.5rem;">Idle Timeout</td>
+                        <td style="padding: 0.5rem;">
+                            <code>30 min</code>
+                        </td>
+                        <td style="padding: 0.5rem;">
+                            <code>IDLE_TIMEOUT_MINUTES</code>
+                        </td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--workspace-border-default, #252525);">
+                        <td style="padding: 0.5rem;">Visitor CPUs</td>
+                        <td style="padding: 0.5rem;">
+                            <code>2</code>
+                        </td>
+                        <td style="padding: 0.5rem;">SLURM_QUOTAS</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.5rem;">Visitor Memory</td>
+                        <td style="padding: 0.5rem;">
+                            <code>4 GB</code>
+                        </td>
+                        <td style="padding: 0.5rem;">SLURM_QUOTAS</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!-- Middleware Stack -->
+    <div class="demo-box">
+        <h3 class="mb-3">Middleware Stack</h3>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">VisitorAutoLoginMiddleware</h5>
+                <ul style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
+                    <li>Detects real browsers via User-Agent (Mozilla, Chrome, Safari)</li>
+                    <li>Skips bots, curl, wget, empty UA</li>
+                    <li>
+                        Allocates slot using <code>select_for_update(skip_locked=True)</code>
+                    </li>
+                    <li>Race-condition safe via database locking</li>
+                    <li>
+                        Falls back to <code>readonly-visitor</code> if pool exhausted
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">VisitorExpirationMiddleware</h5>
+                <ul style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
+                    <li>Checks allocation token on every request</li>
+                    <li>Auto-reallocates seamlessly when session expires</li>
+                    <li>Transparent to user (no interruption)</li>
+                    <li>Falls back to expiration page only if pool is full</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- Template Context -->
+    <div class="demo-box">
+        <h3 class="mb-3">Template Context Flags</h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            Injected into all templates via <code>visitor_expiration_context()</code> context processor.
+        </p>
+        <pre data-language="html" style="background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto;"><code class="language-html">&lt;!-- Available in all templates --&gt;
+{% verbatim %}{{ is_visitor }}{% endverbatim %}          &lt;!-- True for visitor-* or readonly-visitor --&gt;
+{% verbatim %}{{ is_readonly }}{% endverbatim %}         &lt;!-- True for readonly-visitor (pool overflow) --&gt;
+{% verbatim %}{{ visitor_expires_at }}{% endverbatim %}   &lt;!-- Expiration timestamp for countdown --&gt;
+{% verbatim %}{{ visitor_username }}{% endverbatim %}     &lt;!-- "visitor-001", "readonly-visitor", etc. --&gt;
+{% verbatim %}{{ visitor_cpus }}{% endverbatim %}         &lt;!-- Resource quota: CPUs --&gt;
+{% verbatim %}{{ visitor_memory_gb }}{% endverbatim %}    &lt;!-- Resource quota: Memory in GB --&gt;</code></pre>
+        <h5 style="font-size: 0.95rem; margin-top: 1rem; margin-bottom: 0.75rem;">Banner States</h5>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div style="background: var(--workspace-bg-primary, #0d0d0d);
+                            padding: 1rem;
+                            border-radius: 6px;
+                            border: 1px solid var(--workspace-border-default, #252525);
+                            text-align: center">
+                    <i class="fa fa-lock" style="font-size: 1.2rem; color: #ef4444;"></i>
+                    <div style="margin-top: 0.5rem; color: var(--text-primary); font-size: 0.85rem;">
+                        <strong>Read-Only Mode</strong>
+                    </div>
+                    <small style="color: var(--text-secondary);">is_readonly = True</small>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div style="background: var(--workspace-bg-primary, #0d0d0d);
+                            padding: 1rem;
+                            border-radius: 6px;
+                            border: 1px solid var(--workspace-border-default, #252525);
+                            text-align: center">
+                    <i class="fa fa-user-clock" style="font-size: 1.2rem; color: #f59e0b;"></i>
+                    <div style="margin-top: 0.5rem; color: var(--text-primary); font-size: 0.85rem;">
+                        <strong>Visitor Mode</strong>
+                    </div>
+                    <small style="color: var(--text-secondary);">is_visitor = True</small>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div style="background: var(--workspace-bg-primary, #0d0d0d);
+                            padding: 1rem;
+                            border-radius: 6px;
+                            border: 1px solid var(--workspace-border-default, #252525);
+                            text-align: center">
+                    <i class="fa fa-user-check" style="font-size: 1.2rem; color: #22c55e;"></i>
+                    <div style="margin-top: 0.5rem; color: var(--text-primary); font-size: 0.85rem;">
+                        <strong>Registered User</strong>
+                    </div>
+                    <small style="color: var(--text-secondary);">Neither flag set</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Session Keys & Security -->
+    <div class="demo-box">
+        <h3 class="mb-3">Session Keys &amp; Security</h3>
+        <pre data-language="python" style="background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto;"><code class="language-python"># Session storage keys
+SESSION_KEY_PROJECT_ID = "visitor_project_id"
+SESSION_KEY_VISITOR_ID = "visitor_user_id"
+SESSION_KEY_ALLOCATION_TOKEN = "visitor_allocation_token"
+
+# Allocation uses database locking
+VisitorAllocation.objects.filter(
+    visitor_number=visitor_num
+).select_for_update(skip_locked=True).first()
+
+# Token-based validation prevents session hijacking
+allocation_token = secrets.token_urlsafe(32)</code></pre>
+    </div>
+    <!-- Management Commands -->
+    <div class="demo-box">
+        <h3 class="mb-3">Management Commands</h3>
+        <pre data-language="bash" style="background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto;"><code class="language-bash"># Create visitor pool (default: 4 slots)
+docker exec scitex-cloud-dev-django-1 python manage.py create_visitor_pool
+
+# Custom size
+docker exec scitex-cloud-dev-django-1 python manage.py create_visitor_pool --size 8
+
+# Check pool status
+docker exec scitex-cloud-dev-django-1 python manage.py create_visitor_pool --status
+
+# Reset pool (when stuck)
+docker exec scitex-cloud-dev-django-1 python manage.py reset_visitor_pool</code></pre>
+    </div>
+    <!-- Key Files -->
+    <div class="demo-box">
+        <h3 class="mb-3">Key Files</h3>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Backend</h5>
+                <ul style="font-size: 0.8rem;
+                           color: var(--text-secondary);
+                           margin: 0;
+                           line-height: 1.8">
+                    <li>
+                        <code>apps/project_app/services/visitor_pool/visitor_pool.py</code>
+                    </li>
+                    <li>
+                        <code>apps/project_app/services/visitor_pool/pool_manager.py</code>
+                    </li>
+                    <li>
+                        <code>apps/project_app/services/visitor_pool/pool_initialization.py</code>
+                    </li>
+                    <li>
+                        <code>apps/project_app/middleware.py</code>
+                    </li>
+                    <li>
+                        <code>apps/project_app/context_processors.py</code>
+                    </li>
+                    <li>
+                        <code>apps/project_app/models/core.py</code> (VisitorAllocation)
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Frontend &amp; Templates</h5>
+                <ul style="font-size: 0.8rem;
+                           color: var(--text-secondary);
+                           margin: 0;
+                           line-height: 1.8">
+                    <li>
+                        <code>apps/writer_app/.../demo_banner.html</code>
+                    </li>
+                    <li>
+                        <code>apps/public_app/.../visitor_pool_full.html</code>
+                    </li>
+                    <li>
+                        <code>apps/public_app/.../visitor_expired.html</code>
+                    </li>
+                    <li>
+                        <code>apps/public_app/.../visitor_status.html</code>
+                    </li>
+                    <li>
+                        <code>apps/public_app/views/status/visitor.py</code>
+                    </li>
+                    <li>
+                        <code>tests/e2e/test_01_visitor_flow.py</code>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>

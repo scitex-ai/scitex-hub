@@ -1,0 +1,57 @@
+<!-- ========================================
+     PROGRAMMATIC COMPONENT LIBRARY
+     Auto-generated from components.json
+     ======================================== -->
+{% if total_components > 0 %}
+    <section id="components" class="design-section component-section">
+        <div class="section-header">
+            <h2>
+                <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm3 1a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H3zm0 6a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3zm6-6a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H9zm0 6a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H9z" />
+                </svg>
+                Components
+            </h2>
+            <div class="component-header-badges">
+                <span class="badge badge-success component-badge-large">{{ total_components }} Components</span>
+                <span class="badge badge-info component-badge-date">Auto-generated {{ metadata.generated_at|slice:":10" }}</span>
+            </div>
+        </div>
+        <p class="text-intro">
+            Each component has its own dedicated documentation page. Browse the list
+            below or use the sidebar navigation to explore component details, variants,
+            states, and usage guidelines.
+        </p>
+        <!-- Flattened Components List -->
+        <ul style="list-style: none; padding: 0; margin: 0">
+            {% for component in components %}
+                <li style="margin-bottom: 0.75rem">
+                    <a href="{% url 'dev_app:design_component_detail' component_id=component.id|slugify %}"
+                       style="display: flex;
+                              justify-content: space-between;
+                              align-items: center;
+                              padding: 1rem;
+                              background-color: var(--bg-surface);
+                              border: 1px solid var(--border-default);
+                              border-radius: 6px;
+                              text-decoration: none;
+                              color: var(--text-primary);
+                              transition: all 0.2s ease">
+                        <div>
+                            <strong style="display: block; margin-bottom: 0.25rem">{{ component.name }}</strong>
+                            <small style="color: var(--text-secondary)">{{ component.description }}</small>
+                        </div>
+                        <div style="display: flex;
+                                    align-items: center;
+                                    gap: 0.75rem;
+                                    margin-left: 1rem">
+                            <span class="badge badge-secondary" style="white-space: nowrap">{{ component.category }}</span>
+                            <span style="color: var(--text-secondary)">→</span>
+                        </div>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+    <hr class="component-section-divider" />
+{% endif %}
+<!-- End Programmatic Components -->

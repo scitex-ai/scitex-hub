@@ -1,0 +1,271 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}Design Rules — SciTeX Documentation{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/code-blocks.css' %}" />
+    <link rel="stylesheet" href="{% static 'dev_app/styles/design/00-design.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/01-component-library.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/02-section-headers.css' %}" />
+    <link rel="stylesheet" href="{% static 'dev_app/styles/design/03-info-box.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/04-grid-layouts.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/05-flexible-layouts.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/06-content-containers.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/07-text-utilities.css' %}" />
+    <link rel="stylesheet" href="{% static 'dev_app/styles/design/08-badge-tag.css' %}" />
+    <link rel="stylesheet" href="{% static 'dev_app/styles/design/09-code-blocks.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/10-demo-content.css' %}" />
+    <link rel="stylesheet" href="{% static 'dev_app/styles/design/11-row-layouts.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/12-section-subsections.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/13-component-library-section.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/14-dark-mode-demos.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/15-dark-mode-displays.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/16-button-spacing.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/17-theme-buttons.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/18-component-buttons.css' %}" />
+    <style>
+        .design-details {
+            margin-bottom: 1rem;
+        }
+
+        .design-details summary {
+            cursor: pointer;
+            padding: 0.75rem 1rem;
+            background: var(--bg-surface, #1a1a2e);
+            border: 1px solid var(--border-default, #333);
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary, #e0e0e0);
+            list-style: none;
+        }
+
+        .design-details summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .design-details summary::before {
+            content: "\f054";
+            font-family: "Font Awesome 5 Free";
+            font-weight: 900;
+            margin-right: 0.75rem;
+            font-size: 0.8rem;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+
+        .design-details[open] summary::before {
+            transform: rotate(90deg);
+        }
+
+        .design-details[open] summary {
+            border-radius: 6px 6px 0 0;
+            border-bottom: none;
+        }
+
+        .design-details .details-content {
+            padding: 1rem;
+            border: 1px solid var(--border-default, #333);
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            background: var(--bg-surface, #1a1a2e);
+        }
+
+        .design-details .section-header-icon {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container py-5" style="max-width: 1200px">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'docs_app:index' %}">Documentation</a>
+                </li>
+                <li class="breadcrumb-item active">Design Rules</li>
+            </ol>
+        </nav>
+        <h1 class="mb-4">
+            <i class="fas fa-ruler-combined me-2"></i>Design Rules
+        </h1>
+        <p class="lead text-muted mb-5">
+            Complete design system: workspace layout, design foundations, and component library.
+            <a href="{% url 'dev_app:design' %}" class="ms-2" style="font-size: 0.85rem;">
+                <i class="fas fa-palette"></i> Interactive Design System
+            </a>
+        </p>
+        <!-- Rules -->
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-check-circle me-2"></i>Usage Guidelines
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/guidelines.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-columns me-2"></i>Workspace Layout
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/workspace-layout.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-user-clock me-2"></i>Visitor System
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/visitor-system.html' %}</div>
+        </details>
+        <!-- Design Foundations -->
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-font me-2"></i>Typography
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/typography.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-arrows-alt me-2"></i>Spacing
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/spacing.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-palette me-2"></i>Colors
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/colors.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-code me-2"></i>Code Blocks
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/code.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-adjust me-2"></i>Theme
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/theme.html' %}</div>
+        </details>
+        <!-- Components -->
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-star me-2"></i>Hero
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/hero-guideline.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-tag me-2"></i>Badge
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/badge.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-hand-pointer me-2"></i>Button
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/button.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-square me-2"></i>Card
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/card.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-check-square me-2"></i>Checkbox
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/checkbox.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-keyboard me-2"></i>Form Input
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/form-input.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-toggle-on me-2"></i>Toggle Button
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/toggle-button-checkbox.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-list me-2"></i>Select Dropdown
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/select-dropdown.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-folder me-2"></i>Tabs
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/tabs.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-route me-2"></i>Breadcrumb
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/breadcrumb.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-ellipsis-v me-2"></i>Dropdown Menu
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/dropdown-menu.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-upload me-2"></i>File Upload
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/file-upload.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-sliders-h me-2"></i>Segmented Radio
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/segmented-radio-control.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-bars me-2"></i>Navbar
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/navbar.html' %}</div>
+        </details>
+        <details class="design-details">
+            <summary>
+                <i class="fas fa-exclamation-triangle me-2"></i>Alerts
+            </summary>
+            <div class="details-content">{% include 'docs_app/design_partial/alerts.html' %}</div>
+        </details>
+    </div>
+{% endblock %}
+{% block extra_js %}
+    {% load static %}
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll("pre code").forEach(function(block) {
+                hljs.highlightElement(block);
+            });
+        });
+    </script>
+    <script src="{% static 'shared/js/code-blocks.js' %}"></script>
+    <script src="{% static 'dev_app/scripts/design.js' %}"></script>
+{% endblock %}

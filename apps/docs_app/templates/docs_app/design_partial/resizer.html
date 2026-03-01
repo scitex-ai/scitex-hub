@@ -1,0 +1,208 @@
+<!-- Panel Resizer -->
+<section class="design-section container-section" id="resizer">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 1a.5.5 0 0 1 .5.5v13a.5.5 0 0 1-1 0v-13A.5.5 0 0 1 8 1zm-3 0a.5.5 0 0 1 .5.5v13a.5.5 0 0 1-1 0v-13A.5.5 0 0 1 5 1zm6 0a.5.5 0 0 1 .5.5v13a.5.5 0 0 1-1 0v-13A.5.5 0 0 1 11 1z"/>
+            </svg>
+            Panel Resizer
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/components/panel-resizer.css</span>
+    </div>
+    <p class="text-intro">Draggable panel resizer with visual feedback and expanded hit area for easy grabbing.</p>
+
+    <div class="demo-box">
+        <h3 class="mb-4">Interactive Demo</h3>
+        <p class="text-muted mb-3" style="font-size: 0.9rem">
+            Try dragging the resizer between the panels. The resizer is only 1px wide visually,
+            but has an expanded 17px grabbable area for easy interaction.
+        </p>
+
+        <div style="display: flex;
+                    height: 300px;
+                    background: var(--workspace-bg-primary, #0d0d0d);
+                    border: 1px solid var(--workspace-border-default, #252525);
+                    border-radius: 6px;
+                    overflow: hidden;">
+            <!-- Left Panel -->
+            <div style="flex: 1;
+                        background: var(--workspace-bg-secondary, #151515);
+                        padding: 1.5rem;
+                        color: var(--text-primary);
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;">
+                <h4 style="margin: 0; font-size: 1rem;">Left Panel</h4>
+                <p style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.85rem;">
+                    Drag the resizer to adjust width
+                </p>
+            </div>
+
+            <!-- Resizer -->
+            <div class="panel-resizer"
+                 style="cursor: col-resize;"
+                 id="demo-resizer"></div>
+
+            <!-- Right Panel -->
+            <div style="flex: 1;
+                        background: var(--workspace-bg-primary, #0d0d0d);
+                        padding: 1.5rem;
+                        color: var(--text-primary);
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;">
+                <h4 style="margin: 0; font-size: 1rem;">Right Panel</h4>
+                <p style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.85rem;">
+                    1px visual, 17px grabbable
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-box">
+        <h3 class="mb-4">Visual States</h3>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div style="background: var(--workspace-bg-primary, #0d0d0d);
+                            padding: 1.5rem;
+                            border-radius: 6px;
+                            border: 1px solid var(--workspace-border-default, #252525);">
+                    <div style="display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 1rem;">
+                        <div style="width: 1px;
+                                    height: 60px;
+                                    background: var(--workspace-border-default, #252525);"></div>
+                        <div style="color: var(--text-primary);">
+                            <strong style="display: block; font-size: 0.9rem;">Default</strong>
+                            <small style="color: var(--text-secondary); font-size: 0.75rem;">#252525</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div style="background: var(--workspace-bg-primary, #0d0d0d);
+                            padding: 1.5rem;
+                            border-radius: 6px;
+                            border: 1px solid var(--workspace-border-default, #252525);">
+                    <div style="display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 1rem;">
+                        <div style="width: 1px;
+                                    height: 60px;
+                                    background: var(--workspace-border-hover, #3a3a3a);"></div>
+                        <div style="color: var(--text-primary);">
+                            <strong style="display: block; font-size: 0.9rem;">Hover</strong>
+                            <small style="color: var(--text-secondary); font-size: 0.75rem;">#3a3a3a</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div style="background: var(--workspace-bg-primary, #0d0d0d);
+                            padding: 1.5rem;
+                            border-radius: 6px;
+                            border: 1px solid var(--workspace-border-default, #252525);">
+                    <div style="display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 1rem;">
+                        <div style="width: 1px;
+                                    height: 60px;
+                                    background: var(--workspace-border-active, #4a4a4a);"></div>
+                        <div style="color: var(--text-primary);">
+                            <strong style="display: block; font-size: 0.9rem;">Active/Dragging</strong>
+                            <small style="color: var(--text-secondary); font-size: 0.75rem;">#4a4a4a</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-box">
+        <h3 class="mb-3">Technical Details</h3>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Visual Appearance</h5>
+                <ul style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">
+                    <li>Width: <code>1px</code> (thin, clean border line)</li>
+                    <li>Height: <code>100%</code> of parent container</li>
+                    <li>Background transitions on hover/active</li>
+                </ul>
+            </div>
+            <div class="col-md-6 mb-3">
+                <h5 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Interaction Area</h5>
+                <ul style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">
+                    <li>Grabbable width: <code>17px</code> total</li>
+                    <li>8px on left + 1px element + 8px on right</li>
+                    <li>Invisible <code>::before</code> pseudo-element</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-box">
+        <h3 class="mb-3">Usage</h3>
+        <pre data-language="html" style="background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto;"><code class="language-html">&lt;!-- Basic panel resizer --&gt;
+&lt;div class="panel-resizer"&gt;&lt;/div&gt;
+
+&lt;!-- Or use split-resizer class (same styles) --&gt;
+&lt;div class="split-resizer"&gt;&lt;/div&gt;</code></pre>
+
+        <h4 class="mt-4 mb-3">CSS Variables</h4>
+        <pre data-language="css" style="background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto;"><code class="language-css">/* Default state */
+background: var(--workspace-border-default, #252525);
+
+/* Hover state */
+background: var(--workspace-border-hover, #3a3a3a);
+
+/* Active/dragging state */
+background: var(--workspace-border-active, #4a4a4a);</code></pre>
+    </div>
+</section>
+
+<script>
+// Simple drag functionality for demo
+(function() {
+    const resizer = document.getElementById('demo-resizer');
+    if (!resizer) return;
+
+    const container = resizer.parentElement;
+    const leftPanel = resizer.previousElementSibling;
+    let isResizing = false;
+
+    resizer.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        resizer.classList.add('active');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const newLeftWidth = e.clientX - containerRect.left;
+        const percentage = (newLeftWidth / containerRect.width) * 100;
+
+        if (percentage > 20 && percentage < 80) {
+            leftPanel.style.flex = `0 0 ${percentage}%`;
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isResizing) {
+            isResizing = false;
+            resizer.classList.remove('active');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
+    });
+})();
+</script>

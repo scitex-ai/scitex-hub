@@ -1,0 +1,50 @@
+<!-- Theme (CSS Variables) -->
+<section class="design-section container-section" id="theme">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z" />
+            </svg>
+            Theme System
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/theme.css</span>
+    </div>
+    <p class="text-intro">
+        Modular CSS variable system with light/dark theme support using
+        <code>data-theme</code> attribute.
+    </p>
+    <div class="demo-box">
+        <h3 class="mb-3">Light Mode</h3>
+        <pre class="code-block"><code class="language-html">&lt;html lang="en" data-theme="light"&gt;
+&lt;/html&gt;</code></pre>
+        <div style="background: var(--color-canvas-default);
+                    border: 2px solid var(--color-border-default);
+                    padding: 1.5rem;
+                    border-radius: 8px;
+                    margin-top: 1rem">
+            <p style="color: var(--color-fg-default); margin-bottom: 0.5rem">
+                <strong>Text:</strong> var(--color-fg-default)
+            </p>
+            <p style="color: var(--color-fg-muted); margin-bottom: 0.5rem">
+                <strong>Muted:</strong> var(--color-fg-muted)
+            </p>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Dark Mode</h3>
+        <pre style=" background-color: var(--scitex-color-01-dark); color: var(--white); border: 1px solid var(--scitex-color-02); padding: 1rem; border-radius: 8px; "><code class="language-html">&lt;html lang="en" data-theme="dark"&gt;
+&lt;/html&gt;</code></pre>
+        <div style="background: var(--scitex-color-01-dark);
+                    border: 2px solid var(--scitex-color-02);
+                    padding: 1.5rem;
+                    border-radius: 8px;
+                    margin-top: 1rem">
+            <p style="color: var(--white); margin-bottom: 0.5rem">
+                <strong>Text:</strong> var(--white)
+            </p>
+            <p style="color: var(--white); margin-bottom: 0.5rem; opacity: 0.8">
+                <strong>Muted:</strong> var(--white) with opacity
+            </p>
+        </div>
+    </div>
+</section>

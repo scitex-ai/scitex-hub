@@ -1,0 +1,130 @@
+<!-- Select Dropdown Component -->
+<section class="design-section container-section" id="select-dropdown">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M1.5 2.5A1.5 1.5 0 0 1 3 1h10a1.5 1.5 0 0 1 1.5 1.5v6.086a1.5 1.5 0 0 1-.44 1.06l-6.5 6.5a1.5 1.5 0 0 1-2.12 0l-6.5-6.5a1.5 1.5 0 0 1-.44-1.06V2.5zm2 0v6.086L8 13.086l4.5-4.5V2.5h-9z" />
+            </svg>
+            Select Dropdown
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/components/forms/</span>
+    </div>
+    <p class="text-intro">Dropdown select menus for choosing one option from a list.</p>
+    <div class="demo-box">
+        <h3 class="mb-4">Basic Select</h3>
+        <div class="component-demo" style="max-width: 400px">
+            <div class="form-group" style="margin-bottom: 1.5rem">
+                <label for="select1" class="form-label">Choose an option</label>
+                <select class="form-select" id="select1">
+                    <option selected>Select an option...</option>
+                    <option value="1">Option 1</option>
+                    <option value="2">Option 2</option>
+                    <option value="3">Option 3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="select2" class="form-label">Disabled select</label>
+                <select class="form-select" id="select2" disabled>
+                    <option selected>Can't select</option>
+                    <option value="1">Option 1</option>
+                    <option value="2">Option 2</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Select with Groups</h3>
+        <div class="component-demo" style="max-width: 400px">
+            <div class="form-group">
+                <label for="select3" class="form-label">Country</label>
+                <select class="form-select" id="select3">
+                    <option selected>Choose a country...</option>
+                    <optgroup label="North America">
+                        <option value="us">United States</option>
+                        <option value="ca">Canada</option>
+                        <option value="mx">Mexico</option>
+                    </optgroup>
+                    <optgroup label="Europe">
+                        <option value="uk">United Kingdom</option>
+                        <option value="fr">France</option>
+                        <option value="de">Germany</option>
+                    </optgroup>
+                    <optgroup label="Asia">
+                        <option value="jp">Japan</option>
+                        <option value="cn">China</option>
+                        <option value="kr">South Korea</option>
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Select Sizes</h3>
+        <div class="component-demo" style="max-width: 400px">
+            <div class="form-group" style="margin-bottom: 1rem">
+                <select class="form-select form-select-sm">
+                    <option selected>Small select</option>
+                    <option value="1">Option 1</option>
+                    <option value="2">Option 2</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 1rem">
+                <select class="form-select">
+                    <option selected>Default select</option>
+                    <option value="1">Option 1</option>
+                    <option value="2">Option 2</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <select class="form-select form-select-lg">
+                    <option selected>Large select</option>
+                    <option value="1">Option 1</option>
+                    <option value="2">Option 2</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">Multiple Select</h3>
+        <div class="component-demo" style="max-width: 400px">
+            <div class="form-group">
+                <label for="select4" class="form-label">Select multiple options (hold Ctrl/Cmd)</label>
+                <select class="form-select" id="select4" multiple size="5">
+                    <option value="1">Option 1</option>
+                    <option value="2" selected>Option 2</option>
+                    <option value="3">Option 3</option>
+                    <option value="4" selected>Option 4</option>
+                    <option value="5">Option 5</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="demo-box">
+        <h3 class="mb-3">HTML Examples</h3>
+        <pre data-language="html" style=" background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto; "><code class="language-html">&lt;!-- Basic Select --&gt;
+&lt;div class="form-group"&gt;
+  &lt;label for="select1" class="form-label"&gt;Choose an option&lt;/label&gt;
+  &lt;select class="form-select" id="select1"&gt;
+    &lt;option selected&gt;Select...&lt;/option&gt;
+    &lt;option value="1"&gt;Option 1&lt;/option&gt;
+    &lt;option value="2"&gt;Option 2&lt;/option&gt;
+  &lt;/select&gt;
+&lt;/div&gt;
+
+&lt;!-- Select with Groups --&gt;
+&lt;select class="form-select"&gt;
+  &lt;optgroup label="Group 1"&gt;
+    &lt;option value="1"&gt;Option 1&lt;/option&gt;
+  &lt;/optgroup&gt;
+  &lt;optgroup label="Group 2"&gt;
+    &lt;option value="2"&gt;Option 2&lt;/option&gt;
+  &lt;/optgroup&gt;
+&lt;/select&gt;
+
+&lt;!-- Multiple Select --&gt;
+&lt;select class="form-select" multiple size="5"&gt;
+  &lt;option value="1"&gt;Option 1&lt;/option&gt;
+  &lt;option value="2"&gt;Option 2&lt;/option&gt;
+&lt;/select&gt;</code></pre>
+    </div>
+</section>
