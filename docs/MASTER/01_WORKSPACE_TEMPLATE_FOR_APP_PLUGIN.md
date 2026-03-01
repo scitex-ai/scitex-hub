@@ -79,7 +79,8 @@ ZenMode (F11/Alt+Z), AJAX tab switching, footer toggle, and theme variables.
 
 | API | What it does |
 |-----|-------------|
-| `WorkspacePanelResizer` | Auto-inits `[data-panel-resizer]` elements |
+| `HorizontalResizer` | Auto-inits `[data-h-resizer]` elements (drag resize + collapse) |
+| `VerticalResizer` | Auto-inits `[data-v-resizer]` elements (drag resize + collapse) |
 | `ZenMode` | F11/Alt+Z sidebar toggle |
 | `ModuleTabSwitcher` | AJAX navigation between modules |
 | `window.SCITEX_MODULE_COLORS` | Per-module accent colors (from user prefs) |
@@ -95,6 +96,19 @@ ZenMode (F11/Alt+Z), AJAX tab switching, footer toggle, and theme variables.
 | `/api/worktree/upload/` | POST | Upload files |
 | `/api/viewer/open/` | POST | Open file in Viewer pane |
 | `/api/ai/chat/` | POST | Send message to AI Console |
+
+## Shared UI Components
+
+See **[03_SHARED_UI_COMPONENTS.md](03_SHARED_UI_COMPONENTS.md)** for the full guide. Key components:
+
+| Component | HTML | Purpose |
+|-----------|------|---------|
+| HorizontalResizer | `<div class="h-resizer" data-h-resizer data-in-app ...>` | Drag-resize + collapse between left/right panels |
+| VerticalResizer | `<div class="v-resizer" data-v-resizer data-in-app ...>` | Drag-resize + collapse between top/bottom panels |
+| Selector Nav | `<nav class="selector-nav" data-indicator="right">` | Vertical icon+label mode switcher |
+| Collapsible Panel | `<div class="collapsible-panel">` | Panels that collapse to icon+label strip |
+
+All styles auto-loaded globally via `common.css`. Plugins only need HTML markup.
 
 ## Quickstart: Create a New App
 

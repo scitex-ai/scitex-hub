@@ -460,6 +460,55 @@ class MyModuleTest(ModuleTestMixin, TestCase):
                     </tbody>
                 </table>
             </section>
+            <!-- Shared UI Components -->
+            <span id="shared-ui"></span>
+            <section class="api-section">
+                <h2>
+                    <i class="fas fa-columns"></i> Shared UI Components
+                </h2>
+                <p>Plugins can use these pre-built UI components (auto-loaded, no extra imports):</p>
+                <table class="api-table">
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>HTML</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <strong>Resizer</strong>
+                            </td>
+                            <td>
+                                <code>&lt;div class="h-resizer" data-h-resizer data-in-app ...&gt;</code>
+                            </td>
+                            <td>Drag-resize + collapse between panels</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Selector Nav</strong>
+                            </td>
+                            <td>
+                                <code>&lt;nav class="selector-nav" data-indicator="right"&gt;</code>
+                            </td>
+                            <td>Vertical icon+label mode switcher</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Collapsible Panel</strong>
+                            </td>
+                            <td>
+                                <code>&lt;div class="collapsible-panel"&gt;</code>
+                            </td>
+                            <td>Panel that collapses to icon+label</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p>
+                    See <a href="#app-maker-creators">App Maker: For Creators</a> for full usage examples.
+                </p>
+            </section>
             <!-- Apps Catalog -->
             <span id="apps"></span>
             <section class="api-section">
