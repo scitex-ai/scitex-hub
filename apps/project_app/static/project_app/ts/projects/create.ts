@@ -83,9 +83,11 @@ console.log(
   const availabilityMessage = document.getElementById(
     "availability-message",
   ) as HTMLElement | null;
-  const form = document.querySelector("form") as HTMLFormElement | null;
-  const submitButton = document.querySelector(
-    ".btn-primary",
+  const form = document.getElementById(
+    "create-project-form",
+  ) as HTMLFormElement | null;
+  const submitButton = document.getElementById(
+    "create-submit-btn",
   ) as HTMLButtonElement | null;
 
   // Disable submit button on load until name is validated
@@ -101,6 +103,21 @@ console.log(
     if (!name) {
       e.preventDefault();
       alert("Please enter a project name");
+      return;
+    }
+    // Enforce _app suffix for app projects
+    const templateTypeEl = document.getElementById(
+      "hidden-template-type",
+    ) as HTMLInputElement | null;
+    if (
+      templateTypeEl &&
+      templateTypeEl.value === "app" &&
+      !name.endsWith("_app")
+    ) {
+      e.preventDefault();
+      alert(
+        'App project names must end with "_app" suffix (e.g. my_awesome_app)',
+      );
       return;
     }
     if (!isNameAvailable) {
@@ -136,6 +153,23 @@ console.log(
       submitButton.disabled = true;
       submitButton.style.opacity = "0.5";
       submitButton.style.cursor = "not-allowed";
+    }
+
+    // Check _app suffix for app projects before API call
+    const tplTypeEl = document.getElementById(
+      "hidden-template-type",
+    ) as HTMLInputElement | null;
+    if (tplTypeEl && tplTypeEl.value === "app" && !name.endsWith("_app")) {
+      if (availabilityDiv) availabilityDiv.style.display = "block";
+      const warnIcon =
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" style="vertical-align: text-bottom;"><path fill="#d29922" d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575ZM8 5a.75.75 0 0 0-.75.75v2.5a.75.75 0 0 0 1.5 0v-2.5A.75.75 0 0 0 8 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"></path></svg>';
+      if (availabilityIcon) availabilityIcon.innerHTML = warnIcon;
+      if (availabilityMessage) {
+        availabilityMessage.textContent =
+          ' App names must end with "_app" (e.g. my_awesome_app)';
+        availabilityMessage.style.color = "#d29922";
+      }
+      return;
     }
 
     // Show checking state
@@ -188,6 +222,14 @@ console.log(
       } catch (error) {
         console.error("Error checking name availability:", error);
         if (availabilityDiv) availabilityDiv.style.display = "none";
+        // Graceful degradation: allow submission when API is unreachable
+        // Server-side validation will catch issues on POST
+        isNameAvailable = true;
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.style.opacity = "1";
+          submitButton.style.cursor = "pointer";
+        }
       }
     }, 500);
   });
