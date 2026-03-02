@@ -5,8 +5,7 @@
     <div class="repo-header-left">
         <a href="/{{ project.owner.username }}/" class="repo-header-owner">{{ project.owner.username }}</a>
         <span class="repo-header-separator">/</span>
-        <a href="/{{ project.owner.username }}/{{ project.slug }}/"
-           class="repo-title">{{ project.name }}</a>
+        <a href="/{{ project.owner.username }}/{{ project.slug }}/" class="repo-title">{{ project.name }}</a>
         {% if breadcrumbs %}
             {% for breadcrumb in breadcrumbs %}
                 {% if breadcrumb.name != project.name %}
@@ -62,9 +61,7 @@
                                         <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z" />
                                     </svg>
                                     <strong>{{ branch }}</strong>
-                                    {% if branch == 'main' or branch == 'develop' %}
-                                        (default)
-                                    {% endif %}
+                                    {% if branch == 'main' or branch == 'develop' %}(default){% endif %}
                                 {% else %}
                                     <span class="branch-item-indent">{{ branch }}</span>
                                 {% endif %}
@@ -162,7 +159,60 @@
             <!-- Clone Button -->
             {% include 'project_app/partials/clone_button.html' %}
         </div>
-        {% if project.description %}<div class="repo-description">{{ project.description }}</div>{% endif %}
+        <!-- About: description + topics (inline editable for owner) -->
+        <div class="repo-about-inline" id="repo-about-display">
+            {% if project.description %}
+                <div class="repo-description">{{ project.description }}</div>
+            {% else %}
+                <div class="repo-description repo-description-empty">No description</div>
+            {% endif %}
+            {% if project.topics_list %}
+                <div class="project-topics" style="margin-top:0.35rem">
+                    {% for topic in project.topics_list %}<span class="topic-tag">{{ topic }}</span>{% endfor %}
+                </div>
+            {% endif %}
+            {% if request.user == project.owner %}
+                <button class="repo-about-edit-btn" id="repo-about-edit-btn" title="Edit About">
+                    <i class="fas fa-pencil-alt"></i>
+                </button>
+            {% endif %}
+        </div>
+        <!-- Edit form (hidden by default) -->
+        <div class="repo-about-edit-form" id="repo-about-edit-form" style="display:none">
+            <div style="margin-bottom:0.5rem">
+                <input type="text"
+                       id="repo-about-desc-input"
+                       value="{{ project.description }}"
+                       placeholder="Short description of this project"
+                       style="width:100%;
+                              padding:4px 8px;
+                              font-size:0.85rem;
+                              background:var(--workspace-bg-secondary);
+                              border:1px solid var(--workspace-border-default);
+                              border-radius:4px;
+                              color:var(--workspace-text-primary)" />
+            </div>
+            <div style="margin-bottom:0.5rem">
+                <input type="text"
+                       id="repo-about-topics-input"
+                       value="{{ project.topics }}"
+                       placeholder="Topics (comma-separated, e.g. python, machine-learning)"
+                       style="width:100%;
+                              padding:4px 8px;
+                              font-size:0.85rem;
+                              background:var(--workspace-bg-secondary);
+                              border:1px solid var(--workspace-border-default);
+                              border-radius:4px;
+                              color:var(--workspace-text-primary)" />
+            </div>
+            <div style="display:flex;gap:6px">
+                <button id="repo-about-save-btn" class="btn btn-primary btn-sm">Save</button>
+                <button id="repo-about-cancel-btn"
+                        class="btn btn-sm"
+                        style="border:1px solid var(--workspace-border-default);
+                               color:var(--workspace-text-muted)">Cancel</button>
+            </div>
+        </div>
         <!-- </div> -->
     </div>
 </div>

@@ -28,14 +28,8 @@ def project_detail(request, username, slug):
     """
     Project detail page (GitHub-style /<username>/<project>/)
 
-    Supports mode via query parameter:
-    - /<username>/<project>/ or ?mode=overview - Project dashboard
-    - /<username>/<project>?mode=writer - Writer module (legacy, use /writer/)
-    - /<username>/<project>?mode=code - Code module (legacy, use /code/)
-    - /<username>/<project>?mode=viz - Viz module (legacy, use /viz/)
-    - /<username>/<project>?port=6006 - Proxy to localhost:6006 (services)
-
-    Note: Scholar module now only accessible via /scholar/
+    Authenticated users → rendered inside the Hub workspace frame.
+    Unauthenticated users → standalone project page.
     """
     # Special case: if slug matches username, this is a bio/profile README page
     if slug == username:
@@ -45,6 +39,13 @@ def project_detail(request, username, slug):
 
     # project available in request.project from decorator
     project = request.project
+
+    # Authenticated users → hub workspace with project pre-selected
+    if request.user.is_authenticated:
+        from apps.hub_app.views.index import build_hub_context
+
+        context = build_hub_context(request, current_project=project)
+        return render(request, "hub_app/index.html", context)
 
     # Check for port proxy request (e.g., ?port=6006)
     port_param = request.GET.get("port")
@@ -173,6 +174,19 @@ def project_detail(request, username, slug):
         "download_zip_url": download_zip_url,
     }
     return render(request, "project_app/repository/browse.html", context)
+
+
+@project_access_required
+def project_tree_or_blob(request, username, slug, branch=None, path=None):
+    """GitHub-style tree/blob URLs — render via hub for authenticated users."""
+    project = request.project
+    if request.user.is_authenticated:
+        from apps.hub_app.views.index import build_hub_context
+
+        context = build_hub_context(request, current_project=project)
+        return render(request, "hub_app/index.html", context)
+    # Unauthenticated: fall through to standalone project detail
+    return project_detail(request, username, slug)
 
 
 def _get_project_path(project):

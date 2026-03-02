@@ -242,6 +242,12 @@ urlpatterns = [
         views.workflow_run_detail,
         name="workflow_run_detail",
     ),
+    # GitHub-style tree/blob URLs (rendered via hub for auth users)
+    path(
+        "<slug:slug>/tree/<str:branch>/<path:path>",
+        views.project_tree_or_blob,
+        name="tree_browse",
+    ),
     # Directory browsing (catch-all, must be last)
     path(
         "<slug:slug>/<path:path>/",
