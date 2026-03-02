@@ -36,10 +36,10 @@ import type {
   CompleteSeekbarOptions,
   SeekbarElements,
 } from "./seekbar/types";
-import { DOMBuilder } from "./seekbar/dom-builder";
-import { ValueCalculator } from "./seekbar/value-calculator";
-import { SeekbarRenderer } from "./seekbar/renderer";
-import { EventHandlers } from "./seekbar/event-handlers";
+import { DOMBuilder } from "./seekbar/_dom-builder";
+import { ValueCalculator } from "./seekbar/_value-calculator";
+import { SeekbarRenderer } from "./seekbar/_renderer";
+import { EventHandlers } from "./seekbar/_event-handlers";
 
 export type { SeekbarOptions, SeekbarValues } from "./seekbar/types";
 

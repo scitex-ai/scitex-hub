@@ -29,10 +29,10 @@ describe('chart-init', () => {
 //  * Chart Initialization Module
 //  * Creates and configures all Chart.js instances for server metrics
 //  */
-// 
-// import { getChart } from './types.ts';
-// import { percentChartConfig, networkChartConfig } from './chart-configs.ts';
-// 
+//
+// import { getChart } from './types';
+// import { percentChartConfig, networkChartConfig } from './chart-configs';
+//
 // export interface ChartInstances {
 //   cpuChart: any;
 //   memoryChart: any;
@@ -43,7 +43,7 @@ describe('chart-init', () => {
 //   visitorPoolChart: any;
 //   activeUsersChart: any;
 // }
-// 
+//
 // export function initializeCharts(): ChartInstances | null {
 //   // Get Chart.js from window (loaded via CDN) - must be inside function, not at module level
 //   const Chart = getChart();
@@ -51,11 +51,11 @@ describe('chart-init', () => {
 //     console.error('[chart-init] Chart.js not loaded');
 //     return null;
 //   }
-// 
+//
 //   // Initialize CPU chart
 //   const cpuCtx = (document.getElementById('cpuChart') as HTMLCanvasElement)?.getContext('2d');
 //   if (!cpuCtx) return null;
-// 
+//
 //   const cpuChart = new Chart(cpuCtx, {
 //     ...percentChartConfig,
 //     data: {
@@ -77,11 +77,11 @@ describe('chart-init', () => {
 //       }]
 //     }
 //   });
-// 
+//
 //   // Initialize Memory chart
 //   const memoryCtx = (document.getElementById('memoryChart') as HTMLCanvasElement)?.getContext('2d');
 //   if (!memoryCtx) return null;
-// 
+//
 //   const memoryChart = new Chart(memoryCtx, {
 //     ...percentChartConfig,
 //     data: {
@@ -103,11 +103,11 @@ describe('chart-init', () => {
 //       }]
 //     }
 //   });
-// 
+//
 //   // Initialize Disk chart
 //   const diskCtx = (document.getElementById('diskChart') as HTMLCanvasElement)?.getContext('2d');
 //   if (!diskCtx) return null;
-// 
+//
 //   const diskChart = new Chart(diskCtx, {
 //     ...percentChartConfig,
 //     data: {
@@ -129,11 +129,11 @@ describe('chart-init', () => {
 //       }]
 //     }
 //   });
-// 
+//
 //   // Initialize GPU chart
 //   const gpuCtx = (document.getElementById('gpuChart') as HTMLCanvasElement)?.getContext('2d');
 //   if (!gpuCtx) return null;
-// 
+//
 //   const gpuChart = new Chart(gpuCtx, {
 //     ...percentChartConfig,
 //     data: {
@@ -155,11 +155,11 @@ describe('chart-init', () => {
 //       }]
 //     }
 //   });
-// 
+//
 //   // Initialize Disk I/O chart
 //   const diskIoCtx = (document.getElementById('diskIoChart') as HTMLCanvasElement)?.getContext('2d');
 //   if (!diskIoCtx) return null;
-// 
+//
 //   const diskIoChart = new Chart(diskIoCtx, {
 //     ...networkChartConfig,
 //     data: {
@@ -191,11 +191,11 @@ describe('chart-init', () => {
 //       ]
 //     }
 //   });
-// 
+//
 //   // Initialize Network I/O chart
 //   const netIoCtx = (document.getElementById('netIoChart') as HTMLCanvasElement)?.getContext('2d');
 //   if (!netIoCtx) return null;
-// 
+//
 //   const netIoChart = new Chart(netIoCtx, {
 //     ...networkChartConfig,
 //     data: {
@@ -227,11 +227,11 @@ describe('chart-init', () => {
 //       ]
 //     }
 //   });
-// 
+//
 //   // Initialize Visitor Pool chart
 //   const visitorPoolCtx = (document.getElementById('visitorPoolChart') as HTMLCanvasElement)?.getContext('2d');
 //   if (!visitorPoolCtx) return null;
-// 
+//
 //   const visitorPoolChart = new Chart(visitorPoolCtx, {
 //     ...percentChartConfig,
 //     data: {
@@ -273,11 +273,11 @@ describe('chart-init', () => {
 //       }
 //     }
 //   });
-// 
+//
 //   // Initialize Active Users chart
 //   const activeUsersCtx = (document.getElementById('activeUsersChart') as HTMLCanvasElement)?.getContext('2d');
 //   if (!activeUsersCtx) return null;
-// 
+//
 //   const activeUsersChart = new Chart(activeUsersCtx, {
 //     ...percentChartConfig,
 //     data: {
@@ -318,7 +318,7 @@ describe('chart-init', () => {
 //       }
 //     }
 //   });
-// 
+//
 //   return {
 //     cpuChart,
 //     memoryChart,

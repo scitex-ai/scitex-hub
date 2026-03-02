@@ -36,21 +36,21 @@ describe('UIManager', () => {
 //  * - TreeIntegration: Tree manager integration and events
 //  * - PlotDataDisplay: Plot data table display and export
 //  */
-// 
-// import { TreeManager } from './tree-manager.ts';
-// import { ResizerManager } from './ResizerManager.ts';
-// import { PlotDataManager } from './PlotDataManager.ts';
-// import type { PropertiesManager } from './PropertiesManager.ts';
-// import type { DataTableManager } from './DataTableManager.ts';
-// 
+//
+// import { TreeManager } from './tree-manager';
+// import { ResizerManager } from './ResizerManager';
+// import { PlotDataManager } from './PlotDataManager';
+// import type { PropertiesManager } from './PropertiesManager';
+// import type { DataTableManager } from './DataTableManager';
+//
 // // Import UI modules
-// import { PanelControls } from './ui/PanelControls.ts';
-// import { RibbonButtons } from './ui/RibbonButtons.ts';
-// import { Modals } from './ui/Modals.ts';
-// import { KeyboardShortcuts } from './ui/KeyboardShortcuts.ts';
-// import { TreeIntegration } from './ui/TreeIntegration.ts';
-// import { PlotDataDisplay } from './ui/PlotDataDisplay.ts';
-// 
+// import { PanelControls } from './ui/PanelControls';
+// import { RibbonButtons } from './ui/RibbonButtons';
+// import { Modals } from './ui/Modals';
+// import { KeyboardShortcuts } from './ui/KeyboardShortcuts';
+// import { TreeIntegration } from './ui/TreeIntegration';
+// import { PlotDataDisplay } from './ui/PlotDataDisplay';
+//
 // export class UIManager {
 //     // Module instances
 //     private panelControls: PanelControls;
@@ -58,16 +58,16 @@ describe('UIManager', () => {
 //     private keyboardShortcuts: KeyboardShortcuts;
 //     private treeIntegration: TreeIntegration;
 //     private plotDataDisplay: PlotDataDisplay;
-// 
+//
 //     // Direct dependencies
 //     private resizerManager: ResizerManager;
 //     private plotDataManager: PlotDataManager;
-// 
+//
 //     // References (set after construction)
 //     private editingCell: HTMLElement | null = null;
 //     private propertiesManager: PropertiesManager | null = null;
 //     private dataTableManager: DataTableManager | null = null;
-// 
+//
 //     constructor(
 //         private handleFileImportCallback?: (file: File) => void,
 //         private loadDemoDataCallback?: () => void,
@@ -112,10 +112,10 @@ describe('UIManager', () => {
 //         this.resizerManager = new ResizerManager();
 //         // this.resizerManager.initializeVisResizers();  // DISABLED: Conflicts with workspace-panel-resizer
 //         this.plotDataManager = new PlotDataManager();
-// 
+//
 //         // Initialize PanelControls module
 //         this.panelControls = new PanelControls(statusBarCallback);
-// 
+//
 //         // Initialize RibbonButtons module
 //         this.ribbonButtons = new RibbonButtons(
 //             handleFileImportCallback,
@@ -132,7 +132,7 @@ describe('UIManager', () => {
 //             createQuickPlotCallback,
 //             () => this.plotDataDisplay.handleExportPlotCSV()
 //         );
-// 
+//
 //         // Initialize KeyboardShortcuts module
 //         this.keyboardShortcuts = new KeyboardShortcuts(
 //             createQuickPlotCallback,
@@ -166,7 +166,7 @@ describe('UIManager', () => {
 //             canvasSizeDecreaseCallback,
 //             canvasSizeResetCallback
 //         );
-// 
+//
 //         // Initialize TreeIntegration module
 //         this.treeIntegration = new TreeIntegration(
 //             statusBarCallback,
@@ -174,10 +174,10 @@ describe('UIManager', () => {
 //             (plotId, label) => this.plotDataDisplay.showPlotDataTable(plotId, label),
 //             () => this.plotDataDisplay.clearDataTable()
 //         );
-// 
+//
 //         // Set plot data manager reference in TreeIntegration
 //         this.treeIntegration.setPlotDataManager(this.plotDataManager);
-// 
+//
 //         // Initialize PlotDataDisplay module
 //         this.plotDataDisplay = new PlotDataDisplay(
 //             this.plotDataManager,
@@ -185,11 +185,11 @@ describe('UIManager', () => {
 //             statusBarCallback
 //         );
 //     }
-// 
+//
 //     // ========================================
 //     // PUBLIC API - Initialization
 //     // ========================================
-// 
+//
 //     public initializeEventListeners(): void {
 //         // NOTE: Sidebar and properties toggle are now handled by shared/workspace-panel-resizer.ts
 //         // via data-panel-resizer attributes. Disabled legacy PanelControls to prevent conflicts.
@@ -200,82 +200,82 @@ describe('UIManager', () => {
 //         this.initPanelResizers();
 //         console.log('[UIManager] All UI event listeners initialized');
 //     }
-// 
+//
 //     public setupKeyboardShortcuts(): void {
 //         this.keyboardShortcuts.setupKeyboardShortcuts();
 //     }
-// 
+//
 //     public initializeTreeManager(): void {
 //         this.treeIntegration.initializeTreeManager();
 //         console.log('[UIManager] TreeManager initialized via TreeIntegration');
 //     }
-// 
+//
 //     // ========================================
 //     // PUBLIC API - Setters
 //     // ========================================
-// 
+//
 //     public setEditingCell(cell: HTMLElement | null): void {
 //         this.editingCell = cell;
 //         this.keyboardShortcuts.setEditingCell(cell);
 //     }
-// 
+//
 //     public setPropertiesManager(manager: PropertiesManager): void {
 //         this.propertiesManager = manager;
 //         this.treeIntegration.setPropertiesManager(manager);
 //     }
-// 
+//
 //     public setDataTableManager(manager: DataTableManager): void {
 //         this.dataTableManager = manager;
 //         this.plotDataDisplay.setDataTableManager(manager);
 //         this.treeIntegration.setDataTableManager(manager);
 //     }
-// 
+//
 //     // ========================================
 //     // PUBLIC API - Getters
 //     // ========================================
-// 
+//
 //     public getPlotDataManager(): PlotDataManager {
 //         return this.plotDataManager;
 //     }
-// 
+//
 //     public getCurrentWorkspaceMode(): string {
 //         return this.treeIntegration.getCurrentWorkspaceMode();
 //     }
-// 
+//
 //     public getTreeManager(): TreeManager | null {
 //         return this.treeIntegration.getTreeManager();
 //     }
-// 
+//
 //     // ========================================
 //     // PUBLIC API - Plot Data
 //     // ========================================
-// 
+//
 //     public syncDataTableToPlot(): void {
 //         this.plotDataDisplay.syncDataTableToPlot();
 //     }
-// 
+//
 //     // ========================================
 //     // PUBLIC API - Status Bar
 //     // ========================================
-// 
+//
 //     public updateStatusBar(message?: string): void {
 //         const statusEl = document.getElementById('status-message');
 //         if (!statusEl) return;
-// 
+//
 //         if (!message) {
 //             const zoomLevel = document.getElementById('canvas-zoom')?.textContent || '100%';
 //             statusEl.textContent = `Zoom: ${zoomLevel} | Ready`;
 //             return;
 //         }
-// 
+//
 //         // Update status bar directly (removed callback to prevent infinite recursion)
 //         statusEl.textContent = message;
 //     }
-// 
+//
 //     // ========================================
 //     // PRIVATE - Panel Resizers (delegated to ResizerManager)
 //     // ========================================
-// 
+//
 //     private initPanelResizers(): void {
 //         // NOTE: Sidebar and properties panel resizers are now handled by shared/workspace-panel-resizer.ts
 //         // via data-panel-resizer attributes. The ResizerManager is only used for the split resizer

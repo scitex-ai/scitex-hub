@@ -8,24 +8,24 @@
  * @version 2.0.0
  */
 
-import { FileUploadManager } from "./enrichment/file-upload";
-import { JobPollingManager } from "./enrichment/job-polling";
+import { FileUploadManager } from "./_enrichment/file-upload";
+import { JobPollingManager } from "./_enrichment/job-polling";
 import {
   autoDownloadBibtexFile,
   openAllPaperUrls,
   saveJobToProject,
-} from "./enrichment/job-actions";
+} from "./_enrichment/job-actions";
 import {
   showBibtexDiff,
   closeBibtexDiff,
   toggleProcessingLogVisibility,
-} from "./enrichment/diff-display";
-import { loadRecentJobs, deleteJob } from "./enrichment/recent-jobs";
+} from "./_enrichment/diff-display";
+import { loadRecentJobs, deleteJob } from "./_enrichment/recent-jobs";
 import {
   showAlert,
   resetBibtexForm,
   getCsrfToken,
-} from "./enrichment/ui-utils";
+} from "./_enrichment/ui-utils";
 
 console.log(
   "[DEBUG] apps/scholar_app/static/scholar_app/ts/bibtex/bibtex-enrichment.ts loaded",

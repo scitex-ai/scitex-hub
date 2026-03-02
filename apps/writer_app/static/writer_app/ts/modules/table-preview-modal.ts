@@ -5,7 +5,7 @@
 
 console.log("[DEBUG] table-preview-modal.ts loaded");
 
-import { TablePreviewModalOrchestrator } from "./table-preview-modal/orchestrator";
+import { TablePreviewModalOrchestrator } from "./_table-preview-modal/orchestrator";
 
 // Initialize and expose globally
 const tablePreviewModal = new TablePreviewModalOrchestrator();

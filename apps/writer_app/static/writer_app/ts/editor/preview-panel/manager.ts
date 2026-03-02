@@ -12,9 +12,9 @@ console.log(
 
 import type { PreviewPanelConfig } from "./types";
 import { LATEX_TEMPLATES } from "./types";
-import { PreviewRenderer } from "./rendering";
-import { PreviewNavigation } from "./navigation";
-import { PreviewSync } from "./sync";
+import { PreviewRenderer } from "./_rendering";
+import { PreviewNavigation } from "./_navigation";
+import { PreviewSync } from "./_sync";
 
 export class PreviewPanelManager {
   private config: PreviewPanelConfig;

@@ -45,15 +45,15 @@ describe('MediaViewer', () => {
 //  * viewer.displayFile('path/to/image.jpg', 'image');
 //  * ```
 //  */
-// 
-// import type { MediaViewerConfig, FileType } from './types.ts';
-// import { detectFileType } from './types.ts';
-// import { ImageViewer } from './ImageViewer.ts';
-// import { PdfViewer } from './PdfViewer.ts';
-// import { BinaryPlaceholder } from './BinaryPlaceholder.ts';
+//
+// import type { MediaViewerConfig, FileType } from './types';
+// import { detectFileType } from './types';
+// import { ImageViewer } from './ImageViewer';
+// import { PdfViewer } from './PdfViewer';
+// import { BinaryPlaceholder } from './BinaryPlaceholder';
 // // CsvEditor from media-editor module
-// import { CsvEditor } from '../media-editor/CsvEditor.ts';
-// 
+// import { CsvEditor } from '../media-editor/CsvEditor';
+//
 // export class MediaViewer {
 //   private config: MediaViewerConfig;
 //   private container: HTMLElement | null = null;
@@ -63,7 +63,7 @@ describe('MediaViewer', () => {
 //   private csvEditor: CsvEditor;
 //   private binaryPlaceholder: BinaryPlaceholder;
 //   private editorElement: HTMLElement | null = null;
-// 
+//
 //   constructor(config: MediaViewerConfig) {
 //     this.config = config;
 //     this.imageViewer = new ImageViewer(config);
@@ -73,7 +73,7 @@ describe('MediaViewer', () => {
 //     this.binaryPlaceholder = new BinaryPlaceholder(config);
 //     this.initContainer();
 //   }
-// 
+//
 //   /**
 //    * Initialize the media viewer container
 //    */
@@ -84,17 +84,17 @@ describe('MediaViewer', () => {
 //     } else {
 //       this.container = this.config.container;
 //     }
-// 
+//
 //     if (!this.container) {
 //       console.error('[MediaViewer] Container not found');
 //       return;
 //     }
-// 
+//
 //     // Add media viewer class
 //     this.container.classList.add('media-viewer-container');
 //     this.container.style.display = 'none';
 //   }
-// 
+//
 //   /**
 //    * Set the editor element to hide/show when switching views
 //    * This is optional - only needed when MediaViewer coexists with an editor
@@ -106,7 +106,7 @@ describe('MediaViewer', () => {
 //       this.editorElement = element;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Show media viewer and hide editor
 //    */
@@ -119,7 +119,7 @@ describe('MediaViewer', () => {
 //     }
 //     this.config.onVisibilityChange?.(true);
 //   }
-// 
+//
 //   /**
 //    * Hide media viewer and show editor
 //    */
@@ -132,7 +132,7 @@ describe('MediaViewer', () => {
 //     }
 //     this.config.onVisibilityChange?.(false);
 //   }
-// 
+//
 //   /**
 //    * Display a file in the media viewer
 //    * @param filePath - Path to the file
@@ -144,19 +144,19 @@ describe('MediaViewer', () => {
 //       this.initContainer();
 //     }
 //     if (!this.container) return;
-// 
+//
 //     // Auto-detect file type if not provided
 //     const type = fileType || detectFileType(filePath);
-// 
+//
 //     // Text files should be handled by the editor, not media viewer
 //     if (type === 'text') {
 //       this.hide();
 //       return;
 //     }
-// 
+//
 //     this.currentFilePath = filePath;
 //     this.container.innerHTML = '';
-// 
+//
 //     switch (type) {
 //       case 'image':
 //         this.imageViewer.render(this.container, filePath, blobUrl);
@@ -174,10 +174,10 @@ describe('MediaViewer', () => {
 //         this.hide();
 //         return;
 //     }
-// 
+//
 //     this.show();
 //   }
-// 
+//
 //   /**
 //    * Check if a file type can be displayed by the media viewer
 //    */
@@ -185,14 +185,14 @@ describe('MediaViewer', () => {
 //     const type = detectFileType(filePath);
 //     return type !== 'text';
 //   }
-// 
+//
 //   /**
 //    * Get the currently displayed file path
 //    */
 //   getCurrentFilePath(): string | null {
 //     return this.currentFilePath;
 //   }
-// 
+//
 //   /**
 //    * Clean up resources
 //    */
@@ -203,7 +203,7 @@ describe('MediaViewer', () => {
 //     this.currentFilePath = null;
 //     this.pdfViewer.cleanup();
 //   }
-// 
+//
 //   /**
 //    * Check if the viewer is currently visible
 //    */
@@ -211,10 +211,10 @@ describe('MediaViewer', () => {
 //     return this.container?.style.display !== 'none';
 //   }
 // }
-// 
+//
 // // Re-export types and utilities
-// export { detectFileType } from './types.ts';
-// export type { FileType, MediaViewerConfig } from './types.ts';
+// export { detectFileType } from './types';
+// export type { FileType, MediaViewerConfig } from './types';
 
 // =============================================================================
 // End of Source Code

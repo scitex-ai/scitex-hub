@@ -9,7 +9,7 @@
  */
 
 console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/compilation/compilation.ts loaded",
+  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/_compilation/compilation.ts loaded",
 );
 export interface CompilationJob {
   job_id: string;
@@ -33,7 +33,7 @@ export class CompilationHandler {
     compilationType: string = "full",
   ): Promise<string> {
     try {
-      const response = await fetch("/api/writer/compilation/submit/", {
+      const response = await fetch("/api/writer/_compilation/submit/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -61,7 +61,7 @@ export class CompilationHandler {
    */
   public async checkStatus(jobId: string): Promise<CompilationJob> {
     try {
-      const response = await fetch(`/api/writer/compilation/status/${jobId}/`);
+      const response = await fetch(`/api/writer/_compilation/status/${jobId}/`);
       if (!response.ok) {
         throw new Error("Failed to fetch compilation status");
       }

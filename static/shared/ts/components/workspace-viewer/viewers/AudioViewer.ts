@@ -2,8 +2,8 @@
  * AudioViewer - Simple HTML5 audio player for audio files.
  */
 
-import type { Viewer } from "../types.ts";
-import { getFileUrl } from "../file-loader.ts";
+import type { Viewer } from "../types";
+import { getFileUrl } from "../_file-loader";
 
 export class AudioViewer implements Viewer {
   private audio: HTMLAudioElement | null = null;

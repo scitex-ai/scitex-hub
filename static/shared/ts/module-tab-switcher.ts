@@ -28,7 +28,7 @@ function getKnownModules(): Set<string> {
 
 let KNOWN_MODULES: Set<string>;
 
-/** Extract the first path segment from a pathname, e.g. "/writer/" -> "writer". */
+/** Extract the first path segment from a pathname, e.g. "/_writer/" -> "writer". */
 function extractModule(path: string): string | null {
   const match = path.match(/^\/([a-z]+)\//);
   return match ? match[1] : null;
@@ -67,7 +67,7 @@ async function switchModule(name: string): Promise<void> {
     const html = await resp.text();
     pane.innerHTML = html;
     reExecScripts(pane);
-    history.pushState({ module: name }, "", `/${name}/`);
+    window._appNav?.push({ module: name });
     updateActiveTab(name);
   } catch (err) {
     console.error("[module-tab-switcher] Failed to load module:", name, err);
@@ -154,11 +154,15 @@ function init(): void {
     });
   });
 
-  // Handle browser back/forward navigation.
-  window.addEventListener("popstate", () => {
-    const mod = extractModule(location.pathname);
-    if (mod && KNOWN_MODULES.has(mod)) {
-      void switchModule(mod);
+  // Handle browser back/forward via unified navigation engine.
+  window._appNav?.onRestore((state) => {
+    const currentMod = extractModule(location.pathname);
+    if (
+      state.module &&
+      state.module !== currentMod &&
+      KNOWN_MODULES.has(state.module)
+    ) {
+      void switchModule(state.module);
     }
   });
 }

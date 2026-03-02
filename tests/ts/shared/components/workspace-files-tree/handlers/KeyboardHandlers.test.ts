@@ -38,13 +38,13 @@ describe('KeyboardHandlers', () => {
 //  * - Home: Select first item
 //  * - End: Select last item
 //  */
-// 
-// import type { TreeConfig } from '../types.ts';
-// import type { TreeStateManager } from '../TreeState.ts';
-// 
+//
+// import type { TreeConfig } from '../types';
+// import type { TreeStateManager } from '../TreeState';
+//
 // export class KeyboardHandlers {
 //   private anchorPath: string | null = null; // For shift+arrow range selection
-// 
+//
 //   constructor(
 //     private config: TreeConfig,
 //     private stateManager: TreeStateManager,
@@ -52,30 +52,30 @@ describe('KeyboardHandlers', () => {
 //     private onToggleFolder: (path: string) => void,
 //     private onSelectFile: (path: string) => void
 //   ) {}
-// 
+//
 //   handleKeyboard(e: KeyboardEvent): void {
 //     // Ignore key repeat to prevent skipping
 //     if (e.repeat) return;
-// 
+//
 //     // Get all visible items
 //     const allItems = this.getVisibleItems();
 //     if (allItems.length === 0) return;
-// 
+//
 //     const selected = this.stateManager.getSelected();
-// 
+//
 //     switch (e.key) {
 //       case 'ArrowDown':
 //         e.preventDefault();
 //         e.stopPropagation();
 //         this.navigateTree(1, e.shiftKey, allItems);
 //         break;
-// 
+//
 //       case 'ArrowUp':
 //         e.preventDefault();
 //         e.stopPropagation();
 //         this.navigateTree(-1, e.shiftKey, allItems);
 //         break;
-// 
+//
 //       case 'ArrowRight': {
 //         if (!selected) {
 //           // No selection - select first item
@@ -96,7 +96,7 @@ describe('KeyboardHandlers', () => {
 //         }
 //         break;
 //       }
-// 
+//
 //       case 'ArrowLeft': {
 //         if (!selected) return;
 //         e.preventDefault();
@@ -115,7 +115,7 @@ describe('KeyboardHandlers', () => {
 //         }
 //         break;
 //       }
-// 
+//
 //       case 'Home':
 //         e.preventDefault();
 //         e.stopPropagation();
@@ -128,7 +128,7 @@ describe('KeyboardHandlers', () => {
 //           }
 //         }
 //         break;
-// 
+//
 //       case 'End':
 //         e.preventDefault();
 //         e.stopPropagation();
@@ -142,7 +142,7 @@ describe('KeyboardHandlers', () => {
 //           }
 //         }
 //         break;
-// 
+//
 //       case 'Enter':
 //         if (!selected) return;
 //         e.preventDefault();
@@ -156,17 +156,17 @@ describe('KeyboardHandlers', () => {
 //         break;
 //     }
 //   }
-// 
+//
 //   /** Get all visible items in the tree */
 //   private getVisibleItems(): Element[] {
 //     return Array.from(this.container.querySelectorAll('.wft-item[data-path]'));
 //   }
-// 
+//
 //   /** Navigate up or down in the tree */
 //   private navigateTree(direction: number, extendSelection: boolean, allItems: Element[]): void {
 //     const selectedPath = this.stateManager.getSelected();
 //     let currentIndex: number;
-// 
+//
 //     if (!selectedPath) {
 //       // No selection - select first or last item based on direction
 //       currentIndex = direction > 0 ? -1 : allItems.length;
@@ -179,11 +179,11 @@ describe('KeyboardHandlers', () => {
 //         currentIndex = direction > 0 ? -1 : allItems.length;
 //       }
 //     }
-// 
+//
 //     const nextIndex = currentIndex + direction;
 //     if (nextIndex >= 0 && nextIndex < allItems.length) {
 //       const nextItem = allItems[nextIndex];
-// 
+//
 //       if (extendSelection) {
 //         // Shift+Arrow: extend selection
 //         this.extendSelection(nextItem, allItems);
@@ -195,73 +195,73 @@ describe('KeyboardHandlers', () => {
 //       }
 //     }
 //   }
-// 
+//
 //   /** Select a single item */
 //   private selectItem(item: Element, addToSelection: boolean): void {
 //     const path = item.getAttribute('data-path');
 //     if (!path) return;
-// 
+//
 //     if (addToSelection) {
 //       this.stateManager.addToSelection(path);
 //     } else {
 //       // Use silent method to avoid triggering full re-render via subscriber
 //       this.stateManager.selectSingleSilent(path);
 //     }
-// 
+//
 //     // Update visual selection (fast - just toggles CSS classes)
 //     this.updateSelectionClasses();
-// 
+//
 //     // Scroll into view
 //     item.scrollIntoView({ behavior: 'instant', block: 'nearest' });
 //   }
-// 
+//
 //   /** Extend selection with Shift+Arrow */
 //   private extendSelection(toItem: Element, allItems: Element[]): void {
 //     const toPath = toItem.getAttribute('data-path');
 //     if (!toPath) return;
-// 
+//
 //     // Use anchor or current selection as start point
 //     if (!this.anchorPath) {
 //       const selected = this.stateManager.getSelected();
 //       this.anchorPath = selected || toPath;
 //     }
-// 
+//
 //     this.selectRange(this.anchorPath, toPath, allItems);
 //   }
-// 
+//
 //   /** Select a range of items */
 //   private selectRange(fromPath: string, toPath: string, allItems: Element[]): void {
 //     const fromIndex = allItems.findIndex(item => item.getAttribute('data-path') === fromPath);
 //     const toIndex = allItems.findIndex(item => item.getAttribute('data-path') === toPath);
-// 
+//
 //     if (fromIndex === -1 || toIndex === -1) return;
-// 
+//
 //     const start = Math.min(fromIndex, toIndex);
 //     const end = Math.max(fromIndex, toIndex);
-// 
+//
 //     // Collect all paths in range
 //     const rangePaths: string[] = [];
 //     for (let i = start; i <= end; i++) {
 //       const path = allItems[i].getAttribute('data-path');
 //       if (path) rangePaths.push(path);
 //     }
-// 
+//
 //     // Use silent methods to avoid triggering full re-render via subscriber
 //     this.stateManager.setSelectedPathsSilent(rangePaths);
 //     this.stateManager.setSelectedSilent(toPath);
-// 
+//
 //     // Update visual selection (fast - just toggles CSS classes)
 //     this.updateSelectionClasses();
-// 
+//
 //     // Scroll target into view
 //     const targetItem = allItems[toIndex];
 //     targetItem.scrollIntoView({ behavior: 'instant', block: 'nearest' });
 //   }
-// 
+//
 //   /** Update visual selection classes */
 //   private updateSelectionClasses(): void {
 //     const selectedPaths = this.stateManager.getSelectedPaths();
-// 
+//
 //     this.container.querySelectorAll('.wft-item').forEach(el => {
 //       const path = el.getAttribute('data-path');
 //       if (path && selectedPaths.has(path)) {
@@ -271,7 +271,7 @@ describe('KeyboardHandlers', () => {
 //       }
 //     });
 //   }
-// 
+//
 //   /** Collapse parent folder and move selection to it */
 //   private collapseParent(path: string): void {
 //     const parts = path.split('/');
@@ -281,14 +281,14 @@ describe('KeyboardHandlers', () => {
 //       this.stateManager.selectSingleSilent(parentPath);
 //       this.anchorPath = parentPath;
 //       this.updateSelectionClasses();
-// 
+//
 //       const parentEl = this.container.querySelector(`[data-path="${parentPath}"]`);
 //       if (parentEl) {
 //         parentEl.scrollIntoView({ behavior: 'instant', block: 'nearest' });
 //       }
 //     }
 //   }
-// 
+//
 //   /** Reset anchor (call when selection is changed externally) */
 //   resetAnchor(): void {
 //     this.anchorPath = null;

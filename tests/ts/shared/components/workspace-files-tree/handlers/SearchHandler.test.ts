@@ -30,14 +30,14 @@ describe('SearchHandler', () => {
 //  *
 //  * Provides fuzzy text search across file and folder names
 //  */
-// 
-// import type { TreeItem } from '../types.ts';
-// 
+//
+// import type { TreeItem } from '../types';
+//
 // export class SearchHandler {
 //   private searchQuery: string = '';
 //   private onSearchChange: () => void;
 //   private getTreeData: () => TreeItem[];
-// 
+//
 //   constructor(
 //     onSearchChange: () => void,
 //     getTreeData: () => TreeItem[]
@@ -45,7 +45,7 @@ describe('SearchHandler', () => {
 //     this.onSearchChange = onSearchChange;
 //     this.getTreeData = getTreeData;
 //   }
-// 
+//
 //   /**
 //    * Set search query and trigger re-render
 //    */
@@ -53,14 +53,14 @@ describe('SearchHandler', () => {
 //     this.searchQuery = query.toLowerCase().trim();
 //     this.onSearchChange();
 //   }
-// 
+//
 //   /**
 //    * Get current search query
 //    */
 //   getQuery(): string {
 //     return this.searchQuery;
 //   }
-// 
+//
 //   /**
 //    * Clear search query
 //    */
@@ -68,35 +68,35 @@ describe('SearchHandler', () => {
 //     this.searchQuery = '';
 //     this.onSearchChange();
 //   }
-// 
+//
 //   /**
 //    * Check if search is active
 //    */
 //   isActive(): boolean {
 //     return this.searchQuery.length > 0;
 //   }
-// 
+//
 //   /**
 //    * Check if an item matches the search query
 //    */
 //   matches(item: TreeItem): boolean {
 //     if (!this.searchQuery) return true;
-// 
+//
 //     const name = item.name.toLowerCase();
 //     const path = item.path.toLowerCase();
-// 
+//
 //     // Direct match in name
 //     if (name.includes(this.searchQuery)) return true;
-// 
+//
 //     // Match in full path
 //     if (path.includes(this.searchQuery)) return true;
-// 
+//
 //     // Fuzzy match - all characters in order
 //     if (this.fuzzyMatch(name, this.searchQuery)) return true;
-// 
+//
 //     return false;
 //   }
-// 
+//
 //   /**
 //    * Simple fuzzy matching - all query chars appear in order
 //    */
@@ -109,28 +109,28 @@ describe('SearchHandler', () => {
 //     }
 //     return queryIndex === query.length;
 //   }
-// 
+//
 //   /**
 //    * Filter tree items based on search query
 //    * Returns items that match, keeping parent directories for context
 //    */
 //   filterTree(items: TreeItem[]): TreeItem[] {
 //     if (!this.searchQuery) return items;
-// 
+//
 //     return this.filterRecursive(items);
 //   }
-// 
+//
 //   /**
 //    * Recursively filter tree, keeping parents of matching children
 //    */
 //   private filterRecursive(items: TreeItem[]): TreeItem[] {
 //     const result: TreeItem[] = [];
-// 
+//
 //     for (const item of items) {
 //       if (item.type === 'directory' && item.children) {
 //         // Recursively filter children
 //         const filteredChildren = this.filterRecursive(item.children);
-// 
+//
 //         // Include directory if it matches or has matching children
 //         if (this.matches(item) || filteredChildren.length > 0) {
 //           result.push({
@@ -145,21 +145,21 @@ describe('SearchHandler', () => {
 //         }
 //       }
 //     }
-// 
+//
 //     return result;
 //   }
-// 
+//
 //   /**
 //    * Get all matching items flattened (for quick navigation)
 //    */
 //   getMatchingItems(): TreeItem[] {
 //     if (!this.searchQuery) return [];
-// 
+//
 //     const matches: TreeItem[] = [];
 //     this.collectMatches(this.getTreeData(), matches);
 //     return matches;
 //   }
-// 
+//
 //   /**
 //    * Recursively collect all matching items
 //    */

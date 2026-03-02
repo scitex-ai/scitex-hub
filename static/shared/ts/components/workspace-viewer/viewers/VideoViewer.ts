@@ -2,8 +2,8 @@
  * VideoViewer - Simple HTML5 video player for video files.
  */
 
-import type { Viewer } from "../types.ts";
-import { getFileUrl } from "../file-loader.ts";
+import type { Viewer } from "../types";
+import { getFileUrl } from "../_file-loader";
 
 export class VideoViewer implements Viewer {
   private video: HTMLVideoElement | null = null;

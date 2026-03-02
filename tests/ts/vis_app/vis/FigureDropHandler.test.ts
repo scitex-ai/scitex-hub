@@ -33,10 +33,10 @@ describe('FigureDropHandler', () => {
 //  * - Paste images from clipboard
 //  * - File path detection from workspace tree drops
 //  */
-// 
-// import { SciTeXEditor } from './SciTeXEditor.ts';
-// import { CanvasManager } from './CanvasManager.ts';
-// 
+//
+// import { SciTeXEditor } from './SciTeXEditor';
+// import { CanvasManager } from './CanvasManager';
+//
 // export interface DropHandlerOptions {
 //     canvasSelector?: string;
 //     dataTableSelector?: string;
@@ -45,44 +45,44 @@ describe('FigureDropHandler', () => {
 //     onCsvLoad?: (data: string[][]) => void;
 //     onImagePaste?: (dataUrl: string) => void;
 // }
-// 
+//
 // export class FigureDropHandler {
 //     private canvasEl: HTMLElement | null = null;
 //     private dataTableEl: HTMLElement | null = null;
 //     private editor: SciTeXEditor | null = null;
 //     private canvasManager: CanvasManager | null = null;
-// 
+//
 //     private onFigureLoad?: (path: string) => void;
 //     private onCsvLoad?: (data: string[][]) => void;
 //     private onImagePaste?: (dataUrl: string) => void;
-// 
+//
 //     constructor(options: DropHandlerOptions = {}) {
 //         this.canvasEl = document.querySelector(options.canvasSelector || '.canvas-area');
 //         this.dataTableEl = document.querySelector(options.dataTableSelector || '.data-table-container');
 //         this.canvasManager = options.canvasManager || null;
-// 
+//
 //         this.onFigureLoad = options.onFigureLoad;
 //         this.onCsvLoad = options.onCsvLoad;
 //         this.onImagePaste = options.onImagePaste;
-// 
+//
 //         this.initDragDrop();
 //         this.initPaste();
 //     }
-// 
+//
 //     /**
 //      * Set the SciTeX editor instance
 //      */
 //     public setEditor(editor: SciTeXEditor): void {
 //         this.editor = editor;
 //     }
-// 
+//
 //     /**
 //      * Set the CanvasManager instance
 //      */
 //     public setCanvasManager(canvasManager: CanvasManager): void {
 //         this.canvasManager = canvasManager;
 //     }
-// 
+//
 //     /**
 //      * Initialize drag & drop handlers
 //      */
@@ -90,18 +90,18 @@ describe('FigureDropHandler', () => {
 //         // Canvas drop zone
 //         if (this.canvasEl) {
 //             this.canvasEl.classList.add('canvas-drop-zone');
-// 
+//
 //             // Create overlay element
 //             const overlay = document.createElement('div');
 //             overlay.className = 'canvas-drop-overlay';
 //             this.canvasEl.appendChild(overlay);
-// 
+//
 //             this.canvasEl.addEventListener('dragenter', (e) => this.handleDragEnter(e));
 //             this.canvasEl.addEventListener('dragover', (e) => this.handleDragOver(e));
 //             this.canvasEl.addEventListener('dragleave', (e) => this.handleDragLeave(e));
 //             this.canvasEl.addEventListener('drop', (e) => this.handleDrop(e));
 //         }
-// 
+//
 //         // Data table drop zone
 //         if (this.dataTableEl) {
 //             this.dataTableEl.addEventListener('dragenter', (e) => this.handleDragEnter(e));
@@ -109,10 +109,10 @@ describe('FigureDropHandler', () => {
 //             this.dataTableEl.addEventListener('dragleave', (e) => this.handleDragLeave(e));
 //             this.dataTableEl.addEventListener('drop', (e) => this.handleDataTableDrop(e));
 //         }
-// 
+//
 //         console.log('[FigureDropHandler] Drag & drop initialized');
 //     }
-// 
+//
 //     /**
 //      * Initialize paste handlers
 //      */
@@ -120,17 +120,17 @@ describe('FigureDropHandler', () => {
 //         document.addEventListener('paste', (e) => this.handlePaste(e));
 //         console.log('[FigureDropHandler] Paste handler initialized');
 //     }
-// 
+//
 //     /**
 //      * Handle drag enter
 //      */
 //     private handleDragEnter(e: DragEvent): void {
 //         e.preventDefault();
 //         e.stopPropagation();
-// 
+//
 //         const target = e.currentTarget as HTMLElement;
 //         target.classList.add('drag-over');
-// 
+//
 //         // Detect file type for visual indicator
 //         const items = e.dataTransfer?.items;
 //         if (items && items.length > 0) {
@@ -138,7 +138,7 @@ describe('FigureDropHandler', () => {
 //             if (item.kind === 'file') {
 //                 const type = item.type;
 //                 target.classList.remove('drag-json', 'drag-csv', 'drag-image');
-// 
+//
 //                 if (type === 'application/json' || item.type === '') {
 //                     // Check extension from file name if available
 //                     target.classList.add('drag-json');
@@ -150,45 +150,45 @@ describe('FigureDropHandler', () => {
 //             }
 //         }
 //     }
-// 
+//
 //     /**
 //      * Handle drag over
 //      */
 //     private handleDragOver(e: DragEvent): void {
 //         e.preventDefault();
 //         e.stopPropagation();
-// 
+//
 //         if (e.dataTransfer) {
 //             e.dataTransfer.dropEffect = 'copy';
 //         }
 //     }
-// 
+//
 //     /**
 //      * Handle drag leave
 //      */
 //     private handleDragLeave(e: DragEvent): void {
 //         e.preventDefault();
 //         e.stopPropagation();
-// 
+//
 //         const target = e.currentTarget as HTMLElement;
-// 
+//
 //         // Only remove if we're leaving the element entirely
 //         const relatedTarget = e.relatedTarget as HTMLElement;
 //         if (!target.contains(relatedTarget)) {
 //             target.classList.remove('drag-over', 'drag-json', 'drag-csv', 'drag-image');
 //         }
 //     }
-// 
+//
 //     /**
 //      * Handle drop on canvas
 //      */
 //     private async handleDrop(e: DragEvent): Promise<void> {
 //         e.preventDefault();
 //         e.stopPropagation();
-// 
+//
 //         const target = e.currentTarget as HTMLElement;
 //         target.classList.remove('drag-over', 'drag-json', 'drag-csv', 'drag-image');
-// 
+//
 //         const files = e.dataTransfer?.files;
 //         if (!files || files.length === 0) {
 //             // Check for text data (file paths from tree)
@@ -198,10 +198,10 @@ describe('FigureDropHandler', () => {
 //             }
 //             return;
 //         }
-// 
+//
 //         const file = files[0];
 //         const fileName = file.name.toLowerCase();
-// 
+//
 //         if (fileName.endsWith('.json')) {
 //             await this.handleJsonFile(file);
 //         } else if (fileName.endsWith('.csv')) {
@@ -212,20 +212,20 @@ describe('FigureDropHandler', () => {
 //             this.showNotification(`Unsupported file type: ${file.name}`, 'error');
 //         }
 //     }
-// 
+//
 //     /**
 //      * Handle drop on data table
 //      */
 //     private async handleDataTableDrop(e: DragEvent): Promise<void> {
 //         e.preventDefault();
 //         e.stopPropagation();
-// 
+//
 //         const target = e.currentTarget as HTMLElement;
 //         target.classList.remove('drag-over');
-// 
+//
 //         const files = e.dataTransfer?.files;
 //         if (!files || files.length === 0) return;
-// 
+//
 //         const file = files[0];
 //         if (file.name.toLowerCase().endsWith('.csv')) {
 //             await this.handleCsvFile(file, true);
@@ -233,7 +233,7 @@ describe('FigureDropHandler', () => {
 //             this.showNotification('Please drop a CSV file for data table', 'error');
 //         }
 //     }
-// 
+//
 //     /**
 //      * Handle paste event
 //      */
@@ -243,13 +243,13 @@ describe('FigureDropHandler', () => {
 //         if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
 //             return;
 //         }
-// 
+//
 //         const items = e.clipboardData?.items;
 //         if (!items) return;
-// 
+//
 //         for (let i = 0; i < items.length; i++) {
 //             const item = items[i];
-// 
+//
 //             // Handle image paste
 //             if (item.type.startsWith('image/')) {
 //                 e.preventDefault();
@@ -259,7 +259,7 @@ describe('FigureDropHandler', () => {
 //                 }
 //                 return;
 //             }
-// 
+//
 //             // Handle text paste (could be JSON or file path)
 //             if (item.type === 'text/plain') {
 //                 item.getAsString(async (text) => {
@@ -275,7 +275,7 @@ describe('FigureDropHandler', () => {
 //             }
 //         }
 //     }
-// 
+//
 //     /**
 //      * Handle JSON file
 //      */
@@ -283,15 +283,15 @@ describe('FigureDropHandler', () => {
 //         try {
 //             const text = await file.text();
 //             const json = JSON.parse(text);
-// 
+//
 //             // Check if it's a scitex figure JSON
 //             if (json.scitex || json.metadata_version || json.axes) {
 //                 this.showNotification(`Loaded figure: ${file.name}`, 'success');
-// 
+//
 //                 // For now, we need a file path to use the API
 //                 // In production, we would upload the file first
 //                 this.onFigureLoad?.(file.name);
-// 
+//
 //                 // If we have raw JSON, we could render directly
 //                 console.log('[FigureDropHandler] Figure JSON loaded:', json.id || file.name);
 //             } else {
@@ -302,7 +302,7 @@ describe('FigureDropHandler', () => {
 //             this.showNotification('Failed to parse JSON file', 'error');
 //         }
 //     }
-// 
+//
 //     /**
 //      * Handle JSON string (from paste)
 //      */
@@ -317,7 +317,7 @@ describe('FigureDropHandler', () => {
 //             // Not valid JSON, ignore
 //         }
 //     }
-// 
+//
 //     /**
 //      * Handle CSV file
 //      */
@@ -325,7 +325,7 @@ describe('FigureDropHandler', () => {
 //         try {
 //             const text = await file.text();
 //             const rows = this.parseCsv(text);
-// 
+//
 //             if (toDataTable) {
 //                 this.onCsvLoad?.(rows);
 //                 this.showNotification(`Loaded CSV: ${file.name} (${rows.length} rows)`, 'success');
@@ -339,16 +339,16 @@ describe('FigureDropHandler', () => {
 //             this.showNotification('Failed to parse CSV file', 'error');
 //         }
 //     }
-// 
+//
 //     /**
 //      * Handle image file
 //      */
 //     private async handleImageFile(file: File): Promise<void> {
 //         const reader = new FileReader();
-// 
+//
 //         reader.onload = async (e) => {
 //             const dataUrl = e.target?.result as string;
-// 
+//
 //             // Add to canvas if CanvasManager is available
 //             if (this.canvasManager) {
 //                 try {
@@ -367,23 +367,23 @@ describe('FigureDropHandler', () => {
 //                 this.showNotification(`Loaded image: ${file.name}`, 'success');
 //             }
 //         };
-// 
+//
 //         reader.onerror = () => {
 //             this.showNotification('Failed to read image file', 'error');
 //         };
-// 
+//
 //         reader.readAsDataURL(file);
 //     }
-// 
+//
 //     /**
 //      * Handle image blob (from paste)
 //      */
 //     private async handleImageBlob(blob: Blob): Promise<void> {
 //         const reader = new FileReader();
-// 
+//
 //         reader.onload = async (e) => {
 //             const dataUrl = e.target?.result as string;
-// 
+//
 //             // Add to canvas if CanvasManager is available
 //             if (this.canvasManager) {
 //                 try {
@@ -401,22 +401,22 @@ describe('FigureDropHandler', () => {
 //                 this.showPasteIndicator('Image pasted');
 //             }
 //         };
-// 
+//
 //         reader.readAsDataURL(blob);
 //     }
-// 
+//
 //     /**
 //      * Load figure from file path
 //      */
 //     private async loadFromPath(path: string): Promise<void> {
 //         const cleanPath = path.trim();
-// 
+//
 //         if (cleanPath.endsWith('.json')) {
 //             if (this.editor) {
 //                 // Find corresponding CSV
 //                 const csvPath = cleanPath.replace('.json', '.csv')
 //                     .replace('/json/', '/csv/');
-// 
+//
 //                 await this.editor.loadFigure(cleanPath, csvPath);
 //             }
 //             this.onFigureLoad?.(cleanPath);
@@ -428,7 +428,7 @@ describe('FigureDropHandler', () => {
 //             console.log('[FigureDropHandler] Load image from path:', cleanPath);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Parse CSV text to 2D array
 //      */
@@ -439,7 +439,7 @@ describe('FigureDropHandler', () => {
 //             const result: string[] = [];
 //             let current = '';
 //             let inQuotes = false;
-// 
+//
 //             for (let i = 0; i < line.length; i++) {
 //                 const char = line[i];
 //                 if (char === '"') {
@@ -452,11 +452,11 @@ describe('FigureDropHandler', () => {
 //                 }
 //             }
 //             result.push(current.trim());
-// 
+//
 //             return result;
 //         });
 //     }
-// 
+//
 //     /**
 //      * Check if string looks like a file path
 //      */
@@ -468,7 +468,7 @@ describe('FigureDropHandler', () => {
 //                /^[A-Za-z]:\\/.test(trimmed) ||
 //                trimmed.match(/\.(json|csv|png|svg|jpg)$/i) !== null;
 //     }
-// 
+//
 //     /**
 //      * Check if string is valid JSON
 //      */
@@ -484,35 +484,35 @@ describe('FigureDropHandler', () => {
 //             return false;
 //         }
 //     }
-// 
+//
 //     /**
 //      * Show notification
 //      */
 //     private showNotification(message: string, type: 'success' | 'error' | 'info' = 'info'): void {
 //         // Use existing notification system or create simple one
 //         console.log(`[FigureDropHandler] ${type.toUpperCase()}: ${message}`);
-// 
+//
 //         // Try to use existing showNotification if available
 //         if (typeof (window as any).showNotification === 'function') {
 //             (window as any).showNotification(message, type);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Show paste indicator
 //      */
 //     private showPasteIndicator(message: string): void {
 //         let indicator = document.querySelector('.paste-indicator') as HTMLElement;
-// 
+//
 //         if (!indicator) {
 //             indicator = document.createElement('div');
 //             indicator.className = 'paste-indicator';
 //             document.body.appendChild(indicator);
 //         }
-// 
+//
 //         indicator.innerHTML = `<i class="fas fa-paste"></i> ${message}`;
 //         indicator.classList.add('show');
-// 
+//
 //         setTimeout(() => {
 //             indicator.classList.remove('show');
 //         }, 1500);

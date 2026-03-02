@@ -200,10 +200,11 @@ const CONTEXT_SECTIONS: Record<AppContext, ShortcutSection[]> = {
  */
 function detectContext(): AppContext {
   const path = window.location.pathname;
-  if (path.startsWith("/files/")) return "files";
+  // User profile pages are at /<username>/ — detected via data attribute
+  if (document.body.dataset.trackModule === "files") return "files";
   if (path.startsWith("/scholar/")) return "scholar";
   if (path.startsWith("/vis/")) return "vis";
-  if (path.startsWith("/writer/")) return "writer";
+  if (path.startsWith("/_writer/")) return "writer";
   return "global";
 }
 

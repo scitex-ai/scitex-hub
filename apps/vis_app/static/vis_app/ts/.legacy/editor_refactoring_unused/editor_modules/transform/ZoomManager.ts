@@ -4,7 +4,7 @@
  */
 
 import { Point } from '../types';
-import { ZoomControls } from './ZoomControls.ts';
+import { ZoomControls } from './ZoomControls';
 
 export class ZoomManager {
     private canvas: any;

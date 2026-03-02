@@ -5,8 +5,8 @@
  * Refactored: BundleLoader handles bundle file loading.
  */
 
-import { loadZipBundle, loadFolderBundle as loadFolderBundleImpl, BundleState } from './BundleLoader';
-import { setText, setStyle, showElement, hideElement, formatFileSize } from './viewer-utils';
+import { loadZipBundle, loadFolderBundle as loadFolderBundleImpl, BundleState } from './_BundleLoader';
+import { setText, setStyle, showElement, hideElement, formatFileSize } from './_viewer-utils';
 
 // State variables
 let currentImage: HTMLImageElement | null = null;

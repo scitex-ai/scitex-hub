@@ -104,7 +104,7 @@ export interface DatabaseStats {
 }
 
 export class ClewApiClient {
-  private baseUrl = "/clew/api";
+  private baseUrl = "/clew/_api";
 
   private getCsrf(): string {
     const match = document.cookie.match(/csrftoken=([^;]+)/);

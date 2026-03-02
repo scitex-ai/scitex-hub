@@ -3,7 +3,7 @@
  * Tools for adding scale bars and measurement indicators
  */
 
-import { JournalPreset } from '../types.ts';
+import { JournalPreset } from '../types';
 
 export class ScaleBarTools {
     private canvas: any;

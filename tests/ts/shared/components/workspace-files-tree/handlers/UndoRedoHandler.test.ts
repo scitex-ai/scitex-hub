@@ -31,11 +31,11 @@ describe('UndoRedoHandler', () => {
 //  * Tracks file operations (create, delete, rename, move, copy) and allows undoing them.
 //  * Uses git commands under the hood where possible.
 //  */
-// 
-// import type { TreeConfig } from '../types.ts';
-// 
+//
+// import type { TreeConfig } from '../types';
+//
 // export type OperationType = 'create' | 'delete' | 'rename' | 'move' | 'copy';
-// 
+//
 // export interface FileOperation {
 //   type: OperationType;
 //   timestamp: number;
@@ -47,17 +47,17 @@ describe('UndoRedoHandler', () => {
 //   // Whether the operation involved a directory
 //   isDirectory?: boolean;
 // }
-// 
+//
 // export class UndoRedoHandler {
 //   private config: TreeConfig;
 //   private getCsrfToken: () => string;
 //   private refresh: () => Promise<void>;
 //   private showMessage: (message: string, type: 'success' | 'error' | 'info') => void;
-// 
+//
 //   private undoStack: FileOperation[] = [];
 //   private redoStack: FileOperation[] = [];
 //   private maxStackSize = 50;
-// 
+//
 //   constructor(
 //     config: TreeConfig,
 //     getCsrfToken: () => string,
@@ -69,17 +69,17 @@ describe('UndoRedoHandler', () => {
 //     this.refresh = refresh;
 //     this.showMessage = showMessage;
 //   }
-// 
+//
 //   /** Get the base API URL for file operations */
 //   private getApiUrl(action: string): string {
 //     return `/${this.config.username}/${this.config.slug}/api/files/${action}/`;
 //   }
-// 
+//
 //   /** Get the base API URL for git operations */
 //   private getGitApiUrl(action: string): string {
 //     return `/${this.config.username}/${this.config.slug}/api/git/${action}/`;
 //   }
-// 
+//
 //   /** Record an operation for potential undo */
 //   recordOperation(operation: FileOperation): void {
 //     this.undoStack.push(operation);
@@ -90,29 +90,29 @@ describe('UndoRedoHandler', () => {
 //       this.undoStack.shift();
 //     }
 //   }
-// 
+//
 //   /** Check if undo is available */
 //   canUndo(): boolean {
 //     return this.undoStack.length > 0;
 //   }
-// 
+//
 //   /** Check if redo is available */
 //   canRedo(): boolean {
 //     return this.redoStack.length > 0;
 //   }
-// 
+//
 //   /** Undo the last operation using git restore */
 //   async undo(): Promise<boolean> {
 //     if (!this.canUndo()) {
 //       this.showMessage('Nothing to undo', 'info');
 //       return false;
 //     }
-// 
+//
 //     const operation = this.undoStack.pop()!;
-// 
+//
 //     try {
 //       let success = false;
-// 
+//
 //       switch (operation.type) {
 //         case 'delete':
 //           // Restore deleted file using git
@@ -120,14 +120,14 @@ describe('UndoRedoHandler', () => {
 //             success = await this.restoreFile(operation.originalPath);
 //           }
 //           break;
-// 
+//
 //         case 'create':
 //           // Delete created file
 //           if (operation.newPath) {
 //             success = await this.deleteFile(operation.newPath);
 //           }
 //           break;
-// 
+//
 //         case 'rename':
 //         case 'move':
 //           // Move back to original location
@@ -135,7 +135,7 @@ describe('UndoRedoHandler', () => {
 //             success = await this.moveFile(operation.newPath, operation.originalPath);
 //           }
 //           break;
-// 
+//
 //         case 'copy':
 //           // Delete the copy
 //           if (operation.newPath) {
@@ -143,7 +143,7 @@ describe('UndoRedoHandler', () => {
 //           }
 //           break;
 //       }
-// 
+//
 //       if (success) {
 //         this.redoStack.push(operation);
 //         await this.refresh();
@@ -162,19 +162,19 @@ describe('UndoRedoHandler', () => {
 //       return false;
 //     }
 //   }
-// 
+//
 //   /** Redo the last undone operation */
 //   async redo(): Promise<boolean> {
 //     if (!this.canRedo()) {
 //       this.showMessage('Nothing to redo', 'info');
 //       return false;
 //     }
-// 
+//
 //     const operation = this.redoStack.pop()!;
-// 
+//
 //     try {
 //       let success = false;
-// 
+//
 //       switch (operation.type) {
 //         case 'delete':
 //           // Delete the file again
@@ -182,14 +182,14 @@ describe('UndoRedoHandler', () => {
 //             success = await this.deleteFile(operation.originalPath);
 //           }
 //           break;
-// 
+//
 //         case 'create':
 //           // Re-create the file/directory
 //           if (operation.newPath) {
 //             success = await this.createFile(operation.newPath, operation.isDirectory);
 //           }
 //           break;
-// 
+//
 //         case 'rename':
 //         case 'move':
 //           // Move to new location again
@@ -197,7 +197,7 @@ describe('UndoRedoHandler', () => {
 //             success = await this.moveFile(operation.originalPath, operation.newPath);
 //           }
 //           break;
-// 
+//
 //         case 'copy':
 //           // Copy again
 //           if (operation.originalPath && operation.newPath) {
@@ -205,7 +205,7 @@ describe('UndoRedoHandler', () => {
 //           }
 //           break;
 //       }
-// 
+//
 //       if (success) {
 //         this.undoStack.push(operation);
 //         await this.refresh();
@@ -224,7 +224,7 @@ describe('UndoRedoHandler', () => {
 //       return false;
 //     }
 //   }
-// 
+//
 //   /** Restore a file using git restore */
 //   private async restoreFile(path: string): Promise<boolean> {
 //     try {
@@ -236,7 +236,7 @@ describe('UndoRedoHandler', () => {
 //         },
 //         body: JSON.stringify({ paths: [path] }),
 //       });
-// 
+//
 //       const data = await response.json();
 //       return data.success && data.discarded?.length > 0;
 //     } catch (error) {
@@ -244,7 +244,7 @@ describe('UndoRedoHandler', () => {
 //       return false;
 //     }
 //   }
-// 
+//
 //   /** Delete a file */
 //   private async deleteFile(path: string): Promise<boolean> {
 //     try {
@@ -256,7 +256,7 @@ describe('UndoRedoHandler', () => {
 //         },
 //         body: JSON.stringify({ path }),
 //       });
-// 
+//
 //       const data = await response.json();
 //       return data.success;
 //     } catch (error) {
@@ -264,7 +264,7 @@ describe('UndoRedoHandler', () => {
 //       return false;
 //     }
 //   }
-// 
+//
 //   /** Move a file */
 //   private async moveFile(sourcePath: string, destPath: string): Promise<boolean> {
 //     try {
@@ -276,7 +276,7 @@ describe('UndoRedoHandler', () => {
 //         },
 //         body: JSON.stringify({ source_path: sourcePath, dest_path: destPath }),
 //       });
-// 
+//
 //       const data = await response.json();
 //       return data.success;
 //     } catch (error) {
@@ -284,7 +284,7 @@ describe('UndoRedoHandler', () => {
 //       return false;
 //     }
 //   }
-// 
+//
 //   /** Copy a file */
 //   private async copyFile(sourcePath: string, destPath: string): Promise<boolean> {
 //     try {
@@ -296,7 +296,7 @@ describe('UndoRedoHandler', () => {
 //         },
 //         body: JSON.stringify({ source_path: sourcePath, dest_path: destPath }),
 //       });
-// 
+//
 //       const data = await response.json();
 //       return data.success;
 //     } catch (error) {
@@ -304,7 +304,7 @@ describe('UndoRedoHandler', () => {
 //       return false;
 //     }
 //   }
-// 
+//
 //   /** Create a file or directory */
 //   private async createFile(path: string, isDirectory?: boolean): Promise<boolean> {
 //     try {
@@ -319,7 +319,7 @@ describe('UndoRedoHandler', () => {
 //           type: isDirectory ? 'directory' : 'file'
 //         }),
 //       });
-// 
+//
 //       const data = await response.json();
 //       return data.success;
 //     } catch (error) {
@@ -327,18 +327,18 @@ describe('UndoRedoHandler', () => {
 //       return false;
 //     }
 //   }
-// 
+//
 //   /** Clear undo/redo stacks */
 //   clear(): void {
 //     this.undoStack = [];
 //     this.redoStack = [];
 //   }
-// 
+//
 //   /** Get undo stack size (for UI display) */
 //   getUndoStackSize(): number {
 //     return this.undoStack.length;
 //   }
-// 
+//
 //   /** Get redo stack size (for UI display) */
 //   getRedoStackSize(): number {
 //     return this.redoStack.length;

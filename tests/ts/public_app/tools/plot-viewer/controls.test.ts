@@ -26,23 +26,23 @@ describe('controls', () => {
 // =============================================================================
 
 // // UI Controls Management
-// 
-// import { PlotSettings } from './types.ts';
-// 
+//
+// import { PlotSettings } from './types';
+//
 // export class ControlsManager {
 //     private settings: PlotSettings;
 //     private onSettingsChange: () => void;
-// 
+//
 //     constructor(settings: PlotSettings, onSettingsChange: () => void) {
 //         this.settings = settings;
 //         this.onSettingsChange = onSettingsChange;
 //     }
-// 
+//
 //     toggleSettingsPanel(): void {
 //         const panel = document.getElementById('settingsPanel');
 //         const button = document.getElementById('toggleSettings');
 //         if (!panel || !button) return;
-// 
+//
 //         if (panel.style.display === 'none' || panel.style.display === '') {
 //             panel.style.display = 'block';
 //             button.textContent = '⚙️ Hide Settings';
@@ -51,15 +51,15 @@ describe('controls', () => {
 //             button.textContent = '⚙️ Adjust Figure Settings';
 //         }
 //     }
-// 
+//
 //     updateSetting(param: string, value: string | number): void {
 //         let parsedValue: number | string = value;
-// 
+//
 //         // Don't parse float for string values (labels)
 //         if (param !== 'xLabel' && param !== 'yLabel') {
 //             parsedValue = typeof value === 'string' ? parseFloat(value) : value;
 //         }
-// 
+//
 //         switch(param) {
 //             case 'width':
 //                 this.settings.figureWidth = parsedValue as number;
@@ -113,10 +113,10 @@ describe('controls', () => {
 //                 this.updateDisplay('yLabelValue', parsedValue as string);
 //                 break;
 //         }
-// 
+//
 //         this.onSettingsChange();
 //     }
-// 
+//
 //     resetToDefaults(): void {
 //         this.updateInputAndSetting('figureWidth', 35, 'width');
 //         this.updateInputAndSetting('lineWidth', 0.12, 'lineWidth');
@@ -131,21 +131,21 @@ describe('controls', () => {
 //         this.updateInputAndSetting('xLabel', 'X axis', 'xLabel');
 //         this.updateInputAndSetting('yLabel', 'Y axis', 'yLabel');
 //     }
-// 
+//
 //     private updateDisplay(elementId: string, value: string): void {
 //         const element = document.getElementById(elementId);
 //         if (element) {
 //             element.textContent = value;
 //         }
 //     }
-// 
+//
 //     private updateInputValue(elementId: string, value: number): void {
 //         const element = document.getElementById(elementId) as HTMLInputElement;
 //         if (element) {
 //             element.value = value.toString();
 //         }
 //     }
-// 
+//
 //     private updateInputAndSetting(
 //         inputId: string,
 //         value: number | string,

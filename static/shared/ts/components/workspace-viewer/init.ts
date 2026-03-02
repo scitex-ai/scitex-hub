@@ -4,7 +4,7 @@
  * Listens for file-select events from the worktree pane.
  */
 
-import { WorkspaceViewer } from "./index.ts";
+import { WorkspaceViewer } from "./index";
 
 declare global {
   interface Window {
@@ -98,11 +98,25 @@ function openFileInViewer(
   }
 
   void viewer.openFile(path);
+
+  // Track file open in navigation history (debounced for rapid clicks)
+  window._appNav?.push({ file: path });
+}
+
+// Restore file on back/forward navigation
+function registerNavRestore(): void {
+  window._appNav?.onRestore((state) => {
+    if (state.file && window.workspaceViewer) {
+      const emptyState = document.getElementById("ws-viewer-empty");
+      openFileInViewer(window.workspaceViewer, state.file, emptyState);
+    }
+  });
 }
 
 // Auto-run on DOMContentLoaded
 if (typeof document !== "undefined") {
   document.addEventListener("DOMContentLoaded", () => {
     initWorkspaceViewer();
+    registerNavRestore();
   });
 }

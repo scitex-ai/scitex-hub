@@ -34,7 +34,7 @@ describe('FigzBundleManager', () => {
 //  * - Integration with pltz bundles for panels
 //  * - Figure export and preview
 //  */
-// 
+//
 // import type {
 //     FigzBundle,
 //     FigzBundleSummary,
@@ -46,11 +46,11 @@ describe('FigzBundleManager', () => {
 //     LayoutConfig,
 //     LayoutPosition,
 //     LayoutOptionsResponse,
-// } from './types.ts';
-// 
+// } from './types';
+//
 // // API endpoints
 // const API_BASE = '/vis/api/bundles/figz';
-// 
+//
 // export interface CreateFigzBundleParams {
 //     name: string;
 //     layout: FigzLayout;
@@ -62,7 +62,7 @@ describe('FigzBundleManager', () => {
 //     description?: string;
 //     tags?: string[];
 // }
-// 
+//
 // export interface UpdateFigzBundleParams {
 //     name?: string;
 //     spec?: Partial<FigzSpec>;
@@ -73,7 +73,7 @@ describe('FigzBundleManager', () => {
 //     description?: string;
 //     tags?: string[];
 // }
-// 
+//
 // export interface AddPanelParams {
 //     label: string;
 //     pltz_id?: string;  // ID of existing pltz bundle
@@ -81,24 +81,24 @@ describe('FigzBundleManager', () => {
 //     style?: object;    // Inline style for new panel
 //     data_csv?: string; // CSV data for new panel
 // }
-// 
+//
 // export class FigzBundleManager {
 //     private bundles: Map<string, FigzBundle> = new Map();
 //     private layoutOptions: Record<FigzLayout, LayoutConfig> | null = null;
 //     private listeners: Set<(bundles: FigzBundleSummary[]) => void> = new Set();
 //     private csrfToken: string;
-// 
+//
 //     constructor() {
 //         this.csrfToken = this.getCSRFToken();
 //     }
-// 
+//
 //     private getCSRFToken(): string {
 //         const cookie = document.cookie
 //             .split('; ')
 //             .find(row => row.startsWith('csrftoken='));
 //         return cookie ? cookie.split('=')[1] : '';
 //     }
-// 
+//
 //     private async fetchAPI<T>(
 //         endpoint: string,
 //         options: RequestInit = {}
@@ -112,19 +112,19 @@ describe('FigzBundleManager', () => {
 //                 ...options.headers,
 //             },
 //         });
-// 
+//
 //         if (!response.ok) {
 //             const error = await response.json().catch(() => ({}));
 //             throw new Error(error.error || `API error: ${response.status}`);
 //         }
-// 
+//
 //         const contentType = response.headers.get('content-type');
 //         if (contentType?.includes('application/json')) {
 //             return response.json();
 //         }
 //         return response as unknown as T;
 //     }
-// 
+//
 //     /**
 //      * List all figz bundles for current user
 //      */
@@ -135,15 +135,15 @@ describe('FigzBundleManager', () => {
 //         const queryParams = new URLSearchParams();
 //         if (params?.layout) queryParams.set('layout', params.layout);
 //         if (params?.search) queryParams.set('search', params.search);
-// 
+//
 //         const query = queryParams.toString();
 //         const endpoint = query ? `/?${query}` : '/';
-// 
+//
 //         const response = await this.fetchAPI<FigzBundleListResponse>(endpoint);
 //         this.notifyListeners(response.bundles);
 //         return response.bundles;
 //     }
-// 
+//
 //     /**
 //      * Get full bundle details including spec, style, and panels
 //      */
@@ -152,7 +152,7 @@ describe('FigzBundleManager', () => {
 //         this.bundles.set(bundleId, bundle);
 //         return bundle;
 //     }
-// 
+//
 //     /**
 //      * Create a new figz bundle
 //      */
@@ -163,7 +163,7 @@ describe('FigzBundleManager', () => {
 //         });
 //         return response;
 //     }
-// 
+//
 //     /**
 //      * Update an existing bundle
 //      */
@@ -177,7 +177,7 @@ describe('FigzBundleManager', () => {
 //         });
 //         return response;
 //     }
-// 
+//
 //     /**
 //      * Delete a bundle
 //      */
@@ -187,21 +187,21 @@ describe('FigzBundleManager', () => {
 //         });
 //         this.bundles.delete(bundleId);
 //     }
-// 
+//
 //     /**
 //      * Get preview image URL for composed figure
 //      */
 //     getPreviewUrl(bundleId: string, type: 'png' | 'svg' | 'overview' = 'png'): string {
 //         return `${API_BASE}/${bundleId}/preview/?type=${type}`;
 //     }
-// 
+//
 //     /**
 //      * Get preview image as base64 data URL
 //      */
 //     async getPreviewBase64(bundleId: string, type: 'png' | 'svg' | 'overview' = 'png'): Promise<string> {
 //         const response = await fetch(this.getPreviewUrl(bundleId, type));
 //         if (!response.ok) throw new Error('Failed to load preview');
-// 
+//
 //         const blob = await response.blob();
 //         return new Promise((resolve, reject) => {
 //             const reader = new FileReader();
@@ -210,7 +210,7 @@ describe('FigzBundleManager', () => {
 //             reader.readAsDataURL(blob);
 //         });
 //     }
-// 
+//
 //     /**
 //      * Get all panel previews
 //      */
@@ -218,7 +218,7 @@ describe('FigzBundleManager', () => {
 //         return this.fetchAPI<{ panels: Record<string, string | null> }>(`/${bundleId}/panels/`)
 //             .then(r => r.panels);
 //     }
-// 
+//
 //     /**
 //      * Add a panel to the figure
 //      */
@@ -230,7 +230,7 @@ describe('FigzBundleManager', () => {
 //         // Refresh bundle data
 //         return this.getBundle(bundleId);
 //     }
-// 
+//
 //     /**
 //      * Remove a panel from the figure
 //      */
@@ -241,18 +241,18 @@ describe('FigzBundleManager', () => {
 //         // Refresh bundle data
 //         return this.getBundle(bundleId);
 //     }
-// 
+//
 //     /**
 //      * Get available layout options
 //      */
 //     async getLayoutOptions(): Promise<Record<FigzLayout, LayoutConfig>> {
 //         if (this.layoutOptions) return this.layoutOptions;
-// 
+//
 //         const response = await this.fetchAPI<LayoutOptionsResponse>('/layouts/');
 //         this.layoutOptions = response.layouts;
 //         return this.layoutOptions;
 //     }
-// 
+//
 //     /**
 //      * Get panel positions for a layout
 //      */
@@ -260,7 +260,7 @@ describe('FigzBundleManager', () => {
 //         const options = await this.getLayoutOptions();
 //         return options[layout]?.positions || {};
 //     }
-// 
+//
 //     /**
 //      * Subscribe to bundle list changes
 //      */
@@ -268,11 +268,11 @@ describe('FigzBundleManager', () => {
 //         this.listeners.add(listener);
 //         return () => this.listeners.delete(listener);
 //     }
-// 
+//
 //     private notifyListeners(bundles: FigzBundleSummary[]): void {
 //         this.listeners.forEach(listener => listener(bundles));
 //     }
-// 
+//
 //     /**
 //      * Get cached bundle or fetch if not available
 //      */
@@ -281,7 +281,7 @@ describe('FigzBundleManager', () => {
 //         if (cached) return cached;
 //         return this.getBundle(bundleId);
 //     }
-// 
+//
 //     /**
 //      * Create a new figure with default settings
 //      */
@@ -291,12 +291,12 @@ describe('FigzBundleManager', () => {
 //         width_mm?: number;
 //     }): Promise<FigzBundle> {
 //         const layout = params.layout || '1x1';
-// 
+//
 //         const spec: Partial<FigzSpec> = {
 //             figure_id: params.name.toLowerCase().replace(/\s+/g, '_'),
 //             panels: {},
 //         };
-// 
+//
 //         const style: Partial<FigzStyle> = {
 //             theme: {
 //                 mode: 'light',
@@ -327,7 +327,7 @@ describe('FigzBundleManager', () => {
 //                 font_weight: 'bold',
 //             },
 //         };
-// 
+//
 //         return this.createBundle({
 //             name: params.name,
 //             layout,
@@ -336,7 +336,7 @@ describe('FigzBundleManager', () => {
 //             width_mm: params.width_mm || 170,
 //         });
 //     }
-// 
+//
 //     /**
 //      * Get layout label for display
 //      */
@@ -353,7 +353,7 @@ describe('FigzBundleManager', () => {
 //         };
 //         return labels[layout] || layout;
 //     }
-// 
+//
 //     /**
 //      * Get panel count for a layout
 //      */
@@ -370,7 +370,7 @@ describe('FigzBundleManager', () => {
 //         };
 //         return counts[layout] || 0;
 //     }
-// 
+//
 //     /**
 //      * Get panel labels for a layout
 //      */
@@ -379,7 +379,7 @@ describe('FigzBundleManager', () => {
 //         return 'ABCDEFGH'.slice(0, count).split('');
 //     }
 // }
-// 
+//
 // // Singleton instance
 // export const figzBundleManager = new FigzBundleManager();
 

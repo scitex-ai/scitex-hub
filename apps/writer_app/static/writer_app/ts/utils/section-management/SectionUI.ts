@@ -3,7 +3,7 @@
  * Handles UI updates for sections including title labels, PDF preview, and compiled PDF display
  */
 
-import { getWriterConfig } from "../../helpers";
+import { getWriterConfig } from "../../_helpers";
 import {
   updateSectionTitleLabel,
   updatePDFPreviewTitle,

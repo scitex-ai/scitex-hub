@@ -24,7 +24,7 @@ export {
   scrollIntoView,
   getScrollPosition,
   setScrollPosition,
-} from "./dom.utils";
+} from "./_dom.utils";
 
 // Keyboard utilities
 export {
@@ -33,7 +33,7 @@ export {
   formatShortcut,
   isInputElement,
   type KeyboardShortcut,
-} from "./keyboard.utils";
+} from "./_keyboard.utils";
 
 // LaTeX utilities
 export {
@@ -52,7 +52,7 @@ export {
   SimpleTimer,
   wait,
   createTimeout,
-} from "./timer.utils";
+} from "./_timer.utils";
 
 // UI utilities
 export {
@@ -90,7 +90,7 @@ export {
   syncDropdownsFromPath,
   handleDocTypeSwitch,
   toggleSectionVisibility,
-} from "./section-dropdown/index";
+} from "./_section-dropdown/index";
 
 // Section management utilities
 export {

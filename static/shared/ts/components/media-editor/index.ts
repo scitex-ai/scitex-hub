@@ -7,6 +7,6 @@
  * @module @scitex/media-editor
  */
 
-export { CsvEditor } from './CsvEditor.ts';
-export type { MediaEditorConfig } from './types.ts';
-export { CSV_EXTENSIONS, isCsvFile } from './types.ts';
+export { CsvEditor } from './_CsvEditor';
+export type { MediaEditorConfig } from './types';
+export { CSV_EXTENSIONS, isCsvFile } from './types';

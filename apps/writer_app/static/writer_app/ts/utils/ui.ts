@@ -3,7 +3,7 @@
  * Basic helper functions for UI interactions
  */
 
-import { getWriterConfig } from "../helpers";
+import { getWriterConfig } from "../_helpers";
 
 /**
  * Show toast notification

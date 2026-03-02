@@ -2,14 +2,10 @@
  * Stats Calculator - Entry point
  */
 
-import { StatsCalculator } from "./StatsCalculator.ts";
+import { StatsCalculator } from "./_StatsCalculator";
 
-export { StatsCalculator } from "./StatsCalculator.ts";
-export type {
-  StatsTestConfig,
-  StatsResult,
-  WorkflowCategory,
-} from "./types.ts";
+export { StatsCalculator } from "./_StatsCalculator";
+export type { StatsTestConfig, StatsResult, WorkflowCategory } from "./types";
 
 let instance: StatsCalculator | null = null;
 

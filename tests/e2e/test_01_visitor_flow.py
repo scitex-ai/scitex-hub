@@ -61,7 +61,7 @@ class TestVisitorPool:
         api_client.get("/")
 
         # Try to access a visitor project path
-        resp = api_client.get("/files/visitor-001/default-project/")
+        resp = api_client.get("/visitor-001/default-project/")
         # Could be 200 (accessible), 302 (redirect), or 403/404 (not assigned this visitor)
         assert resp.status_code in [200, 302, 403, 404]
 

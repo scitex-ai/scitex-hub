@@ -6,24 +6,24 @@
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/index.ts loaded",
 );
-export { WriterEditor, type EditorConfig } from "./editor";
+export { WriterEditor, type EditorConfig } from "./_editor";
 export { EnhancedEditor, type MonacoEditorConfig } from "./monaco-editor";
-export { SectionsManager, type Section } from "./sections";
-export { CompilationManager, type CompilationOptions } from "./compilation";
+export { SectionsManager, type Section } from "./_sections";
+export { CompilationManager, type CompilationOptions } from "./_compilation";
 export {
   FileTreeManager,
   type FileTreeNode,
   type FileTreeOptions,
-} from "./file_tree/index";
-export { LatexWrapper, type LatexWrapperOptions } from "./latex-wrapper";
+} from "./_file_tree/index";
+export { LatexWrapper, type LatexWrapperOptions } from "./_latex-wrapper";
 export { PDFPreviewManager, type PDFPreviewOptions } from "./pdf-preview/index";
 // PanelResizer removed — now uses shared HorizontalResizer
 export {
   EditorControls,
   type EditorControlsOptions,
-} from "./editor-controls/index";
+} from "./_editor-controls/index";
 export { CitationsPanel, type Citation } from "./citations-panel";
-export { FiguresPanel, type Figure } from "./figures-panel";
+export { FiguresPanel, type Figure } from "./_figures-panel";
 export { TablesPanel, type Table } from "./tables-panel";
 export { TablePreviewModalOrchestrator } from "./table-preview-modal";
 export {
@@ -36,24 +36,27 @@ export {
   compilationSettings,
   type CompilationSettings,
 } from "./compilation-settings";
-export { StatePersistenceManager, statePersistence } from "./state-persistence";
+export {
+  StatePersistenceManager,
+  statePersistence,
+} from "./_state-persistence";
 export {
   PDFScrollZoomHandler,
   type PDFScrollZoomOptions,
   type PDFColorMode,
   type PDFColorTheme,
 } from "./pdf-scroll-zoom";
-export { GitHistoryManager } from "./git-history";
+export { GitHistoryManager } from "./_git-history";
 
 // New modular exports
-export { setupDragAndDrop, setupPDFScrollPriority } from "./drag-drop";
+export { setupDragAndDrop, setupPDFScrollPriority } from "./_drag-drop";
 export {
   getPageTheme,
   filterThemeOptions,
   applyCodeEditorTheme,
   setupThemeListener,
   setupKeybindingListener,
-} from "./theme-manager";
+} from "./_theme-manager";
 export {
   scheduleSave,
   scheduleAutoCompile,
@@ -66,5 +69,5 @@ export {
   closeCommitModal,
   handleGitCommit,
   showCompilationOptionsModal,
-} from "./modals";
+} from "./_modals";
 export { setupWorkspaceInitialization, waitForMonaco } from "./workspace-init";

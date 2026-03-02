@@ -69,7 +69,7 @@ export class FileBrowser {
     tree.innerHTML = "<p>Loading files...</p>";
 
     try {
-      const response = await fetch(`${this.config.apiBaseUrl}api/file-tree/`, {
+      const response = await fetch(`${this.config.apiBaseUrl}api/_file-tree/`, {
         method: "GET",
         headers: {
           "X-Requested-With": "XMLHttpRequest",

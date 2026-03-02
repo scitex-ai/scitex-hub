@@ -17,12 +17,12 @@ export type {
   BaseOpts,
   PropagationTarget,
 } from "./types";
-export { HorizontalResizer } from "./horizontal";
-export { VerticalResizer } from "./vertical";
-export { BaseResizer } from "./base";
+export { HorizontalResizer } from "./_horizontal";
+export { VerticalResizer } from "./_vertical";
+export { BaseResizer } from "./_base";
 
-import { HorizontalResizer } from "./horizontal";
-import { VerticalResizer } from "./vertical";
+import { HorizontalResizer } from "./_horizontal";
+import { VerticalResizer } from "./_vertical";
 
 let _autoInitDone = false;
 const _initializedIds = new Set<string>();

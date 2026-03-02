@@ -40,7 +40,7 @@ const ZEN_MODE_STORAGE_KEY = "scitex-zen-mode-active";
 const ZEN_SAVED_STATES_KEY = "scitex-zen-saved-states";
 
 // URL hash values for direct access (useful for screenshots/testing)
-// e.g., /writer/#zen, /code/#fullscreen, /writer/#default
+// e.g., /_writer/#zen, /code/#fullscreen, /_writer/#default
 const HASH_ZEN = "zen";
 const HASH_FULLSCREEN = "fullscreen";
 const HASH_DEFAULT = "default";
@@ -256,7 +256,7 @@ export class ZenMode {
    * Priority: URL hash > localStorage
    */
   private restoreZenState(): void {
-    // Check URL hash first (e.g., /writer/#zen, /code/#fullscreen, /writer/#default)
+    // Check URL hash first (e.g., /_writer/#zen, /code/#fullscreen, /_writer/#default)
     const hash = window.location.hash.slice(1).toLowerCase();
 
     // Handle #default hash - expand all panels, clear zen state

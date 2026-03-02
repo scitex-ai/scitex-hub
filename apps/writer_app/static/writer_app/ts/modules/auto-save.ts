@@ -3,11 +3,11 @@
  * Handles automatic saving and compilation scheduling
  */
 
-import type { WriterEditor } from "./editor";
-import type { SectionsManager } from "./sections";
+import type { WriterEditor } from "./_editor";
+import type { SectionsManager } from "./_sections";
 import type { PDFPreviewManager } from "./pdf-preview/index";
 import { getCsrfToken } from "@/utils/csrf.js";
-import { getWriterConfig } from "../helpers";
+import { getWriterConfig } from "../_helpers";
 import { getUserContext } from "../utils/ui";
 import {
   validateSaveSectionsResponse,

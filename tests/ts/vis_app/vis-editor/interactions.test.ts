@@ -34,16 +34,16 @@ describe('interactions', () => {
 //  * - Theme switching
 //  * - File tree integration
 //  */
-// 
-// import type { VisEditor } from './VisEditor.ts';
-// 
+//
+// import type { VisEditor } from './VisEditor';
+//
 // export interface InteractionHandlers {
 //     setupThemeToggle(): void;
 //     setupFilesTree(projectOwner: string, projectSlug: string): Promise<void>;
 //     setupShortcutsHelp(): void;
 //     setupHitRegionToggle(): void;
 // }
-// 
+//
 // /**
 //  * Setup interaction handlers
 //  */
@@ -57,12 +57,12 @@ describe('interactions', () => {
 //             console.warn('[InteractionHandlers] Canvas theme toggle button not found');
 //             return;
 //         }
-// 
+//
 //         // Get global theme first to use as default
 //         const globalTheme = localStorage.getItem('scitex-theme-preference') || 'dark';
 //         const canvasThemeValue = localStorage.getItem('canvas-theme') || globalTheme;
 //         let canvasIsDark = canvasThemeValue === 'dark';
-// 
+//
 //         // Function to update theme emoji (now inside .theme-icon span)
 //         const updateThemeEmoji = (isDark: boolean) => {
 //             const themeIcon = themeToggle.querySelector('.theme-icon');
@@ -70,7 +70,7 @@ describe('interactions', () => {
 //                 themeIcon.textContent = isDark ? '🌙' : '☀️';
 //             }
 //         };
-// 
+//
 //         // Function to update dark mode warning visibility (now inline with theme toggle)
 //         const updateDarkModeWarning = (isDark: boolean) => {
 //             const warning = document.getElementById('toolbar-dark-warning');
@@ -78,19 +78,19 @@ describe('interactions', () => {
 //                 warning.style.display = isDark ? 'inline-flex' : 'none';
 //             }
 //         };
-// 
+//
 //         themeToggle.addEventListener('click', () => {
 //             canvasIsDark = !canvasIsDark;
 //             const canvasTheme = canvasIsDark ? 'dark' : 'light';
 //             localStorage.setItem('canvas-theme', canvasTheme);
-// 
+//
 //             editor.updateCanvasTheme(canvasIsDark);
 //             updateThemeEmoji(canvasIsDark);
 //             updateDarkModeWarning(canvasIsDark);
-// 
+//
 //             console.log(`[InteractionHandlers] Canvas theme toggled to ${canvasTheme}`);
 //         });
-// 
+//
 //         // Apply initial theme state
 //         updateThemeEmoji(canvasIsDark);
 //         updateDarkModeWarning(canvasIsDark);
@@ -98,7 +98,7 @@ describe('interactions', () => {
 //         editor.updateCanvasTheme(canvasIsDark);
 //         console.log(`[InteractionHandlers] Canvas theme restored to ${canvasThemeValue}`);
 //     }
-// 
+//
 //     /**
 //      * Setup WorkspaceFilesTree integration
 //      */
@@ -108,13 +108,13 @@ describe('interactions', () => {
 //                 console.warn('[InteractionHandlers] No project context found, skipping file tree');
 //                 return;
 //             }
-// 
+//
 //             console.log(`[InteractionHandlers] Initializing WorkspaceFilesTree for ${projectOwner}/${projectSlug}`);
-// 
+//
 //             // Import the shared WorkspaceFilesTree component using @ alias
 //             const module = await import("@/components/workspace-files-tree/WorkspaceFilesTree") as any;
 //             const { WorkspaceFilesTree } = module;
-// 
+//
 //             // Initialize the tree
 //             const filesTree = new WorkspaceFilesTree({
 //                 mode: 'vis',
@@ -125,10 +125,10 @@ describe('interactions', () => {
 //                 showGitStatus: true,
 //                 onFileSelect: async (path: string) => {
 //                     console.log(`[InteractionHandlers] File selected: ${path}`);
-// 
+//
 //                     // Construct full filesystem path from relative path
 //                     const fullPath = `/app/data/users/${projectOwner}/proj/${projectSlug}/${path}`;
-// 
+//
 //                     // Handle figz bundle files (zipped format only)
 //                     if (path.endsWith('.figz')) {
 //                         console.log('[InteractionHandlers] Loading figz bundle:', fullPath);
@@ -145,7 +145,7 @@ describe('interactions', () => {
 //                         }
 //                         return;
 //                     }
-// 
+//
 //                     // Handle pltz bundle files (zipped format only)
 //                     if (path.endsWith('.pltz')) {
 //                         console.log('[InteractionHandlers] Loading pltz bundle:', fullPath);
@@ -169,16 +169,16 @@ describe('interactions', () => {
 //                         }
 //                         return;
 //                     }
-// 
+//
 //                     // TODO: Handle other file types (CSV, images, etc.)
 //                 },
 //             });
-// 
+//
 //             await filesTree.initialize();
-// 
+//
 //             // Expose tree to window for debugging
 //             (window as any).filesTree = filesTree;
-// 
+//
 //             // Listen for file-delete events to sync tabs with filesystem
 //             const filesTreeContainer = document.getElementById('files-tree');
 //             if (filesTreeContainer) {
@@ -186,14 +186,14 @@ describe('interactions', () => {
 //                     const customEvent = event as CustomEvent;
 //                     const deletedPath = customEvent.detail?.path;
 //                     console.log(`[InteractionHandlers] File deleted: ${deletedPath}`);
-// 
+//
 //                     // Get managers for cleanup
 //                     const managers = editor.getManagers();
-// 
+//
 //                     // Check if it's a figz bundle that was deleted
 //                     if (deletedPath?.endsWith('.figz')) {
 //                         console.log('[InteractionHandlers] Figz bundle deleted, cleaning up tabs and canvas');
-// 
+//
 //                         // Clear canvas if the deleted figure is currently displayed
 //                         const currentFigzPath = managers.canvasManager.getCurrentFigzPath?.();
 //                         if (currentFigzPath && currentFigzPath.includes(deletedPath)) {
@@ -201,14 +201,14 @@ describe('interactions', () => {
 //                             console.log('[InteractionHandlers] Cleared canvas after figure deletion');
 //                         }
 //                     }
-// 
+//
 //                     // Always validate tabs after any file deletion (orphan cleanup)
 //                     setTimeout(() => {
 //                         editor.validateTabsAgainstFilesystem();
 //                     }, 500);
 //                 });
 //                 console.log('[InteractionHandlers] File-delete event listener registered');
-// 
+//
 //                 // Also listen for tree-refresh events
 //                 filesTreeContainer.addEventListener('tree-refresh', () => {
 //                     console.log('[InteractionHandlers] Tree refreshed, validating tabs');
@@ -217,19 +217,19 @@ describe('interactions', () => {
 //                     }, 500);
 //                 });
 //             }
-// 
+//
 //             // Validate tabs against filesystem after tree loads
 //             // Use setTimeout to ensure DOM is fully updated
 //             setTimeout(() => {
 //                 editor.validateTabsAgainstFilesystem();
 //             }, 800);
-// 
+//
 //             console.log('[InteractionHandlers] WorkspaceFilesTree initialized successfully');
 //         } catch (error) {
 //             console.error('[InteractionHandlers] Failed to initialize WorkspaceFilesTree:', error);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Apply saved themes
 //      */
@@ -237,15 +237,15 @@ describe('interactions', () => {
 //         // Apply saved global theme
 //         const savedTheme = localStorage.getItem('scitex-theme-preference') || 'dark';
 //         document.documentElement.setAttribute('data-theme', savedTheme);
-// 
+//
 //         // Apply saved canvas theme
 //         const savedCanvasTheme = localStorage.getItem('canvas-theme') || savedTheme;
 //         const canvasDarkMode = savedCanvasTheme === 'dark';
 //         editor.updateCanvasTheme(canvasDarkMode);
-// 
+//
 //         console.log('[InteractionHandlers] Themes applied');
 //     }
-// 
+//
 //     /**
 //      * Setup keyboard shortcuts help modal
 //      * Creates a dynamic modal with 3-column grid layout
@@ -253,7 +253,7 @@ describe('interactions', () => {
 //     function setupShortcutsHelp(): void {
 //         const helpBtn = document.getElementById('btn-shortcuts-help');
 //         if (!helpBtn) return;
-// 
+//
 //         // Create modal dynamically (replaces HTML modal)
 //         let modal = document.getElementById('shortcuts-modal-dynamic');
 //         if (!modal) {
@@ -356,7 +356,7 @@ describe('interactions', () => {
 //                 z-index: 10000;
 //             `;
 //             document.body.appendChild(modal);
-// 
+//
 //             // Add styles
 //             const style = document.createElement('style');
 //             style.textContent = `
@@ -464,22 +464,22 @@ describe('interactions', () => {
 //             `;
 //             document.head.appendChild(style);
 //         }
-// 
+//
 //         const closeModal = () => {
 //             modal!.style.display = 'none';
 //         };
-// 
+//
 //         const openModal = () => {
 //             modal!.style.display = 'flex';
 //         };
-// 
+//
 //         const toggleModal = () => {
 //             modal!.style.display = modal!.style.display === 'flex' ? 'none' : 'flex';
 //         };
-// 
+//
 //         // Show modal on button click
 //         helpBtn.addEventListener('click', openModal);
-// 
+//
 //         // Close handlers
 //         modal.querySelector('.shortcuts-modal-close')?.addEventListener('click', closeModal);
 //         modal.addEventListener('click', (e) => {
@@ -487,7 +487,7 @@ describe('interactions', () => {
 //                 closeModal();
 //             }
 //         });
-// 
+//
 //         // Keyboard handlers
 //         document.addEventListener('keydown', (e) => {
 //             // Don't trigger if typing in input
@@ -495,23 +495,23 @@ describe('interactions', () => {
 //                 document.activeElement?.tagName === 'TEXTAREA') {
 //                 return;
 //             }
-// 
+//
 //             // ? key - Toggle modal
 //             if (e.key === '?' && !e.ctrlKey && !e.altKey && !e.metaKey) {
 //                 e.preventDefault();
 //                 toggleModal();
 //             }
-// 
+//
 //             // Escape key - Close modal
 //             if (e.key === 'Escape' && modal!.style.display === 'flex') {
 //                 e.preventDefault();
 //                 closeModal();
 //             }
 //         });
-// 
+//
 //         console.log('[InteractionHandlers] Shortcuts help modal initialized');
 //     }
-// 
+//
 //     /**
 //      * Setup hit region overlay toggle button (debug visualization)
 //      */
@@ -521,35 +521,35 @@ describe('interactions', () => {
 //             console.warn('[InteractionHandlers] Hit regions toggle button not found');
 //             return;
 //         }
-// 
+//
 //         // Track toggle state for button visual feedback
 //         let isActive = false;
-// 
+//
 //         toggleBtn.addEventListener('click', () => {
 //             const canvasManager = editor.getCanvasManager();
 //             if (!canvasManager) {
 //                 console.warn('[InteractionHandlers] CanvasManager not available');
 //                 return;
 //             }
-// 
+//
 //             const result = canvasManager.toggleHitRegionOverlay();
 //             isActive = result;
-// 
+//
 //             // Update button appearance
 //             toggleBtn.classList.toggle('active', isActive);
 //             toggleBtn.title = isActive
 //                 ? 'Hide hit region overlay (debug)'
 //                 : 'Show hit region overlay (debug)';
-// 
+//
 //             console.log(`[InteractionHandlers] Hit region overlay: ${isActive ? 'ON' : 'OFF'}`);
 //         });
-// 
+//
 //         console.log('[InteractionHandlers] Hit region toggle button initialized');
 //     }
-// 
+//
 //     // Apply themes on initialization
 //     applySavedThemes();
-// 
+//
 //     return {
 //         setupThemeToggle,
 //         setupFilesTree,

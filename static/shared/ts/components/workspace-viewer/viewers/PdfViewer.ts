@@ -3,8 +3,8 @@
  * State is stored as instance properties (not on window).
  */
 
-import type { Viewer } from "../types.ts";
-import { getFileUrl } from "../file-loader.ts";
+import type { Viewer } from "../types";
+import { getFileUrl } from "../_file-loader";
 
 const PDFJS_CDN =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";

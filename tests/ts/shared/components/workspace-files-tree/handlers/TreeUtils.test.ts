@@ -30,9 +30,9 @@ describe('TreeUtils', () => {
 //  *
 //  * Extracted from WorkspaceFilesTree.ts for better code organization.
 //  */
-// 
-// import type { TreeItem } from '../types.ts';
-// 
+//
+// import type { TreeItem } from '../types';
+//
 // export class TreeUtils {
 //   /**
 //    * Find an item in the tree by path
@@ -50,7 +50,7 @@ describe('TreeUtils', () => {
 //     };
 //     return search(treeData);
 //   }
-// 
+//
 //   /**
 //    * Check if a path exists in the tree data
 //    */
@@ -67,7 +67,7 @@ describe('TreeUtils', () => {
 //     }
 //     return false;
 //   }
-// 
+//
 //   /**
 //    * Get parent paths for a given path
 //    */
@@ -79,7 +79,7 @@ describe('TreeUtils', () => {
 //     }
 //     return parents;
 //   }
-// 
+//
 //   /**
 //    * Get all file paths from tree (flattened)
 //    */

@@ -35,9 +35,9 @@ describe('TableEditing', () => {
 //  * - Handle Delete/Backspace to clear cells
 //  * - F2 to toggle edit mode
 //  */
-// 
-// import { Dataset, DataRow } from './types.ts';
-// 
+//
+// import { Dataset, DataRow } from './types';
+//
 // export interface TableEditingCallbacks {
 //     getCurrentData: () => Dataset | null;
 //     setCurrentData: (data: Dataset | null) => void;
@@ -50,32 +50,32 @@ describe('TableEditing', () => {
 //     hasRangeSelection: () => boolean;  // Check if multiple cells are selected
 //     statusBarCallback?: (message: string) => void;
 // }
-// 
+//
 // export class TableEditing {
 //     // Editing state
 //     private editingCell: HTMLElement | null = null;
 //     private editingCellBlurHandler: (() => void) | null = null;
-// 
+//
 //     constructor(private callbacks: TableEditingCallbacks) {}
-// 
+//
 //     /**
 //      * Enter edit mode for a cell
 //      */
 //     public enterEditMode(cell: HTMLElement): void {
 //         this.exitEditMode(); // Exit any existing edit mode
-// 
+//
 //         cell.contentEditable = 'true';
 //         cell.classList.add('editing');
 //         cell.focus();
 //         this.editingCell = cell;
-// 
+//
 //         // Select all text
 //         const range = document.createRange();
 //         range.selectNodeContents(cell);
 //         const selection = window.getSelection();
 //         selection?.removeAllRanges();
 //         selection?.addRange(range);
-// 
+//
 //         // On blur, exit edit mode
 //         this.editingCellBlurHandler = () => {
 //             // Only exit if we're still editing this cell
@@ -85,25 +85,25 @@ describe('TableEditing', () => {
 //         };
 //         cell.addEventListener('blur', this.editingCellBlurHandler);
 //     }
-// 
+//
 //     /**
 //      * Exit edit mode
 //      */
 //     public exitEditMode(): void {
 //         if (!this.editingCell) return;
-// 
+//
 //         // Remove blur handler
 //         if (this.editingCellBlurHandler) {
 //             this.editingCell.removeEventListener('blur', this.editingCellBlurHandler);
 //             this.editingCellBlurHandler = null;
 //         }
-// 
+//
 //         this.editingCell.contentEditable = 'false';
 //         this.editingCell.classList.remove('editing');
 //         this.handleCellEdit(this.editingCell);
 //         this.editingCell = null;
 //     }
-// 
+//
 //     /**
 //      * Handle cell editing
 //      */
@@ -111,10 +111,10 @@ describe('TableEditing', () => {
 //         const rowIndex = cell.getAttribute('data-row');
 //         const colIndex = cell.getAttribute('data-col');
 //         const value = cell.textContent?.trim() || '';
-// 
+//
 //         const currentData = this.callbacks.getCurrentData();
 //         if (!currentData) return;
-// 
+//
 //         if (cell.tagName === 'TH' && colIndex !== null) {
 //             // Update column name
 //             const idx = parseInt(colIndex);
@@ -122,7 +122,7 @@ describe('TableEditing', () => {
 //                 const oldName = currentData.columns[idx];
 //                 const newName = value || this.getColumnLabel(idx);
 //                 currentData.columns[idx] = newName;
-// 
+//
 //                 // Update all row data with new column name
 //                 currentData.rows.forEach(row => {
 //                     if (oldName in row) {
@@ -132,7 +132,7 @@ describe('TableEditing', () => {
 //                         }
 //                     }
 //                 });
-// 
+//
 //                 console.log('[TableEditing] Column renamed:', oldName, '->', newName);
 //             }
 //         } else if (rowIndex !== null && colIndex !== null) {
@@ -147,19 +147,19 @@ describe('TableEditing', () => {
 //             }
 //         }
 //     }
-// 
+//
 //     /**
 //      * Handle keyboard navigation in cells
 //      */
 //     public handleCellKeydown(e: KeyboardEvent, cell: HTMLElement): void {
 //         const currentData = this.callbacks.getCurrentData();
 //         if (!currentData) return;
-// 
+//
 //         // If in edit mode, handle differently
 //         if (this.editingCell === cell) {
 //             const rowIndex = parseInt(cell.getAttribute('data-row') || '-1');
 //             const colIndex = parseInt(cell.getAttribute('data-col') || '-1');
-// 
+//
 //             if (e.key === 'Escape') {
 //                 e.preventDefault();
 //                 this.exitEditMode();
@@ -167,12 +167,12 @@ describe('TableEditing', () => {
 //             } else if (e.key === 'Enter' || e.key === 'Tab') {
 //                 e.preventDefault();
 //                 this.exitEditMode();
-// 
+//
 //                 // Calculate next position and enter edit mode there
 //                 const mode = e.key === 'Tab' ? 'tab' : 'enter';
 //                 const nextPos = this.calculateNextPosition(rowIndex, colIndex, mode, e.shiftKey, currentData);
 //                 const targetCell = this.callbacks.getCellAt(nextPos.row, nextPos.col);
-// 
+//
 //                 if (targetCell) {
 //                     // Update currentCell (keeps currentCells if range selected)
 //                     if (this.callbacks.hasRangeSelection()) {
@@ -191,21 +191,21 @@ describe('TableEditing', () => {
 //             }
 //             return;
 //         }
-// 
+//
 //         const rowIndex = parseInt(cell.getAttribute('data-row') || '-1');
 //         const colIndex = parseInt(cell.getAttribute('data-col') || '-1');
-// 
+//
 //         if (rowIndex === -1 || colIndex === -1) return;
-// 
+//
 //         let targetCell: HTMLElement | null = null;
-// 
+//
 //         // Handle Delete/Backspace - clear all cells in currentCells
 //         if (e.key === 'Backspace' || e.key === 'Delete') {
 //             e.preventDefault();
 //             this.clearSelectedCells();
 //             return;
 //         }
-// 
+//
 //         // Check if it's a printable character - enter edit mode on currentCell
 //         if (e.key.length === 1) {
 //             // Update currentCell to this cell (keeps currentCells intact)
@@ -214,7 +214,7 @@ describe('TableEditing', () => {
 //             this.enterEditMode(cell);
 //             return;
 //         }
-// 
+//
 //         switch (e.key) {
 //             case 'ArrowUp':
 //                 e.preventDefault();
@@ -222,50 +222,50 @@ describe('TableEditing', () => {
 //                     targetCell = this.callbacks.getCellAt(rowIndex - 1, colIndex);
 //                 }
 //                 break;
-// 
+//
 //             case 'ArrowDown':
 //                 e.preventDefault();
 //                 if (rowIndex < currentData.rows.length - 1) {
 //                     targetCell = this.callbacks.getCellAt(rowIndex + 1, colIndex);
 //                 }
 //                 break;
-// 
+//
 //             case 'ArrowLeft':
 //                 e.preventDefault();
 //                 if (colIndex > 0) {
 //                     targetCell = this.callbacks.getCellAt(rowIndex, colIndex - 1);
 //                 }
 //                 break;
-// 
+//
 //             case 'ArrowRight':
 //                 e.preventDefault();
 //                 if (colIndex < currentData.columns.length - 1) {
 //                     targetCell = this.callbacks.getCellAt(rowIndex, colIndex + 1);
 //                 }
 //                 break;
-// 
+//
 //             case 'Tab':
 //                 e.preventDefault();
 //                 this.handleSelectionNavigation(rowIndex, colIndex, 'tab', e.shiftKey, currentData);
 //                 return; // Don't call moveTo (which collapses selection)
-// 
+//
 //             case 'Enter':
 //                 e.preventDefault();
 //                 this.handleSelectionNavigation(rowIndex, colIndex, 'enter', e.shiftKey, currentData);
 //                 return; // Don't call moveTo (which collapses selection)
-// 
+//
 //             case 'F2':
 //                 e.preventDefault();
 //                 // F2 - enter edit mode
 //                 this.enterEditMode(cell);
 //                 break;
 //         }
-// 
+//
 //         if (targetCell) {
 //             this.moveTo(targetCell);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Move selection to target cell
 //      * This is a helper method that focuses the target cell and updates selection
@@ -273,16 +273,16 @@ describe('TableEditing', () => {
 //     private moveTo(targetCell: HTMLElement): void {
 //         const rowIndex = parseInt(targetCell.getAttribute('data-row') || '-1');
 //         const colIndex = parseInt(targetCell.getAttribute('data-col') || '-1');
-// 
+//
 //         if (rowIndex >= 0 && colIndex >= 0) {
 //             // Update selection state and visual highlight
 //             this.callbacks.selectCellAt(rowIndex, colIndex);
 //         }
-// 
+//
 //         // Focus the target cell
 //         targetCell.focus();
 //     }
-// 
+//
 //     /**
 //      * Handle Tab/Enter navigation - keeps rectangular selection if exists
 //      */
@@ -295,7 +295,7 @@ describe('TableEditing', () => {
 //     ): void {
 //         const hasRectSelection = this.callbacks.hasRangeSelection();
 //         const nextPos = this.calculateNextPosition(currentRow, currentCol, mode, reverse, data);
-// 
+//
 //         if (hasRectSelection) {
 //             // Move currentCell within selection (keeps currentCells intact)
 //             this.callbacks.setCurrentCell(nextPos.row, nextPos.col);
@@ -308,7 +308,7 @@ describe('TableEditing', () => {
 //             }
 //         }
 //     }
-// 
+//
 //     /**
 //      * Calculate next cell position within selection bounds
 //      * Tab: move left-to-right, wrap to next row
@@ -324,19 +324,19 @@ describe('TableEditing', () => {
 //         const selection = this.callbacks.getSelection();
 //         const start = selection.start;
 //         const end = selection.end;
-// 
+//
 //         // If no selection or single cell selected, use full table bounds
 //         const hasRectSelection = start && end &&
 //             (start.row !== end.row || start.col !== end.col);
-// 
+//
 //         const minRow = hasRectSelection ? Math.min(start!.row, end!.row) : 0;
 //         const maxRow = hasRectSelection ? Math.max(start!.row, end!.row) : data.rows.length - 1;
 //         const minCol = hasRectSelection ? Math.min(start!.col, end!.col) : 0;
 //         const maxCol = hasRectSelection ? Math.max(start!.col, end!.col) : data.columns.length - 1;
-// 
+//
 //         let nextRow = currentRow;
 //         let nextCol = currentCol;
-// 
+//
 //         if (mode === 'tab') {
 //             // Tab: horizontal movement (left-to-right, wrap to next row)
 //             if (!reverse) {
@@ -380,35 +380,35 @@ describe('TableEditing', () => {
 //                 }
 //             }
 //         }
-// 
+//
 //         return { row: nextRow, col: nextCol };
 //     }
-// 
+//
 //     /**
 //      * Clear all cells in currentCells range
 //      */
 //     private clearSelectedCells(): void {
 //         const currentData = this.callbacks.getCurrentData();
 //         if (!currentData) return;
-// 
+//
 //         const selection = this.callbacks.getSelection();
 //         const start = selection.start;
 //         const end = selection.end;
-// 
+//
 //         if (!start || !end) return;
-// 
+//
 //         const minRow = Math.min(start.row, end.row);
 //         const maxRow = Math.max(start.row, end.row);
 //         const minCol = Math.min(start.col, end.col);
 //         const maxCol = Math.max(start.col, end.col);
-// 
+//
 //         // Clear all cells in the range
 //         for (let r = minRow; r <= maxRow; r++) {
 //             for (let c = minCol; c <= maxCol; c++) {
 //                 if (r < currentData.rows.length && c < currentData.columns.length) {
 //                     const colName = currentData.columns[c];
 //                     currentData.rows[r][colName] = '';
-// 
+//
 //                     // Update visual
 //                     const cell = this.callbacks.getCellAt(r, c);
 //                     if (cell) {
@@ -417,24 +417,24 @@ describe('TableEditing', () => {
 //                 }
 //             }
 //         }
-// 
+//
 //         console.log(`[TableEditing] Cleared cells [${minRow}-${maxRow}, ${minCol}-${maxCol}]`);
 //     }
-// 
+//
 //     /**
 //      * Get column label (1, 2, 3, ...)
 //      */
 //     private getColumnLabel(index: number): string {
 //         return `${index + 1}`;
 //     }
-// 
+//
 //     /**
 //      * Check if currently in edit mode
 //      */
 //     public isEditing(): boolean {
 //         return this.editingCell !== null;
 //     }
-// 
+//
 //     /**
 //      * Get the cell currently being edited
 //      */

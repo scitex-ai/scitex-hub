@@ -3,8 +3,8 @@
  * Main class coordinating PDF preview functionality
  */
 
-import { CompilationManager } from "../compilation";
-import { LatexWrapper } from "../latex-wrapper";
+import { CompilationManager } from "../_compilation";
+import { LatexWrapper } from "../_latex-wrapper";
 import { PDFViewer } from "./viewer";
 import { ZoomController } from "./zoom";
 import { EventHandler } from "./events";

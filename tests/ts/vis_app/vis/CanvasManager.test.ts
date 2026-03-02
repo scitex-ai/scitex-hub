@@ -38,31 +38,31 @@ describe('CanvasManager', () => {
 //  * NOTE: This file is being refactored to use specialized managers.
 //  * See: /apps/vis_app/static/vis_app/ts/vis/canvas/REFACTORING_PLAN.md
 //  */
-// 
-// import { CANVAS_CONSTANTS } from './types.ts';
-// import { GridManager } from './canvas/GridManager.ts';
-// import { ExportManager } from './canvas/ExportManager.ts';
-// import { UndoRedoManager } from './canvas/UndoRedoManager.ts';
-// import { ThemeManager } from './canvas/ThemeManager.ts';
-// import { ZoomPanManager } from './canvas/ZoomPanManager.ts';
-// import { SelectionManager } from './canvas/SelectionManager.ts';
-// import { ObjectManager } from './canvas/ObjectManager.ts';
-// import { TransformManager } from './canvas/TransformManager.ts';
-// import { GroupManager } from './canvas/GroupManager.ts';
-// import { AlignmentManager } from './canvas/AlignmentManager.ts';
-// import { SnapManager } from './canvas/SnapManager.ts';
-// import { CropManager } from './canvas/CropManager.ts';
-// import { ElementSelectionManager } from './canvas/ElementSelectionManager.ts';
-// import { ContextMenuManager } from './canvas/ContextMenuManager.ts';
-// import { CanvasResizeManager } from './canvas/CanvasResizeManager.ts';
-// import { SessionManager } from './canvas/SessionManager.ts';
-// import { BundleCanvasManager } from './canvas/BundleCanvasManager.ts';
-// import { geometryManager, GeometryData } from './GeometryManager.ts';
-// import { serializeWithPrecision, parseWithPrecision, fixZeroScalePathsInJson, getCSRFToken } from './canvas/CanvasSerializationUtils.ts';
-// 
+//
+// import { CANVAS_CONSTANTS } from './types';
+// import { GridManager } from './canvas/GridManager';
+// import { ExportManager } from './canvas/ExportManager';
+// import { UndoRedoManager } from './canvas/UndoRedoManager';
+// import { ThemeManager } from './canvas/ThemeManager';
+// import { ZoomPanManager } from './canvas/ZoomPanManager';
+// import { SelectionManager } from './canvas/SelectionManager';
+// import { ObjectManager } from './canvas/ObjectManager';
+// import { TransformManager } from './canvas/TransformManager';
+// import { GroupManager } from './canvas/GroupManager';
+// import { AlignmentManager } from './canvas/AlignmentManager';
+// import { SnapManager } from './canvas/SnapManager';
+// import { CropManager } from './canvas/CropManager';
+// import { ElementSelectionManager } from './canvas/ElementSelectionManager';
+// import { ContextMenuManager } from './canvas/ContextMenuManager';
+// import { CanvasResizeManager } from './canvas/CanvasResizeManager';
+// import { SessionManager } from './canvas/SessionManager';
+// import { BundleCanvasManager } from './canvas/BundleCanvasManager';
+// import { geometryManager, GeometryData } from './GeometryManager';
+// import { serializeWithPrecision, parseWithPrecision, fixZeroScalePathsInJson, getCSRFToken } from './canvas/CanvasSerializationUtils';
+//
 // export class CanvasManager {
 //     public canvas: any | null = null; // Fabric.js canvas instance
-// 
+//
 //     // Specialized managers (Phase 1, 2, 3, 4 & 5 refactoring)
 //     private gridManager: GridManager | null = null;
 //     private exportManager: ExportManager | null = null;
@@ -81,7 +81,7 @@ describe('CanvasManager', () => {
 //     private canvasResizeManager: CanvasResizeManager | null = null;
 //     private sessionManager: SessionManager | null = null;
 //     private bundleCanvasManager: BundleCanvasManager | null = null;
-// 
+//
 //     // Canvas zoom and pan state
 //     private canvasZoomLevel: number = 0.22;
 //     private canvasPanOffset: { x: number, y: number } = { x: 0, y: 0 };
@@ -96,49 +96,49 @@ describe('CanvasManager', () => {
 //     private canvasAccumulatedPanDelta: { x: number, y: number } = { x: 0, y: 0 };
 //     private canvasLastZoomMousePos: { x: number, y: number } = { x: 0, y: 0 };
 //     private pendingDragUpdate: boolean = false;
-// 
+//
 //     // Hover tooltip for showing pltz path
 //     private hoverTooltip: HTMLDivElement | null = null;
-// 
+//
 //     private panThrottleFrame: number | null = null;
 //     private pendingPanUpdate: { x: number, y: number } | null = null;
-// 
+//
 //     // Track right-click pan to suppress context menu after panning
 //     private rightClickPanOccurred: boolean = false;
-// 
+//
 //     // Column guides for layout snapping
 //     private columnCount: number = 0; // 0 = disabled, 2-4 for multi-column layout
 //     private columnGuidePositions: number[] = []; // X positions of column guides in mm
-// 
+//
 //     private selectionCallback?: (obj: any | null) => void;
 //     private onObjectResizedCallback?: (obj: any, newWidth: number, newHeight: number) => void;
-// 
+//
 //     // Original image sources for theme switching (shared with ThemeManager via ObjectManager)
 //     private originalImageSources: Map<any, string> = new Map();
-// 
+//
 //     // Bundle auto-save state
 //     private autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
 //     private autoSaveDelay: number = 1000; // Debounce delay in ms
 //     private bundleProjectOwner: string = '';
 //     private bundleProjectSlug: string = '';
 //     private bundleFigureName: string = 'Figure1';
-// 
+//
 //     // Hit region overlay (debug visualization)
 //     private hitRegionOverlayVisible: boolean = false;
 //     private hitRegionOverlayImage: any = null; // Fabric.js image for hitmap overlay
-// 
+//
 //     constructor(
 //         private statusBarCallback?: (message: string) => void,
 //         private rulersAreaTransformCallback?: () => void
 //     ) {}
-// 
+//
 //     /**
 //      * Get current dark mode state from ThemeManager
 //      */
 //     private get isDarkMode(): boolean {
 //         return this.themeManager?.isDark() ?? false;
 //     }
-// 
+//
 //     /**
 //      * Set callback for canvas selection changes
 //      * Used to update properties panel when objects are selected/deselected
@@ -146,7 +146,7 @@ describe('CanvasManager', () => {
 //     public setSelectionCallback(callback: (obj: any | null) => void): void {
 //         this.selectionCallback = callback;
 //     }
-// 
+//
 //     /**
 //      * Set callback for object resize events
 //      * Used to re-render plots at new size to maintain font proportions
@@ -154,7 +154,7 @@ describe('CanvasManager', () => {
 //     public setObjectResizedCallback(callback: (obj: any, newWidth: number, newHeight: number) => void): void {
 //         this.onObjectResizedCallback = callback;
 //     }
-// 
+//
 //     /**
 //      * Get canvas zoom level
 //      * Delegates to ZoomPanManager as the single source of truth
@@ -165,7 +165,7 @@ describe('CanvasManager', () => {
 //         }
 //         return this.canvasZoomLevel;
 //     }
-// 
+//
 //     /**
 //      * Get canvas pan offset
 //      * Delegates to ZoomPanManager as the single source of truth
@@ -176,7 +176,7 @@ describe('CanvasManager', () => {
 //         }
 //         return { x: this.canvasPanOffset.x, y: this.canvasPanOffset.y };
 //     }
-// 
+//
 //     /**
 //      * Set canvas zoom level (used when restoring tab state or ruler sync)
 //      */
@@ -186,7 +186,7 @@ describe('CanvasManager', () => {
 //             this.zoomPanManager.setZoomLevel(zoom);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Set canvas pan offset (used when restoring tab state or ruler sync)
 //      */
@@ -197,7 +197,7 @@ describe('CanvasManager', () => {
 //             this.zoomPanManager.setPanOffset(x, y);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Get canvas document size in mm
 //      * DELEGATES to CanvasResizeManager
@@ -205,7 +205,7 @@ describe('CanvasManager', () => {
 //     public getCanvasSizeMm(): { width: number, height: number } {
 //         return this.canvasResizeManager?.getCanvasSizeMm() || { width: 180, height: 250 };
 //     }
-// 
+//
 //     /**
 //      * Set canvas document size in mm
 //      * DELEGATES to CanvasResizeManager
@@ -215,7 +215,7 @@ describe('CanvasManager', () => {
 //             this.canvasResizeManager.setCanvasSize(widthMm, heightMm);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Increase canvas document size
 //      * DELEGATES to CanvasResizeManager
@@ -226,7 +226,7 @@ describe('CanvasManager', () => {
 //             this.drawGrid(this.themeManager?.isDark() || false);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Decrease canvas document size
 //      * DELEGATES to CanvasResizeManager
@@ -237,7 +237,7 @@ describe('CanvasManager', () => {
 //             this.drawGrid(this.themeManager?.isDark() || false);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Reset canvas document size to default
 //      * DELEGATES to CanvasResizeManager
@@ -248,7 +248,7 @@ describe('CanvasManager', () => {
 //             this.drawGrid(this.themeManager?.isDark() || false);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Fit canvas document size to content bounds
 //      * DELEGATES to CanvasResizeManager
@@ -268,34 +268,34 @@ describe('CanvasManager', () => {
 //             }
 //         }
 //     }
-// 
+//
 //     /**
 //      * Initialize Fabric.js canvas
 //      */
 //     public initCanvas(): void {
 //         const startTime = performance.now();
 //         console.log('[CanvasManager] Starting canvas initialization...');
-// 
+//
 //         const canvasElement = document.getElementById('vis-canvas') as HTMLCanvasElement;
 //         if (!canvasElement) {
 //             console.error('[CanvasManager] Canvas element #vis-canvas not found in DOM');
 //             return;
 //         }
-// 
+//
 //         if (typeof fabric === 'undefined') {
 //             console.error('[CanvasManager] Fabric.js is not loaded!');
 //             return;
 //         }
-// 
+//
 //         const defaultWidth = CANVAS_CONSTANTS.MAX_CANVAS_WIDTH;   // 180mm @ 300dpi
 //         const defaultHeight = CANVAS_CONSTANTS.MAX_CANVAS_HEIGHT; // 240mm @ 300dpi
-// 
+//
 //         // Get initial theme from localStorage (canvas has its own theme, defaults to global)
 //         const globalTheme = localStorage.getItem('scitex-theme-preference') || 'dark';
 //         const savedCanvasTheme = localStorage.getItem('canvas-theme') || globalTheme;
 //         const initialIsDark = savedCanvasTheme === 'dark';
 //         const initialBgColor = initialIsDark ? '#2a2a2a' : '#ffffff';
-// 
+//
 //         try {
 //             // Initialize canvas with correct theme from the start
 //             this.canvas = new fabric.Canvas('vis-canvas', {
@@ -309,7 +309,7 @@ describe('CanvasManager', () => {
 //                 selectionBorderColor: '#4a9eff',
 //                 selectionLineWidth: 2,
 //             });
-// 
+//
 //             // Set default object selection styling (bolder borders)
 //             fabric.Object.prototype.set({
 //                 borderColor: '#4a9eff',
@@ -321,10 +321,10 @@ describe('CanvasManager', () => {
 //                 transparentCorners: false,
 //                 padding: 4,
 //             });
-// 
+//
 //             const canvasCreateTime = performance.now();
 //             console.log(`[CanvasManager] Fabric.js canvas created in ${(canvasCreateTime - startTime).toFixed(2)}ms (${defaultWidth}×${defaultHeight}px)`);
-// 
+//
 //             // Initialize specialized managers (Phase 1, 2 & 3 refactoring)
 //             this.gridManager = new GridManager(this.canvas, this.statusBarCallback);
 //             this.exportManager = new ExportManager(this.canvas, this.statusBarCallback);
@@ -332,7 +332,7 @@ describe('CanvasManager', () => {
 //             this.themeManager = new ThemeManager(this.canvas, initialIsDark, this.statusBarCallback);
 //             this.zoomPanManager = new ZoomPanManager(this.canvas, this.rulersAreaTransformCallback, this.statusBarCallback);
 //             this.selectionManager = new SelectionManager(this.canvas, this.statusBarCallback);
-// 
+//
 //             // Phase 3 managers - object manipulation, transforms, and grouping
 //             this.objectManager = new ObjectManager(
 //                 this.canvas,
@@ -355,7 +355,7 @@ describe('CanvasManager', () => {
 //                 () => this.saveCanvasContent(),
 //                 this.statusBarCallback
 //             );
-// 
+//
 //             // Phase 4 managers - alignment, snapping, and cropping
 //             this.alignmentManager = new AlignmentManager(
 //                 this.statusBarCallback,
@@ -363,14 +363,14 @@ describe('CanvasManager', () => {
 //                 () => this.saveCanvasContent()
 //             );
 //             this.alignmentManager.initialize(this.canvas);
-// 
+//
 //             this.snapManager = new SnapManager(
 //                 this.statusBarCallback,
 //                 () => this.getCanvasZoomLevel(),
 //                 () => this.getCanvasPanOffset()
 //             );
 //             this.snapManager.initialize(this.canvas);
-// 
+//
 //             this.cropManager = new CropManager(
 //                 this.statusBarCallback,
 //                 () => this.saveUndoState(),
@@ -379,19 +379,19 @@ describe('CanvasManager', () => {
 //                 () => this.getCanvasPanOffset()
 //             );
 //             this.cropManager.initialize(this.canvas);
-// 
+//
 //             // Phase 5 managers - element selection and context menu
 //             this.elementSelectionManager = new ElementSelectionManager(
 //                 this.canvas,
 //                 this.statusBarCallback
 //             );
-// 
+//
 //             this.contextMenuManager = new ContextMenuManager(
 //                 this.canvas,
 //                 () => this.elementSelectionManager?.getSelectedElementNames() || [],
 //                 this.statusBarCallback
 //             );
-// 
+//
 //             // Phase 6 manager - canvas document resize (Ctrl+drag edges)
 //             this.canvasResizeManager = new CanvasResizeManager(
 //                 this.canvas,
@@ -409,7 +409,7 @@ describe('CanvasManager', () => {
 //                 },
 //                 this.statusBarCallback
 //             );
-// 
+//
 //             // Phase 7 managers - session and bundle management
 //             this.bundleCanvasManager = new BundleCanvasManager(
 //                 this.canvas,
@@ -420,7 +420,7 @@ describe('CanvasManager', () => {
 //                 (img: any) => this.processNewImageForTheme(img),
 //                 (path: string | null) => this.setCurrentFigzPath(path)
 //             );
-// 
+//
 //             this.sessionManager = new SessionManager(
 //                 this.canvas,
 //                 () => this.getCurrentFigzPath(),
@@ -431,7 +431,7 @@ describe('CanvasManager', () => {
 //                 }),
 //                 (path: string) => this.loadFigzBundle(path)
 //             );
-// 
+//
 //             // Draw initial grid if enabled
 //             if (this.gridManager.isGridEnabled()) {
 //                 this.gridManager.drawGrid(initialIsDark);
@@ -441,7 +441,7 @@ describe('CanvasManager', () => {
 //             } else {
 //                 console.log(`[CanvasManager] ✅ Total canvas init: ${(canvasCreateTime - startTime).toFixed(2)}ms`);
 //             }
-// 
+//
 //             // Restore saved view state
 //             if (this.zoomPanManager) {
 //                 this.zoomPanManager.restoreViewState();
@@ -452,12 +452,12 @@ describe('CanvasManager', () => {
 //                 this.canvasPanOffset.x = panOffset.x;
 //                 this.canvasPanOffset.y = panOffset.y;
 //             }
-// 
+//
 //             // Save canvas when objects are modified (moved, scaled, rotated)
 //             this.canvas.on('object:modified', () => {
 //                 this.saveCanvasContent();
 //             });
-// 
+//
 //             // Also save on selection cleared (in case of deselect after move)
 //             this.canvas.on('selection:cleared', () => {
 //                 this.saveCanvasContent();
@@ -466,7 +466,7 @@ describe('CanvasManager', () => {
 //                     this.selectionCallback(null);
 //                 }
 //             });
-// 
+//
 //             // Notify properties panel when object selected
 //             // Also auto-enter element selection mode for plot images with element_bboxes
 //             this.canvas.on('selection:created', (e: any) => {
@@ -474,7 +474,7 @@ describe('CanvasManager', () => {
 //                     // For multi-selection, pass the ActiveSelection or first object
 //                     const activeObj = this.canvas?.getActiveObject();
 //                     this.selectionCallback(activeObj || e.selected[0]);
-// 
+//
 //                     // Only auto-enter element selection for SINGLE selection of plot images/groups
 //                     if (e.selected.length === 1) {
 //                         const selected = e.selected[0];
@@ -488,13 +488,13 @@ describe('CanvasManager', () => {
 //                     }
 //                 }
 //             });
-// 
+//
 //             this.canvas.on('selection:updated', (e: any) => {
 //                 if (this.selectionCallback && e.selected && e.selected.length > 0) {
 //                     // For multi-selection, pass the ActiveSelection or first object
 //                     const activeObj = this.canvas?.getActiveObject();
 //                     this.selectionCallback(activeObj || e.selected[0]);
-// 
+//
 //                     // Only auto-enter element selection for SINGLE selection of plot images/groups
 //                     if (e.selected.length === 1) {
 //                         const selected = e.selected[0];
@@ -510,7 +510,7 @@ describe('CanvasManager', () => {
 //                     }
 //                 }
 //             });
-// 
+//
 //             this.canvas.on('selection:cleared', () => {
 //                 if (this.selectionCallback) {
 //                     this.selectionCallback(null);
@@ -518,7 +518,7 @@ describe('CanvasManager', () => {
 //                 // Exit element selection mode when deselecting
 //                 this.exitElementSelectionMode();
 //             });
-// 
+//
 //             // Double-click to enter group (PowerPoint-style sub-element selection)
 //             // SCIENTIFIC INTEGRITY: Plot images should NOT have individual elements editable
 //             this.canvas.on('mouse:dblclick', (e: any) => {
@@ -539,7 +539,7 @@ describe('CanvasManager', () => {
 //                 }
 //                 // Note: Element selection mode is now auto-entered on selection
 //             });
-// 
+//
 //             // Snap to other objects while moving (PowerPoint-style)
 //             // Throttled using requestAnimationFrame for performance
 //             this.canvas.on('object:moving', (e: any) => {
@@ -547,12 +547,12 @@ describe('CanvasManager', () => {
 //                     this.snapManager.handleObjectSnap(e.target);
 //                 }
 //             });
-// 
+//
 //             // Clear alignment guidelines when object stops moving
 //             this.canvas.on('object:modified', (e: any) => {
 //                 this.snapManager?.clearAlignmentLines();
 //                 this.saveCanvasContent();
-// 
+//
 //                 // Check if object was scaled and needs re-render
 //                 const obj = e.target;
 //                 if (obj && (obj.scaleX !== 1 || obj.scaleY !== 1)) {
@@ -563,18 +563,18 @@ describe('CanvasManager', () => {
 //                         this.onObjectResizedCallback(obj, newWidth, newHeight);
 //                     }
 //                 }
-// 
+//
 //                 // Update properties panel if selection callback exists
 //                 if (this.selectionCallback && obj) {
 //                     this.selectionCallback(obj);
 //                 }
-// 
+//
 //                 // Trigger figz auto-save for bundle panels
 //                 if (obj && obj.isBundlePanel) {
 //                     this.bundleCanvasManager?.debouncedFigzAutoSave();
 //                 }
 //             });
-// 
+//
 //             // Clear guidelines on mouse up
 //             this.canvas.on('mouse:up', () => {
 //                 this.snapManager?.clearAlignmentLines();
@@ -586,7 +586,7 @@ describe('CanvasManager', () => {
 //             console.error('[CanvasManager] Error initializing canvas:', error);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Enter group edit mode - allows selecting elements inside a group
 //      * Double-click on group to enter, click outside to exit
@@ -597,7 +597,7 @@ describe('CanvasManager', () => {
 //             this.groupManager.enterGroupEditMode(group);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Exit group edit mode - regroup the objects
 //      * DELEGATES to GroupManager
@@ -607,7 +607,7 @@ describe('CanvasManager', () => {
 //             this.groupManager.exitGroupEditMode();
 //         }
 //     }
-// 
+//
 //     /**
 //      * Draw grid using pre-rendered static SVG files
 //      * DELEGATES to GridManager
@@ -617,7 +617,7 @@ describe('CanvasManager', () => {
 //             this.gridManager.drawGrid(isDark);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Clear grid background from canvas
 //      * DELEGATES to GridManager
@@ -627,7 +627,7 @@ describe('CanvasManager', () => {
 //             this.gridManager.clearGrid();
 //         }
 //     }
-// 
+//
 //     /**
 //      * Toggle grid visibility
 //      * DELEGATES to GridManager
@@ -637,23 +637,23 @@ describe('CanvasManager', () => {
 //             this.gridManager.toggleGrid();
 //         }
 //     }
-// 
+//
 //     /**
 //      * Update canvas theme
 //      */
 //     public updateCanvasTheme(isDark: boolean): void {
 //         if (!this.themeManager) return;
-// 
+//
 //         // Create callback for grid redraw
 //         const gridRedrawCallback = () => {
 //             if (this.gridManager && this.gridManager.isGridEnabled()) {
 //                 this.gridManager.drawGrid(isDark);
 //             }
 //         };
-// 
+//
 //         this.themeManager.updateCanvasTheme(isDark, gridRedrawCallback);
 //     }
-// 
+//
 //     /**
 //      * Process SVG group paths for dark mode display
 //      * DELEGATES to ThemeManager
@@ -663,7 +663,7 @@ describe('CanvasManager', () => {
 //             this.themeManager.processSvgGroupForDarkMode(group);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Restore SVG group paths to original colors (for light mode)
 //      * DELEGATES to ThemeManager
@@ -673,7 +673,7 @@ describe('CanvasManager', () => {
 //             this.themeManager.restoreSvgGroupColors(group);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Process a newly added image for current theme (dark mode conversion)
 //      * DELEGATES to ThemeManager
@@ -683,7 +683,7 @@ describe('CanvasManager', () => {
 //             this.themeManager.processNewImage(img);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Reprocess all SVG groups when theme changes
 //      * Uses remove/re-add strategy to force complete re-render
@@ -693,8 +693,8 @@ describe('CanvasManager', () => {
 //             this.themeManager.reprocessAllSvgGroupsForTheme();
 //         }
 //     }
-// 
-// 
+//
+//
 //     /**
 //      * Save undo state
 //      * DELEGATES to UndoRedoManager
@@ -704,7 +704,7 @@ describe('CanvasManager', () => {
 //             this.undoRedoManager.saveUndoState();
 //         }
 //     }
-// 
+//
 //     /**
 //      * Undo last action
 //      * DELEGATES to UndoRedoManager
@@ -714,7 +714,7 @@ describe('CanvasManager', () => {
 //             this.undoRedoManager.undo();
 //         }
 //     }
-// 
+//
 //     /**
 //      * Redo last undone action
 //      * DELEGATES to UndoRedoManager
@@ -724,8 +724,8 @@ describe('CanvasManager', () => {
 //             this.undoRedoManager.redo();
 //         }
 //     }
-// 
-// 
+//
+//
 //     // View clipboard for copy/paste view (axis limits, crop)
 //     private viewClipboard: {
 //         cropX?: number;
@@ -735,7 +735,7 @@ describe('CanvasManager', () => {
 //         scaleX?: number;
 //         scaleY?: number;
 //     } | null = null;
-// 
+//
 //     /**
 //      * Copy active object to clipboard
 //      * DELEGATES to SelectionManager
@@ -745,7 +745,7 @@ describe('CanvasManager', () => {
 //             this.selectionManager.copyActiveObject();
 //         }
 //     }
-// 
+//
 //     /**
 //      * Paste object from clipboard
 //      * DELEGATES to SelectionManager
@@ -758,7 +758,7 @@ describe('CanvasManager', () => {
 //             );
 //         }
 //     }
-// 
+//
 //     // Context menu callbacks
 //     private contextMenuCallbacks: {
 //         delete?: () => void;
@@ -766,14 +766,14 @@ describe('CanvasManager', () => {
 //         bringToFront?: () => void;
 //         sendToBack?: () => void;
 //     } = {};
-// 
+//
 //     /**
 //      * Set context menu callbacks
 //      */
 //     public setContextMenuCallbacks(callbacks: typeof this.contextMenuCallbacks): void {
 //         this.contextMenuCallbacks = callbacks;
 //     }
-// 
+//
 //     /**
 //      * Setup canvas zoom/pan events
 //      */
@@ -783,46 +783,46 @@ describe('CanvasManager', () => {
 //             console.warn("[CanvasManager] Canvas container or Fabric.js canvas not found");
 //             return;
 //         }
-// 
+//
 //         // Delegate to specialized managers
 //         if (this.contextMenuManager) {
 //             this.contextMenuManager.setupContextMenu(canvasContainer);
 //         }
-// 
+//
 //         if (this.canvasResizeManager) {
 //             this.canvasResizeManager.setupResizeListeners(canvasContainer);
 //         }
-// 
+//
 //         if (this.zoomPanManager) {
 //             this.zoomPanManager.setupEvents(canvasContainer);
 //         }
-// 
+//
 //         // Listen for canvas theme changes from keyboard shortcut (Alt+T)
 //         document.addEventListener("canvas-theme-changed", ((e: CustomEvent) => {
 //             this.updateCanvasTheme(e.detail.isDark);
 //         }) as EventListener);
-// 
+//
 //         console.log("[CanvasManager] Canvas events initialized (delegated to managers)");
 //     }
-// 
+//
 //     public updateCanvasTransform(): void {
 //         if (!this.canvas) return;
-// 
+//
 //         // Keep Fabric.js canvas at identity transform
 //         // All zoom/pan is handled by CSS transform on .vis-rulers-area parent
 //         this.canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-// 
+//
 //         // Update CSS transform on rulers area
 //         const rulersArea = document.querySelector('.vis-rulers-area') as HTMLElement;
 //         if (rulersArea) {
 //             rulersArea.style.transform = `translate(${this.canvasPanOffset.x}px, ${this.canvasPanOffset.y}px) scale(${this.canvasZoomLevel})`;
 //             rulersArea.style.transformOrigin = '0 0';
 //         }
-// 
+//
 //         // Save state to localStorage for persistence
 //         this.saveViewState();
 //     }
-// 
+//
 //     /**
 //      * Save view state to localStorage (debounced)
 //      */
@@ -841,7 +841,7 @@ describe('CanvasManager', () => {
 //             console.log('[CanvasManager] 💾 Saved view state:', state);
 //         }, 200); // Debounce 200ms
 //     }
-// 
+//
 //     /**
 //      * Restore view state from localStorage
 //      */
@@ -865,7 +865,7 @@ describe('CanvasManager', () => {
 //             console.warn('[CanvasManager] Failed to restore view state:', err);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Apply CSS transform without triggering save (used during restore)
 //      */
@@ -874,10 +874,10 @@ describe('CanvasManager', () => {
 //             console.warn('[CanvasManager] ⚠️ applyTransformWithoutSave: canvas not available');
 //             return;
 //         }
-// 
+//
 //         // Keep Fabric.js canvas at identity transform
 //         this.canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-// 
+//
 //         // Update CSS transform on rulers area
 //         const rulersArea = document.querySelector('.vis-rulers-area') as HTMLElement;
 //         if (rulersArea) {
@@ -888,13 +888,13 @@ describe('CanvasManager', () => {
 //         } else {
 //             console.warn('[CanvasManager] ⚠️ .vis-rulers-area not found in DOM');
 //         }
-// 
+//
 //         // Update rulers callback if set
 //         if (this.rulersAreaTransformCallback) {
 //             this.rulersAreaTransformCallback();
 //         }
 //     }
-// 
+//
 //     /**
 //      * Save canvas content to localStorage (debounced)
 //      */
@@ -907,7 +907,7 @@ describe('CanvasManager', () => {
 //             this.saveCanvasContentImmediate();
 //         }, 1000); // Save after 1 second of no changes
 //     }
-// 
+//
 //     private saveCanvasContentImmediate(): void {
 //         if (!this.canvas) return;
 //         try {
@@ -919,8 +919,8 @@ describe('CanvasManager', () => {
 //             console.warn('[CanvasManager] Failed to save canvas:', err);
 //         }
 //     }
-// 
-// 
+//
+//
 //     /**
 //      * Restore canvas content from localStorage
 //      * Returns the restored objects so metadata can be loaded if needed
@@ -936,10 +936,10 @@ describe('CanvasManager', () => {
 //                 if (saved) {
 //                     // Parse with custom reviver to restore tiny numbers
 //                     const json = parseWithPrecision(saved);
-// 
+//
 //                     // Fallback: fix any remaining zero-scale paths (from old saves)
 //                     fixZeroScalePathsInJson(json);
-// 
+//
 //                     this.canvas.loadFromJSON(json, () => {
 //                         // Apply dark mode color transformation to restored SVG groups
 //                         if (this.isDarkMode) {
@@ -959,17 +959,17 @@ describe('CanvasManager', () => {
 //             }
 //         });
 //     }
-// 
+//
 //     /**
 //      * Parse JSON with restoration of tiny numbers preserved by serializeWithPrecision
 //      */
-// 
+//
 //     // ========================================
 //     // SESSION STATE PERSISTENCE (Page Refresh)
 //     // ========================================
-// 
+//
 //     private static SESSION_STORAGE_KEY = 'scitex-vis-session';
-// 
+//
 //     /**
 //      * Save session state to localStorage for page refresh recovery
 //      * Includes: figz path, project context, panels info
@@ -988,23 +988,23 @@ describe('CanvasManager', () => {
 //                 } : null,
 //                 panels: this.getBundlePanelsForSession(),
 //             };
-// 
+//
 //             localStorage.setItem(CanvasManager.SESSION_STORAGE_KEY, JSON.stringify(sessionState));
 //             console.log('[CanvasManager] Session state saved');
 //         } catch (err) {
 //             console.warn('[CanvasManager] Failed to save session state:', err);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Get panel info for session storage (lightweight version of getBundlePanels)
 //      */
 //     private getBundlePanelsForSession(): any[] {
 //         if (!this.canvas) return [];
-// 
+//
 //         const panels: any[] = [];
 //         const objects = this.canvas.getObjects();
-// 
+//
 //         for (const obj of objects) {
 //             const plotInfo = (obj as any).plotInfo;
 //             if (plotInfo?.bundlePath) {
@@ -1022,10 +1022,10 @@ describe('CanvasManager', () => {
 //                 });
 //             }
 //         }
-// 
+//
 //         return panels;
 //     }
-// 
+//
 //     /**
 //      * Restore session state from localStorage
 //      * Returns the session state if found and valid, null otherwise
@@ -1042,9 +1042,9 @@ describe('CanvasManager', () => {
 //         try {
 //             const saved = localStorage.getItem(CanvasManager.SESSION_STORAGE_KEY);
 //             if (!saved) return null;
-// 
+//
 //             const state = JSON.parse(saved);
-// 
+//
 //             // Check if session is recent (within 24 hours)
 //             const maxAge = 24 * 60 * 60 * 1000; // 24 hours
 //             if (Date.now() - state.timestamp > maxAge) {
@@ -1052,14 +1052,14 @@ describe('CanvasManager', () => {
 //                 this.clearSessionState();
 //                 return null;
 //             }
-// 
+//
 //             return state;
 //         } catch (err) {
 //             console.warn('[CanvasManager] Failed to restore session state:', err);
 //             return null;
 //         }
 //     }
-// 
+//
 //     /**
 //      * Clear session state from localStorage
 //      */
@@ -1067,7 +1067,7 @@ describe('CanvasManager', () => {
 //         localStorage.removeItem(CanvasManager.SESSION_STORAGE_KEY);
 //         console.log('[CanvasManager] Session state cleared');
 //     }
-// 
+//
 //     /**
 //      * Restore session - load figz bundle from saved state
 //      * Returns true if session was restored, false otherwise
@@ -1078,9 +1078,9 @@ describe('CanvasManager', () => {
 //             console.log('[CanvasManager] No valid session to restore');
 //             return false;
 //         }
-// 
+//
 //         console.log('[CanvasManager] Restoring session:', session);
-// 
+//
 //         // Restore project context
 //         if (session.projectOwner && session.projectSlug) {
 //             this.bundleProjectOwner = session.projectOwner;
@@ -1089,7 +1089,7 @@ describe('CanvasManager', () => {
 //         if (session.figureName) {
 //             this.bundleFigureName = session.figureName;
 //         }
-// 
+//
 //         // If we have a figz path, reload it
 //         if (session.figzPath) {
 //             try {
@@ -1100,17 +1100,17 @@ describe('CanvasManager', () => {
 //                 console.warn('[CanvasManager] Failed to load figz from session:', err);
 //             }
 //         }
-// 
+//
 //         // Fallback: restore canvas content from localStorage (panels without figz)
 //         if (session.panels && session.panels.length > 0) {
 //             console.log('[CanvasManager] Restoring panels from session...');
 //             // Canvas content is restored via restoreCanvasContent() in VisEditor
 //             return true;
 //         }
-// 
+//
 //         return false;
 //     }
-// 
+//
 //     /**
 //      * Setup beforeunload handler to save state before page close/refresh
 //      */
@@ -1119,15 +1119,15 @@ describe('CanvasManager', () => {
 //             // Save session state synchronously
 //             this.saveSessionStateSync();
 //         });
-// 
+//
 //         // Also save periodically (every 30 seconds)
 //         setInterval(() => {
 //             this.saveSessionState();
 //         }, 30000);
-// 
+//
 //         console.log('[CanvasManager] Page refresh handler installed');
 //     }
-// 
+//
 //     /**
 //      * Synchronous version of saveSessionState for beforeunload
 //      * Uses localStorage.setItem which is synchronous
@@ -1146,13 +1146,13 @@ describe('CanvasManager', () => {
 //                 } : null,
 //                 panels: this.getBundlePanelsForSession(),
 //             };
-// 
+//
 //             localStorage.setItem(CanvasManager.SESSION_STORAGE_KEY, JSON.stringify(sessionState));
 //         } catch (err) {
 //             // Silent fail for beforeunload
 //         }
 //     }
-// 
+//
 //     /**
 //      * Update canvas zoom display
 //      */
@@ -1162,7 +1162,7 @@ describe('CanvasManager', () => {
 //         }
 //         console.log(`[CanvasManager] Canvas zoom level: ${Math.round(this.canvasZoomLevel * 100)}%`);
 //     }
-// 
+//
 //     /**
 //      * Zoom in
 //      */
@@ -1171,20 +1171,20 @@ describe('CanvasManager', () => {
 //             this.zoomPanManager.zoomIn();
 //         }
 //     }
-// 
+//
 //     public zoomOut(): void {
 //         if (this.zoomPanManager) {
 //             this.zoomPanManager.zoomOut();
 //         }
 //     }
-// 
+//
 //     public zoomToFit(): void {
 //         if (this.zoomPanManager) {
 //             this.zoomPanManager.zoomToFit();
 //         }
 //     }
-// 
-// 
+//
+//
 //     /**
 //      * Zoom to fit content - calculates bounding box of all objects and fits view
 //      * DELEGATES to ZoomPanManager
@@ -1197,7 +1197,7 @@ describe('CanvasManager', () => {
 //             this.zoomToFit();
 //         }
 //     }
-// 
+//
 //     /**
 //      * Apply zoom
 //      */
@@ -1210,7 +1210,7 @@ describe('CanvasManager', () => {
 //             this.statusBarCallback(`Canvas: ${Math.round(this.canvasZoomLevel * 100)}%`);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Add image to canvas from URL or data URL
 //      * Automatically extracts embedded scitex metadata for axis snap/align
@@ -1221,8 +1221,8 @@ describe('CanvasManager', () => {
 //         }
 //         return Promise.reject("ObjectManager not initialized");
 //     }
-// 
-// 
+//
+//
 //     /**
 //      * Add image from base64 data
 //      */
@@ -1231,10 +1231,10 @@ describe('CanvasManager', () => {
 //         const dataUrl = base64Data.startsWith('data:')
 //             ? base64Data
 //             : `data:image/png;base64,${base64Data}`;
-// 
+//
 //         return this.addImage(dataUrl, options);
 //     }
-// 
+//
 //     /**
 //      * Add SVG to canvas with selectable sub-elements
 //      * This allows selecting individual parts of a figure (axes, legend, title, etc.)
@@ -1245,7 +1245,7 @@ describe('CanvasManager', () => {
 //         }
 //         return Promise.reject("ObjectManager not initialized");
 //     }
-// 
+//
 //     /**
 //      * Add SVG from URL with selectable sub-elements
 //      */
@@ -1259,13 +1259,13 @@ describe('CanvasManager', () => {
 //                 .catch(reject);
 //         });
 //     }
-// 
+//
 //     /**
 //      * Clear all objects from canvas (except grid)
 //      */
 //     public clearCanvas(): void {
 //         if (!this.canvas) return;
-// 
+//
 //         const objects = this.canvas.getObjects();
 //         objects.forEach((obj: any) => {
 //             // Don't remove grid-related objects
@@ -1273,25 +1273,25 @@ describe('CanvasManager', () => {
 //                 this.canvas!.remove(obj);
 //             }
 //         });
-// 
+//
 //         this.canvas.renderAll();
-// 
+//
 //         if (this.statusBarCallback) {
 //             this.statusBarCallback('Canvas cleared');
 //         }
 //         console.log('[CanvasManager] Canvas cleared');
 //     }
-// 
+//
 //     // =========================================================================
 //     // Bundle Integration (pltz/figz) - Canvas backed by SciTeX bundles
 //     // =========================================================================
-// 
+//
 //     // Current figz bundle path (if loaded)
 //     private currentFigzPath: string | null = null;
-// 
+//
 //     // DPI for mm-to-pixel conversion
 //     private bundleRenderDpi: number = 150;
-// 
+//
 //     /**
 //      * Load a figz bundle onto the canvas.
 //      * Clears existing content and loads figure with all panels.
@@ -1303,8 +1303,8 @@ describe('CanvasManager', () => {
 //             return this.bundleCanvasManager.loadFigzBundle(figzPath);
 //         }
 //     }
-// 
-// 
+//
+//
 //     /**
 //      * Load a single pltz panel onto the canvas.
 //      *
@@ -1316,8 +1316,8 @@ describe('CanvasManager', () => {
 //             await this.bundleCanvasManager.loadPltzPanel(panel, figzPath);
 //         }
 //     }
-// 
-// 
+//
+//
 //     /**
 //      * Refresh a panel image after property changes.
 //      *
@@ -1328,15 +1328,15 @@ describe('CanvasManager', () => {
 //             return this.bundleCanvasManager.refreshPanelImage(pltzPath);
 //         }
 //     }
-// 
-// 
+//
+//
 //     /**
 //      * Get the current figz bundle path.
 //      */
 //     public getCurrentFigzPath(): string | null {
 //         return this.currentFigzPath;
 //     }
-// 
+//
 //     /**
 //      * Set the current figz bundle path.
 //      * Used when switching tabs to reset or restore figz context.
@@ -1345,14 +1345,14 @@ describe('CanvasManager', () => {
 //         this.currentFigzPath = path;
 //         console.log(`[CanvasManager] Set currentFigzPath to: ${path}`);
 //     }
-// 
+//
 //     /**
 //      * Check if an object is a bundle panel.
 //      */
 //     public isBundlePanel(obj: any): boolean {
 //         return obj && obj.isBundlePanel === true;
 //     }
-// 
+//
 //     /**
 //      * Get all bundle panels on canvas.
 //      */
@@ -1360,7 +1360,7 @@ describe('CanvasManager', () => {
 //         if (!this.canvas) return [];
 //         return this.canvas.getObjects().filter((obj: any) => obj.isBundlePanel === true);
 //     }
-// 
+//
 //     /**
 //      * Add a panel to the canvas from gallery selection.
 //      *
@@ -1388,7 +1388,7 @@ describe('CanvasManager', () => {
 //         }
 //         return null;
 //     }
-// 
+//
 //     public async triggerFigzAutoSave(
 //         projectOwner?: string,
 //         projectSlug?: string,
@@ -1398,7 +1398,7 @@ describe('CanvasManager', () => {
 //             await this.bundleCanvasManager.triggerFigzAutoSave();
 //         }
 //     }
-// 
+//
 //     /**
 //      * Set bundle project context for auto-save.
 //      *
@@ -1418,14 +1418,14 @@ describe('CanvasManager', () => {
 //         }
 //         console.log(`[CanvasManager] Bundle project context set: ${owner}/${slug}/${this.bundleFigureName}`);
 //     }
-// 
+//
 //     /**
 //      * Get active object
 //      */
 //     public getActiveObject(): any {
 //         return this.canvas?.getActiveObject() || null;
 //     }
-// 
+//
 //     /**
 //      * Remove active object(s) - handles both single and multiple selection
 //      */
@@ -1434,8 +1434,8 @@ describe('CanvasManager', () => {
 //             this.objectManager.removeActiveObject();
 //         }
 //     }
-// 
-// 
+//
+//
 //     /**
 //      * Select all objects on canvas
 //      */
@@ -1444,8 +1444,8 @@ describe('CanvasManager', () => {
 //             this.selectionManager.selectAll();
 //         }
 //     }
-// 
-// 
+//
+//
 //     /**
 //      * Duplicate active object
 //      */
@@ -1457,8 +1457,8 @@ describe('CanvasManager', () => {
 //             );
 //         }
 //     }
-// 
-// 
+//
+//
 //     /**
 //      * Bring active object to front
 //      * DELEGATES to AlignmentManager
@@ -1466,7 +1466,7 @@ describe('CanvasManager', () => {
 //     public bringToFront(): void {
 //         this.alignmentManager?.bringToFront();
 //     }
-// 
+//
 //     /**
 //      * Send active object to back
 //      * DELEGATES to AlignmentManager
@@ -1474,7 +1474,7 @@ describe('CanvasManager', () => {
 //     public sendToBack(): void {
 //         this.alignmentManager?.sendToBack();
 //     }
-// 
+//
 //     /**
 //      * Arrange object (bring to front or send to back)
 //      * Used by keyboard shortcuts (Alt+G → F/B)
@@ -1483,7 +1483,7 @@ describe('CanvasManager', () => {
 //     public arrangeObject(action: 'front' | 'back'): void {
 //         this.alignmentManager?.arrangeObject(action);
 //     }
-// 
+//
 //     /**
 //      * Align selected objects
 //      * - Single object: Aligns to canvas (like PowerPoint aligns to slide)
@@ -1493,7 +1493,7 @@ describe('CanvasManager', () => {
 //     public alignObjects(alignment: 'left' | 'right' | 'top' | 'bottom' | 'center-h' | 'center-v'): void {
 //         this.alignmentManager?.alignObjects(alignment);
 //     }
-// 
+//
 //     /**
 //      * Distribute selected objects evenly
 //      */
@@ -1502,8 +1502,8 @@ describe('CanvasManager', () => {
 //             this.alignmentManager.distributeObjects(direction);
 //         }
 //     }
-// 
-// 
+//
+//
 //     /**
 //      * Apply crop from first selected object to all selected objects (Multiple Crop)
 //      * PowerPoint-style: First object's crop values applied to all
@@ -1514,8 +1514,8 @@ describe('CanvasManager', () => {
 //             this.cropManager.multipleCrop();
 //         }
 //     }
-// 
-// 
+//
+//
 //     /**
 //      * Reset crop on selected image(s)
 //      */
@@ -1525,7 +1525,7 @@ describe('CanvasManager', () => {
 //             this.cropManager.resetCrop();
 //         }
 //     }
-// 
+//
 //     /**
 //      * Auto crop margin using Python backend
 //      * Detects and removes white/transparent margins from images
@@ -1536,7 +1536,7 @@ describe('CanvasManager', () => {
 //             await this.cropManager.autoCropMargin();
 //         }
 //     }
-// 
+//
 //     /**
 //      * Match size of selected objects to first object
 //      * PowerPoint-style: First object's size applied to all
@@ -1546,44 +1546,44 @@ describe('CanvasManager', () => {
 //             this.transformManager.matchSize();
 //         }
 //     }
-// 
+//
 //     public matchWidth(): void {
 //         if (this.transformManager) {
 //             this.transformManager.matchWidth();
 //         }
 //     }
-// 
+//
 //     public matchHeight(): void {
 //         if (this.transformManager) {
 //             this.transformManager.matchHeight();
 //         }
 //     }
-// 
+//
 //     public resetSize(): void {
 //         if (this.transformManager) {
 //             this.transformManager.resetSize();
 //         }
 //     }
-// 
+//
 //     public flipHorizontal(): void {
 //         if (this.transformManager) {
 //             this.transformManager.flipHorizontal();
 //         }
 //     }
-// 
+//
 //     public flipVertical(): void {
 //         if (this.transformManager) {
 //             this.transformManager.flipVertical();
 //         }
 //     }
-// 
+//
 //     public rotateObjects(degrees: number): void {
 //         if (this.transformManager) {
 //             this.transformManager.rotateObjects(degrees);
 //         }
 //     }
-// 
-// 
+//
+//
 //     /**
 //      * Group selected objects
 //      */
@@ -1592,13 +1592,13 @@ describe('CanvasManager', () => {
 //             this.groupManager.groupObjects();
 //         }
 //     }
-// 
+//
 //     public ungroupObjects(): void {
 //         if (this.groupManager) {
 //             this.groupManager.ungroupObjects();
 //         }
 //     }
-// 
+//
 //     /**
 //      * Align by axis with direction support (like regular alignment)
 //      * @param direction - L=left(Y-axis), C=center-H, R=right, T=top, M=middle-V, B=bottom(X-axis)
@@ -1608,8 +1608,8 @@ describe('CanvasManager', () => {
 //             this.alignmentManager.alignByAxis(direction);
 //         }
 //     }
-// 
-// 
+//
+//
 //     /**
 //      * Stack selected plots vertically with Y-axis alignment.
 //      * First aligns Y-axes (left edges), then stacks plots so each plot's
@@ -1621,45 +1621,45 @@ describe('CanvasManager', () => {
 //             this.alignmentManager.stackVertically();
 //         }
 //     }
-// 
+//
 //     public showAxisDebugLines(objects?: any[]): void {
 //         if (!this.canvas) return;
-// 
+//
 //         // Clear existing debug lines
 //         this.clearAxisDebugLines();
-// 
+//
 //         // Get objects to show debug for
 //         const targetObjects = objects || this.canvas.getObjects().filter(
 //             (obj: any) => obj.type === 'image' && obj.axisMetadata?.axes_bbox_px
 //         );
-// 
+//
 //         if (targetObjects.length === 0) {
 //             console.log('[CanvasManager] No objects with axis metadata to show debug lines');
 //             return;
 //         }
-// 
+//
 //         console.log(`[CanvasManager] Showing axis debug lines for ${targetObjects.length} objects`);
-// 
+//
 //         targetObjects.forEach((obj: any, idx: number) => {
 //             const meta = obj.axisMetadata?.axes_bbox_px;
 //             if (!meta) return;
-// 
+//
 //             const scaleX = obj.scaleX || 1;
 //             const scaleY = obj.scaleY || 1;
 //             const left = obj.left || 0;
 //             const top = obj.top || 0;
-// 
+//
 //             // Calculate axis positions in canvas coordinates
 //             const yAxisX = left + meta.x0 * scaleX;  // Y-axis (left edge of plot)
 //             const xAxisY = top + meta.y1 * scaleY;   // X-axis (bottom edge of plot)
 //             const rightX = left + meta.x1 * scaleX;  // Right edge of plot
 //             const topY = top + meta.y0 * scaleY;     // Top edge of plot
-// 
+//
 //             console.log(`  [${idx}] ${obj.name}: left=${left.toFixed(1)}, top=${top.toFixed(1)}, ` +
 //                 `scaleX=${scaleX.toFixed(3)}, scaleY=${scaleY.toFixed(3)}`);
 //             console.log(`       meta: x0=${meta.x0}, y0=${meta.y0}, x1=${meta.x1}, y1=${meta.y1}`);
 //             console.log(`       canvas: yAxisX=${yAxisX.toFixed(1)}, xAxisY=${xAxisY.toFixed(1)}`);
-// 
+//
 //             // Y-axis line (red, vertical) - from top of plot to bottom
 //             const yAxisLine = new (window as any).fabric.Line(
 //                 [yAxisX, topY, yAxisX, xAxisY],
@@ -1672,7 +1672,7 @@ describe('CanvasManager', () => {
 //                     name: `debug-y-axis-${idx}`
 //                 }
 //             );
-// 
+//
 //             // X-axis line (blue, horizontal) - from Y-axis to right edge
 //             const xAxisLine = new (window as any).fabric.Line(
 //                 [yAxisX, xAxisY, rightX, xAxisY],
@@ -1685,35 +1685,35 @@ describe('CanvasManager', () => {
 //                     name: `debug-x-axis-${idx}`
 //                 }
 //             );
-// 
+//
 //             // Add to canvas and store references
 //             this.canvas!.add(yAxisLine, xAxisLine);
 //             this.axisDebugLines.push(yAxisLine, xAxisLine);
 //         });
-// 
+//
 //         this.canvas.renderAll();
-// 
+//
 //         // Auto-clear after 5 seconds
 //         setTimeout(() => this.clearAxisDebugLines(), 5000);
-// 
+//
 //         if (this.statusBarCallback) {
 //             this.statusBarCallback(`Showing axis debug lines (auto-clear in 5s)`);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Clear axis debug lines from canvas
 //      */
 //     public clearAxisDebugLines(): void {
 //         if (!this.canvas) return;
-// 
+//
 //         this.axisDebugLines.forEach(line => {
 //             this.canvas!.remove(line);
 //         });
 //         this.axisDebugLines = [];
 //         this.canvas.renderAll();
 //     }
-// 
+//
 //     /**
 //      * Nudge selected objects (move or resize)
 //      * Arrow keys = move by 1px (or 10px with Alt)
@@ -1721,18 +1721,18 @@ describe('CanvasManager', () => {
 //      */
 //     public nudgeObjects(direction: 'up' | 'down' | 'left' | 'right', resize: boolean): void {
 //         if (!this.canvas) return;
-// 
+//
 //         const active = this.canvas.getActiveObject();
 //         if (!active) return;
-// 
+//
 //         // Determine step size (could be made configurable)
 //         const step = 1; // 1px per arrow press
-// 
+//
 //         // Get objects to modify
 //         const objects = active.type === 'activeSelection'
 //             ? (active as any).getObjects()
 //             : [active];
-// 
+//
 //         if (resize) {
 //             // Shift+Arrow = Resize
 //             objects.forEach((obj: any) => {
@@ -1740,7 +1740,7 @@ describe('CanvasManager', () => {
 //                 const currentScaleY = obj.scaleY || 1;
 //                 const width = obj.width * currentScaleX;
 //                 const height = obj.height * currentScaleY;
-// 
+//
 //                 switch (direction) {
 //                     case 'up': // Decrease height
 //                         obj.scaleY = Math.max(0.01, (height - step) / obj.height);
@@ -1777,9 +1777,9 @@ describe('CanvasManager', () => {
 //                 obj.setCoords();
 //             });
 //         }
-// 
+//
 //         this.canvas.renderAll();
-// 
+//
 //         // Debounced save to avoid saving on every keypress
 //         if (!this.nudgeSaveTimer) {
 //             this.nudgeSaveTimer = setTimeout(() => {
@@ -1788,9 +1788,9 @@ describe('CanvasManager', () => {
 //             }, 500);
 //         }
 //     }
-// 
+//
 //     private nudgeSaveTimer: ReturnType<typeof setTimeout> | null = null;
-// 
+//
 //     /**
 //      * Copy view settings (crop, size, scale) from selected object
 //      * For scientific plots: copy axis limits / ROI to apply to other panels
@@ -1800,17 +1800,17 @@ describe('CanvasManager', () => {
 //             this.cropManager.copyView();
 //         }
 //     }
-// 
+//
 //     public pasteView(): void {
 //         if (this.cropManager) {
 //             this.cropManager.pasteView();
 //         }
 //     }
-// 
+//
 //     // ========================================
 //     // SNAP AND ALIGNMENT GUIDELINES (OPTIMIZED)
 //     // ========================================
-// 
+//
 //     /**
 //      * Toggle snap functionality
 //      */
@@ -1819,34 +1819,34 @@ describe('CanvasManager', () => {
 //             this.snapManager.toggleSnap();
 //         }
 //     }
-// 
+//
 //     public isSnapEnabled(): boolean {
 //         return this.snapManager?.isSnapEnabled() || false;
 //     }
-// 
-// 
+//
+//
 //     /**
 //      * Initialize guideline overlay (CSS-based for performance)
 //      */
 //     private elementSelectionCallback?: (elementNames: string[], elementInfos: any[]) => void;
-// 
+//
 //     public setElementSelectionCallback(callback: (elementNames: string[], elementInfos: any[]) => void): void {
 //         this.elementSelectionCallback = callback;
 //         if (this.elementSelectionManager) {
 //             this.elementSelectionManager.setElementSelectionCallback(callback);
 //         }
 //     }
-// 
+//
 //     public exitElementSelectionMode(): void {
 //         if (this.elementSelectionManager) {
 //             this.elementSelectionManager.exitElementSelectionMode();
 //         }
 //     }
-// 
+//
 //     public isInElementSelectionMode(): boolean {
 //         return this.elementSelectionManager?.isInElementSelectionMode() || false;
 //     }
-// 
+//
 //     public clearElementSelection(): void {
 //         if (this.elementSelectionManager) {
 //             this.elementSelectionManager.clearElementSelection();
@@ -1860,31 +1860,31 @@ describe('CanvasManager', () => {
 //             this.exportManager.downloadFigzDBundle();
 //         }
 //     }
-// 
+//
 //     /**
 //      * Download a pltz bundle as .pltz ZIP file
 //      * Downloads the selected panel's bundle
 //      */
 //     public downloadPltzBundle(): void {
 //         if (!this.exportManager) return;
-// 
+//
 //         // Get selected object
 //         const activeObj = this.canvas?.getActiveObject();
 //         if (!activeObj) {
 //             this.updateStatusBar?.('No panel selected for download');
 //             return;
 //         }
-// 
+//
 //         // Get pltz path from the selected object
 //         const pltzPath = (activeObj as any).pltzPath;
 //         if (!pltzPath) {
 //             this.updateStatusBar?.('Selected object is not a pltz panel');
 //             return;
 //         }
-// 
+//
 //         this.exportManager.downloadPltzBundle(pltzPath);
 //     }
-// 
+//
 //     /**
 //      * Toggle canvas theme between light and dark
 //      */
@@ -1893,26 +1893,26 @@ describe('CanvasManager', () => {
 //             this.themeManager.toggleTheme(() => this.drawGrid(this.themeManager?.isDark() || false));
 //         }
 //     }
-// 
+//
 //     /**
 //      * Reset view to default zoom and pan
 //      */
 //     public resetView(): void {
 //         this.canvasZoomLevel = 1.0;
 //         this.canvasPanOffset = { x: 0, y: 0 };
-// 
+//
 //         // Update rulers area transform
 //         const rulersArea = document.getElementById('canvas-rulers-area');
 //         if (rulersArea) {
 //             rulersArea.style.transform = 'translate(0px, 0px) scale(1)';
 //         }
-// 
+//
 //         // Update zoom display
 //         const zoomDisplay = document.getElementById('zoom-level-display');
 //         if (zoomDisplay) {
 //             zoomDisplay.textContent = '100%';
 //         }
-// 
+//
 //         if (this.statusBarCallback) {
 //             this.statusBarCallback('View reset to 100%');
 //         }

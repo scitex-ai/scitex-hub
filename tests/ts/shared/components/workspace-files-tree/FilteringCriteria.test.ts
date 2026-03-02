@@ -39,13 +39,13 @@ describe('FilteringCriteria', () => {
 //  * 6. Extension Blacklist (DENY_EXTENSIONS)
 //  * 7. Empty Directory Preservation (PRESERVE_EMPTY_DIRECTORIES)
 //  */
-// 
-// import type { WorkspaceMode } from './types.ts';
-// 
+//
+// import type { WorkspaceMode } from './types';
+//
 // // ============================================================================
 // // 1. DIRECTORY WHITELIST - Only show these directories
 // // ============================================================================
-// 
+//
 // /**
 //  * ALLOW_DIRECTORIES: Only paths within these directories are shown
 //  * Empty array = no restriction (show all directories)
@@ -59,11 +59,11 @@ describe('FilteringCriteria', () => {
 //   console: [],  // All directories allowed
 //   all: [],   // All directories allowed
 // };
-// 
+//
 // // ============================================================================
 // // 2. DIRECTORY BLACKLIST - Hide these directories
 // // ============================================================================
-// 
+//
 // /**
 //  * DENY_DIRECTORIES: Directories matching these patterns are hidden
 //  * Applied after ALLOW_DIRECTORIES
@@ -80,7 +80,7 @@ describe('FilteringCriteria', () => {
 //     'build',
 //     'dist',
 //   ],
-// 
+//
 //   vis: [
 //     'node_modules',
 //     '.git',
@@ -90,7 +90,7 @@ describe('FilteringCriteria', () => {
 //     // NOTE: .figz.d and .pltz.d hiding is handled in TreeFilter.isHidden()
 //     // They are ALWAYS hidden regardless of this list (ZIP-first architecture)
 //   ],
-// 
+//
 //   writer: [
 //     'node_modules',
 //     '.git',
@@ -116,18 +116,18 @@ describe('FilteringCriteria', () => {
 //     'logs',
 //     'output',
 //   ],
-// 
+//
 //   console: [
 //     '.git',  // Too noisy even in code mode
 //   ],
-// 
+//
 //   all: [],
 // };
-// 
+//
 // // ============================================================================
 // // 3. FILENAME WHITELIST - Only show files with these names
 // // ============================================================================
-// 
+//
 // /**
 //  * ALLOW_FILENAMES: Only files matching these exact names are shown
 //  * Empty array = no restriction (show all filenames)
@@ -141,11 +141,11 @@ describe('FilteringCriteria', () => {
 //   console: [],
 //   all: [],
 // };
-// 
+//
 // // ============================================================================
 // // 4. FILENAME BLACKLIST - Hide files with these names
 // // ============================================================================
-// 
+//
 // /**
 //  * DENY_FILENAMES: Files matching these exact names are hidden
 //  * Applied after ALLOW_FILENAMES
@@ -159,11 +159,11 @@ describe('FilteringCriteria', () => {
 //   console: ['.DS_Store', 'Thumbs.db'],
 //   all: [],
 // };
-// 
+//
 // // ============================================================================
 // // 5. EXTENSION WHITELIST - Only show files with these extensions
 // // ============================================================================
-// 
+//
 // /**
 //  * ALLOW_EXTENSIONS: Only files with these extensions are shown
 //  * 'all' = no restriction (show all extensions)
@@ -172,14 +172,14 @@ describe('FilteringCriteria', () => {
 //  */
 // export const ALLOW_EXTENSIONS: Record<WorkspaceMode, string[] | 'all'> = {
 //   scholar: ['.bib'],
-// 
+//
 //   vis: [
 //     // Data files
 //     '.csv',
 //     '.tsv',
 //     '.json',
 //     '.xml',
-// 
+//
 //     // Images
 //     '.png',
 //     '.jpg',
@@ -187,22 +187,22 @@ describe('FilteringCriteria', () => {
 //     '.gif',
 //     '.svg',
 //     '.webp',
-// 
+//
 //     // Documents
 //     '.pdf',
-// 
+//
 //     // SciTeX bundles (ZIP format - preferred)
 //     '.figz',
 //     '.pltz',
 //   ],
-// 
+//
 //   writer: [
 //     // LaTeX files
 //     '.tex',
 //     '.bib',
 //     '.cls',
 //     '.sty',
-// 
+//
 //     // Images
 //     '.png',
 //     '.jpg',
@@ -210,20 +210,20 @@ describe('FilteringCriteria', () => {
 //     '.pdf',
 //     '.svg',
 //     '.eps',
-// 
+//
 //     // Data tables
 //     '.csv',
 //     '.tsv',
 //   ],
-// 
+//
 //   console: 'all',
 //   all: 'all',
 // };
-// 
+//
 // // ============================================================================
 // // 6. EXTENSION BLACKLIST - Hide files with these extensions
 // // ============================================================================
-// 
+//
 // /**
 //  * DENY_EXTENSIONS: Files with these extensions are hidden
 //  * Applied after ALLOW_EXTENSIONS
@@ -246,11 +246,11 @@ describe('FilteringCriteria', () => {
 //   console: [],
 //   all: [],
 // };
-// 
+//
 // // ============================================================================
 // // 7. EMPTY DIRECTORY PRESERVATION - Keep these directories even when empty
 // // ============================================================================
-// 
+//
 // /**
 //  * PRESERVE_EMPTY_DIRECTORIES: Directories that should remain visible even when empty
 //  * These directories are kept after all filtering is done
@@ -265,7 +265,7 @@ describe('FilteringCriteria', () => {
 //     'bibliography',
 //     'citations',
 //   ],
-// 
+//
 //   vis: [
 //     'scitex/vis',
 //     'scitex/vis/data',                // Input data files
@@ -282,7 +282,7 @@ describe('FilteringCriteria', () => {
 //     'plots',
 //     'images',
 //   ],
-// 
+//
 //   writer: [
 //     'scitex/writer',
 //     'scitex/writer/shared',           // Shared resources (symlink target for bibliography)
@@ -296,15 +296,15 @@ describe('FilteringCriteria', () => {
 //     'figures',
 //     'tables',
 //   ],
-// 
+//
 //   console: [],
 //   all: [],
 // };
-// 
+//
 // // ============================================================================
 // // FILTERING SPECIFICATION SUMMARY
 // // ============================================================================
-// 
+//
 // /**
 //  * Complete Filtering Flow:
 //  *
@@ -339,11 +339,11 @@ describe('FilteringCriteria', () => {
 //  *             NOT IN LIST → HIDE
 //  *      NO → SHOW
 //  */
-// 
+//
 // // ============================================================================
 // // 8. DEFAULT FOCUS PATHS - Initial focus when tree loads
 // // ============================================================================
-// 
+//
 // /**
 //  * DEFAULT_FOCUS_PATHS: Default path to focus and unfold when tree initializes
 //  * Can be overridden by persisted focus state from localStorage
@@ -357,11 +357,11 @@ describe('FilteringCriteria', () => {
 //   console: 'scripts',
 //   all: '',
 // };
-// 
+//
 // // ============================================================================
 // // 9. ALWAYS VISIBLE FILES - Files that bypass all filtering
 // // ============================================================================
-// 
+//
 // /**
 //  * ALWAYS_VISIBLE_FILENAMES: These files are always shown regardless of filtering
 //  * Useful for .gitkeep, README.md, etc.

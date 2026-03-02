@@ -3,8 +3,8 @@
  * Coordinates gallery UI and data management
  */
 
-import { GalleryData } from './GalleryData.ts';
-import { GalleryUI } from './GalleryUI.ts';
+import { GalleryData } from './GalleryData';
+import { GalleryUI } from './GalleryUI';
 
 export class GalleryManager {
     private galleryData: GalleryData;
