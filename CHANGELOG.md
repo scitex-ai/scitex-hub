@@ -5,6 +5,21 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.5-alpha] - 2026-03-02
+
+### Added
+- **AI panel redesign**: Consolidated 4 modes (Chat/Console/Jobs/Config) into 2 (Chat/Console) with gear config popovers
+- **Multi-terminal tabs**: Console supports multiple terminal tabs (T1, T2, ...) with ConsoleTabManager
+- **Chat session naming**: Chat sessions use C1, C2, ... naming with auto-create of C1, tooltip shows first message preview
+- **Hub project about section**: Inline editable project about/description panel with API endpoints
+
+### Changed
+- **Flat tab styling**: Replaced rounded pill-shaped tabs (12px radius) with flat rectangular style (3px) for professional look
+- **Project app views**: Improved browse header navigation and project detail views
+
+### Fixed
+- **Viewport height overflow**: Fixed workspace-three-col extending beyond viewport by using `height: 0` with flex containment instead of `height: auto`
+
 ## [0.11.4-alpha] - 2026-03-02
 
 ### Fixed
