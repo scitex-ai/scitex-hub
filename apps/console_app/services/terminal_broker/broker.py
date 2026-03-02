@@ -120,7 +120,14 @@ class TerminalBroker:
                     session_id = response.get("session_id")
 
         except Exception as e:
-            logger.debug(f"Client handler error: {e}")
+            logger.error(f"Client handler error: {e}", exc_info=True)
+            try:
+                self._send_message(
+                    client,
+                    {"status": "error", "error": str(e)},
+                )
+            except Exception:
+                pass
         finally:
             if session_id:
                 logger.info(f"Session {session_id}: client detached")

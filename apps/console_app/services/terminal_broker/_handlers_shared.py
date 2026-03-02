@@ -20,6 +20,10 @@ from .shell import Shell
 
 logger = logging.getLogger(__name__)
 
+# Cooldown: don't retry allocation for this many seconds after a failure
+_ALLOC_FAIL_COOLDOWN = 30  # seconds
+_alloc_fail_times: dict[tuple, float] = {}  # alloc_key -> last failure timestamp
+
 
 def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
     """Shared spawn: one sbatch per (user, project), shells via srun --overlap."""
@@ -27,7 +31,7 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
     project_slug = msg["project_slug"]
     screen_session = msg.get("screen_session", "scitex-0")
     shell_key = (username, screen_session)
-    alloc_key = (username, project_slug)
+    alloc_key = (username,)  # 1 allocation per user, not per project
 
     # 1. Check for existing shell to reattach
     with broker.lock:
@@ -51,6 +55,16 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
         alloc = broker.allocations.get(alloc_id) if alloc_id else None
 
     if not alloc or alloc.state == AllocationState.DEAD:
+        # Cooldown: don't flood SLURM with retries after a failure
+        last_fail = _alloc_fail_times.get(alloc_key, 0)
+        elapsed = time.time() - last_fail
+        if elapsed < _ALLOC_FAIL_COOLDOWN:
+            wait = int(_ALLOC_FAIL_COOLDOWN - elapsed)
+            return {
+                "status": "error",
+                "error": f"Allocation failed recently, retry in {wait}s",
+            }
+
         alloc = Allocation(
             username=username,
             project_slug=project_slug,
@@ -61,10 +75,12 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
         send_state(broker, client, "", "allocation_starting")
 
         if not alloc.start():
+            _alloc_fail_times[alloc_key] = time.time()
             return {"status": "error", "error": "Failed to start SLURM allocation"}
         with broker.lock:
             broker.allocations[alloc.allocation_id] = alloc
             broker.alloc_index[alloc_key] = alloc.allocation_id
+            _alloc_fail_times.pop(alloc_key, None)  # clear cooldown on success
 
     elif alloc.state == AllocationState.STARTING:
         # Another tab is already starting this allocation — wait
@@ -155,7 +171,7 @@ def handle_stop_allocation(broker, msg: dict) -> dict:
     """Stop a shared allocation and all its shells."""
     username = msg.get("username", "")
     project_slug = msg.get("project_slug", "")
-    alloc_key = (username, project_slug)
+    alloc_key = (username,)  # matches per-user key in handle_spawn_shared
 
     with broker.lock:
         alloc_id = broker.alloc_index.pop(alloc_key, None)
