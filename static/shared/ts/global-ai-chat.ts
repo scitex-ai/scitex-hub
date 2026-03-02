@@ -6,28 +6,24 @@
 
 export {}; // Make this a module so declare global augmentation is valid
 
-import { readActiveProjectSlug } from "./components/global-ai-chat/context";
-import { AIPanelChatMode } from "./components/global-ai-chat/chat-mode";
-import { AIPanelConsoleMode } from "./components/global-ai-chat/console-mode";
-import { initEvalJsRelay } from "./components/global-ai-chat/eval-js-relay";
-import { initFileDrop } from "./components/global-ai-chat/file-drop";
-import { AIPanelJobsMode } from "./components/global-ai-chat/jobs-mode";
-import { SessionsPanel } from "./components/global-ai-chat/sessions-panel";
-import { fetchAndPopulateSttModels } from "./components/global-ai-chat/stt-models";
-import { fetchAndPopulateLlmModels } from "./components/global-ai-chat/llm-model-selector";
-import { fetchMcpStatus } from "./components/global-ai-chat/mcp-status";
+import { readActiveProjectSlug } from "./components/_global-ai-chat/context";
+import { AIPanelChatMode } from "./components/_global-ai-chat/chat-mode";
+import { AIPanelConsoleMode } from "./components/_global-ai-chat/console-mode";
+import { initEvalJsRelay } from "./components/_global-ai-chat/eval-js-relay";
+import { initFileDrop } from "./components/_global-ai-chat/file-drop";
+import { AIPanelJobsMode } from "./components/_global-ai-chat/jobs-mode";
+import { SessionsPanel } from "./components/_global-ai-chat/sessions-panel";
+import { fetchAndPopulateSttModels } from "./components/_global-ai-chat/stt-models";
+import { fetchAndPopulateLlmModels } from "./components/_global-ai-chat/llm-model-selector";
+import { fetchMcpStatus } from "./components/_global-ai-chat/mcp-status";
 import {
   MODEL_KEY,
   fetchCurrentModel,
   setModelBadge,
-} from "./components/global-ai-chat/model-badge";
+} from "./components/_global-ai-chat/model-badge";
 import { initKeyboardShortcuts } from "./components/keyboard-shortcuts";
-import { AIPanelConfigMode } from "./components/global-ai-chat/config-mode";
-import {
-  initContextZoom,
-  registerFontZoom,
-  registerZoomZone,
-} from "./components/context-zoom";
+import { AIPanelConfigMode } from "./components/_global-ai-chat/config-mode";
+import { initAllZoomZones } from "./components/context-zoom-init";
 
 const PANEL_OPEN_KEY = "scitex_ai_open";
 
@@ -67,8 +63,8 @@ class GlobalAIChat {
   private isOpen = false;
   private context: AiContext = {};
 
-  // Mode switching (chat / console / jobs)
-  private mode: "chat" | "console" | "jobs" | "config" = "chat";
+  // Mode switching (chat / console)
+  private mode: "chat" | "console" = "chat";
   private chatMode: AIPanelChatMode | null = null;
   private consoleMode: AIPanelConsoleMode | null = null;
   private jobsMode: AIPanelJobsMode | null = null;
@@ -146,6 +142,7 @@ class GlobalAIChat {
 
     this.setupModeToggle();
     this.setupHeaderDblClick();
+    this.setupGearButtons();
     this.startJobsBadgePoller();
     this.fab?.addEventListener("click", () => this.toggle());
     this.sendBtn?.addEventListener("click", () => void this.chatMode?.send());
@@ -210,30 +207,8 @@ class GlobalAIChat {
     // Centralized keyboard shortcuts (replaces inline Alt+A handler)
     initKeyboardShortcuts();
 
-    // Context-aware zoom: Ctrl+Wheel / Ctrl++/-/0 per pane (uses CSS zoom)
-    initContextZoom();
-    // AI panel views
-    registerFontZoom("#scitex-ai-chat-view", "scitex-ai-chat-zoom");
-    registerFontZoom("#scitex-ai-jobs-list", "scitex-ai-jobs-zoom");
-    registerFontZoom(".scitex-ai-config-content", "scitex-ai-config-zoom");
-    // Workspace panes (exist only on workspace pages)
-    registerFontZoom(".ws-worktree-tree-area", "scitex-worktree-zoom");
-    registerFontZoom("#ws-viewer-preview", "scitex-viewer-preview-zoom");
-    registerFontZoom("#main-content", "scitex-module-zoom");
-    // Monaco editor: passthrough — it handles its own Ctrl+Wheel zoom
-    const monacoEl = document.getElementById("ws-viewer-monaco");
-    if (monacoEl) {
-      registerZoomZone({
-        el: monacoEl,
-        getSize: () => 13,
-        setSize: () => {},
-        min: 8,
-        max: 32,
-        default: 13,
-        storageKey: "scitex-monaco-passthrough",
-        passthrough: true,
-      });
-    }
+    // Context-aware zoom: Ctrl+Wheel / Ctrl++/-/0 per pane
+    initAllZoomZones();
 
     this.context.page = window.location.href;
     const slug = readActiveProjectSlug();
@@ -262,6 +237,14 @@ class GlobalAIChat {
 
     // Start eval-js WebSocket relay for MCP tool bridge
     initEvalJsRelay();
+
+    // Restore AI panel mode on back/forward navigation
+    window._appNav?.onRestore((state) => {
+      if (state.aiMode && state.aiMode !== this.mode) {
+        const m = state.aiMode as string;
+        this.switchMode(m === "chat" ? "chat" : "console");
+      }
+    });
 
     window.scitexAI = {
       setContext: (ctx) => {
@@ -328,6 +311,43 @@ class GlobalAIChat {
     });
   }
 
+  /* ── Gear Buttons → Config Popovers ────────────────────── */
+
+  private setupGearButtons(): void {
+    this.setupGearToggle("scitex-ai-chat-gear", "scitex-ai-chat-config");
+    this.setupGearToggle("scitex-ai-console-gear", "scitex-ai-console-config");
+  }
+
+  private setupGearToggle(btnId: string, popoverId: string): void {
+    const btn = document.getElementById(btnId);
+    const popover = document.getElementById(popoverId);
+    if (!btn || !popover) return;
+
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isVisible = popover.style.display !== "none";
+      document
+        .querySelectorAll<HTMLElement>(".scitex-ai-config-popover")
+        .forEach((p) => (p.style.display = "none"));
+      if (!isVisible) {
+        popover.style.display = "block";
+        if (popoverId === "scitex-ai-console-config") {
+          void this.populateAgentSources();
+        }
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      if (
+        popover.style.display !== "none" &&
+        !popover.contains(e.target as Node) &&
+        !btn.contains(e.target as Node)
+      ) {
+        popover.style.display = "none";
+      }
+    });
+  }
+
   /* ── Print Active View ──────────────────────────────── */
 
   private printActiveView(): void {
@@ -349,44 +369,55 @@ class GlobalAIChat {
     void this.configMode.populate(container, this.chatMode);
   }
 
-  /* ── Mode Toggle (Chat / Console / Jobs) ───────────────────── */
+  /* ── Mode Toggle (Chat / Console) ─────────────────────────── */
 
   private setupModeToggle(): void {
     document
       .querySelectorAll<HTMLButtonElement>(".scitex-ai-mode-btn")
       .forEach((btn) => {
         btn.addEventListener("click", () => {
-          const m = btn.dataset.mode as "chat" | "console" | "jobs" | "config";
+          const m = btn.dataset.mode as "chat" | "console";
           if (m && m !== this.mode) this.switchMode(m);
         });
       });
     const saved = localStorage.getItem("scitex-ai-mode") as
       | "chat"
       | "console"
-      | "jobs"
-      | "config"
       | null;
-    if (saved === "console") this.switchMode("console");
-    else if (saved === "jobs") this.switchMode("jobs");
-    else if (saved === "config") this.switchMode("config");
+    // Migrate old saved modes (jobs/config) to console
+    if (
+      saved === "console" ||
+      saved === ("jobs" as string) ||
+      saved === ("config" as string)
+    ) {
+      this.switchMode("console");
+    }
   }
 
-  private switchMode(mode: "chat" | "console" | "jobs" | "config"): void {
+  private switchMode(mode: "chat" | "console"): void {
     this.mode = mode;
     localStorage.setItem("scitex-ai-mode", mode);
+    // Update navigation state (replace, not push — AI mode is not a navigational step)
+    window._appNav?.replace({ aiMode: mode });
     document
       .querySelectorAll<HTMLButtonElement>(".scitex-ai-mode-btn")
       .forEach((b) => {
         b.classList.toggle("active", b.dataset.mode === mode);
       });
-    for (const v of ["chat", "console", "jobs", "config"]) {
+    for (const v of ["chat", "console"]) {
       document
         .getElementById(`scitex-ai-${v}-view`)
         ?.classList.toggle("active", v === mode);
     }
-    if (mode === "console") this.initConsoleMode();
-    if (mode === "jobs") this.initJobsMode();
-    if (mode === "config") this.populateAgentSources();
+    // Close any open config popovers on mode switch
+    document
+      .querySelectorAll<HTMLElement>(".scitex-ai-config-popover")
+      .forEach((p) => (p.style.display = "none"));
+
+    if (mode === "console") {
+      this.initConsoleMode();
+      this.initJobsMode();
+    }
   }
 
   private initConsoleMode(): void {
@@ -430,7 +461,10 @@ class GlobalAIChat {
         const n = (data.running || 0) + (data.pending || 0);
         for (const id of ["ai-jobs-badge", "jobs-badge"]) {
           const el = document.getElementById(id);
-          if (el) el.textContent = String(n);
+          if (el) {
+            el.textContent = String(n);
+            el.style.display = n > 0 ? "" : "none";
+          }
         }
       } catch {
         /* silent */
