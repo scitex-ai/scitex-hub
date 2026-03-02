@@ -23,7 +23,7 @@ import {
 } from "./components/_global-ai-chat/model-badge";
 import { initKeyboardShortcuts } from "./components/keyboard-shortcuts";
 import { AIPanelConfigMode } from "./components/_global-ai-chat/config-mode";
-// context-zoom-init is now self-initializing (loaded via vite_script in global_body_scripts.html)
+import { populateChatLimits } from "./components/_global-ai-chat/chat-config-limits";
 
 const PANEL_OPEN_KEY = "scitex_ai_open";
 
@@ -330,9 +330,9 @@ class GlobalAIChat {
         .forEach((p) => (p.style.display = "none"));
       if (!isVisible) {
         popover.style.display = "block";
-        if (popoverId === "scitex-ai-console-config") {
+        if (popoverId === "scitex-ai-chat-config") void populateChatLimits();
+        if (popoverId === "scitex-ai-console-config")
           void this.populateAgentSources();
-        }
       }
     });
 

@@ -4,7 +4,6 @@
  */
 
 import type { AIPanelChatMode } from "./chat-mode";
-import { bindLimitsInputs, renderLimits } from "./config-limits";
 
 interface McpToolParam {
   name: string;
@@ -72,14 +71,14 @@ export class AIPanelConfigMode {
     chatMode: AIPanelChatMode | null,
   ): Promise<void> {
     try {
-      const [mcpPrefs, toolsCatalog, skillsResp, limitsResp, pageHints] =
-        await Promise.all([
+      const [mcpPrefs, toolsCatalog, skillsResp, pageHints] = await Promise.all(
+        [
           fetch("/accounts/api/mcp-preferences/").then((r) => r.json()),
           fetch("/api/mcp/tools/").then((r) => r.json()),
           fetch("/llm/api/skills/").then((r) => r.json()),
-          fetch("/accounts/api/ai-limits/").then((r) => r.json()),
           Promise.resolve(chatMode?.collectPageHints() ?? []),
-        ]);
+        ],
+      );
 
       const enabledMap: Record<string, boolean> = {};
       for (const cat of (mcpPrefs.categories || []) as McpPrefsCategory[]) {
@@ -95,7 +94,6 @@ export class AIPanelConfigMode {
       const hintPrefs = this.loadLocalPrefs(AIPanelConfigMode.HINT_PREFS_KEY);
 
       let html = "";
-      html += renderLimits(limitsResp);
       html += this.renderSkills(skills, currentPage, skillPrefs);
       html += this.renderPageHints(hintPrefs);
       html += this.renderMcpTools(modules, enabledMap, toolsCatalog.total || 0);
@@ -108,7 +106,6 @@ export class AIPanelConfigMode {
       this.bindMcpToggles(container);
       this.bindSkillToggles(container);
       this.bindHintToggles(container);
-      bindLimitsInputs(container, () => this.showToast());
       container
         .querySelector(".ai-context-download-btn")
         ?.addEventListener("click", () =>

@@ -137,6 +137,7 @@
                                     <span class="ai-mcp-count">--</span>
                                 </span>
                             </div>
+                            <div id="ai-chat-limits-content" class="ai-chat-limits-content"></div>
                             <div class="ai-settings-links">
                                 <a href="/auth/settings/mcp-tools/" title="MCP tool preferences">
                                     <i class="fas fa-puzzle-piece"></i> MCP Settings
@@ -163,7 +164,7 @@
                             <!-- Auto-accept toggle -->
                             <button id="scitex-ai-auto-accept"
                                     class="scitex-ai-input-btn scitex-ai-auto-accept-btn"
-                                    title="Auto-accept (Claude Code)">
+                                    title="Claude Code Auto-Accept: automatically accepts permission prompts at the configured interval and safety level">
                                 <i class="fas fa-magic"></i>
                                 <span id="scitex-ai-auto-accept-state" class="scitex-ai-auto-accept-state"></span>
                             </button>
@@ -191,14 +192,18 @@
                              class="scitex-ai-config-popover"
                              style="display:none">
                             <div class="ai-settings-section" id="ai-auto-accept-config">
-                                <label class="scitex-ai-settings-label">
-                                    <i class="fas fa-magic"></i> Auto-Accept
+                                <label class="scitex-ai-settings-label"
+                                       title="When enabled, automatically accepts Claude Code permission prompts at the configured interval. Conservative: safe commands only. Normal: most commands. Aggressive: all commands.">
+                                    <i class="fas fa-magic"></i> Claude Code Auto-Accept Mode
                                 </label>
                                 <div class="ai-settings-row">
-                                    <label class="scitex-ai-settings-label">Interval</label>
+                                    <label class="scitex-ai-settings-label"
+                                           title="How often to check for and accept permission prompts">
+                                        Interval
+                                    </label>
                                     <select id="ai-auto-accept-interval"
                                             class="ai-settings-select"
-                                            title="Polling interval">
+                                            title="How often to check for and accept permission prompts">
                                         <option value="1000">1s (fast)</option>
                                         <option value="1500" selected>1.5s</option>
                                         <option value="2000">2s</option>
@@ -206,11 +211,24 @@
                                     </select>
                                 </div>
                                 <div class="ai-settings-row">
-                                    <label class="scitex-ai-settings-label">Safety</label>
-                                    <select id="ai-auto-accept-safety" class="ai-settings-select" title="Safety level">
-                                        <option value="conservative">Conservative</option>
-                                        <option value="normal" selected>Normal</option>
-                                        <option value="aggressive">Aggressive</option>
+                                    <label class="scitex-ai-settings-label"
+                                           title="Controls which commands are auto-accepted">Safety</label>
+                                    <select id="ai-auto-accept-safety"
+                                            class="ai-settings-select"
+                                            title="Controls which commands are auto-accepted">
+                                        <option value="conservative"
+                                                title="Only accept safe, read-only commands (ls, cat, grep, git status)">
+                                            Conservative (read-only)
+                                        </option>
+                                        <option value="normal"
+                                                selected
+                                                title="Accept most commands except destructive ones (rm -rf, git push --force)">
+                                            Normal (most commands)
+                                        </option>
+                                        <option value="aggressive"
+                                                title="Accept all commands including destructive ones — use with caution">
+                                            Aggressive (all commands)
+                                        </option>
                                     </select>
                                 </div>
                             </div>
