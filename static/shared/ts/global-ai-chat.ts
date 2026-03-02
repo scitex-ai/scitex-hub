@@ -23,7 +23,7 @@ import {
 } from "./components/_global-ai-chat/model-badge";
 import { initKeyboardShortcuts } from "./components/keyboard-shortcuts";
 import { AIPanelConfigMode } from "./components/_global-ai-chat/config-mode";
-import { initAllZoomZones } from "./components/context-zoom-init";
+// context-zoom-init is now self-initializing (loaded via vite_script in global_body_scripts.html)
 
 const PANEL_OPEN_KEY = "scitex_ai_open";
 
@@ -207,8 +207,7 @@ class GlobalAIChat {
     // Centralized keyboard shortcuts (replaces inline Alt+A handler)
     initKeyboardShortcuts();
 
-    // Context-aware zoom: Ctrl+Wheel / Ctrl++/-/0 per pane
-    initAllZoomZones();
+    // Context-aware zoom: now self-initializing via vite_script (decoupled from AI panel)
 
     this.context.page = window.location.href;
     const slug = readActiveProjectSlug();
