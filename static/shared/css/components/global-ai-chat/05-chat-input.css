@@ -3,6 +3,7 @@
    ============================================================ */
 
 .scitex-ai-input-area {
+  position: relative;
   flex-shrink: 0;
   display: flex;
   flex-wrap: wrap;

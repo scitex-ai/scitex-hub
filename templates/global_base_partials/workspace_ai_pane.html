@@ -70,7 +70,7 @@
                             <span>I can take actions: stats, plots, literature, and your current work.</span>
                         </div>
                     </div>
-                    <div class="scitex-ai-input-area">
+                    <div class="scitex-ai-input-area" style="position:relative">
                         <span id="scitex-ai-model-badge" class="scitex-ai-model-badge"></span>
                         <div id="scitex-ai-image-previews" class="scitex-ai-image-previews"></div>
                         <div class="scitex-ai-input-wrap">
@@ -109,42 +109,42 @@
                                 title="STT model"
                                 style="display:none"></select>
                         <button id="scitex-ai-send" class="scitex-ai-send" hidden></button>
-                    </div>
-                    <!-- Chat config popover -->
-                    <div id="scitex-ai-chat-config"
-                         class="scitex-ai-config-popover"
-                         style="display:none">
-                        <div class="ai-settings-row">
-                            <label class="scitex-ai-settings-label">
-                                <i class="fas fa-brain"></i> LLM Model
-                                <span id="scitex-ai-config-model-badge" class="scitex-ai-model-badge"></span>
-                            </label>
-                            <select id="scitex-ai-llm-model" class="ai-settings-select" title="LLM model for chat"></select>
-                        </div>
-                        <div class="ai-settings-row">
-                            <label class="scitex-ai-settings-label">
-                                <i class="fas fa-microphone"></i> STT Model
-                            </label>
-                            <select id="scitex-ai-stt-model-config"
-                                    class="ai-settings-select scitex-ai-stt-model"
-                                    title="STT model"></select>
-                        </div>
-                        <div class="ai-settings-row ai-settings-mcp">
-                            <label class="scitex-ai-settings-label">
-                                <i class="fas fa-plug"></i> MCP Tools
-                            </label>
-                            <span id="scitex-ai-mcp-badge" class="ai-mcp-badge" title="MCP tools status">
-                                <i class="fas fa-circle ai-mcp-dot"></i>
-                                <span class="ai-mcp-count">--</span>
-                            </span>
-                        </div>
-                        <div class="ai-settings-links">
-                            <a href="/auth/settings/mcp-tools/" title="MCP tool preferences">
-                                <i class="fas fa-puzzle-piece"></i> MCP Settings
-                            </a>
-                            <a href="/auth/settings/ai-providers/" title="AI provider keys">
-                                <i class="fas fa-key"></i> AI Providers
-                            </a>
+                        <!-- Chat config popover (inside input-area for positioning) -->
+                        <div id="scitex-ai-chat-config"
+                             class="scitex-ai-config-popover"
+                             style="display:none">
+                            <div class="ai-settings-row">
+                                <label class="scitex-ai-settings-label">
+                                    <i class="fas fa-brain"></i> LLM Model
+                                    <span id="scitex-ai-config-model-badge" class="scitex-ai-model-badge"></span>
+                                </label>
+                                <select id="scitex-ai-llm-model" class="ai-settings-select" title="LLM model for chat"></select>
+                            </div>
+                            <div class="ai-settings-row">
+                                <label class="scitex-ai-settings-label">
+                                    <i class="fas fa-microphone"></i> STT Model
+                                </label>
+                                <select id="scitex-ai-stt-model-config"
+                                        class="ai-settings-select scitex-ai-stt-model"
+                                        title="STT model"></select>
+                            </div>
+                            <div class="ai-settings-row ai-settings-mcp">
+                                <label class="scitex-ai-settings-label">
+                                    <i class="fas fa-plug"></i> MCP Tools
+                                </label>
+                                <span id="scitex-ai-mcp-badge" class="ai-mcp-badge" title="MCP tools status">
+                                    <i class="fas fa-circle ai-mcp-dot"></i>
+                                    <span class="ai-mcp-count">--</span>
+                                </span>
+                            </div>
+                            <div class="ai-settings-links">
+                                <a href="/auth/settings/mcp-tools/" title="MCP tool preferences">
+                                    <i class="fas fa-puzzle-piece"></i> MCP Settings
+                                </a>
+                                <a href="/auth/settings/ai-providers/" title="AI provider keys">
+                                    <i class="fas fa-key"></i> AI Providers
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -157,7 +157,7 @@
                         <div id="scitex-ai-console-tabs-list" class="scitex-ai-console-tabs-list"></div>
                     </div>
                     <div id="scitex-ai-console-terminal" class="scitex-ai-console-terminal"></div>
-                    <div class="scitex-ai-console-toolbar">
+                    <div class="scitex-ai-console-toolbar" style="position:relative">
                         <span id="scitex-ai-console-status" class="scitex-ai-console-status"></span>
                         <div class="scitex-ai-console-toolbar-btns">
                             <!-- Auto-accept toggle -->
@@ -186,6 +186,43 @@
                                 <i class="fas fa-cog"></i>
                             </button>
                         </div>
+                        <!-- Console config popover (inside toolbar for positioning) -->
+                        <div id="scitex-ai-console-config"
+                             class="scitex-ai-config-popover"
+                             style="display:none">
+                            <div class="ai-settings-section" id="ai-auto-accept-config">
+                                <label class="scitex-ai-settings-label">
+                                    <i class="fas fa-magic"></i> Auto-Accept
+                                </label>
+                                <div class="ai-settings-row">
+                                    <label class="scitex-ai-settings-label">Interval</label>
+                                    <select id="ai-auto-accept-interval"
+                                            class="ai-settings-select"
+                                            title="Polling interval">
+                                        <option value="1000">1s (fast)</option>
+                                        <option value="1500" selected>1.5s</option>
+                                        <option value="2000">2s</option>
+                                        <option value="3000">3s (slow)</option>
+                                    </select>
+                                </div>
+                                <div class="ai-settings-row">
+                                    <label class="scitex-ai-settings-label">Safety</label>
+                                    <select id="ai-auto-accept-safety" class="ai-settings-select" title="Safety level">
+                                        <option value="conservative">Conservative</option>
+                                        <option value="normal" selected>Normal</option>
+                                        <option value="aggressive">Aggressive</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="ai-settings-section" id="ai-agent-sources">
+                                <label class="scitex-ai-settings-label">
+                                    <i class="fas fa-sitemap"></i> Agent Sources
+                                </label>
+                                <div id="ai-agent-sources-content" class="ai-agent-sources">
+                                    <div class="ai-source-loading">Loading...</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <!-- Jobs section (collapsible, inside console view) -->
                     <details id="scitex-ai-jobs-section" class="scitex-ai-jobs-section">
@@ -199,43 +236,6 @@
                         </summary>
                         <div id="scitex-ai-jobs-list" class="scitex-ai-jobs-list"></div>
                     </details>
-                    <!-- Console config popover -->
-                    <div id="scitex-ai-console-config"
-                         class="scitex-ai-config-popover"
-                         style="display:none">
-                        <div class="ai-settings-section" id="ai-auto-accept-config">
-                            <label class="scitex-ai-settings-label">
-                                <i class="fas fa-magic"></i> Auto-Accept
-                            </label>
-                            <div class="ai-settings-row">
-                                <label class="scitex-ai-settings-label">Interval</label>
-                                <select id="ai-auto-accept-interval"
-                                        class="ai-settings-select"
-                                        title="Polling interval">
-                                    <option value="1000">1s (fast)</option>
-                                    <option value="1500" selected>1.5s</option>
-                                    <option value="2000">2s</option>
-                                    <option value="3000">3s (slow)</option>
-                                </select>
-                            </div>
-                            <div class="ai-settings-row">
-                                <label class="scitex-ai-settings-label">Safety</label>
-                                <select id="ai-auto-accept-safety" class="ai-settings-select" title="Safety level">
-                                    <option value="conservative">Conservative</option>
-                                    <option value="normal" selected>Normal</option>
-                                    <option value="aggressive">Aggressive</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="ai-settings-section" id="ai-agent-sources">
-                            <label class="scitex-ai-settings-label">
-                                <i class="fas fa-sitemap"></i> Agent Sources
-                            </label>
-                            <div id="ai-agent-sources-content" class="ai-agent-sources">
-                                <div class="ai-source-loading">Loading...</div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
