@@ -19,6 +19,7 @@ Handles landing page and premium subscription pricing.
 
 import importlib.metadata
 
+from django.db import connection, transaction
 from django.shortcuts import render
 
 # Pip package names for ecosystem table (scitex-cloud uses SCITEX_CLOUD_VERSION from context processor)
@@ -49,13 +50,25 @@ def _get_ecosystem_versions():
     return versions
 
 
+@transaction.non_atomic_requests
 def index(request):
     """
     Cloud app index view - Landing page for all users.
 
     Shows the landing page to all visitors, including authenticated users.
     Visitor auto-login is handled by VisitorAutoLoginMiddleware.
+
+    non_atomic_requests: Disables ATOMIC_REQUESTS for this read-only view.
+    In ASGI mode (Daphne), middleware and views run in different threads,
+    so the middleware's visitor-allocation DB operations can leave the
+    thread-local connection dirty via PgBouncer (transaction pool mode).
+    Without the atomic wrapper, individual template queries can succeed
+    even if earlier ones fail, preventing cascading 500 errors on startup.
     """
+    # Ensure a clean DB connection for this thread.  In ASGI mode, the
+    # thread pool may hand us a thread whose connection was dirtied by a
+    # previous request's middleware (PgBouncer transaction pool mode).
+    connection.close()
     context = {
         "ecosystem_versions": _get_ecosystem_versions(),
     }
