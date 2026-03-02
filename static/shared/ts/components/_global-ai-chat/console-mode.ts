@@ -1,4 +1,4 @@
-/** AI Panel Console Mode — xterm.js terminal with camera/sketch/mic toolbar. */
+/** AI Panel Console Mode — multi-terminal tabs with camera/sketch/mic toolbar. */
 
 import { registerZoomZone } from "../context-zoom";
 import { uploadFiles } from "../../utils/file-upload";
@@ -8,6 +8,7 @@ import { VoiceRecorder } from "./recorder";
 import { getCsrfToken } from "../../utils/csrf";
 import { setupAutoAccept } from "./console-auto-accept";
 import { handleOscEscapes } from "./console-osc-handler";
+import { ConsoleTabManager, type ConsoleTab } from "./console-tabs";
 
 /** Adapter: WebcamCapture/SketchCanvas → upload image → type path into terminal */
 function makeImageSink(send: (t: string) => void) {
@@ -31,33 +32,34 @@ export interface ConsoleToolbarRefs {
   fileInput: HTMLInputElement | null;
 }
 
+interface TerminalInstance {
+  id: string;
+  terminal: any;
+  fitAddon: any;
+  ws: WebSocket | null;
+  connected: boolean;
+  resizeObserver: ResizeObserver | null;
+  resizeTimeout: ReturnType<typeof setTimeout> | null;
+  themeObserver: MutationObserver | null;
+  containerEl: HTMLElement;
+}
+
 const XTERM_JS_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js";
 const XTERM_CSS_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css";
 const FIT_ADDON_URL =
   "https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js";
-/**
- * Load xterm.js by fetching source text and executing synchronously
- * with AMD globals fully disabled. This eliminates race conditions
- * that occur with script tags (where RequireJS can intercept the UMD module).
- */
-async function loadXtermModules(): Promise<{
-  Terminal: any;
-  FitAddon: any;
-}> {
-  const win = window as any;
 
-  // Fetch all scripts as text
+/** Load xterm.js by fetching source text and executing with AMD disabled. */
+async function loadXtermModules(): Promise<{ Terminal: any; FitAddon: any }> {
+  const win = window as any;
   const [xtermCode, fitCode] = await Promise.all([
     fetch(XTERM_JS_URL).then((r) => r.text()),
     fetch(FIT_ADDON_URL).then((r) => r.text()),
   ]);
-
-  // Save and fully disable AMD globals (synchronous — no race conditions)
   const savedDefine = win.define;
   const savedRequire = win.require;
   win.define = undefined;
   win.require = undefined;
-
   try {
     new Function(xtermCode)();
     new Function(fitCode)();
@@ -65,10 +67,10 @@ async function loadXtermModules(): Promise<{
     win.define = savedDefine;
     win.require = savedRequire;
   }
-
-  const Terminal = win.Terminal?.Terminal || win.Terminal;
-  const FitAddon = win.FitAddon?.FitAddon || win.FitAddon;
-  return { Terminal, FitAddon };
+  return {
+    Terminal: win.Terminal?.Terminal || win.Terminal,
+    FitAddon: win.FitAddon?.FitAddon || win.FitAddon,
+  };
 }
 
 function loadCSS(href: string): void {
@@ -80,46 +82,92 @@ function loadCSS(href: string): void {
 }
 
 export class AIPanelConsoleMode {
-  private terminal: any = null;
-  private fitAddon: any = null;
-  private ws: WebSocket | null = null;
-  private container: HTMLElement | null = null;
+  private TerminalCtor: any = null;
+  private FitAddonCtor: any = null;
+  private instances = new Map<string, TerminalInstance>();
+  private activeTabId: string | null = null;
+  private tabManager = new ConsoleTabManager();
+  private hostEl: HTMLElement | null = null;
   private statusEl: HTMLElement | null = null;
-  private connected = false;
-  private resizeObserver: ResizeObserver | null = null;
-  private resizeTimeout: ReturnType<typeof setTimeout> | null = null;
-  private themeObserver: MutationObserver | null = null;
+  private toolbar: ConsoleToolbarRefs | null = null;
   private recorder: VoiceRecorder | null = null;
+  private initialized = false;
 
   async init(
-    container: HTMLElement,
+    hostEl: HTMLElement,
     statusEl: HTMLElement | null,
     toolbar?: ConsoleToolbarRefs,
+    tabsListEl?: HTMLElement | null,
   ): Promise<void> {
-    this.container = container;
+    if (this.initialized) return;
+    this.initialized = true;
+    this.hostEl = hostEl;
     this.statusEl = statusEl;
-
-    if (this.terminal) return; // already initialized
+    this.toolbar = toolbar || null;
 
     loadCSS(XTERM_CSS_URL);
 
-    let Terminal: any;
-    let FitAddon: any;
     try {
       const modules = await loadXtermModules();
-      Terminal = modules.Terminal;
-      FitAddon = modules.FitAddon;
+      this.TerminalCtor = modules.Terminal;
+      this.FitAddonCtor = modules.FitAddon;
     } catch (err) {
       console.error("[AIPanelConsole] Failed to load xterm.js:", err);
       return;
     }
 
-    if (!Terminal) {
+    if (!this.TerminalCtor) {
       console.error("[AIPanelConsole] xterm.js Terminal class not available");
       return;
     }
 
-    this.terminal = new Terminal({
+    // Initialize tab manager
+    if (tabsListEl) {
+      this.tabManager.init(tabsListEl, hostEl, {
+        onCreate: (tab) => this.onTabCreate(tab),
+        onSwitch: (tab) => this.onTabSwitch(tab),
+        onClose: (tab) => this.onTabClose(tab),
+      });
+      this.tabManager.createTab("T1");
+    } else {
+      // Fallback: single terminal without tabs
+      this.createInstance("default", hostEl);
+    }
+
+    // Wire shared toolbar
+    this.wireToolbar();
+
+    // Auto-accept for Claude Code CLI prompts (targets active terminal)
+    setupAutoAccept({
+      getWs: () => this.getActiveWs(),
+      getTerminal: () => this.getActiveTerminal(),
+    });
+  }
+
+  // --- Tab callbacks ---
+
+  private onTabCreate(tab: ConsoleTab): void {
+    this.createInstance(tab.id, tab.containerEl);
+  }
+
+  private onTabSwitch(tab: ConsoleTab): void {
+    this.activeTabId = tab.id;
+    // Fit the now-visible terminal after layout settles
+    const inst = this.instances.get(tab.id);
+    if (inst) {
+      setTimeout(() => this.fitInstance(inst), 50);
+      this.setStatus(inst.connected ? "connected" : "disconnected");
+    }
+  }
+
+  private onTabClose(tab: ConsoleTab): void {
+    this.destroyInstance(tab.id);
+  }
+
+  // --- Instance lifecycle ---
+
+  private createInstance(id: string, containerEl: HTMLElement): void {
+    const terminal = new this.TerminalCtor({
       cursorBlink: true,
       fontSize: 13,
       fontFamily: "'JetBrains Mono', 'Monaco', 'Menlo', monospace",
@@ -127,97 +175,86 @@ export class AIPanelConsoleMode {
       scrollback: 10000,
     });
 
-    this.terminal.open(container);
+    terminal.open(containerEl);
 
-    if (FitAddon) {
-      this.fitAddon = new FitAddon();
-      this.terminal.loadAddon(this.fitAddon);
-      this.fit();
+    let fitAddon: any = null;
+    let resizeObserver: ResizeObserver | null = null;
+    let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
 
-      this.resizeObserver = new ResizeObserver(() => {
-        if (this.resizeTimeout) clearTimeout(this.resizeTimeout);
-        this.resizeTimeout = setTimeout(() => this.fit(), 100);
+    if (this.FitAddonCtor) {
+      fitAddon = new this.FitAddonCtor();
+      terminal.loadAddon(fitAddon);
+      try {
+        fitAddon.fit();
+      } catch {
+        /* hidden */
+      }
+
+      resizeObserver = new ResizeObserver(() => {
+        if (resizeTimeout) clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          try {
+            fitAddon.fit();
+          } catch {
+            /* hidden */
+          }
+          this.sendResize(inst);
+        }, 100);
       });
-      this.resizeObserver.observe(container);
+      resizeObserver.observe(containerEl);
     }
 
+    const inst: TerminalInstance = {
+      id,
+      terminal,
+      fitAddon,
+      ws: null,
+      connected: false,
+      resizeObserver,
+      resizeTimeout,
+      themeObserver: null,
+      containerEl,
+    };
+
     // Forward user input to WebSocket
-    this.terminal.onData((data: string) => {
-      if (this.ws?.readyState === WebSocket.OPEN) {
-        this.ws.send(data);
-      }
+    terminal.onData((data: string) => {
+      if (inst.ws?.readyState === WebSocket.OPEN) inst.ws.send(data);
     });
 
-    // File drop support — paste file paths into terminal
-    container.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
-      container.classList.add("drop-target");
-    });
-    container.addEventListener("dragleave", () => {
-      container.classList.remove("drop-target");
-    });
-    container.addEventListener("drop", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      container.classList.remove("drop-target");
-      const dt = e.dataTransfer;
-      if (!dt) return;
-      // External OS file drops — upload then type paths into terminal
-      if (dt.files && dt.files.length > 0) {
-        void (async () => {
-          try {
-            const paths = await uploadFiles(dt.files);
-            if (this.ws?.readyState === WebSocket.OPEN) {
-              const formatted = paths.join(" ");
-              this.ws.send(formatted);
-            }
-          } catch (err) {
-            console.error("[Console] File upload error:", err);
-          }
-        })();
-        return;
-      }
-      // Internal file tree drops
-      const raw = dt.getData("text/plain") ?? "";
-      const paths = raw.split(";").filter(Boolean);
-      if (paths.length > 0 && this.ws?.readyState === WebSocket.OPEN) {
-        this.ws.send(paths.join(" "));
-      }
-    });
-
-    // Right-click shortcuts: single=1, double=2, triple=3, quadruple=4
-    // Sends the digit, waits 500ms, then sends Enter
-    let rightClickCount = 0;
-    let rightClickTimer: ReturnType<typeof setTimeout> | null = null;
-    const RIGHT_CLICK_WINDOW = 400;
-
-    container.addEventListener("contextmenu", (e: MouseEvent) => {
-      e.preventDefault();
-      rightClickCount++;
-      if (rightClickTimer) clearTimeout(rightClickTimer);
-      rightClickTimer = setTimeout(() => {
-        const count = Math.min(rightClickCount, 4);
-        rightClickCount = 0;
-        rightClickTimer = null;
-        if (this.ws?.readyState === WebSocket.OPEN) {
-          this.ws.send(String(count));
-          setTimeout(() => {
-            if (this.ws?.readyState === WebSocket.OPEN) this.ws.send("\r");
-          }, 500);
+    // Clipboard & selection
+    terminal.attachCustomKeyEventHandler((ev: KeyboardEvent) => {
+      if (ev.ctrlKey && (ev.key === "c" || ev.key === "C")) {
+        const sel = terminal.getSelection();
+        if (sel) {
+          navigator.clipboard.writeText(sel);
+          return false;
         }
-      }, RIGHT_CLICK_WINDOW);
+        return true;
+      }
+      if (ev.ctrlKey && (ev.key === "v" || ev.key === "V")) {
+        navigator.clipboard.readText().then((t: string) => {
+          if (inst.ws?.readyState === WebSocket.OPEN) inst.ws.send(t);
+        });
+        return false;
+      }
+      if (ev.altKey && ev.key === "a") return false;
+      return true;
     });
 
-    // Context-aware zoom for terminal
+    // File drop
+    this.setupFileDrop(containerEl, inst);
+
+    // Right-click shortcuts
+    this.setupRightClick(containerEl, inst);
+
+    // Context-aware zoom
     registerZoomZone({
-      el: container,
-      getSize: () => this.terminal?.options?.fontSize ?? 13,
+      el: containerEl,
+      getSize: () => terminal?.options?.fontSize ?? 13,
       setSize: (px) => {
-        if (this.terminal) {
-          this.terminal.options.fontSize = px;
-          this.fit();
+        if (terminal) {
+          terminal.options.fontSize = px;
+          this.fitInstance(inst);
         }
       },
       min: 8,
@@ -226,103 +263,175 @@ export class AIPanelConsoleMode {
       storageKey: "scitex-terminal-font-size",
     });
 
-    // Listen for theme changes
-    this.observeTheme();
+    // Theme observation
+    this.observeTheme(inst);
 
-    // Clipboard & selection support
-    this.terminal.attachCustomKeyEventHandler((ev: KeyboardEvent) => {
-      // Ctrl+A: pass through to terminal (readline: go to beginning of line)
-      // Ctrl+C: copy selection (if text selected), else send interrupt
-      if (ev.ctrlKey && (ev.key === "c" || ev.key === "C")) {
-        const sel = this.terminal.getSelection();
-        if (sel) {
-          navigator.clipboard.writeText(sel);
-          return false;
-        }
-        return true;
-      }
-      // Ctrl+V: paste from clipboard
-      if (ev.ctrlKey && (ev.key === "v" || ev.key === "V")) {
-        navigator.clipboard.readText().then((t: string) => {
-          if (this.ws?.readyState === WebSocket.OPEN) this.ws.send(t);
-        });
-        return false;
-      }
-      // Let Alt+A pass through to toggle panel
-      if (ev.altKey && ev.key === "a") return false;
-      return true;
-    });
+    this.instances.set(id, inst);
+    this.activeTabId = id;
 
-    if (toolbar) {
-      const send = (t: string) => {
-        if (this.ws?.readyState === WebSocket.OPEN) this.ws.send(t);
-      };
-      const sink = makeImageSink(send);
-      if (toolbar.cameraBtn && toolbar.fileInput) {
-        const cam = new WebcamCapture(sink as any, toolbar.fileInput);
-        toolbar.cameraBtn.addEventListener("click", () => void cam.open());
-      }
-      if (toolbar.sketchBtn) {
-        const sk = new SketchCanvas(sink as any);
-        toolbar.sketchBtn.addEventListener("click", () => sk.open());
-      }
-      if (toolbar.micBtn) {
-        this.recorder = new VoiceRecorder([], toolbar.micBtn);
-        toolbar.micBtn.addEventListener("click", () => {
-          if (this.recorder?.isRecording) this.recorder.stop();
-          else
-            this.recorder?.start(
-              () => getCsrfToken(),
-              (t) => send(t),
-            );
-        });
-      }
-    }
-
-    this.connect();
-
-    // Auto-accept for Claude Code CLI prompts
-    setupAutoAccept({
-      getWs: () => this.ws,
-      getTerminal: () => this.terminal,
-    });
+    // Connect WebSocket
+    this.connectInstance(inst);
   }
 
-  private connect(): void {
-    if (this.connected || !this.terminal) return;
+  private destroyInstance(id: string): void {
+    const inst = this.instances.get(id);
+    if (!inst) return;
+    inst.resizeObserver?.disconnect();
+    inst.themeObserver?.disconnect();
+    if (inst.resizeTimeout) clearTimeout(inst.resizeTimeout);
+    inst.ws?.close();
+    inst.terminal?.dispose();
+    this.instances.delete(id);
+  }
+
+  // --- WebSocket ---
+
+  private connectInstance(inst: TerminalInstance): void {
+    if (inst.connected) return;
     this.setStatus("connecting");
 
     const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-    // Use project_id=0 for AI panel terminal (home project)
-    const url = `${proto}//${window.location.host}/ws/console/terminal/?project_id=0`;
+    const sessionName = `ai-panel-${inst.id}`;
+    const url = `${proto}//${window.location.host}/ws/console/terminal/?project_id=0&session=${encodeURIComponent(sessionName)}`;
 
-    this.ws = new WebSocket(url);
+    inst.ws = new WebSocket(url);
 
-    this.ws.onopen = () => {
-      this.connected = true;
-      this.setStatus("connected");
-      this.sendResize();
+    inst.ws.onopen = () => {
+      inst.connected = true;
+      if (inst.id === this.activeTabId) this.setStatus("connected");
+      this.sendResize(inst);
     };
 
-    this.ws.onmessage = (ev) => {
-      const processed = handleOscEscapes(ev.data, this.container);
-      if (processed) this.terminal.write(processed);
+    inst.ws.onmessage = (ev) => {
+      const processed = handleOscEscapes(ev.data, inst.containerEl);
+      if (processed) inst.terminal.write(processed);
     };
 
-    this.ws.onerror = () => {
-      this.setStatus("error");
+    inst.ws.onerror = () => {
+      if (inst.id === this.activeTabId) this.setStatus("error");
     };
 
-    this.ws.onclose = (ev) => {
-      this.connected = false;
-      if (ev.code === 1000) {
-        this.setStatus("disconnected");
-      } else {
-        this.setStatus("error");
-        // Auto-reconnect after 3s for non-normal closes
-        setTimeout(() => this.connect(), 3000);
+    inst.ws.onclose = (ev) => {
+      inst.connected = false;
+      if (inst.id === this.activeTabId) {
+        this.setStatus(ev.code === 1000 ? "disconnected" : "error");
+      }
+      if (ev.code !== 1000) {
+        setTimeout(() => this.connectInstance(inst), 3000);
       }
     };
+  }
+
+  // --- Active tab accessors ---
+
+  private getActiveWs(): WebSocket | null {
+    if (!this.activeTabId) return null;
+    return this.instances.get(this.activeTabId)?.ws ?? null;
+  }
+
+  private getActiveTerminal(): any {
+    if (!this.activeTabId) return null;
+    return this.instances.get(this.activeTabId)?.terminal ?? null;
+  }
+
+  // --- Toolbar wiring ---
+
+  private wireToolbar(): void {
+    if (!this.toolbar) return;
+    const send = (t: string) => {
+      const ws = this.getActiveWs();
+      if (ws?.readyState === WebSocket.OPEN) ws.send(t);
+    };
+    const sink = makeImageSink(send);
+
+    if (this.toolbar.cameraBtn && this.toolbar.fileInput) {
+      const cam = new WebcamCapture(sink as any, this.toolbar.fileInput);
+      this.toolbar.cameraBtn.addEventListener("click", () => void cam.open());
+    }
+    if (this.toolbar.sketchBtn) {
+      const sk = new SketchCanvas(sink as any);
+      this.toolbar.sketchBtn.addEventListener("click", () => sk.open());
+    }
+    if (this.toolbar.micBtn) {
+      this.recorder = new VoiceRecorder([], this.toolbar.micBtn);
+      this.toolbar.micBtn.addEventListener("click", () => {
+        if (this.recorder?.isRecording) this.recorder.stop();
+        else
+          this.recorder?.start(
+            () => getCsrfToken(),
+            (t) => send(t),
+          );
+      });
+    }
+  }
+
+  // --- Event setup helpers ---
+
+  private setupFileDrop(el: HTMLElement, inst: TerminalInstance): void {
+    el.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+      el.classList.add("drop-target");
+    });
+    el.addEventListener("dragleave", () => el.classList.remove("drop-target"));
+    el.addEventListener("drop", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      el.classList.remove("drop-target");
+      const dt = e.dataTransfer;
+      if (!dt) return;
+      if (dt.files && dt.files.length > 0) {
+        void uploadFiles(dt.files).then((paths) => {
+          if (inst.ws?.readyState === WebSocket.OPEN)
+            inst.ws.send(paths.join(" "));
+        });
+        return;
+      }
+      const raw = dt.getData("text/plain") ?? "";
+      const paths = raw.split(";").filter(Boolean);
+      if (paths.length > 0 && inst.ws?.readyState === WebSocket.OPEN)
+        inst.ws.send(paths.join(" "));
+    });
+  }
+
+  private setupRightClick(el: HTMLElement, inst: TerminalInstance): void {
+    let count = 0;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    el.addEventListener("contextmenu", (e: MouseEvent) => {
+      e.preventDefault();
+      count++;
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        const n = Math.min(count, 4);
+        count = 0;
+        timer = null;
+        if (inst.ws?.readyState === WebSocket.OPEN) {
+          inst.ws.send(String(n));
+          setTimeout(() => {
+            if (inst.ws?.readyState === WebSocket.OPEN) inst.ws.send("\r");
+          }, 500);
+        }
+      }, 400);
+    });
+  }
+
+  // --- Utility ---
+
+  private fitInstance(inst: TerminalInstance): void {
+    if (inst.fitAddon) {
+      try {
+        inst.fitAddon.fit();
+        this.sendResize(inst);
+      } catch {
+        /* container may be hidden */
+      }
+    }
+  }
+
+  private sendResize(inst: TerminalInstance): void {
+    if (inst.ws?.readyState === WebSocket.OPEN && inst.terminal)
+      inst.ws.send(`resize:${inst.terminal.rows}:${inst.terminal.cols}`);
   }
 
   private setStatus(
@@ -330,8 +439,6 @@ export class AIPanelConsoleMode {
   ): void {
     if (!this.statusEl) return;
     this.statusEl.classList.remove("connected");
-
-    // Ensure icon and text nodes exist
     let icon = this.statusEl.querySelector("i");
     if (!icon) {
       icon = document.createElement("i");
@@ -342,7 +449,6 @@ export class AIPanelConsoleMode {
       textNode = document.createTextNode("");
       this.statusEl.appendChild(textNode);
     }
-
     switch (state) {
       case "connecting":
         icon.className = "fas fa-circle-notch fa-spin";
@@ -364,27 +470,6 @@ export class AIPanelConsoleMode {
     }
   }
 
-  fit(): void {
-    if (this.fitAddon) {
-      try {
-        this.fitAddon.fit();
-        this.sendResize();
-      } catch {
-        /* container may be hidden */
-      }
-    }
-  }
-
-  private sendResize(): void {
-    if (this.ws?.readyState === WebSocket.OPEN && this.terminal) {
-      this.ws.send(`resize:${this.terminal.rows}:${this.terminal.cols}`);
-    }
-  }
-
-  focus(): void {
-    this.terminal?.focus();
-  }
-
   private getTheme(): Record<string, string> {
     const s = getComputedStyle(document.documentElement);
     const get = (v: string, fb: string) => s.getPropertyValue(v).trim() || fb;
@@ -403,32 +488,22 @@ export class AIPanelConsoleMode {
         };
   }
 
-  /** Watch for theme attribute changes on <html> and update terminal colors */
-  private observeTheme(): void {
-    if (this.themeObserver) return;
-    this.themeObserver = new MutationObserver(() => this.updateTheme());
-    this.themeObserver.observe(document.documentElement, {
+  private observeTheme(inst: TerminalInstance): void {
+    inst.themeObserver = new MutationObserver(() => {
+      if (!inst.terminal) return;
+      inst.terminal.options.theme = this.getTheme();
+    });
+    inst.themeObserver.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["data-theme"],
     });
   }
 
-  private updateTheme(): void {
-    if (!this.terminal) return;
-    const theme = this.getTheme();
-    this.terminal.options.theme = theme;
+  focus(): void {
+    this.getActiveTerminal()?.focus();
   }
 
   destroy(): void {
-    this.resizeObserver?.disconnect();
-    this.themeObserver?.disconnect();
-    this.themeObserver = null;
-    if (this.resizeTimeout) clearTimeout(this.resizeTimeout);
-    this.ws?.close();
-    this.ws = null;
-    this.terminal?.dispose();
-    this.terminal = null;
-    this.fitAddon = null;
-    this.connected = false;
+    for (const id of this.instances.keys()) this.destroyInstance(id);
   }
 }

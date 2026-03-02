@@ -422,6 +422,7 @@ class GlobalAIChat {
   private initConsoleMode(): void {
     const containerEl = document.getElementById("scitex-ai-console-terminal");
     const statusEl = document.getElementById("scitex-ai-console-status");
+    const tabsListEl = document.getElementById("scitex-ai-console-tabs-list");
     if (!containerEl) return;
     if (!this.consoleMode) this.consoleMode = new AIPanelConsoleMode();
     const toolbar = {
@@ -438,7 +439,7 @@ class GlobalAIChat {
         "scitex-ai-console-image-file",
       ) as HTMLInputElement | null,
     };
-    void this.consoleMode.init(containerEl, statusEl, toolbar);
+    void this.consoleMode.init(containerEl, statusEl, toolbar, tabsListEl);
   }
 
   private initJobsMode(): void {

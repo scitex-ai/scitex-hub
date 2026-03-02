@@ -159,6 +159,12 @@
                     </div>
                     <!-- Console/Terminal mode -->
                     <div id="scitex-ai-console-view" class="scitex-ai-view">
+                        <div class="scitex-ai-console-tabs-bar">
+                            <button class="scitex-ai-console-new-tab" title="New terminal">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <div id="scitex-ai-console-tabs-list" class="scitex-ai-console-tabs-list"></div>
+                        </div>
                         <div id="scitex-ai-console-terminal" class="scitex-ai-console-terminal"></div>
                         <div class="scitex-ai-console-toolbar">
                             <span id="scitex-ai-console-status" class="scitex-ai-console-status"></span>
@@ -206,6 +212,30 @@
                         <div id="scitex-ai-console-config"
                              class="scitex-ai-config-popover"
                              style="display:none">
+                            <div class="ai-settings-section" id="ai-auto-accept-config">
+                                <label class="scitex-ai-settings-label">
+                                    <i class="fas fa-magic"></i> Auto-Accept
+                                </label>
+                                <div class="ai-settings-row">
+                                    <label class="scitex-ai-settings-label">Interval</label>
+                                    <select id="ai-auto-accept-interval"
+                                            class="ai-settings-select"
+                                            title="Polling interval">
+                                        <option value="1000">1s (fast)</option>
+                                        <option value="1500" selected>1.5s</option>
+                                        <option value="2000">2s</option>
+                                        <option value="3000">3s (slow)</option>
+                                    </select>
+                                </div>
+                                <div class="ai-settings-row">
+                                    <label class="scitex-ai-settings-label">Safety</label>
+                                    <select id="ai-auto-accept-safety" class="ai-settings-select" title="Safety level">
+                                        <option value="conservative">Conservative</option>
+                                        <option value="normal" selected>Normal</option>
+                                        <option value="aggressive">Aggressive</option>
+                                    </select>
+                                </div>
+                            </div>
                             <div class="ai-settings-section" id="ai-agent-sources">
                                 <label class="scitex-ai-settings-label">
                                     <i class="fas fa-sitemap"></i> Agent Sources
