@@ -195,6 +195,14 @@
   font-size: 0.85rem;
 }
 
+/* Video date */
+.video-date {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-muted, #8b949e);
+}
+
 /* Placeholder card */
 .video-card-placeholder {
   opacity: 0.7;
