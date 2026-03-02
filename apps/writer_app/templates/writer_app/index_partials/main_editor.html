@@ -104,6 +104,55 @@
                      collapse/expand handled by panel-toggle.ts;
                      programmatic init in ComponentInitializer for PDF hooks) -->
                 <div class="h-resizer" id="writer-editor-resizer"></div>
+                <!-- Writer Mode Selector (independent full-height column) -->
+                <nav class="selector-nav"
+                     id="writer-mode-selector"
+                     data-indicator="right"
+                     role="group">
+                    <button type="button"
+                            class="selector-nav-item active"
+                            onclick="switchRightPanel('pdf')"
+                            title="PDF Preview">
+                        <i class="fas fa-file-pdf"></i>
+                        <span class="selector-nav-label">PDF</span>
+                    </button>
+                    <button type="button"
+                            class="selector-nav-item"
+                            onclick="switchRightPanel('citations')"
+                            title="Citations">
+                        <i class="fas fa-book"></i>
+                        <span class="selector-nav-label">Cite</span>
+                    </button>
+                    <button type="button"
+                            class="selector-nav-item"
+                            onclick="switchRightPanel('figures')"
+                            title="Figures">
+                        <i class="fas fa-image"></i>
+                        <span class="selector-nav-label">Fig</span>
+                    </button>
+                    <button type="button"
+                            class="selector-nav-item"
+                            onclick="switchRightPanel('tables')"
+                            title="Tables">
+                        <i class="fas fa-table"></i>
+                        <span class="selector-nav-label">Table</span>
+                    </button>
+                    <button type="button"
+                            id="show-collaboration-btn"
+                            class="selector-nav-item"
+                            onclick="switchRightPanel('collaboration')"
+                            title="Collaboration">
+                        <i class="fas fa-users"></i>
+                        <span class="selector-nav-label">Collab</span>
+                    </button>
+                    <button type="button"
+                            class="selector-nav-item"
+                            onclick="switchRightPanel('history')"
+                            title="Version History">
+                        <i class="fas fa-history"></i>
+                        <span class="selector-nav-label">History</span>
+                    </button>
+                </nav>
                 <div class="preview-panel collapsible-panel" data-hide-title-expanded>
                     <!-- Shared Right Panel Header (changes content based on active panel) -->
                     <div class="panel-header" data-pane-type="module" id="right-panel-header">
@@ -122,57 +171,8 @@
                             <!-- Dynamic right content injected by switchRightPanel() -->
                         </div>
                     </div>
-                    <!-- Preview body: vertical view nav + content -->
+                    <!-- Preview body: view content area -->
                     <div class="preview-body">
-                        <!-- Writer Mode Selector (shared selector-nav pattern) -->
-                        <nav class="selector-nav"
-                             id="writer-mode-selector"
-                             data-indicator="right"
-                             role="group">
-                            <button type="button"
-                                    class="selector-nav-item active"
-                                    onclick="switchRightPanel('pdf')"
-                                    title="PDF Preview">
-                                <i class="fas fa-file-pdf"></i>
-                                <span class="selector-nav-label">PDF</span>
-                            </button>
-                            <button type="button"
-                                    class="selector-nav-item"
-                                    onclick="switchRightPanel('citations')"
-                                    title="Citations">
-                                <i class="fas fa-book"></i>
-                                <span class="selector-nav-label">Cite</span>
-                            </button>
-                            <button type="button"
-                                    class="selector-nav-item"
-                                    onclick="switchRightPanel('figures')"
-                                    title="Figures">
-                                <i class="fas fa-image"></i>
-                                <span class="selector-nav-label">Fig</span>
-                            </button>
-                            <button type="button"
-                                    class="selector-nav-item"
-                                    onclick="switchRightPanel('tables')"
-                                    title="Tables">
-                                <i class="fas fa-table"></i>
-                                <span class="selector-nav-label">Table</span>
-                            </button>
-                            <button type="button"
-                                    id="show-collaboration-btn"
-                                    class="selector-nav-item"
-                                    onclick="switchRightPanel('collaboration')"
-                                    title="Collaboration">
-                                <i class="fas fa-users"></i>
-                                <span class="selector-nav-label">Collab</span>
-                            </button>
-                            <button type="button"
-                                    class="selector-nav-item"
-                                    onclick="switchRightPanel('history')"
-                                    title="Version History">
-                                <i class="fas fa-history"></i>
-                                <span class="selector-nav-label">History</span>
-                            </button>
-                        </nav>
                         <!-- PDF View (default visible) -->
                         <div id="pdf-view" class="right-panel-view">
                             <!-- PDF Header (hidden template - content copied to shared header) -->

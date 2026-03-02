@@ -35,7 +35,7 @@
    Only writer-specific overrides here.
    ========================================= */
 
-/* Body wrapper: mode selector nav + views side by side */
+/* Preview body: view content area (mode selector moved to .writer-workspace) */
 .preview-body {
   display: flex;
   flex: 1;
@@ -43,11 +43,15 @@
   min-height: 0;
 }
 
-/* Writer mode selector: fixed width with resizer-style borders on both sides */
+/* Writer mode selector: independent full-height column in .writer-workspace.
+   box-shadow avoids inflating the box model, so the shared selector-nav
+   active indicator renders at the same position as the app-selector. */
 #writer-mode-selector {
   width: 50px;
-  border-left: 1px solid var(--workspace-border-default, #3a3a3a);
-  border-right: 1px solid var(--workspace-border-default, #3a3a3a);
+  flex-shrink: 0;
+  box-shadow:
+    inset 1px 0 0 var(--workspace-border-default, #3a3a3a),
+    inset -1px 0 0 var(--workspace-border-default, #3a3a3a);
 }
 
 /* Views inside preview-body take remaining space */
@@ -57,7 +61,7 @@
   overflow: hidden;
 }
 
-/* Hide nav when preview panel is collapsed */
+/* Hide preview body when preview panel is collapsed */
 .preview-panel.collapsed .preview-body {
   display: none;
 }
