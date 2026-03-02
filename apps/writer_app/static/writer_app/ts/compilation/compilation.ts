@@ -33,7 +33,7 @@ export class CompilationHandler {
     compilationType: string = "full",
   ): Promise<string> {
     try {
-      const response = await fetch("/api/writer/_compilation/submit/", {
+      const response = await fetch("/api/writer/compilation/submit/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -61,7 +61,7 @@ export class CompilationHandler {
    */
   public async checkStatus(jobId: string): Promise<CompilationJob> {
     try {
-      const response = await fetch(`/api/writer/_compilation/status/${jobId}/`);
+      const response = await fetch(`/api/writer/compilation/status/${jobId}/`);
       if (!response.ok) {
         throw new Error("Failed to fetch compilation status");
       }

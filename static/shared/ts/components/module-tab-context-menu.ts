@@ -5,7 +5,7 @@
  * Uses existing apps API endpoints.
  */
 
-const APPS_API = "/apps/_api";
+const APPS_API = "/apps/api";
 
 const COLOR_SWATCHES = [
   { name: "Default", value: "" },
@@ -169,7 +169,7 @@ async function setModuleColor(
   moduleName: string,
   color: string,
 ): Promise<void> {
-  const data = await apiPost(`${APPS_API}/${moduleName}/_config/`, {
+  const data = await apiPost(`${APPS_API}/${moduleName}/config/`, {
     config: { accent_color: color || null },
   });
   if (!data.success) {

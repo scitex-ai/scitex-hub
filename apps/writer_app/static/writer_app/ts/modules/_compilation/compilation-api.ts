@@ -141,7 +141,7 @@ export class CompilationAPI {
     jobId: string,
   ): Promise<CompilationResult> {
     const response = await fetch(
-      `/writer/api/project/${projectId}/_compilation/status/${jobId}/`,
+      `/writer/api/project/${projectId}/compilation/status/${jobId}/`,
     );
 
     if (!response.ok) {

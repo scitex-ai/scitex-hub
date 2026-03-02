@@ -69,7 +69,7 @@ export class TreeDataLoader {
 
     try {
       const [treeResponse, gitResponse] = await Promise.all([
-        fetch(`/${this.config.username}/${this.config.slug}/api/_file-tree/`),
+        fetch(`/${this.config.username}/${this.config.slug}/api/file-tree/`),
         showGitStatus
           ? fetch(
               `/${this.config.username}/${this.config.slug}/api/git/status/`,

@@ -8,11 +8,15 @@ import { getCSRFToken } from "./utils";
 export class FileBrowser {
   private config: DiffMergeConfig;
   private currentSide: Side | null = null;
-  private onFileSelected: (content: string, side: Side, filename: string) => void;
+  private onFileSelected: (
+    content: string,
+    side: Side,
+    filename: string,
+  ) => void;
 
   constructor(
     config: DiffMergeConfig,
-    onFileSelected: (content: string, side: Side, filename: string) => void
+    onFileSelected: (content: string, side: Side, filename: string) => void,
   ) {
     this.config = config;
     this.onFileSelected = onFileSelected;
@@ -69,7 +73,7 @@ export class FileBrowser {
     tree.innerHTML = "<p>Loading files...</p>";
 
     try {
-      const response = await fetch(`${this.config.apiBaseUrl}api/_file-tree/`, {
+      const response = await fetch(`${this.config.apiBaseUrl}api/file-tree/`, {
         method: "GET",
         headers: {
           "X-Requested-With": "XMLHttpRequest",
@@ -97,7 +101,7 @@ export class FileBrowser {
     const renderNode = (
       node: any,
       parent: HTMLElement,
-      path: string = ""
+      path: string = "",
     ): void => {
       const currentPath = path ? `${path}/${node.name}` : node.name;
 
@@ -161,7 +165,7 @@ export class FileBrowser {
             "X-Requested-With": "XMLHttpRequest",
           },
           body: formData,
-        }
+        },
       );
 
       if (!response.ok) {

@@ -420,7 +420,7 @@ export async function loadFileTree(
   containerId: string = "file-tree",
 ): Promise<void> {
   try {
-    const response = await fetch(`/${username}/${slug}/api/_file-tree/`);
+    const response = await fetch(`/${username}/${slug}/api/file-tree/`);
     const data = await response.json();
 
     const treeContainer = document.getElementById(containerId);

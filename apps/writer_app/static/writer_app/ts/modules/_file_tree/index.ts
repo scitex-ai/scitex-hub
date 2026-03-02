@@ -74,7 +74,7 @@ export class FileTreeManager {
       console.log("[FileTree] Loading file tree...");
 
       const response = await this.apiClient.get<{ tree: FileTreeNode[] }>(
-        `/writer/api/project/${this.projectId}/_file-tree/`,
+        `/writer/api/project/${this.projectId}/file-tree/`,
       );
 
       if (!response.success || !response.data) {

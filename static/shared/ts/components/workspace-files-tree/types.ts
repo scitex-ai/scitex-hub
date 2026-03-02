@@ -58,7 +58,7 @@ export interface TreeConfig {
   showGitStatus?: boolean;
   /** Custom CSS class for the tree container */
   className?: string;
-  /** API endpoint for file tree (default: /{username}/{slug}/api/_file-tree/) */
+  /** API endpoint for file tree (default: /{username}/{slug}/api/file-tree/) */
   apiEndpoint?: string;
 }
 
