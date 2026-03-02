@@ -66,6 +66,10 @@ export class SessionsPanel {
       if (!resp.ok) return;
       const data = (await resp.json()) as { sessions: Session[] };
       this.render(data.sessions);
+      // Auto-create C1 if no sessions exist (like T1 for console)
+      if (data.sessions.length === 0) {
+        await this.createSession("C1");
+      }
     } catch {
       /* silent */
     }
