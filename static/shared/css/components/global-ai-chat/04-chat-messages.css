@@ -66,6 +66,11 @@
   padding-left: 0.8rem;
 }
 
+.scitex-ai-messages li {
+  line-height: 1.15;
+  margin-bottom: 0.05rem;
+}
+
 /* Tool tags */
 .scitex-ai-tools {
   display: flex;
