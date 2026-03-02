@@ -130,15 +130,20 @@ class VisitorAutoLoginMiddleware:
                     )
         except Exception as e:
             logger.error(f"[Middleware] Visitor auto-login failed: {e}")
-            # Reset the DB connection to clear any aborted transaction state.
-            # Without this, subsequent DB queries in the view would fail with
-            # "current transaction is aborted" (PostgreSQL).
-            try:
-                from django.db import connection
 
-                connection.close()
-            except Exception:
-                pass
+        # Always ensure a clean DB connection before the view runs.
+        # The visitor allocation uses @transaction.atomic with
+        # select_for_update, and PgBouncer (transaction pool mode) may
+        # return a dirty connection on startup.  Closing here guarantees
+        # the view's ATOMIC_REQUESTS transaction starts on a fresh
+        # connection, preventing cascading "current transaction is
+        # aborted" errors during template rendering.
+        try:
+            from django.db import connection
+
+            connection.close()
+        except Exception:
+            pass
 
         return self.get_response(request)
 
@@ -253,13 +258,16 @@ class VisitorExpirationMiddleware:
 
         except Exception as e:
             logger.error(f"[Middleware] Error in auto-reallocation: {e}")
-            # Reset the DB connection to clear any aborted transaction state
-            try:
-                from django.db import connection
 
-                connection.close()
-            except Exception:
-                pass
+        # Ensure clean DB connection before the view (same rationale as
+        # VisitorAutoLoginMiddleware — PgBouncer transaction pool mode +
+        # ATOMIC_REQUESTS can cascade dirty connections to the view).
+        try:
+            from django.db import connection
+
+            connection.close()
+        except Exception:
+            pass
 
         return self.get_response(request)
 
