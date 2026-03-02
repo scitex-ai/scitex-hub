@@ -19,6 +19,19 @@ def _session_to_dict(session, include_count=True):
     }
     if include_count:
         d["message_count"] = session.messages.count()
+    # Preview: first sentence of first user message (for tooltip)
+    first_msg = session.messages.filter(role="user").order_by("id").first()
+    if first_msg:
+        text = first_msg.text.strip()
+        # Extract first sentence (up to 120 chars)
+        for sep in (".", "!", "?", "\n"):
+            idx = text.find(sep)
+            if 0 < idx < 120:
+                text = text[: idx + 1]
+                break
+        d["preview"] = text[:120]
+    else:
+        d["preview"] = ""
     return d
 
 

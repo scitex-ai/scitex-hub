@@ -10,6 +10,7 @@ interface Session {
   title: string;
   updated_at: string;
   message_count?: number;
+  preview?: string;
 }
 
 interface SessionMessage {
@@ -31,6 +32,7 @@ function getCsrf(): string {
 export class SessionsPanel {
   currentSessionId: number | null = null;
   private listEl: HTMLElement | null = null;
+  private chatCounter = 0;
   private onSwitch:
     | ((messages: SessionMessage[], sessionId: number) => void)
     | null = null;
@@ -77,7 +79,7 @@ export class SessionsPanel {
           "Content-Type": "application/json",
           "X-CSRFToken": getCsrf(),
         },
-        body: JSON.stringify({ title: title || "New chat" }),
+        body: JSON.stringify({ title: title || `C${this.chatCounter + 1}` }),
       });
       if (!resp.ok) return null;
       const session = (await resp.json()) as Session;
@@ -151,11 +153,17 @@ export class SessionsPanel {
     if (!this.listEl) return;
     this.listEl.innerHTML = "";
 
+    // Update counter based on existing sessions
+    this.chatCounter = sessions.length;
+
     for (const s of sessions) {
       const chip = document.createElement("div");
       chip.className = "scitex-ai-session-item";
       if (s.id === this.currentSessionId) chip.classList.add("active");
       chip.dataset.sessionId = String(s.id);
+
+      // Tooltip: show first sentence of conversation (or title if no messages)
+      chip.title = s.preview || s.title;
 
       const title = document.createElement("span");
       title.className = "scitex-ai-session-title";
