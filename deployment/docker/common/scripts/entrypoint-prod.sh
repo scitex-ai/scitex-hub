@@ -50,13 +50,7 @@ echo_success "Visitor pool ready"
 # ============================================
 if [ ! -d "node_modules" ] || [ "package.json" -nt "node_modules/.install-timestamp" ]; then
     echo_info "Installing npm dependencies (including dev for Vite build)..."
-    # Fix ownership if node_modules was created by root (e.g., during image build)
-    if [ -d "node_modules" ] && [ "$(stat -c '%U' node_modules 2>/dev/null)" = "root" ]; then
-        echo_info "Fixing node_modules ownership (root -> scitex)..."
-        sudo chown -R scitex:scitex node_modules 2>/dev/null || true
-    fi
-    # Clean stale npm temp dirs from previous failed installs
-    find node_modules -maxdepth 1 -name '.*' -type d ! -name '.bin' ! -name '.' -exec rm -rf {} + 2>/dev/null || true
+    # Note: node_modules ownership fix is handled by root-init.sh (runs as root)
     npm install
     touch node_modules/.install-timestamp
     echo_success "npm dependencies installed"
