@@ -15,7 +15,7 @@ const COLLAPSED_SELECTORS = [
 const PANEL_SELECTORS = [".collapsible-panel", ".workspace-sidebar"].join(", ");
 
 const TOGGLE_SELECTORS =
-  ".panel-toggle-btn, .sidebar-toggle, .sidebar-toggle-btn";
+  ".panel-toggle-btn, .sidebar-toggle, .sidebar-toggle-btn, .details-toggle, .properties-toggle, .properties-toggle-btn";
 
 const HEADER_SELECTORS = [
   ".panel-header",

@@ -112,15 +112,20 @@
    Use data-indicator="left" or data-indicator="right" on .selector-nav
    to show a colored edge bar on the active item.
    Default: no indicator (just background highlight).
+
+   Shared dimensions (also used by module-tab-bar.css):
+     --indicator-width: 4px
+     --indicator-inset: 20%   (top/bottom inset)
+     --indicator-radius: 2px
    =========================================================================== */
 
-/* Left indicator (partial 4px bar on left edge, ~60% height, centered) */
+/* Left indicator */
 .selector-nav[data-indicator="left"] .selector-nav-item.active::after {
   content: "";
   position: absolute;
   left: 0;
   top: 20%;
-  height: 60%;
+  bottom: 20%;
   width: 4px;
   border-radius: 0 2px 2px 0;
   background: var(
@@ -129,13 +134,13 @@
   );
 }
 
-/* Right indicator (partial 4px bar on right edge, ~60% height, centered) */
+/* Right indicator */
 .selector-nav[data-indicator="right"] .selector-nav-item.active::after {
   content: "";
   position: absolute;
   right: 0;
   top: 20%;
-  height: 60%;
+  bottom: 20%;
   width: 4px;
   border-radius: 2px 0 0 2px;
   background: var(
