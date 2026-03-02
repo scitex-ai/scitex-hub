@@ -81,7 +81,7 @@ class PoolInitializer:
 
     @classmethod
     def _check_pool_ready(cls, pool_size: int) -> bool:
-        """Check if pool is already fully initialized."""
+        """Check if pool is already fully initialized with template content."""
         for i in range(1, pool_size + 1):
             username = f"{cls.VISITOR_USER_PREFIX}{i:03d}"
             project_slug = "default-project"
@@ -98,6 +98,14 @@ class PoolInitializer:
                 project_root = manager.get_project_root_path(project)
 
                 if not (project_root and project_root.exists()):
+                    return False
+
+                # Verify template content exists (not just empty directories)
+                writer_dir = project_root / "scitex" / "writer"
+                if not writer_dir.exists() or not any(writer_dir.iterdir()):
+                    logger.warning(
+                        f"[VisitorPool] {username}: scitex/writer/ missing or empty"
+                    )
                     return False
             except (User.DoesNotExist, Project.DoesNotExist):
                 return False
@@ -154,9 +162,15 @@ class PoolInitializer:
         manager = get_project_filesystem_manager(user)
         project_root = manager.get_project_root_path(project)
 
-        if not (project_root and project_root.exists()):
-            project_path = manager.base_path / project_slug
+        project_path = manager.base_path / project_slug
+        writer_dir = project_path / "scitex" / "writer"
+        needs_clone = (
+            not (project_root and project_root.exists())
+            or not writer_dir.exists()
+            or not any(writer_dir.iterdir())
+        )
 
+        if needs_clone:
             if project_path.exists():
                 shutil.rmtree(project_path)
 
