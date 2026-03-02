@@ -105,44 +105,9 @@
   position: relative;
 }
 
-/* ---- Expanded panel green indicator bar ----
-   Single source of truth: a 3px green left-edge bar on every expanded
-   panel header signals "this panel is collapsible and currently open."
-   Matches the unified indicator dimensions from selector-nav.css. */
-
-.collapsible-panel:not(.collapsed) .panel-header::before,
-.collapsible-panel:not(.collapsed) .pane-header::before,
-.collapsible-panel:not(.collapsed) .details-header::before,
-.collapsible-panel:not(.collapsed) .properties-header::before,
-.collapsible-panel:not(.collapsed) .sidebar-header::before,
-.collapsible-panel:not(.collapsed) .tools-nav-header::before,
-.collapsible-panel:not(.collapsed) .terminal-panel-top::before,
-.workspace-sidebar:not(.collapsed) .sidebar-header::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 20%;
-  bottom: 20%;
-  width: 3px;
-  border-radius: 0 2px 2px 0;
-  background: var(--workspace-icon-primary, #059669);
-  z-index: 20;
-  transition:
-    opacity 0.2s ease,
-    width 0.15s ease;
-}
-
-/* Hover on foldable header: widen the indicator bar slightly */
-.collapsible-panel:not(.collapsed) .panel-header.foldable::before,
-.collapsible-panel:not(.collapsed) .pane-header.foldable::before,
-.collapsible-panel:not(.collapsed) .details-header.foldable::before,
-.collapsible-panel:not(.collapsed) .properties-header.foldable::before,
-.collapsible-panel:not(.collapsed) .sidebar-header.foldable::before,
-.collapsible-panel:not(.collapsed) .tools-nav-header.foldable::before,
-.collapsible-panel:not(.collapsed) .terminal-panel-top.foldable::before,
-.workspace-sidebar:not(.collapsed) .sidebar-header.foldable::before {
-  width: 4px;
-}
+/* ---- Expanded panel indicator bar (REMOVED) ----
+   Previously showed a 3px left-edge bar on expanded panel headers.
+   Removed: title divs should not have left border highlighters. */
 
 /* Expanded header hover: green background on empty space (foldable state)
    JS adds .foldable class when cursor is on empty header area */
