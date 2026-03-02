@@ -45,19 +45,41 @@
 
 .project-card-header .badge {
   font-size: 0.7rem;
-  padding: 0.15rem 0.4rem;
-  border-radius: 4px;
+  padding: 0.1rem 0.5rem;
+  border-radius: 2em;
   font-weight: 500;
+  background: transparent;
+  border: 1px solid var(--workspace-border-default);
+  color: var(--workspace-text-muted);
+  line-height: 1.5;
 }
 
 .project-card-header .badge-public {
-  background-color: var(--status-success);
-  color: white;
+  /* GitHub-style subtle outline — same as base */
 }
 
 .project-card-header .badge-private {
-  background-color: var(--workspace-text-muted);
-  color: white;
+  /* GitHub-style subtle outline — same as base */
+}
+
+/* Topic tags (GitHub-style blue pills) */
+.project-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.topic-tag {
+  display: inline-block;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 2em;
+  background: rgba(56, 139, 253, 0.15);
+  color: #58a6ff;
+  font-weight: 500;
+  cursor: default;
+  line-height: 1.5;
 }
 
 .project-card-body p {

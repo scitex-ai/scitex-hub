@@ -38,6 +38,7 @@ def api_projects_list(request):
             "description": project.description,
             "visibility": project.visibility,
             "project_type": project.project_type,
+            "topics": project.topics,
             "language": project.primary_language or "Unknown",
             "updated_at": (
                 project.updated_at.isoformat() if project.updated_at else None
@@ -347,6 +348,35 @@ def api_user_profile(request):
         request=request,
     )
     return JsonResponse({"success": True, "html": html})
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_update_topics(request):
+    """POST /hub/api/update-topics/ — Update project topics."""
+    from apps.project_app.services.project_utils import get_current_project
+
+    current_project = get_current_project(request, user=request.user)
+    if not current_project:
+        return JsonResponse(
+            {"success": False, "error": "No project selected"}, status=400
+        )
+
+    if current_project.owner != request.user:
+        return JsonResponse(
+            {"success": False, "error": "Permission denied"}, status=403
+        )
+
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+
+    topics = data.get("topics", "").strip()
+    current_project.topics = topics
+    current_project.save(update_fields=["topics"])
+
+    return JsonResponse({"success": True, "topics": topics})
 
 
 @login_required

@@ -130,6 +130,46 @@ function initHub(): void {
       return;
     }
 
+    // Topics save button
+    const topicsSave = target.closest("#hub-topics-save") as HTMLElement | null;
+    if (topicsSave) {
+      e.preventDefault();
+      e.stopPropagation();
+      const input = container.querySelector(
+        "#hub-topics-input",
+      ) as HTMLInputElement | null;
+      if (!input) return;
+      const csrfToken =
+        document
+          .querySelector("[name=csrfmiddlewaretoken]")
+          ?.getAttribute("value") ||
+        document.cookie.match(/csrftoken=([^;]+)/)?.[1] ||
+        "";
+      topicsSave.textContent = "Saving...";
+      fetch("/hub/api/update-topics/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+        body: JSON.stringify({ topics: input.value }),
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          topicsSave.textContent = data.success ? "Saved" : "Error";
+          setTimeout(() => {
+            topicsSave.textContent = "Save";
+          }, 2000);
+        })
+        .catch(() => {
+          topicsSave.textContent = "Error";
+          setTimeout(() => {
+            topicsSave.textContent = "Save";
+          }, 2000);
+        });
+      return;
+    }
+
     // File browser links
     const link = target.closest(
       "a.file-browser-link",

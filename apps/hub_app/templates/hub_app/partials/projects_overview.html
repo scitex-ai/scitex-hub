@@ -31,6 +31,11 @@ Returned by /hub/api/projects-overview/ for inline back-navigation.
                         </div>
                         <div class="project-card-body">
                             <p class="text-muted">{{ proj.description|truncatewords:20 }}</p>
+                            {% if proj.topics_list %}
+                                <div class="project-topics">
+                                    {% for topic in proj.topics_list %}<span class="topic-tag">{{ topic }}</span>{% endfor %}
+                                </div>
+                            {% endif %}
                             <div class="project-meta">
                                 {% if proj.primary_language %}<span class="language-badge">{{ proj.primary_language }}</span>{% endif %}
                                 <span class="meta-item">
