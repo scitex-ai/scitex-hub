@@ -51,6 +51,11 @@ urlpatterns = [
         api_views.api_update_topics,
         name="api_update_topics",
     ),
+    path(
+        "update-about/",
+        api_views.api_update_about,
+        name="api_update_about",
+    ),
 ]
 
 # EOF

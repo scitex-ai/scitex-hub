@@ -214,13 +214,19 @@ def api_select_project(request):
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
 
     project_id = data.get("project_id")
-    if not project_id:
+    owner = data.get("owner")
+    slug = data.get("slug")
+
+    if not project_id and not (owner and slug):
         return JsonResponse(
-            {"success": False, "error": "project_id required"}, status=400
+            {"success": False, "error": "project_id or owner+slug required"}, status=400
         )
 
     try:
-        project = Project.objects.get(id=project_id)
+        if owner and slug:
+            project = Project.objects.get(owner__username=owner, slug=slug)
+        else:
+            project = Project.objects.get(id=project_id)
     except Project.DoesNotExist:
         return JsonResponse(
             {"success": False, "error": "Project not found"}, status=404
@@ -352,8 +358,8 @@ def api_user_profile(request):
 
 @login_required
 @require_http_methods(["POST"])
-def api_update_topics(request):
-    """POST /hub/api/update-topics/ — Update project topics."""
+def api_update_about(request):
+    """POST /hub/api/update-about/ — Update project description and/or topics."""
     from apps.project_app.services.project_utils import get_current_project
 
     current_project = get_current_project(request, user=request.user)
@@ -372,11 +378,28 @@ def api_update_topics(request):
     except (json.JSONDecodeError, ValueError):
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
 
-    topics = data.get("topics", "").strip()
-    current_project.topics = topics
-    current_project.save(update_fields=["topics"])
+    update_fields = []
+    if "description" in data:
+        current_project.description = data["description"].strip()
+        update_fields.append("description")
+    if "topics" in data:
+        current_project.topics = data["topics"].strip()
+        update_fields.append("topics")
 
-    return JsonResponse({"success": True, "topics": topics})
+    if update_fields:
+        current_project.save(update_fields=update_fields)
+
+    return JsonResponse(
+        {
+            "success": True,
+            "description": current_project.description,
+            "topics": current_project.topics,
+        }
+    )
+
+
+# Keep old endpoint as alias for backward compatibility
+api_update_topics = api_update_about
 
 
 @login_required
