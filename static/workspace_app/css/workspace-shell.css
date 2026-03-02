@@ -54,6 +54,7 @@
 .ws-module-pane {
   flex: 1;
   min-width: 0;
+  height: 100%; /* Cap at workspace-shell height — prevents app content from exceeding viewport */
   overflow: auto;
   position: relative;
 }

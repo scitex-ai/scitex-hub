@@ -1,0 +1,25 @@
+/* Context-Zoom Indicator — brief zoom-level badge near cursor */
+.context-zoom-indicator {
+  position: fixed;
+  z-index: 10000;
+  pointer-events: none;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-mono, monospace);
+  background: var(--bg-tertiary, #333);
+  color: var(--text-primary, #fff);
+  border: 1px solid var(--border-secondary, #555);
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+  white-space: nowrap;
+}
+
+.context-zoom-indicator.visible {
+  opacity: 0.9;
+  transform: translateY(0);
+}
