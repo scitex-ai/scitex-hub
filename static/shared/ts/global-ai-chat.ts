@@ -23,7 +23,7 @@ import {
 } from "./components/_global-ai-chat/model-badge";
 import { initKeyboardShortcuts } from "./components/keyboard-shortcuts";
 import { AIPanelConfigMode } from "./components/_global-ai-chat/config-mode";
-// context-zoom-init is now self-initializing (loaded via vite_script in global_body_scripts.html)
+import { populateChatLimits } from "./components/_global-ai-chat/chat-config-limits";
 
 const PANEL_OPEN_KEY = "scitex_ai_open";
 
@@ -330,9 +330,12 @@ class GlobalAIChat {
         .forEach((p) => (p.style.display = "none"));
       if (!isVisible) {
         popover.style.display = "block";
-        if (popoverId === "scitex-ai-console-config") {
-          void this.populateAgentSources();
+        if (popoverId === "scitex-ai-chat-config") {
+          void populateChatLimits();
+          void this.populateAgentSources("ai-chat-agent-sources-content");
         }
+        if (popoverId === "scitex-ai-console-config")
+          void this.populateAgentSources("ai-agent-sources-content");
       }
     });
 
@@ -361,8 +364,8 @@ class GlobalAIChat {
 
   /* ── Agent Sources (delegated to config-mode.ts) ─────────── */
 
-  private async populateAgentSources(): Promise<void> {
-    const container = document.getElementById("ai-agent-sources-content");
+  private async populateAgentSources(id = "ai-agent-sources-content"): Promise<void> {
+    const container = document.getElementById(id);
     if (!container) return;
     if (!this.configMode) this.configMode = new AIPanelConfigMode();
     void this.configMode.populate(container, this.chatMode);
@@ -379,18 +382,10 @@ class GlobalAIChat {
           if (m && m !== this.mode) this.switchMode(m);
         });
       });
-    const saved = localStorage.getItem("scitex-ai-mode") as
-      | "chat"
-      | "console"
-      | null;
+    const saved = localStorage.getItem("scitex-ai-mode");
     // Migrate old saved modes (jobs/config) to console
-    if (
-      saved === "console" ||
-      saved === ("jobs" as string) ||
-      saved === ("config" as string)
-    ) {
+    if (saved === "console" || saved === "jobs" || saved === "config")
       this.switchMode("console");
-    }
   }
 
   private switchMode(mode: "chat" | "console"): void {

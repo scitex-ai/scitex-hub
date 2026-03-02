@@ -140,7 +140,10 @@ def export_chat_prompt() -> str:
         "You have MCP tools — use them proactively to help the user. "
         "When asked to create plots, analyze data, or write files, "
         "DO IT immediately using your tools. Don't just describe what "
-        "you would do — actually do it.",
+        "you would do — actually do it. "
+        "Keep responses concise and compact — no lengthy greetings, "
+        "no capability lists, no emoji-heavy formatting. "
+        "Get straight to the point.",
         "",
         "## File Paths",
         "When the system prompt includes 'Project root path: /path/to/project', "

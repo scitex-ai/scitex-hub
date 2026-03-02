@@ -23,6 +23,7 @@ VIDEO_CATALOG = {
         "title": "Graphing by AI Agent (figrecipe v0.14.0)",
         "url": "/media/videos/figrecipe-v0.14.0-demo.mp4",
         "thumbnail": "/media/videos/figrecipe-v0.14.0-demo-thumbnail.png",
+        "date": "2026-01-22",
         "description": (
             "scitex MCP enables AI agents to create publication-ready scientific "
             "figures. Reproducible recipes for automated plot generation."
@@ -32,6 +33,7 @@ VIDEO_CATALOG = {
         "title": "Literature Search by AI Agent (crossref-local v0.3.1)",
         "url": "/media/videos/crossref-local-v0.3.1-demo.mp4",
         "thumbnail": "/media/videos/crossref-local-v0.3.1-demo-thumbnail.png",
+        "date": "2026-01-22",
         "description": (
             "scitex MCP enables AI agents to search 167M+ academic works via local "
             "database. No hallucinated citations — real literature data for reliable "
@@ -42,6 +44,7 @@ VIDEO_CATALOG = {
         "title": "Manuscript Writing by AI Agent (scitex-writer v2.2.0)",
         "url": "/media/videos/scitex-writer-v2.2.0-demo.mp4",
         "thumbnail": "/media/videos/scitex-writer-v2.2.0-demo-thumbnail.png",
+        "date": "2026-01-22",
         "description": (
             "scitex MCP enables AI agents to write scientific manuscripts. Automated "
             "literature integration, LaTeX compilation, and revision tracking."
@@ -51,6 +54,7 @@ VIDEO_CATALOG = {
         "title": "Automated Research by AI Agent (scitex v2.10)",
         "url": "/media/videos/scitex-automated-research-demo.mp4",
         "thumbnail": "/media/videos/scitex-automated-research-demo-thumbnail.png",
+        "date": "2026-01-22",
         "description": (
             "scitex MCP enables AI agents to conduct full research workflows: "
             "literature search, experiment, analysis, figure generation, manuscript "
@@ -62,6 +66,7 @@ VIDEO_CATALOG = {
         "title": "scitex.scholar Demo",
         "url": "/static/public_app/videos/landing/scholar-demo.mp4",
         "thumbnail": None,  # Uses default OG image
+        "date": "2025-11-06",
         "description": (
             "Literature discovery & enrichment. Search 167M+ academic works via local "
             "database. Automatic PDF download with institutional credentials."
@@ -71,6 +76,7 @@ VIDEO_CATALOG = {
         "title": "scitex.writer Demo",
         "url": "/static/public_app/videos/landing/writer-demo.mp4",
         "thumbnail": None,  # Uses default OG image
+        "date": "2025-11-06",
         "description": (
             "LaTeX manuscript writing with automated compilation. Integrates with "
             "BibTeX for citation management."
@@ -80,6 +86,7 @@ VIDEO_CATALOG = {
         "title": "scitex.{session,plt,io} Demo",
         "url": "/static/public_app/videos/landing/console-demo.mp4",
         "thumbnail": None,  # Uses default OG image
+        "date": "2025-11-06",
         "description": (
             "Reproducible experiment tracking with @stx.session decorator. "
             "Publication-ready figures and universal file I/O."
@@ -89,16 +96,29 @@ VIDEO_CATALOG = {
         "title": "scitex.plt Demo",
         "url": "/static/public_app/videos/landing/visualizer-demo.mp4",
         "thumbnail": None,  # Uses default OG image
+        "date": "2025-11-06",
         "description": (
             "Publication-ready scientific figures with reproducible recipes. "
             "Auto-exports data CSV alongside plots."
         ),
     },
     # Cloud demos
+    "scitex-cloud-v0.11.5": {
+        "title": "SciTeX Cloud v0.11.5 Demo",
+        "url": "/media/videos/scitex-cloud-v0.11.5-demo.mp4",
+        "thumbnail": "/media/videos/scitex-cloud-v0.11.5-demo-thumbnail.png",
+        "date": "2026-03-02",
+        "description": (
+            "SciTeX Cloud v0.11.5 — AI panel redesign with 2-mode layout "
+            "(Chat/Console), multi-terminal tabs, flat tab styling, and "
+            "hub project about section."
+        ),
+    },
     "scitex-cloud": {
         "title": "SciTeX Cloud v0.9.3 Demo",
         "url": "/media/videos/scitex-cloud-v0.9.3-demo.mp4",
         "thumbnail": "/media/videos/scitex-cloud-v0.9.3-demo-thumbnail.png",
+        "date": "2026-02-16",
         "description": (
             "SciTeX Cloud — self-hosted research platform. Scholar, Writer, "
             "Console, and Visualizer modules in a unified web interface."

@@ -62,7 +62,7 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 4px;
-  padding: 2px 0 4px 16px;
+  padding: 0;
   max-height: 0;
   overflow: hidden;
 }
@@ -70,6 +70,7 @@
 .ai-config-category.expanded .ai-config-grid {
   max-height: none;
   overflow: visible;
+  padding: 2px 0 4px 16px;
 }
 
 /* ── Compact Toggle Card ────────────────────── */

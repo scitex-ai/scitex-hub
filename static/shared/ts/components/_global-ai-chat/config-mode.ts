@@ -4,7 +4,9 @@
  */
 
 import type { AIPanelChatMode } from "./chat-mode";
-import { bindLimitsInputs, renderLimits } from "./config-limits";
+import { renderSkills } from "./config-skills";
+import type { SkillInfo } from "./config-skills";
+import { readActiveProjectSlug } from "./context";
 
 interface McpToolParam {
   name: string;
@@ -42,18 +44,13 @@ interface McpPrefsCategory {
   groups: McpPrefsGroup[];
 }
 
-interface SkillInfo {
-  display_name: string;
-  app_name?: string;
-  page_patterns?: string[];
-  capabilities?: string[];
-  tool_prefixes?: string[];
-}
-
 export class AIPanelConfigMode {
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
-  private static SKILL_PREFS_KEY = "scitex-ai-skill-prefs";
-  private static HINT_PREFS_KEY = "scitex-ai-hint-prefs";
+
+  private static prefsKey(base: string): string {
+    const slug = readActiveProjectSlug();
+    return slug ? `${base}-${slug}` : base;
+  }
 
   private loadLocalPrefs(key: string): Record<string, boolean> {
     try {
@@ -72,14 +69,14 @@ export class AIPanelConfigMode {
     chatMode: AIPanelChatMode | null,
   ): Promise<void> {
     try {
-      const [mcpPrefs, toolsCatalog, skillsResp, limitsResp, pageHints] =
-        await Promise.all([
+      const [mcpPrefs, toolsCatalog, skillsResp, pageHints] = await Promise.all(
+        [
           fetch("/accounts/api/mcp-preferences/").then((r) => r.json()),
           fetch("/api/mcp/tools/").then((r) => r.json()),
           fetch("/llm/api/skills/").then((r) => r.json()),
-          fetch("/accounts/api/ai-limits/").then((r) => r.json()),
           Promise.resolve(chatMode?.collectPageHints() ?? []),
-        ]);
+        ],
+      );
 
       const enabledMap: Record<string, boolean> = {};
       for (const cat of (mcpPrefs.categories || []) as McpPrefsCategory[]) {
@@ -91,12 +88,15 @@ export class AIPanelConfigMode {
       const modules: McpModule[] = toolsCatalog.modules || [];
       const skills: Record<string, SkillInfo> = skillsResp.skills || {};
       const currentPage = window.location.pathname;
-      const skillPrefs = this.loadLocalPrefs(AIPanelConfigMode.SKILL_PREFS_KEY);
-      const hintPrefs = this.loadLocalPrefs(AIPanelConfigMode.HINT_PREFS_KEY);
+      const skillPrefs = this.loadLocalPrefs(
+        AIPanelConfigMode.prefsKey("scitex-ai-skill-prefs"),
+      );
+      const hintPrefs = this.loadLocalPrefs(
+        AIPanelConfigMode.prefsKey("scitex-ai-hint-prefs"),
+      );
 
       let html = "";
-      html += renderLimits(limitsResp);
-      html += this.renderSkills(skills, currentPage, skillPrefs);
+      html += renderSkills(skills, currentPage, skillPrefs);
       html += this.renderPageHints(hintPrefs);
       html += this.renderMcpTools(modules, enabledMap, toolsCatalog.total || 0);
       html += this.renderContextPreview();
@@ -108,7 +108,6 @@ export class AIPanelConfigMode {
       this.bindMcpToggles(container);
       this.bindSkillToggles(container);
       this.bindHintToggles(container);
-      bindLimitsInputs(container, () => this.showToast());
       container
         .querySelector(".ai-context-download-btn")
         ?.addEventListener("click", () =>
@@ -121,64 +120,6 @@ export class AIPanelConfigMode {
   }
 
   /* ── Renderers ───────────────────────────────────────── */
-
-  private renderSkills(
-    skills: Record<string, SkillInfo>,
-    currentPage: string,
-    prefs: Record<string, boolean>,
-  ): string {
-    const names = Object.keys(skills);
-    if (names.length === 0) return "";
-    const activeSkill = Object.values(skills).find((s) =>
-      s.page_patterns?.some(
-        (p) =>
-          currentPage.includes(p) ||
-          currentPage.startsWith(p.replace(/\/$/, "")),
-      ),
-    );
-    const onCount = names.filter((n) => prefs[n] !== false).length;
-    let html = `<div class="ai-config-category" data-cat="App Skills">`;
-    html += `<div class="ai-config-category-header">`;
-    html += `<i class="fas fa-chevron-right ai-config-category-chevron"></i>`;
-    html += `<span class="ai-config-category-name">App Skills</span>`;
-    html += `<span class="ai-config-category-count">${onCount}/${names.length}</span>`;
-    html += `</div><div class="ai-config-grid">`;
-    for (const name of names) {
-      const s = skills[name];
-      const isActive = (activeSkill as any)?.app_name === name;
-      const enabled = prefs[name] !== false;
-      const cls = enabled ? "enabled" : "";
-      const activeTag = isActive
-        ? ' <span class="ai-config-active-tag">active</span>'
-        : "";
-      html += `<label class="ai-config-card ai-config-skill ${cls}" data-skill="${name}">`;
-      html += `<i class="fas fa-book ai-config-card-icon"></i>`;
-      html += `<div class="ai-config-card-info">`;
-      html += `<div class="ai-config-card-name">${s.display_name}${activeTag}</div>`;
-      html += `</div>`;
-      html += `<div class="ai-config-toggle">`;
-      html += `<input type="checkbox" ${enabled ? "checked" : ""} />`;
-      html += `<span class="ai-config-slider"></span>`;
-      html += `</div></label>`;
-      html += this.renderSkillDetails(s);
-    }
-    html += `</div></div>`;
-    return html;
-  }
-
-  private renderSkillDetails(s: SkillInfo): string {
-    const parts: string[] = [];
-    if (s.capabilities?.length)
-      parts.push(...s.capabilities.map((c) => `<li><code>${c}</code></li>`));
-    if (s.tool_prefixes?.length)
-      parts.push(
-        `<li>Tool prefixes: <code>${s.tool_prefixes.join(", ")}</code></li>`,
-      );
-    if (s.page_patterns?.length)
-      parts.push(`<li>Pages: <code>${s.page_patterns.join(", ")}</code></li>`);
-    if (parts.length === 0) return "";
-    return `<details class="ai-config-tools-list" open><summary>details</summary><ul>${parts.join("")}</ul></details>`;
-  }
 
   private renderPageHints(prefs: Record<string, boolean>): string {
     const hintEls = document.querySelectorAll<HTMLElement>("[data-ai-hint]");
@@ -366,14 +307,24 @@ export class AIPanelConfigMode {
   private bindSkillToggles(container: HTMLElement): void {
     container
       .querySelectorAll<HTMLElement>(".ai-config-skill")
-      .forEach((card) => {
-        const cb = card.querySelector<HTMLInputElement>(
+      .forEach((mod) => {
+        const cb = mod.querySelector<HTMLInputElement>(
           'input[type="checkbox"]',
         );
         if (!cb) return;
         cb.addEventListener("change", () => {
-          card.classList.toggle("enabled", cb.checked);
-          this.updateCount(card, ".ai-config-skill");
+          mod
+            .querySelector(".ai-config-card")
+            ?.classList.toggle("enabled", cb.checked);
+          const cat = mod.closest(".ai-config-category");
+          if (cat) {
+            const on = cat.querySelectorAll(
+              ".ai-config-skill .ai-config-card.enabled",
+            ).length;
+            const total = cat.querySelectorAll(".ai-config-skill").length;
+            const badge = cat.querySelector(".ai-config-category-count");
+            if (badge) badge.textContent = `${on}/${total}`;
+          }
           this.saveSkillPrefs(container);
           this.showToast();
         });
@@ -408,7 +359,10 @@ export class AIPanelConfigMode {
         );
         if (name && cb) prefs[name] = cb.checked;
       });
-    this.saveLocalPrefs(AIPanelConfigMode.SKILL_PREFS_KEY, prefs);
+    this.saveLocalPrefs(
+      AIPanelConfigMode.prefsKey("scitex-ai-skill-prefs"),
+      prefs,
+    );
   }
 
   private saveHintPrefs(container: HTMLElement): void {
@@ -422,7 +376,10 @@ export class AIPanelConfigMode {
         );
         if (key && cb) prefs[key] = cb.checked;
       });
-    this.saveLocalPrefs(AIPanelConfigMode.HINT_PREFS_KEY, prefs);
+    this.saveLocalPrefs(
+      AIPanelConfigMode.prefsKey("scitex-ai-hint-prefs"),
+      prefs,
+    );
   }
 
   /* ── Debounced Save ──────────────────────────────────── */

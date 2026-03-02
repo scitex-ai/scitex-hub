@@ -201,10 +201,15 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 
     async def _spawn_via_broker(self):
         """Spawn PTY via Terminal Broker (preferred method)."""
+        from .config import SLURM_CONTAINER_PATH, SLURM_USER_DATA_ROOT
+
         username = self.project.owner.username
         project_slug = self.project.slug
         user_data_dir = USER_DATA_ROOT / username
         project_dir = user_data_dir / "proj" / project_slug
+        # SLURM jobs run on the host, not inside Docker — use host paths
+        slurm_user_dir = SLURM_USER_DATA_ROOT / username
+        slurm_project_dir = slurm_user_dir / "proj" / project_slug
 
         await ensure_workspace(user_data_dir, username, project_slug)
 
@@ -263,11 +268,12 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 
             self.broker_client.set_session_state_callback(on_session_state)
 
+            # Pass host paths for SLURM jobs (not Docker-internal paths)
             session_id = await self.broker_client.spawn(
                 username=username,
-                user_data_dir=user_data_dir,
-                project_dir=project_dir,
-                container_path=container_path,
+                user_data_dir=slurm_user_dir,
+                project_dir=slurm_project_dir,
+                container_path=SLURM_CONTAINER_PATH,
                 project_slug=project_slug,
                 tmux_session=self.screen_session,
             )

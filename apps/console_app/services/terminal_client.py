@@ -102,8 +102,8 @@ class TerminalBrokerClient:
             # Start reader task to handle responses
             self._reader_task = asyncio.create_task(self._read_loop())
 
-            # Wait for spawn response
-            response = await self._wait_for_response(timeout=10.0)
+            # Wait for spawn response (allocation startup can take 60-90s)
+            response = await self._wait_for_response(timeout=90.0)
             if response and response.get("status") == "ok":
                 self.session_id = response.get("session_id")
                 logger.info(f"Spawned terminal session: {self.session_id}")

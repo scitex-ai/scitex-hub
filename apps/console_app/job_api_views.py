@@ -266,10 +266,23 @@ def api_user_jobs(request):
 
         # Get filter parameters
         state_filter = request.GET.get("state", "all")
-        user_filter = request.GET.get("user")  # None means all users
 
-        # Get jobs from SLURM
-        result = slurm.list_jobs(user=user_filter, state=state_filter)
+        # Get all jobs from SLURM, then filter by current user's job name
+        # Jobs run as root in Docker, so we filter by job name prefix
+        result = slurm.list_jobs(state=state_filter)
+
+        # Filter to only show jobs belonging to the current user
+        username = request.user.username
+        prefix = f"scitex_{username}_"
+        user_jobs = [
+            j for j in result.get("jobs", []) if j.get("name", "").startswith(prefix)
+        ]
+        running = sum(1 for j in user_jobs if j["state"] == "RUNNING")
+        pending = sum(1 for j in user_jobs if j["state"] == "PENDING")
+        result["jobs"] = user_jobs
+        result["running"] = running
+        result["pending"] = pending
+        result["total"] = len(user_jobs)
         result["slurm_available"] = True
 
         return JsonResponse(result)

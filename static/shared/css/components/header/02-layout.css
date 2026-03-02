@@ -12,8 +12,7 @@
 }
 
 .header-center {
-  flex: 1;
-  max-width: 600px;
+  flex: 0 1 600px;
 }
 
 /* Hide the old project selector that was in the center */
