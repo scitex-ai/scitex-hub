@@ -5,6 +5,16 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.2-alpha] - 2026-03-02
+
+### Added
+- **Centralized green indicator bar**: Expanded collapsible panel headers now show a green left-edge bar as a visual cue for collapsibility, following the unified resizer pattern
+- **Vite auto-discovery entries**: Replaced manual entry point list with recursive auto-discovery via `generateEntries()`
+
+### Fixed
+- **Writer Details pane toggle/dblclick broken**: The `index.html` template was missing `data-external-toggle="details-toggle"` on its h-resizer, preventing toggle button and double-click collapse from working. The partial template had been updated but the full-page template was not.
+- **Docs export**: Per-section and all-pages export buttons, project version in download filename, Markdown download and PDF print export
+
 ## [0.11.1-alpha] - 2026-03-02
 
 ### Added
