@@ -93,6 +93,7 @@ class VisitorAutoLoginMiddleware:
         # Auto-login as visitor for real browser requests
         try:
             from django.contrib.auth.models import User
+            from django.db import connection
 
             from apps.project_app.services.visitor_pool import VisitorPool
 
@@ -129,6 +130,15 @@ class VisitorAutoLoginMiddleware:
                     )
         except Exception as e:
             logger.error(f"[Middleware] Visitor auto-login failed: {e}")
+            # Reset the DB connection to clear any aborted transaction state.
+            # Without this, subsequent DB queries in the view would fail with
+            # "current transaction is aborted" (PostgreSQL).
+            try:
+                from django.db import connection
+
+                connection.close()
+            except Exception:
+                pass
 
         return self.get_response(request)
 
@@ -243,6 +253,13 @@ class VisitorExpirationMiddleware:
 
         except Exception as e:
             logger.error(f"[Middleware] Error in auto-reallocation: {e}")
+            # Reset the DB connection to clear any aborted transaction state
+            try:
+                from django.db import connection
+
+                connection.close()
+            except Exception:
+                pass
 
         return self.get_response(request)
 
