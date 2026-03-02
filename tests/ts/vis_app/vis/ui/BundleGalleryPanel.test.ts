@@ -35,18 +35,18 @@ describe('BundleGalleryPanel', () => {
 //  * - Create new bundles
 //  * - Search and filter
 //  */
-// 
+//
 // import type {
 //     PltzBundleSummary,
 //     FigzBundleSummary,
 //     PltzCategory,
 //     FigzLayout,
-// } from '../types.ts';
-// import { pltzBundleManager } from '../PltzBundleManager.ts';
-// import { figzBundleManager } from '../FigzBundleManager.ts';
-// 
+// } from '../types';
+// import { pltzBundleManager } from '../PltzBundleManager';
+// import { figzBundleManager } from '../FigzBundleManager';
+//
 // export type BundleType = 'pltz' | 'figz';
-// 
+//
 // export interface BundleGalleryPanelOptions {
 //     container: HTMLElement;
 //     onPltzSelect?: (bundle: PltzBundleSummary) => void;
@@ -54,7 +54,7 @@ describe('BundleGalleryPanel', () => {
 //     onPltzDragStart?: (bundle: PltzBundleSummary, event: DragEvent) => void;
 //     initialTab?: BundleType;
 // }
-// 
+//
 // const CATEGORY_LABELS: Record<PltzCategory, string> = {
 //     line: 'Line Plots',
 //     scatter: 'Scatter Plots',
@@ -65,7 +65,7 @@ describe('BundleGalleryPanel', () => {
 //     contour: 'Contours',
 //     other: 'Other',
 // };
-// 
+//
 // const LAYOUT_LABELS: Record<FigzLayout, string> = {
 //     '1x1': 'Single',
 //     '2x1': '2 Horizontal',
@@ -76,7 +76,7 @@ describe('BundleGalleryPanel', () => {
 //     '2x3': '2×3 Grid',
 //     'custom': 'Custom',
 // };
-// 
+//
 // export class BundleGalleryPanel {
 //     private container: HTMLElement;
 //     private options: BundleGalleryPanelOptions;
@@ -86,7 +86,7 @@ describe('BundleGalleryPanel', () => {
 //     private selectedCategory: PltzCategory | 'all' = 'all';
 //     private selectedLayout: FigzLayout | 'all' = 'all';
 //     private searchQuery: string = '';
-// 
+//
 //     constructor(options: BundleGalleryPanelOptions) {
 //         this.container = options.container;
 //         this.options = options;
@@ -94,7 +94,7 @@ describe('BundleGalleryPanel', () => {
 //         this.render();
 //         this.loadBundles();
 //     }
-// 
+//
 //     private render(): void {
 //         this.container.innerHTML = `
 //             <div class="bundle-gallery-panel">
@@ -115,11 +115,11 @@ describe('BundleGalleryPanel', () => {
 //                         <i class="fas fa-search"></i>
 //                     </div>
 //                 </div>
-// 
+//
 //                 <div class="bundle-filters">
 //                     ${this.renderFilters()}
 //                 </div>
-// 
+//
 //                 <div class="bundle-actions">
 //                     <button class="btn btn-sm btn-primary bundle-create-btn">
 //                         <i class="fas fa-plus"></i>
@@ -129,16 +129,16 @@ describe('BundleGalleryPanel', () => {
 //                         <i class="fas fa-sync-alt"></i>
 //                     </button>
 //                 </div>
-// 
+//
 //                 <div class="bundle-grid" id="bundle-grid">
 //                     ${this.renderBundleGrid()}
 //                 </div>
 //             </div>
 //         `;
-// 
+//
 //         this.attachEventListeners();
 //     }
-// 
+//
 //     private renderFilters(): string {
 //         if (this.currentTab === 'pltz') {
 //             return `
@@ -160,10 +160,10 @@ describe('BundleGalleryPanel', () => {
 //             `;
 //         }
 //     }
-// 
+//
 //     private renderBundleGrid(): string {
 //         const bundles = this.getFilteredBundles();
-// 
+//
 //         if (bundles.length === 0) {
 //             return `
 //                 <div class="bundle-empty">
@@ -175,20 +175,20 @@ describe('BundleGalleryPanel', () => {
 //                 </div>
 //             `;
 //         }
-// 
+//
 //         return bundles.map(bundle => this.renderBundleCard(bundle)).join('');
 //     }
-// 
+//
 //     private renderBundleCard(bundle: PltzBundleSummary | FigzBundleSummary): string {
 //         const isPltz = 'category' in bundle;
 //         const previewUrl = isPltz
 //             ? pltzBundleManager.getPreviewUrl(bundle.id)
 //             : figzBundleManager.getPreviewUrl(bundle.id);
-// 
+//
 //         const badge = isPltz
 //             ? `<span class="bundle-badge category-${(bundle as PltzBundleSummary).category}">${CATEGORY_LABELS[(bundle as PltzBundleSummary).category]}</span>`
 //             : `<span class="bundle-badge layout-badge">${(bundle as FigzBundleSummary).layout}</span>`;
-// 
+//
 //         return `
 //             <div class="bundle-card" data-bundle-id="${bundle.id}" data-bundle-type="${isPltz ? 'pltz' : 'figz'}"
 //                  draggable="${isPltz ? 'true' : 'false'}">
@@ -211,10 +211,10 @@ describe('BundleGalleryPanel', () => {
 //             </div>
 //         `;
 //     }
-// 
+//
 //     private getFilteredBundles(): (PltzBundleSummary | FigzBundleSummary)[] {
 //         let bundles: (PltzBundleSummary | FigzBundleSummary)[];
-// 
+//
 //         if (this.currentTab === 'pltz') {
 //             bundles = this.pltzBundles;
 //             if (this.selectedCategory !== 'all') {
@@ -230,7 +230,7 @@ describe('BundleGalleryPanel', () => {
 //                 );
 //             }
 //         }
-// 
+//
 //         if (this.searchQuery) {
 //             const query = this.searchQuery.toLowerCase();
 //             bundles = bundles.filter(b =>
@@ -238,10 +238,10 @@ describe('BundleGalleryPanel', () => {
 //                 b.description?.toLowerCase().includes(query)
 //             );
 //         }
-// 
+//
 //         return bundles;
 //     }
-// 
+//
 //     private attachEventListeners(): void {
 //         // Tab switching
 //         this.container.querySelectorAll('.bundle-tab').forEach(tab => {
@@ -250,58 +250,58 @@ describe('BundleGalleryPanel', () => {
 //                 this.render();
 //             });
 //         });
-// 
+//
 //         // Search
 //         const searchInput = this.container.querySelector('.bundle-search-input');
 //         searchInput?.addEventListener('input', (e) => {
 //             this.searchQuery = (e.target as HTMLInputElement).value;
 //             this.updateGrid();
 //         });
-// 
+//
 //         // Category filter
 //         const categoryFilter = this.container.querySelector('.category-filter');
 //         categoryFilter?.addEventListener('change', (e) => {
 //             this.selectedCategory = (e.target as HTMLSelectElement).value as PltzCategory | 'all';
 //             this.updateGrid();
 //         });
-// 
+//
 //         // Layout filter
 //         const layoutFilter = this.container.querySelector('.layout-filter');
 //         layoutFilter?.addEventListener('change', (e) => {
 //             this.selectedLayout = (e.target as HTMLSelectElement).value as FigzLayout | 'all';
 //             this.updateGrid();
 //         });
-// 
+//
 //         // Create button
 //         this.container.querySelector('.bundle-create-btn')?.addEventListener('click', () => {
 //             this.showCreateDialog();
 //         });
-// 
+//
 //         this.container.querySelector('.bundle-create-empty-btn')?.addEventListener('click', () => {
 //             this.showCreateDialog();
 //         });
-// 
+//
 //         // Refresh button
 //         this.container.querySelector('.bundle-refresh-btn')?.addEventListener('click', () => {
 //             this.loadBundles();
 //         });
-// 
+//
 //         // Bundle card interactions
 //         this.attachCardListeners();
 //     }
-// 
+//
 //     private attachCardListeners(): void {
 //         const grid = this.container.querySelector('#bundle-grid');
 //         if (!grid) return;
-// 
+//
 //         // Click to select
 //         grid.addEventListener('click', (e) => {
 //             const card = (e.target as HTMLElement).closest('.bundle-card');
 //             if (!card) return;
-// 
+//
 //             const bundleId = card.getAttribute('data-bundle-id');
 //             const bundleType = card.getAttribute('data-bundle-type');
-// 
+//
 //             // Check if action button was clicked
 //             if ((e.target as HTMLElement).closest('.bundle-card-edit')) {
 //                 this.handleEdit(bundleId!, bundleType as BundleType);
@@ -311,11 +311,11 @@ describe('BundleGalleryPanel', () => {
 //                 this.handleDelete(bundleId!, bundleType as BundleType);
 //                 return;
 //             }
-// 
+//
 //             // Select bundle
 //             this.handleSelect(bundleId!, bundleType as BundleType);
 //         });
-// 
+//
 //         // Drag start for pltz bundles
 //         grid.querySelectorAll('.bundle-card[draggable="true"]').forEach(card => {
 //             card.addEventListener('dragstart', (e) => {
@@ -324,7 +324,7 @@ describe('BundleGalleryPanel', () => {
 //                 if (bundle && this.options.onPltzDragStart) {
 //                     this.options.onPltzDragStart(bundle, e as DragEvent);
 //                 }
-// 
+//
 //                 // Set drag data
 //                 (e as DragEvent).dataTransfer?.setData('application/json', JSON.stringify({
 //                     type: 'pltz-bundle',
@@ -334,7 +334,7 @@ describe('BundleGalleryPanel', () => {
 //             });
 //         });
 //     }
-// 
+//
 //     private updateGrid(): void {
 //         const grid = this.container.querySelector('#bundle-grid');
 //         if (grid) {
@@ -342,7 +342,7 @@ describe('BundleGalleryPanel', () => {
 //             this.attachCardListeners();
 //         }
 //     }
-// 
+//
 //     private async loadBundles(): Promise<void> {
 //         try {
 //             const [pltz, figz] = await Promise.all([
@@ -356,7 +356,7 @@ describe('BundleGalleryPanel', () => {
 //             console.error('Failed to load bundles:', error);
 //         }
 //     }
-// 
+//
 //     private handleSelect(bundleId: string, bundleType: BundleType): void {
 //         if (bundleType === 'pltz') {
 //             const bundle = this.pltzBundles.find(b => b.id === bundleId);
@@ -370,17 +370,17 @@ describe('BundleGalleryPanel', () => {
 //             }
 //         }
 //     }
-// 
+//
 //     private handleEdit(bundleId: string, bundleType: BundleType): void {
 //         // Navigate to edit view or open edit modal
 //         console.log(`Edit ${bundleType} bundle: ${bundleId}`);
 //         // TODO: Implement edit functionality
 //     }
-// 
+//
 //     private async handleDelete(bundleId: string, bundleType: BundleType): Promise<void> {
 //         const confirmed = confirm(`Are you sure you want to delete this ${bundleType === 'pltz' ? 'plot' : 'figure'}?`);
 //         if (!confirmed) return;
-// 
+//
 //         try {
 //             if (bundleType === 'pltz') {
 //                 await pltzBundleManager.deleteBundle(bundleId);
@@ -393,19 +393,19 @@ describe('BundleGalleryPanel', () => {
 //             alert('Failed to delete. Please try again.');
 //         }
 //     }
-// 
+//
 //     private showCreateDialog(): void {
 //         // For now, use a simple prompt. Could be enhanced with a modal.
 //         const name = prompt(`Enter name for new ${this.currentTab === 'pltz' ? 'plot' : 'figure'}:`);
 //         if (!name) return;
-// 
+//
 //         if (this.currentTab === 'pltz') {
 //             this.createPltzBundle(name);
 //         } else {
 //             this.createFigzBundle(name);
 //         }
 //     }
-// 
+//
 //     private async createPltzBundle(name: string): Promise<void> {
 //         try {
 //             await pltzBundleManager.createFromCurrentState({
@@ -419,7 +419,7 @@ describe('BundleGalleryPanel', () => {
 //             alert('Failed to create plot. Please try again.');
 //         }
 //     }
-// 
+//
 //     private async createFigzBundle(name: string): Promise<void> {
 //         try {
 //             await figzBundleManager.createNewFigure({ name });
@@ -429,14 +429,14 @@ describe('BundleGalleryPanel', () => {
 //             alert('Failed to create figure. Please try again.');
 //         }
 //     }
-// 
+//
 //     /**
 //      * Refresh the bundle list
 //      */
 //     public refresh(): void {
 //         this.loadBundles();
 //     }
-// 
+//
 //     /**
 //      * Set the active tab
 //      */
@@ -444,14 +444,14 @@ describe('BundleGalleryPanel', () => {
 //         this.currentTab = tab;
 //         this.render();
 //     }
-// 
+//
 //     /**
 //      * Get currently loaded pltz bundles
 //      */
 //     public getPltzBundles(): PltzBundleSummary[] {
 //         return this.pltzBundles;
 //     }
-// 
+//
 //     /**
 //      * Get currently loaded figz bundles
 //      */

@@ -6,10 +6,10 @@
  * This is now a thin wrapper around the modular workspace implementation
  */
 
-import { toggleCodeFolder } from "./file-tree-builder";
-import { WorkspaceOrchestrator } from "./workspace/index";
+import { toggleCodeFolder } from "./_file-tree-builder";
+import { WorkspaceOrchestrator } from "./_workspace/index";
 // Panel resizing: Auto-initialized via data attributes in HTML template
-import type { EditorConfig, Project } from "./workspace/core/types";
+import type { EditorConfig, Project } from "./_workspace/core/types";
 
 console.log(
   "[DEBUG] apps/console_app/static/console_app/ts/workspace.ts loaded",

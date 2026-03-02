@@ -5,9 +5,9 @@
 
 import type { WriterEditor, SectionsManager, PDFPreviewManager } from "../../modules/index";
 import { setLoadingContent } from "../../modules/index";
-import { getWriterConfig } from "../../helpers";
+import { getWriterConfig } from "../../_helpers";
 import { getUserContext } from "../ui";
-import { syncDropdownToSection } from "../section-dropdown/index";
+import { syncDropdownToSection } from "../_section-dropdown/index";
 import { updateSectionUI } from "./SectionUI";
 
 /**

@@ -5,13 +5,13 @@
  * Modules can register custom handlers via window globals before DOMContentLoaded.
  */
 
-import type { TreeItem, WorkspaceMode } from "./types.ts";
-import { WorkspaceFilesTree } from "./WorkspaceFilesTree.ts";
-import { initHiddenFilesToggle } from "./HiddenFilesToggle.ts";
-import { initGitStatusToggle } from "./GitStatusToggle.ts";
-import { initModuleFilterButtons } from "./ModuleFilterButtons.ts";
-import { initSortToggle } from "./SortToggle.ts";
-import { initMonitorToggle, initRepoMonitor } from "../repo-monitor/index.ts";
+import type { TreeItem, WorkspaceMode } from "./types";
+import { WorkspaceFilesTree } from "./WorkspaceFilesTree";
+import { initHiddenFilesToggle } from "./_HiddenFilesToggle";
+import { initGitStatusToggle } from "./_GitStatusToggle";
+import { initModuleFilterButtons } from "./_ModuleFilterButtons";
+import { initSortToggle } from "./_SortToggle";
+import { initMonitorToggle, initRepoMonitor } from "../repo-monitor/index";
 
 declare global {
   interface Window {

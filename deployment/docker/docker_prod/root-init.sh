@@ -101,6 +101,17 @@ if [ -d "/app/data/users" ]; then
 fi
 
 # ============================================
+# Fix node_modules permissions (built as root in Docker image)
+# ============================================
+if [ -d "/app/node_modules" ] && [ "$(stat -c '%U' /app/node_modules 2>/dev/null)" = "root" ]; then
+    echo "🔧 Fixing node_modules ownership (root -> scitex)..."
+    chown -R scitex:scitex /app/node_modules
+    # Clean stale npm temp dirs from previous failed installs
+    find /app/node_modules -maxdepth 1 -name '.*' -type d ! -name '.bin' ! -name '.' -exec rm -rf {} + 2>/dev/null || true
+    echo "✅ node_modules permissions fixed"
+fi
+
+# ============================================
 # Fix Vite staticfiles permissions
 # ============================================
 # Fix ownership instead of deleting (preserve built files)

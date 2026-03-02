@@ -26,19 +26,19 @@ describe('data', () => {
 // =============================================================================
 
 // // Data Handling and Parsing
-// 
-// import { PlotData, Plot } from './types.ts';
-// 
+//
+// import { PlotData, Plot } from './types';
+//
 // export function parseCSV(csvText: string): { data: PlotData; headers: string[] } {
 //     const lines = csvText.trim().split('\n');
 //     const headers = lines[0].split(',');
 //     const data: PlotData = {};
-// 
+//
 //     // Initialize arrays for each column
 //     headers.forEach(header => {
 //         data[header.trim()] = [];
 //     });
-// 
+//
 //     // Parse data rows
 //     for (let i = 1; i < lines.length; i++) {
 //         const values = lines[i].split(',');
@@ -47,28 +47,28 @@ describe('data', () => {
 //             data[header.trim()].push(isNaN(value) ? null : value);
 //         });
 //     }
-// 
+//
 //     return { data, headers };
 // }
-// 
+//
 // export function detectPlots(headers: string[]): Plot[] {
 //     const plots: Plot[] = [];
 //     const processed = new Set<string>();
-// 
+//
 //     for (const header of headers) {
 //         if (processed.has(header)) continue;
-// 
+//
 //         // Three patterns to match:
 //         // 1. Line: ax_00_plot_line_test_line_x, ax_00_plot_line_test_line_y
 //         // 2. Scatter: ax_00_scatter_test_scatter_x, ax_00_scatter_test_scatter_y
 //         // 3. Bar: ax_00_bar_test_x, ax_00_bar_test_y
-// 
+//
 //         let match: RegExpMatchArray | null;
 //         let plotType: 'line' | 'scatter' | 'bar' | undefined;
 //         let plotId: string | undefined;
 //         let xCol: string | undefined;
 //         let yCol: string | undefined;
-// 
+//
 //         // Try line pattern: {prefix}_line_x
 //         match = header.match(/^(ax_\d+_)?(.+?)_line_(x|y)$/);
 //         if (match && match[3] === 'x') {
@@ -78,7 +78,7 @@ describe('data', () => {
 //             xCol = header;
 //             yCol = headers.find(h => h === (axisPrefix || '') + id + '_line_y');
 //         }
-// 
+//
 //         // Try scatter pattern: {prefix}_scatter_x
 //         if (!match || !yCol) {
 //             match = header.match(/^(ax_\d+_)?(.+?)_scatter_(x|y)$/);
@@ -90,7 +90,7 @@ describe('data', () => {
 //                 yCol = headers.find(h => h === (axisPrefix || '') + id + '_scatter_y');
 //             }
 //         }
-// 
+//
 //         // Try bar pattern: {prefix}_x (no type keyword)
 //         if (!match || !yCol) {
 //             match = header.match(/^(ax_\d+_)?(.+?)_(x|y)$/);
@@ -105,7 +105,7 @@ describe('data', () => {
 //                 }
 //             }
 //         }
-// 
+//
 //         // Add plot if we found a valid x/y pair
 //         if (xCol && yCol && plotType && plotId) {
 //             plots.push({
@@ -119,10 +119,10 @@ describe('data', () => {
 //             processed.add(yCol);
 //         }
 //     }
-// 
+//
 //     return plots;
 // }
-// 
+//
 // export function getDemoData(): string {
 //     return `ax_00_plot_line_test_line_x,ax_00_plot_line_test_line_y
 // 0,0.0

@@ -1,170 +1,209 @@
 /**
- * App Navigation History — in-app action history for mouse back/forward buttons.
+ * App Navigation History — unified navigation engine using browser history API.
  *
- * Tracks user actions (module switches, file opens, panel changes) and lets
- * mouse buttons 3 (back) and 4 (forward) navigate through them instead of
- * triggering browser-level history navigation.
+ * Single source of truth for in-app navigation. Mouse buttons 3/4 call
+ * history.back()/forward(), which triggers popstate, which dispatches to
+ * registered restore handlers.
  *
- * Modules push entries via window._appNav.push({ module, action, data }).
- * Navigation handlers restore state via registered callbacks.
+ * Modules integrate via:
+ *   window._appNav.push({ module: "writer" })   — new history entry
+ *   window._appNav.replace({ file: "foo.py" })   — update current entry
+ *   window._appNav.onRestore(state => { ... })    — handle back/forward
  */
 
-// Make this file a module so `declare global` works
 export {};
 
-interface NavEntry {
+interface NavState {
+  _scitex: true;
   module: string;
-  action: string;
-  data: unknown;
+  file?: string;
+  aiMode?: string;
   timestamp: number;
 }
 
-type NavHandler = (entry: NavEntry) => void;
+type RestoreHandler = (state: NavState) => void;
 
-const MAX_STACK_SIZE = 100;
+const DEBOUNCE_MS = 300;
 
 class AppNavigationHistory {
-  private stack: NavEntry[] = [];
-  private cursor = -1;
-  private handlers: NavHandler[] = [];
-  private navigating = false;
+  private handlers: RestoreHandler[] = [];
+  private restoring = false;
+  private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private pendingPush: NavState | null = null;
 
-  /** Push a new navigation entry. Truncates forward history. */
-  push(entry: Omit<NavEntry, "timestamp">): void {
-    if (this.navigating) return;
+  constructor() {
+    this.seedInitialState();
+    this.listenPopstate();
+    this.interceptMouseButtons();
+  }
 
-    const full: NavEntry = { ...entry, timestamp: Date.now() };
+  /** Push a new history entry (module switch, file open). */
+  push(partial: Partial<Omit<NavState, "_scitex" | "timestamp">>): void {
+    if (this.restoring) return;
 
-    // Don't push duplicate of current entry
-    if (this.cursor >= 0) {
-      const current = this.stack[this.cursor];
-      if (
-        current.module === full.module &&
-        current.action === full.action &&
-        JSON.stringify(current.data) === JSON.stringify(full.data)
-      ) {
-        return;
-      }
+    const merged = this.mergeState(partial);
+
+    // Skip duplicate
+    const cur = this.current();
+    if (cur && this.statesEqual(cur, merged)) return;
+
+    // Debounce rapid file-only changes
+    if (
+      cur &&
+      merged.module === cur.module &&
+      merged.file !== cur.file &&
+      !this.moduleChanged(cur, merged)
+    ) {
+      this.pendingPush = merged;
+      // Immediately update current state so UI reflects the change
+      history.replaceState(merged, "", this.buildUrl(merged));
+      if (this.debounceTimer) clearTimeout(this.debounceTimer);
+      this.debounceTimer = setTimeout(() => {
+        if (this.pendingPush) {
+          history.pushState(
+            this.pendingPush,
+            "",
+            this.buildUrl(this.pendingPush),
+          );
+          this.pendingPush = null;
+        }
+      }, DEBOUNCE_MS);
+      return;
     }
 
-    // Truncate forward history
-    this.stack = this.stack.slice(0, this.cursor + 1);
-    this.stack.push(full);
-
-    // Cap size
-    if (this.stack.length > MAX_STACK_SIZE) {
-      this.stack = this.stack.slice(this.stack.length - MAX_STACK_SIZE);
-    }
-
-    this.cursor = this.stack.length - 1;
+    // Flush any pending debounced push before a new distinct push
+    this.flushPending();
+    history.pushState(merged, "", this.buildUrl(merged));
   }
 
-  /** Navigate back. Returns the entry navigated to, or null. */
-  back(): NavEntry | null {
-    if (this.cursor <= 0) return null;
-    this.cursor--;
-    const entry = this.stack[this.cursor];
-    this.dispatch(entry);
-    return entry;
+  /** Update current history entry in-place (AI mode, supplementary data). */
+  replace(partial: Partial<Omit<NavState, "_scitex" | "timestamp">>): void {
+    if (this.restoring) return;
+    const merged = this.mergeState(partial);
+    history.replaceState(merged, "", this.buildUrl(merged));
   }
 
-  /** Navigate forward. Returns the entry navigated to, or null. */
-  forward(): NavEntry | null {
-    if (this.cursor >= this.stack.length - 1) return null;
-    this.cursor++;
-    const entry = this.stack[this.cursor];
-    this.dispatch(entry);
-    return entry;
-  }
-
-  /** Register a handler called when navigating back/forward. */
-  onNavigate(handler: NavHandler): void {
+  /** Register a handler called on back/forward navigation. */
+  onRestore(handler: RestoreHandler): void {
     this.handlers.push(handler);
   }
 
-  /** Current entry (for debugging). */
-  current(): NavEntry | null {
-    return this.cursor >= 0 ? this.stack[this.cursor] : null;
+  /** Get the current navigation state. */
+  current(): NavState | null {
+    const s = history.state;
+    return s && s._scitex ? (s as NavState) : null;
   }
 
-  private dispatch(entry: NavEntry): void {
-    this.navigating = true;
-    try {
-      for (const handler of this.handlers) {
-        handler(entry);
-      }
-    } finally {
-      this.navigating = false;
+  // ── Private ──────────────────────────────────────────────
+
+  private mergeState(
+    partial: Partial<Omit<NavState, "_scitex" | "timestamp">>,
+  ): NavState {
+    const cur = this.current();
+    return {
+      _scitex: true,
+      module: partial.module ?? cur?.module ?? this.detectModule(),
+      file: partial.file ?? cur?.file,
+      aiMode: partial.aiMode ?? cur?.aiMode,
+      timestamp: Date.now(),
+    };
+  }
+
+  private seedInitialState(): void {
+    if (!history.state?._scitex) {
+      const state: NavState = {
+        _scitex: true,
+        module: this.detectModule(),
+        timestamp: Date.now(),
+      };
+      history.replaceState(state, "", location.href);
     }
   }
+
+  private listenPopstate(): void {
+    window.addEventListener("popstate", (e) => {
+      const state = e.state as NavState | null;
+      if (!state?._scitex) return;
+      this.dispatch(state);
+    });
+  }
+
+  private interceptMouseButtons(): void {
+    // Mouse button 3 = back, 4 = forward
+    window.addEventListener(
+      "mouseup",
+      (e: MouseEvent) => {
+        if (e.button === 3) {
+          e.preventDefault();
+          history.back();
+        } else if (e.button === 4) {
+          e.preventDefault();
+          history.forward();
+        }
+      },
+      { capture: true },
+    );
+
+    // Prevent default browser back/forward on auxiliary click
+    window.addEventListener(
+      "auxclick",
+      (e: MouseEvent) => {
+        if (e.button === 3 || e.button === 4) {
+          e.preventDefault();
+        }
+      },
+      { capture: true },
+    );
+  }
+
+  private dispatch(state: NavState): void {
+    this.restoring = true;
+    try {
+      for (const handler of this.handlers) {
+        handler(state);
+      }
+    } finally {
+      this.restoring = false;
+    }
+  }
+
+  private flushPending(): void {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
+    if (this.pendingPush) {
+      history.pushState(this.pendingPush, "", this.buildUrl(this.pendingPush));
+      this.pendingPush = null;
+    }
+  }
+
+  private buildUrl(state: NavState): string {
+    const isWorkspaceShell = location.pathname.startsWith("/workspace/");
+    if (isWorkspaceShell) {
+      return `/workspace/${state.module}/`;
+    }
+    return `/${state.module}/`;
+  }
+
+  private detectModule(): string {
+    const match = location.pathname.match(/^\/(?:workspace\/)?([a-z]+)\//);
+    return match ? match[1] : "writer";
+  }
+
+  private statesEqual(a: NavState, b: NavState): boolean {
+    return a.module === b.module && a.file === b.file && a.aiMode === b.aiMode;
+  }
+
+  private moduleChanged(a: NavState, b: NavState): boolean {
+    return a.module !== b.module;
+  }
 }
+
+// ── Singleton & Global ──────────────────────────────────────
 
 const appNav = new AppNavigationHistory();
 
-// ---------------------------------------------------------------------------
-// Mouse button interception (buttons 3 = back, 4 = forward)
-// ---------------------------------------------------------------------------
-window.addEventListener(
-  "mouseup",
-  (e: MouseEvent) => {
-    if (e.button === 3) {
-      e.preventDefault();
-      appNav.back();
-    } else if (e.button === 4) {
-      e.preventDefault();
-      appNav.forward();
-    }
-  },
-  { capture: true },
-);
-
-// Also prevent the default browser back/forward on auxiliary click
-window.addEventListener(
-  "auxclick",
-  (e: MouseEvent) => {
-    if (e.button === 3 || e.button === 4) {
-      e.preventDefault();
-    }
-  },
-  { capture: true },
-);
-
-// ---------------------------------------------------------------------------
-// Default navigation handler — module switching
-// ---------------------------------------------------------------------------
-appNav.onNavigate((entry: NavEntry) => {
-  if (entry.action === "switch-module") {
-    const currentModule = extractCurrentModule();
-    if (currentModule !== entry.module) {
-      window.location.href = `/${entry.module}/`;
-    }
-  }
-});
-
-function extractCurrentModule(): string | null {
-  const match = window.location.pathname.match(/^\/([a-z]+)\//);
-  return match ? match[1] : null;
-}
-
-// ---------------------------------------------------------------------------
-// Auto-track module page loads
-// ---------------------------------------------------------------------------
-function trackCurrentModule(): void {
-  const mod = extractCurrentModule();
-  if (mod) {
-    appNav.push({ module: mod, action: "switch-module", data: null });
-  }
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", trackCurrentModule);
-} else {
-  trackCurrentModule();
-}
-
-// ---------------------------------------------------------------------------
-// Expose globally
-// ---------------------------------------------------------------------------
 declare global {
   interface Window {
     _appNav: AppNavigationHistory;
@@ -174,5 +213,5 @@ declare global {
 window._appNav = appNav;
 
 console.debug(
-  "[AppNav] Navigation history active — mouse back/forward enabled",
+  "[AppNav] Unified navigation engine active — mouse back/forward + history API",
 );

@@ -7,9 +7,9 @@ import {
   savePreferences,
   loadPreferences,
   updateAllSourcesToggle,
-} from "./search-preferences";
-import { initSliders } from "./search-sliders";
-import { initSearchOperators, parseSearchOperators } from "./search-operators";
+} from "./_search-preferences";
+import { initSliders } from "./_search-sliders";
+import { initSearchOperators, parseSearchOperators } from "./_search-operators";
 
 // Toggle collapsible section
 function toggleSection(header: HTMLElement): void {

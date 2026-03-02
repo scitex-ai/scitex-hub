@@ -34,7 +34,7 @@ describe('PltzBundleManager', () => {
 //  * - Geometry and hitmap retrieval
 //  * - Integration with gallery and canvas
 //  */
-// 
+//
 // import type {
 //     PltzBundle,
 //     PltzBundleSummary,
@@ -43,11 +43,11 @@ describe('PltzBundleManager', () => {
 //     PltzStyle,
 //     PltzGeometry,
 //     PltzCategory,
-// } from './types.ts';
-// 
+// } from './types';
+//
 // // API endpoints
 // const API_BASE = '/vis/api/bundles/pltz';
-// 
+//
 // export interface CreatePltzBundleParams {
 //     name: string;
 //     spec: PltzSpec;
@@ -57,7 +57,7 @@ describe('PltzBundleManager', () => {
 //     description?: string;
 //     tags?: string[];
 // }
-// 
+//
 // export interface UpdatePltzBundleParams {
 //     name?: string;
 //     spec?: PltzSpec;
@@ -66,23 +66,23 @@ describe('PltzBundleManager', () => {
 //     tags?: string[];
 //     category?: PltzCategory;
 // }
-// 
+//
 // export class PltzBundleManager {
 //     private bundles: Map<string, PltzBundle> = new Map();
 //     private listeners: Set<(bundles: PltzBundleSummary[]) => void> = new Set();
 //     private csrfToken: string;
-// 
+//
 //     constructor() {
 //         this.csrfToken = this.getCSRFToken();
 //     }
-// 
+//
 //     private getCSRFToken(): string {
 //         const cookie = document.cookie
 //             .split('; ')
 //             .find(row => row.startsWith('csrftoken='));
 //         return cookie ? cookie.split('=')[1] : '';
 //     }
-// 
+//
 //     private async fetchAPI<T>(
 //         endpoint: string,
 //         options: RequestInit = {}
@@ -96,12 +96,12 @@ describe('PltzBundleManager', () => {
 //                 ...options.headers,
 //             },
 //         });
-// 
+//
 //         if (!response.ok) {
 //             const error = await response.json().catch(() => ({}));
 //             throw new Error(error.error || `API error: ${response.status}`);
 //         }
-// 
+//
 //         // Handle non-JSON responses (images, CSV)
 //         const contentType = response.headers.get('content-type');
 //         if (contentType?.includes('application/json')) {
@@ -109,7 +109,7 @@ describe('PltzBundleManager', () => {
 //         }
 //         return response as unknown as T;
 //     }
-// 
+//
 //     /**
 //      * List all pltz bundles for current user
 //      */
@@ -120,15 +120,15 @@ describe('PltzBundleManager', () => {
 //         const queryParams = new URLSearchParams();
 //         if (params?.category) queryParams.set('category', params.category);
 //         if (params?.search) queryParams.set('search', params.search);
-// 
+//
 //         const query = queryParams.toString();
 //         const endpoint = query ? `/?${query}` : '/';
-// 
+//
 //         const response = await this.fetchAPI<PltzBundleListResponse>(endpoint);
 //         this.notifyListeners(response.bundles);
 //         return response.bundles;
 //     }
-// 
+//
 //     /**
 //      * Get full bundle details including spec, style, and geometry
 //      */
@@ -137,7 +137,7 @@ describe('PltzBundleManager', () => {
 //         this.bundles.set(bundleId, bundle);
 //         return bundle;
 //     }
-// 
+//
 //     /**
 //      * Create a new pltz bundle
 //      */
@@ -148,7 +148,7 @@ describe('PltzBundleManager', () => {
 //         });
 //         return response;
 //     }
-// 
+//
 //     /**
 //      * Update an existing bundle
 //      */
@@ -162,7 +162,7 @@ describe('PltzBundleManager', () => {
 //         });
 //         return response;
 //     }
-// 
+//
 //     /**
 //      * Delete a bundle
 //      */
@@ -172,21 +172,21 @@ describe('PltzBundleManager', () => {
 //         });
 //         this.bundles.delete(bundleId);
 //     }
-// 
+//
 //     /**
 //      * Get preview image URL
 //      */
 //     getPreviewUrl(bundleId: string, type: 'png' | 'hitmap' | 'overview' = 'png'): string {
 //         return `${API_BASE}/${bundleId}/preview/?type=${type}`;
 //     }
-// 
+//
 //     /**
 //      * Get preview image as base64 data URL
 //      */
 //     async getPreviewBase64(bundleId: string, type: 'png' | 'hitmap' | 'overview' = 'png'): Promise<string> {
 //         const response = await fetch(this.getPreviewUrl(bundleId, type));
 //         if (!response.ok) throw new Error('Failed to load preview');
-// 
+//
 //         const blob = await response.blob();
 //         return new Promise((resolve, reject) => {
 //             const reader = new FileReader();
@@ -195,7 +195,7 @@ describe('PltzBundleManager', () => {
 //             reader.readAsDataURL(blob);
 //         });
 //     }
-// 
+//
 //     /**
 //      * Get CSV data from bundle
 //      */
@@ -206,7 +206,7 @@ describe('PltzBundleManager', () => {
 //         if (!response.ok) throw new Error('Failed to load data');
 //         return response.text();
 //     }
-// 
+//
 //     /**
 //      * Get geometry cache for element hit-testing
 //      */
@@ -217,7 +217,7 @@ describe('PltzBundleManager', () => {
 //             return null;
 //         }
 //     }
-// 
+//
 //     /**
 //      * Subscribe to bundle list changes
 //      */
@@ -225,11 +225,11 @@ describe('PltzBundleManager', () => {
 //         this.listeners.add(listener);
 //         return () => this.listeners.delete(listener);
 //     }
-// 
+//
 //     private notifyListeners(bundles: PltzBundleSummary[]): void {
 //         this.listeners.forEach(listener => listener(bundles));
 //     }
-// 
+//
 //     /**
 //      * Get cached bundle or fetch if not available
 //      */
@@ -238,7 +238,7 @@ describe('PltzBundleManager', () => {
 //         if (cached) return cached;
 //         return this.getBundle(bundleId);
 //     }
-// 
+//
 //     /**
 //      * Create bundle from current canvas/data state
 //      */
@@ -258,7 +258,7 @@ describe('PltzBundleManager', () => {
 //             traces: params.spec.traces || [],
 //             ...params.spec,
 //         };
-// 
+//
 //         const fullStyle: PltzStyle = {
 //             theme: {
 //                 mode: 'light',
@@ -288,7 +288,7 @@ describe('PltzBundleManager', () => {
 //             grid: false,
 //             ...params.style,
 //         };
-// 
+//
 //         return this.createBundle({
 //             name: params.name,
 //             spec: fullSpec,
@@ -297,7 +297,7 @@ describe('PltzBundleManager', () => {
 //         });
 //     }
 // }
-// 
+//
 // // Singleton instance
 // export const pltzBundleManager = new PltzBundleManager();
 

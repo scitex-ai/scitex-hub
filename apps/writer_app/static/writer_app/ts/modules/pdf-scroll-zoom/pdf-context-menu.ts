@@ -3,7 +3,7 @@
  * Adds a custom right-click context menu to the PDF preview pane
  */
 
-import { handleDownloadCurrentPDF } from "../../writer/downloads/DownloadHandlers";
+import { handleDownloadCurrentPDF } from "../../_writer/downloads/DownloadHandlers";
 
 let menuEl: HTMLElement | null = null;
 

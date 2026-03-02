@@ -59,6 +59,7 @@
   box-sizing: border-box;
   overflow: hidden;
   min-width: 0;
+  position: relative;
 }
 
 /* Sidebar title: hidden when expanded, vertical text when collapsed */
@@ -183,16 +184,8 @@
   padding: 4px;
 }
 
-/* Expanded header: green hint only on empty space (foldable state)
-   JS adds .foldable class when cursor is on empty header area */
-.workspace-sidebar:not(.collapsed) .sidebar-header.foldable {
-  background: rgba(5, 150, 105, 0.08) !important;
-}
-[data-theme="light"]
-  .workspace-sidebar:not(.collapsed)
-  .sidebar-header.foldable {
-  background: rgba(5, 150, 105, 0.06) !important;
-}
+/* Green indicator bar for workspace-sidebar is defined in collapsible-panel.css
+   (single source of truth for all expanded panel headers) */
 
 /* Subtle green-tinted background + edge glow on hover */
 .workspace-sidebar.collapsed:hover,

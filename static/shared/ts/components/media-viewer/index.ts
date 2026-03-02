@@ -10,19 +10,19 @@
  * @module @scitex/media-viewer
  */
 
-export { MediaViewer, detectFileType } from "./MediaViewer.ts";
-export type { FileType, ViewerFileType, MediaViewerConfig } from "./types.ts";
-export { ImageViewer } from "./ImageViewer.ts";
-export { PdfViewer } from "./PdfViewer.ts";
-export { MermaidViewer } from "./MermaidViewer.ts";
-export { BinaryPlaceholder } from "./BinaryPlaceholder.ts";
+export { MediaViewer, detectFileType } from "./_MediaViewer";
+export type { FileType, ViewerFileType, MediaViewerConfig } from "./types";
+export { ImageViewer } from "./_ImageViewer";
+export { PdfViewer } from "./_PdfViewer";
+export { MermaidViewer } from "./_MermaidViewer";
+export { BinaryPlaceholder } from "./_BinaryPlaceholder";
 export {
   IMAGE_EXTENSIONS,
   PDF_EXTENSIONS,
   CSV_EXTENSIONS,
   MERMAID_EXTENSIONS,
   BINARY_EXTENSIONS,
-} from "./types.ts";
+} from "./types";
 
 // Re-export CsvEditor for direct use
-export { CsvEditor } from "../media-editor/CsvEditor.ts";
+export { CsvEditor } from "../media-editor/_CsvEditor";

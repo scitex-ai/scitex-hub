@@ -1,7 +1,7 @@
 /**
  * Shared Monaco Theme Configuration
  * Single source of truth for Monaco editor themes across all SciTeX modules
- * Used by /code/, /writer/, /vis/, and other Monaco-enabled pages
+ * Used by /code/, /_writer/, /vis/, and other Monaco-enabled pages
  */
 
 console.log("[DEBUG] shared/monaco/MonacoTheme.ts loaded");

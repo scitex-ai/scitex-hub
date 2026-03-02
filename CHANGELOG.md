@@ -5,6 +5,24 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.4-alpha] - 2026-03-02
+
+### Fixed
+- **500 errors on all pages after restart**: Disabled `ATOMIC_REQUESTS` in production settings — incompatible with ASGI (Daphne) + PgBouncer transaction pooling. Middleware and views run in different threads under ASGI, causing dirty DB connections to cascade "transaction aborted" errors
+- **npm EACCES crash loop on startup**: Moved node_modules ownership fix to `root-init.sh` (runs as root before dropping to scitex user)
+- **Landing page dirty connection**: Added `@transaction.non_atomic_requests` and `connection.close()` as defense-in-depth for the landing view
+- **Middleware DB connection reset**: Always close DB connection before passing to view in visitor middleware
+
+## [0.11.2-alpha] - 2026-03-02
+
+### Added
+- **Centralized green indicator bar**: Expanded collapsible panel headers now show a green left-edge bar as a visual cue for collapsibility, following the unified resizer pattern
+- **Vite auto-discovery entries**: Replaced manual entry point list with recursive auto-discovery via `generateEntries()`
+
+### Fixed
+- **Writer Details pane toggle/dblclick broken**: The `index.html` template was missing `data-external-toggle="details-toggle"` on its h-resizer, preventing toggle button and double-click collapse from working. The partial template had been updated but the full-page template was not.
+- **Docs export**: Per-section and all-pages export buttons, project version in download filename, Markdown download and PDF print export
+
 ## [0.11.1-alpha] - 2026-03-02
 
 ### Added

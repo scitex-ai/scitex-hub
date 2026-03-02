@@ -3,7 +3,7 @@
  * Handles gallery panel UI, thumbnails, and user interactions
  */
 
-import { GalleryData } from './GalleryData.ts';
+import { GalleryData } from './GalleryData';
 
 export class GalleryUI {
     private galleryData: GalleryData;

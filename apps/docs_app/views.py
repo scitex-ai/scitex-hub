@@ -127,16 +127,74 @@ def docs_content(request, slug):
     page = _PAGES_BY_SLUG.get(slug)
     if not page:
         raise Http404(f"Documentation page '{slug}' not found")
+    context = _build_page_context(slug)
+    return render(request, page["template"], context)
+
+
+def docs_export(request, slug):
+    """Export documentation as Markdown. Use slug='all' for all pages."""
+    ver = _get_project_version()
+
+    if slug == "all":
+        markdown = _export_all_pages(request, ver)
+        filename = f"scitex-cloud-v{ver}-docs-all.md"
+    else:
+        page = _PAGES_BY_SLUG.get(slug)
+        if not page:
+            raise Http404(f"Documentation page '{slug}' not found")
+        markdown = _export_single_page(request, page)
+        filename = f"scitex-cloud-v{ver}-docs-{slug}.md"
+
+    response = HttpResponse(markdown, content_type="text/markdown; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
+def _export_single_page(request, page) -> str:
+    """Render a single doc page to Markdown."""
+    converter = _make_html2text()
+    context = _build_page_context(page["slug"])
+    html = render(request, page["template"], context).content.decode()
+    md = converter.handle(html)
+    return f"# {page['label']}\n\n{md}"
+
+
+def _export_all_pages(request, ver) -> str:
+    """Render all doc pages into a single Markdown document."""
+    converter = _make_html2text()
+    parts = [f"# SciTeX Documentation (v{ver})\n"]
+    for page in DOCS_PAGES:
+        context = _build_page_context(page["slug"])
+        html = render(request, page["template"], context).content.decode()
+        md = converter.handle(html)
+        parts.append(f"\n---\n\n## {page['label']}\n\n{md}")
+    return "\n".join(parts)
+
+
+def _make_html2text():
+    """Create a configured html2text converter."""
+    import html2text
+
+    converter = html2text.HTML2Text()
+    converter.body_width = 80
+    converter.ignore_links = False
+    converter.ignore_images = False
+    converter.protect_links = True
+    converter.wrap_links = False
+    return converter
+
+
+def _build_page_context(slug):
+    """Build template context for a documentation page."""
     context = {
         "slug": slug,
         "base_template": "docs_app/docs_fragment_base.html",
     }
-    # Inject page-specific context
     if slug in ("mcp-tools-local", "mcp-tools-https"):
         context.update(_get_mcp_context())
     elif slug == "python-packages":
         context.update(_get_packages_context())
-    return render(request, page["template"], context)
+    return context
 
 
 def _get_packages_context() -> dict:
@@ -281,6 +339,18 @@ def docs_page(request, module, page):
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+def _get_project_version() -> str:
+    """Read version from pyproject.toml (single source of truth)."""
+    try:
+        toml_path = Path(settings.BASE_DIR) / "pyproject.toml"
+        for line in toml_path.read_text().splitlines():
+            if line.startswith("version"):
+                return line.split("=")[1].strip().strip('"')
+    except Exception:
+        pass
+    return "unknown"
+
+
 DOC_PATHS = {
     "python": "../scitex-code/docs/sphinx/build/html",
 }

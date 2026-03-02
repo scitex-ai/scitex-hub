@@ -2,7 +2,7 @@
  * Scholar Library - Entry Point
  */
 
-import { initLibraryManager } from "./library-manager";
+import { initLibraryManager } from "./_library-manager";
 
 console.log("[Library Init] Module loaded, readyState:", document.readyState);
 

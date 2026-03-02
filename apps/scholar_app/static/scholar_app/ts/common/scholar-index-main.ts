@@ -6,15 +6,15 @@
  * Original: scholar-index-main_backup.ts
  */
 
-import "./scholar-index/utilities.ts";
-import { initializeFilters } from "./scholar-index/filters.ts";
+import "./_scholar-index/utilities.ts";
+import { initializeFilters } from "./_scholar-index/filters";
 import {
   initializeSourceToggles,
   loadSourcePreferences,
-} from "./scholar-index/source-preferences.ts";
-import "./scholar-index/bibtex-management.js";
-import "./scholar-index/abstract-toggle.js";
-import "./scholar-index/paper-actions.js";
+} from "./_scholar-index/source-preferences";
+import "./_scholar-index/bibtex-management.js";
+import "./_scholar-index/abstract-toggle.js";
+import "./_scholar-index/paper-actions.js";
 
 console.log(
   "[DEBUG] apps/scholar_app/static/scholar_app/ts/common/scholar-index-main.ts loaded",

@@ -1,6 +1,6 @@
 /**
  * Shared Monaco Editor Types
- * Used across /code/, /writer/, and other pages
+ * Used across /code/, /_writer/, and other pages
  */
 
 export interface MonacoEditorConfig {

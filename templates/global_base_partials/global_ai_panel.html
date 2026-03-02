@@ -40,15 +40,9 @@
                         <button class="scitex-ai-mode-btn active" data-mode="chat" title="AI Chat">
                             <i class="fas fa-robot"></i> Chat
                         </button>
-                        <button class="scitex-ai-mode-btn" data-mode="console" title="Terminal">
+                        <button class="scitex-ai-mode-btn" data-mode="console" title="Terminal & Jobs">
                             <i class="fas fa-terminal"></i> Console
-                        </button>
-                        <button class="scitex-ai-mode-btn" data-mode="jobs" title="SLURM Jobs">
-                            <i class="fas fa-tasks"></i> Jobs
-                            <span id="ai-jobs-badge" class="ai-mode-badge">0</span>
-                        </button>
-                        <button class="scitex-ai-mode-btn" data-mode="config" title="Settings">
-                            <i class="fas fa-cog"></i> Config
+                            <span id="ai-jobs-badge" class="ai-mode-badge" style="display:none">0</span>
                         </button>
                     </div>
                     <div class="scitex-ai-panel-actions">
@@ -104,6 +98,12 @@
                                 <button id="scitex-ai-mic" class="scitex-ai-mic" title="Voice input">
                                     <i class="fas fa-microphone"></i>
                                 </button>
+                                <!-- Chat config gear -->
+                                <button id="scitex-ai-chat-gear"
+                                        class="scitex-ai-input-btn scitex-ai-gear-btn"
+                                        title="Chat settings">
+                                    <i class="fas fa-cog"></i>
+                                </button>
                             </div>
                             <!-- Volume visualizer (hidden until recording) -->
                             <div class="scitex-ai-vol">
@@ -119,6 +119,43 @@
                                     style="display:none"></select>
                             <button id="scitex-ai-send" class="scitex-ai-send" hidden></button>
                         </div>
+                        <!-- Chat config popover -->
+                        <div id="scitex-ai-chat-config"
+                             class="scitex-ai-config-popover"
+                             style="display:none">
+                            <div class="ai-settings-row">
+                                <label class="scitex-ai-settings-label">
+                                    <i class="fas fa-brain"></i> LLM Model
+                                    <span id="scitex-ai-config-model-badge" class="scitex-ai-model-badge"></span>
+                                </label>
+                                <select id="scitex-ai-llm-model" class="ai-settings-select" title="LLM model for chat"></select>
+                            </div>
+                            <div class="ai-settings-row">
+                                <label class="scitex-ai-settings-label">
+                                    <i class="fas fa-microphone"></i> STT Model
+                                </label>
+                                <select id="scitex-ai-stt-model-config"
+                                        class="ai-settings-select scitex-ai-stt-model"
+                                        title="STT model"></select>
+                            </div>
+                            <div class="ai-settings-row ai-settings-mcp">
+                                <label class="scitex-ai-settings-label">
+                                    <i class="fas fa-plug"></i> MCP Tools
+                                </label>
+                                <span id="scitex-ai-mcp-badge" class="ai-mcp-badge" title="MCP tools status">
+                                    <i class="fas fa-circle ai-mcp-dot"></i>
+                                    <span class="ai-mcp-count">--</span>
+                                </span>
+                            </div>
+                            <div class="ai-settings-links">
+                                <a href="/auth/settings/mcp-tools/" title="MCP tool preferences">
+                                    <i class="fas fa-puzzle-piece"></i> MCP Settings
+                                </a>
+                                <a href="/auth/settings/ai-providers/" title="AI provider keys">
+                                    <i class="fas fa-key"></i> AI Providers
+                                </a>
+                            </div>
+                        </div>
                     </div>
                     <!-- Console/Terminal mode -->
                     <div id="scitex-ai-console-view" class="scitex-ai-view">
@@ -126,6 +163,13 @@
                         <div class="scitex-ai-console-toolbar">
                             <span id="scitex-ai-console-status" class="scitex-ai-console-status"></span>
                             <div class="scitex-ai-console-toolbar-btns">
+                                <!-- Auto-accept toggle -->
+                                <button id="scitex-ai-auto-accept"
+                                        class="scitex-ai-input-btn scitex-ai-auto-accept-btn"
+                                        title="Auto-accept (Claude Code)">
+                                    <i class="fas fa-magic"></i>
+                                    <span id="scitex-ai-auto-accept-state" class="scitex-ai-auto-accept-state"></span>
+                                </button>
                                 <button id="scitex-ai-console-camera"
                                         class="scitex-ai-input-btn"
                                         title="Webcam capture">
@@ -138,62 +182,37 @@
                                     <i class="fas fa-microphone"></i>
                                 </button>
                                 <input type="file" id="scitex-ai-console-image-file" accept="image/*" multiple hidden />
+                                <!-- Console config gear -->
+                                <button id="scitex-ai-console-gear"
+                                        class="scitex-ai-input-btn scitex-ai-gear-btn"
+                                        title="Console settings">
+                                    <i class="fas fa-cog"></i>
+                                </button>
                             </div>
                         </div>
-                    </div>
-                    <!-- Jobs mode -->
-                    <div id="scitex-ai-jobs-view" class="scitex-ai-view">
-                        <div class="scitex-ai-jobs-header">
-                            <span id="scitex-ai-jobs-summary" class="scitex-ai-jobs-summary">Loading...</span>
-                            <button class="scitex-ai-action-btn" id="scitex-ai-jobs-refresh" title="Refresh">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
-                        </div>
-                        <div id="scitex-ai-jobs-list" class="scitex-ai-jobs-list"></div>
-                    </div>
-                    <!-- Config mode -->
-                    <div id="scitex-ai-config-view" class="scitex-ai-view">
-                        <div class="scitex-ai-config-content">
-                            <div class="ai-settings-row">
-                                <label class="scitex-ai-settings-label">
-                                    <i class="fas fa-brain"></i> LLM Model
-                                    <span id="scitex-ai-config-model-badge" class="scitex-ai-model-badge"></span>
-                                </label>
-                                <select id="scitex-ai-llm-model" class="ai-settings-select" title="LLM model for chat"></select>
-                            </div>
-                            <div class="ai-settings-row">
-                                <label class="scitex-ai-settings-label">
-                                    <i class="fas fa-microphone"></i> STT Model
-                                </label>
-                                <select id="scitex-ai-stt-model"
-                                        class="ai-settings-select scitex-ai-stt-model"
-                                        title="STT model"
-                                        style="display:none"></select>
-                            </div>
-                            <div class="ai-settings-row ai-settings-mcp">
-                                <label class="scitex-ai-settings-label">
-                                    <i class="fas fa-plug"></i> MCP Tools
-                                </label>
-                                <span id="scitex-ai-mcp-badge" class="ai-mcp-badge" title="MCP tools status">
-                                    <i class="fas fa-circle ai-mcp-dot"></i>
-                                    <span class="ai-mcp-count">--</span>
-                                </span>
-                            </div>
+                        <!-- Jobs section (collapsible, inside console view) -->
+                        <details id="scitex-ai-jobs-section" class="scitex-ai-jobs-section">
+                            <summary class="scitex-ai-jobs-section-summary">
+                                <i class="fas fa-tasks"></i>
+                                <span>Jobs</span>
+                                <span id="scitex-ai-jobs-summary" class="scitex-ai-jobs-summary"></span>
+                                <button class="scitex-ai-action-btn" id="scitex-ai-jobs-refresh" title="Refresh">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </summary>
+                            <div id="scitex-ai-jobs-list" class="scitex-ai-jobs-list"></div>
+                        </details>
+                        <!-- Console config popover -->
+                        <div id="scitex-ai-console-config"
+                             class="scitex-ai-config-popover"
+                             style="display:none">
                             <div class="ai-settings-section" id="ai-agent-sources">
                                 <label class="scitex-ai-settings-label">
-                                    <i class="fas fa-sitemap"></i> Available Sources for Agents
+                                    <i class="fas fa-sitemap"></i> Agent Sources
                                 </label>
                                 <div id="ai-agent-sources-content" class="ai-agent-sources">
                                     <div class="ai-source-loading">Loading...</div>
                                 </div>
-                            </div>
-                            <div class="ai-settings-links">
-                                <a href="/auth/settings/mcp-tools/" title="MCP tool preferences">
-                                    <i class="fas fa-puzzle-piece"></i> MCP Settings
-                                </a>
-                                <a href="/auth/settings/ai-providers/" title="AI provider keys">
-                                    <i class="fas fa-key"></i> AI Providers
-                                </a>
                             </div>
                         </div>
                     </div>

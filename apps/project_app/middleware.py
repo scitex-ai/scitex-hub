@@ -93,6 +93,7 @@ class VisitorAutoLoginMiddleware:
         # Auto-login as visitor for real browser requests
         try:
             from django.contrib.auth.models import User
+            from django.db import connection
 
             from apps.project_app.services.visitor_pool import VisitorPool
 
@@ -129,6 +130,20 @@ class VisitorAutoLoginMiddleware:
                     )
         except Exception as e:
             logger.error(f"[Middleware] Visitor auto-login failed: {e}")
+
+        # Always ensure a clean DB connection before the view runs.
+        # The visitor allocation uses @transaction.atomic with
+        # select_for_update, and PgBouncer (transaction pool mode) may
+        # return a dirty connection on startup.  Closing here guarantees
+        # the view's ATOMIC_REQUESTS transaction starts on a fresh
+        # connection, preventing cascading "current transaction is
+        # aborted" errors during template rendering.
+        try:
+            from django.db import connection
+
+            connection.close()
+        except Exception:
+            pass
 
         return self.get_response(request)
 
@@ -243,6 +258,16 @@ class VisitorExpirationMiddleware:
 
         except Exception as e:
             logger.error(f"[Middleware] Error in auto-reallocation: {e}")
+
+        # Ensure clean DB connection before the view (same rationale as
+        # VisitorAutoLoginMiddleware — PgBouncer transaction pool mode +
+        # ATOMIC_REQUESTS can cascade dirty connections to the view).
+        try:
+            from django.db import connection
+
+            connection.close()
+        except Exception:
+            pass
 
         return self.get_response(request)
 

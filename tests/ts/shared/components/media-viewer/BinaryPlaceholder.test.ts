@@ -28,26 +28,26 @@ describe('BinaryPlaceholder', () => {
 // /**
 //  * BinaryPlaceholder - Handles display of binary files that can't be previewed
 //  */
-// 
-// import type { MediaViewerConfig } from './types.ts';
-// 
+//
+// import type { MediaViewerConfig } from './types';
+//
 // export class BinaryPlaceholder {
 //   private config: MediaViewerConfig;
-// 
+//
 //   constructor(config: MediaViewerConfig) {
 //     this.config = config;
 //   }
-// 
+//
 //   /**
 //    * Render a placeholder for binary files
 //    */
 //   render(container: HTMLElement, filePath: string): void {
 //     const wrapper = document.createElement("div");
 //     wrapper.className = "media-viewer-binary-wrapper";
-// 
+//
 //     const fileName = filePath.split("/").pop() || filePath;
 //     const ext = filePath.substring(filePath.lastIndexOf(".")).toLowerCase();
-// 
+//
 //     wrapper.innerHTML = `
 //       <div class="media-viewer-binary-content">
 //         <i class="fas fa-file-archive media-viewer-binary-icon"></i>
@@ -61,16 +61,16 @@ describe('BinaryPlaceholder', () => {
 //         </button>
 //       </div>
 //     `;
-// 
+//
 //     container.appendChild(wrapper);
-// 
+//
 //     // Setup download button
 //     const downloadBtn = wrapper.querySelector(".media-viewer-download-btn");
 //     downloadBtn?.addEventListener("click", () => {
 //       this.downloadFile(filePath);
 //     });
 //   }
-// 
+//
 //   /**
 //    * Download the file
 //    */

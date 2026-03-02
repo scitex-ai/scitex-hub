@@ -2,34 +2,34 @@
  * Workspace Files Tree - Orchestrator component for file tree
  */
 
-import type { TreeItem, TreeConfig, WorkspaceMode, SortMode } from "./types.ts";
-import { TreeStateManager } from "./TreeState.ts";
-import { TreeFilter } from "./TreeFilter.ts";
-import { TreeRenderer } from "./TreeRenderer.ts";
-import { EventHandlers } from "./handlers/EventHandlers.ts";
-import { DragDropHandlers } from "./handlers/DragDropHandlers.ts";
-import { KeyboardHandlers } from "./handlers/KeyboardHandlers.ts";
-import { FileActions } from "./handlers/FileActions.ts";
-import type { ResizeHandler } from "./handlers/ResizeHandler.ts";
-import { DirectoryFilterHandler } from "./handlers/DirectoryFilterHandler.ts";
-import { PathNavigator } from "./handlers/PathNavigator.ts";
-import { TreeUtils } from "./handlers/TreeUtils.ts";
-import { SelectionHandler } from "./handlers/SelectionHandler.ts";
-import { GitActions } from "./handlers/GitActions.ts";
-import { ClipboardHandler } from "./handlers/ClipboardHandler.ts";
-import { ContextMenuHandler } from "./handlers/ContextMenuHandler.ts";
-import { UndoRedoHandler } from "./handlers/UndoRedoHandler.ts";
-import { SearchHandler } from "./handlers/SearchHandler.ts";
-import type { WorkspaceKeyboardHandler } from "./handlers/WorkspaceKeyboardHandler.ts";
-import type { ContextMenuActionHandler } from "./handlers/ContextMenuActionHandler.ts";
-import { TreeFileOperations } from "./handlers/TreeFileOperations.ts";
-import { TreeDataLoader } from "./handlers/TreeDataLoader.ts";
-import { showTreeMessage } from "./handlers/TreeMessageHandler.ts";
-import { type GitSummary } from "./handlers/GitStatusHandler.ts";
-import type { SearchUIHandler } from "./handlers/SearchUIHandler.ts";
-import { initializeTreeHandlers } from "./handlers/TreeInitHandler.ts";
-import { getCsrfToken } from "../../utils/csrf.ts";
-import "./modals/index.js";
+import type { TreeItem, TreeConfig, WorkspaceMode, SortMode } from "./types";
+import { TreeStateManager } from "./_TreeState";
+import { TreeFilter } from "./_TreeFilter";
+import { TreeRenderer } from "./_TreeRenderer";
+import { EventHandlers } from "./_handlers/EventHandlers";
+import { DragDropHandlers } from "./_handlers/DragDropHandlers";
+import { KeyboardHandlers } from "./_handlers/KeyboardHandlers";
+import { FileActions } from "./_handlers/FileActions";
+import type { ResizeHandler } from "./_handlers/ResizeHandler";
+import { DirectoryFilterHandler } from "./_handlers/DirectoryFilterHandler";
+import { PathNavigator } from "./_handlers/PathNavigator";
+import { TreeUtils } from "./_handlers/TreeUtils";
+import { SelectionHandler } from "./_handlers/SelectionHandler";
+import { GitActions } from "./_handlers/GitActions";
+import { ClipboardHandler } from "./_handlers/ClipboardHandler";
+import { ContextMenuHandler } from "./_handlers/ContextMenuHandler";
+import { UndoRedoHandler } from "./_handlers/UndoRedoHandler";
+import { SearchHandler } from "./_handlers/SearchHandler";
+import type { WorkspaceKeyboardHandler } from "./_handlers/WorkspaceKeyboardHandler";
+import type { ContextMenuActionHandler } from "./_handlers/ContextMenuActionHandler";
+import { TreeFileOperations } from "./_handlers/TreeFileOperations";
+import { TreeDataLoader } from "./_handlers/TreeDataLoader";
+import { showTreeMessage } from "./_handlers/TreeMessageHandler";
+import { type GitSummary } from "./_handlers/GitStatusHandler";
+import type { SearchUIHandler } from "./_handlers/SearchUIHandler";
+import { initializeTreeHandlers } from "./_handlers/TreeInitHandler";
+import { getCsrfToken } from "../../utils/csrf";
+import "./_modals/index.js";
 
 export class WorkspaceFilesTree {
   private config: TreeConfig;

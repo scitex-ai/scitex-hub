@@ -32,15 +32,15 @@ describe('cursors', () => {
 //  * @version 1.0.0
 //  * @author SciTeX Development Team
 //  */
-// 
-// import { RemoteCursor } from '../websocket-client.ts';
-// 
+//
+// import { RemoteCursor } from '../websocket-client';
+//
 // declare global {
 //   interface Window {
 //     monaco?: any;
 //   }
 // }
-// 
+//
 // /**
 //  * Manages cursor decorations and labels for remote users in Monaco editor
 //  */
@@ -48,11 +48,11 @@ describe('cursors', () => {
 //   private editor: any;
 //   private decorations: Map<number, string[]> = new Map();
 //   private widgets: Map<number, any> = new Map();
-// 
+//
 //   constructor(editor: any) {
 //     this.editor = editor;
 //   }
-// 
+//
 //   /**
 //    * Update or create cursor decoration for a remote user
 //    */
@@ -76,11 +76,11 @@ describe('cursors', () => {
 //         }
 //       ])
 //     );
-// 
+//
 //     // Update cursor label widget
 //     this.updateCursorWidget(cursor);
 //   }
-// 
+//
 //   /**
 //    * Update or create cursor label widget
 //    */
@@ -90,7 +90,7 @@ describe('cursors', () => {
 //     if (oldWidget) {
 //       this.editor.removeContentWidget(oldWidget);
 //     }
-// 
+//
 //     // Create new widget
 //     const widget = {
 //       getId: () => `remote-cursor-widget-${cursor.userId}`,
@@ -119,11 +119,11 @@ describe('cursors', () => {
 //         ]
 //       })
 //     };
-// 
+//
 //     this.editor.addContentWidget(widget);
 //     this.widgets.set(cursor.userId, widget);
 //   }
-// 
+//
 //   /**
 //    * Remove cursor decoration and widget for a user
 //    */
@@ -132,7 +132,7 @@ describe('cursors', () => {
 //     const decorations = this.decorations.get(userId) || [];
 //     this.editor.deltaDecorations(decorations, []);
 //     this.decorations.delete(userId);
-// 
+//
 //     // Remove widget
 //     const widget = this.widgets.get(userId);
 //     if (widget) {
@@ -140,7 +140,7 @@ describe('cursors', () => {
 //       this.widgets.delete(userId);
 //     }
 //   }
-// 
+//
 //   /**
 //    * Clear all cursor decorations and widgets
 //    */
@@ -149,7 +149,7 @@ describe('cursors', () => {
 //       this.editor.deltaDecorations(decorations, []);
 //     });
 //     this.decorations.clear();
-// 
+//
 //     this.widgets.forEach((widget) => {
 //       this.editor.removeContentWidget(widget);
 //     });

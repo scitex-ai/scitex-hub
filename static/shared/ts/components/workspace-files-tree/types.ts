@@ -1,6 +1,6 @@
 /**
  * Workspace Files Tree - Type Definitions
- * Shared across all workspace modules (/code/, /vis/, /writer/, /scholar/)
+ * Shared across all workspace modules (/code/, /vis/, /_writer/, /scholar/)
  */
 
 export type WorkspaceMode =
@@ -90,7 +90,7 @@ export interface FilterConfig {
  * DEPRECATED: Mode-specific filters are now centralized in FilteringCriteria.ts
  * Import from there for better maintainability:
  *
- * import { ALLOW_EXTENSIONS, DENY_DIRECTORIES, ALLOW_DIRECTORIES, PRESERVE_EMPTY_DIRECTORIES } from './FilteringCriteria.ts';
+ * import { ALLOW_EXTENSIONS, DENY_DIRECTORIES, ALLOW_DIRECTORIES, PRESERVE_EMPTY_DIRECTORIES } from './_FilteringCriteria';
  *
  * This object is kept for backward compatibility but will be removed in future versions.
  */

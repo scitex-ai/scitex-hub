@@ -10,8 +10,8 @@
  * - Session expiration detection (stops polling to prevent server overload)
  */
 
-import { updateMetrics } from './server-status/metrics-updater.ts';
-import { updateVisitorCountdowns } from './server-status/visitor-countdown.ts';
+import { updateMetrics } from './_server-status/metrics-updater';
+import { updateVisitorCountdowns } from './_server-status/visitor-countdown';
 
 console.log('[DEBUG] server-status.ts loaded');
 

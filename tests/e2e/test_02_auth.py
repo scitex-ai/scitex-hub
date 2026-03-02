@@ -68,7 +68,7 @@ class TestLogin:
         if resp.status_code == 302:
             location = resp.headers.get("Location", "")
             assert "login" in location.lower() or not any(
-                x in location for x in ["/dashboard", "/files/"]
+                x in location for x in ["/dashboard", "/hub"]
             )
         session.close()
 
@@ -118,9 +118,9 @@ class TestLogin:
         if resp.status_code == 302:
             location = resp.headers.get("Location", "")
             assert location, "Redirect location should be set"
-            assert "login" not in location.lower(), (
-                "Should not redirect back to login page"
-            )
+            assert (
+                "login" not in location.lower()
+            ), "Should not redirect back to login page"
         session.close()
 
 
@@ -161,9 +161,10 @@ class TestLogout:
 
         # Try to access protected page after logout
         resp = session.get(f"{base_url}/new/", allow_redirects=False)
-        assert resp.status_code in [302, 403], (
-            "Protected page should not be accessible after logout"
-        )
+        assert resp.status_code in [
+            302,
+            403,
+        ], "Protected page should not be accessible after logout"
         if resp.status_code == 302:
             location = resp.headers.get("Location", "")
             assert "login" in location.lower(), "Should redirect to login after logout"
@@ -204,9 +205,10 @@ class TestLoginLogoutCycle:
 
         # Step 4: Try to access protected page after logout
         resp = session.get(f"{base_url}/new/", allow_redirects=False)
-        assert resp.status_code in [302, 403], (
-            "Protected page should not be accessible after logout"
-        )
+        assert resp.status_code in [
+            302,
+            403,
+        ], "Protected page should not be accessible after logout"
         if resp.status_code == 302:
             location = resp.headers.get("Location", "")
             assert "login" in location.lower(), "Should redirect to login after logout"
@@ -250,9 +252,9 @@ class TestLoginLogoutCycle:
 
         # Verify session is valid
         session_cookie = session.cookies.get("sessionid")
-        assert session_cookie is not None, (
-            "sessionid cookie should exist after second login"
-        )
+        assert (
+            session_cookie is not None
+        ), "sessionid cookie should exist after second login"
         session.close()
 
 

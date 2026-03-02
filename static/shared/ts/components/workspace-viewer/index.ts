@@ -9,11 +9,11 @@
  * - Edit / Preview mode toggle for markdown files
  */
 
-import { MarkdownPreviewPanel } from "./MarkdownPreview.ts";
-import { loadMonaco } from "./monaco-loader.ts";
-import { TabManager } from "./TabManager.ts";
-import { ViewerRouter } from "./ViewerRouter.ts";
-import { detectFileType, LANGUAGE_MAP, type TabInfo } from "./types.ts";
+import { MarkdownPreviewPanel } from "./_MarkdownPreview";
+import { loadMonaco } from "./_monaco-loader";
+import { TabManager } from "./_TabManager";
+import { ViewerRouter } from "./_ViewerRouter";
+import { detectFileType, LANGUAGE_MAP, type TabInfo } from "./types";
 
 type ViewMode = "edit" | "preview";
 
@@ -426,5 +426,5 @@ export class WorkspaceViewer {
 }
 
 // Named re-exports so consumers can import from this entry point.
-export { detectFileType } from "./types.ts";
-export type { FileType, TabInfo, Viewer } from "./types.ts";
+export { detectFileType } from "./types";
+export type { FileType, TabInfo, Viewer } from "./types";

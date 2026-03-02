@@ -28,13 +28,13 @@ describe('TreeBuilder', () => {
 // /**
 //  * Tree Builder - Handles HTML tree structure creation
 //  */
-// 
-// import type { Figure, Axis, Plot, Guide, Annotation } from '../types.ts';
-// 
+//
+// import type { Figure, Axis, Plot, Guide, Annotation } from '../types';
+//
 // export class TreeBuilder {
 //     private treeContainer: HTMLElement;
 //     private restoreStatesCallback: () => void;
-// 
+//
 //     constructor(
 //         treeContainer: HTMLElement,
 //         restoreStatesCallback: () => void
@@ -42,28 +42,28 @@ describe('TreeBuilder', () => {
 //         this.treeContainer = treeContainer;
 //         this.restoreStatesCallback = restoreStatesCallback;
 //     }
-// 
+//
 //     /**
 //      * Build tree from data structure
 //      */
 //     public buildTree(figures: Figure[]): void {
 //         console.log('[TreeBuilder] Building tree from data:', figures);
-// 
+//
 //         // Clear existing tree
 //         this.treeContainer.innerHTML = '';
-// 
+//
 //         // Build tree items for each figure
 //         figures.forEach(figure => {
 //             const figureElement = this.createFigureElement(figure);
 //             this.treeContainer.appendChild(figureElement);
 //         });
-// 
+//
 //         // Restore saved expanded/collapsed states
 //         this.restoreStatesCallback();
-// 
+//
 //         console.log('[TreeBuilder] Tree built successfully');
 //     }
-// 
+//
 //     /**
 //      * Create figure tree element
 //      */
@@ -72,7 +72,7 @@ describe('TreeBuilder', () => {
 //         figureDiv.className = 'tree-item tree-figure';
 //         figureDiv.setAttribute('data-level', '0');
 //         figureDiv.setAttribute('data-id', figure.id);
-// 
+//
 //         // Figure header
 //         const header = document.createElement('div');
 //         header.className = 'tree-item-header';
@@ -85,25 +85,25 @@ describe('TreeBuilder', () => {
 //                 <button class="tree-action-btn" title="Delete figure"><i class="fas fa-trash"></i></button>
 //             </div>
 //         `;
-// 
+//
 //         // Figure children container
 //         const children = document.createElement('div');
 //         children.className = 'tree-item-children';
-// 
+//
 //         // Add axes
 //         figure.axes.forEach(axis => {
 //             children.appendChild(this.createAxisElement(axis));
 //         });
-// 
+//
 //         // Add "Add Axis" button
 //         children.appendChild(this.createAddButton('Add Axis', 'axis'));
-// 
+//
 //         figureDiv.appendChild(header);
 //         figureDiv.appendChild(children);
-// 
+//
 //         return figureDiv;
 //     }
-// 
+//
 //     /**
 //      * Create axis tree element
 //      */
@@ -112,7 +112,7 @@ describe('TreeBuilder', () => {
 //         axisDiv.className = 'tree-item tree-axis';
 //         axisDiv.setAttribute('data-level', '1');
 //         axisDiv.setAttribute('data-id', axis.id);
-// 
+//
 //         // Axis header
 //         const header = document.createElement('div');
 //         header.className = 'tree-item-header';
@@ -125,31 +125,31 @@ describe('TreeBuilder', () => {
 //                 <button class="tree-action-btn" title="Delete axis"><i class="fas fa-trash"></i></button>
 //             </div>
 //         `;
-// 
+//
 //         // Axis children container
 //         const children = document.createElement('div');
 //         children.className = 'tree-item-children';
-// 
+//
 //         // Add axis labels section (Title, X, Y)
 //         if (axis.title || axis.xLabel || axis.yLabel) {
 //             children.appendChild(this.createAxisLabelsSection(axis));
 //         }
-// 
+//
 //         // Add Plots group
 //         children.appendChild(this.createPlotsGroup(axis.plots));
-// 
+//
 //         // Add Guides group
 //         children.appendChild(this.createGuidesGroup(axis.guides));
-// 
+//
 //         // Add Annotations group
 //         children.appendChild(this.createAnnotationsGroup(axis.annotations));
-// 
+//
 //         axisDiv.appendChild(header);
 //         axisDiv.appendChild(children);
-// 
+//
 //         return axisDiv;
 //     }
-// 
+//
 //     /**
 //      * Create axis labels section (Title, X, Y)
 //      */
@@ -186,7 +186,7 @@ describe('TreeBuilder', () => {
 //         `;
 //         return section;
 //     }
-// 
+//
 //     /**
 //      * Create plots group
 //      */
@@ -194,7 +194,7 @@ describe('TreeBuilder', () => {
 //         const group = document.createElement('div');
 //         group.className = 'tree-group tree-plots';
 //         group.setAttribute('data-level', '2');
-// 
+//
 //         const header = document.createElement('div');
 //         header.className = 'tree-group-header';
 //         header.innerHTML = `
@@ -203,20 +203,20 @@ describe('TreeBuilder', () => {
 //             <span class="tree-label">Plots (${plots.length})</span>
 //             <button class="tree-add-btn" title="Add plot"><i class="fas fa-plus"></i></button>
 //         `;
-// 
+//
 //         const children = document.createElement('div');
 //         children.className = 'tree-group-children';
-// 
+//
 //         plots.forEach(plot => {
 //             children.appendChild(this.createPlotElement(plot));
 //         });
-// 
+//
 //         group.appendChild(header);
 //         group.appendChild(children);
-// 
+//
 //         return group;
 //     }
-// 
+//
 //     /**
 //      * Create plot element
 //      */
@@ -225,7 +225,7 @@ describe('TreeBuilder', () => {
 //         plotDiv.className = 'tree-item tree-plot';
 //         plotDiv.setAttribute('data-level', '3');
 //         plotDiv.setAttribute('data-id', plot.id);
-// 
+//
 //         // Determine plot icon based on type (more distinctive icons)
 //         const iconMap: { [key: string]: string } = {
 //             'line': 'fa-chart-line',
@@ -234,15 +234,15 @@ describe('TreeBuilder', () => {
 //             'bar': 'fa-chart-bar',
 //             'histogram': 'fa-chart-column'
 //         };
-// 
+//
 //         const icon = iconMap[plot.type] || 'fa-chart-line';
-// 
+//
 //         // Build label with plot details
 //         let label = `${plot.type.charAt(0).toUpperCase() + plot.type.slice(1)}: ${this.escapeHtml(plot.label)}`;
 //         if (plot.xColumn && plot.yColumn) {
 //             label += ` (${this.escapeHtml(plot.xColumn)} vs ${this.escapeHtml(plot.yColumn)})`;
 //         }
-// 
+//
 //         plotDiv.innerHTML = `
 //             <div class="tree-item-header">
 //                 <i class="fas ${icon} tree-icon"></i>
@@ -253,10 +253,10 @@ describe('TreeBuilder', () => {
 //                 </div>
 //             </div>
 //         `;
-// 
+//
 //         return plotDiv;
 //     }
-// 
+//
 //     /**
 //      * Create guides group
 //      */
@@ -264,7 +264,7 @@ describe('TreeBuilder', () => {
 //         const group = document.createElement('div');
 //         group.className = 'tree-group tree-guides';
 //         group.setAttribute('data-level', '2');
-// 
+//
 //         const header = document.createElement('div');
 //         header.className = 'tree-group-header';
 //         header.innerHTML = `
@@ -273,20 +273,20 @@ describe('TreeBuilder', () => {
 //             <span class="tree-label">Guides (${guides.length})</span>
 //             <button class="tree-add-btn" title="Add guide"><i class="fas fa-plus"></i></button>
 //         `;
-// 
+//
 //         const children = document.createElement('div');
 //         children.className = 'tree-group-children';
-// 
+//
 //         guides.forEach(guide => {
 //             children.appendChild(this.createGuideElement(guide));
 //         });
-// 
+//
 //         group.appendChild(header);
 //         group.appendChild(children);
-// 
+//
 //         return group;
 //     }
-// 
+//
 //     /**
 //      * Create guide element
 //      */
@@ -295,14 +295,14 @@ describe('TreeBuilder', () => {
 //         guideDiv.className = 'tree-item tree-guide';
 //         guideDiv.setAttribute('data-level', '3');
 //         guideDiv.setAttribute('data-id', guide.id);
-// 
+//
 //         const icon = guide.type === 'legend' ? 'fa-square-check' : 'fa-fill-drip';
 //         let label = `${guide.type.charAt(0).toUpperCase() + guide.type.slice(1)}: ${this.escapeHtml(guide.label)}`;
-// 
+//
 //         if (guide.plots && guide.plots.length > 0) {
 //             label += ` (${guide.plots.length} ${guide.plots.length === 1 ? 'plot' : 'plots'})`;
 //         }
-// 
+//
 //         guideDiv.innerHTML = `
 //             <div class="tree-item-header">
 //                 <i class="fas ${icon} tree-icon"></i>
@@ -313,10 +313,10 @@ describe('TreeBuilder', () => {
 //                 </div>
 //             </div>
 //         `;
-// 
+//
 //         return guideDiv;
 //     }
-// 
+//
 //     /**
 //      * Create annotations group
 //      */
@@ -324,7 +324,7 @@ describe('TreeBuilder', () => {
 //         const group = document.createElement('div');
 //         group.className = 'tree-group tree-annotations';
 //         group.setAttribute('data-level', '2');
-// 
+//
 //         const header = document.createElement('div');
 //         header.className = 'tree-group-header';
 //         header.innerHTML = `
@@ -333,20 +333,20 @@ describe('TreeBuilder', () => {
 //             <span class="tree-label">Annotations (${annotations.length})</span>
 //             <button class="tree-add-btn" title="Add annotation"><i class="fas fa-plus"></i></button>
 //         `;
-// 
+//
 //         const children = document.createElement('div');
 //         children.className = 'tree-group-children';
-// 
+//
 //         annotations.forEach(annotation => {
 //             children.appendChild(this.createAnnotationElement(annotation));
 //         });
-// 
+//
 //         group.appendChild(header);
 //         group.appendChild(children);
-// 
+//
 //         return group;
 //     }
-// 
+//
 //     /**
 //      * Create annotation element
 //      */
@@ -355,22 +355,22 @@ describe('TreeBuilder', () => {
 //         annotDiv.className = 'tree-item tree-annotation';
 //         annotDiv.setAttribute('data-level', '3');
 //         annotDiv.setAttribute('data-id', annotation.id);
-// 
+//
 //         const iconMap: { [key: string]: string } = {
 //             'text': 'fa-font',
 //             'scalebar': 'fa-ruler-horizontal',
 //             'arrow': 'fa-arrow-right'
 //         };
-// 
+//
 //         const icon = iconMap[annotation.type] || 'fa-sticky-note';
 //         let label = `${annotation.type.charAt(0).toUpperCase() + annotation.type.slice(1)}`;
-// 
+//
 //         if (annotation.content) {
 //             label += `: "${this.escapeHtml(annotation.content)}"`;
 //         } else {
 //             label += `: ${this.escapeHtml(annotation.label)}`;
 //         }
-// 
+//
 //         annotDiv.innerHTML = `
 //             <div class="tree-item-header">
 //                 <i class="fas ${icon} tree-icon"></i>
@@ -381,10 +381,10 @@ describe('TreeBuilder', () => {
 //                 </div>
 //             </div>
 //         `;
-// 
+//
 //         return annotDiv;
 //     }
-// 
+//
 //     /**
 //      * Create "Add" button
 //      */
@@ -395,7 +395,7 @@ describe('TreeBuilder', () => {
 //         btn.innerHTML = `<i class="fas fa-plus"></i> ${label}`;
 //         return btn;
 //     }
-// 
+//
 //     /**
 //      * Escape HTML to prevent XSS
 //      */

@@ -102,17 +102,59 @@
   box-sizing: border-box;
   border-bottom: 1px solid var(--workspace-border-default);
   background: var(--workspace-bg-secondary);
+  position: relative;
 }
 
-/* Expanded header hover: green hint only on empty space (foldable state)
+/* ---- Expanded panel green indicator bar ----
+   Single source of truth: a 3px green left-edge bar on every expanded
+   panel header signals "this panel is collapsible and currently open."
+   Matches the unified indicator dimensions from selector-nav.css. */
+
+.collapsible-panel:not(.collapsed) .panel-header::before,
+.collapsible-panel:not(.collapsed) .pane-header::before,
+.collapsible-panel:not(.collapsed) .details-header::before,
+.collapsible-panel:not(.collapsed) .properties-header::before,
+.collapsible-panel:not(.collapsed) .sidebar-header::before,
+.collapsible-panel:not(.collapsed) .tools-nav-header::before,
+.collapsible-panel:not(.collapsed) .terminal-panel-top::before,
+.workspace-sidebar:not(.collapsed) .sidebar-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--workspace-icon-primary, #059669);
+  z-index: 20;
+  transition:
+    opacity 0.2s ease,
+    width 0.15s ease;
+}
+
+/* Hover on foldable header: widen the indicator bar slightly */
+.collapsible-panel:not(.collapsed) .panel-header.foldable::before,
+.collapsible-panel:not(.collapsed) .pane-header.foldable::before,
+.collapsible-panel:not(.collapsed) .details-header.foldable::before,
+.collapsible-panel:not(.collapsed) .properties-header.foldable::before,
+.collapsible-panel:not(.collapsed) .sidebar-header.foldable::before,
+.collapsible-panel:not(.collapsed) .tools-nav-header.foldable::before,
+.collapsible-panel:not(.collapsed) .terminal-panel-top.foldable::before,
+.workspace-sidebar:not(.collapsed) .sidebar-header.foldable::before {
+  width: 4px;
+}
+
+/* Expanded header hover: green background on empty space (foldable state)
    JS adds .foldable class when cursor is on empty header area */
 .collapsible-panel:not(.collapsed) .panel-header.foldable,
 .collapsible-panel:not(.collapsed) .pane-header.foldable,
 .collapsible-panel:not(.collapsed) .details-header.foldable,
 .collapsible-panel:not(.collapsed) .properties-header.foldable,
+.collapsible-panel:not(.collapsed) .sidebar-header.foldable,
 .collapsible-panel:not(.collapsed) .tools-nav-header.foldable,
-.collapsible-panel:not(.collapsed) .terminal-panel-top.foldable {
-  background: rgba(5, 150, 105, 0.08) !important;
+.collapsible-panel:not(.collapsed) .terminal-panel-top.foldable,
+.workspace-sidebar:not(.collapsed) .sidebar-header.foldable {
+  background: rgba(5, 150, 105, 0.15) !important;
 }
 [data-theme="light"] .collapsible-panel:not(.collapsed) .panel-header.foldable,
 [data-theme="light"] .collapsible-panel:not(.collapsed) .pane-header.foldable,
@@ -124,11 +166,17 @@
   .properties-header.foldable,
 [data-theme="light"]
   .collapsible-panel:not(.collapsed)
+  .sidebar-header.foldable,
+[data-theme="light"]
+  .collapsible-panel:not(.collapsed)
   .tools-nav-header.foldable,
 [data-theme="light"]
   .collapsible-panel:not(.collapsed)
-  .terminal-panel-top.foldable {
-  background: rgba(5, 150, 105, 0.06) !important;
+  .terminal-panel-top.foldable,
+[data-theme="light"]
+  .workspace-sidebar:not(.collapsed)
+  .sidebar-header.foldable {
+  background: rgba(5, 150, 105, 0.12) !important;
 }
 
 /* Collapsed header - compact horizontal padding */
@@ -275,58 +323,7 @@
   background: var(--workspace-bg-tertiary);
 }
 
-/* ===========================================================================
-   BACKWARD COMPATIBILITY
-   Aliases for existing class names used in apps
-   =========================================================================== */
-
-/* Sidebar toggle aliases */
-.sidebar-toggle,
-.sidebar-toggle-btn {
-  background: none;
-  border: none;
-  padding: 4px 8px;
-  cursor: pointer;
-  color: var(--text-muted);
-  border-radius: 4px;
-  transition: all 0.15s ease;
-}
-
-.sidebar-toggle:hover,
-.sidebar-toggle-btn:hover {
-  background: var(--workspace-bg-tertiary);
-  color: var(--workspace-icon-primary);
-}
-
-/* Properties toggle aliases */
-.properties-toggle,
-.properties-toggle-btn {
-  background: none;
-  border: none;
-  padding: 4px 8px;
-  cursor: pointer;
-  color: var(--text-muted);
-  border-radius: 4px;
-  transition: all 0.15s ease;
-}
-
-.properties-toggle:hover,
-.properties-toggle-btn:hover {
-  background: var(--workspace-bg-tertiary);
-  color: var(--workspace-icon-primary);
-}
-
-/* Collapsed state for aliased toggle buttons */
-.collapsed .sidebar-toggle,
-.collapsed .sidebar-toggle-btn,
-.collapsed .properties-toggle,
-.collapsed .properties-toggle-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding: 4px;
-}
+/* Backward compatibility aliases moved to collapsible-panel-compat.css */
 
 /* ===========================================================================
    SHARED DETAILS PANEL (RIGHT PANEL)
@@ -346,6 +343,7 @@
   background: var(--workspace-bg-secondary);
   flex-shrink: 0;
   box-sizing: border-box;
+  position: relative;
 }
 
 .details-header h5,

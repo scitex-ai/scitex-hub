@@ -38,19 +38,19 @@ describe('TreeIntegration', () => {
 //  *
 //  * This module implements the 3-pane responsive sync: Tree ↔ Data ↔ Properties
 //  */
-// 
-// import { TreeManager } from '../tree-manager.ts';
-// import type { Figure } from '../types.ts';
-// import type { PlotDataManager } from '../PlotDataManager.ts';
-// import type { PropertiesManager } from '../PropertiesManager.ts';
-// import type { DataTableManager } from '../DataTableManager.ts';
-// 
+//
+// import { TreeManager } from '../tree-manager';
+// import type { Figure } from '../types';
+// import type { PlotDataManager } from '../PlotDataManager';
+// import type { PropertiesManager } from '../PropertiesManager';
+// import type { DataTableManager } from '../DataTableManager';
+//
 // export class TreeIntegration {
 //     private treeManager: TreeManager | null = null;
 //     private currentSelectedPlotId: string | null = null;
 //     private currentWorkspaceMode: string = 'data';
 //     private dataTableManager?: DataTableManager;
-// 
+//
 //     constructor(
 //         private statusBarCallback?: (message: string) => void,
 //         private handleExportPlotCSVCallback?: () => void,
@@ -59,88 +59,88 @@ describe('TreeIntegration', () => {
 //         private plotDataManager?: PlotDataManager,
 //         private propertiesManager?: PropertiesManager | null
 //     ) {}
-// 
+//
 //     /**
 //      * Set current workspace mode
 //      */
 //     public setWorkspaceMode(mode: string): void {
 //         this.currentWorkspaceMode = mode;
 //     }
-// 
+//
 //     /**
 //      * Set properties manager reference
 //      */
 //     public setPropertiesManager(manager: PropertiesManager): void {
 //         this.propertiesManager = manager;
 //     }
-// 
+//
 //     /**
 //      * Set plot data manager reference
 //      */
 //     public setPlotDataManager(manager: PlotDataManager): void {
 //         this.plotDataManager = manager;
 //     }
-// 
+//
 //     /**
 //      * Set data table manager reference
 //      */
 //     public setDataTableManager(manager: DataTableManager): void {
 //         this.dataTableManager = manager;
 //     }
-// 
+//
 //     /**
 //      * Set current selected plot ID
 //      */
 //     public setCurrentSelectedPlotId(plotId: string | null): void {
 //         this.currentSelectedPlotId = plotId;
 //     }
-// 
+//
 //     /**
 //      * Get current selected plot ID
 //      */
 //     public getCurrentSelectedPlotId(): string | null {
 //         return this.currentSelectedPlotId;
 //     }
-// 
+//
 //     /**
 //      * Initialize TreeManager for hierarchical figure/axes/plots structure
 //      */
 //     public initializeTreeManager(): void {
 //         this.treeManager = new TreeManager();
 //         console.log('[TreeIntegration] TreeManager initialized');
-// 
+//
 //         // Load test data for demonstration
 //         this.loadTestTreeData();
-// 
+//
 //         // Setup tree action event listeners
 //         this.setupTreeEventListeners();
-// 
+//
 //         // Setup tree section collapse/expand
 //         this.setupTreeSectionToggle();
 //     }
-// 
+//
 //     /**
 //      * Setup tree section collapse/expand functionality
 //      */
 //     private setupTreeSectionToggle(): void {
 //         const sectionHeader = document.querySelector('.tree-section-header') as HTMLElement;
 //         if (!sectionHeader) return;
-// 
+//
 //         sectionHeader.addEventListener('click', (e) => {
 //             const target = e.target as HTMLElement;
-// 
+//
 //             // Don't toggle if clicking the + button
 //             if (target.closest('.tree-add-btn')) return;
-// 
+//
 //             const section = sectionHeader.closest('.tree-section') as HTMLElement;
 //             const content = section?.querySelector('.tree-section-content') as HTMLElement;
 //             const toggle = sectionHeader.querySelector('.tree-section-toggle') as HTMLElement;
-// 
+//
 //             if (!content || !toggle) return;
-// 
+//
 //             // Toggle visibility
 //             const isExpanded = toggle.classList.contains('fa-chevron-down');
-// 
+//
 //             if (isExpanded) {
 //                 // Collapse
 //                 toggle.classList.remove('fa-chevron-down');
@@ -154,35 +154,35 @@ describe('TreeIntegration', () => {
 //             }
 //         });
 //     }
-// 
+//
 //     /**
 //      * Setup event listeners for tree actions
 //      */
 //     private setupTreeEventListeners(): void {
 //         const treeContainer = document.getElementById('figures-tree');
 //         if (!treeContainer) return;
-// 
+//
 //         // Handle edit events
 //         treeContainer.addEventListener('tree-item-edit', ((e: CustomEvent) => {
 //             const { itemType, itemId, label } = e.detail;
 //             console.log('[TreeIntegration] Tree edit event:', { itemType, itemId, label });
 //             this.handleTreeItemEdit(e.detail);
 //         }) as EventListener);
-// 
+//
 //         // Handle delete events
 //         treeContainer.addEventListener('tree-item-delete', ((e: CustomEvent) => {
 //             const { itemType, itemId, label } = e.detail;
 //             console.log('[TreeIntegration] Tree delete event:', { itemType, itemId, label });
 //             this.handleTreeItemDelete(e.detail);
 //         }) as EventListener);
-// 
+//
 //         // Handle add events
 //         treeContainer.addEventListener('tree-item-add', ((e: CustomEvent) => {
 //             const { parentType, parentId, addableTypes } = e.detail;
 //             console.log('[TreeIntegration] Tree add event:', { parentType, parentId, addableTypes });
 //             this.handleTreeItemAdd(e.detail);
 //         }) as EventListener);
-// 
+//
 //         // Handle selection events (for canvas synchronization)
 //         treeContainer.addEventListener('tree-item-select', ((e: CustomEvent) => {
 //             const { itemId, label } = e.detail;
@@ -190,16 +190,16 @@ describe('TreeIntegration', () => {
 //             this.handleTreeItemSelect(e.detail);
 //         }) as EventListener);
 //     }
-// 
+//
 //     /**
 //      * Handle tree item edit
 //      */
 //     private handleTreeItemEdit(detail: any): void {
 //         const { itemType, itemId, label } = detail;
-// 
+//
 //         // For now, show a simple prompt (can be replaced with modal later)
 //         const newLabel = prompt(`Edit ${itemType} label:`, label);
-// 
+//
 //         if (newLabel && newLabel !== label) {
 //             // Update the label in the tree
 //             const labelElement = detail.element.querySelector('.tree-label');
@@ -209,12 +209,12 @@ describe('TreeIntegration', () => {
 //                 const suffix = match?.[2] || '';
 //                 labelElement.textContent = newLabel + suffix;
 //             }
-// 
+//
 //             console.log('[TreeIntegration] Updated item label:', { itemType, itemId, oldLabel: label, newLabel });
 //             // TODO: Update data model when integrated
 //         }
 //     }
-// 
+//
 //     /**
 //      * Handle tree item delete
 //      */
@@ -224,18 +224,18 @@ describe('TreeIntegration', () => {
 //         // TODO: Remove from data model when integrated
 //         // TODO: Remove from canvas when integrated
 //     }
-// 
+//
 //     /**
 //      * Handle tree item add
 //      */
 //     private handleTreeItemAdd(detail: any): void {
 //         const { parentType, parentId, addableTypes, element } = detail;
-// 
+//
 //         if (addableTypes.length === 0) {
 //             alert('Cannot add items to this section');
 //             return;
 //         }
-// 
+//
 //         // Determine what to add
 //         let itemTypeToAdd = addableTypes[0];
 //         if (addableTypes.length > 1) {
@@ -249,17 +249,17 @@ describe('TreeIntegration', () => {
 //             }
 //             itemTypeToAdd = selection.toLowerCase();
 //         }
-// 
+//
 //         // Get label for new item
 //         const newLabel = prompt(`Enter ${itemTypeToAdd} label:`, `New ${itemTypeToAdd}`);
 //         if (!newLabel) return;
-// 
+//
 //         console.log('[TreeIntegration] Adding new item:', { itemTypeToAdd, newLabel, parentType, parentId });
-// 
+//
 //         // TODO: Add to data model and rebuild tree
 //         alert(`Adding ${itemTypeToAdd} "${newLabel}" to ${parentType}\n\nThis will create a new ${itemTypeToAdd} when data model is integrated.`);
 //     }
-// 
+//
 //     /**
 //      * Handle tree item selection (synchronize with canvas and show properties)
 //      * Implements 3-pane responsive sync: Tree ↔ Data ↔ Properties
@@ -267,12 +267,12 @@ describe('TreeIntegration', () => {
 //     private handleTreeItemSelect(detail: any): void {
 //         const { itemId, label, element } = detail;
 //         console.log('[TreeIntegration] Item selected in tree:', { itemId, label });
-// 
+//
 //         // Determine node type and show appropriate properties
 //         if (element) {
 //             let elementType = '';
 //             let elementLabel = label;
-// 
+//
 //             if (element.classList.contains('tree-plot')) {
 //                 elementType = 'plot';
 //                 // **Plot selected: Show plot-specific data table**
@@ -299,7 +299,7 @@ describe('TreeIntegration', () => {
 //                 this.clearDataTable();
 //                 this.currentSelectedPlotId = null;
 //             }
-// 
+//
 //             // Show properties panel for selected element
 //             if (elementType && this.propertiesManager) {
 //                 // Get element data from tree (TODO: implement proper data retrieval)
@@ -308,18 +308,18 @@ describe('TreeIntegration', () => {
 //                     label: label,
 //                     // Additional data will be populated from data model
 //                 };
-// 
+//
 //                 this.propertiesManager.showPropertiesFor(elementType, elementLabel, elementData);
 //             }
 //         }
-// 
+//
 //         // TODO: Find and select corresponding canvas object
 //         // TODO: Highlight in canvas
-// 
+//
 //         // For now, just log the selection
 //         console.log('[TreeIntegration] Canvas sync: Would select canvas object with ID:', itemId);
 //     }
-// 
+//
 //     /**
 //      * Show plot-specific data table when plot is selected
 //      */
@@ -329,16 +329,16 @@ describe('TreeIntegration', () => {
 //             this.showPlotDataTableCallback(plotId, plotLabel);
 //             return;
 //         }
-// 
+//
 //         // Fallback implementation (if no callback provided)
 //         if (!this.plotDataManager) {
 //             console.warn('[TreeIntegration] PlotDataManager not available');
 //             return;
 //         }
-// 
+//
 //         console.log(`[TreeIntegration] Displaying data table for plot ${plotId}`);
 //     }
-// 
+//
 //     /**
 //      * Clear data table when non-plot item is selected
 //      */
@@ -348,17 +348,17 @@ describe('TreeIntegration', () => {
 //             this.clearDataTableCallback();
 //             return;
 //         }
-// 
+//
 //         // Fallback implementation
 //         console.log('[TreeIntegration] Data table cleared');
 //     }
-// 
+//
 //     /**
 //      * Load test data into tree (for demonstration)
 //      */
 //     private loadTestTreeData(): void {
 //         if (!this.treeManager) return;
-// 
+//
 //         const testData: Figure[] = [
 //             {
 //                 id: 'fig1',
@@ -437,11 +437,11 @@ describe('TreeIntegration', () => {
 //                 ]
 //             }
 //         ];
-// 
+//
 //         this.treeManager.buildTree(testData);
 //         console.log('[TreeIntegration] Test tree data loaded');
 //     }
-// 
+//
 //     /**
 //      * Get tree manager instance
 //      */

@@ -6,7 +6,7 @@
  * Panel resizing: Auto-initialized via data attributes in HTML template
  */
 
-import { initializeVisEditor } from './vis-editor/index.ts';
+import { initializeVisEditor } from './_vis-editor/index';
 
 // Initialize the editor
 initializeVisEditor();

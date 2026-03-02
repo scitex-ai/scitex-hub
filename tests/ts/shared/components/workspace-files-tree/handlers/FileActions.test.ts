@@ -29,10 +29,10 @@ describe('FileActions', () => {
 //  * File Actions for WorkspaceFilesTree
 //  * Handles file/folder operations (toggle, select, rename, etc.)
 //  */
-// 
-// import type { TreeItem, TreeConfig } from '../types.ts';
-// import type { TreeStateManager } from '../TreeState.ts';
-// 
+//
+// import type { TreeItem, TreeConfig } from '../types';
+// import type { TreeStateManager } from '../TreeState';
+//
 // export class FileActions {
 //   constructor(
 //     private config: TreeConfig,
@@ -43,22 +43,22 @@ describe('FileActions', () => {
 //     private emitEvent: (type: string, detail: any) => void,
 //     private refreshTree?: () => Promise<void>
 //   ) {}
-// 
+//
 //   toggleFolder(path: string): void {
 //     const wasExpanded = this.stateManager.isExpanded(path);
 //     this.stateManager.toggle(path);
-// 
+//
 //     // Auto-select folder when expanding
 //     if (!wasExpanded) {
 //       this.stateManager.setSelected(path);
 //     }
 //   }
-// 
+//
 //   selectFile(path: string): void {
 //     this.stateManager.setSelected(path);
 //     this.emitEvent('file-select', { path });
 //   }
-// 
+//
 //   findItem(path: string): TreeItem | null {
 //     const search = (items: TreeItem[]): TreeItem | null => {
 //       for (const item of items) {
@@ -72,33 +72,33 @@ describe('FileActions', () => {
 //     };
 //     return search(this.getTreeData());
 //   }
-// 
+//
 //   async startRename(path: string, itemEl: HTMLElement): Promise<{ newPath: string } | null> {
 //     const item = this.findItem(path);
 //     if (!item) {
 //       console.error('[FileActions] startRename: item not found for path:', path);
 //       return null;
 //     }
-// 
+//
 //     // Find the name element within the item
 //     const nameEl = itemEl.querySelector('.wft-name, .wft-file-name, .wft-folder-name') as HTMLElement;
 //     if (!nameEl) {
 //       console.error('[FileActions] startRename: name element not found in:', itemEl);
 //       return null;
 //     }
-// 
+//
 //     const originalName = item.name;
 //     const isDirectory = item.type === 'directory';
-// 
+//
 //     // Create input to replace the name text only (keep icon as is)
 //     const input = document.createElement('input');
 //     input.type = 'text';
 //     input.value = originalName;
 //     input.className = 'wft-inline-input';
-// 
+//
 //     // Replace name element with input
 //     nameEl.replaceWith(input);
-// 
+//
 //     input.focus();
 //     // Select filename without extension for files
 //     if (!isDirectory && originalName.includes('.')) {
@@ -107,22 +107,22 @@ describe('FileActions', () => {
 //     } else {
 //       input.select();
 //     }
-// 
+//
 //     // Return a promise that resolves when rename completes
 //     return new Promise((resolve) => {
 //       let resolved = false;
-// 
+//
 //       const cleanup = () => {
 //         input.replaceWith(nameEl);
 //       };
-// 
+//
 //       const finishRename = async (save: boolean) => {
 //         if (resolved) return;
 //         resolved = true;
-// 
+//
 //         const newName = input.value.trim();
 //         cleanup();
-// 
+//
 //         if (save && newName && newName !== originalName) {
 //           const newPath = await this.performRename(path, newName);
 //           resolve(newPath ? { newPath } : null);
@@ -130,7 +130,7 @@ describe('FileActions', () => {
 //           resolve(null);
 //         }
 //       };
-// 
+//
 //       input.addEventListener('blur', () => {
 //         // Small delay to allow click events to fire first
 //         setTimeout(() => finishRename(true), 100);
@@ -146,7 +146,7 @@ describe('FileActions', () => {
 //       });
 //     });
 //   }
-// 
+//
 //   private async performRename(oldPath: string, newName: string): Promise<string | null> {
 //     try {
 //       const response = await fetch(`/${this.config.username}/${this.config.slug}/api/files/rename/`, {
@@ -157,7 +157,7 @@ describe('FileActions', () => {
 //         },
 //         body: JSON.stringify({ old_path: oldPath, new_name: newName }),
 //       });
-// 
+//
 //       const data = await response.json();
 //       if (data.success) {
 //         this.emitEvent('file-rename', { oldPath, newPath: data.new_path });
@@ -177,7 +177,7 @@ describe('FileActions', () => {
 //       return null;
 //     }
 //   }
-// 
+//
 //   async deleteFile(path: string): Promise<void> {
 //     // No confirmation - delete directly (files can be recovered via git)
 //     try {
@@ -189,7 +189,7 @@ describe('FileActions', () => {
 //         },
 //         body: JSON.stringify({ path }),
 //       });
-// 
+//
 //       const data = await response.json();
 //       if (data.success) {
 //         console.log('[FileActions] File deleted:', path);
@@ -209,20 +209,20 @@ describe('FileActions', () => {
 //       alert('Error deleting file. Please try again.');
 //     }
 //   }
-// 
+//
 //   async createNewFile(folderPath: string): Promise<void> {
 //     // Expand the folder first to show inline input (not needed for root)
 //     if (folderPath) {
 //       this.stateManager.expand(folderPath);
 //     }
 //     this.rerender();
-// 
+//
 //     // Wait for DOM update then insert inline input
 //     requestAnimationFrame(() => {
 //       this.insertInlineInput(folderPath, 'file');
 //     });
 //   }
-// 
+//
 //   private insertInlineInput(folderPath: string, type: 'file' | 'directory'): void {
 //     // Handle root (empty path) - insert after root item in .wft-tree
 //     if (folderPath === '') {
@@ -233,11 +233,11 @@ describe('FileActions', () => {
 //       }
 //       return;
 //     }
-// 
+//
 //     // Find the folder's children container
 //     const folderEl = document.querySelector(`.wft-folder[data-path="${folderPath}"]`);
 //     if (!folderEl) return;
-// 
+//
 //     const childrenContainer = folderEl.nextElementSibling as HTMLElement;
 //     if (!childrenContainer || !childrenContainer.classList.contains('wft-children')) {
 //       // Folder has no children container, create one
@@ -247,62 +247,62 @@ describe('FileActions', () => {
 //       this.createInlineInputElement(newContainer, folderPath, type);
 //       return;
 //     }
-// 
+//
 //     // Make sure children container is visible
 //     childrenContainer.style.display = '';
 //     childrenContainer.classList.add('expanded');
-// 
+//
 //     this.createInlineInputElement(childrenContainer, folderPath, type);
 //   }
-// 
+//
 //   /** Create inline input for root level (after root item) */
 //   private createInlineInputElementForRoot(treeEl: HTMLElement, rootItem: HTMLElement, type: 'file' | 'directory'): void {
 //     // Create inline input row
 //     const inputRow = document.createElement('div');
 //     inputRow.className = `wft-item wft-${type} wft-inline-create`;
 //     inputRow.style.paddingLeft = '8px';
-// 
+//
 //     const icon = type === 'file'
 //       ? '<i class="fas fa-file" style="color: var(--color-fg-muted);"></i>'
 //       : '<i class="fas fa-folder" style="color: var(--workspace-icon-primary);"></i>';
-// 
+//
 //     inputRow.innerHTML = `
 //       <span class="wft-spacer"></span>
 //       <span class="wft-icon">${icon}</span>
 //       <input type="text" class="wft-inline-input" placeholder="${type === 'file' ? 'filename.ext' : 'folder name'}" />
 //     `;
-// 
+//
 //     // Insert after root item
 //     rootItem.after(inputRow);
-// 
+//
 //     const input = inputRow.querySelector('.wft-inline-input') as HTMLInputElement;
 //     if (!input) return;
-// 
+//
 //     input.focus();
-// 
+//
 //     let submitted = false;
 //     const cleanup = () => {
 //       inputRow.remove();
 //     };
-// 
+//
 //     const submit = async () => {
 //       if (submitted) return;
 //       submitted = true;
-// 
+//
 //       const name = input.value.trim();
 //       if (!name) {
 //         cleanup();
 //         return;
 //       }
-// 
+//
 //       await this.performCreate('', name, type);  // Empty path = root
 //       cleanup();
 //     };
-// 
+//
 //     input.addEventListener('blur', () => {
 //       setTimeout(() => submit(), 100);
 //     });
-// 
+//
 //     input.addEventListener('keydown', (e) => {
 //       if (e.key === 'Enter') {
 //         e.preventDefault();
@@ -313,58 +313,58 @@ describe('FileActions', () => {
 //       }
 //     });
 //   }
-// 
+//
 //   private createInlineInputElement(container: HTMLElement, folderPath: string, type: 'file' | 'directory'): void {
 //     // Create inline input row - match sibling indentation
 //     const inputRow = document.createElement('div');
 //     inputRow.className = `wft-item wft-${type} wft-inline-create`;
-// 
+//
 //     // Match sibling padding - wft-children already provides the indentation via margin-left
 //     // so we just need the standard item padding
 //     inputRow.style.paddingLeft = '8px';
-// 
+//
 //     const icon = type === 'file'
 //       ? '<i class="fas fa-file" style="color: var(--color-fg-muted);"></i>'
 //       : '<i class="fas fa-folder" style="color: var(--workspace-icon-primary);"></i>';
-// 
+//
 //     inputRow.innerHTML = `
 //       <span class="wft-spacer"></span>
 //       <span class="wft-icon">${icon}</span>
 //       <input type="text" class="wft-inline-input" placeholder="${type === 'file' ? 'filename.ext' : 'folder name'}" />
 //     `;
-// 
+//
 //     // Insert at the beginning of children
 //     container.insertBefore(inputRow, container.firstChild);
-// 
+//
 //     const input = inputRow.querySelector('.wft-inline-input') as HTMLInputElement;
 //     if (!input) return;
-// 
+//
 //     input.focus();
-// 
+//
 //     let submitted = false;
 //     const cleanup = () => {
 //       inputRow.remove();
 //     };
-// 
+//
 //     const submit = async () => {
 //       if (submitted) return;
 //       submitted = true;
-// 
+//
 //       const name = input.value.trim();
 //       if (!name) {
 //         cleanup();
 //         return;
 //       }
-// 
+//
 //       await this.performCreate(folderPath, name, type);
 //       cleanup();
 //     };
-// 
+//
 //     input.addEventListener('blur', () => {
 //       // Small delay to allow click events to fire first
 //       setTimeout(() => submit(), 100);
 //     });
-// 
+//
 //     input.addEventListener('keydown', (e) => {
 //       if (e.key === 'Enter') {
 //         e.preventDefault();
@@ -375,21 +375,21 @@ describe('FileActions', () => {
 //       }
 //     });
 //   }
-// 
+//
 //   private async performCreate(folderPath: string, name: string, type: 'file' | 'directory'): Promise<void> {
 //     const url = `/${this.config.username}/${this.config.slug}/api/files/create/`;
 //     const csrfToken = this.getCsrfToken();
-// 
+//
 //     // Try to create, handling duplicates with suffix
 //     let finalName = name;
 //     let attempt = 0;
 //     const maxAttempts = 100;
-// 
+//
 //     while (attempt < maxAttempts) {
 //       const newPath = folderPath ? `${folderPath}/${finalName}` : finalName;
-// 
+//
 //       console.log(`[FileActions] Creating ${type} at:`, newPath, attempt > 0 ? `(attempt ${attempt + 1})` : '');
-// 
+//
 //       try {
 //         const response = await fetch(url, {
 //           method: 'POST',
@@ -399,7 +399,7 @@ describe('FileActions', () => {
 //           },
 //           body: JSON.stringify({ path: newPath, type: type === 'file' ? 'file' : 'directory' }),
 //         });
-// 
+//
 //         const data = await response.json();
 //         if (data.success) {
 //           console.log(`[FileActions] ${type} created:`, newPath);
@@ -428,10 +428,10 @@ describe('FileActions', () => {
 //         return;
 //       }
 //     }
-// 
+//
 //     alert(`Failed to create ${type}: too many files with similar names`);
 //   }
-// 
+//
 //   private getNameWithSuffix(name: string, suffix: number): string {
 //     // For files: test.txt -> test (1).txt, test (2).txt, etc.
 //     // For folders/no extension: folder -> folder (1), folder (2), etc.
@@ -443,24 +443,24 @@ describe('FileActions', () => {
 //     }
 //     return `${name} (${suffix})`;
 //   }
-// 
+//
 //   async createNewFolder(folderPath: string): Promise<void> {
 //     // Expand the folder first to show inline input (not needed for root)
 //     if (folderPath) {
 //       this.stateManager.expand(folderPath);
 //     }
 //     this.rerender();
-// 
+//
 //     // Wait for DOM update then insert inline input
 //     requestAnimationFrame(() => {
 //       this.insertInlineInput(folderPath, 'directory');
 //     });
 //   }
-// 
+//
 //   async copyFile(path: string): Promise<{ sourcePath: string; destPath: string } | null> {
 //     const item = this.findItem(path);
 //     if (!item) return null;
-// 
+//
 //     // Generate copy name: file.txt -> file_copy.txt or folder -> folder_copy
 //     const parts = item.name.split('.');
 //     let copyName: string;
@@ -470,18 +470,18 @@ describe('FileActions', () => {
 //     } else {
 //       copyName = `${item.name}_copy`;
 //     }
-// 
+//
 //     const newName = prompt('Enter name for copy:', copyName);
 //     if (!newName || !newName.trim()) {
 //       return null;
 //     }
-// 
+//
 //     // Get parent directory
 //     const pathParts = path.split('/');
 //     pathParts.pop();
 //     const parentPath = pathParts.join('/');
 //     const newPath = parentPath ? `${parentPath}/${newName.trim()}` : newName.trim();
-// 
+//
 //     try {
 //       const response = await fetch(`/${this.config.username}/${this.config.slug}/api/files/copy/`, {
 //         method: 'POST',
@@ -491,7 +491,7 @@ describe('FileActions', () => {
 //         },
 //         body: JSON.stringify({ source_path: path, dest_path: newPath }),
 //       });
-// 
+//
 //       const data = await response.json();
 //       if (data.success) {
 //         console.log('[FileActions] File copied:', path, '->', newPath);

@@ -35,11 +35,11 @@ describe('CsvEditor', () => {
 //  * - Basic statistics panel
 //  * - LaTeX table export
 //  */
-// 
-// import type { MediaEditorConfig } from './types.ts';
-// import { DataTableManager } from '../data-table/index.ts';
-// import type { Dataset, DataRow } from '../data-table/types.ts';
-// 
+//
+// import type { MediaEditorConfig } from './types';
+// import { DataTableManager } from '../data-table/index';
+// import type { Dataset, DataRow } from '../data-table/types';
+//
 // /** Plot configuration for vis_app integration */
 // interface PlotSpec {
 //   figure: {
@@ -56,7 +56,7 @@ describe('CsvEditor', () => {
 //     columns?: string[];
 //   };
 // }
-// 
+//
 // /** Statistics result for a column */
 // interface ColumnStats {
 //   column: string;
@@ -68,7 +68,7 @@ describe('CsvEditor', () => {
 //   median: number | null;
 //   sum: number | null;
 // }
-// 
+//
 // export class CsvEditor {
 //   private config: MediaEditorConfig;
 //   private dataTableManager: DataTableManager | null = null;
@@ -76,18 +76,18 @@ describe('CsvEditor', () => {
 //   private currentCsvContent: string | null = null;
 //   private wrapper: HTMLElement | null = null;
 //   private activePanel: 'table' | 'plot' | 'stats' | 'latex' = 'table';
-// 
+//
 //   constructor(config: MediaEditorConfig) {
 //     this.config = config;
 //   }
-// 
+//
 //   /**
 //    * Convert DataRow to an array of values in column order
 //    */
 //   private rowToArray(row: DataRow, columns: string[]): string[] {
 //     return columns.map(col => String(row[col] ?? ''));
 //   }
-// 
+//
 //   /**
 //    * Get cell value from DataRow as string
 //    */
@@ -95,29 +95,29 @@ describe('CsvEditor', () => {
 //     const colName = columns[colIdx];
 //     return colName ? String(row[colName] ?? '') : '';
 //   }
-// 
+//
 //   /**
 //    * Render a CSV/TSV file with editing capabilities
 //    */
 //   async render(container: HTMLElement, filePath: string): Promise<void> {
 //     this.currentFilePath = filePath;
-// 
+//
 //     const wrapper = document.createElement("div");
 //     wrapper.className = "media-viewer-csv-wrapper";
 //     this.wrapper = wrapper;
-// 
+//
 //     // Toolbar
 //     const toolbar = this.createToolbar(filePath);
 //     wrapper.appendChild(toolbar);
-// 
+//
 //     // Content area for panels
 //     const contentArea = document.createElement("div");
 //     contentArea.className = "csv-content-area";
-// 
+//
 //     // Table panel (default, visible)
 //     const tablePanel = document.createElement("div");
 //     tablePanel.className = "csv-panel csv-panel-table";
-// 
+//
 //     // Table container for DataTableManager
 //     const tableContainer = document.createElement("div");
 //     tableContainer.id = `csv-table-container-${Date.now()}`;
@@ -129,23 +129,23 @@ describe('CsvEditor', () => {
 //     `;
 //     tablePanel.appendChild(tableContainer);
 //     contentArea.appendChild(tablePanel);
-// 
+//
 //     wrapper.appendChild(contentArea);
 //     container.appendChild(wrapper);
-// 
+//
 //     // Load and initialize DataTableManager
 //     await this.loadCsv(filePath, tableContainer, wrapper);
 //   }
-// 
+//
 //   /**
 //    * Create toolbar for CSV editor with Plot, Stats, and LaTeX export
 //    */
 //   private createToolbar(filePath: string): HTMLElement {
 //     const toolbar = document.createElement("div");
 //     toolbar.className = "media-viewer-toolbar csv-editor-toolbar";
-// 
+//
 //     const fileName = filePath.split("/").pop() || filePath;
-// 
+//
 //     toolbar.innerHTML = `
 //       <div class="media-viewer-toolbar-left">
 //         <i class="fas fa-table media-viewer-icon"></i>
@@ -183,14 +183,14 @@ describe('CsvEditor', () => {
 //         </button>
 //       </div>
 //     `;
-// 
+//
 //     // Setup button handlers
 //     const downloadBtn = toolbar.querySelector(".media-download-btn");
 //     downloadBtn?.addEventListener("click", () => this.downloadFile(filePath));
-// 
+//
 //     const openNewTabBtn = toolbar.querySelector(".media-open-new-tab");
 //     openNewTabBtn?.addEventListener("click", () => this.openInNewTab(filePath));
-// 
+//
 //     // Setup panel tab handlers
 //     const panelTabs = toolbar.querySelectorAll(".csv-panel-tab");
 //     panelTabs.forEach(tab => {
@@ -202,24 +202,24 @@ describe('CsvEditor', () => {
 //         tab.classList.add("active");
 //       });
 //     });
-// 
+//
 //     return toolbar;
 //   }
-// 
+//
 //   /**
 //    * Switch between panels (table, plot, stats, latex)
 //    */
 //   private switchPanel(panel: 'table' | 'plot' | 'stats' | 'latex'): void {
 //     if (!this.wrapper) return;
-// 
+//
 //     this.activePanel = panel;
 //     const contentArea = this.wrapper.querySelector(".csv-content-area") as HTMLElement;
 //     if (!contentArea) return;
-// 
+//
 //     // Hide all panels
 //     const panels = contentArea.querySelectorAll(".csv-panel");
 //     panels.forEach(p => (p as HTMLElement).style.display = "none");
-// 
+//
 //     // Show the selected panel
 //     const selectedPanel = contentArea.querySelector(`.csv-panel-${panel}`) as HTMLElement;
 //     if (selectedPanel) {
@@ -229,14 +229,14 @@ describe('CsvEditor', () => {
 //       this.createPanel(panel, contentArea);
 //     }
 //   }
-// 
+//
 //   /**
 //    * Create a panel on first access
 //    */
 //   private createPanel(panel: 'table' | 'plot' | 'stats' | 'latex', contentArea: HTMLElement): void {
 //     const panelEl = document.createElement("div");
 //     panelEl.className = `csv-panel csv-panel-${panel}`;
-// 
+//
 //     switch (panel) {
 //       case 'plot':
 //         this.renderPlotPanel(panelEl);
@@ -250,10 +250,10 @@ describe('CsvEditor', () => {
 //       default:
 //         return; // Table panel is already created
 //     }
-// 
+//
 //     contentArea.appendChild(panelEl);
 //   }
-// 
+//
 //   /**
 //    * Load and initialize DataTableManager with CSV content
 //    */
@@ -262,38 +262,38 @@ describe('CsvEditor', () => {
 //       const url = this.config.getFileUrl(filePath, false, false);
 //       const response = await fetch(url);
 //       if (!response.ok) throw new Error("Failed to fetch CSV");
-// 
+//
 //       const data = await response.json();
 //       const content = data.content || "";
-// 
+//
 //       // Store raw content for reload
 //       this.currentCsvContent = content;
 //       (tableContainer as any).__rawContent = content;
-// 
+//
 //       // Initialize DataTableManager with status bar callback
 //       const statusCallback = (msg: string) => {
 //         const infoEl = wrapper.querySelector(".csv-info");
 //         if (infoEl) infoEl.textContent = msg;
 //       };
-// 
+//
 //       this.dataTableManager = new DataTableManager(statusCallback);
-// 
+//
 //       // Load CSV content into blank table (Excel-like behavior)
 //       this.dataTableManager.loadFromCSVContent(content, filePath);
 //       this.dataTableManager.renderEditableDataTable();
 //       this.dataTableManager.setupColumnResizing();
 //       this.dataTableManager.setupVirtualScrolling();
-// 
+//
 //       // Update info
 //       const currentData = this.dataTableManager.getCurrentData();
 //       const infoEl = wrapper.querySelector(".csv-info");
 //       if (infoEl && currentData) {
 //         infoEl.textContent = `${currentData.rows.length} rows × ${currentData.columns.length} columns`;
 //       }
-// 
+//
 //       // Setup right-click context menu for header/index operations
 //       this.setupContextMenu(tableContainer);
-// 
+//
 //       // Setup toggle raw view button
 //       const toggleRawBtn = wrapper.querySelector(".csv-toggle-raw");
 //       let showingRaw = false;
@@ -311,13 +311,13 @@ describe('CsvEditor', () => {
 //           toggleRawBtn.innerHTML = '<i class="fas fa-code"></i>';
 //         }
 //       });
-// 
+//
 //       // Setup save button
 //       const saveBtn = wrapper.querySelector(".csv-save-btn");
 //       saveBtn?.addEventListener("click", async () => {
 //         await this.saveFile();
 //       });
-// 
+//
 //     } catch (error) {
 //       console.error("[CsvEditor] Error loading CSV:", error);
 //       tableContainer.innerHTML = `
@@ -329,7 +329,7 @@ describe('CsvEditor', () => {
 //       `;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Setup right-click context menu for header/index operations
 //    */
@@ -354,44 +354,44 @@ describe('CsvEditor', () => {
 //       </div>
 //     `;
 //     document.body.appendChild(contextMenu);
-// 
+//
 //     // Show context menu on right-click
 //     tableContainer.addEventListener('contextmenu', (e) => {
 //       e.preventDefault();
-// 
+//
 //       // Use clientX/clientY for fixed positioning
 //       let x = e.clientX;
 //       let y = e.clientY;
-// 
+//
 //       // Show menu first to get its dimensions
 //       contextMenu.style.display = 'block';
-// 
+//
 //       // Adjust position if menu would go off-screen
 //       const menuRect = contextMenu.getBoundingClientRect();
 //       const viewportWidth = window.innerWidth;
 //       const viewportHeight = window.innerHeight;
-// 
+//
 //       if (x + menuRect.width > viewportWidth) {
 //         x = viewportWidth - menuRect.width - 10;
 //       }
 //       if (y + menuRect.height > viewportHeight) {
 //         y = viewportHeight - menuRect.height - 10;
 //       }
-// 
+//
 //       contextMenu.style.left = `${x}px`;
 //       contextMenu.style.top = `${y}px`;
 //     });
-// 
+//
 //     // Hide context menu on click elsewhere
 //     document.addEventListener('click', () => {
 //       contextMenu.style.display = 'none';
 //     });
-// 
+//
 //     // Handle menu item clicks
 //     contextMenu.addEventListener('click', (e) => {
 //       const item = (e.target as HTMLElement).closest('.csv-context-menu-item');
 //       if (!item || !this.dataTableManager) return;
-// 
+//
 //       const action = item.getAttribute('data-action');
 //       switch (action) {
 //         case 'use-header':
@@ -414,17 +414,17 @@ describe('CsvEditor', () => {
 //       contextMenu.style.display = 'none';
 //     });
 //   }
-// 
+//
 //   /**
 //    * Save the current CSV content
 //    */
 //   async saveFile(): Promise<boolean> {
 //     if (!this.dataTableManager || !this.currentFilePath) return false;
-// 
+//
 //     try {
 //       const csvContent = this.dataTableManager.exportToCSV();
 //       const url = this.config.getFileUrl(this.currentFilePath, false, false);
-// 
+//
 //       const response = await fetch(url, {
 //         method: "PUT",
 //         headers: {
@@ -433,9 +433,9 @@ describe('CsvEditor', () => {
 //         },
 //         body: JSON.stringify({ content: csvContent }),
 //       });
-// 
+//
 //       if (!response.ok) throw new Error("Failed to save CSV");
-// 
+//
 //       console.log("[CsvEditor] CSV saved successfully");
 //       return true;
 //     } catch (error) {
@@ -444,7 +444,7 @@ describe('CsvEditor', () => {
 //       return false;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Get CSRF token from cookies
 //    */
@@ -457,7 +457,7 @@ describe('CsvEditor', () => {
 //     }
 //     return "";
 //   }
-// 
+//
 //   /**
 //    * Escape HTML special characters
 //    */
@@ -466,7 +466,7 @@ describe('CsvEditor', () => {
 //     div.textContent = text;
 //     return div.innerHTML;
 //   }
-// 
+//
 //   /**
 //    * Download the file
 //    */
@@ -480,7 +480,7 @@ describe('CsvEditor', () => {
 //     document.body.removeChild(a);
 //     this.config.onDownload?.(filePath);
 //   }
-// 
+//
 //   /**
 //    * Open file in new tab
 //    */
@@ -488,14 +488,14 @@ describe('CsvEditor', () => {
 //     const url = this.config.getFileUrl(filePath, false, false);
 //     window.open(url, "_blank");
 //   }
-// 
+//
 //   /**
 //    * Get the DataTableManager instance
 //    */
 //   getDataTableManager(): DataTableManager | null {
 //     return this.dataTableManager;
 //   }
-// 
+//
 //   /**
 //    * Cleanup resources
 //    */
@@ -504,18 +504,18 @@ describe('CsvEditor', () => {
 //     this.currentFilePath = null;
 //     this.wrapper = null;
 //   }
-// 
+//
 //   // ========================================
 //   // Plot Panel
 //   // ========================================
-// 
+//
 //   /**
 //    * Render the plot configuration panel
 //    */
 //   private renderPlotPanel(panel: HTMLElement): void {
 //     const data = this.dataTableManager?.getCurrentData();
 //     const columns = data?.columns || [];
-// 
+//
 //     panel.innerHTML = `
 //       <div class="csv-plot-panel">
 //         <div class="csv-plot-config">
@@ -562,40 +562,40 @@ describe('CsvEditor', () => {
 //         </div>
 //       </div>
 //     `;
-// 
+//
 //     // Setup generate button
 //     const generateBtn = panel.querySelector(".plot-generate-btn");
 //     generateBtn?.addEventListener("click", () => this.generatePlot(panel));
 //   }
-// 
+//
 //   /**
 //    * Generate plot using vis_app API
 //    */
 //   private async generatePlot(panel: HTMLElement): Promise<void> {
 //     const data = this.dataTableManager?.getCurrentData();
 //     if (!data) return;
-// 
+//
 //     const plotType = (panel.querySelector(".plot-type-select") as HTMLSelectElement)?.value || 'line';
 //     const xCol = (panel.querySelector(".plot-x-select") as HTMLSelectElement)?.value;
 //     const yCol = (panel.querySelector(".plot-y-select") as HTMLSelectElement)?.value;
 //     const hueCol = (panel.querySelector(".plot-hue-select") as HTMLSelectElement)?.value;
-// 
+//
 //     const previewArea = panel.querySelector(".csv-plot-preview");
 //     if (!previewArea) return;
-// 
+//
 //     previewArea.innerHTML = `
 //       <div class="plot-loading">
 //         <i class="fas fa-spinner fa-spin"></i> Generating plot...
 //       </div>
 //     `;
-// 
+//
 //     try {
 //       // Prepare plot specification
 //       // Convert DataRow objects to 2D numeric array
 //       const numericData = data.rows.map(row =>
 //         data.columns.map(col => parseFloat(String(row[col])) || 0)
 //       );
-// 
+//
 //       const plotSpec: PlotSpec = {
 //         figure: {
 //           width_mm: 120,
@@ -611,7 +611,7 @@ describe('CsvEditor', () => {
 //           columns: data.columns
 //         }
 //       };
-// 
+//
 //       // Call vis_app API
 //       const response = await fetch('/api/vis/plot/', {
 //         method: 'POST',
@@ -621,12 +621,12 @@ describe('CsvEditor', () => {
 //         },
 //         body: JSON.stringify(plotSpec)
 //       });
-// 
+//
 //       if (!response.ok) {
 //         const error = await response.json();
 //         throw new Error(error.error || 'Plot generation failed');
 //       }
-// 
+//
 //       // Display SVG
 //       const svgContent = await response.text();
 //       previewArea.innerHTML = `
@@ -642,7 +642,7 @@ describe('CsvEditor', () => {
 //           </div>
 //         </div>
 //       `;
-// 
+//
 //       // Setup download button
 //       const downloadBtn = previewArea.querySelector(".plot-download-svg");
 //       downloadBtn?.addEventListener("click", () => {
@@ -654,7 +654,7 @@ describe('CsvEditor', () => {
 //         a.click();
 //         URL.revokeObjectURL(url);
 //       });
-// 
+//
 //     } catch (error) {
 //       console.error("[CsvEditor] Plot generation error:", error);
 //       previewArea.innerHTML = `
@@ -666,11 +666,11 @@ describe('CsvEditor', () => {
 //       `;
 //     }
 //   }
-// 
+//
 //   // ========================================
 //   // Statistics Panel
 //   // ========================================
-// 
+//
 //   /**
 //    * Render the statistics panel
 //    */
@@ -685,25 +685,25 @@ describe('CsvEditor', () => {
 //       `;
 //       return;
 //     }
-// 
+//
 //     // Calculate statistics for each numeric column
 //     const stats: ColumnStats[] = [];
 //     for (let colIdx = 0; colIdx < data.columns.length; colIdx++) {
 //       const colName = data.columns[colIdx];
 //       const values: number[] = [];
-// 
+//
 //       for (const row of data.rows) {
 //         const val = parseFloat(String(row[colName]));
 //         if (!isNaN(val)) {
 //           values.push(val);
 //         }
 //       }
-// 
+//
 //       if (values.length > 0) {
 //         stats.push(this.calculateColumnStats(colName, values));
 //       }
 //     }
-// 
+//
 //     panel.innerHTML = `
 //       <div class="csv-stats-panel">
 //         <h4><i class="fas fa-calculator"></i> Descriptive Statistics</h4>
@@ -749,7 +749,7 @@ describe('CsvEditor', () => {
 //         </div>
 //       </div>
 //     `;
-// 
+//
 //     // Setup copy button
 //     const copyBtn = panel.querySelector(".stats-copy-btn");
 //     copyBtn?.addEventListener("click", () => {
@@ -760,7 +760,7 @@ describe('CsvEditor', () => {
 //       alert('Statistics copied to clipboard');
 //     });
 //   }
-// 
+//
 //   /**
 //    * Calculate statistics for a column of numeric values
 //    */
@@ -776,14 +776,14 @@ describe('CsvEditor', () => {
 //     const median = count % 2 === 0
 //       ? (sorted[count / 2 - 1] + sorted[count / 2]) / 2
 //       : sorted[Math.floor(count / 2)];
-// 
+//
 //     return { column, count, mean, std, min, max, median, sum };
 //   }
-// 
+//
 //   // ========================================
 //   // LaTeX Export Panel
 //   // ========================================
-// 
+//
 //   /**
 //    * Render the LaTeX export panel
 //    */
@@ -798,9 +798,9 @@ describe('CsvEditor', () => {
 //       `;
 //       return;
 //     }
-// 
+//
 //     const latex = this.generateLatexTable(data.columns, data.rows);
-// 
+//
 //     panel.innerHTML = `
 //       <div class="csv-latex-panel">
 //         <h4><i class="fas fa-file-code"></i> LaTeX Table Export</h4>
@@ -831,7 +831,7 @@ describe('CsvEditor', () => {
 //         </div>
 //       </div>
 //     `;
-// 
+//
 //     const updatePreview = () => {
 //       const booktabs = (panel.querySelector(".latex-opt-booktabs") as HTMLInputElement)?.checked;
 //       const caption = (panel.querySelector(".latex-opt-caption") as HTMLInputElement)?.checked;
@@ -841,12 +841,12 @@ describe('CsvEditor', () => {
 //         preview.value = this.generateLatexTable(data.columns, data.rows, { booktabs, caption, label });
 //       }
 //     };
-// 
+//
 //     // Update preview on option change
 //     panel.querySelectorAll("input[type=checkbox]").forEach(cb => {
 //       cb.addEventListener("change", updatePreview);
 //     });
-// 
+//
 //     // Setup copy button
 //     const copyBtn = panel.querySelector(".latex-copy-btn");
 //     copyBtn?.addEventListener("click", () => {
@@ -856,7 +856,7 @@ describe('CsvEditor', () => {
 //         alert('LaTeX table copied to clipboard');
 //       }
 //     });
-// 
+//
 //     // Setup download button
 //     const downloadBtn = panel.querySelector(".latex-download-btn");
 //     downloadBtn?.addEventListener("click", () => {
@@ -873,7 +873,7 @@ describe('CsvEditor', () => {
 //       }
 //     });
 //   }
-// 
+//
 //   /**
 //    * Generate LaTeX table code from data
 //    */
@@ -883,17 +883,17 @@ describe('CsvEditor', () => {
 //     options: { booktabs?: boolean; caption?: boolean; label?: boolean } = {}
 //   ): string {
 //     const { booktabs = true, caption = false, label = false } = options;
-// 
+//
 //     const colSpec = columns.map(() => 'c').join(' ');
 //     const headerRow = columns.map(c => this.escapeLatex(c)).join(' & ');
 //     const dataRows = rows.slice(0, 100).map(row =>
 //       columns.map(col => this.escapeLatex(String(row[col] ?? ''))).join(' & ')
 //     );
-// 
+//
 //     let latex = '';
 //     latex += '\\begin{table}[htbp]\n';
 //     latex += '  \\centering\n';
-// 
+//
 //     if (caption) {
 //       latex += '  \\caption{Table Caption Here}\n';
 //     }
@@ -901,9 +901,9 @@ describe('CsvEditor', () => {
 //       const baseName = this.currentFilePath?.split('/').pop()?.replace(/\.[^.]+$/, '') || 'table';
 //       latex += `  \\label{tab:${baseName}}\n`;
 //     }
-// 
+//
 //     latex += `  \\begin{tabular}{${colSpec}}\n`;
-// 
+//
 //     if (booktabs) {
 //       latex += '    \\toprule\n';
 //       latex += `    ${headerRow} \\\\\n`;
@@ -913,27 +913,27 @@ describe('CsvEditor', () => {
 //       latex += `    ${headerRow} \\\\\n`;
 //       latex += '    \\hline\n';
 //     }
-// 
+//
 //     for (const row of dataRows) {
 //       latex += `    ${row} \\\\\n`;
 //     }
-// 
+//
 //     if (booktabs) {
 //       latex += '    \\bottomrule\n';
 //     } else {
 //       latex += '    \\hline\n';
 //     }
-// 
+//
 //     latex += '  \\end{tabular}\n';
 //     latex += '\\end{table}\n';
-// 
+//
 //     if (rows.length > 100) {
 //       latex += `\n% Note: Table truncated to first 100 rows (original: ${rows.length} rows)\n`;
 //     }
-// 
+//
 //     return latex;
 //   }
-// 
+//
 //   /**
 //    * Escape special LaTeX characters
 //    */

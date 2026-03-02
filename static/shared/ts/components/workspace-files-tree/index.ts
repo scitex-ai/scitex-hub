@@ -20,15 +20,15 @@
  * ```
  */
 
-export { WorkspaceFilesTree } from './WorkspaceFilesTree.ts';
-export { TreeStateManager } from './TreeState.ts';
-export { TreeFilter } from './TreeFilter.ts';
-export { TreeRenderer } from './TreeRenderer.ts';
+export { WorkspaceFilesTree } from './WorkspaceFilesTree';
+export { TreeStateManager } from './_TreeState';
+export { TreeFilter } from './_TreeFilter';
+export { TreeRenderer } from './_TreeRenderer';
 export type {
   TreeItem,
   TreeConfig,
   TreeState,
   FilterConfig,
   WorkspaceMode,
-} from './types.ts';
-export { MODE_FILTERS } from './types.ts';
+} from './types';
+export { MODE_FILTERS } from './types';

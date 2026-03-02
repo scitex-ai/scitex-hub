@@ -14,10 +14,10 @@
  * ```
  */
 
-import { RepoMonitorClient } from "./RepoMonitorClient.ts";
-import { RepoMonitorFeed } from "./RepoMonitorFeed.ts";
-import { RepoMonitorFilter } from "./RepoMonitorFilter.ts";
-import type { MonitorConfig } from "./types.ts";
+import { RepoMonitorClient } from "./_RepoMonitorClient";
+import { RepoMonitorFeed } from "./_RepoMonitorFeed";
+import { RepoMonitorFilter } from "./_RepoMonitorFilter";
+import type { MonitorConfig } from "./types";
 
 const STORAGE_KEY = "repo-monitor-collapsed";
 let toggleInitialized = false;
@@ -97,7 +97,7 @@ export function initRepoMonitor(config: MonitorConfig): void {
 }
 
 // Named re-exports for consumers that need individual classes
-export { RepoMonitorClient } from "./RepoMonitorClient.ts";
-export { RepoMonitorFeed } from "./RepoMonitorFeed.ts";
-export { RepoMonitorFilter } from "./RepoMonitorFilter.ts";
-export type { FsEvent, FilterConfig, MonitorConfig } from "./types.ts";
+export { RepoMonitorClient } from "./_RepoMonitorClient";
+export { RepoMonitorFeed } from "./_RepoMonitorFeed";
+export { RepoMonitorFilter } from "./_RepoMonitorFilter";
+export type { FsEvent, FilterConfig, MonitorConfig } from "./types";

@@ -6,8 +6,8 @@
  * @author SciTeX Development Team
  */
 
-import { TextOperation } from './ot/operations.ts';
-import { OTClient } from './ot/client.ts';
+import { TextOperation } from './_ot/operations';
+import { OTClient } from './_ot/client';
 
 console.log("[DEBUG] WebSocket Collaboration Client loaded");
 
@@ -94,7 +94,7 @@ export class WebSocketCollaborationClient {
     }
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws/writer/manuscript/${this.manuscriptId}/`;
+    const wsUrl = `${protocol}//${window.location.host}/ws/_writer/manuscript/${this.manuscriptId}/`;
 
     console.log(`[WS] Connecting to ${wsUrl}`);
     this.isIntentionalClose = false;

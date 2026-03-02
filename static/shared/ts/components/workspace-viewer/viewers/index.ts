@@ -1,7 +1,7 @@
-export { ImageViewer } from "./ImageViewer.ts";
-export { PdfViewer } from "./PdfViewer.ts";
-export { CsvViewer } from "./CsvViewer.ts";
-export { MermaidViewer } from "./MermaidViewer.ts";
-export { AudioViewer } from "./AudioViewer.ts";
-export { VideoViewer } from "./VideoViewer.ts";
-export { GraphvizViewer } from "./GraphvizViewer.ts";
+export { ImageViewer } from "./ImageViewer";
+export { PdfViewer } from "./PdfViewer";
+export { CsvViewer } from "./CsvViewer";
+export { MermaidViewer } from "./MermaidViewer";
+export { AudioViewer } from "./AudioViewer";
+export { VideoViewer } from "./VideoViewer";
+export { GraphvizViewer } from "./GraphvizViewer";

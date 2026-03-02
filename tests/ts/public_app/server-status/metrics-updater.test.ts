@@ -31,9 +31,9 @@ describe('metrics-updater', () => {
 //  *
 //  * Charts are pre-rendered by backend - this only updates the numeric values.
 //  */
-// 
-// import type { ServerMetrics } from './types.ts';
-// 
+//
+// import type { ServerMetrics } from './types';
+//
 // // State for rate calculations
 // let lastDiskRead: number | null = null;
 // let lastDiskWrite: number | null = null;
@@ -41,7 +41,7 @@ describe('metrics-updater', () => {
 // let lastNetRecv: number | null = null;
 // let lastTimestamp: number | null = null;
 // let gpuAvailable: boolean | null = null;
-// 
+//
 // /**
 //  * Update all metric current values from API
 //  */
@@ -50,7 +50,7 @@ describe('metrics-updater', () => {
 //     const response = await fetch('/api/server-status/');
 //     const data: ServerMetrics = await response.json();
 //     const timestamp = data.timestamp;
-// 
+//
 //     // Update CPU
 //     const cpuEl = document.getElementById('cpuCurrentValue');
 //     if (cpuEl) {
@@ -59,7 +59,7 @@ describe('metrics-updater', () => {
 //         ? cpuValue.toFixed(1) + '%'
 //         : 'N/A';
 //     }
-// 
+//
 //     // Update Memory
 //     const memoryEl = document.getElementById('memoryCurrentValue');
 //     if (memoryEl) {
@@ -68,7 +68,7 @@ describe('metrics-updater', () => {
 //         ? memoryValue.toFixed(1) + '%'
 //         : 'N/A';
 //     }
-// 
+//
 //     // Update Disk
 //     const diskEl = document.getElementById('diskCurrentValue');
 //     if (diskEl) {
@@ -77,7 +77,7 @@ describe('metrics-updater', () => {
 //         ? diskValue.toFixed(1) + '%'
 //         : 'N/A';
 //     }
-// 
+//
 //     // Update GPU
 //     const gpuEl = document.getElementById('gpuCurrentValue');
 //     const gpuStatusEl = document.getElementById('gpuStatus');
@@ -97,7 +97,7 @@ describe('metrics-updater', () => {
 //         }
 //       }
 //     }
-// 
+//
 //     // Calculate and update Disk I/O rate
 //     const diskIoEl = document.getElementById('diskIoCurrentValue');
 //     if (diskIoEl && lastDiskRead !== null && lastTimestamp !== null) {
@@ -109,7 +109,7 @@ describe('metrics-updater', () => {
 //         diskIoEl.textContent = totalIoRate.toFixed(2) + ' MB/s';
 //       }
 //     }
-// 
+//
 //     // Calculate and update Network I/O rate
 //     const netIoEl = document.getElementById('netIoCurrentValue');
 //     if (netIoEl && lastNetSent !== null && lastTimestamp !== null) {
@@ -121,7 +121,7 @@ describe('metrics-updater', () => {
 //         netIoEl.textContent = totalNetRate.toFixed(2) + ' MB/s';
 //       }
 //     }
-// 
+//
 //     // Update Visitor Pool
 //     const visitorPoolEl = document.getElementById('visitorPoolCurrentValue');
 //     if (visitorPoolEl) {
@@ -131,7 +131,7 @@ describe('metrics-updater', () => {
 //         visitorPoolEl.textContent = 'N/A';
 //       }
 //     }
-// 
+//
 //     // Update Active Users
 //     const activeUsersEl = document.getElementById('activeUsersCurrentValue');
 //     if (activeUsersEl) {
@@ -141,14 +141,14 @@ describe('metrics-updater', () => {
 //         activeUsersEl.textContent = 'N/A';
 //       }
 //     }
-// 
+//
 //     // Store values for next rate calculation
 //     lastDiskRead = data.disk_read_mb_total;
 //     lastDiskWrite = data.disk_write_mb_total;
 //     lastNetSent = data.net_sent_mb_total;
 //     lastNetRecv = data.net_recv_mb_total;
 //     lastTimestamp = timestamp;
-// 
+//
 //   } catch (error) {
 //     console.error('[metrics-updater] Error fetching metrics:', error);
 //   }

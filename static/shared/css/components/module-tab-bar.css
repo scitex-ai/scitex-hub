@@ -44,8 +44,8 @@
   color: var(--workspace-text-primary, #e6edf3);
 }
 
-/* Active tab right-side accent — uses --module-accent-color from workspace-sidebar.css
-   (single source of truth for all accent highlighting: tab bar, pane headers, pane top border) */
+/* Active tab right-side accent — shared indicator dimensions:
+   4px wide, 20% inset, 2px inner radius (matches selector-nav.css) */
 .module-tab-btn.active::after {
   content: "";
   position: absolute;
@@ -53,7 +53,7 @@
   top: 20%;
   bottom: 20%;
   width: 4px;
-  border-radius: 1px;
+  border-radius: 2px 0 0 2px;
   background: var(--module-accent-color, var(--accent-blue, #388bfd));
 }
 

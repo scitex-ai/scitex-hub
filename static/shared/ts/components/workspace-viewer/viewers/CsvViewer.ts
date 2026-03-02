@@ -3,9 +3,9 @@
  * Supports table view (with selection, copy/paste, column resize) and raw text toggle.
  */
 
-import type { Viewer } from "../types.ts";
-import { getFileUrl } from "../file-loader.ts";
-import { DataTableManager } from "../../data-table/DataTableManager.ts";
+import type { Viewer } from "../types";
+import { getFileUrl } from "../_file-loader";
+import { DataTableManager } from "../../data-table/DataTableManager";
 
 export class CsvViewer implements Viewer {
   private abortController: AbortController | null = null;

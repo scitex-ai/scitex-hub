@@ -181,6 +181,7 @@
   box-sizing: border-box;
   background: var(--vis-bg-secondary);
   border-bottom: 1px solid var(--vis-border);
+  position: relative;
 }
 
 /* Dark mode: consistent header background */

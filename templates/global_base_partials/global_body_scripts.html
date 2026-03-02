@@ -233,7 +233,11 @@
 {% vite_script 'shared/workspace-viewer-init' %}
 <!-- Global AI Chat floating panel -->
 {% vite_script 'shared/workspace-panel-resizer' %}
+<!-- Unified resizer system (horizontal + vertical data-attribute resizers) -->
+{% vite_script 'shared/resizer' %}
 {% vite_script 'shared/global-ai-chat' %}
+<!-- App Navigation History (unified back/forward via browser history API) -->
+{% vite_script 'shared/app-navigation-history' %}
 <!-- Module Tab Switcher (AJAX tab switching for three-col workspace layout) -->
 {% vite_script 'shared/module-tab-switcher' %}
 <!-- Module Reorder (drag-drop ordering, persists to backend, syncs tab bar + apps) -->

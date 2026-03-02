@@ -216,11 +216,6 @@ if settings.DEBUG:
             path("__reload__/", include("django_browser_reload.urls")),
         ]
 
-# Explicit /files/ prefix for development clarity (redundant with /<username>/)
-urlpatterns += [
-    path("files/<str:username>/", include(("apps.project_app.urls", "user_projects"))),
-]
-
 # GitHub-style username/project URLs (MUST be last to avoid conflicts)
 urlpatterns += [
     path("<str:username>/", include(("apps.project_app.urls", "user_projects"))),

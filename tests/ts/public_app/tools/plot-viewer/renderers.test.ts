@@ -26,19 +26,19 @@ describe('renderers', () => {
 // =============================================================================
 
 // // Plot Rendering Logic
-// 
-// import { PlotData, Plot, PlotSettings, PlotArea, Scale, NATURE_COLORS } from './types.ts';
-// import { generateNiceTicks, formatNumber } from './utils.ts';
-// import { drawLine, drawScatter, drawBar } from './plot-drawers.ts';
-// 
+//
+// import { PlotData, Plot, PlotSettings, PlotArea, Scale, NATURE_COLORS } from './types';
+// import { generateNiceTicks, formatNumber } from './utils';
+// import { drawLine, drawScatter, drawBar } from './plot-drawers';
+//
 // const DPI = 300;
 // const MM_TO_PX = DPI / 25.4;
-// 
+//
 // export class PlotRenderer {
 //     private canvas: HTMLCanvasElement;
 //     private ctx: CanvasRenderingContext2D;
 //     private settings: PlotSettings;
-// 
+//
 //     constructor(canvas: HTMLCanvasElement, settings: PlotSettings) {
 //         this.canvas = canvas;
 //         const ctx = canvas.getContext('2d');
@@ -48,43 +48,43 @@ describe('renderers', () => {
 //         this.ctx = ctx;
 //         this.settings = settings;
 //     }
-// 
+//
 //     render(data: PlotData, plots: Plot[]): void {
 //         this.setupCanvas();
 //         const plotArea = this.calculatePlotArea();
 //         const { xScale, yScale } = this.calculateScales(data, plots);
-// 
+//
 //         this.drawAxes(plotArea);
 //         this.drawTicks(plotArea, xScale, yScale);
 //         this.drawPlots(data, plots, plotArea, xScale, yScale);
 //         this.drawLabels(plotArea);
 //         this.updateSizeIndicator();
 //     }
-// 
+//
 //     private setupCanvas(): void {
 //         const canvasWidth = this.mm(this.settings.figureWidth);
 //         const canvasHeight = this.mm(this.settings.figureHeight);
 //         this.canvas.width = canvasWidth;
 //         this.canvas.height = canvasHeight;
-// 
+//
 //         this.ctx.imageSmoothingEnabled = true;
 //         this.ctx.imageSmoothingQuality = 'high';
-// 
+//
 //         this.ctx.fillStyle = '#ffffff';
 //         this.ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 //     }
-// 
+//
 //     private calculatePlotArea(): PlotArea {
 //         const canvasWidth = this.mm(this.settings.figureWidth);
 //         const canvasHeight = this.mm(this.settings.figureHeight);
-// 
+//
 //         const margin = {
 //             left: this.mm(8),
 //             right: this.mm(2),
 //             top: this.mm(3),
 //             bottom: this.mm(6)
 //         };
-// 
+//
 //         return {
 //             x: margin.left,
 //             y: margin.top,
@@ -92,26 +92,26 @@ describe('renderers', () => {
 //             height: canvasHeight - margin.top - margin.bottom
 //         };
 //     }
-// 
+//
 //     private calculateScales(data: PlotData, plots: Plot[]): { xScale: Scale; yScale: Scale } {
 //         let allX: number[] = [];
 //         let allY: number[] = [];
-// 
+//
 //         plots.forEach(plot => {
 //             const xData = data[plot.xColumn].filter(v => v !== null) as number[];
 //             const yData = data[plot.yColumn].filter(v => v !== null) as number[];
 //             allX = allX.concat(xData);
 //             allY = allY.concat(yData);
 //         });
-// 
+//
 //         const xMin = Math.min(...allX);
 //         const xMax = Math.max(...allX);
 //         const yMin = Math.min(...allY);
 //         const yMax = Math.max(...allY);
-// 
+//
 //         const xRange = xMax - xMin;
 //         const yRange = yMax - yMin;
-// 
+//
 //         return {
 //             xScale: {
 //                 min: xMin - xRange * 0.05,
@@ -123,27 +123,27 @@ describe('renderers', () => {
 //             }
 //         };
 //     }
-// 
+//
 //     private drawAxes(plotArea: PlotArea): void {
 //         this.ctx.strokeStyle = '#000000';
 //         this.ctx.lineWidth = this.mm(this.settings.axisWidth);
 //         this.ctx.beginPath();
-// 
+//
 //         // X-axis
 //         this.ctx.moveTo(plotArea.x, plotArea.y + plotArea.height);
 //         this.ctx.lineTo(plotArea.x + plotArea.width, plotArea.y + plotArea.height);
-// 
+//
 //         // Y-axis
 //         this.ctx.moveTo(plotArea.x, plotArea.y);
 //         this.ctx.lineTo(plotArea.x, plotArea.y + plotArea.height);
-// 
+//
 //         this.ctx.stroke();
 //     }
-// 
+//
 //     private drawTicks(plotArea: PlotArea, xScale: Scale, yScale: Scale): void {
 //         this.ctx.font = `${this.settings.tickFontSize}pt Arial`;
 //         this.ctx.fillStyle = '#000000';
-// 
+//
 //         // X-axis ticks
 //         this.ctx.textAlign = 'center';
 //         this.ctx.textBaseline = 'top';
@@ -161,7 +161,7 @@ describe('renderers', () => {
 //                 plotArea.y + plotArea.height + this.mm(this.settings.tickLength) + this.mm(1)
 //             );
 //         });
-// 
+//
 //         // Y-axis ticks
 //         this.ctx.textAlign = 'right';
 //         this.ctx.textBaseline = 'middle';
@@ -180,7 +180,7 @@ describe('renderers', () => {
 //             );
 //         });
 //     }
-// 
+//
 //     private drawPlots(
 //         data: PlotData,
 //         plots: Plot[],
@@ -193,7 +193,7 @@ describe('renderers', () => {
 //             const yData = data[plot.yColumn];
 //             const color = NATURE_COLORS[idx % NATURE_COLORS.length];
 //             const colorStr = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-// 
+//
 //             if (plot.type === 'line') {
 //                 drawLine(this.ctx, xData, yData, colorStr, plotArea, xScale, yScale, this.settings);
 //             } else if (plot.type === 'scatter') {
@@ -203,18 +203,18 @@ describe('renderers', () => {
 //             }
 //         });
 //     }
-// 
+//
 //     private drawLabels(plotArea: PlotArea): void {
 //         const canvasWidth = this.mm(this.settings.figureWidth);
 //         const canvasHeight = this.mm(this.settings.figureHeight);
-// 
+//
 //         // Title
 //         this.ctx.font = `${this.settings.titleFontSize}pt Arial`;
 //         this.ctx.textAlign = 'center';
 //         this.ctx.textBaseline = 'top';
 //         this.ctx.fillStyle = '#000000';
 //         this.ctx.fillText('SciTeX Plot', canvasWidth / 2, this.mm(0.5));
-// 
+//
 //         // X-axis label
 //         this.ctx.font = `${this.settings.axisFontSize}pt Arial`;
 //         this.ctx.textAlign = 'center';
@@ -224,7 +224,7 @@ describe('renderers', () => {
 //             plotArea.x + plotArea.width / 2,
 //             canvasHeight - this.mm(1.5)
 //         );
-// 
+//
 //         // Y-axis label (rotated)
 //         this.ctx.save();
 //         this.ctx.translate(this.mm(1.5), plotArea.y + plotArea.height / 2);
@@ -234,7 +234,7 @@ describe('renderers', () => {
 //         this.ctx.fillText(this.settings.yLabel, 0, 0);
 //         this.ctx.restore();
 //     }
-// 
+//
 //     private updateSizeIndicator(): void {
 //         const sizeIndicator = document.querySelector('.size-indicator');
 //         if (sizeIndicator) {
@@ -242,15 +242,15 @@ describe('renderers', () => {
 //                 `Figure size: ${this.settings.figureWidth.toFixed(1)}mm × ${this.settings.figureHeight.toFixed(1)}mm | 300 DPI`;
 //         }
 //     }
-// 
+//
 //     private toCanvasX(x: number, plotArea: PlotArea, xScale: Scale): number {
 //         return plotArea.x + ((x - xScale.min) / (xScale.max - xScale.min)) * plotArea.width;
 //     }
-// 
+//
 //     private toCanvasY(y: number, plotArea: PlotArea, yScale: Scale): number {
 //         return plotArea.y + plotArea.height - ((y - yScale.min) / (yScale.max - yScale.min)) * plotArea.height;
 //     }
-// 
+//
 //     private mm(value: number): number {
 //         return value * MM_TO_PX;
 //     }

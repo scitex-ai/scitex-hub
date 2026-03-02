@@ -3,8 +3,8 @@
  * Uses lazy import of @hpcc-js/wasm-graphviz to avoid bundling overhead.
  */
 
-import type { Viewer } from "../types.ts";
-import { getFileUrl } from "../file-loader.ts";
+import type { Viewer } from "../types";
+import { getFileUrl } from "../_file-loader";
 
 export class GraphvizViewer implements Viewer {
   private abortController: AbortController | null = null;

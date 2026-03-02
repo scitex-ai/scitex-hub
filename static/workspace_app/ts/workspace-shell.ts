@@ -35,7 +35,7 @@ async function switchModule(name: string): Promise<void> {
     pane.innerHTML = html;
     reExecScripts(pane);
     updateActiveTab(name);
-    history.pushState({ module: name }, "", `/workspace/${name}/`);
+    window._appNav?.push({ module: name });
     localStorage.setItem(STORAGE_KEY, name);
     document
       .getElementById("workspace-shell")
@@ -104,10 +104,11 @@ function init(): void {
   const module = getInitialModule();
   void switchModule(module);
 
-  // Handle browser back/forward
-  window.addEventListener("popstate", (e) => {
-    const module = (e.state?.module as string) ?? getInitialModule();
-    void switchModule(module);
+  // Handle browser back/forward via unified navigation engine
+  window._appNav?.onRestore((state) => {
+    if (state.module && KNOWN_MODULES.includes(state.module)) {
+      void switchModule(state.module);
+    }
   });
 }
 

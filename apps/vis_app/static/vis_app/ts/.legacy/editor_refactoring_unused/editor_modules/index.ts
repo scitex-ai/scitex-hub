@@ -4,65 +4,65 @@
  */
 
 // History & State Management
-export { HistoryManager } from './history/HistoryManager.ts';
-export { AutoSaveManager } from './io/AutoSave.ts';
-export type { EditorState } from './io/AutoSave.ts';
+export { HistoryManager } from './history/HistoryManager';
+export { AutoSaveManager } from './io/AutoSave';
+export type { EditorState } from './io/AutoSave';
 
 // Core Canvas Management
-export { CanvasManager } from './core/CanvasManager.ts';
+export { CanvasManager } from './core/CanvasManager';
 
 // Data Management
-export { DataTableManager } from './data/DataTableManager.ts';
+export { DataTableManager } from './data/DataTableManager';
 
 // UI Components
-export { PanelLayoutManager } from './ui/PanelLayoutManager.ts';
-export { PropertiesPanel } from './ui/PropertiesPanel.ts';
-export { RulersManager } from './ui/RulersManager.ts';
-export { RulerRenderer, type RulerUnit } from './ui/RulerRenderer.ts';
-export { ToolbarManager } from './ui/ToolbarManager.ts';
+export { PanelLayoutManager } from './ui/PanelLayoutManager';
+export { PropertiesPanel } from './ui/PropertiesPanel';
+export { RulersManager } from './ui/RulersManager';
+export { RulerRenderer, type RulerUnit } from './ui/RulerRenderer';
+export { ToolbarManager } from './ui/ToolbarManager';
 
 // Tools
-export { BasicShapes } from './tools/BasicShapes.ts';
-export { AlignmentTools } from './tools/AlignmentTools.ts';
-export { SignificanceMarkers } from './tools/SignificanceMarkers.ts';
-export { ScaleBarTools } from './tools/ScaleBarTools.ts';
-export { ReferenceGuides } from './tools/ReferenceGuides.ts';
-export { ScientificAnnotations } from './tools/ScientificAnnotations.ts';
-export { BasicAnnotations } from './tools/BasicAnnotations.ts';
-export { AdvancedAnnotations } from './tools/AdvancedAnnotations.ts';
+export { BasicShapes } from './tools/BasicShapes';
+export { AlignmentTools } from './tools/AlignmentTools';
+export { SignificanceMarkers } from './tools/SignificanceMarkers';
+export { ScaleBarTools } from './tools/ScaleBarTools';
+export { ReferenceGuides } from './tools/ReferenceGuides';
+export { ScientificAnnotations } from './tools/ScientificAnnotations';
+export { BasicAnnotations } from './tools/BasicAnnotations';
+export { AdvancedAnnotations } from './tools/AdvancedAnnotations';
 
 // Features
-export { ComparisonMode } from './features/ComparisonMode.ts';
-export { PlotIntegration, type PlotData } from './features/PlotIntegration.ts';
-export { GalleryManager } from './features/GalleryManager.ts';
-export { GalleryData } from './features/GalleryData.ts';
-export { GalleryUI } from './features/GalleryUI.ts';
+export { ComparisonMode } from './features/ComparisonMode';
+export { PlotIntegration, type PlotData } from './features/PlotIntegration';
+export { GalleryManager } from './features/GalleryManager';
+export { GalleryData } from './features/GalleryData';
+export { GalleryUI } from './features/GalleryUI';
 
 // I/O and File Management
-export { FileManager } from './io/FileManager.ts';
-export { FileExport } from './io/FileExport.ts';
-export { FileSave } from './io/FileSave.ts';
-export { VersionControl } from './io/VersionControl.ts';
-export { VersionComparison } from './io/VersionComparison.ts';
+export { FileManager } from './io/FileManager';
+export { FileExport } from './io/FileExport';
+export { FileSave } from './io/FileSave';
+export { VersionControl } from './io/VersionControl';
+export { VersionComparison } from './io/VersionComparison';
 
 // Layout
-export { GridManager } from './layout/GridManager.ts';
-export { GridRenderer } from './layout/GridRenderer.ts';
-export { RulerDrawer } from './layout/RulerDrawer.ts';
+export { GridManager } from './layout/GridManager';
+export { GridRenderer } from './layout/GridRenderer';
+export { RulerDrawer } from './layout/RulerDrawer';
 
 // Transform
-export { ZoomManager } from './transform/ZoomManager.ts';
-export { ZoomControls } from './transform/ZoomControls.ts';
+export { ZoomManager } from './transform/ZoomManager';
+export { ZoomControls } from './transform/ZoomControls';
 
 // Events
-export { KeyboardEvents, type KeyboardHandlers } from './events/KeyboardEvents.ts';
-export { MouseEvents } from './events/MouseEvents.ts';
+export { KeyboardEvents, type KeyboardHandlers } from './events/KeyboardEvents';
+export { MouseEvents } from './events/MouseEvents';
 
 // Utilities
-export * from './utils/colors.ts';
-export * from './utils/geometry.ts';
-export * from './utils/selection.ts';
-export * from './utils/validation.ts';
+export * from './utils/colors';
+export * from './utils/geometry';
+export * from './utils/selection';
+export * from './utils/validation';
 
 // Types
-export * from './types.ts';
+export * from './types';

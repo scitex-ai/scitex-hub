@@ -33,7 +33,7 @@ describe('VisEditor', () => {
 //  * - Connects managers through callbacks
 //  * - Maintains overall editor state
 //  */
-// 
+//
 // import {
 //     RulersManager,
 //     CanvasManager,
@@ -46,11 +46,11 @@ describe('VisEditor', () => {
 //     SciTeXEditor,
 //     PlotGallery,
 //     GalleryCategories,
-// } from '../vis/index.ts';
-// 
-// import { setupGraphOperations } from './graph.ts';
-// import { EditorCallbackHandlers } from './EditorCallbackHandlers.ts';
-// 
+// } from '../vis/index';
+//
+// import { setupGraphOperations } from './graph';
+// import { EditorCallbackHandlers } from './EditorCallbackHandlers';
+//
 // /**
 //  * VisEditor - Coordinator class that manages all editor components
 //  */
@@ -63,44 +63,44 @@ describe('VisEditor', () => {
 //     private uiManager!: UIManager;
 //     private dataTabManager!: DataTabManager;
 //     private canvasTabManager!: CanvasTabManager;
-// 
+//
 //     // SciTeX integration
 //     private figureDropHandler!: FigureDropHandler;
 //     private scitexEditor!: SciTeXEditor;
 //     private plotGallery!: PlotGallery;
 //     private galleryCategories!: GalleryCategories;
 //     private callbackHandlers!: EditorCallbackHandlers;
-// 
+//
 //     // Plot-related state
 //     private currentPlot: any = null;
 //     private currentPlotType: string = '';
 //     private currentCategory: string = '';
 //     private currentCsvData: string[][] = [];
-// 
+//
 //     // Tab-Figure synchronization: Map tabId <-> canvasObjectId
 //     private tabToFigureMap: Map<string, string> = new Map();
 //     private figureToTabMap: Map<string, string> = new Map();
 //     private isDeleting: boolean = false; // Prevent recursive deletion
-// 
+//
 //     // Shared references for managers
 //     private firstRowIsHeader: boolean = true;
 //     private firstColIsIndex: boolean = false;
-// 
+//
 //     // Project context for bundle-based flow
 //     private projectOwner: string = '';
 //     private projectSlug: string = '';
 //     private figureName: string = 'Figure1';
-// 
+//
 //     constructor() {
 //         console.log('[VisEditor] Initializing modular Vis Editor...');
-// 
+//
 //         // Initialize managers
 //         this.initializeManagers();
-// 
+//
 //         // Initialize all components
 //         this.initializeEditor();
 //     }
-// 
+//
 //     /**
 //      * Initialize all manager instances
 //      */
@@ -110,25 +110,25 @@ describe('VisEditor', () => {
 //             (message: string) => this.updateStatusBar(message),
 //             () => this.updateRulersAreaTransform()
 //         );
-// 
+//
 //         // Initialize RulersManager
 //         this.rulersManager = new RulersManager(
 //             null,
 //             (message: string) => this.updateStatusBar(message)
 //         );
-// 
+//
 //         // Initialize DataTableManager
 //         this.dataTableManager = new DataTableManager(
 //             (message: string) => this.updateStatusBar(message),
 //             () => this.propertiesManager.updateColumnDropdowns(),
 //             () => this.updateRulersAreaTransform()
 //         );
-// 
+//
 //         // Initialize PropertiesManager
 //         this.propertiesManager = new PropertiesManager(
 //             () => this.dataTableManager.getCurrentData()
 //         );
-// 
+//
 //         // Initialize UIManager
 //         this.uiManager = new UIManager(
 //             (file: File) => this.dataTableManager.handleFileImport(file),
@@ -174,7 +174,7 @@ describe('VisEditor', () => {
 //             () => this.canvasManager.decreaseCanvasSize(),  // canvasSizeDecreaseCallback
 //             () => this.canvasManager.fitCanvasToContent()  // canvasSizeResetCallback → now fits to content
 //         );
-// 
+//
 //         // Initialize DataTabManager
 //         this.dataTabManager = new DataTabManager();
 //         this.dataTabManager.setCallbacks(
@@ -205,7 +205,7 @@ describe('VisEditor', () => {
 //                 console.log('[VisEditor] Data tab renamed:', tabId, 'to', newName);
 //             }
 //         );
-// 
+//
 //         // Initialize CanvasTabManager
 //         this.canvasTabManager = new CanvasTabManager();
 //         this.canvasTabManager.setCallbacks(
@@ -240,7 +240,7 @@ describe('VisEditor', () => {
 //                 this.updateStatusBar(`Created ${figureName}`);
 //             }
 //         );
-// 
+//
 //         // Initialize callback handlers
 //         this.callbackHandlers = new EditorCallbackHandlers({
 //             canvasManager: this.canvasManager,
@@ -271,55 +271,55 @@ describe('VisEditor', () => {
 //             },
 //         });
 //     }
-// 
+//
 //     /**
 //      * Save current canvas state to the active tab
 //      */
 //     private saveCanvasForCurrentTab(): void {
 //         if (!this.canvasManager.canvas) return;
-// 
+//
 //         const json = this.canvasManager.canvas.toJSON(['name', 'id', 'axisMetadata', 'plotInfo', 'originalWidth', 'originalHeight', 'csvData']);
 //         const viewState = {
 //             zoom: this.canvasManager.getCanvasZoomLevel(),
 //             panX: this.canvasManager.getCanvasPanOffset().x,
 //             panY: this.canvasManager.getCanvasPanOffset().y
 //         };
-// 
+//
 //         this.canvasTabManager.saveCanvasState(json, viewState);
 //     }
-// 
+//
 //     /**
 //      * Restore canvas content from a specific tab
 //      */
 //     private async restoreCanvasForTab(tabId: string): Promise<void> {
 //         const tabState = this.canvasTabManager.getTabState(tabId);
-// 
+//
 //         // Check if we have actual canvas content to restore
 //         const hasCanvasContent = tabState && tabState.canvasJson;
-// 
+//
 //         if (!hasCanvasContent || !this.canvasManager.canvas) {
 //             // New tab or no saved state - clear canvas for fresh start
 //             this.canvasManager.canvas?.clear();
 //             this.canvasManager.canvas?.renderAll();
 //             // Also reset the current figz path since this is a new/empty figure
 //             this.canvasManager.setCurrentFigzPath(null);
-// 
+//
 //             // Re-apply current theme to the cleared canvas
 //             const savedCanvasTheme = localStorage.getItem('canvas-theme') || localStorage.getItem('scitex-theme-preference') || 'dark';
 //             const isDark = savedCanvasTheme === 'dark';
 //             this.canvasManager.updateCanvasTheme(isDark);
-// 
+//
 //             console.log(`[VisEditor] New tab or no content - canvas cleared, theme applied: ${savedCanvasTheme}`);
 //             return;
 //         }
-// 
+//
 //         if (tabState.canvasJson) {
 //             // Also restore the figz path from the tab
 //             const tab = this.canvasTabManager.getTab(tabId);
 //             if (tab?.figurePath) {
 //                 this.canvasManager.setCurrentFigzPath(tab.figurePath);
 //             }
-// 
+//
 //             // Load canvas content from tab state
 //             return new Promise((resolve) => {
 //                 this.canvasManager.canvas!.loadFromJSON(tabState.canvasJson, () => {
@@ -353,73 +353,73 @@ describe('VisEditor', () => {
 //             });
 //         }
 //     }
-// 
+//
 //     /**
 //      * Initialize editor components using parallel execution for independent tasks
 //      */
 //     private async initializeEditor(): Promise<void> {
 //         const totalStart = performance.now();
 //         console.log('[VisEditor] Starting optimized initialization...');
-// 
+//
 //         // PHASE 1: CRITICAL PATH ONLY
 //         const phase1Start = performance.now();
-// 
+//
 //         this.uiManager.initializeEventListeners();
 //         this.dataTabManager.initializeEventListeners();
 //         this.dataTabManager.renderTabs();
-// 
+//
 //         // Load canvas tabs from storage (if any)
 //         this.canvasTabManager.loadTabsFromStorage();
 //         this.canvasTabManager.initializeEventListeners();
 //         this.canvasTabManager.renderTabs();
 //         this.dataTableManager.initializeBlankTable();
-// 
+//
 //         const phase1End = performance.now();
 //         console.log(`[VisEditor] Phase 1 complete in ${(phase1End - phase1Start).toFixed(2)}ms`);
-// 
+//
 //         // PHASE 2: DEFERRED
 //         const phase2Start = performance.now();
 //         await new Promise(resolve => setTimeout(resolve, 0));
-// 
+//
 //         this.setupDataTableEvents();
 //         this.dataTableManager.setupColumnResizing();
 //         this.uiManager.setupKeyboardShortcuts();
-// 
+//
 //         const phase2End = performance.now();
 //         console.log(`[VisEditor] Phase 2 complete in ${(phase2End - phase2Start).toFixed(2)}ms`);
-// 
+//
 //         // PHASE 3: DEFERRED - Canvas and heavy graphics
 //         const phase3Start = performance.now();
 //         await new Promise(resolve => setTimeout(resolve, 0));
-// 
+//
 //         this.canvasManager.initCanvas();
 //         this.canvasManager.setupCanvasEvents();
-// 
+//
 //         // Wire up selection callback to update properties panel, data tab, and tree
 //         this.canvasManager.setSelectionCallback(this.callbackHandlers.createSelectionCallback());
-// 
+//
 //         // Wire up resize callback to re-render plots at new size
 //         this.canvasManager.setObjectResizedCallback(async (obj: any, newWidth: number, newHeight: number) => {
 //             await this.reRenderPlotAtSize(obj, newWidth, newHeight);
 //         });
-// 
+//
 //         // Wire up element selection callback to highlight CSV columns and show properties
 //         this.canvasManager.setElementSelectionCallback(this.callbackHandlers.createElementSelectionCallback());
-// 
+//
 //         this.rulersManager['canvas'] = this.canvasManager.canvas;
 //         this.rulersManager.initializeRulers();
-// 
+//
 //         // Set up bidirectional sync between RulersManager and CanvasManager
 //         this.rulersManager.setTransformCallback(this.callbackHandlers.createTransformCallback());
-// 
+//
 //         this.rulersManager.setupRulerDragging();
-// 
+//
 //         // Apply initial transform to rulers-area to match CanvasManager's initial zoom (0.22)
 //         this.updateRulersAreaTransform();
-// 
+//
 //         // Note: Ruler unit toggle is now handled by clicking on ruler labels (0mm, 10mm, etc.)
 //         // See RulersManager.setupRulerLabelClickHandlers()
-// 
+//
 //         // Initialize FigureDropHandler with CanvasManager
 //         this.figureDropHandler = new FigureDropHandler({
 //             canvasSelector: '#canvas-container',
@@ -430,7 +430,7 @@ describe('VisEditor', () => {
 //                 // TODO: Load into data table
 //             },
 //         });
-// 
+//
 //         // Restore canvas content from active tab or fallback to old localStorage
 //         setTimeout(
 //             this.callbackHandlers.createCanvasRestorationCallback(
@@ -441,57 +441,57 @@ describe('VisEditor', () => {
 //             ),
 //             100
 //         );
-// 
+//
 //         const phase3End = performance.now();
 //         console.log(`[VisEditor] Phase 3 complete in ${(phase3End - phase3Start).toFixed(2)}ms`);
-// 
+//
 //         // PHASE 4: DEFERRED - Properties and final setup
 //         const phase4Start = performance.now();
 //         await new Promise(resolve => setTimeout(resolve, 0));
-// 
+//
 //         this.propertiesManager.initPropertiesTabs();
 //         this.propertiesManager.setupPropertySliders();
 //         this.uiManager.setPropertiesManager(this.propertiesManager);
 //         this.uiManager.setDataTableManager(this.dataTableManager);
 //         this.uiManager.initializeTreeManager();
-// 
+//
 //         // Wire up panel refresh callback for bundle property editing
 //         this.propertiesManager.setPanelRefreshCallback(async (pltzPath: string) => {
 //             await this.canvasManager.refreshPanelImage(pltzPath);
 //         });
-// 
+//
 //         // Initialize PlotGallery for thumbnail dropdowns
 //         this.initializePlotGallery();
-// 
+//
 //         // Setup property change handlers for live preview
 //         this.setupPropertyChangeHandlers();
-// 
+//
 //         this.updateStatusBar('Ready');
-// 
+//
 //         const phase4End = performance.now();
 //         console.log(`[VisEditor] Phase 4 complete in ${(phase4End - phase4Start).toFixed(2)}ms`);
-// 
+//
 //         // Note: Canvas theme is applied in the setTimeout callback after canvas content restoration
 //         // to ensure it's not overwritten by saved canvas JSON
-// 
+//
 //         // Listen for global theme changes to update rulers
 //         document.addEventListener('theme-changed', (e: CustomEvent) => {
 //             const isDark = e.detail?.theme === 'dark';
 //             this.rulersManager.updateRulerTheme(isDark);
 //             console.log(`[VisEditor] Global theme changed, rulers updated to ${isDark ? 'dark' : 'light'}`);
 //         });
-// 
+//
 //         const totalEnd = performance.now();
 //         console.log(`[VisEditor] Total initialization: ${(totalEnd - totalStart).toFixed(2)}ms`);
 //     }
-// 
+//
 //     /**
 //      * Setup data table events
 //      */
 //     private setupDataTableEvents(): void {
 //         console.log('[VisEditor] Data table using native scrolling');
 //     }
-// 
+//
 //     /**
 //      * Setup property change handlers for live preview
 //      */
@@ -499,7 +499,7 @@ describe('VisEditor', () => {
 //         // Use MutationObserver to watch for dynamically added property elements
 //         const dynamicPropsEl = document.getElementById('dynamic-properties');
 //         if (!dynamicPropsEl) return;
-// 
+//
 //         // Debounce helper
 //         let reRenderTimeout: ReturnType<typeof setTimeout> | null = null;
 //         const debounceReRender = () => {
@@ -508,48 +508,48 @@ describe('VisEditor', () => {
 //                 this.reRenderCurrentPlot();
 //             }, 500); // Wait 500ms after last change
 //         };
-// 
+//
 //         // Watch for property changes
 //         const observer = new MutationObserver(() => {
 //             // Setup handlers for newly added elements
 //             this.setupPropertyInputHandlers(debounceReRender);
 //         });
-// 
+//
 //         observer.observe(dynamicPropsEl, { childList: true, subtree: true });
-// 
+//
 //         // Initial setup
 //         this.setupPropertyInputHandlers(debounceReRender);
 //         console.log('[VisEditor] Property change handlers initialized');
 //     }
-// 
+//
 //     /**
 //      * Setup handlers for property input elements
 //      */
 //     private setupPropertyInputHandlers(onChange: () => void): void {
 //         const propsContainer = document.getElementById('dynamic-properties');
 //         if (!propsContainer) return;
-// 
+//
 //         // Range sliders
 //         propsContainer.querySelectorAll('input[type="range"]').forEach(slider => {
 //             if ((slider as any)._hasChangeHandler) return;
 //             slider.addEventListener('change', onChange);
 //             (slider as any)._hasChangeHandler = true;
 //         });
-// 
+//
 //         // Color pickers
 //         propsContainer.querySelectorAll('input[type="color"]').forEach(picker => {
 //             if ((picker as any)._hasChangeHandler) return;
 //             picker.addEventListener('change', onChange);
 //             (picker as any)._hasChangeHandler = true;
 //         });
-// 
+//
 //         // Select dropdowns
 //         propsContainer.querySelectorAll('select').forEach(select => {
 //             if ((select as any)._hasChangeHandler) return;
 //             select.addEventListener('change', onChange);
 //             (select as any)._hasChangeHandler = true;
 //         });
-// 
+//
 //         // Text inputs (with debounce)
 //         propsContainer.querySelectorAll('input[type="text"], input[type="number"]').forEach(input => {
 //             if ((input as any)._hasChangeHandler) return;
@@ -557,7 +557,7 @@ describe('VisEditor', () => {
 //             (input as any)._hasChangeHandler = true;
 //         });
 //     }
-// 
+//
 //     /**
 //      * Update rulers area transform
 //      * Sets CSS transform and syncs state to RulersManager
@@ -565,26 +565,26 @@ describe('VisEditor', () => {
 //     private updateRulersAreaTransform(): void {
 //         const rulersArea = document.querySelector('.vis-rulers-area') as HTMLElement;
 //         if (!rulersArea) return;
-// 
+//
 //         const zoom = this.canvasManager.getCanvasZoomLevel();
 //         const pan = this.canvasManager.getCanvasPanOffset();
-// 
+//
 //         // Sync state to RulersManager for ruler drawing
 //         this.rulersManager.setCanvasZoomLevel(zoom);
 //         this.rulersManager.setCanvasPanOffset(pan);
-// 
+//
 //         // Set CSS transform (needed for initial setup and ruler sync)
 //         rulersArea.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
 //         rulersArea.style.transformOrigin = '0 0';
 //     }
-// 
+//
 //     /**
 //      * Update status bar
 //      */
 //     private updateStatusBar(message?: string): void {
 //         this.uiManager.updateStatusBar(message);
 //     }
-// 
+//
 //     /**
 //      * Create quick plot (delegates to graph module)
 //      */
@@ -594,20 +594,20 @@ describe('VisEditor', () => {
 //             this.updateStatusBar('Please load data first');
 //             return;
 //         }
-// 
+//
 //         console.log(`[VisEditor] Creating ${plotType} plot...`);
 //         this.updateStatusBar(`Creating ${plotType} plot...`);
-// 
+//
 //         const graphOps = setupGraphOperations(
 //             this.dataTableManager,
 //             this.propertiesManager,
 //             (msg) => this.updateStatusBar(msg)
 //         );
-// 
+//
 //         this.currentPlot = graphOps.renderPlot(plotType);
 //         this.currentPlotType = plotType;
 //     }
-// 
+//
 //     /**
 //      * Update canvas theme
 //      * Note: Rulers follow global theme, not canvas theme
@@ -616,7 +616,7 @@ describe('VisEditor', () => {
 //         this.canvasManager.updateCanvasTheme(isDark);
 //         // Rulers follow global theme, not canvas theme - do not update here
 //     }
-// 
+//
 //     /**
 //      * Update global UI theme (including rulers)
 //      * Called when global theme changes
@@ -624,14 +624,14 @@ describe('VisEditor', () => {
 //     public updateGlobalTheme(isDark: boolean): void {
 //         this.rulersManager.updateRulerTheme(isDark);
 //     }
-// 
+//
 //     /**
 //      * Delete selected object from canvas
 //      */
 //     public deleteSelectedObject(): void {
 //         // Set flag to prevent recursive deletion
 //         this.isDeleting = true;
-// 
+//
 //         // Get selected objects before deleting to close corresponding tabs
 //         const activeObj = this.canvasManager.canvas?.getActiveObject();
 //         if (activeObj) {
@@ -639,7 +639,7 @@ describe('VisEditor', () => {
 //             const objects = activeObj.type === 'activeSelection'
 //                 ? (activeObj as any).getObjects()
 //                 : [activeObj];
-// 
+//
 //             // Close corresponding tabs for deleted figures
 //             for (const obj of objects) {
 //                 const objId = obj.id;
@@ -653,19 +653,19 @@ describe('VisEditor', () => {
 //                 }
 //             }
 //         }
-// 
+//
 //         this.canvasManager.removeActiveObject();
 //         this.canvasManager.saveCanvasContent();
 //         this.isDeleting = false;
 //         this.updateStatusBar('Object deleted');
 //     }
-// 
+//
 //     /**
 //      * Remove a figure from canvas by its ID
 //      */
 //     private removeFigureById(figureId: string): void {
 //         if (!this.canvasManager.canvas) return;
-// 
+//
 //         const objects = this.canvasManager.canvas.getObjects();
 //         const figure = objects.find((obj: any) => obj.id === figureId);
 //         if (figure) {
@@ -675,14 +675,14 @@ describe('VisEditor', () => {
 //             this.updateStatusBar('Figure removed');
 //         }
 //     }
-// 
+//
 //     /**
 //      * Duplicate selected object on canvas
 //      */
 //     public duplicateSelectedObject(): void {
 //         this.canvasManager.duplicateActiveObject();
 //     }
-// 
+//
 //     /**
 //      * Handle size actions from keyboard shortcuts
 //      */
@@ -702,7 +702,7 @@ describe('VisEditor', () => {
 //                 break;
 //         }
 //     }
-// 
+//
 //     /**
 //      * Get tab type from gallery category
 //      * Maps category names to DataTab types for icon synchronization
@@ -734,7 +734,7 @@ describe('VisEditor', () => {
 //                 return 'default';
 //         }
 //     }
-// 
+//
 //     /**
 //      * Initialize PlotGallery and GalleryCategories
 //      */
@@ -750,10 +750,10 @@ describe('VisEditor', () => {
 //                 }
 //             }
 //         });
-// 
+//
 //         // Initialize the gallery categories UI
 //         this.galleryCategories.initialize();
-// 
+//
 //         // Setup revert button handler
 //         const revertBtn = document.getElementById('revert-data-btn');
 //         if (revertBtn) {
@@ -765,17 +765,17 @@ describe('VisEditor', () => {
 //                 }
 //             });
 //         }
-// 
+//
 //         // Also keep the legacy PlotGallery for backward compatibility
 //         this.plotGallery = new PlotGallery({
 //             onSelect: async (plot, gallery) => {
 //                 console.log(`[VisEditor] Legacy plot selected: ${plot.name} from ${gallery.name}`);
 //             }
 //         });
-// 
+//
 //         console.log('[VisEditor] GalleryCategories initialized');
 //     }
-// 
+//
 //     /**
 //      * Re-render current plot with updated properties
 //      */
@@ -784,17 +784,17 @@ describe('VisEditor', () => {
 //             console.warn('[VisEditor] No current plot to re-render');
 //             return;
 //         }
-// 
+//
 //         // Get current properties from UI
 //         const props = this.propertiesManager.getPlotProperties();
 //         const columns = this.propertiesManager.getSelectedColumns();
-// 
+//
 //         // Get additional properties from UI
 //         const colorInput = document.getElementById('prop-plot-color') as HTMLInputElement;
 //         const titleInput = document.getElementById('prop-labels-title') as HTMLInputElement;
 //         const xlabelInput = document.getElementById('prop-labels-x') as HTMLInputElement;
 //         const ylabelInput = document.getElementById('prop-labels-y') as HTMLInputElement;
-// 
+//
 //         const overrides: Record<string, any> = {
 //             fig_width: 4,
 //             fig_height: 3,
@@ -804,7 +804,7 @@ describe('VisEditor', () => {
 //             x_column: columns.xColumn,
 //             y_columns: [columns.yColumn],
 //         };
-// 
+//
 //         if (colorInput?.value) {
 //             overrides.color = colorInput.value;
 //         }
@@ -817,10 +817,10 @@ describe('VisEditor', () => {
 //         if (ylabelInput?.value) {
 //             overrides.ylabel = ylabelInput.value;
 //         }
-// 
+//
 //         try {
 //             this.updateStatusBar(`Re-rendering ${this.currentPlot.display_name}...`);
-// 
+//
 //             const response = await fetch('/vis/api/plot/gallery/', {
 //                 method: 'POST',
 //                 headers: { 'Content-Type': 'application/json' },
@@ -831,7 +831,7 @@ describe('VisEditor', () => {
 //                     overrides,
 //                 }),
 //             });
-// 
+//
 //             const result = await response.json();
 //             if (result.success && result.image) {
 //                 // Build axis metadata from response (including hitmap for fast element picking)
@@ -842,7 +842,7 @@ describe('VisEditor', () => {
 //                     hitmap: result.hitmap,
 //                     hitmap_color_map: result.hitmap_color_map
 //                 } : undefined;
-// 
+//
 //                 await this.canvasManager.addImage(result.image, {
 //                     scaleToFit: true,
 //                     name: this.currentPlot.display_name,
@@ -858,7 +858,7 @@ describe('VisEditor', () => {
 //             this.updateStatusBar('Failed to re-render plot');
 //         }
 //     }
-// 
+//
 //     /**
 //      * Load static image from gallery
 //      * Also tries to load JSON metadata for axis snap/align and element selection
@@ -869,7 +869,7 @@ describe('VisEditor', () => {
 //         const imageUrl = plot.svg || plot.png || `/vis/api/gallery/project/${category}/${plot.name}/image/?format=svg`;
 //         const isSvg = imageUrl.includes('format=svg') || imageUrl.endsWith('.svg');
 //         console.log(`[VisEditor] Loading static image (${isSvg ? 'SVG' : 'PNG'}): ${imageUrl}`);
-// 
+//
 //         // Try to load JSON metadata from original gallery
 //         let axisMetadata: any = undefined;
 //         try {
@@ -897,7 +897,7 @@ describe('VisEditor', () => {
 //         } catch (err) {
 //             console.log(`[VisEditor] No metadata available for ${plot.name}`);
 //         }
-// 
+//
 //         try {
 //             // If no csvData provided, try to fetch from plot.csv before adding image
 //             // CSV data MUST be passed to addImage so it's set before selection events fire
@@ -914,7 +914,7 @@ describe('VisEditor', () => {
 //                     console.log(`[VisEditor] No CSV data for ${plot.name}`);
 //                 }
 //             }
-// 
+//
 //             // Use SVG loader for SVG files (enables element selection), PNG for others
 //             // Pass metadata through options so it's attached BEFORE setActiveObject
 //             // This ensures selection:created can detect axisMetadata for element selection mode
@@ -946,7 +946,7 @@ describe('VisEditor', () => {
 //                     plotInfo: { plot, category },
 //                 });
 //             }
-// 
+//
 //             if (result) {
 //                 const rows = Array.isArray(result) ? 0 : (result.csvData?.length || 0);
 //                 console.log(`[VisEditor] ${isSvg ? 'SVG' : 'Image'} loaded with csvData: ${!!finalCsvData}, rows: ${rows}`);
@@ -957,7 +957,7 @@ describe('VisEditor', () => {
 //             this.updateStatusBar(`Failed to load: ${plot.display_name}`);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Create a pltz bundle from gallery selection and add as panel.
 //      *
@@ -980,27 +980,27 @@ describe('VisEditor', () => {
 //             category,
 //             csvRows: csvData?.length || 0
 //         });
-// 
+//
 //         const projectOwner = this.projectOwner || (window as any).projectOwner;
 //         const projectSlug = this.projectSlug || (window as any).projectSlug;
-// 
+//
 //         console.log(`[VisEditor] Project context:`, { projectOwner, projectSlug, figureName: this.figureName });
-// 
+//
 //         // Always use bundle format - no fallback to static images
 //         this.updateStatusBar(`Creating bundle: ${plot.display_name}...`);
-// 
+//
 //         // Map plot name to plot type
 //         // e.g. "line_01_basic" -> "line", "scatter_02_colored" -> "scatter"
 //         const plotType = this.mapPlotNameToType(plot.name, category);
 //         console.log(`[VisEditor] Mapped plot type: "${plot.name}" + "${category}" -> "${plotType}"`);
-// 
+//
 //         // Convert CSV array to CSV string if available
 //         let dataCsv: string | undefined;
 //         if (csvData && csvData.length > 1) {
 //             dataCsv = csvData.map(row => row.join(',')).join('\n');
 //             console.log(`[VisEditor] CSV data prepared: ${dataCsv.length} chars`);
 //         }
-// 
+//
 //         try {
 //             console.log('[VisEditor] Calling canvasManager.addPanelFromGallery...');
 //             // Use CanvasManager's addPanelFromGallery method
@@ -1014,11 +1014,11 @@ describe('VisEditor', () => {
 //                 category,      // gallery_category
 //                 plot.name      // gallery_plot_name
 //             );
-// 
+//
 //             if (result) {
 //                 this.updateStatusBar(`Panel ${result.panelLabel} created: ${plot.display_name}`);
 //                 console.log(`[VisEditor] Created pltz bundle panel: ${result.panelLabel} at ${result.bundlePath}`);
-// 
+//
 //                 // Refresh file tree after creating bundle
 //                 await this.refreshFilesTree();
 //             } else {
@@ -1031,7 +1031,7 @@ describe('VisEditor', () => {
 //             this.updateStatusBar(`Error: ${error}`);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Map gallery plot name to plot type for bundle creation.
 //      *
@@ -1046,12 +1046,12 @@ describe('VisEditor', () => {
 //             'stx_shaded_line': 'line',
 //             'stx_plot': 'line',
 //         };
-// 
+//
 //         const lowerName = plotName.toLowerCase();
 //         if (directMappings[lowerName]) {
 //             return directMappings[lowerName];
 //         }
-// 
+//
 //         // Try to extract from plot name parts
 //         const parts = lowerName.split('_');
 //         const plotTypes = [
@@ -1059,13 +1059,13 @@ describe('VisEditor', () => {
 //             'boxplot', 'violinplot', 'heatmap', 'contour', 'pie',
 //             'step', 'stem', 'area', 'kde', 'ecdf'
 //         ];
-// 
+//
 //         for (const type of plotTypes) {
 //             if (parts[0] === type || lowerName.includes(type)) {
 //                 return type;
 //             }
 //         }
-// 
+//
 //         // Fallback to category
 //         const categoryMap: Record<string, string> = {
 //             'line': 'line',
@@ -1080,10 +1080,10 @@ describe('VisEditor', () => {
 //             'error': 'line',
 //             'stem': 'stem',
 //         };
-// 
+//
 //         return categoryMap[category.toLowerCase()] || 'line';
 //     }
-// 
+//
 //     /**
 //      * Set project context for bundle-based flow.
 //      *
@@ -1099,7 +1099,7 @@ describe('VisEditor', () => {
 //         }
 //         console.log(`[VisEditor] Project context set: ${owner}/${slug}/${this.figureName}`);
 //     }
-// 
+//
 //     /**
 //      * Get manager instances for external access
 //      */
@@ -1111,14 +1111,14 @@ describe('VisEditor', () => {
 //             dataTabManager: this.dataTabManager,
 //         };
 //     }
-// 
+//
 //     /**
 //      * Get canvas manager instance for external access
 //      */
 //     public getCanvasManager(): CanvasManager {
 //         return this.canvasManager;
 //     }
-// 
+//
 //     /**
 //      * Refresh the file tree (e.g., after creating/deleting figures)
 //      */
@@ -1131,7 +1131,7 @@ describe('VisEditor', () => {
 //             console.log('[VisEditor] filesTree not available for refresh');
 //         }
 //     }
-// 
+//
 //     /**
 //      * Validate tabs against existing files - remove stale tabs.
 //      * Collects figz paths from the tree and validates canvas tabs against them.
@@ -1140,19 +1140,19 @@ describe('VisEditor', () => {
 //     public validateTabsAgainstFilesystem(): void {
 //         // Collect figz paths from the file tree
 //         const figzPaths = this.collectFigzPathsFromTree();
-// 
+//
 //         // Validate canvas tabs (figures)
 //         const removedFigureTabs = this.canvasTabManager.validateAndCleanTabs(figzPaths);
-// 
+//
 //         // After validating figure tabs, validate data tabs against remaining figures
 //         const validFigureIds = this.canvasTabManager.getTabs().map(t => t.id);
 //         const removedDataTabs = this.dataTabManager.validateAndCleanTabs(validFigureIds);
-// 
+//
 //         if (removedFigureTabs > 0 || removedDataTabs > 0) {
 //             this.updateStatusBar(`Cleaned up ${removedFigureTabs} figure(s) and ${removedDataTabs} table(s)`);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Collect all figz paths from the file tree DOM
 //      */
@@ -1160,7 +1160,7 @@ describe('VisEditor', () => {
 //         const paths: string[] = [];
 //         const treeEl = document.querySelector('.wft-tree');
 //         if (!treeEl) return paths;
-// 
+//
 //         // Find all tree items that are figz bundles
 //         const items = treeEl.querySelectorAll('[data-path]');
 //         items.forEach(item => {
@@ -1169,11 +1169,11 @@ describe('VisEditor', () => {
 //                 paths.push(path);
 //             }
 //         });
-// 
+//
 //         console.log(`[VisEditor] Found ${paths.length} figz paths in tree`);
 //         return paths;
 //     }
-// 
+//
 //     /**
 //      * Clear all tabs and reset to defaults (for project switching)
 //      */
@@ -1182,19 +1182,19 @@ describe('VisEditor', () => {
 //         this.dataTabManager.clearAllTabs();
 //         console.log('[VisEditor] All tabs cleared');
 //     }
-// 
+//
 //     /**
 //      * Load CSV data into a dedicated tab for the figure
 //      */
 //     private loadCsvDataInTab(obj: any): void {
 //         const name = obj.name || 'Figure';
 //         const objId = obj.id || `obj_${Date.now()}`;
-// 
+//
 //         // Ensure object has an ID
 //         if (!obj.id) {
 //             obj.id = objId;
 //         }
-// 
+//
 //         // Check if tab already exists for this figure
 //         const existingTabId = this.figureToTabMap.get(objId);
 //         if (existingTabId) {
@@ -1203,7 +1203,7 @@ describe('VisEditor', () => {
 //             this.dataTableManager.loadFromArray(obj.csvData, true);
 //             return;
 //         }
-// 
+//
 //         // Create new tab for this figure
 //         const category = obj.plotInfo?.category || 'default';
 //         const tabType = this.getTabTypeFromCategory(category);
@@ -1214,16 +1214,16 @@ describe('VisEditor', () => {
 //             name,
 //             obj.csvData
 //         );
-// 
+//
 //         // Store the mapping
 //         this.tabToFigureMap.set(tabId, objId);
 //         this.figureToTabMap.set(objId, tabId);
-// 
+//
 //         // Load CSV into data table
 //         this.dataTableManager.loadFromArray(obj.csvData, true);
 //         this.updateStatusBar(`Data tab created for ${name}`);
 //     }
-// 
+//
 //     /**
 //      * Load CSV data and metadata for an image from the gallery
 //      */
@@ -1233,9 +1233,9 @@ describe('VisEditor', () => {
 //             console.log('[VisEditor] No name on selected image, cannot load CSV');
 //             return;
 //         }
-// 
+//
 //         console.log(`[VisEditor] Looking up CSV for image: "${name}"`);
-// 
+//
 //         try {
 //             // Try to find the plot in loaded gallery contents
 //             const contents = this.galleryCategories?.getContents();
@@ -1243,14 +1243,14 @@ describe('VisEditor', () => {
 //                 console.log('[VisEditor] Gallery contents not loaded yet');
 //                 return;
 //             }
-// 
+//
 //             console.log(`[VisEditor] Searching ${Object.keys(contents.categories || {}).length} categories`);
-// 
+//
 //             // Search for the plot by display name across all categories
 //             // Try multiple matching strategies
 //             const nameLower = name.toLowerCase();
 //             let found = false;
-// 
+//
 //             for (const [category, info] of Object.entries(contents.categories || {})) {
 //                 const categoryInfo = info as any;
 //                 const plot = categoryInfo.plots?.find((p: any) => {
@@ -1265,7 +1265,7 @@ describe('VisEditor', () => {
 //                         nameLower.includes(displayLower.replace('ax.', '').replace('stx_', ''))
 //                     );
 //                 });
-// 
+//
 //                 if (plot) {
 //                     found = true;
 //                     console.log(`[VisEditor] Found matching plot: ${plot.name} in ${category}`);
@@ -1284,7 +1284,7 @@ describe('VisEditor', () => {
 //                     } catch (e) {
 //                         console.log(`[VisEditor] No CSV found for ${name}`);
 //                     }
-// 
+//
 //                     // Load axis metadata if not already present
 //                     if (!obj.axisMetadata) {
 //                         try {
@@ -1310,7 +1310,7 @@ describe('VisEditor', () => {
 //                     break;
 //                 }
 //             }
-// 
+//
 //             if (!found) {
 //                 console.log(`[VisEditor] No matching plot found for "${name}"`);
 //             }
@@ -1318,32 +1318,32 @@ describe('VisEditor', () => {
 //             console.error('[VisEditor] Failed to load CSV for image:', error);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Load CSV data for a bundle panel and sync with data table
 //      */
 //     private async loadCsvForBundlePanel(obj: any): Promise<void> {
 //         const pltzPath = obj.pltzPath;
 //         const panelLabel = obj.panelLabel || 'Panel';
-// 
+//
 //         if (!pltzPath) {
 //             console.log('[VisEditor] No pltzPath on bundle panel');
 //             return;
 //         }
-// 
+//
 //         console.log(`[VisEditor] Loading CSV for bundle panel: ${pltzPath}`);
-// 
+//
 //         try {
 //             const csvUrl = `/vis/api/bundles/pltz/data/?path=${encodeURIComponent(pltzPath)}`;
 //             const response = await fetch(csvUrl);
-// 
+//
 //             if (response.ok) {
 //                 const csvText = await response.text();
 //                 const csvData = this.parseCSV(csvText);
-// 
+//
 //                 // Store CSV data on the object for later use
 //                 obj.csvData = csvData;
-// 
+//
 //                 // Create or switch to tab for this panel
 //                 const tabType = 'default';
 //                 const tabId = this.dataTabManager.createAndSwitchToTab(
@@ -1353,10 +1353,10 @@ describe('VisEditor', () => {
 //                     panelLabel,
 //                     csvData
 //                 );
-// 
+//
 //                 // Load into data table
 //                 this.dataTableManager.loadFromArray(csvData, true);
-// 
+//
 //                 this.updateStatusBar(`Data loaded for Panel ${panelLabel} (${csvData.length} rows)`);
 //                 console.log(`[VisEditor] Loaded CSV for bundle panel ${panelLabel}: ${csvData.length} rows`);
 //             } else {
@@ -1367,30 +1367,30 @@ describe('VisEditor', () => {
 //             console.error('[VisEditor] Failed to load CSV for bundle panel:', error);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Load missing axis metadata for restored objects
 //      * Objects may have been saved before metadata serialization was implemented
 //      */
 //     private async loadMissingMetadata(objects: any[]): Promise<void> {
 //         if (!objects.length) return;
-// 
+//
 //         const objectsNeedingMetadata = objects.filter(
 //             obj => obj.type === 'image' && !obj.axisMetadata && obj.plotInfo
 //         );
-// 
+//
 //         if (!objectsNeedingMetadata.length) {
 //             console.log('[VisEditor] All objects have axis metadata');
 //             return;
 //         }
-// 
+//
 //         console.log(`[VisEditor] Loading metadata for ${objectsNeedingMetadata.length} objects`);
-// 
+//
 //         for (const obj of objectsNeedingMetadata) {
 //             try {
 //                 const { category, plot } = obj.plotInfo;
 //                 if (!category || !plot?.name) continue;
-// 
+//
 //                 const metaResponse = await fetch(`/vis/api/gallery/metadata/${category}/${plot.name}/`);
 //                 if (metaResponse.ok) {
 //                     const metadata = await metaResponse.json();
@@ -1409,11 +1409,11 @@ describe('VisEditor', () => {
 //                 console.log(`[VisEditor] Failed to load metadata for ${obj.name || 'unknown'}`);
 //             }
 //         }
-// 
+//
 //         // Save updated canvas with metadata
 //         this.canvasManager.saveCanvasContent();
 //     }
-// 
+//
 //     /**
 //      * Infer csv_columns from element label when csv_columns is not available (backward compatibility)
 //      * Uses the currently loaded data table to find matching column names
@@ -1428,31 +1428,31 @@ describe('VisEditor', () => {
 //             console.log('[VisEditor] No data table loaded for column inference');
 //             return null;
 //         }
-// 
+//
 //         const headers = currentData.headers;
 //         const label = (elementInfo.label || '').toLowerCase();
 //         const traceIdx = elementInfo.trace_idx;
 //         const axesId = elementInfo.axes_id || '';
-// 
+//
 //         // Find matching columns by trace-id pattern in SciTeX headers
 //         // Header format: ax-row-R-col-C_trace-id-TRACENAME_variable-{x|y}
 //         let xColIdx = -1;
 //         let yColIdx = -1;
-// 
+//
 //         for (let i = 0; i < headers.length; i++) {
 //             const header = headers[i].toLowerCase();
-// 
+//
 //             // Check if header contains the trace label (e.g., "sin" matches "sine-wave")
 //             // or exact label match (e.g., "sine-wave" matches "sine-wave")
 //             const traceIdMatch = header.match(/trace-id-([^_]+)/);
 //             if (traceIdMatch) {
 //                 const traceId = traceIdMatch[1];  // e.g., "sine-wave"
-// 
+//
 //                 // Check for partial match: "sin" in "sine-wave" or "sine-wave" contains "sin"
 //                 const labelMatches = traceId.includes(label) ||
 //                                     label.includes(traceId.replace('-', '').replace('_', '')) ||
 //                                     traceId.startsWith(label);
-// 
+//
 //                 if (labelMatches) {
 //                     // Determine if this is x or y variable
 //                     if (header.endsWith('_variable-x') || header.includes('_x_') || header.endsWith('-x')) {
@@ -1463,7 +1463,7 @@ describe('VisEditor', () => {
 //                 }
 //             }
 //         }
-// 
+//
 //         if (xColIdx !== -1 || yColIdx !== -1) {
 //             const result: { x?: { name: string, index: number }, y?: { name: string, index: number } } = {};
 //             if (xColIdx !== -1) {
@@ -1475,7 +1475,7 @@ describe('VisEditor', () => {
 //             console.log(`[VisEditor] Inferred csv_columns from SciTeX header: x=${result.x?.name}, y=${result.y?.name}`);
 //             return result;
 //         }
-// 
+//
 //         // Fallback: Try to find Y column by trace_idx (legacy format)
 //         if (traceIdx !== undefined && traceIdx + 1 < headers.length) {
 //             const xCol = { name: headers[0], index: 0 };
@@ -1484,7 +1484,7 @@ describe('VisEditor', () => {
 //             console.log(`[VisEditor] Inferred csv_columns from trace_idx ${traceIdx}: x=${xCol.name}, y=${yCol.name}`);
 //             return { x: xCol, y: yCol };
 //         }
-// 
+//
 //         // Fallback: Try to match by label name (simple headers)
 //         for (let i = 1; i < headers.length; i++) {
 //             const header = headers[i].toLowerCase();
@@ -1495,7 +1495,7 @@ describe('VisEditor', () => {
 //                 return { x: xCol, y: yCol };
 //             }
 //         }
-// 
+//
 //         // Last resort: Use column index based on trace name (trace_0 -> col 1, trace_1 -> col 2)
 //         const traceMatch = elementName.match(/trace_(\d+)/);
 //         if (traceMatch) {
@@ -1507,11 +1507,11 @@ describe('VisEditor', () => {
 //                 return { x: xCol, y: yCol };
 //             }
 //         }
-// 
+//
 //         console.log('[VisEditor] Could not infer csv_columns for element:', elementName, 'label:', label);
 //         return null;
 //     }
-// 
+//
 //     /**
 //      * Parse CSV text to 2D array
 //      */
@@ -1521,7 +1521,7 @@ describe('VisEditor', () => {
 //             const values: string[] = [];
 //             let current = '';
 //             let inQuotes = false;
-// 
+//
 //             for (const char of line) {
 //                 if (char === '"') {
 //                     inQuotes = !inQuotes;
@@ -1536,7 +1536,7 @@ describe('VisEditor', () => {
 //             return values;
 //         });
 //     }
-// 
+//
 //     /**
 //      * Re-render a plot at a new size to maintain font proportions
 //      * This calls the backend to regenerate the plot at the target dimensions
@@ -1546,16 +1546,16 @@ describe('VisEditor', () => {
 //             console.log('[VisEditor] Cannot re-render: no plotInfo on object');
 //             return;
 //         }
-// 
+//
 //         const { plot, category } = obj.plotInfo;
 //         if (!plot || !category) {
 //             console.log('[VisEditor] Cannot re-render: missing plot or category');
 //             return;
 //         }
-// 
+//
 //         console.log(`[VisEditor] Re-rendering plot at ${newWidth}x${newHeight}px`);
 //         this.updateStatusBar(`Re-rendering ${obj.name || 'plot'} at ${Math.round(newWidth)}x${Math.round(newHeight)}px...`);
-// 
+//
 //         try {
 //             // TODO: Call backend API to regenerate plot at new size
 //             // This would require an endpoint like:
@@ -1566,7 +1566,7 @@ describe('VisEditor', () => {
 //             if (obj.axisMetadata?.axes_bbox_px && obj.originalWidth && obj.originalHeight) {
 //                 const scaleX = newWidth / obj.originalWidth;
 //                 const scaleY = newHeight / obj.originalHeight;
-// 
+//
 //                 // Store scaled axis positions for alignment calculations
 //                 obj.scaledAxisMetadata = {
 //                     axes_bbox_px: {
@@ -1579,17 +1579,17 @@ describe('VisEditor', () => {
 //                     }
 //                 };
 //             }
-// 
+//
 //             // Update properties panel to show new dimensions
 //             this.propertiesManager.showCanvasObjectProperties(obj);
 //             this.updateStatusBar(`Resized: ${obj.name || 'plot'}`);
-// 
+//
 //         } catch (error) {
 //             console.error('[VisEditor] Failed to re-render plot:', error);
 //             this.updateStatusBar(`Failed to re-render: ${obj.name || 'plot'}`);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Debug function: Place all gallery plot types on canvas in a grid
 //      * Useful for testing element selection and visual consistency
@@ -1597,15 +1597,15 @@ describe('VisEditor', () => {
 //     public async plotAllTypes(): Promise<void> {
 //         console.log('[VisEditor] Loading all plot types for debugging...');
 //         this.updateStatusBar('Loading all plot types...');
-// 
+//
 //         try {
 //             // Fetch available categories
 //             const response = await fetch('/vis/api/gallery/available/');
 //             if (!response.ok) throw new Error(`API error: ${response.status}`);
-// 
+//
 //             const data = await response.json();
 //             if (!data.success) throw new Error(data.error || 'Failed to load categories');
-// 
+//
 //             // Collect all plots from all categories
 //             const allPlots: Array<{ name: string; category: string; png: string; svg: string; csv: string }> = [];
 //             for (const [catId, catInfo] of Object.entries(data.categories)) {
@@ -1620,9 +1620,9 @@ describe('VisEditor', () => {
 //                     });
 //                 }
 //             }
-// 
+//
 //             console.log(`[VisEditor] Found ${allPlots.length} plot types to load`);
-// 
+//
 //             // Grid layout parameters
 //             const PLOT_WIDTH = 180;
 //             const PLOT_HEIGHT = 140;
@@ -1630,7 +1630,7 @@ describe('VisEditor', () => {
 //             const MARGIN = 20;
 //             const START_X = 50;
 //             const START_Y = 50;
-// 
+//
 //             // Load each plot and place on canvas
 //             for (let i = 0; i < allPlots.length; i++) {
 //                 const plot = allPlots[i];
@@ -1638,7 +1638,7 @@ describe('VisEditor', () => {
 //                 const row = Math.floor(i / COLS);
 //                 const x = START_X + col * (PLOT_WIDTH + MARGIN);
 //                 const y = START_Y + row * (PLOT_HEIGHT + MARGIN);
-// 
+//
 //                 try {
 //                     // Fetch CSV data
 //                     let csvData: string[][] = [];
@@ -1653,7 +1653,7 @@ describe('VisEditor', () => {
 //                     } catch {
 //                         console.warn(`[VisEditor] No CSV for ${plot.name}`);
 //                     }
-// 
+//
 //                     // Fetch metadata
 //                     const metaUrl = `/vis/api/gallery/metadata/${plot.category}/${plot.name}/`;
 //                     let axisMetadata: any = undefined;
@@ -1674,7 +1674,7 @@ describe('VisEditor', () => {
 //                     } catch {
 //                         console.warn(`[VisEditor] No metadata for ${plot.name}`);
 //                     }
-// 
+//
 //                     // Load SVG for crisp rendering at any zoom level
 //                     // Pass metadata through options so it's attached BEFORE setActiveObject
 //                     // This ensures selection:created can detect axisMetadata for element selection mode
@@ -1693,16 +1693,16 @@ describe('VisEditor', () => {
 //                     console.error(`[VisEditor] Failed to load ${plot.name}:`, err);
 //                 }
 //             }
-// 
+//
 //             this.updateStatusBar(`Loaded ${allPlots.length} plot types`);
 //             console.log('[VisEditor] All plot types loaded');
-// 
+//
 //         } catch (error) {
 //             console.error('[VisEditor] Failed to load all plot types:', error);
 //             this.updateStatusBar('Failed to load all plot types');
 //         }
 //     }
-// 
+//
 //     /**
 //      * Sync tree selection to highlight the panel's pltz.d file
 //      * Called when a bundle panel is selected on canvas
@@ -1710,7 +1710,7 @@ describe('VisEditor', () => {
 //     private syncTreeToPanel(absolutePltzPath: string): void {
 //         this.syncTreeToPath(absolutePltzPath, 'panel');
 //     }
-// 
+//
 //     /**
 //      * Sync tree selection to highlight the figure's figz.d file
 //      * Called when a figure tab is switched
@@ -1718,7 +1718,7 @@ describe('VisEditor', () => {
 //     private syncTreeToFigure(absoluteFigzPath: string): void {
 //         this.syncTreeToPath(absoluteFigzPath, 'figure');
 //     }
-// 
+//
 //     /**
 //      * Sync tree selection to a given absolute path
 //      */
@@ -1727,7 +1727,7 @@ describe('VisEditor', () => {
 //             console.log(`[VisEditor] No project context, skipping tree sync (${source})`);
 //             return;
 //         }
-// 
+//
 //         // Convert absolute path to relative path for tree
 //         // /app/data/users/{owner}/proj/{slug}/{relativePath} → {relativePath}
 //         const prefix = `/app/data/users/${this.projectOwner}/proj/${this.projectSlug}/`;
@@ -1735,7 +1735,7 @@ describe('VisEditor', () => {
 //         if (absolutePath.startsWith(prefix)) {
 //             relativePath = absolutePath.substring(prefix.length);
 //         }
-// 
+//
 //         // Use the globally exposed filesTree
 //         const filesTree = (window as any).filesTree;
 //         if (filesTree && typeof filesTree.selectFile === 'function') {

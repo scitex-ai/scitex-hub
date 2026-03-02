@@ -34,96 +34,96 @@ describe('PropertiesManager', () => {
 //  * - Update column dropdowns for plot configuration
 //  * - Manage properties panel state
 //  */
-// 
-// import { Dataset } from './types.ts';
-// import { getCSRFToken } from './canvas/CanvasSerializationUtils.ts';
-// import { PltzPropertiesBuilder } from './properties/PltzPropertiesBuilder.ts';
-// import { CanvasObjectPropertiesBuilder } from './properties/CanvasObjectPropertiesBuilder.ts';
-// import { ElementPropertiesBuilder } from './properties/ElementPropertiesBuilder.ts';
-// 
+//
+// import { Dataset } from './types';
+// import { getCSRFToken } from './canvas/CanvasSerializationUtils';
+// import { PltzPropertiesBuilder } from './properties/PltzPropertiesBuilder';
+// import { CanvasObjectPropertiesBuilder } from './properties/CanvasObjectPropertiesBuilder';
+// import { ElementPropertiesBuilder } from './properties/ElementPropertiesBuilder';
+//
 // export class PropertiesManager {
 //     private currentPropertiesTab: string = 'plot';
 //     private csrfToken: string;
-// 
+//
 //     // Plot property state
 //     private plotProperties = {
 //         lineWidth: 2,
 //         markerSize: 8,
 //     };
-// 
+//
 //     // Reference to dynamic properties container
 //     private dynamicPropertiesEl: HTMLElement | null = null;
 //     private selectedItemInfoEl: HTMLElement | null = null;
-// 
+//
 //     // Style preset state
 //     private currentUnit: 'mm' | 'inch' = 'mm';
 //     private currentPresetId: string | null = null;
 //     private presets: any[] = [];
 //     private currentDefaults: any = {};
 //     private previewDebounceTimer: number | null = null;
-// 
+//
 //     constructor(
 //         private getCurrentDataCallback?: () => Dataset | null
 //     ) {
 //         this.dynamicPropertiesEl = document.getElementById('dynamic-properties');
 //         this.selectedItemInfoEl = document.querySelector('.selected-item-info') as HTMLElement;
 //         this.csrfToken = getCSRFToken();
-// 
+//
 //         // Initialize preset handlers
 //         this.initPresetHandlers();
 //         this.initPreviewHandlers();
 //     }
-// 
+//
 //     /**
 //      * Get CSRF token from cookies
 //     }
-// 
+//
 //     /**
 //      * Get current properties tab
 //      */
 //     public getCurrentPropertiesTab(): string {
 //         return this.currentPropertiesTab;
 //     }
-// 
+//
 //     /**
 //      * Initialize properties tabs switching
 //      */
 //     public initPropertiesTabs(): void {
 //         const tabs = document.querySelectorAll('.properties-tab');
-// 
+//
 //         if (tabs.length > 0) {
 //             tabs.forEach(tab => {
 //                 tab.addEventListener('click', () => {
 //                     const tabName = tab.getAttribute('data-tab');
 //                     if (!tabName) return;
-// 
+//
 //                     // Update active tab
 //                     tabs.forEach(t => t.classList.remove('active'));
 //                     tab.classList.add('active');
-// 
+//
 //                     // Show corresponding tab content
 //                     const tabContents = document.querySelectorAll('.properties-tab-content');
 //                     tabContents.forEach(content => content.classList.remove('active'));
-// 
+//
 //                     const targetContent = document.getElementById(`tab-${tabName}`);
 //                     if (targetContent) {
 //                         targetContent.classList.add('active');
 //                     }
-// 
+//
 //                     // Load defaults if switching to defaults tab
 //                     if (tabName === 'defaults') {
 //                         this.loadDefaultsTab();
 //                     }
-// 
+//
 //                     this.currentPropertiesTab = tabName;
 //                     console.log(`[PropertiesManager] Switched to properties tab: ${tabName}`);
 //                 });
 //             });
-// 
+//
 //             console.log('[PropertiesManager] Properties tabs initialized');
 //         }
 //     }
-// 
+//
 //     /**
 //      * Load and display SCITEX_STYLE defaults
 //      */
@@ -131,17 +131,17 @@ describe('PropertiesManager', () => {
 //         try {
 //             // Load presets first
 //             await this.loadPresets();
-// 
+//
 //             // Load active style or default
 //             const response = await fetch('/vis/api/style-presets/active/');
 //             const data = await response.json();
-// 
+//
 //             if (data.style) {
 //                 this.currentDefaults = data.style;
-// 
+//
 //                 // Convert to YAML and populate textarea
 //                 this.updateYAMLTextarea();
-// 
+//
 //                 // Load initial preview
 //                 this.updateLivePreview();
 //             }
@@ -154,7 +154,7 @@ describe('PropertiesManager', () => {
 //             }
 //         }
 //     }
-// 
+//
 //     /**
 //      * Format key name for display
 //      */
@@ -163,7 +163,7 @@ describe('PropertiesManager', () => {
 //             .replace(/_/g, ' ')
 //             .replace(/\b\w/g, (char) => char.toUpperCase());
 //     }
-// 
+//
 //     /**
 //      * Initialize preset-related event handlers
 //      */
@@ -177,7 +177,7 @@ describe('PropertiesManager', () => {
 //                 this.switchUnit(unit);
 //             });
 //         });
-// 
+//
 //         // Preset selector
 //         const presetSelector = document.getElementById('preset-selector') as HTMLSelectElement;
 //         if (presetSelector) {
@@ -185,42 +185,42 @@ describe('PropertiesManager', () => {
 //                 this.switchPreset(presetSelector.value);
 //             });
 //         }
-// 
+//
 //         // Save button
 //         const saveBtn = document.getElementById('preset-save-btn');
 //         if (saveBtn) {
 //             saveBtn.addEventListener('click', () => this.savePresetAs());
 //         }
-// 
+//
 //         // Import button
 //         const importBtn = document.getElementById('preset-import-btn');
 //         if (importBtn) {
 //             importBtn.addEventListener('click', () => this.importYAML());
 //         }
-// 
+//
 //         // Export button
 //         const exportBtn = document.getElementById('preset-export-btn');
 //         if (exportBtn) {
 //             exportBtn.addEventListener('click', () => this.exportYAML());
 //         }
-// 
+//
 //         // Apply button
 //         const applyBtn = document.getElementById('preset-apply-btn');
 //         if (applyBtn) {
 //             applyBtn.addEventListener('click', () => this.applyYAMLChanges());
 //         }
 //     }
-// 
+//
 //     /**
 //      * Update YAML textarea with current defaults
 //      */
 //     private updateYAMLTextarea(): void {
 //         const textarea = document.getElementById('preset-yaml-textarea') as HTMLTextAreaElement;
 //         if (!textarea) return;
-// 
+//
 //         // Convert to YAML format (simple key: value pairs)
 //         let yaml = '# SciTeX Style Configuration\n\n';
-// 
+//
 //         const sections = {
 //             'Axes Dimensions (mm)': ['axes_width_mm', 'axes_height_mm', 'axes_thickness_mm'],
 //             'Margins (mm, before crop)': ['margin_left_mm', 'margin_right_mm', 'margin_bottom_mm', 'margin_top_mm'],
@@ -229,7 +229,7 @@ describe('PropertiesManager', () => {
 //             'Labels': ['title', 'xlabel', 'ylabel'],
 //             'Output': ['dpi', 'transparent', 'auto_crop'],
 //         };
-// 
+//
 //         for (const [section, keys] of Object.entries(sections)) {
 //             yaml += `# ${section}\n`;
 //             for (const key of keys) {
@@ -241,10 +241,10 @@ describe('PropertiesManager', () => {
 //             }
 //             yaml += '\n';
 //         }
-// 
+//
 //         textarea.value = yaml;
 //     }
-// 
+//
 //     /**
 //      * Parse and apply YAML changes
 //      */
@@ -252,56 +252,56 @@ describe('PropertiesManager', () => {
 //         const textarea = document.getElementById('preset-yaml-textarea') as HTMLTextAreaElement;
 //         const statusEl = document.getElementById('yaml-status');
 //         if (!textarea) return;
-// 
+//
 //         try {
 //             // Parse YAML (simple key: value format)
 //             const yaml = textarea.value;
 //             const lines = yaml.split('\n');
 //             const parsed: any = {};
-// 
+//
 //             for (const line of lines) {
 //                 // Skip comments and empty lines
 //                 if (line.trim().startsWith('#') || !line.trim()) continue;
-// 
+//
 //                 const match = line.match(/^(\w+):\s*(.+)$/);
 //                 if (match) {
 //                     const key = match[1];
 //                     let value: any = match[2].trim();
-// 
+//
 //                     // Remove quotes
 //                     if (value.startsWith('"') && value.endsWith('"')) {
 //                         value = value.slice(1, -1);
 //                     }
-// 
+//
 //                     // Parse booleans and numbers
 //                     if (value === 'true') value = true;
 //                     else if (value === 'false') value = false;
 //                     else if (!isNaN(parseFloat(value))) value = parseFloat(value);
-// 
+//
 //                     parsed[key] = value;
 //                 }
 //             }
-// 
+//
 //             // Update current defaults
 //             this.currentDefaults = { ...this.currentDefaults, ...parsed };
-// 
+//
 //             // Update diagram text boxes
 //             this.updateDiagramTextBoxes();
-// 
+//
 //             // Update preview
 //             await this.updateLivePreview();
-// 
+//
 //             // Show success
 //             if (statusEl) {
 //                 statusEl.className = 'yaml-status success';
 //                 statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Applied successfully!';
-// 
+//
 //                 setTimeout(() => {
 //                     statusEl.className = 'yaml-status';
 //                     statusEl.innerHTML = '<i class="fas fa-info-circle"></i> Edit YAML and click Apply to update preview';
 //                 }, 3000);
 //             }
-// 
+//
 //         } catch (error) {
 //             console.error('[PropertiesManager] YAML parse error:', error);
 //             if (statusEl) {
@@ -310,7 +310,7 @@ describe('PropertiesManager', () => {
 //             }
 //         }
 //     }
-// 
+//
 //     /**
 //      * Update diagram text boxes from current defaults
 //      */
@@ -318,12 +318,12 @@ describe('PropertiesManager', () => {
 //         const titleInput = document.getElementById('diagram-title-input') as HTMLInputElement;
 //         const xlabelInput = document.getElementById('diagram-xlabel-input') as HTMLInputElement;
 //         const ylabelInput = document.getElementById('diagram-ylabel-input') as HTMLInputElement;
-// 
+//
 //         if (titleInput) titleInput.value = this.currentDefaults.title || 'Title';
 //         if (xlabelInput) xlabelInput.value = this.currentDefaults.xlabel || 'X Label';
 //         if (ylabelInput) ylabelInput.value = this.currentDefaults.ylabel || 'Y Label';
 //     }
-// 
+//
 //     /**
 //      * Load presets and populate dropdown
 //      */
@@ -331,15 +331,15 @@ describe('PropertiesManager', () => {
 //         try {
 //             const response = await fetch('/vis/api/style-presets/');
 //             const data = await response.json();
-// 
+//
 //             this.presets = data.presets || [];
 //             this.currentPresetId = data.active_preset_id;
-// 
+//
 //             // Populate dropdown
 //             const selector = document.getElementById('preset-selector') as HTMLSelectElement;
 //             if (selector) {
 //                 selector.innerHTML = '<option value="">SciTeX Default</option>';
-// 
+//
 //                 this.presets.forEach(preset => {
 //                     const option = document.createElement('option');
 //                     option.value = preset.id;
@@ -354,7 +354,7 @@ describe('PropertiesManager', () => {
 //             console.error('[PropertiesManager] Failed to load presets:', error);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Switch to a different preset
 //      */
@@ -372,7 +372,7 @@ describe('PropertiesManager', () => {
 //                 const data = await response.json();
 //                 this.currentDefaults = data.merged_style;
 //                 this.currentPresetId = presetId;
-// 
+//
 //                 // Activate this preset
 //                 await fetch(`/vis/api/style-presets/${presetId}/activate/`, {
 //                     method: 'POST',
@@ -381,24 +381,24 @@ describe('PropertiesManager', () => {
 //                     },
 //                 });
 //             }
-// 
+//
 //             // Re-render defaults
 //             const defaultsContent = document.getElementById('defaults-content');
 //             if (defaultsContent) {
 //                 this.renderEditableDefaults(defaultsContent, this.currentDefaults);
 //             }
-// 
+//
 //         } catch (error) {
 //             console.error('[PropertiesManager] Failed to switch preset:', error);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Switch display unit
 //      */
 //     private switchUnit(unit: 'mm' | 'inch'): void {
 //         this.currentUnit = unit;
-// 
+//
 //         // Update button states
 //         const unitButtons = document.querySelectorAll('.unit-btn');
 //         unitButtons.forEach(btn => {
@@ -408,31 +408,31 @@ describe('PropertiesManager', () => {
 //                 btn.classList.remove('active');
 //             }
 //         });
-// 
+//
 //         // Re-render with new units
 //         const defaultsContent = document.getElementById('defaults-content');
 //         if (defaultsContent) {
 //             this.renderEditableDefaults(defaultsContent, this.currentDefaults);
 //         }
-// 
+//
 //         // Update diagram with new unit labels
 //         this.updateDiagram();
 //     }
-// 
+//
 //     /**
 //      * Convert mm to inches
 //      */
 //     private mmToInch(mm: number): number {
 //         return mm / 25.4;
 //     }
-// 
+//
 //     /**
 //      * Convert inches to mm
 //      */
 //     private inchToMm(inch: number): number {
 //         return inch * 25.4;
 //     }
-// 
+//
 //     /**
 //      * Format value with current unit
 //      */
@@ -440,13 +440,13 @@ describe('PropertiesManager', () => {
 //         if (!isSizeValue) {
 //             return value.toString();
 //         }
-// 
+//
 //         if (this.currentUnit === 'inch') {
 //             return this.mmToInch(value).toFixed(2);
 //         }
 //         return value.toFixed(2);
 //     }
-// 
+//
 //     /**
 //      * Render editable defaults panel
 //      */
@@ -486,9 +486,9 @@ describe('PropertiesManager', () => {
 //                 },
 //             },
 //         };
-// 
+//
 //         let html = '';
-// 
+//
 //         for (const [sectionTitle, config] of Object.entries(sections)) {
 //             html += `
 //                 <div class="defaults-section">
@@ -503,25 +503,25 @@ describe('PropertiesManager', () => {
 //                         </thead>
 //                         <tbody>
 //             `;
-// 
+//
 //             for (const key of config.keys) {
 //                 if (key in defaults) {
 //                     const value = defaults[key];
 //                     const isBoolean = typeof value === 'boolean';
 //                     const isSizeValue = config.isSize && key.endsWith('_mm');
-// 
+//
 //                     let displayValue = value;
 //                     if (isSizeValue && typeof value === 'number') {
 //                         displayValue = this.formatWithUnit(value, true);
 //                     }
-// 
+//
 //                     const unitDisplay = isSizeValue ? this.currentUnit : '';
-// 
+//
 //                     // Use custom label if provided, otherwise format the key
 //                     const displayLabel = (config.labels && config.labels[key])
 //                         ? config.labels[key]
 //                         : this.formatKey(key);
-// 
+//
 //                     if (isBoolean) {
 //                         html += `
 //                             <tr class="defaults-row">
@@ -555,19 +555,19 @@ describe('PropertiesManager', () => {
 //                     }
 //                 }
 //             }
-// 
+//
 //             html += `
 //                         </tbody>
 //                     </table>
 //                 </div>
 //             `;
 //         }
-// 
+//
 //         container.innerHTML = html;
-// 
+//
 //         // Get all inputs for keyboard navigation
 //         const inputs = Array.from(container.querySelectorAll('.preset-input')) as HTMLInputElement[];
-// 
+//
 //         // Attach change and keyboard handlers to inputs
 //         inputs.forEach((input, index) => {
 //             // Change handler
@@ -575,7 +575,7 @@ describe('PropertiesManager', () => {
 //                 const target = e.target as HTMLInputElement;
 //                 const key = target.getAttribute('data-key');
 //                 if (!key) return;
-// 
+//
 //                 if (target.type === 'checkbox') {
 //                     this.currentDefaults[key] = target.checked;
 //                     // Update label
@@ -586,27 +586,27 @@ describe('PropertiesManager', () => {
 //                 } else {
 //                     const isSize = target.getAttribute('data-is-size') === 'true';
 //                     let value: any = target.value;
-// 
+//
 //                     // Parse numeric values
 //                     if (!isNaN(parseFloat(value))) {
 //                         value = parseFloat(value);
-// 
+//
 //                         // Convert back to mm if needed
 //                         if (isSize && this.currentUnit === 'inch') {
 //                             value = this.inchToMm(value);
 //                         }
 //                     }
-// 
+//
 //                     this.currentDefaults[key] = value;
 //                 }
-// 
+//
 //                 // Update diagram on change
 //                 this.updateDiagram();
-// 
+//
 //                 // Update live preview (debounced)
 //                 this.updatePreviewDebounced();
 //             });
-// 
+//
 //             // Keyboard navigation (up/down arrows)
 //             input.addEventListener('keydown', (e) => {
 //                 if (e.key === 'ArrowDown') {
@@ -627,14 +627,14 @@ describe('PropertiesManager', () => {
 //                 }
 //             });
 //         });
-// 
+//
 //         // Initial diagram update
 //         this.updateDiagram();
-// 
+//
 //         // Add mouse click handlers to diagram elements
 //         this.initDiagramClickHandlers();
 //     }
-// 
+//
 //     /**
 //      * Initialize diagram input handlers for direct editing
 //      */
@@ -643,59 +643,59 @@ describe('PropertiesManager', () => {
 //         const diagramTitle = document.getElementById('diagram-title-input') as HTMLInputElement;
 //         const diagramXLabel = document.getElementById('diagram-xlabel-input') as HTMLInputElement;
 //         const diagramYLabel = document.getElementById('diagram-ylabel-input') as HTMLInputElement;
-// 
+//
 //         // Add input handlers to sync diagram → table
 //         [diagramTitle, diagramXLabel, diagramYLabel].forEach(input => {
 //             if (!input) return;
-// 
+//
 //             const fieldKey = input.getAttribute('data-field');
 //             if (!fieldKey) return;
-// 
+//
 //             // Sync on input (real-time)
 //             input.addEventListener('input', () => {
 //                 this.currentDefaults[fieldKey] = input.value;
-// 
+//
 //                 // Update YAML textarea
 //                 this.updateYAMLTextarea();
-// 
+//
 //                 // Update live preview (debounced)
 //                 this.updatePreviewDebounced();
 //             });
-// 
+//
 //             // Visual feedback on focus
 //             input.addEventListener('focus', () => {
 //                 input.style.borderColor = '#2196f3';
 //                 input.style.boxShadow = '0 0 0 2px rgba(33, 150, 243, 0.2)';
 //             });
-// 
+//
 //             input.addEventListener('blur', () => {
 //                 input.style.borderColor = '#ccc';
 //                 input.style.boxShadow = 'none';
 //             });
 //         });
 //     }
-// 
+//
 //     /**
 //      * Update the visual diagram based on current settings
 //      */
 //     private updateDiagram(): void {
 //         const d = this.currentDefaults;
 //         const unit = this.currentUnit;
-// 
+//
 //         // Get values (ensure they're in mm for calculations)
 //         const axesWidth = d.axes_width_mm || 40;
 //         const axesHeight = d.axes_height_mm || 28;
 //         const marginLeft = d.margin_left_mm || 20;
 //         const marginTop = d.margin_top_mm || 20;
 //         const autoCrop = d.auto_crop !== undefined ? d.auto_crop : false;
-// 
+//
 //         // Update diagram input fields (bi-directional sync)
 //         const titleInput = document.getElementById('diagram-title-input') as HTMLInputElement;
 //         const xlabelInput = document.getElementById('diagram-xlabel-input') as HTMLInputElement;
 //         const ylabelInput = document.getElementById('diagram-ylabel-input') as HTMLInputElement;
 //         const dpiEl = document.getElementById('diagram-dpi');
 //         const fontEl = document.getElementById('diagram-font');
-// 
+//
 //         if (titleInput && titleInput.value !== (d.title || 'Title')) {
 //             titleInput.value = d.title || 'Title';
 //         }
@@ -711,58 +711,58 @@ describe('PropertiesManager', () => {
 //         if (fontEl) {
 //             fontEl.textContent = `Font: ${d.font_family || 'Arial'}`;
 //         }
-// 
+//
 //         // Update dimension labels
 //         const widthLabel = document.getElementById('diagram-width-label');
 //         const heightLabel = document.getElementById('diagram-height-label');
 //         const marginTopLabel = document.getElementById('diagram-margin-top');
 //         const marginLeftLabel = document.getElementById('diagram-margin-left');
-// 
+//
 //         if (widthLabel) {
 //             const displayWidth = unit === 'inch' ? this.mmToInch(axesWidth).toFixed(2) : axesWidth.toFixed(1);
 //             widthLabel.textContent = `Width: ${displayWidth}${unit}`;
 //         }
-// 
+//
 //         if (heightLabel) {
 //             const displayHeight = unit === 'inch' ? this.mmToInch(axesHeight).toFixed(2) : axesHeight.toFixed(1);
 //             heightLabel.textContent = `Height: ${displayHeight}${unit}`;
 //         }
-// 
+//
 //         if (marginTopLabel) {
 //             const displayMargin = unit === 'inch' ? this.mmToInch(marginTop).toFixed(2) : marginTop.toFixed(1);
 //             marginTopLabel.textContent = `↕ Top: ${displayMargin}${unit}`;
 //         }
-// 
+//
 //         if (marginLeftLabel) {
 //             const displayMargin = unit === 'inch' ? this.mmToInch(marginLeft).toFixed(2) : marginLeft.toFixed(1);
 //             marginLeftLabel.textContent = `← ${displayMargin}${unit}`;
 //         }
-// 
+//
 //         // Update auto crop indicator visibility
 //         const cropIndicator = document.getElementById('diagram-crop-indicator');
 //         if (cropIndicator) {
 //             cropIndicator.setAttribute('opacity', autoCrop ? '1' : '0');
 //         }
-// 
+//
 //         // Update diagram proportions based on axes dimensions
 //         const scale = 200 / Math.max(axesWidth, axesHeight);
 //         const scaledWidth = axesWidth * scale;
 //         const scaledHeight = axesHeight * scale;
 //         const scaledMargin = Math.min(marginLeft, marginTop) * scale;
-// 
+//
 //         const axesRect = document.getElementById('diagram-axes');
 //         if (axesRect) {
 //             const centerX = 150;
 //             const centerY = 100;
 //             const x = centerX - scaledWidth / 2;
 //             const y = centerY - scaledHeight / 2;
-// 
+//
 //             axesRect.setAttribute('x', x.toString());
 //             axesRect.setAttribute('y', y.toString());
 //             axesRect.setAttribute('width', scaledWidth.toString());
 //             axesRect.setAttribute('height', scaledHeight.toString());
 //         }
-// 
+//
 //         const marginsRect = document.getElementById('diagram-margins');
 //         if (marginsRect) {
 //             const centerX = 150;
@@ -771,14 +771,14 @@ describe('PropertiesManager', () => {
 //             const y = centerY - (scaledHeight / 2 + scaledMargin);
 //             const width = scaledWidth + scaledMargin * 2;
 //             const height = scaledHeight + scaledMargin * 2;
-// 
+//
 //             marginsRect.setAttribute('x', x.toString());
 //             marginsRect.setAttribute('y', y.toString());
 //             marginsRect.setAttribute('width', width.toString());
 //             marginsRect.setAttribute('height', height.toString());
 //         }
 //     }
-// 
+//
 //     /**
 //      * Initialize live preview handlers
 //      */
@@ -788,7 +788,7 @@ describe('PropertiesManager', () => {
 //             refreshBtn.addEventListener('click', () => this.updateLivePreview());
 //         }
 //     }
-// 
+//
 //     /**
 //      * Update live preview (debounced)
 //      */
@@ -796,12 +796,12 @@ describe('PropertiesManager', () => {
 //         if (this.previewDebounceTimer) {
 //             clearTimeout(this.previewDebounceTimer);
 //         }
-// 
+//
 //         this.previewDebounceTimer = window.setTimeout(() => {
 //             this.updateLivePreview();
 //         }, 1000); // 1 second debounce
 //     }
-// 
+//
 //     /**
 //      * Update live preview by rendering sample figure (merged into blueprint)
 //      */
@@ -809,16 +809,16 @@ describe('PropertiesManager', () => {
 //         const loadingOverlay = document.getElementById('preview-loading-overlay');
 //         const imageEl = document.getElementById('live-preview-image') as unknown as SVGImageElement;
 //         const timestampEl = document.getElementById('preview-timestamp');
-// 
+//
 //         if (!imageEl) return;
-// 
+//
 //         try {
 //             // Show loading overlay
 //             if (loadingOverlay) loadingOverlay.style.display = 'block';
-// 
+//
 //             // Create sample data for preview
 //             const sampleData = this.createSampleCSV();
-// 
+//
 //             // Call preview API
 //             const response = await fetch('/vis/api/editor/preview/', {
 //                 method: 'POST',
@@ -833,14 +833,14 @@ describe('PropertiesManager', () => {
 //                     sample_data: sampleData,
 //                 }),
 //             });
-// 
+//
 //             const data = await response.json();
-// 
+//
 //             if (data.preview) {
 //                 // Set preview image in SVG
 //                 imageEl.setAttributeNS('http://www.w3.org/1999/xlink', 'href', `data:image/png;base64,${data.preview}`);
 //                 imageEl.style.display = 'block';
-// 
+//
 //                 if (timestampEl) {
 //                     const now = new Date();
 //                     timestampEl.textContent = `Live preview updated: ${now.toLocaleTimeString()}`;
@@ -848,20 +848,20 @@ describe('PropertiesManager', () => {
 //             } else {
 //                 throw new Error('No preview data');
 //             }
-// 
+//
 //             if (loadingOverlay) loadingOverlay.style.display = 'none';
-// 
+//
 //         } catch (error) {
 //             console.error('[PropertiesManager] Failed to update preview:', error);
 //             if (loadingOverlay) loadingOverlay.style.display = 'none';
-// 
+//
 //             if (timestampEl) {
 //                 timestampEl.textContent = 'Preview failed - click Refresh to retry';
 //                 timestampEl.style.color = 'var(--color-error, #dc3545)';
 //             }
 //         }
 //     }
-// 
+//
 //     /**
 //      * Create sample CSV data for preview
 //      */
@@ -873,14 +873,14 @@ describe('PropertiesManager', () => {
 //         }
 //         return `x,y\n${data.join('\n')}`;
 //     }
-// 
+//
 //     /**
 //      * Save current settings as new preset
 //      */
 //     private async savePresetAs(): Promise<void> {
 //         const name = prompt('Enter preset name:');
 //         if (!name) return;
-// 
+//
 //         try {
 //             const response = await fetch('/vis/api/style-presets/create/', {
 //                 method: 'POST',
@@ -894,9 +894,9 @@ describe('PropertiesManager', () => {
 //                     style_config: this.currentDefaults,
 //                 }),
 //             });
-// 
+//
 //             const data = await response.json();
-// 
+//
 //             if (response.ok) {
 //                 alert(`Preset "${name}" saved successfully!`);
 //                 await this.loadPresets();
@@ -908,20 +908,20 @@ describe('PropertiesManager', () => {
 //             alert('Failed to save preset');
 //         }
 //     }
-// 
+//
 //     /**
 //      * Import YAML file
 //      */
 //     private importYAML(): void {
 //         const input = document.getElementById('yaml-import-input') as HTMLInputElement;
 //         if (!input) return;
-// 
+//
 //         input.onchange = async () => {
 //             if (!input.files || input.files.length === 0) return;
-// 
+//
 //             const formData = new FormData();
 //             formData.append('file', input.files[0]);
-// 
+//
 //             try {
 //                 const response = await fetch('/vis/api/style-presets/import/', {
 //                     method: 'POST',
@@ -930,9 +930,9 @@ describe('PropertiesManager', () => {
 //                     },
 //                     body: formData,
 //                 });
-// 
+//
 //                 const data = await response.json();
-// 
+//
 //                 if (response.ok) {
 //                     alert(data.message);
 //                     await this.loadPresets();
@@ -943,13 +943,13 @@ describe('PropertiesManager', () => {
 //                 console.error('[PropertiesManager] Failed to import YAML:', error);
 //                 alert('Failed to import YAML file');
 //             }
-// 
+//
 //             input.value = ''; // Reset input
 //         };
-// 
+//
 //         input.click();
 //     }
-// 
+//
 //     /**
 //      * Export current preset as YAML
 //      */
@@ -958,7 +958,7 @@ describe('PropertiesManager', () => {
 //             alert('Please select a preset to export (SciTeX Default cannot be exported)');
 //             return;
 //         }
-// 
+//
 //         try {
 //             const response = await fetch(`/vis/api/style-presets/${this.currentPresetId}/export/`, {
 //                 method: 'POST',
@@ -966,7 +966,7 @@ describe('PropertiesManager', () => {
 //                     'X-CSRFToken': this.csrfToken,
 //                 },
 //             });
-// 
+//
 //             if (response.ok) {
 //                 const blob = await response.blob();
 //                 const url = window.URL.createObjectURL(blob);
@@ -986,27 +986,27 @@ describe('PropertiesManager', () => {
 //             alert('Failed to export YAML file');
 //         }
 //     }
-// 
+//
 //     /**
 //      * Setup property range sliders with value display
 //      */
 //     public setupPropertySliders(): void {
 //         // Find all range sliders in the properties panel
 //         const sliders = document.querySelectorAll('.property-range') as NodeListOf<HTMLInputElement>;
-// 
+//
 //         sliders.forEach(slider => {
 //             // Get the adjacent value display span
 //             const valueSpan = slider.nextElementSibling as HTMLElement;
-// 
+//
 //             if (valueSpan && valueSpan.classList.contains('property-value')) {
 //                 // Set initial value
 //                 valueSpan.textContent = slider.value;
-// 
+//
 //                 // Update value on input
 //                 slider.addEventListener('input', () => {
 //                     const value = parseFloat(slider.value);
 //                     valueSpan.textContent = slider.value;
-// 
+//
 //                     // Update internal state based on slider ID
 //                     if (slider.id === 'prop-line-width') {
 //                         this.plotProperties.lineWidth = value;
@@ -1018,60 +1018,60 @@ describe('PropertiesManager', () => {
 //                 });
 //             }
 //         });
-// 
+//
 //         console.log(`[PropertiesManager] Property sliders initialized (${sliders.length} sliders)`);
 //     }
-// 
+//
 //     /**
 //      * Get current plot properties
 //      */
 //     public getPlotProperties(): { lineWidth: number; markerSize: number } {
 //         return { ...this.plotProperties };
 //     }
-// 
+//
 //     /**
 //      * Update column dropdowns in properties panel
 //      */
 //     public updateColumnDropdowns(): void {
 //         const currentData = this.getCurrentDataCallback?.();
 //         if (!currentData) return;
-// 
+//
 //         const xColumnSelect = document.getElementById('prop-x-column') as HTMLSelectElement;
 //         const yColumnSelect = document.getElementById('prop-y-column') as HTMLSelectElement;
-// 
+//
 //         if (xColumnSelect && yColumnSelect) {
 //             const options = currentData.columns.map(col =>
 //                 `<option value="${col}">${col}</option>`
 //             ).join('');
-// 
+//
 //             xColumnSelect.innerHTML = `<option value="">-- Select --</option>${options}`;
 //             yColumnSelect.innerHTML = `<option value="">-- Select --</option>${options}`;
-// 
+//
 //             // Auto-select first two columns
 //             if (currentData.columns.length >= 2) {
 //                 xColumnSelect.value = currentData.columns[0];
 //                 yColumnSelect.value = currentData.columns[1];
 //             }
-// 
+//
 //             console.log('[PropertiesManager] Column dropdowns updated');
 //         }
 //     }
-// 
+//
 //     /**
 //      * Get selected columns from properties panel
 //      */
 //     public getSelectedColumns(): { xColumn: string, yColumn: string } {
 //         const xColSelect = document.getElementById('prop-x-column') as HTMLSelectElement;
 //         const yColSelect = document.getElementById('prop-y-column') as HTMLSelectElement;
-// 
+//
 //         const currentData = this.getCurrentDataCallback?.();
-// 
+//
 //         return {
 //             xColumn: xColSelect?.value || currentData?.columns[0] || '',
 //             yColumn: yColSelect?.value || currentData?.columns[1] || currentData?.columns[0] || ''
 //         };
 //     }
-// 
+//
 //     /**
 //      * Set properties panel collapsed state
 //      */
@@ -1085,7 +1085,7 @@ describe('PropertiesManager', () => {
 //             }
 //         }
 //     }
-// 
+//
 //     /**
 //      * Toggle properties panel visibility
 //      */
@@ -1097,14 +1097,14 @@ describe('PropertiesManager', () => {
 //             console.log(`[PropertiesManager] Properties panel ${isCollapsed ? 'expanded' : 'collapsed'}`);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Programmatically switch to a specific properties tab (legacy method, kept for compatibility)
 //      */
 //     public switchToTab(tabName: string): void {
 //         const tabs = document.querySelectorAll('.properties-tab');
 //         const panels = document.querySelectorAll('.properties-panel');
-// 
+//
 //         // Find the target tab
 //         let targetTab: Element | null = null;
 //         tabs.forEach(tab => {
@@ -1112,27 +1112,27 @@ describe('PropertiesManager', () => {
 //                 targetTab = tab;
 //             }
 //         });
-// 
+//
 //         if (!targetTab) {
 //             console.warn(`[PropertiesManager] Tab "${tabName}" not found`);
 //             return;
 //         }
-// 
+//
 //         // Update active tab
 //         tabs.forEach(t => t.classList.remove('active'));
 //         targetTab.classList.add('active');
-// 
+//
 //         // Show corresponding panel
 //         panels.forEach(p => p.classList.remove('active'));
 //         const targetPanel = document.querySelector(`.properties-panel[data-props-panel="${tabName}"]`);
 //         if (targetPanel) {
 //             targetPanel.classList.add('active');
 //         }
-// 
+//
 //         this.currentPropertiesTab = tabName;
 //         console.log(`[PropertiesManager] Auto-switched to properties tab: ${tabName}`);
 //     }
-// 
+//
 //     /**
 //      * Show properties for a specific element type
 //      */
@@ -1141,13 +1141,13 @@ describe('PropertiesManager', () => {
 //             console.warn('[PropertiesManager] Dynamic properties elements not found');
 //             return;
 //         }
-// 
+//
 //         // Update selected item info header
 //         this.updateSelectedItemInfo(elementType, elementLabel);
-// 
+//
 //         // Clear current properties
 //         this.dynamicPropertiesEl.innerHTML = '';
-// 
+//
 //         // Load appropriate template based on element type
 //         let templateId = '';
 //         switch (elementType.toLowerCase()) {
@@ -1176,33 +1176,33 @@ describe('PropertiesManager', () => {
 //                 console.warn(`[PropertiesManager] Unknown element type: ${elementType}`);
 //                 return;
 //         }
-// 
+//
 //         // Clone and insert template
 //         const template = document.getElementById(templateId) as HTMLTemplateElement;
 //         if (template) {
 //             const content = template.content.cloneNode(true);
 //             this.dynamicPropertiesEl.appendChild(content);
-// 
+//
 //             // Re-setup sliders after adding new content
 //             this.setupPropertySliders();
-// 
+//
 //             // Populate with element data if provided
 //             if (elementData) {
 //                 this.populateProperties(elementType, elementData);
 //             }
-// 
+//
 //             console.log(`[PropertiesManager] Showing properties for ${elementType}: ${elementLabel}`);
 //         } else {
 //             console.warn(`[PropertiesManager] Template not found: ${templateId}`);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Update selected item info header
 //      */
 //     private updateSelectedItemInfo(elementType: string, elementLabel: string): void {
 //         if (!this.selectedItemInfoEl) return;
-// 
+//
 //         const iconMap: { [key: string]: string } = {
 //             'figure': 'fa-chart-area',
 //             'axis': 'fa-crosshairs',
@@ -1215,12 +1215,12 @@ describe('PropertiesManager', () => {
 //             'annotation': 'fa-sticky-note',
 //             'element': 'fa-vector-square'
 //         };
-// 
+//
 //         const icon = iconMap[elementType.toLowerCase()] || 'fa-info-circle';
-// 
+//
 //         const headerEl = this.selectedItemInfoEl.querySelector('.selected-item-header');
 //         const labelEl = this.selectedItemInfoEl.querySelector('.selected-item-label');
-// 
+//
 //         if (headerEl && labelEl) {
 //             headerEl.innerHTML = `
 //                 <i class="fas ${icon} selected-item-icon"></i>
@@ -1229,7 +1229,7 @@ describe('PropertiesManager', () => {
 //             labelEl.textContent = elementLabel;
 //         }
 //     }
-// 
+//
 //     /**
 //      * Populate properties with element data
 //      */
@@ -1237,14 +1237,14 @@ describe('PropertiesManager', () => {
 //         // TODO: Implement property population based on element type and data
 //         console.log('[PropertiesManager] Populating properties with data:', data);
 //     }
-// 
+//
 //     /**
 //      * Capitalize first letter
 //      */
 //     private capitalizeFirst(str: string): string {
 //         return str.charAt(0).toUpperCase() + str.slice(1);
 //     }
-// 
+//
 //     /**
 //      * Show properties for a canvas object (fabric.js object)
 //      * Displays embedded metadata including axis_bbox_px for snap/align
@@ -1255,30 +1255,30 @@ describe('PropertiesManager', () => {
 //             console.warn('[PropertiesManager] Dynamic properties elements not found');
 //             return;
 //         }
-// 
+//
 //         // Check if this is a bundle panel (pltz)
 //         if (obj.isBundlePanel && obj.pltzPath) {
 //             this.showPltzProperties(obj.pltzPath, obj.panelLabel || obj.panelId, obj);
 //             return;
 //         }
-// 
+//
 //         const name = obj.name || obj.type || 'Object';
-// 
+//
 //         // Update header
 //         this.updateSelectedItemInfo('figure', name);
-// 
+//
 //         // Build properties HTML using CanvasObjectPropertiesBuilder
 //         const html = CanvasObjectPropertiesBuilder.buildCanvasObjectPropertiesHTML(obj);
-// 
-// 
+//
+//
 //         this.dynamicPropertiesEl.innerHTML = html;
-// 
+//
 //         // Setup event listener for loading embedded info
 //         this.setupEmbeddedInfoLoader(obj);
-// 
+//
 //         console.log('[PropertiesManager] Showing canvas object properties:', name);
 //     }
-// 
+//
 //     /**
 //      * Setup embedded info loader for the current canvas object
 //      */
@@ -1289,27 +1289,27 @@ describe('PropertiesManager', () => {
 //         };
 //         window.addEventListener('load-embedded-info', handler);
 //     }
-// 
+//
 //     /**
 //      * Load embedded metadata from the image via backend API
 //      */
 //     private async loadEmbeddedInfo(obj: any): Promise<void> {
 //         const contentEl = document.getElementById('embedded-info-content');
 //         if (!contentEl) return;
-// 
+//
 //         // Show loading state
 //         contentEl.innerHTML = `<div class="scitex-no-traces" style="color: var(--text-muted, #666);">
 //             <i class="fas fa-spinner fa-spin"></i> Loading embedded metadata...
 //         </div>`;
-// 
+//
 //         try {
 //             // Get base64 image data from the fabric object
 //             let imageData: string | null = null;
-// 
+//
 //             if (obj.type === 'image' && obj._element) {
 //                 // For fabric.Image objects, we need to preserve the original PNG metadata
 //                 const src = obj._element.src;
-// 
+//
 //                 if (src && src.startsWith('data:')) {
 //                     // Already a data URL - use it directly
 //                     imageData = src;
@@ -1340,14 +1340,14 @@ describe('PropertiesManager', () => {
 //                 // Fallback: try to convert any object to data URL
 //                 imageData = obj.toDataURL({ format: 'png' });
 //             }
-// 
+//
 //             if (!imageData) {
 //                 contentEl.innerHTML = `<div class="scitex-no-traces">
 //                     <i class="fas fa-exclamation-circle"></i> Cannot extract image data
 //                 </div>`;
 //                 return;
 //             }
-// 
+//
 //             // Call the backend API to extract embedded metadata
 //             const response = await fetch('/vis/api/plot/metadata/', {
 //                 method: 'POST',
@@ -1356,27 +1356,27 @@ describe('PropertiesManager', () => {
 //                 },
 //                 body: JSON.stringify({ image: imageData })
 //             });
-// 
+//
 //             const result = await response.json();
-// 
+//
 //             if (!result.success) {
 //                 contentEl.innerHTML = `<div class="scitex-no-traces">
 //                     <i class="fas fa-exclamation-circle"></i> ${result.error || 'Failed to extract metadata'}
 //                 </div>`;
 //                 return;
 //             }
-// 
+//
 //             if (!result.has_metadata) {
 //                 contentEl.innerHTML = `<div class="scitex-no-traces">
 //                     <i class="fas fa-info-circle"></i> No embedded scitex metadata found
 //                 </div>`;
 //                 return;
 //             }
-// 
+//
 //             // Display the embedded metadata
 //             const metadata = result.metadata;
 //             let html = '';
-// 
+//
 //             // Schema info
 //             if (metadata.scitex_schema) {
 //                 html += `<div class="property-group">
@@ -1384,14 +1384,14 @@ describe('PropertiesManager', () => {
 //                     <input type="text" class="property-input" value="${metadata.scitex_schema}" readonly>
 //                 </div>`;
 //             }
-// 
+//
 //             if (metadata.scitex_schema_version) {
 //                 html += `<div class="property-group">
 //                     <label class="property-label">Schema Version</label>
 //                     <input type="text" class="property-input" value="${metadata.scitex_schema_version}" readonly>
 //                 </div>`;
 //             }
-// 
+//
 //             // Runtime info
 //             if (metadata.runtime) {
 //                 const rt = metadata.runtime;
@@ -1408,7 +1408,7 @@ describe('PropertiesManager', () => {
 //                     </div>`;
 //                 }
 //             }
-// 
+//
 //             // Figure info
 //             if (metadata.figure) {
 //                 const fig = metadata.figure;
@@ -1438,7 +1438,7 @@ describe('PropertiesManager', () => {
 //                     </div>`;
 //                 }
 //             }
-// 
+//
 //             // Full JSON button
 //             html += `<div class="property-group" style="margin-top: 12px;">
 //                 <button class="copy-json-btn" onclick="navigator.clipboard.writeText(JSON.stringify(${PropertiesHTMLBuilder.escapeHtml(JSON.stringify(metadata))}, null, 2)).then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy Full Metadata', 1500); })" style="
@@ -1452,13 +1452,13 @@ describe('PropertiesManager', () => {
 //                     width: 100%;
 //                 ">Copy Full Metadata</button>
 //             </div>`;
-// 
+//
 //             html += `<div class="scitex-no-traces" style="color: var(--accent-primary); font-style: normal; margin-top: 8px;">
 //                 <i class="fas fa-check-circle"></i> SciTeX figure with embedded metadata
 //             </div>`;
-// 
+//
 //             contentEl.innerHTML = html;
-// 
+//
 //         } catch (error) {
 //             console.error('[PropertiesManager] Error loading embedded info:', error);
 //             contentEl.innerHTML = `<div class="scitex-no-traces">
@@ -1466,24 +1466,24 @@ describe('PropertiesManager', () => {
 //             </div>`;
 //         }
 //     }
-// 
+//
 //     /**
 //      * Escape HTML special characters for safe display
 //      */
-// 
+//
 //     /**
 //      * Show placeholder message when no object selected
 //      */
 //     public showNoSelection(): void {
 //         if (!this.dynamicPropertiesEl) return;
-// 
+//
 //         this.dynamicPropertiesEl.innerHTML = `
 //             <div class="property-placeholder">
 //                 Select an item to view properties
 //             </div>
 //         `;
 //     }
-// 
+//
 //     /**
 //      * Show properties for a selected plot element (trace, scatter, bar, etc.)
 //      * Called when user clicks on a data element within a figure
@@ -1493,51 +1493,51 @@ describe('PropertiesManager', () => {
 //             console.warn('[PropertiesManager] Dynamic properties elements not found');
 //             return;
 //         }
-// 
+//
 //         const label = elementInfo?.label || elementName;
-// 
+//
 //         // Update header
 //         this.updateSelectedItemInfo('element', label);
-// 
+//
 //         // Build properties HTML using ElementPropertiesBuilder
 //         const html = ElementPropertiesBuilder.buildElementPropertiesHTML(elementName, elementInfo);
-// 
+//
 //         this.dynamicPropertiesEl.innerHTML = html;
 //         console.log(`[PropertiesManager] Showing element properties:`, label, elementInfo?.element_type || 'unknown');
 //     }
-// 
-// 
+//
+//
 //     // =========================================================================
 //     // Pltz Bundle Properties (for canvas bundle integration)
 //     // =========================================================================
-// 
+//
 //     // Cache for pltz bundle data
 //     private pltzCache: Map<string, { spec: any; style: any; hash?: string }> = new Map();
-// 
+//
 //     // Callback for panel refresh after property changes
 //     private panelRefreshCallback?: (pltzPath: string) => Promise<void>;
-// 
+//
 //     // Debounce timers for auto-render per panel
 //     private renderDebounceTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
-// 
+//
 //     // Track panels with pending changes (dirty flag)
 //     private dirtyPanels: Set<string> = new Set();
-// 
+//
 //     // Debounce delay for auto-render (ms)
 //     // Auto-update interval in ms (configurable via dropdown)
 //     // 0 = Off, 500 = Hot, 1000 = Fast, 2000 = Normal, 5000 = Slow
 //     private autoUpdateInterval: number = 2000;
-// 
+//
 //     // Current pltz path for statistics refresh
 //     private currentPltzPath: string | null = null;
-// 
+//
 //     /**
 //      * Set callback for panel refresh after property changes
 //      */
 //     public setPanelRefreshCallback(callback: (pltzPath: string) => Promise<void>): void {
 //         this.panelRefreshCallback = callback;
 //     }
-// 
+//
 //     /**
 //      * Show properties for a pltz bundle panel (Enhanced with Flask editor features)
 //      */
@@ -1546,36 +1546,36 @@ describe('PropertiesManager', () => {
 //             console.warn('[PropertiesManager] Dynamic properties elements not found');
 //             return;
 //         }
-// 
+//
 //         // Store current path for statistics refresh
 //         this.currentPltzPath = pltzPath;
-// 
+//
 //         // Update header
 //         this.updateSelectedItemInfo('panel', `Panel ${panelLabel}`);
-// 
+//
 //         // Show loading state
 //         this.dynamicPropertiesEl.innerHTML = `
 //             <div class="scitex-loading">
 //                 <i class="fas fa-spinner fa-spin"></i> Loading pltz bundle...
 //             </div>`;
-// 
+//
 //         try {
 //             // Fetch pltz bundle data
 //             const response = await fetch(`/vis/api/bundles/pltz/load/?path=${encodeURIComponent(pltzPath)}`);
 //             if (!response.ok) {
 //                 throw new Error('Failed to load pltz bundle');
 //             }
-// 
+//
 //             const pltzData = await response.json();
 //             const spec = pltzData.spec || {};
 //             const style = pltzData.style || {};
-// 
+//
 //             // Cache the data
 //             this.pltzCache.set(pltzPath, { spec, style });
-// 
+//
 //             // Build properties HTML with Flask editor sections
 //             let html = '';
-// 
+//
 //             // ═══════════════════════════════════════════════════════════════
 //             // DIMENSIONS Section (Flask-style)
 //             // ═══════════════════════════════════════════════════════════════
@@ -1623,7 +1623,7 @@ describe('PropertiesManager', () => {
 //                     </div>
 //                 </div>
 //             </div>`;
-// 
+//
 //             // ═══════════════════════════════════════════════════════════════
 //             // STYLE Section (Flask-style)
 //             // ═══════════════════════════════════════════════════════════════
@@ -1661,14 +1661,14 @@ describe('PropertiesManager', () => {
 //                     </div>
 //                 </div>
 //             </div>`;
-// 
+//
 //             // ═══════════════════════════════════════════════════════════════
 //             // TITLE, LABELS & CAPTION Section (Flask-style)
 //             // ═══════════════════════════════════════════════════════════════
 //             const axes = spec.axes || [];
 //             const ax0 = axes[0] || {};
 //             const labels = ax0.labels || {};
-// 
+//
 //             html += `<div class="scitex-section">
 //                 <div class="scitex-section-header" onclick="this.classList.toggle('collapsed'); this.nextElementSibling.style.display = this.classList.contains('collapsed') ? 'none' : 'block';">
 //                     <i class="fas fa-chevron-down"></i>
@@ -1712,7 +1712,7 @@ describe('PropertiesManager', () => {
 //                     </div>
 //                 </div>
 //             </div>`;
-// 
+//
 //             // ═══════════════════════════════════════════════════════════════
 //             // AXIS & TICKS Section (Flask-style with tabs)
 //             // ═══════════════════════════════════════════════════════════════
@@ -1813,25 +1813,25 @@ describe('PropertiesManager', () => {
 //                     </div>
 //                 </div>
 //             </div>`;
-// 
+//
 //             // ═══════════════════════════════════════════════════════════════
 //             // TRACES Section (Enhanced)
 //             // ═══════════════════════════════════════════════════════════════
 //             const traces = spec.traces || [];
 //             const traceStyles = style.traces || [];
-// 
+//
 //             html += `<div class="scitex-section">
 //                 <div class="scitex-section-header" onclick="this.classList.toggle('collapsed'); this.nextElementSibling.style.display = this.classList.contains('collapsed') ? 'none' : 'block';">
 //                     <i class="fas fa-chevron-down"></i>
 //                     <span>Traces${traces.length > 0 ? ` (${traces.length})` : ''}</span>
 //                 </div>
 //                 <div class="scitex-section-content">`;
-// 
+//
 //             if (traces.length > 0) {
 //                 traces.forEach((trace: any, index: number) => {
 //                     const traceStyle = traceStyles.find((ts: any) => ts.trace_id === trace.id) || {};
 //                     const traceLabel = trace.label || trace.id || `Trace ${index + 1}`;
-// 
+//
 //                     html += `<div class="trace-item" style="margin-bottom: 10px; padding: 8px; background: var(--bg-tertiary, #222); border-radius: 4px; border-left: 3px solid ${traceStyle.color || '#0080bf'};">
 //                         <div style="font-weight: 600; font-size: 11px; margin-bottom: 6px; color: var(--text-primary, #fff);">
 //                             ${PropertiesHTMLBuilder.escapeHtml(traceLabel)}
@@ -1900,9 +1900,9 @@ describe('PropertiesManager', () => {
 //                     Click on a trace in the preview to edit its properties.
 //                 </div>`;
 //             }
-// 
+//
 //             html += `</div></div>`;
-// 
+//
 //             // ═══════════════════════════════════════════════════════════════
 //             // LEGEND Section (Enhanced)
 //             // ═══════════════════════════════════════════════════════════════
@@ -1965,7 +1965,7 @@ describe('PropertiesManager', () => {
 //                     </div>
 //                 </div>
 //             </div>`;
-// 
+//
 //             // ═══════════════════════════════════════════════════════════════
 //             // STATISTICS Section (Flask-style - NEW!)
 //             // ═══════════════════════════════════════════════════════════════
@@ -1985,7 +1985,7 @@ describe('PropertiesManager', () => {
 //                     </button>
 //                 </div>
 //             </div>`;
-// 
+//
 //             // ═══════════════════════════════════════════════════════════════
 //             // ANNOTATIONS Section (text overlays, arrows, labels)
 //             // ═══════════════════════════════════════════════════════════════
@@ -2032,7 +2032,7 @@ describe('PropertiesManager', () => {
 //                     <div id="pltz-annotations-list" style="margin-top: 8px; font-size: 11px;"></div>
 //                 </div>
 //             </div>`;
-// 
+//
 //             // ═══════════════════════════════════════════════════════════════
 //             // ACTIONS Section (Flask-style with Auto-Update dropdown)
 //             // ═══════════════════════════════════════════════════════════════
@@ -2070,23 +2070,23 @@ describe('PropertiesManager', () => {
 //                     </button>
 //                 </div>
 //             </div>`;
-// 
+//
 //             this.dynamicPropertiesEl.innerHTML = html;
-// 
+//
 //             // Setup event listeners for editable properties
 //             this.setupPltzPropertyListeners(pltzPath);
-// 
+//
 //             // Setup auto-update dropdown
 //             this.setupAutoUpdateDropdown();
-// 
+//
 //             // Setup annotations
 //             this.setupAnnotationsSection(pltzPath, spec?.annotations || []);
-// 
+//
 //             // Load statistics
 //             this.loadPltzStatistics(pltzPath);
-// 
+//
 //             console.log('[PropertiesManager] Showing enhanced pltz properties:', panelLabel, pltzPath);
-// 
+//
 //         } catch (error) {
 //             console.error('[PropertiesManager] Failed to load pltz properties:', error);
 //             this.dynamicPropertiesEl.innerHTML = `
@@ -2095,7 +2095,7 @@ describe('PropertiesManager', () => {
 //                 </div>`;
 //         }
 //     }
-// 
+//
 //     /**
 //      * Setup auto-update dropdown event listener
 //      */
@@ -2104,13 +2104,13 @@ describe('PropertiesManager', () => {
 //         if (dropdown) {
 //             // Set current value
 //             dropdown.value = String(this.autoUpdateInterval);
-// 
+//
 //             dropdown.addEventListener('change', () => {
 //                 this.autoUpdateInterval = parseInt(dropdown.value, 10);
 //                 console.log(`[PropertiesManager] Auto-update interval set to: ${this.autoUpdateInterval}ms`);
 //             });
 //         }
-// 
+//
 //         // Setup Update Now button
 //         const updateNowBtn = document.getElementById('pltz-update-now-btn');
 //         if (updateNowBtn && this.currentPltzPath) {
@@ -2120,7 +2120,7 @@ describe('PropertiesManager', () => {
 //                 }
 //             });
 //         }
-// 
+//
 //         // Setup Save button
 //         const saveBtn = document.getElementById('pltz-save-btn');
 //         if (saveBtn) {
@@ -2130,7 +2130,7 @@ describe('PropertiesManager', () => {
 //                 setTimeout(() => this.updateRenderStatus('idle'), 2000);
 //             });
 //         }
-// 
+//
 //         // Setup Reset button
 //         const resetBtn = document.getElementById('pltz-reset-btn');
 //         if (resetBtn && this.currentPltzPath) {
@@ -2144,22 +2144,22 @@ describe('PropertiesManager', () => {
 //             });
 //         }
 //     }
-// 
+//
 //     /**
 //      * Setup annotations section event handlers
 //      */
 //     private setupAnnotationsSection(pltzPath: string, existingAnnotations: any[]): void {
 //         const addBtn = document.getElementById('pltz-add-annotation-btn');
 //         const listEl = document.getElementById('pltz-annotations-list');
-// 
+//
 //         if (!addBtn || !listEl) return;
-// 
+//
 //         // Track annotations locally
 //         const annotations = [...existingAnnotations];
-// 
+//
 //         // Render existing annotations
 //         this.renderAnnotationsList(listEl, annotations, pltzPath);
-// 
+//
 //         // Add annotation button handler
 //         addBtn.addEventListener('click', async () => {
 //             const textInput = document.getElementById('pltz-annot-text') as HTMLInputElement;
@@ -2168,13 +2168,13 @@ describe('PropertiesManager', () => {
 //             const sizeInput = document.getElementById('pltz-annot-size') as HTMLInputElement;
 //             const colorInput = document.getElementById('pltz-annot-color') as HTMLInputElement;
 //             const weightSelect = document.getElementById('pltz-annot-weight') as HTMLSelectElement;
-// 
+//
 //             const text = textInput?.value?.trim();
 //             if (!text) {
 //                 console.warn('[PropertiesManager] Annotation text is empty');
 //                 return;
 //             }
-// 
+//
 //             const annotation = {
 //                 id: `annot_${Date.now()}`,
 //                 text: text,
@@ -2184,22 +2184,22 @@ describe('PropertiesManager', () => {
 //                 color: colorInput?.value || '#000000',
 //                 fontweight: weightSelect?.value || 'normal'
 //             };
-// 
+//
 //             annotations.push(annotation);
-// 
+//
 //             // Update spec with new annotation
 //             await this.updatePltzProperty(pltzPath, 'annotations', annotations);
-// 
+//
 //             // Re-render list
 //             this.renderAnnotationsList(listEl, annotations, pltzPath);
-// 
+//
 //             // Clear input
 //             textInput.value = '';
-// 
+//
 //             console.log('[PropertiesManager] Added annotation:', annotation);
 //         });
 //     }
-// 
+//
 //     /**
 //      * Render annotations list with delete buttons
 //      */
@@ -2208,7 +2208,7 @@ describe('PropertiesManager', () => {
 //             container.innerHTML = '<div style="color: var(--text-muted, #888); font-style: italic;">No annotations</div>';
 //             return;
 //         }
-// 
+//
 //         container.innerHTML = annotations.map((annot, idx) => `
 //             <div class="annotation-item" style="
 //                 display: flex;
@@ -2234,7 +2234,7 @@ describe('PropertiesManager', () => {
 //                 </button>
 //             </div>
 //         `).join('');
-// 
+//
 //         // Attach delete handlers
 //         container.querySelectorAll('.annotation-delete-btn').forEach(btn => {
 //             btn.addEventListener('click', async () => {
@@ -2248,18 +2248,18 @@ describe('PropertiesManager', () => {
 //             });
 //         });
 //     }
-// 
+//
 //     /**
 //      * Load statistics for pltz bundle
 //      */
 //     private async loadPltzStatistics(pltzPath: string): Promise<void> {
 //         const container = document.getElementById('pltz-stats-container');
 //         if (!container) return;
-// 
+//
 //         try {
 //             // Fetch statistics from API
 //             const response = await fetch(`/vis/api/bundles/pltz/stats/?path=${encodeURIComponent(pltzPath)}`);
-// 
+//
 //             if (!response.ok) {
 //                 // API might not exist yet, show placeholder
 //                 container.innerHTML = `
@@ -2286,10 +2286,10 @@ describe('PropertiesManager', () => {
 //                     </div>`;
 //                 return;
 //             }
-// 
+//
 //             const stats = await response.json();
 //             this.renderStatistics(container, stats);
-// 
+//
 //         } catch (error) {
 //             console.warn('[PropertiesManager] Failed to load statistics:', error);
 //             container.innerHTML = `
@@ -2297,7 +2297,7 @@ describe('PropertiesManager', () => {
 //                     Unable to load statistics
 //                 </div>`;
 //         }
-// 
+//
 //         // Setup refresh stats button
 //         const refreshBtn = document.getElementById('pltz-refresh-stats-btn');
 //         if (refreshBtn) {
@@ -2308,13 +2308,13 @@ describe('PropertiesManager', () => {
 //             });
 //         }
 //     }
-// 
+//
 //     /**
 //      * Render statistics in container
 //      */
 //     private renderStatistics(container: HTMLElement, stats: any): void {
 //         const formatNum = (n: number | undefined) => n !== undefined ? n.toFixed(3) : '-';
-// 
+//
 //         container.innerHTML = `
 //             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
 //                 <div style="background: var(--bg-tertiary, #222); padding: 6px 8px; border-radius: 4px;">
@@ -2343,14 +2343,14 @@ describe('PropertiesManager', () => {
 //                 </div>
 //             </div>`;
 //     }
-// 
+//
 //     /**
 //      * Setup event listeners for pltz property inputs
 //      */
 //     private setupPltzPropertyListeners(pltzPath: string): void {
 //         const editables = this.dynamicPropertiesEl?.querySelectorAll('.pltz-editable');
 //         if (!editables) return;
-// 
+//
 //         editables.forEach(input => {
 //             input.addEventListener('change', async (e) => {
 //                 const target = e.target as HTMLInputElement | HTMLSelectElement;
@@ -2358,13 +2358,13 @@ describe('PropertiesManager', () => {
 //                 const value = target.type === 'checkbox'
 //                     ? (target as HTMLInputElement).checked
 //                     : target.value;
-// 
+//
 //                 if (!property) return;
-// 
+//
 //                 await this.updatePltzProperty(pltzPath, property, value);
 //             });
 //         });
-// 
+//
 //         // Setup refresh button
 //         const refreshBtn = this.dynamicPropertiesEl?.querySelector('#pltz-refresh-btn');
 //         if (refreshBtn) {
@@ -2373,30 +2373,30 @@ describe('PropertiesManager', () => {
 //             });
 //         }
 //     }
-// 
+//
 //     /**
 //      * Update a pltz bundle property
 //      */
 //     private async updatePltzProperty(pltzPath: string, property: string, value: any): Promise<void> {
 //         console.log(`[PropertiesManager] Updating pltz property: ${property} = ${value}`);
-// 
+//
 //         // Parse the property path
 //         const [type, ...pathParts] = property.split('.');
 //         if (type !== 'spec' && type !== 'style') {
 //             console.warn('[PropertiesManager] Invalid property type:', type);
 //             return;
 //         }
-// 
+//
 //         // Get cached data
 //         const cached = this.pltzCache.get(pltzPath);
 //         if (!cached) {
 //             console.warn('[PropertiesManager] No cached data for:', pltzPath);
 //             return;
 //         }
-// 
+//
 //         // Build update payload
 //         const updateData: any = { path: pltzPath };
-// 
+//
 //         // Update the cached data
 //         let obj = type === 'spec' ? cached.spec : cached.style;
 //         for (let i = 0; i < pathParts.length - 1; i++) {
@@ -2407,18 +2407,18 @@ describe('PropertiesManager', () => {
 //             obj = obj[key];
 //         }
 //         const lastKey = pathParts[pathParts.length - 1];
-// 
+//
 //         // Parse value if needed
 //         let parsedValue = value;
 //         if (value === 'true') parsedValue = true;
 //         else if (value === 'false') parsedValue = false;
 //         else if (!isNaN(Number(value)) && value !== '') parsedValue = Number(value);
-// 
+//
 //         obj[lastKey] = parsedValue;
-// 
+//
 //         // Send update to server
 //         updateData[type] = type === 'spec' ? cached.spec : cached.style;
-// 
+//
 //         try {
 //             const response = await fetch('/vis/api/bundles/pltz/update/', {
 //                 method: 'POST',
@@ -2428,23 +2428,23 @@ describe('PropertiesManager', () => {
 //                 },
 //                 body: JSON.stringify(updateData),
 //             });
-// 
+//
 //             if (!response.ok) {
 //                 throw new Error('Failed to update pltz bundle');
 //             }
-// 
+//
 //             console.log('[PropertiesManager] Pltz property updated successfully');
-// 
+//
 //             // Mark panel as dirty and schedule debounced auto-render
 //             this.dirtyPanels.add(pltzPath);
 //             this.showPendingStatus();
 //             this.scheduleAutoRender(pltzPath);
-// 
+//
 //         } catch (error) {
 //             console.error('[PropertiesManager] Failed to update pltz property:', error);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Schedule debounced auto-render for a panel
 //      * Waits for AUTO_RENDER_DEBOUNCE_MS after last change before rendering
@@ -2455,13 +2455,13 @@ describe('PropertiesManager', () => {
 //         if (existingTimer) {
 //             clearTimeout(existingTimer);
 //         }
-// 
+//
 //         // If auto-update is off, don't schedule render
 //         if (this.autoUpdateInterval === 0) {
 //             console.log('[PropertiesManager] Auto-update is off, skipping scheduled render');
 //             return;
 //         }
-// 
+//
 //         // Schedule new render
 //         const timer = setTimeout(async () => {
 //             if (this.dirtyPanels.has(pltzPath)) {
@@ -2471,10 +2471,10 @@ describe('PropertiesManager', () => {
 //             }
 //             this.renderDebounceTimers.delete(pltzPath);
 //         }, this.autoUpdateInterval);
-// 
+//
 //         this.renderDebounceTimers.set(pltzPath, timer);
 //     }
-// 
+//
 //     /**
 //      * Cancel pending auto-render for a panel (e.g., when panel is deselected)
 //      */
@@ -2493,23 +2493,23 @@ describe('PropertiesManager', () => {
 //             this.dirtyPanels.clear();
 //         }
 //     }
-// 
+//
 //     /**
 //      * Check if a panel has pending changes
 //      */
 //     public isPanelDirty(pltzPath: string): boolean {
 //         return this.dirtyPanels.has(pltzPath);
 //     }
-// 
+//
 //     /**
 //      * Re-render pltz bundle and refresh canvas panel
 //      */
 //     private async renderAndRefreshPanel(pltzPath: string): Promise<void> {
 //         console.log('[PropertiesManager] Re-rendering panel:', pltzPath);
-// 
+//
 //         // Show rendering status
 //         this.updateRenderStatus('rendering');
-// 
+//
 //         try {
 //             // Call render API
 //             const response = await fetch(`/vis/api/bundles/pltz/render/?path=${encodeURIComponent(pltzPath)}`, {
@@ -2518,29 +2518,29 @@ describe('PropertiesManager', () => {
 //                     'X-CSRFToken': this.csrfToken,
 //                 },
 //             });
-// 
+//
 //             if (!response.ok) {
 //                 throw new Error('Failed to render pltz bundle');
 //             }
-// 
+//
 //             // Call panel refresh callback if set
 //             if (this.panelRefreshCallback) {
 //                 await this.panelRefreshCallback(pltzPath);
 //             }
-// 
+//
 //             console.log('[PropertiesManager] Panel re-rendered successfully');
-// 
+//
 //             // Show success status briefly
 //             this.updateRenderStatus('success');
 //             setTimeout(() => this.updateRenderStatus('idle'), 2000);
-// 
+//
 //         } catch (error) {
 //             console.error('[PropertiesManager] Failed to re-render panel:', error);
 //             this.updateRenderStatus('error');
 //             setTimeout(() => this.updateRenderStatus('idle'), 3000);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Update render status UI
 //      */
@@ -2549,9 +2549,9 @@ describe('PropertiesManager', () => {
 //         const refreshBtn = document.getElementById('pltz-refresh-btn');
 //         const refreshIcon = document.getElementById('pltz-refresh-icon');
 //         const refreshText = document.getElementById('pltz-refresh-text');
-// 
+//
 //         if (!statusEl) return;
-// 
+//
 //         switch (status) {
 //             case 'idle':
 //                 statusEl.style.display = 'none';
@@ -2559,14 +2559,14 @@ describe('PropertiesManager', () => {
 //                 if (refreshIcon) refreshIcon.className = 'fas fa-sync-alt';
 //                 if (refreshText) refreshText.textContent = 'Re-render Panel';
 //                 break;
-// 
+//
 //             case 'pending':
 //                 statusEl.style.display = 'block';
 //                 statusEl.style.background = 'var(--warning-bg, #3d3d00)';
 //                 statusEl.style.color = 'var(--warning-color, #ffc107)';
 //                 statusEl.innerHTML = '<i class="fas fa-clock"></i> Changes pending...';
 //                 break;
-// 
+//
 //             case 'rendering':
 //                 statusEl.style.display = 'block';
 //                 statusEl.style.background = 'var(--info-bg, #1a3a4a)';
@@ -2576,7 +2576,7 @@ describe('PropertiesManager', () => {
 //                 if (refreshIcon) refreshIcon.className = 'fas fa-spinner fa-spin';
 //                 if (refreshText) refreshText.textContent = 'Rendering...';
 //                 break;
-// 
+//
 //             case 'success':
 //                 statusEl.style.display = 'block';
 //                 statusEl.style.background = 'var(--success-bg, #1a3d1a)';
@@ -2586,7 +2586,7 @@ describe('PropertiesManager', () => {
 //                 if (refreshIcon) refreshIcon.className = 'fas fa-sync-alt';
 //                 if (refreshText) refreshText.textContent = 'Re-render Panel';
 //                 break;
-// 
+//
 //             case 'error':
 //                 statusEl.style.display = 'block';
 //                 statusEl.style.background = 'var(--danger-bg, #3d1a1a)';
@@ -2598,7 +2598,7 @@ describe('PropertiesManager', () => {
 //                 break;
 //         }
 //     }
-// 
+//
 //     /**
 //      * Show pending status when edits are made
 //      */

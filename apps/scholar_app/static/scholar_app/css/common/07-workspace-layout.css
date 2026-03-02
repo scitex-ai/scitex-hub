@@ -27,6 +27,7 @@
   background: var(--workspace-bg-secondary, #151515);
   border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
   flex-shrink: 0;
+  position: relative;
 }
 
 .scholar-main .pane-header h5 {

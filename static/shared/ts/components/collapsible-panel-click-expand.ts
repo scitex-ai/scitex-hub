@@ -15,7 +15,7 @@ const COLLAPSED_SELECTORS = [
 const PANEL_SELECTORS = [".collapsible-panel", ".workspace-sidebar"].join(", ");
 
 const TOGGLE_SELECTORS =
-  ".panel-toggle-btn, .sidebar-toggle, .sidebar-toggle-btn";
+  ".panel-toggle-btn, .sidebar-toggle, .sidebar-toggle-btn, .details-toggle, .properties-toggle, .properties-toggle-btn";
 
 const HEADER_SELECTORS = [
   ".panel-header",
@@ -88,16 +88,11 @@ function initPanelInteractions(): void {
     if (!header) return;
 
     if (target === header) {
-      // Cursor on empty space → foldable
+      // Cursor on empty space → foldable (widens green indicator bar via CSS)
       header.classList.add("foldable");
-      const panel = header.closest(PANEL_SELECTORS);
-      if (panel && !panel.matches(".collapsed")) {
-        header.setAttribute("data-tooltip", "Double-click to collapse");
-      }
     } else {
       // Cursor on a child element → unfoldable
       header.classList.remove("foldable");
-      header.removeAttribute("data-tooltip");
     }
   });
 

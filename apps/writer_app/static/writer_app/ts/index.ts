@@ -53,13 +53,13 @@ import {
   ComponentInitializer,
   EventHandlerSetup,
   FileTreeSetup,
-} from "./writer/index";
+} from "./_writer/index";
 import { PDFScrollZoomHandler } from "./modules/pdf-scroll-zoom";
-import { statePersistence } from "./modules/state-persistence";
+import { statePersistence } from "./modules/_state-persistence";
 import { getCsrfToken } from "@/utils/csrf.js";
 import { writerStorage } from "@/utils/storage.js";
-import { getWriterConfig, createDefaultEditorState } from "./helpers";
-import { GitHistoryManager } from "./modules/git-history";
+import { getWriterConfig, createDefaultEditorState } from "./_helpers";
+import { GitHistoryManager } from "./modules/_git-history";
 import { initializeCollaboratorsPanel } from "./collaboration-panel";
 import {
   SaveSectionsResponse,

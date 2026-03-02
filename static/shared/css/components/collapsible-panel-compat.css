@@ -1,0 +1,53 @@
+/* ===========================================================================
+   BACKWARD COMPATIBILITY
+   Aliases for existing class names used in apps
+   Extracted from collapsible-panel.css for file size compliance.
+   =========================================================================== */
+
+/* Sidebar toggle aliases */
+.sidebar-toggle,
+.sidebar-toggle-btn {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.sidebar-toggle:hover,
+.sidebar-toggle-btn:hover {
+  background: var(--workspace-bg-tertiary);
+  color: var(--workspace-icon-primary);
+}
+
+/* Properties toggle aliases */
+.properties-toggle,
+.properties-toggle-btn {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.properties-toggle:hover,
+.properties-toggle-btn:hover {
+  background: var(--workspace-bg-tertiary);
+  color: var(--workspace-icon-primary);
+}
+
+/* Collapsed state for aliased toggle buttons */
+.collapsed .sidebar-toggle,
+.collapsed .sidebar-toggle-btn,
+.collapsed .properties-toggle,
+.collapsed .properties-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 4px;
+}

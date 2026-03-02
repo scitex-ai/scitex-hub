@@ -3,8 +3,8 @@
  * Uses lazy import of mermaid to avoid bundling overhead in other entry points.
  */
 
-import type { Viewer } from "../types.ts";
-import { getFileUrl } from "../file-loader.ts";
+import type { Viewer } from "../types";
+import { getFileUrl } from "../_file-loader";
 
 export class MermaidViewer implements Viewer {
   private abortController: AbortController | null = null;

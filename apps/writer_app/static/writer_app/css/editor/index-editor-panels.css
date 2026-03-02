@@ -19,26 +19,7 @@
   background: var(--workspace-bg-secondary);
 }
 
-/* Panel Headers */
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 16px;
-  margin-top: 0 !important;
-  border-bottom: 1px solid var(--workspace-border-default);
-  background: var(--workspace-bg-primary);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  user-select: none;
-  height: 50px;
-  min-height: 50px;
-  max-height: 50px;
-  box-sizing: border-box;
-  flex-shrink: 0; /* Don't shrink in flexbox */
-  position: relative; /* Normal flow */
-}
+/* Panel Headers — base defined in shared/collapsible-panel.css */
 
 /* CodeMirror Enhancements */
 .CodeMirror {
@@ -279,10 +260,6 @@
 }
 
 /* Dark theme - workspace colors */
-[data-theme="dark"] .panel-header {
-  background: var(--workspace-bg-primary);
-}
-
 [data-theme="dark"] .preview-panel {
   background: var(--workspace-bg-primary);
 }

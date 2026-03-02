@@ -233,6 +233,8 @@ def _entry_to_ts_path(entry_name: str) -> str:
         "shared/utils/highlight-js-bibtex": "static/shared/ts/utils/highlight-js-bibtex.ts",
         "shared/workspace-panel-resizer": "static/shared/ts/components/workspace-panel-resizer.ts",
         "shared/collapsible-panel-click-expand": "static/shared/ts/components/collapsible-panel-click-expand.ts",
+        "shared/resizer": "static/shared/ts/components/resizer/index.ts",
+        "shared/repo-monitor": "static/shared/ts/components/repo-monitor/index.ts",
         "shared/components/footer-collapse": "static/shared/ts/components/footer-collapse.ts",
         "shared/utils/analytics": "static/shared/ts/utils/analytics.ts",
         "shared/utils/visitor-heartbeat": "static/shared/ts/utils/visitor-heartbeat.ts",

@@ -13,15 +13,15 @@
  * This shared component can be used across multiple apps (vis_app, console_app).
  */
 
-import { Dataset, DataTableConfig } from './types.ts';
-import { TableData } from './TableData.ts';
-import { TableRendering } from './TableRendering.ts';
-import { TableSelection } from './TableSelection.ts';
-import { TableEditing } from './TableEditing.ts';
-import { TableClipboard } from './TableClipboard.ts';
-import { TableFillHandle } from './TableFillHandle.ts';
-import { TableColumnRow } from './TableColumnRow.ts';
-import { TableContextMenu } from './TableContextMenu.ts';
+import { Dataset, DataTableConfig } from './types';
+import { TableData } from './_TableData';
+import { TableRendering } from './_TableRendering';
+import { TableSelection } from './_TableSelection';
+import { TableEditing } from './_TableEditing';
+import { TableClipboard } from './_TableClipboard';
+import { TableFillHandle } from './_TableFillHandle';
+import { TableColumnRow } from './_TableColumnRow';
+import { TableContextMenu } from './_TableContextMenu';
 
 export class DataTableManager {
     // Module instances

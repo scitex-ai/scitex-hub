@@ -3,8 +3,8 @@
  * Double-click resets to original position and scale.
  */
 
-import type { Viewer } from "../types.ts";
-import { getFileUrl } from "../file-loader.ts";
+import type { Viewer } from "../types";
+import { getFileUrl } from "../_file-loader";
 
 export class ImageViewer implements Viewer {
   private listeners: Array<{

@@ -5,10 +5,10 @@
  */
 
 // Import PDF download handler (auto-initializes on DOM ready)
-import "./search/pdf-download";
+import "./search/_pdf-download";
 
 // Import search main functionality (auto-initializes on DOM ready)
-import "./search/search-main";
+import "./search/_search-main";
 
 // Inline resizers migrated to unified resizer system (data-h-resizer auto-init)
 
@@ -19,7 +19,7 @@ async function initScholarWorkspace(): Promise<void> {
     if (libraryInitialized) return;
     libraryInitialized = true;
     try {
-      const { initLibraryManager } = await import("./library/library-manager");
+      const { initLibraryManager } = await import("./library/_library-manager");
       initLibraryManager();
       console.log("[Scholar] Library manager initialized");
     } catch (error) {

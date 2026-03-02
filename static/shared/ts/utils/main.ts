@@ -120,10 +120,9 @@ function initMobileMenu(): void {
  */
 function initModuleSwitcher(): void {
   const moduleRoutes: Record<string, string> = {
-    f: "/files/",
     s: "/scholar/",
     v: "/vis/",
-    w: "/writer/",
+    w: "/_writer/",
   };
 
   // Use capture phase to intercept before Monaco/xterm can consume the event
@@ -142,6 +141,20 @@ function initModuleSwitcher(): void {
         e.preventDefault();
         e.stopPropagation();
         toggleShortcutsModal();
+        return;
+      }
+
+      // Alt+F → navigate to user profile (/<username>/)
+      if (key === "f") {
+        const username = document.body.dataset.currentUsername;
+        if (username) {
+          const profilePath = `/${username}/`;
+          if (!window.location.pathname.startsWith(profilePath)) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.location.href = profilePath;
+          }
+        }
         return;
       }
 

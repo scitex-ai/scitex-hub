@@ -1,25 +1,7 @@
 /* =========================================
-   PANEL HEADER STYLING (Matching /code/ and /vis/)
+   PANEL HEADER WRITER OVERRIDES
+   Base .panel-header defined in shared/collapsible-panel.css
    ========================================= */
-
-.panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  margin-top: 0 !important;
-  margin-bottom: 0;
-  height: 50px;
-  flex-shrink: 0;
-  box-sizing: border-box;
-  background: var(--workspace-bg-primary);
-  border-bottom: 1px solid var(--workspace-border-default);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  gap: 0.5rem;
-  z-index: 10;
-}
 
 .panel-header .header-left,
 .panel-header .header-right {

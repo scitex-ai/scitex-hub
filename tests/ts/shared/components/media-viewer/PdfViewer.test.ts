@@ -28,54 +28,54 @@ describe('PdfViewer', () => {
 // /**
 //  * PdfViewer - Handles PDF file rendering using PDF.js
 //  */
-// 
-// import type { MediaViewerConfig } from './types.ts';
-// 
+//
+// import type { MediaViewerConfig } from './types';
+//
 // export class PdfViewer {
 //   private config: MediaViewerConfig;
-// 
+//
 //   constructor(config: MediaViewerConfig) {
 //     this.config = config;
 //   }
-// 
+//
 //   /**
 //    * Render a PDF file
 //    */
 //   render(container: HTMLElement, filePath: string, blobUrl?: string): void {
 //     const wrapper = document.createElement("div");
 //     wrapper.className = "media-viewer-pdf-wrapper";
-// 
+//
 //     // Toolbar
 //     const toolbar = this.createToolbar(filePath);
 //     wrapper.appendChild(toolbar);
-// 
+//
 //     // PDF viewer container
 //     const pdfContainer = document.createElement("div");
 //     pdfContainer.className = "media-viewer-pdf-container";
 //     pdfContainer.id = "pdf-viewer-container";
-// 
+//
 //     // Canvas for PDF rendering
 //     const canvas = document.createElement("canvas");
 //     canvas.id = "pdf-canvas";
 //     canvas.className = "media-viewer-pdf-canvas";
 //     pdfContainer.appendChild(canvas);
-// 
+//
 //     wrapper.appendChild(pdfContainer);
 //     container.appendChild(wrapper);
-// 
+//
 //     // Load PDF
 //     this.loadPdf(filePath, blobUrl);
 //   }
-// 
+//
 //   /**
 //    * Create toolbar for PDF viewer
 //    */
 //   private createToolbar(filePath: string): HTMLElement {
 //     const toolbar = document.createElement("div");
 //     toolbar.className = "media-viewer-toolbar";
-// 
+//
 //     const fileName = filePath.split("/").pop() || filePath;
-// 
+//
 //     toolbar.innerHTML = `
 //       <div class="media-viewer-toolbar-left">
 //         <i class="fas fa-file-pdf media-viewer-icon"></i>
@@ -116,51 +116,51 @@ describe('PdfViewer', () => {
 //         </button>
 //       </div>
 //     `;
-// 
+//
 //     // Setup button handlers
 //     const downloadBtn = toolbar.querySelector(".media-download-btn");
 //     downloadBtn?.addEventListener("click", () => this.downloadFile(filePath));
-// 
+//
 //     const openNewTabBtn = toolbar.querySelector(".media-open-new-tab");
 //     openNewTabBtn?.addEventListener("click", () => this.openInNewTab(filePath));
-// 
+//
 //     return toolbar;
 //   }
-// 
+//
 //   /**
 //    * Load and render PDF using PDF.js
 //    */
 //   private async loadPdf(filePath: string, blobUrl?: string): Promise<void> {
 //     // Load PDF.js if not already loaded
 //     await this.ensurePdfJsLoaded();
-// 
+//
 //     const lib = (window as any).pdfjsLib;
 //     if (!lib) {
 //       console.error("[PdfViewer] PDF.js not available");
 //       return;
 //     }
-// 
+//
 //     // Get PDF URL
 //     const pdfUrl = blobUrl || this.config.getFileUrl(filePath, true, false);
-// 
+//
 //     try {
 //       const loadingTask = lib.getDocument(pdfUrl);
 //       const pdf = await loadingTask.promise;
-// 
+//
 //       // Store PDF object for navigation
 //       (window as any).__currentPdf = pdf;
 //       (window as any).__currentPdfPage = 1;
 //       (window as any).__currentPdfScale = 1.0;
-// 
+//
 //       // Update total pages
 //       const totalPagesEl = document.querySelector(".pdf-total-pages");
 //       if (totalPagesEl) {
 //         totalPagesEl.textContent = pdf.numPages.toString();
 //       }
-// 
+//
 //       // Render first page
 //       await this.renderPdfPage(pdf, 1, 1.0);
-// 
+//
 //       // Setup navigation controls
 //       this.setupPdfControls(pdf);
 //     } catch (error) {
@@ -177,7 +177,7 @@ describe('PdfViewer', () => {
 //       }
 //     }
 //   }
-// 
+//
 //   /**
 //    * Ensure PDF.js library is loaded
 //    */
@@ -187,7 +187,7 @@ describe('PdfViewer', () => {
 //         resolve();
 //         return;
 //       }
-// 
+//
 //       const script = document.createElement("script");
 //       script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
 //       script.onload = () => {
@@ -202,41 +202,41 @@ describe('PdfViewer', () => {
 //       document.head.appendChild(script);
 //     });
 //   }
-// 
+//
 //   /**
 //    * Render a specific PDF page
 //    */
 //   private async renderPdfPage(pdf: any, pageNum: number, scale: number): Promise<void> {
 //     const canvas = document.getElementById("pdf-canvas") as HTMLCanvasElement;
 //     if (!canvas) return;
-// 
+//
 //     const page = await pdf.getPage(pageNum);
 //     const viewport = page.getViewport({ scale });
-// 
+//
 //     canvas.height = viewport.height;
 //     canvas.width = viewport.width;
-// 
+//
 //     const context = canvas.getContext("2d");
 //     if (!context) return;
-// 
+//
 //     await page.render({
 //       canvasContext: context,
 //       viewport: viewport,
 //     }).promise;
-// 
+//
 //     // Update page input
 //     const pageInput = document.querySelector(".pdf-page-input") as HTMLInputElement;
 //     if (pageInput) {
 //       pageInput.value = pageNum.toString();
 //     }
-// 
+//
 //     // Update zoom level display
 //     const zoomLevel = document.querySelector(".pdf-zoom-level");
 //     if (zoomLevel) {
 //       zoomLevel.textContent = `${Math.round(scale * 100)}%`;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Setup PDF navigation controls
 //    */
@@ -247,38 +247,38 @@ describe('PdfViewer', () => {
 //     const zoomInBtn = document.querySelector(".pdf-zoom-in");
 //     const zoomOutBtn = document.querySelector(".pdf-zoom-out");
 //     const fitWidthBtn = document.querySelector(".pdf-fit-width");
-// 
+//
 //     const goToPage = async (pageNum: number) => {
 //       if (pageNum < 1 || pageNum > pdf.numPages) return;
 //       (window as any).__currentPdfPage = pageNum;
 //       await this.renderPdfPage(pdf, pageNum, (window as any).__currentPdfScale);
 //     };
-// 
+//
 //     const setZoom = async (scale: number) => {
 //       (window as any).__currentPdfScale = scale;
 //       await this.renderPdfPage(pdf, (window as any).__currentPdfPage, scale);
 //     };
-// 
+//
 //     prevBtn?.addEventListener("click", () => {
 //       goToPage((window as any).__currentPdfPage - 1);
 //     });
-// 
+//
 //     nextBtn?.addEventListener("click", () => {
 //       goToPage((window as any).__currentPdfPage + 1);
 //     });
-// 
+//
 //     pageInput?.addEventListener("change", () => {
 //       goToPage(parseInt(pageInput.value, 10));
 //     });
-// 
+//
 //     zoomInBtn?.addEventListener("click", () => {
 //       setZoom((window as any).__currentPdfScale * 1.25);
 //     });
-// 
+//
 //     zoomOutBtn?.addEventListener("click", () => {
 //       setZoom((window as any).__currentPdfScale / 1.25);
 //     });
-// 
+//
 //     fitWidthBtn?.addEventListener("click", async () => {
 //       const container = document.getElementById("pdf-viewer-container");
 //       if (!container) return;
@@ -288,7 +288,7 @@ describe('PdfViewer', () => {
 //       setZoom(scale);
 //     });
 //   }
-// 
+//
 //   /**
 //    * Download the file
 //    */
@@ -302,7 +302,7 @@ describe('PdfViewer', () => {
 //     document.body.removeChild(a);
 //     this.config.onDownload?.(filePath);
 //   }
-// 
+//
 //   /**
 //    * Open file in new tab
 //    */
@@ -310,7 +310,7 @@ describe('PdfViewer', () => {
 //     const url = this.config.getFileUrl(filePath, true, false);
 //     window.open(url, "_blank");
 //   }
-// 
+//
 //   /**
 //    * Cleanup PDF.js resources
 //    */

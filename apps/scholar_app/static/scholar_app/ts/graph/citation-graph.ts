@@ -13,16 +13,16 @@ import type {
   Transform,
   SourceInfo,
 } from "./types";
-import { GraphRenderer } from "./GraphRenderer";
-import { GraphInputHandler } from "./GraphInputHandler";
-import { GraphLibraryManager } from "./GraphLibraryManager";
-import { NodeDetailsPanel, escapeHtml } from "./NodeDetailsPanel";
+import { GraphRenderer } from "./_GraphRenderer";
+import { GraphInputHandler } from "./_GraphInputHandler";
+import { GraphLibraryManager } from "./_GraphLibraryManager";
+import { NodeDetailsPanel, escapeHtml } from "./_NodeDetailsPanel";
 import {
   setupZoomPan,
   startNodeDrag,
   type InteractionState,
-} from "./GraphInteraction";
-import { autoSavePapers } from "../common/auto-save-library";
+} from "./_GraphInteraction";
+import { autoSavePapers } from "../common/_auto-save-library";
 import {
   startInspiringSpinner,
   type SpinnerHandle,

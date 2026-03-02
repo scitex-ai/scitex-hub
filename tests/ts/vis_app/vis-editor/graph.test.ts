@@ -33,14 +33,14 @@ describe('graph', () => {
 //  * - Plot type configurations
 //  * - Data preparation for plots
 //  */
-// 
-// import type { DataTableManager, PropertiesManager } from '../vis/index.ts';
-// 
+//
+// import type { DataTableManager, PropertiesManager } from '../vis/index';
+//
 // export interface GraphOperations {
 //     renderPlot(plotType: string): any;
 //     applyJournalPreset(preset: string): void;
 // }
-// 
+//
 // /**
 //  * Setup graph operations with dependencies
 //  */
@@ -50,7 +50,7 @@ describe('graph', () => {
 //     updateStatus: (msg: string) => void
 // ): GraphOperations {
 //     let currentPlot: any = null;
-// 
+//
 //     /**
 //      * Render plot using Plotly
 //      */
@@ -60,27 +60,27 @@ describe('graph', () => {
 //             updateStatus('No data available');
 //             return null;
 //         }
-// 
+//
 //         const plotArea = document.getElementById('plot-container-wrapper');
 //         if (!plotArea) {
 //             updateStatus('Plot container not found');
 //             return null;
 //         }
-// 
+//
 //         plotArea.innerHTML = '<div id="plot-container" style="width: 100%; height: 100%;"></div>';
 //         const plotContainer = document.getElementById('plot-container');
 //         if (!plotContainer) return null;
-// 
+//
 //         const { xColumn, yColumn } = propertiesManager.getSelectedColumns();
 //         const plotProps = propertiesManager.getPlotProperties();
-// 
+//
 //         const xData = currentData.rows.map(row => row[xColumn]);
 //         const yData = currentData.rows.map(row => row[yColumn]);
-// 
+//
 //         const trace = createTrace(plotType, xData, yData, xColumn, yColumn, plotProps);
 //         const layout = createLayout(plotType, xColumn, yColumn);
 //         const config = createConfig();
-// 
+//
 //         if (typeof (window as any).Plotly !== 'undefined') {
 //             (window as any).Plotly.newPlot(plotContainer, [trace], layout, config);
 //             currentPlot = trace;
@@ -93,7 +93,7 @@ describe('graph', () => {
 //             return null;
 //         }
 //     }
-// 
+//
 //     /**
 //      * Create trace configuration based on plot type
 //      */
@@ -110,32 +110,32 @@ describe('graph', () => {
 //             y: yData,
 //             name: `${yColumn} vs ${xColumn}`,
 //         };
-// 
+//
 //         switch (plotType) {
 //             case 'scatter':
 //                 trace.mode = 'markers';
 //                 trace.type = 'scatter';
 //                 trace.marker = { size: plotProps.markerSize, color: '#4a9b7e' };
 //                 break;
-// 
+//
 //             case 'line':
 //                 trace.mode = 'lines';
 //                 trace.type = 'scatter';
 //                 trace.line = { color: '#4a9b7e', width: plotProps.lineWidth };
 //                 break;
-// 
+//
 //             case 'lineMarker':
 //                 trace.mode = 'lines+markers';
 //                 trace.type = 'scatter';
 //                 trace.line = { color: '#4a9b7e', width: plotProps.lineWidth };
 //                 trace.marker = { size: plotProps.markerSize, color: '#4a9b7e' };
 //                 break;
-// 
+//
 //             case 'bar':
 //                 trace.type = 'bar';
 //                 trace.marker = { color: '#4a9b7e' };
 //                 break;
-// 
+//
 //             case 'histogram':
 //                 trace = {
 //                     x: xData,
@@ -144,7 +144,7 @@ describe('graph', () => {
 //                     name: xColumn
 //                 };
 //                 break;
-// 
+//
 //             case 'box':
 //                 trace = {
 //                     y: yData,
@@ -153,15 +153,15 @@ describe('graph', () => {
 //                     marker: { color: '#4a9b7e' }
 //                 };
 //                 break;
-// 
+//
 //             default:
 //                 trace.mode = 'lines+markers';
 //                 trace.type = 'scatter';
 //         }
-// 
+//
 //         return trace;
 //     }
-// 
+//
 //     /**
 //      * Create layout configuration
 //      */
@@ -187,7 +187,7 @@ describe('graph', () => {
 //             font: { color: 'var(--text-primary)' }
 //         };
 //     }
-// 
+//
 //     /**
 //      * Create Plotly config
 //      */
@@ -199,23 +199,23 @@ describe('graph', () => {
 //             displaylogo: false
 //         };
 //     }
-// 
+//
 //     /**
 //      * Apply journal preset style
 //      */
 //     function applyJournalPreset(preset: string): void {
 //         console.log(`[GraphOperations] Applying ${preset} style...`);
 //         updateStatus(`Applying ${preset} style...`);
-// 
+//
 //         if (!currentPlot) {
 //             updateStatus('No plot to apply preset to');
 //             return;
 //         }
-// 
+//
 //         // Journal presets implementation
 //         updateStatus(`${preset} style will be implemented`);
 //     }
-// 
+//
 //     return {
 //         renderPlot,
 //         applyJournalPreset

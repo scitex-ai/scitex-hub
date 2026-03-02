@@ -32,22 +32,22 @@ describe('events', () => {
 //  * @version 1.0.0
 //  * @author SciTeX Development Team
 //  */
-// 
-// import { Collaborator, RemoteCursor } from '../websocket-client.ts';
-// import { RemoteCursorManager } from './cursors.ts';
-// 
+//
+// import { Collaborator, RemoteCursor } from '../websocket-client';
+// import { RemoteCursorManager } from './cursors';
+//
 // /**
 //  * Event handlers for collaboration events
 //  */
 // export class CollaborationEventHandlers {
 //   private cursorManagers: Map<string, RemoteCursorManager>;
 //   private wsClient: any;
-// 
+//
 //   constructor(cursorManagers: Map<string, RemoteCursorManager>, wsClient: any) {
 //     this.cursorManagers = cursorManagers;
 //     this.wsClient = wsClient;
 //   }
-// 
+//
 //   /**
 //    * Handle successful connection
 //    */
@@ -55,7 +55,7 @@ describe('events', () => {
 //     console.log('[WriterCollab] Connected to server');
 //     this.showNotification('Connected to collaboration server', 'success');
 //   }
-// 
+//
 //   /**
 //    * Handle disconnection
 //    */
@@ -63,7 +63,7 @@ describe('events', () => {
 //     console.log('[WriterCollab] Disconnected from server');
 //     this.showNotification('Disconnected from collaboration server', 'warning');
 //   }
-// 
+//
 //   /**
 //    * Handle errors
 //    */
@@ -71,7 +71,7 @@ describe('events', () => {
 //     console.error('[WriterCollab] Error:', error);
 //     this.showNotification(`Collaboration error: ${error.message}`, 'danger');
 //   }
-// 
+//
 //   /**
 //    * Handle user joined event
 //    */
@@ -80,19 +80,19 @@ describe('events', () => {
 //     this.showNotification(`${user.username} joined`, 'info');
 //     this.updatePresenceUI();
 //   }
-// 
+//
 //   /**
 //    * Handle user left event
 //    */
 //   handleUserLeft(userId: number): void {
 //     console.log('[WriterCollab] User left:', userId);
-// 
+//
 //     // Remove cursor decorations
 //     this.cursorManagers.forEach(manager => manager.removeCursor(userId));
-// 
+//
 //     this.updatePresenceUI();
 //   }
-// 
+//
 //   /**
 //    * Handle cursor update from remote user
 //    */
@@ -102,13 +102,13 @@ describe('events', () => {
 //       manager.updateCursor(cursor);
 //     }
 //   }
-// 
+//
 //   /**
 //    * Handle section locked by a user
 //    */
 //   handleSectionLocked(section: string, _userId: number, username: string): void {
 //     console.log(`[WriterCollab] Section ${section} locked by ${username}`);
-// 
+//
 //     // Add visual indication that section is locked
 //     const sectionEl = document.getElementById(`section-${section}`);
 //     if (sectionEl) {
@@ -119,13 +119,13 @@ describe('events', () => {
 //       sectionEl.parentElement?.insertBefore(lockBadge, sectionEl);
 //     }
 //   }
-// 
+//
 //   /**
 //    * Handle section unlocked
 //    */
 //   handleSectionUnlocked(section: string): void {
 //     console.log(`[WriterCollab] Section ${section} unlocked`);
-// 
+//
 //     const sectionEl = document.getElementById(`section-${section}`);
 //     if (sectionEl) {
 //       sectionEl.classList.remove('section-locked');
@@ -135,7 +135,7 @@ describe('events', () => {
 //       }
 //     }
 //   }
-// 
+//
 //   /**
 //    * Handle collaborators list update
 //    */
@@ -143,7 +143,7 @@ describe('events', () => {
 //     console.log('[WriterCollab] Collaborators updated:', collaborators);
 //     this.updatePresenceUI();
 //   }
-// 
+//
 //   /**
 //    * Update presence UI with current collaborators
 //    */
@@ -151,14 +151,14 @@ describe('events', () => {
 //     if (!this.wsClient) {
 //       return;
 //     }
-// 
+//
 //     const collaborators = this.wsClient.getCollaborators();
 //     const presenceContainer = document.getElementById('collaborators-list');
-// 
+//
 //     if (!presenceContainer) {
 //       return;
 //     }
-// 
+//
 //     presenceContainer.innerHTML = collaborators.map((c: Collaborator) => `
 //       <div class="collaborator-item">
 //         <span class="collaborator-indicator" style="background-color: ${c.color}"></span>
@@ -166,7 +166,7 @@ describe('events', () => {
 //       </div>
 //     `).join('');
 //   }
-// 
+//
 //   /**
 //    * Show notification message
 //    */
@@ -175,14 +175,14 @@ describe('events', () => {
 //     // Could integrate with a notification system here
 //   }
 // }
-// 
+//
 // /**
 //  * Update collaboration UI state
 //  */
 // export function updateCollaborationUI(enabled: boolean): void {
 //   const statusEl = document.getElementById('collab-status');
 //   const toggleBtn = document.getElementById('collaboration-toggle');
-// 
+//
 //   if (enabled) {
 //     statusEl?.classList.remove('hidden');
 //     statusEl?.classList.add('collab-active');

@@ -7,7 +7,7 @@
  *   open-file | flash-file | write-scratch | append-scratch
  */
 
-import { clearHighlights, highlightElement } from "../product-tour/ui";
+import { clearHighlights, highlightElement } from "../_product-tour/ui";
 
 export interface UIStep {
   action:

@@ -32,19 +32,19 @@ describe('scholar-index-main', () => {
 //  * Refactored from 768 lines to modular architecture.
 //  * Original: scholar-index-main_backup.ts
 //  */
-// 
+//
 // import './scholar-index/utilities.ts';
-// import { initializeFilters } from './scholar-index/filters.ts';
+// import { initializeFilters } from './scholar-index/filters';
 // import {
 //   initializeSourceToggles,
 //   loadSourcePreferences
-// } from './scholar-index/source-preferences.ts';
+// } from './scholar-index/source-preferences';
 // import './scholar-index/bibtex-management.js';
 // import './scholar-index/abstract-toggle.js';
 // import './scholar-index/paper-actions.js';
-// 
+//
 // console.log("[DEBUG] apps/scholar_app/static/scholar_app/ts/common/scholar-index-main.ts loaded");
-// 
+//
 // // Window interface extensions
 // declare global {
 //   interface Window {
@@ -63,23 +63,23 @@ describe('scholar-index-main', () => {
 //     };
 //   }
 // }
-// 
+//
 // // Export to make this an ES module
 // export {};
-// 
+//
 // // Document ready initialization
 // document.addEventListener("DOMContentLoaded", function () {
 //   console.log("[Scholar Index Main] Initializing...");
-// 
+//
 //   // Initialize all modules
 //   initializeFilters();
 //   initializeSourceToggles();
-// 
+//
 //   // Load source preferences after a brief delay to ensure DOM is ready
 //   setTimeout(() => {
 //     loadSourcePreferences();
 //   }, 100);
-// 
+//
 //   // Sort functionality
 //   const sortSelect = document.getElementById("sortBy") as HTMLSelectElement | null;
 //   if (sortSelect && !window._scholarSortInitialized) {
@@ -91,7 +91,7 @@ describe('scholar-index-main', () => {
 //     });
 //     window._scholarSortInitialized = true;
 //   }
-// 
+//
 //   // Auto-submit when project filter changes
 //   const projectFilter = document.getElementById("project_filter") as HTMLSelectElement | null;
 //   if (projectFilter) {

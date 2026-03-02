@@ -12,7 +12,7 @@
  * between different views with lazy resource loading.
  */
 
-import { statePersistence } from "../modules/state-persistence";
+import { statePersistence } from "../modules/_state-persistence";
 import { initializeCollaboratorsPanel } from "../collaboration-panel";
 
 /**

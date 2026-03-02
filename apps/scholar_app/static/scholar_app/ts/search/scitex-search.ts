@@ -7,19 +7,19 @@
  * @version 2.1.0 - Backend as single source of truth for limits
  */
 
-import { searchHistory } from "./SearchHistoryManager";
-import { searchLog } from "./SearchLogManager";
+import { searchHistory } from "./_SearchHistoryManager";
+import { searchLog } from "./_SearchLogManager";
 import { SearchResult, SourceConfig } from "./types";
-import { addResultToProgressive, toggleSelectAll } from "./result-card";
-import { setupToolbarHandlers } from "./toolbar-handlers";
-import { updateLimitInfo } from "./limit-info-display";
-import { showNoResultsMessage } from "./no-results";
-import { showSearchLoading } from "./search-loading";
+import { addResultToProgressive, toggleSelectAll } from "./_result-card";
+import { setupToolbarHandlers } from "./_toolbar-handlers";
+import { updateLimitInfo } from "./_limit-info-display";
+import { showNoResultsMessage } from "./_no-results";
+import { showSearchLoading } from "./_search-loading";
 import {
   resetPagination,
   addResultsToPagination,
   renderInitialBatch,
-} from "./pagination";
+} from "./_pagination";
 import {
   showToolbarStatus,
   hideToolbarStatus,
@@ -27,7 +27,7 @@ import {
   updateProgressStep,
   updateSearchStats,
   clearSearchStats,
-} from "./toolbar-status";
+} from "./_toolbar-status";
 
 console.log("[DEBUG] scitex-search.ts loaded (refactored)");
 

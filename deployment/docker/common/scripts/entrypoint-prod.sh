@@ -50,6 +50,7 @@ echo_success "Visitor pool ready"
 # ============================================
 if [ ! -d "node_modules" ] || [ "package.json" -nt "node_modules/.install-timestamp" ]; then
     echo_info "Installing npm dependencies (including dev for Vite build)..."
+    # Note: node_modules ownership fix is handled by root-init.sh (runs as root)
     npm install
     touch node_modules/.install-timestamp
     echo_success "npm dependencies installed"

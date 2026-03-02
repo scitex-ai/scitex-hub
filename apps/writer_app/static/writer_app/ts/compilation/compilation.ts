@@ -9,7 +9,7 @@
  */
 
 console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/compilation/compilation.ts loaded",
+  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/_compilation/compilation.ts loaded",
 );
 export interface CompilationJob {
   job_id: string;

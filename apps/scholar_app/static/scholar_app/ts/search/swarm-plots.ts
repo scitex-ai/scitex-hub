@@ -20,7 +20,7 @@ import {
   renderYearSwarmPlot,
   renderCitationsSwarmPlot,
   renderImpactFactorSwarmPlot,
-} from "./swarm-plot-renderers";
+} from "./_swarm-plot-renderers";
 
 /**
  * Paper data interface

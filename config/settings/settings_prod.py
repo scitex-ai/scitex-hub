@@ -3,10 +3,10 @@
 # File: /home/ywatanabe/proj/scitex-cloud/config/settings/settings_prod.py
 # ----------------------------------------
 from __future__ import annotations
+
 import os
-__FILE__ = (
-    "./config/settings/settings_prod.py"
-)
+
+__FILE__ = "./config/settings/settings_prod.py"
 __DIR__ = os.path.dirname(__FILE__)
 # ----------------------------------------
 
@@ -15,8 +15,9 @@ Production settings for SciTeX Cloud project.
 Optimized for deployment with Cloudflare Tunnel.
 """
 
-from .settings_shared import *
 from dotenv import load_dotenv
+
+from .settings_shared import *
 
 # ---------------------------------------
 # Env
@@ -37,9 +38,7 @@ DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
 # SciTeX Settings
 # ---------------------------------------
 # Use 'main' branch for writer template in production
-SCITEX_WRITER_TEMPLATE_BRANCH = os.getenv(
-    "SCITEX_WRITER_TEMPLATE_BRANCH", "main"
-)
+SCITEX_WRITER_TEMPLATE_BRANCH = os.getenv("SCITEX_WRITER_TEMPLATE_BRANCH", "main")
 SCITEX_WRITER_TEMPLATE_TAG = os.getenv("SCITEX_WRITER_TEMPLATE_TAG", None)
 
 SECRET_KEY = os.environ.get("SCITEX_CLOUD_DJANGO_SECRET_KEY")
@@ -61,9 +60,7 @@ SECURE_SSL_REDIRECT = (
     or os.environ.get("ENABLE_SSL_REDIRECT", "false")
 ).lower() == "true"
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-X_FRAME_OPTIONS = (
-    "SAMEORIGIN"  # Allow same-site iframes (needed for PDF viewer)
-)
+X_FRAME_OPTIONS = "SAMEORIGIN"  # Allow same-site iframes (needed for PDF viewer)
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 # ---------------------------------------
@@ -87,11 +84,7 @@ if os.environ.get("SCITEX_CLOUD_USE_SQLITE_PROD"):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR
-            / "data"
-            / "db"
-            / "sqlite"
-            / "scitex_cloud_prod.db",
+            "NAME": BASE_DIR / "data" / "db" / "sqlite" / "scitex_cloud_prod.db",
         }
     }
 else:
@@ -103,19 +96,19 @@ else:
         DATABASES = {
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
-                "NAME": os.environ.get(
-                    "SCITEX_CLOUD_DB_NAME", "scitex_cloud_prod"
-                ),
-                "USER": os.environ.get(
-                    "SCITEX_CLOUD_DB_USER", "scitex_prod"
-                ),
+                "NAME": os.environ.get("SCITEX_CLOUD_DB_NAME", "scitex_cloud_prod"),
+                "USER": os.environ.get("SCITEX_CLOUD_DB_USER", "scitex_prod"),
                 "PASSWORD": DB_PASSWORD,
                 # Connect via PgBouncer for connection pooling
-                "HOST": os.environ.get(
-                    "SCITEX_CLOUD_DB_HOST", "pgbouncer"
-                ),
+                "HOST": os.environ.get("SCITEX_CLOUD_DB_HOST", "pgbouncer"),
                 "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT", "6432"),
-                "ATOMIC_REQUESTS": True,
+                # ATOMIC_REQUESTS disabled: incompatible with ASGI (Daphne)
+                # + PgBouncer transaction pooling.  Middleware and views run
+                # in different threads under ASGI, so a dirty connection in
+                # one thread cascades "transaction aborted" errors to the
+                # view's atomic wrapper.  Views needing transactions should
+                # use @transaction.atomic explicitly.
+                "ATOMIC_REQUESTS": False,
                 # CONN_MAX_AGE=0: Let PgBouncer handle connection pooling
                 # This closes Django connections after each request, allowing
                 # PgBouncer to efficiently manage the actual PostgreSQL connections
@@ -140,7 +133,7 @@ else:
                 # Connect via PgBouncer for connection pooling
                 "HOST": os.environ.get("SCITEX_CLOUD_DB_HOST", "pgbouncer"),
                 "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT", "6432"),
-                "ATOMIC_REQUESTS": True,
+                "ATOMIC_REQUESTS": False,
                 "CONN_MAX_AGE": 0,
                 "CONN_HEALTH_CHECKS": True,
                 "DISABLE_SERVER_SIDE_CURSORS": True,

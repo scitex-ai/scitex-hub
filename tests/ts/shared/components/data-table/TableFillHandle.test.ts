@@ -33,9 +33,9 @@ describe('TableFillHandle', () => {
 //  * - Show fill preview during drag
 //  * - Apply fill operation (copy values down/right)
 //  */
-// 
-// import { Dataset } from './types.ts';
-// 
+//
+// import { Dataset } from './types';
+//
 // interface FillHandleCallbacks {
 //     getCurrentData: () => Dataset | null;
 //     setCurrentData: (data: Dataset | null) => void;
@@ -43,14 +43,14 @@ describe('TableFillHandle', () => {
 //     renderCallback: () => void;
 //     statusBarCallback?: (message: string) => void;
 // }
-// 
+//
 // export class TableFillHandle {
 //     private callbacks: FillHandleCallbacks;
-// 
+//
 //     constructor(callbacks: FillHandleCallbacks) {
 //         this.callbacks = callbacks;
 //     }
-// 
+//
 //     /**
 //      * Handle fill handle mouse down (start drag-to-fill)
 //      */
@@ -61,29 +61,29 @@ describe('TableFillHandle', () => {
 //     ): void {
 //         e.preventDefault();
 //         e.stopPropagation();
-// 
+//
 //         const currentData = this.callbacks.getCurrentData();
 //         if (!currentData) return;
-// 
+//
 //         const startRow = Math.min(selectionStart.row, selectionEnd.row);
 //         const endRow = Math.max(selectionStart.row, selectionEnd.row);
 //         const startCol = Math.min(selectionStart.col, selectionEnd.col);
 //         const endCol = Math.max(selectionStart.col, selectionEnd.col);
-// 
+//
 //         let isFilling = true;
 //         let fillRow = endRow;
 //         let fillCol = endCol;
-// 
+//
 //         const handleMouseMove = (e: MouseEvent) => {
 //             if (!isFilling) return;
-// 
+//
 //             // Get cell under mouse
 //             const element = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement;
 //             if (!element || !element.hasAttribute('data-row')) return;
-// 
+//
 //             const newFillRow = parseInt(element.getAttribute('data-row') || '0');
 //             const newFillCol = parseInt(element.getAttribute('data-col') || '0');
-// 
+//
 //             // Update fill preview
 //             if (newFillRow !== fillRow || newFillCol !== fillCol) {
 //                 fillRow = newFillRow;
@@ -91,26 +91,26 @@ describe('TableFillHandle', () => {
 //                 this.showFillPreview(startRow, endRow, startCol, endCol, fillRow, fillCol);
 //             }
 //         };
-// 
+//
 //         const handleMouseUp = () => {
 //             if (!isFilling) return;
 //             isFilling = false;
-// 
+//
 //             // Apply fill
 //             this.applyFill(startRow, endRow, startCol, endCol, fillRow, fillCol);
-// 
+//
 //             // Clean up
 //             document.removeEventListener('mousemove', handleMouseMove);
 //             document.removeEventListener('mouseup', handleMouseUp);
 //             document.querySelectorAll('.fill-preview').forEach(el => el.classList.remove('fill-preview'));
 //         };
-// 
+//
 //         document.addEventListener('mousemove', handleMouseMove);
 //         document.addEventListener('mouseup', handleMouseUp);
-// 
+//
 //         console.log('[TableFillHandle] Fill handle drag started');
 //     }
-// 
+//
 //     /**
 //      * Show fill preview
 //      */
@@ -124,13 +124,13 @@ describe('TableFillHandle', () => {
 //     ): void {
 //         // Remove previous preview
 //         document.querySelectorAll('.fill-preview').forEach(el => el.classList.remove('fill-preview'));
-// 
+//
 //         // Add preview class to fill range
 //         const fillStartRow = Math.min(endRow + 1, fillRow);
 //         const fillEndRow = Math.max(endRow, fillRow);
 //         const fillStartCol = Math.min(endCol + 1, fillCol);
 //         const fillEndCol = Math.max(endCol, fillCol);
-// 
+//
 //         for (let r = fillStartRow; r <= fillEndRow; r++) {
 //             for (let c = fillStartCol; c <= fillEndCol; c++) {
 //                 const cell = this.callbacks.getCellAt(r, c);
@@ -140,7 +140,7 @@ describe('TableFillHandle', () => {
 //             }
 //         }
 //     }
-// 
+//
 //     /**
 //      * Apply fill (auto-fill cells)
 //      */
@@ -154,11 +154,11 @@ describe('TableFillHandle', () => {
 //     ): void {
 //         const currentData = this.callbacks.getCurrentData();
 //         if (!currentData) return;
-// 
+//
 //         // Determine fill direction
 //         const fillDown = fillRow > endRow;
 //         const fillRight = fillCol > endCol;
-// 
+//
 //         if (fillDown) {
 //             // Fill down
 //             for (let r = endRow + 1; r <= fillRow; r++) {
@@ -175,7 +175,7 @@ describe('TableFillHandle', () => {
 //                 }
 //             }
 //         }
-// 
+//
 //         if (fillRight) {
 //             // Fill right
 //             for (let c = endCol + 1; c <= fillCol; c++) {
@@ -193,9 +193,9 @@ describe('TableFillHandle', () => {
 //                 }
 //             }
 //         }
-// 
+//
 //         this.callbacks.renderCallback();
-// 
+//
 //         if (this.callbacks.statusBarCallback) {
 //             this.callbacks.statusBarCallback('Fill completed');
 //         }

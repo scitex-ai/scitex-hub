@@ -30,17 +30,17 @@ describe('PathNavigator', () => {
 //  *
 //  * Extracted from WorkspaceFilesTree.ts for better code organization.
 //  */
-// 
-// import type { TreeItem, WorkspaceMode } from '../types.ts';
-// import { TreeStateManager } from '../TreeState.ts';
-// 
+//
+// import type { TreeItem, WorkspaceMode } from '../types';
+// import { TreeStateManager } from '../TreeState';
+//
 // export class PathNavigator {
 //   private stateManager: TreeStateManager;
 //   private containerFn: () => HTMLElement | null;
 //   private rerenderFn: () => void;
 //   private getTreeDataFn: () => TreeItem[];
 //   private updateSelectionClassesFn: (path: string) => void;
-// 
+//
 //   constructor(
 //     stateManager: TreeStateManager,
 //     getContainer: () => HTMLElement | null,
@@ -54,7 +54,7 @@ describe('PathNavigator', () => {
 //     this.getTreeDataFn = getTreeData;
 //     this.updateSelectionClassesFn = updateSelectionClasses;
 //   }
-// 
+//
 //   /**
 //    * Get parent paths for a given path
 //    */
@@ -66,7 +66,7 @@ describe('PathNavigator', () => {
 //     }
 //     return parents;
 //   }
-// 
+//
 //   /**
 //    * Expand tree to show a specific path (without refreshing from server)
 //    * Expands all parent directories and scrolls the file into view
@@ -76,9 +76,9 @@ describe('PathNavigator', () => {
 //     parentPaths.forEach(parentPath => {
 //       this.stateManager.expand(parentPath);
 //     });
-// 
+//
 //     this.rerenderFn();
-// 
+//
 //     await new Promise(resolve => setTimeout(resolve, 100));
 //     const container = this.containerFn();
 //     const element = container?.querySelector(`[data-path="${path}"]`);
@@ -88,7 +88,7 @@ describe('PathNavigator', () => {
 //       this.updateSelectionClassesFn(path);
 //     }
 //   }
-// 
+//
 //   /**
 //    * Focus on a directory by expanding it and collapsing its siblings
 //    */
@@ -97,9 +97,9 @@ describe('PathNavigator', () => {
 //     parentPaths.forEach(parentPath => {
 //       this.stateManager.expand(parentPath);
 //     });
-// 
+//
 //     this.stateManager.expand(targetPath);
-// 
+//
 //     if (collapseOthersAtLevel) {
 //       const parentPath = parentPaths[parentPaths.length - 1] || '';
 //       const siblings = this.getSiblingDirectories(targetPath, parentPath);
@@ -109,9 +109,9 @@ describe('PathNavigator', () => {
 //         }
 //       });
 //     }
-// 
+//
 //     this.rerenderFn();
-// 
+//
 //     await new Promise(resolve => setTimeout(resolve, 100));
 //     const container = this.containerFn();
 //     const element = container?.querySelector(`[data-path="${targetPath}"]`);
@@ -119,22 +119,22 @@ describe('PathNavigator', () => {
 //       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
 //     }
 //   }
-// 
+//
 //   /**
 //    * Auto-expand to focus path from state manager
 //    */
 //   async autoExpandFocusPath(mode: WorkspaceMode): Promise<void> {
 //     const focusPath = this.stateManager.getFocusPath(mode);
 //     if (!focusPath) return;
-// 
+//
 //     const parentPaths = this.getParentPaths(focusPath);
 //     parentPaths.forEach(path => {
 //       this.stateManager.expand(path);
 //     });
-// 
+//
 //     this.stateManager.setSelected(focusPath);
 //     this.rerenderFn();
-// 
+//
 //     await new Promise(resolve => setTimeout(resolve, 100));
 //     const container = this.containerFn();
 //     const focusEl = container?.querySelector(`[data-path="${focusPath}"]`);
@@ -142,21 +142,21 @@ describe('PathNavigator', () => {
 //       focusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
 //     }
 //   }
-// 
+//
 //   /**
 //    * Refresh and expand to a path
 //    */
 //   async refreshAndExpandPath(path: string, loadTreeFn: () => Promise<void>): Promise<void> {
 //     await loadTreeFn();
-// 
+//
 //     const parentPaths = this.getParentPaths(path);
 //     parentPaths.forEach(parentPath => {
 //       this.stateManager.expand(parentPath);
 //     });
-// 
+//
 //     this.stateManager.expand(path);
 //     this.rerenderFn();
-// 
+//
 //     await new Promise(resolve => setTimeout(resolve, 100));
 //     const container = this.containerFn();
 //     const element = container?.querySelector(`[data-path="${path}"]`);
@@ -164,14 +164,14 @@ describe('PathNavigator', () => {
 //       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
 //     }
 //   }
-// 
+//
 //   /**
 //    * Get sibling directories at the same level as the target
 //    */
 //   private getSiblingDirectories(targetPath: string, parentPath: string): string[] {
 //     const siblings: string[] = [];
 //     const treeData = this.getTreeDataFn();
-// 
+//
 //     const searchInItems = (items: TreeItem[]): void => {
 //       for (const item of items) {
 //         if (item.type === 'directory') {
@@ -185,7 +185,7 @@ describe('PathNavigator', () => {
 //         }
 //       }
 //     };
-// 
+//
 //     searchInItems(treeData);
 //     return siblings;
 //   }

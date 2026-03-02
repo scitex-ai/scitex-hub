@@ -17,7 +17,7 @@ register(
             "Manage project templates",
             "Introspect Python modules and APIs",
         ],
-        page_patterns=["/console/", "/files/"],
+        page_patterns=["/console/"],
         url_prefix="/console/",
         module_description=(
             "Development environment: file browser, terminal (SLURM + Apptainer), "

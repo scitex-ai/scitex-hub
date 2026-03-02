@@ -3,7 +3,7 @@
  * Handles event listeners and callbacks
  */
 
-import { CompilationManager } from "../compilation";
+import { CompilationManager } from "../_compilation";
 import { PDFViewer } from "./viewer";
 
 export class EventHandler {

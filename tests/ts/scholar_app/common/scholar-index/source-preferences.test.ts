@@ -34,10 +34,10 @@ describe('source-preferences', () => {
 //  * @module scholar-index/source-preferences
 //  * @version 1.0.0
 //  */
-// 
-// import { getCsrfToken } from './utilities.ts';
-// import { updateActiveFilterCount } from './filters.ts';
-// 
+//
+// import { getCsrfToken } from './utilities';
+// import { updateActiveFilterCount } from './filters';
+//
 // /**
 //  * Save source preferences to database (authenticated users) or localStorage (visitor users)
 //  */
@@ -47,7 +47,7 @@ describe('source-preferences', () => {
 //     const el = toggle as HTMLInputElement;
 //     preferences[el.value] = el.checked;
 //   });
-// 
+//
 //   // Save to database if user is logged in, otherwise use localStorage
 //   if (
 //     window.scholarConfig &&
@@ -79,7 +79,7 @@ describe('source-preferences', () => {
 //     );
 //   }
 // }
-// 
+//
 // /**
 //  * Load source preferences from database (authenticated users) or localStorage (visitor users)
 //  */
@@ -111,7 +111,7 @@ describe('source-preferences', () => {
 //     loadSourcePreferencesFromStorage();
 //   }
 // }
-// 
+//
 // /**
 //  * Load source preferences from localStorage
 //  */
@@ -129,7 +129,7 @@ describe('source-preferences', () => {
 //     setDefaultSourcePreferences();
 //   }
 // }
-// 
+//
 // /**
 //  * Apply source preferences to the UI
 //  */
@@ -144,16 +144,16 @@ describe('source-preferences', () => {
 //       hasAnyPreference = true;
 //     }
 //   });
-// 
+//
 //   if (!hasAnyPreference) {
 //     setDefaultSourcePreferences();
 //   }
-// 
+//
 //   updateAllSourcesToggle();
 //   updateSourceDisplay();
 //   updateActiveFilterCount();
 // }
-// 
+//
 // /**
 //  * Set default source preferences (all sources enabled)
 //  */
@@ -166,7 +166,7 @@ describe('source-preferences', () => {
 //   updateSourceDisplay();
 //   updateActiveFilterCount();
 // }
-// 
+//
 // /**
 //  * Initialize source toggle event listeners and master "All Sources" toggle
 //  */
@@ -177,7 +177,7 @@ describe('source-preferences', () => {
 //   const sourceToggles = document.querySelectorAll(
 //     ".source-toggle",
 //   ) as NodeListOf<HTMLInputElement>;
-// 
+//
 //   // Master "All Sources" toggle functionality
 //   if (allSourcesToggle) {
 //     allSourcesToggle.addEventListener("change", function () {
@@ -188,7 +188,7 @@ describe('source-preferences', () => {
 //       handleSourceChange();
 //     });
 //   }
-// 
+//
 //   // Individual source toggle functionality
 //   sourceToggles.forEach((toggle) => {
 //     toggle.addEventListener("change", function () {
@@ -196,11 +196,11 @@ describe('source-preferences', () => {
 //       handleSourceChange();
 //     });
 //   });
-// 
+//
 //   // Initial state check
 //   updateAllSourcesToggle();
 // }
-// 
+//
 // /**
 //  * Update the master "All Sources" toggle state based on individual source toggles
 //  */
@@ -214,7 +214,7 @@ describe('source-preferences', () => {
 //   const checkedToggles = document.querySelectorAll(
 //     ".source-toggle:checked",
 //   ) as NodeListOf<HTMLInputElement>;
-// 
+//
 //   if (allSourcesToggle) {
 //     if (checkedToggles.length === sourceToggles.length) {
 //       allSourcesToggle.checked = true;
@@ -228,7 +228,7 @@ describe('source-preferences', () => {
 //     }
 //   }
 // }
-// 
+//
 // /**
 //  * Handle source toggle change events
 //  */
@@ -236,7 +236,7 @@ describe('source-preferences', () => {
 //   saveSourcePreferences();
 //   updateActiveFilterCount();
 //   updateSourceDisplay();
-// 
+//
 //   // Auto-submit search if there's a query
 //   const searchInput = document.querySelector(
 //     'input[name="q"]',
@@ -250,7 +250,7 @@ describe('source-preferences', () => {
 //     }
 //   }
 // }
-// 
+//
 // /**
 //  * Update source display text based on selected checkboxes
 //  */
@@ -261,7 +261,7 @@ describe('source-preferences', () => {
 //   const sourceDisplay = document.getElementById(
 //     "sourceDisplay",
 //   ) as HTMLElement | null;
-// 
+//
 //   if (sourceDisplay) {
 //     const sourceNames: string[] = [];
 //     selectedSources.forEach((checkbox) => {
@@ -280,7 +280,7 @@ describe('source-preferences', () => {
 //           break;
 //       }
 //     });
-// 
+//
 //     let displayText = "";
 //     if (sourceNames.length === 0) {
 //       displayText =
@@ -293,11 +293,11 @@ describe('source-preferences', () => {
 //     } else {
 //       displayText = `from ${sourceNames.join(", ")} + SciTeX Index`;
 //     }
-// 
+//
 //     sourceDisplay.textContent = displayText;
 //   }
 // }
-// 
+//
 // // Make saveSourcePreferences available globally for backward compatibility
 // if (typeof window !== 'undefined') {
 //   (window as any).saveSourcePreferences = saveSourcePreferences;

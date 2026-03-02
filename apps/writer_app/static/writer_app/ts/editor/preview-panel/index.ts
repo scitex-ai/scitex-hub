@@ -22,9 +22,9 @@ export type {
 export { LATEX_TEMPLATES } from "./types";
 
 // Export classes
-export { PreviewRenderer } from "./rendering";
-export { PreviewNavigation } from "./navigation";
-export { PreviewSync } from "./sync";
+export { PreviewRenderer } from "./_rendering";
+export { PreviewNavigation } from "./_navigation";
+export { PreviewSync } from "./_sync";
 export { PreviewPanelManager } from "./manager";
 
 // Global export for backward compatibility

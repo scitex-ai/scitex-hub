@@ -40,14 +40,14 @@ describe('TableRendering', () => {
 //  * - Positions rendered rows absolutely within the spacer
 //  * - Updates visible rows on scroll via requestAnimationFrame
 //  */
-// 
-// import { Dataset, DataRow, TABLE_CONSTANTS } from './types.ts';
-// 
+//
+// import { Dataset, DataRow, TABLE_CONSTANTS } from './types';
+//
 // export class TableRendering {
 //     // Table dimensions
 //     private readonly ROW_HEIGHT: number = TABLE_CONSTANTS.ROW_HEIGHT;
 //     private readonly COL_WIDTH: number = TABLE_CONSTANTS.COL_WIDTH;
-// 
+//
 //     // Virtual scrolling state
 //     private virtualScrollEnabled: boolean = true;
 //     private visibleRowStart: number = 0;
@@ -57,35 +57,35 @@ describe('TableRendering', () => {
 //     private readonly BUFFER_ROWS: number = 10;  // Extra rows to render above/below viewport
 //     private scrollRAFId: number | null = null;  // For requestAnimationFrame debouncing
 //     private lastScrollTop: number = 0;
-// 
+//
 //     // Column width management
 //     private columnWidths: Map<number, number> = new Map();
-// 
+//
 //     // Display options
 //     private firstColIsIndex: boolean = false;
-// 
+//
 //     // Container element
 //     private containerSelector: string = '.data-table-container';
-// 
+//
 //     // Scroll handler reference for cleanup
 //     private boundScrollHandler: (() => void) | null = null;
-// 
+//
 //     // Resize observer for smart column truncation
 //     private resizeObserver: ResizeObserver | null = null;
-// 
+//
 //     constructor(
 //         private getCurrentData: () => Dataset | null,
 //         private statusBarCallback?: (message: string) => void,
 //         private updateRulersAreaTransformCallback?: () => void
 //     ) {}
-// 
+//
 //     /**
 //      * Set container selector
 //      */
 //     public setContainerSelector(selector: string): void {
 //         this.containerSelector = selector;
 //     }
-// 
+//
 //     /**
 //      * Get virtual scrolling state
 //      */
@@ -100,7 +100,7 @@ describe('TableRendering', () => {
 //             visibleRowEnd: this.visibleRowEnd
 //         };
 //     }
-// 
+//
 //     /**
 //      * Set virtual scrolling state
 //      */
@@ -109,54 +109,54 @@ describe('TableRendering', () => {
 //         this.visibleRowStart = rowStart;
 //         this.visibleRowEnd = rowEnd;
 //     }
-// 
+//
 //     /**
 //      * Get column width
 //      */
 //     public getColumnWidth(colIndex: number): number {
 //         return this.columnWidths.get(colIndex) || this.COL_WIDTH;
 //     }
-// 
+//
 //     /**
 //      * Set column width
 //      */
 //     public setColumnWidth(colIndex: number, width: number): void {
 //         this.columnWidths.set(colIndex, width);
 //     }
-// 
+//
 //     /**
 //      * Get column widths map
 //      */
 //     public getColumnWidths(): Map<number, number> {
 //         return this.columnWidths;
 //     }
-// 
+//
 //     /**
 //      * Render data table (non-editable view)
 //      */
 //     public renderDataTable(): void {
 //         const currentData = this.getCurrentData();
 //         if (!currentData) return;
-// 
+//
 //         const dataContainer = document.querySelector(this.containerSelector);
 //         if (dataContainer) {
 //             dataContainer.innerHTML = this.generateTableHTML(currentData, 'main');
 //         }
 //     }
-// 
+//
 //     /**
 //      * Render editable data table with true virtual scrolling
 //      * Only renders rows visible in viewport + buffer for performance
 //      */
 //     public renderEditableDataTable(): string {
 //         const renderStart = performance.now();
-// 
+//
 //         const currentData = this.getCurrentData();
 //         if (!currentData) return '';
-// 
+//
 //         const totalRows = currentData.rows.length;
 //         const totalHeight = totalRows * this.ROW_HEIGHT;
-// 
+//
 //         // Calculate initial visible range
 //         const dataContainer = document.querySelector(this.containerSelector) as HTMLElement;
 //         if (dataContainer && this.virtualScrollEnabled) {
@@ -164,11 +164,11 @@ describe('TableRendering', () => {
 //             const visibleRowCount = Math.ceil(containerHeight / this.ROW_HEIGHT);
 //             this.visibleRowEnd = Math.min(visibleRowCount + this.BUFFER_ROWS, totalRows);
 //         }
-// 
+//
 //         // Determine which rows to render
 //         const startRow = this.virtualScrollEnabled ? this.visibleRowStart : 0;
 //         const endRow = this.virtualScrollEnabled ? Math.min(this.visibleRowEnd, totalRows) : totalRows;
-// 
+//
 //         // Generate dynamic CSS for column widths
 //         let dynamicCSS = '<style id="data-table-dynamic-widths">';
 //         currentData.columns.forEach((col, colIndex) => {
@@ -198,10 +198,10 @@ describe('TableRendering', () => {
 //             `;
 //         }
 //         dynamicCSS += '</style>';
-// 
+//
 //         // Build table HTML
 //         let html = '<table class="data-table editable-table">';
-// 
+//
 //         // Header row
 //         html += '<thead><tr>';
 //         html += `<th class="row-number-header"></th>`;
@@ -212,7 +212,7 @@ describe('TableRendering', () => {
 //             html += `<th data-col="${colIndex}" tabindex="0" title="${colName}"><span class="col-header-text">${colName}</span><div class="column-resize-handle" data-col="${colIndex}"></div></th>`;
 //         });
 //         html += '</tr></thead>';
-// 
+//
 //         // Data rows - only render visible range
 //         html += '<tbody>';
 //         for (let rowIndex = startRow; rowIndex < endRow; rowIndex++) {
@@ -231,7 +231,7 @@ describe('TableRendering', () => {
 //             html += '</tr>';
 //         }
 //         html += '</tbody></table>';
-// 
+//
 //         // Wrap in virtual scroll container if enabled
 //         let finalHTML: string;
 //         if (this.virtualScrollEnabled && totalRows > 100) {
@@ -248,10 +248,10 @@ describe('TableRendering', () => {
 //         } else {
 //             finalHTML = dynamicCSS + html;
 //         }
-// 
+//
 //         const totalTime = performance.now();
 //         console.log(`[TableRendering] Rendered ${endRow - startRow} of ${totalRows} rows in ${(totalTime - renderStart).toFixed(2)}ms`);
-// 
+//
 //         // Insert HTML into DOM
 //         if (dataContainer) {
 //             dataContainer.innerHTML = finalHTML;
@@ -259,30 +259,30 @@ describe('TableRendering', () => {
 //             if (emptyState) {
 //                 emptyState.style.display = 'none';
 //             }
-// 
+//
 //             // Apply smart column truncation after DOM update
 //             requestAnimationFrame(() => {
 //                 this.setupSmartColumnTruncation();
 //             });
 //         }
-// 
+//
 //         return finalHTML;
 //     }
-// 
+//
 //     /**
 //      * Generate HTML table (for non-editable views)
 //      */
 //     public generateTableHTML(data: Dataset, tableType: string): string {
 //         const tableClass = tableType === 'mini' ? 'mini-table' : 'data-table';
 //         let html = `<table class="${tableClass}" style="width: 100%; border-collapse: collapse; font-size: ${tableType === 'mini' ? '11px' : '13px'};">`;
-// 
+//
 //         // Headers
 //         html += '<thead style="background: var(--bg-secondary); position: sticky; top: 0;"><tr>';
 //         data.columns.forEach(col => {
 //             html += `<th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-default); font-weight: 600; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${col}">${col}</th>`;
 //         });
 //         html += '</tr></thead>';
-// 
+//
 //         // Rows
 //         html += '<tbody>';
 //         data.rows.forEach((row, index) => {
@@ -296,10 +296,10 @@ describe('TableRendering', () => {
 //             html += '</tr>';
 //         });
 //         html += '</tbody></table>';
-// 
+//
 //         return html;
 //     }
-// 
+//
 //     /**
 //      * Setup virtual scrolling for incremental rendering
 //      * Uses requestAnimationFrame for smooth scroll handling
@@ -307,28 +307,28 @@ describe('TableRendering', () => {
 //     public setupVirtualScrolling(): void {
 //         const dataContainer = document.querySelector(this.containerSelector) as HTMLElement;
 //         if (!dataContainer || !this.virtualScrollEnabled) return;
-// 
+//
 //         // Remove existing handler if present
 //         if (this.boundScrollHandler) {
 //             dataContainer.removeEventListener('scroll', this.boundScrollHandler);
 //         }
-// 
+//
 //         // Create bound scroll handler
 //         this.boundScrollHandler = () => {
 //             // Use RAF for smooth updates
 //             if (this.scrollRAFId) {
 //                 cancelAnimationFrame(this.scrollRAFId);
 //             }
-// 
+//
 //             this.scrollRAFId = requestAnimationFrame(() => {
 //                 this.updateVisibleRange();
 //             });
 //         };
-// 
+//
 //         dataContainer.addEventListener('scroll', this.boundScrollHandler, { passive: true });
 //         console.log('[TableRendering] Virtual scrolling enabled with RAF optimization');
 //     }
-// 
+//
 //     /**
 //      * Update visible row range based on scroll position
 //      * Only re-renders when scroll crosses row boundaries
@@ -336,40 +336,40 @@ describe('TableRendering', () => {
 //     public updateVisibleRange(): void {
 //         const currentData = this.getCurrentData();
 //         if (!currentData || !this.virtualScrollEnabled) return;
-// 
+//
 //         const dataContainer = document.querySelector(this.containerSelector) as HTMLElement;
 //         if (!dataContainer) return;
-// 
+//
 //         const scrollTop = dataContainer.scrollTop;
 //         const containerHeight = dataContainer.clientHeight;
-// 
+//
 //         // Skip if scroll position hasn't changed much (less than half a row)
 //         if (Math.abs(scrollTop - this.lastScrollTop) < this.ROW_HEIGHT / 2) {
 //             return;
 //         }
 //         this.lastScrollTop = scrollTop;
-// 
+//
 //         // Calculate which rows should be visible
 //         const firstVisibleRow = Math.floor(scrollTop / this.ROW_HEIGHT);
 //         const visibleRowCount = Math.ceil(containerHeight / this.ROW_HEIGHT);
-// 
+//
 //         // Add buffer rows above and below
 //         const newStart = Math.max(0, firstVisibleRow - this.BUFFER_ROWS);
 //         const newEnd = Math.min(currentData.rows.length, firstVisibleRow + visibleRowCount + this.BUFFER_ROWS);
-// 
+//
 //         // Only re-render if range changed by more than buffer/2 rows
 //         const rangeChanged = Math.abs(newStart - this.visibleRowStart) > this.BUFFER_ROWS / 2 ||
 //                             Math.abs(newEnd - this.visibleRowEnd) > this.BUFFER_ROWS / 2;
-// 
+//
 //         if (rangeChanged) {
 //             this.visibleRowStart = newStart;
 //             this.visibleRowEnd = newEnd;
-// 
+//
 //             // Re-render table body only (faster than full re-render)
 //             this.updateTableBody();
 //         }
 //     }
-// 
+//
 //     /**
 //      * Update only the table body rows for virtual scrolling
 //      * More efficient than full re-render
@@ -377,14 +377,14 @@ describe('TableRendering', () => {
 //     private updateTableBody(): void {
 //         const currentData = this.getCurrentData();
 //         if (!currentData) return;
-// 
+//
 //         const dataContainer = document.querySelector(this.containerSelector) as HTMLElement;
 //         if (!dataContainer) return;
-// 
+//
 //         const totalRows = currentData.rows.length;
 //         const startRow = this.visibleRowStart;
 //         const endRow = Math.min(this.visibleRowEnd, totalRows);
-// 
+//
 //         // Build new tbody content
 //         let tbodyHTML = '';
 //         for (let rowIndex = startRow; rowIndex < endRow; rowIndex++) {
@@ -402,24 +402,24 @@ describe('TableRendering', () => {
 //             });
 //             tbodyHTML += '</tr>';
 //         }
-// 
+//
 //         // Update tbody
 //         const tbody = dataContainer.querySelector('tbody');
 //         if (tbody) {
 //             tbody.innerHTML = tbodyHTML;
 //         }
-// 
+//
 //         // Update spacers
 //         const topSpacerHeight = startRow * this.ROW_HEIGHT;
 //         const bottomSpacerHeight = Math.max(0, (totalRows - endRow) * this.ROW_HEIGHT);
-// 
+//
 //         const topSpacer = dataContainer.querySelector('.virtual-scroll-top-spacer') as HTMLElement;
 //         const bottomSpacer = dataContainer.querySelector('.virtual-scroll-bottom-spacer') as HTMLElement;
-// 
+//
 //         if (topSpacer) topSpacer.style.height = `${topSpacerHeight}px`;
 //         if (bottomSpacer) bottomSpacer.style.height = `${bottomSpacerHeight}px`;
 //     }
-// 
+//
 //     /**
 //      * Enable/disable virtual scrolling
 //      */
@@ -427,7 +427,7 @@ describe('TableRendering', () => {
 //         this.virtualScrollEnabled = enabled;
 //         console.log(`[TableRendering] Virtual scrolling ${enabled ? 'enabled' : 'disabled'}`);
 //     }
-// 
+//
 //     /**
 //      * Setup smart truncation for column headers
 //      * Dynamically adjusts max-width based on available space
@@ -435,10 +435,10 @@ describe('TableRendering', () => {
 //     public setupSmartColumnTruncation(): void {
 //         const dataContainer = document.querySelector(this.containerSelector) as HTMLElement;
 //         if (!dataContainer) return;
-// 
+//
 //         // Apply truncation
 //         this.applyColumnTruncation(dataContainer);
-// 
+//
 //         // Setup resize observer if not already set up
 //         if (!this.resizeObserver) {
 //             this.resizeObserver = new ResizeObserver(() => {
@@ -450,7 +450,7 @@ describe('TableRendering', () => {
 //             this.resizeObserver.observe(dataContainer);
 //         }
 //     }
-// 
+//
 //     /**
 //      * Apply column width truncation based on container size
 //      * Dynamically adjusts to panel width changes
@@ -458,71 +458,71 @@ describe('TableRendering', () => {
 //     private applyColumnTruncation(dataContainer: HTMLElement): void {
 //         const table = dataContainer.querySelector('table.editable-table');
 //         if (!table) return;
-// 
+//
 //         const headers = table.querySelectorAll('th[data-col]') as NodeListOf<HTMLElement>;
 //         if (headers.length === 0) return;
-// 
+//
 //         // Get actual visible width (accounting for scrollbar)
 //         const containerWidth = dataContainer.clientWidth;
 //         const rowNumberWidth = 45; // Row number column width
 //         const scrollbarWidth = dataContainer.offsetWidth - dataContainer.clientWidth;
 //         const cellPadding = 16; // 8px padding on each side
 //         const borderWidth = headers.length + 1; // 1px borders
-// 
+//
 //         // Calculate truly available width
 //         const availableWidth = containerWidth - rowNumberWidth - scrollbarWidth - borderWidth;
-// 
+//
 //         // Calculate per-column width
 //         const numCols = headers.length;
 //         const minColWidth = 30; // Minimum readable width
 //         const maxColWidth = 180; // Maximum before it's wasteful
-// 
+//
 //         // Calculate ideal width per column
 //         let targetWidth = Math.floor(availableWidth / numCols);
-// 
+//
 //         // Clamp to min/max
 //         targetWidth = Math.max(minColWidth, Math.min(maxColWidth, targetWidth));
-// 
+//
 //         // If container is very narrow, prioritize showing more columns at minimum width
 //         const totalMinWidth = numCols * minColWidth;
 //         if (availableWidth < totalMinWidth) {
 //             // Very narrow - use absolute minimum and rely on horizontal scroll
 //             targetWidth = minColWidth;
 //         }
-// 
+//
 //         // Apply widths to headers
 //         headers.forEach((header) => {
 //             header.style.width = `${targetWidth}px`;
 //             header.style.maxWidth = `${targetWidth}px`;
 //             header.style.minWidth = `${minColWidth}px`;
-// 
+//
 //             // Apply to inner span
 //             const headerText = header.querySelector('.col-header-text') as HTMLElement;
 //             if (headerText) {
 //                 headerText.style.maxWidth = `${targetWidth - cellPadding - 8}px`; // Account for resize handle
 //             }
 //         });
-// 
+//
 //         // Apply to data cells for consistency
 //         const cells = table.querySelectorAll('td[data-col]') as NodeListOf<HTMLElement>;
 //         cells.forEach((cell) => {
 //             cell.style.width = `${targetWidth}px`;
 //             cell.style.maxWidth = `${targetWidth}px`;
 //             cell.style.overflow = 'hidden';
-// 
+//
 //             // Apply to inner span
 //             const cellText = cell.querySelector('.cell-text') as HTMLElement;
 //             if (cellText) {
 //                 cellText.style.maxWidth = `${targetWidth - cellPadding}px`;
 //             }
 //         });
-// 
+//
 //         // Set table layout to fixed for consistent column widths
 //         (table as HTMLElement).style.tableLayout = 'fixed';
-// 
+//
 //         console.log(`[TableRendering] Smart column truncation: ${numCols} cols @ ${targetWidth}px (container: ${containerWidth}px)`);
 //     }
-// 
+//
 //     /**
 //      * Get visible row range
 //      */
@@ -532,7 +532,7 @@ describe('TableRendering', () => {
 //             end: this.visibleRowEnd
 //         };
 //     }
-// 
+//
 //     /**
 //      * Set visible row range
 //      */
@@ -540,7 +540,7 @@ describe('TableRendering', () => {
 //         this.visibleRowStart = start;
 //         this.visibleRowEnd = end;
 //     }
-// 
+//
 //     /**
 //      * Get table constants
 //      */
@@ -551,28 +551,28 @@ describe('TableRendering', () => {
 //             BUFFER_ROWS: this.BUFFER_ROWS
 //         };
 //     }
-// 
+//
 //     /**
 //      * Clear column widths (reset to default)
 //      */
 //     public clearColumnWidths(): void {
 //         this.columnWidths.clear();
 //     }
-// 
+//
 //     /**
 //      * Set first column as index
 //      */
 //     public setFirstColIsIndex(value: boolean): void {
 //         this.firstColIsIndex = value;
 //     }
-// 
+//
 //     /**
 //      * Get first column is index state
 //      */
 //     public getFirstColIsIndex(): boolean {
 //         return this.firstColIsIndex;
 //     }
-// 
+//
 //     /**
 //      * Set first row as header (placeholder - data interpretation handled by TableData)
 //      */

@@ -19,14 +19,15 @@
                     </span>
                 </a>
             {% endfor %}
-            <!-- Export buttons (TODO: restore download endpoint) -->
             <div class="docs-nav-footer">
-                <a href="/docs/?fmt=md" class="docs-export-btn" title="Download as Markdown">
-                    <i class="fas fa-file-alt"></i> Markdown
+                <a href="/docs/export/all/"
+                   class="docs-export-btn"
+                   title="Download all docs as Markdown">
+                    <i class="fas fa-file-alt"></i> All .md
                 </a>
-                <a href="/docs/?fmt=pdf" class="docs-export-btn" title="Download as PDF">
-                    <i class="fas fa-file-pdf"></i> PDF
-                </a>
+                <button class="docs-export-btn" id="docs-export-all-pdf" title="Print all docs as PDF">
+                    <i class="fas fa-file-pdf"></i> All .pdf
+                </button>
             </div>
         </nav>
     </aside>
@@ -121,6 +122,53 @@
         });
     }
 
+    var PRINT_CSS = 'body{font-family:sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;color:#222}pre{background:#f5f5f5;padding:1rem;overflow-x:auto;border-radius:4px}code{font-family:monospace}h1,h2,h3{margin-top:1.5rem}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px;text-align:left}';
+
+    function openPrintWindow(html) {
+        var win = window.open('', '_blank');
+        var doc = win.document;
+        doc.open();
+        doc.write('<!DOCTYPE html><html><head><title>SciTeX Docs</title></head><body></body></html>');
+        doc.close();
+        var s = doc.createElement('style');
+        s.textContent = PRINT_CSS;
+        doc.head.appendChild(s);
+        doc.body.innerHTML = html;
+        win.print();
+    }
+
+    // Per-section export buttons (injected after AJAX load)
+    function injectSectionExportButtons(slug) {
+        var existing = contentArea.querySelector('.docs-section-export');
+        if (existing) return;
+        var bar = document.createElement('div');
+        bar.className = 'docs-section-export';
+        bar.innerHTML = '<a href="/docs/export/' + slug + '/" class="docs-export-btn" title="Download this page as Markdown"><i class="fas fa-file-alt"></i> .md</a>' +
+            '<button class="docs-export-btn docs-section-pdf-btn" title="Print this page as PDF"><i class="fas fa-file-pdf"></i> .pdf</button>';
+        bar.querySelector('.docs-section-pdf-btn').onclick = function() {
+            openPrintWindow(contentArea.innerHTML);
+        };
+        contentArea.insertBefore(bar, contentArea.firstChild);
+    }
+
+    // Global "All PDF" button
+    var allPdfBtn = document.getElementById('docs-export-all-pdf');
+    if (allPdfBtn) {
+        allPdfBtn.onclick = function() {
+            // Fetch all pages and concatenate for print
+            var slugs = Array.from(navItems).map(function(i) { return i.dataset.slug; });
+            var fetches = slugs.map(function(s) {
+                return fetch('/docs/content/' + s + '/', { headers: { 'X-Requested-With': 'XMLHttpRequest' } }).then(function(r) { return r.text(); });
+            });
+            Promise.all(fetches).then(function(pages) {
+                var combined = pages.map(function(html, i) {
+                    return '<h1>' + slugs[i] + '</h1>' + html;
+                }).join('<hr style="page-break-after:always" />');
+                openPrintWindow(combined);
+            });
+        };
+    }
+
     function loadDocPage(slug, anchorId) {
         if (!slug) return;
         currentSlug = slug;
@@ -170,6 +218,8 @@
             });
             // Fold sections into collapsible cards
             foldSections(anchorId);
+            // Inject per-section export buttons
+            injectSectionExportButtons(slug);
         })
         .catch(err => {
             contentArea.innerHTML = '<div class="docs-error"><i class="fas fa-exclamation-triangle"></i> ' + err.message + '</div>';

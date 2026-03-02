@@ -3,8 +3,8 @@
  * Tools for adding reference rectangles, column guides, and size comparison aids
  */
 
-import { JournalPreset } from '../types.ts';
-import { unitToPx } from '../utils/geometry.ts';
+import { JournalPreset } from '../types';
+import { unitToPx } from '../utils/geometry';
 
 export class ReferenceGuides {
     private canvas: any;
