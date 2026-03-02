@@ -48,6 +48,8 @@
         <!-- Collapsible Panel (shared collapsed states, click-to-expand) -->
         <link rel="stylesheet"
               href="{% static 'shared/css/components/collapsible-panel.css' %}?v={{ build_id }}" />
+        <link rel="stylesheet"
+              href="{% static 'shared/css/components/collapsible-panel-compat.css' %}?v={{ build_id }}" />
         <!-- Panel Resizer (no-transition guard for workspace panels) -->
         <link rel="stylesheet"
               href="{% static 'shared/css/components/panel-resizer.css' %}?v={{ build_id }}" />
@@ -92,3 +94,6 @@
         <!-- Media viewer styles (shared across console and workspace viewer) -->
         <link rel="stylesheet"
               href="{% static 'shared/css/components/media-viewer.css' %}?v={{ build_id }}" />
+        <!-- Context-zoom indicator (per-pane Ctrl+Wheel zoom badge) -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/components/context-zoom-indicator.css' %}?v={{ build_id }}" />

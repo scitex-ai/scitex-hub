@@ -36,6 +36,7 @@
   border-bottom: 1px solid var(--workspace-border-default);
   flex-shrink: 0;
   box-sizing: border-box;
+  position: relative;
 }
 .tools-nav-header-title {
   font-size: 12px;
