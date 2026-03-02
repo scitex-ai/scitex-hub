@@ -78,8 +78,8 @@ export class VerticalResizer extends BaseResizer {
     return {
       top,
       bottom,
-      icon: el.dataset.icon || "fa-chevron-up",
-      title: el.dataset.title || "Resize",
+      icon: el.dataset.icon || "",
+      title: el.dataset.title || "",
       isMostTop: el.hasAttribute("data-most-top"),
       isMostBottom: el.hasAttribute("data-most-bottom"),
       thresholdPx: parseInt(el.dataset.threshold || "48", 10),

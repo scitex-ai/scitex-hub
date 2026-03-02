@@ -31,6 +31,11 @@ Returned by /hub/api/explore/?tab=repositories|users
                     </div>
                     <div class="project-card-body">
                         {% if repo.description %}<p class="text-muted">{{ repo.description|truncatewords:20 }}</p>{% endif %}
+                        {% if repo.topics_list %}
+                            <div class="project-topics">
+                                {% for topic in repo.topics_list %}<span class="topic-tag">{{ topic }}</span>{% endfor %}
+                            </div>
+                        {% endif %}
                         <div class="project-meta">
                             {% if repo.primary_language %}<span class="language-badge">{{ repo.primary_language }}</span>{% endif %}
                             <span class="meta-item">

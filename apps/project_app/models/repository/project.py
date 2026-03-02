@@ -304,6 +304,14 @@ class Project(
         help_text="Auto-detected primary programming language",
     )
 
+    # Topic tags (like GitHub "About" topics)
+    topics = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+        help_text="Comma-separated topic tags (e.g., python,machine-learning,statistics)",
+    )
+
     # Custom Manager
     objects = ProjectManager()
 

@@ -38,6 +38,7 @@ def api_projects_list(request):
             "description": project.description,
             "visibility": project.visibility,
             "project_type": project.project_type,
+            "topics": project.topics,
             "language": project.primary_language or "Unknown",
             "updated_at": (
                 project.updated_at.isoformat() if project.updated_at else None
@@ -213,13 +214,19 @@ def api_select_project(request):
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
 
     project_id = data.get("project_id")
-    if not project_id:
+    owner = data.get("owner")
+    slug = data.get("slug")
+
+    if not project_id and not (owner and slug):
         return JsonResponse(
-            {"success": False, "error": "project_id required"}, status=400
+            {"success": False, "error": "project_id or owner+slug required"}, status=400
         )
 
     try:
-        project = Project.objects.get(id=project_id)
+        if owner and slug:
+            project = Project.objects.get(owner__username=owner, slug=slug)
+        else:
+            project = Project.objects.get(id=project_id)
     except Project.DoesNotExist:
         return JsonResponse(
             {"success": False, "error": "Project not found"}, status=404
@@ -347,6 +354,52 @@ def api_user_profile(request):
         request=request,
     )
     return JsonResponse({"success": True, "html": html})
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_update_about(request):
+    """POST /hub/api/update-about/ — Update project description and/or topics."""
+    from apps.project_app.services.project_utils import get_current_project
+
+    current_project = get_current_project(request, user=request.user)
+    if not current_project:
+        return JsonResponse(
+            {"success": False, "error": "No project selected"}, status=400
+        )
+
+    if current_project.owner != request.user:
+        return JsonResponse(
+            {"success": False, "error": "Permission denied"}, status=403
+        )
+
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+
+    update_fields = []
+    if "description" in data:
+        current_project.description = data["description"].strip()
+        update_fields.append("description")
+    if "topics" in data:
+        current_project.topics = data["topics"].strip()
+        update_fields.append("topics")
+
+    if update_fields:
+        current_project.save(update_fields=update_fields)
+
+    return JsonResponse(
+        {
+            "success": True,
+            "description": current_project.description,
+            "topics": current_project.topics,
+        }
+    )
+
+
+# Keep old endpoint as alias for backward compatibility
+api_update_topics = api_update_about
 
 
 @login_required

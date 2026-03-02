@@ -5,6 +5,10 @@
  * Explore mode: public repos, users, user profiles
  */
 
+import { handleAboutClick } from "./about-edit";
+import { hubGet, hubPost } from "./hub-api";
+import { getBranch, pushDashboardUrl, pushProjectUrl } from "./hub-url";
+
 let currentTab = "files";
 
 function initHub(): void {
@@ -72,6 +76,9 @@ function initHub(): void {
     ) as HTMLElement | null;
     if (!container) return;
 
+    // About inline edit (description + topics in repo header)
+    if (handleAboutClick(target, container, e)) return;
+
     // Hub tab clicks (Files, Issues, Pull requests, Settings)
     const tab = target.closest("a.hub-tab") as HTMLAnchorElement | null;
     if (tab) {
@@ -130,6 +137,46 @@ function initHub(): void {
       return;
     }
 
+    // Topics save button
+    const topicsSave = target.closest("#hub-topics-save") as HTMLElement | null;
+    if (topicsSave) {
+      e.preventDefault();
+      e.stopPropagation();
+      const input = container.querySelector(
+        "#hub-topics-input",
+      ) as HTMLInputElement | null;
+      if (!input) return;
+      const csrfToken =
+        document
+          .querySelector("[name=csrfmiddlewaretoken]")
+          ?.getAttribute("value") ||
+        document.cookie.match(/csrftoken=([^;]+)/)?.[1] ||
+        "";
+      topicsSave.textContent = "Saving...";
+      fetch("/hub/api/update-topics/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+        body: JSON.stringify({ topics: input.value }),
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          topicsSave.textContent = data.success ? "Saved" : "Error";
+          setTimeout(() => {
+            topicsSave.textContent = "Save";
+          }, 2000);
+        })
+        .catch(() => {
+          topicsSave.textContent = "Error";
+          setTimeout(() => {
+            topicsSave.textContent = "Save";
+          }, 2000);
+        });
+      return;
+    }
+
     // File browser links
     const link = target.closest(
       "a.file-browser-link",
@@ -173,7 +220,6 @@ function initHub(): void {
       "a.repo-header-owner",
     ) as HTMLAnchorElement | null;
     if (ownerLink) {
-      // Let the browser navigate to /<username>/
       return;
     }
 
@@ -243,6 +289,7 @@ async function selectProject(projectId: string): Promise<void> {
       owner: data.owner,
       slug: data.project_slug,
     };
+    pushProjectUrl();
   }
 }
 
@@ -258,7 +305,6 @@ async function loadExplore(tab: string): Promise<void> {
 
 async function loadUserProfile(username: string): Promise<void> {
   if (!username) return;
-  // Navigate to /<username>/ (rendered server-side like GitHub)
   window.location.href = `/${encodeURIComponent(username)}/`;
 }
 
@@ -266,9 +312,7 @@ async function backToProjects(): Promise<void> {
   const content = document.getElementById("hub-main-content");
   if (!content) return;
   content.style.opacity = "0.5";
-
-  history.pushState({ view: "dashboard" }, "", "/");
-
+  pushDashboardUrl();
   const data = await hubGet("/hub/api/projects-overview/");
   if (data?.success) content.innerHTML = data.html;
   content.style.opacity = "1";
@@ -296,6 +340,7 @@ async function switchHubTab(
   if (tab === "files") {
     loadHubBrowse("", container);
   } else {
+    pushProjectUrl(tab);
     await loadHubTabContent(tab, container);
   }
 }
@@ -322,6 +367,12 @@ async function loadHubBrowse(
   const target = getDynamicArea(container);
   target.style.opacity = "0.5";
 
+  if (path) {
+    pushProjectUrl(`tree/${getBranch()}/${path}`);
+  } else {
+    pushProjectUrl();
+  }
+
   const data = await hubGet(
     `/hub/api/browse/?path=${encodeURIComponent(path)}`,
   );
@@ -338,43 +389,11 @@ async function loadHubFile(
 ): Promise<void> {
   const target = getDynamicArea(container);
   target.style.opacity = "0.5";
+  pushProjectUrl(`blob/${getBranch()}/${path}`);
 
   const data = await hubGet(`/hub/api/file/?path=${encodeURIComponent(path)}`);
   if (data?.success) target.innerHTML = data.html;
   target.style.opacity = "1";
-}
-
-// --- API helpers ---
-
-async function hubGet(url: string): Promise<any | null> {
-  try {
-    const resp = await fetch(url, {
-      headers: { "X-Requested-With": "XMLHttpRequest" },
-      credentials: "same-origin",
-    });
-    return resp.ok ? await resp.json() : null;
-  } catch {
-    return null;
-  }
-}
-
-async function hubPost(url: string, body: object): Promise<any | null> {
-  try {
-    const csrfToken = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || "";
-    const resp = await fetch(url, {
-      method: "POST",
-      headers: {
-        "X-Requested-With": "XMLHttpRequest",
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrfToken,
-      },
-      credentials: "same-origin",
-      body: JSON.stringify(body),
-    });
-    return resp.ok ? await resp.json() : null;
-  } catch {
-    return null;
-  }
 }
 
 // --- Utilities ---
@@ -428,32 +447,31 @@ function postLoadHooks(): void {
 }
 
 // Handle browser back/forward navigation
-window.addEventListener("popstate", () => {
-  const params = new URLSearchParams(location.search);
-  const view = params.get("view");
-  if (view === "profile") {
-    const username = params.get("username") || "";
-    if (username) {
-      const content = document.getElementById("hub-main-content");
-      if (content) {
-        content.style.opacity = "0.5";
-        hubGet(
-          `/hub/api/user-profile/?username=${encodeURIComponent(username)}`,
-        ).then((data) => {
-          if (data?.success) content.innerHTML = data.html;
-          content.style.opacity = "1";
-        });
+window.addEventListener("popstate", (event) => {
+  const content = document.getElementById("hub-main-content");
+  if (!content) return;
+  content.style.opacity = "0.5";
+
+  const state = event.state;
+  if (state?.view === "project" && state.owner && state.slug) {
+    hubPost("/hub/api/select-project/", {
+      owner: state.owner,
+      slug: state.slug,
+    }).then((data) => {
+      if (data?.success) {
+        content.innerHTML = data.html;
+        (window as any).SCITEX_PROJECT_DATA = {
+          owner: state.owner,
+          slug: state.slug,
+        };
       }
-    }
+      content.style.opacity = "1";
+    });
   } else {
-    const content = document.getElementById("hub-main-content");
-    if (content) {
-      content.style.opacity = "0.5";
-      hubGet("/hub/api/projects-overview/").then((data) => {
-        if (data?.success) content.innerHTML = data.html;
-        content.style.opacity = "1";
-      });
-    }
+    hubGet("/hub/api/projects-overview/").then((data) => {
+      if (data?.success) content.innerHTML = data.html;
+      content.style.opacity = "1";
+    });
   }
 });
 

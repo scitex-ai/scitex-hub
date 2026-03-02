@@ -46,6 +46,16 @@ urlpatterns = [
         api_views.api_avatar_upload,
         name="api_avatar_upload",
     ),
+    path(
+        "update-topics/",
+        api_views.api_update_topics,
+        name="api_update_topics",
+    ),
+    path(
+        "update-about/",
+        api_views.api_update_about,
+        name="api_update_about",
+    ),
 ]
 
 # EOF

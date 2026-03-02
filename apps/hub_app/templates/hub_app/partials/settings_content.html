@@ -64,6 +64,32 @@ Renders project settings within the Hub workspace pane.
                         <label style="display:block;
                                       font-size:0.85rem;
                                       color:var(--workspace-text-muted);
+                                      margin-bottom:4px">Topics</label>
+                        <div style="font-size:0.85rem;color:var(--workspace-text-muted);margin-bottom:4px">
+                            Comma-separated keywords (e.g., python, machine-learning, statistics)
+                        </div>
+                        <div style="display:flex;gap:8px;align-items:center">
+                            <input type="text"
+                                   id="hub-topics-input"
+                                   value="{{ project.topics }}"
+                                   placeholder="python, machine-learning, statistics"
+                                   style="flex:1;
+                                          padding:6px 10px;
+                                          font-size:0.85rem;
+                                          background:var(--workspace-bg-secondary);
+                                          border:1px solid var(--workspace-border-default);
+                                          border-radius:4px;
+                                          color:var(--workspace-text-primary)" />
+                            <button type="button"
+                                    id="hub-topics-save"
+                                    class="btn btn-primary btn-sm"
+                                    style="white-space:nowrap">Save</button>
+                        </div>
+                    </div>
+                    <div style="margin-bottom:1rem">
+                        <label style="display:block;
+                                      font-size:0.85rem;
+                                      color:var(--workspace-text-muted);
                                       margin-bottom:4px">Type</label>
                         <div style="font-size:0.9rem;color:var(--workspace-text-primary);padding:6px 0">{{ project.project_type }}</div>
                     </div>

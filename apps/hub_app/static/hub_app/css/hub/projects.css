@@ -45,19 +45,41 @@
 
 .project-card-header .badge {
   font-size: 0.7rem;
-  padding: 0.15rem 0.4rem;
-  border-radius: 4px;
+  padding: 0.1rem 0.5rem;
+  border-radius: 2em;
   font-weight: 500;
+  background: transparent;
+  border: 1px solid var(--workspace-border-default);
+  color: var(--workspace-text-muted);
+  line-height: 1.5;
 }
 
 .project-card-header .badge-public {
-  background-color: var(--status-success);
-  color: white;
+  /* GitHub-style subtle outline — same as base */
 }
 
 .project-card-header .badge-private {
-  background-color: var(--workspace-text-muted);
-  color: white;
+  /* GitHub-style subtle outline — same as base */
+}
+
+/* Topic tags (GitHub-style blue pills) */
+.project-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.topic-tag {
+  display: inline-block;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 2em;
+  background: rgba(56, 139, 253, 0.15);
+  color: #58a6ff;
+  font-weight: 500;
+  cursor: default;
+  line-height: 1.5;
 }
 
 .project-card-body p {
@@ -86,4 +108,75 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+
+/* About section (GitHub-style, below README) */
+.hub-about-section {
+  border-top: 1px solid var(--workspace-border-default);
+  padding: 1.25rem 0;
+  margin-top: 1rem;
+}
+
+.hub-about-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  color: var(--workspace-text-primary);
+}
+
+.hub-about-description {
+  font-size: 0.9rem;
+  color: var(--workspace-text-primary);
+  margin: 0 0 0.75rem;
+  line-height: 1.5;
+}
+
+.hub-about-section .project-topics {
+  margin-bottom: 0.75rem;
+}
+
+.hub-about-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--workspace-text-muted);
+}
+
+.hub-about-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Inline About edit (pencil button in repo header) */
+.repo-about-inline {
+  position: relative;
+}
+
+.repo-about-edit-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: none;
+  color: var(--workspace-text-muted);
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.repo-about-inline:hover .repo-about-edit-btn {
+  opacity: 1;
+}
+
+.repo-about-edit-btn:hover {
+  color: var(--module-accent-hub);
+}
+
+.repo-description-empty {
+  font-style: italic;
+  opacity: 0.5;
 }

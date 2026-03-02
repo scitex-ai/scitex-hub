@@ -364,3 +364,14 @@ class ProjectMethodsMixin:
         except Exception as e:
             logger.error(f"Error updating storage for project {self.name}: {e}")
             return self.storage_used
+
+    # ----------------------------------------
+    # Property Helpers
+    # ----------------------------------------
+
+    @property
+    def topics_list(self):
+        """Split comma-separated topics into a list for template iteration."""
+        if not self.topics:
+            return []
+        return [t.strip() for t in self.topics.split(",") if t.strip()]

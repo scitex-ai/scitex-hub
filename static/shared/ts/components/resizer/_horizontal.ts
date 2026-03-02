@@ -117,7 +117,7 @@ export class HorizontalResizer extends BaseResizer {
       const toggleId =
         sibResizer.dataset.toggleBtn || sibResizer.dataset.externalToggle || "";
       const toggleBtn = toggleId ? document.getElementById(toggleId) : null;
-      const toggleIcon = sibResizer.dataset.icon || "fa-chevron-left";
+      const toggleIcon = sibResizer.dataset.icon || "";
 
       return {
         panel: sibPanel,
@@ -147,8 +147,8 @@ export class HorizontalResizer extends BaseResizer {
     return {
       left,
       right,
-      icon: el.dataset.icon || "fa-chevron-left",
-      title: el.dataset.title || "Resize",
+      icon: el.dataset.icon || "",
+      title: el.dataset.title || "",
       isMostLeft: el.hasAttribute("data-most-left"),
       isMostRight: el.hasAttribute("data-most-right"),
       thresholdPx: parseInt(el.dataset.threshold || "48", 10),

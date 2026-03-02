@@ -144,6 +144,8 @@ def _is_user_profile_path(path: str) -> bool:
 def _filter_modules_for_user(request, modules):
     """Filter and reorder modules based on user's apps installations."""
     if not request.user.is_authenticated:
+        for mod in modules:
+            mod.accent_color = ""
         return modules
 
     try:
@@ -168,17 +170,24 @@ def _filter_modules_for_user(request, modules):
                 mod.status = db_status
     except Exception:
         # apps_app not migrated yet or other DB issue
+        for mod in modules:
+            mod.accent_color = ""
         return modules
 
     if not installations:
         # No installations = first-time user, show default-enabled modules
-        return [m for m in modules if m.default_enabled]
+        result = [m for m in modules if m.default_enabled]
+        for mod in result:
+            mod.accent_color = ""
+        return result
 
     # Show modules unless explicitly disabled via installation record
     visible = []
     for idx, mod in enumerate(modules):
         inst = installations.get(mod.name)
         if inst is None:
+            if not mod.default_enabled:
+                continue  # Respect registry default_enabled=False
             # No record = default visible, keep registry order
             mod.order = (idx + 1) * 10
             mod.accent_color = ""

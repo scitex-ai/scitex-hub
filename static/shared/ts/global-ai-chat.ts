@@ -23,7 +23,7 @@ import {
 } from "./components/_global-ai-chat/model-badge";
 import { initKeyboardShortcuts } from "./components/keyboard-shortcuts";
 import { AIPanelConfigMode } from "./components/_global-ai-chat/config-mode";
-import { initAllZoomZones } from "./components/context-zoom-init";
+// context-zoom-init is now self-initializing (loaded via vite_script in global_body_scripts.html)
 
 const PANEL_OPEN_KEY = "scitex_ai_open";
 
@@ -207,8 +207,7 @@ class GlobalAIChat {
     // Centralized keyboard shortcuts (replaces inline Alt+A handler)
     initKeyboardShortcuts();
 
-    // Context-aware zoom: Ctrl+Wheel / Ctrl++/-/0 per pane
-    initAllZoomZones();
+    // Context-aware zoom: now self-initializing via vite_script (decoupled from AI panel)
 
     this.context.page = window.location.href;
     const slug = readActiveProjectSlug();
@@ -423,6 +422,7 @@ class GlobalAIChat {
   private initConsoleMode(): void {
     const containerEl = document.getElementById("scitex-ai-console-terminal");
     const statusEl = document.getElementById("scitex-ai-console-status");
+    const tabsListEl = document.getElementById("scitex-ai-console-tabs-list");
     if (!containerEl) return;
     if (!this.consoleMode) this.consoleMode = new AIPanelConsoleMode();
     const toolbar = {
@@ -439,7 +439,7 @@ class GlobalAIChat {
         "scitex-ai-console-image-file",
       ) as HTMLInputElement | null,
     };
-    void this.consoleMode.init(containerEl, statusEl, toolbar);
+    void this.consoleMode.init(containerEl, statusEl, toolbar, tabsListEl);
   }
 
   private initJobsMode(): void {

@@ -71,6 +71,10 @@
   margin-bottom: 0.25rem;
 }
 
+.hub-browse-container .file-browser {
+  margin-top: 0.75rem;
+}
+
 .hub-browse-container .readme-container {
   padding: 1.5rem 1rem;
 }

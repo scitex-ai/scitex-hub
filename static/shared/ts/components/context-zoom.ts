@@ -23,6 +23,11 @@ export interface ZoomZone {
 const zones: ZoomZone[] = [];
 let activeZone: ZoomZone | null = null;
 
+/** Get the currently active zoom zone (mouse is over it). */
+export function getActiveZone(): ZoomZone | null {
+  return activeZone;
+}
+
 /**
  * Register a DOM element as a zoom zone.
  * When the cursor is over this element, Ctrl+Wheel and Ctrl++/-/0

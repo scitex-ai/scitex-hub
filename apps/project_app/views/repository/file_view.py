@@ -14,13 +14,14 @@ from __future__ import annotations
 import logging
 import subprocess
 
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import User
-from django.http import HttpResponse, Http404
+from django.http import Http404, HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.project_app.models import Project
 from apps.project_app.services.syntax_highlighting import detect_language
+
 from .api.permissions import check_project_read_access
 
 logger = logging.getLogger(__name__)
@@ -44,6 +45,14 @@ def project_file_view(request, username, slug, file_path):
     - Images - Display inline
     """
     mode = request.GET.get("mode", "view")
+
+    # Authenticated users → render through hub workspace (except raw/download)
+    if request.user.is_authenticated and mode not in ("raw", "download"):
+        from apps.hub_app.views.index import build_hub_context
+
+        project = get_object_or_404(Project, slug=slug, owner__username=username)
+        context = build_hub_context(request, current_project=project)
+        return render(request, "hub_app/index.html", context)
     user = get_object_or_404(User, username=username)
     project = get_object_or_404(Project, slug=slug, owner=user)
 
@@ -98,7 +107,9 @@ def project_file_view(request, username, slug, file_path):
     git_info = {}
     try:
         # Get current branch from session or repository
-        from apps.project_app.api_views_module.api_views import get_current_branch_from_session
+        from apps.project_app.api_views_module.api_views import (
+            get_current_branch_from_session,
+        )
 
         current_branch = get_current_branch_from_session(request, project)
         git_info["current_branch"] = current_branch
@@ -267,8 +278,8 @@ def project_file_view(request, username, slug, file_path):
 
                     # Render based on file type
                     if file_ext == ".md":
-                        import markdown
                         import bleach
+                        import markdown
                         from bleach.css_sanitizer import CSSSanitizer
 
                         # Render markdown to HTML
