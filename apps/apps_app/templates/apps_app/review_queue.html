@@ -59,6 +59,16 @@
                                         <i class="fas fa-calendar" aria-hidden="true"></i>
                                         {{ sub.submitted_at|date:"Y-m-d H:i" }}
                                     </span>
+                                    {% if sub.pr_url %}
+                                        <a href="{{ sub.pr_url }}"
+                                           target="_blank"
+                                           rel="noopener"
+                                           style="margin-left: 12px;
+                                                  color: var(--color-accent-fg)">
+                                            <i class="fas fa-code-pull-request" aria-hidden="true"></i>
+                                            Registry PR
+                                        </a>
+                                    {% endif %}
                                     {% if sub.module.project %}
                                         <a href="/{{ sub.module.project.owner.username }}/{{ sub.module.project.slug }}/"
                                            style="margin-left: 12px;

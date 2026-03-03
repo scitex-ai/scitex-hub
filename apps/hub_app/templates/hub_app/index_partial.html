@@ -1,4 +1,52 @@
 {% load static %}
 
 <link rel="stylesheet" href="{% static 'hub_app/css/hub.css' %}" />
-<div class="hub-partial-content">{% include 'hub_app/partials/projects_overview.html' %}</div>
+{% if current_project %}
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/container-header.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/branch-dropdown.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/icon-utilities.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/tab-navigation.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/file-browser-table.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/readme-rendering.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/action-buttons.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/split-dropdown.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/tabs.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/toolbar.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/buttons.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/file_browser.css' %}" />
+{% endif %}
+<div class="hub-partial-content">
+    <!-- Dashboard | Explore mode switcher -->
+    <div class="hub-mode-switcher" id="hub-mode-switcher">
+        <a href="#" class="hub-mode hub-mode-active" data-hub-mode="dashboard">
+            <i class="fas fa-th-large"></i> Dashboard
+        </a>
+        <a href="#" class="hub-mode" data-hub-mode="explore">
+            <i class="fas fa-compass"></i> Explore
+        </a>
+    </div>
+    <div id="hub-main-content">
+        {% if current_project %}
+            <div class="hub-browse-container p-3">
+                {% include 'hub_app/partials/hub_tabs.html' %}
+                <div class="hub-browse-dynamic">
+                    {% include 'project_app/repository/browse_partials/browse_file_browser.html' %}
+                    {% include 'project_app/repository/browse_partials/browse_readme.html' %}
+                </div>
+            </div>
+        {% else %}
+            {% include 'hub_app/partials/projects_overview.html' %}
+        {% endif %}
+    </div>
+</div>

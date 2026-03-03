@@ -21,6 +21,7 @@ from django.views.static import serve
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from apps.accounts_app.api.user_views import api_search_users
+from apps.apps_app.views import api_registry_webhook, api_submit_jwt
 from apps.hub_app.views.dispatch import root_dispatch
 from apps.integrations_app.views_events import list_events, receive_event
 from apps.project_app.views import (
@@ -210,6 +211,17 @@ urlpatterns = [
         "api/me/",
         csrf_exempt(api_me),
         name="api_me",
+    ),
+    # JWT-authenticated app submission + Gitea registry webhook
+    path(
+        "api/apps/submit/",
+        csrf_exempt(api_submit_jwt),
+        name="api_apps_submit_jwt",
+    ),
+    path(
+        "api/apps/webhook/",
+        csrf_exempt(api_registry_webhook),
+        name="api_apps_registry_webhook",
     ),
     # GitHub-like operations
     # /new - Create new project

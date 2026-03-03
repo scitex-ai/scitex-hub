@@ -14,15 +14,15 @@ logger = logging.getLogger(__name__)
 def build_hub_context(request, current_project=None):
     """Build hub-specific template context for both full page and partial views.
 
-    Hub is a project-agnostic dashboard. The current_project parameter is
-    accepted for API compatibility but ignored — project selection is managed
-    exclusively by the global header dropdown (context processor).
+    When current_project is set, shows project file browser (GitHub-style).
+    When no project, shows dashboard with project cards.
     """
 
     context = {
         "is_visitor": False,
         "module_name": "Hub",
         "module_icon": "fa-home",
+        "current_project": current_project,
     }
 
     # Quick Reference: SSH and URL info
@@ -66,6 +66,10 @@ def build_hub_context(request, current_project=None):
         "-created_at"
     )[:5]
     context["recent_activities"] = recent_activities
+
+    # When a project is selected, add file browser data
+    if current_project:
+        _add_file_browser_context(request, current_project, context)
 
     return context
 

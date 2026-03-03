@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 def publish(app_dir: str | Path, server_url: str, token: str) -> dict:
-    """Validate locally then submit the app for review on the server.
+    """Validate locally then submit the app for review via JWT endpoint.
 
     Parameters
     ----------
@@ -18,12 +18,12 @@ def publish(app_dir: str | Path, server_url: str, token: str) -> dict:
     server_url : str
         Base URL of the SciTeX Cloud server (e.g. http://127.0.0.1:8000).
     token : str
-        API authentication token.
+        JWT access token (Bearer auth).
 
     Returns
     -------
     dict
-        Server response with 'success' key.
+        Server response with 'success' and 'pr_url' keys.
     """
     import requests
 
@@ -44,15 +44,19 @@ def publish(app_dir: str | Path, server_url: str, token: str) -> dict:
     with open(manifest_path, encoding="utf-8") as f:
         manifest = json.load(f)
 
-    module_name = manifest.get("name", app_path.name)
+    project_name = manifest.get("name", app_path.name)
 
-    # Submit to server
-    url = f"{server_url.rstrip('/')}/apps/api/{module_name}/submit/"
+    # Submit via JWT-authenticated endpoint
+    url = f"{server_url.rstrip('/')}/api/apps/submit/"
     headers = {
-        "Authorization": f"Token {token}",
+        "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
     }
-    resp = requests.post(url, headers=headers, timeout=30)
+    payload = {
+        "project_name": project_name,
+        "manifest": manifest,
+    }
+    resp = requests.post(url, headers=headers, json=payload, timeout=30)
     return resp.json()
 
 

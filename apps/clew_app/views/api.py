@@ -318,55 +318,37 @@ def database_stats(request):
 @csrf_protect
 @require_http_methods(["POST"])
 def add_examples(request):
-    """Copy example Clew pipeline scripts into the user's project workspace.
+    """Copy example Clew pipeline into the current project workspace.
 
-    Copies from scitex-code examples/scitex/clew/ into the project and runs them.
+    Thin wrapper around stx.clew.init_examples().
     """
-    import shutil
-    import subprocess
-    from pathlib import Path
+    from apps.project_app.services.filesystem.paths import get_project_root_path
+    from apps.project_app.services.project_utils import get_current_project
 
     try:
-        # Source: examples bundled with scitex-code
-        src_dir = Path(stx.__file__).parent.parent / "examples" / "scitex" / "clew"
-        if not src_dir.exists():
+        project = get_current_project(request)
+        if not project:
             return JsonResponse(
-                {"success": False, "error": f"Examples not found at {src_dir}"},
+                {"success": False, "error": "No active project"},
+                status=400,
+            )
+
+        project_path = get_project_root_path(request.user, project)
+        if not project_path:
+            return JsonResponse(
+                {"success": False, "error": "Project workspace not found"},
                 status=404,
             )
 
-        # Destination: use project workspace if available, fallback to home
-        project = getattr(request, "current_project", None)
-        if project and hasattr(project, "get_workspace_path"):
-            workspace_root = Path(project.get_workspace_path()) / "clew-examples"
-        else:
-            workspace_root = Path.home() / "clew-examples"
-        workspace_root.mkdir(parents=True, exist_ok=True)
-
-        # Copy only .py and .sh scripts (skip _out directories)
-        copied = []
-        for item in sorted(src_dir.iterdir()):
-            if item.is_file() and item.suffix in (".py", ".sh"):
-                dest = workspace_root / item.name
-                shutil.copy2(item, dest)
-                copied.append(item.name)
-
-        # Run the example pipeline in background (00_run_all.sh if available)
-        run_all = workspace_root / "00_run_all.sh"
-        if run_all.exists():
-            subprocess.Popen(
-                ["bash", str(run_all)],
-                cwd=str(workspace_root),
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-
+        dest = project_path / "examples" / "clew"
+        result = stx.clew.init_examples(dest)
         return JsonResponse(
             {
                 "success": True,
                 "data": {
-                    "message": f"Copied {len(copied)} example files to {workspace_root}",
-                    "files": copied,
+                    "message": "Examples saved to examples/clew/",
+                    "path": result["path"],
+                    "file_count": result["file_count"],
                 },
             }
         )

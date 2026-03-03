@@ -131,17 +131,12 @@ def app_dev(app_dir, port):
     default="http://127.0.0.1:8000",
     help="SciTeX Cloud server URL",
 )
-@click.option(
-    "--token",
-    "-t",
-    envvar="SCITEX_CLOUD_TOKEN",
-    required=True,
-    help="API authentication token",
-)
-def app_publish(app_dir, server, token):
+def app_publish(app_dir, server):
     """Validate and submit an app for publication review.
 
-    Runs local validation first, then submits to the server.
+    Authenticates via JWT (prompts for credentials if needed),
+    runs local validation, then submits to the server.
+    A PR is opened on the central registry for transparent review.
 
     \b
     Examples:
@@ -149,13 +144,20 @@ def app_publish(app_dir, server, token):
         scitex-cloud app publish /path/to/my_app --server https://scitex.example.com
     """
     from scitex_cloud.app_tools import publish
+    from scitex_cloud.cli._workspace_auth import get_jwt_token, get_server_url
+
+    server_url = get_server_url(server)
+    token = get_jwt_token(server_url)
 
     console.print(f"[cyan]Publishing app from:[/cyan] {Path(app_dir).resolve()}")
 
-    result = publish(app_dir, server_url=server, token=token)
+    result = publish(app_dir, server_url=server_url, token=token)
 
     if result.get("success"):
         console.print("[green]Submitted for review![/green]")
+        pr_url = result.get("pr_url", "")
+        if pr_url:
+            console.print(f"[cyan]Registry PR:[/cyan] {pr_url}")
     else:
         errors = result.get("errors", [result.get("error", "Unknown error")])
         console.print("[red]Failed:[/red]")
