@@ -30,6 +30,7 @@
   font-weight: 500;
   padding: 6px 12px;
   border: 1px solid var(--status-warning-border);
+  white-space: nowrap;
 }
 
 .header-user-toggle.visitor-button:hover {
