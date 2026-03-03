@@ -13,6 +13,69 @@ from pathlib import Path
 
 import click
 
+# Default Gitea port for SciTeX Cloud
+_DEFAULT_GITEA_PORT = 3000
+
+
+def get_gitea_url():
+    """Return the Gitea base URL from env or .env file.
+
+    Resolution order:
+    1. SCITEX_CLOUD_GITEA_URL_DEV env var
+    2. SCITEX_CLOUD_GITEA_HTTP_PORT_DEV env var (builds http://localhost:{port})
+    3. SECRET/.env.dev file (parsed for the above keys)
+    4. Fallback: http://localhost:3000
+    """
+    url = os.environ.get("SCITEX_CLOUD_GITEA_URL_DEV")
+    if url:
+        return url.rstrip("/")
+
+    port = os.environ.get("SCITEX_CLOUD_GITEA_HTTP_PORT_DEV")
+    if port:
+        return f"http://localhost:{port}"
+
+    # Try reading from .env file
+    for env_path in _find_env_files():
+        parsed = _parse_env_file(env_path)
+        if "SCITEX_CLOUD_GITEA_URL_DEV" in parsed:
+            return parsed["SCITEX_CLOUD_GITEA_URL_DEV"].rstrip("/")
+        if "SCITEX_CLOUD_GITEA_HTTP_PORT_DEV" in parsed:
+            return f"http://localhost:{parsed['SCITEX_CLOUD_GITEA_HTTP_PORT_DEV']}"
+
+    return f"http://localhost:{_DEFAULT_GITEA_PORT}"
+
+
+def _find_env_files():
+    """Yield paths to .env files (SECRET/.env.dev, .env) from project root."""
+    # Walk up from cwd to find the project root (has SECRET/ or .env)
+    cwd = Path(os.getcwd())
+    for parent in [cwd] + list(cwd.parents):
+        secret_env = parent / "SECRET" / ".env.dev"
+        if secret_env.exists():
+            yield secret_env
+        dot_env = parent / ".env"
+        if dot_env.exists():
+            yield dot_env
+        if (parent / "manage.py").exists():
+            break
+
+
+def _parse_env_file(path):
+    """Parse a .env file into a dict (simple KEY=VALUE format)."""
+    result = {}
+    try:
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if "=" in line:
+                    key, _, value = line.partition("=")
+                    result[key.strip()] = value.strip().strip("'\"")
+    except Exception:
+        pass
+    return result
+
 
 def run_tea(*args):
     """Execute tea command and return result."""
@@ -100,6 +163,80 @@ def check_large_files(threshold_mb=100):
     except Exception as e:
         click.echo(f"Warning: Could not check file sizes: {e}", err=True)
     return large_files
+
+
+def get_tea_config(login_name="scitex-dev"):
+    """Read tea config and return the named login entry (url, token, user)."""
+    import yaml
+
+    config_path = Path.home() / ".config" / "tea" / "config.yml"
+    if not config_path.exists():
+        click.echo(
+            "Error: Tea configuration not found. Run 'scitex-cloud gitea login' first.",
+            err=True,
+        )
+        sys.exit(1)
+    try:
+        with open(config_path) as f:
+            config = yaml.safe_load(f)
+        for entry in config.get("logins", []):
+            if entry["name"] == login_name:
+                return entry
+        click.echo(f"Error: Login '{login_name}' not found in tea config.", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"Error reading tea config: {e}", err=True)
+        sys.exit(1)
+
+
+def get_gitea_http_url(owner, repo, login_name="scitex-dev"):
+    """Return an HTTP URL with embedded token for git operations."""
+    cfg = get_tea_config(login_name)
+    host = cfg["url"].rstrip("/")
+    # Strip scheme and re-add with token embedded
+    if "://" in host:
+        scheme, rest = host.split("://", 1)
+    else:
+        scheme, rest = "http", host
+    token = cfg["token"]
+    return f"{scheme}://{token}@{rest}/{owner}/{repo}.git"
+
+
+def ensure_gitea_remote(remote_name="scitex", login_name="scitex-dev", repo=None):
+    """Ensure a Gitea remote exists on the current git repo.
+
+    If the remote is missing, infer owner/repo from tea config and cwd,
+    create it with a token-authenticated URL, and return the remote name.
+    """
+    # Check if remote already exists
+    result = subprocess.run(
+        ["git", "remote", "get-url", remote_name],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode == 0:
+        return remote_name
+
+    # Remote does not exist — build URL from tea config + cwd
+    cfg = get_tea_config(login_name)
+    owner = cfg.get("user", "")
+    if not owner:
+        click.echo(
+            "Error: Could not determine Gitea username from tea config.", err=True
+        )
+        sys.exit(1)
+
+    if repo is None:
+        repo = Path(os.getcwd()).name
+
+    url = get_gitea_http_url(owner, repo, login_name)
+    click.echo(f"Adding remote '{remote_name}' -> {cfg['url']}/{owner}/{repo}.git")
+    try:
+        subprocess.run(["git", "remote", "add", remote_name, url], check=True)
+    except subprocess.CalledProcessError as e:
+        click.echo(f"Error adding remote: {e}", err=True)
+        sys.exit(1)
+    return remote_name
 
 
 class SyncLock:

@@ -25,8 +25,15 @@ def app():
     "--icon", "-i", default="fas fa-puzzle-piece", help="Font Awesome icon class"
 )
 @click.option("--description", "-d", default="", help="Short description")
+@click.option(
+    "--frontend",
+    "-f",
+    type=click.Choice(["html", "react"]),
+    default="html",
+    help="Frontend type: html (default) or react (React+Vite+Zustand)",
+)
 @click.option("--overwrite", is_flag=True, help="Overwrite existing files")
-def app_init(target_dir, name, label, icon, description, overwrite):
+def app_init(target_dir, name, label, icon, description, frontend, overwrite):
     """Scaffold a complete SciTeX app in a directory.
 
     Creates all required boilerplate files: apps.py, views.py, urls.py,
@@ -62,6 +69,7 @@ def app_init(target_dir, name, label, icon, description, overwrite):
         icon=icon,
         description=description,
         overwrite=overwrite,
+        frontend_type=frontend,
     )
 
     for filepath in created:

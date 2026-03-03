@@ -17,6 +17,7 @@ from .gitea import gitea
 from .mcp import mcp
 from .setup import setup
 from .status import logs, status
+from .workspace import workspace  # noqa: F401
 
 console = Console()
 
@@ -87,6 +88,7 @@ main.add_command(context_group, "context")
 main.add_command(status)
 main.add_command(logs)
 main.add_command(completion)
+main.add_command(workspace)
 
 
 @main.command("list-python-apis", context_settings=CONTEXT_SETTINGS)
