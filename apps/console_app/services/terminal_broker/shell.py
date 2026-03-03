@@ -31,6 +31,18 @@ class Shell(BasePTY):
         self.allocation_id = allocation_id
         self.command = command
 
+    def _prepare_child_env(self) -> dict:
+        """Prepare env for srun --overlap shell.
+
+        Preserve HOME so apptainer can find the instance database
+        (instances are keyed by the HOME of the process that started them).
+        User identity is set up inside the container by the shell command.
+        """
+        original_home = os.environ.get("HOME", "/root")
+        env = super()._prepare_child_env()
+        env["HOME"] = original_home
+        return env
+
     def _exec_in_child(self):
         """Execute the provided command in child process."""
         try:

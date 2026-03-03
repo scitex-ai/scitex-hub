@@ -28,21 +28,15 @@ from .workspace import ensure_workspace
 
 logger = logging.getLogger(__name__)
 
-# Check if broker is available at module load
-_BROKER_AVAILABLE = None
-
 
 async def _check_broker():
-    """Check if terminal broker is available."""
-    global _BROKER_AVAILABLE
-    if _BROKER_AVAILABLE is None:
-        try:
-            from apps.console_app.services.terminal_client import is_broker_available
+    """Check if terminal broker is available (re-checks each time)."""
+    try:
+        from apps.console_app.services.terminal_client import is_broker_available
 
-            _BROKER_AVAILABLE = await is_broker_available()
-        except Exception:
-            _BROKER_AVAILABLE = False
-    return _BROKER_AVAILABLE
+        return await is_broker_available()
+    except Exception:
+        return False
 
 
 # Fallback: SIGCHLD handler for direct pty.fork() mode
@@ -122,10 +116,14 @@ class TerminalConsumer(AsyncWebsocketConsumer):
                     .first()
                 )
                 if not self.project:
-                    # Fall back to first owned project
+                    # Fall back to default-project, then oldest owned project
                     self.project = await asyncio.to_thread(
                         lambda: Project.objects.select_related("owner")
+                        .filter(owner=self.user, slug="default-project")
+                        .first()
+                        or Project.objects.select_related("owner")
                         .filter(owner=self.user)
+                        .order_by("id")
                         .first()
                     )
                 if not self.project:

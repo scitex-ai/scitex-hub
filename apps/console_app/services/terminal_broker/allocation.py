@@ -7,7 +7,6 @@ import enum
 import logging
 import os
 import subprocess
-import tempfile
 import time
 import uuid
 from pathlib import Path
@@ -18,8 +17,27 @@ logger = logging.getLogger(__name__)
 # How long to wait for sbatch job to start running
 SBATCH_STARTUP_TIMEOUT = 60  # seconds
 SQUEUE_POLL_INTERVAL = 1.0  # seconds
+# After job is RUNNING, poll for apptainer instance readiness
 INSTANCE_VERIFY_TIMEOUT = 30  # seconds
 INSTANCE_VERIFY_INTERVAL = 2.0  # seconds
+
+# Shared script directory: Docker writes here, SLURM reads from host path
+# Docker path: /app/data/.cache/alloc-scripts/
+# Host path: derived from SLURM_USER_DATA_ROOT (e.g., .../data/users -> .../data/.cache/...)
+_DOCKER_SCRIPT_DIR = Path("/app/data/.cache/alloc-scripts")
+_HOST_SCRIPT_DIR: Optional[Path] = None
+
+
+def _get_host_script_dir() -> Path:
+    """Get host-side script directory, derived from SLURM_USER_DATA_ROOT."""
+    global _HOST_SCRIPT_DIR
+    if _HOST_SCRIPT_DIR is None:
+        from apps.console_app.views.terminal.config import SLURM_USER_DATA_ROOT
+
+        # SLURM_USER_DATA_ROOT is e.g. /home/.../scitex-cloud/data/users
+        # We want /home/.../scitex-cloud/data/.cache/alloc-scripts
+        _HOST_SCRIPT_DIR = SLURM_USER_DATA_ROOT.parent / ".cache" / "alloc-scripts"
+    return _HOST_SCRIPT_DIR
 
 
 class AllocationState(enum.Enum):
@@ -53,7 +71,7 @@ class Allocation:
         self.container_path = container_path
         self.host_user_dir = host_user_dir
         self.host_project_dir = host_project_dir
-        self.instance_name = f"scitex-{username}-{project_slug}"
+        self.instance_name = f"scitex-{username}"
         self.job_id: Optional[str] = None
         self.state = AllocationState.DEAD
         self.shell_count: int = 0
@@ -81,25 +99,27 @@ class Allocation:
                 instance_name=self.instance_name,
             )
 
-            # 2. Write script to temp file
-            fd, self._script_path = tempfile.mkstemp(
-                prefix=f"scitex-alloc-{self.allocation_id[:8]}-",
-                suffix=".sh",
-            )
-            with os.fdopen(fd, "w") as f:
-                f.write(script_content)
-            os.chmod(self._script_path, 0o755)
+            # 2. Write script to shared volume (accessible by both Docker and host)
+            # Docker writes here; sbatch reads from here (Docker path).
+            # Script CONTENT uses host paths (for apptainer on compute node).
+            _DOCKER_SCRIPT_DIR.mkdir(parents=True, exist_ok=True)
+            script_name = f"scitex-alloc-{self.allocation_id[:8]}.sh"
+            docker_script_path = _DOCKER_SCRIPT_DIR / script_name
+            docker_script_path.write_text(script_content)
+            docker_script_path.chmod(0o755)
+            self._script_path = str(docker_script_path)
 
-            # 3. Submit via sbatch
+            # 3. Submit via sbatch with Docker path (sbatch reads file locally)
             sbatch_cmd = build_sbatch_cmd(
                 instance_name=self.instance_name,
-                script_path=self._script_path,
+                script_path=str(docker_script_path),
                 username=self.username,
                 project_slug=self.project_slug,
             )
             logger.info(
                 f"Allocation {self.allocation_id[:8]}: submitting sbatch "
-                f"for {self.username}/{self.project_slug}"
+                f"for {self.username}/{self.project_slug} "
+                f"(script: {docker_script_path})"
             )
             result = subprocess.run(
                 sbatch_cmd,
@@ -107,10 +127,12 @@ class Allocation:
                 text=True,
                 timeout=10,
             )
-            if result.returncode != 0:
+            if result.returncode != 0 or not result.stdout.strip():
                 logger.error(
                     f"Allocation {self.allocation_id[:8]}: sbatch failed: "
-                    f"{result.stderr.strip()}"
+                    f"rc={result.returncode} "
+                    f"stdout={result.stdout.strip()!r} "
+                    f"stderr={result.stderr.strip()!r}"
                 )
                 self.state = AllocationState.DEAD
                 return False
@@ -131,11 +153,11 @@ class Allocation:
                 self.state = AllocationState.DEAD
                 return False
 
-            # 5. Poll until instance is ready (apptainer startup takes a few seconds)
+            # 5. Verify apptainer instance is ready via srun --overlap
             if not self._wait_for_instance():
                 logger.error(
                     f"Allocation {self.allocation_id[:8]}: "
-                    f"instance {self.instance_name} not ready"
+                    f"instance {self.instance_name} not ready within timeout"
                 )
                 self._cancel_job()
                 self.state = AllocationState.DEAD
@@ -149,36 +171,21 @@ class Allocation:
             return True
 
         except Exception as e:
-            logger.error(f"Allocation {self.allocation_id[:8]}: start failed: {e}")
+            logger.error(
+                f"Allocation {self.allocation_id[:8]}: start failed: {e}",
+                exc_info=True,
+            )
             self.state = AllocationState.DEAD
             return False
 
     def stop(self):
-        """Stop the instance and cancel the SLURM job."""
+        """Stop the allocation by cancelling the SLURM job.
+
+        Cancelling the job kills the sbatch script, which stops the
+        apptainer instance keep-alive loop, causing the instance to exit.
+        """
         self.state = AllocationState.STOPPING
         try:
-            # Stop apptainer instance via srun --overlap
-            if self.job_id:
-                try:
-                    subprocess.run(
-                        [
-                            "srun",
-                            "--overlap",
-                            f"--jobid={self.job_id}",
-                            "apptainer",
-                            "instance",
-                            "stop",
-                            self.instance_name,
-                        ],
-                        capture_output=True,
-                        timeout=10,
-                    )
-                except Exception as e:
-                    logger.debug(
-                        f"Allocation {self.allocation_id[:8]}: "
-                        f"instance stop error (non-fatal): {e}"
-                    )
-
             self._cancel_job()
         finally:
             self.state = AllocationState.DEAD
@@ -219,6 +226,41 @@ class Allocation:
     def decrement_shells(self):
         self.shell_count = max(0, self.shell_count - 1)
 
+    def _wait_for_instance(self) -> bool:
+        """Poll via srun --overlap until the apptainer instance is ready."""
+        deadline = time.time() + INSTANCE_VERIFY_TIMEOUT
+        logger.info(
+            f"Allocation {self.allocation_id[:8]}: "
+            f"verifying instance {self.instance_name} (timeout={INSTANCE_VERIFY_TIMEOUT}s)"
+        )
+        while time.time() < deadline:
+            try:
+                result = subprocess.run(
+                    [
+                        "srun",
+                        "--overlap",
+                        f"--jobid={self.job_id}",
+                        "apptainer",
+                        "instance",
+                        "list",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                )
+                if self.instance_name in result.stdout:
+                    logger.info(
+                        f"Allocation {self.allocation_id[:8]}: "
+                        f"instance {self.instance_name} verified ready"
+                    )
+                    return True
+            except Exception:
+                pass
+            if not self.check_alive():
+                return False
+            time.sleep(INSTANCE_VERIFY_INTERVAL)
+        return False
+
     def _wait_for_running(self) -> bool:
         """Poll squeue until job state is RUNNING."""
         deadline = time.time() + SBATCH_STARTUP_TIMEOUT
@@ -245,37 +287,6 @@ class Allocation:
                 pass
             time.sleep(SQUEUE_POLL_INTERVAL)
         return False
-
-    def _wait_for_instance(self) -> bool:
-        """Poll until apptainer instance appears inside the allocation."""
-        deadline = time.time() + INSTANCE_VERIFY_TIMEOUT
-        while time.time() < deadline:
-            if self._verify_instance():
-                return True
-            time.sleep(INSTANCE_VERIFY_INTERVAL)
-        return False
-
-    def _verify_instance(self) -> bool:
-        """Verify apptainer instance is running inside the allocation."""
-        if not self.job_id:
-            return False
-        try:
-            result = subprocess.run(
-                [
-                    "srun",
-                    "--overlap",
-                    f"--jobid={self.job_id}",
-                    "apptainer",
-                    "instance",
-                    "list",
-                ],
-                capture_output=True,
-                text=True,
-                timeout=15,
-            )
-            return self.instance_name in result.stdout
-        except Exception:
-            return False
 
     def _cancel_job(self):
         """Cancel the SLURM job."""

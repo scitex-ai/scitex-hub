@@ -24,6 +24,19 @@ async def ensure_workspace(user_data_dir: Path, username: str, project_slug: str
         project_dir = user_data_dir / "proj" / project_slug
         project_dir.mkdir(exist_ok=True)
 
+        # Ensure directories are accessible from the host for SLURM bind mounts.
+        # Docker creates these as root (UID 100019 on host via fakeroot),
+        # but SLURM jobs run as the host user and need read+exec access.
+        import os
+
+        for d in [user_data_dir, user_data_dir / "proj", project_dir]:
+            try:
+                st = d.stat()
+                if not (st.st_mode & 0o005):  # not world-readable+exec
+                    os.chmod(d, st.st_mode | 0o755)
+            except OSError:
+                pass
+
         # Create ~/proj/dotfiles as git repo (visible in project list)
         dotfiles_dir = user_data_dir / "proj" / "dotfiles"
         if not dotfiles_dir.exists():
