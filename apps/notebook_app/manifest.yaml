@@ -1,0 +1,37 @@
+name: notebook
+label: Lab Notebook
+version: 0.1.0
+icon: fas fa-flask
+category: data
+description: Simple experiment logger — proof of platform services
+license: AGPL-3.0
+
+datastore:
+  Experiment:
+    fields:
+      title: {type: string, max_length: 300, indexed: true}
+      date: {type: date, indexed: true}
+      notes: {type: text}
+      status: {type: choice, choices: [planned, running, completed, failed]}
+      tags: {type: json}
+    permissions: owner_and_collaborators
+
+jobs:
+  export_csv:
+    handler: apps.notebook_app.jobs.export_csv.execute
+    timeout: 60
+    rate_limit: 30/hour
+
+scitex_modules:
+  - io
+
+skill:
+  display_name: Lab Notebook
+  description: Log and track research experiments
+  capabilities:
+    - Log experiments with structured metadata
+    - Export experiment data to CSV
+
+keyboard_shortcut: "N"
+order: 75
+accent_color: notebook
