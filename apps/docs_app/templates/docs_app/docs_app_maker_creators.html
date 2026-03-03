@@ -4,7 +4,7 @@
 
 {% block title %}App Maker: Creators — SciTeX Documentation{% endblock %}
 {% block meta_description %}
-    Build custom workspace apps for SciTeX Cloud. Architecture, ModuleConfig, templates, and testing guide.
+    Build custom workspace apps for SciTeX Cloud. Architecture, CLI scaffold, Platform Services, templates, and testing guide.
 {% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
@@ -22,50 +22,6 @@
         </header>
     </div>
     <div class="container py-2">
-        <!-- Overview -->
-        <span id="overview"></span>
-        <section class="api-section">
-            <h2>
-                <i class="fas fa-puzzle-piece"></i> Overview
-            </h2>
-            <p>
-                SciTeX workspace modules are self-contained apps that appear as tabs in the workspace.
-                Each module gets its own URL, AJAX-loaded partial, keyboard shortcut, and LLM skill integration.
-            </p>
-            <p>There are three ways to add modules:</p>
-            <table class="api-table">
-                <thead>
-                    <tr>
-                        <th>Method</th>
-                        <th>For</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <strong>Built-in</strong>
-                        </td>
-                        <td>Core modules (Writer, Scholar, Vis, Hub, Console, Tools)</td>
-                        <td>Stable</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <strong>App Maker</strong>
-                        </td>
-                        <td>User-authored Python modules via web editor</td>
-                        <td>WIP</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <strong>External Package</strong>
-                        </td>
-                        <td>pip-installable modules discovered via entry points</td>
-                        <td>WIP</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
         <!-- Architecture -->
         <span id="architecture"></span>
         <section class="api-section">
@@ -149,6 +105,155 @@
                 </div>
             </div>
         </section>
+        <!-- CLI Workflow -->
+        <span id="cli-workflow"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-terminal"></i> CLI Workflow (Recommended)
+            </h2>
+            <p>
+                The fastest way to create and deploy a full app is via the <code>scitex-cloud</code> CLI.
+                This gives you a complete project with manifest, Platform Services integration, and Gitea sync.
+            </p>
+            <p><strong>Step 1. Scaffold</strong></p>
+            <pre><code># Create a new app with all boilerplate
+scitex-cloud app init /path/to/my_app --name my_research_app \
+    --label "My Research Tool" --icon "fas fa-flask"
+
+# Or with React frontend:
+scitex-cloud app init . --name my_app --frontend react</code></pre>
+            <p><strong>Step 2. Develop locally</strong></p>
+            <pre><code># Initialize git
+cd /path/to/my_app
+git init && git add . && git commit -m "Initial scaffold"
+
+# Edit manifest.yaml, views, templates, jobs...</code></pre>
+            <p><strong>Step 3. Upload to workspace</strong></p>
+            <pre><code># Creates project on server + Gitea repo + pushes code
+scitex-cloud workspace upload --name my-research-app \
+    --description "My research tool"
+
+# Other workspace commands:
+scitex-cloud workspace list          # List your projects
+scitex-cloud workspace sync          # Pull + push changes
+scitex-cloud workspace logout        # Clear cached token</code></pre>
+            <p><strong>Step 4. Validate and publish</strong></p>
+            <pre><code># Check app structure and security
+scitex-cloud app validate .
+
+# Submit for public listing (requires admin review)
+scitex-cloud app publish . --token $SCITEX_CLOUD_TOKEN</code></pre>
+            <div class="api-callout api-callout-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    The <code>workspace upload</code> command authenticates via JWT, creates a Django project
+                    (which auto-creates a Gitea repository), adds the git remote, and pushes your code.
+                </div>
+            </div>
+        </section>
+        <!-- Platform Services -->
+        <span id="platform-services"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-server"></i> Platform Services
+            </h2>
+            <p>
+                Apps can use 7 built-in Platform Services via REST APIs instead of writing custom Django models,
+                views, or Celery tasks. This lets you build powerful apps with just a <code>manifest.yaml</code>
+                and frontend code.
+            </p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>API Prefix</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>DataStore</strong></td>
+                        <td><code>/platform/api/data/</code></td>
+                        <td>JSON-based CRUD with indexed virtual columns</td>
+                    </tr>
+                    <tr>
+                        <td><strong>FileVault</strong></td>
+                        <td><code>/platform/api/files/</code></td>
+                        <td>File upload/download scoped to app + project</td>
+                    </tr>
+                    <tr>
+                        <td><strong>JobQueue</strong></td>
+                        <td><code>/platform/api/jobs/</code></td>
+                        <td>Background task execution via Celery</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ScitexBridge</strong></td>
+                        <td><code>/platform/api/scitex/</code></td>
+                        <td>Proxy to <code>scitex</code> Python package (io, stats, plt)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ExternalAPI</strong></td>
+                        <td><code>/platform/api/external/</code></td>
+                        <td>Proxied HTTP calls to whitelisted external services</td>
+                    </tr>
+                    <tr>
+                        <td><strong>RealtimeHub</strong></td>
+                        <td><code>ws://</code></td>
+                        <td>WebSocket channels for live updates</td>
+                    </tr>
+                    <tr>
+                        <td><strong>FrontendKit</strong></td>
+                        <td>&mdash;</td>
+                        <td>Shared TS components (DataTable, Monaco, Viewer)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- Manifest -->
+        <span id="manifest"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-file-alt"></i> Manifest
+            </h2>
+            <p>
+                A <code>manifest.yaml</code> declares your app's data schemas, jobs, and service dependencies.
+                Platform Services read this file to auto-configure everything.
+            </p>
+            <pre><code>name: my-research-tool
+label: My Research Tool
+version: 0.1.0
+icon: fas fa-flask
+category: data
+description: A tool for managing research samples.
+
+datastore:
+  Sample:
+    fields:
+      name: {type: string, max_length: 200, indexed: true}
+      condition: {type: string, max_length: 100, indexed: true}
+      measurement: {type: float}
+      notes: {type: text}
+      recorded_at: {type: datetime}
+      tags: {type: json}
+    permissions: owner_and_collaborators
+
+jobs:
+  export_samples:
+    handler: my_research_app.jobs.export_samples.execute
+
+scitex_modules: [io, stats]</code></pre>
+            <p style="margin-top: 1rem">
+                The DataStore creates virtual indexed columns automatically &mdash; no Django migrations needed.
+                Your frontend calls <code>/platform/api/data/my-research-tool/Sample/</code> for CRUD operations.
+            </p>
+            <div class="api-callout api-callout-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>No Django models required.</strong> The Platform Services DataStore provides JSON-based
+                    persistence with indexed lookups, so apps can store structured data without writing migrations.
+                </div>
+            </div>
+        </section>
         <!-- ModuleConfig -->
         <span id="module-config"></span>
         <section class="api-section">
@@ -168,91 +273,64 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>
-                            <code>name</code>
-                        </td>
+                        <td><code>name</code></td>
                         <td>str</td>
-                        <td>
-                            URL slug (e.g., <code>"writer"</code>)
-                        </td>
+                        <td>URL slug (e.g., <code>"writer"</code>)</td>
                     </tr>
                     <tr>
-                        <td>
-                            <code>label</code>
-                        </td>
+                        <td><code>label</code></td>
                         <td>str</td>
-                        <td>
-                            Display name (e.g., <code>"Writer"</code>)
-                        </td>
+                        <td>Display name (e.g., <code>"Writer"</code>)</td>
                     </tr>
                     <tr>
-                        <td>
-                            <code>app_name</code>
-                        </td>
+                        <td><code>app_name</code></td>
                         <td>str</td>
-                        <td>
-                            Django app name (e.g., <code>"writer_app"</code>)
-                        </td>
+                        <td>Django app name (e.g., <code>"writer_app"</code>)</td>
                     </tr>
                     <tr>
-                        <td>
-                            <code>icon_fa</code>
-                        </td>
+                        <td><code>icon_fa</code></td>
                         <td>str</td>
-                        <td>
-                            FontAwesome class (e.g., <code>"fas fa-pen"</code>)
-                        </td>
+                        <td>FontAwesome class (e.g., <code>"fas fa-pen"</code>)</td>
                     </tr>
                     <tr>
-                        <td>
-                            <code>partial_template</code>
-                        </td>
+                        <td><code>partial_template</code></td>
                         <td>str</td>
                         <td>AJAX partial template path</td>
                     </tr>
                     <tr>
-                        <td>
-                            <code>context_builder</code>
-                        </td>
+                        <td><code>context_builder</code></td>
                         <td>str</td>
                         <td>Dotted path to context function</td>
                     </tr>
                     <tr>
-                        <td>
-                            <code>keyboard_shortcut</code>
-                        </td>
+                        <td><code>keyboard_shortcut</code></td>
                         <td>str</td>
                         <td>Alt+key shortcut (single letter)</td>
                     </tr>
                     <tr>
-                        <td>
-                            <code>order</code>
-                        </td>
+                        <td><code>order</code></td>
                         <td>int</td>
                         <td>Tab bar position (lower = leftmost)</td>
                     </tr>
                     <tr>
-                        <td>
-                            <code>status</code>
-                        </td>
+                        <td><code>status</code></td>
                         <td>str</td>
-                        <td>
-                            <code>"stable"</code>, <code>"wip"</code>, <code>"beta"</code>, <code>"deprecated"</code>
-                        </td>
+                        <td><code>"stable"</code>, <code>"wip"</code>, <code>"beta"</code>, <code>"deprecated"</code></td>
                     </tr>
                     <tr>
-                        <td>
-                            <code>default_enabled</code>
-                        </td>
+                        <td><code>default_enabled</code></td>
                         <td>bool</td>
                         <td>Show in tab bar for new users</td>
                     </tr>
                     <tr>
-                        <td>
-                            <code>ai_hint</code>
-                        </td>
+                        <td><code>ai_hint</code></td>
                         <td>str</td>
                         <td>Short description for LLM context</td>
+                    </tr>
+                    <tr>
+                        <td><code>accent_color</code></td>
+                        <td>str</td>
+                        <td>CSS variable name for module accent</td>
                     </tr>
                 </tbody>
             </table>
@@ -304,7 +382,8 @@
             </h2>
             <p>
                 Each module needs two templates. The <strong>full page</strong> template extends
-                <code>global_base.html</code>. The <strong>partial</strong> template is standalone HTML loaded via AJAX.
+                <code>global_base.html</code> and is served on direct URL access. The <strong>partial</strong>
+                template is standalone HTML loaded via AJAX when switching tabs (SPA behavior).
             </p>
             <p>
                 <strong><code>index.html</code></strong> &mdash; Full page:
@@ -318,11 +397,14 @@
             </p>
             <pre><code>&lt;div class="workspace-project-config" data-mode="mymodule"&gt;
     &lt;!-- Your module content here --&gt;
+    &lt;h2&gt;My Module&lt;/h2&gt;
+    &lt;p&gt;Module content...&lt;/p&gt;
 &lt;/div&gt;</code></pre>
             <div class="api-callout api-callout-info">
                 <i class="fas fa-info-circle"></i>
                 <div>
                     The <code>data-mode</code> attribute must match your module's <code>name</code> in the registry.
+                    The tab switcher uses this for SPA navigation without page reloads.
                 </div>
             </div>
         </section>
@@ -332,7 +414,10 @@
             <h2>
                 <i class="fas fa-database"></i> Context Builder
             </h2>
-            <p>The context builder function is called on both full page loads and AJAX partial loads:</p>
+            <p>
+                The context builder function is called on both full page loads and AJAX partial loads.
+                It must accept <code>request</code> and <code>current_project</code>:
+            </p>
             <pre><code>def build_mymodule_context(request, current_project=None):
     """Called by workspace shell for SPA tab switching."""
     return {
@@ -354,112 +439,25 @@ def index_view(request):
             <h2>
                 <i class="fas fa-robot"></i> LLM Skill Registration
             </h2>
-            <p>Register a Skill so AI assistants understand your module's capabilities:</p>
+            <p>
+                Register a Skill so AI assistants understand your module's capabilities.
+                Create <code>skill.py</code> in your app:
+            </p>
             <pre><code>from apps.llm_app.skills import Skill, register
 register(
     Skill(
         app_name="mymodule",
         display_name="My Module - Description",
         description="Detailed description for LLM context...",
-        capabilities=["Do something useful", "Process data"],
+        capabilities=[
+            "Do something useful",
+            "Process data",
+        ],
         page_patterns=["/mymodule/"],
         url_prefix="/mymodule/",
         module_description="One-line summary.",
     )
 )</code></pre>
-        </section>
-        <!-- Manifest Schema -->
-        <span id="manifest"></span>
-        <section class="api-section">
-            <h2>
-                <i class="fas fa-file-alt"></i> manifest.json
-            </h2>
-            <p>
-                Every app must include a <code>manifest.json</code> at the project root:
-            </p>
-            <pre><code>{
-    "name": "my_awesome_app",
-    "label": "My Awesome App",
-    "version": "0.1.0",
-    "description": "Short description of what the app does.",
-    "icon": "fas fa-rocket",
-    "license": "MIT",
-    "capabilities": ["data-visualization", "export"],
-    "min_scitex_version": "0.6.0",
-    "author": "Your Name",
-    "homepage": "https://example.com"
-}</code></pre>
-            <table class="api-table">
-                <thead>
-                    <tr>
-                        <th>Field</th>
-                        <th>Required</th>
-                        <th>Description</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <code>name</code>
-                        </td>
-                        <td>Yes</td>
-                        <td>
-                            Module name (must end with <code>_app</code>)
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <code>label</code>
-                        </td>
-                        <td>No</td>
-                        <td>Display label in tab bar</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <code>version</code>
-                        </td>
-                        <td>Yes</td>
-                        <td>Semantic version</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <code>description</code>
-                        </td>
-                        <td>Yes</td>
-                        <td>Short description (max 200 chars)</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <code>icon</code>
-                        </td>
-                        <td>No</td>
-                        <td>
-                            FontAwesome class (default: <code>fas fa-puzzle-piece</code>)
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <code>license</code>
-                        </td>
-                        <td>Yes</td>
-                        <td>SPDX identifier (e.g. MIT, Apache-2.0, AGPL-3.0)</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <code>capabilities</code>
-                        </td>
-                        <td>No</td>
-                        <td>List of capability tags</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <code>min_scitex_version</code>
-                        </td>
-                        <td>No</td>
-                        <td>Minimum compatible SciTeX version</td>
-                    </tr>
-                </tbody>
-            </table>
         </section>
         <!-- CSS Variables -->
         <span id="css-variables"></span>
@@ -490,54 +488,39 @@ register(
                 </thead>
                 <tbody>
                     <tr>
-                        <td>
-                            <code>--bg-primary</code>
-                        </td>
+                        <td><code>--bg-primary</code></td>
                         <td>Main background color</td>
                     </tr>
                     <tr>
-                        <td>
-                            <code>--bg-secondary</code>
-                        </td>
+                        <td><code>--bg-secondary</code></td>
                         <td>Secondary/card background</td>
                     </tr>
                     <tr>
-                        <td>
-                            <code>--text-primary</code>
-                        </td>
+                        <td><code>--text-primary</code></td>
                         <td>Main text color</td>
                     </tr>
                     <tr>
-                        <td>
-                            <code>--text-muted</code>
-                        </td>
+                        <td><code>--text-muted</code></td>
                         <td>Subdued text color</td>
                     </tr>
                     <tr>
-                        <td>
-                            <code>--border-subtle</code>
-                        </td>
+                        <td><code>--border-subtle</code></td>
                         <td>Subtle border color</td>
                     </tr>
                     <tr>
-                        <td>
-                            <code>--accent</code>
-                        </td>
+                        <td><code>--accent</code></td>
                         <td>Global accent color</td>
                     </tr>
                 </tbody>
             </table>
         </section>
-        <!-- Shared UI Components -->
+        <!-- Shared UI -->
         <span id="shared-ui"></span>
         <section class="api-section">
             <h2>
                 <i class="fas fa-columns"></i> Shared Modules
             </h2>
-            <p>
-                SciTeX provides reusable TS components, utility functions, and a CSS design system.
-                All styles are auto-loaded &mdash; see the dedicated reference pages below.
-            </p>
+            <p>Apps can use pre-built UI components, utilities, and CSS design tokens (all auto-loaded):</p>
             <table class="api-table">
                 <thead>
                     <tr>
@@ -548,21 +531,96 @@ register(
                 <tbody>
                     <tr>
                         <td>
-                            <a href="#" href="/docs/#shared-ts-components"><i class="fas fa-cubes me-1"></i>Shared: Components</a>
+                            <a href="/docs/content/shared-ts-components/"><i class="fas fa-cubes me-1"></i>Components</a>
                         </td>
-                        <td>Resizer, Collapsible Panel, Selector Nav, DataTable, MediaViewer, Context Zoom, File Tabs, Seekbar</td>
+                        <td>Resizer, DataTable, MediaViewer, Selector Nav, File Tabs, and more</td>
                     </tr>
                     <tr>
                         <td>
-                            <a href="#" href="/docs/#shared-ts-utilities"><i class="fas fa-toolbox me-1"></i>Shared: Utilities</a>
+                            <a href="/docs/content/shared-ts-utilities/"><i class="fas fa-toolbox me-1"></i>Utilities</a>
                         </td>
-                        <td>API Client, CSRF, StorageManager, UI Helpers, Theme Switcher, Keyboard Shortcuts, File Icons</td>
+                        <td>API Client, CSRF, StorageManager, Toast/Modal, Theme, Keyboard Shortcuts</td>
                     </tr>
                     <tr>
                         <td>
-                            <a href="#" href="/docs/#shared-css-system"><i class="fas fa-paint-brush me-1"></i>Shared: CSS System</a>
+                            <a href="/docs/content/shared-css-system/"><i class="fas fa-paint-brush me-1"></i>CSS System</a>
                         </td>
-                        <td>Design tokens, theme system, layout utilities, component styles, CSS scoping rules</td>
+                        <td>Design tokens, theme system, layout utilities, component styles</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- Template Rules -->
+        <span id="template-rules"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-shield-alt"></i> Template Rules
+            </h2>
+            <p>User app templates are loaded from project directories with the following constraints:</p>
+            <ul>
+                <li>
+                    Templates <strong>must not</strong> override protected blocks:
+                    <code>extra_css</code>, <code>extra_js</code>, <code>content</code>, <code>title</code>
+                </li>
+                <li>Templates are standalone HTML fragments (AJAX partials), not full pages</li>
+                <li>The root element must have <code>data-mode="yourmodule"</code></li>
+                <li>
+                    No <code>{% verbatim %}{% extends %}{% endverbatim %}</code> or
+                    <code>{% verbatim %}{% load %}{% endverbatim %}</code> tags allowed
+                </li>
+            </ul>
+        </section>
+        <!-- Testing -->
+        <span id="testing"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-check-circle"></i> Testing
+            </h2>
+            <p>
+                <code>ModuleTestMixin</code> automatically validates all module layers.
+                Create <code>tests.py</code>:
+            </p>
+            <pre><code>from django.test import TestCase
+from apps.workspace_app.test_mixin import ModuleTestMixin
+
+class MyModuleTest(ModuleTestMixin, TestCase):
+    module_name = "mymodule"</code></pre>
+            <p>This validates:</p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Check</th>
+                        <th>What it verifies</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>test_module_registered</code></td>
+                        <td>Module exists in registry</td>
+                    </tr>
+                    <tr>
+                        <td><code>test_partial_template_exists</code></td>
+                        <td>AJAX partial template file exists</td>
+                    </tr>
+                    <tr>
+                        <td><code>test_icon_registered</code></td>
+                        <td>Has FontAwesome or SVG icon</td>
+                    </tr>
+                    <tr>
+                        <td><code>test_context_builder_importable</code></td>
+                        <td>Context builder function is callable</td>
+                    </tr>
+                    <tr>
+                        <td><code>test_ai_hint_defined</code></td>
+                        <td>LLM hint text is non-empty</td>
+                    </tr>
+                    <tr>
+                        <td><code>test_accent_color_css_exists</code></td>
+                        <td>CSS variable <code>--module-accent-{name}</code> defined</td>
+                    </tr>
+                    <tr>
+                        <td><code>test_skill_registered</code></td>
+                        <td>Skill exists in LLM registry</td>
                     </tr>
                 </tbody>
             </table>
@@ -602,157 +660,44 @@ register(
                 </div>
             </div>
         </section>
-        <!-- Template Rules -->
-        <span id="template-rules"></span>
+        <!-- Licensing -->
+        <span id="licensing"></span>
         <section class="api-section">
             <h2>
-                <i class="fas fa-shield-alt"></i> Template Rules
+                <i class="fas fa-balance-scale"></i> Licensing
             </h2>
-            <p>User app templates are loaded from project directories with the following constraints:</p>
-            <ul>
-                <li>
-                    Templates <strong>must not</strong> override protected blocks: <code>extra_css</code>, <code>extra_js</code>, <code>content</code>, <code>title</code>
-                </li>
-                <li>Templates are standalone HTML fragments (AJAX partials), not full pages</li>
-                <li>
-                    The root element must have <code>data-mode="yourmodule"</code>
-                </li>
-                <li>
-                    No <code>
-                    {% verbatim %}
-                        {% extends %}
-
-                    {% endverbatim %}
-                </code> or
-                <code>
-                    {% verbatim %}
-                        {% load %}
-
-                    {% endverbatim %}
-                </code> tags allowed
-            </li>
-        </ul>
-    </section>
-    <!-- Testing -->
-    <span id="testing"></span>
-    <section class="api-section">
-        <h2>
-            <i class="fas fa-check-circle"></i> Testing
-        </h2>
-        <p>
-            <code>ModuleTestMixin</code> automatically validates all module layers:
-        </p>
-        <pre><code>from django.test import TestCase
-from apps.workspace_app.test_mixin import ModuleTestMixin
-
-class MyModuleTest(ModuleTestMixin, TestCase):
-    module_name = "mymodule"</code></pre>
-        <p>This validates:</p>
-        <table class="api-table">
-            <thead>
-                <tr>
-                    <th>Check</th>
-                    <th>What it verifies</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>
-                        <code>test_module_registered</code>
-                    </td>
-                    <td>Module exists in registry</td>
-                </tr>
-                <tr>
-                    <td>
-                        <code>test_partial_template_exists</code>
-                    </td>
-                    <td>AJAX partial template file exists</td>
-                </tr>
-                <tr>
-                    <td>
-                        <code>test_icon_registered</code>
-                    </td>
-                    <td>Has FontAwesome or SVG icon</td>
-                </tr>
-                <tr>
-                    <td>
-                        <code>test_context_builder_importable</code>
-                    </td>
-                    <td>Context builder function is callable</td>
-                </tr>
-                <tr>
-                    <td>
-                        <code>test_ai_hint_defined</code>
-                    </td>
-                    <td>LLM hint text is non-empty</td>
-                </tr>
-                <tr>
-                    <td>
-                        <code>test_accent_color_css_exists</code>
-                    </td>
-                    <td>
-                        CSS variable <code>--module-accent-{name}</code> defined
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <code>test_skill_registered</code>
-                    </td>
-                    <td>Skill exists in LLM registry</td>
-                </tr>
-            </tbody>
-        </table>
-    </section>
-    <!-- Licensing -->
-    <span id="licensing"></span>
-    <section class="api-section">
-        <h2>
-            <i class="fas fa-balance-scale"></i> Licensing
-        </h2>
-        <p>SciTeX uses a layered licensing model that maximizes openness while protecting user freedom:</p>
-        <table class="api-table">
-            <thead>
-                <tr>
-                    <th>Component</th>
-                    <th>License</th>
-                    <th>Copyleft?</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>SciTeX Cloud Platform</td>
-                    <td>AGPL-3.0</td>
-                    <td>Yes (strong)</td>
-                </tr>
-                <tr>
-                    <td>App Maker SDK / API</td>
-                    <td>Apache-2.0</td>
-                    <td>No</td>
-                </tr>
-                <tr>
-                    <td>User Apps</td>
-                    <td>Author's choice</td>
-                    <td>Depends on chosen license</td>
-                </tr>
-            </tbody>
-        </table>
-        <p>
-            Apps using the SciTeX workspace API (registering modules, rendering templates,
-            using the file tree, calling MCP tools) are <strong>not</strong> derivative works of
-            the AGPL-licensed core. You are free to license your app however you wish.
-        </p>
-        <p>
-            If your app modifies or incorporates SciTeX core code (not just calling its APIs),
-            then AGPL obligations apply to those modifications.
-        </p>
-        <div class="api-callout api-callout-info">
-            <i class="fas fa-info-circle"></i>
-            <div>
-                Supported licenses: AGPL-3.0, MIT, Apache-2.0, BSD-3-Clause.
-                License must be declared in the project's <code>LICENSE</code> file
-                and is displayed as a badge on the apps catalog listing.
-            </div>
-        </div>
-    </section>
-</div>
+            <p>SciTeX uses a layered licensing model that maximizes openness while protecting user freedom:</p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>License</th>
+                        <th>Copyleft?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>SciTeX Cloud Platform</td>
+                        <td>AGPL-3.0</td>
+                        <td>Yes (strong)</td>
+                    </tr>
+                    <tr>
+                        <td>App Maker SDK / API</td>
+                        <td>Apache-2.0</td>
+                        <td>No</td>
+                    </tr>
+                    <tr>
+                        <td>User Apps</td>
+                        <td>Author's choice</td>
+                        <td>Depends on chosen license</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>
+                Apps using the SciTeX workspace API are <strong>not</strong> derivative works of
+                the AGPL-licensed core. You are free to license your app however you wish.
+                See the <a href="/docs/content/app-maker-license/">full license exception</a> for details.
+            </p>
+        </section>
+    </div>
 {% endblock %}

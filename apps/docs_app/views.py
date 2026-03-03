@@ -42,7 +42,7 @@ DOCS_PAGES = [
     },
     {
         "slug": "app-maker",
-        "label": "App Maker",
+        "label": "App Maker: Overview",
         "icon": "fas fa-puzzle-piece",
         "template": "docs_app/docs_app_maker.html",
         "badges": ["user"],
@@ -59,14 +59,21 @@ DOCS_PAGES = [
         "label": "Web API",
         "icon": "fas fa-plug",
         "template": "docs_app/docs_api_content.html",
-        "badges": ["user", "dev"],
+        "badges": ["dev"],
+    },
+    {
+        "slug": "app-maker-users",
+        "label": "App Maker: Users",
+        "icon": "fas fa-user",
+        "template": "docs_app/docs_app_maker_users.html",
+        "badges": ["user"],
     },
     {
         "slug": "app-maker-creators",
-        "label": "App Maker",
+        "label": "App Maker: Creators",
         "icon": "fas fa-code",
         "template": "docs_app/docs_app_maker_creators.html",
-        "badges": ["user", "dev"],
+        "badges": ["dev"],
     },
     {
         "slug": "self-hosting",
@@ -77,7 +84,7 @@ DOCS_PAGES = [
     },
     {
         "slug": "app-maker-admins",
-        "label": "App Maker",
+        "label": "App Maker: Admins",
         "icon": "fas fa-cog",
         "template": "docs_app/docs_app_maker_admins.html",
         "badges": ["admin"],
