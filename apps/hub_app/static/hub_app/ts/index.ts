@@ -8,6 +8,8 @@
 import { handleAboutClick } from "./about-edit";
 import { hubGet, hubPost } from "./hub-api";
 import { getBranch, pushDashboardUrl, pushProjectUrl } from "./hub-url";
+import "./toolbar-dropdowns"; // Exposes dropdown toggle functions to window
+import "./toolbar-dropdowns"; // Exposes dropdown toggle functions to window
 
 let currentTab = "files";
 

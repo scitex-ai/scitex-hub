@@ -6,6 +6,30 @@
 {% block extra_css %}
     <!-- Hub specific styles -->
     <link rel="stylesheet" href="{% static 'hub_app/css/hub.css' %}" />
+    <!-- Project browse styles (needed when project workspace is shown) -->
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/container-header.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/branch-dropdown.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/icon-utilities.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/tab-navigation.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/file-browser-table.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/readme-rendering.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/action-buttons.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/split-dropdown.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/tabs.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/toolbar.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/buttons.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/file_browser.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="hub-workspace">
@@ -20,10 +44,12 @@
                     <i class="fas fa-compass"></i> Explore
                 </a>
             </div>
-            <!-- Dynamic main content -->
+            <!-- Dynamic main content: project workspace or projects overview -->
             <div id="hub-main-content">
                 {% if hub_view_mode == "profile" %}
                     {% include 'hub_app/partials/user_profile_content.html' %}
+                {% elif current_project %}
+                    {% include 'hub_app/partials/project_workspace.html' with project=current_project %}
                 {% else %}
                     {% include 'hub_app/partials/projects_overview.html' %}
                 {% endif %}

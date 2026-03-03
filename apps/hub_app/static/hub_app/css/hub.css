@@ -86,6 +86,85 @@
   }
 }
 
+/* ── Hub-hosted repo dropdowns ────────────────────────────────────────────── */
+/* toolbar.css rules duplicated here because <link> tags in AJAX partials
+   may not load reliably in the workspace module pane context. */
+
+.hub-browse-container .repo-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--color-canvas-default, var(--bg-secondary));
+  border: 1px solid var(--color-border-default, var(--border-color));
+  border-radius: 6px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  min-width: 200px;
+  z-index: 1000;
+}
+
+.hub-browse-container .repo-dropdown-menu.show {
+  display: block;
+}
+
+.hub-browse-container .repo-dropdown-menu.wide {
+  min-width: 250px;
+}
+
+.hub-browse-container .btn-group,
+.hub-browse-container .copy-btn-group {
+  position: relative;
+}
+
+.hub-browse-container .repo-dropdown-item {
+  display: block;
+  padding: 6px 12px;
+  color: var(--color-fg-default, var(--text-primary));
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.hub-browse-container .repo-dropdown-item:hover {
+  background: var(--color-canvas-subtle, var(--bg-hover));
+  text-decoration: none;
+}
+
+/* ── Repo action buttons (GitHub-style) ── */
+
+.hub-browse-container .repo-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-fg-default, var(--text-primary));
+  background: var(--color-canvas-default, var(--bg-secondary));
+  border: 1px solid var(--color-border-default, var(--border-color));
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.hub-browse-container .repo-action-btn:hover {
+  background: var(--color-canvas-subtle, var(--bg-hover));
+}
+
+.hub-browse-container .dropdown-toggle-split {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: 1px solid var(--color-border-default, var(--border-color));
+  padding: 5px 8px;
+}
+
+.hub-browse-container .repo-toolbar-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 /* Utilities */
 .mb-3 {
   margin-bottom: 0.75rem;
