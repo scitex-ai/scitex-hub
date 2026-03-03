@@ -30,8 +30,10 @@ from apps.project_app.views import (
     project_create,
 )
 from apps.project_app.views.projects.api import (
-    api_project_create_jwt,
-    api_switch_active_project,
+    api_me,  # noqa: E402
+    api_project_create_jwt,  # noqa: E402
+    api_project_list_jwt,  # noqa: E402
+    api_switch_active_project,  # noqa: E402
 )
 from apps.public_app.views import healthz
 
@@ -193,11 +195,21 @@ urlpatterns = [
         csrf_exempt(TokenRefreshView.as_view()),
         name="token_refresh",
     ),
-    # JWT-authenticated project creation (for CLI access, no CSRF needed)
+    # JWT-authenticated project APIs (for CLI access, no CSRF needed)
     path(
         "api/project/create/",
         csrf_exempt(api_project_create_jwt),
         name="api_project_create_jwt",
+    ),
+    path(
+        "api/project/list/",
+        csrf_exempt(api_project_list_jwt),
+        name="api_project_list_jwt",
+    ),
+    path(
+        "api/me/",
+        csrf_exempt(api_me),
+        name="api_me",
     ),
     # GitHub-like operations
     # /new - Create new project

@@ -17,7 +17,6 @@ from ._workspace_auth import (
     auth_headers,
     get_jwt_token,
     get_server_url,
-    require_username,
 )
 
 _DEFAULT_SERVER = "http://localhost:8000"
@@ -153,7 +152,6 @@ def upload(name, description, server, visibility, remote, push):
     project_name = name or Path(os.getcwd()).name
 
     token = get_jwt_token(server)
-    username = require_username(server, token)
 
     click.echo(f"Creating project '{project_name}' on {server} ...")
     payload = {
@@ -163,7 +161,7 @@ def upload(name, description, server, visibility, remote, push):
     }
     try:
         resp = requests.post(
-            f"{server}/{username}/api/create/",
+            f"{server}/api/project/create/",
             json=payload,
             headers=auth_headers(token),
             timeout=30,
@@ -188,9 +186,11 @@ def upload(name, description, server, visibility, remote, push):
         sys.exit(1)
 
     project_id = data.get("project_id")
-    msg = data.get("message", "")
-    actual_name = msg.split('"')[1] if '"' in msg else project_name
-    click.echo(f"Project created: {actual_name} (id={project_id})")
+    slug = data.get("slug", project_name)
+    project_url = data.get("url", "")
+    click.echo(f"Project created: {slug} (id={project_id})")
+    if project_url:
+        click.echo(f"URL: {server}{project_url}")
 
     if not push:
         click.echo("Skipping git push (--no-push).")
@@ -200,7 +200,9 @@ def upload(name, description, server, visibility, remote, push):
         click.echo("Warning: Not in a git repository — skipping git push.", err=True)
         return
 
-    _setup_remote_and_push(server, username, actual_name, remote)
+    # Extract username from the project URL (/<username>/<slug>/)
+    username = project_url.strip("/").split("/")[0] if project_url else project_name
+    _setup_remote_and_push(server, username, slug, remote)
 
 
 @click.command("list")
@@ -221,11 +223,10 @@ def list_projects(server, as_json):
     """
     server = get_server_url(server)
     token = get_jwt_token(server)
-    username = require_username(server, token)
 
     try:
         resp = requests.get(
-            f"{server}/{username}/api/list/",
+            f"{server}/api/project/list/",
             headers=auth_headers(token),
             timeout=15,
         )

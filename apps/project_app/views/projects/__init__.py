@@ -8,9 +8,12 @@ Exports all project-related views.
 
 from .api import (
     api_check_name_availability,
+    api_me,
     api_project_create,
+    api_project_create_jwt,
     api_project_detail,
     api_project_list,
+    api_project_list_jwt,
 )
 from .create import project_create
 from .create_template import project_create_from_template
@@ -32,7 +35,10 @@ __all__ = [
     "project_delete",
     "project_settings",
     "api_check_name_availability",
+    "api_me",
     "api_project_list",
+    "api_project_list_jwt",
     "api_project_create",
+    "api_project_create_jwt",
     "api_project_detail",
 ]
