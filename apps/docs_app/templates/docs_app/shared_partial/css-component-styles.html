@@ -189,8 +189,6 @@
 <div class="api-callout api-callout--info">
     <i class="fas fa-info-circle me-1"></i>
     <div>
-        These files are loaded globally — no extra <code>
-        {% block extra_css %}
-            </code> import needed. App-specific overrides belong in <code>apps/yourapp_app/static/yourapp_app/css/</code> and must be scoped with <code>[data-mode="yourapp"]</code> to avoid conflicts.
-        </div>
+        These files are loaded globally — no extra <code>{% templatetag openblock %} block extra_css {% templatetag closeblock %}</code> import needed. App-specific overrides belong in <code>apps/yourapp_app/static/yourapp_app/css/</code> and must be scoped with <code>[data-mode="yourapp"]</code> to avoid conflicts.
     </div>
+</div>
