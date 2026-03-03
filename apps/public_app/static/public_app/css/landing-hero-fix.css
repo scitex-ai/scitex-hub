@@ -1,27 +1,29 @@
 /* ============================================================================
- * Landing Page - Hero Section Layout Fixes
+ * Landing Page - Hero Section Styles
  * ============================================================================
- * Override styles to fix hero alignment and layout issues
+ * Styles for the hero area: layout, title, tagline, CTA, links, and demo video
  * ========================================================================== */
 
-/* Fix hero wrapper alignment - align content with PDF top */
-.hero-landing .hero-wrapper {
-  align-items: start !important; /* Align title top with PDF top */
-}
-
-/* Add top margin to hero section */
+/* --- Hero Layout --- */
 .hero-landing {
   margin-top: 0;
   padding-top: var(--spacing-lg) !important;
   padding-bottom: var(--spacing-lg) !important;
 }
 
-/* Fix hero content alignment - left-align text */
+.hero-landing .hero-wrapper {
+  align-items: start !important;
+}
+
 .hero-landing .hero-content {
   text-align: left !important;
 }
 
-/* Fix hero title spacing and add gradient */
+.hero-landing .hero-badges {
+  justify-content: flex-start !important;
+}
+
+/* --- Hero Title --- */
 .hero-landing .hero-title {
   margin-top: 0 !important;
   margin-bottom: 1.5rem !important;
@@ -30,12 +32,10 @@
   white-space: nowrap;
 }
 
-/* Light mode - no gradient, keep simple */
 [data-theme="light"] .hero-landing .hero-title {
   color: var(--color-fg-default);
 }
 
-/* Dark mode - visible gradient */
 [data-theme="dark"] .hero-landing .hero-title {
   background: linear-gradient(135deg, #8fb3c9 0%, #d4e1e8 50%, #6b8fb3 100%);
   -webkit-background-clip: text;
@@ -43,14 +43,117 @@
   background-clip: text;
 }
 
-/* Fix hero badges alignment */
-.hero-landing .hero-badges {
-  justify-content: flex-start !important;
+/* --- Hero Tagline & CTA --- */
+.hero-cta {
+  margin: 1.5rem 0;
+}
+.hero-tagline {
+  font-size: 1.25rem;
+  color: var(--text-primary, #1c1c1c);
+  margin: 0.5rem 0 1.5rem 0;
+  font-weight: 600;
 }
 
-/* Warning Banner styles moved to /static/css/components/alerts.css */
+[data-theme="dark"] .hero-tagline {
+  color: #ffffff;
+}
 
-/* Demonstration Section Background */
+.hero-cta-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.hero-cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+}
+
+.hero-cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+  text-decoration: none;
+  color: white;
+}
+
+.hero-cta-button:active {
+  transform: translateY(0);
+}
+
+.hero-cta-note {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #555555);
+}
+
+[data-theme="dark"] .hero-cta-note {
+  color: var(--text-muted, #8b949e);
+}
+
+/* --- Hero Link Buttons (Apps, Docs, Open Source) --- */
+.hero-links {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.hero-link-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.9rem;
+  color: var(--text-primary, #1c1c1c);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.hero-link-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  text-decoration: none;
+  color: var(--text-primary, #1c1c1c);
+  transform: translateX(4px);
+}
+
+.hero-link-button i {
+  width: 1.2em;
+  text-align: center;
+  opacity: 0.8;
+}
+
+[data-theme="dark"] .hero-link-button {
+  color: var(--text-primary, #e6edf3);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .hero-link-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary, #e6edf3);
+}
+
+/* ============================================================================
+ * Demo Section & Video Preview
+ * ========================================================================== */
+
 .section-demos {
   background: linear-gradient(
     180deg,
@@ -70,17 +173,12 @@
   );
 }
 
-/* Watch Demos badge */
 .hero-badge.badge-warning {
   background: transparent;
   border: 1.5px solid var(--text-muted);
   color: var(--text-secondary);
   box-shadow: none;
 }
-
-/* ============================================================================
- * Hero Demo Video Preview
- * ============================================================================ */
 
 .demo-link {
   display: block;
@@ -98,6 +196,7 @@
   display: block;
   aspect-ratio: 16 / 9;
   object-fit: cover;
+  border-radius: 4px;
 }
 
 .demo-play-overlay {
@@ -155,7 +254,6 @@
   line-height: 1.4;
 }
 
-/* Video element styling */
 .demo-video {
   width: 100%;
   height: auto;
@@ -165,11 +263,7 @@
   border-radius: 4px;
 }
 
-.demo-thumbnail {
-  border-radius: 4px;
-}
-
-/* Description below video */
+/* --- Demo Description & Controls --- */
 .demo-description {
   display: flex;
   justify-content: space-between;
@@ -200,7 +294,6 @@
   color: var(--text-primary, #c9d1d9);
 }
 
-/* Speed select */
 .speed-select {
   padding: 0.25rem 0.5rem;
   font-size: 0.9rem;
@@ -229,7 +322,6 @@
   color: var(--text-primary, #c9d1d9);
 }
 
-/* Demo badge */
 .demo-badge {
   display: inline-block;
   padding: 0.15rem 0.5rem;
@@ -245,7 +337,7 @@
   vertical-align: middle;
 }
 
-/* Watch More Demos link */
+/* --- Watch More Demos --- */
 .watch-more-demos {
   display: inline-flex;
   align-items: center;
@@ -286,8 +378,8 @@
 }
 
 /* ============================================================================
- * Responsive adjustments
- * ============================================================================ */
+ * Responsive
+ * ========================================================================== */
 @media (max-width: 992px) {
   .hero-landing .hero-content {
     text-align: center !important;
@@ -297,18 +389,15 @@
     justify-content: center !important;
   }
 
-  /* Stack hero content vertically on tablet/mobile */
   .hero-landing .hero-wrapper {
     flex-direction: column !important;
     align-items: center !important;
   }
 
-  /* Logo/content first, then video on mobile */
   .hero-landing .hero-content {
     order: 0 !important;
   }
 
-  /* Responsive logo sizing for tablet */
   .hero-landing .hero-logo {
     max-width: 80%;
     width: auto;
@@ -328,6 +417,16 @@
   .demo-play-icon {
     font-size: 3rem;
   }
+
+  .hero-cta-container {
+    justify-content: center;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .hero-tagline {
+    text-align: center;
+  }
 }
 
 @media (max-width: 576px) {
@@ -335,7 +434,6 @@
     margin-top: 1.5rem;
   }
 
-  /* Even smaller logo for phones */
   .hero-landing .hero-logo {
     max-width: 90%;
   }
@@ -366,128 +464,7 @@
     font-size: 0.65rem;
     padding: 0.4rem 0.75rem;
   }
-}
 
-/* ============================================================================
- * Hero Tagline and CTA Button
- * ============================================================================ */
-.hero-tagline {
-  font-size: 1.25rem;
-  color: var(--text-primary, #1c1c1c);
-  margin: 0.5rem 0 1.5rem 0;
-  font-weight: 600;
-}
-
-[data-theme="dark"] .hero-tagline {
-  color: #ffffff;
-}
-
-.hero-cta-container {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.hero-cta-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.875rem 1.75rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: white;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  border: none;
-  border-radius: 8px;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
-}
-
-.hero-cta-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
-  text-decoration: none;
-  color: white;
-}
-
-.hero-cta-button:active {
-  transform: translateY(0);
-}
-
-/* Hero Link Buttons (Open Source, Docs, etc.) */
-.hero-links {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-}
-
-.hero-link-button {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.625rem 1rem;
-  font-size: 0.9rem;
-  color: var(--text-primary, #1c1c1c);
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(4px);
-}
-
-.hero-link-button:hover {
-  background: rgba(255, 255, 255, 0.25);
-  text-decoration: none;
-  color: var(--text-primary, #1c1c1c);
-  transform: translateX(4px);
-}
-
-.hero-link-button i {
-  width: 1.2em;
-  text-align: center;
-  opacity: 0.8;
-}
-
-[data-theme="dark"] .hero-link-button {
-  color: var(--text-primary, #e6edf3);
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.12);
-}
-
-[data-theme="dark"] .hero-link-button:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: var(--text-primary, #e6edf3);
-}
-
-.hero-cta-note {
-  font-size: 0.875rem;
-  color: var(--text-secondary, #555555);
-}
-
-[data-theme="dark"] .hero-cta-note {
-  color: var(--text-muted, #8b949e);
-}
-
-/* Responsive adjustments for CTA */
-@media (max-width: 992px) {
-  .hero-cta-container {
-    justify-content: center;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .hero-tagline {
-    text-align: center;
-  }
-}
-
-@media (max-width: 576px) {
   .hero-cta-button {
     padding: 0.75rem 1.5rem;
     font-size: 1rem;
