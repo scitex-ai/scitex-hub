@@ -1,50 +1,11 @@
 {% extends "global_base.html" %}
 
-{% load static vite tree_preseed %}
+{% load static vite %}
 
-{% block title %}
-    Hub
-    {% if project %}- {{ project.name }}{% endif %}
-{% endblock %}
+{% block title %}Hub{% endblock %}
 {% block extra_css %}
-    <!-- Shared workspace components -->
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/workspace-files-tree.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
-    <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/workspace-files-tree/hidden-files-toggle.css' %}" />
-    <!-- Browse CSS from project_app (reused for file browser) -->
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/repository/browse/container-header.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/repository/browse/branch-dropdown.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/repository/browse/icon-utilities.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/repository/browse/tab-navigation.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/repository/browse/file-browser-table.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/repository/browse/readme-rendering.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/repository/browse/action-buttons.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/repository/browse/split-dropdown.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/repository/browse/tabs.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/repository/browse/toolbar.css' %}" />
-    <link rel="stylesheet" href="{% static 'project_app/css/shared/buttons.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/repository/file_browser.css' %}" />
-    <!-- Issues & PR CSS (for inline tab rendering) -->
-    <link rel="stylesheet" href="{% static 'project_app/css/issues/list.css' %}" />
-    <link rel="stylesheet" href="{% static 'project_app/css/pull_requests/list.css' %}" />
     <!-- Hub specific styles -->
     <link rel="stylesheet" href="{% static 'hub_app/css/hub.css' %}" />
-    <link rel="stylesheet" href="{% static 'hub_app/css/hub-file-viewer.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="hub-workspace">
@@ -59,41 +20,18 @@
                     <i class="fas fa-compass"></i> Explore
                 </a>
             </div>
-            <!-- Dynamic main content: project workspace or projects overview -->
+            <!-- Dynamic main content -->
             <div id="hub-main-content">
                 {% if hub_view_mode == "profile" %}
                     {% include 'hub_app/partials/user_profile_content.html' %}
-                {% elif current_project %}
-                    {% include 'hub_app/partials/project_workspace.html' with project=current_project %}
                 {% else %}
                     {% include 'hub_app/partials/projects_overview.html' %}
                 {% endif %}
             </div>
         </main>
-        <!-- Details panel removed — Hub uses full-width layout -->
     </div>
 {% endblock %}
 {% block extra_js %}
     {% vite_hmr_client %}
-    {% tree_preseed_script current_project %}
-    {% vite_script 'shared/workspace-tree-init' %}
-    <!-- Hub JS always loaded (handles both project workspace and projects overview) -->
     {% vite_script 'hub_app/index' %}
-    {% if current_project %}
-        <!-- Browse scripts (reused from project_app) -->
-        <div id="project-data"
-             style="display: none"
-             data-project-owner="{{ current_project.owner.username }}"
-             data-project-slug="{{ current_project.slug }}"></div>
-        <script>
-          window.SCITEX_PROJECT_DATA = {
-            owner: "{{ current_project.owner.username }}",
-            slug: "{{ current_project.slug }}",
-          };
-        </script>
-        {% vite_script 'project_app/repository/browse_toolbar' %}
-        {% vite_script 'project_app/repository/colorful-icons' %}
-        {% vite_script 'project_app/repository/file_browser_git_status' %}
-        {% vite_script 'project_app/repository/file_table_hidden_sync' %}
-    {% endif %}
 {% endblock %}
