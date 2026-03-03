@@ -9,6 +9,7 @@ import { getCsrfToken } from "../../utils/csrf";
 import { setupAutoAccept } from "./console-auto-accept";
 import { handleOscEscapes } from "./console-osc-handler";
 import { ConsoleTabManager, type ConsoleTab } from "./console-tabs";
+import { setupFileDrop, setupRightClick } from "./console-event-handlers";
 
 /** Adapter: WebcamCapture/SketchCanvas → upload image → type path into terminal */
 function makeImageSink(send: (t: string) => void) {
@@ -241,11 +242,8 @@ export class AIPanelConsoleMode {
       return true;
     });
 
-    // File drop
-    this.setupFileDrop(containerEl, inst);
-
-    // Right-click shortcuts
-    this.setupRightClick(containerEl, inst);
+    setupFileDrop(containerEl, inst);
+    setupRightClick(containerEl, inst);
 
     // Context-aware zoom
     registerZoomZone({
@@ -263,7 +261,11 @@ export class AIPanelConsoleMode {
       storageKey: "scitex-terminal-font-size",
     });
 
-    // Theme observation
+    // Allocation progress (OSC 9997 from broker)
+    containerEl.addEventListener("scitex-session-state", ((e: CustomEvent) => {
+      if (e.detail?.state === "allocation_starting")
+        inst.terminal.write("\x1b[33mStarting SLURM allocation...\x1b[0m\r\n");
+    }) as EventListener);
     this.observeTheme(inst);
 
     this.instances.set(id, inst);
@@ -363,57 +365,6 @@ export class AIPanelConsoleMode {
           );
       });
     }
-  }
-
-  // --- Event setup helpers ---
-
-  private setupFileDrop(el: HTMLElement, inst: TerminalInstance): void {
-    el.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
-      el.classList.add("drop-target");
-    });
-    el.addEventListener("dragleave", () => el.classList.remove("drop-target"));
-    el.addEventListener("drop", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      el.classList.remove("drop-target");
-      const dt = e.dataTransfer;
-      if (!dt) return;
-      if (dt.files && dt.files.length > 0) {
-        void uploadFiles(dt.files).then((paths) => {
-          if (inst.ws?.readyState === WebSocket.OPEN)
-            inst.ws.send(paths.join(" "));
-        });
-        return;
-      }
-      const raw = dt.getData("text/plain") ?? "";
-      const paths = raw.split(";").filter(Boolean);
-      if (paths.length > 0 && inst.ws?.readyState === WebSocket.OPEN)
-        inst.ws.send(paths.join(" "));
-    });
-  }
-
-  private setupRightClick(el: HTMLElement, inst: TerminalInstance): void {
-    let count = 0;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    el.addEventListener("contextmenu", (e: MouseEvent) => {
-      e.preventDefault();
-      count++;
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(() => {
-        const n = Math.min(count, 4);
-        count = 0;
-        timer = null;
-        if (inst.ws?.readyState === WebSocket.OPEN) {
-          inst.ws.send(String(n));
-          setTimeout(() => {
-            if (inst.ws?.readyState === WebSocket.OPEN) inst.ws.send("\r");
-          }, 500);
-        }
-      }, 400);
-    });
   }
 
   // --- Utility ---

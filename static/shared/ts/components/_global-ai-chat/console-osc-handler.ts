@@ -47,6 +47,18 @@ export function handleOscEscapes(
     }
   });
 
+  // Session state: \x1b]9997;{json}\x07
+  remaining = extractOsc(remaining, "\x1b]9997;", (payload) => {
+    try {
+      const msg = JSON.parse(payload);
+      container?.dispatchEvent(
+        new CustomEvent("scitex-session-state", { detail: msg, bubbles: true }),
+      );
+    } catch {
+      /* ignore malformed */
+    }
+  });
+
   // Media: \x1b]9998;media:<base64-json>\x07
   remaining = extractOsc(remaining, "\x1b]9998;media:", (b64) => {
     try {
