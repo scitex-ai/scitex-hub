@@ -192,7 +192,7 @@ class Allocation:
             self._cleanup_script()
             logger.info(f"Allocation {self.allocation_id[:8]}: stopped")
 
-    def get_shell_command(self) -> list[str]:
+    def get_shell_command(self, project_slug: str = "") -> list[str]:
         """Return srun --overlap command for attaching a new shell."""
         from apps.console_app.views.terminal._command_builder import (
             build_shell_in_allocation_cmd,
@@ -202,6 +202,7 @@ class Allocation:
             job_id=self.job_id,
             instance_name=self.instance_name,
             username=self.username,
+            project_slug=project_slug or self.project_slug,
         )
 
     def check_alive(self) -> bool:
