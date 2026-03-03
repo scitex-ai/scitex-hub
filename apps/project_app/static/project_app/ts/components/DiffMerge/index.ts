@@ -86,7 +86,7 @@ class DiffMerge {
       leftData.content,
       rightData.content,
       leftData.filename,
-      rightData.filename
+      rightData.filename,
     );
   }
 
@@ -103,3 +103,21 @@ class DiffMerge {
 
 // Make it available globally
 (window as any).DiffMerge = DiffMerge;
+
+// Auto-init from data attributes on .diff-merge-container
+function autoInit(): void {
+  const container = document.querySelector<HTMLElement>(
+    ".diff-merge-container[data-username]",
+  );
+  if (!container) return;
+  const username = container.dataset.username ?? "";
+  const slug = container.dataset.slug ?? "";
+  const apiBaseUrl = container.dataset.apiBaseUrl ?? `/${username}/${slug}/`;
+  new DiffMerge({ username, slug, apiBaseUrl });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", autoInit);
+} else {
+  autoInit();
+}
