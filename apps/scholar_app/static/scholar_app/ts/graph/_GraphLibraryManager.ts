@@ -55,7 +55,7 @@ export class GraphLibraryManager {
     try {
       const resp = await fetch(this.config.urls.listSavedGraphs);
       if (!resp.ok) return;
-      const data = await resp.json();
+      const data = await resp.tson();
       this.savedGraphs = data.graphs || [];
       this.renderTabBar();
     } catch (err) {
@@ -175,12 +175,12 @@ export class GraphLibraryManager {
       });
 
       if (!resp.ok) {
-        const err = await resp.json();
+        const err = await resp.tson();
         alert(err.error || "Failed to save graph");
         return;
       }
 
-      const result = await resp.json();
+      const result = await resp.tson();
       this.activeGraphId = result.id;
       await this.fetchSavedGraphs();
     } catch (err) {
@@ -193,7 +193,7 @@ export class GraphLibraryManager {
     try {
       const resp = await fetch(url);
       if (!resp.ok) return;
-      const data = await resp.json();
+      const data = await resp.tson();
       this.activeGraphId = graphId;
       this.renderTabBar();
       this.callbacks.onLoadGraph(data.graph_data, data.node_positions || {});
@@ -281,7 +281,7 @@ export class GraphLibraryManager {
         headers: { "X-CSRFToken": this.getCsrfToken() },
       });
       if (!resp.ok) return;
-      const recipe = await resp.json();
+      const recipe = await resp.tson();
       this.activeGraphId = graphId;
       this.callbacks.onRefreshGraph({
         source_type: recipe.source_type,

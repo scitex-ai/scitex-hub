@@ -12,9 +12,9 @@ import {
   initializeSourceToggles,
   loadSourcePreferences,
 } from "./_scholar-index/source-preferences";
-import "./_scholar-index/bibtex-management.js";
-import "./_scholar-index/abstract-toggle.js";
-import "./_scholar-index/paper-actions.js";
+import "./_scholar-index/bibtex-management.ts";
+import "./_scholar-index/abstract-toggle.ts";
+import "./_scholar-index/paper-actions.ts";
 
 console.log(
   "[DEBUG] apps/scholar_app/static/scholar_app/ts/common/scholar-index-main.ts loaded",

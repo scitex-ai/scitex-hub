@@ -85,7 +85,7 @@ export async function openAllPaperUrls(jobId: string): Promise<void> {
       throw new Error(`HTTP ${response.status}`);
     }
 
-    const data = await response.json();
+    const data = await response.tson();
     console.log("[Open URLs] Received data:", data);
 
     if (data.urls && data.urls.length > 0) {
@@ -197,7 +197,7 @@ export async function saveJobToProject(jobId: string): Promise<void> {
 
     console.log("[Save to Project] Response status:", response.status);
 
-    const data = await response.json();
+    const data = await response.tson();
     console.log("[Save to Project] Response data:", data);
 
     if (response.ok && data.success) {
