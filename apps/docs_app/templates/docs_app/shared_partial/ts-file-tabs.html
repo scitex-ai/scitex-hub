@@ -1,0 +1,163 @@
+<h3>File Tabs</h3>
+<p>
+    Manages a row of file tabs with open/close, dirty state indicators, drag-and-drop reorder, inline rename, and an optional new-file button.
+</p>
+<h4>
+    <i class="fas fa-download me-1"></i>Import
+</h4>
+<pre><code>import {
+  FileTabManager,
+  FileTabsOptions,
+  OpenFile,
+  TabInfo,
+} from '@shared/components/file-tabs';</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>HTML
+</h4>
+<pre><code>&lt;!-- The manager renders tab elements inside this container --&gt;
+&lt;div id="my-file-tabs"&gt;&lt;/div&gt;</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>TypeScript Usage
+</h4>
+<pre><code>const tabs = new FileTabManager({
+  containerId: 'my-file-tabs',
+  onTabSwitch: (filePath) =&gt; loadFile(filePath),
+  onTabClose: (filePath) =&gt; closeFile(filePath),
+  onNewFile: async (fileName) =&gt; { await createFile(fileName); },
+  onRenameFile: async (oldPath, newPath) =&gt; { await renameFile(oldPath, newPath); },
+  showNewFileButton: true,
+  allowReorder: true,
+  allowRename: true,
+  permanentTab: '*scratch*',
+});
+
+// Open a file (adds tab if not already open, activates it)
+tabs.openFile('/project/main.py', '# content here', 'python');
+
+// Mark file as dirty (unsaved changes indicator)
+tabs.setDirty('/project/main.py', true);
+
+// Close a tab programmatically
+tabs.closeTab('/project/main.py');
+
+// Get list of open tabs
+const openTabs: TabInfo[] = tabs.getTabs();</code></pre>
+<h4>
+    <i class="fas fa-sliders-h me-1"></i>FileTabsOptions
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Option</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>containerId</code>
+            </td>
+            <td>
+                <code>string</code>
+            </td>
+            <td>required</td>
+            <td>ID of the container element for tab rendering</td>
+        </tr>
+        <tr>
+            <td>
+                <code>onTabSwitch</code>
+            </td>
+            <td>
+                <code>(path) =&gt; void</code>
+            </td>
+            <td>required</td>
+            <td>Called when user clicks a tab to activate it</td>
+        </tr>
+        <tr>
+            <td>
+                <code>onTabClose</code>
+            </td>
+            <td>
+                <code>(path) =&gt; void</code>
+            </td>
+            <td>required</td>
+            <td>Called when user closes a tab</td>
+        </tr>
+        <tr>
+            <td>
+                <code>onNewFile</code>
+            </td>
+            <td>
+                <code>(name) =&gt; Promise&lt;void&gt;</code>
+            </td>
+            <td>—</td>
+            <td>Called when user creates a new file via the + button</td>
+        </tr>
+        <tr>
+            <td>
+                <code>onRenameFile</code>
+            </td>
+            <td>
+                <code>(old, new) =&gt; Promise&lt;void&gt;</code>
+            </td>
+            <td>—</td>
+            <td>Called after inline rename completes</td>
+        </tr>
+        <tr>
+            <td>
+                <code>showNewFileButton</code>
+            </td>
+            <td>
+                <code>boolean</code>
+            </td>
+            <td>
+                <code>false</code>
+            </td>
+            <td>Show + button to create new files</td>
+        </tr>
+        <tr>
+            <td>
+                <code>allowReorder</code>
+            </td>
+            <td>
+                <code>boolean</code>
+            </td>
+            <td>
+                <code>false</code>
+            </td>
+            <td>Enable drag-and-drop tab reordering</td>
+        </tr>
+        <tr>
+            <td>
+                <code>allowRename</code>
+            </td>
+            <td>
+                <code>boolean</code>
+            </td>
+            <td>
+                <code>false</code>
+            </td>
+            <td>Enable inline rename on double-click</td>
+        </tr>
+        <tr>
+            <td>
+                <code>permanentTab</code>
+            </td>
+            <td>
+                <code>string</code>
+            </td>
+            <td>—</td>
+            <td>
+                Path of a tab that cannot be closed (e.g. <code>*scratch*</code>)
+            </td>
+        </tr>
+    </tbody>
+</table>
+<div class="api-callout api-callout-info">
+    <i class="fas fa-info-circle"></i>
+    <div>
+        The <code>OpenFile</code> type tracks <code>path</code>, <code>content</code>, <code>originalContent</code>, <code>language</code>, and <code>isDirty</code>. The <code>TabInfo</code> type exposes read-only tab state: <code>path</code>, <code>label</code>, <code>isActive</code>, <code>isDirty</code>, <code>isPermanent</code>.
+    </div>
+</div>

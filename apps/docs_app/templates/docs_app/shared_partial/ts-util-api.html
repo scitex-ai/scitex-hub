@@ -1,0 +1,110 @@
+<h3>API Client</h3>
+<p>Fetch wrapper with automatic CSRF token injection, JSON serialization, and typed response envelopes.</p>
+<h4>
+    <i class="fas fa-download me-1"></i>Import
+</h4>
+<pre><code>import { apiClient, ApiClient, ApiResponse } from '@shared/utils/api';</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>Usage
+</h4>
+<pre><code>// GET request
+const res = await apiClient.get&lt;{ items: string[] }&gt;('/api/items/');
+if (res.success) console.log(res.data?.items);
+
+// POST request
+const res = await apiClient.post('/api/create/', { name: 'foo' });
+
+// PUT / DELETE
+await apiClient.put('/api/items/1/', { name: 'bar' });
+await apiClient.delete('/api/items/1/');
+
+// Custom instance with base URL
+const client = new ApiClient('/api/v2');
+await client.get('/status/');</code></pre>
+<h4>
+    <i class="fas fa-list me-1"></i>API Reference
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Method / Type</th>
+            <th>Signature</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>apiClient</code>
+            </td>
+            <td>
+                <code>ApiClient</code>
+            </td>
+            <td>Pre-constructed singleton with empty base URL. Use this for all standard requests.</td>
+        </tr>
+        <tr>
+            <td>
+                <code>.get()</code>
+            </td>
+            <td>
+                <code>get&lt;T&gt;(url, options?) → Promise&lt;ApiResponse&lt;T&gt;&gt;</code>
+            </td>
+            <td>
+                HTTP GET. CSRF token attached automatically via <code>X-CSRFToken</code> header.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>.post()</code>
+            </td>
+            <td>
+                <code>post&lt;T&gt;(url, body?, options?) → Promise&lt;ApiResponse&lt;T&gt;&gt;</code>
+            </td>
+            <td>
+                HTTP POST. <code>body</code> is JSON-serialized automatically.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>.put()</code>
+            </td>
+            <td>
+                <code>put&lt;T&gt;(url, body?, options?) → Promise&lt;ApiResponse&lt;T&gt;&gt;</code>
+            </td>
+            <td>HTTP PUT with JSON body serialization.</td>
+        </tr>
+        <tr>
+            <td>
+                <code>.patch()</code>
+            </td>
+            <td>
+                <code>patch&lt;T&gt;(url, body?, options?) → Promise&lt;ApiResponse&lt;T&gt;&gt;</code>
+            </td>
+            <td>HTTP PATCH with JSON body serialization.</td>
+        </tr>
+        <tr>
+            <td>
+                <code>.delete()</code>
+            </td>
+            <td>
+                <code>delete&lt;T&gt;(url, options?) → Promise&lt;ApiResponse&lt;T&gt;&gt;</code>
+            </td>
+            <td>HTTP DELETE. No body required.</td>
+        </tr>
+        <tr>
+            <td>
+                <code>ApiResponse&lt;T&gt;</code>
+            </td>
+            <td>
+                <code>{ success: boolean; data?: T; error?: string; message?: string }</code>
+            </td>
+            <td>
+                Unified response envelope. Always check <code>success</code> before accessing <code>data</code>.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<div class="api-callout api-callout--info">
+    <strong>CSRF handling:</strong> <code>X-CSRFToken</code> is injected on every mutating request via <code>getCsrfToken()</code>.
+    Non-JSON responses (plain text, HTML) are returned as a string in <code>data</code>.
+</div>

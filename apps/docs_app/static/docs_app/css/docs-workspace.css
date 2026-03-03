@@ -412,3 +412,8 @@
   padding: 1px 5px;
   border-radius: 3px;
 }
+
+/* Print page break between concatenated doc pages */
+.docs-print-page-break {
+  page-break-after: always;
+}

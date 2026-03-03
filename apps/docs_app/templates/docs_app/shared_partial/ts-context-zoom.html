@@ -1,0 +1,156 @@
+<h3>Context Zoom</h3>
+<p>
+    Intercepts Ctrl+Wheel and Ctrl++/-/0 to apply per-pane zoom (font size or CSS scale) based on which pane the mouse is over, with localStorage persistence.
+</p>
+<h4>
+    <i class="fas fa-download me-1"></i>Import
+</h4>
+<pre><code>import {
+  initContextZoom,
+  registerZoomZone,
+  getActiveZone,
+  ZoomZone,
+} from '@shared/components/context-zoom';</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>Initialization
+</h4>
+<pre><code>// Call once at app startup — sets up global Ctrl+Wheel listener
+initContextZoom();</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>Register a Zoom Zone
+</h4>
+<pre><code>const editorPane = document.getElementById('my-editor-pane')!;
+
+registerZoomZone({
+  el: editorPane,
+  storageKey: 'my-app.editor.fontSize',
+  min: 10,
+  max: 32,
+  default: 14,
+  step: 1,
+  getSize: () =&gt; parseFloat(editorPane.style.fontSize) || 14,
+  setSize: (val) =&gt; { editorPane.style.fontSize = `${val}px`; },
+});
+
+// For CSS zoom (scale) instead of font size
+registerZoomZone({
+  el: previewPane,
+  storageKey: 'my-app.preview.zoom',
+  min: 0.5,
+  max: 3.0,
+  default: 1.0,
+  step: 0.05,
+  getSize: () =&gt; parseFloat(previewPane.style.zoom) || 1,
+  setSize: (val) =&gt; { previewPane.style.zoom = String(val); },
+});
+
+// Passthrough: pane handles zoom internally, just block browser zoom
+registerZoomZone({
+  el: monacoPane,
+  storageKey: 'my-app.monaco.zoom',
+  min: 0, max: 0, default: 0,
+  passthrough: true,
+  getSize: () =&gt; 0,
+  setSize: () =&gt; {},
+});</code></pre>
+<h4>
+    <i class="fas fa-sliders-h me-1"></i>ZoomZone Interface
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>el</code>
+            </td>
+            <td>
+                <code>HTMLElement</code>
+            </td>
+            <td>The DOM element defining the zoom zone boundary</td>
+        </tr>
+        <tr>
+            <td>
+                <code>storageKey</code>
+            </td>
+            <td>
+                <code>string</code>
+            </td>
+            <td>localStorage key for persisting zoom level</td>
+        </tr>
+        <tr>
+            <td>
+                <code>min</code>
+            </td>
+            <td>
+                <code>number</code>
+            </td>
+            <td>Minimum zoom value</td>
+        </tr>
+        <tr>
+            <td>
+                <code>max</code>
+            </td>
+            <td>
+                <code>number</code>
+            </td>
+            <td>Maximum zoom value</td>
+        </tr>
+        <tr>
+            <td>
+                <code>default</code>
+            </td>
+            <td>
+                <code>number</code>
+            </td>
+            <td>Reset value (Ctrl+0)</td>
+        </tr>
+        <tr>
+            <td>
+                <code>step</code>
+            </td>
+            <td>
+                <code>number</code>
+            </td>
+            <td>Increment per scroll tick (default: 1)</td>
+        </tr>
+        <tr>
+            <td>
+                <code>getSize</code>
+            </td>
+            <td>
+                <code>() =&gt; number</code>
+            </td>
+            <td>Reads current zoom value from the element</td>
+        </tr>
+        <tr>
+            <td>
+                <code>setSize</code>
+            </td>
+            <td>
+                <code>(val: number) =&gt; void</code>
+            </td>
+            <td>Applies new zoom value to the element</td>
+        </tr>
+        <tr>
+            <td>
+                <code>passthrough</code>
+            </td>
+            <td>
+                <code>boolean</code>
+            </td>
+            <td>If true, only blocks browser zoom; element handles zoom itself (e.g. Monaco)</td>
+        </tr>
+    </tbody>
+</table>
+<div class="api-callout api-callout-info">
+    <i class="fas fa-info-circle"></i>
+    <div>
+        Saved zoom values are restored from localStorage on <code>registerZoomZone()</code>. Call <code>initContextZoom()</code> once before registering zones. Zones use <code>mouseenter</code>/<code>mouseleave</code> to track the active zone.
+    </div>
+</div>

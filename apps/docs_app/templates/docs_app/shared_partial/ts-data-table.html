@@ -1,0 +1,165 @@
+<h3>DataTable</h3>
+<p>
+    A full spreadsheet-like table with cell selection, keyboard navigation, Excel-compatible copy/paste, fill handle, column resizing, and virtual scrolling for large datasets.
+</p>
+<h4>
+    <i class="fas fa-download me-1"></i>Import
+</h4>
+<pre><code>import { DataTableManager, Dataset, DataRow, DataTableConfig } from '@shared/components/data-table';</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>HTML
+</h4>
+<pre><code>&lt;!-- Minimal container — the component renders all internals --&gt;
+&lt;div class="data-table-container" id="my-table"&gt;&lt;/div&gt;</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>TypeScript Usage
+</h4>
+<pre><code>// Basic setup
+const table = new DataTableManager({
+  container: '#my-table',
+  onDataChange: (data: Dataset) =&gt; console.log(data),
+  onStatusUpdate: (msg: string) =&gt; updateStatusBar(msg),
+});
+
+// Start blank
+table.initializeBlankTable();
+table.renderEditableDataTable();
+table.setupColumnResizing();
+
+// Or load from CSV string
+table.loadFromCSVContent(csvString, 'results.csv');
+table.renderEditableDataTable();
+
+// Read-only mode
+const viewer = new DataTableManager({
+  container: '#my-viewer',
+  readOnly: true,
+  initialData: { columns: ['A', 'B'], rows: [{ A: 1, B: 2 }] },
+});</code></pre>
+<h4>
+    <i class="fas fa-sliders-h me-1"></i>DataTableConfig
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Option</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>container</code>
+            </td>
+            <td>
+                <code>string | HTMLElement</code>
+            </td>
+            <td>required</td>
+            <td>CSS selector or element where the table renders</td>
+        </tr>
+        <tr>
+            <td>
+                <code>readOnly</code>
+            </td>
+            <td>
+                <code>boolean</code>
+            </td>
+            <td>
+                <code>false</code>
+            </td>
+            <td>Disables all editing interactions</td>
+        </tr>
+        <tr>
+            <td>
+                <code>initialData</code>
+            </td>
+            <td>
+                <code>Dataset</code>
+            </td>
+            <td>—</td>
+            <td>Pre-load data on construction</td>
+        </tr>
+        <tr>
+            <td>
+                <code>onDataChange</code>
+            </td>
+            <td>
+                <code>(data: Dataset) =&gt; void</code>
+            </td>
+            <td>—</td>
+            <td>Fired on every cell edit</td>
+        </tr>
+        <tr>
+            <td>
+                <code>onStatusUpdate</code>
+            </td>
+            <td>
+                <code>(msg: string) =&gt; void</code>
+            </td>
+            <td>—</td>
+            <td>Status bar message callback</td>
+        </tr>
+        <tr>
+            <td>
+                <code>virtualScrolling</code>
+            </td>
+            <td>
+                <code>boolean</code>
+            </td>
+            <td>
+                <code>true</code>
+            </td>
+            <td>Enable virtual scrolling for large tables</td>
+        </tr>
+        <tr>
+            <td>
+                <code>maxDisplayRows</code>
+            </td>
+            <td>
+                <code>number</code>
+            </td>
+            <td>—</td>
+            <td>Row count threshold before virtual scrolling activates</td>
+        </tr>
+    </tbody>
+</table>
+<h4>
+    <i class="fas fa-sliders-h me-1"></i>Key Types
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Type</th>
+            <th>Shape</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>Dataset</code>
+            </td>
+            <td>
+                <code>{ columns: string[], rows: DataRow[] }</code>
+            </td>
+            <td>Full table data structure</td>
+        </tr>
+        <tr>
+            <td>
+                <code>DataRow</code>
+            </td>
+            <td>
+                <code>{ [key: string]: string | number }</code>
+            </td>
+            <td>One row keyed by column name</td>
+        </tr>
+    </tbody>
+</table>
+<div class="api-callout api-callout-info">
+    <i class="fas fa-info-circle"></i>
+    <div>
+        Keyboard shortcuts: Arrow keys navigate, <code>F2</code> or double-click to edit, <code>Ctrl+C</code>/<code>Ctrl+V</code> for Excel-compatible clipboard, <code>Delete</code> to clear selection. Maximum 32767 rows and 32767 columns.
+    </div>
+</div>

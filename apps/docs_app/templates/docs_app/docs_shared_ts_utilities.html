@@ -1,0 +1,177 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}Shared: Utilities — SciTeX Documentation{% endblock %}
+{% block meta_description %}
+    Shared TypeScript utility functions for SciTeX app development: API client, CSRF, storage, UI helpers.
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
+    <style>
+        .shared-details {
+            margin-bottom: 1rem;
+        }
+
+        .shared-details summary {
+            cursor: pointer;
+            padding: 0.75rem 1rem;
+            background: var(--bg-surface, #f8f9fa);
+            border: 1px solid var(--border-subtle, #dee2e6);
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-primary);
+            transition: background 0.15s;
+        }
+
+        [data-theme="dark"] .shared-details summary {
+            background: var(--bg-elevated, #161b22);
+            border-color: var(--border-default, #333);
+        }
+
+        .shared-details[open] summary {
+            border-radius: 6px 6px 0 0;
+            border-bottom: none;
+        }
+
+        .shared-details .details-content {
+            border: 1px solid var(--border-subtle, #dee2e6);
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            padding: 1.5rem;
+        }
+
+        [data-theme="dark"] .shared-details .details-content {
+            border-color: var(--border-default, #333);
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container py-2">
+        <header class="minimal-hero" style="text-align: center">
+            <div class="api-hero-header" style="justify-content: center">
+                <h1 class="minimal-hero-title">Shared: Utilities</h1>
+            </div>
+        </header>
+    </div>
+    <div class="container py-2" style="max-width: 1000px">
+        <p class="text-muted mb-4">
+            Shared TypeScript utility functions available via
+            <code>import { ... } from '@shared/utils'</code>.
+            These are auto-loaded on every page.
+        </p>
+        <!-- Quick Reference -->
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-list"></i> Quick Reference
+            </h2>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Utility</th>
+                        <th>Key Exports</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <a href="#api-client">API Client</a>
+                        </td>
+                        <td>
+                            <code>apiClient.get()</code>, <code>.post()</code>, <code>.put()</code>, <code>.delete()</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#csrf">CSRF</a>
+                        </td>
+                        <td>
+                            <code>getCsrfToken()</code>, <code>createHeadersWithCsrf()</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#storage">StorageManager</a>
+                        </td>
+                        <td>
+                            <code>globalStorage.save()</code>, <code>.load()</code>, <code>.remove()</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#ui-helpers">UI Helpers</a>
+                        </td>
+                        <td>
+                            <code>showToast()</code>, <code>Modal</code>, <code>confirm()</code>, <code>debounce()</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#theme">Theme Switcher</a>
+                        </td>
+                        <td>
+                            <code>data-theme</code> attribute, toggle API
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#keyboard">Keyboard Shortcuts</a>
+                        </td>
+                        <td>Alt+A (AI), Alt+T (pane cycle), Ctrl+U (upload)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#file-icons">File Icons</a>
+                        </td>
+                        <td>Extension-to-icon mapping</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- Utility Details -->
+        <details class="shared-details" id="api-client">
+            <summary>
+                <i class="fas fa-plug me-2"></i>API Client
+            </summary>
+            <div class="details-content">{% include 'docs_app/shared_partial/ts-util-api.html' %}</div>
+        </details>
+        <details class="shared-details" id="csrf">
+            <summary>
+                <i class="fas fa-shield-alt me-2"></i>CSRF
+            </summary>
+            <div class="details-content">{% include 'docs_app/shared_partial/ts-util-csrf.html' %}</div>
+        </details>
+        <details class="shared-details" id="storage">
+            <summary>
+                <i class="fas fa-database me-2"></i>StorageManager
+            </summary>
+            <div class="details-content">{% include 'docs_app/shared_partial/ts-util-storage.html' %}</div>
+        </details>
+        <details class="shared-details" id="ui-helpers">
+            <summary>
+                <i class="fas fa-bell me-2"></i>UI Helpers
+            </summary>
+            <div class="details-content">{% include 'docs_app/shared_partial/ts-util-ui.html' %}</div>
+        </details>
+        <details class="shared-details" id="theme">
+            <summary>
+                <i class="fas fa-adjust me-2"></i>Theme Switcher
+            </summary>
+            <div class="details-content">{% include 'docs_app/shared_partial/ts-util-theme.html' %}</div>
+        </details>
+        <details class="shared-details" id="keyboard">
+            <summary>
+                <i class="fas fa-keyboard me-2"></i>Keyboard Shortcuts
+            </summary>
+            <div class="details-content">{% include 'docs_app/shared_partial/ts-util-keyboard.html' %}</div>
+        </details>
+        <details class="shared-details" id="file-icons">
+            <summary>
+                <i class="fas fa-icons me-2"></i>File Icons
+            </summary>
+            <div class="details-content">{% include 'docs_app/shared_partial/ts-util-file-icons.html' %}</div>
+        </details>
+    </div>
+{% endblock %}

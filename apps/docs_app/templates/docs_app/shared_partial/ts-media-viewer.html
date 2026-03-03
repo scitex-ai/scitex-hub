@@ -1,0 +1,157 @@
+<h3>MediaViewer</h3>
+<p>
+    Displays non-text files (images, PDFs, Mermaid diagrams, binaries) and editable CSV tables in a unified container.
+</p>
+<h4>
+    <i class="fas fa-download me-1"></i>Import
+</h4>
+<pre><code>import {
+  MediaViewer,
+  detectFileType,
+  MediaViewerConfig,
+  FileType,
+} from '@shared/components/media-viewer';</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>HTML
+</h4>
+<pre><code>&lt;!-- Container element — MediaViewer renders content inside it --&gt;
+&lt;div id="my-media-viewer" class="media-viewer-container"&gt;&lt;/div&gt;</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>TypeScript Usage
+</h4>
+<pre><code>const viewer = new MediaViewer({
+  container: '#my-media-viewer',
+  getFileUrl: (filePath, raw, download) =&gt; {
+    const params = new URLSearchParams({ path: filePath });
+    if (raw) params.set('raw', '1');
+    if (download) params.set('download', '1');
+    return `/api/files/content/?${params}`;
+  },
+  onDownload: (filePath) =&gt; console.log('Downloading', filePath),
+  onVisibilityChange: (visible) =&gt; console.log('Viewer visible:', visible),
+});
+
+// Open a file — type is auto-detected from extension
+viewer.openFile('/project/results/plot.png');
+
+// Check type manually
+const type: FileType = detectFileType('/data/report.pdf'); // → 'pdf'</code></pre>
+<h4>
+    <i class="fas fa-sliders-h me-1"></i>MediaViewerConfig
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Option</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>container</code>
+            </td>
+            <td>
+                <code>HTMLElement | string</code>
+            </td>
+            <td>Container element or CSS selector</td>
+        </tr>
+        <tr>
+            <td>
+                <code>getFileUrl</code>
+            </td>
+            <td>
+                <code>(path, raw?, download?) =&gt; string</code>
+            </td>
+            <td>URL factory — called to build fetch/download URLs</td>
+        </tr>
+        <tr>
+            <td>
+                <code>onDownload</code>
+            </td>
+            <td>
+                <code>(path) =&gt; void</code>
+            </td>
+            <td>Optional callback when user triggers download</td>
+        </tr>
+        <tr>
+            <td>
+                <code>onVisibilityChange</code>
+            </td>
+            <td>
+                <code>(visible) =&gt; void</code>
+            </td>
+            <td>Optional callback when viewer shows or hides</td>
+        </tr>
+    </tbody>
+</table>
+<h4>
+    <i class="fas fa-sliders-h me-1"></i>Supported File Types
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>FileType</th>
+            <th>Extensions</th>
+            <th>Rendered by</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>image</code>
+            </td>
+            <td>.png .jpg .jpeg .gif .webp .svg .bmp .ico</td>
+            <td>ImageViewer</td>
+        </tr>
+        <tr>
+            <td>
+                <code>pdf</code>
+            </td>
+            <td>.pdf</td>
+            <td>PdfViewer (PDF.js)</td>
+        </tr>
+        <tr>
+            <td>
+                <code>csv</code>
+            </td>
+            <td>.csv .tsv</td>
+            <td>CsvEditor (DataTable)</td>
+        </tr>
+        <tr>
+            <td>
+                <code>mermaid</code>
+            </td>
+            <td>.mmd .mermaid</td>
+            <td>MermaidViewer</td>
+        </tr>
+        <tr>
+            <td>
+                <code>graphviz</code>
+            </td>
+            <td>.dot .gv</td>
+            <td>GraphvizViewer</td>
+        </tr>
+        <tr>
+            <td>
+                <code>binary</code>
+            </td>
+            <td>.zip .tar .gz .mp3 .mp4 .docx .xlsx etc.</td>
+            <td>BinaryPlaceholder</td>
+        </tr>
+        <tr>
+            <td>
+                <code>text</code>
+            </td>
+            <td>(all others)</td>
+            <td>delegated to text editor</td>
+        </tr>
+    </tbody>
+</table>
+<div class="api-callout api-callout-info">
+    <i class="fas fa-info-circle"></i>
+    <div>
+        File type is detected automatically by extension via <code>detectFileType(filePath)</code>. API responses returning <code>application/json</code> must be parsed; the <code>getFileUrl</code> factory should point to your Django file-content endpoint.
+    </div>
+</div>

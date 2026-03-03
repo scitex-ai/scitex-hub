@@ -1,0 +1,136 @@
+<h3>UI Utilities</h3>
+<p>Common UI helpers: toast notifications, status messages, loading states, modals, and timing utilities.</p>
+<h4>
+    <i class="fas fa-download me-1"></i>Import
+</h4>
+<pre><code>import { showToast, showStatus, setButtonLoading, showSpinner,
+Modal, confirm, debounce, throttle } from '@shared/utils/ui';</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>Usage
+</h4>
+<pre><code>// Toast notification (auto-dismissed after 5 s)
+showToast('File saved.', 'success');
+showToast('Something went wrong.', 'error', 8000);
+
+// Status inside a container element
+showStatus('Uploading…', 'info', 'status-container');
+
+// Button loading state
+const btn = document.getElementById('submit-btn')!;
+setButtonLoading(btn, true, 'Saving…');
+await apiClient.post('/api/save/', data);
+setButtonLoading(btn, false);
+
+// Spinner inside a container
+showSpinner('content-area', true);
+showSpinner('content-area', false);
+
+// Bootstrap modal wrapper
+const modal = new Modal('my-modal');
+modal.show(); modal.hide(); modal.toggle();
+
+// Debounce / throttle
+const onSearch = debounce((q: string) => doSearch(q), 300);
+const onScroll = throttle(() => updateHeader(), 100);</code></pre>
+<h4>
+    <i class="fas fa-list me-1"></i>API Reference
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Function / Class</th>
+            <th>Signature</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>showToast()</code>
+            </td>
+            <td>
+                <code>(message, type?, duration?) → void</code>
+            </td>
+            <td>
+                Fixed-position Bootstrap alert at top-right. <code>type</code>: <code>success | error | warning | info</code>. Default duration 5000 ms; pass <code>0</code> to keep indefinitely.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>showStatus()</code>
+            </td>
+            <td>
+                <code>(message, type, containerId?) → void</code>
+            </td>
+            <td>
+                Inserts an alert into a specific container (or <code>document.body</code>). Replaces any existing alert in that container. Auto-removed after 5 s.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>setButtonLoading()</code>
+            </td>
+            <td>
+                <code>(button, isLoading, loadingText?) → void</code>
+            </td>
+            <td>
+                Disables the button and shows a spinner + text while loading; restores original HTML when <code>isLoading</code> is <code>false</code>.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>showSpinner()</code>
+            </td>
+            <td>
+                <code>(containerId, show?) → void</code>
+            </td>
+            <td>
+                Appends or removes a Bootstrap <code>.spinner-border</code> inside the element identified by <code>containerId</code>.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>Modal</code>
+            </td>
+            <td>
+                <code>new Modal(elementId)</code>
+            </td>
+            <td>
+                Wraps a Bootstrap modal (or plain <code>display: flex/none</code> fallback). Methods: <code>.show()</code>, <code>.hide()</code>, <code>.toggle()</code>.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>confirm()</code>
+            </td>
+            <td>
+                <code>(message) → Promise&lt;boolean&gt;</code>
+            </td>
+            <td>
+                Async wrapper around <code>window.confirm()</code>. Returns <code>true</code> if the user clicked OK.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>debounce()</code>
+            </td>
+            <td>
+                <code>(fn, wait) → fn</code>
+            </td>
+            <td>
+                Returns a debounced function that delays invoking <code>fn</code> until after <code>wait</code> ms of inactivity.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>throttle()</code>
+            </td>
+            <td>
+                <code>(fn, limit) → fn</code>
+            </td>
+            <td>
+                Returns a throttled function that fires at most once per <code>limit</code> ms regardless of call rate.
+            </td>
+        </tr>
+    </tbody>
+</table>

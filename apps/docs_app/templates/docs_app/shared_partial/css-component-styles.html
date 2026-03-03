@@ -1,0 +1,196 @@
+<h3>Global Component CSS</h3>
+<p>
+    All component stylesheets imported by <code>static/shared/css/common.css</code> — available on every page without any extra imports.
+</p>
+<h4>
+    <i class="fas fa-puzzle-piece me-1"></i>Form &amp; Input Components
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>File</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>components/forms/index.css</code>
+            </td>
+            <td>Base form controls: inputs, textareas, select elements with semantic token styling.</td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/buttons/index.css</code>
+            </td>
+            <td>Button variants: primary, secondary, outline, ghost, danger, icon-only.</td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/button-cta.css</code>
+            </td>
+            <td>
+                Call-to-action button with <code>--color-cta</code> accent and hover transitions.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/buttons-dark.css</code>
+            </td>
+            <td>
+                Dark-mode button overrides applied under <code>[data-theme="dark"]</code>.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/checkboxes.css</code>
+            </td>
+            <td>Custom checkbox styling with animated checkmark and indeterminate state.</td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/toggles.css</code>
+            </td>
+            <td>
+                Toggle switch component (boolean on/off). Class: <code>.toggle-switch</code>.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/radios.css</code>
+            </td>
+            <td>Styled radio buttons with consistent sizing and focus rings.</td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/select.css</code>
+            </td>
+            <td>Select dropdown with custom arrow icon and focus state.</td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/sliders.css</code>
+            </td>
+            <td>Range input slider with workspace-aware thumb and track colors.</td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/file-upload.css</code>
+            </td>
+            <td>
+                Drag-and-drop file upload zone. Class: <code>.file-upload-zone</code>.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<h4>
+    <i class="fas fa-layer-group me-1"></i>Display &amp; Layout Components
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>File</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>components/cards.css</code>
+            </td>
+            <td>
+                Card container with <code>--bg-surface</code> background and border-radius. Class: <code>.card</code>.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/tabs.css</code>
+            </td>
+            <td>
+                Tab navigation bar with active indicator. Class: <code>.tab-nav</code>, <code>.tab-item</code>.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/dropdown.css</code>
+            </td>
+            <td>Dropdown menu with positioning, shadow, and keyboard-focus styles.</td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/breadcrumb.css</code>
+            </td>
+            <td>
+                Breadcrumb trail with separator icons. Class: <code>.breadcrumb</code>.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/resizer.css</code>
+            </td>
+            <td>Draggable panel-resize handle. Used by the three-column workspace layout.</td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/selector-nav.css</code>
+            </td>
+            <td>
+                Vertical selector navigation list. Class: <code>.selector-nav</code>.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/collapsible-panel.css</code>
+            </td>
+            <td>
+                Collapsible panel with animated expand/collapse. Class: <code>.collapsible-panel</code>.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/badges.css</code>
+            </td>
+            <td>
+                Status and label badges. Classes: <code>.badge</code>, <code>.badge-success</code>, etc.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/alerts.css</code>
+            </td>
+            <td>
+                Alert boxes using status variant tokens (<code>--status-*-bg</code>, <code>-text</code>, <code>-border</code>).
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/tooltips.css</code>
+            </td>
+            <td>
+                CSS-only tooltip via <code>data-tooltip</code> attribute.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/code-blocks.css</code>
+            </td>
+            <td>
+                Syntax-highlighted code block container. Class: <code>.code-block</code>.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>components/sidebar.css</code>
+            </td>
+            <td>App sidebar layout with collapsed/expanded states and nav items.</td>
+        </tr>
+    </tbody>
+</table>
+<div class="api-callout api-callout--info">
+    <i class="fas fa-info-circle me-1"></i>
+    <div>
+        These files are loaded globally — no extra <code>
+        {% block extra_css %}
+            </code> import needed. App-specific overrides belong in <code>apps/yourapp_app/static/yourapp_app/css/</code> and must be scoped with <code>[data-mode="yourapp"]</code> to avoid conflicts.
+        </div>
+    </div>

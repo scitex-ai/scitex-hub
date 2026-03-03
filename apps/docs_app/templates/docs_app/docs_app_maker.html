@@ -464,50 +464,37 @@ class MyModuleTest(ModuleTestMixin, TestCase):
             <span id="shared-ui"></span>
             <section class="api-section">
                 <h2>
-                    <i class="fas fa-columns"></i> Shared UI Components
+                    <i class="fas fa-columns"></i> Shared Modules
                 </h2>
-                <p>Apps can use these pre-built UI components (auto-loaded, no extra imports):</p>
+                <p>Apps can use pre-built UI components, utilities, and CSS design tokens (all auto-loaded):</p>
                 <table class="api-table">
                     <thead>
                         <tr>
-                            <th>Component</th>
-                            <th>HTML</th>
-                            <th>Purpose</th>
+                            <th>Reference</th>
+                            <th>Contents</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>
-                                <strong>Resizer</strong>
+                                <a href="#" href="/docs/#shared-ts-components"><i class="fas fa-cubes me-1"></i>Components</a>
                             </td>
-                            <td>
-                                <code>&lt;div class="h-resizer" data-h-resizer data-in-app ...&gt;</code>
-                            </td>
-                            <td>Drag-resize + collapse between panels</td>
+                            <td>Resizer, DataTable, MediaViewer, Selector Nav, File Tabs, and more</td>
                         </tr>
                         <tr>
                             <td>
-                                <strong>Selector Nav</strong>
+                                <a href="#" href="/docs/#shared-ts-utilities"><i class="fas fa-toolbox me-1"></i>Utilities</a>
                             </td>
-                            <td>
-                                <code>&lt;nav class="selector-nav" data-indicator="right"&gt;</code>
-                            </td>
-                            <td>Vertical icon+label mode switcher</td>
+                            <td>API Client, CSRF, StorageManager, Toast/Modal, Theme, Keyboard Shortcuts</td>
                         </tr>
                         <tr>
                             <td>
-                                <strong>Collapsible Panel</strong>
+                                <a href="#" href="/docs/#shared-css-system"><i class="fas fa-paint-brush me-1"></i>CSS System</a>
                             </td>
-                            <td>
-                                <code>&lt;div class="collapsible-panel"&gt;</code>
-                            </td>
-                            <td>Panel that collapses to icon+label</td>
+                            <td>Design tokens, theme system, layout utilities, component styles</td>
                         </tr>
                     </tbody>
                 </table>
-                <p>
-                    See <a href="#app-maker-creators">App Maker: For Creators</a> for full usage examples.
-                </p>
             </section>
             <!-- Apps Catalog -->
             <span id="apps"></span>

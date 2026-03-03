@@ -1,0 +1,150 @@
+<h3>
+    CSS Scoping with <code>data-mode</code>
+</h3>
+<p>How to write module CSS that stays isolated and never leaks into shared panes or other apps.</p>
+<h4>
+    <i class="fas fa-shield-alt me-1"></i>The Scoping Rule
+</h4>
+<p>
+    Every selector in a module's CSS file must start with <code>[data-mode="yourmodule"]</code>. This is the single mechanism that prevents cross-module style pollution.
+</p>
+<pre><code>/* mymodule_app/static/mymodule_app/css/mymodule.css */
+
+/* CORRECT — all rules scoped */
+[data-mode="mymodule"] .panel { background: var(--bg-surface); }
+[data-mode="mymodule"] .header { font-size: 13px; }
+[data-mode="mymodule"] .btn-run { color: var(--module-accent-mymodule); }
+
+/* WRONG — unscoped rules leak globally */
+.panel { background: var(--bg-surface); }
+.header { font-size: 13px; }</code></pre>
+<h4>
+    <i class="fas fa-tag me-1"></i>Naming Conventions
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Item</th>
+            <th>Convention</th>
+            <th>Example</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>CSS file location</td>
+            <td>
+                <code>apps/{name}_app/static/{name}_app/css/</code>
+            </td>
+            <td>
+                <code>apps/writer_app/static/writer_app/css/writer.css</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Root selector</td>
+            <td>
+                <code>[data-mode="{name}"]</code>
+            </td>
+            <td>
+                <code>[data-mode="writer"]</code>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-mode</code> value
+            </td>
+            <td>Lowercase, matches the app registry key exactly</td>
+            <td>
+                <code>writer</code>, <code>scholar</code>, <code>console</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Class names inside scope</td>
+            <td>Short, no module prefix needed (scope provides namespacing)</td>
+            <td>
+                <code>.toolbar</code>, <code>.pane-header</code>, <code>.sidebar-item</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Workspace-specific overrides</td>
+            <td>
+                Use <code>--workspace-*</code> tokens, not raw colors
+            </td>
+            <td>
+                <code>var(--workspace-bg-primary)</code>
+            </td>
+        </tr>
+    </tbody>
+</table>
+<h4>
+    <i class="fas fa-exclamation-triangle me-1"></i>Common Pitfalls
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Problem</th>
+            <th>Cause</th>
+            <th>Fix</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Styles apply in wrong module</td>
+            <td>
+                Selector missing <code>[data-mode]</code> prefix
+            </td>
+            <td>
+                Wrap every rule in <code>[data-mode="yourmodule"]</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Accent color wrong in dark mode</td>
+            <td>Hardcoded hex instead of token</td>
+            <td>
+                Use <code>var(--module-accent-yourmodule)</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Component looks broken in workspace</td>
+            <td>Global component CSS overridden by workspace styles</td>
+            <td>
+                Add specificity with <code>[data-mode="yourmodule"]</code> prefix
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-mode</code> not matching
+            </td>
+            <td>
+                Value differs from registry name (e.g. <code>"Writer"</code> vs <code>"writer"</code>)
+            </td>
+            <td>Must be lowercase and match the Python registry key exactly</td>
+        </tr>
+    </tbody>
+</table>
+<h4>
+    <i class="fas fa-code me-1"></i>Complete Module CSS Template
+</h4>
+<pre><code>/* apps/mymodule_app/static/mymodule_app/css/mymodule.css */
+
+[data-mode="mymodule"] {
+  /* Root-level CSS variables scoped to this module */
+  --local-header-height: 36px;
+}
+
+[data-mode="mymodule"] .workspace-pane {
+  background: var(--workspace-bg-primary);
+  border: 1px solid var(--workspace-border-default);
+}
+
+[data-mode="mymodule"] .pane-header {
+  height: var(--local-header-height);
+  border-top: 2px solid var(--module-accent-mymodule);
+  background: var(--module-accent-mymodule-tint);
+  color: var(--text-primary);
+}</code></pre>
+<div class="api-callout api-callout--info">
+    <i class="fas fa-info-circle me-1"></i>
+    <div>
+        The <code>data-mode</code> attribute is set by the workspace layout on the pane root element when a module is loaded. Shared panes (e.g. file browser, AI panel) do not carry a <code>data-mode</code> value — their styles live in <code>static/shared/css/</code> and must not be overridden by module CSS.
+    </div>
+</div>

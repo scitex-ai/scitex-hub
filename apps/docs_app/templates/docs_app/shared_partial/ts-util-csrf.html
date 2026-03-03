@@ -1,0 +1,69 @@
+<h3>CSRF Utilities</h3>
+<p>Helpers for reading Django's CSRF token from multiple DOM sources and building request headers.</p>
+<h4>
+    <i class="fas fa-download me-1"></i>Import
+</h4>
+<pre><code>import { getCsrfToken, createHeadersWithCsrf } from '@shared/utils/csrf';</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>Usage
+</h4>
+<pre><code>// Bare token — attach manually
+const token = getCsrfToken();
+fetch('/api/action/', {
+  method: 'POST',
+  headers: { 'X-CSRFToken': token, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ key: 'value' }),
+});
+
+// Headers object — convenience wrapper
+const headers = createHeadersWithCsrf({ 'Accept': 'application/json' });
+fetch('/api/action/', { method: 'POST', headers, body: JSON.stringify(data) });
+
+// Prefer apiClient for everyday requests — CSRF is automatic there
+import { apiClient } from '@shared/utils/api';
+await apiClient.post('/api/action/', data);</code></pre>
+<h4>
+    <i class="fas fa-list me-1"></i>API Reference
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Function</th>
+            <th>Returns</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>getCsrfToken()</code>
+            </td>
+            <td>
+                <code>string</code>
+            </td>
+            <td>
+                Reads the CSRF token from the first available source in priority order:
+                <code>WRITER_CONFIG.csrfToken</code>, <code>SCHOLAR_CONFIG.csrfToken</code>,
+                <code>[name=csrfmiddlewaretoken]</code> form input, <code>&lt;meta name="csrf-token"&gt;</code>,
+                then the <code>csrftoken</code> cookie. Returns <code>""</code> if none found.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>createHeadersWithCsrf()</code>
+            </td>
+            <td>
+                <code>Record&lt;string, string&gt;</code>
+            </td>
+            <td>
+                Returns a headers object pre-populated with <code>Content-Type: application/json</code>
+                and <code>X-CSRFToken</code>. Pass <code>additionalHeaders</code> to merge extra entries.
+            </td>
+        </tr>
+    </tbody>
+</table>
+<div class="api-callout api-callout--warning">
+    <strong>Low-level utility:</strong> Prefer <code>apiClient</code> from <code>@shared/utils/api</code>
+    for standard HTTP calls — it calls <code>getCsrfToken()</code> internally. Use these helpers
+    only when calling <code>fetch()</code> directly.
+</div>

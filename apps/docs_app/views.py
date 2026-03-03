@@ -90,6 +90,27 @@ DOCS_PAGES = [
         "badges": ["dev"],
     },
     {
+        "slug": "shared-ts-components",
+        "label": "Shared: Components",
+        "icon": "fas fa-cubes",
+        "template": "docs_app/docs_shared_ts_components.html",
+        "badges": ["dev"],
+    },
+    {
+        "slug": "shared-ts-utilities",
+        "label": "Shared: Utilities",
+        "icon": "fas fa-toolbox",
+        "template": "docs_app/docs_shared_ts_utilities.html",
+        "badges": ["dev"],
+    },
+    {
+        "slug": "shared-css-system",
+        "label": "Shared: CSS System",
+        "icon": "fas fa-paint-brush",
+        "template": "docs_app/docs_shared_css_system.html",
+        "badges": ["dev"],
+    },
+    {
         "slug": "visitor-lifecycle",
         "label": "Visitor Lifecycle",
         "icon": "fas fa-user-clock",

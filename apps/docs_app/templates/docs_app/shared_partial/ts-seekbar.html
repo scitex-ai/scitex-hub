@@ -1,0 +1,196 @@
+<h3>Seekbar</h3>
+<p>
+    A dual-handle range seekbar for selecting min/max values, with configurable step, format function, hover labels, and drag event callbacks.
+</p>
+<h4>
+    <i class="fas fa-download me-1"></i>Import
+</h4>
+<pre><code>import type {
+  SeekbarOptions,
+  SeekbarValues,
+  FormatFunction,
+  ValueCallback,
+} from '@shared/components/seekbar/types';
+
+// The seekbar is instantiated via a concrete implementation —
+// import from the app that wraps it, e.g.:
+import { Seekbar } from '../my-app/seekbar';</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>HTML
+</h4>
+<pre><code>&lt;!-- Plain container; the seekbar injects its own DOM --&gt;
+&lt;div id="my-seekbar"&gt;&lt;/div&gt;</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>TypeScript Usage
+</h4>
+<pre><code>const container = document.getElementById('my-seekbar')!;
+
+// Seekbar options
+const options: SeekbarOptions = {
+  min: 0,
+  max: 1000,
+  valueMin: 200,
+  valueMax: 800,
+  step: 1,
+  format: (val) =&gt; `${val}ms`,
+  showLabels: true,
+  showValues: true,
+  onChange: ({ min, max }) =&gt; {
+    console.log(`Range: ${min} — ${max}`);
+  },
+  onUpdate: ({ min, max }) =&gt; {
+    // called on every drag move
+    updatePreview(min, max);
+  },
+  onStart: ({ min, max }) =&gt; console.log('Drag started', min, max),
+  onEnd: ({ min, max }) =&gt; console.log('Drag ended', min, max),
+};</code></pre>
+<h4>
+    <i class="fas fa-sliders-h me-1"></i>SeekbarOptions
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Option</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>min</code>
+            </td>
+            <td>
+                <code>number</code>
+            </td>
+            <td>0</td>
+            <td>Absolute minimum of the range</td>
+        </tr>
+        <tr>
+            <td>
+                <code>max</code>
+            </td>
+            <td>
+                <code>number</code>
+            </td>
+            <td>100</td>
+            <td>Absolute maximum of the range</td>
+        </tr>
+        <tr>
+            <td>
+                <code>valueMin</code>
+            </td>
+            <td>
+                <code>number</code>
+            </td>
+            <td>min</td>
+            <td>Initial position of the lower handle</td>
+        </tr>
+        <tr>
+            <td>
+                <code>valueMax</code>
+            </td>
+            <td>
+                <code>number</code>
+            </td>
+            <td>max</td>
+            <td>Initial position of the upper handle</td>
+        </tr>
+        <tr>
+            <td>
+                <code>step</code>
+            </td>
+            <td>
+                <code>number</code>
+            </td>
+            <td>1</td>
+            <td>Snap increment for handle movement</td>
+        </tr>
+        <tr>
+            <td>
+                <code>format</code>
+            </td>
+            <td>
+                <code>(val: number) =&gt; string</code>
+            </td>
+            <td>
+                <code>String</code>
+            </td>
+            <td>Label formatter for handle tooltips and value display</td>
+        </tr>
+        <tr>
+            <td>
+                <code>showLabels</code>
+            </td>
+            <td>
+                <code>boolean</code>
+            </td>
+            <td>
+                <code>true</code>
+            </td>
+            <td>Show value tooltip above each handle on hover</td>
+        </tr>
+        <tr>
+            <td>
+                <code>showValues</code>
+            </td>
+            <td>
+                <code>boolean</code>
+            </td>
+            <td>
+                <code>false</code>
+            </td>
+            <td>Show current min/max values below the track</td>
+        </tr>
+        <tr>
+            <td>
+                <code>onChange</code>
+            </td>
+            <td>
+                <code>ValueCallback | null</code>
+            </td>
+            <td>—</td>
+            <td>
+                Called when drag ends with final <code>{ min, max }</code>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>onUpdate</code>
+            </td>
+            <td>
+                <code>ValueCallback | null</code>
+            </td>
+            <td>—</td>
+            <td>Called on every drag move (throttled)</td>
+        </tr>
+        <tr>
+            <td>
+                <code>onStart</code>
+            </td>
+            <td>
+                <code>ValueCallback | null</code>
+            </td>
+            <td>—</td>
+            <td>Called when drag begins</td>
+        </tr>
+        <tr>
+            <td>
+                <code>onEnd</code>
+            </td>
+            <td>
+                <code>ValueCallback | null</code>
+            </td>
+            <td>—</td>
+            <td>Called when drag is released</td>
+        </tr>
+    </tbody>
+</table>
+<div class="api-callout api-callout-info">
+    <i class="fas fa-info-circle"></i>
+    <div>
+        The seekbar renders into a <code>.scitex-seekbar-dual-container</code> element injected inside your container. Both mouse and touch events are supported. The two handles cannot cross each other.
+    </div>
+</div>

@@ -1,0 +1,278 @@
+<h3>CSS Design Tokens (Primitives)</h3>
+<p>
+    Semantic CSS custom properties defined in <code>static/shared/css/primitives/colors.css</code> — use these in all component styles.
+</p>
+<h4>
+    <i class="fas fa-font me-1"></i>Text Tokens
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Token</th>
+            <th>Light value</th>
+            <th>Dark value</th>
+            <th>Use</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>--text-primary</code>
+            </td>
+            <td>
+                <code>#333333</code>
+            </td>
+            <td>
+                <code>#e6edf3</code>
+            </td>
+            <td>Body text, headings, labels</td>
+        </tr>
+        <tr>
+            <td>
+                <code>--text-secondary</code>
+            </td>
+            <td>
+                <code>#4a4a4a</code>
+            </td>
+            <td>
+                <code>#c9d1d9</code>
+            </td>
+            <td>Secondary descriptions, subtitles</td>
+        </tr>
+        <tr>
+            <td>
+                <code>--text-muted</code>
+            </td>
+            <td>
+                <code>#777777</code>
+            </td>
+            <td>
+                <code>#8b949e</code>
+            </td>
+            <td>Placeholders, hints, metadata</td>
+        </tr>
+        <tr>
+            <td>
+                <code>--text-inverse</code>
+            </td>
+            <td>
+                <code>#f8f7f5</code>
+            </td>
+            <td>
+                <code>#161b22</code>
+            </td>
+            <td>Text on dark/accent backgrounds</td>
+        </tr>
+        <tr>
+            <td>
+                <code>--text-color</code>
+            </td>
+            <td colspan="2">
+                Alias for <code>--text-primary</code>
+            </td>
+            <td>Legacy compatibility alias</td>
+        </tr>
+    </tbody>
+</table>
+<h4>
+    <i class="fas fa-square me-1"></i>Background Tokens
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Token</th>
+            <th>Light value</th>
+            <th>Dark value</th>
+            <th>Use</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>--bg-page</code>
+            </td>
+            <td>
+                <code>#faf9f7</code>
+            </td>
+            <td>
+                <code>#0d1117</code>
+            </td>
+            <td>Outermost page background</td>
+        </tr>
+        <tr>
+            <td>
+                <code>--bg-surface</code>
+            </td>
+            <td>
+                <code>#f8f7f5</code>
+            </td>
+            <td>
+                <code>#161b22</code>
+            </td>
+            <td>Cards, panels, modals</td>
+        </tr>
+        <tr>
+            <td>
+                <code>--bg-muted</code>
+            </td>
+            <td>
+                <code>#f3f2f0</code>
+            </td>
+            <td>
+                <code>#21262d</code>
+            </td>
+            <td>Subtle inset areas, code backgrounds</td>
+        </tr>
+    </tbody>
+</table>
+<h4>
+    <i class="fas fa-border-all me-1"></i>Border &amp; Status Tokens
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Token</th>
+            <th>Light value</th>
+            <th>Dark value</th>
+            <th>Use</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>--border-default</code>
+            </td>
+            <td>
+                <code>#999999</code>
+            </td>
+            <td>
+                <code>#30363d</code>
+            </td>
+            <td>Standard element borders</td>
+        </tr>
+        <tr>
+            <td>
+                <code>--border-muted</code>
+            </td>
+            <td>
+                <code>#c0c0c0</code>
+            </td>
+            <td>
+                <code>#21262d</code>
+            </td>
+            <td>Subtle dividers, secondary borders</td>
+        </tr>
+        <tr>
+            <td>
+                <code>--status-success</code>
+            </td>
+            <td>
+                <code>#5a9a7e</code>
+            </td>
+            <td>
+                <code>#4a9b7e</code>
+            </td>
+            <td>Success messages, confirmations</td>
+        </tr>
+        <tr>
+            <td>
+                <code>--status-warning</code>
+            </td>
+            <td>
+                <code>#b8956a</code>
+            </td>
+            <td>
+                <code>#b8956a</code>
+            </td>
+            <td>Warning alerts, cautions</td>
+        </tr>
+        <tr>
+            <td>
+                <code>--status-error</code>
+            </td>
+            <td>
+                <code>#a67373</code>
+            </td>
+            <td>
+                <code>#a67373</code>
+            </td>
+            <td>Error states, destructive actions</td>
+        </tr>
+        <tr>
+            <td>
+                <code>--status-info</code>
+            </td>
+            <td>
+                <code>#6b7280</code>
+            </td>
+            <td>
+                <code>#6b7280</code>
+            </td>
+            <td>Informational notices</td>
+        </tr>
+    </tbody>
+</table>
+<h4>
+    <i class="fas fa-icons me-1"></i>Icon Size Tokens
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Token</th>
+            <th>Value</th>
+            <th>Use</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>--icon-xs</code>
+            </td>
+            <td>12px</td>
+            <td>Dense UI, badge icons</td>
+        </tr>
+        <tr>
+            <td>
+                <code>--icon-sm</code>
+            </td>
+            <td>14px</td>
+            <td>Inline text icons</td>
+        </tr>
+        <tr>
+            <td>
+                <code>--icon-md</code>
+            </td>
+            <td>16px</td>
+            <td>Default icon size</td>
+        </tr>
+        <tr>
+            <td>
+                <code>--icon-lg</code>
+            </td>
+            <td>20px</td>
+            <td>
+                Nav icons (default for <code>--ui-nav-icon-size</code>)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>--icon-xl</code>
+            </td>
+            <td>24px</td>
+            <td>Prominent icons</td>
+        </tr>
+        <tr>
+            <td>
+                <code>--icon-2xl</code>
+            </td>
+            <td>32px</td>
+            <td>Hero / empty-state icons</td>
+        </tr>
+    </tbody>
+</table>
+<div class="api-callout api-callout--info">
+    <i class="fas fa-info-circle me-1"></i>
+    <div>
+        Never use raw hex values in component CSS. Always reference a semantic token (e.g. <code>var(--text-primary)</code>) so the component automatically adapts to light and dark themes. Primitives prefixed with <code>--_</code> are internal to <code>colors.css</code> and must not be used directly.
+    </div>
+</div>
