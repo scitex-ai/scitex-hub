@@ -11,6 +11,29 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
 
 
+def _set_project_db(request) -> bool:
+    """Set clew DB to current project's scitex/clew.db.
+
+    Returns True if DB was set, False if no project context.
+    """
+    if not request.user.is_authenticated:
+        return False
+    from apps.project_app.services.filesystem.paths import get_project_root_path
+    from apps.project_app.services.project_utils import get_current_project
+
+    project = get_current_project(request)
+    if not project:
+        return False
+    project_path = get_project_root_path(request.user, project)
+    if not project_path:
+        return False
+    db_path = project_path / "scitex" / "clew.db"
+    if db_path.exists():
+        stx.clew.set_db(str(db_path))
+        return True
+    return False
+
+
 @require_http_methods(["GET"])
 def verification_status(request):
     """Get verification status summary (like git status).
@@ -18,6 +41,7 @@ def verification_status(request):
     Wrapper around scitex.clew.get_status()
     """
     try:
+        _set_project_db(request)
         status = stx.clew.get_status()
         return JsonResponse(
             {
@@ -47,6 +71,7 @@ def list_runs(request):
     Wrapper around scitex.clew.list_runs()
     """
     try:
+        _set_project_db(request)
         limit = int(request.GET.get("limit", 50))
         offset = int(request.GET.get("offset", 0))
         status_filter = request.GET.get("status")
@@ -98,6 +123,7 @@ def verify_chain(request):
         )
 
     try:
+        _set_project_db(request)
         chain = stx.clew.verify_chain(target)
 
         # Convert dataclass to dict for JSON serialization
@@ -165,6 +191,7 @@ def verify_run(request):
         )
 
     try:
+        _set_project_db(request)
         from_scratch = request.GET.get("from_scratch", "false").lower() == "true"
         verification = stx.clew.run(session_id, from_scratch=from_scratch)
 
@@ -218,6 +245,7 @@ def get_dag_data(request):
     Wrapper around scitex.clew._viz._json.generate_dag_json()
     """
     try:
+        _set_project_db(request)
         session_id = request.GET.get("session_id")
         target_file = request.GET.get("target_file")
         path_mode = request.GET.get("path_mode", "name")
@@ -260,6 +288,7 @@ def get_mermaid_dag(request):
     Wrapper around scitex.clew.generate_mermaid_dag()
     """
     try:
+        _set_project_db(request)
         session_id = request.GET.get("session_id")
         target_file = request.GET.get("target_file")
         show_hashes = request.GET.get("show_hashes", "false").lower() == "true"
@@ -297,6 +326,7 @@ def database_stats(request):
     Wrapper around scitex.clew.stats()
     """
     try:
+        _set_project_db(request)
         stats = stx.clew.stats()
         return JsonResponse(
             {
