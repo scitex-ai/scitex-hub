@@ -9,44 +9,6 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
-    <style>
-        .shared-details {
-            margin-bottom: 1rem;
-        }
-
-        .shared-details summary {
-            cursor: pointer;
-            padding: 0.75rem 1rem;
-            background: var(--bg-surface, #f8f9fa);
-            border: 1px solid var(--border-subtle, #dee2e6);
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 1rem;
-            color: var(--text-primary);
-            transition: background 0.15s;
-        }
-
-        [data-theme="dark"] .shared-details summary {
-            background: var(--bg-elevated, #161b22);
-            border-color: var(--border-default, #333);
-        }
-
-        .shared-details[open] summary {
-            border-radius: 6px 6px 0 0;
-            border-bottom: none;
-        }
-
-        .shared-details .details-content {
-            border: 1px solid var(--border-subtle, #dee2e6);
-            border-top: none;
-            border-radius: 0 0 6px 6px;
-            padding: 1.5rem;
-        }
-
-        [data-theme="dark"] .shared-details .details-content {
-            border-color: var(--border-default, #333);
-        }
-    </style>
 {% endblock %}
 {% block content %}
     <div class="container py-2">
@@ -62,6 +24,7 @@
             All CSS is auto-loaded globally &mdash; just add the HTML markup in your templates.
         </p>
         <!-- Quick Reference -->
+        <span id="quick-ref"></span>
         <section class="api-section">
             <h2>
                 <i class="fas fa-list"></i> Quick Reference
@@ -147,53 +110,61 @@
             </table>
         </section>
         <!-- Component Details -->
-        <details class="shared-details" id="resizer">
-            <summary>
+        <span id="resizer"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-arrows-alt-h me-2"></i>Resizer
-            </summary>
-            <div class="details-content">{% include 'docs_app/shared_partial/ts-resizer.html' %}</div>
-        </details>
-        <details class="shared-details" id="collapsible-panel">
-            <summary>
+            </h2>
+            {% include 'docs_app/shared_partial/ts-resizer.html' %}
+        </section>
+        <span id="collapsible-panel"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-compress-arrows-alt me-2"></i>Collapsible Panel
-            </summary>
-            <div class="details-content">{% include 'docs_app/shared_partial/ts-collapsible-panel.html' %}</div>
-        </details>
-        <details class="shared-details" id="selector-nav">
-            <summary>
+            </h2>
+            {% include 'docs_app/shared_partial/ts-collapsible-panel.html' %}
+        </section>
+        <span id="selector-nav"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-ellipsis-v me-2"></i>Selector Nav
-            </summary>
-            <div class="details-content">{% include 'docs_app/shared_partial/ts-selector-nav.html' %}</div>
-        </details>
-        <details class="shared-details" id="data-table">
-            <summary>
+            </h2>
+            {% include 'docs_app/shared_partial/ts-selector-nav.html' %}
+        </section>
+        <span id="data-table"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-table me-2"></i>DataTable
-            </summary>
-            <div class="details-content">{% include 'docs_app/shared_partial/ts-data-table.html' %}</div>
-        </details>
-        <details class="shared-details" id="media-viewer">
-            <summary>
+            </h2>
+            {% include 'docs_app/shared_partial/ts-data-table.html' %}
+        </section>
+        <span id="media-viewer"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-photo-video me-2"></i>MediaViewer
-            </summary>
-            <div class="details-content">{% include 'docs_app/shared_partial/ts-media-viewer.html' %}</div>
-        </details>
-        <details class="shared-details" id="context-zoom">
-            <summary>
+            </h2>
+            {% include 'docs_app/shared_partial/ts-media-viewer.html' %}
+        </section>
+        <span id="context-zoom"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-search-plus me-2"></i>Context Zoom
-            </summary>
-            <div class="details-content">{% include 'docs_app/shared_partial/ts-context-zoom.html' %}</div>
-        </details>
-        <details class="shared-details" id="file-tabs">
-            <summary>
+            </h2>
+            {% include 'docs_app/shared_partial/ts-context-zoom.html' %}
+        </section>
+        <span id="file-tabs"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-folder-open me-2"></i>File Tabs
-            </summary>
-            <div class="details-content">{% include 'docs_app/shared_partial/ts-file-tabs.html' %}</div>
-        </details>
-        <details class="shared-details" id="seekbar">
-            <summary>
+            </h2>
+            {% include 'docs_app/shared_partial/ts-file-tabs.html' %}
+        </section>
+        <span id="seekbar"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-sliders-h me-2"></i>Seekbar
-            </summary>
-            <div class="details-content">{% include 'docs_app/shared_partial/ts-seekbar.html' %}</div>
-        </details>
+            </h2>
+            {% include 'docs_app/shared_partial/ts-seekbar.html' %}
+        </section>
     </div>
 {% endblock %}

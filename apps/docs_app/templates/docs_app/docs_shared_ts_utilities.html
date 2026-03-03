@@ -9,44 +9,6 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
-    <style>
-        .shared-details {
-            margin-bottom: 1rem;
-        }
-
-        .shared-details summary {
-            cursor: pointer;
-            padding: 0.75rem 1rem;
-            background: var(--bg-surface, #f8f9fa);
-            border: 1px solid var(--border-subtle, #dee2e6);
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 1rem;
-            color: var(--text-primary);
-            transition: background 0.15s;
-        }
-
-        [data-theme="dark"] .shared-details summary {
-            background: var(--bg-elevated, #161b22);
-            border-color: var(--border-default, #333);
-        }
-
-        .shared-details[open] summary {
-            border-radius: 6px 6px 0 0;
-            border-bottom: none;
-        }
-
-        .shared-details .details-content {
-            border: 1px solid var(--border-subtle, #dee2e6);
-            border-top: none;
-            border-radius: 0 0 6px 6px;
-            padding: 1.5rem;
-        }
-
-        [data-theme="dark"] .shared-details .details-content {
-            border-color: var(--border-default, #333);
-        }
-    </style>
 {% endblock %}
 {% block content %}
     <div class="container py-2">
@@ -63,6 +25,7 @@
             These are auto-loaded on every page.
         </p>
         <!-- Quick Reference -->
+        <span id="quick-ref"></span>
         <section class="api-section">
             <h2>
                 <i class="fas fa-list"></i> Quick Reference
@@ -131,47 +94,54 @@
             </table>
         </section>
         <!-- Utility Details -->
-        <details class="shared-details" id="api-client">
-            <summary>
+        <span id="api-client"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-plug me-2"></i>API Client
-            </summary>
-            <div class="details-content">{% include 'docs_app/shared_partial/ts-util-api.html' %}</div>
-        </details>
-        <details class="shared-details" id="csrf">
-            <summary>
+            </h2>
+            {% include 'docs_app/shared_partial/ts-util-api.html' %}
+        </section>
+        <span id="csrf"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-shield-alt me-2"></i>CSRF
-            </summary>
-            <div class="details-content">{% include 'docs_app/shared_partial/ts-util-csrf.html' %}</div>
-        </details>
-        <details class="shared-details" id="storage">
-            <summary>
+            </h2>
+            {% include 'docs_app/shared_partial/ts-util-csrf.html' %}
+        </section>
+        <span id="storage"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-database me-2"></i>StorageManager
-            </summary>
-            <div class="details-content">{% include 'docs_app/shared_partial/ts-util-storage.html' %}</div>
-        </details>
-        <details class="shared-details" id="ui-helpers">
-            <summary>
+            </h2>
+            {% include 'docs_app/shared_partial/ts-util-storage.html' %}
+        </section>
+        <span id="ui-helpers"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-bell me-2"></i>UI Helpers
-            </summary>
-            <div class="details-content">{% include 'docs_app/shared_partial/ts-util-ui.html' %}</div>
-        </details>
-        <details class="shared-details" id="theme">
-            <summary>
+            </h2>
+            {% include 'docs_app/shared_partial/ts-util-ui.html' %}
+        </section>
+        <span id="theme"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-adjust me-2"></i>Theme Switcher
-            </summary>
-            <div class="details-content">{% include 'docs_app/shared_partial/ts-util-theme.html' %}</div>
-        </details>
-        <details class="shared-details" id="keyboard">
-            <summary>
+            </h2>
+            {% include 'docs_app/shared_partial/ts-util-theme.html' %}
+        </section>
+        <span id="keyboard"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-keyboard me-2"></i>Keyboard Shortcuts
-            </summary>
-            <div class="details-content">{% include 'docs_app/shared_partial/ts-util-keyboard.html' %}</div>
-        </details>
-        <details class="shared-details" id="file-icons">
-            <summary>
+            </h2>
+            {% include 'docs_app/shared_partial/ts-util-keyboard.html' %}
+        </section>
+        <span id="file-icons"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-icons me-2"></i>File Icons
-            </summary>
-            <div class="details-content">{% include 'docs_app/shared_partial/ts-util-file-icons.html' %}</div>
-        </details>
+            </h2>
+            {% include 'docs_app/shared_partial/ts-util-file-icons.html' %}
+        </section>
     </div>
 {% endblock %}
