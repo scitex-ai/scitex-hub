@@ -97,6 +97,44 @@
   font-size: 0.9rem;
 }
 
+/* Clew Instructions */
+.clew-instructions {
+  display: flex;
+  gap: 1.5rem;
+  text-align: left;
+  margin-top: 1rem;
+}
+
+.clew-direction {
+  flex: 1;
+  padding: 1rem;
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
+}
+
+.clew-direction h4 {
+  font-size: 0.95rem;
+  color: var(--workspace-text-primary);
+  margin: 0 0 0.5rem;
+}
+
+.clew-direction p {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  margin: 0 0 0.5rem;
+}
+
+.clew-direction pre {
+  background: var(--workspace-bg-tertiary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  margin: 0;
+  overflow-x: auto;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
 /* Right Sidebar - Details Panel */
 .clew-details {
   width: 280px;
@@ -256,4 +294,11 @@
   border-radius: 4px;
   overflow: auto;
   white-space: pre;
+}
+
+/* Drop target feedback */
+.dag-visualization-area.drop-target {
+  outline: 2px dashed var(--workspace-icon-primary, #58a6ff);
+  outline-offset: -4px;
+  background: rgba(88, 166, 255, 0.05);
 }
