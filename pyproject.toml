@@ -208,6 +208,12 @@ log_cli = true
 log_cli_level = "INFO"
 
 
+[tool.scitex-linter]
+# Django project: standard library `logging` is used throughout.
+# STX-I007 warns to use @stx.session-injected `logger` instead, which
+# does not apply to Django views/services that have no @stx.session context.
+disable = ["STX-I007"]
+
 [tool.uv.extra-build-dependencies]
 # sktime==0.8.1 needs pkg_resources at build time but doesn't declare it.
 # pkg_resources is provided by setuptools. This injects it into uv's build isolation.
