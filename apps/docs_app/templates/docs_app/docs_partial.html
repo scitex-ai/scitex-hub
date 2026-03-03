@@ -20,14 +20,19 @@
                 </a>
             {% endfor %}
             <div class="docs-nav-footer">
-                <a href="/docs/export/all/"
-                   class="docs-export-btn"
-                   title="Download all docs as Markdown">
-                    <i class="fas fa-file-alt"></i> All .md
-                </a>
-                <button class="docs-export-btn" id="docs-export-all-pdf" title="Print all docs as PDF">
-                    <i class="fas fa-file-pdf"></i> All .pdf
-                </button>
+                <div class="docs-dropdown">
+                    <button class="docs-export-btn docs-dropdown-toggle">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                    <div class="docs-dropdown-menu">
+                        <a href="/docs/export/all/" class="docs-dropdown-item">
+                            <i class="fas fa-file-alt"></i> All as .md
+                        </a>
+                        <button class="docs-dropdown-item" id="docs-export-all-pdf">
+                            <i class="fas fa-file-pdf"></i> All as .pdf
+                        </button>
+                    </div>
+                </div>
             </div>
         </nav>
     </aside>
