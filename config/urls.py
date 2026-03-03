@@ -29,7 +29,10 @@ from apps.project_app.views import (
     decline_invitation,
     project_create,
 )
-from apps.project_app.views.projects.api import api_switch_active_project
+from apps.project_app.views.projects.api import (
+    api_project_create_jwt,
+    api_switch_active_project,
+)
 from apps.public_app.views import healthz
 
 
@@ -133,6 +136,7 @@ urlpatterns = [
     path("writer/", include(("apps.writer_app.urls", "writer_app"))),
     path("workspace/", include(("apps.workspace_app.urls", "workspace_app"))),
     path("example/", include(("apps.example_app.urls", "example_app"))),
+    path("notebook/", include(("apps.notebook_app.urls", "notebook_app"))),
     path("apps/", include(("apps.apps_app.urls", "apps_app"))),
     path("modulemaker/", include(("apps.modulemaker_app.urls", "modulemaker_app"))),
     # LLM/Agent Support
@@ -157,6 +161,8 @@ urlpatterns = [
         "favicon.ico",
         RedirectView.as_view(url="/static/shared/images/favicon.png", permanent=True),
     ),
+    # Platform services API (DataStore, FileVault, JobQueue, ExternalAPI, SciTeX bridge)
+    path("platform/api/", include("apps.platform_app.urls.api")),
     # Shared workspace API (file content, etc.)
     path("api/workspace/", include("apps.workspace_api.urls")),
     # Event bus API (APIKey auth, CSRF exempt)
@@ -186,6 +192,12 @@ urlpatterns = [
         "api/token/refresh/",
         csrf_exempt(TokenRefreshView.as_view()),
         name="token_refresh",
+    ),
+    # JWT-authenticated project creation (for CLI access, no CSRF needed)
+    path(
+        "api/project/create/",
+        csrf_exempt(api_project_create_jwt),
+        name="api_project_create_jwt",
     ),
     # GitHub-like operations
     # /new - Create new project
