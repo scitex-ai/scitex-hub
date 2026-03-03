@@ -149,5 +149,15 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       rootDir,
       "static/workspace_app/ts/workspace-shell.ts",
     ),
+
+    // Dev app scripts (standalone utilities)
+    "dev_app/scripts/design": r(
+      rootDir,
+      "apps/dev_app/static/dev_app/scripts/design.ts",
+    ),
+    "dev_app/scripts/scitex-icon-generator": r(
+      rootDir,
+      "apps/dev_app/static/dev_app/scripts/scitex-icon-generator.ts",
+    ),
   };
 }

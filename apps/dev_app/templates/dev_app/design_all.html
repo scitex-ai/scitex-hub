@@ -1,6 +1,6 @@
 {% extends "global_base.html" %}
 
-{% load static %}
+{% load static vite %}
 
 {% block title %}Design System - All Components - SciTeX{% endblock %}
 {% block meta_description %}Complete SciTeX Design System reference - all components and guidelines.{% endblock %}
@@ -180,7 +180,7 @@
 {% block extra_js %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
-    <script src="{% static 'shared/js/utils/highlight-js-bibtex.js' %}"></script>
+    {% vite_script 'shared/utils/highlight-js-bibtex' %}
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             document.querySelectorAll("pre code").forEach((block) => {
@@ -189,6 +189,6 @@
             });
         });
     </script>
-    <script src="{% static 'shared/js/code-blocks.js' %}"></script>
-    <script src="{% static 'dev_app/scripts/design.js' %}"></script>
+    {% vite_script 'shared/code-blocks' %}
+    {% vite_script 'dev_app/scripts/design' %}
 {% endblock %}

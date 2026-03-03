@@ -3,7 +3,7 @@
 {% block title %}SciTeX Design System{% endblock %}
 {% block meta_description %}Design system for the SciTeX platform.{% endblock %}
 {% block extra_css %}
-    {% load static %}
+    {% load static vite %}
 
     <link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/code-blocks.css' %}" />
@@ -128,6 +128,6 @@
     }
   });
     </script>
-    <script src="{% static 'shared/js/code-blocks.js' %}"></script>
-    <script src="{% static 'dev_app/scripts/design.js' %}"></script>
+    {% vite_script 'shared/code-blocks' %}
+    {% vite_script 'dev_app/scripts/design' %}
 {% endblock %}
