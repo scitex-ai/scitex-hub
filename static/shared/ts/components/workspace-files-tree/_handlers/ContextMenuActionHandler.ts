@@ -187,6 +187,13 @@ export class ContextMenuActionHandler {
         await this.gitActions.pull();
         break;
 
+      case "clew":
+        // Dispatch fileSelected so the Clew pane picks it up
+        document.dispatchEvent(
+          new CustomEvent("fileSelected", { detail: { path } }),
+        );
+        break;
+
       case "filter":
         this.callbacks.showFilter();
         break;
