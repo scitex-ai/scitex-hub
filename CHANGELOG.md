@@ -5,6 +5,16 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.6-alpha] - 2026-03-03
+
+### Fixed
+- **Terminal shared allocation**: Fixed "no instance found" error by preserving HOME env for srun so apptainer finds instance database
+- **1-job-per-user architecture**: Shared SLURM allocation now uses per-user key instead of per-project, preventing job accumulation
+- **Allocation progress indicator**: Terminal shows "Starting SLURM allocation..." during first-time 30-60s allocation wait
+
+### Changed
+- **Refactored console event handlers**: Extracted file-drop and right-click handlers into `console-event-handlers.ts`
+
 ## [0.11.5-alpha] - 2026-03-02
 
 ### Added
