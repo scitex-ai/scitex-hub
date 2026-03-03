@@ -1,3 +1,4 @@
+import react from "@vitejs/plugin-react";
 import { defineConfig, Plugin } from "vite";
 import { resolve } from "path";
 import * as fs from "fs";
@@ -37,7 +38,14 @@ function resolveStaticPaths(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [resolveStaticPaths()],
+  plugins: [
+    react({
+      // Exclude external figrecipe source from Fast Refresh (avoids preamble error).
+      // esbuild still handles JSX via tsconfig "jsx": "react-jsx".
+      exclude: [/figrecipe\/_django\/frontend/],
+    }),
+    resolveStaticPaths(),
+  ],
   base: "/",
   root: ".",
   publicDir: false,
@@ -47,6 +55,10 @@ export default defineConfig({
       "@": resolve(__dirname, "static/shared/ts"),
       "@types": resolve(__dirname, "static/shared/ts/types"),
       "@utils": resolve(__dirname, "static/shared/ts/utils"),
+      "figrecipe-editor": resolve(
+        __dirname,
+        "../figrecipe/src/figrecipe/_django/frontend/src",
+      ),
     },
     extensions: [".ts", ".js", ".tsx", ".jsx", ".json"],
   },
@@ -69,10 +81,11 @@ export default defineConfig({
         "**/deployment/singularity/**",
         "**/singularity/**",
         "**/node_modules/**",
+        "**/docs/to_claude/**",
       ],
     },
     fs: {
-      allow: ["."],
+      allow: [".", resolve(__dirname, "../figrecipe")],
     },
     warmup: {
       clientFiles: [
@@ -96,6 +109,7 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    include: ["fabric"],
+    include: ["fabric", "react", "react-dom"],
+    exclude: ["figrecipe-editor"],
   },
 });

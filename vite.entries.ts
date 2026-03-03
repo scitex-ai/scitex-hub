@@ -33,10 +33,10 @@ export function generateEntriesRecursive(
         scan(resolve(currentDir, item.name), `${currentPrefix}/${item.name}`);
       } else if (
         item.isFile() &&
-        item.name.endsWith(".ts") &&
+        (item.name.endsWith(".ts") || item.name.endsWith(".tsx")) &&
         !item.name.endsWith(".d.ts")
       ) {
-        const name = item.name.replace(".ts", "");
+        const name = item.name.replace(/\.tsx?$/, "");
         entries[`${currentPrefix}/${name}`] = resolve(currentDir, item.name);
       }
     }
