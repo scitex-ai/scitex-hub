@@ -5,6 +5,19 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0-alpha] - 2026-03-04
+
+### Added
+- **Clew DAG auto-render**: Automatically renders `dag.mmd` from project root when clew DB has no runs
+- **Clew drop target**: Drag files from file tree onto DAG pane to view companion `.mmd`/`.png` files
+- **Clew companion files**: File selection looks for `{path}-clew.mmd` and `{path}-clew.png` companion files
+- **Clew context menu**: Right-click any file in file tree to view its Clew verification chain
+- **File tree 1s polling**: Reduced poll interval from 30s to 1s with hash-based change detection
+
+### Fixed
+- **Global CSS loading**: Workspace files tree CSS now loads globally for consistent icon hiding
+- **Clew WIP badge**: Removed placeholder WIP badge from clew header
+
 ## [0.11.6-alpha] - 2026-03-03
 
 ### Fixed
