@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Optional
 
 from ._license import generate_license_text
+from ._scaffold_agent_context import _agents_md
 from ._scaffold_html import (
     _agents_json,
     _app_css,
@@ -150,6 +151,12 @@ def _build_all_files(
 
     # Agents config
     files[".agents/agents.json"] = _agents_json(name, label)
+    files["AGENTS.md"] = _agents_md(name, label, icon, description)
+
+    # Platform docs for agents
+    from ._scaffold_docs import _platform_docs_md
+
+    files["docs/PLATFORM.md"] = _platform_docs_md(name)
 
     # README
     files["README.md"] = _readme_md(

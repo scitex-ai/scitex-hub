@@ -4,6 +4,7 @@
  */
 
 import {
+  attachClipboardPasteHandler,
   attachFileDropHandler,
   attachKeyboardHandler,
   attachRightClickHandler,
@@ -100,7 +101,8 @@ export class PTYTerminal {
     const getWs = () => this.ws;
     attachKeyboardHandler(this.term, getWs);
     attachRightClickHandler(containerEl, getWs);
-    attachFileDropHandler(containerEl, getWs);
+    attachFileDropHandler(containerEl, getWs, this.projectId);
+    attachClipboardPasteHandler(containerEl, getWs, this.projectId);
 
     // Wire up restart button
     const restartBtn = document.getElementById("btn-terminal-restart");
