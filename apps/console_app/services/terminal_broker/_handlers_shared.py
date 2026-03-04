@@ -5,6 +5,7 @@ They receive the broker instance as the first argument to access
 shared state (allocations, shells, indexes).
 """
 
+import base64
 import logging
 import socket
 import threading
@@ -46,8 +47,26 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
             and existing_shell.state == SessionState.RUNNING
             and existing_shell.fd is not None
         ):
+            # Replay scrollback before starting live output
+            scrollback = existing_shell.get_scrollback()
+            if scrollback:
+                broker._send_message(
+                    client,
+                    {
+                        "action": "output",
+                        "session_id": existing_shell_id,
+                        "data": base64.b64encode(scrollback).decode("ascii"),
+                    },
+                )
+            existing_shell.client_socket = client
             existing_shell.on_exit_callback = _make_shell_exit_cb(broker, client)
             existing_shell.start_reader(broker._make_output_callback(client))
+            # cd to project dir if project changed
+            if existing_shell.last_project_slug != project_slug:
+                project_dir = msg.get("project_dir", "")
+                if project_dir:
+                    existing_shell.write(f"cd {project_dir}\n".encode())
+                    existing_shell.last_project_slug = project_slug
             logger.info(f"Shell {existing_shell_id[:8]}: reattaching")
             return {"status": "ok", "session_id": existing_shell_id}
 
@@ -107,6 +126,7 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
         return {"status": "error", "error": "Failed to spawn shell in allocation"}
 
     shell.client_socket = client
+    shell.last_project_slug = project_slug
     shell.on_exit_callback = _make_shell_exit_cb(broker, client)
     shell.start_reader(broker._make_output_callback(client))
     alloc.increment_shells()

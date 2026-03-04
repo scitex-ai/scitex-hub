@@ -45,6 +45,7 @@ class BasePTY:
         self.on_exit_callback: Optional[Callable[[str], None]] = None
         self.reader_thread: Optional[threading.Thread] = None
         self._reader_generation: int = 0
+        self._scrollback: collections.deque = collections.deque(maxlen=256)
 
     @property
     def running(self) -> bool:
@@ -107,6 +108,7 @@ class BasePTY:
                         if r:
                             data = os.read(self.fd, 4096)
                             if data:
+                                self._scrollback.append(data)
                                 output_callback(self.pty_id, data)
                             else:
                                 break
@@ -122,6 +124,10 @@ class BasePTY:
 
         self.reader_thread = threading.Thread(target=reader, daemon=True)
         self.reader_thread.start()
+
+    def get_scrollback(self) -> bytes:
+        """Return stored scrollback buffer contents."""
+        return b"".join(self._scrollback)
 
     def cleanup_fd(self):
         """Close dead fd and reap child process."""

@@ -33,6 +33,7 @@ class Shell(BasePTY):
         self.allocation_id = allocation_id
         self.command = command
         self.client_socket: Optional[socket.socket] = None
+        self.last_project_slug: str = ""
 
     def _prepare_child_env(self) -> dict:
         """Prepare env for srun --overlap shell.

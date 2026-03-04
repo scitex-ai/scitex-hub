@@ -71,6 +71,19 @@ def handle_spawn_legacy(broker, msg: dict, client: socket.socket) -> dict:
 
         if existing:
             if existing.state == SessionState.RUNNING and existing.fd is not None:
+                # Replay scrollback before starting live output
+                import base64
+
+                scrollback = existing.get_scrollback()
+                if scrollback:
+                    broker._send_message(
+                        client,
+                        {
+                            "action": "output",
+                            "session_id": existing_id,
+                            "data": base64.b64encode(scrollback).decode("ascii"),
+                        },
+                    )
                 existing.client_socket = client
                 logger.info(f"PTY {existing_id[:8]}: reattaching client")
 
