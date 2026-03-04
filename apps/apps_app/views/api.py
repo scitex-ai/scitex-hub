@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Apps API views — install, star, review, submit, and admin endpoints."""
+"""Apps API views — install, star, toggle, reorder, config, fork, list."""
 
 from __future__ import annotations
 
@@ -249,31 +249,6 @@ def api_reorder(request):
 
 @login_required
 @require_http_methods(["POST"])
-def api_submit_for_review(request, module_name):
-    """Submit a private module for apps publication review."""
-    app_module = get_object_or_404(
-        AppsModule, module_name=module_name, author=request.user
-    )
-
-    from ..models import ModuleSubmission
-    from ..validators import validate_module_for_publication
-
-    errors = validate_module_for_publication(app_module)
-    if errors:
-        return JsonResponse({"success": False, "errors": errors}, status=400)
-
-    if ModuleSubmission.objects.filter(module=app_module, status="pending").exists():
-        return JsonResponse(
-            {"success": False, "error": "A submission is already pending review."},
-            status=400,
-        )
-
-    ModuleSubmission.objects.create(module=app_module, submitted_by=request.user)
-    return JsonResponse({"success": True, "message": "Submitted for review."})
-
-
-@login_required
-@require_http_methods(["POST"])
 def api_update_config(request, module_name):
     """Update per-user config for a module installation."""
     app_module = get_object_or_404(AppsModule, module_name=module_name)
@@ -300,71 +275,6 @@ def api_update_config(request, module_name):
     inst.config = config
     inst.save(update_fields=["config"])
     return JsonResponse({"success": True, "config": inst.config})
-
-
-@login_required
-@require_http_methods(["POST"])
-def api_review_submission(request, submission_id):
-    """Admin approves, rejects, or requests changes on a module submission."""
-    if not request.user.is_staff:
-        return JsonResponse({"success": False, "error": "Staff only."}, status=403)
-
-    from django.utils import timezone
-
-    from ..models import ModuleSubmission
-
-    submission = get_object_or_404(ModuleSubmission, id=submission_id)
-    if submission.status not in ("pending", "changes_requested"):
-        return JsonResponse(
-            {"success": False, "error": "Submission already reviewed."}, status=400
-        )
-
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({"success": False, "error": "Invalid JSON."}, status=400)
-
-    action = data.get("action")
-    note = data.get("note", "")
-    now = timezone.now()
-
-    if action == "approve":
-        submission.status = "approved"
-        submission.module.visibility = "public"
-        submission.module.is_verified = True
-        submission.module.save(update_fields=["visibility", "is_verified"])
-        # Pin commit and register into workspace
-        _activate_approved_app(submission.module)
-    elif action == "reject":
-        submission.status = "rejected"
-    elif action == "request_changes":
-        submission.status = "changes_requested"
-    else:
-        return JsonResponse(
-            {
-                "success": False,
-                "error": "action must be 'approve', 'reject', or 'request_changes'.",
-            },
-            status=400,
-        )
-
-    submission.reviewer = request.user
-    submission.review_note = note
-    submission.reviewed_at = now
-    submission.save()
-
-    # Sync status back to the linked Project
-    _sync_project_status(submission, now, request.user)
-
-    # Notify author
-    _notify_author(submission)
-
-    return JsonResponse(
-        {
-            "success": True,
-            "message": f"{action.title()} {submission.module.module_name}.",
-        }
-    )
 
 
 @login_required
@@ -413,45 +323,6 @@ def api_list_public(request):
         "status",
     )
     return JsonResponse({"success": True, "apps": list(modules)})
-
-
-def _activate_approved_app(app_module):
-    """Pin commit and register an approved app into the workspace registry."""
-    from ..services.app_loader import load_single_app, pin_commit
-
-    pin_commit(app_module)
-    load_single_app(app_module)
-
-
-def _sync_project_status(submission, now, reviewer):
-    """Update the source Project's app_status fields after review."""
-    project = getattr(submission.module, "project", None)
-    if project is None:
-        return
-    project.app_status = submission.status
-    project.app_reviewed_at = now
-    project.app_reviewer = reviewer
-    project.save(update_fields=["app_status", "app_reviewed_at", "app_reviewer"])
-
-
-def _notify_author(submission):
-    """Send email notification to the submission author."""
-    try:
-        from apps.project_app.services.email_service import EmailService
-
-        EmailService.send_app_review_complete(
-            user=submission.submitted_by,
-            module_name=submission.module.module_name,
-            status=submission.status,
-            note=submission.review_note,
-        )
-    except Exception:
-        import logging
-
-        logging.getLogger(__name__).warning(
-            "Failed to send review notification for %s",
-            submission.module.module_name,
-        )
 
 
 # EOF

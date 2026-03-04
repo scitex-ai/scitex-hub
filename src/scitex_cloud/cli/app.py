@@ -122,7 +122,7 @@ def app_dev(app_dir, port):
     dev_server(app_dir, port=port)
 
 
-@app.command("publish")
+@app.command("submit")
 @click.argument("app_dir", default=".", type=click.Path(exists=True))
 @click.option(
     "--server",
@@ -131,17 +131,18 @@ def app_dev(app_dir, port):
     default="http://127.0.0.1:8000",
     help="SciTeX Cloud server URL",
 )
-def app_publish(app_dir, server):
+def app_submit(app_dir, server):
     """Validate and submit an app for publication review.
 
     Authenticates via JWT (prompts for credentials if needed),
     runs local validation, then submits to the server.
-    A PR is opened on the central registry for transparent review.
+    A PR is opened on the central scitex/apps registry for review.
+    Merge = approval (like MELPA).
 
     \b
     Examples:
-        scitex-cloud app publish .
-        scitex-cloud app publish /path/to/my_app --server https://scitex.example.com
+        scitex-cloud app submit .
+        scitex cloud app submit /path/to/my_app --server https://scitex.example.com
     """
     from scitex_cloud.app_tools import publish
     from scitex_cloud.cli._workspace_auth import get_jwt_token, get_server_url
@@ -149,7 +150,7 @@ def app_publish(app_dir, server):
     server_url = get_server_url(server)
     token = get_jwt_token(server_url)
 
-    console.print(f"[cyan]Publishing app from:[/cyan] {Path(app_dir).resolve()}")
+    console.print(f"[cyan]Submitting app from:[/cyan] {Path(app_dir).resolve()}")
 
     result = publish(app_dir, server_url=server_url, token=token)
 
