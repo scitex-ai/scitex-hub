@@ -145,6 +145,9 @@
   .agents/
     agents.json     # Single source of truth (schema v3)
     local.json      # Secrets (gitignored)
+    skills/         # Synced to .claude/skills/, .cursor/skills/, etc.
+    commands/       # Synced to .claude/commands/ (Claude Code only)
+    hooks/          # Synced to .claude/hooks/ (Claude Code only)
   AGENTS.md         # Unified instructions for all AI tools
   .mcp.json         # Claude Code MCP server (direct fallback)</code></pre>
                 </div>
@@ -193,6 +196,15 @@
                         </li>
                         <li>
                             <strong>Gemini</strong> &rarr; its own config
+                        </li>
+                        <li>
+                            <strong>Skills</strong> &rarr; <code>.claude/skills/</code>, <code>.cursor/skills/</code>, <code>.gemini/skills/</code>, <code>.windsurf/skills/</code>
+                        </li>
+                        <li>
+                            <strong>Commands</strong> &rarr; <code>.claude/commands/</code> (Claude Code only)
+                        </li>
+                        <li>
+                            <strong>Hooks</strong> &rarr; <code>.claude/hooks/</code> (Claude Code only)
                         </li>
                     </ul>
                     <p class="text-muted small mt-2">

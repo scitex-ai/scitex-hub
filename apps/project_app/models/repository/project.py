@@ -293,7 +293,7 @@ class Project(
     # Home project flag — undeletable, always private, one per user
     is_home = models.BooleanField(
         default=False,
-        help_text="Home project: persistent, always private, cannot be deleted",
+        help_text="Dotfiles project: persistent, always private, cannot be deleted",
     )
 
     # Language detection
@@ -347,5 +347,5 @@ class Project(
 
     def delete(self, *args, **kwargs):
         if self.is_home:
-            raise ValueError("Home project cannot be deleted")
+            raise ValueError("Dotfiles project cannot be deleted")
         return super().delete(*args, **kwargs)

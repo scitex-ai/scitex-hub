@@ -42,6 +42,9 @@ MCP server configuration across all AI coding tools from a single source of trut
   .agents/
     agents.json    # Single source of truth (schema v3)
     local.json     # Secrets (gitignored)
+    skills/        # Synced to .claude/skills/, .cursor/skills/, etc.
+    commands/      # Synced to .claude/commands/ (Claude Code only)
+    hooks/         # Synced to .claude/hooks/ (Claude Code only)
   AGENTS.md        # Unified instructions for all AI tools
   .mcp.json        # Claude Code MCP server (direct fallback)
 ```
@@ -91,6 +94,9 @@ This propagates `agents.json` to each tool's native config format:
 - Claude Code: `.mcp.json`
 - Codex: its own config
 - Gemini: its own config
+- Skills: `.claude/skills/`, `.cursor/skills/`, `.gemini/skills/`, `.windsurf/skills/`
+- Commands: `.claude/commands/` (Claude Code only)
+- Hooks: `.claude/hooks/` (Claude Code only)
 
 ### MCP Tool Groups
 

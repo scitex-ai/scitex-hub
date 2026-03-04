@@ -75,9 +75,11 @@ def create_default_project_for_user(user):
 
 
 def ensure_home_project(user):
-    """Ensure user has a home project. Creates one if missing.
+    """Ensure user has a dotfiles project. Creates one if missing.
 
     Idempotent — safe to call on every login.
+    The dotfiles project is a git-trackable, private, undeletable project
+    for managing shell configs (bashrc, vimrc, gitconfig, etc.).
     """
     from apps.project_app.models import Project
 
@@ -85,10 +87,10 @@ def ensure_home_project(user):
         if Project.objects.filter(owner=user, is_home=True).exists():
             return
 
-        home_project = Project.objects.create(
-            name="home",
-            slug="home",
-            description=f"Home project for {user.username}",
+        dotfiles_project = Project.objects.create(
+            name="dotfiles",
+            slug="dotfiles",
+            description=f"Shell configuration for {user.username}",
             owner=user,
             visibility="private",
             is_home=True,
@@ -96,10 +98,12 @@ def ensure_home_project(user):
 
         # Set as last active if user has no active project
         if hasattr(user, "profile") and not user.profile.last_active_repository:
-            user.profile.last_active_repository = home_project
+            user.profile.last_active_repository = dotfiles_project
             user.profile.save()
 
-        logger.info(f"Created home project for {user.username}")
+        logger.info(f"Created dotfiles project for {user.username}")
 
     except Exception as e:
-        logger.error(f"Error creating home project for user {user.username}: {str(e)}")
+        logger.error(
+            f"Error creating dotfiles project for user {user.username}: {str(e)}"
+        )

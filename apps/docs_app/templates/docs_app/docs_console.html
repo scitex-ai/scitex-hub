@@ -189,8 +189,9 @@
 │   │   ├── .mcp.json         # Claude Code MCP server
 │   │   ├── AGENTS.md         # Unified instructions for all AI tools
 │   │   └── scitex/downloads/ # Paste/drop upload target
-│   ├── home -> ..            # Symlink: home project = user home
-│   └── dotfiles/             # Git repo with shell configs
+│   └── dotfiles/             # Git repo with shell configs (special project)
+│       ├── .agents/          # AI agent configs (like any project)
+│       ├── AGENTS.md
 │       ├── bashrc
 │       ├── bash_profile
 │       ├── vimrc
@@ -212,10 +213,10 @@
 └── .ai-cli-installed         # Sentinel file</code></pre>
                 </div>
             </div>
-            <h4 class="mt-4">Home Project</h4>
+            <h4 class="mt-4">Dotfiles Project</h4>
             <p>
-                The <strong>home</strong> project (<code>is_home=True</code>) is a
-                special project:
+                The <strong>dotfiles</strong> project (<code>is_home=True</code>) is a
+                special project for managing shell configurations:
             </p>
             <ul>
                 <li>Auto-created on user signup and ensured on every login</li>
@@ -227,11 +228,13 @@
                 </li>
                 <li>One per user &mdash; uniqueness enforced at model level</li>
                 <li>
-                    <code>proj/home -> ..</code> symlinks the home project directory to the user's
-                    home, so opening the home project in a terminal lands at <code>~</code>
+                    Maps to <code>~/proj/dotfiles/</code> &mdash; a git-tracked repository
+                    containing bashrc, vimrc, gitconfig, and other shell configs
                 </li>
+                <li>Appears in the project selector and hub like any other project</li>
                 <li>
-                    Used by the AI panel console mode (<code>project_id=0</code>)
+                    Gets full AI agent support (<code>.agents/</code>, <code>AGENTS.md</code>,
+                    <code>.mcp.json</code>) like any other project
                 </li>
             </ul>
             <h4 class="mt-4">.bashrc</h4>
