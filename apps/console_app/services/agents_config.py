@@ -6,7 +6,7 @@
 """
 Auto-generate AI tool configs for user projects.
 
-- .agents/agents.json — unified config for agents CLI (github.com/amtiYo/agents)
+- .agents/agents.json — unified config for agents CLI (github.com/ywatanabe1989/agents, fork of amtiYo/agents)
 - AGENTS.md — single source of truth for all AI coding tools
 - .mcp.json — Claude Code MCP server (direct fallback)
 - ~/.claude/skills/ — Claude Code platform skills

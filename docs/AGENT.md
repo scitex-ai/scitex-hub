@@ -24,7 +24,7 @@ Agents are installed as global npm packages inside the Apptainer container:
     claude        # @anthropic-ai/claude-code
     codex         # @openai/codex
     gemini        # @google/gemini-cli
-    agents        # @agents-dev/cli (config synchronizer)
+    agents        # agents CLI (ywatanabe1989/agents fork)
 ```
 
 Installation is one-time per user. The `.ai-cli-installed` sentinel file
@@ -34,7 +34,7 @@ prevents re-running on subsequent logins.
 
 ### The `agents` Package
 
-The [`@agents-dev/cli`](https://github.com/amtiYo/agents) package synchronizes
+The [agents CLI](https://github.com/ywatanabe1989/agents) (fork of [amtiYo/agents](https://github.com/amtiYo/agents)) synchronizes
 MCP server configuration across all AI coding tools from a single source of truth:
 
 ```

@@ -57,6 +57,13 @@ DOCS_PAGES = [
         "badges": ["user"],
     },
     {
+        "slug": "agent-tooling",
+        "label": "AI Agent Tooling",
+        "icon": "fas fa-tools",
+        "template": "docs_app/docs_agent_tooling.html",
+        "badges": ["user"],
+    },
+    {
         "slug": "app-maker",
         "label": "App Maker: Overview",
         "icon": "fas fa-puzzle-piece",
