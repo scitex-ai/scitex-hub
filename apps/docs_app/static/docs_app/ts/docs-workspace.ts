@@ -452,13 +452,22 @@ function initDocsWorkspace(): void {
         toggleSelection(item, navItems, sidebar);
       } else {
         if (selectedSlugs.size > 0) clearSelection(navItems, sidebar);
-        loadDocPage(
-          item.dataset.slug ?? "",
-          undefined,
-          contentArea,
-          sidebar,
-          navItems,
-        );
+        const slug = item.dataset.slug ?? "";
+        // Toggle sections if clicking the already-active page
+        if (slug === currentSlug) {
+          item.classList.toggle("sections-collapsed");
+          sidebar
+            .querySelectorAll<HTMLElement>(".docs-section-item")
+            .forEach((el) => {
+              el.style.display = item.classList.contains("sections-collapsed")
+                ? "none"
+                : "";
+            });
+        } else {
+          // Remove collapsed state from previous active item
+          navItems.forEach((i) => i.classList.remove("sections-collapsed"));
+          loadDocPage(slug, undefined, contentArea, sidebar, navItems);
+        }
       }
     });
   });
