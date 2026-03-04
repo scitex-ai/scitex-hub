@@ -4,6 +4,7 @@ from django.views.generic import RedirectView
 from . import default_workspace_views, job_api_views, views
 from . import workspace_api as workspace_api_views
 from .views import api as api_views
+from .views import on_site as on_site_views
 from .views import paste_upload as paste_upload_views
 from .views import service_api_lifecycle, service_api_list
 
@@ -97,6 +98,32 @@ urlpatterns = [
         "api/paste-upload/",
         paste_upload_views.api_paste_upload,
         name="api_paste_upload",
+    ),
+    # On-site agent capture API
+    path(
+        "api/on-site/capture/",
+        on_site_views.api_capture_request,
+        name="api_capture_request",
+    ),
+    path(
+        "api/on-site/capture/<uuid:request_id>/status/",
+        on_site_views.api_capture_status,
+        name="api_capture_status",
+    ),
+    path(
+        "api/on-site/capture/upload/",
+        on_site_views.api_capture_upload,
+        name="api_capture_upload",
+    ),
+    path(
+        "api/on-site/permission/",
+        on_site_views.api_capture_permission,
+        name="api_capture_permission",
+    ),
+    path(
+        "api/on-site/permission/check/",
+        on_site_views.api_capture_permission_check,
+        name="api_capture_permission_check",
     ),
     # Landing pages
     path("features/", views.features, name="features"),

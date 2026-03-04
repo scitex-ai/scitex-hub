@@ -19,6 +19,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from apps.project_app.models import Project
 
 from .config import USER_DATA_ROOT
+from .consumer_events import ChannelEventsMixin
 from .execution import (
     check_slurm_status,
     exec_slurm_shell,
@@ -59,7 +60,7 @@ except (ValueError, OSError):
     pass
 
 
-class TerminalConsumer(AsyncWebsocketConsumer):
+class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
     """
     WebSocket consumer for PTY terminal.
 
@@ -68,6 +69,9 @@ class TerminalConsumer(AsyncWebsocketConsumer):
     - Security: Container isolation, no root access
     - Fairness: SLURM scheduling, per-user limits
     - Consistency: Same architecture dev/prod/HPC
+
+    Channel event handlers (tts_speak, media_display, capture_request)
+    are provided by ChannelEventsMixin.
     """
 
     async def connect(self):
@@ -172,6 +176,13 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_add(self.speech_group, self.channel_name)
         else:
             self.speech_group = None
+
+        # Join capture channel group for on-site page capture
+        if self.user.is_authenticated:
+            self.capture_group = f"capture_{self.user.username}"
+            await self.channel_layer.group_add(self.capture_group, self.channel_name)
+        else:
+            self.capture_group = None
 
         # TRIP / Remote: SSH directly into remote machine
         if self.project.project_type == "trip":
@@ -432,34 +443,6 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             user_data_dir, project_dir, project_name=project_name, force=True
         )
 
-    async def tts_speak(self, event):
-        """Forward TTS speech request to browser via WebSocket.
-
-        The browser terminal intercepts messages prefixed with
-        ``\\x1b]9999;speak:`` and plays them via ``/llm/api/tts/``.
-        """
-        import base64
-
-        text = event.get("text", "")
-        if text:
-            b64 = base64.b64encode(text.encode()).decode()
-            await self.send(text_data=f"\x1b]9999;speak:{b64}\x07")
-
-    async def media_display(self, event):
-        """Forward media display request to browser via WebSocket.
-
-        The browser terminal intercepts ``\\x1b]9998;media:`` escapes
-        and renders an overlay image/file preview above the terminal.
-        """
-        import base64
-        import json
-
-        media = event.get("media", {})
-        if media:
-            payload = json.dumps(media)
-            b64 = base64.b64encode(payload.encode()).decode()
-            await self.send(text_data=f"\x1b]9998;media:{b64}\x07")
-
     async def disconnect(self, close_code):
         """Clean up on disconnect.
 
@@ -468,9 +451,13 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 
         Direct mode (fallback): Kill the PTY process (no persistence).
         """
-        # Leave speech channel group
+        # Leave channel groups
         if getattr(self, "speech_group", None):
             await self.channel_layer.group_discard(self.speech_group, self.channel_name)
+        if getattr(self, "capture_group", None):
+            await self.channel_layer.group_discard(
+                self.capture_group, self.channel_name
+            )
 
         if self.use_broker and self.broker_client:
             # Broker mode: detach only — session persists for reattach

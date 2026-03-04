@@ -9,6 +9,7 @@ import {
   attachKeyboardHandler,
   attachRightClickHandler,
 } from "./_pty-input-handlers";
+import { handleCaptureRequest } from "./_on-site-capture";
 
 export class PTYTerminal {
   private term: any;
@@ -220,6 +221,10 @@ export class PTYTerminal {
             const msg = JSON.parse(oscMatch[1]);
             if (msg.action === "session_state") {
               this.handleSessionState(msg);
+              return;
+            }
+            if (msg.action === "capture_request") {
+              handleCaptureRequest(msg);
               return;
             }
           } catch {
