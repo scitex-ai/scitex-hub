@@ -1,0 +1,118 @@
+<h3>Storage Manager</h3>
+<p>
+    Type-safe <code>localStorage</code> wrapper with automatic key prefixing to prevent collisions.
+</p>
+<h4>
+    <i class="fas fa-download me-1"></i>Import
+</h4>
+<pre><code>import { globalStorage, StorageManager } from '@shared/utils/storage';</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>Usage
+</h4>
+<pre><code>// Save and load (with type inference)
+globalStorage.save('sidebar-width', 320);
+const width = globalStorage.load&lt;number&gt;('sidebar-width');  // number | null
+
+// Load with a fallback default
+const theme = globalStorage.load&lt;string&gt;('theme', 'dark');
+
+// Remove a key or clear all scoped keys
+globalStorage.remove('sidebar-width');
+globalStorage.clear();  // removes all keys with prefix "scitex_"
+
+// Check existence
+if (globalStorage.exists('sidebar-width')) { ... }
+
+// Custom scoped instance (keys stored as "myapp_&lt;key&gt;")
+const appStorage = new StorageManager('myapp_');
+appStorage.save('state', { open: true });</code></pre>
+<h4>
+    <i class="fas fa-list me-1"></i>API Reference
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Method</th>
+            <th>Returns</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>globalStorage</code>
+            </td>
+            <td>
+                <code>StorageManager</code>
+            </td>
+            <td>
+                Singleton scoped to prefix <code>"scitex_"</code>. Use for all app-level persistence.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>.save(key, data)</code>
+            </td>
+            <td>
+                <code>void</code>
+            </td>
+            <td>
+                JSON-serializes <code>data</code> and writes to <code>localStorage</code> under <code>prefix + key</code>.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>.load(key, default?)</code>
+            </td>
+            <td>
+                <code>T | null</code>
+            </td>
+            <td>
+                Reads and JSON-parses the stored value. Returns <code>default</code> (or <code>null</code>) on miss or parse error.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>.remove(key)</code>
+            </td>
+            <td>
+                <code>void</code>
+            </td>
+            <td>Deletes the entry for the given key (prefix applied automatically).</td>
+        </tr>
+        <tr>
+            <td>
+                <code>.clear()</code>
+            </td>
+            <td>
+                <code>void</code>
+            </td>
+            <td>Removes all entries whose storage key starts with this instance's prefix.</td>
+        </tr>
+        <tr>
+            <td>
+                <code>.exists(key)</code>
+            </td>
+            <td>
+                <code>boolean</code>
+            </td>
+            <td>
+                Returns <code>true</code> if the key exists in <code>localStorage</code>.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>.getAllKeys()</code>
+            </td>
+            <td>
+                <code>string[]</code>
+            </td>
+            <td>Returns all stored keys (with prefix stripped) belonging to this instance's scope.</td>
+        </tr>
+    </tbody>
+</table>
+<div class="api-callout api-callout--info">
+    <strong>Prefix namespacing:</strong> Every key is stored as <code>prefix + key</code>.
+    The default prefix is <code>"scitex_"</code>. Use <code>new StorageManager('myapp_')</code>
+    to create an isolated scope that will not conflict with other modules.
+</div>

@@ -97,7 +97,7 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
         allocation_id=alloc.allocation_id,
         username=username,
         screen_session=screen_session,
-        command=alloc.get_shell_command(),
+        command=alloc.get_shell_command(project_slug=project_slug),
     )
 
     if not shell.spawn():

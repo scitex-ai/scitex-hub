@@ -119,7 +119,7 @@ export class NodeDetailsPanel {
       const fullUrl = `${url}?doi=${encodeURIComponent(doi)}&limit=${limit}`;
       const response = await fetchWithTimeout(fullUrl, 60000);
       if (!response.ok) throw new Error("Failed to fetch related papers");
-      const data = await response.json();
+      const data = await response.tson();
       const papers: RelatedPaper[] = data.related || [];
       content.innerHTML =
         papers.length === 0

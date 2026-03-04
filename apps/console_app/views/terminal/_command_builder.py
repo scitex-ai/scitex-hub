@@ -136,12 +136,14 @@ def build_shell_in_allocation_cmd(
     job_id: str,
     instance_name: str,
     username: str = "",
+    project_slug: str = "",
 ) -> list[str]:
     """Build ``srun --overlap`` command to attach shell inside existing allocation."""
     return build_shell_in_allocation_command(
         job_id=job_id,
         instance_name=instance_name,
         username=username,
+        project_slug=project_slug,
     )
 
 

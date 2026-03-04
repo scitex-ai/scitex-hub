@@ -1,0 +1,78 @@
+<h3>Keyboard Shortcuts</h3>
+<p>Centralized keyboard shortcut system for workspace pane navigation and AI panel control.</p>
+<h4>
+    <i class="fas fa-download me-1"></i>Import
+</h4>
+<pre><code>// The keyboard-shortcuts module is auto-loaded as part of the workspace bundle.
+// No explicit import is needed in application code.
+import '@shared/components/keyboard-shortcuts';</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>Built-in Shortcuts
+</h4>
+<pre><code>// These shortcuts are active in all workspace views automatically.
+
+Alt + A              // Toggle AI panel open/closed; focus chat input
+Alt + T              // Cycle focus to the next pane (left → right)
+Alt + Shift + T      // Cycle focus to the previous pane (right → left)
+Alt + Right          // Move focus to the right pane
+Alt + Left           // Move focus to the left pane
+Alt + Shift + Right  // Collapse the current pane rightward
+Alt + Shift + Left   // Collapse the current pane leftward
+Ctrl + U             // Open file-upload dialog for AI chat</code></pre>
+<h4>
+    <i class="fas fa-list me-1"></i>Pane Discovery
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Element / Attribute</th>
+            <th>Role</th>
+            <th>Notes</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>#scitex-ai-panel</code>
+            </td>
+            <td>AI panel (leftmost pane)</td>
+            <td>
+                Toggle button: <code>#scitex-ai-toggle</code> or <code>#scitex-ai-fab</code>. Collapsed when class <code>collapsed</code> is present.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>#main-content</code>
+            </td>
+            <td>Center pane</td>
+            <td>Always visible; never collapsed by shortcut.</td>
+        </tr>
+        <tr>
+            <td>
+                <code>[data-panel-resizer]</code>
+            </td>
+            <td>Right-side panels</td>
+            <td>
+                Discovered dynamically via <code>data-panel-resizer</code> attribute. <code>data-target</code> points to the panel element; <code>data-toggle-btn</code> to its collapse button.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>.collapsed</code> class
+            </td>
+            <td>Collapse state</td>
+            <td>Pane is treated as collapsed when this class is present. Shortcut skips collapsed panes during focus cycling.</td>
+        </tr>
+    </tbody>
+</table>
+<div class="api-callout api-callout--info">
+    <strong>Focus target:</strong> When a pane receives focus via keyboard shortcut, the first
+    <code>textarea</code>, <code>input</code>, or <code>[tabindex]</code> element inside it is focused.
+    If none exists, the pane element itself receives focus with <code>tabindex="-1"</code>.
+</div>
+<div class="api-callout api-callout--warning">
+    <strong>Extending shortcuts:</strong> The shortcut handler uses a single <code>keydown</code> listener
+    on <code>document</code>. To add application-specific shortcuts without conflicts, listen for
+    <code>keydown</code> on your own component element and call <code>event.stopPropagation()</code>
+    only when your shortcut matches.
+</div>

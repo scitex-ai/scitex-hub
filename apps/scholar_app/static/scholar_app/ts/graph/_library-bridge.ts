@@ -47,7 +47,7 @@ export async function saveNodeToLibrary(node: NetworkNode): Promise<boolean> {
       btn.classList.add("saved");
       return true;
     } else {
-      const data = await response.json();
+      const data = await response.tson();
       btn.innerHTML = '<i class="fas fa-bookmark"></i> Save to Library';
       btn.disabled = false;
       console.error(

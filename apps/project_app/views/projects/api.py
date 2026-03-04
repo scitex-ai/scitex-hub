@@ -12,12 +12,13 @@ This module contains API endpoints for:
 """
 
 from __future__ import annotations
+
 import json
 import logging
 
-from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 
@@ -73,7 +74,7 @@ def api_check_name_availability(request):
     slug = slugify(name)
 
     try:
-        from apps.gitea_app.api_client import GiteaClient, GiteaAPIError
+        from apps.gitea_app.api_client import GiteaAPIError, GiteaClient
 
         client = GiteaClient()
 
@@ -200,22 +201,119 @@ def api_switch_active_project(request):
 
         logger.info(f"User {request.user.username} switched to project {project.name}")
 
-        return JsonResponse({
-            "success": True,
-            "project": {
-                "id": project.id,
-                "name": project.name,
-                "slug": project.slug,
-                "owner": project.owner.username,
-            },
-            "message": f"Switched to project {project.name}",
-        })
+        return JsonResponse(
+            {
+                "success": True,
+                "project": {
+                    "id": project.id,
+                    "name": project.name,
+                    "slug": project.slug,
+                    "owner": project.owner.username,
+                },
+                "message": f"Switched to project {project.name}",
+            }
+        )
 
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except Exception as e:
         logger.error(f"Error switching active project: {e}")
         return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+# ============================================================================
+# JWT-Compatible Project Creation API
+# ============================================================================
+
+from rest_framework.decorators import api_view, permission_classes  # noqa: E402
+from rest_framework.permissions import IsAuthenticated  # noqa: E402
+from rest_framework.response import Response  # noqa: E402
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def api_project_create_jwt(request):
+    """
+    JWT-authenticated project creation endpoint for CLI access.
+
+    Accepts JSON: {"name": "...", "description": "...", "visibility": "private"}
+    Returns: {"success": true, "project_id": ..., "slug": "...", "url": "..."}
+
+    CSRF-exempt by design — authentication is via Bearer JWT token, not session.
+    The Django signal in project_signals.py will automatically create the
+    corresponding Gitea repository when the Project record is saved.
+    """
+    name = request.data.get("name", "").strip()
+    description = request.data.get("description", "").strip()
+    visibility = request.data.get("visibility", "private")
+
+    if not name:
+        return Response(
+            {"success": False, "error": "Project name is required"}, status=400
+        )
+
+    # Validate visibility value
+    valid_visibilities = ("public", "private")
+    if visibility not in valid_visibilities:
+        return Response(
+            {
+                "success": False,
+                "error": f"visibility must be one of: {', '.join(valid_visibilities)}",
+            },
+            status=400,
+        )
+
+    try:
+        # Ensure unique name per user (appends suffix if duplicate)
+        unique_name = Project.generate_unique_name(name, request.user)
+        slug = Project.generate_unique_slug(unique_name, owner=request.user)
+
+        project = Project.objects.create(
+            name=unique_name,
+            slug=slug,
+            description=description,
+            owner=request.user,
+            visibility=visibility,
+        )
+
+        project_url = f"/{request.user.username}/{project.slug}/"
+
+        return Response(
+            {
+                "success": True,
+                "project_id": project.pk,
+                "slug": project.slug,
+                "url": project_url,
+                "message": f'Project "{project.name}" created successfully',
+            },
+            status=201,
+        )
+
+    except Exception as exc:
+        logger.error(f"api_project_create_jwt error for user {request.user}: {exc}")
+        return Response({"success": False, "error": str(exc)}, status=500)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def api_project_list_jwt(request):
+    """JWT-authenticated project list endpoint for CLI access."""
+    projects = Project.objects.filter(owner=request.user).values(
+        "id", "name", "description", "created_at", "updated_at"
+    )
+    return Response({"projects": list(projects)})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def api_me(request):
+    """Return authenticated user info (for CLI to resolve username)."""
+    return Response(
+        {
+            "username": request.user.username,
+            "email": request.user.email,
+        }
+    )
 
 
 # EOF

@@ -19,9 +19,31 @@ from .figrecipe_handlers import HANDLERS, handle_download_fig, handle_single_cal
 logger = logging.getLogger(__name__)
 
 
+def _inject_project_context(request):
+    """Inject working_dir from user's current project into GET params.
+
+    This allows the figrecipe API to resolve recipe paths relative to the
+    user's project directory, without the browser seeing absolute paths.
+    """
+    from apps.project_app.services.project_utils import get_current_project
+
+    if not request.user.is_authenticated:
+        return
+    if request.GET.get("working_dir"):
+        return  # Already set (e.g. by vis_react proxy)
+
+    project = get_current_project(request, user=request.user)
+    if project:
+        mutable_get = request.GET.copy()
+        mutable_get["working_dir"] = str(project.get_local_path())
+        request.GET = mutable_get
+
+
 def _get_editor(request):
     """Extract recipe_path and return cached editor."""
     import json
+
+    _inject_project_context(request)
 
     if request.method == "GET":
         recipe_path = request.GET.get("recipe", "")

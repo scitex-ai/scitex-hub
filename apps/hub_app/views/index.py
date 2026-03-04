@@ -7,13 +7,16 @@ import logging
 from django.shortcuts import redirect, render
 
 from apps.project_app.models import Project
-from apps.project_app.services.project_utils import get_current_project
 
 logger = logging.getLogger(__name__)
 
 
 def build_hub_context(request, current_project=None):
-    """Build hub-specific template context for both full page and partial views."""
+    """Build hub-specific template context for both full page and partial views.
+
+    When current_project is set, shows project file browser (GitHub-style).
+    When no project, shows dashboard with project cards.
+    """
 
     context = {
         "is_visitor": False,
@@ -48,19 +51,13 @@ def build_hub_context(request, current_project=None):
         context["is_readonly"] = True
         context["visitor_username"] = request.user.username
 
-    if current_project:
-        context["project"] = current_project
-        _add_file_browser_context(request, current_project, context)
-    else:
-        context["needs_project_creation"] = True
-
     # Get user's projects for overview (reusing project_app models)
-
     user_projects = Project.objects.filter(owner=request.user).order_by("-updated_at")[
         :6
     ]
     context["user_projects"] = user_projects
     context["projects_count"] = Project.objects.filter(owner=request.user).count()
+    context["needs_project_creation"] = context["projects_count"] == 0
 
     # Get recent activities (reusing social_app models)
     from apps.social_app.models import Activity
@@ -69,6 +66,10 @@ def build_hub_context(request, current_project=None):
         "-created_at"
     )[:5]
     context["recent_activities"] = recent_activities
+
+    # When a project is selected, add file browser data
+    if current_project:
+        _add_file_browser_context(request, current_project, context)
 
     return context
 
@@ -115,21 +116,13 @@ def index_view(request):
     profile_username = request.GET.get("username", "")
 
     if view_mode == "profile" and profile_username:
-        context = build_hub_context(request, current_project=None)
+        context = build_hub_context(request)
         context["hub_view_mode"] = "profile"
         context["hub_profile_username"] = profile_username
         context.update(_build_profile_context(request, profile_username))
         return render(request, "hub_app/index.html", context)
 
-    # Get current project from header dropdown
-    current_project = get_current_project(request, user=request.user)
-
-    if current_project:
-        logger.info(
-            f"[Hub] User {request.user.username} viewing project: {current_project.slug}"
-        )
-
-    context = build_hub_context(request, current_project=current_project)
+    context = build_hub_context(request)
     return render(request, "hub_app/index.html", context)
 
 

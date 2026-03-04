@@ -13,8 +13,11 @@
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^8.47.0",
     "@typescript-eslint/parser": "^8.47.0",
+    "@vitejs/plugin-react": "^4.3.0",
     "@vitest/ui": "^4.0.16",
     "jsdom": "^27.3.0",
     "typescript": "^5.2.2",
@@ -24,7 +27,11 @@
   "dependencies": {
     "@hpcc-js/wasm-graphviz": "^1.21.0",
     "fabric": "^5.3.0",
+    "figrecipe-editor": "file:../figrecipe/src/figrecipe/_django/frontend",
     "mermaid": "^11.12.2",
-    "typo-js": "^1.2.4"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typo-js": "^1.2.4",
+    "zustand": "^4.5.0"
   }
 }

@@ -21,6 +21,7 @@ from django.views.static import serve
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from apps.accounts_app.api.user_views import api_search_users
+from apps.apps_app.views import api_registry_webhook, api_submit_jwt
 from apps.hub_app.views.dispatch import root_dispatch
 from apps.integrations_app.views_events import list_events, receive_event
 from apps.project_app.views import (
@@ -29,7 +30,12 @@ from apps.project_app.views import (
     decline_invitation,
     project_create,
 )
-from apps.project_app.views.projects.api import api_switch_active_project
+from apps.project_app.views.projects.api import (
+    api_me,  # noqa: E402
+    api_project_create_jwt,  # noqa: E402
+    api_project_list_jwt,  # noqa: E402
+    api_switch_active_project,  # noqa: E402
+)
 from apps.public_app.views import healthz
 
 
@@ -133,6 +139,7 @@ urlpatterns = [
     path("writer/", include(("apps.writer_app.urls", "writer_app"))),
     path("workspace/", include(("apps.workspace_app.urls", "workspace_app"))),
     path("example/", include(("apps.example_app.urls", "example_app"))),
+    path("notebook/", include(("apps.notebook_app.urls", "notebook_app"))),
     path("apps/", include(("apps.apps_app.urls", "apps_app"))),
     path("modulemaker/", include(("apps.modulemaker_app.urls", "modulemaker_app"))),
     # LLM/Agent Support
@@ -157,6 +164,8 @@ urlpatterns = [
         "favicon.ico",
         RedirectView.as_view(url="/static/shared/images/favicon.png", permanent=True),
     ),
+    # Platform services API (DataStore, FileVault, JobQueue, ExternalAPI, SciTeX bridge)
+    path("platform/api/", include("apps.platform_app.urls.api")),
     # Shared workspace API (file content, etc.)
     path("api/workspace/", include("apps.workspace_api.urls")),
     # Event bus API (APIKey auth, CSRF exempt)
@@ -186,6 +195,33 @@ urlpatterns = [
         "api/token/refresh/",
         csrf_exempt(TokenRefreshView.as_view()),
         name="token_refresh",
+    ),
+    # JWT-authenticated project APIs (for CLI access, no CSRF needed)
+    path(
+        "api/project/create/",
+        csrf_exempt(api_project_create_jwt),
+        name="api_project_create_jwt",
+    ),
+    path(
+        "api/project/list/",
+        csrf_exempt(api_project_list_jwt),
+        name="api_project_list_jwt",
+    ),
+    path(
+        "api/me/",
+        csrf_exempt(api_me),
+        name="api_me",
+    ),
+    # JWT-authenticated app submission + Gitea registry webhook
+    path(
+        "api/apps/submit/",
+        csrf_exempt(api_submit_jwt),
+        name="api_apps_submit_jwt",
+    ),
+    path(
+        "api/apps/webhook/",
+        csrf_exempt(api_registry_webhook),
+        name="api_apps_registry_webhook",
     ),
     # GitHub-like operations
     # /new - Create new project

@@ -191,7 +191,7 @@ function searchSource(source: SourceConfig, query: string): void {
   fetch(url, { signal: controller.signal })
     .then((response) => {
       clearTimeout(timeoutId);
-      return response.json();
+      return response.tson();
     })
     .then((data: any) => {
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);

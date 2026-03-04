@@ -21,7 +21,7 @@ export class LibraryAPI {
       if (!response.ok) {
         throw new Error(`Failed to fetch papers: ${response.statusText}`);
       }
-      const data = await response.json();
+      const data = await response.tson();
       return data.papers || [];
     } catch (error) {
       console.error("Failed to fetch papers:", error);
@@ -79,7 +79,7 @@ export class LibraryAPI {
       throw new Error(`Failed to import BibTeX: ${response.statusText}`);
     }
 
-    return await response.json();
+    return await response.tson();
   }
 
   static exportSinglePaper(paperId: string): void {

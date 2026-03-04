@@ -1,0 +1,170 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}Shared: Components — SciTeX Documentation{% endblock %}
+{% block meta_description %}
+    Reusable TypeScript UI components for SciTeX app development: Resizer, DataTable, MediaViewer, and more.
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container py-2">
+        <header class="minimal-hero" style="text-align: center">
+            <div class="api-hero-header" style="justify-content: center">
+                <h1 class="minimal-hero-title">Shared: Components</h1>
+            </div>
+        </header>
+    </div>
+    <div class="container py-2" style="max-width: 1000px">
+        <p class="text-muted mb-4">
+            Reusable TypeScript UI components available to all SciTeX apps.
+            All CSS is auto-loaded globally &mdash; just add the HTML markup in your templates.
+        </p>
+        <!-- Quick Reference -->
+        <span id="quick-ref"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-list"></i> Quick Reference
+            </h2>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Purpose</th>
+                        <th>Import Path</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <a href="#resizer">Resizer</a>
+                        </td>
+                        <td>Drag-resize and collapse between panels</td>
+                        <td>
+                            <code>@shared/components/resizer</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#collapsible-panel">Collapsible Panel</a>
+                        </td>
+                        <td>Panel that collapses to icon strip</td>
+                        <td>CSS only</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#selector-nav">Selector Nav</a>
+                        </td>
+                        <td>Vertical icon+label mode switcher</td>
+                        <td>CSS only</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#data-table">DataTable</a>
+                        </td>
+                        <td>Spreadsheet with editing, selection, CSV import</td>
+                        <td>
+                            <code>@shared/components/data-table</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#media-viewer">MediaViewer</a>
+                        </td>
+                        <td>Display images, PDFs, Mermaid, Graphviz</td>
+                        <td>
+                            <code>@shared/components/media-viewer</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#context-zoom">Context Zoom</a>
+                        </td>
+                        <td>Per-pane Ctrl+scroll zoom</td>
+                        <td>
+                            <code>@shared/components/context-zoom</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#file-tabs">File Tabs</a>
+                        </td>
+                        <td>Open file tab management</td>
+                        <td>
+                            <code>@shared/components/file-tabs</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#seekbar">Seekbar</a>
+                        </td>
+                        <td>Media player progress bar</td>
+                        <td>
+                            <code>@shared/components/seekbar</code>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- Component Details -->
+        <span id="resizer"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-arrows-alt-h me-2"></i>Resizer
+            </h2>
+            {% include 'docs_app/shared_partial/ts-resizer.html' %}
+        </section>
+        <span id="collapsible-panel"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-compress-arrows-alt me-2"></i>Collapsible Panel
+            </h2>
+            {% include 'docs_app/shared_partial/ts-collapsible-panel.html' %}
+        </section>
+        <span id="selector-nav"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-ellipsis-v me-2"></i>Selector Nav
+            </h2>
+            {% include 'docs_app/shared_partial/ts-selector-nav.html' %}
+        </section>
+        <span id="data-table"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-table me-2"></i>DataTable
+            </h2>
+            {% include 'docs_app/shared_partial/ts-data-table.html' %}
+        </section>
+        <span id="media-viewer"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-photo-video me-2"></i>MediaViewer
+            </h2>
+            {% include 'docs_app/shared_partial/ts-media-viewer.html' %}
+        </section>
+        <span id="context-zoom"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-search-plus me-2"></i>Context Zoom
+            </h2>
+            {% include 'docs_app/shared_partial/ts-context-zoom.html' %}
+        </section>
+        <span id="file-tabs"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-folder-open me-2"></i>File Tabs
+            </h2>
+            {% include 'docs_app/shared_partial/ts-file-tabs.html' %}
+        </section>
+        <span id="seekbar"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-sliders-h me-2"></i>Seekbar
+            </h2>
+            {% include 'docs_app/shared_partial/ts-seekbar.html' %}
+        </section>
+    </div>
+{% endblock %}

@@ -1,11 +1,24 @@
 {% extends "global_base.html" %}
+
 {% load static vite %}
-{% block title %}{% if reason == "no_cookies" %}Cookies Required{% else %}Visitor Slots Full{% endif %} - SciTeX Cloud{% endblock %}
+
+{% block title %}
+    {% if reason == "no_cookies" %}
+        Cookies Required
+    {% else %}
+        Visitor Slots Full
+    {% endif %}
+    - SciTeX Cloud
+{% endblock %}
 {% block meta_description %}
-    {% if reason == "no_cookies" %}Accept cookies to use the visitor demo, or create a free account.{% else %}All visitor demo slots are currently in use. Create a free account or try again in a few minutes.{% endif %}
+    {% if reason == "no_cookies" %}
+        Accept cookies to use the visitor demo, or create a free account.
+    {% else %}
+        All visitor demo slots are currently in use. Create a free account or try again in a few minutes.
+    {% endif %}
 {% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'public_app/css/visitor-pool-full.css' %}">
+    <link rel="stylesheet" href="{% static 'public_app/css/visitor-pool-full.css' %}" />
 {% endblock %}
 {% block extra_js %}
     {% vite_script 'public_app/pages/visitor-pool-full' %}
@@ -18,12 +31,11 @@
                 <i class="fas fa-cookie-bite"></i>
             </div>
             <h1 class="pool-full-title">Cookies Required for Visitor Slot Allocation</h1>
-            <p class="pool-full-subtitle">
-                Accept cookies to try the demo, or create a free account.
-            </p>
+            <p class="pool-full-subtitle">Accept cookies to try the demo, or create a free account.</p>
             <!-- Actions -->
             <div class="pool-full-actions">
-                <button id="accept-cookies-btn" class="pool-full-action-card pool-full-action-btn primary">
+                <button id="accept-cookies-btn"
+                        class="pool-full-action-card pool-full-action-btn primary">
                     <div class="pool-full-action-icon">
                         <i class="fas fa-cookie"></i>
                     </div>
@@ -38,7 +50,9 @@
                         <i class="fas fa-user-plus"></i>
                     </div>
                     <div class="pool-full-action-content">
-                        <h3>Create Account <span class="pool-full-action-badge">Free</span></h3>
+                        <h3>
+                            Create Account <span class="pool-full-action-badge">Free</span>
+                        </h3>
                         <p>Unlimited access, no cookies needed</p>
                     </div>
                     <i class="fas fa-arrow-right pool-full-action-arrow"></i>
@@ -92,8 +106,7 @@
             <!-- Actions -->
             <div class="pool-full-actions">
                 <!-- Primary Action: Sign Up -->
-                <a href="{% url 'auth_app:signup' %}"
-                   class="pool-full-action-card primary">
+                <a href="{% url 'auth_app:signup' %}" class="pool-full-action-card primary">
                     <div class="pool-full-action-icon">
                         <i class="fas fa-user-plus"></i>
                     </div>
@@ -102,7 +115,7 @@
                             Create Account
                             <span class="pool-full-action-badge">Free</span>
                         </h3>
-                        <p>Get instant access with unlimited sessions and permanent storage.</p>
+                        <p>Get instant access with unlimited sessions and persistent storage.</p>
                     </div>
                     <i class="fas fa-arrow-right pool-full-action-arrow"></i>
                 </a>
@@ -127,9 +140,7 @@
                 <form style="display:none;">
                     {% csrf_token %}
                 </form>
-                <button id="btn-init-pool"
-                        class="btn-init-pool"
-                        onclick="initializeVisitorPool()">
+                <button id="btn-init-pool" class="btn-init-pool" onclick="initializeVisitorPool()">
                     <i class="fas fa-users-cog"></i>
                     Initialize Visitor Pool
                 </button>

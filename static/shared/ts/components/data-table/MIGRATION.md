@@ -26,8 +26,8 @@ All TypeScript files have been copied from `apps/vis_app/static/vis_app/ts/vis/d
 ### 2. Import Path Updates
 
 All imports have been updated to use relative paths within the module:
-- Changed from `'../types.js'` to `'./types.js'`
-- Changed from `'./data-table/TableXxx.js'` to `'./TableXxx.js'`
+- Changed from `'../types.ts'` to `'./types.ts'`
+- Changed from `'./data-table/TableXxx.ts'` to `'./TableXxx.ts'`
 
 ### 3. CSS Files
 
@@ -71,10 +71,10 @@ Modify `apps/vis_app/static/vis_app/ts/` to import from the shared location:
 
 ```typescript
 // OLD
-import { DataTableManager } from './vis/DataTableManager.js';
+import { DataTableManager } from './vis/DataTableManager.ts';
 
 // NEW
-import { DataTableManager } from '/static/shared/js/components/data-table/DataTableManager.js';
+import { DataTableManager } from '/static/shared/js/components/data-table/DataTableManager.ts';
 ```
 
 ### Step 2: Update CSS imports in vis_app
@@ -134,4 +134,4 @@ After successful migration and testing, remove the old vis_app-specific data-tab
 - The vis_app files have NOT been modified yet
 - The shared module is self-contained and ready to use
 - CSS uses `--vis-bg-*` variables which should map to app-specific variables
-- All imports use `.js` extensions for proper ES module support
+- All imports use `.ts` extensions for proper ES module support

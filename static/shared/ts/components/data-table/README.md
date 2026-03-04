@@ -17,8 +17,8 @@ A self-contained, Excel-like data table component with virtual scrolling, cell s
 ### TypeScript
 
 ```typescript
-import { DataTableManager } from '/static/shared/js/components/data-table/DataTableManager.js';
-import type { Dataset } from '/static/shared/js/components/data-table/types.js';
+import { DataTableManager } from '/static/shared/js/components/data-table/DataTableManager.ts';
+import type { Dataset } from '/static/shared/js/components/data-table/types.ts';
 ```
 
 ### CSS
@@ -182,7 +182,7 @@ const TABLE_CONSTANTS = {
 
 ## Notes
 
-- The module uses `.js` extensions in imports for proper ES module support
+- The module uses `.ts` extensions in imports for proper ES module support
 - Virtual scrolling is enabled by default for performance with large datasets
 - The component is self-contained and doesn't depend on vis_app-specific code
 - CSS variables allow apps to customize colors while maintaining the structure

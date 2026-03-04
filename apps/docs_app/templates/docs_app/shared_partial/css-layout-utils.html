@@ -1,0 +1,207 @@
+<h3>Layout Utility Classes</h3>
+<p>
+    Atomic helper classes from <code>static/shared/css/utilities/utils/</code> — globally available on every page via <code>common.css</code>.
+</p>
+<h4>
+    <i class="fas fa-arrows-alt-v me-1"></i>Spacing Utilities (<code>01-spacing.css</code>)
+</h4>
+<p>
+    Follow the pattern <code>{property}{side}-{scale}</code>. Scale maps to spacing variables.
+</p>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Scale</th>
+            <th>Variable</th>
+            <th>Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td>
+                <code>--spacing-xs</code>
+            </td>
+            <td>0.25rem</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>
+                <code>--spacing-sm</code>
+            </td>
+            <td>0.5rem</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>
+                <code>--spacing-md</code>
+            </td>
+            <td>0.75rem</td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td>
+                <code>--spacing-lg</code>
+            </td>
+            <td>1rem</td>
+        </tr>
+        <tr>
+            <td>5</td>
+            <td>
+                <code>--spacing-xl</code>
+            </td>
+            <td>1.5rem</td>
+        </tr>
+        <tr>
+            <td>6</td>
+            <td>
+                <code>--spacing-xxl</code>
+            </td>
+            <td>2rem</td>
+        </tr>
+        <tr>
+            <td>8 / 10 / 12</td>
+            <td>—</td>
+            <td>2.5 / 3 / 4rem</td>
+        </tr>
+    </tbody>
+</table>
+<p>
+    Available prefixes: <code>m</code> (margin), <code>p</code> (padding). Available sides: <code>t</code> top, <code>b</code> bottom, <code>l</code> left, <code>r</code> right, <code>x</code> horizontal, <code>y</code> vertical, or omit for all sides. Special: <code>mx-auto</code>, <code>ml-auto</code>, <code>mr-auto</code>.
+</p>
+<pre><code>&lt;div class="mt-4 mb-2 px-3"&gt;Spaced content&lt;/div&gt;
+&lt;div class="mx-auto p-5"&gt;Centered with padding&lt;/div&gt;</code></pre>
+<h4>
+    <i class="fas fa-eye me-1"></i>Display Utilities (<code>02-display.css</code>)
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Class</th>
+            <th>CSS property</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>.block</code>
+            </td>
+            <td>
+                <code>display: block</code>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>.inline-block</code>
+            </td>
+            <td>
+                <code>display: inline-block</code>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>.inline</code>
+            </td>
+            <td>
+                <code>display: inline</code>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>.flex</code>
+            </td>
+            <td>
+                <code>display: flex</code>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>.inline-flex</code>
+            </td>
+            <td>
+                <code>display: inline-flex</code>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>.grid</code>
+            </td>
+            <td>
+                <code>display: grid</code>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>.hidden</code>
+            </td>
+            <td>
+                <code>display: none</code>
+            </td>
+        </tr>
+    </tbody>
+</table>
+<h4>
+    <i class="fas fa-th me-1"></i>Flexbox Utilities (<code>03-flexbox.css</code>)
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Category</th>
+            <th>Classes</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Direction</td>
+            <td>
+                <code>.flex-row</code> <code>.flex-col</code> <code>.flex-row-reverse</code> <code>.flex-col-reverse</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Wrap</td>
+            <td>
+                <code>.flex-wrap</code> <code>.flex-nowrap</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Justify</td>
+            <td>
+                <code>.justify-start</code> <code>.justify-center</code> <code>.justify-end</code> <code>.justify-between</code> <code>.justify-around</code> <code>.justify-evenly</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Align items</td>
+            <td>
+                <code>.items-start</code> <code>.items-center</code> <code>.items-end</code> <code>.items-baseline</code> <code>.items-stretch</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Align self</td>
+            <td>
+                <code>.self-start</code> <code>.self-center</code> <code>.self-end</code> <code>.self-stretch</code> <code>.self-auto</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Flex sizing</td>
+            <td>
+                <code>.flex-1</code> <code>.flex-auto</code> <code>.flex-none</code> <code>.flex-grow</code> <code>.flex-shrink</code> <code>.flex-shrink-0</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Gap</td>
+            <td>
+                <code>.gap-0</code> through <code>.gap-8</code> (maps to spacing scale)
+            </td>
+        </tr>
+    </tbody>
+</table>
+<pre><code>&lt;div class="flex items-center justify-between gap-3"&gt;
+  &lt;span class="flex-1"&gt;Label&lt;/span&gt;
+  &lt;button class="flex-shrink-0"&gt;Action&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+<div class="api-callout api-callout--info">
+    <i class="fas fa-info-circle me-1"></i>
+    <div>
+        All utility classes use <code>!important</code> to ensure they override component defaults. Additional utility files cover grid (<code>04</code>), text (<code>05</code>), width/height (<code>06</code>), borders (<code>07</code>), overflow (<code>08</code>), position (<code>09</code>), shadow (<code>10</code>), cursor (<code>11</code>), transitions (<code>12</code>), and responsive breakpoints (<code>13</code>).
+    </div>
+</div>

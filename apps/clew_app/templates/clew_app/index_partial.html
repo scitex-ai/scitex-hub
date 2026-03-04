@@ -13,9 +13,8 @@
 <div class="clew-main unified-clew-main" style="flex:1; overflow:auto;">
     <div class="clew-header">
         <span class="clew-header-title">
-            <i class="fas fa-check-circle"></i> Clew Verification
+            <i class="fas fa-check-circle"></i> Clew
         </span>
-        <span class="badge badge-wip">WIP</span>
     </div>
     <div class="dag-visualization-area">
         <div class="dag-placeholder">
@@ -24,16 +23,33 @@
                  style="width:3rem;
                         height:3rem;
                         opacity:0.6" />
-            <h3>DAG Visualization</h3>
-            {% if current_project %}
-                <p>
-                    Verification chain for <strong>{{ current_project.name }}</strong>
-                </p>
-            {% else %}
-                <p>Verification chain will appear here</p>
-            {% endif %}
-            <p class="text-muted">
-                Uses <code>scitex.clew</code> package for dependency tracking
+            <h3>How to Use Clew</h3>
+            <div class="clew-instructions">
+                <div class="clew-direction">
+                    <h4>Forward: Track</h4>
+                    <p>
+                        Use <code>@stx.session</code> and <code>stx.io</code> in your scripts.
+                        Clew automatically records inputs, outputs, and hashes.
+                    </p>
+                    <pre><code>@stx.session
+def main():
+    data = stx.io.load("input.csv")
+    stx.io.save(result, "output.png")</code></pre>
+                </div>
+                <div class="clew-direction">
+                    <h4>Backward: Verify</h4>
+                    <p>
+                        Select any artifact to trace its full dependency chain
+                        back to source data as a DAG.
+                    </p>
+                    <pre><code>scitex clew chain output.png
+scitex clew status
+scitex clew list</code></pre>
+                </div>
+            </div>
+            <p class="text-muted" style="margin-top:0.75rem;">
+                Click <strong>Add Examples</strong> to get started,
+                then run <code>./examples/clew/00_run_all.sh</code> in the terminal.
             </p>
         </div>
     </div>

@@ -40,66 +40,8 @@
     <link rel="stylesheet"
           href="{% static 'dev_app/styles/design/18-component-buttons.css' %}" />
     <style>
-        .design-details {
-            margin-bottom: 1rem;
-        }
-
-        .design-details summary {
-            cursor: pointer;
-            padding: 0.75rem 1rem;
-            background: var(--bg-surface, #1a1a2e);
-            border: 1px solid var(--border-default, #333);
-            border-radius: 6px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-primary, #e0e0e0);
-            list-style: none;
-        }
-
-        .design-details summary::-webkit-details-marker {
-            display: none;
-        }
-
-        .design-details summary::before {
-            content: "\f054";
-            font-family: "Font Awesome 5 Free";
-            font-weight: 900;
-            margin-right: 0.75rem;
-            font-size: 0.8rem;
-            transition: transform 0.2s;
-            display: inline-block;
-        }
-
-        .design-details[open] summary::before {
-            transform: rotate(90deg);
-        }
-
-        .design-details[open] summary {
-            border-radius: 6px 6px 0 0;
-            border-bottom: none;
-        }
-
-        .design-details .details-content {
-            padding: 1rem;
-            border: 1px solid var(--border-default, #333);
-            border-top: none;
-            border-radius: 0 0 6px 6px;
-            background: var(--bg-surface, #1a1a2e);
-        }
-
-        .design-details .section-header-icon {
-            width: 20px;
-            height: 20px;
-        }
-
-        /* Hide duplicate section headers (already shown in <summary>) */
-        .design-details .details-content>section>.section-header:first-child,
-        .design-details .details-content>section>h2:first-child {
-            display: none;
-        }
-
-        /* Collapsible code examples */
-        .design-details .code-collapse summary {
+        /* Collapsible code examples within design partials */
+        .code-collapse summary {
             font-size: 0.85rem;
             padding: 0.4rem 0.75rem;
             background: var(--bg-elevated, #161b22);
@@ -110,13 +52,13 @@
             margin-bottom: 0.5rem;
         }
 
-        .design-details .code-collapse[open] summary {
+        .code-collapse[open] summary {
             border-radius: 4px 4px 0 0;
             border-bottom: none;
             margin-bottom: 0;
         }
 
-        .design-details .code-collapse pre {
+        .code-collapse pre {
             margin-top: 0;
             border-radius: 0 0 4px 4px;
         }
@@ -142,153 +84,175 @@
             </a>
         </p>
         <!-- Rules -->
-        <details class="design-details" id="usage-guidelines">
-            <summary>
+        <span id="usage-guidelines"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-check-circle me-2"></i>Usage Guidelines
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/guidelines.html' %}</div>
-        </details>
-        <details class="design-details" id="workspace-layout">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/guidelines.html' %}
+        </section>
+        <span id="workspace-layout"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-columns me-2"></i>Workspace Layout
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/workspace-layout.html' %}</div>
-        </details>
-        <details class="design-details" id="visitor-system">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/workspace-layout.html' %}
+        </section>
+        <span id="visitor-system"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-user-clock me-2"></i>Visitor System
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/visitor-system.html' %}</div>
-        </details>
+            </h2>
+            {% include 'docs_app/design_partial/visitor-system.html' %}
+        </section>
         <!-- Design Foundations -->
-        <details class="design-details" id="typography">
-            <summary>
+        <span id="typography"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-font me-2"></i>Typography
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/typography.html' %}</div>
-        </details>
-        <details class="design-details" id="spacing">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/typography.html' %}
+        </section>
+        <span id="spacing"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-arrows-alt me-2"></i>Spacing
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/spacing.html' %}</div>
-        </details>
-        <details class="design-details" id="colors">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/spacing.html' %}
+        </section>
+        <span id="colors"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-palette me-2"></i>Colors
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/colors.html' %}</div>
-        </details>
-        <details class="design-details" id="code-blocks">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/colors.html' %}
+        </section>
+        <span id="code-blocks"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-code me-2"></i>Code Blocks
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/code.html' %}</div>
-        </details>
-        <details class="design-details" id="theme">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/code.html' %}
+        </section>
+        <span id="theme"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-adjust me-2"></i>Theme
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/theme.html' %}</div>
-        </details>
+            </h2>
+            {% include 'docs_app/design_partial/theme.html' %}
+        </section>
         <!-- Components -->
-        <details class="design-details" id="badge">
-            <summary>
+        <span id="badge"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-tag me-2"></i>Badge
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/badge.html' %}</div>
-        </details>
-        <details class="design-details" id="button">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/badge.html' %}
+        </section>
+        <span id="button"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-hand-pointer me-2"></i>Button
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/button.html' %}</div>
-        </details>
-        <details class="design-details" id="card">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/button.html' %}
+        </section>
+        <span id="card"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-square me-2"></i>Card
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/card.html' %}</div>
-        </details>
-        <details class="design-details" id="checkbox">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/card.html' %}
+        </section>
+        <span id="checkbox"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-check-square me-2"></i>Checkbox
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/checkbox.html' %}</div>
-        </details>
-        <details class="design-details" id="form-input">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/checkbox.html' %}
+        </section>
+        <span id="form-input"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-keyboard me-2"></i>Form Input
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/form-input.html' %}</div>
-        </details>
-        <details class="design-details" id="toggle-button">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/form-input.html' %}
+        </section>
+        <span id="toggle-button"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-toggle-on me-2"></i>Toggle Button
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/toggle-button-checkbox.html' %}</div>
-        </details>
-        <details class="design-details" id="select-dropdown">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/toggle-button-checkbox.html' %}
+        </section>
+        <span id="select-dropdown"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-list me-2"></i>Select Dropdown
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/select-dropdown.html' %}</div>
-        </details>
-        <details class="design-details" id="tabs">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/select-dropdown.html' %}
+        </section>
+        <span id="tabs"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-folder me-2"></i>Tabs
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/tabs.html' %}</div>
-        </details>
-        <details class="design-details" id="breadcrumb">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/tabs.html' %}
+        </section>
+        <span id="breadcrumb"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-route me-2"></i>Breadcrumb
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/breadcrumb.html' %}</div>
-        </details>
-        <details class="design-details" id="dropdown-menu">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/breadcrumb.html' %}
+        </section>
+        <span id="dropdown-menu"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-ellipsis-v me-2"></i>Dropdown Menu
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/dropdown-menu.html' %}</div>
-        </details>
-        <details class="design-details" id="file-upload">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/dropdown-menu.html' %}
+        </section>
+        <span id="file-upload"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-upload me-2"></i>File Upload
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/file-upload.html' %}</div>
-        </details>
-        <details class="design-details" id="segmented-radio">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/file-upload.html' %}
+        </section>
+        <span id="segmented-radio"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-sliders-h me-2"></i>Segmented Radio
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/segmented-radio-control.html' %}</div>
-        </details>
-        <details class="design-details" id="navbar">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/segmented-radio-control.html' %}
+        </section>
+        <span id="navbar"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-bars me-2"></i>Navbar
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/navbar.html' %}</div>
-        </details>
-        <details class="design-details" id="alerts">
-            <summary>
+            </h2>
+            {% include 'docs_app/design_partial/navbar.html' %}
+        </section>
+        <span id="alerts"></span>
+        <section class="api-section">
+            <h2>
                 <i class="fas fa-exclamation-triangle me-2"></i>Alerts
-            </summary>
-            <div class="details-content">{% include 'docs_app/design_partial/alerts.html' %}</div>
-        </details>
+            </h2>
+            {% include 'docs_app/design_partial/alerts.html' %}
+        </section>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script>
         (function() {
             function init() {
-                var container = document.querySelector(".design-details");
-                if (!container) return;
+                var sections = document.querySelectorAll(".api-section");
+                if (!sections.length) return;
                 // Highlight code blocks
-                document.querySelectorAll(".design-details pre code").forEach(function(block) {
+                document.querySelectorAll(".api-section pre code").forEach(function(block) {
                     if (typeof hljs !== "undefined") hljs.highlightElement(block);
                 });
                 // Wrap code examples in collapsible <details>
-                document.querySelectorAll(".design-details .details-content pre").forEach(function(pre) {
+                document.querySelectorAll(".api-section pre").forEach(function(pre) {
                     if (pre.closest(".code-collapse")) return;
                     var code = pre.querySelector("code");
                     var lang = "";
@@ -303,27 +267,6 @@
                     details.appendChild(summary);
                     pre.parentNode.insertBefore(details, pre);
                     details.appendChild(pre);
-                });
-                // Anchor: auto-open section from URL hash (design-rules--sectionId)
-                var hash = window.location.hash.replace("#", "");
-                var parts = hash.split("--");
-                var anchorId = parts[1] || null;
-                if (anchorId) {
-                    var target = document.getElementById(anchorId);
-                    if (target && target.classList.contains("design-details")) {
-                        target.open = true;
-                        setTimeout(function() {
-                            target.scrollIntoView({ behavior: "smooth", block: "start" });
-                        }, 100);
-                    }
-                }
-                // Update URL hash on section open
-                document.querySelectorAll(".design-details[id]").forEach(function(det) {
-                    det.addEventListener("toggle", function() {
-                        if (det.open) {
-                            history.replaceState(null, "", "#design-rules--" + det.id);
-                        }
-                    });
                 });
             }
             if (document.readyState === "loading") {

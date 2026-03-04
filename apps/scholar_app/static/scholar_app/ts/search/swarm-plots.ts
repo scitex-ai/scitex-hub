@@ -1,10 +1,10 @@
 /**
  * Swarm Plot Visualization for SciTeX Scholar Filters
  *
- * Creates interactive swarm plots using Plotly.js to visualize the distribution of papers
+ * Creates interactive swarm plots using Plotly.ts to visualize the distribution of papers
  * across Year, Citations, and Impact Factor dimensions. Syncs with result cards.
  *
- * External library: Plotly.js (requires `any` types or @ts-ignore)
+ * External library: Plotly.ts (requires `any` types or @ts-ignore)
  *
  * @version 2.0.0
  */
@@ -92,7 +92,7 @@ const SwarmPlots = {
 
   /**
    * Initialize swarm plots with paper data.
-   * Lazy-loads Plotly.js (~3.5MB) only when actually needed.
+   * Lazy-loads Plotly.ts (~3.5MB) only when actually needed.
    */
   init: function (papers: PaperData[]): void {
     console.log("[SwarmPlots] Initializing with", papers.length, "papers");
@@ -105,7 +105,7 @@ const SwarmPlots = {
     function doInit(): void {
       if (typeof Plotly === "undefined") {
         console.warn(
-          "[SwarmPlots] Plotly.js not available, skipping visualization",
+          "[SwarmPlots] Plotly.ts not available, skipping visualization",
         );
         return;
       }

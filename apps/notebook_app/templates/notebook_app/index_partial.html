@@ -1,0 +1,137 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'notebook_app/css/notebook.css' %}" />
+{% if current_project %}
+    <div id="workspace-project-config"
+         style="display:none"
+         data-project-id="{{ current_project.id }}"
+         data-username="{{ current_project.owner.username }}"
+         data-slug="{{ current_project.slug }}"
+         data-mode="notebook"></div>
+{% endif %}
+<div class="notebook-workspace">
+    <div class="notebook-content">
+        <!-- Header -->
+        <div class="notebook-header">
+            <h1>
+                <i class="fas fa-flask"></i> Lab Notebook
+            </h1>
+            <p>Experiment logger — proof of platform DataStore, FileVault, and JobQueue.</p>
+        </div>
+        <!-- Add experiment form -->
+        <div class="notebook-card">
+            <h3>
+                <i class="fas fa-plus"></i> Log Experiment
+            </h3>
+            <form id="notebook-form">
+                <div class="notebook-row">
+                    <input type="text" id="nb-title" placeholder="Title" required />
+                    <input type="date" id="nb-date" />
+                    <select id="nb-status">
+                        <option value="planned">Planned</option>
+                        <option value="running">Running</option>
+                        <option value="completed">Completed</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+                <textarea id="nb-notes" placeholder="Notes (optional)" rows="2"></textarea>
+                <div class="notebook-actions">
+                    <button type="submit" class="notebook-btn">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                    <span id="nb-msg" class="notebook-msg"></span>
+                </div>
+            </form>
+        </div>
+        <!-- Experiment list -->
+        <div class="notebook-card">
+            <h3>
+                <i class="fas fa-list"></i> Experiments
+            </h3>
+            <div id="nb-list">
+                <span class="notebook-muted">Loading…</span>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+  "use strict";
+
+  var BASE = "/platform/api/data/notebook/Experiment/";
+
+  function csrf() {
+    var el = document.querySelector("[name=csrfmiddlewaretoken]");
+    return el ? el.value : "";
+  }
+
+  function projectId() {
+    var el = document.getElementById("workspace-project-config");
+    return el ? el.getAttribute("data-project-id") : null;
+  }
+
+  function statusBadge(s) {
+    var colors = {planned:"#8b949e", running:"#d4a87a", completed:"#6ba89a", failed:"#c08888"};
+    return '<span style="color:' + (colors[s] || "#8b949e") + '">' + s + '</span>';
+  }
+
+  function loadList() {
+    var pid = projectId();
+    var url = pid ? BASE + "?project=" + pid : BASE;
+    fetch(url, {credentials:"same-origin"})
+      .then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function(data) {
+        var items = data.results || data;
+        var el = document.getElementById("nb-list");
+        if (!Array.isArray(items) || items.length === 0) {
+          el.innerHTML = '<span class="notebook-muted">No experiments yet.</span>';
+          return;
+        }
+        el.innerHTML = items.map(function(e) {
+          var d = e.data || e;
+          return '<div class="notebook-item">'
+            + '<strong>' + (d.title || "Untitled") + '</strong>'
+            + ' <span class="notebook-date">' + (d.date || "") + '</span>'
+            + ' ' + statusBadge(d.status || "planned")
+            + '<p class="notebook-notes">' + (d.notes || "") + '</p>'
+            + '</div>';
+        }).join("");
+      })
+      .catch(function(e){ document.getElementById("nb-list").textContent = "Error: " + e.message; });
+  }
+
+  function showMsg(text, ok) {
+    var el = document.getElementById("nb-msg");
+    el.textContent = text;
+    el.style.color = ok ? "var(--success-color,#6ba89a)" : "var(--error-color,#c08888)";
+    setTimeout(function(){ el.textContent = ""; }, 3000);
+  }
+
+  document.getElementById("notebook-form").addEventListener("submit", function(ev) {
+    ev.preventDefault();
+    var pid = projectId();
+    var payload = {
+      data: {
+        title: document.getElementById("nb-title").value,
+        date: document.getElementById("nb-date").value,
+        status: document.getElementById("nb-status").value,
+        notes: document.getElementById("nb-notes").value,
+        tags: []
+      }
+    };
+    if (pid) payload.project = pid;
+
+    fetch(BASE, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {"Content-Type":"application/json","X-CSRFToken":csrf()},
+      body: JSON.stringify(payload)
+    })
+      .then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function(){ showMsg("Saved.", true); document.getElementById("notebook-form").reset(); loadList(); })
+      .catch(function(e){ showMsg("Error: " + e.message, false); });
+  });
+
+  loadList();
+}());
+</script>

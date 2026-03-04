@@ -385,6 +385,15 @@ export class ContextMenuHandler {
     );
     items.push({ label: "", action: "", separator: true });
 
+    // Tools
+    items.push({
+      label: "Clew",
+      icon: "fa-fingerprint",
+      action: "clew",
+      cssClass: "context-clew",
+    });
+    items.push({ label: "", action: "", separator: true });
+
     // Utility
     items.push(
       {

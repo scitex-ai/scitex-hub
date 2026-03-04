@@ -1,0 +1,115 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}Shared: CSS System — SciTeX Documentation{% endblock %}
+{% block meta_description %}
+    SciTeX CSS design system: design tokens, theme system, layout utilities, and component styles for app development.
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container py-2">
+        <header class="minimal-hero" style="text-align: center">
+            <div class="api-hero-header" style="justify-content: center">
+                <h1 class="minimal-hero-title">Shared: CSS System</h1>
+            </div>
+        </header>
+    </div>
+    <div class="container py-2" style="max-width: 1000px">
+        <p class="text-muted mb-4">
+            SciTeX CSS design system: semantic design tokens, theme support,
+            layout utilities, and component styles. All loaded globally &mdash;
+            scope your module CSS with <code>[data-mode="yourmodule"]</code>.
+        </p>
+        <!-- Quick Reference -->
+        <span id="quick-ref"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-list"></i> Quick Reference
+            </h2>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Topic</th>
+                        <th>Contents</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <a href="#primitives">Design Tokens</a>
+                        </td>
+                        <td>Color, text, background, border, accent CSS variables</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#theming">Theme System</a>
+                        </td>
+                        <td>
+                            Light/dark mode, <code>[data-theme]</code>, module accent colors
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#layout-utils">Layout Utilities</a>
+                        </td>
+                        <td>Spacing, display, flexbox, grid utility classes</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#component-styles">Component Styles</a>
+                        </td>
+                        <td>Auto-loaded CSS for buttons, forms, tabs, cards, etc.</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#scoping">CSS Scoping</a>
+                        </td>
+                        <td>
+                            <code>[data-mode]</code> requirement, naming conventions, leak prevention
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- CSS Details -->
+        <span id="primitives"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-palette me-2"></i>Design Tokens
+            </h2>
+            {% include 'docs_app/shared_partial/css-primitives.html' %}
+        </section>
+        <span id="theming"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-adjust me-2"></i>Theme System
+            </h2>
+            {% include 'docs_app/shared_partial/css-theming.html' %}
+        </section>
+        <span id="layout-utils"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-th me-2"></i>Layout Utilities
+            </h2>
+            {% include 'docs_app/shared_partial/css-layout-utils.html' %}
+        </section>
+        <span id="component-styles"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-puzzle-piece me-2"></i>Component Styles
+            </h2>
+            {% include 'docs_app/shared_partial/css-component-styles.html' %}
+        </section>
+        <span id="scoping"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-lock me-2"></i>CSS Scoping
+            </h2>
+            {% include 'docs_app/shared_partial/css-scoping.html' %}
+        </section>
+    </div>
+{% endblock %}

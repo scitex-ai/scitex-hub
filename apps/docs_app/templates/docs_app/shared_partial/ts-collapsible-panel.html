@@ -1,0 +1,150 @@
+<h3>Collapsible Panel</h3>
+<p>
+    A CSS-only collapsible sidebar or properties panel that collapses to 48px and hides content, with smooth width transitions.
+</p>
+<h4>
+    <i class="fas fa-download me-1"></i>Import
+</h4>
+<pre><code>/* CSS is auto-loaded globally — no import needed. */
+/* Toggle collapse state in TypeScript: */
+panel.classList.toggle('collapsed');</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>HTML
+</h4>
+<pre><code>&lt;aside class="collapsible-panel"&gt;
+  &lt;div class="panel-header"&gt;
+    &lt;h2 class="panel-title"&gt;
+      &lt;i class="fas fa-cog"&gt;&lt;/i&gt;
+      Settings
+    &lt;/h2&gt;
+    &lt;button class="panel-toggle-btn" onclick="this.closest('.collapsible-panel').classList.toggle('collapsed')"&gt;
+      &lt;i class="fas fa-chevron-left"&gt;&lt;/i&gt;
+    &lt;/button&gt;
+  &lt;/div&gt;
+
+  &lt;div class="panel-content"&gt;
+    &lt;!-- your panel body content --&gt;
+  &lt;/div&gt;
+
+  &lt;div class="panel-footer"&gt;
+    &lt;!-- optional footer --&gt;
+  &lt;/div&gt;
+&lt;/aside&gt;</code></pre>
+<h4>
+    <i class="fas fa-sliders-h me-1"></i>CSS Classes
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Class</th>
+            <th>Element</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>.collapsible-panel</code>
+            </td>
+            <td>
+                <code>&lt;aside&gt;</code> / <code>&lt;div&gt;</code>
+            </td>
+            <td>
+                Root panel wrapper. Apply <code>.collapsed</code> to collapse.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>.collapsed</code>
+            </td>
+            <td>modifier on root</td>
+            <td>
+                Shrinks panel to <code>--ui-collapsed-pane-width</code> (default 48px), hides content, makes header vertical
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>.panel-header</code>
+            </td>
+            <td>
+                child <code>&lt;div&gt;</code>
+            </td>
+            <td>Top bar with title and toggle button (height 50px, flex row)</td>
+        </tr>
+        <tr>
+            <td>
+                <code>.panel-title</code>
+            </td>
+            <td>child of header</td>
+            <td>Heading text; when collapsed, shows icon above label at 9px</td>
+        </tr>
+        <tr>
+            <td>
+                <code>.panel-toggle-btn</code>
+            </td>
+            <td>child of header</td>
+            <td>Button to toggle collapsed state; compact style when collapsed</td>
+        </tr>
+        <tr>
+            <td>
+                <code>.panel-content</code>
+            </td>
+            <td>
+                child <code>&lt;div&gt;</code>
+            </td>
+            <td>Main scrollable body; hidden when collapsed</td>
+        </tr>
+        <tr>
+            <td>
+                <code>.panel-body</code>
+            </td>
+            <td>alias</td>
+            <td>
+                Also hidden when collapsed (alternative to <code>.panel-content</code>)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>.panel-footer</code>
+            </td>
+            <td>
+                child <code>&lt;div&gt;</code>
+            </td>
+            <td>Optional bottom area; hidden when collapsed</td>
+        </tr>
+    </tbody>
+</table>
+<h4>
+    <i class="fas fa-palette me-1"></i>CSS Variables
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Variable</th>
+            <th>Default</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>--ui-collapsed-pane-width</code>
+            </td>
+            <td>48px</td>
+            <td>Width of the panel when collapsed</td>
+        </tr>
+        <tr>
+            <td>
+                <code>--ui-nav-icon-size</code>
+            </td>
+            <td>20px</td>
+            <td>Icon size shown in the collapsed header</td>
+        </tr>
+    </tbody>
+</table>
+<div class="api-callout api-callout-info">
+    <i class="fas fa-info-circle"></i>
+    <div>
+        Clicking anywhere on a collapsed panel expands it because <code>cursor: pointer</code> is applied to the root. The header layout changes to vertical (icon above label) automatically when <code>.collapsed</code> is present.
+    </div>
+</div>

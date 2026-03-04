@@ -1,0 +1,147 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}Shared: Utilities — SciTeX Documentation{% endblock %}
+{% block meta_description %}
+    Shared TypeScript utility functions for SciTeX app development: API client, CSRF, storage, UI helpers.
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container py-2">
+        <header class="minimal-hero" style="text-align: center">
+            <div class="api-hero-header" style="justify-content: center">
+                <h1 class="minimal-hero-title">Shared: Utilities</h1>
+            </div>
+        </header>
+    </div>
+    <div class="container py-2" style="max-width: 1000px">
+        <p class="text-muted mb-4">
+            Shared TypeScript utility functions available via
+            <code>import { ... } from '@shared/utils'</code>.
+            These are auto-loaded on every page.
+        </p>
+        <!-- Quick Reference -->
+        <span id="quick-ref"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-list"></i> Quick Reference
+            </h2>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Utility</th>
+                        <th>Key Exports</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <a href="#api-client">API Client</a>
+                        </td>
+                        <td>
+                            <code>apiClient.get()</code>, <code>.post()</code>, <code>.put()</code>, <code>.delete()</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#csrf">CSRF</a>
+                        </td>
+                        <td>
+                            <code>getCsrfToken()</code>, <code>createHeadersWithCsrf()</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#storage">StorageManager</a>
+                        </td>
+                        <td>
+                            <code>globalStorage.save()</code>, <code>.load()</code>, <code>.remove()</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#ui-helpers">UI Helpers</a>
+                        </td>
+                        <td>
+                            <code>showToast()</code>, <code>Modal</code>, <code>confirm()</code>, <code>debounce()</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#theme">Theme Switcher</a>
+                        </td>
+                        <td>
+                            <code>data-theme</code> attribute, toggle API
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#keyboard">Keyboard Shortcuts</a>
+                        </td>
+                        <td>Alt+A (AI), Alt+T (pane cycle), Ctrl+U (upload)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#file-icons">File Icons</a>
+                        </td>
+                        <td>Extension-to-icon mapping</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- Utility Details -->
+        <span id="api-client"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-plug me-2"></i>API Client
+            </h2>
+            {% include 'docs_app/shared_partial/ts-util-api.html' %}
+        </section>
+        <span id="csrf"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-shield-alt me-2"></i>CSRF
+            </h2>
+            {% include 'docs_app/shared_partial/ts-util-csrf.html' %}
+        </section>
+        <span id="storage"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-database me-2"></i>StorageManager
+            </h2>
+            {% include 'docs_app/shared_partial/ts-util-storage.html' %}
+        </section>
+        <span id="ui-helpers"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-bell me-2"></i>UI Helpers
+            </h2>
+            {% include 'docs_app/shared_partial/ts-util-ui.html' %}
+        </section>
+        <span id="theme"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-adjust me-2"></i>Theme Switcher
+            </h2>
+            {% include 'docs_app/shared_partial/ts-util-theme.html' %}
+        </section>
+        <span id="keyboard"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-keyboard me-2"></i>Keyboard Shortcuts
+            </h2>
+            {% include 'docs_app/shared_partial/ts-util-keyboard.html' %}
+        </section>
+        <span id="file-icons"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-icons me-2"></i>File Icons
+            </h2>
+            {% include 'docs_app/shared_partial/ts-util-file-icons.html' %}
+        </section>
+    </div>
+{% endblock %}

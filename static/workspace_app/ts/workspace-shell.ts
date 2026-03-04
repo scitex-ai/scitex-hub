@@ -33,6 +33,7 @@ async function switchModule(name: string): Promise<void> {
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const html = await resp.text();
     pane.innerHTML = html;
+    reLoadStyles(pane);
     reExecScripts(pane);
     updateActiveTab(name);
     window._appNav?.push({ module: name });
@@ -60,6 +61,25 @@ function reExecScripts(container: HTMLElement): void {
     Array.from(old.attributes).forEach((a) => s.setAttribute(a.name, a.value));
     s.textContent = old.textContent;
     old.replaceWith(s);
+  });
+}
+
+/** Move <link rel="stylesheet"> from AJAX-injected content into <head>.
+ *  Browsers ignore <link> tags set via innerHTML; we must re-inject them. */
+function reLoadStyles(container: HTMLElement): void {
+  container.querySelectorAll('link[rel="stylesheet"]').forEach((link) => {
+    const href = link.getAttribute("href");
+    if (!href) return;
+    // Skip if already loaded in <head>
+    if (document.querySelector(`head link[href="${href}"]`)) {
+      link.remove();
+      return;
+    }
+    const el = document.createElement("link");
+    el.rel = "stylesheet";
+    el.href = href;
+    document.head.appendChild(el);
+    link.remove();
   });
 }
 

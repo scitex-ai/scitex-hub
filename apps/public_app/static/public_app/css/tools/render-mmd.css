@@ -1,0 +1,159 @@
+/* Layout styles for the Mermaid Diagram Renderer tool page */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.tool-detail-container {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tool-header {
+  text-align: center;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.tool-subtitle {
+  font-size: 18px;
+  color: var(--text-secondary);
+}
+
+.tool-title {
+  font-size: 42px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.tool-breadcrumb {
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.tool-breadcrumb a {
+  color: var(--workspace-text-link, #58a6ff);
+  text-decoration: none;
+}
+
+.editor-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  flex: 1;
+  min-height: 0;
+  background: var(--workspace-border-default, #30363d);
+  border-radius: 0 0 6px 6px;
+  overflow: hidden;
+}
+
+@media (max-width: 1024px) {
+  .editor-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.editor-panel,
+.preview-panel {
+  background: var(--workspace-bg-monaco, #1e1e1e);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  background: var(--workspace-bg-secondary, #161b22);
+  padding: 0 12px;
+  height: 36px;
+  border-bottom: 1px solid var(--workspace-border-default, #30363d);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.panel-title {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--workspace-text-secondary, #8b949e);
+}
+
+.panel-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-small {
+  padding: 3px 10px;
+  background: transparent;
+  color: var(--workspace-text-secondary, #8b949e);
+  border: 1px solid var(--workspace-border-default, #30363d);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.15s ease;
+}
+
+.btn-small:hover {
+  background: var(--workspace-bg-tertiary, #21262d);
+  color: var(--workspace-text-primary, #c9d1d9);
+  border-color: var(--workspace-text-muted, #484f58);
+}
+
+#mermaidInput {
+  flex: 1;
+  border: none;
+  padding: 16px;
+  font-family: "JetBrains Mono", "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  resize: none;
+  background: var(--workspace-bg-monaco, #1e1e1e);
+  color: var(--workspace-text-primary, #c9d1d9);
+}
+
+#mermaidInput::placeholder {
+  color: var(--workspace-text-muted, #484f58);
+}
+
+#mermaidInput:focus {
+  outline: none;
+}
+
+#mermaidOutput {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: 16px;
+  background: var(--workspace-bg-monaco, #1e1e1e);
+}
+
+#mermaidOutput svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.mermaid-empty-state {
+  text-align: center;
+  color: var(--workspace-text-muted, #484f58);
+  font-size: 13px;
+}
+
+.error-bar {
+  padding: 4px 12px;
+  font-size: 11px;
+  color: var(--status-error);
+  background: var(--workspace-bg-secondary, #161b22);
+  border-top: 1px solid var(--workspace-border-default, #30363d);
+  flex-shrink: 0;
+  display: none;
+}

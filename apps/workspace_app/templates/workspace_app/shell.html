@@ -4,6 +4,11 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'workspace_app/css/workspace-shell.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-files-tree.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="workspace-shell"

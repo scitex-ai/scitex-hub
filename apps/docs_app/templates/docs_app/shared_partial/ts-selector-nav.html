@@ -1,0 +1,94 @@
+<h3>Selector Nav</h3>
+<p>A vertical icon-and-label navigation strip used for app switching, mode selection, or any vertical sidebar nav.</p>
+<h4>
+    <i class="fas fa-download me-1"></i>Import
+</h4>
+<pre><code>/* CSS is auto-loaded globally — no import needed. */
+/* Manage active state in TypeScript: */
+items.forEach(i => i.classList.remove('active'));
+clickedItem.classList.add('active');</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>HTML — With Links
+</h4>
+<pre><code>&lt;nav class="selector-nav" id="my-app-nav"&gt;
+  &lt;a class="selector-nav-item active" href="/workspace/code/"&gt;
+    &lt;i class="fas fa-code"&gt;&lt;/i&gt;
+    &lt;span class="selector-nav-label"&gt;Code&lt;/span&gt;
+  &lt;/a&gt;
+  &lt;a class="selector-nav-item" href="/workspace/writer/"&gt;
+    &lt;i class="fas fa-pen"&gt;&lt;/i&gt;
+    &lt;span class="selector-nav-label"&gt;Writer&lt;/span&gt;
+  &lt;/a&gt;
+  &lt;a class="selector-nav-item" href="/workspace/vis/"&gt;
+    &lt;i class="fas fa-chart-bar"&gt;&lt;/i&gt;
+    &lt;span class="selector-nav-label"&gt;Vis&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/nav&gt;</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>HTML — With Buttons and Right Indicator
+</h4>
+<pre><code>&lt;nav class="selector-nav" data-indicator="right" id="my-mode-nav"&gt;
+  &lt;button class="selector-nav-item active" data-mode="edit"&gt;
+    &lt;i class="fas fa-edit"&gt;&lt;/i&gt;
+    &lt;span class="selector-nav-label"&gt;Edit&lt;/span&gt;
+  &lt;/button&gt;
+  &lt;button class="selector-nav-item" data-mode="preview"&gt;
+    &lt;i class="fas fa-eye"&gt;&lt;/i&gt;
+    &lt;span class="selector-nav-label"&gt;Preview&lt;/span&gt;
+  &lt;/button&gt;
+&lt;/nav&gt;</code></pre>
+<h4>
+    <i class="fas fa-sliders-h me-1"></i>CSS Classes &amp; Attributes
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>.selector-nav</code>
+            </td>
+            <td>class</td>
+            <td>Container: vertical flex column, dark background, scrollable</td>
+        </tr>
+        <tr>
+            <td>
+                <code>.selector-nav-item</code>
+            </td>
+            <td>class</td>
+            <td>Each nav item: icon above label, 8px vertical padding, hover and active states</td>
+        </tr>
+        <tr>
+            <td>
+                <code>.selector-nav-label</code>
+            </td>
+            <td>class</td>
+            <td>Text label below the icon (9px, uppercase letter-spacing)</td>
+        </tr>
+        <tr>
+            <td>
+                <code>.active</code>
+            </td>
+            <td>modifier on item</td>
+            <td>Highlights the item with primary icon color and active indicator</td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-indicator="right"</code>
+            </td>
+            <td>attribute on nav</td>
+            <td>Shows the active indicator bar on the right edge instead of left (default)</td>
+        </tr>
+    </tbody>
+</table>
+<div class="api-callout api-callout-info">
+    <i class="fas fa-info-circle"></i>
+    <div>
+        Active state management (toggling <code>.active</code>) is your responsibility. The component provides only styling. Use <code>&lt;a&gt;</code> tags for navigation and <code>&lt;button&gt;</code> tags for in-page mode switching.
+    </div>
+</div>

@@ -33,10 +33,10 @@ export function generateEntriesRecursive(
         scan(resolve(currentDir, item.name), `${currentPrefix}/${item.name}`);
       } else if (
         item.isFile() &&
-        item.name.endsWith(".ts") &&
+        (item.name.endsWith(".ts") || item.name.endsWith(".tsx")) &&
         !item.name.endsWith(".d.ts")
       ) {
-        const name = item.name.replace(".ts", "");
+        const name = item.name.replace(/\.tsx?$/, "");
         entries[`${currentPrefix}/${name}`] = resolve(currentDir, item.name);
       }
     }
@@ -148,6 +148,16 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
     "workspace_app/workspace-shell": r(
       rootDir,
       "static/workspace_app/ts/workspace-shell.ts",
+    ),
+
+    // Dev app scripts (standalone utilities)
+    "dev_app/scripts/design": r(
+      rootDir,
+      "apps/dev_app/static/dev_app/scripts/design.ts",
+    ),
+    "dev_app/scripts/scitex-icon-generator": r(
+      rootDir,
+      "apps/dev_app/static/dev_app/scripts/scitex-icon-generator.ts",
     ),
   };
 }

@@ -152,3 +152,42 @@ export async function buildContextFromPlot(
     summary: data.summary,
   };
 }
+
+/**
+ * Forward a stat annotation to figrecipe's bracket rendering API.
+ *
+ * Converts scitex.stats StatAnnotation → figrecipe stat_bracket format,
+ * then POSTs to the figrecipe stats/add_bracket handler.
+ */
+export async function forwardStatToFigrecipe(
+  annotation: StatAnnotation,
+  axIndex: number = 0,
+  groupPositions?: { x1: number; x2: number },
+): Promise<{ bracket_id: string; preview: string }> {
+  const bracket = {
+    type: "stat_bracket",
+    ax_index: axIndex,
+    x1: groupPositions?.x1 ?? 0,
+    x2: groupPositions?.x2 ?? 1,
+    y: null, // auto-place
+    p_value: annotation.p_value,
+    stars: annotation.stars,
+    label: "",
+    style: "bracket",
+    effect_size: annotation.effect_size?.value ?? null,
+    effect_size_name: annotation.effect_size?.name ?? null,
+  };
+
+  const response = await fetch("/vis-react/figrecipe/stats/add_bracket", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(bracket),
+  });
+
+  const data = await response.json();
+  if (!data.success) {
+    throw new Error(data.error || "Failed to add stat bracket to figure");
+  }
+
+  return { bracket_id: data.bracket_id, preview: data.preview };
+}

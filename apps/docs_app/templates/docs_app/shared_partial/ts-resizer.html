@@ -1,0 +1,162 @@
+<h3>Resizer</h3>
+<p>Drag-to-resize panels horizontally or vertically, with collapse/expand and persistent sizing via localStorage.</p>
+<h4>
+    <i class="fas fa-download me-1"></i>Import
+</h4>
+<pre><code>// Auto-initialized from data attributes — no import required.
+// For manual use:
+import { HorizontalResizer, VerticalResizer, autoInit } from '@shared/components/resizer';</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>HTML — Horizontal
+</h4>
+<pre><code>&lt;div class="my-layout" style="display:flex"&gt;
+  &lt;div class="left-panel" style="width:240px"&gt;...&lt;/div&gt;
+
+  &lt;div class="h-resizer"
+       data-h-resizer
+       data-left=".left-panel"
+       data-right=".right-panel"
+       data-icon="fa-chevron-left"
+       data-title="Files"
+       data-most-left
+       data-threshold="40"&gt;
+  &lt;/div&gt;
+
+  &lt;div class="right-panel" style="flex:1"&gt;...&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>HTML — Vertical
+</h4>
+<pre><code>&lt;div class="my-layout" style="display:flex;flex-direction:column"&gt;
+  &lt;div class="top-panel" style="height:300px"&gt;...&lt;/div&gt;
+
+  &lt;div class="v-resizer"
+       data-v-resizer
+       data-top=".top-panel"
+       data-bottom=".bottom-panel"
+       data-icon="fa-chevron-up"
+       data-title="Output"
+       data-most-bottom
+       data-threshold="40"&gt;
+  &lt;/div&gt;
+
+  &lt;div class="bottom-panel" style="flex:1"&gt;...&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+<h4>
+    <i class="fas fa-sliders-h me-1"></i>Data Attributes
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Attribute</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>data-h-resizer</code>
+            </td>
+            <td>flag</td>
+            <td>Marks element as a horizontal resizer (auto-initialized)</td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-v-resizer</code>
+            </td>
+            <td>flag</td>
+            <td>Marks element as a vertical resizer (auto-initialized)</td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-left</code>
+            </td>
+            <td>selector</td>
+            <td>CSS selector for the left panel (horizontal only)</td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-right</code>
+            </td>
+            <td>selector</td>
+            <td>CSS selector for the right panel (horizontal only)</td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-top</code>
+            </td>
+            <td>selector</td>
+            <td>CSS selector for the top panel (vertical only)</td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-bottom</code>
+            </td>
+            <td>selector</td>
+            <td>CSS selector for the bottom panel (vertical only)</td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-most-left</code>
+            </td>
+            <td>flag</td>
+            <td>Allows the left panel to collapse fully</td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-most-right</code>
+            </td>
+            <td>flag</td>
+            <td>Allows the right panel to collapse fully</td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-most-top</code>
+            </td>
+            <td>flag</td>
+            <td>Allows the top panel to collapse fully</td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-most-bottom</code>
+            </td>
+            <td>flag</td>
+            <td>Allows the bottom panel to collapse fully</td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-threshold</code>
+            </td>
+            <td>number</td>
+            <td>Pixel threshold below which panel snaps to collapsed (default: 40)</td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-in-app</code>
+            </td>
+            <td>flag</td>
+            <td>Scopes storage key to in-app context (avoids collisions with frame resizers)</td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-icon</code>
+            </td>
+            <td>string</td>
+            <td>FontAwesome icon class for the toggle button</td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-title</code>
+            </td>
+            <td>string</td>
+            <td>Tooltip title for the toggle button</td>
+        </tr>
+    </tbody>
+</table>
+<div class="api-callout api-callout-info">
+    <i class="fas fa-info-circle"></i>
+    <div>
+        CSS is auto-loaded globally. Resizers re-initialize automatically after HTMX content swaps via <code>htmx:afterSettle</code>. Panel widths/heights are persisted in <code>localStorage</code> per unique panel selector pair.
+    </div>
+</div>

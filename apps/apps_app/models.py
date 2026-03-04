@@ -224,6 +224,10 @@ class ModuleSubmission(models.Model):
         related_name="reviewed_submissions",
     )
     review_note = models.TextField(blank=True)
+    pr_url = models.URLField(
+        blank=True,
+        help_text="PR URL on the central registry repo (set on submission)",
+    )
     submitted_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
 

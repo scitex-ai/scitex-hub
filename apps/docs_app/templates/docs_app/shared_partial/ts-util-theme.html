@@ -1,0 +1,112 @@
+<h3>Theme Switcher</h3>
+<p>
+    Light/dark mode management with <code>localStorage</code> persistence and optional database sync for authenticated users.
+</p>
+<h4>
+    <i class="fas fa-download me-1"></i>Import / Global API
+</h4>
+<pre><code>// No import needed — the module auto-initializes on load.
+// Access the global API from anywhere:
+window.SciTeX.theme.toggle();
+window.SciTeX.theme.set('dark');
+const current = window.SciTeX.theme.get(); // 'light' | 'dark'</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>Usage
+</h4>
+<pre><code>// Toggle button (HTML) — wire it to the built-in handler
+&lt;button id="theme-toggle"&gt;&lt;/button&gt;
+// The switcher attaches a click listener automatically on DOMContentLoaded.
+
+// Apply theme programmatically
+window.SciTeX.theme.set('light');
+window.SciTeX.theme.set('dark');
+
+// Read current theme
+const theme = window.SciTeX.theme.get(); // 'light' | 'dark'
+
+// Listen for theme changes (Monaco, xterm, charts)
+document.addEventListener('theme-changed', (e) => {
+  const { theme } = (e as CustomEvent).detail; // 'light' | 'dark'
+  myEditor.updateOptions({ theme: theme === 'dark' ? 'vs-dark' : 'vs-light' });
+});</code></pre>
+<h4>
+    <i class="fas fa-list me-1"></i>API Reference
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>API</th>
+            <th>Type / Signature</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>window.SciTeX.theme.toggle()</code>
+            </td>
+            <td>
+                <code>() → void</code>
+            </td>
+            <td>
+                Flips between <code>light</code> and <code>dark</code>; persists choice and dispatches <code>theme-changed</code> event.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>window.SciTeX.theme.set(theme)</code>
+            </td>
+            <td>
+                <code>(theme: 'light'|'dark') → void</code>
+            </td>
+            <td>
+                Sets the theme explicitly. Saves to <code>localStorage</code> and syncs to the database for logged-in users.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>window.SciTeX.theme.get()</code>
+            </td>
+            <td>
+                <code>() → 'light' | 'dark'</code>
+            </td>
+            <td>
+                Returns the active theme from <code>localStorage</code>. Defaults to <code>'dark'</code> for new visitors.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-theme</code> attribute
+            </td>
+            <td>
+                <code>"light" | "dark"</code> on <code>&lt;html&gt;</code>
+            </td>
+            <td>
+                Applied to <code>document.documentElement</code>. CSS variables keyed on this attribute drive all colors.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>theme-changed</code> event
+            </td>
+            <td>
+                <code>CustomEvent&lt;{ theme: 'light'|'dark' }&gt;</code>
+            </td>
+            <td>
+                Dispatched on <code>document</code> after every theme change. Listen here to update third-party components.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>#theme-toggle</code> button
+            </td>
+            <td>HTML element</td>
+            <td>If present in DOM, the switcher attaches a click handler and updates button content automatically.</td>
+        </tr>
+    </tbody>
+</table>
+<div class="api-callout api-callout--info">
+    <strong>Auto-init:</strong> The module calls <code>initTheme()</code> immediately on import — before DOM ready —
+    to prevent a flash of the wrong theme. For authenticated users it fetches the preference from
+    <code>/auth/api/get-theme/</code> and syncs it to <code>localStorage</code>.
+</div>

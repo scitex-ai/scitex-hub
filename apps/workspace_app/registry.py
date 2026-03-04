@@ -61,6 +61,9 @@ class ModuleConfig:
     ai_hint: str = ""  # Short description for data-ai-hint (shown to LLM)
     accent_color: str = ""  # Module accent identifier (maps to CSS --module-accent-X)
 
+    # Documentation
+    docs_slug: str = ""  # Slug for auto-registering docs page (e.g. "clew")
+
     # Legal
     license: str = "AGPL-3.0"  # SPDX identifier, default matches SciTeX project license
 
@@ -141,7 +144,7 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         context_builder="apps.writer_app.views.index.main.build_writer_context",
         body_class="writer-page",
         keyboard_shortcut="W",
-        order=10,
+        order=20,
         ai_hint="Scientific manuscript editor: LaTeX editing with live preview, figure/table management, bibliography, PDF compilation.",
         accent_color="writer",
         allowed_extensions=[
@@ -173,7 +176,7 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         partial_template="scholar_app/scholar_partial.html",
         body_class="scholar-page",
         keyboard_shortcut="S",
-        order=20,
+        order=30,
         ai_hint="Literature management: search papers (CrossRef/OpenAlex/Semantic Scholar), manage bibliography, explore citation graphs, download PDFs.",
         accent_color="scholar",
         allowed_extensions=[".bib"],
@@ -187,7 +190,7 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         partial_template="vis_app/vis_partial.html",
         body_class="vis-workspace",
         keyboard_shortcut="V",
-        order=30,
+        order=40,
         ai_hint="Data visualization and figure management: view plots, manage figure recipes, export publication-ready figures.",
         accent_color="visualizer",
         allowed_extensions=[
@@ -212,9 +215,10 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         partial_template="clew_app/index_partial.html",
         body_class="clew-page",
         keyboard_shortcut="R",
-        order=50,
+        order=50,  # hidden (default_enabled=False)
         default_enabled=False,
         ai_hint="Verification system: trace manuscript claims (statistics, figures, tables) back through computational chains to source data.",
+        docs_slug="clew",
         accent_color="clew",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
@@ -227,7 +231,7 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         context_builder="apps.hub_app.views.index.build_hub_context",
         body_class="hub-page",
         keyboard_shortcut="H",
-        order=60,
+        order=10,
         ai_hint="Project dashboard showing all user projects, activity feed, and quick actions.",
         accent_color="hub",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
@@ -241,7 +245,7 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         context_builder="apps.public_app.views.tools_views.build_tools_context",
         body_class="tools-page",
         keyboard_shortcut="T",
-        order=70,
+        order=60,
         ai_hint="Shared utilities and tools for project management.",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
@@ -254,7 +258,7 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         context_builder="apps.example_app.views.build_example_context",
         body_class="example-page",
         keyboard_shortcut="E",
-        order=80,
+        order=70,  # hidden (default_enabled=False)
         status="wip",
         default_enabled=False,
         ai_hint="Interactive examples demonstrating scitex features (plotting, stats, IO, sessions).",
@@ -284,9 +288,24 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         context_builder="apps.docs_app.views.build_docs_context",
         body_class="docs-page",
         keyboard_shortcut="D",
-        order=95,
+        order=100,
         ai_hint="Documentation: Python packages, MCP tools, SSH access, API reference, self-hosting guide, licensing.",
         accent_color="docs",
+        hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
+    ),
+    ModuleConfig(
+        name="figrecipe",
+        label="Figrecipe",
+        app_name="figrecipe_editor",
+        icon_fa="fas fa-palette",
+        partial_template="vis_app/editor.html",
+        body_class="figrecipe-page",
+        keyboard_shortcut="F",
+        order=45,
+        ai_hint="Interactive figure editor: create and edit publication-ready matplotlib plots with drag-and-drop layout, statistical annotations, and multi-panel composition.",
+        accent_color="figrecipe",
+        license="AGPL-3.0",
+        allowed_extensions=[".py", ".csv", ".json", ".yaml", ".figz", ".pltz"],
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
     ModuleConfig(
@@ -298,10 +317,26 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         context_builder="apps.modulemaker_app.views.build_usermod_context",
         body_class="modulemaker-page",
         keyboard_shortcut="K",
-        order=85,
+        order=80,  # hidden (default_enabled=False)
         status="wip",
         default_enabled=False,
         ai_hint="Create, edit, and manage custom workspace modules.",
+        hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
+    ),
+    ModuleConfig(
+        name="notebook",
+        label="Lab Notebook",
+        app_name="notebook_app",
+        icon_fa="fas fa-flask",
+        partial_template="notebook_app/index_partial.html",
+        context_builder="apps.notebook_app.views.build_notebook_context",
+        body_class="notebook-page",
+        keyboard_shortcut="N",
+        order=75,
+        status="wip",
+        default_enabled=False,
+        ai_hint="Experiment logger: log and track research experiments with structured metadata, export to CSV.",
+        accent_color="notebook",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
 ]

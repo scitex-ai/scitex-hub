@@ -128,6 +128,10 @@
   --module-accent-modulemaker-tint: rgba(90, 106, 138, 0.07);
   --module-accent-docs: #4a6a9a; /* Deep blue - documentation, reference */
   --module-accent-docs-tint: rgba(74, 106, 154, 0.07);
+  --module-accent-figrecipe: #7c5cbf; /* Purple - figure editing, creativity */
+  --module-accent-figrecipe-tint: rgba(124, 92, 191, 0.07);
+  --module-accent-notebook: #4a7a3a; /* Deep green - lab notebook, experiments */
+  --module-accent-notebook-tint: rgba(74, 122, 58, 0.07);
 
   /* Workspace icon color scheme (TOGGLE: swap _icon-green ↔ _icon-white below) */
   /* Green scheme */
@@ -319,6 +323,10 @@
   --module-accent-modulemaker-tint: rgba(138, 154, 184, 0.08);
   --module-accent-docs: #7a9ac8; /* Soft blue - documentation, reference */
   --module-accent-docs-tint: rgba(122, 154, 200, 0.08);
+  --module-accent-figrecipe: #a07ae0; /* Soft purple - figure editing, creativity */
+  --module-accent-figrecipe-tint: rgba(160, 122, 224, 0.08);
+  --module-accent-notebook: #7a9a6a; /* Soft green - lab notebook, experiments */
+  --module-accent-notebook-tint: rgba(122, 154, 106, 0.08);
 
   /* Workspace icon color scheme (TOGGLE: swap _icon-green ↔ _icon-white below) */
   /* Green scheme (dark mode) */

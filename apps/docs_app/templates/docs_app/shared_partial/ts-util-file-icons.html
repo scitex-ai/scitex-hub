@@ -1,0 +1,139 @@
+<h3>File Icons</h3>
+<p>
+    Returns Font Awesome icon HTML strings for file extensions and special filenames, used consistently across all file browsers.
+</p>
+<h4>
+    <i class="fas fa-download me-1"></i>Import
+</h4>
+<pre><code>import { getFileIcon, getFolderIcon } from '@shared/utils/file-icons';</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>Usage
+</h4>
+<pre><code>// Render a file icon in a list item
+const icon = getFileIcon('main.py');
+// → '&lt;i class="fab fa-python" style="color: #3776ab; width: 16px; ..."&gt;&lt;/i&gt;'
+
+listItem.innerHTML = `${icon} ${fileName}`;
+
+// Folder icon
+const folderIcon = getFolderIcon();
+// → '&lt;i class="fas fa-folder" style="color: #dcb67a; ..."&gt;&lt;/i&gt;'
+
+// Unknown extension falls back to a generic file icon
+const unknown = getFileIcon('archive.xar');
+// → '&lt;i class="fas fa-file" style="color: #777; ..."&gt;&lt;/i&gt;'</code></pre>
+<h4>
+    <i class="fas fa-list me-1"></i>API Reference
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Function</th>
+            <th>Returns</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>getFileIcon(fileName)</code>
+            </td>
+            <td>
+                <code>string</code> (HTML)
+            </td>
+            <td>
+                Matches on special filenames first (e.g. <code>Dockerfile</code>, <code>Makefile</code>,
+                <code>README.md</code>), then on file extension. Returns an
+                <code>&lt;i&gt;</code> element string with the appropriate Font Awesome class and brand color.
+                Falls back to <code>fas fa-file</code> in grey for unrecognized types.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>getFolderIcon()</code>
+            </td>
+            <td>
+                <code>string</code> (HTML)
+            </td>
+            <td>
+                Returns a fixed <code>fas fa-folder</code> icon in <code>#dcb67a</code> (warm gold).
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <code>IconConfig</code>
+            </td>
+            <td>
+                <code>{ icon: string; color: string }</code>
+            </td>
+            <td>Internal type representing a Font Awesome class name and a CSS hex color string.</td>
+        </tr>
+    </tbody>
+</table>
+<h4>
+    <i class="fas fa-bookmark me-1"></i>Supported Extensions (selected)
+</h4>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Category</th>
+            <th>Extensions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Languages</td>
+            <td>
+                <code>.py .js .ts .jsx .tsx .java .go .rs .c .cpp</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Web</td>
+            <td>
+                <code>.html .css .scss</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Data / Config</td>
+            <td>
+                <code>.json .yaml .yml .toml .xml .csv</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Docs</td>
+            <td>
+                <code>.md .txt .pdf .tex .bib</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Scripts</td>
+            <td>
+                <code>.sh .bash</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Data Science</td>
+            <td>
+                <code>.r .ipynb .sql</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Images</td>
+            <td>
+                <code>.jpg .jpeg .png .gif .svg .webp</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Archives</td>
+            <td>
+                <code>.zip .tar .gz</code>
+            </td>
+        </tr>
+        <tr>
+            <td>Special files</td>
+            <td>
+                <code>Dockerfile Makefile .gitignore package.json tsconfig.json requirements.txt</code>
+            </td>
+        </tr>
+    </tbody>
+</table>

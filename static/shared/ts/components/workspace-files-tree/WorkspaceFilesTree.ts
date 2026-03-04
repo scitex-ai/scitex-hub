@@ -59,8 +59,9 @@ export class WorkspaceFilesTree {
   private gitSummary: GitSummary = { staged: 0, modified: 0, untracked: 0 };
   private sortMode: SortMode = "name";
   private isLoading = false;
+  private lastTreeHash = "";
   private pollTimer: ReturnType<typeof setInterval> | null = null;
-  private readonly POLL_INTERVAL_MS = 30_000;
+  private readonly POLL_INTERVAL_MS = 1_000;
 
   constructor(config: TreeConfig) {
     this.config = { showFolderActions: true, showGitStatus: true, ...config };
@@ -264,6 +265,11 @@ export class WorkspaceFilesTree {
     try {
       const result = await this.dataLoader.load();
       if (result.success) {
+        // Skip re-render if data hasn't changed (cheap JSON hash comparison)
+        const hash = JSON.stringify(result.treeData);
+        if (hash === this.lastTreeHash) return;
+        this.lastTreeHash = hash;
+
         this.treeData = result.treeData;
         this.gitSummary = result.gitSummary;
         const isFirstLoad = this.dataLoader.applyDefaultExpansion(

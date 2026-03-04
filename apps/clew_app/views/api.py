@@ -11,6 +11,29 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
 
 
+def _set_project_db(request) -> bool:
+    """Set clew DB to current project's scitex/clew.db.
+
+    Returns True if DB was set, False if no project context.
+    """
+    if not request.user.is_authenticated:
+        return False
+    from apps.project_app.services.filesystem.paths import get_project_root_path
+    from apps.project_app.services.project_utils import get_current_project
+
+    project = get_current_project(request)
+    if not project:
+        return False
+    project_path = get_project_root_path(request.user, project)
+    if not project_path:
+        return False
+    db_path = project_path / "scitex" / "clew.db"
+    if db_path.exists():
+        stx.clew.set_db(str(db_path))
+        return True
+    return False
+
+
 @require_http_methods(["GET"])
 def verification_status(request):
     """Get verification status summary (like git status).
@@ -18,6 +41,7 @@ def verification_status(request):
     Wrapper around scitex.clew.get_status()
     """
     try:
+        _set_project_db(request)
         status = stx.clew.get_status()
         return JsonResponse(
             {
@@ -47,6 +71,7 @@ def list_runs(request):
     Wrapper around scitex.clew.list_runs()
     """
     try:
+        _set_project_db(request)
         limit = int(request.GET.get("limit", 50))
         offset = int(request.GET.get("offset", 0))
         status_filter = request.GET.get("status")
@@ -98,6 +123,7 @@ def verify_chain(request):
         )
 
     try:
+        _set_project_db(request)
         chain = stx.clew.verify_chain(target)
 
         # Convert dataclass to dict for JSON serialization
@@ -165,6 +191,7 @@ def verify_run(request):
         )
 
     try:
+        _set_project_db(request)
         from_scratch = request.GET.get("from_scratch", "false").lower() == "true"
         verification = stx.clew.run(session_id, from_scratch=from_scratch)
 
@@ -218,6 +245,7 @@ def get_dag_data(request):
     Wrapper around scitex.clew._viz._json.generate_dag_json()
     """
     try:
+        _set_project_db(request)
         session_id = request.GET.get("session_id")
         target_file = request.GET.get("target_file")
         path_mode = request.GET.get("path_mode", "name")
@@ -254,20 +282,31 @@ def get_mermaid_dag(request):
     Query parameters:
     - session_id: str (optional)
     - target_file: str (optional)
+    - target_files: str (optional, comma-separated paths)
+    - claims: bool (optional, default: false)
     - show_hashes: bool (optional, default: false)
     - path_mode: str (optional, default: "name")
 
     Wrapper around scitex.clew.generate_mermaid_dag()
     """
     try:
+        _set_project_db(request)
         session_id = request.GET.get("session_id")
         target_file = request.GET.get("target_file")
+        target_files_raw = request.GET.get("target_files")
+        claims = request.GET.get("claims", "false").lower() == "true"
         show_hashes = request.GET.get("show_hashes", "false").lower() == "true"
         path_mode = request.GET.get("path_mode", "name")
+
+        target_files = None
+        if target_files_raw:
+            target_files = [f.strip() for f in target_files_raw.split(",") if f.strip()]
 
         mermaid_code = stx.clew.generate_mermaid_dag(
             session_id=session_id,
             target_file=target_file,
+            target_files=target_files,
+            claims=claims,
             show_hashes=show_hashes,
             path_mode=path_mode,
         )
@@ -297,6 +336,7 @@ def database_stats(request):
     Wrapper around scitex.clew.stats()
     """
     try:
+        _set_project_db(request)
         stats = stx.clew.stats()
         return JsonResponse(
             {
@@ -314,59 +354,86 @@ def database_stats(request):
         )
 
 
-@login_required
-@csrf_protect
-@require_http_methods(["POST"])
-def add_examples(request):
-    """Copy example Clew pipeline scripts into the user's project workspace.
+@require_http_methods(["GET"])
+def list_claims_view(request):
+    """List registered claims with optional filtering.
 
-    Copies from scitex-code examples/scitex/clew/ into the project and runs them.
+    Query parameters:
+    - file_path: str (optional)
+    - claim_type: str (optional)
+    - status: str (optional)
+    - limit: int (default: 100)
+
+    Wrapper around scitex.clew.list_claims()
     """
-    import shutil
-    import subprocess
-    from pathlib import Path
-
     try:
-        # Source: examples bundled with scitex-code
-        src_dir = Path(stx.__file__).parent.parent / "examples" / "scitex" / "clew"
-        if not src_dir.exists():
-            return JsonResponse(
-                {"success": False, "error": f"Examples not found at {src_dir}"},
-                status=404,
-            )
+        _set_project_db(request)
+        file_path = request.GET.get("file_path")
+        claim_type = request.GET.get("claim_type")
+        status_filter = request.GET.get("status")
+        limit = int(request.GET.get("limit", 100))
 
-        # Destination: use project workspace if available, fallback to home
-        project = getattr(request, "current_project", None)
-        if project and hasattr(project, "get_workspace_path"):
-            workspace_root = Path(project.get_workspace_path()) / "clew-examples"
-        else:
-            workspace_root = Path.home() / "clew-examples"
-        workspace_root.mkdir(parents=True, exist_ok=True)
-
-        # Copy only .py and .sh scripts (skip _out directories)
-        copied = []
-        for item in sorted(src_dir.iterdir()):
-            if item.is_file() and item.suffix in (".py", ".sh"):
-                dest = workspace_root / item.name
-                shutil.copy2(item, dest)
-                copied.append(item.name)
-
-        # Run the example pipeline in background (00_run_all.sh if available)
-        run_all = workspace_root / "00_run_all.sh"
-        if run_all.exists():
-            subprocess.Popen(
-                ["bash", str(run_all)],
-                cwd=str(workspace_root),
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
+        claims = stx.clew.list_claims(
+            file_path=file_path,
+            claim_type=claim_type,
+            status=status_filter,
+            limit=limit,
+        )
 
         return JsonResponse(
             {
                 "success": True,
                 "data": {
-                    "message": f"Copied {len(copied)} example files to {workspace_root}",
-                    "files": copied,
+                    "claims": [c.to_dict() for c in claims],
+                    "count": len(claims),
+                },
+            }
+        )
+    except Exception as e:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": str(e),
+            },
+            status=500,
+        )
+
+
+@login_required
+@csrf_protect
+@require_http_methods(["POST"])
+def add_examples(request):
+    """Copy example Clew pipeline into the current project workspace.
+
+    Thin wrapper around stx.clew.init_examples().
+    """
+    from apps.project_app.services.filesystem.paths import get_project_root_path
+    from apps.project_app.services.project_utils import get_current_project
+
+    try:
+        project = get_current_project(request)
+        if not project:
+            return JsonResponse(
+                {"success": False, "error": "No active project"},
+                status=400,
+            )
+
+        project_path = get_project_root_path(request.user, project)
+        if not project_path:
+            return JsonResponse(
+                {"success": False, "error": "Project workspace not found"},
+                status=404,
+            )
+
+        dest = project_path / "examples" / "clew"
+        result = stx.clew.init_examples(dest)
+        return JsonResponse(
+            {
+                "success": True,
+                "data": {
+                    "message": "Examples saved to examples/clew/",
+                    "path": result["path"],
+                    "file_count": result["file_count"],
                 },
             }
         )

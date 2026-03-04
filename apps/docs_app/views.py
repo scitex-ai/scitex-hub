@@ -42,7 +42,7 @@ DOCS_PAGES = [
     },
     {
         "slug": "app-maker",
-        "label": "App Maker",
+        "label": "App Maker: Overview",
         "icon": "fas fa-puzzle-piece",
         "template": "docs_app/docs_app_maker.html",
         "badges": ["user"],
@@ -59,14 +59,21 @@ DOCS_PAGES = [
         "label": "Web API",
         "icon": "fas fa-plug",
         "template": "docs_app/docs_api_content.html",
-        "badges": ["user", "dev"],
+        "badges": ["dev"],
+    },
+    {
+        "slug": "app-maker-users",
+        "label": "App Maker: Users",
+        "icon": "fas fa-user",
+        "template": "docs_app/docs_app_maker_users.html",
+        "badges": ["user"],
     },
     {
         "slug": "app-maker-creators",
-        "label": "App Maker",
+        "label": "App Maker: Creators",
         "icon": "fas fa-code",
         "template": "docs_app/docs_app_maker_creators.html",
-        "badges": ["user", "dev"],
+        "badges": ["dev"],
     },
     {
         "slug": "self-hosting",
@@ -77,7 +84,7 @@ DOCS_PAGES = [
     },
     {
         "slug": "app-maker-admins",
-        "label": "App Maker",
+        "label": "App Maker: Admins",
         "icon": "fas fa-cog",
         "template": "docs_app/docs_app_maker_admins.html",
         "badges": ["admin"],
@@ -90,6 +97,27 @@ DOCS_PAGES = [
         "badges": ["dev"],
     },
     {
+        "slug": "shared-ts-components",
+        "label": "Shared: Components",
+        "icon": "fas fa-cubes",
+        "template": "docs_app/docs_shared_ts_components.html",
+        "badges": ["dev"],
+    },
+    {
+        "slug": "shared-ts-utilities",
+        "label": "Shared: Utilities",
+        "icon": "fas fa-toolbox",
+        "template": "docs_app/docs_shared_ts_utilities.html",
+        "badges": ["dev"],
+    },
+    {
+        "slug": "shared-css-system",
+        "label": "Shared: CSS System",
+        "icon": "fas fa-paint-brush",
+        "template": "docs_app/docs_shared_css_system.html",
+        "badges": ["dev"],
+    },
+    {
         "slug": "visitor-lifecycle",
         "label": "Visitor Lifecycle",
         "icon": "fas fa-user-clock",
@@ -99,6 +127,40 @@ DOCS_PAGES = [
 ]
 
 _PAGES_BY_SLUG = {p["slug"]: p for p in DOCS_PAGES}
+
+
+def register_module_docs():
+    """Auto-register docs pages for workspace modules that have docs_slug set.
+
+    Scans all registered modules. For each module with a non-empty docs_slug,
+    checks if a template exists at ``{app_name}/docs/{docs_slug}.html``.
+    If found, appends it to DOCS_PAGES so it appears in the Docs sidebar.
+    """
+    from django.template.loader import get_template
+
+    from apps.workspace_app.registry import get_all_modules
+
+    for mod in get_all_modules():
+        if not mod.docs_slug:
+            continue
+        if mod.docs_slug in _PAGES_BY_SLUG:
+            continue  # Already registered
+        template_path = f"{mod.app_name}/docs/{mod.docs_slug}.html"
+        try:
+            get_template(template_path)
+        except Exception:
+            continue  # Template doesn't exist, skip
+
+        icon = mod.icon_fa if mod.icon_fa else "fas fa-puzzle-piece"
+        page = {
+            "slug": mod.docs_slug,
+            "label": mod.label,
+            "icon": icon,
+            "template": template_path,
+            "badges": ["app"],
+        }
+        DOCS_PAGES.append(page)
+        _PAGES_BY_SLUG[mod.docs_slug] = page
 
 
 # ---------------------------------------------------------------------------
