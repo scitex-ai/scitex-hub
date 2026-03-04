@@ -6,15 +6,14 @@ from .api import (
     api_list_public,
     api_reorder,
     api_review,
-    api_review_submission,
     api_star,
-    api_submit_for_review,
     api_toggle,
     api_uninstall,
     api_unstar,
     api_update_config,
 )
 from .api_registry import api_registry_webhook, api_submit_jwt
+from .api_review import api_review_submission, api_submit_for_review
 from .pages import browse, build_apps_context, detail, my_modules, review_queue
 
 __all__ = [

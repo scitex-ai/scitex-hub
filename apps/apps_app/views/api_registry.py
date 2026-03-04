@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Registry API views — JWT app submission and Gitea webhook for PR-based review."""
+"""Registry API views — JWT app submission and Gitea webhook for PR-based review.
+
+All submission paths (web UI, project page, CLI) converge on
+``_open_registry_pr()`` which opens a PR on the central ``scitex/apps``
+repo.  Merge = approval (via webhook).  Like MELPA.
+"""
 
 from __future__ import annotations
 
@@ -18,7 +23,9 @@ from ..models import AppsModule, ModuleSubmission
 
 logger = logging.getLogger(__name__)
 
-REGISTRY_REPO_NAME = "scitex-apps-registry"
+# Central registry lives at the ``scitex`` org on Gitea
+REGISTRY_REPO_OWNER = "scitex"
+REGISTRY_REPO_NAME = "apps"
 
 
 # ---------------------------------------------------------------------------
@@ -112,8 +119,8 @@ def api_submit_jwt(request):
 def api_registry_webhook(request):
     """Gitea webhook handler for PR merge events on the registry repo.
 
-    When a PR is merged in scitex-apps-registry, this activates the
-    corresponding app (sets visibility=public, is_verified=True).
+    When a PR is merged in scitex/apps, this activates the corresponding
+    app (sets visibility=public, is_verified=True).
     """
     try:
         payload = json.loads(request.body)
@@ -156,7 +163,7 @@ def api_registry_webhook(request):
     # Approve
     from django.utils import timezone
 
-    from .api import _activate_approved_app
+    from .api_review import _activate_approved_app
 
     now = timezone.now()
     submission.status = "approved"
@@ -173,127 +180,202 @@ def api_registry_webhook(request):
 
 
 # ---------------------------------------------------------------------------
-# Helpers
+# Helpers (shared by all submission paths)
 # ---------------------------------------------------------------------------
 
 
-def _fetch_head_commit(username, repo_slug):
-    """Fetch the HEAD commit SHA from the user's Gitea repo."""
-    try:
-        from apps.gitea_app.api_client import GiteaClient
+def _fetch_head_commit(username: str, repo_slug: str) -> str:
+    """Fetch the HEAD commit SHA from the user's Gitea repo.
 
-        client = GiteaClient()
-        repo_info = client.get_repository(owner=username, repo=repo_slug)
-        default_branch = repo_info.get("default_branch", "main")
-        branch_resp = client._request(
-            "GET",
-            f"/repos/{username}/{repo_slug}/branches/{default_branch}",
-        )
-        return branch_resp.json().get("commit", {}).get("id", "")
-    except Exception:
-        return ""
-
-
-def _open_registry_pr(app_module, manifest, version, author_username, pinned_commit):
-    """Open a PR on the central registry repo with app metadata.
-
-    Returns the PR HTML URL, or empty string on failure.
+    Raises on failure — callers must handle the error.
     """
+    from apps.gitea_app.api_client import GiteaClient
+
+    client = GiteaClient()
+    repo_info = client.get_repository(owner=username, repo=repo_slug)
+    default_branch = repo_info.get("default_branch", "main")
+    branch_resp = client._request(
+        "GET",
+        f"/repos/{username}/{repo_slug}/branches/{default_branch}",
+    )
+    commit_sha = branch_resp.json().get("commit", {}).get("id", "")
+    if not commit_sha:
+        raise RuntimeError(f"Could not resolve HEAD commit for {username}/{repo_slug}")
+    return commit_sha
+
+
+def _open_registry_pr(
+    app_module,
+    manifest: dict,
+    version: str,
+    author_username: str,
+    pinned_commit: str,
+) -> str:
+    """Open a PR on the central ``scitex/apps`` registry repo.
+
+    Returns the PR HTML URL.  Raises on failure — callers must handle.
+    """
+    from apps.gitea_app.api_client import GiteaAPIError, GiteaClient
+
+    client = GiteaClient()
+
+    metadata = {
+        "name": app_module.module_name,
+        "version": version,
+        "description": manifest.get("description", ""),
+        "category": manifest.get("category", "other"),
+        "author": author_username,
+        "source_repo": f"{author_username}/{app_module.project.slug}",
+        "pinned_commit": pinned_commit,
+        "manifest": manifest,
+    }
+    content_b64 = base64.b64encode(json.dumps(metadata, indent=2).encode()).decode()
+
+    branch_name = f"submit/{app_module.module_name}-v{version}"
+    file_path = f"apps/{app_module.module_name}.json"
+
+    # Create branch from main
     try:
-        from apps.gitea_app.api_client import GiteaClient
-
-        client = GiteaClient()
-
-        admin_resp = client._request("GET", "/user")
-        admin_user = admin_resp.json().get("login", "")
-
-        metadata = {
-            "name": app_module.module_name,
-            "version": version,
-            "description": manifest.get("description", ""),
-            "category": manifest.get("category", "other"),
-            "author": author_username,
-            "source_repo": f"{author_username}/{app_module.project.slug}",
-            "pinned_commit": pinned_commit,
-            "manifest": manifest,
-        }
-        content_b64 = base64.b64encode(json.dumps(metadata, indent=2).encode()).decode()
-
-        branch_name = f"submit/{app_module.module_name}-v{version}"
-        file_path = f"apps/{app_module.module_name}.json"
-
-        # Create branch from main
-        try:
-            client._request(
-                "POST",
-                f"/repos/{admin_user}/{REGISTRY_REPO_NAME}/branches",
-                json={"new_branch_name": branch_name, "old_branch_name": "main"},
-            )
-        except Exception:
-            pass  # Branch may already exist
-
-        # Create or update metadata file on the branch
-        sha = ""
-        try:
-            existing = client.get_file_contents(
-                owner=admin_user,
-                repo=REGISTRY_REPO_NAME,
-                filepath=file_path,
-                ref=branch_name,
-            )
-            sha = existing.get("sha", "")
-        except Exception:
-            pass
-
-        if sha:
-            client._request(
-                "PUT",
-                f"/repos/{admin_user}/{REGISTRY_REPO_NAME}/contents/{file_path}",
-                json={
-                    "message": f"Update {app_module.module_name} v{version}",
-                    "content": content_b64,
-                    "branch": branch_name,
-                    "sha": sha,
-                },
-            )
-        else:
-            client._request(
-                "POST",
-                f"/repos/{admin_user}/{REGISTRY_REPO_NAME}/contents/{file_path}",
-                json={
-                    "message": f"Add {app_module.module_name} v{version}",
-                    "content": content_b64,
-                    "branch": branch_name,
-                },
-            )
-
-        # Open PR
-        pr_resp = client._request(
+        client._request(
             "POST",
-            f"/repos/{admin_user}/{REGISTRY_REPO_NAME}/pulls",
+            f"/repos/{REGISTRY_REPO_OWNER}/{REGISTRY_REPO_NAME}/branches",
+            json={"new_branch_name": branch_name, "old_branch_name": "main"},
+        )
+    except GiteaAPIError as exc:
+        # 409 = branch already exists, which is fine for re-submission
+        if "409" not in str(exc):
+            raise
+
+    # Create or update metadata file on the branch
+    sha = ""
+    try:
+        existing = client.get_file_contents(
+            owner=REGISTRY_REPO_OWNER,
+            repo=REGISTRY_REPO_NAME,
+            filepath=file_path,
+            ref=branch_name,
+        )
+        sha = existing.get("sha", "")
+    except GiteaAPIError:
+        pass  # file doesn't exist yet — will create
+
+    if sha:
+        client._request(
+            "PUT",
+            f"/repos/{REGISTRY_REPO_OWNER}/{REGISTRY_REPO_NAME}/contents/{file_path}",
             json={
-                "title": f"[App] {app_module.module_name} v{version}",
-                "body": (
-                    f"**App:** {app_module.module_name}\n"
-                    f"**Version:** {version}\n"
-                    f"**Author:** {author_username}\n"
-                    f"**Description:** {manifest.get('description', '')}\n\n"
-                    f"Source: `{author_username}/{app_module.project.slug}`\n"
-                    f"Pinned commit: `{pinned_commit[:12]}`"
-                ),
-                "head": branch_name,
-                "base": "main",
+                "message": f"Update {app_module.module_name} v{version}",
+                "content": content_b64,
+                "branch": branch_name,
+                "sha": sha,
             },
         )
-        return pr_resp.json().get("html_url", "")
-
-    except Exception as exc:
-        logger.warning(
-            "Failed to open registry PR for %s: %s",
-            app_module.module_name,
-            exc,
+    else:
+        client._request(
+            "POST",
+            f"/repos/{REGISTRY_REPO_OWNER}/{REGISTRY_REPO_NAME}/contents/{file_path}",
+            json={
+                "message": f"Add {app_module.module_name} v{version}",
+                "content": content_b64,
+                "branch": branch_name,
+            },
         )
-        return ""
+
+    # Open PR
+    pr_resp = client._request(
+        "POST",
+        f"/repos/{REGISTRY_REPO_OWNER}/{REGISTRY_REPO_NAME}/pulls",
+        json={
+            "title": f"[App] {app_module.module_name} v{version}",
+            "body": (
+                f"**App:** {app_module.module_name}\n"
+                f"**Version:** {version}\n"
+                f"**Author:** {author_username}\n"
+                f"**Description:** {manifest.get('description', '')}\n\n"
+                f"Source: `{author_username}/{app_module.project.slug}`\n"
+                f"Pinned commit: `{pinned_commit[:12]}`"
+            ),
+            "head": branch_name,
+            "base": "main",
+        },
+    )
+    pr_url = pr_resp.json().get("html_url", "")
+    if not pr_url:
+        raise RuntimeError(
+            f"PR created but no html_url returned for {app_module.module_name}"
+        )
+    return pr_url
+
+
+# ---------------------------------------------------------------------------
+# Gitea PR actions (used by staff review endpoints)
+# ---------------------------------------------------------------------------
+
+
+def merge_registry_pr(pr_url: str) -> None:
+    """Merge a PR on the registry repo via Gitea API."""
+    pr_number = _extract_pr_number(pr_url)
+    if not pr_number:
+        raise ValueError(f"Cannot extract PR number from: {pr_url}")
+
+    from apps.gitea_app.api_client import GiteaClient
+
+    client = GiteaClient()
+    client._request(
+        "POST",
+        f"/repos/{REGISTRY_REPO_OWNER}/{REGISTRY_REPO_NAME}/pulls/{pr_number}/merge",
+        json={"Do": "merge"},
+    )
+
+
+def close_registry_pr(pr_url: str, comment: str = "") -> None:
+    """Close a PR on the registry repo (rejection)."""
+    pr_number = _extract_pr_number(pr_url)
+    if not pr_number:
+        raise ValueError(f"Cannot extract PR number from: {pr_url}")
+
+    from apps.gitea_app.api_client import GiteaClient
+
+    client = GiteaClient()
+
+    if comment:
+        client._request(
+            "POST",
+            f"/repos/{REGISTRY_REPO_OWNER}/{REGISTRY_REPO_NAME}/issues/{pr_number}/comments",
+            json={"body": comment},
+        )
+
+    client._request(
+        "PATCH",
+        f"/repos/{REGISTRY_REPO_OWNER}/{REGISTRY_REPO_NAME}/pulls/{pr_number}",
+        json={"state": "closed"},
+    )
+
+
+def comment_on_registry_pr(pr_url: str, comment: str) -> None:
+    """Add a review comment on a registry PR."""
+    pr_number = _extract_pr_number(pr_url)
+    if not pr_number:
+        raise ValueError(f"Cannot extract PR number from: {pr_url}")
+
+    from apps.gitea_app.api_client import GiteaClient
+
+    client = GiteaClient()
+    client._request(
+        "POST",
+        f"/repos/{REGISTRY_REPO_OWNER}/{REGISTRY_REPO_NAME}/issues/{pr_number}/comments",
+        json={"body": comment},
+    )
+
+
+def _extract_pr_number(pr_url: str) -> str | None:
+    """Extract PR number from a Gitea PR URL like .../pulls/42."""
+    if not pr_url:
+        return None
+    parts = pr_url.rstrip("/").split("/")
+    if len(parts) >= 2 and parts[-2] == "pulls":
+        return parts[-1]
+    return None
 
 
 # EOF
