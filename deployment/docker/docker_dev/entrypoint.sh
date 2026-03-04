@@ -110,11 +110,18 @@ start_vite_dev_server() {
             npm install --silent 2>&1 | grep -v "npm WARN" || true
         fi
 
-        # Start Vite dev server in background
-        nohup npm run dev \
-            >/app/logs/vite-dev.log 2>&1 &
+        # Start Vite dev server in watchdog loop — auto-restarts on crash
+        nohup bash -c '
+            while true; do
+                echo "[$(date)] Vite dev server starting..." >> /app/logs/vite-dev.log
+                npm run dev >> /app/logs/vite-dev.log 2>&1
+                EXIT_CODE=$?
+                echo "[$(date)] Vite exited (code $EXIT_CODE), restarting in 3s..." >> /app/logs/vite-dev.log
+                sleep 3
+            done
+        ' >/dev/null 2>&1 &
         VITE_PID=$!
-        echo_success "Vite dev server started (PID: $VITE_PID)"
+        echo_success "Vite dev server started (PID: $VITE_PID, auto-restart enabled)"
         echo "   URL: http://127.0.0.1:5173"
         echo "   HMR: Enabled (instant module updates)"
         echo "   Log: tail -f /app/logs/vite-dev.log"
