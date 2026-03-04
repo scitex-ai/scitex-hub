@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 
+import requests
 from django.http import JsonResponse
 from django.utils import timezone
 
@@ -68,8 +69,17 @@ def server_health_status_api(request):
         check_container_runtime_status(status_data)
         check_user_data_permissions(status_data)
 
+        # Vite dev server check (DEBUG only)
+        from django.conf import settings
+
+        if settings.DEBUG:
+            _check_vite_dev_server(status_data)
+
         # Determine overall health
         overall_status, color = _determine_overall_health(status_data)
+
+        # Build issues list from non-healthy services
+        issues = _build_issues_list(status_data)
 
         # Build response
         return JsonResponse(
@@ -77,6 +87,7 @@ def server_health_status_api(request):
                 "status": overall_status,
                 "color": color,
                 "timestamp": timezone.now().isoformat(),
+                "issues": issues,
                 "services": _build_services_dict(status_data),
             }
         )
@@ -189,6 +200,123 @@ def _build_services_dict(status_data: dict) -> dict:
         "citation_graph_mode": citation_graph.get("mode", "unknown"),
         "user_data_permissions": user_data_perms.get("health_class", "unknown"),
     }
+
+
+def _check_vite_dev_server(status_data: dict) -> None:
+    """Check if Vite dev server is responding (DEBUG only)."""
+    try:
+        resp = requests.get("http://127.0.0.1:5173/@vite/client", timeout=2)
+        is_healthy = resp.status_code == 200
+    except Exception:
+        is_healthy = False
+
+    status_data["vite"] = {
+        "is_running": is_healthy,
+        "health_class": "healthy" if is_healthy else "warning",
+    }
+
+
+def _build_issues_list(status_data: dict) -> list[dict]:
+    """Extract non-healthy services into a flat issues list."""
+    issues = []
+
+    # Database
+    db = status_data.get("database", {})
+    if db.get("health_class") not in ("healthy", None):
+        issues.append(
+            {
+                "service": "Database",
+                "level": "error",
+                "message": db.get("error", "Connection failed"),
+            }
+        )
+
+    # Redis
+    redis = status_data.get("redis", {})
+    if redis.get("health_class") not in ("healthy", None):
+        issues.append(
+            {
+                "service": "Redis",
+                "level": "error",
+                "message": redis.get("error", "Connection failed"),
+            }
+        )
+
+    # SLURM
+    slurm = status_data.get("slurm", {})
+    if slurm.get("health_class") == "unhealthy":
+        issues.append(
+            {
+                "service": "Compute",
+                "level": "error",
+                "message": slurm.get("error", "SLURM unavailable"),
+            }
+        )
+    elif slurm.get("health_class") == "warning":
+        issues.append(
+            {
+                "service": "Compute",
+                "level": "warning",
+                "message": slurm.get("details", "Degraded"),
+            }
+        )
+
+    # Apptainer
+    apptainer = status_data.get("apptainer", {})
+    if apptainer.get("health_class") in ("unhealthy", "warning"):
+        issues.append(
+            {
+                "service": "Container Runtime",
+                "level": "warning",
+                "message": apptainer.get("error", "Not available"),
+            }
+        )
+
+    # Vite (DEBUG only)
+    vite = status_data.get("vite", {})
+    if vite and vite.get("health_class") != "healthy":
+        issues.append(
+            {
+                "service": "Vite Dev Server",
+                "level": "warning",
+                "message": "Not responding — JS/CSS may be broken",
+            }
+        )
+
+    # SSH services
+    for ssh in status_data.get("ssh_services", []):
+        if ssh.get("health_class") in ("unhealthy", "down"):
+            issues.append(
+                {
+                    "service": ssh.get("name", "SSH"),
+                    "level": "warning",
+                    "message": ssh.get("error", "Not responding"),
+                }
+            )
+
+    # API services
+    for api in status_data.get("api_services", []):
+        if api.get("health_class") in ("unhealthy", "down"):
+            issues.append(
+                {
+                    "service": api.get("name", "API"),
+                    "level": "warning",
+                    "message": api.get("error", "Not responding"),
+                }
+            )
+
+    # User data permissions
+    perms = status_data.get("user_data_permissions", {})
+    if perms.get("health_class") == "unhealthy":
+        issues.append(
+            {
+                "service": "User Data",
+                "level": "warning",
+                "message": perms.get("message", "Permission issues"),
+            }
+        )
+
+    return issues
 
 
 def versions_api(request):

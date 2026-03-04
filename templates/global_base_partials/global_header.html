@@ -398,6 +398,30 @@
                data-tooltip="Keyboard Shortcuts (Alt+/ for quick view)">
                 <i class="fas fa-keyboard"></i>
             </a>
+            <!-- Notification Center (staff in prod, everyone in dev) -->
+            {% if DEBUG or user.is_staff %}
+                <div id="notification-center"
+                     class="header-notification-center"
+                     style="position: relative;
+                            display: inline-flex">
+                    <button id="notification-bell" class="theme-toggle" data-tooltip="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span id="notification-badge" class="notification-badge" style="display: none">0</span>
+                    </button>
+                    <div id="notification-dropdown" class="notification-dropdown" style="display: none">
+                        <div class="notification-header">
+                            <span>System Notifications</span>
+                            <button id="notification-clear" class="notification-clear-btn" title="Clear all">
+                                <i class="fas fa-check-double"></i>
+                            </button>
+                        </div>
+                        <div id="notification-list" class="notification-list">
+                            <div class="notification-empty">All systems operational</div>
+                        </div>
+                        <a href="{% url 'public_app:server_status' %}" class="notification-footer">View full status</a>
+                    </div>
+                </div>
+            {% endif %}
             <!-- Server Status with live health indicator -->
             <a href="{% url 'public_app:server_status' %}"
                id="server-status-btn"
