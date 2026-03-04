@@ -28,6 +28,7 @@ urlpatterns = [
     path("api/tests/run/<str:category>/", views.run_tests_api, name="tests_run_api"),
     path("api/console/", log_console, name="console_log"),
     path("api/console/logs/", get_console_logs, name="console_logs_get"),
+    path("api/restart-slurm/", views.restart_slurm_api, name="restart_slurm_api"),
     path("design/", views.DesignGuidelinesView.as_view(), name="design"),
     path(
         "design/typography/",

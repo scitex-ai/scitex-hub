@@ -167,9 +167,9 @@ export class PTYTerminal {
     switch (state) {
       case "allocation_starting":
         this.term.write(
-          "\r\n\x1b[1;36m Starting SLURM allocation...\x1b[0m\r\n",
+          "\r\n\x1b[1;36m Preparing your computing environment...\x1b[0m\r\n",
         );
-        this.updateBadge(badge, "allocating", "warning");
+        this.updateBadge(badge, "starting", "warning");
         break;
 
       case "allocation_expiring": {
@@ -177,39 +177,39 @@ export class PTYTerminal {
         const minutes = Math.ceil(remaining / 60);
         const timeStr = minutes > 0 ? `${minutes} min` : `${remaining}s`;
         this.term.write(
-          `\r\n\x1b[1;33m \u26a0 SLURM allocation expires in ${timeStr}\x1b[0m\r\n`,
+          `\r\n\x1b[1;33m \u26a0 Session expires in ${timeStr}\x1b[0m\r\n`,
         );
         this.term.write(
-          "\x1b[0;33m   Save your work. A new allocation will be created automatically.\x1b[0m\r\n",
+          "\x1b[0;33m   Save your work. A new session will start automatically.\x1b[0m\r\n",
         );
         this.updateBadge(badge, `expires ${timeStr}`, "warning");
-        this.notifyUser(`Terminal allocation expires in ${timeStr}`);
+        this.notifyUser(`Terminal session expires in ${timeStr}`);
         break;
       }
 
       case "allocation_dead": {
         const reason = msg.reason || "Unknown reason";
         this.term.write(
-          `\r\n\x1b[1;31m \u274c Allocation ended: ${reason}\x1b[0m\r\n`,
+          `\r\n\x1b[1;31m \u274c Session ended: ${reason}\x1b[0m\r\n`,
         );
         this.term.write(
-          "\x1b[0;36m   Attempting automatic recovery...\x1b[0m\r\n",
+          "\x1b[0;36m   Reconnecting automatically...\x1b[0m\r\n",
         );
-        this.updateBadge(badge, "recovering", "warning");
-        this.notifyUser(`Allocation ended: ${reason}. Recovering...`);
+        this.updateBadge(badge, "reconnecting", "warning");
+        this.notifyUser(`Session ended: ${reason}. Reconnecting...`);
         break;
       }
 
       case "allocation_recovering":
         this.term.write(
-          "\r\n\x1b[1;36m Starting new SLURM allocation...\x1b[0m\r\n",
+          "\r\n\x1b[1;36m Preparing your computing environment...\x1b[0m\r\n",
         );
-        this.updateBadge(badge, "recovering", "warning");
+        this.updateBadge(badge, "reconnecting", "warning");
         break;
 
       case "exited":
       case "respawning":
-        this.term.write("\r\n\x1b[1;33m Session restarting...\x1b[0m\r\n");
+        this.term.write("\r\n\x1b[1;33m Restarting terminal...\x1b[0m\r\n");
         this.updateBadge(badge, "restarting", "warning");
         break;
 
@@ -219,12 +219,10 @@ export class PTYTerminal {
         break;
 
       case "dead": {
-        const deadReason = msg.reason || "Max retries exceeded";
-        this.term.write(
-          `\r\n\x1b[1;31m \u274c Session stopped: ${deadReason}\x1b[0m\r\n`,
-        );
+        const deadReason = msg.reason || "Terminal stopped";
+        this.term.write(`\r\n\x1b[1;31m \u274c ${deadReason}\x1b[0m\r\n`);
         this.updateBadge(badge, "stopped", "error");
-        this.notifyUser(`Terminal stopped: ${deadReason}`);
+        this.notifyUser(deadReason);
         this.showRestartOverlay(deadReason);
         break;
       }

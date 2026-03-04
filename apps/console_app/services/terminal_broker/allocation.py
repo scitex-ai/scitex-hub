@@ -272,14 +272,14 @@ class Allocation:
     def _format_failure_reason(state: str, reason: str) -> str:
         """Map SLURM job state/reason to a human-readable message."""
         messages = {
-            "TIMEOUT": "Job exceeded time limit",
-            "CANCELLED": "Job was cancelled",
-            "FAILED": f"Job failed ({reason})" if reason else "Job failed",
-            "NODE_FAIL": "Compute node failure",
-            "PREEMPTED": "Job was preempted by higher-priority job",
-            "OUT_OF_MEMORY": "Job exceeded memory limit",
+            "TIMEOUT": "Session time limit reached — restarting automatically",
+            "CANCELLED": "Session was stopped",
+            "FAILED": "Session encountered an error — restarting automatically",
+            "NODE_FAIL": "Server issue — restarting automatically",
+            "PREEMPTED": "Resources needed elsewhere — restarting automatically",
+            "OUT_OF_MEMORY": "Memory limit reached — please reduce memory usage",
         }
-        return messages.get(state, f"{state}: {reason}" if reason else state)
+        return messages.get(state, "Session ended — restarting automatically")
 
     def _wait_for_instance(self) -> bool:
         """Poll via srun --overlap until the apptainer instance is ready."""

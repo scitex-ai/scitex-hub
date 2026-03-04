@@ -131,7 +131,19 @@ async function freeVisitorSlots(): Promise<void> {
   );
 }
 
+// Restart SLURM services (Dev only)
+async function restartSlurm(): Promise<void> {
+  if (!confirm("Restart SLURM services (slurmctld + slurmd)?")) return;
+  await visitorPoolAction(
+    "restart-slurm-btn",
+    "/dev/api/restart-slurm/",
+    "fa-server",
+    (data) => `SLURM Restarted!\n\n${data.message}`,
+  );
+}
+
 // Make functions available globally for onclick handlers in footer
 (window as any).initVisitorPool = initVisitorPool;
 (window as any).fillVisitorSlots = fillVisitorSlots;
 (window as any).freeVisitorSlots = freeVisitorSlots;
+(window as any).restartSlurm = restartSlurm;

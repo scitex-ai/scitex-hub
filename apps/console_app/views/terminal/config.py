@@ -128,4 +128,10 @@ def parse_time_limit_seconds(time_str: str) -> int:
 SLURM_TIME_LIMIT_SECONDS = parse_time_limit_seconds(SLURM_TIME_LIMIT)
 
 
+# =============================================================================
+# Terminal MOTD (Message of the Day)
+# =============================================================================
+SHOW_MOTD = os.environ.get("SCITEX_CLOUD_SHOW_MOTD", "true").lower() != "false"
+
+
 # EOF

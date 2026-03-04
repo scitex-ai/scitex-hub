@@ -10,23 +10,22 @@
  */
 
 // ── Data Table ──────────────────────────────────────────
-export { DataTableManager } from "../components/data-table/DataTableManager";
+export { DataTableManager } from "../components/data-table";
 
 // ── Monaco Editor ───────────────────────────────────────
-export { SharedMonacoEditor } from "../components/monaco-editor/SharedMonacoEditor";
+export { SharedMonacoEditor } from "../components/monaco-editor";
 
 // ── Media Viewer (PDF, images, video, audio, Mermaid) ───
-export { WorkspaceViewer } from "../components/workspace-viewer/WorkspaceViewer";
+export { WorkspaceViewer } from "../components/workspace-viewer";
 
 // ── File Tree ───────────────────────────────────────────
-export { WorkspaceFilesTree } from "../components/workspace-files-tree/WorkspaceFilesTree";
+export { WorkspaceFilesTree } from "../components/workspace-files-tree";
 
 // ── File Tabs ───────────────────────────────────────────
-export { FileTabBar } from "../components/file-tabs/FileTabBar";
+export { FileTabManager as FileTabBar } from "../components/file-tabs";
 
 // ── Resizer (split panes) ───────────────────────────────
-export { HorizontalResizer } from "../components/resizer/HorizontalResizer";
-export { VerticalResizer } from "../components/resizer/VerticalResizer";
+export { HorizontalResizer, VerticalResizer } from "../components/resizer";
 
 // ── Component Registry ──────────────────────────────────
 // Maps component names to their classes for dynamic instantiation.

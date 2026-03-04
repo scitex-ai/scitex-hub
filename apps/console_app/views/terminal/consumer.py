@@ -247,7 +247,7 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
         if not slurm_available:
             logger.error(f"SLURM unavailable ({slurm_status})")
             await self.send(
-                text_data=f"\x1b[1;31m❌ SLURM unavailable: {slurm_status}\x1b[0m\r\n"
+                text_data="\x1b[1;31m❌ Computing resources temporarily unavailable. Please try again shortly.\x1b[0m\r\n"
             )
             await self.close(code=4003)
             return
