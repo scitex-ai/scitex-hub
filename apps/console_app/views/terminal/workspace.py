@@ -51,6 +51,11 @@ async def ensure_workspace(user_data_dir: Path, username: str, project_slug: str
         # Patch existing bashrc with AI CLI tools section if missing
         _patch_bashrc_ai_tools(dotfiles_dir)
 
+        # Create ~/proj/home -> .. symlink (home project = user home)
+        home_link = user_data_dir / "proj" / "home"
+        if not home_link.exists() and not home_link.is_symlink():
+            home_link.symlink_to("..")
+
         logger.info(f"Workspace ready: {user_data_dir}")
 
     await asyncio.to_thread(setup)
