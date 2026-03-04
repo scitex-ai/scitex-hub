@@ -571,7 +571,7 @@ setup_gitea_token() {
     local NEW_TOKEN=$(docker exec -u git scitex-cloud-dev-gitea-1 gitea admin user generate-access-token \
         --username "$ADMIN_USERNAME" \
         --token-name "scitex-dev-$(date +%Y%m%d)" \
-        --scopes "write:repository,write:user,write:admin" \
+        --scopes "write:repository,write:user,write:admin,write:organization" \
         2> /dev/null | grep -oE '[a-f0-9]{40}' | head -1)
 
     if [ -n "$NEW_TOKEN" ]; then
