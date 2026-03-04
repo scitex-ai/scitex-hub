@@ -13,7 +13,7 @@ from .api import (
     api_update_config,
 )
 from .api_registry import api_registry_webhook, api_submit_jwt
-from .api_review import api_review_submission, api_submit_for_review
+from .api_submission import api_review_submission, api_submit_for_review
 from .pages import browse, build_apps_context, detail, my_modules, review_queue
 
 __all__ = [

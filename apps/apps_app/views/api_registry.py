@@ -163,7 +163,7 @@ def api_registry_webhook(request):
     # Approve
     from django.utils import timezone
 
-    from .api_review import _activate_approved_app
+    from .api_submission import _activate_approved_app
 
     now = timezone.now()
     submission.status = "approved"
