@@ -347,13 +347,6 @@ def _agents_json(name, label):
                     "args": ["mcp", "start"],
                     "enabled": True,
                 },
-                "scitex-cloud": {
-                    "label": "SciTeX Cloud",
-                    "transport": "stdio",
-                    "command": "/usr/local/bin/scitex-cloud",
-                    "args": ["mcp", "start"],
-                    "enabled": True,
-                },
             }
         },
     }

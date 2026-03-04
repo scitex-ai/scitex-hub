@@ -58,15 +58,6 @@ def _build_agents_json(mcp_env: dict[str, str] | None = None) -> dict:
                     "env": env,
                     "enabled": True,
                 },
-                "scitex-cloud": {
-                    "label": "SciTeX Cloud",
-                    "description": "SciTeX Cloud on-site tools — browser interaction, page capture, UI actions",
-                    "transport": "stdio",
-                    "command": "/usr/local/bin/scitex-cloud",
-                    "args": ["mcp", "start"],
-                    "env": {},
-                    "enabled": True,
-                },
             }
         },
         "lastSync": None,
@@ -253,11 +244,6 @@ def _build_mcp_json(mcp_env: dict[str, str] | None = None) -> dict:
                 "command": "/usr/local/bin/scitex",
                 "args": ["mcp", "start"],
                 "env": env,
-            },
-            "scitex-cloud": {
-                "command": "/usr/local/bin/scitex-cloud",
-                "args": ["mcp", "start"],
-                "env": {},
             },
         }
     }
