@@ -61,6 +61,9 @@ class ModuleConfig:
     ai_hint: str = ""  # Short description for data-ai-hint (shown to LLM)
     accent_color: str = ""  # Module accent identifier (maps to CSS --module-accent-X)
 
+    # Documentation
+    docs_slug: str = ""  # Slug for auto-registering docs page (e.g. "clew")
+
     # Legal
     license: str = "AGPL-3.0"  # SPDX identifier, default matches SciTeX project license
 
@@ -215,6 +218,7 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         order=50,  # hidden (default_enabled=False)
         default_enabled=False,
         ai_hint="Verification system: trace manuscript claims (statistics, figures, tables) back through computational chains to source data.",
+        docs_slug="clew",
         accent_color="clew",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),

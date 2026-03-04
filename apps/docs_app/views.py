@@ -129,6 +129,40 @@ DOCS_PAGES = [
 _PAGES_BY_SLUG = {p["slug"]: p for p in DOCS_PAGES}
 
 
+def register_module_docs():
+    """Auto-register docs pages for workspace modules that have docs_slug set.
+
+    Scans all registered modules. For each module with a non-empty docs_slug,
+    checks if a template exists at ``{app_name}/docs/{docs_slug}.html``.
+    If found, appends it to DOCS_PAGES so it appears in the Docs sidebar.
+    """
+    from django.template.loader import get_template
+
+    from apps.workspace_app.registry import get_all_modules
+
+    for mod in get_all_modules():
+        if not mod.docs_slug:
+            continue
+        if mod.docs_slug in _PAGES_BY_SLUG:
+            continue  # Already registered
+        template_path = f"{mod.app_name}/docs/{mod.docs_slug}.html"
+        try:
+            get_template(template_path)
+        except Exception:
+            continue  # Template doesn't exist, skip
+
+        icon = mod.icon_fa if mod.icon_fa else "fas fa-puzzle-piece"
+        page = {
+            "slug": mod.docs_slug,
+            "label": mod.label,
+            "icon": icon,
+            "template": template_path,
+            "badges": ["app"],
+        }
+        DOCS_PAGES.append(page)
+        _PAGES_BY_SLUG[mod.docs_slug] = page
+
+
 # ---------------------------------------------------------------------------
 # Context builder (called by workspace registry)
 # ---------------------------------------------------------------------------
