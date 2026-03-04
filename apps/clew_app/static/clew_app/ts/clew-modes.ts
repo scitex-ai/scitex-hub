@@ -107,16 +107,45 @@ export async function renderProjectDag(
       </div>
     `;
   } else {
-    showPlaceholder(
-      dagArea,
-      "fa-project-diagram",
-      "No Runs Yet",
-      "Clew tracks reproducibility by recording file hashes during <code>@stx.session</code> runs.<br><br>" +
-        "<strong>Quick Start:</strong><br>" +
-        "1. Click <strong>Add Examples</strong> to get sample scripts<br>" +
-        "2. Run them in the terminal: <code>cd examples/clew &amp;&amp; bash 00_run_all.sh</code><br>" +
-        "3. Switch to <strong>Project</strong> mode to view the verification DAG",
-    );
+    dagArea.innerHTML = `
+      <div class="dag-placeholder">
+        <i class="fas fa-project-diagram fa-3x"></i>
+        <h3>No Runs Yet</h3>
+        <div class="clew-instructions">
+          <div class="clew-direction">
+            <h4>How Clew Works</h4>
+            <p>
+              Wrap your script with <code>@stx.session</code> and use
+              <code>stx.io</code> for file I/O. Clew records every input/output
+              with SHA-256 hashes, building a verifiable dependency DAG.
+            </p>
+            <pre><code>import scitex as stx
+
+@stx.session
+def main():
+    data = stx.io.load("raw_data.csv")
+    result = data.groupby("condition").mean()
+    stx.io.save(result, "summary.csv")
+
+    fig, ax = stx.plt.subplots()
+    ax.plot_line(result.index, result.values)
+    stx.io.save(fig, "figure_1.png")</code></pre>
+          </div>
+          <div class="clew-direction">
+            <h4>Quick Start</h4>
+            <ol>
+              <li>Click <strong>Add Examples</strong> to get sample scripts</li>
+              <li>Run: <code>cd examples/clew &amp;&amp; bash 00_run_all.sh</code></li>
+              <li>Switch to <strong>Project</strong> mode to view the DAG</li>
+            </ol>
+            <p class="text-muted" style="margin-top:0.5rem;">
+              <code>stx.io</code> supports 30+ formats (CSV, NumPy, images, pickle, etc.).<br>
+              <code>stx.plt</code> creates publication-ready figures with auto CSV export.
+            </p>
+          </div>
+        </div>
+      </div>
+    `;
   }
 }
 
