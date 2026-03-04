@@ -1,0 +1,354 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}Clew — SciTeX Documentation{% endblock %}
+{% block meta_description %}
+    Clew: reproducibility verification via hash-based DAGs for scientific research.
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container py-2">
+        <header class="minimal-hero" style="text-align: center">
+            <div class="api-hero-header" style="justify-content: center">
+                <h1 class="minimal-hero-title">Clew</h1>
+                <div class="api-hero-actions">
+                    <span class="api-version-badge">WIP</span>
+                </div>
+            </div>
+            <p class="minimal-hero-subtitle">Reproducibility verification via hash-based DAGs</p>
+        </header>
+    </div>
+    <div class="container py-2">
+        <!-- What is Clew -->
+        <span id="overview"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-check-circle"></i> What is Clew?
+            </h2>
+            <p>
+                Clew is a verification system that ensures scientific results are reproducible.
+                It records file hashes during computation, building a directed acyclic graph (DAG)
+                that connects source data to final outputs (figures, statistics, tables).
+            </p>
+            <p>
+                Every manuscript claim — "p &lt; 0.001" or "Figure 3" — can be traced backward
+                through the computational chain to the original data files. If any intermediate
+                file has been modified, Clew detects the mismatch.
+            </p>
+        </section>
+        <!-- Forward Tracking -->
+        <span id="forward"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-arrow-right"></i> Forward: Track
+            </h2>
+            <p>
+                Use <code>@stx.session</code> and <code>stx.io</code> in your scripts.
+                Clew automatically records every input and output with SHA-256 hashes.
+            </p>
+            <pre><code>import scitex as stx
+@stx.session
+def main():
+    # Inputs are tracked automatically
+    data = stx.io.load("raw_data.csv")
+
+    # Processing...
+    result = data.groupby("condition").mean()
+
+    # Outputs are tracked with hashes
+    stx.io.save(result, "summary.csv")
+    fig, ax = stx.plt.subplots()
+    ax.plot_line(result.index, result.values)
+    stx.io.save(fig, "figure_1.png")  # Saves .png + .csv
+
+    return 0
+
+if __name__ == "__main__":
+    main()</code></pre>
+            <p>
+                Each run creates a session record in the Clew database
+                (<code>scitex/clew.db</code>) with input/output file paths and their hashes.
+            </p>
+        </section>
+        <!-- Backward Verification -->
+        <span id="backward"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-arrow-left"></i> Backward: Verify
+            </h2>
+            <p>Given any output artifact, trace its full dependency chain back to source data.</p>
+            <pre><code># Trace a single file
+scitex clew chain figure_1.png
+
+# Check all tracked files
+scitex clew status
+
+# List all recorded sessions
+scitex clew list</code></pre>
+            <p>
+                The <strong>File</strong> mode in the Clew workspace tab lets you drag files
+                from the file tree to visualize their dependency chains as interactive DAGs.
+            </p>
+        </section>
+        <!-- Claims -->
+        <span id="claims"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-file-contract"></i> Claims
+            </h2>
+            <p>
+                Claims link manuscript assertions to their computational source.
+                Register a claim wherever your code produces a result that appears in the paper.
+            </p>
+            <pre><code>import scitex as stx
+@stx.session
+def main():
+    data = stx.io.load("experiment_results.csv")
+    from scipy import stats
+    t_stat, p_val = stats.ttest_ind(data["control"], data["treatment"])
+
+    # Register claim: links this p-value to the manuscript
+    stx.clew.add_claim(
+        claim_type="statistic",
+        claim_value=f"p = {p_val:.4f}",
+        file_path="manuscript.tex",
+        line_number=142,
+    )
+
+    return 0</code></pre>
+            <p>Claim types:</p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Use</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>statistic</code>
+                        </td>
+                        <td>p-values, effect sizes, test statistics</td>
+                        <td>
+                            <code>p = 0.003</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>figure</code>
+                        </td>
+                        <td>Figures referenced in manuscript</td>
+                        <td>
+                            <code>Figure 3a</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>table</code>
+                        </td>
+                        <td>Tables referenced in manuscript</td>
+                        <td>
+                            <code>Table 2</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>text</code>
+                        </td>
+                        <td>Textual claims (e.g., "accuracy improved by 15%")</td>
+                        <td>
+                            <code>accuracy = 0.95</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>value</code>
+                        </td>
+                        <td>Specific numeric values</td>
+                        <td>
+                            <code>N = 1024</code>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>
+                The <strong>Claims</strong> mode in the workspace shows a DAG connecting
+                manuscript claims to their source data, with verification status badges.
+            </p>
+        </section>
+        <!-- DAG Modes -->
+        <span id="modes"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-project-diagram"></i> DAG Modes
+            </h2>
+            <p>The Clew workspace tab provides three visualization modes:</p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Mode</th>
+                        <th>Description</th>
+                        <th>When to Use</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Project</strong>
+                        </td>
+                        <td>Full project-wide DAG showing all tracked sessions</td>
+                        <td>Overview of all computational dependencies</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Claims</strong>
+                        </td>
+                        <td>Claims-based DAG linking manuscript to source data</td>
+                        <td>Verifying paper assertions</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>File</strong>
+                        </td>
+                        <td>Single-file or multi-file trace</td>
+                        <td>Debugging a specific output</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>
+                In <strong>File</strong> mode, drag multiple files from the file tree
+                to merge their dependency chains into a single DAG.
+            </p>
+        </section>
+        <!-- CLI Reference -->
+        <span id="cli"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-terminal"></i> CLI Reference
+            </h2>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>scitex clew list</code>
+                        </td>
+                        <td>List all tracked sessions with timestamps and file counts</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>scitex clew status</code>
+                        </td>
+                        <td>Show verification status of all tracked files</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>scitex clew chain &lt;file&gt;</code>
+                        </td>
+                        <td>Trace dependency chain for a specific file</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>scitex clew run &lt;script&gt;</code>
+                        </td>
+                        <td>Run a script with Clew tracking enabled</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>scitex clew mermaid</code>
+                        </td>
+                        <td>Generate Mermaid DAG for the full project</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- Quick Start -->
+        <span id="quickstart"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-rocket"></i> Quick Start
+            </h2>
+            <ol>
+                <li>
+                    <strong>Add example scripts</strong> — Click <em>Add Examples</em>
+                    in the Clew tab header to get sample pipeline scripts.
+                </li>
+                <li>
+                    <strong>Run the pipeline</strong> — Open a terminal and run:
+                    <pre><code>cd examples/clew && bash 00_run_all.sh</code></pre>
+                </li>
+                <li>
+                    <strong>View the DAG</strong> — Switch to <strong>Project</strong>
+                    mode to see the full verification DAG.
+                </li>
+                <li>
+                    <strong>Trace a file</strong> — Switch to <strong>File</strong>
+                    mode and drag any output file from the file tree onto the DAG area.
+                </li>
+            </ol>
+        </section>
+        <!-- For AI Agents -->
+        <span id="ai-integration"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-robot"></i> For AI Agents
+            </h2>
+            <p>AI agents can interact with Clew via MCP tools:</p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>MCP Tool</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>clew_list</code>
+                        </td>
+                        <td>List tracked sessions</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>clew_status</code>
+                        </td>
+                        <td>Check verification status</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>clew_run</code>
+                        </td>
+                        <td>Run a script with tracking</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>clew_chain</code>
+                        </td>
+                        <td>Trace file dependency chain</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>clew_mermaid</code>
+                        </td>
+                        <td>Generate Mermaid DAG</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>
+                When using <code>@stx.session</code> in scripts, all file I/O via
+                <code>stx.io</code> is automatically tracked. No additional configuration needed.
+            </p>
+        </section>
+    </div>
+{% endblock %}
