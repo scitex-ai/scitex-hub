@@ -282,6 +282,8 @@ def get_mermaid_dag(request):
     Query parameters:
     - session_id: str (optional)
     - target_file: str (optional)
+    - target_files: str (optional, comma-separated paths)
+    - claims: bool (optional, default: false)
     - show_hashes: bool (optional, default: false)
     - path_mode: str (optional, default: "name")
 
@@ -291,12 +293,20 @@ def get_mermaid_dag(request):
         _set_project_db(request)
         session_id = request.GET.get("session_id")
         target_file = request.GET.get("target_file")
+        target_files_raw = request.GET.get("target_files")
+        claims = request.GET.get("claims", "false").lower() == "true"
         show_hashes = request.GET.get("show_hashes", "false").lower() == "true"
         path_mode = request.GET.get("path_mode", "name")
+
+        target_files = None
+        if target_files_raw:
+            target_files = [f.strip() for f in target_files_raw.split(",") if f.strip()]
 
         mermaid_code = stx.clew.generate_mermaid_dag(
             session_id=session_id,
             target_file=target_file,
+            target_files=target_files,
+            claims=claims,
             show_hashes=show_hashes,
             path_mode=path_mode,
         )
@@ -332,6 +342,51 @@ def database_stats(request):
             {
                 "success": True,
                 "data": stats,
+            }
+        )
+    except Exception as e:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": str(e),
+            },
+            status=500,
+        )
+
+
+@require_http_methods(["GET"])
+def list_claims_view(request):
+    """List registered claims with optional filtering.
+
+    Query parameters:
+    - file_path: str (optional)
+    - claim_type: str (optional)
+    - status: str (optional)
+    - limit: int (default: 100)
+
+    Wrapper around scitex.clew.list_claims()
+    """
+    try:
+        _set_project_db(request)
+        file_path = request.GET.get("file_path")
+        claim_type = request.GET.get("claim_type")
+        status_filter = request.GET.get("status")
+        limit = int(request.GET.get("limit", 100))
+
+        claims = stx.clew.list_claims(
+            file_path=file_path,
+            claim_type=claim_type,
+            status=status_filter,
+            limit=limit,
+        )
+
+        return JsonResponse(
+            {
+                "success": True,
+                "data": {
+                    "claims": [c.to_dict() for c in claims],
+                    "count": len(claims),
+                },
             }
         )
     except Exception as e:

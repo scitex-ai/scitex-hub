@@ -103,6 +103,20 @@ export interface DatabaseStats {
   db_path: string;
 }
 
+export interface ClaimInfo {
+  claim_id: string;
+  file_path: string;
+  line_number: number | null;
+  claim_type: "statistic" | "figure" | "table" | "text" | "value";
+  claim_value: string | null;
+  source_session: string | null;
+  source_file: string | null;
+  source_hash: string | null;
+  registered_at: string | null;
+  verified_at: string | null;
+  status: "registered" | "verified" | "mismatch" | "missing" | "partial";
+}
+
 export class ClewApiClient {
   private baseUrl = "/clew/api";
 
@@ -232,17 +246,46 @@ export class ClewApiClient {
   async getMermaidDag(params?: {
     sessionId?: string;
     targetFile?: string;
+    targetFiles?: string[];
+    claims?: boolean;
     showHashes?: boolean;
     pathMode?: "name" | "relative" | "absolute";
   }): Promise<ApiResponse<{ mermaid: string }>> {
     const queryParams: Record<string, string> = {};
     if (params?.sessionId) queryParams.session_id = params.sessionId;
     if (params?.targetFile) queryParams.target_file = params.targetFile;
+    if (params?.targetFiles?.length)
+      queryParams.target_files = params.targetFiles.join(",");
+    if (params?.claims) queryParams.claims = "true";
     if (params?.showHashes !== undefined)
       queryParams.show_hashes = params.showHashes.toString();
     if (params?.pathMode) queryParams.path_mode = params.pathMode;
 
     return this.fetchJson<{ mermaid: string }>("/dag/mermaid/", queryParams);
+  }
+
+  /**
+   * List registered claims with optional filtering
+   */
+  async listClaims(params?: {
+    filePath?: string;
+    claimType?: string;
+    status?: string;
+    limit?: number;
+  }): Promise<
+    ApiResponse<{
+      claims: import("./api-client").ClaimInfo[];
+      count: number;
+    }>
+  > {
+    const queryParams: Record<string, string> = {};
+    if (params?.filePath) queryParams.file_path = params.filePath;
+    if (params?.claimType) queryParams.claim_type = params.claimType;
+    if (params?.status) queryParams.status = params.status;
+    if (params?.limit !== undefined)
+      queryParams.limit = params.limit.toString();
+
+    return this.fetchJson("/claims/", queryParams);
   }
 
   /**

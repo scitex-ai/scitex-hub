@@ -56,6 +56,41 @@
   margin-left: auto;
 }
 
+/* Mode Selector */
+.clew-mode-selector {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  background: var(--workspace-bg-tertiary);
+  border-radius: 4px;
+  padding: 2px;
+}
+
+.clew-mode-btn {
+  border: none;
+  background: transparent;
+  color: var(--workspace-text-muted);
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 3px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.clew-mode-btn:hover {
+  color: var(--workspace-text-primary);
+  background: var(--workspace-bg-secondary);
+}
+
+.clew-mode-btn.active {
+  color: var(--workspace-text-primary);
+  background: var(--workspace-bg-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
 /* DAG Visualization Area */
 .dag-visualization-area {
   flex: 1;
@@ -301,4 +336,48 @@
   outline: 2px dashed var(--workspace-icon-primary, #58a6ff);
   outline-offset: -4px;
   background: rgba(88, 166, 255, 0.05);
+}
+
+/* Claims list */
+.claims-list {
+  padding: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+  border-top: 1px solid var(--workspace-border-default);
+  background: var(--workspace-bg-secondary);
+}
+
+.claim-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.78rem;
+  border-radius: 3px;
+}
+
+.claim-item:hover {
+  background: var(--workspace-bg-tertiary);
+}
+
+.claim-item .claim-type-icon {
+  width: 1.2em;
+  text-align: center;
+  color: var(--workspace-icon-primary);
+}
+
+.claim-item .claim-location {
+  color: var(--workspace-text-muted);
+  font-family: monospace;
+  font-size: 0.72rem;
+}
+
+.claim-item .claim-value {
+  color: var(--workspace-text-primary);
+  font-weight: 500;
+}
+
+.claim-item .claim-status {
+  margin-left: auto;
+  font-size: 0.7rem;
 }
