@@ -128,8 +128,9 @@
    =========================================================================== */
 
 .workspace-sidebar.collapsed {
-  width: var(--ui-collapsed-pane-width, 48px);
-  min-width: var(--ui-collapsed-pane-width, 48px);
+  width: var(--ui-collapsed-pane-width, 48px) !important;
+  min-width: var(--ui-collapsed-pane-width, 48px) !important;
+  zoom: 1 !important; /* Neutralize context-aware zoom when collapsed */
   cursor: pointer;
 }
 
@@ -164,7 +165,7 @@
   font-size: 9px;
   font-weight: 500;
   color: var(--text-secondary, #8ba7b8);
-  margin: 8px 0 0;
+  margin: 4px 0 0;
   white-space: nowrap;
   line-height: 1;
 }

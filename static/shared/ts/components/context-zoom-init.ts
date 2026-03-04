@@ -18,18 +18,15 @@ import {
 
 /** Pane definitions: selector → localStorage key */
 const FONT_ZOOM_ZONES: Array<{ selector: string; key: string }> = [
-  // AI panel views
-  { selector: "#scitex-ai-chat-view", key: "scitex-ai-chat-zoom" },
-  { selector: "#scitex-ai-jobs-list", key: "scitex-ai-jobs-zoom" },
-  { selector: ".scitex-ai-config-content", key: "scitex-ai-config-zoom" },
+  // AI panel (whole sidebar — CSS neutralizes zoom when collapsed)
   // NOTE: #scitex-ai-console-terminal is NOT listed here — xterm.js terminals
   // register their own custom zoom zones (adjusting terminal fontSize) in
   // console-mode.ts and console-terminal-factory.ts.
-  // Worktree pane
-  { selector: ".ws-worktree-tree-area", key: "scitex-worktree-zoom" },
-  { selector: ".ws-repo-monitor-area", key: "scitex-repo-monitor-zoom" },
-  // Viewer pane (whole pane — covers empty state, preview, and media)
-  { selector: "#ws-viewer-pane", key: "scitex-viewer-zoom" },
+  { selector: "#scitex-ai-panel", key: "scitex-ai-panel-zoom" },
+  // Worktree pane (whole sidebar — CSS neutralizes zoom when collapsed)
+  { selector: "#ws-worktree-sidebar", key: "scitex-worktree-zoom" },
+  // Viewer pane (whole sidebar — CSS neutralizes zoom when collapsed)
+  { selector: "#ws-viewer-sidebar", key: "scitex-viewer-zoom" },
   // Module (center) pane
   { selector: "#main-content", key: "scitex-module-zoom" },
 ];

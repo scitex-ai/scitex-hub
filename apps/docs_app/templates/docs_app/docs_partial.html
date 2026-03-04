@@ -2,6 +2,7 @@
 
 <!-- Docs workspace CSS -->
 <link rel="stylesheet" href="{% static 'docs_app/css/docs-workspace.css' %}" />
+<link rel="stylesheet" href="{% static 'docs_app/css/docs-content.css' %}" />
 <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
 <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
 <div class="docs-workspace" data-mode="docs" data-active-doc="{{ active_doc }}">
@@ -44,3 +45,4 @@
     </div>
 </div>
 {% vite_script 'docs_app/docs-workspace' %}
+{% vite_script 'docs_app/docs-context-menu' %}

@@ -434,6 +434,16 @@ function initDocsWorkspace(): void {
     };
   }
 
+  // Sync selection from DOM (triggered by context menu)
+  document.addEventListener("docs:sync-selection", () => {
+    selectedSlugs.clear();
+    navItems.forEach((i) => {
+      if (i.classList.contains("selected"))
+        selectedSlugs.add(i.dataset.slug ?? "");
+    });
+    updateSelectionBar(sidebar, navItems);
+  });
+
   // Sidebar click handlers (Ctrl+Click = multi-select, Click = navigate)
   navItems.forEach((item) => {
     item.addEventListener("click", (e: MouseEvent) => {

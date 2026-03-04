@@ -38,14 +38,15 @@ class Command(BaseCommand):
         self._add_superusers_to_org(client)
 
         # ── 2. Create the `apps` repo under the org ─────────────────────
-        if not self._create_repo(client):
-            return  # repo already exists or creation failed
+        created = self._create_repo(client)
 
-        # ── 3. Initialise `apps/` directory + README ────────────────────
-        self._init_contents(client)
+        # ── 3. Initialise `apps/` directory + README (first time only) ──
+        if created:
+            self._init_contents(client)
+            self._register_webhook(client)
 
-        # ── 4. Register webhook for PR-merge events ─────────────────────
-        self._register_webhook(client)
+        # ── 4. Ensure Django Project record exists (always) ──────────────
+        self._ensure_django_project()
 
     # ------------------------------------------------------------------
     def _ensure_org(self, client):
@@ -190,6 +191,47 @@ class Command(BaseCommand):
             logger.warning("README update failed: %s", exc)
             self.stdout.write(
                 self.style.WARNING(f"README update failed (non-critical): {exc}")
+            )
+
+    # ------------------------------------------------------------------
+    def _ensure_django_project(self):
+        """Create a Django Project record for scitex/apps so it shows in Hub."""
+        from django.contrib.auth.models import User
+
+        from apps.project_app.models import Project
+
+        # Get or create a system user for the org
+        system_user, created = User.objects.get_or_create(
+            username=REGISTRY_ORG,
+            defaults={"is_active": False, "email": f"{REGISTRY_ORG}@scitex.local"},
+        )
+        if created:
+            system_user.set_unusable_password()
+            system_user.save()
+            self.stdout.write(
+                self.style.SUCCESS(f"Created system user: {REGISTRY_ORG}")
+            )
+
+        # Get or create the Project record
+        project, created = Project.objects.update_or_create(
+            owner=system_user,
+            name=REGISTRY_REPO_NAME,
+            defaults={
+                "slug": REGISTRY_REPO_NAME,
+                "description": REGISTRY_REPO_DESC,
+                "visibility": "public",
+                "project_type": "local",
+            },
+        )
+        if created:
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Created Django Project: {REGISTRY_ORG}/{REGISTRY_REPO_NAME}"
+                )
+            )
+        else:
+            self.stdout.write(
+                f"Django Project {REGISTRY_ORG}/{REGISTRY_REPO_NAME} exists."
             )
 
     # ------------------------------------------------------------------
