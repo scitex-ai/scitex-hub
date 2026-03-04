@@ -12,8 +12,8 @@
 {% endblock %}
 {% block content %}
     <div class="container py-2">
-        <header class="minimal-hero" style="text-align: center">
-            <div class="api-hero-header" style="justify-content: center">
+        <header class="minimal-hero">
+            <div class="api-hero-header api-hero-header-centered">
                 <h1 class="minimal-hero-title">App Maker: For Administrators</h1>
                 <div class="api-hero-actions">
                     <span class="api-version-badge">WIP</span>
@@ -60,15 +60,17 @@ MODULE_CONFIG = ModuleConfig(
                 </div>
             </div>
         </section>
-        <!-- Review Queue -->
+        <!-- Apps Registry -->
         <span id="review-queue"></span>
         <section class="api-section">
             <h2>
-                <i class="fas fa-clipboard-list"></i> Review Queue
+                <i class="fas fa-clipboard-list"></i> Apps Registry (<code>scitex/apps</code>)
             </h2>
             <p>
-                The review queue is at <a href="/apps/review/">/apps/review/</a> (staff only).
-                Pending submissions appear here after a user clicks &ldquo;Publish&rdquo;.
+                App submissions are managed via pull requests to the
+                <code>scitex/apps</code> organization repository (MELPA model).
+                When a creator runs <code>scitex-cloud app submit .</code>, a PR is opened
+                automatically against this registry.
             </p>
             <table class="api-table">
                 <thead>
@@ -80,20 +82,20 @@ MODULE_CONFIG = ModuleConfig(
                 <tbody>
                     <tr>
                         <td>
-                            <strong>Approve</strong>
+                            <strong>Merge PR</strong>
                         </td>
                         <td>
-                            Sets visibility to <code>public</code>, pins the current commit SHA,
+                            Approves the app. Sets visibility to <code>public</code>, pins the commit SHA,
                             registers the app in the workspace registry, and notifies the author.
                         </td>
                     </tr>
                     <tr>
                         <td>
-                            <strong>Reject</strong>
+                            <strong>Close PR</strong>
                         </td>
                         <td>
-                            Marks the submission as rejected with a note. The app stays private.
-                            Author receives email notification with the rejection reason.
+                            Rejects the submission. Leave a comment explaining why.
+                            The author can open a new PR after addressing the issues.
                         </td>
                     </tr>
                     <tr>
@@ -101,12 +103,20 @@ MODULE_CONFIG = ModuleConfig(
                             <strong>Request Changes</strong>
                         </td>
                         <td>
-                            Sends the submission back to the author with specific feedback.
-                            The author can resubmit after addressing the issues.
+                            Use GitHub/Gitea PR review to request changes.
+                            The author pushes updates to the same PR branch.
                         </td>
                     </tr>
                 </tbody>
             </table>
+            <div class="api-callout api-callout-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    The <code>scitex/apps</code> registry is auto-created by the
+                    <code>setup_registry_repo</code> management command. All Django superusers
+                    are automatically added to the org&rsquo;s Owners team.
+                </div>
+            </div>
         </section>
         <!-- Moderation -->
         <span id="moderation"></span>
@@ -114,7 +124,7 @@ MODULE_CONFIG = ModuleConfig(
             <h2>
                 <i class="fas fa-shield-alt"></i> Moderation Checklist
             </h2>
-            <p>When reviewing a submission, check:</p>
+            <p>When reviewing a PR submission, check:</p>
             <ol>
                 <li>
                     <strong>Security scan:</strong> Automated scan rejects <code>os.system</code>,
@@ -142,11 +152,11 @@ MODULE_CONFIG = ModuleConfig(
         <span id="approval-effects"></span>
         <section class="api-section">
             <h2>
-                <i class="fas fa-check-double"></i> What Happens on Approval
+                <i class="fas fa-check-double"></i> What Happens on PR Merge
             </h2>
             <ol>
                 <li>
-                    Submission status &rarr; <code>approved</code>
+                    PR merged into <code>scitex/apps</code> main branch
                 </li>
                 <li>
                     Module visibility &rarr; <code>public</code>, <code>is_verified</code> &rarr; true
@@ -156,11 +166,21 @@ MODULE_CONFIG = ModuleConfig(
                 </li>
                 <li>App is registered into the workspace module registry</li>
                 <li>
-                    Source project <code>app_status</code> updated
+                    Source project <code>app_status</code> &rarr; <code>approved</code>
                 </li>
-                <li>Author receives email notification</li>
-                <li>App appears in the public browse catalog</li>
+                <li>Author receives notification</li>
+                <li>
+                    App appears in the public <a href="/apps/">Apps Catalog</a>
+                </li>
             </ol>
+            <div class="api-callout api-callout-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>Dev Install bypass:</strong> Users can dev-install any app repo from
+                    <a href="/hub/">Hub Explore</a> without admin approval. Dev installs are
+                    personal and don&rsquo;t appear in the public catalog.
+                </div>
+            </div>
         </section>
     </div>
 {% endblock %}

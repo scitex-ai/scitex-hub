@@ -3,17 +3,15 @@
 {% load static %}
 
 {% block title %}App Maker — SciTeX Documentation{% endblock %}
-{% block meta_description %}
-    Create, install, and manage custom workspace modules for SciTeX Cloud.
-{% endblock %}
+{% block meta_description %}Create, install, and manage custom workspace modules for SciTeX Cloud.{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="container py-2">
-        <header class="minimal-hero" style="text-align: center">
-            <div class="api-hero-header" style="justify-content: center">
+        <header class="minimal-hero">
+            <div class="api-hero-header api-hero-header-centered">
                 <h1 class="minimal-hero-title">App Maker</h1>
                 <div class="api-hero-actions">
                     <span class="api-version-badge">WIP</span>
@@ -81,37 +79,38 @@
                     <i class="fas fa-users"></i> Documentation by Audience
                 </h2>
                 <p>Choose the guide that matches your role:</p>
-                <div style="display: grid; gap: 16px; margin: 20px 0;">
-                    <div style="border: 1px solid var(--border-default); border-radius: 6px; padding: 16px">
-                        <h3 style="margin-top: 0">
+                <div class="api-audience-grid">
+                    <div class="api-audience-card">
+                        <h3>
                             <i class="fas fa-user"></i>
                             <a href="/docs/content/app-maker-users/">For Users</a>
                         </h3>
                         <p>
                             Browse the <a href="/apps/">Apps Catalog</a>, install/uninstall modules,
+                            dev-install apps from <a href="/hub/">Hub Explore</a>,
                             reorder tabs, star and review apps, or create quick modules with the
                             <a href="/appmaker/">App Maker</a> browser editor.
                         </p>
                     </div>
-                    <div style="border: 1px solid var(--border-default); border-radius: 6px; padding: 16px">
-                        <h3 style="margin-top: 0">
+                    <div class="api-audience-card">
+                        <h3>
                             <i class="fas fa-code"></i>
                             <a href="/docs/content/app-maker-creators/">For Creators (Developers)</a>
                         </h3>
                         <p>
                             Architecture, CLI scaffold, Platform Services, manifest schema,
                             ModuleConfig, templates, context builders, LLM skills, CSS theming,
-                            testing, and publishing workflow.
+                            testing, and submission workflow.
                         </p>
                     </div>
-                    <div style="border: 1px solid var(--border-default); border-radius: 6px; padding: 16px">
-                        <h3 style="margin-top: 0">
+                    <div class="api-audience-card">
+                        <h3>
                             <i class="fas fa-cog"></i>
                             <a href="/docs/content/app-maker-admins/">For Administrators</a>
                         </h3>
                         <p>
-                            External package management, review queue, moderation checklist,
-                            and approval workflow for public app submissions.
+                            External package management, PR-based approval workflow,
+                            moderation checklist, and the <code>scitex/apps</code> registry.
                         </p>
                     </div>
                 </div>
@@ -132,11 +131,15 @@
                     <tbody>
                         <tr>
                             <td>Install an app</td>
-                            <td>Visit <a href="/apps/">Apps Catalog</a> and click Install</td>
+                            <td>
+                                Visit <a href="/apps/">Apps Catalog</a> and click Install
+                            </td>
                         </tr>
                         <tr>
                             <td>Create via browser</td>
-                            <td>Visit <a href="/appmaker/">App Maker</a> and write Python code</td>
+                            <td>
+                                Visit <a href="/appmaker/">App Maker</a> and write Python code
+                            </td>
                         </tr>
                         <tr>
                             <td>Create via CLI</td>
@@ -157,9 +160,15 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>Publish to catalog</td>
+                            <td>Dev-install from Hub</td>
                             <td>
-                                <code>scitex-cloud app publish .</code>
+                                Click &ldquo;Dev Install&rdquo; on any app repo in <a href="/hub/">Hub Explore</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Submit to catalog</td>
+                            <td>
+                                <code>scitex-cloud app submit .</code>
                             </td>
                         </tr>
                     </tbody>

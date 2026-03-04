@@ -27,7 +27,12 @@ Returned by /hub/api/explore/?tab=repositories|users
                         <h3>
                             <a href="#" class="hub-explore-repo" data-project-id="{{ repo.id }}">{{ repo.owner.username }}/{{ repo.name }}</a>
                         </h3>
-                        <span class="badge badge-{{ repo.visibility }}">{{ repo.visibility }}</span>
+                        <div>
+                            {% if repo.is_app %}
+                                <span class="badge badge-app" title="SciTeX App"><i class="fas fa-puzzle-piece"></i> App</span>
+                            {% endif %}
+                            <span class="badge badge-{{ repo.visibility }}">{{ repo.visibility }}</span>
+                        </div>
                     </div>
                     <div class="project-card-body">
                         {% if repo.description %}<p class="text-muted">{{ repo.description|truncatewords:20 }}</p>{% endif %}
@@ -42,14 +47,22 @@ Returned by /hub/api/explore/?tab=repositories|users
                                 <i class="fas fa-star"></i> {{ repo.star_count }}
                             </span>
                             <span class="meta-item">Updated {{ repo.updated_at|timesince }} ago</span>
+                            {% if repo.is_app %}
+                                <button type="button"
+                                        class="btn btn-sm dev-install-btn"
+                                        data-action="dev-install"
+                                        data-owner="{{ repo.owner.username }}"
+                                        data-repo="{{ repo.slug }}"
+                                        title="Install as dev app in your workspace">
+                                    <i class="fas fa-download"></i> Dev Install
+                                </button>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             {% endfor %}
         {% else %}
-            <p class="text-muted" style="text-align:center; padding:2rem">
-                No public repositories yet. Be the first to create one!
-            </p>
+            <p class="text-muted hub-explore-empty">No public repositories yet. Be the first to create one!</p>
         {% endif %}
     {% elif tab == 'users' %}
         <div class="projects-grid">
@@ -75,7 +88,7 @@ Returned by /hub/api/explore/?tab=repositories|users
                     </div>
                 {% endfor %}
             {% else %}
-                <p class="text-muted" style="text-align:center; padding:2rem">No users to display</p>
+                <p class="text-muted hub-explore-empty">No users to display</p>
             {% endif %}
         </div>
     {% endif %}

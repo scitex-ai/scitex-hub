@@ -291,6 +291,18 @@ def api_explore(request):
             .order_by("-star_count", "-updated_at")[:20]
         )
         context["repositories"] = repositories
+
+        # Pass set of already-installed dev apps for UI state
+        try:
+            from apps.apps_app.models import DevInstallation
+
+            context["dev_installed_set"] = set(
+                DevInstallation.objects.filter(user=request.user).values_list(
+                    "source_owner", "source_repo"
+                )
+            )
+        except Exception:
+            context["dev_installed_set"] = set()
     elif tab == "users":
         users = (
             User.objects.filter(is_active=True)

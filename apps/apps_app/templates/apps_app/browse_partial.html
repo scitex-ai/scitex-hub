@@ -33,6 +33,38 @@
             </select>
         </div>
     </div>
+    <!-- Dev Apps section (personal dev installs) -->
+    {% if dev_apps %}
+        <div class="apps-dev-section">
+            <h3 class="apps-dev-heading">
+                <i class="fas fa-code-branch"></i> My Dev Apps
+            </h3>
+            <div class="apps-grid apps-dev-grid">
+                {% for dev in dev_apps %}
+                    <div class="ap-card ap-card-dev">
+                        <div class="ap-card-header">
+                            <span class="ap-card-icon"><i class="{{ dev.icon }}"></i></span>
+                            <span class="ap-card-name">{{ dev.label|default:dev.source_repo }}</span>
+                            <span class="badge badge-app badge-dev-tag">DEV</span>
+                        </div>
+                        <p class="ap-card-desc">
+                            {{ dev.description|default:"Dev install" }} &mdash; {{ dev.source_owner }}/{{ dev.source_repo }}
+                        </p>
+                        <div class="ap-card-actions">
+                            <button type="button"
+                                    class="btn btn-sm dev-uninstall-btn"
+                                    data-action="dev-uninstall"
+                                    data-owner="{{ dev.source_owner }}"
+                                    data-repo="{{ dev.source_repo }}"
+                                    title="Uninstall dev app">
+                                <i class="fas fa-trash"></i> Uninstall
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
     <!-- Module grid (always contains ALL modules; filtering is client-side) -->
     <div class="apps-grid" id="ap-grid">
         {% for mod_item in modules %}

@@ -34,6 +34,9 @@ class Command(BaseCommand):
         # ── 1. Ensure the `scitex` organisation exists ──────────────────
         self._ensure_org(client)
 
+        # ── 1b. Add superusers to org Owners team ─────────────────────
+        self._add_superusers_to_org(client)
+
         # ── 2. Create the `apps` repo under the org ─────────────────────
         if not self._create_repo(client):
             return  # repo already exists or creation failed
@@ -70,6 +73,31 @@ class Command(BaseCommand):
             except GiteaAPIError as exc:
                 self.stderr.write(f"Failed to create org '{REGISTRY_ORG}': {exc}")
                 raise
+
+    # ------------------------------------------------------------------
+    def _add_superusers_to_org(self, client):
+        """Add Django superusers to the scitex org Owners team."""
+        from django.contrib.auth.models import User
+
+        from apps.gitea_app.api_client import GiteaAPIError
+
+        # Find the Owners team ID
+        try:
+            teams = client._request("GET", f"/orgs/{REGISTRY_ORG}/teams").json()
+            owners_team = next((t for t in teams if t.get("name") == "Owners"), None)
+            if not owners_team:
+                self.stderr.write("No Owners team found in org")
+                return
+            team_id = owners_team["id"]
+        except (GiteaAPIError, StopIteration):
+            return
+
+        for user in User.objects.filter(is_superuser=True):
+            try:
+                client._request("PUT", f"/teams/{team_id}/members/{user.username}")
+                self.stdout.write(f"Added {user.username} to Owners team")
+            except GiteaAPIError:
+                pass  # user may not exist in Gitea
 
     # ------------------------------------------------------------------
     def _create_repo(self, client) -> bool:

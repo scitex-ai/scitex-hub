@@ -112,12 +112,18 @@ def browse_context(request, current_project=None):
             }
         )
 
-    from ..models import CATEGORY_CHOICES
+    from ..models import CATEGORY_CHOICES, DevInstallation
+
+    # Dev installations for the "My Dev Apps" section
+    dev_apps = []
+    if request.user.is_authenticated:
+        dev_apps = list(DevInstallation.objects.filter(user=request.user))
 
     return {
         "current_project": current_project,
         "modules": module_list,
         "categories": CATEGORY_CHOICES,
+        "dev_apps": dev_apps,
     }
 
 

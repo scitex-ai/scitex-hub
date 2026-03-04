@@ -12,8 +12,8 @@
 {% endblock %}
 {% block content %}
     <div class="container py-2">
-        <header class="minimal-hero" style="text-align: center">
-            <div class="api-hero-header" style="justify-content: center">
+        <header class="minimal-hero">
+            <div class="api-hero-header api-hero-header-centered">
                 <h1 class="minimal-hero-title">App Maker: For Creators</h1>
                 <div class="api-hero-actions">
                     <span class="api-version-badge">WIP</span>
@@ -115,20 +115,26 @@
                 The fastest way to create and deploy a full app is via the <code>scitex-cloud</code> CLI.
                 This gives you a complete project with manifest, Platform Services integration, and Gitea sync.
             </p>
-            <p><strong>Step 1. Scaffold</strong></p>
+            <p>
+                <strong>Step 1. Scaffold</strong>
+            </p>
             <pre><code># Create a new app with all boilerplate
 scitex-cloud app init /path/to/my_app --name my_research_app \
     --label "My Research Tool" --icon "fas fa-flask"
 
 # Or with React frontend:
 scitex-cloud app init . --name my_app --frontend react</code></pre>
-            <p><strong>Step 2. Develop locally</strong></p>
+            <p>
+                <strong>Step 2. Develop locally</strong>
+            </p>
             <pre><code># Initialize git
 cd /path/to/my_app
 git init && git add . && git commit -m "Initial scaffold"
 
 # Edit manifest.yaml, views, templates, jobs...</code></pre>
-            <p><strong>Step 3. Upload to workspace</strong></p>
+            <p>
+                <strong>Step 3. Upload to workspace</strong>
+            </p>
             <pre><code># Creates project on server + Gitea repo + pushes code
 scitex-cloud workspace upload --name my-research-app \
     --description "My research tool"
@@ -137,12 +143,14 @@ scitex-cloud workspace upload --name my-research-app \
 scitex-cloud workspace list          # List your projects
 scitex-cloud workspace sync          # Pull + push changes
 scitex-cloud workspace logout        # Clear cached token</code></pre>
-            <p><strong>Step 4. Validate and publish</strong></p>
+            <p>
+                <strong>Step 4. Validate and submit</strong>
+            </p>
             <pre><code># Check app structure and security
 scitex-cloud app validate .
 
-# Submit for public listing (requires admin review)
-scitex-cloud app publish . --token $SCITEX_CLOUD_TOKEN</code></pre>
+# Submit for public listing (opens PR on scitex/apps registry)
+scitex-cloud app submit . --token $SCITEX_CLOUD_TOKEN</code></pre>
             <div class="api-callout api-callout-info">
                 <i class="fas fa-info-circle"></i>
                 <div>
@@ -172,37 +180,65 @@ scitex-cloud app publish . --token $SCITEX_CLOUD_TOKEN</code></pre>
                 </thead>
                 <tbody>
                     <tr>
-                        <td><strong>DataStore</strong></td>
-                        <td><code>/platform/api/data/</code></td>
+                        <td>
+                            <strong>DataStore</strong>
+                        </td>
+                        <td>
+                            <code>/platform/api/data/</code>
+                        </td>
                         <td>JSON-based CRUD with indexed virtual columns</td>
                     </tr>
                     <tr>
-                        <td><strong>FileVault</strong></td>
-                        <td><code>/platform/api/files/</code></td>
+                        <td>
+                            <strong>FileVault</strong>
+                        </td>
+                        <td>
+                            <code>/platform/api/files/</code>
+                        </td>
                         <td>File upload/download scoped to app + project</td>
                     </tr>
                     <tr>
-                        <td><strong>JobQueue</strong></td>
-                        <td><code>/platform/api/jobs/</code></td>
+                        <td>
+                            <strong>JobQueue</strong>
+                        </td>
+                        <td>
+                            <code>/platform/api/jobs/</code>
+                        </td>
                         <td>Background task execution via Celery</td>
                     </tr>
                     <tr>
-                        <td><strong>ScitexBridge</strong></td>
-                        <td><code>/platform/api/scitex/</code></td>
-                        <td>Proxy to <code>scitex</code> Python package (io, stats, plt)</td>
+                        <td>
+                            <strong>ScitexBridge</strong>
+                        </td>
+                        <td>
+                            <code>/platform/api/scitex/</code>
+                        </td>
+                        <td>
+                            Proxy to <code>scitex</code> Python package (io, stats, plt)
+                        </td>
                     </tr>
                     <tr>
-                        <td><strong>ExternalAPI</strong></td>
-                        <td><code>/platform/api/external/</code></td>
+                        <td>
+                            <strong>ExternalAPI</strong>
+                        </td>
+                        <td>
+                            <code>/platform/api/external/</code>
+                        </td>
                         <td>Proxied HTTP calls to whitelisted external services</td>
                     </tr>
                     <tr>
-                        <td><strong>RealtimeHub</strong></td>
-                        <td><code>ws://</code></td>
+                        <td>
+                            <strong>RealtimeHub</strong>
+                        </td>
+                        <td>
+                            <code>ws://</code>
+                        </td>
                         <td>WebSocket channels for live updates</td>
                     </tr>
                     <tr>
-                        <td><strong>FrontendKit</strong></td>
+                        <td>
+                            <strong>FrontendKit</strong>
+                        </td>
                         <td>&mdash;</td>
                         <td>Shared TS components (DataTable, Monaco, Viewer)</td>
                     </tr>
@@ -242,7 +278,7 @@ jobs:
     handler: my_research_app.jobs.export_samples.execute
 
 scitex_modules: [io, stats]</code></pre>
-            <p style="margin-top: 1rem">
+            <p class="mt-3">
                 The DataStore creates virtual indexed columns automatically &mdash; no Django migrations needed.
                 Your frontend calls <code>/platform/api/data/my-research-tool/Sample/</code> for CRUD operations.
             </p>
@@ -273,62 +309,96 @@ scitex_modules: [io, stats]</code></pre>
                 </thead>
                 <tbody>
                     <tr>
-                        <td><code>name</code></td>
+                        <td>
+                            <code>name</code>
+                        </td>
                         <td>str</td>
-                        <td>URL slug (e.g., <code>"writer"</code>)</td>
+                        <td>
+                            URL slug (e.g., <code>"writer"</code>)
+                        </td>
                     </tr>
                     <tr>
-                        <td><code>label</code></td>
+                        <td>
+                            <code>label</code>
+                        </td>
                         <td>str</td>
-                        <td>Display name (e.g., <code>"Writer"</code>)</td>
+                        <td>
+                            Display name (e.g., <code>"Writer"</code>)
+                        </td>
                     </tr>
                     <tr>
-                        <td><code>app_name</code></td>
+                        <td>
+                            <code>app_name</code>
+                        </td>
                         <td>str</td>
-                        <td>Django app name (e.g., <code>"writer_app"</code>)</td>
+                        <td>
+                            Django app name (e.g., <code>"writer_app"</code>)
+                        </td>
                     </tr>
                     <tr>
-                        <td><code>icon_fa</code></td>
+                        <td>
+                            <code>icon_fa</code>
+                        </td>
                         <td>str</td>
-                        <td>FontAwesome class (e.g., <code>"fas fa-pen"</code>)</td>
+                        <td>
+                            FontAwesome class (e.g., <code>"fas fa-pen"</code>)
+                        </td>
                     </tr>
                     <tr>
-                        <td><code>partial_template</code></td>
+                        <td>
+                            <code>partial_template</code>
+                        </td>
                         <td>str</td>
                         <td>AJAX partial template path</td>
                     </tr>
                     <tr>
-                        <td><code>context_builder</code></td>
+                        <td>
+                            <code>context_builder</code>
+                        </td>
                         <td>str</td>
                         <td>Dotted path to context function</td>
                     </tr>
                     <tr>
-                        <td><code>keyboard_shortcut</code></td>
+                        <td>
+                            <code>keyboard_shortcut</code>
+                        </td>
                         <td>str</td>
                         <td>Alt+key shortcut (single letter)</td>
                     </tr>
                     <tr>
-                        <td><code>order</code></td>
+                        <td>
+                            <code>order</code>
+                        </td>
                         <td>int</td>
                         <td>Tab bar position (lower = leftmost)</td>
                     </tr>
                     <tr>
-                        <td><code>status</code></td>
+                        <td>
+                            <code>status</code>
+                        </td>
                         <td>str</td>
-                        <td><code>"stable"</code>, <code>"wip"</code>, <code>"beta"</code>, <code>"deprecated"</code></td>
+                        <td>
+                            <code>"stable"</code>, <code>"wip"</code>, <code>"beta"</code>, <code>"deprecated"</code>
+                        </td>
                     </tr>
                     <tr>
-                        <td><code>default_enabled</code></td>
+                        <td>
+                            <code>default_enabled</code>
+                        </td>
                         <td>bool</td>
                         <td>Show in tab bar for new users</td>
                     </tr>
                     <tr>
-                        <td><code>ai_hint</code></td>
+                        <td>
+                            <code>ai_hint</code>
+                        </td>
                         <td>str</td>
                         <td>Short description for LLM context</td>
                     </tr>
                     <tr>
-                        <td><code>accent_color</code></td>
+                        <td>
+                            <code>accent_color</code>
+                        </td>
                         <td>str</td>
                         <td>CSS variable name for module accent</td>
                     </tr>
@@ -354,7 +424,7 @@ scitex_modules: [io, stats]</code></pre>
 │   └── index_partial.html      # standalone AJAX partial
 └── static/mymodule_app/
     └── css/mymodule.css</code></pre>
-            <p style="margin-top: 1rem">
+            <p class="mt-3">
                 <strong>Step 1.</strong> Add ModuleConfig to <code>workspace_app/registry.py</code>:
             </p>
             <pre><code>ModuleConfig(
@@ -488,27 +558,39 @@ register(
                 </thead>
                 <tbody>
                     <tr>
-                        <td><code>--bg-primary</code></td>
+                        <td>
+                            <code>--bg-primary</code>
+                        </td>
                         <td>Main background color</td>
                     </tr>
                     <tr>
-                        <td><code>--bg-secondary</code></td>
+                        <td>
+                            <code>--bg-secondary</code>
+                        </td>
                         <td>Secondary/card background</td>
                     </tr>
                     <tr>
-                        <td><code>--text-primary</code></td>
+                        <td>
+                            <code>--text-primary</code>
+                        </td>
                         <td>Main text color</td>
                     </tr>
                     <tr>
-                        <td><code>--text-muted</code></td>
+                        <td>
+                            <code>--text-muted</code>
+                        </td>
                         <td>Subdued text color</td>
                     </tr>
                     <tr>
-                        <td><code>--border-subtle</code></td>
+                        <td>
+                            <code>--border-subtle</code>
+                        </td>
                         <td>Subtle border color</td>
                     </tr>
                     <tr>
-                        <td><code>--accent</code></td>
+                        <td>
+                            <code>--accent</code>
+                        </td>
                         <td>Global accent color</td>
                     </tr>
                 </tbody>
@@ -563,141 +645,179 @@ register(
                     <code>extra_css</code>, <code>extra_js</code>, <code>content</code>, <code>title</code>
                 </li>
                 <li>Templates are standalone HTML fragments (AJAX partials), not full pages</li>
-                <li>The root element must have <code>data-mode="yourmodule"</code></li>
                 <li>
-                    No <code>{% verbatim %}{% extends %}{% endverbatim %}</code> or
-                    <code>{% verbatim %}{% load %}{% endverbatim %}</code> tags allowed
+                    The root element must have <code>data-mode="yourmodule"</code>
                 </li>
-            </ul>
-        </section>
-        <!-- Testing -->
-        <span id="testing"></span>
-        <section class="api-section">
-            <h2>
-                <i class="fas fa-check-circle"></i> Testing
-            </h2>
-            <p>
-                <code>ModuleTestMixin</code> automatically validates all module layers.
-                Create <code>tests.py</code>:
-            </p>
-            <pre><code>from django.test import TestCase
+                <li>
+                    No <code>
+                    {% verbatim %}
+                        {% extends %}
+
+                    {% endverbatim %}
+                </code> or
+                <code>
+                    {% verbatim %}
+                        {% load %}
+
+                    {% endverbatim %}
+                </code> tags allowed
+            </li>
+        </ul>
+    </section>
+    <!-- Testing -->
+    <span id="testing"></span>
+    <section class="api-section">
+        <h2>
+            <i class="fas fa-check-circle"></i> Testing
+        </h2>
+        <p>
+            <code>ModuleTestMixin</code> automatically validates all module layers.
+            Create <code>tests.py</code>:
+        </p>
+        <pre><code>from django.test import TestCase
 from apps.workspace_app.test_mixin import ModuleTestMixin
 
 class MyModuleTest(ModuleTestMixin, TestCase):
     module_name = "mymodule"</code></pre>
-            <p>This validates:</p>
-            <table class="api-table">
-                <thead>
-                    <tr>
-                        <th>Check</th>
-                        <th>What it verifies</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>test_module_registered</code></td>
-                        <td>Module exists in registry</td>
-                    </tr>
-                    <tr>
-                        <td><code>test_partial_template_exists</code></td>
-                        <td>AJAX partial template file exists</td>
-                    </tr>
-                    <tr>
-                        <td><code>test_icon_registered</code></td>
-                        <td>Has FontAwesome or SVG icon</td>
-                    </tr>
-                    <tr>
-                        <td><code>test_context_builder_importable</code></td>
-                        <td>Context builder function is callable</td>
-                    </tr>
-                    <tr>
-                        <td><code>test_ai_hint_defined</code></td>
-                        <td>LLM hint text is non-empty</td>
-                    </tr>
-                    <tr>
-                        <td><code>test_accent_color_css_exists</code></td>
-                        <td>CSS variable <code>--module-accent-{name}</code> defined</td>
-                    </tr>
-                    <tr>
-                        <td><code>test_skill_registered</code></td>
-                        <td>Skill exists in LLM registry</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-        <!-- Publishing Workflow -->
-        <span id="publishing"></span>
-        <section class="api-section">
-            <h2>
-                <i class="fas fa-globe"></i> Publishing Workflow
-            </h2>
-            <ol>
-                <li>
-                    <strong>Scaffold:</strong> <code>scitex-cloud app init .</code> &mdash; creates all boilerplate
-                </li>
-                <li>
-                    <strong>Develop:</strong> Edit templates, views, and CSS in your project
-                </li>
-                <li>
-                    <strong>Validate:</strong> <code>scitex-cloud app validate .</code> &mdash; checks structure and security
-                </li>
-                <li>
-                    <strong>Publish:</strong> <code>scitex-cloud app publish .</code> or click &ldquo;Publish&rdquo; on the detail page
-                </li>
-                <li>
-                    <strong>Review:</strong> Admin reviews source code and approves/rejects
-                </li>
-                <li>
-                    <strong>Live:</strong> Approved app appears in the public Apps catalog
-                </li>
-            </ol>
-            <div class="api-callout api-callout-info">
-                <i class="fas fa-info-circle"></i>
-                <div>
-                    Source code is automatically scanned for forbidden patterns
-                    (<code>os.system</code>, <code>subprocess</code>, <code>eval</code>, <code>exec</code>)
-                    before submission. The commit SHA is pinned on approval for reproducibility.
-                </div>
+        <p>This validates:</p>
+        <table class="api-table">
+            <thead>
+                <tr>
+                    <th>Check</th>
+                    <th>What it verifies</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>test_module_registered</code>
+                    </td>
+                    <td>Module exists in registry</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>test_partial_template_exists</code>
+                    </td>
+                    <td>AJAX partial template file exists</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>test_icon_registered</code>
+                    </td>
+                    <td>Has FontAwesome or SVG icon</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>test_context_builder_importable</code>
+                    </td>
+                    <td>Context builder function is callable</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>test_ai_hint_defined</code>
+                    </td>
+                    <td>LLM hint text is non-empty</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>test_accent_color_css_exists</code>
+                    </td>
+                    <td>
+                        CSS variable <code>--module-accent-{name}</code> defined
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>test_skill_registered</code>
+                    </td>
+                    <td>Skill exists in LLM registry</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+    <!-- Submission Workflow -->
+    <span id="publishing"></span>
+    <section class="api-section">
+        <h2>
+            <i class="fas fa-globe"></i> Submission Workflow
+        </h2>
+        <p>Apps follow a two-tier distribution model inspired by MELPA:</p>
+        <ol>
+            <li>
+                <strong>Scaffold:</strong> <code>scitex-cloud app init .</code> &mdash; creates all boilerplate
+            </li>
+            <li>
+                <strong>Develop:</strong> Edit templates, views, and CSS in your project
+            </li>
+            <li>
+                <strong>Validate:</strong> <code>scitex-cloud app validate .</code> &mdash; checks structure and security
+            </li>
+            <li>
+                <strong>Submit:</strong> <code>scitex-cloud app submit .</code> &mdash;
+                opens a PR on the <code>scitex/apps</code> registry repository
+            </li>
+            <li>
+                <strong>Review:</strong> Staff reviews the PR and merges to approve
+            </li>
+            <li>
+                <strong>Live:</strong> Merged apps appear in the public Apps catalog for all users
+            </li>
+        </ol>
+        <div class="api-callout api-callout-info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>Dev Install (no approval needed):</strong> Any user can dev-install your app
+                directly from <a href="/hub/">Hub Explore</a> without going through the submission process.
+                Dev installs are personal and only visible to the user who installed them.
             </div>
-        </section>
-        <!-- Licensing -->
-        <span id="licensing"></span>
-        <section class="api-section">
-            <h2>
-                <i class="fas fa-balance-scale"></i> Licensing
-            </h2>
-            <p>SciTeX uses a layered licensing model that maximizes openness while protecting user freedom:</p>
-            <table class="api-table">
-                <thead>
-                    <tr>
-                        <th>Component</th>
-                        <th>License</th>
-                        <th>Copyleft?</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>SciTeX Cloud Platform</td>
-                        <td>AGPL-3.0</td>
-                        <td>Yes (strong)</td>
-                    </tr>
-                    <tr>
-                        <td>App Maker SDK / API</td>
-                        <td>Apache-2.0</td>
-                        <td>No</td>
-                    </tr>
-                    <tr>
-                        <td>User Apps</td>
-                        <td>Author's choice</td>
-                        <td>Depends on chosen license</td>
-                    </tr>
-                </tbody>
-            </table>
-            <p>
-                Apps using the SciTeX workspace API are <strong>not</strong> derivative works of
-                the AGPL-licensed core. You are free to license your app however you wish.
-                See the <a href="/docs/content/app-maker-license/">full license exception</a> for details.
-            </p>
-        </section>
-    </div>
+        </div>
+        <div class="api-callout api-callout-info">
+            <i class="fas fa-shield-alt"></i>
+            <div>
+                Source code is automatically scanned for forbidden patterns
+                (<code>os.system</code>, <code>subprocess</code>, <code>eval</code>, <code>exec</code>)
+                before submission. The commit SHA is pinned on approval for reproducibility.
+            </div>
+        </div>
+    </section>
+    <!-- Licensing -->
+    <span id="licensing"></span>
+    <section class="api-section">
+        <h2>
+            <i class="fas fa-balance-scale"></i> Licensing
+        </h2>
+        <p>SciTeX uses a layered licensing model that maximizes openness while protecting user freedom:</p>
+        <table class="api-table">
+            <thead>
+                <tr>
+                    <th>Component</th>
+                    <th>License</th>
+                    <th>Copyleft?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>SciTeX Cloud Platform</td>
+                    <td>AGPL-3.0</td>
+                    <td>Yes (strong)</td>
+                </tr>
+                <tr>
+                    <td>App Maker SDK / API</td>
+                    <td>Apache-2.0</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <td>User Apps</td>
+                    <td>Author's choice</td>
+                    <td>Depends on chosen license</td>
+                </tr>
+            </tbody>
+        </table>
+        <p>
+            Apps using the SciTeX workspace API are <strong>not</strong> derivative works of
+            the AGPL-licensed core. You are free to license your app however you wish.
+            See the <a href="/docs/content/app-maker-license/">full license exception</a> for details.
+        </p>
+    </section>
+</div>
 {% endblock %}

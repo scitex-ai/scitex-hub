@@ -210,6 +210,11 @@ def handle_app_template_creation(request, project, manager):
         )
         return True
 
+    # Mark as app project from creation (not just at submission)
+    project.is_app = True
+    project.app_status = "draft"
+    project.save(update_fields=["is_app", "app_status"])
+
     messages.success(
         request,
         f'App project "{project.name}" created with {len(created)} boilerplate files',
