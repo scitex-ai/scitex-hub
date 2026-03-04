@@ -16,6 +16,7 @@ export class PTYTerminal {
   private ws: WebSocket | null = null;
   private projectId: number;
   private tmuxSession: string;
+  private containerEl: HTMLElement;
   private imageContainer: HTMLElement | null = null;
   private readyPromise: Promise<void>;
   private readyResolve!: () => void;
@@ -29,6 +30,7 @@ export class PTYTerminal {
   ) {
     this.projectId = projectId;
     this.tmuxSession = tmuxSession;
+    this.containerEl = containerEl;
 
     this.readyPromise = new Promise<void>((resolve) => {
       this.readyResolve = resolve;
@@ -212,6 +214,7 @@ export class PTYTerminal {
         break;
 
       case "running":
+        this.hideRestartOverlay();
         this.updateBadge(badge, "", "");
         break;
 
@@ -220,11 +223,9 @@ export class PTYTerminal {
         this.term.write(
           `\r\n\x1b[1;31m \u274c Session stopped: ${deadReason}\x1b[0m\r\n`,
         );
-        this.term.write(
-          "\x1b[0;33m   Click restart button or refresh page\x1b[0m\r\n",
-        );
         this.updateBadge(badge, "stopped", "error");
         this.notifyUser(`Terminal stopped: ${deadReason}`);
+        this.showRestartOverlay(deadReason);
         break;
       }
     }
@@ -241,6 +242,38 @@ export class PTYTerminal {
     badge.className = level
       ? `terminal-status-badge status-${level}`
       : "terminal-status-badge";
+  }
+
+  /** Show/hide a prominent restart overlay over the terminal */
+  private showRestartOverlay(reason: string): void {
+    this.hideRestartOverlay();
+    const overlay = document.createElement("div");
+    overlay.className = "terminal-restart-overlay";
+    overlay.innerHTML =
+      `<div class="terminal-restart-content">` +
+      `<i class="fas fa-exclamation-triangle"></i>` +
+      `<p>${reason}</p>` +
+      `<button class="terminal-restart-btn"><i class="fas fa-redo"></i> Restart Terminal</button>` +
+      `<button class="terminal-new-btn"><i class="fas fa-plus"></i> New Terminal</button>` +
+      `</div>`;
+    overlay
+      .querySelector(".terminal-restart-btn")
+      ?.addEventListener("click", () => {
+        this.hideRestartOverlay();
+        this.restart();
+      });
+    overlay
+      .querySelector(".terminal-new-btn")
+      ?.addEventListener("click", () => {
+        this.hideRestartOverlay();
+        document.querySelector<HTMLButtonElement>(".terminal-tab-new")?.click();
+      });
+    this.containerEl.style.position = "relative";
+    this.containerEl.appendChild(overlay);
+  }
+
+  private hideRestartOverlay(): void {
+    this.containerEl.querySelector(".terminal-restart-overlay")?.remove();
   }
 
   /** Send browser notification for background tab awareness */
@@ -313,7 +346,7 @@ export class PTYTerminal {
         this.term.write("\x1b[0;36m   Reconnecting in 3s...\x1b[0m\r\n");
         setTimeout(() => this.connect(), 3000);
       } else {
-        this.term.write("\x1b[0;33m   Refresh page to reconnect\x1b[0m\r\n");
+        this.showRestartOverlay(`Disconnected: ${message}`);
       }
     };
   }

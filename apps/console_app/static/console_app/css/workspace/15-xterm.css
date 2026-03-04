@@ -107,3 +107,67 @@
 .terminal-input-inline::placeholder {
   color: var(--text-muted);
 }
+
+/* Restart overlay — prominent action when terminal dies */
+.terminal-restart-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(2px);
+}
+
+.terminal-restart-content {
+  text-align: center;
+  max-width: 360px;
+  padding: 2rem;
+}
+
+.terminal-restart-content > i {
+  font-size: 2.5rem;
+  color: #f44336;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.terminal-restart-content > p {
+  color: #ccc;
+  font-size: 0.875rem;
+  margin: 0 0 1.25rem;
+  line-height: 1.4;
+}
+
+.terminal-restart-btn,
+.terminal-new-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  margin: 0 4px;
+  transition: background 0.15s;
+}
+
+.terminal-restart-btn {
+  background: #2196f3;
+  color: #fff;
+}
+
+.terminal-restart-btn:hover {
+  background: #1976d2;
+}
+
+.terminal-new-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ccc;
+}
+
+.terminal-new-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
