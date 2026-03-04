@@ -1,317 +1,363 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Tests for apps/console_app/views/terminal/dotfiles.py"""
+"""Tests for apps/console_app/views/terminal/dotfiles.py
+
+Covers:
+- create_dotfiles_repo: file creation, content correctness, git calls
+- create_dotfiles_symlinks: symlink creation, targets, overwrite behaviour
+"""
+
+import os
+import stat
+from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
-# from apps.console_app.views.terminal.dotfiles import ...
+from apps.console_app.views.terminal.dotfiles import (
+    create_dotfiles_repo,
+    create_dotfiles_symlinks,
+)
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+USERNAME = "testuser"
 
 
-class TestPlaceholder:
-    """Placeholder test class - replace with actual tests."""
+def _make_dotfiles_dir(tmp_path: Path) -> Path:
+    d = tmp_path / "dotfiles"
+    d.mkdir()
+    return d
 
-    def test_placeholder(self):
-        """Placeholder test - implement actual tests."""
-        pytest.skip("Not implemented yet")
+
+def _make_user_data_dir(tmp_path: Path) -> Path:
+    d = tmp_path / "user_data"
+    d.mkdir()
+    return d
+
+
+# ---------------------------------------------------------------------------
+# create_dotfiles_repo – file existence
+# ---------------------------------------------------------------------------
+
+
+class TestCreateDotfilesRepoFiles:
+    """All expected files are written by create_dotfiles_repo."""
+
+    @pytest.fixture(autouse=True)
+    def _run(self, tmp_path):
+        self.dotfiles_dir = _make_dotfiles_dir(tmp_path)
+        with patch("subprocess.run"):
+            create_dotfiles_repo(self.dotfiles_dir, USERNAME)
+
+    def test_bashrc_created(self):
+        assert (self.dotfiles_dir / "bashrc").is_file()
+
+    def test_bash_profile_created(self):
+        assert (self.dotfiles_dir / "bash_profile").is_file()
+
+    def test_vimrc_created(self):
+        assert (self.dotfiles_dir / "vimrc").is_file()
+
+    def test_gitconfig_created(self):
+        assert (self.dotfiles_dir / "gitconfig").is_file()
+
+    def test_screenrc_created(self):
+        assert (self.dotfiles_dir / "screenrc").is_file()
+
+    def test_install_sh_created(self):
+        assert (self.dotfiles_dir / "install.sh").is_file()
+
+    def test_readme_created(self):
+        assert (self.dotfiles_dir / "README.md").is_file()
+
+    def test_gitignore_created(self):
+        assert (self.dotfiles_dir / ".gitignore").is_file()
+
+    def test_ipython_config_created(self):
+        assert (self.dotfiles_dir / "ipython" / "ipython_config.py").is_file()
+
+
+# ---------------------------------------------------------------------------
+# create_dotfiles_repo – content correctness
+# ---------------------------------------------------------------------------
+
+
+class TestCreateDotfilesRepoContent:
+    """Key content assertions for generated config files."""
+
+    @pytest.fixture(autouse=True)
+    def _run(self, tmp_path):
+        self.dotfiles_dir = _make_dotfiles_dir(tmp_path)
+        with patch("subprocess.run"):
+            create_dotfiles_repo(self.dotfiles_dir, USERNAME)
+
+    # bashrc
+
+    def test_bashrc_contains_username_in_ps1(self):
+        content = (self.dotfiles_dir / "bashrc").read_text()
+        assert USERNAME in content, "bashrc must reference username (e.g. in PS1)"
+
+    def test_bashrc_ps1_contains_scitex_host(self):
+        content = (self.dotfiles_dir / "bashrc").read_text()
+        assert "PS1" in content
+        assert "scitex" in content
+
+    # gitconfig
+
+    def test_gitconfig_contains_username_in_user_section(self):
+        content = (self.dotfiles_dir / "gitconfig").read_text()
+        assert f"name = {USERNAME}" in content
+
+    def test_gitconfig_contains_username_email(self):
+        content = (self.dotfiles_dir / "gitconfig").read_text()
+        assert f"{USERNAME}@scitex.cloud" in content
+
+    # install.sh permissions
+
+    def test_install_sh_is_executable(self):
+        mode = (self.dotfiles_dir / "install.sh").stat().st_mode
+        # Owner execute bit must be set
+        assert mode & stat.S_IXUSR, "install.sh must have owner-execute permission"
+
+    def test_install_sh_mode_is_0o755(self):
+        mode = (self.dotfiles_dir / "install.sh").stat().st_mode
+        assert stat.S_IMODE(mode) == 0o755
+
+    # README
+
+    def test_readme_contains_username(self):
+        content = (self.dotfiles_dir / "README.md").read_text()
+        assert USERNAME in content
+
+
+# ---------------------------------------------------------------------------
+# create_dotfiles_repo – git commands
+# ---------------------------------------------------------------------------
+
+
+class TestCreateDotfilesRepoGit:
+    """subprocess.run is called for git init, add, and commit."""
+
+    @pytest.fixture(autouse=True)
+    def _run(self, tmp_path):
+        self.dotfiles_dir = _make_dotfiles_dir(tmp_path)
+
+    def _collect_git_calls(self, mock_run):
+        """Return list of first-arg tuples from all subprocess.run calls."""
+        return [c.args[0] for c in mock_run.call_args_list]
+
+    def test_git_init_called(self):
+        with patch("subprocess.run") as mock_run:
+            create_dotfiles_repo(self.dotfiles_dir, USERNAME)
+        cmds = self._collect_git_calls(mock_run)
+        assert ["git", "init"] in cmds
+
+    def test_git_add_called(self):
+        with patch("subprocess.run") as mock_run:
+            create_dotfiles_repo(self.dotfiles_dir, USERNAME)
+        cmds = self._collect_git_calls(mock_run)
+        assert ["git", "add", "-A"] in cmds
+
+    def test_git_commit_called(self):
+        with patch("subprocess.run") as mock_run:
+            create_dotfiles_repo(self.dotfiles_dir, USERNAME)
+        cmds = self._collect_git_calls(mock_run)
+        commit_cmds = [c for c in cmds if c[:2] == ["git", "commit"]]
+        assert commit_cmds, "git commit must be called"
+
+    def test_git_commit_env_contains_author_name(self):
+        with patch("subprocess.run") as mock_run:
+            create_dotfiles_repo(self.dotfiles_dir, USERNAME)
+        # Find the commit call
+        commit_call = next(
+            c for c in mock_run.call_args_list if c.args[0][:2] == ["git", "commit"]
+        )
+        env = commit_call.kwargs.get("env", {})
+        assert env.get("GIT_AUTHOR_NAME") == USERNAME
+
+    def test_git_failure_does_not_raise(self, tmp_path):
+        """A git failure must be swallowed (non-critical path)."""
+        dotfiles_dir = tmp_path / "dotfiles_git_fail"
+        dotfiles_dir.mkdir()
+        with patch(
+            "apps.console_app.views.terminal.dotfiles.sp.run",
+            side_effect=Exception("git not found"),
+        ):
+            # Must not raise
+            create_dotfiles_repo(dotfiles_dir, USERNAME)
+
+    def test_git_called_with_cwd_equal_to_dotfiles_dir(self):
+        with patch("subprocess.run") as mock_run:
+            create_dotfiles_repo(self.dotfiles_dir, USERNAME)
+        for c in mock_run.call_args_list:
+            assert c.kwargs.get("cwd") == self.dotfiles_dir
+
+
+# ---------------------------------------------------------------------------
+# create_dotfiles_symlinks – symlink existence
+# ---------------------------------------------------------------------------
+
+
+class TestCreateDotfilesSymlinksExistence:
+    """All expected symlinks are created in user_data_dir."""
+
+    @pytest.fixture(autouse=True)
+    def _run(self, tmp_path):
+        self.user_data_dir = _make_user_data_dir(tmp_path)
+        self.dotfiles_dir = _make_dotfiles_dir(tmp_path)
+        create_dotfiles_symlinks(self.user_data_dir, self.dotfiles_dir)
+
+    def test_bashrc_symlink_exists(self):
+        assert (self.user_data_dir / ".bashrc").is_symlink()
+
+    def test_bash_profile_symlink_exists(self):
+        assert (self.user_data_dir / ".bash_profile").is_symlink()
+
+    def test_vimrc_symlink_exists(self):
+        assert (self.user_data_dir / ".vimrc").is_symlink()
+
+    def test_gitconfig_symlink_exists(self):
+        assert (self.user_data_dir / ".gitconfig").is_symlink()
+
+    def test_screenrc_symlink_exists(self):
+        assert (self.user_data_dir / ".screenrc").is_symlink()
+
+    def test_ipython_config_symlink_exists(self):
+        ipython_config = (
+            self.user_data_dir / ".ipython" / "profile_default" / "ipython_config.py"
+        )
+        assert ipython_config.is_symlink()
+
+
+# ---------------------------------------------------------------------------
+# create_dotfiles_symlinks – symlink targets (relative paths)
+# ---------------------------------------------------------------------------
+
+
+class TestCreateDotfilesSymlinkTargets:
+    """Symlinks point to the correct relative paths."""
+
+    @pytest.fixture(autouse=True)
+    def _run(self, tmp_path):
+        self.user_data_dir = _make_user_data_dir(tmp_path)
+        self.dotfiles_dir = _make_dotfiles_dir(tmp_path)
+        create_dotfiles_symlinks(self.user_data_dir, self.dotfiles_dir)
+
+    def _link_target(self, name: str) -> str:
+        return os.readlink(self.user_data_dir / name)
+
+    def test_bashrc_target(self):
+        assert self._link_target(".bashrc") == "proj/dotfiles/bashrc"
+
+    def test_bash_profile_target(self):
+        assert self._link_target(".bash_profile") == "proj/dotfiles/bash_profile"
+
+    def test_vimrc_target(self):
+        assert self._link_target(".vimrc") == "proj/dotfiles/vimrc"
+
+    def test_gitconfig_target(self):
+        assert self._link_target(".gitconfig") == "proj/dotfiles/gitconfig"
+
+    def test_screenrc_target(self):
+        assert self._link_target(".screenrc") == "proj/dotfiles/screenrc"
+
+    def test_ipython_config_target(self):
+        ipython_config = (
+            self.user_data_dir / ".ipython" / "profile_default" / "ipython_config.py"
+        )
+        target = os.readlink(ipython_config)
+        assert target == "../../proj/dotfiles/ipython/ipython_config.py"
+
+
+# ---------------------------------------------------------------------------
+# create_dotfiles_symlinks – overwrite behaviour
+# ---------------------------------------------------------------------------
+
+
+class TestCreateDotfilesSymlinksOverwrite:
+    """Existing files and symlinks are replaced without error."""
+
+    def test_overwrites_existing_regular_file(self, tmp_path):
+        user_data_dir = _make_user_data_dir(tmp_path)
+        dotfiles_dir = _make_dotfiles_dir(tmp_path)
+
+        # Pre-create a plain file where the symlink will go
+        (user_data_dir / ".bashrc").write_text("old content")
+
+        # Must not raise and must replace with a symlink
+        create_dotfiles_symlinks(user_data_dir, dotfiles_dir)
+
+        assert (user_data_dir / ".bashrc").is_symlink()
+
+    def test_overwrites_existing_symlink(self, tmp_path):
+        user_data_dir = _make_user_data_dir(tmp_path)
+        dotfiles_dir = _make_dotfiles_dir(tmp_path)
+
+        # Pre-create a stale symlink
+        (user_data_dir / ".bashrc").symlink_to("/dev/null")
+
+        create_dotfiles_symlinks(user_data_dir, dotfiles_dir)
+
+        assert os.readlink(user_data_dir / ".bashrc") == "proj/dotfiles/bashrc"
+
+    def test_overwrites_existing_ipython_config_symlink(self, tmp_path):
+        user_data_dir = _make_user_data_dir(tmp_path)
+        dotfiles_dir = _make_dotfiles_dir(tmp_path)
+
+        # Pre-create the ipython directory and a stale symlink
+        ipython_profile = user_data_dir / ".ipython" / "profile_default"
+        ipython_profile.mkdir(parents=True)
+        (ipython_profile / "ipython_config.py").symlink_to("/dev/null")
+
+        create_dotfiles_symlinks(user_data_dir, dotfiles_dir)
+
+        target = os.readlink(ipython_profile / "ipython_config.py")
+        assert target == "../../proj/dotfiles/ipython/ipython_config.py"
+
+    def test_idempotent_second_call(self, tmp_path):
+        """Calling create_dotfiles_symlinks twice must not raise."""
+        user_data_dir = _make_user_data_dir(tmp_path)
+        dotfiles_dir = _make_dotfiles_dir(tmp_path)
+
+        create_dotfiles_symlinks(user_data_dir, dotfiles_dir)
+        # Second call – all symlinks already exist
+        create_dotfiles_symlinks(user_data_dir, dotfiles_dir)
+
+        assert (user_data_dir / ".bashrc").is_symlink()
+
+
+# ---------------------------------------------------------------------------
+# create_dotfiles_symlinks – ipython directory creation
+# ---------------------------------------------------------------------------
+
+
+class TestCreateDotfilesSymlinksIpythonDir:
+    """Nested .ipython/profile_default directory is created as needed."""
+
+    def test_ipython_profile_default_dir_created(self, tmp_path):
+        user_data_dir = _make_user_data_dir(tmp_path)
+        dotfiles_dir = _make_dotfiles_dir(tmp_path)
+
+        # Directory must NOT exist beforehand
+        assert not (user_data_dir / ".ipython").exists()
+
+        create_dotfiles_symlinks(user_data_dir, dotfiles_dir)
+
+        assert (user_data_dir / ".ipython" / "profile_default").is_dir()
+
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     import os
 
     import pytest
 
-    pytest.main([os.path.abspath(__file__)])
+    pytest.main([os.path.abspath(__file__), "-v"])
 
-# --------------------------------------------------------------------------------
-# Start of Source Code from: apps/console_app/views/terminal/dotfiles.py
-# --------------------------------------------------------------------------------
-# """
-# Dotfiles Management
-# Creates and manages user dotfiles repository with default configurations
-# """
-# 
-# import logging
-# import os
-# import subprocess as sp
-# from pathlib import Path
-# 
-# logger = logging.getLogger(__name__)
-# 
-# 
-# def create_dotfiles_repo(dotfiles_dir: Path, username: str):
-#     """Create ~/.dotfiles as a git repository with default configs"""
-#     # bashrc
-#     (dotfiles_dir / "bashrc").write_text(f'''# SciTeX Cloud - bashrc
-# # Edit this file and run ./install.sh to apply changes
-# 
-# # Emacs-style editing
-# set -o emacs
-# 
-# # History settings
-# export HISTSIZE=10000
-# export HISTFILESIZE=20000
-# export HISTCONTROL=ignoredups:erasedups
-# 
-# # Prompt: {username}@scitex:~/path $
-# PS1='\\[\\033[01;32m\\]{username}@scitex\\[\\033[00m\\]:\\[\\033[01;34m\\]\\w\\[\\033[00m\\] \\$ '
-# 
-# # Aliases
-# alias ll='ls -alF'
-# alias la='ls -A'
-# alias l='ls -CF'
-# alias ..='cd ..'
-# alias ...='cd ../..'
-# 
-# # Python
-# alias python=python3
-# alias pip=pip3
-# 
-# # Git
-# alias gs='git status'
-# alias ga='git add'
-# alias gc='git commit'
-# alias gp='git push'
-# alias gl='git log --oneline -10'
-# 
-# # Auto-activate .venv if present
-# if [ -d ".venv" ] && [ -f ".venv/bin/activate" ]; then
-#     source .venv/bin/activate
-# fi
-# ''')
-# 
-#     # bash_profile
-#     (dotfiles_dir / "bash_profile").write_text('''# SciTeX Cloud - bash_profile
-# # Sources bashrc for login shells
-# 
-# if [ -f ~/.bashrc ]; then
-#     . ~/.bashrc
-# fi
-# ''')
-# 
-#     # vimrc
-#     (dotfiles_dir / "vimrc").write_text('''" SciTeX Cloud - vimrc
-# " Edit this file to customize vim
-# 
-# syntax on
-# set number
-# set relativenumber
-# set expandtab
-# set tabstop=4
-# set shiftwidth=4
-# set autoindent
-# set smartindent
-# set hlsearch
-# set incsearch
-# set ignorecase
-# set smartcase
-# set ruler
-# set showcmd
-# set wildmenu
-# set backspace=indent,eol,start
-# 
-# " Color scheme (if available)
-# silent! colorscheme desert
-# ''')
-# 
-#     # gitconfig
-#     (dotfiles_dir / "gitconfig").write_text(f'''# SciTeX Cloud - gitconfig
-# [user]
-#     name = {username}
-#     email = {username}@scitex.cloud
-# 
-# [core]
-#     editor = vim
-#     autocrlf = input
-# 
-# [color]
-#     ui = auto
-# 
-# [alias]
-#     st = status
-#     co = checkout
-#     br = branch
-#     ci = commit
-#     lg = log --oneline --graph --decorate -10
-# 
-# [pull]
-#     rebase = false
-# 
-# [init]
-#     defaultBranch = main
-# ''')
-# 
-#     # tmux.conf
-#     (dotfiles_dir / "tmux.conf").write_text('''# SciTeX Cloud - tmux.conf
-# 
-# # Use Ctrl-a as prefix (like screen)
-# # unbind C-b
-# # set -g prefix C-a
-# # bind C-a send-prefix
-# 
-# # Mouse support
-# set -g mouse on
-# 
-# # 256 colors
-# set -g default-terminal "xterm-256color"
-# 
-# # Start window numbering at 1
-# set -g base-index 1
-# setw -g pane-base-index 1
-# 
-# # Faster escape time
-# set -sg escape-time 10
-# 
-# # History limit
-# set -g history-limit 10000
-# 
-# # Status bar
-# set -g status-style bg=black,fg=white
-# set -g status-left '[#S] '
-# set -g status-right '%H:%M %d-%b'
-# ''')
-# 
-#     # ipython config
-#     ipython_dir = dotfiles_dir / "ipython"
-#     ipython_dir.mkdir(exist_ok=True)
-#     (ipython_dir / "ipython_config.py").write_text('''# SciTeX Cloud - IPython configuration
-# c = get_config()
-# 
-# # Cleaner prompts
-# c.TerminalInteractiveShell.banner1 = ''
-# c.TerminalInteractiveShell.banner2 = ''
-# c.TerminalInteractiveShell.confirm_exit = False
-# 
-# # Auto-reload modules
-# c.InteractiveShellApp.extensions = ['autoreload']
-# c.InteractiveShellApp.exec_lines = ['%autoreload 2']
-# ''')
-# 
-#     # install.sh
-#     (dotfiles_dir / "install.sh").write_text('''#!/bin/bash
-# # SciTeX Cloud - Dotfiles installer
-# # Run this after editing dotfiles to apply changes
-# 
-# DOTFILES_DIR="$HOME/proj/dotfiles"
-# 
-# echo "Installing dotfiles..."
-# 
-# # Create symlinks
-# ln -sf "$DOTFILES_DIR/bashrc" "$HOME/.bashrc"
-# ln -sf "$DOTFILES_DIR/bash_profile" "$HOME/.bash_profile"
-# ln -sf "$DOTFILES_DIR/vimrc" "$HOME/.vimrc"
-# ln -sf "$DOTFILES_DIR/gitconfig" "$HOME/.gitconfig"
-# ln -sf "$DOTFILES_DIR/tmux.conf" "$HOME/.tmux.conf"
-# 
-# # IPython
-# mkdir -p "$HOME/.ipython/profile_default"
-# ln -sf "$DOTFILES_DIR/ipython/ipython_config.py" "$HOME/.ipython/profile_default/ipython_config.py"
-# 
-# echo "Done! Restart your shell or run: source ~/.bashrc"
-# ''')
-#     (dotfiles_dir / "install.sh").chmod(0o755)
-# 
-#     # README
-#     (dotfiles_dir / "README.md").write_text(f'''# {username}'s Dotfiles
-# 
-# Personal configuration files for SciTeX Cloud.
-# 
-# ## Usage
-# 
-# Edit any file, then run:
-# 
-# ```bash
-# ./install.sh
-# source ~/.bashrc
-# ```
-# 
-# ## Files
-# 
-# | File | Description |
-# |------|-------------|
-# | `bashrc` | Shell configuration, aliases, prompt |
-# | `bash_profile` | Login shell (sources bashrc) |
-# | `vimrc` | Vim editor settings |
-# | `gitconfig` | Git configuration |
-# | `tmux.conf` | Tmux terminal multiplexer |
-# | `ipython/` | IPython configuration |
-# 
-# ## Customization
-# 
-# Feel free to edit any file! Your changes are version controlled.
-# 
-# ```bash
-# git add -A
-# git commit -m "Updated bashrc aliases"
-# ```
-# 
-# ## Sync to Local Machine
-# 
-# ```bash
-# git clone <this-repo> ~/.dotfiles
-# cd ~/.dotfiles
-# ./install.sh
-# ```
-# ''')
-# 
-#     # .gitignore
-#     (dotfiles_dir / ".gitignore").write_text('''# OS files
-# .DS_Store
-# Thumbs.db
-# 
-# # Backup files
-# *~
-# *.swp
-# *.bak
-# ''')
-# 
-#     # Initialize git repo
-#     try:
-#         sp.run(["git", "init"], cwd=dotfiles_dir, capture_output=True)
-#         sp.run(["git", "add", "-A"], cwd=dotfiles_dir, capture_output=True)
-#         sp.run(
-#             ["git", "commit", "-m", "Initial dotfiles setup"],
-#             cwd=dotfiles_dir,
-#             capture_output=True,
-#             env={**os.environ, "GIT_AUTHOR_NAME": username,
-#                  "GIT_AUTHOR_EMAIL": f"{username}@scitex.cloud",
-#                  "GIT_COMMITTER_NAME": username,
-#                  "GIT_COMMITTER_EMAIL": f"{username}@scitex.cloud"}
-#         )
-#     except Exception as e:
-#         logger.warning(f"Git init failed (non-critical): {e}")
-# 
-# 
-# def create_dotfiles_symlinks(user_data_dir: Path, dotfiles_dir: Path):
-#     """Create symlinks from ~/ to ~/proj/dotfiles/"""
-#     symlinks = {
-#         ".bashrc": "bashrc",
-#         ".bash_profile": "bash_profile",
-#         ".vimrc": "vimrc",
-#         ".gitconfig": "gitconfig",
-#         ".tmux.conf": "tmux.conf",
-#     }
-# 
-#     for target, source in symlinks.items():
-#         target_path = user_data_dir / target
-#         source_path = dotfiles_dir / source
-# 
-#         # Remove existing file/symlink
-#         if target_path.exists() or target_path.is_symlink():
-#             target_path.unlink()
-# 
-#         # Create symlink (use relative path for portability)
-#         target_path.symlink_to(f"proj/dotfiles/{source}")
-# 
-#     # IPython config (nested)
-#     ipython_profile = user_data_dir / ".ipython" / "profile_default"
-#     ipython_profile.mkdir(parents=True, exist_ok=True)
-#     ipython_config = ipython_profile / "ipython_config.py"
-#     if ipython_config.exists() or ipython_config.is_symlink():
-#         ipython_config.unlink()
-#     ipython_config.symlink_to("../../proj/dotfiles/ipython/ipython_config.py")
-# 
-# 
-# # EOF
-
-# --------------------------------------------------------------------------------
-# End of Source Code from: apps/console_app/views/terminal/dotfiles.py
-# --------------------------------------------------------------------------------
+# EOF

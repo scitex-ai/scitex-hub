@@ -42,8 +42,7 @@ MCP server configuration across all AI coding tools from a single source of trut
   .agents/
     agents.json    # Single source of truth (schema v3)
     local.json     # Secrets (gitignored)
-  AGENTS.md        # Project description for AI tools
-  CLAUDE.md        # Claude Code-specific instructions
+  AGENTS.md        # Unified instructions for all AI tools
   .mcp.json        # Claude Code MCP server (direct fallback)
 ```
 

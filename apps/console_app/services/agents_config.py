@@ -7,9 +7,11 @@
 Auto-generate AI tool configs for user projects.
 
 - .agents/agents.json — unified config for agents CLI (github.com/amtiYo/agents)
-- .claude/ — Claude Code settings (MCP server, skills)
+- AGENTS.md — single source of truth for all AI coding tools
+- .mcp.json — Claude Code MCP server (direct fallback)
+- ~/.claude/skills/ — Claude Code platform skills
 
-Both are auto-generated on terminal connect and are idempotent (no-op if exists).
+All are auto-generated on terminal connect and are idempotent (no-op if exists).
 """
 
 from __future__ import annotations
@@ -70,7 +72,10 @@ def _build_local_json() -> dict:
 
 
 def _build_agents_md(project_name: str) -> str:
-    """Build AGENTS.md with platform context for AI coding tools.
+    """Build AGENTS.md — unified instructions for all AI coding tools.
+
+    This is the single source of truth read by Claude Code, Codex, Gemini,
+    and any tool that respects agents.json ``instructions.path``.
 
     Uses the skills registry to dynamically list installed app modules
     and their capabilities, so the content stays up-to-date as apps
@@ -81,7 +86,8 @@ def _build_agents_md(project_name: str) -> str:
         "SciTeX Cloud project with access to 145+ MCP tools.\n",
         "## Platform\n",
         "You are running inside an Apptainer container on SciTeX Cloud — a browser-based",
-        "scientific research platform.\n",
+        "scientific research platform. Python 3.11 and the `scitex` package are pre-installed.",
+        "The MCP server is connected.\n",
     ]
 
     # Dynamic module listing from skills registry
@@ -97,35 +103,6 @@ def _build_agents_md(project_name: str) -> str:
 
     parts.extend(
         [
-            "## MCP Tools\n",
-            "The `scitex` MCP server provides 145+ tools.",
-            "Run `agents sync` to push this config to your AI coding tool.",
-            "Run `/mcp` in Claude Code to list all available tools.\n",
-        ]
-    )
-
-    return "\n".join(parts)
-
-
-def _build_claude_md(project_name: str) -> str:
-    """Build CLAUDE.md for Claude Code — dynamic from skills registry."""
-    parts = [
-        f"# {project_name}\n",
-        "## Platform\n",
-        "You are on **SciTeX Cloud** — a browser-based scientific research platform.",
-        "This project runs inside an Apptainer container with Python 3.11 and the",
-        "`scitex` package pre-installed. The MCP server is connected.\n",
-    ]
-    try:
-        from apps.llm_app.skills.registry import build_aggregated_context
-
-        ctx = build_aggregated_context()
-        if ctx:
-            parts.append(ctx)
-    except Exception:
-        pass
-    parts.extend(
-        [
             "## Usage\n",
             "```python",
             "import scitex as stx\n",
@@ -135,11 +112,13 @@ def _build_claude_md(project_name: str) -> str:
             "    return 0",
             "```\n",
             "## MCP Tools\n",
-            "145+ tools available. Run `/mcp` in Claude Code to list them.",
-            "Run `/skills` to see full SciTeX Cloud capabilities.",
+            "The `scitex` MCP server provides 145+ tools.",
+            "Run `agents sync` to push this config to your AI coding tool.",
+            "Run `/mcp` in Claude Code to list all available tools.",
             "`stx-show <file>` in terminal displays images/plots in the browser.\n",
         ]
     )
+
     return "\n".join(parts)
 
 
@@ -279,10 +258,9 @@ def ensure_claude_config(
     Sets up:
     - <project>/.mcp.json — MCP server definition (project-level, clean)
     - ~/.claude/skills/scitex-cloud/SKILL.md — platform skills
-    - <project>/CLAUDE.md — project instructions
 
-    The .agents/agents.json is the single source of truth for MCP config.
-    ``agents sync`` in bashrc propagates it to all AI tools.
+    AGENTS.md is now the single source of truth for project instructions
+    (shared by Claude, Codex, Gemini). No separate CLAUDE.md is generated.
     The .mcp.json is a direct fallback so Claude Code works immediately.
 
     Args:
@@ -310,12 +288,6 @@ def ensure_claude_config(
                 mcp_json.write_text(
                     json.dumps(_build_mcp_json(mcp_env), indent=2) + "\n"
                 )
-                created = True
-
-            # Project-level CLAUDE.md — dynamic from skills registry
-            claude_md = project_path / "CLAUDE.md"
-            if not claude_md.exists():
-                claude_md.write_text(_build_claude_md(project_name))
                 created = True
 
         if created:

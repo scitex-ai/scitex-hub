@@ -89,8 +89,7 @@ See `docs/TERMINAL_SLURM_SECURITY.md` for full security policy.
 │   ├── <project-name>/       # Each project gets its own directory
 │   │   ├── .agents/          # AI agent configs (auto-generated)
 │   │   ├── .mcp.json         # Claude Code MCP server
-│   │   ├── AGENTS.md         # Project description for AI tools
-│   │   ├── CLAUDE.md         # Claude Code instructions
+│   │   ├── AGENTS.md         # Unified instructions for all AI tools
 │   │   └── scitex/downloads/ # Paste/drop upload target
 │   ├── home -> ..            # Symlink: home project = user home
 │   └── dotfiles/             # Git repo with shell configs
