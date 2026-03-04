@@ -189,7 +189,7 @@ def handle_app_template_creation(request, project, manager):
 
     # Scaffold complete app boilerplate via app_tools
     app_name = project.slug.replace("-", "_")
-    if not app_name.endswith("_app"):
+    if not (app_name.endswith("_app") or app_name.endswith("-app")):
         app_name = f"{app_name}_app"
 
     try:

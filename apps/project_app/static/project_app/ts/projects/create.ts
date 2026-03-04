@@ -112,11 +112,11 @@ console.log(
     if (
       templateTypeEl &&
       templateTypeEl.value === "app" &&
-      !name.endsWith("_app")
+      !(name.endsWith("_app") || name.endsWith("-app"))
     ) {
       e.preventDefault();
       alert(
-        'App project names must end with "_app" suffix (e.g. my_awesome_app)',
+        'App project names must end with "_app" or "-app" suffix (e.g. my_awesome_app or my-awesome-app)',
       );
       return;
     }
@@ -159,14 +159,18 @@ console.log(
     const tplTypeEl = document.getElementById(
       "hidden-template-type",
     ) as HTMLInputElement | null;
-    if (tplTypeEl && tplTypeEl.value === "app" && !name.endsWith("_app")) {
+    if (
+      tplTypeEl &&
+      tplTypeEl.value === "app" &&
+      !(name.endsWith("_app") || name.endsWith("-app"))
+    ) {
       if (availabilityDiv) availabilityDiv.style.display = "block";
       const warnIcon =
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" style="vertical-align: text-bottom;"><path fill="#d29922" d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575ZM8 5a.75.75 0 0 0-.75.75v2.5a.75.75 0 0 0 1.5 0v-2.5A.75.75 0 0 0 8 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"></path></svg>';
       if (availabilityIcon) availabilityIcon.innerHTML = warnIcon;
       if (availabilityMessage) {
         availabilityMessage.textContent =
-          ' App names must end with "_app" (e.g. my_awesome_app)';
+          ' App names must end with "_app" or "-app" (e.g. my_awesome_app or my-awesome-app)';
         availabilityMessage.style.color = "#d29922";
       }
       return;

@@ -95,6 +95,7 @@ def api_dev_install(request):
             "success": True,
             "module_name": dev_install.module_name,
             "label": dev_install.label,
+            "icon": dev_install.icon,
         }
     )
 

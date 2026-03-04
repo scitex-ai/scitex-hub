@@ -55,6 +55,7 @@ class ModuleConfig:
 
     # Runtime state (set by context processor, not persisted)
     is_active: bool = False
+    is_dev: bool = False  # True for dev-installed apps (shows DEV badge)
     status: str = ""  # Module status: stable, wip, beta, deprecated
 
     # LLM integration

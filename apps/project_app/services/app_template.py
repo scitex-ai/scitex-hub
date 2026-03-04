@@ -20,7 +20,7 @@ def create_app_from_template(project, app_name=None):
     project_dir = _get_project_dir(project)
     name = app_name or project.slug.replace("-", "_")
 
-    if not name.endswith("_app"):
+    if not (name.endswith("_app") or name.endswith("-app")):
         name = f"{name}_app"
 
     created = scaffold(

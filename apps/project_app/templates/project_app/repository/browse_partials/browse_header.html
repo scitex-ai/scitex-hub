@@ -158,6 +158,27 @@
             </button>
             <!-- Clone Button -->
             {% include 'project_app/partials/clone_button.html' %}
+            <!-- Dev Install Button (app repos only) -->
+            {% if project.is_app and request.user.is_authenticated %}
+                {% if is_dev_installed %}
+                    <button class="repo-action-btn repo-action-btn-installed"
+                            data-action="dev-install"
+                            data-owner="{{ project.owner.username }}"
+                            data-repo="{{ project.slug }}"
+                            disabled>
+                        <i class="fas fa-check"></i>
+                        <span>Installed</span>
+                    </button>
+                {% else %}
+                    <button class="repo-action-btn repo-action-btn-dev"
+                            data-action="dev-install"
+                            data-owner="{{ project.owner.username }}"
+                            data-repo="{{ project.slug }}">
+                        <i class="fas fa-download"></i>
+                        <span>Dev Install</span>
+                    </button>
+                {% endif %}
+            {% endif %}
         </div>
         <!-- About: description + topics (inline editable for owner) -->
         <div class="repo-about-inline" id="repo-about-display">

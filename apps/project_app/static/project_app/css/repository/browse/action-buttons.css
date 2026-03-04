@@ -1,4 +1,3 @@
-
 /* Button overrides for theme support */
 .btn-outline-primary {
   /* Styling moved to central CSS - see static/css/components/buttons.css */
@@ -110,6 +109,29 @@
   border-color: var(--color-accent-emphasis);
 }
 
+/* Dev Install button — amber tone to match DEV badge */
+.repo-action-btn-dev {
+  background: #a07040;
+  color: #ffffff;
+  border-color: #a07040;
+}
+
+.repo-action-btn-dev:hover {
+  background: #b8834e;
+  border-color: #b8834e;
+}
+
+/* Installed state — muted, non-distracting */
+.repo-action-btn-installed {
+  background: transparent;
+  color: var(--color-fg-muted, #8b949e);
+  border-color: var(--workspace-border-default, #30363d);
+}
+
+.repo-action-btn-installed .fa-check {
+  color: #3d7a5e;
+}
+
 .repo-action-icon {
   /* Styling moved to central CSS - see static/css/components/icons.css */
   fill: currentColor;
@@ -127,4 +149,3 @@
   font-weight: 600;
   color: var(--color-fg-muted);
 }
-

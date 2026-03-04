@@ -243,6 +243,17 @@ def api_select_project(request):
         request.user.profile.save(update_fields=["last_active_repository"])
 
     context = {"project": project}
+
+    # Check if user has this repo dev-installed (for the Dev Install button)
+    if request.user.is_authenticated and project.is_app:
+        from apps.apps_app.models import DevInstallation
+
+        context["is_dev_installed"] = DevInstallation.objects.filter(
+            user=request.user,
+            source_owner=project.owner.username,
+            source_repo=project.slug,
+        ).exists()
+
     _add_file_browser_context(request, project, context)
 
     html = render_to_string(

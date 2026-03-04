@@ -166,6 +166,10 @@ def workspace_module_content(request, module):
 
         return HttpResponseForbidden("Direct access not allowed")
 
+    # Dev-installed apps: resolve template from user's project dir
+    if module.startswith("dev__"):
+        return _serve_dev_module(request, module)
+
     from .registry import get_module
 
     mod_config = get_module(module)
@@ -182,6 +186,29 @@ def workspace_module_content(request, module):
 
     ctx = mod_config.build_context(request, current_project)
     return render(request, mod_config.partial_template, ctx)
+
+
+def _serve_dev_module(request, module):
+    """Serve a dev-installed app's partial template, rendered through Django."""
+    from django.http import HttpResponse, HttpResponseNotFound
+    from django.template import engines
+
+    from apps.apps_app.services.dev_app_loader import resolve_dev_template
+
+    template_path = resolve_dev_template(module)
+    if not template_path:
+        return HttpResponseNotFound(f"Dev module '{module}' template not found")
+
+    try:
+        raw = template_path.read_text(encoding="utf-8")
+        engine = engines["django"]
+        tpl = engine.from_string(raw)
+        html = tpl.render({"request": request}, request)
+        return HttpResponse(html)
+    except Exception as e:
+        from django.http import HttpResponseServerError
+
+        return HttpResponseServerError(f"Dev module '{module}' render error: {e}")
 
 
 # EOF

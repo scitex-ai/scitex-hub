@@ -71,6 +71,16 @@ def build_hub_context(request, current_project=None):
     if current_project:
         _add_file_browser_context(request, current_project, context)
 
+        # Check dev-install status for app repos
+        if request.user.is_authenticated and current_project.is_app:
+            from apps.apps_app.models import DevInstallation
+
+            context["is_dev_installed"] = DevInstallation.objects.filter(
+                user=request.user,
+                source_owner=current_project.owner.username,
+                source_repo=current_project.slug,
+            ).exists()
+
     return context
 
 

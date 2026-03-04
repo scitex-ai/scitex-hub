@@ -20,7 +20,7 @@ function getKnownModules(): Set<string> {
   const names = new Set<string>();
   document.querySelectorAll(".module-tab-btn").forEach((btn) => {
     const href = (btn as HTMLAnchorElement).getAttribute("href") ?? "";
-    const match = href.match(/^\/([a-z]+)\/$/);
+    const match = href.match(/^\/([a-z0-9_-]+)\/?$/i);
     if (match) names.add(match[1]);
   });
   return names;
@@ -30,7 +30,7 @@ let KNOWN_MODULES: Set<string>;
 
 /** Extract the first path segment from a pathname, e.g. "/_writer/" -> "writer". */
 function extractModule(path: string): string | null {
-  const match = path.match(/^\/([a-z]+)\//);
+  const match = path.match(/^\/([a-z0-9_-]+)\//i);
   return match ? match[1] : null;
 }
 
@@ -144,7 +144,7 @@ function init(): void {
   document.querySelectorAll(".module-tab-btn").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       const href = (btn as HTMLAnchorElement).href ?? "";
-      const match = href.match(/\/([a-z]+)\/?(?:\?.*)?$/);
+      const match = href.match(/\/([a-z0-9_-]+)\/?(?:\?.*)?$/i);
       if (!match) return;
       const mod = match[1];
       if (KNOWN_MODULES.has(mod)) {
