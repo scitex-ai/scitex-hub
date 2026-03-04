@@ -332,12 +332,28 @@ def _app_css(name, label):
 
 def _agents_json(name, label):
     config = {
-        "version": 3,
-        "agents": {
-            "default": {
-                "name": f"{name}-agent",
-                "model": "claude-sonnet-4-6",
-                "instructions": f"You are a helpful assistant for the {label} app.",
+        "schemaVersion": 3,
+        "instructions": {"path": "AGENTS.md"},
+        "integrations": {
+            "enabled": ["claude", "codex", "gemini", "cursor", "copilot_vscode"],
+        },
+        "syncMode": "source-only",
+        "mcp": {
+            "servers": {
+                "scitex": {
+                    "label": "SciTeX Platform",
+                    "transport": "stdio",
+                    "command": "/usr/local/bin/scitex",
+                    "args": ["mcp", "start"],
+                    "enabled": True,
+                },
+                "scitex-cloud": {
+                    "label": "SciTeX Cloud",
+                    "transport": "stdio",
+                    "command": "/usr/local/bin/scitex-cloud",
+                    "args": ["mcp", "start"],
+                    "enabled": True,
+                },
             }
         },
     }

@@ -432,6 +432,7 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
         """Create .agents/ config if missing (runs in thread)."""
         from apps.console_app.services.agents_config import ensure_agents_config
 
+        logger.info(f"Generating agents config for: {project_dir}")
         ensure_agents_config(project_dir, project_name=project_name, force=True)
 
     @staticmethod
@@ -439,6 +440,7 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
         """Create .mcp.json + skills if missing (runs in thread)."""
         from apps.console_app.services.agents_config import ensure_claude_config
 
+        logger.info(f"Generating Claude config for: {project_dir}")
         ensure_claude_config(
             user_data_dir, project_dir, project_name=project_name, force=True
         )

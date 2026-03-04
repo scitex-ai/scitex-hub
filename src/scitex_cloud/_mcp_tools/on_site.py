@@ -1,79 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File: src/scitex_cloud/_mcp_tools/on_site.py
-"""On-site agent tools for workspace interaction (page capture, etc.)."""
+"""On-site agent tools for workspace interaction (page capture, context, browser control)."""
 
 from __future__ import annotations
 
-import json
-import os
 import time
-from typing import Optional
 
-
-def _json(data: dict) -> str:
-    return json.dumps(data, indent=2, default=str)
-
-
-def _get_config() -> dict:
-    """Get API configuration from environment."""
-    return {
-        "api_key": os.environ.get("SCITEX_CLOUD_API_KEY"),
-        "base_url": os.environ.get("SCITEX_CLOUD_URL", "https://scitex.cloud"),
-    }
-
-
-def _make_request(
-    method: str,
-    endpoint: str,
-    data: Optional[dict] = None,
-    auth_required: bool = True,
-) -> dict:
-    """Make HTTP request to SciTeX Cloud API."""
-    import requests
-
-    config = _get_config()
-    url = f"{config['base_url']}{endpoint}"
-
-    headers = {
-        "Content-Type": "application/json",
-        "X-Requested-With": "XMLHttpRequest",
-    }
-    if auth_required:
-        if not config["api_key"]:
-            return {
-                "success": False,
-                "error": "API key required",
-                "hint": "Set SCITEX_CLOUD_API_KEY environment variable",
-            }
-        headers["Authorization"] = f"Bearer {config['api_key']}"
-
-    try:
-        if method.upper() == "GET":
-            response = requests.get(url, headers=headers, params=data, timeout=60)
-        elif method.upper() == "POST":
-            response = requests.post(url, headers=headers, json=data, timeout=60)
-        else:
-            return {"success": False, "error": f"Unknown method: {method}"}
-
-        if response.status_code >= 400:
-            return {
-                "success": False,
-                "error": f"HTTP {response.status_code}",
-                "detail": response.text[:500],
-            }
-
-        try:
-            return response.json()
-        except json.JSONDecodeError:
-            return {"success": True, "content": response.text}
-
-    except requests.Timeout:
-        return {"success": False, "error": "Request timed out"}
-    except requests.ConnectionError:
-        return {"success": False, "error": "Connection failed"}
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+from .api import _json, _make_request
 
 
 def register_on_site_tools(mcp) -> None:
@@ -97,7 +31,6 @@ def register_on_site_tools(mcp) -> None:
             project_id: The project ID to associate the capture with.
             message: Optional description of what/why to capture.
         """
-        # Create capture request
         result = _make_request(
             "POST",
             "/console/api/on-site/capture/",
@@ -172,6 +105,50 @@ def register_on_site_tools(mcp) -> None:
             "GET",
             "/console/api/on-site/permission/check/",
             data={"project_id": project_id},
+        )
+        return _json(result)
+
+    @mcp.tool()
+    async def on_site_get_context(page: str = "") -> str:
+        """[on_site] Get web app context: username, page, skills, available actions.
+
+        Returns the current user, active skill for the page, all registered
+        app skills, available UI actions, and media rendering capabilities.
+        """
+        result = _make_request(
+            "GET",
+            "/llm/api/context/",
+            data={"page": page},
+        )
+        return _json(result)
+
+    @mcp.tool()
+    async def on_site_eval_js(code: str, timeout: int = 10) -> str:
+        """[on_site] Evaluate JavaScript in user's browser and return result.
+
+        Sends JS code to the user's browser via WebSocket relay,
+        waits for the evaluation result, and returns it.
+        Timeout is capped at 30 seconds server-side.
+        """
+        result = _make_request(
+            "POST",
+            "/llm/api/eval-js/",
+            data={"code": code, "timeout": timeout},
+        )
+        return _json(result)
+
+    @mcp.tool()
+    async def on_site_ui_action(steps: list, delay_ms: int = 900) -> str:
+        """[on_site] Drive browser UI: navigate, highlight, click, fill, scroll.
+
+        Steps is a list of action dicts, e.g.:
+        [{"action": "navigate", "url": "/writer/"},
+         {"action": "click", "selector": "#save-btn"}]
+        """
+        result = _make_request(
+            "POST",
+            "/llm/api/ui-action/",
+            data={"steps": steps, "delay_ms": delay_ms},
         )
         return _json(result)
 
