@@ -12,6 +12,8 @@ import time
 import uuid
 from pathlib import Path
 
+from apps.console_app.views.terminal.config import SLURM_TIME_LIMIT_SECONDS
+
 from ._handler_utils import respawn_pty, send_state
 from .allocation import Allocation, AllocationState
 from .session import SessionState
@@ -71,6 +73,7 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
             container_path=msg["container_path"],
             host_user_dir=Path(msg["user_data_dir"]),
             host_project_dir=Path(msg["project_dir"]),
+            time_limit_seconds=SLURM_TIME_LIMIT_SECONDS,
         )
         send_state(broker, client, "", "allocation_starting")
 
@@ -103,6 +106,7 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
     if not shell.spawn():
         return {"status": "error", "error": "Failed to spawn shell in allocation"}
 
+    shell.client_socket = client
     shell.on_exit_callback = _make_shell_exit_cb(broker, client)
     shell.start_reader(broker._make_output_callback(client))
     alloc.increment_shells()
@@ -131,9 +135,24 @@ def _make_shell_exit_cb(broker, client: socket.socket):
         with broker.lock:
             alloc = broker.allocations.get(shell.allocation_id)
         if alloc and not alloc.check_alive():
+            reason = alloc.get_failure_reason()
             shell.state = SessionState.DEAD
             alloc.decrement_shells()
-            send_state(broker, client, pty_id, "dead")
+            send_state(
+                broker,
+                client,
+                pty_id,
+                "allocation_dead",
+                extra={"reason": reason},
+            )
+            # Attempt auto-recovery after a short delay
+            timer = threading.Timer(
+                2.0,
+                _auto_recover_allocation,
+                args=(broker, pty_id, shell, alloc, client),
+            )
+            timer.daemon = True
+            timer.start()
             return
 
         if shell.spawn_count < SHELL_MAX_RESPAWNS:
@@ -165,6 +184,98 @@ def _respawn_shell(broker, pty_id: str, client: socket.socket):
             alloc.decrement_shells()
 
     respawn_pty(broker, shell, client, _make_shell_exit_cb, on_fail=on_fail)
+
+
+def _auto_recover_allocation(
+    broker,
+    pty_id: str,
+    shell,
+    old_alloc,
+    client: socket.socket,
+):
+    """Attempt to start a new allocation and respawn the shell inside it."""
+    alloc_key = (shell.username,)
+
+    # Check cooldown
+    last_fail = _alloc_fail_times.get(alloc_key, 0)
+    if time.time() - last_fail < _ALLOC_FAIL_COOLDOWN:
+        send_state(
+            broker, client, pty_id, "dead", extra={"reason": "Recovery on cooldown"}
+        )
+        return
+
+    send_state(broker, client, pty_id, "allocation_recovering")
+
+    new_alloc = Allocation(
+        username=old_alloc.username,
+        project_slug=old_alloc.project_slug,
+        container_path=old_alloc.container_path,
+        host_user_dir=old_alloc.host_user_dir,
+        host_project_dir=old_alloc.host_project_dir,
+        time_limit_seconds=old_alloc.time_limit_seconds,
+    )
+
+    if not new_alloc.start():
+        _alloc_fail_times[alloc_key] = time.time()
+        send_state(
+            broker,
+            client,
+            pty_id,
+            "dead",
+            extra={"reason": "Recovery failed: could not start allocation"},
+        )
+        return
+
+    with broker.lock:
+        broker.allocations[new_alloc.allocation_id] = new_alloc
+        broker.alloc_index[alloc_key] = new_alloc.allocation_id
+        _alloc_fail_times.pop(alloc_key, None)
+        shell.allocation_id = new_alloc.allocation_id
+        shell.command = new_alloc.get_shell_command(project_slug=old_alloc.project_slug)
+        shell.spawn_count = 0
+
+    def on_fail():
+        new_alloc.decrement_shells()
+
+    success = respawn_pty(broker, shell, client, _make_shell_exit_cb, on_fail=on_fail)
+    if success:
+        new_alloc.increment_shells()
+        logger.info(
+            f"Shell {pty_id[:8]}: auto-recovered into allocation {new_alloc.allocation_id[:8]}"
+        )
+    else:
+        logger.error(f"Shell {pty_id[:8]}: auto-recovery respawn failed")
+
+
+def handle_restart_shared(broker, msg: dict, client: socket.socket) -> dict:
+    """Restart a shell: respawn if allocation alive, recover if dead."""
+    session_id = msg.get("session_id", "")
+    with broker.lock:
+        shell = broker.shells.get(session_id)
+
+    if not shell:
+        return {"status": "error", "error": "Shell not found"}
+
+    with broker.lock:
+        alloc = broker.allocations.get(shell.allocation_id)
+
+    if alloc and alloc.check_alive():
+        # Allocation is alive — just respawn the shell
+        def on_fail():
+            if alloc:
+                alloc.decrement_shells()
+
+        respawn_pty(broker, shell, client, _make_shell_exit_cb, on_fail=on_fail)
+        return {"status": "ok", "session_id": session_id}
+
+    # Allocation is dead — trigger recovery
+    if alloc:
+        threading.Timer(
+            0,
+            _auto_recover_allocation,
+            args=(broker, session_id, shell, alloc, client),
+        ).start()
+    return {"status": "ok", "session_id": session_id}
 
 
 def handle_stop_allocation(broker, msg: dict) -> dict:

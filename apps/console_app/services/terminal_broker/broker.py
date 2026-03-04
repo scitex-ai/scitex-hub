@@ -51,6 +51,7 @@ class TerminalBroker:
         self.server_socket: Optional[socket.socket] = None
         self.running = False
         self.lock = threading.Lock()
+        self._monitor = None
         signal.signal(signal.SIGCHLD, self._sigchld_handler)
 
     def _sigchld_handler(self, signum, frame):
@@ -74,6 +75,12 @@ class TerminalBroker:
         os.chmod(self.socket_path, 0o666)
         self.server_socket.listen(100)
         self.running = True
+
+        if SHARED_ALLOCATION:
+            from .allocation_monitor import AllocationMonitor
+
+            self._monitor = AllocationMonitor(self)
+            self._monitor.start()
 
         logger.info(f"Terminal broker listening on {self.socket_path}")
 
@@ -194,7 +201,12 @@ class TerminalBroker:
         return handle_spawn_legacy(self, msg, client)
 
     def _handle_restart(self, msg: dict, client: socket.socket) -> dict:
-        """Dispatch restart to legacy handler."""
+        """Dispatch restart to shared or legacy handler."""
+        if SHARED_ALLOCATION:
+            from ._handlers_shared import handle_restart_shared
+
+            return handle_restart_shared(self, msg, client)
+
         from ._handlers_legacy import handle_restart_legacy
 
         return handle_restart_legacy(self, msg, client)
@@ -269,6 +281,10 @@ class TerminalBroker:
     def stop(self):
         """Stop the broker and clean up all sessions/allocations."""
         self.running = False
+
+        if self._monitor:
+            self._monitor.stop()
+            self._monitor = None
 
         with self.lock:
             for session in list(self.sessions.values()):

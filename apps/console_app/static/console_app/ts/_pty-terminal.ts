@@ -117,6 +117,11 @@ export class PTYTerminal {
       releaseBtn.addEventListener("click", () => this.releaseResources());
     }
 
+    // Request notification permission for background alerts
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+
     console.log("[PTY] xterm.js initialized");
     this.readyResolve();
   }
@@ -153,7 +158,7 @@ export class PTYTerminal {
   private handleSessionState(msg: any): void {
     const state = msg.state;
     this.sessionState = state;
-    console.log("[PTY] Session state:", state);
+    console.log("[PTY] Session state:", state, msg);
 
     const badge = document.getElementById("terminal-session-status");
 
@@ -162,37 +167,90 @@ export class PTYTerminal {
         this.term.write(
           "\r\n\x1b[1;36m Starting SLURM allocation...\x1b[0m\r\n",
         );
-        if (badge) {
-          badge.textContent = "allocating";
-          badge.className = "terminal-status-badge status-warning";
-        }
+        this.updateBadge(badge, "allocating", "warning");
         break;
+
+      case "allocation_expiring": {
+        const remaining = msg.remaining || 0;
+        const minutes = Math.ceil(remaining / 60);
+        const timeStr = minutes > 0 ? `${minutes} min` : `${remaining}s`;
+        this.term.write(
+          `\r\n\x1b[1;33m \u26a0 SLURM allocation expires in ${timeStr}\x1b[0m\r\n`,
+        );
+        this.term.write(
+          "\x1b[0;33m   Save your work. A new allocation will be created automatically.\x1b[0m\r\n",
+        );
+        this.updateBadge(badge, `expires ${timeStr}`, "warning");
+        this.notifyUser(`Terminal allocation expires in ${timeStr}`);
+        break;
+      }
+
+      case "allocation_dead": {
+        const reason = msg.reason || "Unknown reason";
+        this.term.write(
+          `\r\n\x1b[1;31m \u274c Allocation ended: ${reason}\x1b[0m\r\n`,
+        );
+        this.term.write(
+          "\x1b[0;36m   Attempting automatic recovery...\x1b[0m\r\n",
+        );
+        this.updateBadge(badge, "recovering", "warning");
+        this.notifyUser(`Allocation ended: ${reason}. Recovering...`);
+        break;
+      }
+
+      case "allocation_recovering":
+        this.term.write(
+          "\r\n\x1b[1;36m Starting new SLURM allocation...\x1b[0m\r\n",
+        );
+        this.updateBadge(badge, "recovering", "warning");
+        break;
+
       case "exited":
       case "respawning":
         this.term.write("\r\n\x1b[1;33m Session restarting...\x1b[0m\r\n");
-        if (badge) {
-          badge.textContent = "restarting";
-          badge.className = "terminal-status-badge status-warning";
-        }
+        this.updateBadge(badge, "restarting", "warning");
         break;
+
       case "running":
-        if (badge) {
-          badge.textContent = "";
-          badge.className = "terminal-status-badge";
-        }
+        this.updateBadge(badge, "", "");
         break;
-      case "dead":
+
+      case "dead": {
+        const deadReason = msg.reason || "Max retries exceeded";
         this.term.write(
-          "\r\n\x1b[1;31m Session failed after max retries\x1b[0m\r\n",
+          `\r\n\x1b[1;31m \u274c Session stopped: ${deadReason}\x1b[0m\r\n`,
         );
         this.term.write(
           "\x1b[0;33m   Click restart button or refresh page\x1b[0m\r\n",
         );
-        if (badge) {
-          badge.textContent = "stopped";
-          badge.className = "terminal-status-badge status-error";
-        }
+        this.updateBadge(badge, "stopped", "error");
+        this.notifyUser(`Terminal stopped: ${deadReason}`);
         break;
+      }
+    }
+  }
+
+  /** Update the status badge text and style */
+  private updateBadge(
+    badge: HTMLElement | null,
+    text: string,
+    level: string,
+  ): void {
+    if (!badge) return;
+    badge.textContent = text;
+    badge.className = level
+      ? `terminal-status-badge status-${level}`
+      : "terminal-status-badge";
+  }
+
+  /** Send browser notification for background tab awareness */
+  private notifyUser(message: string): void {
+    if (
+      document.hidden &&
+      "Notification" in window &&
+      Notification.permission === "granted"
+    ) {
+      new Notification("SciTeX Terminal", { body: message });
     }
   }
 

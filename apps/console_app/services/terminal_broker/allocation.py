@@ -64,6 +64,7 @@ class Allocation:
         container_path: str,
         host_user_dir: Path,
         host_project_dir: Path,
+        time_limit_seconds: int = 14400,
     ):
         self.allocation_id = str(uuid.uuid4())
         self.username = username
@@ -71,11 +72,13 @@ class Allocation:
         self.container_path = container_path
         self.host_user_dir = host_user_dir
         self.host_project_dir = host_project_dir
+        self.time_limit_seconds = time_limit_seconds
         self.instance_name = f"scitex-{username}"
         self.job_id: Optional[str] = None
         self.state = AllocationState.DEAD
         self.shell_count: int = 0
         self._script_path: Optional[str] = None
+        self.started_at: Optional[float] = None
 
     def start(self) -> bool:
         """Submit sbatch job and wait for allocation + instance to be ready.
@@ -164,6 +167,7 @@ class Allocation:
                 return False
 
             self.state = AllocationState.READY
+            self.started_at = time.time()
             logger.info(
                 f"Allocation {self.allocation_id[:8]}: READY "
                 f"(job={self.job_id}, instance={self.instance_name})"
@@ -226,6 +230,56 @@ class Allocation:
 
     def decrement_shells(self):
         self.shell_count = max(0, self.shell_count - 1)
+
+    def get_remaining_seconds(self) -> Optional[int]:
+        """Return seconds remaining in this allocation, or None if unknown."""
+        if self.started_at is None or self.state != AllocationState.READY:
+            return None
+        elapsed = time.time() - self.started_at
+        remaining = self.time_limit_seconds - int(elapsed)
+        return max(0, remaining)
+
+    def get_failure_reason(self) -> str:
+        """Query sacct for the failure reason of this job."""
+        if not self.job_id:
+            return "No SLURM job ID"
+        try:
+            result = subprocess.run(
+                [
+                    "sacct",
+                    "-j",
+                    self.job_id,
+                    "-o",
+                    "State,Reason",
+                    "--noheader",
+                    "--parsable2",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.stdout.strip():
+                line = result.stdout.strip().split("\n")[0]
+                parts = line.split("|")
+                state = parts[0] if parts else "UNKNOWN"
+                reason = parts[1] if len(parts) > 1 else ""
+                return self._format_failure_reason(state, reason)
+        except Exception:
+            pass
+        return "Allocation ended (reason unknown)"
+
+    @staticmethod
+    def _format_failure_reason(state: str, reason: str) -> str:
+        """Map SLURM job state/reason to a human-readable message."""
+        messages = {
+            "TIMEOUT": "Job exceeded time limit",
+            "CANCELLED": "Job was cancelled",
+            "FAILED": f"Job failed ({reason})" if reason else "Job failed",
+            "NODE_FAIL": "Compute node failure",
+            "PREEMPTED": "Job was preempted by higher-priority job",
+            "OUT_OF_MEMORY": "Job exceeded memory limit",
+        }
+        return messages.get(state, f"{state}: {reason}" if reason else state)
 
     def _wait_for_instance(self) -> bool:
         """Poll via srun --overlap until the apptainer instance is ready."""
