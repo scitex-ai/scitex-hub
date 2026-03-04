@@ -212,6 +212,38 @@ def docs_export(request, slug):
     return response
 
 
+def docs_export_batch(request):
+    """Export selected documentation pages as Markdown (POST {slugs: [...]})."""
+    import json
+
+    if request.method != "POST":
+        return HttpResponse(status=405)
+    try:
+        slugs = json.loads(request.body).get("slugs", [])
+    except (json.JSONDecodeError, AttributeError):
+        return HttpResponse("Invalid JSON", status=400)
+    if not slugs:
+        return HttpResponse("Missing slugs", status=400)
+
+    ver = _get_project_version()
+    converter = _make_html2text()
+    parts = [f"# SciTeX Documentation (v{ver}) — Selected Pages\n"]
+    for slug in slugs:
+        page = _PAGES_BY_SLUG.get(slug)
+        if not page:
+            continue
+        html = render(
+            request, page["template"], _build_page_context(slug)
+        ).content.decode()
+        parts.append(f"\n---\n\n## {page['label']}\n\n{converter.handle(html)}")
+
+    resp = HttpResponse("\n".join(parts), content_type="text/markdown; charset=utf-8")
+    resp["Content-Disposition"] = (
+        f'attachment; filename="scitex-cloud-v{ver}-docs-selected.md"'
+    )
+    return resp
+
+
 def _export_single_page(request, page) -> str:
     """Render a single doc page to Markdown."""
     converter = _make_html2text()

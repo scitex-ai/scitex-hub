@@ -91,6 +91,57 @@
   border-right-color: var(--accent-blue, #58a6ff);
 }
 
+/* ── Multi-Select ──────────────────────────────────────── */
+.docs-nav-item.selected {
+  background: rgba(88, 166, 255, 0.12);
+  border-right-color: var(--accent-blue, #58a6ff);
+  color: var(--accent-blue, #58a6ff);
+}
+
+.docs-selection-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  margin: 4px 0;
+  border-top: 1px solid var(--workspace-border-default, #30363d);
+  border-bottom: 1px solid var(--workspace-border-default, #30363d);
+  background: rgba(88, 166, 255, 0.08);
+}
+
+.docs-selection-count {
+  font-size: 11px;
+  color: var(--accent-blue, #58a6ff);
+  font-weight: 500;
+  margin-right: auto;
+}
+
+.docs-selection-bar button {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  font-size: 10px;
+  color: var(--text-secondary, #c9d1d9);
+  background: transparent;
+  border: 1px solid var(--workspace-border-default, #30363d);
+  border-radius: 3px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.docs-selection-bar button:hover {
+  background: var(--workspace-bg-hover, #1c2128);
+  color: var(--text-primary, #e6edf3);
+}
+
+.docs-selection-clear {
+  border: none !important;
+  padding: 2px 4px !important;
+}
+
 /* ── Content Area ───────────────────────────────────────── */
 .docs-content {
   flex: 1;

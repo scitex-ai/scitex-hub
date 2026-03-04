@@ -15,6 +15,7 @@ urlpatterns = [
     path("content/<slug:slug>/", views.docs_content, name="content"),
     # Export documentation as Markdown
     path("export/<slug:slug>/", views.docs_export, name="export"),
+    path("export-batch/", views.docs_export_batch, name="export_batch"),
     # Python package documentation (scitex PyPI)
     path("python/", views.docs_python, name="python"),
     # REST API documentation
