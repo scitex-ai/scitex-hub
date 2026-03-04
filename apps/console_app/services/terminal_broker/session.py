@@ -5,6 +5,7 @@ resize, cleanup, respawn).  ``TerminalSession`` adds srun command
 building for the legacy one-srun-per-tab mode.
 """
 
+import collections
 import enum
 import logging
 import os
@@ -15,6 +16,7 @@ import socket
 import sys
 import termios
 import threading
+import time
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -42,6 +44,7 @@ class BasePTY:
         self.fd: Optional[int] = None
         self.state = SessionState.DEAD
         self.spawn_count: int = 0
+        self.last_spawn_time: float = 0
         self.on_exit_callback: Optional[Callable[[str], None]] = None
         self.reader_thread: Optional[threading.Thread] = None
         self._reader_generation: int = 0
@@ -61,6 +64,7 @@ class BasePTY:
                 os._exit(1)
             self.state = SessionState.RUNNING
             self.spawn_count += 1
+            self.last_spawn_time = time.time()
             logger.info(
                 f"PTY {self.pty_id[:8]}: spawned PID {self.pid} "
                 f"(attempt {self.spawn_count})"

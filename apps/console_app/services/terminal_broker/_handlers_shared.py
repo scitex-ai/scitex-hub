@@ -175,8 +175,14 @@ def _make_shell_exit_cb(broker, client: socket.socket):
             timer.start()
             return
 
+        # Intentional exit (ran >10s): reset counter so user never gets stuck
+        if shell.last_spawn_time and (time.time() - shell.last_spawn_time > 10):
+            shell.spawn_count = 0
+
         if shell.spawn_count < SHELL_MAX_RESPAWNS:
-            backoff = min(2 ** (shell.spawn_count - 1), 4)
+            backoff = (
+                0.5 if shell.spawn_count == 0 else min(2 ** (shell.spawn_count - 1), 4)
+            )
             timer = threading.Timer(
                 backoff, _respawn_shell, args=(broker, pty_id, client)
             )

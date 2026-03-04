@@ -31,8 +31,18 @@ def make_exit_callback(broker, client: socket.socket):
         session.state = SessionState.EXITED
         send_state(broker, client, pty_id, "exited")
 
+        # Intentional exit (ran >10s): reset counter so user never gets stuck
+        import time
+
+        if session.last_spawn_time and (time.time() - session.last_spawn_time > 10):
+            session.spawn_count = 0
+
         if session.spawn_count < MAX_RESPAWNS:
-            backoff = min(2 ** (session.spawn_count - 1), 4)
+            backoff = (
+                0.5
+                if session.spawn_count == 0
+                else min(2 ** (session.spawn_count - 1), 4)
+            )
             logger.info(
                 f"PTY {pty_id[:8]}: scheduling respawn in {backoff}s "
                 f"(attempt {session.spawn_count + 1}/{MAX_RESPAWNS})"
