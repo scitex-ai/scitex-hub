@@ -38,6 +38,10 @@ def _build_agents_json(mcp_env: dict[str, str] | None = None) -> dict:
         for group in DEFAULT_MCP_GROUPS:
             env[f"SCITEX_MCP_USE_{group}"] = "1"
 
+    # Disable local capture inside containers (no X11 display);
+    # agents use cloud_on_site_capture_page instead (via CLOUD group)
+    env["SCITEX_MCP_USE_CAPTURE"] = "0"
+
     return {
         "schemaVersion": AGENTS_SCHEMA_VERSION,
         "instructions": {"path": "AGENTS.md"},
@@ -216,6 +220,10 @@ def _build_mcp_json(mcp_env: dict[str, str] | None = None) -> dict:
     else:
         for group in DEFAULT_MCP_GROUPS:
             env[f"SCITEX_MCP_USE_{group}"] = "1"
+
+    # Disable local capture inside containers (no X11 display);
+    # agents use cloud_on_site_capture_page instead (via CLOUD group)
+    env["SCITEX_MCP_USE_CAPTURE"] = "0"
 
     return {
         "mcpServers": {
