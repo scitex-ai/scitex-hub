@@ -158,6 +158,7 @@ export class EditorLoader {
               console.log("[EditorLoader] Monaco Editor loaded successfully");
               window.monacoLoaded = true;
               window.monaco = (window as any).monaco;
+              window.dispatchEvent(new Event("monaco-ready"));
               resolve();
             },
             (error: Error) => {

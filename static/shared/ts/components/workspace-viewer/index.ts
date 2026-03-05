@@ -13,7 +13,13 @@ import { MarkdownPreviewPanel } from "./_MarkdownPreview";
 import { loadMonaco } from "./_monaco-loader";
 import { TabManager } from "./_TabManager";
 import { ViewerRouter } from "./_ViewerRouter";
-import { detectFileType, LANGUAGE_MAP, type TabInfo } from "./types";
+import {
+  detectFileType,
+  detectShebang,
+  FILENAME_LANGUAGE_MAP,
+  LANGUAGE_MAP,
+  type TabInfo,
+} from "./types";
 
 type ViewMode = "edit" | "preview";
 
@@ -199,10 +205,13 @@ export class WorkspaceViewer {
       content = `// Error loading file: ${filePath}\n// ${err}`;
     }
 
+    const ext = filePath.substring(filePath.lastIndexOf(".")).toLowerCase();
+    const filename = filePath.split("/").pop()?.toLowerCase() ?? "";
     const language =
-      LANGUAGE_MAP[
-        filePath.substring(filePath.lastIndexOf(".")).toLowerCase()
-      ] ?? "plaintext";
+      LANGUAGE_MAP[ext] ??
+      FILENAME_LANGUAGE_MAP[filename] ??
+      detectShebang(content) ??
+      "plaintext";
 
     const monaco = (window as any).monaco;
     if (monaco || (await this.tryLazyLoadMonaco())) {
