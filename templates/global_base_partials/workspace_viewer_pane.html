@@ -1,5 +1,7 @@
 {% if user.is_authenticated %}
-    <!-- Monaco CSS bundled locally via Vite (imported by monaco-init.ts) -->
+    <!-- Monaco Editor CSS (editor JS loaded by monaco-loader.ts) -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.min.css" />
     <div class="ws-viewer-pane" id="ws-viewer-pane">
         <div class="workspace-sidebar collapsed"
              id="ws-viewer-sidebar"

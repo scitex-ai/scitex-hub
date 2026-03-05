@@ -6,9 +6,6 @@
 import { getCsrfToken } from "@/utils/csrf.js";
 import { showToast } from "../utils/ui";
 
-// Side-effect import: initializes Monaco from local bundle
-import "@/_lib/monaco-init";
-
 /**
  * Setup workspace initialization button
  */
@@ -92,18 +89,28 @@ export function setupWorkspaceInitialization(config: any): void {
 }
 
 /**
- * Wait for Monaco to be available.
- * Monaco is now bundled locally (no CDN), so it's available synchronously
- * after the import above. This function is kept for API compatibility.
+ * Wait for Monaco to load asynchronously
  */
-export function waitForMonaco(_maxWaitMs?: number): Promise<boolean> {
-  if ((window as any).monaco) {
-    (window as any).monacoLoaded = true;
-    console.log("[Writer] Monaco available (local bundle)");
-    return Promise.resolve(true);
+export async function waitForMonaco(
+  maxWaitMs: number = 10000,
+): Promise<boolean> {
+  const startTime = Date.now();
+  console.log("[Writer] Waiting for Monaco to load...");
+
+  while (Date.now() - startTime < maxWaitMs) {
+    // Check window.monaco alone — workspace viewer loads Monaco but doesn't set monacoLoaded
+    if ((window as any).monaco) {
+      // Ensure flag is set for other consumers
+      (window as any).monacoLoaded = true;
+      console.log("[Writer] Monaco loaded successfully");
+      return true;
+    }
+    // Wait 100ms before checking again
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
-  // Should never reach here with local bundling
-  console.error("[Writer] Monaco not available after local import");
-  return Promise.resolve(false);
+  console.warn(
+    "[Writer] Monaco failed to load within timeout, will fallback to CodeMirror",
+  );
+  return false;
 }
