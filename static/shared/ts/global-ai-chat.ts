@@ -387,9 +387,9 @@ class GlobalAIChat {
         });
       });
     const saved = localStorage.getItem("scitex-ai-mode");
-    // Migrate old saved modes (jobs/config) to console
-    if (saved === "console" || saved === "jobs" || saved === "config")
-      this.switchMode("console");
+    // Default to console; only switch to chat if explicitly saved
+    if (saved === "chat") this.switchMode("chat");
+    else this.switchMode("console");
   }
 
   private switchMode(mode: "chat" | "console"): void {

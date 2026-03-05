@@ -10,6 +10,10 @@ import { setupAutoAccept } from "./console-auto-accept";
 import { handleOscEscapes } from "./console-osc-handler";
 import { ConsoleTabManager, type ConsoleTab } from "./console-tabs";
 import { setupFileDrop, setupRightClick } from "./console-event-handlers";
+import {
+  showAllocationSpinner,
+  hideAllocationSpinner,
+} from "./console-allocation-spinner";
 
 /** Adapter: WebcamCapture/SketchCanvas → upload image → type path into terminal */
 function makeImageSink(send: (t: string) => void) {
@@ -288,17 +292,25 @@ export class AIPanelConsoleMode {
       storageKey: "scitex-terminal-font-size",
     });
 
-    // Allocation progress (OSC 9997 from broker)
+    // Allocation progress overlay spinner
     containerEl.addEventListener("scitex-session-state", ((e: CustomEvent) => {
-      if (e.detail?.state === "allocation_starting")
-        inst.terminal.write("\x1b[33mStarting SLURM allocation...\x1b[0m\r\n");
+      const state = e.detail?.state;
+      if (
+        state === "allocation_starting" ||
+        state === "allocation_recovering"
+      ) {
+        showAllocationSpinner(containerEl);
+      } else if (state === "ready" || state === "connected") {
+        hideAllocationSpinner(containerEl);
+      }
     }) as EventListener);
     this.observeTheme(inst);
 
     this.instances.set(id, inst);
     this.activeTabId = id;
 
-    // Connect WebSocket
+    // Show spinner during initial connection and connect WebSocket
+    showAllocationSpinner(containerEl);
     this.connectInstance(inst);
   }
 
@@ -330,6 +342,7 @@ export class AIPanelConsoleMode {
     inst.ws.onopen = () => {
       inst.connected = true;
       if (inst.id === this.activeTabId) this.setStatus("connected");
+      hideAllocationSpinner(inst.containerEl);
       this.sendResize(inst);
     };
 

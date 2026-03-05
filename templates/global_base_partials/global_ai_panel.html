@@ -37,11 +37,11 @@
                     <!-- Vertical label: shown when collapsed (workspace-sidebar.css) -->
                     <span class="sidebar-title" id="scitex-ai-collapsed-title">Chat & Console</span>
                     <div class="scitex-ai-mode-toggle">
-                        <button class="scitex-ai-mode-btn active" data-mode="chat" title="AI Chat">
-                            <i class="fas fa-robot"></i> Chat
-                        </button>
-                        <button class="scitex-ai-mode-btn" data-mode="console" title="Terminal & Jobs">
+                        <button class="scitex-ai-mode-btn active" data-mode="console" title="Terminal & Jobs">
                             <i class="fas fa-terminal"></i> Console
+                        </button>
+                        <button class="scitex-ai-mode-btn" data-mode="chat" title="AI Chat">
+                            <i class="fas fa-robot"></i> Chat
                         </button>
                     </div>
                     <div class="scitex-ai-panel-actions">
@@ -55,7 +55,7 @@
                 <!-- Content area: hidden when collapsed by workspace-sidebar.css -->
                 <div class="sidebar-content scitex-ai-body">
                     <!-- Chat mode -->
-                    <div id="scitex-ai-chat-view" class="scitex-ai-view active">
+                    <div id="scitex-ai-chat-view" class="scitex-ai-view">
                         <div class="scitex-ai-sessions-bar">
                             <button class="scitex-ai-new-chat" title="New chat">
                                 <i class="fas fa-plus"></i>
@@ -168,7 +168,7 @@
                         </div>
                     </div>
                     <!-- Console/Terminal mode -->
-                    <div id="scitex-ai-console-view" class="scitex-ai-view">
+                    <div id="scitex-ai-console-view" class="scitex-ai-view active">
                         <div class="scitex-ai-console-tabs-bar">
                             <button class="scitex-ai-console-new-tab" title="New terminal">
                                 <i class="fas fa-plus"></i>
