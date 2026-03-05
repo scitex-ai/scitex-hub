@@ -74,7 +74,6 @@ django = [
     "celery[redis]>=5.4",
     "django-celery-results>=2.5",
     "django-celery-beat>=2.8",
-    "flower>=2.0",
     # UI utilities
     "django-widget-tweaks>=1.5",
     # Language detection

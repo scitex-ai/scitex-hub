@@ -188,7 +188,6 @@ def _build_services_dict(status_data: dict) -> dict:
         "redis": status_data.get("redis", {}).get("health_class", "unknown"),
         "slurm": status_data.get("slurm", {}).get("health_class", "unknown"),
         "apptainer": status_data.get("apptainer", {}).get("health_class", "unknown"),
-        "flower": containers.get("flower", "unknown"),
         "celery_worker": containers.get("celery_worker", "unknown"),
         "celery_beat": containers.get("celery_beat", "unknown"),
         "gitea": containers.get("gitea", "unknown"),

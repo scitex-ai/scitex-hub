@@ -184,35 +184,7 @@ services:
     networks:
       - scitex-network
 
-  # ============================================
-  # Flower (Staging)
-  # ============================================
-  flower:
-    image: scitex-cloud-staging-django:latest
-    entrypoint: ["/entrypoint.sh"]
-    command: celery -A config --broker=redis://redis:6379/1 flower --port=5555
-    ports:
-      - "5556:5555"   # Staging flower port
-    env_file:
-      - ./envs/.env.staging
-    environment:
-      DJANGO_SETTINGS_MODULE: config.settings.settings_staging
-      SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
-      SCITEX_CLOUD_ENV: staging
-      PYTHONUNBUFFERED: 1
-      SCITEX_DIR: /app/.scitex
-    depends_on:
-      - redis
-      - celery_worker
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5555/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 180s
-    networks:
-      - scitex-network
+  # Flower removed — run on-demand: docker compose run --rm django celery -A config flower
 
   # ============================================
   # Gitea (Staging overrides)
