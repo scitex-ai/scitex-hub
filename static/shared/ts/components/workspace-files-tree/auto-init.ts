@@ -11,7 +11,11 @@ import { initHiddenFilesToggle } from "./_HiddenFilesToggle";
 import { initGitStatusToggle } from "./_GitStatusToggle";
 import { initModuleFilterButtons } from "./_ModuleFilterButtons";
 import { initSortToggle } from "./_SortToggle";
-import { initMonitorToggle, initRepoMonitor } from "../repo-monitor/index";
+import {
+  initMonitorToggle,
+  initRepoMonitor,
+  RepoMonitorClient,
+} from "../repo-monitor/index";
 
 declare global {
   interface Window {
@@ -22,6 +26,45 @@ declare global {
     /** Shared tree instance (set by auto-init after initialization) */
     workspaceFilesTree?: WorkspaceFilesTree;
   }
+}
+
+/**
+ * Wire repo monitor fs_events to tree.refresh() with debounce.
+ * This replaces polling — the tree updates only when files actually change.
+ */
+function wireRepoMonitorToTree(
+  client: RepoMonitorClient,
+  tree: WorkspaceFilesTree,
+): void {
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  const DEBOUNCE_MS = 500;
+
+  client.onEvent(() => {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      tree.refresh().catch(console.error);
+    }, DEBOUNCE_MS);
+  });
+}
+
+/**
+ * Try to initialize repo monitor and wire it to the tree.
+ * Returns the client if successful, null otherwise.
+ */
+function initRepoMonitorForTree(
+  tree: WorkspaceFilesTree,
+  username: string,
+  slug: string,
+): RepoMonitorClient | null {
+  const monitorEl = document.getElementById("ws-repo-monitor");
+  const projectId = monitorEl?.dataset.projectId;
+  if (!projectId) return null;
+
+  const client = initRepoMonitor({ projectId, username, slug });
+  if (client) {
+    wireRepoMonitorToTree(client, tree);
+  }
+  return client;
 }
 
 export async function autoInitWorkspaceTree(): Promise<WorkspaceFilesTree | null> {
@@ -64,6 +107,9 @@ export async function autoInitWorkspaceTree(): Promise<WorkspaceFilesTree | null
     const data = tree.getTreeData?.() ?? [];
     window.scitexOnTreeDataLoaded(data);
   }
+
+  // Wire repo monitor → tree refresh (replaces polling)
+  initRepoMonitorForTree(tree, username, slug);
 
   return tree;
 }
@@ -118,12 +164,8 @@ export async function autoInitWorktreePanes(): Promise<void> {
     // Initialize repository monitor toggle (always — collapse/expand + localStorage)
     initMonitorToggle();
 
-    // Initialize full monitor with WebSocket (only when project context available)
-    const monitorEl = document.getElementById("ws-repo-monitor");
-    const projectId = monitorEl?.dataset.projectId;
-    if (projectId && username && slug) {
-      initRepoMonitor({ projectId, username, slug });
-    }
+    // Wire repo monitor → tree refresh (replaces polling)
+    initRepoMonitorForTree(tree, username, slug);
   }
 }
 

@@ -60,8 +60,6 @@ export class WorkspaceFilesTree {
   private sortMode: SortMode = "name";
   private isLoading = false;
   private lastTreeHash = "";
-  private pollTimer: ReturnType<typeof setInterval> | null = null;
-  private readonly POLL_INTERVAL_MS = 1_000;
 
   constructor(config: TreeConfig) {
     this.config = { showFolderActions: true, showGitStatus: true, ...config };
@@ -246,11 +244,6 @@ export class WorkspaceFilesTree {
     } else {
       await this.loadTree();
     }
-
-    // Auto-reload: poll for external file system changes every 30s
-    this.pollTimer = setInterval(() => {
-      if (!this.isLoading) this.loadTree().catch(console.error);
-    }, this.POLL_INTERVAL_MS);
   }
 
   private handleFileClick(path: string, event?: MouseEvent): void {
@@ -496,9 +489,6 @@ export class WorkspaceFilesTree {
     this.config.onFileSelect = handler;
   }
   destroy(): void {
-    if (this.pollTimer !== null) {
-      clearInterval(this.pollTimer);
-      this.pollTimer = null;
-    }
+    // No-op for now; reserved for future cleanup
   }
 }

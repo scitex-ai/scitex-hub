@@ -216,6 +216,8 @@ def _entry_to_ts_path(entry_name: str) -> str:
         "scholar_app/search/source-health-check": "apps/scholar_app/static/scholar_app/ts/search/source-health-check.ts",
         # Project app - additional
         "project_app/projects/settings": "apps/project_app/static/project_app/ts/projects/settings.ts",
+        # Workspace app (non-standard static location)
+        "workspace_app/workspace-shell": "static/workspace_app/ts/workspace-shell.ts",
         # Shared utilities
         "shared/utils/theme-switcher": "static/shared/ts/utils/theme-switcher.ts",
         "shared/utils/tooltip-auto-position": "static/shared/ts/utils/tooltip-auto-position.ts",

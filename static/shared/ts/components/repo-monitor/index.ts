@@ -62,13 +62,15 @@ export function initMonitorToggle(): void {
  * Initialize the full repo monitor (WebSocket client, feed, filter, resizer).
  * Requires a project context — call initMonitorToggle() first.
  */
-export function initRepoMonitor(config: MonitorConfig): void {
+export function initRepoMonitor(
+  config: MonitorConfig,
+): RepoMonitorClient | null {
   const feedContainer = document.getElementById("repo-monitor-feed");
   const monitorArea = document.getElementById("ws-repo-monitor");
 
   if (!feedContainer || !monitorArea) {
     console.warn("[RepoMonitor] Missing required DOM elements — init skipped");
-    return;
+    return null;
   }
 
   // Vertical resizer is now auto-initialized by the unified resizer system
@@ -94,6 +96,8 @@ export function initRepoMonitor(config: MonitorConfig): void {
   // Connect and initialize
   client.connect();
   filter.init();
+
+  return client;
 }
 
 // Named re-exports for consumers that need individual classes
