@@ -90,48 +90,52 @@ else
 fi
 
 # ============================================
-# Vite Dev Server (HMR - Hot Module Replacement)
+# Vite Dev Server — Dual Architecture
 # ============================================
-# Vite serves TypeScript directly and provides HMR for instant updates
+# Platform Vite (port 5173): runs on HOST with native FS events
+# Dev App Vite (port 5174): runs in container ONLY for dev apps with TypeScript
 start_vite_dev_server() {
-    if [ -f "/app/package.json" ] && [ -f "/app/vite.config.ts" ]; then
-        # Check if Vite is already running
-        if pgrep -f "vite" >/dev/null 2>&1; then
-            echo_info "Vite dev server already running"
-            return 0
-        fi
+    cd /app || return 0
 
-        echo_info "Starting Vite dev server (HMR)..."
-        cd /app || return 0
-
-        # Check if node_modules exists
-        if [ ! -d "node_modules" ]; then
-            echo_warning "Installing Node dependencies..."
-            npm install --silent 2>&1 | grep -v "npm WARN" || true
-        fi
-
-        # Start Vite dev server in watchdog loop — auto-restarts on crash
-        nohup bash -c '
-            while true; do
-                echo "[$(date)] Vite dev server starting..." >> /app/logs/vite-dev.log
-                npm run dev >> /app/logs/vite-dev.log 2>&1
-                EXIT_CODE=$?
-                echo "[$(date)] Vite exited (code $EXIT_CODE), restarting in 3s..." >> /app/logs/vite-dev.log
-                sleep 3
-            done
-        ' >/dev/null 2>&1 &
-        VITE_PID=$!
-        echo_success "Vite dev server started (PID: $VITE_PID, auto-restart enabled)"
-        echo "   URL: http://127.0.0.1:5173"
-        echo "   HMR: Enabled (instant module updates)"
-        echo "   Log: tail -f /app/logs/vite-dev.log"
-
-        cd /app || return 0
-    else
-        echo_warning "Vite config not found - using TypeScript watch fallback"
-        # Fall back to TypeScript watch mode
-        start_typescript_build_watcher_fallback
+    # Check if node_modules exists (needed for dev app Vite)
+    if [ ! -d "node_modules" ]; then
+        echo_warning "Installing Node dependencies..."
+        npm install --silent 2>&1 | grep -v "npm WARN" || true
     fi
+
+    # Check if any dev apps have TypeScript files
+    DEV_APP_TS=$(find /app/data/users/*/proj/*/static -name '*.ts' 2>/dev/null | head -1)
+
+    if [ -z "$DEV_APP_TS" ]; then
+        echo_info "No dev app TypeScript found — skipping container Vite"
+        echo_info "Platform Vite should be running on host: npm run dev"
+        return 0
+    fi
+
+    # Check if dev app Vite is already running
+    if pgrep -f "vite.*config.*app" >/dev/null 2>&1; then
+        echo_info "Dev app Vite already running on port 5174"
+        return 0
+    fi
+
+    echo_info "Starting dev app Vite (port 5174, dev apps only)..."
+
+    # Start dev app Vite in watchdog loop
+    nohup bash -c '
+        while true; do
+            echo "[$(date)] Dev app Vite starting on port 5174..." >> /app/logs/vite-app.log
+            npx vite --config vite.config.app.ts >> /app/logs/vite-app.log 2>&1
+            EXIT_CODE=$?
+            echo "[$(date)] Dev app Vite exited (code $EXIT_CODE), restarting in 3s..." >> /app/logs/vite-app.log
+            sleep 3
+        done
+    ' >/dev/null 2>&1 &
+    VITE_PID=$!
+    echo_success "Dev app Vite started (PID: $VITE_PID)"
+    echo "   URL: http://127.0.0.1:5174"
+    echo "   Scope: Dev app TypeScript only"
+    echo "   Log: tail -f /app/logs/vite-app.log"
+    echo_info "Platform Vite should be running on host (port 5173): npm run dev"
 }
 
 # ============================================
