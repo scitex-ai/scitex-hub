@@ -1,8 +1,4 @@
-/**
- * Global Floating AI Agent Panel
- * Available on all pages. Toggle with FAB, Alt+A, or double-click panel header.
- * Context can be injected per-page via window.scitexAI.setContext().
- */
+/** Global Floating AI Agent Panel — toggle with FAB, Alt+A, or double-click header. */
 
 export {}; // Make this a module so declare global augmentation is valid
 
