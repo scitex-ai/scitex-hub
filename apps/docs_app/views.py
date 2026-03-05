@@ -57,6 +57,13 @@ DOCS_PAGES = [
         "badges": ["user"],
     },
     {
+        "slug": "auto-response",
+        "label": "Auto-Response",
+        "icon": "fas fa-reply",
+        "template": "docs_app/docs_auto_response.html",
+        "badges": ["user"],
+    },
+    {
         "slug": "chat",
         "label": "AI Chat",
         "icon": "fas fa-comments",
