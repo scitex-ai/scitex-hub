@@ -9,6 +9,7 @@ import { getCsrfToken } from "../../utils/csrf";
 interface SlurmJob {
   job_id: number | string;
   name?: string;
+  type?: string;
   state: string;
   time_used?: string;
   partition?: string;
@@ -128,6 +129,15 @@ export class AIPanelJobsMode {
     }
   }
 
+  private friendlyName(job: SlurmJob): string {
+    if (job.type === "terminal") return "Terminal Session";
+    return job.name || `Job ${job.job_id}`;
+  }
+
+  private jobIcon(job: SlurmJob): string {
+    return job.type === "terminal" ? "fa-terminal" : "fa-cogs";
+  }
+
   private renderJob(job: SlurmJob): string {
     const stateClass = this.stateClass(job.state);
     const canCancel = job.state === "RUNNING" || job.state === "PENDING";
@@ -137,7 +147,8 @@ export class AIPanelJobsMode {
       <div class="scitex-ai-job-card ${stateClass}">
         <div class="scitex-ai-job-row">
           <span class="scitex-ai-job-state ${stateClass}">${job.state}</span>
-          <span class="scitex-ai-job-name" title="${job.name || ""}">${job.name || `Job ${job.job_id}`}</span>
+          <i class="fas ${this.jobIcon(job)} scitex-ai-job-icon"></i>
+          <span class="scitex-ai-job-name" title="${job.name || ""}">${this.friendlyName(job)}</span>
         </div>
         <div class="scitex-ai-job-row scitex-ai-job-meta">
           <span>ID: ${job.job_id}</span>
