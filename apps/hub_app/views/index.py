@@ -7,6 +7,7 @@ import logging
 from django.shortcuts import redirect, render
 
 from apps.project_app.models import Project
+from apps.project_app.services.project_utils import get_current_project
 
 logger = logging.getLogger(__name__)
 
@@ -132,7 +133,12 @@ def index_view(request):
         context.update(_build_profile_context(request, profile_username))
         return render(request, "hub_app/index.html", context)
 
-    context = build_hub_context(request)
+    current_project = (
+        get_current_project(request, user=request.user)
+        if request.user.is_authenticated
+        else None
+    )
+    context = build_hub_context(request, current_project=current_project)
     return render(request, "hub_app/index.html", context)
 
 

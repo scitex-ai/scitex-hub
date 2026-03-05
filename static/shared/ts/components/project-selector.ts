@@ -158,7 +158,11 @@ function initializeProjectSelector(): void {
               // Notify terminals to cd into the new project
               window.dispatchEvent(
                 new CustomEvent("scitex:project-switched", {
-                  detail: { slug: projectSlug, id: projectId },
+                  detail: {
+                    slug: projectSlug,
+                    id: projectId,
+                    owner: projectOwner,
+                  },
                 }),
               );
               // Only reload if no live terminal is connected

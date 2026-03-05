@@ -165,7 +165,67 @@ export async function autoInitWorktreePanes(): Promise<void> {
     initMonitorToggle();
 
     // Wire repo monitor → tree refresh (replaces polling)
-    initRepoMonitorForTree(tree, username, slug);
+    let currentMonitorClient = initRepoMonitorForTree(tree, username, slug);
+
+    // Listen for project switch — reinitialize tree + repo monitor
+    window.addEventListener("scitex:project-switched", (async (
+      e: CustomEvent<{ slug: string; id: string; owner?: string }>,
+    ) => {
+      const newSlug = e.detail.slug;
+      const newOwner = e.detail.owner || username;
+      if (!newSlug) return;
+
+      // Update DOM data attributes
+      pane.dataset.projectSlug = newSlug;
+      pane.dataset.username = newOwner;
+
+      // Update sidebar title
+      const titleFull = document.querySelector(
+        ".sidebar-title-full",
+      ) as HTMLElement;
+      if (titleFull) {
+        titleFull.innerHTML = `<i class="fas fa-folder-open"></i> ${newOwner}/${newSlug}`;
+      }
+
+      // Update project ID on config elements (used by viewer's getProjectId())
+      const configEl = document.getElementById("workspace-project-config");
+      if (configEl) {
+        configEl.dataset.projectId = e.detail.id;
+        configEl.dataset.slug = newSlug;
+        configEl.dataset.username = newOwner;
+      }
+
+      // Update repo monitor project ID
+      const monitorEl = document.getElementById("ws-repo-monitor");
+      if (monitorEl) {
+        monitorEl.dataset.projectId = e.detail.id;
+      }
+
+      // Destroy old tree and create new one
+      pane.innerHTML = "";
+      const newTree = new WorkspaceFilesTree({
+        mode: "hub" as WorkspaceMode,
+        containerId: pane.id,
+        username: newOwner,
+        slug: newSlug,
+        showFolderActions: true,
+        showGitStatus: true,
+        onFileSelect: window.scitexOnFileSelect || (() => {}),
+      });
+
+      await newTree.initialize();
+      initHiddenFilesToggle(newTree);
+      initGitStatusToggle(newTree);
+      initSortToggle(newTree);
+      initModuleFilterButtons(newTree, "hub");
+      window.workspaceFilesTree = newTree;
+
+      // Disconnect old monitor, wire new one
+      if (currentMonitorClient) {
+        currentMonitorClient.disconnect();
+      }
+      currentMonitorClient = initRepoMonitorForTree(newTree, newOwner, newSlug);
+    }) as EventListener);
   }
 }
 

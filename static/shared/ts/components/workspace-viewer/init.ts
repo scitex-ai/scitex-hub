@@ -78,6 +78,15 @@ function initWorkspaceViewer(): void {
       openFileInViewer(viewer, path, emptyState);
     }
   }) as EventListener);
+
+  // Update projectId when project is switched via header dropdown
+  window.addEventListener("scitex:project-switched", ((
+    e: CustomEvent<{ slug: string; id: string; owner?: string }>,
+  ) => {
+    if (e.detail.id) {
+      viewer.setProjectId(e.detail.id);
+    }
+  }) as EventListener);
 }
 
 function openFileInViewer(
