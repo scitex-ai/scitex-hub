@@ -4,6 +4,17 @@
  */
 
 // ============================================================================
+// Custom Event Detail Types
+// ============================================================================
+
+/** Dispatched when user switches the active project via header dropdown. */
+export interface ProjectSwitchedDetail {
+  projectId: string; // DB primary key (int rendered as string)
+  projectSlug: string; // URL-safe project slug
+  ownerUsername: string; // Project owner's username
+}
+
+// ============================================================================
 // Configuration Types
 // ============================================================================
 

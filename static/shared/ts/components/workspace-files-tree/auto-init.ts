@@ -5,6 +5,7 @@
  * Modules can register custom handlers via window globals before DOMContentLoaded.
  */
 
+import type { ProjectSwitchedDetail } from "../../types/index";
 import type { TreeItem, WorkspaceMode } from "./types";
 import { WorkspaceFilesTree } from "./WorkspaceFilesTree";
 import { initHiddenFilesToggle } from "./_HiddenFilesToggle";
@@ -72,7 +73,7 @@ export async function autoInitWorkspaceTree(): Promise<WorkspaceFilesTree | null
   if (!configEl) return null;
 
   const username = configEl.dataset.username;
-  const slug = configEl.dataset.slug;
+  const slug = configEl.dataset.projectSlug;
   if (!username || !slug) return null;
 
   const mode = (configEl.dataset.mode || "hub") as WorkspaceMode;
@@ -87,8 +88,8 @@ export async function autoInitWorkspaceTree(): Promise<WorkspaceFilesTree | null
   const tree = new WorkspaceFilesTree({
     mode,
     containerId,
-    username,
-    slug,
+    ownerUsername: username,
+    projectSlug: slug,
     showFolderActions: true,
     showGitStatus: true,
     onFileSelect,
@@ -169,36 +170,36 @@ export async function autoInitWorktreePanes(): Promise<void> {
 
     // Listen for project switch — reinitialize tree + repo monitor
     window.addEventListener("scitex:project-switched", (async (
-      e: CustomEvent<{ slug: string; id: string; owner?: string }>,
+      e: CustomEvent<ProjectSwitchedDetail>,
     ) => {
-      const newSlug = e.detail.slug;
-      const newOwner = e.detail.owner || username;
-      if (!newSlug) return;
+      const newProjectSlug = e.detail.projectSlug;
+      const newOwnerUsername = e.detail.ownerUsername || username;
+      if (!newProjectSlug) return;
 
       // Update DOM data attributes
-      pane.dataset.projectSlug = newSlug;
-      pane.dataset.username = newOwner;
+      pane.dataset.projectSlug = newProjectSlug;
+      pane.dataset.username = newOwnerUsername;
 
       // Update sidebar title
       const titleFull = document.querySelector(
         ".sidebar-title-full",
       ) as HTMLElement;
       if (titleFull) {
-        titleFull.innerHTML = `<i class="fas fa-folder-open"></i> ${newOwner}/${newSlug}`;
+        titleFull.innerHTML = `<i class="fas fa-folder-open"></i> ${newOwnerUsername}/${newProjectSlug}`;
       }
 
       // Update project ID on config elements (used by viewer's getProjectId())
       const configEl = document.getElementById("workspace-project-config");
       if (configEl) {
-        configEl.dataset.projectId = e.detail.id;
-        configEl.dataset.slug = newSlug;
-        configEl.dataset.username = newOwner;
+        configEl.dataset.projectId = e.detail.projectId;
+        configEl.dataset.projectSlug = newProjectSlug;
+        configEl.dataset.username = newOwnerUsername;
       }
 
       // Update repo monitor project ID
       const monitorEl = document.getElementById("ws-repo-monitor");
       if (monitorEl) {
-        monitorEl.dataset.projectId = e.detail.id;
+        monitorEl.dataset.projectId = e.detail.projectId;
       }
 
       // Destroy old tree and create new one
@@ -206,8 +207,8 @@ export async function autoInitWorktreePanes(): Promise<void> {
       const newTree = new WorkspaceFilesTree({
         mode: "hub" as WorkspaceMode,
         containerId: pane.id,
-        username: newOwner,
-        slug: newSlug,
+        username: newOwnerUsername,
+        slug: newProjectSlug,
         showFolderActions: true,
         showGitStatus: true,
         onFileSelect: window.scitexOnFileSelect || (() => {}),
@@ -224,7 +225,11 @@ export async function autoInitWorktreePanes(): Promise<void> {
       if (currentMonitorClient) {
         currentMonitorClient.disconnect();
       }
-      currentMonitorClient = initRepoMonitorForTree(newTree, newOwner, newSlug);
+      currentMonitorClient = initRepoMonitorForTree(
+        newTree,
+        newOwnerUsername,
+        newProjectSlug,
+      );
     }) as EventListener);
   }
 }

@@ -187,7 +187,7 @@ function loadDocPage(
   // Update active state in sidebar (clear section items first)
   clearSectionNav(sidebar);
   navItems.forEach((item) => {
-    item.classList.toggle("active", item.dataset.slug === slug);
+    item.classList.toggle("active", item.dataset.docSlug === slug);
   });
 
   // Show loading
@@ -296,7 +296,7 @@ function toggleSelection(
   navItems: NodeListOf<HTMLAnchorElement>,
   sidebar: Element,
 ): void {
-  const slug = item.dataset.slug ?? "";
+  const slug = item.dataset.docSlug ?? "";
   if (!slug) return;
   if (selectedSlugs.has(slug)) {
     selectedSlugs.delete(slug);
@@ -390,7 +390,7 @@ function downloadSelectedPdf(navItems: NodeListOf<HTMLAnchorElement>): void {
   );
   Promise.all(fetches).then((pages) => {
     const labels = slugs.map((s) => {
-      const item = Array.from(navItems).find((i) => i.dataset.slug === s);
+      const item = Array.from(navItems).find((i) => i.dataset.docSlug === s);
       return item?.querySelector("span")?.textContent ?? s;
     });
     const combined = pages
@@ -419,7 +419,7 @@ function initDocsWorkspace(): void {
   const allPdfBtn = document.getElementById("docs-export-all-pdf");
   if (allPdfBtn) {
     allPdfBtn.onclick = () => {
-      const slugs = Array.from(navItems).map((i) => i.dataset.slug ?? "");
+      const slugs = Array.from(navItems).map((i) => i.dataset.docSlug ?? "");
       const fetches = slugs.map((s) =>
         fetch("/docs/content/" + s + "/", {
           headers: { "X-Requested-With": "XMLHttpRequest" },
@@ -439,7 +439,7 @@ function initDocsWorkspace(): void {
     selectedSlugs.clear();
     navItems.forEach((i) => {
       if (i.classList.contains("selected"))
-        selectedSlugs.add(i.dataset.slug ?? "");
+        selectedSlugs.add(i.dataset.docSlug ?? "");
     });
     updateSelectionBar(sidebar, navItems);
   });
@@ -452,7 +452,7 @@ function initDocsWorkspace(): void {
         toggleSelection(item, navItems, sidebar);
       } else {
         if (selectedSlugs.size > 0) clearSelection(navItems, sidebar);
-        const slug = item.dataset.slug ?? "";
+        const slug = item.dataset.docSlug ?? "";
         // Toggle sections if clicking the already-active page
         if (slug === currentSlug) {
           item.classList.toggle("sections-collapsed");
@@ -479,7 +479,7 @@ function initDocsWorkspace(): void {
     const slugFromHash = parts[0];
     const anchorFromHash = parts[1] || undefined;
     const matchedItem = Array.from(navItems).find(
-      (i) => i.dataset.slug === slugFromHash,
+      (i) => i.dataset.docSlug === slugFromHash,
     );
     if (matchedItem) {
       currentSlug = slugFromHash;

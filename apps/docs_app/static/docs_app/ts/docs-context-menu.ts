@@ -24,7 +24,7 @@ function syncSelection(): void {
 function showMenu(x: number, y: number, item: HTMLAnchorElement): void {
   hideMenu();
 
-  const slug = item.dataset.slug ?? "";
+  const slug = item.dataset.docSlug ?? "";
   if (!slug) return;
 
   const isSelected = item.classList.contains("selected");
@@ -138,7 +138,7 @@ function showMenu(x: number, y: number, item: HTMLAnchorElement): void {
 function getSelectedSlugs(): string[] {
   return Array.from(
     document.querySelectorAll<HTMLAnchorElement>(".docs-nav-item.selected"),
-  ).map((i) => i.dataset.slug ?? "");
+  ).map((i) => i.dataset.docSlug ?? "");
 }
 
 function downloadSelectedMd(): void {
@@ -176,7 +176,7 @@ function downloadSelectedPdf(): void {
   );
   Promise.all(fetches).then((pages) => {
     const labels = slugs.map((s) => {
-      const item = Array.from(navItems).find((i) => i.dataset.slug === s);
+      const item = Array.from(navItems).find((i) => i.dataset.docSlug === s);
       return item?.querySelector("span")?.textContent ?? s;
     });
     const PRINT_CSS =

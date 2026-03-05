@@ -165,7 +165,7 @@ interface ApiResponse {
 
     const isStarred = btn.innerHTML.includes("Unstar");
     const username = btn.dataset.username;
-    const slug = btn.dataset.slug;
+    const slug = btn.dataset.projectSlug;
 
     if (!username || !slug) {
       console.error("Username or slug not found in button dataset");

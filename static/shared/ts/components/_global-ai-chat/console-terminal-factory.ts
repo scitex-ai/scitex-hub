@@ -181,10 +181,10 @@ export function connectInstance(
 
   // Listen for project switches — cd into new project instead of killing terminal
   window.addEventListener("scitex:project-switched", ((
-    e: CustomEvent<{ slug: string }>,
+    e: CustomEvent<{ projectSlug: string }>,
   ) => {
     if (inst.ws?.readyState === WebSocket.OPEN) {
-      inst.ws.send(`cd ~/proj/${e.detail.slug}\n`);
+      inst.ws.send(`cd ~/proj/${e.detail.projectSlug}\n`);
     }
   }) as EventListener);
 }

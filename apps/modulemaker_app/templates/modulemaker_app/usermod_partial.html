@@ -7,7 +7,7 @@
          style="display: none"
          data-project-id="{{ current_project.id }}"
          data-username="{{ current_project.owner.username }}"
-         data-slug="{{ current_project.slug }}"
+         data-project-slug="{{ current_project.slug }}"
          data-mode="modulemaker"></div>
 {% endif %}
 <div class="usermod-workspace">
@@ -26,7 +26,7 @@
             </div>
             {% if module.description %}<p class="usermod-description">{{ module.description }}</p>{% endif %}
             <button class="btn btn-primary usermod-run-btn"
-                    data-slug="{{ module.slug }}"
+                    data-module-slug="{{ module.slug }}"
                     title="Execute module">
                 <i class="fas fa-play"></i> Run
             </button>

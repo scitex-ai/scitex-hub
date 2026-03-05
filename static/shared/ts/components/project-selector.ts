@@ -155,13 +155,13 @@ function initializeProjectSelector(): void {
                 "Successfully switched to project:",
                 data.project?.name,
               );
-              // Notify terminals to cd into the new project
+              // Notify all listeners (tree, viewer, terminals) of project switch
               window.dispatchEvent(
                 new CustomEvent("scitex:project-switched", {
                   detail: {
-                    slug: projectSlug,
-                    id: projectId,
-                    owner: projectOwner,
+                    projectId,
+                    projectSlug,
+                    ownerUsername: projectOwner,
                   },
                 }),
               );

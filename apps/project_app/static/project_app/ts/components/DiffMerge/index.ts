@@ -111,7 +111,7 @@ function autoInit(): void {
   );
   if (!container) return;
   const username = container.dataset.username ?? "";
-  const slug = container.dataset.slug ?? "";
+  const slug = container.dataset.projectSlug ?? "";
   const apiBaseUrl = container.dataset.apiBaseUrl ?? `/${username}/${slug}/`;
   new DiffMerge({ username, slug, apiBaseUrl });
 }

@@ -12,7 +12,7 @@
             {% for page in docs_pages %}
                 <a href="#"
                    class="docs-nav-item{% if page.slug == active_doc %} active{% endif %}"
-                   data-slug="{{ page.slug }}">
+                   data-doc-slug="{{ page.slug }}">
                     <i class="{{ page.icon }}"></i>
                     <span>{{ page.label }}</span>
                     <span class="docs-badges">
