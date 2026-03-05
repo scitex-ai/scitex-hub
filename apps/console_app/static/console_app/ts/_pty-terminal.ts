@@ -74,12 +74,18 @@ export class PTYTerminal {
         this.sendResize();
       });
 
-      const resizeObserver = new ResizeObserver(() => {
+      let lastW = 0;
+      let lastH = 0;
+      const resizeObserver = new ResizeObserver((entries) => {
+        const { width, height } = entries[0].contentRect;
+        if (Math.abs(width - lastW) < 2 && Math.abs(height - lastH) < 2) return;
+        lastW = width;
+        lastH = height;
         clearTimeout((this as any).resizeTimeout);
         (this as any).resizeTimeout = setTimeout(() => {
           fitAddon.fit();
           this.sendResize();
-        }, 100);
+        }, 150);
       });
       resizeObserver.observe(containerEl);
     }

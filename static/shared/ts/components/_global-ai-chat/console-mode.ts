@@ -206,7 +206,18 @@ export class AIPanelConsoleMode {
         /* hidden */
       }
 
-      resizeObserver = new ResizeObserver(() => {
+      let lastObservedW = 0;
+      let lastObservedH = 0;
+      resizeObserver = new ResizeObserver((entries) => {
+        const { width, height } = entries[0].contentRect;
+        // Skip if dimensions haven't meaningfully changed (prevents feedback loop)
+        if (
+          Math.abs(width - lastObservedW) < 2 &&
+          Math.abs(height - lastObservedH) < 2
+        )
+          return;
+        lastObservedW = width;
+        lastObservedH = height;
         if (resizeTimeout) clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(() => {
           try {
@@ -215,7 +226,7 @@ export class AIPanelConsoleMode {
             /* hidden */
           }
           this.sendResize(inst);
-        }, 100);
+        }, 150);
       });
       resizeObserver.observe(containerEl);
     }

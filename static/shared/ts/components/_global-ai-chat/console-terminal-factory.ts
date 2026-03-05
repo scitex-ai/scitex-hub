@@ -112,9 +112,15 @@ export function createTerminalInstance(
     terminal.loadAddon(inst.fitAddon);
     fitInstance(inst);
 
-    inst.resizeObserver = new ResizeObserver(() => {
+    let lastW = 0;
+    let lastH = 0;
+    inst.resizeObserver = new ResizeObserver((entries) => {
+      const { width, height } = entries[0].contentRect;
+      if (Math.abs(width - lastW) < 2 && Math.abs(height - lastH) < 2) return;
+      lastW = width;
+      lastH = height;
       if (inst.resizeTimeout) clearTimeout(inst.resizeTimeout);
-      inst.resizeTimeout = setTimeout(() => fitInstance(inst), 100);
+      inst.resizeTimeout = setTimeout(() => fitInstance(inst), 150);
     });
     inst.resizeObserver.observe(container);
   }
