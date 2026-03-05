@@ -44,7 +44,7 @@ from .sections import (
     DesignWorkspaceIconsView,
     DesignWorkspaceLayoutView,
 )
-from .slurm import restart_slurm_api
+from .slurm import cancel_all_jobs_api
 from .tests import TestMonitorView, run_tests_api
 
 __all__ = [
@@ -91,5 +91,5 @@ __all__ = [
     "TestMonitorView",
     "run_tests_api",
     # slurm.py
-    "restart_slurm_api",
+    "cancel_all_jobs_api",
 ]

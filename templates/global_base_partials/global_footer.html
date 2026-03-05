@@ -123,11 +123,11 @@
                         onclick="freeVisitorSlots()">
                     <i class="fas fa-user-check"></i> Free Slots
                 </button>
-                <button id="restart-slurm-btn"
+                <button id="cancel-all-jobs-btn"
                         class="dev-tool-btn"
-                        title="Restart SLURM services (slurmctld + slurmd)"
-                        onclick="restartSlurm()">
-                    <i class="fas fa-server"></i> Restart SLURM
+                        title="Cancel all SLURM jobs"
+                        onclick="cancelAllJobs()">
+                    <i class="fas fa-ban"></i> Cancel Jobs
                 </button>
             </div>
         {% endif %}
