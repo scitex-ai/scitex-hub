@@ -3,7 +3,6 @@
  * Replaces SVG icons with colorful Font Awesome icons in the main file list
  */
 
-console.log("[DEBUG] apps/project_app/static/project_app/ts/repository/colorful-icons.ts loaded");
 
 /**
  * Get colorful file icon HTML (comprehensive like Gitea)

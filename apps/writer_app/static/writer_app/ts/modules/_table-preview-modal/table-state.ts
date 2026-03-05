@@ -3,7 +3,6 @@
  * Manages table data and modification state
  */
 
-console.log("[DEBUG] table-preview-modal/table-state.ts loaded");
 
 import { TableData, TableState } from "./types";
 

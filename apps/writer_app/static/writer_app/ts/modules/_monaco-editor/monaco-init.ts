@@ -5,10 +5,6 @@
  * This is a thin wrapper that re-exports from the modular init/ directory
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/_monaco-editor/monaco-init.ts loaded",
-);
-
 // Import and re-export all functions from the orchestrator
 export {
   registerLatexLanguage,

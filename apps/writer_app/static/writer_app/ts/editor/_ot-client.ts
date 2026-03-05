@@ -5,7 +5,6 @@
  * Based on the OT algorithm from operational_transform_service.py
  */
 
-console.log("[DEBUG] ot-client.ts loaded");
 
 /**
  * Operation types

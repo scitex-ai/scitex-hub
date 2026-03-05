@@ -11,9 +11,6 @@
 
 // @ts-ignore - Plotly library types
 
-console.log(
-  "[DEBUG] apps/scholar_app/static/scholar_app/ts/search/swarm-plots.ts loaded",
-);
 declare const Plotly: any;
 
 import {

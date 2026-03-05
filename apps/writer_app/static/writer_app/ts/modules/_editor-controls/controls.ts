@@ -3,10 +3,6 @@
  * Coordinates font size management and auto-preview functionality
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/_editor-controls/controls.ts loaded",
-);
-
 import { FontSizeFormatter } from "./formatting";
 import { ToolbarHandler } from "./toolbar";
 import { ShortcutsHandler } from "./shortcuts";

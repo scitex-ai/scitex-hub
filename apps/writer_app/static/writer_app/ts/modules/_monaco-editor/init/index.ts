@@ -3,7 +3,6 @@
  * Coordinates all Monaco editor setup modules
  */
 
-console.log("[DEBUG] monaco-editor/init/index.ts (orchestrator) loaded");
 
 // Import all modules
 import { registerLatexLanguage } from "./LanguageRegistration";

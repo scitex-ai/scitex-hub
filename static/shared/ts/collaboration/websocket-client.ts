@@ -9,7 +9,6 @@
 import { TextOperation } from './_ot/operations';
 import { OTClient } from './_ot/client';
 
-console.log("[DEBUG] WebSocket Collaboration Client loaded");
 
 // ============================================================================
 // Type Definitions

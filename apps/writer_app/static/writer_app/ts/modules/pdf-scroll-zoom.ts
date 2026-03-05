@@ -6,10 +6,6 @@
  * - Zoom level indicator and controls
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/pdf-scroll-zoom.ts loaded",
-);
-
 import {
   PDFZoomControl,
   PDFColorThemeManager,

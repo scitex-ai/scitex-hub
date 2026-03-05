@@ -3,7 +3,6 @@
  * Handles color mode management and theme application
  */
 
-console.log("[DEBUG] PDFTheme.ts loaded");
 
 export class PDFTheme {
   private colorMode: "light" | "dark" = "light";

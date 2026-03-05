@@ -3,7 +3,6 @@
  * Handles LaTeX language registration with Monaco Editor
  */
 
-console.log("[DEBUG] LanguageRegistration.ts loaded");
 
 /**
  * Register LaTeX language with Monaco

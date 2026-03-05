@@ -17,10 +17,6 @@ import type {
   CompilationCallbacks,
 } from "./_compilation/types";
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/compilation.ts loaded",
-);
-
 // Re-export types for backward compatibility
 export type { CompilationOptions };
 

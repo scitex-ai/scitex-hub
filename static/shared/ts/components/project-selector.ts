@@ -19,7 +19,6 @@ function initializeProjectSelector(): void {
   );
 
   if (selectorContainers.length === 0) {
-    console.log("[ProjectSelector] No project selector containers found");
     return;
   }
 

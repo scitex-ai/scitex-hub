@@ -3,10 +3,6 @@
  * Corresponds to: templates/project_app/users/projects.html
  */
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/users/projects.ts loaded",
-);
-
 class UserProjectsPage {
   constructor() {
     this.init();

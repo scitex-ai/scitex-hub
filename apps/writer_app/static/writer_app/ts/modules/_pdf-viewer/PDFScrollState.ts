@@ -5,7 +5,6 @@
 
 import { statePersistence } from "../_state-persistence";
 
-console.log("[DEBUG] PDFScrollState.ts loaded");
 
 export class PDFScrollState {
   private scrollSaveTimeout: number | null = null;

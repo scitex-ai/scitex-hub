@@ -5,10 +5,6 @@
 
 import { StorageManager } from "@/utils/storage";
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/_monaco-editor/cursor-manager.ts loaded",
-);
-
 export class CursorManager {
   private storage: StorageManager;
   private currentSectionId: string = "";

@@ -3,10 +3,6 @@
  * Manages compilation preferences with localStorage persistence
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/compilation-settings.ts loaded",
-);
-
 import { statePersistence } from "./_state-persistence";
 
 export interface CompilationSettings {

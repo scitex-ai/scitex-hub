@@ -13,7 +13,6 @@ import * as DirectoryOps from "./directory-ops";
 import * as UserProfile from "./user-profile";
 import * as Utils from "./utils";
 
-console.log("[DEBUG] project_app orchestrator loaded");
 
 // Re-export all public functions for use in other modules
 export * from "./sidebar-manager";

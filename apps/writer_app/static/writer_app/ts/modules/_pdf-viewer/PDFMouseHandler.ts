@@ -3,7 +3,6 @@
  * Handles mouse dragging, panning, and mode switching (text/hand/zoom)
  */
 
-console.log("[DEBUG] PDFMouseHandler.ts loaded");
 
 export class PDFMouseHandler {
   private isDragging: boolean = false;

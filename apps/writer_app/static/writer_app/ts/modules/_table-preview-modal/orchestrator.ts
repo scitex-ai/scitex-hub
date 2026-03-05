@@ -3,7 +3,6 @@
  * Coordinates all table preview modal components
  */
 
-console.log("[DEBUG] table-preview-modal/orchestrator.ts loaded");
 
 import { TableStateManager } from "./table-state";
 import { TableRenderer } from "./table-renderer";

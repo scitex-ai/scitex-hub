@@ -3,7 +3,6 @@
  * Writer-specific tree configuration and folder mapping
  */
 
-console.log("[DEBUG] TreeConfiguration.ts loaded");
 
 /**
  * Default allowed extensions for writer file tree

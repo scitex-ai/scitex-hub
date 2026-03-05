@@ -13,7 +13,6 @@ import {
   getThemeForMode,
 } from "/static/shared/ts/monaco/MonacoTheme.js";
 
-console.log("[DEBUG] EditorFactory.ts loaded");
 
 /**
  * Create Monaco editor instance with proper configuration

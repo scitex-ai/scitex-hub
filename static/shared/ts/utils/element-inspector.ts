@@ -13,10 +13,6 @@ import { NotificationManager } from "./_element-inspector/_notification-manager"
 import { PageStructureExporter } from "./_element-inspector/_page-structure-exporter";
 import { ConsoleCollector } from "./_element-inspector/_console-collector";
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/shared/ts/utils/element-inspector.ts loaded",
-);
-
 class ElementInspector {
   private isActive: boolean = false;
   private overlayManager: OverlayManager;

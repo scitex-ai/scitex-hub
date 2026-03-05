@@ -3,10 +3,6 @@
  * Manages unified status indicators for compilation, save, and git status
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/status-lamp.ts loaded",
-);
-
 export type CompileStatus =
   | "idle"
   | "ready"

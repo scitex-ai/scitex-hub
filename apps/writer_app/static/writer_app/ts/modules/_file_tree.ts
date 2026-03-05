@@ -14,10 +14,6 @@ import { DirectoryManager } from "./_file-tree/directory-manager";
 import { FileSelector } from "./_file-tree/file-selector";
 import { SectionDropdownManager } from "./_file-tree/section-dropdown";
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/file_tree.ts loaded",
-);
-
 export class FileTreeManager {
   private apiClient: ApiClient;
   private projectId: number;

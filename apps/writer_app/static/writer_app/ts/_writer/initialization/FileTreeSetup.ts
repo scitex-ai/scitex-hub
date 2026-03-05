@@ -23,7 +23,6 @@ import {
 } from "./_handlers/index";
 import { initWriterTreeSync, getWriterTreeSync } from "../sync/index";
 
-console.log("[DEBUG] FileTreeSetup.ts loaded (refactored with handlers)");
 
 // Type for WorkspaceFilesTree (loaded dynamically)
 interface WorkspaceFilesTreeType {

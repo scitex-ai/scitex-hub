@@ -13,7 +13,6 @@
  * @author SciTeX Development Team
  */
 
-console.log("[DEBUG] Writer Collaboration Integration loaded");
 
 // ============================================================================
 // Re-exports

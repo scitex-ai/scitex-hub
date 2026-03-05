@@ -6,9 +6,6 @@
 
 // Define panel toggle function for global access (called from onclick handlers)
 
-console.log(
-  "[DEBUG] apps/scholar_app/static/scholar_app/ts/search/panel-toggle.ts loaded",
-);
 (window as any).togglePanel = function (panelType: "search" | "bibtex"): void {
   const searchPanel: HTMLElement | null =
     document.getElementById("searchPanel");

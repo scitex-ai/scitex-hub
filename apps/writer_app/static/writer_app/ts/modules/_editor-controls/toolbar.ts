@@ -3,10 +3,6 @@
  * Manages toolbar controls for preview and auto-preview
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/_editor-controls/toolbar.ts loaded",
-);
-
 export class ToolbarHandler {
   private autoPreviewCheckbox: HTMLInputElement | null;
   private autoPreviewCheckboxPanel: HTMLInputElement | null;

@@ -3,10 +3,6 @@
  * Corresponds to: templates/project_app/security/policy.html
  */
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/security/policy.ts loaded",
-);
-
 class SecurityPolicyPage {
   constructor() {
     this.init();

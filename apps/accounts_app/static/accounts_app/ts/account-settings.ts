@@ -18,9 +18,6 @@
 
 /** Password validation rule state */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/accounts_app/static/accounts_app/ts/account-settings.ts loaded",
-);
 interface PasswordRule {
   element: HTMLElement;
   isValid: boolean;

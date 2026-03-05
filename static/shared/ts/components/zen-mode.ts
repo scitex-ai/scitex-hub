@@ -14,7 +14,6 @@
 
 import { ZenPanelManager, SavedPanelStates } from "./ZenPanelManager";
 
-console.log("[DEBUG] shared/ts/components/zen-mode.ts loaded");
 
 export interface ZenModeConfig {
   /** CSS selector for header element */
@@ -90,8 +89,6 @@ export class ZenMode {
       this.handleFullscreenChange.bind(this),
     );
 
-    console.log("[ZenMode] Initialized");
-    console.log("[ZenMode] Shortcuts:");
     console.log(
       "  F11 or Alt+Z: Cycle through normal → zen → fullscreen → normal",
     );
@@ -171,7 +168,6 @@ export class ZenMode {
       "Zen mode – Press <kbd>F11</kbd> for fullscreen, <kbd>Esc</kbd> to exit",
     );
 
-    console.log("[ZenMode] Entered zen mode");
   }
 
   /**
@@ -194,7 +190,6 @@ export class ZenMode {
     this.currentState = "fullscreen";
     document.body.classList.add("zen-fullscreen");
 
-    console.log("[ZenMode] Entered fullscreen mode");
   }
 
   /**
@@ -225,7 +220,6 @@ export class ZenMode {
     // Dispatch event for other components to react
     this.dispatchZenModeEvent("exit");
 
-    console.log("[ZenMode] Exited to normal mode");
 
     // Reset flag after a short delay to allow fullscreenchange event to process
     setTimeout(() => {
@@ -247,7 +241,6 @@ export class ZenMode {
       // Stay in zen mode but update state
       this.currentState = "zen";
       document.body.classList.remove("zen-fullscreen");
-      console.log("[ZenMode] Exited fullscreen, staying in zen mode");
     }
   }
 
@@ -270,7 +263,6 @@ export class ZenMode {
 
       // Expand all panels
       this.panelManager.expandAllPanels();
-      console.log("[ZenMode] Expanded all panels from URL hash #default");
       return;
     }
 
@@ -288,7 +280,6 @@ export class ZenMode {
           "[ZenMode] Entered zen mode from URL hash (fullscreen requires user action)",
         );
       } else {
-        console.log("[ZenMode] Entered zen mode from URL hash");
       }
       return;
     }
@@ -297,7 +288,6 @@ export class ZenMode {
     // Zen mode is session-only — all panes shown by default on page load
     localStorage.removeItem(ZEN_MODE_STORAGE_KEY);
     localStorage.removeItem(ZEN_SAVED_STATES_KEY);
-    console.log("[ZenMode] Starting in normal mode (all panes visible)");
   }
 
   /**

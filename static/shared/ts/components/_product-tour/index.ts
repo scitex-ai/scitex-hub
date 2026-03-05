@@ -20,7 +20,6 @@ import {
   hideRestartHint,
 } from "./ui";
 
-console.log("[ProductTour] Module loaded");
 
 // ============================================================================
 // Tour State
@@ -162,7 +161,6 @@ function startTour(config?: PageTourConfig): void {
   // Use provided config or detect from page
   currentConfig = config || getPageConfig();
   if (!currentConfig || currentConfig.steps.length === 0) {
-    console.log("[ProductTour] No tour available for this page");
     return;
   }
 
@@ -228,7 +226,6 @@ function startTour(config?: PageTourConfig): void {
 // ============================================================================
 
 function init(): void {
-  console.log("[ProductTour] init() called");
   const config = getPageConfig();
   const isLandingPage = window.location.pathname === "/";
 
@@ -240,7 +237,6 @@ function init(): void {
   // Tour is manual-only — use the tour button or showProductTour() to start
 
   if (!config) {
-    console.log("[ProductTour] No tour configuration for this page");
   }
 }
 
@@ -251,7 +247,6 @@ function setupTourButton(): void {
       e.preventDefault();
       startTour();
     });
-    console.log("[ProductTour] Button handler registered");
   }
 }
 

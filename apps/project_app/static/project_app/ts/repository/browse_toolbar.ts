@@ -4,9 +4,6 @@
  * @module repository/browse_toolbar
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/project_app/static/project_app/ts/repository/browse_toolbar.ts loaded",
-);
 interface ProjectData {
   owner: string;
   slug: string;

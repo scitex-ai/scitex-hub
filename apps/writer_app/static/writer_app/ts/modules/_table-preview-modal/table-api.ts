@@ -3,7 +3,6 @@
  * Handles API communication for table data
  */
 
-console.log("[DEBUG] table-preview-modal/table-api.ts loaded");
 
 import { getCsrfToken } from "../../shared/utils";
 import { TableData } from "./types";

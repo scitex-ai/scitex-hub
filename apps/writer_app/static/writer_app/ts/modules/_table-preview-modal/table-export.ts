@@ -3,7 +3,6 @@
  * Handles table export functionality
  */
 
-console.log("[DEBUG] table-preview-modal/table-export.ts loaded");
 
 import { TableData } from "./types";
 

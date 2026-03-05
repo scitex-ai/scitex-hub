@@ -4,9 +4,6 @@
  * @module projects/delete_confirmation
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/project_app/static/project_app/ts/projects/delete_confirmation.ts loaded",
-);
 interface DeleteConfirmationElements {
   confirmInput: HTMLInputElement;
   deleteButton: HTMLButtonElement;

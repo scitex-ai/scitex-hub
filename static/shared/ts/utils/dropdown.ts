@@ -7,9 +7,6 @@
  * Initialize dropdown menu functionality
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/utils/dropdown.ts loaded",
-);
 function initDropdowns(): void {
   // Get all dropdown toggles
   const dropdownToggles =

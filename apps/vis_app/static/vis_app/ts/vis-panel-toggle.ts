@@ -6,7 +6,6 @@
  * Uses capture-phase event listeners to intercept before WorkspacePanelResizer.
  */
 
-console.log("[DEBUG] vis-panel-toggle.ts loaded");
 
 /**
  * Clear inline width/flex styles so CSS classes take effect.

@@ -3,7 +3,6 @@
  * Shows context-aware keyboard shortcuts help with sleek vis-style layout
  */
 
-console.log("[DEBUG] shortcuts-modal.ts loaded");
 
 /**
  * App context types

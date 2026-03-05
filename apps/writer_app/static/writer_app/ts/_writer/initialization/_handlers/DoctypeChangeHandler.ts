@@ -9,7 +9,6 @@ import {
 } from "../../../utils/index";
 import { getDoctypeFolder } from "./TreeConfiguration";
 
-console.log("[DEBUG] DoctypeChangeHandler.ts loaded");
 
 export interface DoctypeChangeDependencies {
   editor: any;

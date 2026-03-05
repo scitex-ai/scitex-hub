@@ -3,10 +3,6 @@
  * Generates HTML for section dropdown items
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/utils/_section-dropdown/rendering.ts loaded",
-);
-
 /**
  * Generate file path for a section
  *

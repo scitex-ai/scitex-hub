@@ -272,5 +272,4 @@ export function initKeyboardShortcuts(): void {
     }
   });
 
-  console.log("[Shortcuts] Keyboard shortcuts initialized");
 }

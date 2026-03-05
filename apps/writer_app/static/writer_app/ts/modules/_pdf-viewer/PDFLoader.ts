@@ -3,7 +3,6 @@
  * Handles PDF.js library loading and PDF document loading
  */
 
-console.log("[DEBUG] PDFLoader.ts loaded");
 
 export class PDFLoader {
   private pdfjsLib: any = null;

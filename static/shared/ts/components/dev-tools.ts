@@ -71,7 +71,7 @@ async function visitorPoolAction(
           icon.style.color = "#ef4444";
         }
       }
-      alert(`Failed: ${data.error || "Unknown error"}`);
+      alert(`Failed: ${data.error || data.message || "Unknown error"}`);
     }
   } catch (error) {
     console.error(`Dev tool action failed (${url}):`, error);
@@ -131,14 +131,14 @@ async function freeVisitorSlots(): Promise<void> {
   );
 }
 
-// Restart SLURM services (Dev only)
-async function restartSlurm(): Promise<void> {
-  if (!confirm("Restart SLURM services (slurmctld + slurmd)?")) return;
+// Cancel all SLURM jobs (Dev only)
+async function cancelAllJobs(): Promise<void> {
+  if (!confirm("Cancel ALL SLURM jobs?")) return;
   await visitorPoolAction(
-    "restart-slurm-btn",
-    "/dev/api/restart-slurm/",
-    "fa-server",
-    (data) => `SLURM Restarted!\n\n${data.message}`,
+    "cancel-all-jobs-btn",
+    "/dev/api/cancel-all-jobs/",
+    "fa-ban",
+    (data) => `Jobs Cancelled!\n\n${data.message}`,
   );
 }
 
@@ -146,4 +146,4 @@ async function restartSlurm(): Promise<void> {
 (window as any).initVisitorPool = initVisitorPool;
 (window as any).fillVisitorSlots = fillVisitorSlots;
 (window as any).freeVisitorSlots = freeVisitorSlots;
-(window as any).restartSlurm = restartSlurm;
+(window as any).cancelAllJobs = cancelAllJobs;

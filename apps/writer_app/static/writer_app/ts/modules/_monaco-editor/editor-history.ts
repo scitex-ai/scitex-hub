@@ -6,10 +6,6 @@
 import { StorageManager } from "@/utils/storage";
 import { HistoryEntry } from "@/types";
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/_monaco-editor/editor-history.ts loaded",
-);
-
 export class EditorHistory {
   private storage: StorageManager;
   private history: HistoryEntry[] = [];

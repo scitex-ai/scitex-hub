@@ -2,10 +2,6 @@
  * PDF.js Viewer for Repository Files
  */
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/shared/pdf_viewer.ts loaded",
-);
-
 (function () {
   "use strict";
 

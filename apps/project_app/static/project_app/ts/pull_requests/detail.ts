@@ -1,10 +1,6 @@
 // Pull Request Detail Page JavaScript
 // Functions for merging, closing, and reopening pull requests
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/pull_requests/detail.ts loaded",
-);
-
 function submitMerge() {
   const form = document.getElementById("mergeForm") as HTMLFormElement;
   const formData = new FormData(form);

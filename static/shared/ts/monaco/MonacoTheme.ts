@@ -4,7 +4,6 @@
  * Used by /code/, /_writer/, /vis/, and other Monaco-enabled pages
  */
 
-console.log("[DEBUG] shared/monaco/MonacoTheme.ts loaded");
 
 /**
  * Monaco theme color constants

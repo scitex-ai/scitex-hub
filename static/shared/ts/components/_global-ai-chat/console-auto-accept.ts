@@ -47,7 +47,6 @@ export function setupAutoAccept(deps: AutoAcceptDeps): AutoResponseManager {
   });
 
   manager.onResponseSent((state, response) => {
-    console.log(`[Console] Auto-accept: ${state} → "${response || "↵"}"`);
   });
 
   // Restore saved config

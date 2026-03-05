@@ -3,7 +3,6 @@
  * Converts ANSI escape sequences to HTML with xterm256 colors
  */
 
-console.log("[DEBUG] apps/console_app/static/console_app/ts/ansi-colors.ts loaded");
 
 // xterm256 color palette
 const XTERM_COLORS: string[] = [

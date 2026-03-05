@@ -5,9 +5,6 @@
 
 // CSRF utilities
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/utils/index.ts loaded",
-);
 export { getCsrfToken, createHeadersWithCsrf } from "./csrf";
 
 // Storage utilities

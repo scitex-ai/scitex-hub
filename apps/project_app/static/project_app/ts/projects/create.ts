@@ -2,10 +2,6 @@
 // Project Creation Form Logic
 // =============================================================================
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/projects/create.ts loaded",
-);
-
 (function () {
   "use strict";
 

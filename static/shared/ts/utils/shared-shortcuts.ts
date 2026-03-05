@@ -274,9 +274,3 @@ export function getSharedShortcutsHTML(): string {
   html += "</ul>";
   return html;
 }
-
-// Log shared shortcuts on module load
-console.log("[SharedShortcuts] Reserved shortcuts:");
-SHARED_SHORTCUTS.forEach((s) => {
-  console.log(`  ${getShortcutKey(s)}: ${s.description}`);
-});

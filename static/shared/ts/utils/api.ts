@@ -5,9 +5,6 @@
 
 import { getCsrfToken } from "./csrf";
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/utils/api.ts loaded",
-);
 export interface ApiRequestInit extends Omit<RequestInit, "body"> {
   body?: BodyInit | object | null;
 }

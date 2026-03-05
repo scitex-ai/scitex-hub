@@ -3,10 +3,6 @@
  * Handles zoom operations, zoom level management, and zoom UI controls
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/pdf-scroll-zoom/pdf-zoom-control.ts loaded",
-);
-
 import { statePersistence } from "../_state-persistence";
 
 export interface ZoomOptions {

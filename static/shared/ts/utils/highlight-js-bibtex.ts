@@ -14,9 +14,6 @@
 
 // Note: hljs types are declared in global.d.ts
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/utils/highlight-js-bibtex.ts loaded",
-);
 interface HljsApi {
   COMMENT: (begin: string, end: string) => CommentRule;
   QUOTE_STRING_MODE: QuoteStringMode;

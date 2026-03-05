@@ -6,10 +6,6 @@ import { getCsrfToken } from "../utils/csrf";
 
 // Local type declarations (Window interface is defined in global.d.ts)
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/repository/file_view.ts loaded",
-);
-
 interface CodeThemePreferences {
   light: string;
   dark: string;

@@ -3,10 +3,6 @@
  * Handles extracting sections from the file tree data
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/writer/sections/section-extraction.ts loaded"
-);
-
 import { doctypeToDirectory, skipFiles } from "../_config/index";
 
 export interface Section {

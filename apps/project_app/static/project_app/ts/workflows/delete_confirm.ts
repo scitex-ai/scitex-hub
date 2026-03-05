@@ -3,10 +3,6 @@
  * Corresponds to: templates/project_app/workflows/delete_confirm.html
  */
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/workflows/delete_confirm.ts loaded",
-);
-
 class WorkflowDeleteConfirmPage {
   private form: HTMLFormElement | null;
 

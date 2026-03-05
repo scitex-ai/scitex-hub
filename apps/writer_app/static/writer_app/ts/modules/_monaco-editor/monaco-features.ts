@@ -3,10 +3,6 @@
  * Handles Monaco-specific features: citations, drag-and-drop, protection, custom actions
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/_monaco-editor/monaco-features.ts loaded",
-);
-
 /**
  * Setup Monaco Editor event listeners and actions
  */

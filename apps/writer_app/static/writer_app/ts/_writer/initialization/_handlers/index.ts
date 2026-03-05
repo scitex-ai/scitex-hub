@@ -20,5 +20,3 @@ export {
   getDoctypeFolder,
   createWriterTreeConfig,
 } from "./TreeConfiguration";
-
-console.log("[DEBUG] FileTreeSetup handlers index loaded");

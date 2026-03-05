@@ -3,10 +3,6 @@
  * Manages editor configuration (theme, read-only, keybindings)
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/_monaco-editor/editor-config.ts loaded",
-);
-
 export class EditorConfig {
   private editor: any;
   private monacoEditor: any;

@@ -3,10 +3,6 @@
  * Corresponds to: templates/project_app/security/alerts.html
  */
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/security/alerts.ts loaded",
-);
-
 class SecurityAlertsPage {
   constructor() {
     this.init();

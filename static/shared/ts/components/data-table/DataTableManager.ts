@@ -218,7 +218,6 @@ export class DataTableManager {
         ).join('\n');
 
         this.loadFromCSVContent(csvContent, 'gallery_data.csv');
-        console.log(`[DataTableManager] Loaded ${data.length} rows from array`);
     }
 
     public loadDemoData(): void {

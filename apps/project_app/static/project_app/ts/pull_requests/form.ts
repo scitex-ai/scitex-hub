@@ -3,10 +3,6 @@
  * Corresponds to: templates/project_app/pull_requests/form.html
  */
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/pull_requests/form.ts loaded",
-);
-
 class PullRequestFormPage {
   private form: HTMLFormElement | null;
 

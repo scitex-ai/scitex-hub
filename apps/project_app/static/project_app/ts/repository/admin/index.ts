@@ -48,7 +48,3 @@ import { initializeRepositoryMaintenance } from "./maintenance";
 
 // Auto-initialize when imported
 initializeRepositoryMaintenance();
-
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/project_app/static/project_app/ts/repository/admin/index.ts loaded",
-);

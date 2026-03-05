@@ -3,10 +3,6 @@
  * Saves and restores editor state across page refreshes
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/state-persistence.ts loaded",
-);
-
 interface EditorState {
   doctype?: string;
   sectionId?: string;

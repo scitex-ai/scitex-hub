@@ -3,9 +3,6 @@
  * Wraps section content with proper LaTeX document structure
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/latex-wrapper.ts loaded",
-);
 export interface LatexWrapperOptions {
   documentClass?: string;
   packages?: string[];

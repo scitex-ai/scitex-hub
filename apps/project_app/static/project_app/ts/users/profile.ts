@@ -13,10 +13,6 @@ interface ApiResponse {
 
 // Note: SCITEX_PROFILE_DATA is declared in global.d.ts
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/users/profile.ts loaded",
-);
-
 (function () {
   "use strict";
 

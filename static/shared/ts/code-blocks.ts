@@ -8,9 +8,6 @@
  * as examples in documentation. The HTML is properly escaped by the markdown renderer.
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/code-blocks.ts loaded",
-);
 interface CodeBlockConfig {
   showLineNumbers: boolean;
   enableCopyButton: boolean;
