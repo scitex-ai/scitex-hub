@@ -64,8 +64,8 @@ export class WorkspaceFilesTree {
   constructor(config: TreeConfig) {
     this.config = { showFolderActions: true, showGitStatus: true, ...config };
     this.stateManager = new TreeStateManager(
-      config.username,
-      config.slug,
+      config.ownerUsername,
+      config.projectSlug,
       config.mode,
     );
     this.filter = new TreeFilter(config.mode, {

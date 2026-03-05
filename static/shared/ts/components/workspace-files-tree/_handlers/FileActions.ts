@@ -122,7 +122,7 @@ export class FileActions {
 
   private async performRename(oldPath: string, newName: string): Promise<string | null> {
     try {
-      const response = await fetch(`/${this.config.username}/${this.config.slug}/api/files/rename/`, {
+      const response = await fetch(`/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/rename/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -154,7 +154,7 @@ export class FileActions {
   async deleteFile(path: string): Promise<void> {
     // No confirmation - delete directly (files can be recovered via git)
     try {
-      const response = await fetch(`/${this.config.username}/${this.config.slug}/api/files/delete/`, {
+      const response = await fetch(`/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/delete/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -350,7 +350,7 @@ export class FileActions {
   }
 
   private async performCreate(folderPath: string, name: string, type: 'file' | 'directory'): Promise<void> {
-    const url = `/${this.config.username}/${this.config.slug}/api/files/create/`;
+    const url = `/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/create/`;
     const csrfToken = this.getCsrfToken();
 
     // Try to create, handling duplicates with suffix
@@ -456,7 +456,7 @@ export class FileActions {
     const newPath = parentPath ? `${parentPath}/${newName.trim()}` : newName.trim();
 
     try {
-      const response = await fetch(`/${this.config.username}/${this.config.slug}/api/files/copy/`, {
+      const response = await fetch(`/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/copy/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

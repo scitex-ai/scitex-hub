@@ -151,11 +151,11 @@ export class AIPanelConsoleMode {
 
     // Listen for project switches — cd into new project instead of killing terminal
     window.addEventListener("scitex:project-switched", ((
-      e: CustomEvent<{ slug: string }>,
+      e: CustomEvent<{ projectSlug: string }>,
     ) => {
       const ws = this.getActiveWs();
       if (ws?.readyState === WebSocket.OPEN) {
-        ws.send(`cd ~/proj/${e.detail.slug}\n`);
+        ws.send(`cd ~/proj/${e.detail.projectSlug}\n`);
       }
     }) as EventListener);
   }

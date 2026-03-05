@@ -39,9 +39,9 @@ export interface TreeConfig {
   /** Container element ID */
   containerId: string;
   /** Project owner username */
-  username: string;
+  ownerUsername: string;
   /** Project slug */
-  slug: string;
+  projectSlug: string;
   /** File extensions to show (empty = all) */
   allowedExtensions?: string[];
   /** File extensions to gray out but still show */

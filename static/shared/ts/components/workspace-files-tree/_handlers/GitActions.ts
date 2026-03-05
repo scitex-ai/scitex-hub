@@ -18,7 +18,7 @@ export class GitActions {
 
   /** Get the base API URL for git operations */
   private getApiUrl(action: string): string {
-    return `/${this.config.username}/${this.config.slug}/api/git/${action}/`;
+    return `/${this.config.ownerUsername}/${this.config.projectSlug}/api/git/${action}/`;
   }
 
   /** Stage files for commit */

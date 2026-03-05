@@ -109,7 +109,7 @@ export class TreeRenderer {
 
     return `<div class="${classes.join(" ")}" data-path="" data-action="select-root" style="padding-left: 8px;">
       <span class="wft-icon"><i class="fas fa-folder-tree"></i></span>
-      <span class="wft-name wft-root-name">${this.escapeHtml(this.config.slug || "Project")}</span>
+      <span class="wft-name wft-root-name">${this.escapeHtml(this.config.projectSlug || "Project")}</span>
     </div>`;
   }
 

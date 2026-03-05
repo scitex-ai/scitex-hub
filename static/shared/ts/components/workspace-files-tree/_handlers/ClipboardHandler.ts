@@ -53,7 +53,7 @@ export class ClipboardHandler {
 
   /** Get the base API URL for file operations */
   private getApiUrl(action: string): string {
-    return `/${this.config.username}/${this.config.slug}/api/files/${action}/`;
+    return `/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/${action}/`;
   }
 
   /** Copy selected files to clipboard (internal + OS clipboard) */
@@ -101,7 +101,7 @@ export class ClipboardHandler {
 
     try {
       // Fetch file content as blob
-      const url = `/${this.config.username}/${this.config.slug}/blob/${filePath}?mode=raw`;
+      const url = `/${this.config.ownerUsername}/${this.config.projectSlug}/blob/${filePath}?mode=raw`;
       const response = await fetch(url);
 
       if (!response.ok) {

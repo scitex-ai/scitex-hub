@@ -35,7 +35,7 @@ export class TreeDataLoader {
     private stateManager: TreeStateManager,
     private showError: (message: string) => void,
   ) {
-    this.cacheKey = `scitex-tree-${config.username}-${config.slug}`;
+    this.cacheKey = `scitex-tree-${config.ownerUsername}-${config.projectSlug}`;
   }
 
   /** Get cached tree data from sessionStorage */
@@ -69,10 +69,10 @@ export class TreeDataLoader {
 
     try {
       const [treeResponse, gitResponse] = await Promise.all([
-        fetch(`/${this.config.username}/${this.config.slug}/api/file-tree/`),
+        fetch(`/${this.config.ownerUsername}/${this.config.projectSlug}/api/file-tree/`),
         showGitStatus
           ? fetch(
-              `/${this.config.username}/${this.config.slug}/api/git/status/`,
+              `/${this.config.ownerUsername}/${this.config.projectSlug}/api/git/status/`,
             )
           : Promise.resolve(null),
       ]);
