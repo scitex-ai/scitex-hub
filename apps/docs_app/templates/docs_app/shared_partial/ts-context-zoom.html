@@ -44,13 +44,26 @@ registerZoomZone({
   setSize: (val) =&gt; { previewPane.style.zoom = String(val); },
 });
 
-// Passthrough: pane handles zoom internally, just block browser zoom
+// Passthrough: pane handles zoom internally, just block browser zoom.
+// Use for components with their own Ctrl+Wheel handler (e.g. Monaco, PDF.js).
+// When cursor is over a passthrough zone nested inside a parent zone,
+// the parent's CSS zoom is suppressed — only the child's handler fires.
 registerZoomZone({
   el: monacoPane,
   storageKey: 'my-app.monaco.zoom',
   min: 0, max: 0, default: 0,
   passthrough: true,
   getSize: () =&gt; 0,
+  setSize: () =&gt; {},
+});
+
+// Example: PDF viewer inside #main-content — PDF.js handles its own zoom
+registerZoomZone({
+  el: pdfViewPane,
+  storageKey: 'my-app.pdf.zoom',
+  min: 0.5, max: 3.0, default: 1.0,
+  passthrough: true,
+  getSize: () =&gt; 1,
   setSize: () =&gt; {},
 });</code></pre>
 <h4>
@@ -144,7 +157,9 @@ registerZoomZone({
             <td>
                 <code>boolean</code>
             </td>
-            <td>If true, only blocks browser zoom; element handles zoom itself (e.g. Monaco)</td>
+            <td>
+                If true, only blocks browser zoom; element handles zoom itself (e.g. Monaco, PDF.js viewers). Suppresses parent zone's CSS zoom when nested.
+            </td>
         </tr>
     </tbody>
 </table>
@@ -154,3 +169,103 @@ registerZoomZone({
         Saved zoom values are restored from localStorage on <code>registerZoomZone()</code>. Call <code>initContextZoom()</code> once before registering zones. Zones use <code>mouseenter</code>/<code>mouseleave</code> to track the active zone.
     </div>
 </div>
+<h4>
+    <i class="fas fa-puzzle-piece me-1"></i>Adding Your Pane
+</h4>
+<p>
+    The context-zoom system is initialized globally via <code>context-zoom-init.ts</code>.
+    The central registration auto-discovers panes by ID.
+    To integrate zoom in your pane:
+</p>
+<h5>Option 1: CSS Zoom (most apps)</h5>
+<p>
+    Add your pane's selector to <code>FONT_ZOOM_ZONES</code> in <code>context-zoom-init.ts</code>.
+    Ctrl+Wheel applies CSS <code>zoom</code> to the whole pane uniformly.
+</p>
+<pre><code>// In context-zoom-init.ts — FONT_ZOOM_ZONES array:
+{ selector: "#my-app-pane", key: "my-app-pane-zoom" },</code></pre>
+<h5>Option 2: Passthrough (components with own zoom)</h5>
+<p>
+    For components that handle their own Ctrl+Wheel zoom (PDF.js, Monaco, canvas viewers),
+    register as <strong>passthrough</strong>. This prevents the parent zone's CSS zoom from
+    interfering while letting the component's own handler fire.
+</p>
+<pre><code>// In context-zoom-init.ts — registerPendingZones():
+if (!registeredSelectors.has("#my-canvas-viewer")) {
+  const el = document.getElementById("my-canvas-viewer");
+  if (el) {
+    registerZoomZone({
+      el,
+      getSize: () =&gt; 1,
+      setSize: () =&gt; {},
+      min: 0, max: 0, default: 1,
+      storageKey: "my-app-canvas-passthrough",
+      passthrough: true,
+    });
+    registeredSelectors.add("#my-canvas-viewer");
+    count++;
+  }
+}</code></pre>
+<div class="api-callout api-callout-warning">
+    <i class="fas fa-exclamation-triangle"></i>
+    <div>
+        <strong>Nesting:</strong> When a passthrough zone is nested inside a CSS zoom zone
+        (e.g. PDF viewer inside <code>#main-content</code>), the inner passthrough zone
+        takes precedence — the parent's CSS zoom is suppressed for that area.
+        Update <code>totalZones</code> when adding new zones.
+    </div>
+</div>
+<h5>Currently Registered Zones</h5>
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Selector</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <code>#scitex-ai-panel</code>
+            </td>
+            <td>CSS zoom</td>
+            <td>AI panel sidebar</td>
+        </tr>
+        <tr>
+            <td>
+                <code>#ws-worktree-sidebar</code>
+            </td>
+            <td>CSS zoom</td>
+            <td>Worktree file tree</td>
+        </tr>
+        <tr>
+            <td>
+                <code>#ws-viewer-sidebar</code>
+            </td>
+            <td>CSS zoom</td>
+            <td>Viewer sidebar</td>
+        </tr>
+        <tr>
+            <td>
+                <code>#main-content</code>
+            </td>
+            <td>CSS zoom</td>
+            <td>Module (center) pane</td>
+        </tr>
+        <tr>
+            <td>
+                <code>#ws-viewer-monaco</code>
+            </td>
+            <td>Passthrough</td>
+            <td>Monaco editor (own zoom)</td>
+        </tr>
+        <tr>
+            <td>
+                <code>#pdf-view</code>
+            </td>
+            <td>Passthrough</td>
+            <td>PDF.js viewer (own zoom)</td>
+        </tr>
+    </tbody>
+</table>
