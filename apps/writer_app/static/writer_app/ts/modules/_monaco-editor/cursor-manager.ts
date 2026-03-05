@@ -55,7 +55,11 @@ export class CursorManager {
   /**
    * Restore cursor position for a section if content hash matches
    */
-  restoreCursorPosition(monacoEditor: any, sectionId: string, content: string): void {
+  restoreCursorPosition(
+    monacoEditor: any,
+    sectionId: string,
+    content: string,
+  ): void {
     if (!monacoEditor || !sectionId) return;
 
     const savedData = this.storage.load<any>(`cursor_${sectionId}`);
@@ -82,7 +86,6 @@ export class CursorManager {
     setTimeout(() => {
       monacoEditor.setPosition(position);
       monacoEditor.revealPositionInCenter(position);
-      monacoEditor.focus(); // Activate cursor automatically
       console.log(
         `[Editor] Restored cursor position for ${sectionId}:`,
         position.lineNumber,
@@ -99,7 +102,7 @@ export class CursorManager {
     monacoEditor: any,
     sectionId: string,
     content: string,
-    setContentFn: (content: string) => void
+    setContentFn: (content: string) => void,
   ): void {
     // Save cursor position for current section before switching
     if (this.currentSectionId && this.currentSectionId !== sectionId) {
@@ -116,16 +119,6 @@ export class CursorManager {
     const savedData = this.storage.load<any>(`cursor_${sectionId}`);
     if (savedData) {
       this.restoreCursorPosition(monacoEditor, sectionId, content);
-    } else {
-      // No saved cursor position, just focus the editor
-      setTimeout(() => {
-        if (monacoEditor) {
-          monacoEditor.focus();
-          console.log(
-            `[Editor] No saved cursor for ${sectionId}, focused editor at start`,
-          );
-        }
-      }, 50);
     }
   }
 
