@@ -292,17 +292,25 @@ export class AIPanelConsoleMode {
       storageKey: "scitex-terminal-font-size",
     });
 
-    // Allocation progress overlay spinner
-    containerEl.addEventListener("scitex-session-state", ((e: CustomEvent) => {
-      const state = e.detail?.state;
-      if (
-        state === "allocation_starting" ||
-        state === "allocation_recovering"
-      ) {
-        showAllocationSpinner(containerEl);
-      } else if (state === "ready" || state === "connected") {
-        hideAllocationSpinner(containerEl);
+    // Allocation spinner with 90s safety timeout (hides on any non-starting state)
+    let _st: ReturnType<typeof setTimeout> | null = null;
+    const spinnerOn = () => {
+      showAllocationSpinner(containerEl);
+      if (_st) clearTimeout(_st);
+      _st = setTimeout(() => hideAllocationSpinner(containerEl), 90_000);
+    };
+    const spinnerOff = () => {
+      if (_st) {
+        clearTimeout(_st);
+        _st = null;
       }
+      hideAllocationSpinner(containerEl);
+    };
+    containerEl.addEventListener("scitex-session-state", ((e: CustomEvent) => {
+      const s = e.detail?.state;
+      if (s === "allocation_starting" || s === "allocation_recovering")
+        spinnerOn();
+      else spinnerOff(); // ready, connected, exited, error, allocation_dead, etc.
     }) as EventListener);
     this.observeTheme(inst);
 
@@ -310,7 +318,7 @@ export class AIPanelConsoleMode {
     this.activeTabId = id;
 
     // Show spinner during initial connection and connect WebSocket
-    showAllocationSpinner(containerEl);
+    spinnerOn();
     this.connectInstance(inst);
   }
 
