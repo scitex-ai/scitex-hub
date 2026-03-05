@@ -95,6 +95,24 @@ function registerPendingZones(): number {
       count++;
     }
   }
+  // PDF viewer: passthrough — has its own Ctrl+Wheel zoom via PDF.js
+  if (!registeredSelectors.has("#pdf-view")) {
+    const pdfEl = document.getElementById("pdf-view");
+    if (pdfEl) {
+      registerZoomZone({
+        el: pdfEl,
+        getSize: () => 1,
+        setSize: () => {},
+        min: 0.5,
+        max: 3.0,
+        default: 1.0,
+        storageKey: "scitex-pdf-passthrough",
+        passthrough: true,
+      });
+      registeredSelectors.add("#pdf-view");
+      count++;
+    }
+  }
   return count;
 }
 
@@ -114,7 +132,7 @@ export function initAllZoomZones(): void {
   registerPendingZones();
 
   // Watch for lazy-loaded panes via MutationObserver
-  const totalZones = FONT_ZOOM_ZONES.length + 1; // +1 for Monaco
+  const totalZones = FONT_ZOOM_ZONES.length + 2; // +1 Monaco, +1 PDF viewer
   if (registeredSelectors.size < totalZones) {
     const observer = new MutationObserver(() => {
       const newCount = registerPendingZones();

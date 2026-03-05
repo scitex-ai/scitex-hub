@@ -272,6 +272,50 @@ class VisitorExpirationMiddleware:
         return self.get_response(request)
 
 
+class OnSiteAuthMiddleware:
+    """
+    Authenticate MCP tool requests from on-site agents (same container).
+
+    When the MCP server runs alongside Django (on-site), it sends
+    X-SciTeX-OnSite: <username> instead of Bearer token auth.
+    Only accepts requests from trusted Docker/localhost origins.
+    """
+
+    TRUSTED_PREFIXES = ("127.", "10.", "172.", "192.168.", "::1")
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.user.is_authenticated:
+            return self.get_response(request)
+
+        username = request.META.get("HTTP_X_SCITEX_ONSITE")
+        if not username:
+            return self.get_response(request)
+
+        # Only trust internal network sources
+        remote_ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
+        if not remote_ip:
+            remote_ip = request.META.get("REMOTE_ADDR", "")
+        if not any(remote_ip.startswith(p) for p in self.TRUSTED_PREFIXES):
+            logger.warning("OnSite auth rejected from untrusted IP: %s", remote_ip)
+            return self.get_response(request)
+
+        from django.contrib.auth.models import User
+
+        try:
+            user = User.objects.get(username=username)
+            request.user = user
+            request._on_site_auth = True
+            # Exempt from CSRF — MCP tools don't have CSRF tokens
+            request._dont_enforce_csrf_checks = True
+        except User.DoesNotExist:
+            logger.warning("OnSite auth: user %s not found", username)
+
+        return self.get_response(request)
+
+
 class GuestSessionMiddleware:
     """
     Track user state including current/last accessed project.

@@ -99,8 +99,7 @@
 <link rel="stylesheet" href="{% static 'shared/css/components/media-viewer.css' %}" />
 <link rel="stylesheet"
       href="{% static 'shared/css/components/data-table/data-table.css' %}" />
-<link rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.min.css" />
+<!-- Monaco CSS bundled locally via Vite (imported by monaco-init.ts) -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
 <!-- Unified-workspace layout overrides: hide the module's own sidebar -->
 <style>
@@ -626,82 +625,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xterm-addon-image@0.6.0/lib/xterm-addon-image.js"></script>
-<!-- Monaco Editor - Load with proper AMD handling (readyState pattern for AJAX injection) -->
-<script>
-    (function() {
-        'use strict';
-
-        function loadMonaco() {
-            // Save any existing AMD loaders
-            var savedDefine = window.define;
-            var savedRequire = window.require;
-
-            // If Monaco is already loaded, just fire the ready event
-            if (window.monaco && window.monacoReady) {
-                return;
-            }
-
-            // Clear AMD environment for Monaco
-            delete window.define;
-            delete window.require;
-
-            var loaderScript = document.createElement('script');
-            loaderScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js';
-            loaderScript.onload = function() {
-                console.log('[Monaco] Loader loaded, configuring...');
-
-                if (typeof require === 'undefined') {
-                    console.error('[Monaco] require is still undefined after loader');
-                    return;
-                }
-
-                require.config({
-                    paths: {
-                        'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs'
-                    }
-                });
-
-                var monacoLoadTimeout = setTimeout(function() {
-                    console.error('[Monaco] Loading timeout - require might have failed');
-                }, 5000);
-
-                try {
-                    require(['vs/editor/editor.main'], function() {
-                        clearTimeout(monacoLoadTimeout);
-                        console.log('[Monaco] Loaded successfully - window.monaco:', !!window.monaco);
-
-                        if (window.monaco) {
-                            window.monacoReady = true;
-                            window.dispatchEvent(new Event('monaco-ready'));
-                        } else {
-                            console.error('[Monaco] Loaded but window.monaco is undefined');
-                        }
-                    }, function(err) {
-                        clearTimeout(monacoLoadTimeout);
-                        console.error('[Monaco] Failed to load editor.main:', err);
-                    });
-                } catch (err) {
-                    clearTimeout(monacoLoadTimeout);
-                    console.error('[Monaco] Exception during require call:', err);
-                }
-            };
-
-            loaderScript.onerror = function() {
-                console.error('[Monaco] Failed to load loader.min.js');
-                if (savedDefine) window.define = savedDefine;
-                if (savedRequire) window.require = savedRequire;
-            };
-
-            document.head.appendChild(loaderScript);
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', loadMonaco);
-        } else {
-            loadMonaco();
-        }
-    })();
-</script>
+<!-- Monaco loaded locally via Vite bundle (workspace-inline.ts imports monaco-init.ts) -->
 <!-- Tree preseed for file tree population -->
 {% tree_preseed_script current_project %}
 <!-- Load console workspace module via Vite -->

@@ -15,7 +15,7 @@ def register_on_site_tools(mcp) -> None:
 
     @mcp.tool()
     async def on_site_capture_page(
-        project_id: int,
+        project_id: str,
         message: str = "",
     ) -> str:
         """Capture screenshot of current workspace page.
@@ -28,7 +28,7 @@ def register_on_site_tools(mcp) -> None:
         Permission can be set per-project or globally.
 
         Args:
-            project_id: The project ID to associate the capture with.
+            project_id: Project database ID (integer) or project slug (string).
             message: Optional description of what/why to capture.
         """
         result = _make_request(
@@ -95,7 +95,7 @@ def register_on_site_tools(mcp) -> None:
 
     @mcp.tool()
     async def on_site_check_permission(
-        project_id: int,
+        project_id: str,
     ) -> str:
         """Check if page capture is allowed for a project.
 

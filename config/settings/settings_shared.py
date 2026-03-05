@@ -132,6 +132,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "apps.project_app.middleware.OnSiteAuthMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "apps.project_app.middleware.VisitorAutoLoginMiddleware",
     "apps.project_app.middleware.VisitorExpirationMiddleware",

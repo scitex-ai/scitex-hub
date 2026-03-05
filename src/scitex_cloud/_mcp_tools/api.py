@@ -12,11 +12,32 @@ def _json(data: dict) -> str:
     return json.dumps(data, indent=2, default=str)
 
 
+def get_on_site_env(username: str = "", site_url: str = "") -> dict[str, str]:
+    """Build env vars for on-site MCP auth (injected into .mcp.json).
+
+    Args:
+        username: The container user's Django username.
+        site_url: Django server URL. Falls back to SCITEX_CLOUD_SITE_URL env
+                  var, then to http://web:8000 (Docker internal).
+    """
+    url = site_url or os.environ.get("SCITEX_CLOUD_SITE_URL", "http://web:8000")
+    env = {"SCITEX_CLOUD_IS_ON_SITE": "1", "SCITEX_CLOUD_URL": url}
+    if username:
+        env["SCITEX_CLOUD_USERNAME"] = username
+    return env
+
+
 def _get_config() -> dict:
     """Get API configuration from environment."""
+    is_on_site = os.environ.get("SCITEX_CLOUD_IS_ON_SITE") == "1"
     return {
         "api_key": os.environ.get("SCITEX_CLOUD_API_KEY"),
-        "base_url": os.environ.get("SCITEX_CLOUD_URL", "https://scitex.cloud"),
+        "base_url": os.environ.get(
+            "SCITEX_CLOUD_URL",
+            "http://web:8000" if is_on_site else "https://scitex.ai",
+        ),
+        "is_on_site": is_on_site,
+        "username": os.environ.get("SCITEX_CLOUD_USERNAME", ""),
     }
 
 
@@ -35,13 +56,17 @@ def _make_request(
 
     headers = {"X-Requested-With": "XMLHttpRequest"}
     if auth_required:
-        if not config["api_key"]:
+        if config["is_on_site"] and config["username"]:
+            # On-site: authenticate via trusted header (no API key needed)
+            headers["X-SciTeX-OnSite"] = config["username"]
+        elif config["api_key"]:
+            headers["Authorization"] = f"Bearer {config['api_key']}"
+        else:
             return {
                 "success": False,
                 "error": "API key required",
-                "hint": "Set SCITEX_CLOUD_API_KEY environment variable",
+                "hint": "Set SCITEX_CLOUD_API_KEY or SCITEX_CLOUD_IS_ON_SITE=1",
             }
-        headers["Authorization"] = f"Bearer {config['api_key']}"
 
     try:
         if method.upper() == "GET":
@@ -218,10 +243,11 @@ def register_api_tools(mcp) -> None:
         config = _get_config()
         import requests
 
-        headers = {
-            "Authorization": f"Bearer {config['api_key']}",
-            "X-Requested-With": "XMLHttpRequest",
-        }
+        headers = {"X-Requested-With": "XMLHttpRequest"}
+        if config["is_on_site"] and config["username"]:
+            headers["X-SciTeX-OnSite"] = config["username"]
+        elif config["api_key"]:
+            headers["Authorization"] = f"Bearer {config['api_key']}"
 
         max_attempts = 60
         for _ in range(max_attempts):

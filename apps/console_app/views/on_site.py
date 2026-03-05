@@ -38,7 +38,11 @@ def api_capture_request(request):
         return JsonResponse({"error": "project_id required"}, status=400)
 
     try:
-        project = Project.objects.get(id=project_id)
+        # Accept both numeric ID and slug string
+        if str(project_id).isdigit():
+            project = Project.objects.get(id=int(project_id))
+        else:
+            project = Project.objects.get(slug=project_id, owner=request.user)
     except Project.DoesNotExist:
         return JsonResponse({"error": "Project not found"}, status=404)
 

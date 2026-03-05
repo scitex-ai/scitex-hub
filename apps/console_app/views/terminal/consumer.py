@@ -224,10 +224,14 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
 
         # Auto-generate AI tool configs (cheap no-op if exists)
         await asyncio.to_thread(
-            self._ensure_agents_config, project_dir, self.project.name
+            self._ensure_agents_config, project_dir, self.project.name, username
         )
         await asyncio.to_thread(
-            self._ensure_claude_config, user_data_dir, project_dir, self.project.name
+            self._ensure_claude_config,
+            user_data_dir,
+            project_dir,
+            self.project.name,
+            username,
         )
 
         try:
@@ -310,10 +314,14 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
 
         # Auto-generate AI tool configs (cheap no-op if exists)
         await asyncio.to_thread(
-            self._ensure_agents_config, project_dir, self.project.name
+            self._ensure_agents_config, project_dir, self.project.name, username
         )
         await asyncio.to_thread(
-            self._ensure_claude_config, user_data_dir, project_dir, self.project.name
+            self._ensure_claude_config,
+            user_data_dir,
+            project_dir,
+            self.project.name,
+            username,
         )
 
         try:
@@ -428,21 +436,27 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
                 logger.error(f"PTY resize error: {e}")
 
     @staticmethod
-    def _ensure_agents_config(project_dir, project_name):
+    def _ensure_agents_config(project_dir, project_name, username=""):
         """Create .agents/ config if missing (runs in thread)."""
         from apps.console_app.services.agents_config import ensure_agents_config
 
         logger.info(f"Generating agents config for: {project_dir}")
-        ensure_agents_config(project_dir, project_name=project_name, force=True)
+        ensure_agents_config(
+            project_dir, project_name=project_name, force=True, username=username
+        )
 
     @staticmethod
-    def _ensure_claude_config(user_data_dir, project_dir, project_name):
+    def _ensure_claude_config(user_data_dir, project_dir, project_name, username=""):
         """Create .mcp.json + skills if missing (runs in thread)."""
         from apps.console_app.services.agents_config import ensure_claude_config
 
         logger.info(f"Generating Claude config for: {project_dir}")
         ensure_claude_config(
-            user_data_dir, project_dir, project_name=project_name, force=True
+            user_data_dir,
+            project_dir,
+            project_name=project_name,
+            force=True,
+            username=username,
         )
 
     async def disconnect(self, close_code):

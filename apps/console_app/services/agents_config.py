@@ -25,7 +25,9 @@ logger = logging.getLogger(__name__)
 AGENTS_SCHEMA_VERSION = 3
 
 
-def _build_agents_json(mcp_env: dict[str, str] | None = None) -> dict:
+def _build_agents_json(
+    mcp_env: dict[str, str] | None = None, username: str = ""
+) -> dict:
     """Build the .agents/agents.json content.
 
     Uses local stdio transport (``scitex mcp start``) which works inside the
@@ -41,6 +43,11 @@ def _build_agents_json(mcp_env: dict[str, str] | None = None) -> dict:
     # Disable local capture inside containers (no X11 display);
     # agents use cloud_on_site_capture_page instead (via CLOUD group)
     env["SCITEX_MCP_USE_CAPTURE"] = "0"
+
+    # On-site auth: skip API key, authenticate via trusted header
+    from scitex_cloud._mcp_tools.api import get_on_site_env
+
+    env.update(get_on_site_env(username=username))
 
     return {
         "schemaVersion": AGENTS_SCHEMA_VERSION,
@@ -131,6 +138,7 @@ def ensure_agents_config(
     project_name: str = "SciTeX Project",
     mcp_env: dict[str, str] | None = None,
     force: bool = False,
+    username: str = "",
 ) -> bool:
     """
     Create .agents/ config if missing, with local stdio MCP server.
@@ -151,7 +159,9 @@ def ensure_agents_config(
         agents_dir.mkdir(parents=True, exist_ok=True)
 
         # agents.json — stdio MCP server config
-        config_file.write_text(json.dumps(_build_agents_json(mcp_env), indent=2) + "\n")
+        config_file.write_text(
+            json.dumps(_build_agents_json(mcp_env, username=username), indent=2) + "\n"
+        )
 
         # local.json — needed by agents CLI (even if empty)
         local_file = agents_dir / "local.json"
@@ -208,7 +218,7 @@ DEFAULT_MCP_GROUPS = [
 ]
 
 
-def _build_mcp_json(mcp_env: dict[str, str] | None = None) -> dict:
+def _build_mcp_json(mcp_env: dict[str, str] | None = None, username: str = "") -> dict:
     """Build project-level .mcp.json for Claude Code.
 
     Claude Code reads MCP servers from ``.mcp.json`` (project-level) or
@@ -224,6 +234,11 @@ def _build_mcp_json(mcp_env: dict[str, str] | None = None) -> dict:
     # Disable local capture inside containers (no X11 display);
     # agents use cloud_on_site_capture_page instead (via CLOUD group)
     env["SCITEX_MCP_USE_CAPTURE"] = "0"
+
+    # On-site auth: skip API key, authenticate via trusted header
+    from scitex_cloud._mcp_tools.api import get_on_site_env
+
+    env.update(get_on_site_env(username=username))
 
     return {
         "mcpServers": {
@@ -259,6 +274,7 @@ def ensure_claude_config(
     project_name: str = "SciTeX Project",
     mcp_env: dict[str, str] | None = None,
     force: bool = False,
+    username: str = "",
 ) -> bool:
     """
     Create Claude Code config if missing.
@@ -294,7 +310,8 @@ def ensure_claude_config(
             mcp_json = project_path / ".mcp.json"
             if not mcp_json.exists() or force:
                 mcp_json.write_text(
-                    json.dumps(_build_mcp_json(mcp_env), indent=2) + "\n"
+                    json.dumps(_build_mcp_json(mcp_env, username=username), indent=2)
+                    + "\n"
                 )
                 created = True
 
