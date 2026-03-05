@@ -165,13 +165,22 @@ export function connectInstance(
 
   inst.ws.onclose = (ev) => {
     inst.connected = false;
-    if (ev.code === 1000) {
-      onStatusChange?.("disconnected");
-    } else {
-      onStatusChange?.("error");
-      setTimeout(() => connectInstance(inst, onStatusChange), 3000);
-    }
+    onStatusChange?.(ev.code === 1000 ? "disconnected" : "error");
+    // Always reconnect — broker keeps shells alive and replays scrollback
+    setTimeout(
+      () => connectInstance(inst, onStatusChange),
+      ev.code === 1000 ? 1000 : 3000,
+    );
   };
+
+  // Listen for project switches — cd into new project instead of killing terminal
+  window.addEventListener("scitex:project-switched", ((
+    e: CustomEvent<{ slug: string }>,
+  ) => {
+    if (inst.ws?.readyState === WebSocket.OPEN) {
+      inst.ws.send(`cd ~/proj/${e.detail.slug}\n`);
+    }
+  }) as EventListener);
 }
 
 export function fitInstance(inst: TerminalInstance): void {

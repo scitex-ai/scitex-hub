@@ -35,6 +35,7 @@ export interface ConsoleToolbarRefs {
 
 interface TerminalInstance {
   id: string;
+  sessionName: string;
   terminal: any;
   fitAddon: any;
   ws: WebSocket | null;
@@ -143,12 +144,22 @@ export class AIPanelConsoleMode {
       getWs: () => this.getActiveWs(),
       getTerminal: () => this.getActiveTerminal(),
     });
+
+    // Listen for project switches — cd into new project instead of killing terminal
+    window.addEventListener("scitex:project-switched", ((
+      e: CustomEvent<{ slug: string }>,
+    ) => {
+      const ws = this.getActiveWs();
+      if (ws?.readyState === WebSocket.OPEN) {
+        ws.send(`cd ~/proj/${e.detail.slug}\n`);
+      }
+    }) as EventListener);
   }
 
   // --- Tab callbacks ---
 
   private onTabCreate(tab: ConsoleTab): void {
-    this.createInstance(tab.id, tab.containerEl);
+    this.createInstance(tab.id, tab.containerEl, tab.sessionName);
   }
 
   private onTabSwitch(tab: ConsoleTab): void {
@@ -167,7 +178,11 @@ export class AIPanelConsoleMode {
 
   // --- Instance lifecycle ---
 
-  private createInstance(id: string, containerEl: HTMLElement): void {
+  private createInstance(
+    id: string,
+    containerEl: HTMLElement,
+    sessionName?: string,
+  ): void {
     const terminal = new this.TerminalCtor({
       cursorBlink: true,
       fontSize: 13,
@@ -207,6 +222,7 @@ export class AIPanelConsoleMode {
 
     const inst: TerminalInstance = {
       id,
+      sessionName: sessionName || `ai-panel-${id}`,
       terminal,
       fitAddon,
       ws: null,
@@ -293,11 +309,10 @@ export class AIPanelConsoleMode {
     this.setStatus("connecting");
 
     const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const sessionName = `ai-panel-${inst.id}`;
     const projectId =
       document.querySelector<HTMLElement>(".project-selector-btn")?.dataset
         .activeProjectId || "0";
-    const url = `${proto}//${window.location.host}/ws/console/terminal/?project_id=${projectId}&session=${encodeURIComponent(sessionName)}`;
+    const url = `${proto}//${window.location.host}/ws/console/terminal/?project_id=${projectId}&session=${encodeURIComponent(inst.sessionName)}`;
 
     inst.ws = new WebSocket(url);
 
@@ -321,9 +336,11 @@ export class AIPanelConsoleMode {
       if (inst.id === this.activeTabId) {
         this.setStatus(ev.code === 1000 ? "disconnected" : "error");
       }
-      if (ev.code !== 1000) {
-        setTimeout(() => this.connectInstance(inst), 3000);
-      }
+      // Always reconnect — broker keeps shells alive and replays scrollback
+      setTimeout(
+        () => this.connectInstance(inst),
+        ev.code === 1000 ? 1000 : 3000,
+      );
     };
   }
 

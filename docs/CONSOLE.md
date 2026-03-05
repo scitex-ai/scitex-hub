@@ -23,13 +23,15 @@ SPAWNING → RUNNING → EXITED → RESPAWNING → RUNNING
 ### Connection Flow
 
 ```
-Browser WebSocket
+Browser WebSocket (?project_id=N)
     → TerminalConsumer.connect()
-    → ensure_workspace()           # Create dirs, dotfiles, agent configs
-    → Terminal Broker (IPC)        # Isolated process, no asyncio
-    → pty.fork()                   # Inside broker process
-    → srun --pty bash              # SLURM allocates resources
-    → apptainer exec container.sif # Containerized shell
+    → Resolve project from selector  # Active project or dotfiles (id=0)
+    → ensure_workspace()             # Create dirs, dotfiles, agent configs
+    → Terminal Broker (IPC)          # Isolated process, no asyncio
+    → pty.fork()                     # Inside broker process
+    → srun --pty bash                # SLURM allocates resources
+    → apptainer exec --pwd ~/proj/<slug> # Containerized shell in project dir
+    → MOTD injection                 # Welcome message (0.8s delay)
 ```
 
 ### Terminal Broker
@@ -45,6 +47,27 @@ See `docs/TERMINAL_BROKER_ARCHITECTURE.md` for details.
 When a shell exits, the broker auto-respawns up to 5 times.
 The respawn counter resets after 10 seconds of stable runtime.
 If all 5 attempts fail quickly, the session transitions to `DEAD`.
+
+### Project Context
+
+The terminal opens in the **selected project's directory**. The project ID
+flows from the header project selector through the WebSocket to Apptainer:
+
+```
+Header selector (data-active-project-id)
+    → WebSocket URL (?project_id=N)
+    → TerminalConsumer resolves Project model
+    → project.slug → "~/proj/<slug>/"
+    → apptainer exec --pwd /home/<user>/proj/<slug>
+```
+
+Falls back to `project_id=0` (dotfiles project) when no project is selected.
+
+### Message of the Day
+
+After shell initialization, the broker injects a welcome message directly
+to the client (bypassing the shell to avoid prompt corruption). Controlled
+by the `SCITEX_CLOUD_SHOW_MOTD` environment variable (default: `true`).
 
 ## Security
 
@@ -86,13 +109,14 @@ See `docs/TERMINAL_SLURM_SECURITY.md` for full security policy.
 ```
 /home/<username>/
 ├── proj/
-│   ├── <project-name>/       # Each project gets its own directory
+│   ├── <project-name>/       # Each project directory
 │   │   ├── .agents/          # AI agent configs (auto-generated)
 │   │   ├── .mcp.json         # Claude Code MCP server
 │   │   ├── AGENTS.md         # Unified instructions for all AI tools
 │   │   └── scitex/downloads/ # Paste/drop upload target
-│   ├── home -> ..            # Symlink: home project = user home
-│   └── dotfiles/             # Git repo with shell configs
+│   └── dotfiles/             # Git repo with shell configs (special project)
+│       ├── .agents/          # AI agent configs (like any project)
+│       ├── AGENTS.md
 │       ├── bashrc
 │       ├── bash_profile
 │       ├── vimrc
@@ -106,25 +130,27 @@ See `docs/TERMINAL_SLURM_SECURITY.md` for full security policy.
 ├── .vimrc -> proj/dotfiles/vimrc
 ├── .gitconfig -> proj/dotfiles/gitconfig
 ├── .screenrc -> proj/dotfiles/screenrc
-├── .ipython/profile_default/ipython_config.py -> ../../proj/dotfiles/ipython/ipython_config.py
 ├── .nvm/                     # Node Version Manager
-├── .npm-global/              # npm global packages (claude, codex, gemini)
+├── .npm-global/              # npm global packages
 ├── .claude/                  # Claude Code user config
 │   └── skills/scitex-cloud/SKILL.md
 ├── .singularity/             # Apptainer cache
-└── .ai-cli-installed         # Sentinel: AI CLI tools installed
+└── .ai-cli-installed         # Sentinel file
 ```
 
-### Home Project
+### Dotfiles Project
 
-The **home** project (`is_home=True`) is a special project:
+The **dotfiles** project (`is_home=True`) is a special project for managing
+shell configurations:
 - Auto-created on user signup and ensured on every login
 - Always private — visibility is forced to `private` on save
 - Cannot be deleted — `delete()` raises `ValueError`
-- One per user — checked by `owner + is_home` uniqueness
-- `proj/home -> ..` symlinks the home project directory to the user's home,
-  so opening the home project in a terminal lands at `~`
-- Used by the AI panel console mode (`project_id=0`)
+- One per user — uniqueness enforced at model level
+- Maps to `~/proj/dotfiles/` — a git-tracked repository containing
+  bashrc, vimrc, gitconfig, and other shell configs
+- Appears in the project selector and hub like any other project
+- Gets full AI agent support (`.agents/`, `AGENTS.md`, `.mcp.json`)
+  like any other project
 
 ### .bashrc
 
@@ -154,5 +180,5 @@ the bashrc if required sections are missing or duplicated.
 | `apps/console_app/views/terminal/workspace.py` | `ensure_workspace()`, directory setup |
 | `apps/console_app/views/terminal/dotfiles.py` | Dotfiles repo creation + symlinks |
 | `apps/console_app/services/agents_config.py` | AI agent config generation |
-| `apps/accounts_app/signals.py` | Home project creation on signup |
+| `apps/accounts_app/signals.py` | Dotfiles project creation on signup |
 | `apps/project_app/models/repository/project.py` | `is_home` field, delete protection |

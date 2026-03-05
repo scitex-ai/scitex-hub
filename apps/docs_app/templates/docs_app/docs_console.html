@@ -74,13 +74,15 @@
             <h4 class="mt-4">Connection Flow</h4>
             <div class="card mt-3">
                 <div class="card-body">
-                    <pre class="bg-dark text-light p-3 rounded"><code>Browser WebSocket
+                    <pre class="bg-dark text-light p-3 rounded"><code>Browser WebSocket (?project_id=N)
     → TerminalConsumer.connect()
-    → ensure_workspace()           # Create dirs, dotfiles, agent configs
-    → Terminal Broker (IPC)        # Isolated process, no asyncio
-    → pty.fork()                   # Inside broker process
-    → srun --pty bash              # SLURM allocates resources
-    → apptainer exec container.sif # Containerized shell</code></pre>
+    → Resolve project from selector  # Active project or dotfiles (id=0)
+    → ensure_workspace()             # Create dirs, dotfiles, agent configs
+    → Terminal Broker (IPC)          # Isolated process, no asyncio
+    → pty.fork()                     # Inside broker process
+    → srun --pty bash                # SLURM allocates resources
+    → apptainer exec --pwd ~/proj/&lt;slug&gt; # Containerized shell in project dir
+    → MOTD injection                 # Welcome message (0.8s delay)</code></pre>
                 </div>
             </div>
             <h4 class="mt-4">Terminal Broker</h4>
@@ -95,6 +97,31 @@
                 <strong>5 times</strong>. The respawn counter resets after 10 seconds
                 of stable runtime. If all 5 attempts fail quickly, the session
                 transitions to <code>DEAD</code>.
+            </p>
+            <h4 class="mt-4">Project Context</h4>
+            <p>
+                The terminal opens in the <strong>selected project's directory</strong>.
+                The project ID flows from the header project selector through the
+                WebSocket query parameter to Apptainer's <code>--pwd</code> flag:
+            </p>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code>Header selector (data-active-project-id)
+    → WebSocket URL (?project_id=N)
+    → TerminalConsumer resolves Project model
+    → project.slug → "~/proj/&lt;slug&gt;/"
+    → apptainer exec --pwd /home/&lt;user&gt;/proj/&lt;slug&gt;</code></pre>
+                </div>
+            </div>
+            <p class="text-muted small mt-2">
+                If no project is selected, falls back to <code>project_id=0</code>
+                which resolves to the dotfiles project (<code>is_home=True</code>).
+            </p>
+            <h4 class="mt-4">Message of the Day</h4>
+            <p>
+                After shell initialization, the broker injects a welcome message
+                directly to the client (bypassing the shell to avoid prompt corruption).
+                Controlled by the <code>SCITEX_CLOUD_SHOW_MOTD</code> environment variable.
             </p>
         </section>
         <!-- Security -->
@@ -350,7 +377,7 @@
                         <td>
                             <code>apps/accounts_app/signals.py</code>
                         </td>
-                        <td>Home project creation on signup</td>
+                        <td>Dotfiles project creation on signup</td>
                     </tr>
                     <tr>
                         <td>

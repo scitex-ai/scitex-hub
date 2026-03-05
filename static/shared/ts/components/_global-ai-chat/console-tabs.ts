@@ -9,10 +9,22 @@
 export interface ConsoleTab {
   id: string;
   name: string;
+  sessionName: string;
   containerEl: HTMLElement;
 }
 
 const MAX_TABS = 5;
+
+/** Get or create a persistent UUID for a terminal tab name */
+function getSessionId(tabName: string): string {
+  const key = `scitex-console-session-${tabName}`;
+  let id = localStorage.getItem(key);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(key, id);
+  }
+  return id;
+}
 
 export class ConsoleTabManager {
   private tabs = new Map<string, ConsoleTab>();
@@ -62,7 +74,9 @@ export class ConsoleTabManager {
     containerEl.style.display = "none";
     this.terminalHostEl?.appendChild(containerEl);
 
-    const tab: ConsoleTab = { id, name: tabName, containerEl };
+    const sessionUuid = getSessionId(tabName);
+    const sessionName = `ai-panel-${sessionUuid}`;
+    const tab: ConsoleTab = { id, name: tabName, sessionName, containerEl };
     this.tabs.set(id, tab);
     this.onCreate?.(tab);
     this.switchTab(id);
@@ -99,9 +113,13 @@ export class ConsoleTabManager {
       if (nextId) this.switchTab(nextId);
     }
 
+    // Clean up localStorage for this tab's session UUID
+    localStorage.removeItem(`scitex-console-session-${tab.name}`);
+
     this.onClose?.(tab);
     tab.containerEl.remove();
     this.tabs.delete(id);
+    this.renumberTabs();
     this.renderTabs();
   }
 
@@ -114,6 +132,19 @@ export class ConsoleTabManager {
     return this.tabs.size;
   }
 
+  /** Renumber tabs T1..TN after a close, preserving session UUIDs */
+  private renumberTabs(): void {
+    let n = 1;
+    for (const tab of this.tabs.values()) {
+      const newName = `T${n}`;
+      if (tab.name !== newName) {
+        tab.name = newName;
+      }
+      n++;
+    }
+    this.tabCounter = this.tabs.size;
+  }
+
   private renderTabs(): void {
     if (!this.listEl) return;
     this.listEl.innerHTML = "";
@@ -123,6 +154,7 @@ export class ConsoleTabManager {
       chip.className = "scitex-ai-console-tab-item";
       if (tab.id === this.activeTabId) chip.classList.add("active");
       chip.dataset.tabId = tab.id;
+      chip.title = tab.sessionName;
 
       const title = document.createElement("span");
       title.className = "scitex-ai-console-tab-title";

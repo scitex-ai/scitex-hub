@@ -156,8 +156,17 @@ function initializeProjectSelector(): void {
                 "Successfully switched to project:",
                 data.project?.name,
               );
-              // Reload page to ensure all content is up-to-date with new project
-              window.location.reload();
+              // Notify terminals to cd into the new project
+              window.dispatchEvent(
+                new CustomEvent("scitex:project-switched", {
+                  detail: { slug: projectSlug, id: projectId },
+                }),
+              );
+              // Only reload if no live terminal is connected
+              const hasTerminal = document.querySelector(".xterm-screen");
+              if (!hasTerminal) {
+                window.location.reload();
+              }
             }
           } catch (error) {
             console.error("Error switching project:", error);
