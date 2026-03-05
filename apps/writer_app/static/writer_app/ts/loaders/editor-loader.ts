@@ -1,37 +1,23 @@
 /**
  * Editor Loader Module
- * Handles sequential loading of CodeMirror and Monaco Editor
- * Prevents AMD/RequireJS conflicts between the two editors
+ * Handles loading of CodeMirror (Monaco is now bundled locally).
  *
- * @version 1.0.0 (TypeScript)
- * @author SciTeX Development Team
+ * Monaco is initialized by the shared monaco-init module at import time.
+ * This loader only needs to handle CodeMirror as a fallback/supplement.
  */
+
+// Side-effect import: ensures Monaco is initialized
+import "@/_lib/monaco-init";
 
 // ============================================================================
 // Type Definitions
 // ============================================================================
 
-interface FakeWorker {
-  postMessage: () => void;
-  terminate: () => void;
-  addEventListener: () => void;
-  removeEventListener: () => void;
-}
-
-interface MonacoEnvironment {
-  getWorker: (moduleId: string, label: string) => Promise<FakeWorker>;
-}
-
-interface RequireConfig {
-  paths: Record<string, string>;
-  "vs/nls": { availableLanguages: Record<string, never> };
-}
-
 declare global {
   interface Window {
     define: any;
     require: any;
-    MonacoEnvironment: MonacoEnvironment;
+    MonacoEnvironment: any;
     monaco?: any;
     monacoLoaded: boolean;
     CodeMirror: any;
@@ -44,22 +30,22 @@ declare global {
 
 export class EditorLoader {
   private readonly CODEMIRROR_VERSION = "5.65.16";
-  private readonly MONACO_VERSION = "0.45.0";
-
-  private originalDefine: any = null;
-  private originalRequire: any = null;
 
   /**
-   * Initialize and load both Monaco and CodeMirror editors.
-   * IMPORTANT: Monaco must load FIRST. If CodeMirror loads first, its UMD
-   * define() calls register "codemirror" in RequireJS's module registry.
-   * Monaco then tries to resolve "codemirror" from its CDN paths → 404.
+   * Initialize editors. Monaco is already available from the local bundle.
+   * Only CodeMirror needs CDN loading.
    */
   async initialize(): Promise<void> {
     console.log("[EditorLoader] Starting editor initialization");
 
     try {
-      await this.loadMonaco();
+      // Monaco is already loaded via import — just verify
+      if (!(window as any).monaco) {
+        console.error("[EditorLoader] Monaco not available from local bundle");
+      } else {
+        console.log("[EditorLoader] Monaco available from local bundle");
+      }
+
       await this.loadCodeMirror();
       console.log("[EditorLoader] All editors loaded successfully");
     } catch (error) {
@@ -70,7 +56,6 @@ export class EditorLoader {
 
   /**
    * Load CodeMirror scripts without AMD conflicts.
-   * Must be called AFTER loadMonaco() so RequireJS is not poisoned.
    */
   private async loadCodeMirror(): Promise<void> {
     console.log("[EditorLoader] Loading CodeMirror...");
@@ -86,104 +71,19 @@ export class EditorLoader {
     ];
 
     // Save and disable AMD so CodeMirror UMD modules don't register with RequireJS
-    this.originalDefine = window.define;
-    this.originalRequire = window.require;
+    const savedDefine = window.define;
+    const savedRequire = window.require;
     window.define = undefined;
     window.require = undefined;
 
     try {
       await this.loadScriptsSequentially(scripts);
-      // Small delay to ensure all script execution completes before restoring AMD
       await new Promise((resolve) => setTimeout(resolve, 50));
       console.log("[EditorLoader] CodeMirror loaded successfully");
     } finally {
-      window.define = this.originalDefine;
-      window.require = this.originalRequire;
+      window.define = savedDefine;
+      window.require = savedRequire;
     }
-  }
-
-  /**
-   * Load Monaco Editor with fake worker to avoid CORS issues
-   */
-  private async loadMonaco(): Promise<void> {
-    // If Monaco is already loaded (e.g., by workspace viewer or another component), skip.
-    // Check window.monaco alone — the workspace viewer loads Monaco but doesn't set monacoLoaded.
-    if ((window as any).monaco) {
-      console.log(
-        "[EditorLoader] Monaco already available (loaded by another component), skipping",
-      );
-      window.monacoLoaded = true;
-      return;
-    }
-
-    console.log("[EditorLoader] Loading Monaco Editor...");
-
-    // Configure Monaco environment with main-thread worker fallback
-    // This prevents CORS issues when loading from CDN
-    window.MonacoEnvironment = {
-      getWorker: (_moduleId: string, _label: string): Promise<FakeWorker> => {
-        return Promise.resolve(this.createFakeWorker());
-      },
-    };
-
-    // Load Monaco loader script (loadScript deduplicates)
-    const loaderUrl = `https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/${this.MONACO_VERSION}/min/vs/loader.min.js`;
-    await this.loadScript(loaderUrl);
-
-    // Configure and load Monaco
-    return new Promise<void>((resolve, reject) => {
-      // Wait for RequireJS to be available
-      const checkRequire = () => {
-        if (
-          typeof window.require !== "undefined" &&
-          (window.require as any).config
-        ) {
-          // Configure RequireJS paths for Monaco
-          const requireConfig: RequireConfig = {
-            paths: {
-              vs: `https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/${this.MONACO_VERSION}/min/vs`,
-            },
-            "vs/nls": { availableLanguages: {} },
-          };
-
-          (window.require as any).config(requireConfig);
-
-          // Load Monaco editor main module
-          (window.require as any)(
-            ["vs/editor/editor.main"],
-            () => {
-              console.log("[EditorLoader] Monaco Editor loaded successfully");
-              window.monacoLoaded = true;
-              window.monaco = (window as any).monaco;
-              window.dispatchEvent(new Event("monaco-ready"));
-              resolve();
-            },
-            (error: Error) => {
-              console.error("[EditorLoader] Failed to load Monaco:", error);
-              reject(error);
-            },
-          );
-        } else {
-          // Retry after a short delay
-          setTimeout(checkRequire, 50);
-        }
-      };
-
-      checkRequire();
-    });
-  }
-
-  /**
-   * Create a fake Worker that runs in the main thread
-   * Used to prevent CORS issues with Monaco's web workers
-   */
-  private createFakeWorker(): FakeWorker {
-    return {
-      postMessage: () => {},
-      terminate: () => {},
-      addEventListener: () => {},
-      removeEventListener: () => {},
-    };
   }
 
   /**
@@ -191,27 +91,15 @@ export class EditorLoader {
    */
   private loadScript(url: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      // Skip if script already loaded
       if (document.querySelector(`script[src="${url}"]`)) {
-        console.log("[EditorLoader] Already loaded:", url);
         resolve();
         return;
       }
 
       const script = document.createElement("script");
       script.src = url;
-
-      script.onload = () => {
-        console.log("[EditorLoader] Loaded:", url);
-        resolve();
-      };
-
-      script.onerror = () => {
-        const error = new Error(`Failed to load script: ${url}`);
-        console.error("[EditorLoader]", error);
-        reject(error);
-      };
-
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(`Failed to load script: ${url}`));
       document.head.appendChild(script);
     });
   }
@@ -229,7 +117,6 @@ export class EditorLoader {
           url,
           error,
         );
-        // Continue loading other scripts even if one fails
       }
     }
   }
@@ -239,14 +126,9 @@ export class EditorLoader {
 // Auto-initialization
 // ============================================================================
 
-/**
- * Auto-initialize editors when this module is loaded
- * Can be imported and used directly in templates
- */
 export async function initializeEditors(): Promise<void> {
   const loader = new EditorLoader();
   await loader.initialize();
 }
 
-// Export singleton instance for direct use
 export const editorLoader = new EditorLoader();

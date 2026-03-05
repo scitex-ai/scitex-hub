@@ -3,85 +3,8 @@
  * Extracted inline scripts from workspace.html template
  */
 
-/**
- * Monaco Editor Loader
- * Handles AMD loader conflicts and Monaco initialization
- */
-export function initializeMonacoLoader(): void {
-  (function () {
-    "use strict";
-
-    // Save any existing AMD loaders
-    const savedDefine = (window as any).define;
-    const savedRequire = (window as any).require;
-
-    // Clear AMD environment for Monaco
-    delete (window as any).define;
-    delete (window as any).require;
-
-    // Load Monaco loader
-    const loaderScript = document.createElement("script");
-    loaderScript.src =
-      "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js";
-    loaderScript.onload = function () {
-      console.log("[Monaco] Loader loaded, configuring...");
-
-      // Now require should be available from Monaco's loader
-      if (typeof (window as any).require === "undefined") {
-        console.error("[Monaco] require is still undefined after loader");
-        return;
-      }
-
-      // Configure Monaco paths
-      (window as any).require.config({
-        paths: {
-          vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs",
-        },
-      });
-
-      // Load Monaco editor main module with timeout and error handling
-      const monacoLoadTimeout = setTimeout(function () {
-        console.error("[Monaco] Loading timeout - require might have failed");
-      }, 5000);
-
-      try {
-        (window as any).require(
-          ["vs/editor/editor.main"],
-          function () {
-            clearTimeout(monacoLoadTimeout);
-            console.log(
-              "[Monaco] Loaded successfully - window.monaco:",
-              !!(window as any).monaco,
-            );
-
-            if ((window as any).monaco) {
-              (window as any).monacoReady = true;
-              window.dispatchEvent(new Event("monaco-ready"));
-            } else {
-              console.error("[Monaco] Loaded but window.monaco is undefined");
-            }
-          },
-          function (err: Error) {
-            clearTimeout(monacoLoadTimeout);
-            console.error("[Monaco] Failed to load editor.main:", err);
-          },
-        );
-      } catch (err) {
-        clearTimeout(monacoLoadTimeout);
-        console.error("[Monaco] Exception during require call:", err);
-      }
-    };
-
-    loaderScript.onerror = function () {
-      console.error("[Monaco] Failed to load loader.min.js");
-      // Restore original AMD loaders if Monaco fails
-      if (savedDefine) (window as any).define = savedDefine;
-      if (savedRequire) (window as any).require = savedRequire;
-    };
-
-    document.head.appendChild(loaderScript);
-  })();
-}
+// Side-effect import: initializes Monaco from local bundle (no CDN)
+import "@/_lib/monaco-init";
 
 /**
  * Module Loader with Cache Busting
@@ -148,8 +71,7 @@ export function closeSignupWarningModal(): void {
  * Call this function when the DOM is ready
  */
 export function initializeWorkspaceInlineScripts(): void {
-  // Initialize Monaco loader
-  initializeMonacoLoader();
+  // Monaco is already initialized via the side-effect import above
 
   // Make modal close functions globally available for onclick handlers
   (window as any).closeShortcutsModal = closeShortcutsModal;
