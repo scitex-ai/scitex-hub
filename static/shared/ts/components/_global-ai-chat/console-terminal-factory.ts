@@ -142,7 +142,10 @@ export function connectInstance(
   onStatusChange?.("connecting");
 
   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-  const url = `${proto}//${window.location.host}/ws/console/terminal/?project_id=0`;
+  const projectId =
+    document.querySelector<HTMLElement>(".project-selector-btn")?.dataset
+      .activeProjectId || "0";
+  const url = `${proto}//${window.location.host}/ws/console/terminal/?project_id=${projectId}`;
 
   inst.ws = new WebSocket(url);
 

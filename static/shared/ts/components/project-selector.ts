@@ -117,6 +117,11 @@ function initializeProjectSelector(): void {
           // Store selected project ID
           sessionStorage.setItem("scholar_selected_project_id", projectId);
 
+          // Update data attribute on selector buttons
+          document.querySelectorAll(".project-selector-btn").forEach((btn) => {
+            (btn as HTMLElement).dataset.activeProjectId = projectId;
+          });
+
           // Close all dropdowns
           allDropdowns.forEach((d) => (d.style.display = "none"));
 

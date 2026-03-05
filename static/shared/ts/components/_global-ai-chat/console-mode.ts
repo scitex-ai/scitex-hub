@@ -294,7 +294,10 @@ export class AIPanelConsoleMode {
 
     const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
     const sessionName = `ai-panel-${inst.id}`;
-    const url = `${proto}//${window.location.host}/ws/console/terminal/?project_id=0&session=${encodeURIComponent(sessionName)}`;
+    const projectId =
+      document.querySelector<HTMLElement>(".project-selector-btn")?.dataset
+        .activeProjectId || "0";
+    const url = `${proto}//${window.location.host}/ws/console/terminal/?project_id=${projectId}&session=${encodeURIComponent(sessionName)}`;
 
     inst.ws = new WebSocket(url);
 
