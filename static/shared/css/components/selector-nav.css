@@ -132,6 +132,7 @@
     --module-accent-color,
     var(--workspace-icon-primary, #059669)
   );
+  z-index: 2; /* Above adjacent panel-resizer (z-index:1) */
 }
 
 /* Right indicator */
@@ -147,6 +148,7 @@
     --module-accent-color,
     var(--workspace-icon-primary, #059669)
   );
+  z-index: 2; /* Above adjacent panel-resizer (z-index:1) */
 }
 
 /* ===========================================================================
