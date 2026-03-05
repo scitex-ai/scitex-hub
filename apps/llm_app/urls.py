@@ -76,6 +76,17 @@ urlpatterns = [
         views.api_session_add_message,
         name="api_session_add_message",
     ),
+    # Shared session (public, no auth)
+    path(
+        "shared/<uuid:token>/",
+        views.shared_session_page,
+        name="shared_session",
+    ),
+    path(
+        "api/shared/<uuid:token>/",
+        views.api_shared_session,
+        name="api_shared_session",
+    ),
     # Usage dashboard
     path("usage/", views.usage_dashboard, name="usage_dashboard"),
     path("api/usage/limits/", views.api_save_limits, name="api_save_limits"),

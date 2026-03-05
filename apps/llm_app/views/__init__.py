@@ -21,6 +21,8 @@ from apps.llm_app.views.sessions import (
     api_session_detail,
     api_session_messages,
     api_sessions,
+    api_shared_session,
+    shared_session_page,
 )
 from apps.llm_app.views.skills import api_agent_context, api_get_skill, api_list_skills
 from apps.llm_app.views.stt import api_stt, api_stt_models
@@ -58,4 +60,6 @@ __all__ = [
     "api_session_detail",
     "api_session_messages",
     "api_session_add_message",
+    "api_shared_session",
+    "shared_session_page",
 ]

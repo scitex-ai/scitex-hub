@@ -185,6 +185,12 @@ class GlobalAIChat {
         () => this.chatMode?.clearChat(),
       );
       this.chatMode.setSessionsPanel(this.sessionsPanel);
+      document
+        .querySelector(".scitex-ai-share-btn")
+        ?.addEventListener(
+          "click",
+          () => void this.sessionsPanel?.toggleShare(),
+        );
     }
 
     // Copy & clear chat buttons
@@ -364,7 +370,9 @@ class GlobalAIChat {
 
   /* ── Agent Sources (delegated to config-mode.ts) ─────────── */
 
-  private async populateAgentSources(id = "ai-agent-sources-content"): Promise<void> {
+  private async populateAgentSources(
+    id = "ai-agent-sources-content",
+  ): Promise<void> {
     const container = document.getElementById(id);
     if (!container) return;
     if (!this.configMode) this.configMode = new AIPanelConfigMode();

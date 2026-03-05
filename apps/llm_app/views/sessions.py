@@ -4,6 +4,7 @@ import json
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
 
 from apps.llm_app.models import ChatMessage, ChatSession
@@ -13,6 +14,8 @@ def _session_to_dict(session, include_count=True):
     d = {
         "id": session.id,
         "title": session.title,
+        "share_token": str(session.share_token),
+        "is_shared": session.is_shared,
         "created_at": session.created_at.isoformat(),
         "updated_at": session.updated_at.isoformat(),
         "is_archived": session.is_archived,
@@ -79,6 +82,9 @@ def api_session_detail(request, session_id):
         if "is_archived" in body:
             session.is_archived = bool(body["is_archived"])
             fields.append("is_archived")
+        if "is_shared" in body:
+            session.is_shared = bool(body["is_shared"])
+            fields.append("is_shared")
         if fields:
             session.save(update_fields=fields + ["updated_at"])
         return JsonResponse(_session_to_dict(session))
@@ -147,3 +153,44 @@ def api_session_add_message(request, session_id):
         session.save(update_fields=["updated_at"])
 
     return JsonResponse({"id": msg.id, "created_at": msg.created_at.isoformat()})
+
+
+# --- Public shared session endpoints (no auth required) ---
+
+
+@require_http_methods(["GET"])
+def api_shared_session(request, token):
+    """Public read-only API for a shared chat session."""
+    session = get_object_or_404(ChatSession, share_token=token, is_shared=True)
+    messages = list(
+        session.messages.all().values(
+            "role", "text", "tools_used", "media", "created_at"
+        )
+    )
+    return JsonResponse(
+        {
+            "title": session.title,
+            "owner": session.user.username,
+            "created_at": session.created_at.isoformat(),
+            "messages": messages,
+        }
+    )
+
+
+@require_http_methods(["GET"])
+def shared_session_page(request, token):
+    """Public read-only HTML page for a shared chat session."""
+    session = get_object_or_404(ChatSession, share_token=token, is_shared=True)
+    messages = list(
+        session.messages.all().values(
+            "role", "text", "tools_used", "media", "created_at"
+        )
+    )
+    return render(
+        request,
+        "llm_app/shared_session.html",
+        {
+            "session": session,
+            "messages": messages,
+        },
+    )

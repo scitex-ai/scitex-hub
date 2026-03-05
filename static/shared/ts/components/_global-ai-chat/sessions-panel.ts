@@ -1,13 +1,15 @@
 /**
  * Sessions Panel for AI Chat
  *
- * Manages chat sessions: list, create, rename, delete, switch.
+ * Manages chat sessions: list, create, rename, delete, switch, share.
  * Renders as a horizontal bar of session chips above the messages area.
  */
 
 interface Session {
   id: number;
   title: string;
+  share_token: string;
+  is_shared: boolean;
   updated_at: string;
   message_count?: number;
   preview?: string;
@@ -31,21 +33,27 @@ function getCsrf(): string {
 
 export class SessionsPanel {
   currentSessionId: number | null = null;
+  private sessions: Session[] = [];
   private listEl: HTMLElement | null = null;
   private chatCounter = 0;
+  private contextMenu: HTMLElement | null = null;
   private onSwitch:
     | ((messages: SessionMessage[], sessionId: number) => void)
     | null = null;
   private onClear: (() => void) | null = null;
+  private onShareChange: ((isShared: boolean, url: string) => void) | null =
+    null;
 
   init(
     listEl: HTMLElement,
     onSwitch: (messages: SessionMessage[], sessionId: number) => void,
     onClear: () => void,
+    onShareChange?: (isShared: boolean, url: string) => void,
   ): void {
     this.listEl = listEl;
     this.onSwitch = onSwitch;
     this.onClear = onClear;
+    this.onShareChange = onShareChange || null;
 
     // New chat button
     const newBtn = document.querySelector<HTMLButtonElement>(
@@ -57,6 +65,9 @@ export class SessionsPanel {
     const saved = sessionStorage.getItem("scitex_ai_session_id");
     if (saved) this.currentSessionId = parseInt(saved, 10);
 
+    // Dismiss context menu on click-outside
+    document.addEventListener("click", () => this.dismissContextMenu());
+
     void this.loadSessions();
   }
 
@@ -65,6 +76,7 @@ export class SessionsPanel {
       const resp = await fetch("/llm/api/sessions/");
       if (!resp.ok) return;
       const data = (await resp.json()) as { sessions: Session[] };
+      this.sessions = data.sessions;
       this.render(data.sessions);
       // Auto-create C1 if no sessions exist (like T1 for console)
       if (data.sessions.length === 0) {
@@ -109,6 +121,7 @@ export class SessionsPanel {
       sessionStorage.setItem("scitex_ai_session_id", String(id));
       this.onSwitch?.(data.messages, id);
       this.highlightActive();
+      this.updateShareButton();
     } catch {
       /* silent */
     }
@@ -147,10 +160,63 @@ export class SessionsPanel {
     sessionStorage.removeItem("scitex_ai_session_id");
     this.onClear?.();
     this.highlightActive();
+    this.updateShareButton();
   }
 
   getSessionId(): number | null {
     return this.currentSessionId;
+  }
+
+  /** Toggle sharing for the current session (called from share button) */
+  async toggleShare(): Promise<void> {
+    const s = this.getCurrentSession();
+    if (!s) return;
+    await this.setShared(s.id, !s.is_shared, s.share_token);
+  }
+
+  private getCurrentSession(): Session | null {
+    if (!this.currentSessionId) return null;
+    return this.sessions.find((s) => s.id === this.currentSessionId) || null;
+  }
+
+  private async setShared(
+    id: number,
+    shared: boolean,
+    token: string,
+  ): Promise<void> {
+    try {
+      await fetch(`/llm/api/sessions/${id}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCsrf(),
+        },
+        body: JSON.stringify({ is_shared: shared }),
+      });
+      // Update local state
+      const s = this.sessions.find((sess) => sess.id === id);
+      if (s) s.is_shared = shared;
+
+      const url = `${window.location.origin}/llm/shared/${token}/`;
+      if (shared) {
+        await navigator.clipboard.writeText(url);
+      }
+      this.onShareChange?.(shared, url);
+      this.updateShareButton();
+      void this.loadSessions();
+    } catch {
+      /* silent */
+    }
+  }
+
+  private updateShareButton(): void {
+    const btn = document.querySelector<HTMLButtonElement>(
+      ".scitex-ai-share-btn",
+    );
+    if (!btn) return;
+    const s = this.getCurrentSession();
+    btn.classList.toggle("active", !!s?.is_shared);
+    btn.title = s?.is_shared ? "Unshare conversation" : "Share conversation";
   }
 
   private render(sessions: Session[]): void {
@@ -164,10 +230,11 @@ export class SessionsPanel {
       const chip = document.createElement("div");
       chip.className = "scitex-ai-session-item";
       if (s.id === this.currentSessionId) chip.classList.add("active");
+      if (s.is_shared) chip.classList.add("shared");
       chip.dataset.sessionId = String(s.id);
 
-      // Tooltip: show first sentence of conversation (or title if no messages)
-      chip.title = s.preview || s.title;
+      // Tooltip: show UUID (share_token)
+      chip.title = s.share_token;
 
       const title = document.createElement("span");
       title.className = "scitex-ai-session-title";
@@ -189,7 +256,71 @@ export class SessionsPanel {
       chip.appendChild(title);
       chip.appendChild(del);
       chip.addEventListener("click", () => void this.switchSession(s.id));
+
+      // Right-click context menu
+      chip.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.showContextMenu(e, s);
+      });
+
       this.listEl.appendChild(chip);
+    }
+
+    this.updateShareButton();
+  }
+
+  private showContextMenu(e: MouseEvent, s: Session): void {
+    this.dismissContextMenu();
+
+    const menu = document.createElement("div");
+    menu.className = "scitex-ai-context-menu";
+    menu.style.left = `${e.clientX}px`;
+    menu.style.top = `${e.clientY}px`;
+
+    const items: Array<{ label: string; icon: string; action: () => void }> = [
+      {
+        label: s.is_shared ? "Unshare" : "Share",
+        icon: s.is_shared ? "fas fa-lock" : "fas fa-share-alt",
+        action: () => void this.setShared(s.id, !s.is_shared, s.share_token),
+      },
+      {
+        label: "Rename",
+        icon: "fas fa-pen",
+        action: () => {
+          const chip = this.listEl?.querySelector(
+            `[data-session-id="${s.id}"]`,
+          ) as HTMLElement;
+          if (chip) this.startRename(chip, s.id, s.title);
+        },
+      },
+      {
+        label: "Delete",
+        icon: "fas fa-trash",
+        action: () => void this.deleteSession(s.id),
+      },
+    ];
+
+    for (const item of items) {
+      const el = document.createElement("div");
+      el.className = "scitex-ai-context-menu-item";
+      el.innerHTML = `<i class="${item.icon}"></i> ${item.label}`;
+      el.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        this.dismissContextMenu();
+        item.action();
+      });
+      menu.appendChild(el);
+    }
+
+    document.body.appendChild(menu);
+    this.contextMenu = menu;
+  }
+
+  private dismissContextMenu(): void {
+    if (this.contextMenu) {
+      this.contextMenu.remove();
+      this.contextMenu = null;
     }
   }
 
