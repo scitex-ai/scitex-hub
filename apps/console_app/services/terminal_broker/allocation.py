@@ -1,6 +1,7 @@
-"""Shared SLURM allocation — one sbatch job per (user, project).
+"""Shared SLURM allocation — exactly one sbatch job per user.
 
 Multiple terminal shells attach via ``srun --overlap --jobid=X``.
+Before submitting sbatch, checks squeue for existing jobs to avoid duplicates.
 """
 
 import enum
@@ -57,6 +58,9 @@ class Allocation:
         3. stop() — stops instance, cancels job.
     """
 
+    # Job name format: exactly one per user
+    JOB_NAME_PREFIX = "scitex-cloud-terminal"
+
     def __init__(
         self,
         username: str,
@@ -79,6 +83,90 @@ class Allocation:
         self.shell_count: int = 0
         self._script_path: Optional[str] = None
         self.started_at: Optional[float] = None
+
+    @staticmethod
+    def find_existing_jobs(username: str) -> list[str]:
+        """Query squeue for existing terminal jobs for this user.
+
+        Returns list of SLURM job IDs (RUNNING or PENDING).
+        """
+        job_name = f"{Allocation.JOB_NAME_PREFIX}-{username}"
+        try:
+            result = subprocess.run(
+                [
+                    "squeue",
+                    f"--name={job_name}",
+                    "--noheader",
+                    "--format=%i",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            job_ids = [
+                jid.strip() for jid in result.stdout.strip().split("\n") if jid.strip()
+            ]
+            return job_ids
+        except Exception as e:
+            logger.error(f"Failed to query squeue for {job_name}: {e}")
+            return []
+
+    def attach_to_existing(self, job_id: str) -> bool:
+        """Attach to an existing SLURM job instead of submitting new sbatch.
+
+        Returns True if the job is RUNNING and instance is ready.
+        """
+        self.state = AllocationState.STARTING
+        self.job_id = job_id
+        logger.info(
+            f"Allocation {self.allocation_id[:8]}: attaching to "
+            f"existing job {job_id} for {self.username}"
+        )
+
+        # Check job is RUNNING (not just PENDING)
+        try:
+            result = subprocess.run(
+                ["squeue", "--job", job_id, "--noheader", "--format=%T"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            state = result.stdout.strip()
+            if state == "PENDING":
+                # Wait for it to start
+                if not self._wait_for_running():
+                    self.state = AllocationState.DEAD
+                    return False
+            elif state != "RUNNING":
+                logger.error(
+                    f"Allocation {self.allocation_id[:8]}: "
+                    f"job {job_id} in unexpected state: {state}"
+                )
+                self.state = AllocationState.DEAD
+                return False
+        except Exception as e:
+            logger.error(
+                f"Allocation {self.allocation_id[:8]}: squeue check failed: {e}"
+            )
+            self.state = AllocationState.DEAD
+            return False
+
+        # Verify apptainer instance is ready
+        if not self._wait_for_instance():
+            logger.error(
+                f"Allocation {self.allocation_id[:8]}: "
+                f"instance {self.instance_name} not ready in existing job {job_id}"
+            )
+            self.state = AllocationState.DEAD
+            return False
+
+        self.state = AllocationState.READY
+        self.started_at = time.time()
+        logger.info(
+            f"Allocation {self.allocation_id[:8]}: attached to existing "
+            f"job={job_id}, instance={self.instance_name}"
+        )
+        return True
 
     def start(self) -> bool:
         """Submit sbatch job and wait for allocation + instance to be ready.

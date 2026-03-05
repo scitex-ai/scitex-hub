@@ -8,6 +8,7 @@ shared state (allocations, shells, indexes).
 import base64
 import logging
 import socket
+import subprocess
 import threading
 import time
 import uuid
@@ -95,9 +96,37 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
         )
         send_state(broker, client, "", "allocation_starting")
 
-        if not alloc.start():
+        # Check squeue for existing jobs before submitting new sbatch
+        existing_jobs = Allocation.find_existing_jobs(username)
+        if len(existing_jobs) > 1:
+            logger.error(
+                f"Multiple SLURM terminal jobs for {username}: {existing_jobs}. "
+                f"This should not happen — cancelling extras."
+            )
+            # Cancel all but the first, then attach to the first
+            for extra_jid in existing_jobs[1:]:
+                try:
+                    subprocess.run(
+                        ["scancel", extra_jid], capture_output=True, timeout=5
+                    )
+                except Exception:
+                    pass
+
+        if existing_jobs:
+            # Attach to existing job instead of creating duplicate
+            logger.info(
+                f"Found existing SLURM job {existing_jobs[0]} for {username}, attaching"
+            )
+            if not alloc.attach_to_existing(existing_jobs[0]):
+                _alloc_fail_times[alloc_key] = time.time()
+                return {
+                    "status": "error",
+                    "error": "Failed to attach to existing environment",
+                }
+        elif not alloc.start():
             _alloc_fail_times[alloc_key] = time.time()
             return {"status": "error", "error": "Failed to start computing environment"}
+
         with broker.lock:
             broker.allocations[alloc.allocation_id] = alloc
             broker.alloc_index[alloc_key] = alloc.allocation_id
@@ -287,7 +316,14 @@ def _auto_recover_allocation(
         time_limit_seconds=old_alloc.time_limit_seconds,
     )
 
-    if not new_alloc.start():
+    # Check squeue for existing jobs before submitting new sbatch
+    existing_jobs = Allocation.find_existing_jobs(old_alloc.username)
+    if existing_jobs:
+        started = new_alloc.attach_to_existing(existing_jobs[0])
+    else:
+        started = new_alloc.start()
+
+    if not started:
         _alloc_fail_times[alloc_key] = time.time()
         send_state(
             broker,
