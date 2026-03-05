@@ -221,6 +221,13 @@ class UserProfile(models.Model):
         help_text="MCP tool group toggles: {GROUP_NAME: bool}",
     )
 
+    # Auto-response preferences for Claude Code CLI prompt automation
+    auto_response_preferences = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Auto-response config: {y_n, y_y_n, waiting, suggestion}",
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -5,10 +5,6 @@
 
 import type { IconOptions } from "./global";
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/shared/icons.ts loaded",
-);
-
 (function () {
   "use strict";
 

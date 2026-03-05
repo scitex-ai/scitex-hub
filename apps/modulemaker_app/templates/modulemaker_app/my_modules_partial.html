@@ -90,13 +90,13 @@
                         </a>
                         {% if mod.source_repo_url %}
                             <button class="btn btn-sm btn-outline usermod-sync-btn"
-                                    data-slug="{{ mod.slug }}"
+                                    data-module-slug="{{ mod.slug }}"
                                     title="Sync from repository">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
                         {% endif %}
                         <button class="btn btn-sm btn-outline btn-danger usermod-delete-btn"
-                                data-slug="{{ mod.slug }}"
+                                data-module-slug="{{ mod.slug }}"
                                 title="Delete module">
                             <i class="fas fa-trash"></i>
                         </button>
@@ -175,7 +175,7 @@
     // Sync buttons
     document.querySelectorAll('.usermod-sync-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
-            const slug = btn.dataset.slug;
+            const slug = btn.dataset.moduleSlug;
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             try {

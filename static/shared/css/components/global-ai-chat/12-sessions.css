@@ -119,3 +119,70 @@
 .scitex-ai-session-del:hover {
   color: #cf222e;
 }
+
+/* Shared indicator on session chip */
+.scitex-ai-session-item.shared .scitex-ai-session-title::before {
+  content: "\f064"; /* fa-share */
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  font-size: 0.5rem;
+  margin-right: 0.25rem;
+  opacity: 0.6;
+}
+
+/* Share button */
+.scitex-ai-share-btn {
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text-muted, #8b949e);
+  cursor: pointer;
+  font-size: 0.6875rem;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.scitex-ai-share-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.scitex-ai-share-btn.active {
+  color: var(--accent-primary, #3b82f6);
+  border-color: var(--accent-primary, #3b82f6);
+}
+
+/* Right-click context menu */
+.scitex-ai-context-menu {
+  position: fixed;
+  z-index: 10000;
+  background: var(--bg-secondary, #161b22);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 6px;
+  padding: 0.25rem 0;
+  min-width: 120px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.scitex-ai-context-menu-item {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-primary, #c9d1d9);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.scitex-ai-context-menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.scitex-ai-context-menu-item i {
+  width: 16px;
+  text-align: center;
+  margin-right: 0.35rem;
+  font-size: 0.65rem;
+  opacity: 0.7;
+}

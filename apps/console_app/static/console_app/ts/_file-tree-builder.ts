@@ -4,7 +4,6 @@
  * Includes file type icons for better visual identification
  */
 
-console.log("[DEBUG] apps/console_app/static/console_app/ts/file-tree-builder.ts loaded");
 
 interface TreeItem {
   name: string;

@@ -5,7 +5,6 @@
 
 import { fetchCitations } from "./CitationUtils";
 
-console.log("[DEBUG] CitationHover.ts loaded");
 
 /**
  * Register citation hover provider

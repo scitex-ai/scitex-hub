@@ -4,7 +4,6 @@
  * Provides PDF download functionality with status badges and
  * integration with the search results UI.
  */
-console.log("[DEBUG] apps/scholar_app/static/scholar_app/ts/search/pdf-download.ts loaded");
 /**
  * PDF Download Manager
  */

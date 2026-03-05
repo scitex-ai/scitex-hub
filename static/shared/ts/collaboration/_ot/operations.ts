@@ -7,7 +7,6 @@
  * @author SciTeX Development Team
  */
 
-console.log("[DEBUG] OT Operations library loaded");
 
 // ============================================================================
 // OT Operation Types

@@ -1,10 +1,6 @@
 // Security Scan Button Handler
 // Triggers a security scan via AJAX and displays results
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/security/scan.ts loaded",
-);
-
 (function () {
   "use strict";
 

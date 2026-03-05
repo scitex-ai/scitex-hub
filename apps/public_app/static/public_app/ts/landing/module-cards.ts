@@ -15,9 +15,6 @@
  * Original location: static/js-potentially-legacy/module-cards.js
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/landing/module-cards.ts loaded",
-);
 console.log("Module cards script loaded (functionality currently disabled)");
 
 // Export empty object to make this a valid module

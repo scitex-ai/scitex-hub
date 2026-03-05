@@ -1,0 +1,325 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}AI Chat — SciTeX Documentation{% endblock %}
+{% block content %}
+    <div class="container py-5" style="max-width: 900px">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'docs_app:index' %}">Documentation</a>
+                </li>
+                <li class="breadcrumb-item active">AI Chat</li>
+            </ol>
+        </nav>
+        <h1 class="mb-4">
+            <i class="fas fa-robot me-2"></i>AI Chat
+        </h1>
+        <p class="lead text-muted mb-5">
+            Multi-session AI chat with MCP tool integration, voice input, and shareable conversations.
+        </p>
+        <!-- Sessions -->
+        <span id="sessions"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-comments"></i> Chat Sessions
+            </h2>
+            <p>
+                Chat sessions are stored server-side and persist across browser reloads.
+                Each session has a <strong>UUID</strong> (shown as tooltip on the session chip)
+                and a user-editable title.
+            </p>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Action</th>
+                        <th>Behavior</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <i class="fas fa-plus"></i> New chat
+                        </td>
+                        <td>Creates a new session (C1, C2&hellip;)</td>
+                    </tr>
+                    <tr>
+                        <td>Click session chip</td>
+                        <td>Switches to that session, loads message history</td>
+                    </tr>
+                    <tr>
+                        <td>Double-click chip</td>
+                        <td>Inline rename the session title</td>
+                    </tr>
+                    <tr>
+                        <td>Hover chip</td>
+                        <td>Tooltip shows session UUID (share token)</td>
+                    </tr>
+                    <tr>
+                        <td>Right-click chip</td>
+                        <td>Context menu: Share / Rename / Delete</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <i class="fas fa-times"></i> on chip
+                        </td>
+                        <td>Delete the session (visible on hover)</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h4 class="mt-4">Auto-Creation</h4>
+            <p>
+                If no sessions exist, <strong>C1</strong> is automatically created
+                on page load. The last active session is restored from
+                <code>sessionStorage</code>.
+            </p>
+        </section>
+        <!-- Sharing -->
+        <span id="sharing"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-share-alt"></i> Conversation Sharing
+            </h2>
+            <p>
+                Chat sessions can be shared as <strong>read-only public URLs</strong>.
+                No authentication is required to view a shared conversation.
+            </p>
+            <h4 class="mt-4">How to Share</h4>
+            <p>There are two ways to share a conversation:</p>
+            <ul>
+                <li>
+                    <strong>Share button</strong> (<i class="fas fa-share-alt"></i>) &mdash;
+                    in the sessions bar, toggles sharing for the current session
+                </li>
+                <li>
+                    <strong>Right-click &rarr; Share</strong> &mdash;
+                    context menu on any session chip
+                </li>
+            </ul>
+            <p>
+                When sharing is enabled, the share URL is automatically
+                <strong>copied to clipboard</strong>.
+            </p>
+            <h4 class="mt-4">Share URL Format</h4>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code>https://&lt;host&gt;/llm/shared/&lt;uuid&gt;/</code></pre>
+                </div>
+            </div>
+            <h4 class="mt-4">Security Model</h4>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Property</th>
+                        <th>Detail</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Access control</td>
+                        <td>UUID token &mdash; unguessable, no auth required</td>
+                    </tr>
+                    <tr>
+                        <td>Permissions</td>
+                        <td>
+                            <strong>Read-only</strong> &mdash; no editing, no input
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Opt-in</td>
+                        <td>
+                            <code>is_shared</code> must be explicitly enabled;
+                            URL returns 404 when sharing is off
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Revocation</td>
+                        <td>Toggle share off &rarr; URL immediately returns 404</td>
+                    </tr>
+                    <tr>
+                        <td>Shared indicator</td>
+                        <td>
+                            <i class="fas fa-share"></i> icon on session chip when shared
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <h4 class="mt-4">Shared View</h4>
+            <p>
+                The read-only page displays the session title, owner username,
+                date, and all messages rendered as chat bubbles. No input controls
+                are shown.
+            </p>
+        </section>
+        <!-- Features -->
+        <span id="features"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-cogs"></i> Features
+            </h2>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Feature</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>LLM Model Selection</td>
+                        <td>Choose from configured providers via gear menu</td>
+                    </tr>
+                    <tr>
+                        <td>MCP Tool Integration</td>
+                        <td>AI can use SciTeX tools (stats, plots, scholar, etc.)</td>
+                    </tr>
+                    <tr>
+                        <td>Voice Input</td>
+                        <td>
+                            Microphone button with STT model selection and
+                            volume visualizer
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Image Attachment</td>
+                        <td>Camera capture, file upload, or sketch pad</td>
+                    </tr>
+                    <tr>
+                        <td>Markdown Rendering</td>
+                        <td>Code blocks, tables, lists, inline formatting</td>
+                    </tr>
+                    <tr>
+                        <td>Copy / Print</td>
+                        <td>Export entire conversation as text or print</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- API -->
+        <span id="api"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-plug"></i> API Endpoints
+            </h2>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Endpoint</th>
+                        <th>Method</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>/llm/api/sessions/</code>
+                        </td>
+                        <td>GET</td>
+                        <td>List all sessions for current user</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>/llm/api/sessions/</code>
+                        </td>
+                        <td>POST</td>
+                        <td>Create a new session</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>/llm/api/sessions/&lt;id&gt;/</code>
+                        </td>
+                        <td>PATCH</td>
+                        <td>
+                            Update title or <code>is_shared</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>/llm/api/sessions/&lt;id&gt;/</code>
+                        </td>
+                        <td>DELETE</td>
+                        <td>Delete a session</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>/llm/api/sessions/&lt;id&gt;/messages/</code>
+                        </td>
+                        <td>GET</td>
+                        <td>Get all messages in a session</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>/llm/api/sessions/&lt;id&gt;/messages/add/</code>
+                        </td>
+                        <td>POST</td>
+                        <td>Add a message to a session</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>/llm/shared/&lt;uuid&gt;/</code>
+                        </td>
+                        <td>GET</td>
+                        <td>Read-only shared view (no auth)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>/llm/api/shared/&lt;uuid&gt;/</code>
+                        </td>
+                        <td>GET</td>
+                        <td>Shared session JSON (no auth)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- Source Code -->
+        <span id="source-code"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-code"></i> Source Code
+            </h2>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>File</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>apps/llm_app/models.py</code>
+                        </td>
+                        <td>
+                            <code>ChatSession</code>, <code>ChatMessage</code> models
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>apps/llm_app/views/sessions.py</code>
+                        </td>
+                        <td>Session CRUD + shared session views</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>static/shared/ts/global-ai-chat.ts</code>
+                        </td>
+                        <td>Main chat panel orchestrator</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>static/shared/ts/components/_global-ai-chat/sessions-panel.ts</code>
+                        </td>
+                        <td>Session chips, context menu, sharing</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>static/shared/ts/components/_global-ai-chat/chat-mode.ts</code>
+                        </td>
+                        <td>Message rendering, LLM streaming</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+{% endblock %}

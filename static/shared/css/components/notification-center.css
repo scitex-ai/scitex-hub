@@ -1,0 +1,125 @@
+/**
+ * Notification Center Styles
+ * Bell icon badge + dropdown panel in global header
+ */
+
+/* Badge on bell icon */
+.notification-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  border: 2px solid var(--bg-page, #0d1117);
+}
+
+/* Dropdown panel */
+.notification-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 340px;
+  max-height: 400px;
+  background: var(--bg-overlay, #161b22);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.notification-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #e6edf3);
+  border-bottom: 1px solid var(--border-default, #30363d);
+}
+
+.notification-clear-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted, #7d8590);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.notification-clear-btn:hover {
+  color: var(--text-primary, #e6edf3);
+  background: var(--bg-muted, #21262d);
+}
+
+/* Issue list */
+.notification-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.notification-empty {
+  padding: 20px 14px;
+  text-align: center;
+  color: var(--text-muted, #7d8590);
+  font-size: 13px;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border-muted, #21262d);
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.notification-service {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: var(--text-primary, #e6edf3);
+  min-width: 70px;
+}
+
+.notification-message {
+  color: var(--text-muted, #7d8590);
+  word-break: break-word;
+}
+
+/* Footer link */
+.notification-footer {
+  display: block;
+  padding: 8px 14px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--color-accent-fg, #58a6ff);
+  text-decoration: none;
+  border-top: 1px solid var(--border-default, #30363d);
+}
+
+.notification-footer:hover {
+  background: var(--bg-muted, #21262d);
+}

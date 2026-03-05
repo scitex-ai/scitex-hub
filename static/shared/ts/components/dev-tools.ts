@@ -71,7 +71,7 @@ async function visitorPoolAction(
           icon.style.color = "#ef4444";
         }
       }
-      alert(`Failed: ${data.error || "Unknown error"}`);
+      alert(`Failed: ${data.error || data.message || "Unknown error"}`);
     }
   } catch (error) {
     console.error(`Dev tool action failed (${url}):`, error);
@@ -131,7 +131,19 @@ async function freeVisitorSlots(): Promise<void> {
   );
 }
 
+// Cancel all SLURM jobs (Dev only)
+async function cancelAllJobs(): Promise<void> {
+  if (!confirm("Cancel ALL SLURM jobs?")) return;
+  await visitorPoolAction(
+    "cancel-all-jobs-btn",
+    "/dev/api/cancel-all-jobs/",
+    "fa-ban",
+    (data) => `Jobs Cancelled!\n\n${data.message}`,
+  );
+}
+
 // Make functions available globally for onclick handlers in footer
 (window as any).initVisitorPool = initVisitorPool;
 (window as any).fillVisitorSlots = fillVisitorSlots;
 (window as any).freeVisitorSlots = freeVisitorSlots;
+(window as any).cancelAllJobs = cancelAllJobs;

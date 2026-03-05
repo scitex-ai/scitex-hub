@@ -10,9 +10,6 @@
 
 // State
 
-console.log(
-  "[DEBUG] apps/scholar_app/static/scholar_app/ts/search/drag-sort.ts loaded",
-);
 let draggedItem: HTMLElement | null = null;
 let dragStartIndex: number = -1;
 let dragPlaceholder: HTMLElement | null = null;

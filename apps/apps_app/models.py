@@ -270,4 +270,41 @@ class ModuleReview(models.Model):
         )
 
 
+class DevInstallation(models.Model):
+    """Per-user dev install of a Hub repo as a workspace app (no approval needed).
+
+    Users can install any app repo from the Hub into their workspace.
+    Dev apps are personal — only visible to the user who installed them.
+    To appear on the public Apps page, an app must go through the PR pipeline.
+    """
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="dev_installations"
+    )
+    source_owner = models.CharField(
+        max_length=150, help_text="Gitea username of repo owner"
+    )
+    source_repo = models.CharField(max_length=200, help_text="Gitea repo slug")
+    module_name = models.CharField(max_length=100, help_text="dev__<owner>__<repo>")
+    label = models.CharField(max_length=100, blank=True)
+    icon = models.CharField(max_length=100, default="fas fa-puzzle-piece")
+    description = models.CharField(max_length=500, blank=True)
+    is_enabled = models.BooleanField(default=True)
+    tab_order = models.IntegerField(default=95)
+    installed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "marketplace_app_devinstallation"
+        unique_together = ("user", "source_owner", "source_repo")
+        ordering = ["tab_order"]
+        verbose_name = "Dev Installation"
+
+    def __str__(self):
+        return f"{self.user.username} → {self.source_owner}/{self.source_repo}"
+
+    def get_module_name(self):
+        """Unique module name scoped to avoid collision with published apps."""
+        return f"dev__{self.source_owner}__{self.source_repo}"
+
+
 # EOF

@@ -5,10 +5,6 @@
  * Core logic lives in pdf-download-manager.ts.
  */
 
-console.log(
-  "[DEBUG] apps/scholar_app/static/scholar_app/ts/search/pdf-download.ts loaded",
-);
-
 import { PDFDownloadManager } from "./_pdf-download-manager";
 
 // Create singleton instance

@@ -161,5 +161,3 @@ declare global {
 
 window.saveToProject = saveToProject;
 window.copyCitation = copyCitation;
-
-console.log("[DEBUG] paper-actions.ts loaded");

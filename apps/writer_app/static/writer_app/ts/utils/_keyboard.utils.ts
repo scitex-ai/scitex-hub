@@ -2,9 +2,6 @@
  * Keyboard event utilities
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/utils/keyboard.utils.ts loaded",
-);
 export interface KeyboardShortcut {
   key: string;
   ctrl?: boolean;

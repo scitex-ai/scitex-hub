@@ -13,9 +13,6 @@
 
 // @ts-ignore - ScitexSeekbar library types
 
-console.log(
-  "[DEBUG] apps/scholar_app/static/scholar_app/ts/search/seekbar-integration.ts loaded",
-);
 declare const ScitexSeekbar: any;
 
 /**

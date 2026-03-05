@@ -3,7 +3,6 @@
  * Automatically detects file paths in terminal output and converts them to clickable links
  */
 
-console.log("[DEBUG] apps/console_app/static/console_app/ts/path-linker.ts loaded");
 
 interface PathMatch {
   text: string;      // Full matched text: "Saved to: ./path/file.jpg"

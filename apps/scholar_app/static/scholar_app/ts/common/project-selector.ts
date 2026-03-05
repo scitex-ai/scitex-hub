@@ -4,9 +4,6 @@
  * Manages project selection and persists the selection in sessionStorage
  */
 
-console.log(
-  "[DEBUG] apps/scholar_app/static/scholar_app/ts/common/project-selector.ts loaded",
-);
 function initProjectSelector(): void {
   const projectSelector = document.getElementById(
     "project-selector",

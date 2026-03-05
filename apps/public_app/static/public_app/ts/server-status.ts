@@ -13,7 +13,6 @@
 import { updateMetrics } from './_server-status/metrics-updater';
 import { updateVisitorCountdowns } from './_server-status/visitor-countdown';
 
-console.log('[DEBUG] server-status.ts loaded');
 
 // State
 let currentTimeSpanMinutes = 60;

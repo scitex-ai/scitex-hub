@@ -32,8 +32,8 @@ export async function setupFilesTree(
     const filesTree = new WorkspaceFilesTree({
       mode: "vis",
       containerId: "files-tree",
-      username: projectOwner,
-      slug: projectSlug,
+      ownerUsername: projectOwner,
+      projectSlug: projectSlug,
       showFolderActions: true,
       showGitStatus: true,
       onFileSelect: async (path: string) => {

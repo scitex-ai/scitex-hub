@@ -111,10 +111,6 @@ import {
   switchRightPanel,
 } from "./utils/index";
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/index.ts loaded",
-);
-
 // Import and initialize editor loader (must happen before DOMContentLoaded)
 import { editorLoader } from "./loaders/editor-loader";
 

@@ -3,7 +3,6 @@
  * Handles table HTML generation and rendering
  */
 
-console.log("[DEBUG] table-preview-modal/table-renderer.ts loaded");
 
 import { TableData } from "./types";
 import { TableStateManager } from "./table-state";

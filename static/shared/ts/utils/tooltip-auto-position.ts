@@ -16,12 +16,5 @@
 // The core tooltip functionality is handled entirely by CSS in common/tooltips.css
 // No JavaScript needed for the default bottom position!
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/utils/tooltip-auto-position.ts loaded",
-);
-console.log(
-  "Tooltip system loaded. Tooltips appear below elements by default.",
-);
-
 // Export empty object to make this a valid module
 export {};

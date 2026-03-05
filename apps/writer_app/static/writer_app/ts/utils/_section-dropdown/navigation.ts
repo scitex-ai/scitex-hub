@@ -3,10 +3,6 @@
  * Handles document type switching and section navigation
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/utils/_section-dropdown/navigation.ts loaded",
-);
-
 /**
  * Handle document type switch - navigates to first section of new doc type
  *

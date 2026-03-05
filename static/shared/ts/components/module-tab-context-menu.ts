@@ -1,7 +1,7 @@
 /**
  * Module Tab Context Menu — right-click on module tabs or apps nav to manage them.
  *
- * Actions: Disable, Uninstall, Accent Color, View in Apps.
+ * Actions: Disable, Uninstall, Accent Color, View in Apps, View in Hub.
  * Uses existing apps API endpoints.
  */
 
@@ -89,6 +89,14 @@ function showMenu(x: number, y: number, moduleName: string): void {
       cls: "",
       action: () => {
         window.location.href = `/apps/${moduleName}/`;
+      },
+    },
+    {
+      label: "View in Hub",
+      icon: "fa-code-branch",
+      cls: "",
+      action: () => {
+        window.location.href = `/hub/#browse/${moduleName}`;
       },
     },
   ];

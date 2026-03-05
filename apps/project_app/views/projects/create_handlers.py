@@ -189,7 +189,7 @@ def handle_app_template_creation(request, project, manager):
 
     # Scaffold complete app boilerplate via app_tools
     app_name = project.slug.replace("-", "_")
-    if not app_name.endswith("_app"):
+    if not (app_name.endswith("_app") or app_name.endswith("-app")):
         app_name = f"{app_name}_app"
 
     try:
@@ -209,6 +209,11 @@ def handle_app_template_creation(request, project, manager):
             f"Project created but scaffold incomplete: {e}",
         )
         return True
+
+    # Mark as app project from creation (not just at submission)
+    project.is_app = True
+    project.app_status = "draft"
+    project.save(update_fields=["is_app", "app_status"])
 
     messages.success(
         request,

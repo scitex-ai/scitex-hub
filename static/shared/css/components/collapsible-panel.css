@@ -69,7 +69,7 @@
   font-size: 9px;
   font-weight: 500;
   color: var(--text-secondary, #8ba7b8);
-  margin: 8px 0 0;
+  margin: 4px 0 0;
   white-space: nowrap;
   line-height: 1;
 }
@@ -361,7 +361,7 @@
   font-size: 9px;
   font-weight: 500;
   color: var(--text-secondary, #8ba7b8);
-  margin: 8px 0 0;
+  margin: 4px 0 0;
   white-space: nowrap;
   line-height: 1;
 }
@@ -431,7 +431,7 @@
   font-size: 9px;
   font-weight: 500;
   color: var(--text-secondary, #8ba7b8);
-  margin: 8px 0 0;
+  margin: 4px 0 0;
   white-space: nowrap;
   line-height: 1;
 }

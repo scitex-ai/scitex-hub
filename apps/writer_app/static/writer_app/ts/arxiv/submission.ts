@@ -3,9 +3,6 @@
  * Corresponds to: templates/writer_app/arxiv/submission.html
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/arxiv/submission.ts loaded",
-);
 class ArxivSubmissionPage {
   private form: HTMLFormElement | null;
 

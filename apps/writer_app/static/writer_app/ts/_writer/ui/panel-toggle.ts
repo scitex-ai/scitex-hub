@@ -7,10 +7,6 @@
  * which uses binary collapse/expand with shared accordion behavior.
  */
 
-console.log(
-  "[DEBUG] apps/writer_app/static/writer_app/ts/writer/ui/panel-toggle.ts loaded",
-);
-
 // Storage keys for persistence
 const STORAGE_KEY_SIDEBAR = "scitex-writer-sidebar-collapsed";
 const STORAGE_KEY_DETAILS = "scitex-writer-details-collapsed";

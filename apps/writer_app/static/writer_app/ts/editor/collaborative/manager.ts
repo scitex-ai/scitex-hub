@@ -6,10 +6,6 @@
  * @author SciTeX Development Team
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/editor/collaborative/manager.ts loaded",
-);
-
 import type { ManuscriptConfig } from "./types";
 import { ChangeTracker } from "./changes";
 import { CursorManager } from "./cursors";

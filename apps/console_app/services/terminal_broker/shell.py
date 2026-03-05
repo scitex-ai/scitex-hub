@@ -6,7 +6,9 @@ Inherits all PTY lifecycle from ``BasePTY``.  The only difference from
 """
 
 import os
+import socket
 import sys
+from typing import Optional
 
 from .session import BasePTY
 
@@ -30,6 +32,8 @@ class Shell(BasePTY):
         self.shell_id = shell_id
         self.allocation_id = allocation_id
         self.command = command
+        self.client_socket: Optional[socket.socket] = None
+        self.last_project_slug: str = ""
 
     def _prepare_child_env(self) -> dict:
         """Prepare env for srun --overlap shell.

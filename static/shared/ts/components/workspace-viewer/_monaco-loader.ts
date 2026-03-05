@@ -51,10 +51,15 @@ export function loadMonaco(): Promise<boolean> {
     };
     script.onerror = () => resolve(false);
 
-    // Timeout fallback — maybe another loader fires the event
-    setTimeout(() => {
-      if ((window as any).monaco) resolve(true);
-    }, 5000);
+    // Poll fallback — another loader (writer, console) may set window.monaco
+    const poll = setInterval(() => {
+      if ((window as any).monaco) {
+        clearInterval(poll);
+        window.removeEventListener("monaco-ready", readyHandler);
+        resolve(true);
+      }
+    }, 200);
+    setTimeout(() => clearInterval(poll), 10000);
 
     document.head.appendChild(script);
   });

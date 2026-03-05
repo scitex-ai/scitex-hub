@@ -1,6 +1,6 @@
 [project]
 name = "scitex-cloud"
-version = "0.12.0-alpha"
+version = "0.12.3-alpha"
 description = "SciTeX Cloud - Deployment and management CLI for SciTeX"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -74,7 +74,6 @@ django = [
     "celery[redis]>=5.4",
     "django-celery-results>=2.5",
     "django-celery-beat>=2.8",
-    "flower>=2.0",
     # UI utilities
     "django-widget-tweaks>=1.5",
     # Language detection
@@ -88,7 +87,6 @@ django = [
     "nbconvert>=7.0",
     # PDF generation
     "weasyprint>=60.0",
-    # fastmcp 2.10.6 is incompatible with pydantic>=2.12 (TypeError: default+default_factory)
     "pydantic<2.12",
 ]
 test = [
@@ -103,7 +101,7 @@ gui = [
     "Pillow>=10.0",
 ]
 mcp = [
-    "fastmcp>=0.4",
+    "fastmcp>=2.0.0",
     "requests>=2.31",
     "pyyaml>=6.0",
 ]

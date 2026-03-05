@@ -45,10 +45,35 @@ jobs:
       - name: Run tests
         run: npm run test:run
 
+  terminal-tests:
+    name: "Terminal Broker & Session Tests (Python)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -e ".[django,dev,test]"
+
+      - name: Run terminal tests
+        env:
+          SCITEX_CLOUD_DJANGO_SECRET_KEY: ci-test-key  # pragma: allowlist secret
+        run: |
+          python -m pytest \
+            tests/apps/console_app/views/terminal/ \
+            tests/apps/console_app/services/terminal_broker/ \
+            -v --tb=short -o "addopts="
+
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [typescript-check, vitest]
+    needs: [typescript-check, vitest, terminal-tests]
     if: always()
 
     steps:
@@ -56,18 +81,25 @@ jobs:
         run: |
           TS_RESULT="${{ needs.typescript-check.result }}"
           TEST_RESULT="${{ needs.vitest.result }}"
+          TERMINAL_RESULT="${{ needs.terminal-tests.result }}"
 
           echo "TypeScript: $TS_RESULT"
           echo "Vitest: $TEST_RESULT"
+          echo "Terminal Tests: $TERMINAL_RESULT"
 
           if [ "$TS_RESULT" == "failure" ]; then
-            echo "❌ TypeScript checks failed"
+            echo "TypeScript checks failed"
             exit 1
           fi
 
           if [ "$TEST_RESULT" == "failure" ]; then
-            echo "❌ Vitest tests failed"
+            echo "Vitest tests failed"
             exit 1
           fi
 
-          echo "✅ CI checks completed"
+          if [ "$TERMINAL_RESULT" == "failure" ]; then
+            echo "Terminal tests failed"
+            exit 1
+          fi
+
+          echo "CI checks completed"

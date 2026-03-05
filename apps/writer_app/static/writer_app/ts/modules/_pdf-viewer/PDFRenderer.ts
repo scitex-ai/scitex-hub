@@ -3,7 +3,6 @@
  * Handles canvas-based rendering of PDF pages with quality settings
  */
 
-console.log("[DEBUG] PDFRenderer.ts loaded");
 
 export class PDFRenderer {
   private renderQuality: number = 2.0; // 2x default (144 DPI, crisp on screen)

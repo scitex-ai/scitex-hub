@@ -2,6 +2,7 @@
 
 <!-- Docs workspace CSS -->
 <link rel="stylesheet" href="{% static 'docs_app/css/docs-workspace.css' %}" />
+<link rel="stylesheet" href="{% static 'docs_app/css/docs-content.css' %}" />
 <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
 <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
 <div class="docs-workspace" data-mode="docs" data-active-doc="{{ active_doc }}">
@@ -11,7 +12,7 @@
             {% for page in docs_pages %}
                 <a href="#"
                    class="docs-nav-item{% if page.slug == active_doc %} active{% endif %}"
-                   data-slug="{{ page.slug }}">
+                   data-doc-slug="{{ page.slug }}">
                     <i class="{{ page.icon }}"></i>
                     <span>{{ page.label }}</span>
                     <span class="docs-badges">
@@ -44,3 +45,4 @@
     </div>
 </div>
 {% vite_script 'docs_app/docs-workspace' %}
+{% vite_script 'docs_app/docs-context-menu' %}

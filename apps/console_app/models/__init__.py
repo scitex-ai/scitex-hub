@@ -5,11 +5,14 @@ Exports all models for backward compatibility:
     from apps.console_app.models import CodeExecutionJob, Notebook, ...
 """
 
+from .capture import CaptureRequest
 from .execution import CodeExecutionJob, DataAnalysisJob
 from .notebook import CodeLibrary, Notebook
 from .tracking import ProjectService, ResourceUsage, UserQuota
 
 __all__ = [
+    # capture.py
+    "CaptureRequest",
     # execution.py
     "CodeExecutionJob",
     "DataAnalysisJob",

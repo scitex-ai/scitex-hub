@@ -6,7 +6,6 @@
 import { switchSection } from "../../../utils/index";
 import { loadTexFile } from "../../files/FileLoader";
 
-console.log("[DEBUG] FileSelectHandler.ts loaded");
 
 export interface FileSelectDependencies {
   config: any;

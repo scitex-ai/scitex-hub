@@ -110,4 +110,28 @@ if HOST_MOUNTS_RAW:
 HOST_TEXLIVE_PREFIX = os.environ.get("SCITEX_CLOUD_HOST_TEXLIVE_PREFIX", "")
 
 
+# =============================================================================
+# SLURM Time Limit Parsing
+# =============================================================================
+
+
+def parse_time_limit_seconds(time_str: str) -> int:
+    """Parse SLURM time limit string (HH:MM:SS or MM:SS) to seconds."""
+    parts = time_str.split(":")
+    if len(parts) == 3:
+        return int(parts[0]) * 3600 + int(parts[1]) * 60 + int(parts[2])
+    if len(parts) == 2:
+        return int(parts[0]) * 60 + int(parts[1])
+    return int(parts[0]) * 60
+
+
+SLURM_TIME_LIMIT_SECONDS = parse_time_limit_seconds(SLURM_TIME_LIMIT)
+
+
+# =============================================================================
+# Terminal MOTD (Message of the Day)
+# =============================================================================
+SHOW_MOTD = os.environ.get("SCITEX_CLOUD_SHOW_MOTD", "true").lower() != "false"
+
+
 # EOF

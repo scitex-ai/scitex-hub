@@ -113,6 +113,11 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       "apps/docs_app/static/docs_app/ts",
       "docs_app",
     ),
+    ...generateEntriesRecursive(
+      rootDir,
+      "apps/apps_app/static/apps_app/ts",
+      "apps_app",
+    ),
 
     // ── Explicit overrides ──────────────────────────────────────
     // These entries have template names that differ from convention.

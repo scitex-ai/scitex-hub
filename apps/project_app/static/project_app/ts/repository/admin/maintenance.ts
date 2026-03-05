@@ -29,10 +29,6 @@ import {
 } from "./backup";
 import { confirmDelete, deleteRepository } from "./cleanup";
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/project_app/static/project_app/ts/repository/admin/maintenance.ts loaded",
-);
-
 /**
  * Shows confirmation dialog for repository sync
  */

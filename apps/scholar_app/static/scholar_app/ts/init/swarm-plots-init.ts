@@ -8,9 +8,6 @@
  * @module init/swarm-plots-init
  */
 
-console.log(
-  "[DEBUG] apps/scholar_app/static/scholar_app/ts/init/swarm-plots-init.ts loaded",
-);
 declare global {
   interface Window {
     SCHOLAR_SEARCH_RESULTS?: Array<{

@@ -9,7 +9,6 @@
 
 import { getDoctypeFromPath } from "../_config/doctype-config";
 
-console.log("[DEBUG] WriterTreeSync.ts loaded");
 
 export interface WriterTreeSyncConfig {
   doctypeSelector: HTMLSelectElement;

@@ -5,12 +5,16 @@ They receive the broker instance as the first argument to access
 shared state (allocations, shells, indexes).
 """
 
+import base64
 import logging
 import socket
+import subprocess
 import threading
 import time
 import uuid
 from pathlib import Path
+
+from apps.console_app.views.terminal.config import SLURM_TIME_LIMIT_SECONDS
 
 from ._handler_utils import respawn_pty, send_state
 from .allocation import Allocation, AllocationState
@@ -44,8 +48,25 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
             and existing_shell.state == SessionState.RUNNING
             and existing_shell.fd is not None
         ):
+            # Replay scrollback before starting live output
+            scrollback = existing_shell.get_scrollback()
+            if scrollback:
+                broker._send_message(
+                    client,
+                    {
+                        "action": "output",
+                        "session_id": existing_shell_id,
+                        "data": base64.b64encode(scrollback).decode("ascii"),
+                    },
+                )
+            existing_shell.client_socket = client
             existing_shell.on_exit_callback = _make_shell_exit_cb(broker, client)
             existing_shell.start_reader(broker._make_output_callback(client))
+            # cd to project dir if project changed
+            if existing_shell.last_project_slug != project_slug:
+                container_dir = f"/home/{username}/proj/{project_slug}"
+                existing_shell.write(f"cd {container_dir}\n".encode())
+                existing_shell.last_project_slug = project_slug
             logger.info(f"Shell {existing_shell_id[:8]}: reattaching")
             return {"status": "ok", "session_id": existing_shell_id}
 
@@ -62,7 +83,7 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
             wait = int(_ALLOC_FAIL_COOLDOWN - elapsed)
             return {
                 "status": "error",
-                "error": f"Allocation failed recently, retry in {wait}s",
+                "error": f"Setting up environment, please wait {wait}s",
             }
 
         alloc = Allocation(
@@ -71,12 +92,41 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
             container_path=msg["container_path"],
             host_user_dir=Path(msg["user_data_dir"]),
             host_project_dir=Path(msg["project_dir"]),
+            time_limit_seconds=SLURM_TIME_LIMIT_SECONDS,
         )
         send_state(broker, client, "", "allocation_starting")
 
-        if not alloc.start():
+        # Check squeue for existing jobs before submitting new sbatch
+        existing_jobs = Allocation.find_existing_jobs(username)
+        if len(existing_jobs) > 1:
+            logger.error(
+                f"Multiple SLURM terminal jobs for {username}: {existing_jobs}. "
+                f"This should not happen — cancelling extras."
+            )
+            # Cancel all but the first, then attach to the first
+            for extra_jid in existing_jobs[1:]:
+                try:
+                    subprocess.run(
+                        ["scancel", extra_jid], capture_output=True, timeout=5
+                    )
+                except Exception:
+                    pass
+
+        if existing_jobs:
+            # Attach to existing job instead of creating duplicate
+            logger.info(
+                f"Found existing SLURM job {existing_jobs[0]} for {username}, attaching"
+            )
+            if not alloc.attach_to_existing(existing_jobs[0]):
+                _alloc_fail_times[alloc_key] = time.time()
+                return {
+                    "status": "error",
+                    "error": "Failed to attach to existing environment",
+                }
+        elif not alloc.start():
             _alloc_fail_times[alloc_key] = time.time()
-            return {"status": "error", "error": "Failed to start SLURM allocation"}
+            return {"status": "error", "error": "Failed to start computing environment"}
+
         with broker.lock:
             broker.allocations[alloc.allocation_id] = alloc
             broker.alloc_index[alloc_key] = alloc.allocation_id
@@ -88,7 +138,10 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
         while time.time() < deadline and alloc.state == AllocationState.STARTING:
             time.sleep(1)
         if alloc.state != AllocationState.READY:
-            return {"status": "error", "error": "Allocation startup timed out"}
+            return {
+                "status": "error",
+                "error": "Environment startup timed out, please retry",
+            }
 
     # 3. Spawn shell inside allocation
     shell_id = str(uuid.uuid4())
@@ -101,11 +154,53 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
     )
 
     if not shell.spawn():
-        return {"status": "error", "error": "Failed to spawn shell in allocation"}
+        return {"status": "error", "error": "Failed to open terminal"}
 
+    shell.client_socket = client
+    shell.last_project_slug = project_slug
     shell.on_exit_callback = _make_shell_exit_cb(broker, client)
     shell.start_reader(broker._make_output_callback(client))
     alloc.increment_shells()
+
+    # Inject cd and MOTD after shell initializes
+    container_dir = f"/home/{username}/proj/{project_slug}"
+
+    from apps.console_app.views.terminal.config import SHOW_MOTD
+
+    def _inject_init():
+        time.sleep(0.5)
+        shell.write(f"cd {container_dir} && clear\n".encode())
+        if not SHOW_MOTD:
+            return
+        time.sleep(0.8)
+        # Send MOTD directly to client (not through shell)
+        motd = (
+            "\r\n"
+            "\x1b[1;36m  Welcome to SciTeX Cloud\x1b[0m\r\n"
+            "\r\n"
+            "\x1b[0;36m  1. Type \x1b[1mclaude\x1b[0;36m, "
+            "\x1b[1mcodex\x1b[0;36m, or "
+            "\x1b[1mgemini\x1b[0;36m and hit Enter\x1b[0m\r\n"
+            "\x1b[0;36m  2. Subscribe to and sign in to "
+            "their services\x1b[0m\r\n"
+            "\x1b[0;36m  3. Ask agents anything about research, "
+            "including SciTeX usage and app creation\x1b[0m\r\n"
+            "\r\n"
+            "\x1b[0;90m  To hide this message: "
+            "set SCITEX_CLOUD_SHOW_MOTD=false in config\x1b[0m"
+            "\r\n\r\n"
+        ).encode()
+        broker._send_message(
+            client,
+            {
+                "action": "output",
+                "session_id": shell_id,
+                "data": base64.b64encode(motd).decode("ascii"),
+            },
+        )
+
+    init_thread = threading.Thread(target=_inject_init, daemon=True)
+    init_thread.start()
 
     with broker.lock:
         broker.shells[shell_id] = shell
@@ -131,13 +226,34 @@ def _make_shell_exit_cb(broker, client: socket.socket):
         with broker.lock:
             alloc = broker.allocations.get(shell.allocation_id)
         if alloc and not alloc.check_alive():
+            reason = alloc.get_failure_reason()
             shell.state = SessionState.DEAD
             alloc.decrement_shells()
-            send_state(broker, client, pty_id, "dead")
+            send_state(
+                broker,
+                client,
+                pty_id,
+                "allocation_dead",
+                extra={"reason": reason},
+            )
+            # Attempt auto-recovery after a short delay
+            timer = threading.Timer(
+                2.0,
+                _auto_recover_allocation,
+                args=(broker, pty_id, shell, alloc, client),
+            )
+            timer.daemon = True
+            timer.start()
             return
 
+        # Intentional exit (ran >10s): reset counter so user never gets stuck
+        if shell.last_spawn_time and (time.time() - shell.last_spawn_time > 10):
+            shell.spawn_count = 0
+
         if shell.spawn_count < SHELL_MAX_RESPAWNS:
-            backoff = min(2 ** (shell.spawn_count - 1), 4)
+            backoff = (
+                0.5 if shell.spawn_count == 0 else min(2 ** (shell.spawn_count - 1), 4)
+            )
             timer = threading.Timer(
                 backoff, _respawn_shell, args=(broker, pty_id, client)
             )
@@ -167,6 +283,109 @@ def _respawn_shell(broker, pty_id: str, client: socket.socket):
     respawn_pty(broker, shell, client, _make_shell_exit_cb, on_fail=on_fail)
 
 
+def _auto_recover_allocation(
+    broker,
+    pty_id: str,
+    shell,
+    old_alloc,
+    client: socket.socket,
+):
+    """Attempt to start a new allocation and respawn the shell inside it."""
+    alloc_key = (shell.username,)
+
+    # Check cooldown
+    last_fail = _alloc_fail_times.get(alloc_key, 0)
+    if time.time() - last_fail < _ALLOC_FAIL_COOLDOWN:
+        send_state(
+            broker,
+            client,
+            pty_id,
+            "dead",
+            extra={"reason": "Please wait a moment before retrying"},
+        )
+        return
+
+    send_state(broker, client, pty_id, "allocation_recovering")
+
+    new_alloc = Allocation(
+        username=old_alloc.username,
+        project_slug=old_alloc.project_slug,
+        container_path=old_alloc.container_path,
+        host_user_dir=old_alloc.host_user_dir,
+        host_project_dir=old_alloc.host_project_dir,
+        time_limit_seconds=old_alloc.time_limit_seconds,
+    )
+
+    # Check squeue for existing jobs before submitting new sbatch
+    existing_jobs = Allocation.find_existing_jobs(old_alloc.username)
+    if existing_jobs:
+        started = new_alloc.attach_to_existing(existing_jobs[0])
+    else:
+        started = new_alloc.start()
+
+    if not started:
+        _alloc_fail_times[alloc_key] = time.time()
+        send_state(
+            broker,
+            client,
+            pty_id,
+            "dead",
+            extra={"reason": "Could not restart environment. Please try again."},
+        )
+        return
+
+    with broker.lock:
+        broker.allocations[new_alloc.allocation_id] = new_alloc
+        broker.alloc_index[alloc_key] = new_alloc.allocation_id
+        _alloc_fail_times.pop(alloc_key, None)
+        shell.allocation_id = new_alloc.allocation_id
+        shell.command = new_alloc.get_shell_command(project_slug=old_alloc.project_slug)
+        shell.spawn_count = 0
+
+    def on_fail():
+        new_alloc.decrement_shells()
+
+    success = respawn_pty(broker, shell, client, _make_shell_exit_cb, on_fail=on_fail)
+    if success:
+        new_alloc.increment_shells()
+        logger.info(
+            f"Shell {pty_id[:8]}: auto-recovered into allocation {new_alloc.allocation_id[:8]}"
+        )
+    else:
+        logger.error(f"Shell {pty_id[:8]}: auto-recovery respawn failed")
+
+
+def handle_restart_shared(broker, msg: dict, client: socket.socket) -> dict:
+    """Restart a shell: respawn if allocation alive, recover if dead."""
+    session_id = msg.get("session_id", "")
+    with broker.lock:
+        shell = broker.shells.get(session_id)
+
+    if not shell:
+        return {"status": "error", "error": "Shell not found"}
+
+    with broker.lock:
+        alloc = broker.allocations.get(shell.allocation_id)
+
+    if alloc and alloc.check_alive():
+        # Allocation is alive — just respawn the shell
+        def on_fail():
+            if alloc:
+                alloc.decrement_shells()
+
+        respawn_pty(broker, shell, client, _make_shell_exit_cb, on_fail=on_fail)
+        return {"status": "ok", "session_id": session_id}
+
+    # Allocation is dead — trigger recovery
+    if alloc:
+        threading.Timer(
+            0,
+            _auto_recover_allocation,
+            args=(broker, session_id, shell, alloc, client),
+        ).start()
+    return {"status": "ok", "session_id": session_id}
+
+
 def handle_stop_allocation(broker, msg: dict) -> dict:
     """Stop a shared allocation and all its shells."""
     username = msg.get("username", "")
@@ -193,7 +412,7 @@ def handle_stop_allocation(broker, msg: dict) -> dict:
     if alloc:
         alloc.stop()
         return {"status": "ok"}
-    return {"status": "error", "error": "No allocation found"}
+    return {"status": "error", "error": "No active session found"}
 
 
 def stop_all_allocations(broker):

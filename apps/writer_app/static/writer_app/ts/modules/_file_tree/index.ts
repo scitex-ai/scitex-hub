@@ -14,10 +14,6 @@ import { DirectoryManager } from "./DirectoryManager";
 import { FileSelector } from "./FileSelector";
 import { TexFileDropdown } from "./TexFileDropdown";
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/_file_tree/index.ts loaded",
-);
-
 export type { FileTreeNode, FileTreeOptions };
 
 export class FileTreeManager {

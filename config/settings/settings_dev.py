@@ -109,6 +109,12 @@ STATICFILES_DIRS = [
     # Note: .jsbuild is excluded in dev mode - Vite handles TypeScript transpilation
 ]
 
+# Dual-Vite architecture ports
+# Host Vite (port 5173): platform files — runs on host with native FS watching
+# Container Vite (port 5174): developmentally-installed app files — runs in container on-demand
+VITE_HOST_PORT = 5173
+VITE_DEV_APP_PORT = 5174
+
 
 # django-browser-reload configuration
 # Note: Templates, CSS, and JS files are watched to trigger browser reload

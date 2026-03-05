@@ -24,6 +24,9 @@ async def ensure_workspace(user_data_dir: Path, username: str, project_slug: str
         project_dir = user_data_dir / "proj" / project_slug
         project_dir.mkdir(exist_ok=True)
 
+        # Ensure scitex/downloads/ for paste/drop uploads
+        (project_dir / "scitex" / "downloads").mkdir(parents=True, exist_ok=True)
+
         # Ensure directories are accessible from the host for SLURM bind mounts.
         # Docker creates these as root (UID 100019 on host via fakeroot),
         # but SLURM jobs run as the host user and need read+exec access.
@@ -47,6 +50,11 @@ async def ensure_workspace(user_data_dir: Path, username: str, project_slug: str
 
         # Patch existing bashrc with AI CLI tools section if missing
         _patch_bashrc_ai_tools(dotfiles_dir)
+
+        # Clean up legacy ~/proj/home -> .. symlink (replaced by dotfiles project)
+        home_link = user_data_dir / "proj" / "home"
+        if home_link.is_symlink():
+            home_link.unlink()
 
         logger.info(f"Workspace ready: {user_data_dir}")
 

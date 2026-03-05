@@ -4,7 +4,6 @@
  * Displays who's online, what they're editing, and provides visual feedback
  */
 
-console.log("[DEBUG] presence-display.ts loaded");
 
 interface Collaborator {
   user_id: number;

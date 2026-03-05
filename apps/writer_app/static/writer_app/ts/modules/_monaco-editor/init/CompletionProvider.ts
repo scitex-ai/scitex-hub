@@ -3,7 +3,6 @@
  * Handles LaTeX command autocomplete suggestions
  */
 
-console.log("[DEBUG] CompletionProvider.ts loaded");
 
 /**
  * Register LaTeX completion provider

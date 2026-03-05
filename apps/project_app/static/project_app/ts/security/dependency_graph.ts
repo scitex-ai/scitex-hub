@@ -3,10 +3,6 @@
  * Corresponds to: templates/project_app/security/dependency_graph.html
  */
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/security/dependency_graph.ts loaded",
-);
-
 class SecurityDependencyGraphPage {
   constructor() {
     this.init();

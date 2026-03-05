@@ -32,7 +32,13 @@
                        data-module="{{ mod.name }}"
                        aria-label="{{ mod.label }}"
                        title="{{ mod.label }}"
-                       data-module-accent="{{ mod.name }}">{% module_icon mod.name %}<span class="selector-nav-label ws-apps-nav-label">{{ mod.label }}</span></a>
+                       data-module-accent="{{ mod.name }}">
+                        {% if mod.is_dev %}
+                            <span class="dev-icon-wrap"><i class="{{ mod.icon_fa }}"></i><span class="dev-badge">DEV</span></span>
+                        {% else %}
+                            {% module_icon mod.name %}
+                        {% endif %}
+                        <span class="selector-nav-label ws-apps-nav-label">{{ mod.label }}</span></a>
                 {% endfor %}
             </nav>
         </div>

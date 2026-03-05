@@ -3,9 +3,6 @@
  * Corresponds to: templates/writer_app/collaboration/session.html
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/collaboration/session.ts loaded",
-);
 interface CollaboratorPresence {
   user_id: number;
   username: string;

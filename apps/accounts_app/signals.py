@@ -1,6 +1,9 @@
 import logging
 
 from django.contrib.auth.models import User
+from django.contrib.auth.signals import (
+    user_logged_in,  # noqa: F401 - used in decorator below
+)
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -60,36 +63,47 @@ def save_user_profile(sender, instance, **kwargs):
         instance.profile.save()
 
 
+@receiver(user_logged_in)
+def ensure_home_project_on_login(sender, user, request, **kwargs):
+    """Ensure home project exists every time a user logs in."""
+    ensure_home_project(user)
+
+
 def create_default_project_for_user(user):
     """Create a default project for newly created users"""
+    ensure_home_project(user)
+
+
+def ensure_home_project(user):
+    """Ensure user has a dotfiles project. Creates one if missing.
+
+    Idempotent — safe to call on every login.
+    The dotfiles project is a git-trackable, private, undeletable project
+    for managing shell configs (bashrc, vimrc, gitconfig, etc.).
+    """
     from apps.project_app.models import Project
 
     try:
-        # Check if user already has projects
-        if Project.objects.filter(owner=user).exists():
+        if Project.objects.filter(owner=user, is_home=True).exists():
             return
 
-        # Create a home project for the user (persistent, always private, undeletable)
-        # The URL will be /<username>/home/ (no numeric suffix needed)
-        # because uniqueness is per-owner, not global
-        default_project = Project.objects.create(
-            name="home",
-            slug="home",
-            description=f"Home project for {user.username}",
+        dotfiles_project = Project.objects.create(
+            name="dotfiles",
+            slug="dotfiles",
+            description=f"Shell configuration for {user.username}",
             owner=user,
             visibility="private",
             is_home=True,
         )
 
-        # Set as last active repository
-        user.profile.last_active_repository = default_project
-        user.profile.save()
+        # Set as last active if user has no active project
+        if hasattr(user, "profile") and not user.profile.last_active_repository:
+            user.profile.last_active_repository = dotfiles_project
+            user.profile.save()
+
+        logger.info(f"Created dotfiles project for {user.username}")
 
     except Exception as e:
-        # Log error but don't break user creation
-        import logging
-
-        logger = logging.getLogger(__name__)
         logger.error(
-            f"Error creating default project for user {user.username}: {str(e)}"
+            f"Error creating dotfiles project for user {user.username}: {str(e)}"
         )

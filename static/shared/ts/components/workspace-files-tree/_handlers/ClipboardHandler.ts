@@ -4,10 +4,10 @@
  * Works with both single and multi-selection
  */
 
-import type { TreeConfig } from '../types';
-import type { FileOperation } from './UndoRedoHandler';
+import type { TreeConfig } from "../types";
+import type { FileOperation } from "./UndoRedoHandler";
 
-export type ClipboardOperation = 'cut' | 'copy';
+export type ClipboardOperation = "cut" | "copy";
 
 export interface ClipboardState {
   operation: ClipboardOperation;
@@ -19,7 +19,10 @@ export class ClipboardHandler {
   private config: TreeConfig;
   private getCsrfToken: () => string;
   private refresh: () => Promise<void>;
-  private showMessage: (message: string, type: 'success' | 'error' | 'info') => void;
+  private showMessage: (
+    message: string,
+    type: "success" | "error" | "info",
+  ) => void;
   private getSelectedPaths: () => string[];
   private isPathDirectory: (path: string) => boolean;
   private recordOperation: ((op: FileOperation) => void) | null = null;
@@ -31,9 +34,9 @@ export class ClipboardHandler {
     config: TreeConfig,
     getCsrfToken: () => string,
     refresh: () => Promise<void>,
-    showMessage: (message: string, type: 'success' | 'error' | 'info') => void,
+    showMessage: (message: string, type: "success" | "error" | "info") => void,
     getSelectedPaths: () => string[],
-    isPathDirectory: (path: string) => boolean
+    isPathDirectory: (path: string) => boolean,
   ) {
     this.config = config;
     this.getCsrfToken = getCsrfToken;
@@ -50,19 +53,19 @@ export class ClipboardHandler {
 
   /** Get the base API URL for file operations */
   private getApiUrl(action: string): string {
-    return `/${this.config.username}/${this.config.slug}/api/files/${action}/`;
+    return `/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/${action}/`;
   }
 
   /** Copy selected files to clipboard (internal + OS clipboard) */
   copy(paths?: string[]): void {
     const pathsToCopy = paths || this.getSelectedPaths();
     if (pathsToCopy.length === 0) {
-      this.showMessage('No files selected', 'info');
+      this.showMessage("No files selected", "info");
       return;
     }
 
     this.clipboard = {
-      operation: 'copy',
+      operation: "copy",
       paths: pathsToCopy,
       timestamp: Date.now(),
     };
@@ -74,7 +77,7 @@ export class ClipboardHandler {
       pathsToCopy.length === 1
         ? `Copied: ${this.getFileName(pathsToCopy[0])}`
         : `Copied ${pathsToCopy.length} items`,
-      'success'
+      "success",
     );
 
     // Add visual feedback
@@ -86,7 +89,7 @@ export class ClipboardHandler {
     if (paths.length !== 1) {
       // Multi-file copy to OS not supported, just copy paths as text
       try {
-        await navigator.clipboard.writeText(paths.join('\n'));
+        await navigator.clipboard.writeText(paths.join("\n"));
       } catch (e) {
         // Ignore clipboard errors
       }
@@ -98,18 +101,18 @@ export class ClipboardHandler {
 
     try {
       // Fetch file content as blob
-      const url = `/${this.config.username}/${this.config.slug}/blob/${filePath}?mode=raw`;
+      const url = `/${this.config.ownerUsername}/${this.config.projectSlug}/blob/${filePath}?mode=raw`;
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error('Failed to fetch file');
+        throw new Error("Failed to fetch file");
       }
 
       const blob = await response.blob();
-      const contentType = blob.type || 'application/octet-stream';
+      const contentType = blob.type || "application/octet-stream";
 
       // Try to copy as file using ClipboardItem API
-      if ('ClipboardItem' in window) {
+      if ("ClipboardItem" in window) {
         try {
           const clipboardItem = new ClipboardItem({
             [contentType]: blob,
@@ -122,7 +125,10 @@ export class ClipboardHandler {
       }
 
       // Fallback: for text files, copy as text
-      if (contentType.startsWith('text/') || fileName.match(/\.(txt|md|json|js|ts|py|html|css|xml|yaml|yml)$/i)) {
+      if (
+        contentType.startsWith("text/") ||
+        fileName.match(/\.(txt|md|json|js|ts|py|html|css|xml|yaml|yml)$/i)
+      ) {
         const text = await blob.text();
         await navigator.clipboard.writeText(text);
       } else {
@@ -138,12 +144,12 @@ export class ClipboardHandler {
   cut(paths?: string[]): void {
     const pathsToCut = paths || this.getSelectedPaths();
     if (pathsToCut.length === 0) {
-      this.showMessage('No files selected', 'info');
+      this.showMessage("No files selected", "info");
       return;
     }
 
     this.clipboard = {
-      operation: 'cut',
+      operation: "cut",
       paths: pathsToCut,
       timestamp: Date.now(),
     };
@@ -152,7 +158,7 @@ export class ClipboardHandler {
       pathsToCut.length === 1
         ? `Cut: ${this.getFileName(pathsToCut[0])}`
         : `Cut ${pathsToCut.length} items`,
-      'success'
+      "success",
     );
 
     // Add visual feedback for cut items
@@ -161,21 +167,29 @@ export class ClipboardHandler {
 
   /** Paste clipboard contents to target directory */
   async paste(targetPath: string): Promise<boolean> {
-    console.log('[ClipboardHandler] paste() called with targetPath:', JSON.stringify(targetPath));
+    console.log(
+      "[ClipboardHandler] paste() called with targetPath:",
+      JSON.stringify(targetPath),
+    );
 
     if (!this.clipboard) {
-      this.showMessage('Nothing to paste', 'info');
+      this.showMessage("Nothing to paste", "info");
       return false;
     }
 
     const { operation, paths } = this.clipboard;
-    console.log('[ClipboardHandler] operation:', operation, 'paths:', paths);
+    console.log("[ClipboardHandler] operation:", operation, "paths:", paths);
 
     try {
       // Determine if target is a directory
       const isDirectory = await this.isDirectory(targetPath);
       const destDir = isDirectory ? targetPath : this.getParentPath(targetPath);
-      console.log('[ClipboardHandler] isDirectory:', isDirectory, 'destDir:', JSON.stringify(destDir));
+      console.log(
+        "[ClipboardHandler] isDirectory:",
+        isDirectory,
+        "destDir:",
+        JSON.stringify(destDir),
+      );
 
       let successCount = 0;
       let errors: string[] = [];
@@ -183,12 +197,17 @@ export class ClipboardHandler {
       for (const sourcePath of paths) {
         const fileName = this.getFileName(sourcePath);
         let destPath = destDir ? `${destDir}/${fileName}` : fileName;
-        console.log('[ClipboardHandler] sourcePath:', sourcePath, 'destPath:', destPath);
+        console.log(
+          "[ClipboardHandler] sourcePath:",
+          sourcePath,
+          "destPath:",
+          destPath,
+        );
 
         // For copy: if source equals destination, start with suffix
         // For cut/move: can't move to same location
         if (sourcePath === destPath) {
-          if (operation === 'copy') {
+          if (operation === "copy") {
             // Start with suffix (1) for same-location copy
             destPath = this.getPathWithSuffix(destPath, 1);
           } else {
@@ -199,7 +218,7 @@ export class ClipboardHandler {
         }
 
         // Don't allow pasting into a subdirectory of itself
-        if (destPath.startsWith(sourcePath + '/')) {
+        if (destPath.startsWith(sourcePath + "/")) {
           errors.push(`Cannot ${operation} '${fileName}' into itself`);
           continue;
         }
@@ -207,12 +226,12 @@ export class ClipboardHandler {
         try {
           let finalDestPath: string;
           const isDir = this.isPathDirectory(sourcePath);
-          if (operation === 'copy') {
+          if (operation === "copy") {
             finalDestPath = await this.performCopy(sourcePath, destPath);
             // Record for undo
             if (this.recordOperation) {
               this.recordOperation({
-                type: 'copy',
+                type: "copy",
                 timestamp: Date.now(),
                 originalPath: sourcePath,
                 newPath: finalDestPath,
@@ -224,7 +243,7 @@ export class ClipboardHandler {
             // Record for undo (move is like rename)
             if (this.recordOperation) {
               this.recordOperation({
-                type: 'move',
+                type: "move",
                 timestamp: Date.now(),
                 originalPath: sourcePath,
                 newPath: finalDestPath,
@@ -234,12 +253,12 @@ export class ClipboardHandler {
           }
           successCount++;
         } catch (error: any) {
-          errors.push(`${fileName}: ${error.message || 'Unknown error'}`);
+          errors.push(`${fileName}: ${error.message || "Unknown error"}`);
         }
       }
 
       // Clear clipboard after cut (not after copy)
-      if (operation === 'cut' && successCount > 0) {
+      if (operation === "cut" && successCount > 0) {
         this.clipboard = null;
         this.updateCutCopyClasses();
       }
@@ -249,21 +268,21 @@ export class ClipboardHandler {
 
       // Show result
       if (successCount > 0) {
-        const verb = operation === 'cut' ? 'Moved' : 'Copied';
+        const verb = operation === "cut" ? "Moved" : "Copied";
         this.showMessage(
-          `${verb} ${successCount} item${successCount > 1 ? 's' : ''} (Ctrl+Z to undo)`,
-          'success'
+          `${verb} ${successCount} item${successCount > 1 ? "s" : ""} (Ctrl+Z to undo)`,
+          "success",
         );
       }
 
       if (errors.length > 0) {
-        this.showMessage(`Errors: ${errors.join(', ')}`, 'error');
+        this.showMessage(`Errors: ${errors.join(", ")}`, "error");
       }
 
       return successCount > 0;
     } catch (error) {
-      console.error('[ClipboardHandler] Paste error:', error);
-      this.showMessage('Failed to paste items', 'error');
+      console.error("[ClipboardHandler] Paste error:", error);
+      this.showMessage("Failed to paste items", "error");
       return false;
     }
   }
@@ -290,19 +309,25 @@ export class ClipboardHandler {
   }
 
   /** Perform copy operation with automatic suffix on conflict. Returns actual dest path. */
-  private async performCopy(sourcePath: string, destPath: string): Promise<string> {
+  private async performCopy(
+    sourcePath: string,
+    destPath: string,
+  ): Promise<string> {
     let finalDestPath = destPath;
     let attempt = 0;
     const maxAttempts = 100;
 
     while (attempt < maxAttempts) {
-      const response = await fetch(this.getApiUrl('copy'), {
-        method: 'POST',
+      const response = await fetch(this.getApiUrl("copy"), {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': this.getCsrfToken(),
+          "Content-Type": "application/json",
+          "X-CSRFToken": this.getCsrfToken(),
         },
-        body: JSON.stringify({ source_path: sourcePath, dest_path: finalDestPath }),
+        body: JSON.stringify({
+          source_path: sourcePath,
+          dest_path: finalDestPath,
+        }),
       });
 
       const data = await response.json();
@@ -311,32 +336,38 @@ export class ClipboardHandler {
       }
 
       // If destination exists, try with suffix
-      if (data.error && data.error.includes('already exists')) {
+      if (data.error && data.error.includes("already exists")) {
         attempt++;
         finalDestPath = this.getPathWithSuffix(destPath, attempt);
         continue;
       }
 
-      throw new Error(data.error || 'Copy failed');
+      throw new Error(data.error || "Copy failed");
     }
 
-    throw new Error('Too many files with similar names');
+    throw new Error("Too many files with similar names");
   }
 
   /** Perform move operation with automatic suffix on conflict. Returns actual dest path. */
-  private async performMove(sourcePath: string, destPath: string): Promise<string> {
+  private async performMove(
+    sourcePath: string,
+    destPath: string,
+  ): Promise<string> {
     let finalDestPath = destPath;
     let attempt = 0;
     const maxAttempts = 100;
 
     while (attempt < maxAttempts) {
-      const response = await fetch(this.getApiUrl('move'), {
-        method: 'POST',
+      const response = await fetch(this.getApiUrl("move"), {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': this.getCsrfToken(),
+          "Content-Type": "application/json",
+          "X-CSRFToken": this.getCsrfToken(),
         },
-        body: JSON.stringify({ source_path: sourcePath, dest_path: finalDestPath }),
+        body: JSON.stringify({
+          source_path: sourcePath,
+          dest_path: finalDestPath,
+        }),
       });
 
       const data = await response.json();
@@ -345,26 +376,26 @@ export class ClipboardHandler {
       }
 
       // If destination exists, try with suffix
-      if (data.error && data.error.includes('already exists')) {
+      if (data.error && data.error.includes("already exists")) {
         attempt++;
         finalDestPath = this.getPathWithSuffix(destPath, attempt);
         continue;
       }
 
-      throw new Error(data.error || 'Move failed');
+      throw new Error(data.error || "Move failed");
     }
 
-    throw new Error('Too many files with similar names');
+    throw new Error("Too many files with similar names");
   }
 
   /** Get path with numbered suffix: file.txt -> file (1).txt */
   private getPathWithSuffix(path: string, suffix: number): string {
-    const parts = path.split('/');
+    const parts = path.split("/");
     const fileName = parts.pop() || path;
-    const parentPath = parts.join('/');
+    const parentPath = parts.join("/");
 
     // Handle extension
-    const dotIndex = fileName.lastIndexOf('.');
+    const dotIndex = fileName.lastIndexOf(".");
     let newName: string;
     if (dotIndex > 0) {
       const baseName = fileName.substring(0, dotIndex);
@@ -380,43 +411,44 @@ export class ClipboardHandler {
   /** Check if path is a directory using tree data */
   private async isDirectory(path: string): Promise<boolean> {
     // Empty path is root directory
-    if (path === '') return true;
+    if (path === "") return true;
     // Use the provided function to check tree data
     return this.isPathDirectory(path);
   }
 
   /** Get parent path */
   private getParentPath(path: string): string {
-    const parts = path.split('/');
+    const parts = path.split("/");
     parts.pop();
-    return parts.join('/');
+    return parts.join("/");
   }
 
   /** Get file name from path */
   private getFileName(path: string): string {
-    return path.split('/').pop() || path;
+    return path.split("/").pop() || path;
   }
 
   /** Update visual classes for cut/copy items */
   private updateCutCopyClasses(): void {
     // Remove all existing cut/copy classes
-    const cutItems = document.querySelectorAll('.wft-item.wft-cut, .wft-item.wft-copied');
-    console.log('[ClipboardHandler] Removing cut/copy classes from', cutItems.length, 'items');
-    cutItems.forEach(el => {
-      el.classList.remove('wft-cut', 'wft-copied');
+    const cutItems = document.querySelectorAll(
+      ".wft-item.wft-cut, .wft-item.wft-copied",
+    );
+    cutItems.forEach((el) => {
+      el.classList.remove("wft-cut", "wft-copied");
     });
 
     if (this.clipboard) {
-      const className = this.clipboard.operation === 'cut' ? 'wft-cut' : 'wft-copied';
+      const className =
+        this.clipboard.operation === "cut" ? "wft-cut" : "wft-copied";
       for (const path of this.clipboard.paths) {
         const el = document.querySelector(`.wft-item[data-path="${path}"]`);
         if (el) {
           el.classList.add(className);
         }
       }
-      console.log('[ClipboardHandler] Added', className, 'class to', this.clipboard.paths.length, 'items');
     } else {
-      console.log('[ClipboardHandler] Clipboard cleared, no classes to add');
+      // No clipboard content — nothing to mark
     }
   }
 

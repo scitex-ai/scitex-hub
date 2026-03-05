@@ -1,0 +1,178 @@
+/* ── Flat Section Styling ───────────────────────────────── */
+.docs-content .api-section {
+  margin-bottom: 1.5rem;
+  padding: 0 12px 1.5rem;
+  border-bottom: 1px solid var(--workspace-border-default, #30363d);
+}
+
+.docs-content .api-section:last-of-type {
+  border-bottom: none;
+}
+
+.docs-content .api-section h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  padding-top: 8px;
+  color: var(--text-primary, #e6edf3);
+}
+
+.docs-content .api-section h3 {
+  font-size: 14px;
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+.docs-content .api-section h4 {
+  font-size: 13px;
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+.docs-content .api-section > p {
+  color: var(--text-secondary, #c9d1d9);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.docs-content .api-section > p code,
+.docs-content .api-section p code {
+  color: var(--accent-blue, #58a6ff);
+  background: rgba(88, 166, 255, 0.1);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* ── Content Overrides ──────────────────────────────────── */
+
+/* Override api-layout within docs */
+.docs-content .api-layout {
+  max-width: 100%;
+}
+
+.docs-content .container {
+  max-width: 100%;
+  padding-left: 12px;
+  padding-right: 12px;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.docs-content .py-2,
+.docs-content .py-5 {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Suppress hero headers (redundant with sidebar) */
+.docs-content .minimal-hero {
+  display: none;
+}
+
+/* Suppress breadcrumbs and standalone h1/lead (redundant with sidebar) */
+.docs-content nav[aria-label="breadcrumb"] {
+  display: none;
+}
+
+.docs-content > .container > h1,
+.docs-content .container > h1 {
+  display: none;
+}
+
+.docs-content > .container > .lead,
+.docs-content .container > .lead {
+  display: none;
+}
+
+/* ── Code Blocks ────────────────────────────────────────── */
+.docs-content .code-block {
+  margin-bottom: 8px;
+}
+
+.docs-content .code-block .code-header {
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+.docs-content .code-block pre {
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.docs-content pre {
+  font-size: 12px;
+  margin-bottom: 0;
+}
+
+/* Version badges */
+.docs-content .api-version-badge {
+  font-size: 10px;
+  padding: 1px 6px;
+}
+
+/* ── Tables ─────────────────────────────────────────────── */
+.docs-content .card-body.p-0 {
+  overflow-x: auto;
+}
+
+.docs-content .table {
+  color: var(--text-primary, #e6edf3);
+  border-color: var(--workspace-border-default, #30363d);
+  margin-bottom: 0;
+  min-width: 800px;
+}
+
+.docs-content .table th {
+  color: var(--text-secondary, #c9d1d9);
+  background: var(--workspace-bg-secondary, #161b22);
+  border-color: var(--workspace-border-default, #30363d);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.docs-content .table td {
+  color: var(--text-primary, #e6edf3);
+  border-color: var(--workspace-border-default, #30363d);
+  font-size: 13px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.docs-content .table td:nth-child(4) {
+  white-space: normal;
+  min-width: 200px;
+}
+
+.docs-content .table td code {
+  color: var(--accent-blue, #58a6ff);
+  background: rgba(88, 166, 255, 0.1);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.docs-content .table td a {
+  color: var(--text-tertiary, #8b949e);
+}
+
+.docs-content .table td a:hover {
+  color: var(--accent-blue, #58a6ff);
+}
+
+.docs-content .table tbody tr:hover {
+  background: var(--workspace-bg-hover, #1c2128);
+}
+
+/* ── Cards Inside Sections ──────────────────────────────── */
+.docs-content .card {
+  border-color: var(--workspace-border-default, #30363d);
+  background: var(--workspace-bg-primary, #0d1117);
+}
+
+.docs-content .card-header {
+  background: var(--workspace-bg-secondary, #161b22);
+  border-color: var(--workspace-border-default, #30363d);
+  color: var(--text-primary, #e6edf3);
+  font-size: 13px;
+}

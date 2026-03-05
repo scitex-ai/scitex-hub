@@ -27,9 +27,6 @@ export {
  * Initialize the main application
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/utils/main.ts loaded",
-);
 function initApp(): void {
   // Initialize mobile menu toggle
   initMobileMenu();
@@ -49,7 +46,6 @@ function initApp(): void {
   if (getStartedBtn) {
     getStartedBtn.addEventListener("click", () => {
       // Add navigation or modal display logic here
-      console.log("[Main] Get Started button clicked");
     });
   }
 }
@@ -194,16 +190,11 @@ function initModuleSwitcher(): void {
         e.preventDefault();
         e.stopPropagation();
 
-        console.log(`[ModuleSwitcher] Navigating to ${route}`);
         window.location.href = route;
       }
     },
     true,
   ); // Use capture phase
-
-  console.log(
-    "[ModuleSwitcher] Initialized - Alt+F/S/C/V/W to switch modules, Alt+/ for shortcuts (capture phase)",
-  );
 }
 
 /**
@@ -225,7 +216,6 @@ function initGlobalZenMode(): void {
     document.querySelector(sel),
   );
   if (!isWorkspacePage) {
-    console.log("[ZenMode] Not a workspace page, skipping initialization");
     return;
   }
 
@@ -288,13 +278,6 @@ function initGlobalZenMode(): void {
     detailsToggleId,
     storagePrefix: "scitex-workspace-",
   });
-
-  console.log(
-    "[ZenMode] Initialized for workspace - sidebar:",
-    sidebarSelector,
-    "details:",
-    detailsSelector,
-  );
 }
 
 /**
@@ -389,10 +372,6 @@ function initAltKeyShortcutBadges(): void {
       badge.classList.remove("visible");
     });
   });
-
-  console.log(
-    "[AltKeyBadges] Initialized - Press Alt to see navigation shortcuts",
-  );
 }
 
 // Initialize when DOM is ready

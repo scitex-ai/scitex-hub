@@ -5,7 +5,6 @@
 
 import { fetchCitations } from "./CitationUtils";
 
-console.log("[DEBUG] CitationCompletion.ts loaded");
 
 /**
  * Register citation completion provider

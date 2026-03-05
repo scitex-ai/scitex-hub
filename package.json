@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:app": "vite --config vite.config.devapp.ts",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",

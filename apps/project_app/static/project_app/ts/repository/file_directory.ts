@@ -3,10 +3,6 @@
  * Corresponds to: templates/project_app/repository/file_directory.html
  */
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/repository/file_directory.ts loaded",
-);
-
 class FileDirectoryPage {
   constructor() {
     this.init();

@@ -3,9 +3,6 @@
  * Corresponds to: templates/writer_app/editor/editor.html
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/editor/editor.ts loaded",
-);
 class EditorPage {
   private _editor: any;
   private _pdfPreview: HTMLElement | null;

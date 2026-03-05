@@ -112,9 +112,15 @@ export function createTerminalInstance(
     terminal.loadAddon(inst.fitAddon);
     fitInstance(inst);
 
-    inst.resizeObserver = new ResizeObserver(() => {
+    let lastW = 0;
+    let lastH = 0;
+    inst.resizeObserver = new ResizeObserver((entries) => {
+      const { width, height } = entries[0].contentRect;
+      if (Math.abs(width - lastW) < 2 && Math.abs(height - lastH) < 2) return;
+      lastW = width;
+      lastH = height;
       if (inst.resizeTimeout) clearTimeout(inst.resizeTimeout);
-      inst.resizeTimeout = setTimeout(() => fitInstance(inst), 100);
+      inst.resizeTimeout = setTimeout(() => fitInstance(inst), 150);
     });
     inst.resizeObserver.observe(container);
   }
@@ -142,7 +148,10 @@ export function connectInstance(
   onStatusChange?.("connecting");
 
   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-  const url = `${proto}//${window.location.host}/ws/console/terminal/?project_id=0`;
+  const projectId =
+    document.querySelector<HTMLElement>(".project-selector-btn")?.dataset
+      .activeProjectId || "0";
+  const url = `${proto}//${window.location.host}/ws/console/terminal/?project_id=${projectId}`;
 
   inst.ws = new WebSocket(url);
 
@@ -162,13 +171,22 @@ export function connectInstance(
 
   inst.ws.onclose = (ev) => {
     inst.connected = false;
-    if (ev.code === 1000) {
-      onStatusChange?.("disconnected");
-    } else {
-      onStatusChange?.("error");
-      setTimeout(() => connectInstance(inst, onStatusChange), 3000);
-    }
+    onStatusChange?.(ev.code === 1000 ? "disconnected" : "error");
+    // Always reconnect — broker keeps shells alive and replays scrollback
+    setTimeout(
+      () => connectInstance(inst, onStatusChange),
+      ev.code === 1000 ? 1000 : 3000,
+    );
   };
+
+  // Listen for project switches — cd into new project instead of killing terminal
+  window.addEventListener("scitex:project-switched", ((
+    e: CustomEvent<{ projectSlug: string }>,
+  ) => {
+    if (inst.ws?.readyState === WebSocket.OPEN) {
+      inst.ws.send(`cd ~/proj/${e.detail.projectSlug}\n`);
+    }
+  }) as EventListener);
 }
 
 export function fitInstance(inst: TerminalInstance): void {

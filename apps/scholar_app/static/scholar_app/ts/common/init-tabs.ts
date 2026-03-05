@@ -4,9 +4,6 @@
  * Handles vertical tab switching between BibTeX and Search tabs
  */
 
-console.log(
-  "[DEBUG] apps/scholar_app/static/scholar_app/ts/common/init-tabs.ts loaded",
-);
 function initTabs(): void {
   const tabLinks: NodeListOf<Element> = document.querySelectorAll(".tab-link");
   const tabContents: NodeListOf<Element> = document.querySelectorAll(

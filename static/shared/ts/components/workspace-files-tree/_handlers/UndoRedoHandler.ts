@@ -45,12 +45,12 @@ export class UndoRedoHandler {
 
   /** Get the base API URL for file operations */
   private getApiUrl(action: string): string {
-    return `/${this.config.username}/${this.config.slug}/api/files/${action}/`;
+    return `/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/${action}/`;
   }
 
   /** Get the base API URL for git operations */
   private getGitApiUrl(action: string): string {
-    return `/${this.config.username}/${this.config.slug}/api/git/${action}/`;
+    return `/${this.config.ownerUsername}/${this.config.projectSlug}/api/git/${action}/`;
   }
 
   /** Record an operation for potential undo */

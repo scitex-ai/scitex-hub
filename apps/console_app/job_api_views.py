@@ -272,11 +272,25 @@ def api_user_jobs(request):
         result = slurm.list_jobs(state=state_filter)
 
         # Filter to only show jobs belonging to the current user
+        # Matches both compute jobs (scitex_{user}_*) and terminal
+        # allocations (scitex-cloud-terminal-{user})
         username = request.user.username
-        prefix = f"scitex_{username}_"
-        user_jobs = [
-            j for j in result.get("jobs", []) if j.get("name", "").startswith(prefix)
-        ]
+        compute_prefix = f"scitex_{username}_"
+        terminal_prefix = f"scitex-cloud-terminal-{username}"
+
+        def _is_user_job(job):
+            name = job.get("name", "")
+            return name.startswith(compute_prefix) or name.startswith(terminal_prefix)
+
+        user_jobs = [j for j in result.get("jobs", []) if _is_user_job(j)]
+
+        # Add type field for UI differentiation
+        for job in user_jobs:
+            name = job.get("name", "")
+            job["type"] = (
+                "terminal" if name.startswith("scitex-cloud-terminal") else "compute"
+            )
+
         running = sum(1 for j in user_jobs if j["state"] == "RUNNING")
         pending = sum(1 for j in user_jobs if j["state"] == "PENDING")
         result["jobs"] = user_jobs

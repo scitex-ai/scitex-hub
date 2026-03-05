@@ -5,7 +5,6 @@
  * Single source of truth: static/shared/ts/monaco/MonacoTheme.ts
  */
 
-console.log("[DEBUG] EditorTheme.ts loaded");
 
 export {
   setupMonacoTheme,

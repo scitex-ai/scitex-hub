@@ -1,9 +1,5 @@
 // File editor functionality
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/repository/file_edit.ts loaded",
-);
-
 (function () {
   "use strict";
 

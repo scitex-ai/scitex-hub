@@ -6,10 +6,6 @@
  * @author SciTeX Development Team
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/editor/preview-panel/navigation.ts loaded",
-);
-
 export class PreviewNavigation {
   private previewPanel: HTMLElement;
   private togglePreviewBtn: HTMLButtonElement;

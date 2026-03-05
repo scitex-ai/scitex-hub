@@ -3,7 +3,6 @@
  * Coordinates citation management modules
  */
 
-console.log("[DEBUG] citations-panel.ts loaded");
 
 import { statePersistence } from "./_state-persistence";
 import type { Citation } from "./_citations-panel/types";

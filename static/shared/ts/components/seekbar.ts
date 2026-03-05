@@ -26,10 +26,6 @@
  * @author SciTeX Development Team
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/components/seekbar.ts loaded",
-);
-
 import type {
   SeekbarOptions,
   SeekbarValues,

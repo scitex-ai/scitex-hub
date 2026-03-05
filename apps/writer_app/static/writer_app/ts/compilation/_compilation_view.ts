@@ -3,9 +3,6 @@
  * Corresponds to: templates/writer_app/_compilation/compilation_view.html
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/_compilation/compilation_view.ts loaded",
-);
 interface CompilationLog {
   timestamp: string;
   level: string;

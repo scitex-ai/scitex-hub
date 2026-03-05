@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Vite integration for Django.
+Vite integration for Django — dual-Vite architecture.
 
-In development (DEBUG=True): Serves JS from Vite dev server with HMR
-In production (DEBUG=False): Uses built files from staticfiles/vite manifest
+Host Vite (port 5173): Platform files — runs on host with native FS watching (dev only).
+Container Vite (port 5174): Dev app files only — runs in container on-demand (dev + prod).
+Production platform files: Uses built files from staticfiles/vite manifest.
 
 Usage in templates:
   {% load vite %}
   {% vite_script 'console_app/workspace' %}
 
-Note: In development, Vite dev server must be running (npm run dev).
-      No fallback to tsc-compiled JS - keeps the system simple and predictable.
+Note: In development, host Vite must be running (npm run dev on host).
+      Container Vite starts automatically when dev apps have TypeScript files.
+      In production, container Vite handles dev app TS; platform uses manifest.
 """
 
 import json
@@ -22,6 +24,27 @@ from django.conf import settings
 from django.utils.safestring import mark_safe
 
 register = template.Library()
+
+# Platform app prefixes — everything NOT in this set is a dev app
+_PLATFORM_APPS = frozenset(
+    {
+        "console_app",
+        "vis_app",
+        "writer_app",
+        "project_app",
+        "scholar_app",
+        "public_app",
+        "accounts_app",
+        "hub_app",
+        "clew_app",
+        "social_app",
+        "docs_app",
+        "apps_app",
+        "dev_app",
+        "workspace_app",
+        "shared",
+    }
+)
 
 # Cache manifest in production
 _manifest_cache = None
@@ -48,14 +71,31 @@ def get_manifest() -> dict:
 @register.simple_tag
 def vite_hmr_client():
     """
-    Include Vite HMR client in development.
-    Returns empty string in production.
+    Include Vite HMR client(s).
+
+    Dev: Host Vite (5173) + Container Vite (5174) HMR clients.
+    Prod: Container Vite (5174) HMR client only (for dev apps).
+    Browser silently ignores clients for servers that aren't running.
     """
+    scripts = ""
+
     if settings.DEBUG:
-        return mark_safe(
-            '<script type="module" src="http://127.0.0.1:5173/@vite/client"></script>'
-        )
-    return ""
+        host_port = getattr(settings, "VITE_HOST_PORT", 5173)
+        scripts += f'<script type="module" src="http://127.0.0.1:{host_port}/@vite/client"></script>\n'
+        # Dev app Vite HMR — direct access in dev
+        dev_port = getattr(settings, "VITE_DEV_APP_PORT", 5174)
+        scripts += f'<script type="module" src="http://127.0.0.1:{dev_port}/@vite/client" onerror=""></script>'
+    else:
+        # Production: dev app Vite HMR through nginx proxy
+        scripts += '<script type="module" src="/_vite_dev_app/@vite/client" onerror=""></script>'
+
+    return mark_safe(scripts) if scripts else ""
+
+
+def _is_dev_app_entry(entry_name: str) -> bool:
+    """Check if entry belongs to a dev-installed app (not platform)."""
+    app_prefix = entry_name.split("/")[0] if "/" in entry_name else entry_name
+    return app_prefix not in _PLATFORM_APPS
 
 
 @register.simple_tag
@@ -63,17 +103,34 @@ def vite_script(entry_name: str):
     """
     Load a Vite entry point script.
 
-    In development (DEBUG=True): Load from Vite dev server (HMR)
-    In production (DEBUG=False): Load from Vite-built manifest
+    Dev app entries → container Vite (port 5174) in BOTH dev and prod.
+    Platform entries:
+      - DEBUG=True → host Vite (port 5173)
+      - DEBUG=False → Vite-built manifest
 
     Args:
         entry_name: Entry name like 'console_app/workspace'
     """
-    if settings.DEBUG:
-        # Development: Load from Vite dev server (HMR enabled)
+    # Dev app entries use container Vite — works in dev and prod
+    if _is_dev_app_entry(entry_name):
         ts_path = _entry_to_ts_path(entry_name)
+        if settings.DEBUG:
+            port = getattr(settings, "VITE_DEV_APP_PORT", 5174)
+            return mark_safe(
+                f'<script type="module" src="http://127.0.0.1:{port}/{ts_path}"></script>'
+            )
+        else:
+            # Production: through nginx proxy
+            return mark_safe(
+                f'<script type="module" src="/_vite_dev_app/{ts_path}"></script>'
+            )
+
+    # Platform entries
+    if settings.DEBUG:
+        ts_path = _entry_to_ts_path(entry_name)
+        port = getattr(settings, "VITE_HOST_PORT", 5173)
         return mark_safe(
-            f'<script type="module" src="http://127.0.0.1:5173/{ts_path}"></script>'
+            f'<script type="module" src="http://127.0.0.1:{port}/{ts_path}"></script>'
         )
     else:
         # Production: Load from Vite manifest
@@ -86,7 +143,6 @@ def vite_script(entry_name: str):
                 f'<script type="module" src="{settings.STATIC_URL}vite/{js_file}"></script>'
             )
         else:
-            # Entry not in manifest - log error in production
             import logging
 
             logging.getLogger(__name__).error(
@@ -216,6 +272,8 @@ def _entry_to_ts_path(entry_name: str) -> str:
         "scholar_app/search/source-health-check": "apps/scholar_app/static/scholar_app/ts/search/source-health-check.ts",
         # Project app - additional
         "project_app/projects/settings": "apps/project_app/static/project_app/ts/projects/settings.ts",
+        # Workspace app (non-standard static location)
+        "workspace_app/workspace-shell": "static/workspace_app/ts/workspace-shell.ts",
         # Shared utilities
         "shared/utils/theme-switcher": "static/shared/ts/utils/theme-switcher.ts",
         "shared/utils/tooltip-auto-position": "static/shared/ts/utils/tooltip-auto-position.ts",

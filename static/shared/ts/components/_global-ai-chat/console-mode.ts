@@ -10,6 +10,10 @@ import { setupAutoAccept } from "./console-auto-accept";
 import { handleOscEscapes } from "./console-osc-handler";
 import { ConsoleTabManager, type ConsoleTab } from "./console-tabs";
 import { setupFileDrop, setupRightClick } from "./console-event-handlers";
+import {
+  showAllocationSpinner,
+  hideAllocationSpinner,
+} from "./console-allocation-spinner";
 
 /** Adapter: WebcamCapture/SketchCanvas → upload image → type path into terminal */
 function makeImageSink(send: (t: string) => void) {
@@ -35,6 +39,7 @@ export interface ConsoleToolbarRefs {
 
 interface TerminalInstance {
   id: string;
+  sessionName: string;
   terminal: any;
   fitAddon: any;
   ws: WebSocket | null;
@@ -143,12 +148,22 @@ export class AIPanelConsoleMode {
       getWs: () => this.getActiveWs(),
       getTerminal: () => this.getActiveTerminal(),
     });
+
+    // Listen for project switches — cd into new project instead of killing terminal
+    window.addEventListener("scitex:project-switched", ((
+      e: CustomEvent<{ projectSlug: string }>,
+    ) => {
+      const ws = this.getActiveWs();
+      if (ws?.readyState === WebSocket.OPEN) {
+        ws.send(`cd ~/proj/${e.detail.projectSlug}\n`);
+      }
+    }) as EventListener);
   }
 
   // --- Tab callbacks ---
 
   private onTabCreate(tab: ConsoleTab): void {
-    this.createInstance(tab.id, tab.containerEl);
+    this.createInstance(tab.id, tab.containerEl, tab.sessionName);
   }
 
   private onTabSwitch(tab: ConsoleTab): void {
@@ -167,7 +182,11 @@ export class AIPanelConsoleMode {
 
   // --- Instance lifecycle ---
 
-  private createInstance(id: string, containerEl: HTMLElement): void {
+  private createInstance(
+    id: string,
+    containerEl: HTMLElement,
+    sessionName?: string,
+  ): void {
     const terminal = new this.TerminalCtor({
       cursorBlink: true,
       fontSize: 13,
@@ -191,7 +210,18 @@ export class AIPanelConsoleMode {
         /* hidden */
       }
 
-      resizeObserver = new ResizeObserver(() => {
+      let lastObservedW = 0;
+      let lastObservedH = 0;
+      resizeObserver = new ResizeObserver((entries) => {
+        const { width, height } = entries[0].contentRect;
+        // Skip if dimensions haven't meaningfully changed (prevents feedback loop)
+        if (
+          Math.abs(width - lastObservedW) < 2 &&
+          Math.abs(height - lastObservedH) < 2
+        )
+          return;
+        lastObservedW = width;
+        lastObservedH = height;
         if (resizeTimeout) clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(() => {
           try {
@@ -200,13 +230,14 @@ export class AIPanelConsoleMode {
             /* hidden */
           }
           this.sendResize(inst);
-        }, 100);
+        }, 150);
       });
       resizeObserver.observe(containerEl);
     }
 
     const inst: TerminalInstance = {
       id,
+      sessionName: sessionName || `ai-panel-${id}`,
       terminal,
       fitAddon,
       ws: null,
@@ -261,17 +292,25 @@ export class AIPanelConsoleMode {
       storageKey: "scitex-terminal-font-size",
     });
 
-    // Allocation progress (OSC 9997 from broker)
+    // Allocation progress overlay spinner
     containerEl.addEventListener("scitex-session-state", ((e: CustomEvent) => {
-      if (e.detail?.state === "allocation_starting")
-        inst.terminal.write("\x1b[33mStarting SLURM allocation...\x1b[0m\r\n");
+      const state = e.detail?.state;
+      if (
+        state === "allocation_starting" ||
+        state === "allocation_recovering"
+      ) {
+        showAllocationSpinner(containerEl);
+      } else if (state === "ready" || state === "connected") {
+        hideAllocationSpinner(containerEl);
+      }
     }) as EventListener);
     this.observeTheme(inst);
 
     this.instances.set(id, inst);
     this.activeTabId = id;
 
-    // Connect WebSocket
+    // Show spinner during initial connection and connect WebSocket
+    showAllocationSpinner(containerEl);
     this.connectInstance(inst);
   }
 
@@ -293,14 +332,17 @@ export class AIPanelConsoleMode {
     this.setStatus("connecting");
 
     const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const sessionName = `ai-panel-${inst.id}`;
-    const url = `${proto}//${window.location.host}/ws/console/terminal/?project_id=0&session=${encodeURIComponent(sessionName)}`;
+    const projectId =
+      document.querySelector<HTMLElement>(".project-selector-btn")?.dataset
+        .activeProjectId || "0";
+    const url = `${proto}//${window.location.host}/ws/console/terminal/?project_id=${projectId}&session=${encodeURIComponent(inst.sessionName)}`;
 
     inst.ws = new WebSocket(url);
 
     inst.ws.onopen = () => {
       inst.connected = true;
       if (inst.id === this.activeTabId) this.setStatus("connected");
+      hideAllocationSpinner(inst.containerEl);
       this.sendResize(inst);
     };
 
@@ -318,9 +360,11 @@ export class AIPanelConsoleMode {
       if (inst.id === this.activeTabId) {
         this.setStatus(ev.code === 1000 ? "disconnected" : "error");
       }
-      if (ev.code !== 1000) {
-        setTimeout(() => this.connectInstance(inst), 3000);
-      }
+      // Always reconnect — broker keeps shells alive and replays scrollback
+      setTimeout(
+        () => this.connectInstance(inst),
+        ev.code === 1000 ? 1000 : 3000,
+      );
     };
   }
 

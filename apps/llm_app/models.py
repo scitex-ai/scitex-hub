@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.utils import timezone
 
@@ -184,6 +186,16 @@ class ChatSession(models.Model):
         related_name="chat_sessions",
     )
     title = models.CharField(max_length=200, default="New chat")
+    share_token = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        db_index=True,
+        help_text="Public share token (URL key for read-only access)",
+    )
+    is_shared = models.BooleanField(
+        default=False,
+        help_text="Whether the session is publicly accessible via share_token",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_archived = models.BooleanField(default=False)

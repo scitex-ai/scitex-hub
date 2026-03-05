@@ -179,6 +179,7 @@ def _filter_modules_for_user(request, modules):
         result = [m for m in modules if m.default_enabled]
         for mod in result:
             mod.accent_color = ""
+        result = _append_dev_apps(request.user, result)
         return result
 
     # Show modules unless explicitly disabled via installation record
@@ -197,8 +198,25 @@ def _filter_modules_for_user(request, modules):
             mod.accent_color = (inst.config or {}).get("accent_color", "")
             visible.append(mod)
 
+    visible = _append_dev_apps(request.user, visible)
     visible.sort(key=lambda m: m.order)
     return visible
+
+
+def _append_dev_apps(user, modules):
+    """Inject dev-installed app tabs for this user."""
+    try:
+        from apps.apps_app.models import DevInstallation
+        from apps.apps_app.services.dev_app_loader import build_module_config
+
+        dev_installs = DevInstallation.objects.filter(user=user, is_enabled=True)
+        for dev_inst in dev_installs:
+            config = build_module_config(dev_inst)
+            config.accent_color = ""
+            modules.append(config)
+    except Exception:
+        pass  # apps_app not migrated yet
+    return modules
 
 
 # EOF

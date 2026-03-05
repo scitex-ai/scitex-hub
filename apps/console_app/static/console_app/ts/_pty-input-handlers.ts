@@ -1,7 +1,10 @@
 /**
  * Input event handlers for PTY Terminal.
- * Keyboard shortcuts, right-click, clipboard, and file drop.
+ * Keyboard shortcuts, right-click, clipboard, file drop, and image paste.
  */
+
+import { showPastePreview } from "./_paste-preview";
+import { uploadFiles } from "./_upload-utils";
 
 /** Attach keyboard shortcut handler (clipboard, navigation, zen mode). */
 export function attachKeyboardHandler(
@@ -54,7 +57,7 @@ export function attachKeyboardHandler(
       return true;
     }
 
-    // Ctrl+V: Paste from clipboard
+    // Ctrl+V: Paste from clipboard (text only — images handled by paste event)
     if (event.ctrlKey && (event.key === "V" || event.key === "v")) {
       navigator.clipboard.readText().then((text: string) => {
         const ws = getWs();
@@ -104,10 +107,11 @@ export function attachRightClickHandler(
   });
 }
 
-/** Attach file drop handler for uploading OS files. */
+/** Attach file drop handler — uploads to scitex/downloads/. */
 export function attachFileDropHandler(
   containerEl: HTMLElement,
   getWs: () => WebSocket | null,
+  projectId: number,
 ): void {
   containerEl.addEventListener("dragover", (e) => {
     e.preventDefault();
@@ -118,38 +122,78 @@ export function attachFileDropHandler(
   containerEl.addEventListener("dragleave", () => {
     containerEl.classList.remove("drop-target");
   });
-  containerEl.addEventListener("drop", (e) => {
+  containerEl.addEventListener("drop", async (e) => {
     e.preventDefault();
     e.stopPropagation();
     containerEl.classList.remove("drop-target");
     const dt = e.dataTransfer;
     if (!dt) return;
+
     if (dt.files && dt.files.length > 0) {
-      const csrf =
-        document.querySelector<HTMLInputElement>("[name=csrfmiddlewaretoken]")
-          ?.value ??
-        (document.cookie.match(/csrftoken=([^;]+)/)?.[1] || "");
-      const form = new FormData();
-      for (let i = 0; i < dt.files.length; i++)
-        form.append("files", dt.files[i]);
-      void fetch("/llm/api/upload/", {
-        method: "POST",
-        headers: { "X-CSRFToken": csrf },
-        body: form,
-      })
-        .then((r) => r.json())
-        .then((d: any) => {
-          const ws = getWs();
-          if (ws?.readyState === WebSocket.OPEN) ws.send(d.paths.join(" "));
-        })
-        .catch((err) => console.error("[PTY] Upload error:", err));
+      const files = Array.from(dt.files);
+      // Show preview for image files
+      const hasImages = files.some((f) => f.type.startsWith("image/"));
+      if (hasImages) {
+        const confirmed = await showPastePreview(files[0], containerEl);
+        if (!confirmed) return;
+      }
+
+      try {
+        const paths = await uploadFiles(files, projectId);
+        const ws = getWs();
+        if (ws?.readyState === WebSocket.OPEN) ws.send(paths.join(" "));
+      } catch (err) {
+        console.error("[PTY] Upload error:", err);
+      }
       return;
     }
+
     const raw = dt.getData("text/plain") ?? "";
     const paths = raw.split(";").filter(Boolean);
     const ws = getWs();
     if (paths.length > 0 && ws?.readyState === WebSocket.OPEN) {
       ws.send(paths.join(" "));
     }
+  });
+}
+
+/** Attach clipboard paste handler for images/files. */
+export function attachClipboardPasteHandler(
+  containerEl: HTMLElement,
+  getWs: () => WebSocket | null,
+  projectId: number,
+): void {
+  containerEl.addEventListener("paste", async (e: ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.startsWith("image/") || item.kind === "file") {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (!file) continue;
+
+        // Generate a meaningful filename for clipboard images
+        const ext = file.type.split("/")[1] || "png";
+        const namedFile =
+          file.name && file.name !== "image.png"
+            ? file
+            : new File([file], `clipboard.${ext}`, { type: file.type });
+
+        const confirmed = await showPastePreview(namedFile, containerEl);
+        if (!confirmed) return;
+
+        try {
+          const paths = await uploadFiles([namedFile], projectId);
+          const ws = getWs();
+          if (ws?.readyState === WebSocket.OPEN) ws.send(paths.join(" "));
+        } catch (err) {
+          console.error("[PTY] Clipboard upload error:", err);
+        }
+        return;
+      }
+    }
+    // Text paste falls through to xterm's default handler
   });
 }

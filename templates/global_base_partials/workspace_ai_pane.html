@@ -29,24 +29,14 @@
                 </button>
                 <span class="sidebar-title" id="scitex-ai-collapsed-title" title="Console"><i class="fas fa-terminal"></i> Console</span>
                 <div class="scitex-ai-mode-toggle">
-                    <button class="scitex-ai-mode-btn active" data-mode="chat" title="AI Chat">
-                        <i class="fas fa-robot"></i> Chat
-                    </button>
-                    <button class="scitex-ai-mode-btn" data-mode="console" title="Terminal & Jobs">
+                    <button class="scitex-ai-mode-btn active" data-mode="console" title="Terminal & Jobs">
                         <i class="fas fa-terminal"></i> Console
-                        <span id="ai-jobs-badge" class="ai-mode-badge" style="display:none">0</span>
+                    </button>
+                    <button class="scitex-ai-mode-btn" data-mode="chat" title="AI Chat">
+                        <i class="fas fa-robot"></i> Chat
                     </button>
                 </div>
                 <div class="scitex-ai-panel-actions">
-                    <button class="scitex-ai-action-btn" id="scitex-ai-copy-chat" title="Copy chat">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                    <button class="scitex-ai-action-btn" id="scitex-ai-print-chat" title="Print chat">
-                        <i class="fas fa-print"></i>
-                    </button>
-                    <button class="scitex-ai-action-btn" id="scitex-ai-clear-chat" title="Clear chat">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
                     <button class="scitex-ai-action-btn"
                             title="Keyboard Shortcuts"
                             onclick="window.showShortcutsModal()">
@@ -56,12 +46,26 @@
             </div>
             <div class="sidebar-content scitex-ai-body">
                 <!-- Chat mode -->
-                <div id="scitex-ai-chat-view" class="scitex-ai-view active">
+                <div id="scitex-ai-chat-view" class="scitex-ai-view">
                     <div class="scitex-ai-sessions-bar">
                         <button class="scitex-ai-new-chat" title="New chat">
                             <i class="fas fa-plus"></i>
                         </button>
                         <div id="scitex-ai-sessions-list" class="scitex-ai-sessions-list"></div>
+                        <div class="scitex-ai-panel-actions">
+                            <button class="scitex-ai-action-btn" id="scitex-ai-copy-chat" title="Copy chat">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button class="scitex-ai-action-btn" id="scitex-ai-print-chat" title="Print chat">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <button class="scitex-ai-action-btn" id="scitex-ai-clear-chat" title="Clear chat">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                        <button class="scitex-ai-share-btn" title="Share conversation">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
                     </div>
                     <div id="scitex-ai-messages" class="scitex-ai-messages">
                         <div class="scitex-ai-empty">
@@ -155,7 +159,7 @@
                     </div>
                 </div>
                 <!-- Console/Terminal mode -->
-                <div id="scitex-ai-console-view" class="scitex-ai-view">
+                <div id="scitex-ai-console-view" class="scitex-ai-view active">
                     <div class="scitex-ai-console-tabs-bar">
                         <button class="scitex-ai-console-new-tab" title="New terminal">
                             <i class="fas fa-plus"></i>
@@ -170,7 +174,7 @@
                             <button id="scitex-ai-auto-accept"
                                     class="scitex-ai-input-btn scitex-ai-auto-accept-btn"
                                     title="Claude Code Auto-Accept: automatically accepts permission prompts at the configured interval and safety level">
-                                <i class="fas fa-magic"></i>
+                                <i class="fas fa-robot"></i>
                                 <span id="scitex-ai-auto-accept-state" class="scitex-ai-auto-accept-state"></span>
                             </button>
                             <button id="scitex-ai-console-camera"
@@ -199,7 +203,7 @@
                             <div class="ai-settings-section" id="ai-auto-accept-config">
                                 <label class="scitex-ai-settings-label"
                                        title="When enabled, automatically accepts Claude Code permission prompts at the configured interval. Conservative: safe commands only. Normal: most commands. Aggressive: all commands.">
-                                    <i class="fas fa-magic"></i> Claude Code Auto-Accept Mode
+                                    <i class="fas fa-robot"></i> Claude Code Auto-Accept Mode
                                 </label>
                                 <div class="ai-settings-row">
                                     <label class="scitex-ai-settings-label"
@@ -234,6 +238,40 @@
                                                 title="Accept all commands including destructive ones — use with caution">
                                             Aggressive (all commands)
                                         </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="ai-settings-section" id="ai-auto-response-config">
+                                <label class="scitex-ai-settings-label"
+                                       title="Commands sent automatically for each Claude state">
+                                    <i class="fas fa-reply"></i> Auto-Response Commands
+                                </label>
+                                <div class="ai-settings-row">
+                                    <label class="scitex-ai-settings-label"
+                                           title="Command sent when Claude is thinking or idle">Waiting</label>
+                                    <input id="ai-auto-response-waiting"
+                                           class="ai-settings-input"
+                                           type="text"
+                                           placeholder="/speak-signature"
+                                           title="Command sent when Claude is thinking or idle" />
+                                </div>
+                                <div class="ai-settings-row">
+                                    <label class="scitex-ai-settings-label" title="Response for Y/N permission prompts">Y/N</label>
+                                    <select id="ai-auto-response-yn"
+                                            class="ai-settings-select"
+                                            title="Response for Y/N permission prompts">
+                                        <option value="1">1 (Allow)</option>
+                                        <option value="2">2 (Deny)</option>
+                                    </select>
+                                </div>
+                                <div class="ai-settings-row">
+                                    <label class="scitex-ai-settings-label" title="Response for Y/Y/N permission prompts">Y/Y/N</label>
+                                    <select id="ai-auto-response-yyn"
+                                            class="ai-settings-select"
+                                            title="Response for Y/Y/N permission prompts">
+                                        <option value="1">1 (Allow once)</option>
+                                        <option value="2" selected>2 (Allow always)</option>
+                                        <option value="3">3 (Deny)</option>
                                     </select>
                                 </div>
                             </div>

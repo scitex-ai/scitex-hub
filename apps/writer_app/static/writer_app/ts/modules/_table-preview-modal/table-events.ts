@@ -3,7 +3,6 @@
  * Manages table interaction events
  */
 
-console.log("[DEBUG] table-preview-modal/table-events.ts loaded");
 
 import { TableStateManager } from "./table-state";
 import { TableRenderer } from "./table-renderer";

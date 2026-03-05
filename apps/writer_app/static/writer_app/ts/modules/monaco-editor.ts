@@ -32,10 +32,6 @@ import { EditorContent } from "./_monaco-editor/editor-content";
 import { EditorConfig } from "./_monaco-editor/editor-config";
 import { SpellCheckIntegration } from "./_monaco-editor/spell-check-integration";
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/monaco-editor.ts loaded",
-);
-
 export interface MonacoEditorConfig {
   elementId: string;
   mode?: string;

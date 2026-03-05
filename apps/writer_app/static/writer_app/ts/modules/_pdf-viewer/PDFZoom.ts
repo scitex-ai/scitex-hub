@@ -5,7 +5,6 @@
 
 import { statePersistence } from "../_state-persistence";
 
-console.log("[DEBUG] PDFZoom.ts loaded");
 
 export class PDFZoom {
   private currentScale: number = 1.5;

@@ -4,7 +4,6 @@
  * Displays remote users' cursor positions and selections in real-time
  */
 
-console.log("[DEBUG] cursor-tracker.ts loaded");
 
 interface RemoteCursor {
   userId: number;

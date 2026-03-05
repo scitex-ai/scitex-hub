@@ -38,10 +38,6 @@ import {
 } from "./detail/toolbar-dropdowns";
 import { copyCloneUrl, downloadProjectZip } from "./detail/clone-download";
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/projects/detail.ts loaded",
-);
-
 (function () {
   "use strict";
 

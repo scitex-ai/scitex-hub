@@ -1,0 +1,105 @@
+/* Paste preview overlay for terminal clipboard/drop uploads */
+
+.paste-preview-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 100;
+  backdrop-filter: blur(2px);
+}
+
+.paste-preview-card {
+  background: var(--workspace-bg-secondary, #1e1e2e);
+  border: 1px solid var(--workspace-border-default, #30363d);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 280px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.paste-preview-thumb {
+  width: 128px;
+  height: 128px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--workspace-bg-tertiary, #161620);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.paste-preview-thumb img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.paste-preview-thumb .fas {
+  font-size: 48px;
+  color: var(--workspace-text-secondary, #8b949e);
+}
+
+.paste-preview-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.paste-preview-name {
+  color: var(--workspace-text-primary, #e6edf3);
+  font-size: 13px;
+  font-weight: 500;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.paste-preview-size {
+  color: var(--workspace-text-secondary, #8b949e);
+  font-size: 11px;
+}
+
+.paste-preview-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.paste-preview-btn {
+  padding: 6px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--workspace-border-default, #30363d);
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s;
+}
+
+.paste-preview-upload {
+  background: var(--color-accent-emphasis, #2f81f7);
+  color: #fff;
+  border-color: var(--color-accent-emphasis, #2f81f7);
+}
+
+.paste-preview-upload:hover {
+  filter: brightness(1.1);
+}
+
+.paste-preview-cancel {
+  background: transparent;
+  color: var(--workspace-text-secondary, #8b949e);
+}
+
+.paste-preview-cancel:hover {
+  background: var(--workspace-bg-tertiary, #161620);
+}

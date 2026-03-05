@@ -3,10 +3,6 @@
  * Corresponds to: templates/project_app/shared/sidebar.html
  */
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/shared/sidebar_improvements.ts loaded",
-);
-
 class SidebarImprovements {
   private sidebar: HTMLElement | null;
 

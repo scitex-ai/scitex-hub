@@ -12,7 +12,6 @@ import { PDFScrollState } from "./_pdf-viewer/PDFScrollState";
 import { PDFMouseHandler } from "./_pdf-viewer/PDFMouseHandler";
 import { PDFTheme } from "./_pdf-viewer/PDFTheme";
 
-console.log("[DEBUG] pdf-viewer-pdfjs.ts loaded");
 
 export interface PDFViewerOptions {
   containerId: string;

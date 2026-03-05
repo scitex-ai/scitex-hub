@@ -70,7 +70,7 @@ export class FileUpload {
     );
 
     const response = await fetch(
-      `/${this.config.username}/${this.config.slug}/api/files/upload/`,
+      `/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/upload/`,
       {
         method: "POST",
         headers: {
@@ -108,7 +108,7 @@ export class FileUpload {
       }
 
       const response = await fetch(
-        `/${this.config.username}/${this.config.slug}/api/files/upload-url/`,
+        `/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/upload-url/`,
         {
           method: "POST",
           headers: {

@@ -11,9 +11,6 @@
  * @module shared/collapsible-panels
  */
 
-console.log(
-  "[DEBUG] apps/scholar_app/static/scholar_app/ts/shared/collapsible-panels.ts loaded",
-);
 interface CollapsiblePanelElements {
   header: HTMLElement;
   content: HTMLElement;

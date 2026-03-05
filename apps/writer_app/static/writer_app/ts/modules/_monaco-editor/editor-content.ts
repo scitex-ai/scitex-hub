@@ -6,10 +6,6 @@
 import { SpellChecker } from "../_spell-checker";
 import { EditorHistory } from "./editor-history";
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/_monaco-editor/editor-content.ts loaded",
-);
-
 export class EditorContent {
   private editor: any;
   private monacoEditor: any;

@@ -8,13 +8,13 @@ from .session import SessionState
 logger = logging.getLogger(__name__)
 
 
-def send_state(broker, client: socket.socket, pty_id: str, state: str):
+def send_state(broker, client: socket.socket, pty_id: str, state: str, extra=None):
     """Send a session_state control message to the client."""
+    msg = {"action": "session_state", "state": state, "session_id": pty_id}
+    if extra:
+        msg.update(extra)
     try:
-        broker._send_message(
-            client,
-            {"action": "session_state", "state": state, "session_id": pty_id},
-        )
+        broker._send_message(client, msg)
     except Exception:
         pass
 

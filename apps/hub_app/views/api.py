@@ -243,6 +243,17 @@ def api_select_project(request):
         request.user.profile.save(update_fields=["last_active_repository"])
 
     context = {"project": project}
+
+    # Check if user has this repo dev-installed (for the Dev Install button)
+    if request.user.is_authenticated and project.is_app:
+        from apps.apps_app.models import DevInstallation
+
+        context["is_dev_installed"] = DevInstallation.objects.filter(
+            user=request.user,
+            source_owner=project.owner.username,
+            source_repo=project.slug,
+        ).exists()
+
     _add_file_browser_context(request, project, context)
 
     html = render_to_string(
@@ -291,6 +302,18 @@ def api_explore(request):
             .order_by("-star_count", "-updated_at")[:20]
         )
         context["repositories"] = repositories
+
+        # Pass set of already-installed dev apps for UI state
+        try:
+            from apps.apps_app.models import DevInstallation
+
+            context["dev_installed_set"] = set(
+                DevInstallation.objects.filter(user=request.user).values_list(
+                    "source_owner", "source_repo"
+                )
+            )
+        except Exception:
+            context["dev_installed_set"] = set()
     elif tab == "users":
         users = (
             User.objects.filter(is_active=True)

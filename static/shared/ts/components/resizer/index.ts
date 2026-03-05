@@ -78,7 +78,6 @@ function initVerticalResizers(): number {
 /** Initialize all resizers. Called once on DOMContentLoaded. */
 export function autoInit(): void {
   if (_autoInitDone) {
-    console.log("[Resizer] autoInit already done, skipping.");
     return;
   }
   _autoInitDone = true;

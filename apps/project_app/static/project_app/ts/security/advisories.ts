@@ -3,10 +3,6 @@
  * Corresponds to: templates/project_app/security/advisories.html
  */
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/security/advisories.ts loaded",
-);
-
 class SecurityAdvisoriesPage {
   constructor() {
     this.init();

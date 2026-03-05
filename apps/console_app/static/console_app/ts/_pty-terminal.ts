@@ -4,16 +4,19 @@
  */
 
 import {
+  attachClipboardPasteHandler,
   attachFileDropHandler,
   attachKeyboardHandler,
   attachRightClickHandler,
 } from "./_pty-input-handlers";
+import { handleCaptureRequest } from "./_on-site-capture";
 
 export class PTYTerminal {
   private term: any;
   private ws: WebSocket | null = null;
   private projectId: number;
   private tmuxSession: string;
+  private containerEl: HTMLElement;
   private imageContainer: HTMLElement | null = null;
   private readyPromise: Promise<void>;
   private readyResolve!: () => void;
@@ -27,6 +30,7 @@ export class PTYTerminal {
   ) {
     this.projectId = projectId;
     this.tmuxSession = tmuxSession;
+    this.containerEl = containerEl;
 
     this.readyPromise = new Promise<void>((resolve) => {
       this.readyResolve = resolve;
@@ -70,12 +74,18 @@ export class PTYTerminal {
         this.sendResize();
       });
 
-      const resizeObserver = new ResizeObserver(() => {
+      let lastW = 0;
+      let lastH = 0;
+      const resizeObserver = new ResizeObserver((entries) => {
+        const { width, height } = entries[0].contentRect;
+        if (Math.abs(width - lastW) < 2 && Math.abs(height - lastH) < 2) return;
+        lastW = width;
+        lastH = height;
         clearTimeout((this as any).resizeTimeout);
         (this as any).resizeTimeout = setTimeout(() => {
           fitAddon.fit();
           this.sendResize();
-        }, 100);
+        }, 150);
       });
       resizeObserver.observe(containerEl);
     }
@@ -100,7 +110,8 @@ export class PTYTerminal {
     const getWs = () => this.ws;
     attachKeyboardHandler(this.term, getWs);
     attachRightClickHandler(containerEl, getWs);
-    attachFileDropHandler(containerEl, getWs);
+    attachFileDropHandler(containerEl, getWs, this.projectId);
+    attachClipboardPasteHandler(containerEl, getWs, this.projectId);
 
     // Wire up restart button
     const restartBtn = document.getElementById("btn-terminal-restart");
@@ -112,6 +123,11 @@ export class PTYTerminal {
     const releaseBtn = document.getElementById("btn-release-resources");
     if (releaseBtn) {
       releaseBtn.addEventListener("click", () => this.releaseResources());
+    }
+
+    // Request notification permission for background alerts
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
     }
 
     console.log("[PTY] xterm.js initialized");
@@ -150,46 +166,128 @@ export class PTYTerminal {
   private handleSessionState(msg: any): void {
     const state = msg.state;
     this.sessionState = state;
-    console.log("[PTY] Session state:", state);
+    console.log("[PTY] Session state:", state, msg);
 
     const badge = document.getElementById("terminal-session-status");
 
     switch (state) {
       case "allocation_starting":
         this.term.write(
-          "\r\n\x1b[1;36m Starting SLURM allocation...\x1b[0m\r\n",
+          "\r\n\x1b[1;36m Preparing your computing environment...\x1b[0m\r\n",
         );
-        if (badge) {
-          badge.textContent = "allocating";
-          badge.className = "terminal-status-badge status-warning";
-        }
+        this.updateBadge(badge, "starting", "warning");
         break;
+
+      case "allocation_expiring": {
+        const remaining = msg.remaining || 0;
+        const minutes = Math.ceil(remaining / 60);
+        const timeStr = minutes > 0 ? `${minutes} min` : `${remaining}s`;
+        this.term.write(
+          `\r\n\x1b[1;33m \u26a0 Session expires in ${timeStr}\x1b[0m\r\n`,
+        );
+        this.term.write(
+          "\x1b[0;33m   Save your work. A new session will start automatically.\x1b[0m\r\n",
+        );
+        this.updateBadge(badge, `expires ${timeStr}`, "warning");
+        this.notifyUser(`Terminal session expires in ${timeStr}`);
+        break;
+      }
+
+      case "allocation_dead": {
+        const reason = msg.reason || "Unknown reason";
+        this.term.write(
+          `\r\n\x1b[1;31m \u274c Session ended: ${reason}\x1b[0m\r\n`,
+        );
+        this.term.write(
+          "\x1b[0;36m   Reconnecting automatically...\x1b[0m\r\n",
+        );
+        this.updateBadge(badge, "reconnecting", "warning");
+        this.notifyUser(`Session ended: ${reason}. Reconnecting...`);
+        break;
+      }
+
+      case "allocation_recovering":
+        this.term.write(
+          "\r\n\x1b[1;36m Preparing your computing environment...\x1b[0m\r\n",
+        );
+        this.updateBadge(badge, "reconnecting", "warning");
+        break;
+
       case "exited":
       case "respawning":
-        this.term.write("\r\n\x1b[1;33m Session restarting...\x1b[0m\r\n");
-        if (badge) {
-          badge.textContent = "restarting";
-          badge.className = "terminal-status-badge status-warning";
-        }
+        this.term.write("\r\n\x1b[1;33m Restarting terminal...\x1b[0m\r\n");
+        this.updateBadge(badge, "restarting", "warning");
         break;
+
       case "running":
-        if (badge) {
-          badge.textContent = "";
-          badge.className = "terminal-status-badge";
-        }
+        this.hideRestartOverlay();
+        this.updateBadge(badge, "", "");
         break;
-      case "dead":
-        this.term.write(
-          "\r\n\x1b[1;31m Session failed after max retries\x1b[0m\r\n",
-        );
-        this.term.write(
-          "\x1b[0;33m   Click restart button or refresh page\x1b[0m\r\n",
-        );
-        if (badge) {
-          badge.textContent = "stopped";
-          badge.className = "terminal-status-badge status-error";
-        }
+
+      case "dead": {
+        const deadReason = msg.reason || "Terminal stopped";
+        this.term.write(`\r\n\x1b[1;31m \u274c ${deadReason}\x1b[0m\r\n`);
+        this.updateBadge(badge, "stopped", "error");
+        this.notifyUser(deadReason);
+        this.showRestartOverlay(deadReason);
         break;
+      }
+    }
+  }
+
+  /** Update the status badge text and style */
+  private updateBadge(
+    badge: HTMLElement | null,
+    text: string,
+    level: string,
+  ): void {
+    if (!badge) return;
+    badge.textContent = text;
+    badge.className = level
+      ? `terminal-status-badge status-${level}`
+      : "terminal-status-badge";
+  }
+
+  /** Show/hide a prominent restart overlay over the terminal */
+  private showRestartOverlay(reason: string): void {
+    this.hideRestartOverlay();
+    const overlay = document.createElement("div");
+    overlay.className = "terminal-restart-overlay";
+    overlay.innerHTML =
+      `<div class="terminal-restart-content">` +
+      `<i class="fas fa-exclamation-triangle"></i>` +
+      `<p>${reason}</p>` +
+      `<button class="terminal-restart-btn"><i class="fas fa-redo"></i> Restart Terminal</button>` +
+      `<button class="terminal-new-btn"><i class="fas fa-plus"></i> New Terminal</button>` +
+      `</div>`;
+    overlay
+      .querySelector(".terminal-restart-btn")
+      ?.addEventListener("click", () => {
+        this.hideRestartOverlay();
+        this.restart();
+      });
+    overlay
+      .querySelector(".terminal-new-btn")
+      ?.addEventListener("click", () => {
+        this.hideRestartOverlay();
+        document.querySelector<HTMLButtonElement>(".terminal-tab-new")?.click();
+      });
+    this.containerEl.style.position = "relative";
+    this.containerEl.appendChild(overlay);
+  }
+
+  private hideRestartOverlay(): void {
+    this.containerEl.querySelector(".terminal-restart-overlay")?.remove();
+  }
+
+  /** Send browser notification for background tab awareness */
+  private notifyUser(message: string): void {
+    if (
+      document.hidden &&
+      "Notification" in window &&
+      Notification.permission === "granted"
+    ) {
+      new Notification("SciTeX Terminal", { body: message });
     }
   }
 
@@ -220,6 +318,10 @@ export class PTYTerminal {
               this.handleSessionState(msg);
               return;
             }
+            if (msg.action === "capture_request") {
+              handleCaptureRequest(msg);
+              return;
+            }
           } catch {
             // Not valid control message — fall through to terminal
           }
@@ -248,7 +350,7 @@ export class PTYTerminal {
         this.term.write("\x1b[0;36m   Reconnecting in 3s...\x1b[0m\r\n");
         setTimeout(() => this.connect(), 3000);
       } else {
-        this.term.write("\x1b[0;33m   Refresh page to reconnect\x1b[0m\r\n");
+        this.showRestartOverlay(`Disconnected: ${message}`);
       }
     };
   }

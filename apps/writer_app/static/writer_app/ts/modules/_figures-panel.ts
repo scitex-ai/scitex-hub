@@ -3,7 +3,6 @@
  * Coordinates all figure-related modules
  */
 
-console.log("[DEBUG] figures-panel.ts loaded");
 
 import type { Figure } from "./_figures-panel/figures-list";
 import { FiguresList } from "./_figures-panel/figures-list";

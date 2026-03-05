@@ -31,8 +31,18 @@ def make_exit_callback(broker, client: socket.socket):
         session.state = SessionState.EXITED
         send_state(broker, client, pty_id, "exited")
 
+        # Intentional exit (ran >10s): reset counter so user never gets stuck
+        import time
+
+        if session.last_spawn_time and (time.time() - session.last_spawn_time > 10):
+            session.spawn_count = 0
+
         if session.spawn_count < MAX_RESPAWNS:
-            backoff = min(2 ** (session.spawn_count - 1), 4)
+            backoff = (
+                0.5
+                if session.spawn_count == 0
+                else min(2 ** (session.spawn_count - 1), 4)
+            )
             logger.info(
                 f"PTY {pty_id[:8]}: scheduling respawn in {backoff}s "
                 f"(attempt {session.spawn_count + 1}/{MAX_RESPAWNS})"
@@ -71,6 +81,19 @@ def handle_spawn_legacy(broker, msg: dict, client: socket.socket) -> dict:
 
         if existing:
             if existing.state == SessionState.RUNNING and existing.fd is not None:
+                # Replay scrollback before starting live output
+                import base64
+
+                scrollback = existing.get_scrollback()
+                if scrollback:
+                    broker._send_message(
+                        client,
+                        {
+                            "action": "output",
+                            "session_id": existing_id,
+                            "data": base64.b64encode(scrollback).decode("ascii"),
+                        },
+                    )
                 existing.client_socket = client
                 logger.info(f"PTY {existing_id[:8]}: reattaching client")
 

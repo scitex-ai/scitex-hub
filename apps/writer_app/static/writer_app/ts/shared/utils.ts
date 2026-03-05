@@ -6,9 +6,6 @@
  * Get CSRF token from cookies
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/shared/utils.ts loaded",
-);
 export function getCsrfToken(): string {
   const name = "csrftoken";
   let cookieValue = "";

@@ -18,9 +18,6 @@
  * Job data interface
  */
 
-console.log(
-  "[DEBUG] apps/scholar_app/static/scholar_app/ts/bibtex/queue-management.ts loaded",
-);
 interface JobData {
   id: string;
   filename: string;

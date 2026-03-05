@@ -10,9 +10,6 @@
  * @module search/search-ui
  */
 
-console.log(
-  "[DEBUG] apps/scholar_app/static/scholar_app/ts/search/search-ui.ts loaded",
-);
 declare global {
   interface Window {
     toggleAbstractMode: (

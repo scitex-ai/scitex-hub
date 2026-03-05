@@ -1,6 +1,7 @@
-"""Shared SLURM allocation — one sbatch job per (user, project).
+"""Shared SLURM allocation — exactly one sbatch job per user.
 
 Multiple terminal shells attach via ``srun --overlap --jobid=X``.
+Before submitting sbatch, checks squeue for existing jobs to avoid duplicates.
 """
 
 import enum
@@ -57,6 +58,9 @@ class Allocation:
         3. stop() — stops instance, cancels job.
     """
 
+    # Job name format: exactly one per user
+    JOB_NAME_PREFIX = "scitex-cloud-terminal"
+
     def __init__(
         self,
         username: str,
@@ -64,6 +68,7 @@ class Allocation:
         container_path: str,
         host_user_dir: Path,
         host_project_dir: Path,
+        time_limit_seconds: int = 14400,
     ):
         self.allocation_id = str(uuid.uuid4())
         self.username = username
@@ -71,11 +76,97 @@ class Allocation:
         self.container_path = container_path
         self.host_user_dir = host_user_dir
         self.host_project_dir = host_project_dir
+        self.time_limit_seconds = time_limit_seconds
         self.instance_name = f"scitex-{username}"
         self.job_id: Optional[str] = None
         self.state = AllocationState.DEAD
         self.shell_count: int = 0
         self._script_path: Optional[str] = None
+        self.started_at: Optional[float] = None
+
+    @staticmethod
+    def find_existing_jobs(username: str) -> list[str]:
+        """Query squeue for existing terminal jobs for this user.
+
+        Returns list of SLURM job IDs (RUNNING or PENDING).
+        """
+        job_name = f"{Allocation.JOB_NAME_PREFIX}-{username}"
+        try:
+            result = subprocess.run(
+                [
+                    "squeue",
+                    f"--name={job_name}",
+                    "--noheader",
+                    "--format=%i",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            job_ids = [
+                jid.strip() for jid in result.stdout.strip().split("\n") if jid.strip()
+            ]
+            return job_ids
+        except Exception as e:
+            logger.error(f"Failed to query squeue for {job_name}: {e}")
+            return []
+
+    def attach_to_existing(self, job_id: str) -> bool:
+        """Attach to an existing SLURM job instead of submitting new sbatch.
+
+        Returns True if the job is RUNNING and instance is ready.
+        """
+        self.state = AllocationState.STARTING
+        self.job_id = job_id
+        logger.info(
+            f"Allocation {self.allocation_id[:8]}: attaching to "
+            f"existing job {job_id} for {self.username}"
+        )
+
+        # Check job is RUNNING (not just PENDING)
+        try:
+            result = subprocess.run(
+                ["squeue", "--job", job_id, "--noheader", "--format=%T"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            state = result.stdout.strip()
+            if state == "PENDING":
+                # Wait for it to start
+                if not self._wait_for_running():
+                    self.state = AllocationState.DEAD
+                    return False
+            elif state != "RUNNING":
+                logger.error(
+                    f"Allocation {self.allocation_id[:8]}: "
+                    f"job {job_id} in unexpected state: {state}"
+                )
+                self.state = AllocationState.DEAD
+                return False
+        except Exception as e:
+            logger.error(
+                f"Allocation {self.allocation_id[:8]}: squeue check failed: {e}"
+            )
+            self.state = AllocationState.DEAD
+            return False
+
+        # Verify apptainer instance is ready
+        if not self._wait_for_instance():
+            logger.error(
+                f"Allocation {self.allocation_id[:8]}: "
+                f"instance {self.instance_name} not ready in existing job {job_id}"
+            )
+            self.state = AllocationState.DEAD
+            return False
+
+        self.state = AllocationState.READY
+        self.started_at = time.time()
+        logger.info(
+            f"Allocation {self.allocation_id[:8]}: attached to existing "
+            f"job={job_id}, instance={self.instance_name}"
+        )
+        return True
 
     def start(self) -> bool:
         """Submit sbatch job and wait for allocation + instance to be ready.
@@ -164,6 +255,7 @@ class Allocation:
                 return False
 
             self.state = AllocationState.READY
+            self.started_at = time.time()
             logger.info(
                 f"Allocation {self.allocation_id[:8]}: READY "
                 f"(job={self.job_id}, instance={self.instance_name})"
@@ -226,6 +318,56 @@ class Allocation:
 
     def decrement_shells(self):
         self.shell_count = max(0, self.shell_count - 1)
+
+    def get_remaining_seconds(self) -> Optional[int]:
+        """Return seconds remaining in this allocation, or None if unknown."""
+        if self.started_at is None or self.state != AllocationState.READY:
+            return None
+        elapsed = time.time() - self.started_at
+        remaining = self.time_limit_seconds - int(elapsed)
+        return max(0, remaining)
+
+    def get_failure_reason(self) -> str:
+        """Query sacct for the failure reason of this job."""
+        if not self.job_id:
+            return "No SLURM job ID"
+        try:
+            result = subprocess.run(
+                [
+                    "sacct",
+                    "-j",
+                    self.job_id,
+                    "-o",
+                    "State,Reason",
+                    "--noheader",
+                    "--parsable2",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.stdout.strip():
+                line = result.stdout.strip().split("\n")[0]
+                parts = line.split("|")
+                state = parts[0] if parts else "UNKNOWN"
+                reason = parts[1] if len(parts) > 1 else ""
+                return self._format_failure_reason(state, reason)
+        except Exception:
+            pass
+        return "Allocation ended (reason unknown)"
+
+    @staticmethod
+    def _format_failure_reason(state: str, reason: str) -> str:
+        """Map SLURM job state/reason to a human-readable message."""
+        messages = {
+            "TIMEOUT": "Session time limit reached — restarting automatically",
+            "CANCELLED": "Session was stopped",
+            "FAILED": "Session encountered an error — restarting automatically",
+            "NODE_FAIL": "Server issue — restarting automatically",
+            "PREEMPTED": "Resources needed elsewhere — restarting automatically",
+            "OUT_OF_MEMORY": "Memory limit reached — please reduce memory usage",
+        }
+        return messages.get(state, "Session ended — restarting automatically")
 
     def _wait_for_instance(self) -> bool:
         """Poll via srun --overlap until the apptainer instance is ready."""

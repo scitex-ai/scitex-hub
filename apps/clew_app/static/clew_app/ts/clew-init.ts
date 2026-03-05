@@ -36,7 +36,7 @@ class ClewApp {
     const configEl = document.getElementById("workspace-project-config");
     if (configEl) {
       this.projectOwner = configEl.dataset.username || null;
-      this.projectSlug = configEl.dataset.slug || null;
+      this.projectSlug = configEl.dataset.projectSlug || null;
       this.projectId = configEl.dataset.projectId || null;
     }
   }

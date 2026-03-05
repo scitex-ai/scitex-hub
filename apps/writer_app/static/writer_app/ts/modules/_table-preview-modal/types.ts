@@ -2,7 +2,6 @@
  * Type definitions for table preview modal
  */
 
-console.log("[DEBUG] table-preview-modal/types.ts loaded");
 
 export interface TableData {
   data: Record<string, any>[];

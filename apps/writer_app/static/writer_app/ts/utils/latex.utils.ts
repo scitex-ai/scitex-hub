@@ -6,9 +6,6 @@
  * Convert plain text content to LaTeX format
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/utils/latex.utils.ts loaded",
-);
 export function convertToLatex(content: string): string {
   if (!content) return "";
 

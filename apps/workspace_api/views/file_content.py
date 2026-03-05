@@ -75,7 +75,7 @@ def api_get_file_content(request, file_path):
                     "success": True,
                     "content": content,
                     "path": file_path,
-                    "language": _detect_language(file_path),
+                    "language": _detect_language(file_path, content),
                     "project_type": "trip",
                 }
             )
@@ -113,7 +113,7 @@ def api_get_file_content(request, file_path):
                 "success": True,
                 "content": content,
                 "path": file_path,
-                "language": _detect_language(file_path),
+                "language": _detect_language(file_path, content),
                 "project_type": project.project_type,
             }
         )
@@ -145,21 +145,85 @@ def _serve_raw_file(file_path: Path, original_path: str, download: bool = False)
     return response
 
 
-def _detect_language(file_path):
-    """Detect programming language from file extension."""
+def _detect_language(file_path, content=None):
+    """Detect programming language from file extension, filename, or shebang."""
+    basename = file_path.rsplit("/", 1)[-1].lower()
+    filename_map = {
+        "makefile": "shell",
+        "dockerfile": "dockerfile",
+        "bashrc": "shell",
+        "bash_profile": "shell",
+        "bash_aliases": "shell",
+        "zshrc": "shell",
+        "vimrc": "plaintext",
+        "gitconfig": "ini",
+    }
+    if basename in filename_map:
+        return filename_map[basename]
     ext = file_path.split(".")[-1].lower()
     language_map = {
         "py": "python",
         "js": "javascript",
         "ts": "typescript",
+        "tsx": "typescript",
+        "jsx": "javascript",
         "html": "html",
+        "htm": "html",
         "css": "css",
-        "md": "markdown",
+        "scss": "scss",
+        "less": "less",
         "json": "json",
+        "md": "markdown",
         "yaml": "yaml",
         "yml": "yaml",
+        "sh": "shell",
+        "bash": "shell",
+        "zsh": "shell",
+        "r": "r",
+        "tex": "latex",
+        "bib": "bibtex",
+        "xml": "xml",
+        "svg": "xml",
+        "sql": "sql",
+        "go": "go",
+        "rs": "rust",
+        "java": "java",
+        "c": "c",
+        "cpp": "cpp",
+        "h": "c",
+        "hpp": "cpp",
+        "rb": "ruby",
+        "php": "php",
+        "lua": "lua",
+        "pl": "perl",
+        "swift": "swift",
+        "kt": "kotlin",
+        "scala": "scala",
+        "toml": "toml",
+        "ini": "ini",
+        "cfg": "ini",
+        "conf": "ini",
     }
-    return language_map.get(ext, "plaintext")
+    lang = language_map.get(ext)
+    if lang:
+        return lang
+    # Shebang detection for extensionless files
+    if content:
+        first_line = content.split("\n", 1)[0].lower()
+        if first_line.startswith("#!"):
+            if "python" in first_line:
+                return "python"
+            if "bash" in first_line or "/sh" in first_line:
+                return "shell"
+            if "node" in first_line:
+                return "javascript"
+            if "ruby" in first_line:
+                return "ruby"
+            if "perl" in first_line:
+                return "perl"
+            if "zsh" in first_line:
+                return "shell"
+    return "plaintext"
 
 
 # EOF

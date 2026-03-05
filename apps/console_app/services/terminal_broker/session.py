@@ -5,6 +5,7 @@ resize, cleanup, respawn).  ``TerminalSession`` adds srun command
 building for the legacy one-srun-per-tab mode.
 """
 
+import collections
 import enum
 import logging
 import os
@@ -15,6 +16,7 @@ import socket
 import sys
 import termios
 import threading
+import time
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -42,9 +44,11 @@ class BasePTY:
         self.fd: Optional[int] = None
         self.state = SessionState.DEAD
         self.spawn_count: int = 0
+        self.last_spawn_time: float = 0
         self.on_exit_callback: Optional[Callable[[str], None]] = None
         self.reader_thread: Optional[threading.Thread] = None
         self._reader_generation: int = 0
+        self._scrollback: collections.deque = collections.deque(maxlen=256)
 
     @property
     def running(self) -> bool:
@@ -60,6 +64,7 @@ class BasePTY:
                 os._exit(1)
             self.state = SessionState.RUNNING
             self.spawn_count += 1
+            self.last_spawn_time = time.time()
             logger.info(
                 f"PTY {self.pty_id[:8]}: spawned PID {self.pid} "
                 f"(attempt {self.spawn_count})"
@@ -107,6 +112,7 @@ class BasePTY:
                         if r:
                             data = os.read(self.fd, 4096)
                             if data:
+                                self._scrollback.append(data)
                                 output_callback(self.pty_id, data)
                             else:
                                 break
@@ -122,6 +128,10 @@ class BasePTY:
 
         self.reader_thread = threading.Thread(target=reader, daemon=True)
         self.reader_thread.start()
+
+    def get_scrollback(self) -> bytes:
+        """Return stored scrollback buffer contents."""
+        return b"".join(self._scrollback)
 
     def cleanup_fd(self):
         """Close dead fd and reap child process."""

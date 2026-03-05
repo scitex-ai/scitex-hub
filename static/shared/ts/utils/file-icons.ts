@@ -4,7 +4,6 @@
  * Used by: Files page, Code workspace, and all other file browsers
  */
 
-console.log("[DEBUG] /static/shared/ts/utils/file-icons.ts loaded");
 
 export interface IconConfig {
   icon: string;

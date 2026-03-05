@@ -3,10 +3,6 @@
  * Barrel file for pdf-preview module
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/pdf-preview/index.ts loaded",
-);
-
 export { PDFPreviewManager } from "./PDFPreviewManager";
 export type { PDFPreviewOptions } from "./PDFPreviewManager";
 export { PDFViewer } from "./viewer";

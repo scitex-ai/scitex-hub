@@ -7,7 +7,6 @@
  *        (Same behavior as Monaco editor and PDF viewer)
  */
 
-console.log('[DEBUG] ResizeHandler.ts loaded');
 
 const STORAGE_KEY_PREFIX = 'scitex-tree-font-size-';
 const MIN_FONT_SIZE = 10;

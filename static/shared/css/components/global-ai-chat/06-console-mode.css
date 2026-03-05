@@ -74,6 +74,31 @@
   padding: 0.15rem 0.35rem;
 }
 
+/* Allocation spinner overlay */
+.scitex-allocation-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 10;
+}
+
+.scitex-allocation-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-primary, #e6edf3);
+  font-size: 0.875rem;
+}
+
+.scitex-allocation-spinner i {
+  font-size: 1.5rem;
+  color: var(--accent-primary, #58a6ff);
+}
+
 /* Drop target visual feedback (console + pty terminal) */
 .scitex-ai-console-terminal.drop-target,
 .pty-terminal-container.drop-target {

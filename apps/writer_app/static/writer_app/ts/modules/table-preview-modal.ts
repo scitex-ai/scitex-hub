@@ -3,7 +3,6 @@
  * Entry point for table preview functionality
  */
 
-console.log("[DEBUG] table-preview-modal.ts loaded");
 
 import { TablePreviewModalOrchestrator } from "./_table-preview-modal/orchestrator";
 

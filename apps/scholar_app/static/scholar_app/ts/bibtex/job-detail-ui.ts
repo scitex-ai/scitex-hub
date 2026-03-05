@@ -12,9 +12,6 @@
  * @module bibtex/job-detail-ui
  */
 
-console.log(
-  "[DEBUG] apps/scholar_app/static/scholar_app/ts/bibtex/job-detail-ui.ts loaded",
-);
 interface JobDetailElements {
   processingLog: HTMLPreElement | null;
   toggleLogSizeBtn: HTMLButtonElement | null;

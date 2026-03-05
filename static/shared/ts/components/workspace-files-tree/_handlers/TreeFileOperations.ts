@@ -24,7 +24,7 @@ export class TreeFileOperations {
      * Download a file
      */
     downloadFile(filePath: string): void {
-        const url = `/${this.config.username}/${this.config.slug}/blob/${filePath}?mode=raw`;
+        const url = `/${this.config.ownerUsername}/${this.config.projectSlug}/blob/${filePath}?mode=raw`;
         const link = document.createElement("a");
         link.href = url;
         link.download = filePath.split("/").pop() || "download";
@@ -45,7 +45,7 @@ export class TreeFileOperations {
 
         try {
             const response = await fetch(
-                `/${this.config.username}/${this.config.slug}/api/files/symlink/`,
+                `/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/symlink/`,
                 {
                     method: "POST",
                     headers: {
@@ -77,7 +77,7 @@ export class TreeFileOperations {
 
         try {
             const response = await fetch(
-                `/${this.config.username}/${this.config.slug}/api/files/extract-bundle/`,
+                `/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/extract-bundle/`,
                 {
                     method: "POST",
                     headers: {

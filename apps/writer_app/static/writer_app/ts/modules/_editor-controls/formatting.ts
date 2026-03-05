@@ -3,10 +3,6 @@
  * Handles font size management for all editors
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/_editor-controls/formatting.ts loaded",
-);
-
 export class FontSizeFormatter {
   private currentFontSize: number = 14;
   private defaultFontSize: number = 14;

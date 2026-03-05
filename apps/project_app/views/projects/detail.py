@@ -173,6 +173,17 @@ def project_detail(request, username, slug):
         "gitea_ssh_url": gitea_ssh_url,
         "download_zip_url": download_zip_url,
     }
+
+    # Check dev-install status for app repos
+    if request.user.is_authenticated and project.is_app:
+        from apps.apps_app.models import DevInstallation
+
+        context["is_dev_installed"] = DevInstallation.objects.filter(
+            user=request.user,
+            source_owner=project.owner.username,
+            source_repo=project.slug,
+        ).exists()
+
     return render(request, "project_app/repository/browse.html", context)
 
 

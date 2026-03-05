@@ -63,7 +63,7 @@
 }
 
 #ws-worktree-sidebar.collapsed {
-  width: 40px;
+  width: var(--ui-collapsed-pane-width, 48px);
   overflow: hidden;
 }
 
@@ -167,80 +167,22 @@
   flex-direction: column;
 }
 
-/* Vertical nav items — icon only */
+/* Vertical nav items — inherits from selector-nav.css via shared classes.
+   Only override what's specific to the apps pane layout here.
+   padding-top: 8px matches sidebar-header padding-top for vertical alignment. */
 .ws-apps-nav {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 4px 0;
+  padding: 8px 0 4px;
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
 }
 
-.ws-apps-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 8px 2px;
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  color: var(--workspace-text-secondary, #8b949e);
-  cursor: pointer;
-  text-decoration: none;
-  transition:
-    background 0.15s,
-    color 0.15s;
-  border-left: none;
-}
-
-.ws-apps-nav-item:hover {
-  background: var(--workspace-bg-hover, rgba(177, 186, 196, 0.08));
-  color: var(--workspace-text-primary, #e6edf3);
-  text-decoration: none;
-}
-
-.ws-apps-nav-item.active {
-  color: var(--workspace-text-primary, #e6edf3);
-  background: var(--workspace-bg-active, rgba(177, 186, 196, 0.12));
-}
-
-.ws-apps-nav-item i,
-.ws-apps-nav-item svg,
-.ws-apps-nav-item img {
-  width: var(--selector-nav-icon-size, var(--ui-nav-icon-size, 20px));
-  min-width: var(--selector-nav-icon-size, var(--ui-nav-icon-size, 20px));
-  height: var(--selector-nav-icon-size, var(--ui-nav-icon-size, 20px));
-  text-align: center;
-  font-size: var(--selector-nav-icon-size, var(--ui-nav-icon-size, 20px));
-}
-
-.ws-apps-nav-label {
-  font-size: 9px;
-  line-height: 1;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 48px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-}
-
-/* Drag-reorder indicators for apps nav (vertical) */
-.ws-apps-nav-item.nav-dragging {
-  opacity: 0.4;
-}
-
-.ws-apps-nav-item.nav-drag-before {
-  box-shadow: inset 0 2px 0 0 var(--accent-blue, #388bfd);
-}
-
-.ws-apps-nav-item.nav-drag-after {
-  box-shadow: inset 0 -2px 0 0 var(--accent-blue, #388bfd);
+/* First item: 4px top matches sidebar-title margin-top for icon alignment */
+.ws-apps-nav .selector-nav-item:first-child {
+  padding-top: 4px;
 }
 
 /* --- Module content pane (5th column, fills remaining space) --- */

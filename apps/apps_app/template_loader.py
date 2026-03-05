@@ -63,7 +63,16 @@ class UserAppTemplateLoader(Loader):
         return contents
 
     def _resolve_path(self, module_name):
-        """Find the partial template on disk for a user app module."""
+        """Find the partial template on disk for a user app module.
+
+        Handles two cases:
+        1. Published apps (AppsModule with visibility=public)
+        2. Dev apps (module_name starts with ``dev__``)
+        """
+        # Dev apps: resolve from source owner's project directory
+        if module_name.startswith("dev__"):
+            return self._resolve_dev_path(module_name)
+
         from apps.apps_app.models import AppsModule
 
         try:
@@ -88,6 +97,16 @@ class UserAppTemplateLoader(Loader):
         if partial.is_file():
             return partial
         return None
+
+    def _resolve_dev_path(self, module_name):
+        """Resolve template for a dev app from the source owner's project dir.
+
+        Module name format: ``dev__<owner>__<repo>``
+        Template path: data/users/<owner>/proj/<repo>/templates/index_partial.html
+        """
+        from apps.apps_app.services.dev_app_loader import resolve_dev_template
+
+        return resolve_dev_template(module_name)
 
 
 # EOF

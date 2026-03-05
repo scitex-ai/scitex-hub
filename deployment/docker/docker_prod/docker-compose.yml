@@ -261,40 +261,7 @@ services:
       retries: 3
       start_period: 120s
 
-  # Flower (Celery Monitoring Dashboard)
-  flower:
-    image: scitex-cloud-prod-django:latest
-    entrypoint: ["/entrypoint.sh"]
-    command: celery -A config --broker=redis://redis:6379/1 flower --port=5555
-
-    ports:
-      - "5555:5555"
-
-    env_file:
-      - .env
-
-    environment:
-      - DJANGO_SETTINGS_MODULE=config.settings.settings_prod
-      - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
-      - SCITEX_CLOUD_ENV=prod
-      - PYTHONUNBUFFERED=1
-      - SCITEX_DIR=/app/.scitex
-      - BUILD_ID=b0a2a30c
-
-    depends_on:
-      - redis
-      - celery_worker
-
-    restart: always
-    networks:
-      - scitex-network
-
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5555/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 180s
+  # Flower removed — run on-demand: docker compose run --rm django celery -A config flower
 
   # Umami - Privacy-focused web analytics
   umami:

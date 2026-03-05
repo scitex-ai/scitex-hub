@@ -3,10 +3,6 @@
  * Contains doctype-to-directory mappings and file handling configurations
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/writer/_config/doctype-config.ts loaded"
-);
-
 // Mapping: doctype -> directory path
 export const doctypeToDirectory: Record<string, string> = {
   shared: "scitex/writer/00_shared",

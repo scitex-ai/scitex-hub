@@ -41,7 +41,7 @@
         {% if user.is_authenticated %}
             <button class="btn btn-outline-secondary btn-sm"
                     data-username="{{ project.owner.username }}"
-                    data-slug="{{ project.slug }}"
+                    data-project-slug="{{ project.slug }}"
                     onclick="toggleStar(this)">
                 <img src="{% static 'project_app/icons/star.svg' %}" alt="" />
                 Star

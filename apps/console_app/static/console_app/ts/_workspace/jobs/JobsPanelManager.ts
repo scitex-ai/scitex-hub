@@ -156,7 +156,7 @@ export class JobsPanelManager {
       const data: JobsResponse = await response.json();
 
       const activeJobs = data.running + data.pending;
-      for (const id of ["jobs-badge", "ai-jobs-badge"]) {
+      for (const id of ["jobs-badge"]) {
         const el = document.getElementById(id);
         if (!el) continue;
         el.textContent = String(activeJobs);

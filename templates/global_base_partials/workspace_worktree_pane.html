@@ -43,6 +43,7 @@
                         {% tree_preseed_script current_project %}
                         <div id="ws-worktree-tree"
                              data-workspace-tree
+                             data-project-id="{{ current_project.id }}"
                              data-project-slug="{{ current_project.slug }}"
                              data-username="{{ current_project.owner.username }}"></div>
                     {% else %}

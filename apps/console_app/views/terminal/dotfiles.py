@@ -46,7 +46,7 @@ if ! command -v claude &>/dev/null && ! [ -f "$HOME/.ai-cli-installed" ]; then
     if command -v npm &>/dev/null; then
         mkdir -p "$HOME/.npm-global"
         npm config set prefix "$HOME/.npm-global"
-        npm install -g @anthropic-ai/claude-code @openai/codex @google/gemini-cli @agents-dev/cli 2>/dev/null
+        npm install -g @anthropic-ai/claude-code @openai/codex @google/gemini-cli github:ywatanabe1989/agents 2>/dev/null
         touch "$HOME/.ai-cli-installed"
         echo -e "\\033[0;90m[SciTeX] AI CLI tools installed: claude, codex, gemini, agents\\033[0m"
     fi

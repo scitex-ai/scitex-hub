@@ -1,0 +1,375 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}Agent Integration — SciTeX Documentation{% endblock %}
+{% block content %}
+    <div class="container py-5" style="max-width: 900px">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'docs_app:index' %}">Documentation</a>
+                </li>
+                <li class="breadcrumb-item active">Agent Integration</li>
+            </ol>
+        </nav>
+        <h1 class="mb-4">
+            <i class="fas fa-robot me-2"></i>Agent Integration
+        </h1>
+        <p class="lead text-muted mb-5">
+            AI coding agents (Claude, Codex, Gemini) work inside SciTeX terminals
+            with shared MCP tools and synchronized configuration.
+        </p>
+        <!-- Supported Agents -->
+        <span id="supported-agents"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-users"></i> Supported Agents
+            </h2>
+            <p>
+                Three AI coding agents are supported out of the box.
+                All are installed automatically on first terminal login.
+            </p>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Agent</th>
+                        <th>npm Package</th>
+                        <th>Command</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Claude Code</strong>
+                        </td>
+                        <td>
+                            <code>@anthropic-ai/claude-code</code>
+                        </td>
+                        <td>
+                            <code>claude</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>OpenAI Codex</strong>
+                        </td>
+                        <td>
+                            <code>@openai/codex</code>
+                        </td>
+                        <td>
+                            <code>codex</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Google Gemini</strong>
+                        </td>
+                        <td>
+                            <code>@google/gemini-cli</code>
+                        </td>
+                        <td>
+                            <code>gemini</code>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- Agent Sources -->
+        <span id="agent-sources"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-download"></i> Agent Sources
+            </h2>
+            <p>
+                Agents are installed as global npm packages inside the Apptainer container.
+                Installation happens automatically on first login via <code>.bashrc</code>.
+            </p>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <strong>Installation Path</strong>
+                </div>
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code>~/.nvm/                   # Node Version Manager (v0.40.1)
+~/.npm-global/            # npm global prefix
+  bin/
+    claude                # @anthropic-ai/claude-code
+    codex                 # @openai/codex
+    gemini                # @google/gemini-cli
+    agents                # agents CLI (ywatanabe1989/agents fork)</code></pre>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <strong>Auto-Install Mechanism</strong>
+                </div>
+                <div class="card-body">
+                    <p>
+                        On first login, <code>.bashrc</code> checks if <code>claude</code>
+                        is available. If not:
+                    </p>
+                    <ol>
+                        <li>Installs nvm + Node.js 20 LTS</li>
+                        <li>
+                            Sets npm global prefix to <code>~/.npm-global</code>
+                        </li>
+                        <li>
+                            Runs <code>npm install -g</code> for all four packages
+                        </li>
+                        <li>
+                            Creates <code>~/.ai-cli-installed</code> sentinel
+                        </li>
+                    </ol>
+                    <p class="text-muted small mt-2">Subsequent logins skip installation entirely.</p>
+                </div>
+            </div>
+        </section>
+        <!-- Agent Configs -->
+        <span id="agent-configs"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-cogs"></i> Agent Configs
+            </h2>
+            <p>
+                The <a href="https://github.com/ywatanabe1989/agents" target="_blank">agents CLI</a>
+                (fork of <a href="https://github.com/amtiYo/agents" target="_blank">amtiYo/agents</a>)
+                synchronizes MCP server configuration across all AI coding tools
+                from a single source of truth.
+            </p>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <strong>Project Config Files (auto-generated)</strong>
+                </div>
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code>&lt;project&gt;/
+  .agents/
+    agents.json     # Single source of truth (schema v3)
+    local.json      # Secrets (gitignored)
+    skills/         # Synced to .claude/skills/, .cursor/skills/, etc.
+    commands/       # Synced to .claude/commands/ (Claude Code only)
+    hooks/          # Synced to .claude/hooks/ (Claude Code only)
+  AGENTS.md         # Unified instructions for all AI tools
+  .mcp.json         # Claude Code MCP server (direct fallback)</code></pre>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <strong>agents.json (Schema v3)</strong>
+                </div>
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code>{
+  "schemaVersion": 3,
+  "instructions": {"path": "AGENTS.md"},
+  "integrations": {
+    "enabled": ["claude", "codex", "gemini", "cursor", "copilot_vscode"]
+  },
+  "mcp": {
+    "servers": {
+      "scitex": {
+        "label": "SciTeX Platform",
+        "description": "145+ MCP tools",
+        "transport": "stdio",
+        "command": "/usr/local/bin/scitex",
+        "args": ["mcp", "start"]
+      }
+    }
+  }
+}</code></pre>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <strong>Synchronization</strong>
+                </div>
+                <div class="card-body">
+                    <p>
+                        On every login, <code>.bashrc</code> runs
+                        <code>agents sync --quiet</code> which propagates
+                        <code>agents.json</code> to each tool's native config format:
+                    </p>
+                    <ul>
+                        <li>
+                            <strong>Claude Code</strong> &rarr; <code>.mcp.json</code>
+                        </li>
+                        <li>
+                            <strong>Codex</strong> &rarr; its own config
+                        </li>
+                        <li>
+                            <strong>Gemini</strong> &rarr; its own config
+                        </li>
+                        <li>
+                            <strong>Skills</strong> &rarr; <code>.claude/skills/</code>, <code>.cursor/skills/</code>, <code>.gemini/skills/</code>, <code>.windsurf/skills/</code>
+                        </li>
+                        <li>
+                            <strong>Commands</strong> &rarr; <code>.claude/commands/</code> (Claude Code only)
+                        </li>
+                        <li>
+                            <strong>Hooks</strong> &rarr; <code>.claude/hooks/</code> (Claude Code only)
+                        </li>
+                    </ul>
+                    <p class="text-muted small mt-2">
+                        This means you configure MCP tools once in <code>agents.json</code>
+                        and all three agents see the same 145+ tools.
+                    </p>
+                </div>
+            </div>
+        </section>
+        <!-- MCP Tool Groups -->
+        <span id="mcp-groups"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-layer-group"></i> MCP Tool Groups
+            </h2>
+            <p>All groups are enabled by default:</p>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Group</th>
+                        <th>Tools</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>PLT</code>
+                        </td>
+                        <td>Plotting (line, scatter, bar, heatmap, &hellip;)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>STATS</code>
+                        </td>
+                        <td>Statistical tests (t-test, ANOVA, &hellip;)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>SCHOLAR</code>
+                        </td>
+                        <td>Literature search, PDF download, BibTeX</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>WRITER</code>
+                        </td>
+                        <td>LaTeX manuscript compilation</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>CLEW</code>
+                        </td>
+                        <td>Workflow pipeline management</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>AUDIO</code>
+                        </td>
+                        <td>Text-to-speech</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>DIAGRAM</code>
+                        </td>
+                        <td>Mermaid, Graphviz diagrams</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>CAPTURE</code>
+                        </td>
+                        <td>Screenshots</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>INTROSPECT</code>
+                        </td>
+                        <td>API inspection (signature, source, docstring)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>TEMPLATE</code>
+                        </td>
+                        <td>Project templates</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>PROJECT</code>
+                        </td>
+                        <td>File I/O within project</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>DATASET</code>
+                        </td>
+                        <td>OpenNeuro, DANDI, PhysioNet</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>DEV</code>
+                        </td>
+                        <td>Development tools (versions, testing)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>LINTER</code>
+                        </td>
+                        <td>Code quality checks</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>SOCIAL</code>
+                        </td>
+                        <td>Social media posting</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>UI</code>
+                        </td>
+                        <td>Browser notifications</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>USAGE</code>
+                        </td>
+                        <td>Usage tracking</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- Source Code -->
+        <span id="source-code"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-code"></i> Source Code
+            </h2>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>File</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>apps/console_app/services/agents_config.py</code>
+                        </td>
+                        <td>
+                            Config generation + <code>ensure_agents_config()</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>apps/console_app/views/terminal/dotfiles.py</code>
+                        </td>
+                        <td>bashrc template with auto-install + sync</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>apps/console_app/views/terminal/workspace.py</code>
+                        </td>
+                        <td>Workspace setup calling agents config</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+{% endblock %}

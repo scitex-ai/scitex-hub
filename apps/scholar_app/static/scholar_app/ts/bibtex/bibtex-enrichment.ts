@@ -27,10 +27,6 @@ import {
   getCsrfToken,
 } from "./_enrichment/ui-utils";
 
-console.log(
-  "[DEBUG] apps/scholar_app/static/scholar_app/ts/bibtex/bibtex-enrichment.ts loaded",
-);
-
 // Global state
 declare global {
   interface Window {

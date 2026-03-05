@@ -15,6 +15,14 @@ interface TerminalTab {
   containerElement: HTMLElement;
 }
 
+const SESSION_STORAGE_KEY = "scitex-terminal-tabs";
+
+interface SavedTabState {
+  tabs: Array<{ name: string; tmuxSession: string }>;
+  activeSession: string;
+  counter: number;
+}
+
 export class TerminalTabManager {
   private terminals: Map<string, TerminalTab> = new Map();
   private activeTerminalId: string | null = null;
@@ -29,7 +37,7 @@ export class TerminalTabManager {
   }
 
   /**
-   * Initialize with first terminal
+   * Initialize — restore tabs from sessionStorage or create default.
    */
   async initialize(): Promise<void> {
     if (!this.mainContainer || !this.config.currentProject) {
@@ -37,11 +45,28 @@ export class TerminalTabManager {
       return;
     }
 
-    // Create first terminal (without name to use auto-increment)
-    await this.createTerminal();
-    this.renderTabs();
+    const saved = this.loadTabState();
+    if (saved && saved.tabs.length > 0) {
+      // Restore tabs from previous session (Ctrl+Shift+R)
+      this.terminalCounter = saved.counter;
+      for (const tab of saved.tabs) {
+        await this.createTerminal(tab.name, tab.tmuxSession);
+      }
+      // Switch to previously active tab
+      const activeTab = Array.from(this.terminals.values()).find(
+        (t) => t.tmuxSession === saved.activeSession,
+      );
+      if (activeTab) this.switchTerminal(activeTab.id);
+      console.log(
+        `[TerminalTabManager] Restored ${saved.tabs.length} tabs from session`,
+      );
+    } else {
+      // First time: create default terminal
+      await this.createTerminal();
+      console.log("[TerminalTabManager] Initialized with first terminal");
+    }
 
-    console.log("[TerminalTabManager] Initialized with first terminal");
+    this.renderTabs();
   }
 
   /**
@@ -89,6 +114,7 @@ export class TerminalTabManager {
     // Switch to new terminal
     this.switchTerminal(terminalId);
 
+    this.saveTabState();
     console.log(
       `[TerminalTabManager] Created terminal: ${terminalName} (${terminalId})`,
     );
@@ -121,6 +147,7 @@ export class TerminalTabManager {
     // Focus the terminal
     terminal.terminal.focus();
 
+    this.saveTabState();
     console.log(`[TerminalTabManager] Switched to: ${terminal.name}`);
   }
 
@@ -156,6 +183,7 @@ export class TerminalTabManager {
 
     this.renderTabs();
 
+    this.saveTabState();
     console.log(`[TerminalTabManager] Closed terminal: ${terminal.name}`);
   }
 
@@ -169,6 +197,7 @@ export class TerminalTabManager {
     terminal.name = newName;
     this.renderTabs();
 
+    this.saveTabState();
     console.log(`[TerminalTabManager] Renamed terminal to: ${newName}`);
   }
 
@@ -398,6 +427,7 @@ export class TerminalTabManager {
     });
 
     this.renderTabs();
+    this.saveTabState();
   }
 
   /**
@@ -405,5 +435,36 @@ export class TerminalTabManager {
    */
   getTerminalCount(): number {
     return this.terminals.size;
+  }
+
+  /** Save tab state to sessionStorage (survives Ctrl+Shift+R). */
+  private saveTabState(): void {
+    const activeTab = this.activeTerminalId
+      ? this.terminals.get(this.activeTerminalId)
+      : null;
+    const state: SavedTabState = {
+      tabs: Array.from(this.terminals.values()).map((t) => ({
+        name: t.name,
+        tmuxSession: t.tmuxSession,
+      })),
+      activeSession: activeTab?.tmuxSession || "scitex-0",
+      counter: this.terminalCounter,
+    };
+    try {
+      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      /* sessionStorage unavailable */
+    }
+  }
+
+  /** Load tab state from sessionStorage. */
+  private loadTabState(): SavedTabState | null {
+    try {
+      const raw = sessionStorage.getItem(SESSION_STORAGE_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw) as SavedTabState;
+    } catch {
+      return null;
+    }
   }
 }

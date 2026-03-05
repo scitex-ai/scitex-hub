@@ -4,6 +4,7 @@
  * Listens for file-select events from the worktree pane.
  */
 
+import type { ProjectSwitchedDetail } from "../../types/index";
 import { WorkspaceViewer } from "./index";
 
 declare global {
@@ -76,6 +77,15 @@ function initWorkspaceViewer(): void {
     const path = e.detail?.path;
     if (path) {
       openFileInViewer(viewer, path, emptyState);
+    }
+  }) as EventListener);
+
+  // Update projectId when project is switched via header dropdown
+  window.addEventListener("scitex:project-switched", ((
+    e: CustomEvent<ProjectSwitchedDetail>,
+  ) => {
+    if (e.detail.projectId) {
+      viewer.setProjectId(e.detail.projectId);
     }
   }) as EventListener);
 }

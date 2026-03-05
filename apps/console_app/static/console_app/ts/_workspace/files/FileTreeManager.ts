@@ -5,6 +5,8 @@
  */
 
 import type { EditorConfig } from "../core/types";
+import { uploadFiles } from "../../_upload-utils";
+import { showPastePreview } from "../../_paste-preview";
 
 // TreeItem type definition (matches shared component)
 interface TreeItem {
@@ -79,8 +81,8 @@ export class FileTreeManager {
       this.tree = new WorkspaceFilesTree({
         mode: "console",
         containerId: "file-tree",
-        username: owner,
-        slug: slug,
+        ownerUsername: owner,
+        projectSlug: slug,
         showFolderActions: true,
         showGitStatus: true,
         onFileSelect: (path: string, item: TreeItem) => {
@@ -150,6 +152,9 @@ export class FileTreeManager {
             (window as any).renameFile(oldPath, newPath);
           }
         }) as EventListener);
+
+        // Clipboard paste handler for file tree
+        this.attachUploadHandlers(container);
       }
 
       console.log(
@@ -235,5 +240,80 @@ export class FileTreeManager {
   /** Check if search is active */
   isSearchActive(): boolean {
     return this.tree?.isSearchActive() ?? false;
+  }
+
+  /** Attach paste and drop handlers for file uploads to scitex/downloads/. */
+  private attachUploadHandlers(container: HTMLElement): void {
+    const projectId = this.config.currentProject?.id;
+    if (!projectId) return;
+
+    // Make container focusable for paste events
+    if (!container.getAttribute("tabindex")) {
+      container.setAttribute("tabindex", "-1");
+    }
+
+    // Clipboard paste
+    container.addEventListener("paste", async (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.startsWith("image/") || item.kind === "file") {
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (!file) continue;
+
+          const ext = file.type.split("/")[1] || "png";
+          const namedFile =
+            file.name && file.name !== "image.png"
+              ? file
+              : new File([file], `clipboard.${ext}`, { type: file.type });
+
+          const confirmed = await showPastePreview(namedFile, container);
+          if (!confirmed) return;
+
+          try {
+            await uploadFiles([namedFile], projectId);
+            await this.refresh();
+          } catch (err) {
+            console.error("[FileTreeManager] Upload error:", err);
+          }
+          return;
+        }
+      }
+    });
+
+    // Drag-and-drop
+    container.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+      container.classList.add("drop-target");
+    });
+    container.addEventListener("dragleave", () => {
+      container.classList.remove("drop-target");
+    });
+    container.addEventListener("drop", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      container.classList.remove("drop-target");
+      const dt = e.dataTransfer;
+      if (!dt?.files?.length) return;
+
+      const files = Array.from(dt.files);
+      const hasImages = files.some((f) => f.type.startsWith("image/"));
+      if (hasImages) {
+        const confirmed = await showPastePreview(files[0], container);
+        if (!confirmed) return;
+      }
+
+      try {
+        await uploadFiles(files, projectId);
+        await this.refresh();
+      } catch (err) {
+        console.error("[FileTreeManager] Drop upload error:", err);
+      }
+    });
   }
 }

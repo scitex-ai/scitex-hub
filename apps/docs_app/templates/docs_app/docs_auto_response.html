@@ -1,0 +1,370 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}Auto-Response — SciTeX Documentation{% endblock %}
+{% block content %}
+    <div class="container py-5" style="max-width: 900px">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'docs_app:index' %}">Documentation</a>
+                </li>
+                <li class="breadcrumb-item active">Auto-Response</li>
+            </ol>
+        </nav>
+        <h1 class="mb-4">
+            <i class="fas fa-reply me-2"></i>Auto-Response
+        </h1>
+        <p class="lead text-muted mb-5">
+            Automatically answer Claude Code CLI prompts — permission requests, idle states, and more.
+        </p>
+        <!-- Overview -->
+        <span id="overview"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-info-circle"></i> Overview
+            </h2>
+            <p>
+                When Claude Code runs in the console, it periodically asks for permission
+                (Y/N or Y/Y/N prompts) and enters waiting/thinking states. Auto-Response
+                detects these states and sends pre-configured responses automatically,
+                so you can work hands-free.
+            </p>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded mb-0"><code>Claude State        →  Auto-Response
+─────────────────────────────────────
+Y/N prompt          →  "1" (Allow)
+Y/Y/N prompt        →  "2" (Allow always)
+Waiting/thinking    →  "/speak-signature"
+Suggestion prompt   →  Enter (accept)</code></pre>
+                </div>
+            </div>
+        </section>
+        <!-- How It Works -->
+        <span id="how-it-works"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-cogs"></i> How It Works
+            </h2>
+            <h4 class="mt-4">State Detection</h4>
+            <p>
+                The system polls the terminal buffer at a configurable interval (default 1.5s)
+                and pattern-matches against known Claude Code UI states:
+            </p>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>State</th>
+                        <th>Pattern</th>
+                        <th>Default Response</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>y_n</code>
+                        </td>
+                        <td>2-option permission prompt (Allow / Deny)</td>
+                        <td>
+                            <code>1</code> (Allow)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>y_y_n</code>
+                        </td>
+                        <td>3-option permission prompt (Allow once / Always / Deny)</td>
+                        <td>
+                            <code>2</code> (Allow always)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>waiting</code>
+                        </td>
+                        <td>Claude is thinking or idle</td>
+                        <td>
+                            <code>/speak-signature</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>suggestion</code>
+                        </td>
+                        <td>Claude suggests an action</td>
+                        <td>
+                            <em>(Enter)</em> — accepts suggestion
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <h4 class="mt-4">Response Flow</h4>
+            <ol>
+                <li>
+                    <strong>Detect</strong> — poll terminal buffer for known patterns
+                </li>
+                <li>
+                    <strong>Throttle</strong> — skip if same state responded to recently
+                </li>
+                <li>
+                    <strong>Y/N upgrade check</strong> — wait 1s to see if Y/N upgrades to Y/Y/N
+                </li>
+                <li>
+                    <strong>Send</strong> — write response text to terminal
+                </li>
+                <li>
+                    <strong>Verify</strong> — re-check state after 2s to confirm response registered
+                </li>
+                <li>
+                    <strong>Retry</strong> — if state unchanged, retry (permission prompts: 1 retry max)
+                </li>
+            </ol>
+        </section>
+        <!-- Configuration -->
+        <span id="configuration"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-sliders-h"></i> Configuration
+            </h2>
+            <p>
+                Click the <i class="fas fa-cog"></i> gear icon in the console toolbar to open
+                the config popover. Settings are saved to your account and persist across sessions.
+            </p>
+            <h4 class="mt-4">Response Commands</h4>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Setting</th>
+                        <th>Description</th>
+                        <th>Default</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Waiting</strong>
+                        </td>
+                        <td>
+                            Command sent when Claude is thinking or idle.
+                            Any valid Claude Code slash command or text.
+                        </td>
+                        <td>
+                            <code>/speak-signature</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Y/N</strong>
+                        </td>
+                        <td>Response for 2-option permission prompts</td>
+                        <td>
+                            <code>1</code> (Allow)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Y/Y/N</strong>
+                        </td>
+                        <td>Response for 3-option permission prompts</td>
+                        <td>
+                            <code>2</code> (Allow always)
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <h4 class="mt-4">Timing & Safety</h4>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Setting</th>
+                        <th>Description</th>
+                        <th>Default</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Interval</strong>
+                        </td>
+                        <td>How often to check for prompts</td>
+                        <td>1.5s</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Safety</strong>
+                        </td>
+                        <td>Burst rate limiting preset</td>
+                        <td>Normal</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- The /speak Command -->
+        <span id="speak-command"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-volume-up"></i> The <code>/speak</code> Command
+            </h2>
+            <p>
+                <code>/speak</code> is a Claude Code slash command that triggers text-to-speech
+                via the <code>audio_speak</code> MCP tool. When Claude receives <code>/speak</code>,
+                it summarizes its current progress and speaks it aloud through your browser.
+            </p>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Command</th>
+                        <th>Behavior</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>/speak</code>
+                        </td>
+                        <td>Claude speaks a progress summary</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>/speak-signature</code>
+                        </td>
+                        <td>
+                            Same as <code>/speak</code> but appends "— Claude" signature
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="alert alert-info mt-3">
+                <i class="fas fa-lightbulb me-2"></i>
+                You can set the <strong>Waiting</strong> response to any command — for example,
+                <code>/speak</code>, <code>/progress</code>, or even a custom prompt like
+                <code>please continue working</code>.
+            </div>
+        </section>
+        <!-- Safety Features -->
+        <span id="safety"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-shield-alt"></i> Safety Features
+            </h2>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Feature</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Burst Rate Limiting</strong>
+                        </td>
+                        <td>Max 10 responses per 3s window (configurable via Safety preset)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Same-State Throttle</strong>
+                        </td>
+                        <td>Min 1.5s between responses to the same state</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Idle-Loop Detection</strong>
+                        </td>
+                        <td>
+                            Suppresses <code>waiting</code> responses after 3 consecutive sends
+                            without real work in between (30s threshold)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Stuck-State Watchdog</strong>
+                        </td>
+                        <td>Forces re-send if a state persists for &gt;15s unchanged</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Content Hash Skip</strong>
+                        </td>
+                        <td>Skips send if terminal buffer content hasn't changed</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Y/N Upgrade Detection</strong>
+                        </td>
+                        <td>Waits 1s after Y/N to check if options expand to Y/Y/N</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- Emacs Integration -->
+        <span id="emacs"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-code"></i> Emacs Integration
+            </h2>
+            <p>
+                The browser auto-response system is a port of
+                <strong>emacs-claude-code</strong> (<code>ecc-auto-response.el</code>).
+                Emacs users can configure auto-response via:
+            </p>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded mb-0"><code>(setq --ecc-auto-response-responses
+  '((:y/n . "1")
+    (:y/y/n . "2")
+    (:waiting . "/speak-signature")
+    (:initial-waiting . "/understand-guidelines")))</code></pre>
+                </div>
+            </div>
+            <p class="mt-3">
+                Both systems share the same state detection logic and safety features.
+                The browser version persists settings to your SciTeX account; the Emacs
+                version uses Emacs custom variables.
+            </p>
+        </section>
+        <!-- Source Code -->
+        <span id="source"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-file-code"></i> Source Code
+            </h2>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>File</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>static/shared/ts/.../console-auto-accept.ts</code>
+                        </td>
+                        <td>AI panel bridge — button, config UI, API persistence</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>apps/console_app/static/.../AutoResponseManager.ts</code>
+                        </td>
+                        <td>Core state machine — detection, throttling, sending</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>apps/console_app/static/.../auto-response-config.ts</code>
+                        </td>
+                        <td>Default configuration and type definitions</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>apps/console_app/static/.../ClaudeStateDetector.ts</code>
+                        </td>
+                        <td>Terminal buffer pattern matching</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+{% endblock %}

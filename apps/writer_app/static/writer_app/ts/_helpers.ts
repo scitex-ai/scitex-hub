@@ -10,9 +10,6 @@ import { writerStorage } from "@/utils/storage";
  * Get writer configuration from global scope
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/helpers.ts loaded",
-);
 export function getWriterConfig(): WriterConfig {
   const config = (window as any).WRITER_CONFIG as WriterConfig;
   if (!config) {

@@ -27,6 +27,7 @@ const PRINT_CSS =
 let currentSlug = "";
 let currentSections: SectionInfo[] = [];
 let scrollspyObserver: IntersectionObserver | null = null;
+const selectedSlugs = new Set<string>();
 
 // ── Sidebar Section Nav ──────────────────────────────────────
 
@@ -186,7 +187,7 @@ function loadDocPage(
   // Update active state in sidebar (clear section items first)
   clearSectionNav(sidebar);
   navItems.forEach((item) => {
-    item.classList.toggle("active", item.dataset.slug === slug);
+    item.classList.toggle("active", item.dataset.docSlug === slug);
   });
 
   // Show loading
@@ -288,6 +289,117 @@ function initDropdowns(): void {
   });
 }
 
+// ── Multi-Select ─────────────────────────────────────────────
+
+function toggleSelection(
+  item: HTMLAnchorElement,
+  navItems: NodeListOf<HTMLAnchorElement>,
+  sidebar: Element,
+): void {
+  const slug = item.dataset.docSlug ?? "";
+  if (!slug) return;
+  if (selectedSlugs.has(slug)) {
+    selectedSlugs.delete(slug);
+    item.classList.remove("selected");
+  } else {
+    selectedSlugs.add(slug);
+    item.classList.add("selected");
+  }
+  updateSelectionBar(sidebar, navItems);
+}
+
+function clearSelection(
+  navItems: NodeListOf<HTMLAnchorElement>,
+  sidebar: Element,
+): void {
+  selectedSlugs.clear();
+  navItems.forEach((i) => i.classList.remove("selected"));
+  updateSelectionBar(sidebar, navItems);
+}
+
+function updateSelectionBar(
+  sidebar: Element,
+  navItems: NodeListOf<HTMLAnchorElement>,
+): void {
+  let bar = sidebar.querySelector<HTMLElement>(".docs-selection-bar");
+  if (selectedSlugs.size === 0) {
+    bar?.remove();
+    return;
+  }
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.className = "docs-selection-bar";
+    bar.innerHTML =
+      '<span class="docs-selection-count"></span>' +
+      '<button class="docs-selection-dl-md" title="Download as .md">' +
+      '<i class="fas fa-file-alt"></i> .md</button>' +
+      '<button class="docs-selection-dl-pdf" title="Print as PDF">' +
+      '<i class="fas fa-file-pdf"></i> .pdf</button>' +
+      '<button class="docs-selection-clear" title="Clear selection">' +
+      '<i class="fas fa-times"></i></button>';
+    bar
+      .querySelector(".docs-selection-dl-md")!
+      .addEventListener("click", () => {
+        downloadSelectedMd();
+      });
+    bar
+      .querySelector(".docs-selection-dl-pdf")!
+      .addEventListener("click", () => {
+        downloadSelectedPdf(navItems);
+      });
+    bar
+      .querySelector(".docs-selection-clear")!
+      .addEventListener("click", () => {
+        clearSelection(navItems, sidebar);
+      });
+    const footer = sidebar.querySelector(".docs-nav-footer");
+    if (footer) footer.before(bar);
+    else sidebar.querySelector(".docs-nav")?.appendChild(bar);
+  }
+  bar.querySelector(".docs-selection-count")!.textContent =
+    selectedSlugs.size + " selected";
+}
+
+function downloadSelectedMd(): void {
+  const csrfMeta = document.querySelector(
+    "[name=csrfmiddlewaretoken]",
+  ) as HTMLInputElement | null;
+  const csrf =
+    csrfMeta?.value ?? document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? "";
+  fetch("/docs/export-batch/", {
+    method: "POST",
+    headers: { "X-CSRFToken": csrf, "Content-Type": "application/json" },
+    body: JSON.stringify({ slugs: Array.from(selectedSlugs) }),
+  })
+    .then((r) => r.blob())
+    .then((blob) => {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "scitex-docs-selected.md";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+}
+
+function downloadSelectedPdf(navItems: NodeListOf<HTMLAnchorElement>): void {
+  const slugs = Array.from(selectedSlugs);
+  const fetches = slugs.map((s) =>
+    fetch("/docs/content/" + s + "/", {
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+    }).then((r) => r.text()),
+  );
+  Promise.all(fetches).then((pages) => {
+    const labels = slugs.map((s) => {
+      const item = Array.from(navItems).find((i) => i.dataset.docSlug === s);
+      return item?.querySelector("span")?.textContent ?? s;
+    });
+    const combined = pages
+      .map((html, i) => "<h1>" + labels[i] + "</h1>" + html)
+      .join('<hr class="docs-print-page-break" />');
+    openPrintWindow(combined);
+  });
+}
+
 // ── Initialization ───────────────────────────────────────────
 
 function initDocsWorkspace(): void {
@@ -307,7 +419,7 @@ function initDocsWorkspace(): void {
   const allPdfBtn = document.getElementById("docs-export-all-pdf");
   if (allPdfBtn) {
     allPdfBtn.onclick = () => {
-      const slugs = Array.from(navItems).map((i) => i.dataset.slug ?? "");
+      const slugs = Array.from(navItems).map((i) => i.dataset.docSlug ?? "");
       const fetches = slugs.map((s) =>
         fetch("/docs/content/" + s + "/", {
           headers: { "X-Requested-With": "XMLHttpRequest" },
@@ -322,17 +434,41 @@ function initDocsWorkspace(): void {
     };
   }
 
-  // Sidebar click handlers
+  // Sync selection from DOM (triggered by context menu)
+  document.addEventListener("docs:sync-selection", () => {
+    selectedSlugs.clear();
+    navItems.forEach((i) => {
+      if (i.classList.contains("selected"))
+        selectedSlugs.add(i.dataset.docSlug ?? "");
+    });
+    updateSelectionBar(sidebar, navItems);
+  });
+
+  // Sidebar click handlers (Ctrl+Click = multi-select, Click = navigate)
   navItems.forEach((item) => {
-    item.addEventListener("click", (e) => {
+    item.addEventListener("click", (e: MouseEvent) => {
       e.preventDefault();
-      loadDocPage(
-        item.dataset.slug ?? "",
-        undefined,
-        contentArea,
-        sidebar,
-        navItems,
-      );
+      if (e.ctrlKey || e.metaKey) {
+        toggleSelection(item, navItems, sidebar);
+      } else {
+        if (selectedSlugs.size > 0) clearSelection(navItems, sidebar);
+        const slug = item.dataset.docSlug ?? "";
+        // Toggle sections if clicking the already-active page
+        if (slug === currentSlug) {
+          item.classList.toggle("sections-collapsed");
+          sidebar
+            .querySelectorAll<HTMLElement>(".docs-section-item")
+            .forEach((el) => {
+              el.style.display = item.classList.contains("sections-collapsed")
+                ? "none"
+                : "";
+            });
+        } else {
+          // Remove collapsed state from previous active item
+          navItems.forEach((i) => i.classList.remove("sections-collapsed"));
+          loadDocPage(slug, undefined, contentArea, sidebar, navItems);
+        }
+      }
     });
   });
 
@@ -343,7 +479,7 @@ function initDocsWorkspace(): void {
     const slugFromHash = parts[0];
     const anchorFromHash = parts[1] || undefined;
     const matchedItem = Array.from(navItems).find(
-      (i) => i.dataset.slug === slugFromHash,
+      (i) => i.dataset.docSlug === slugFromHash,
     );
     if (matchedItem) {
       currentSlug = slugFromHash;

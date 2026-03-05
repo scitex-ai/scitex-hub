@@ -11,9 +11,6 @@
 // Type Definitions
 // ============================================================================
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/loaders/editor-loader.ts loaded",
-);
 interface FakeWorker {
   postMessage: () => void;
   terminate: () => void;
@@ -158,6 +155,7 @@ export class EditorLoader {
               console.log("[EditorLoader] Monaco Editor loaded successfully");
               window.monacoLoaded = true;
               window.monaco = (window as any).monaco;
+              window.dispatchEvent(new Event("monaco-ready"));
               resolve();
             },
             (error: Error) => {

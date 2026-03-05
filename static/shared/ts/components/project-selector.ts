@@ -19,7 +19,6 @@ function initializeProjectSelector(): void {
   );
 
   if (selectorContainers.length === 0) {
-    console.log("[ProjectSelector] No project selector containers found");
     return;
   }
 
@@ -117,6 +116,11 @@ function initializeProjectSelector(): void {
           // Store selected project ID
           sessionStorage.setItem("scholar_selected_project_id", projectId);
 
+          // Update data attribute on selector buttons
+          document.querySelectorAll(".project-selector-btn").forEach((btn) => {
+            (btn as HTMLElement).dataset.activeProjectId = projectId;
+          });
+
           // Close all dropdowns
           allDropdowns.forEach((d) => (d.style.display = "none"));
 
@@ -151,8 +155,21 @@ function initializeProjectSelector(): void {
                 "Successfully switched to project:",
                 data.project?.name,
               );
-              // Reload page to ensure all content is up-to-date with new project
-              window.location.reload();
+              // Notify all listeners (tree, viewer, terminals) of project switch
+              window.dispatchEvent(
+                new CustomEvent("scitex:project-switched", {
+                  detail: {
+                    projectId,
+                    projectSlug,
+                    ownerUsername: projectOwner,
+                  },
+                }),
+              );
+              // Only reload if no live terminal is connected
+              const hasTerminal = document.querySelector(".xterm-screen");
+              if (!hasTerminal) {
+                window.location.reload();
+              }
             }
           } catch (error) {
             console.error("Error switching project:", error);

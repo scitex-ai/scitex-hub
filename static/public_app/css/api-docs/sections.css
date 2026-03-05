@@ -12,6 +12,27 @@
   gap: 1rem;
 }
 
+.api-hero-header-centered {
+  justify-content: center;
+}
+
+/* Audience guide cards (App Maker overview) */
+.api-audience-grid {
+  display: grid;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.api-audience-card {
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.api-audience-card h3 {
+  margin-top: 0;
+}
+
 .api-hero-actions {
   display: flex;
   align-items: center;

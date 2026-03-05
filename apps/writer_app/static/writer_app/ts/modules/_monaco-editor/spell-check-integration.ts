@@ -5,10 +5,6 @@
 
 import { SpellChecker } from "../_spell-checker";
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/_monaco-editor/spell-check-integration.ts loaded",
-);
-
 export class SpellCheckIntegration {
   private spellChecker?: SpellChecker;
 

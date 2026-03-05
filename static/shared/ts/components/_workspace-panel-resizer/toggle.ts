@@ -99,10 +99,6 @@ export function initToggleClickHandler(
       localStorage.setItem(config.collapseStorageKey, isCollapsed.toString());
     }
 
-    console.log(`[WorkspacePanelResizer] ${config.targetPanel} toggled:`, {
-      collapsed: isCollapsed,
-      width: targetPanel.offsetWidth,
-    });
   });
 
   console.log(

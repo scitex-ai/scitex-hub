@@ -29,7 +29,6 @@ import {
   clearSearchStats,
 } from "./_toolbar-status";
 
-console.log("[DEBUG] scitex-search.ts loaded (refactored)");
 
 // Track active searches for completion detection
 let activeSearches = 0;

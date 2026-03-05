@@ -3,10 +3,6 @@
  * Corresponds to: templates/project_app/issues/form.html
  */
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/issues/form.ts loaded",
-);
-
 class IssueFormPage {
   private form: HTMLFormElement | null;
 

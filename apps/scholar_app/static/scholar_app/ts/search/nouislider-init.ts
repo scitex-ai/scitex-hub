@@ -13,9 +13,6 @@
 
 // @ts-ignore - noUiSlider library types
 
-console.log(
-  "[DEBUG] apps/scholar_app/static/scholar_app/ts/search/nouislider-init.ts loaded",
-);
 declare const noUiSlider: any;
 
 /**

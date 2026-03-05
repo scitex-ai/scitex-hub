@@ -3,7 +3,6 @@
  * Handles generation and display of prompts for AI2 Asta paper search
  */
 
-console.log("[DEBUG] ai2-prompt.ts loaded");
 
 import { getCsrfToken, showToast } from "../shared/utils";
 

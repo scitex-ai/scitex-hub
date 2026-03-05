@@ -3,10 +3,6 @@
  * Centralized export of all Monaco editor modules
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/_monaco-editor/index.ts loaded",
-);
-
 export {
   registerLatexLanguage,
   registerLatexCompletionProvider,

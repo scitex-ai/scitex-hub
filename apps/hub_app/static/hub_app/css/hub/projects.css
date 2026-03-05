@@ -62,6 +62,32 @@
   /* GitHub-style subtle outline — same as base */
 }
 
+.project-card-header .badge-app {
+  background: rgba(138, 43, 226, 0.15);
+  border-color: rgba(138, 43, 226, 0.4);
+  color: #b87fff;
+}
+
+.dev-install-btn {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid rgba(138, 43, 226, 0.4);
+  background: transparent;
+  color: #b87fff;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dev-install-btn:hover {
+  background: rgba(138, 43, 226, 0.15);
+}
+
+.dev-install-btn.btn-success {
+  border-color: rgba(40, 167, 69, 0.5);
+  color: #5cb85c;
+}
+
 /* Topic tags (GitHub-style blue pills) */
 .project-topics {
   display: flex;
@@ -179,4 +205,10 @@
 .repo-description-empty {
   font-style: italic;
   opacity: 0.5;
+}
+
+/* Explore empty state */
+.hub-explore-empty {
+  text-align: center;
+  padding: 2rem;
 }

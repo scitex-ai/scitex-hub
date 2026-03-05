@@ -69,7 +69,7 @@ export class FileOperations {
           : fileName;
 
         const response = await fetch(
-          `/${this.config.username}/${this.config.slug}/api/files/move/`,
+          `/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/move/`,
           {
             method: "POST",
             headers: {
@@ -151,7 +151,7 @@ export class FileOperations {
           : fileName;
 
         const response = await fetch(
-          `/${this.config.username}/${this.config.slug}/api/files/copy/`,
+          `/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/copy/`,
           {
             method: "POST",
             headers: {
@@ -223,7 +223,7 @@ export class FileOperations {
           : fileName;
 
         const response = await fetch(
-          `/${this.config.username}/${this.config.slug}/api/files/symlink/`,
+          `/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/symlink/`,
           {
             method: "POST",
             headers: {
@@ -268,7 +268,7 @@ export class FileOperations {
   async createSymlink(sourcePath: string, targetPath: string): Promise<void> {
     try {
       const response = await fetch(
-        `/${this.config.username}/${this.config.slug}/api/files/symlink/`,
+        `/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/symlink/`,
         {
           method: "POST",
           headers: {

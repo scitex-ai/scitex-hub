@@ -13,7 +13,6 @@
 
 import { TextOperation, transform } from './operations';
 
-console.log("[DEBUG] OT Client loaded");
 
 // ============================================================================
 // Client State Enum

@@ -13,9 +13,6 @@
  * Sort criterion structure
  */
 
-console.log(
-  "[DEBUG] apps/scholar_app/static/scholar_app/ts/search/advanced-sorting.ts loaded",
-);
 interface SortCriterion {
   field: string;
   order: "asc" | "desc";

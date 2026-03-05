@@ -11,10 +11,6 @@ import type { CompilationManager } from "../../modules/index";
 import { renderSectionDropdown } from "./rendering";
 import { setupSectionEvents } from "./events";
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/utils/_section-dropdown/SectionDropdown.ts loaded",
-);
-
 /**
  * Populate the custom section dropdown with sections from the API
  *

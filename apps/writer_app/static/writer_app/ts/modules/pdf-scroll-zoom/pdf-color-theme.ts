@@ -3,10 +3,6 @@
  * Handles PDF color modes (light/dark) and theme application
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/pdf-scroll-zoom/pdf-color-theme.ts loaded",
-);
-
 export type PDFColorMode = "light" | "dark";
 
 export interface PDFColorTheme {

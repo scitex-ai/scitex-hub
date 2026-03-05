@@ -8,6 +8,8 @@ from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 
+from ._context_builders import build_page_context
+
 # ---------------------------------------------------------------------------
 # Documentation page registry — single source of truth for sidebar + content
 # ---------------------------------------------------------------------------
@@ -38,6 +40,41 @@ DOCS_PAGES = [
         "label": "SSH Access",
         "icon": "fas fa-terminal",
         "template": "docs_app/docs_ssh.html",
+        "badges": ["user"],
+    },
+    {
+        "slug": "agent",
+        "label": "Agent Integration",
+        "icon": "fas fa-robot",
+        "template": "docs_app/docs_agent.html",
+        "badges": ["user"],
+    },
+    {
+        "slug": "console",
+        "label": "Console",
+        "icon": "fas fa-terminal",
+        "template": "docs_app/docs_console.html",
+        "badges": ["user"],
+    },
+    {
+        "slug": "auto-response",
+        "label": "Auto-Response",
+        "icon": "fas fa-reply",
+        "template": "docs_app/docs_auto_response.html",
+        "badges": ["user"],
+    },
+    {
+        "slug": "chat",
+        "label": "AI Chat",
+        "icon": "fas fa-comments",
+        "template": "docs_app/docs_chat.html",
+        "badges": ["user"],
+    },
+    {
+        "slug": "agent-tooling",
+        "label": "AI Agent Tooling",
+        "icon": "fas fa-tools",
+        "template": "docs_app/docs_agent_tooling.html",
         "badges": ["user"],
     },
     {
@@ -189,7 +226,7 @@ def docs_content(request, slug):
     page = _PAGES_BY_SLUG.get(slug)
     if not page:
         raise Http404(f"Documentation page '{slug}' not found")
-    context = _build_page_context(slug)
+    context = build_page_context(slug)
     return render(request, page["template"], context)
 
 
@@ -212,10 +249,42 @@ def docs_export(request, slug):
     return response
 
 
+def docs_export_batch(request):
+    """Export selected documentation pages as Markdown (POST {slugs: [...]})."""
+    import json
+
+    if request.method != "POST":
+        return HttpResponse(status=405)
+    try:
+        slugs = json.loads(request.body).get("slugs", [])
+    except (json.JSONDecodeError, AttributeError):
+        return HttpResponse("Invalid JSON", status=400)
+    if not slugs:
+        return HttpResponse("Missing slugs", status=400)
+
+    ver = _get_project_version()
+    converter = _make_html2text()
+    parts = [f"# SciTeX Documentation (v{ver}) — Selected Pages\n"]
+    for slug in slugs:
+        page = _PAGES_BY_SLUG.get(slug)
+        if not page:
+            continue
+        html = render(
+            request, page["template"], build_page_context(slug)
+        ).content.decode()
+        parts.append(f"\n---\n\n## {page['label']}\n\n{converter.handle(html)}")
+
+    resp = HttpResponse("\n".join(parts), content_type="text/markdown; charset=utf-8")
+    resp["Content-Disposition"] = (
+        f'attachment; filename="scitex-cloud-v{ver}-docs-selected.md"'
+    )
+    return resp
+
+
 def _export_single_page(request, page) -> str:
     """Render a single doc page to Markdown."""
     converter = _make_html2text()
-    context = _build_page_context(page["slug"])
+    context = build_page_context(page["slug"])
     html = render(request, page["template"], context).content.decode()
     md = converter.handle(html)
     return f"# {page['label']}\n\n{md}"
@@ -226,7 +295,7 @@ def _export_all_pages(request, ver) -> str:
     converter = _make_html2text()
     parts = [f"# SciTeX Documentation (v{ver})\n"]
     for page in DOCS_PAGES:
-        context = _build_page_context(page["slug"])
+        context = build_page_context(page["slug"])
         html = render(request, page["template"], context).content.decode()
         md = converter.handle(html)
         parts.append(f"\n---\n\n## {page['label']}\n\n{md}")
@@ -244,143 +313,6 @@ def _make_html2text():
     converter.protect_links = True
     converter.wrap_links = False
     return converter
-
-
-def _build_page_context(slug):
-    """Build template context for a documentation page."""
-    context = {
-        "slug": slug,
-        "base_template": "docs_app/docs_fragment_base.html",
-    }
-    if slug in ("mcp-tools-local", "mcp-tools-https"):
-        context.update(_get_mcp_context())
-    elif slug == "python-packages":
-        context.update(_get_packages_context())
-    return context
-
-
-def _get_packages_context() -> dict:
-    """Build Python packages context from scitex ecosystem versions."""
-    try:
-        from scitex._dev._versions._list import list_versions
-
-        raw = list_versions()
-    except Exception:
-        raw = {}
-
-    # Package metadata: (pip_name, module_path, description, github_repo, is_core)
-    _PKG_META = {
-        "scitex": (
-            "scitex",
-            "Main Python package with unified API for scientific research",
-            "scitex-python",
-            True,
-        ),
-        "scitex-cloud": (
-            "scitex.cloud",
-            "Django web application (this site)",
-            "scitex-cloud",
-            True,
-        ),
-        "figrecipe": (
-            "scitex.plt",
-            "Publication-ready matplotlib figures with auto CSV export",
-            "figrecipe",
-            False,
-        ),
-        "scitex-writer": (
-            "scitex.writer",
-            "LaTeX manuscript compilation with journal templates",
-            "scitex-writer",
-            False,
-        ),
-        "scitex-dataset": (
-            "scitex.dataset",
-            "Scientific dataset search across OpenNeuro, DANDI, PhysioNet",
-            "scitex-dataset",
-            False,
-        ),
-        "scitex-linter": (
-            "scitex.linter",
-            "SciTeX coding style linter for Python scripts",
-            "scitex-linter",
-            False,
-        ),
-        "crossref-local": (
-            "scitex.scholar.crossref_scitex",
-            "Local CrossRef database (167M+ papers)",
-            "crossref-local",
-            False,
-        ),
-        "openalex-local": (
-            "scitex.scholar.openalex_scitex",
-            "Local OpenAlex database (250M+ papers)",
-            "openalex-local",
-            False,
-        ),
-        "socialia": (
-            "socialia",
-            "Social media posting (Twitter/X, Bluesky)",
-            "socialia",
-            False,
-        ),
-        "scitex-container": (
-            "scitex_container",
-            "Apptainer/Singularity container definitions for SciTeX",
-            "scitex-container",
-            False,
-        ),
-        "scitex-tunnel": (
-            "scitex_tunnel",
-            "Secure SSH tunnel management for remote SciTeX services",
-            "scitex-tunnel",
-            False,
-        ),
-    }
-
-    core_packages = []
-    standalone_packages = []
-    for pip_name, (module, desc, repo, is_core) in _PKG_META.items():
-        info = raw.get(pip_name, {})
-        local = info.get("local", {})
-        remote = info.get("remote", {})
-        version = (
-            local.get("pyproject_toml")
-            or local.get("installed")
-            or remote.get("pypi")
-            or ""
-        )
-        pkg = {
-            "pip_name": pip_name,
-            "module": module,
-            "version": version,
-            "description": desc,
-            "github_url": f"https://github.com/ywatanabe1989/{repo}",
-            "docs_url": f"https://{repo}.readthedocs.io",
-            "pypi_version": remote.get("pypi", ""),
-            "status": info.get("status", ""),
-        }
-        if is_core:
-            core_packages.append(pkg)
-        else:
-            standalone_packages.append(pkg)
-
-    return {
-        "core_packages": core_packages,
-        "standalone_packages": standalone_packages,
-    }
-
-
-def _get_mcp_context() -> dict:
-    """Build MCP tools context from the scitex MCP server registry."""
-    try:
-        from apps.public_app.config.mcp_tools import get_mcp_tools
-
-        tools = get_mcp_tools()
-        total = sum(c["count"] for c in tools)
-        return {"mcp_tools": tools, "mcp_tool_count": total}
-    except Exception:
-        return {"mcp_tools": [], "mcp_tool_count": 0}
 
 
 def docs_python(request):

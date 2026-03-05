@@ -3,10 +3,6 @@
  * Handles scroll position save/restore and scroll tracking
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/pdf-scroll-zoom/pdf-scroll-manager.ts loaded",
-);
-
 import { statePersistence } from "../_state-persistence";
 
 export class PDFScrollManager {

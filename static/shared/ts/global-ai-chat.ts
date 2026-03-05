@@ -1,8 +1,4 @@
-/**
- * Global Floating AI Agent Panel
- * Available on all pages. Toggle with FAB, Alt+A, or double-click panel header.
- * Context can be injected per-page via window.scitexAI.setContext().
- */
+/** Global Floating AI Agent Panel — toggle with FAB, Alt+A, or double-click header. */
 
 export {}; // Make this a module so declare global augmentation is valid
 
@@ -185,6 +181,12 @@ class GlobalAIChat {
         () => this.chatMode?.clearChat(),
       );
       this.chatMode.setSessionsPanel(this.sessionsPanel);
+      document
+        .querySelector(".scitex-ai-share-btn")
+        ?.addEventListener(
+          "click",
+          () => void this.sessionsPanel?.toggleShare(),
+        );
     }
 
     // Copy & clear chat buttons
@@ -364,7 +366,9 @@ class GlobalAIChat {
 
   /* ── Agent Sources (delegated to config-mode.ts) ─────────── */
 
-  private async populateAgentSources(id = "ai-agent-sources-content"): Promise<void> {
+  private async populateAgentSources(
+    id = "ai-agent-sources-content",
+  ): Promise<void> {
     const container = document.getElementById(id);
     if (!container) return;
     if (!this.configMode) this.configMode = new AIPanelConfigMode();
@@ -383,9 +387,9 @@ class GlobalAIChat {
         });
       });
     const saved = localStorage.getItem("scitex-ai-mode");
-    // Migrate old saved modes (jobs/config) to console
-    if (saved === "console" || saved === "jobs" || saved === "config")
-      this.switchMode("console");
+    // Default to console; only switch to chat if explicitly saved
+    if (saved === "chat") this.switchMode("chat");
+    else this.switchMode("console");
   }
 
   private switchMode(mode: "chat" | "console"): void {
@@ -454,7 +458,7 @@ class GlobalAIChat {
         if (!resp.ok) return;
         const data = await resp.json();
         const n = (data.running || 0) + (data.pending || 0);
-        for (const id of ["ai-jobs-badge", "jobs-badge"]) {
+        for (const id of ["jobs-badge"]) {
           const el = document.getElementById(id);
           if (el) {
             el.textContent = String(n);

@@ -252,6 +252,18 @@ if settings.DEBUG:
             path("__reload__/", include("django_browser_reload.urls")),
         ]
 
+# Dev-installed app modules — serve via workspace shell (before <username> catch-all)
+from apps.workspace_app.views import workspace_shell as _ws_shell
+
+
+def _dev_module_view(request, rest):
+    return _ws_shell(request, module=f"dev__{rest}")
+
+
+urlpatterns += [
+    path("dev__<str:rest>/", _dev_module_view, name="dev_module_shell"),
+]
+
 # GitHub-style username/project URLs (MUST be last to avoid conflicts)
 urlpatterns += [
     path("<str:username>/", include(("apps.project_app.urls", "user_projects"))),

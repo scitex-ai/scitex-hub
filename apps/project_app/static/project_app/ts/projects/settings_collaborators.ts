@@ -4,9 +4,6 @@
  * @module projects/settings_collaborators
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/project_app/static/project_app/ts/projects/settings_collaborators.ts loaded",
-);
 interface UserSearchResult {
   username: string;
   email?: string;

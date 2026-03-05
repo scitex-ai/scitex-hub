@@ -132,6 +132,7 @@
     --module-accent-color,
     var(--workspace-icon-primary, #059669)
   );
+  z-index: 2; /* Above adjacent panel-resizer (z-index:1) */
 }
 
 /* Right indicator */
@@ -147,6 +148,7 @@
     --module-accent-color,
     var(--workspace-icon-primary, #059669)
   );
+  z-index: 2; /* Above adjacent panel-resizer (z-index:1) */
 }
 
 /* ===========================================================================
@@ -163,4 +165,27 @@
 
 .selector-nav-item.nav-drag-after {
   box-shadow: inset 0 -2px 0 0 var(--accent-blue, #388bfd);
+}
+
+/* Dev app icon wrapper — positions DEV badge over the icon */
+.dev-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dev-badge {
+  position: absolute;
+  bottom: -4px;
+  right: -8px;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  line-height: 1;
+  padding: 1px 3px;
+  border-radius: 3px;
+  background: #a07040;
+  color: #fff;
+  pointer-events: none;
 }

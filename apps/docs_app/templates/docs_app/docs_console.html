@@ -1,0 +1,474 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}Console — SciTeX Documentation{% endblock %}
+{% block content %}
+    <div class="container py-5" style="max-width: 900px">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'docs_app:index' %}">Documentation</a>
+                </li>
+                <li class="breadcrumb-item active">Console</li>
+            </ol>
+        </nav>
+        <h1 class="mb-4">
+            <i class="fas fa-terminal me-2"></i>Console
+        </h1>
+        <p class="lead text-muted mb-5">Browser-based terminal running inside Apptainer containers via SLURM.</p>
+        <!-- Life Cycle -->
+        <span id="life-cycle"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-sync-alt"></i> Life Cycle
+            </h2>
+            <h4 class="mt-4">Session States</h4>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code>SPAWNING → RUNNING → EXITED → RESPAWNING → RUNNING
+                                       ↓ (max 5 retries)
+                                      DEAD</code></pre>
+                </div>
+            </div>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>State</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>SPAWNING</code>
+                        </td>
+                        <td>PTY fork in progress</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>RUNNING</code>
+                        </td>
+                        <td>Shell active, reader thread streaming output</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>EXITED</code>
+                        </td>
+                        <td>Shell process ended, cleanup pending</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>RESPAWNING</code>
+                        </td>
+                        <td>Auto-restart after exit (with backoff)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>DEAD</code>
+                        </td>
+                        <td>Terminal closed or max respawns exceeded</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h4 class="mt-4">Connection Flow</h4>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code>Browser WebSocket (?project_id=N)
+    → TerminalConsumer.connect()
+    → Resolve project from selector  # Active project or dotfiles (id=0)
+    → ensure_workspace()             # Create dirs, dotfiles, agent configs
+    → Terminal Broker (IPC)          # Isolated process, no asyncio
+    → pty.fork()                     # Inside broker process
+    → srun --pty bash                # SLURM allocates resources
+    → apptainer exec --pwd ~/proj/&lt;slug&gt; # Containerized shell in project dir
+    → MOTD injection                 # Welcome message (0.8s delay)</code></pre>
+                </div>
+            </div>
+            <h4 class="mt-4">Terminal Broker</h4>
+            <p>
+                All PTY operations run in a separate broker process to prevent
+                Daphne asyncio deadlocks. Communication uses length-prefixed JSON
+                over a Unix socket (<code>/tmp/scitex-terminal-broker.sock</code>).
+            </p>
+            <h4 class="mt-4">Respawn</h4>
+            <p>
+                When a shell exits, the broker auto-respawns up to
+                <strong>5 times</strong>. The respawn counter resets after 10 seconds
+                of stable runtime. If all 5 attempts fail quickly, the session
+                transitions to <code>DEAD</code>.
+            </p>
+            <h4 class="mt-4">Project Context</h4>
+            <p>
+                The terminal opens in the <strong>selected project's directory</strong>.
+                The project ID flows from the header project selector through the
+                WebSocket query parameter to Apptainer's <code>--pwd</code> flag:
+            </p>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code>Header selector (data-active-project-id)
+    → WebSocket URL (?project_id=N)
+    → TerminalConsumer resolves Project model
+    → project.slug → "~/proj/&lt;slug&gt;/"
+    → apptainer exec --pwd /home/&lt;user&gt;/proj/&lt;slug&gt;</code></pre>
+                </div>
+            </div>
+            <p class="text-muted small mt-2">
+                If no project is selected, falls back to <code>project_id=0</code>
+                which resolves to the dotfiles project (<code>is_home=True</code>).
+            </p>
+            <h4 class="mt-4">Message of the Day</h4>
+            <p>
+                After shell initialization, the broker injects a welcome message
+                directly to the client (bypassing the shell to avoid prompt corruption).
+                Controlled by the <code>SCITEX_CLOUD_SHOW_MOTD</code> environment variable.
+            </p>
+        </section>
+        <!-- Terminal Tabs -->
+        <span id="terminal-tabs"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-window-restore"></i> Terminal Tabs
+            </h2>
+            <h4 class="mt-4">Multi-Tab Support</h4>
+            <p>
+                The console supports <strong>multiple terminal tabs</strong> (T1, T2, T3&hellip;).
+                Each tab runs an independent shell session inside its own SLURM job.
+            </p>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Action</th>
+                        <th>Behavior</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <i class="fas fa-plus"></i> New tab
+                        </td>
+                        <td>Creates next sequential tab (T1, T2&hellip;)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <i class="fas fa-times"></i> Close tab
+                        </td>
+                        <td>Kills session, remaining tabs renumber to T1&hellip;TN</td>
+                    </tr>
+                    <tr>
+                        <td>Double-click tab</td>
+                        <td>Rename the tab</td>
+                    </tr>
+                    <tr>
+                        <td>Hover tab</td>
+                        <td>Tooltip shows session UUID</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h4 class="mt-4">Session Persistence (UUID)</h4>
+            <p>
+                Each terminal tab is assigned a <strong>UUID</strong> on creation, stored in
+                <code>localStorage</code>. This UUID identifies the broker session, enabling:
+            </p>
+            <ul>
+                <li>
+                    <strong>Browser reload</strong> &mdash; reconnects to the same shell session
+                </li>
+                <li>
+                    <strong>Tab close &amp; reopen</strong> &mdash; same UUID, same session
+                </li>
+                <li>
+                    <strong>Scrollback replay</strong> &mdash; broker replays buffered output on reconnect
+                </li>
+            </ul>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code>Tab "T1" created
+    → UUID generated: crypto.randomUUID()
+    → Stored: localStorage["scitex-console-session-T1"] = uuid
+    → Session name: "ai-panel-&lt;uuid&gt;"
+    → WebSocket: ws://...?session=ai-panel-&lt;uuid&gt;
+    → Broker matches (username, session_name) → reattaches or spawns</code></pre>
+                </div>
+            </div>
+            <h4 class="mt-4">Tab Renumbering</h4>
+            <p>
+                When a tab is closed, remaining tabs are renumbered sequentially
+                (T1, T2, &hellip; TN). UUIDs are preserved &mdash; only display names change.
+                This keeps the tab bar clean without losing session identity.
+            </p>
+            <h4 class="mt-4">Project Switching</h4>
+            <p>
+                Changing the project in the header selector sends a <code>cd</code> command
+                to the active terminal, switching to the new project directory without
+                disconnecting or restarting the shell.
+            </p>
+        </section>
+        <!-- Security -->
+        <span id="security"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-shield-alt"></i> Security
+            </h2>
+            <h4 class="mt-4">SLURM-Only Execution</h4>
+            <p>
+                All terminals <strong>require</strong> SLURM. No direct Apptainer
+                or plain bash fallbacks. If SLURM is unavailable, the terminal
+                is disabled with an error message.
+            </p>
+            <h4 class="mt-4">Resource Limits</h4>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Resource</th>
+                        <th>Limit</th>
+                        <th>SLURM Flag</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>CPU</td>
+                        <td>2 cores</td>
+                        <td>
+                            <code>--cpus-per-task=2</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Memory</td>
+                        <td>4 GB</td>
+                        <td>
+                            <code>--mem=4G</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Time</td>
+                        <td>4 hours</td>
+                        <td>
+                            <code>--time=04:00:00</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Partition</td>
+                        <td>express</td>
+                        <td>Priority interactive queue</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h4 class="mt-4">Container Isolation</h4>
+            <ul>
+                <li>
+                    <strong>Apptainer</strong> with fakeroot &mdash; user runs as themselves inside the container
+                </li>
+                <li>
+                    <strong>Bind mounts</strong> &mdash; only user's own data directory is mounted
+                </li>
+                <li>
+                    <strong>No root access</strong> &mdash; fakeroot provides user-namespace isolation only
+                </li>
+                <li>
+                    <strong>UID preservation</strong> &mdash; container UID matches host UID
+                </li>
+            </ul>
+            <h4 class="mt-4">User Isolation</h4>
+            <p>Each user gets:</p>
+            <ul>
+                <li>Separate Unix account inside the container</li>
+                <li>
+                    Own <code>/home/&lt;username&gt;/</code> directory
+                </li>
+                <li>Own SLURM job with resource limits</li>
+                <li>No access to other users' data directories</li>
+            </ul>
+        </section>
+        <!-- HOME Directory -->
+        <span id="home-directory"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-folder-open"></i> HOME Directory
+            </h2>
+            <h4 class="mt-4">Directory Structure</h4>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code>/home/&lt;username&gt;/
+├── proj/
+│   ├── &lt;project-name&gt;/       # Each project directory
+│   │   ├── .agents/          # AI agent configs (auto-generated)
+│   │   ├── .mcp.json         # Claude Code MCP server
+│   │   ├── AGENTS.md         # Unified instructions for all AI tools
+│   │   └── scitex/downloads/ # Paste/drop upload target
+│   └── dotfiles/             # Git repo with shell configs (special project)
+│       ├── .agents/          # AI agent configs (like any project)
+│       ├── AGENTS.md
+│       ├── bashrc
+│       ├── bash_profile
+│       ├── vimrc
+│       ├── gitconfig
+│       ├── screenrc
+│       ├── ipython/
+│       ├── install.sh
+│       └── README.md
+├── .bashrc -> proj/dotfiles/bashrc
+├── .bash_profile -> proj/dotfiles/bash_profile
+├── .vimrc -> proj/dotfiles/vimrc
+├── .gitconfig -> proj/dotfiles/gitconfig
+├── .screenrc -> proj/dotfiles/screenrc
+├── .nvm/                     # Node Version Manager
+├── .npm-global/              # npm global packages
+├── .claude/                  # Claude Code user config
+│   └── skills/scitex-cloud/SKILL.md
+├── .singularity/             # Apptainer cache
+└── .ai-cli-installed         # Sentinel file</code></pre>
+                </div>
+            </div>
+            <h4 class="mt-4">Dotfiles Project</h4>
+            <p>
+                The <strong>dotfiles</strong> project (<code>is_home=True</code>) is a
+                special project for managing shell configurations:
+            </p>
+            <ul>
+                <li>Auto-created on user signup and ensured on every login</li>
+                <li>
+                    Always private &mdash; visibility is forced to <code>private</code> on save
+                </li>
+                <li>
+                    Cannot be deleted &mdash; <code>delete()</code> raises <code>ValueError</code>
+                </li>
+                <li>One per user &mdash; uniqueness enforced at model level</li>
+                <li>
+                    Maps to <code>~/proj/dotfiles/</code> &mdash; a git-tracked repository
+                    containing bashrc, vimrc, gitconfig, and other shell configs
+                </li>
+                <li>Appears in the project selector and hub like any other project</li>
+                <li>
+                    Gets full AI agent support (<code>.agents/</code>, <code>AGENTS.md</code>,
+                    <code>.mcp.json</code>) like any other project
+                </li>
+            </ul>
+            <h4 class="mt-4">.bashrc</h4>
+            <p>
+                The bashrc at <code>~/proj/dotfiles/bashrc</code> provides:
+            </p>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <table class="table table-bordered mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Feature</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Prompt</td>
+                                <td>
+                                    <code>username@scitex:~/path $</code>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>AI CLI auto-install</td>
+                                <td>nvm + Node.js 20 + claude, codex, gemini, agents (one-time)</td>
+                            </tr>
+                            <tr>
+                                <td>MCP config sync</td>
+                                <td>
+                                    <code>agents sync --quiet</code> on every login
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <code>stx-show</code>
+                                </td>
+                                <td>Display images/plots in the browser via terminal escape sequences</td>
+                            </tr>
+                            <tr>
+                                <td>Aliases</td>
+                                <td>
+                                    <code>ll</code>, <code>la</code>, <code>gs</code>,
+                                    <code>ga</code>, <code>gc</code>, <code>gp</code>,
+                                    <code>gl</code>, <code>python</code>, <code>pip</code>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Auto-activate</td>
+                                <td>
+                                    Sources <code>.venv/bin/activate</code> if present
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <p class="text-muted small mt-2">
+                The bashrc is managed as a git repo at <code>~/proj/dotfiles/</code>.
+                Users can edit and version-control their configuration.
+                A corruption detection mechanism regenerates the bashrc if required
+                sections are missing or duplicated.
+            </p>
+        </section>
+        <!-- Source Code -->
+        <span id="source-code"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-code"></i> Source Code
+            </h2>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>File</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>apps/console_app/services/terminal_broker/session.py</code>
+                        </td>
+                        <td>
+                            <code>BasePTY</code>, <code>SessionState</code>, spawn/respawn
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>apps/console_app/views/terminal/consumer.py</code>
+                        </td>
+                        <td>WebSocket handler, broker client</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>apps/console_app/views/terminal/workspace.py</code>
+                        </td>
+                        <td>
+                            <code>ensure_workspace()</code>, directory setup
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>apps/console_app/views/terminal/dotfiles.py</code>
+                        </td>
+                        <td>Dotfiles repo creation + symlinks</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>apps/console_app/services/agents_config.py</code>
+                        </td>
+                        <td>AI agent config generation</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>apps/accounts_app/signals.py</code>
+                        </td>
+                        <td>Dotfiles project creation on signup</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>apps/project_app/models/repository/project.py</code>
+                        </td>
+                        <td>
+                            <code>is_home</code> field, delete protection
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+{% endblock %}

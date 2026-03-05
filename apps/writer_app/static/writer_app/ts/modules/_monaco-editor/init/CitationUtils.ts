@@ -3,7 +3,6 @@
  * Provides project ID detection and citation fetching utilities
  */
 
-console.log("[DEBUG] CitationUtils.ts loaded");
 
 /**
  * Get project ID from various sources

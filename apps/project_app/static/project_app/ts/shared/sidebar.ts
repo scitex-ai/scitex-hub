@@ -3,10 +3,6 @@
    Apply these changes to the <script> section in project_detail.html
    ============================================================================= */
 
-console.log(
-  "[DEBUG] apps/project_app/static/project_app/ts/shared/sidebar.ts loaded",
-);
-
 (function () {
   "use strict";
 

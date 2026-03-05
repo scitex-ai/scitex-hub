@@ -105,6 +105,18 @@ From: python:3.11-slim
     echo "PS1='\\W \$ '" >> /root/.bashrc
     echo "PS1='\\W \$ '" >> /etc/skel/.bashrc
 
+    # Auto-cd to project root on new shell (not on reattach)
+    cat >> /root/.bashrc << 'AUTOCD'
+if [ -n "$SCITEX_PROJECT_DIR" ] && [ "$PWD" = "$HOME" ]; then
+    cd "$SCITEX_PROJECT_DIR" 2>/dev/null || true
+fi
+AUTOCD
+    cat >> /etc/skel/.bashrc << 'AUTOCD'
+if [ -n "$SCITEX_PROJECT_DIR" ] && [ "$PWD" = "$HOME" ]; then
+    cd "$SCITEX_PROJECT_DIR" 2>/dev/null || true
+fi
+AUTOCD
+
     # Create workspace directory
     echo -e "Setting up workspace..."
     mkdir -p /workspace

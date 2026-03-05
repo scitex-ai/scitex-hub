@@ -3,7 +3,6 @@
  * Lightweight coordinator for tables panel modules
  */
 
-console.log("[DEBUG] tables-panel.ts loaded");
 
 import type { Table } from "./_tables-panel/types";
 import { TableDataManager } from "./_tables-panel/TableDataManager";

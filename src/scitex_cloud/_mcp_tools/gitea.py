@@ -67,12 +67,12 @@ def register_gitea_tools(mcp) -> None:
     """Register Gitea CLI tools with FastMCP server."""
 
     @mcp.tool()
-    async def cloud_login(
+    async def repo_login(
         url: str = "http://localhost:3001",
         token: Optional[str] = None,
         name: str = "scitex",
     ) -> str:
-        """[cloud] Login to SciTeX Cloud (Gitea).
+        """Login to SciTeX Cloud (Gitea).
 
         Adds a new login configuration for tea CLI.
         """
@@ -83,12 +83,12 @@ def register_gitea_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def cloud_clone(
+    async def repo_clone(
         repository: str,
         destination: Optional[str] = None,
         login: str = "scitex-dev",
     ) -> str:
-        """[cloud] Clone a repository from SciTeX Cloud.
+        """Clone a repository from SciTeX Cloud.
 
         If repository doesn't include owner (e.g., 'myrepo'), attempts to
         find the owner automatically.
@@ -122,13 +122,13 @@ def register_gitea_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def cloud_create(
+    async def repo_create(
         name: str,
         description: Optional[str] = None,
         private: bool = False,
         login: str = "scitex-dev",
     ) -> str:
-        """[cloud] Create a new repository on SciTeX Cloud."""
+        """Create a new repository on SciTeX Cloud."""
         args = ["repo", "create", "--name", name, "--login", login]
         if description:
             args.extend(["--description", description])
@@ -138,13 +138,13 @@ def register_gitea_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def cloud_list(
+    async def repo_list(
         user: Optional[str] = None,
         login: str = "scitex-dev",
         starred: bool = False,
         watched: bool = False,
     ) -> str:
-        """[cloud] List repositories from SciTeX Cloud."""
+        """List repositories from SciTeX Cloud."""
         args = ["repos", "--login", login, "--output", "table"]
         if starred:
             args.append("--starred")
@@ -156,24 +156,24 @@ def register_gitea_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def cloud_search(
+    async def repo_search(
         query: str,
         login: str = "scitex-dev",
         limit: int = 10,
     ) -> str:
-        """[cloud] Search for repositories on SciTeX Cloud."""
+        """Search for repositories on SciTeX Cloud."""
         result = _run_tea(
             "repos", "search", "--login", login, "--limit", str(limit), query
         )
         return _json(result)
 
     @mcp.tool()
-    async def cloud_delete(
+    async def repo_delete(
         repository: str,
         login: str = "scitex-dev",
         confirm: bool = False,
     ) -> str:
-        """[cloud] Delete a repository (DANGEROUS!).
+        """Delete a repository (DANGEROUS!).
 
         Requires confirm=True to actually delete.
         Repository must be in 'owner/repo' format.
@@ -241,19 +241,19 @@ def register_gitea_tools(mcp) -> None:
             return _json({"success": False, "error": str(e)})
 
     @mcp.tool()
-    async def cloud_fork(repository: str) -> str:
-        """[cloud] Fork a repository on SciTeX Cloud."""
+    async def repo_fork(repository: str) -> str:
+        """Fork a repository on SciTeX Cloud."""
         result = _run_tea("repo", "fork", repository)
         return _json(result)
 
     @mcp.tool()
-    async def cloud_pr_create(
+    async def repo_pr_create(
         title: Optional[str] = None,
         description: Optional[str] = None,
         base: str = "main",
         head: Optional[str] = None,
     ) -> str:
-        """[cloud] Create a pull request."""
+        """Create a pull request."""
         args = ["pr", "create"]
         if title:
             args.extend(["--title", title])
@@ -267,17 +267,17 @@ def register_gitea_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def cloud_pr_list() -> str:
-        """[cloud] List pull requests for current repository."""
+    async def repo_pr_list() -> str:
+        """List pull requests for current repository."""
         result = _run_tea("pr", "list")
         return _json(result)
 
     @mcp.tool()
-    async def cloud_issue_create(
+    async def repo_issue_create(
         title: str,
         body: Optional[str] = None,
     ) -> str:
-        """[cloud] Create an issue."""
+        """Create an issue."""
         args = ["issue", "create", "--title", title]
         if body:
             args.extend(["--body", body])
@@ -285,14 +285,14 @@ def register_gitea_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def cloud_issue_list() -> str:
-        """[cloud] List issues for current repository."""
+    async def repo_issue_list() -> str:
+        """List issues for current repository."""
         result = _run_tea("issue", "list")
         return _json(result)
 
     @mcp.tool()
-    async def cloud_push() -> str:
-        """[cloud] Push local changes to remote.
+    async def repo_push() -> str:
+        """Push local changes to remote.
 
         Pushes current branch to origin.
         """
@@ -310,8 +310,8 @@ def register_gitea_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def cloud_pull() -> str:
-        """[cloud] Pull changes from remote.
+    async def repo_pull() -> str:
+        """Pull changes from remote.
 
         Pulls current branch from origin.
         """
@@ -329,8 +329,8 @@ def register_gitea_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def cloud_status() -> str:
-        """[cloud] Show git repository status."""
+    async def repo_status() -> str:
+        """Show git repository status."""
         result = _run_git("status")
         return _json(result)
 

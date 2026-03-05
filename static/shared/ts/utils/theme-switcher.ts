@@ -5,9 +5,6 @@
 
 import { getCsrfToken } from "./csrf";
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/utils/theme-switcher.ts loaded",
-);
 type Theme = "light" | "dark";
 
 interface ThemeResponse {
@@ -119,7 +116,6 @@ function applyTheme(theme: Theme): void {
     detail: { theme },
   });
   document.dispatchEvent(event);
-  console.log(`[Theme] Dispatched theme-changed event: ${theme}`);
 }
 
 /**
@@ -138,7 +134,6 @@ function setThemePreference(preference: Theme): void {
 function toggleTheme(): void {
   const current = getThemePreference();
   const next = current === THEME_LIGHT ? THEME_DARK : THEME_LIGHT;
-  console.log(`Theme toggle: ${current} → ${next}`);
   setThemePreference(next);
 }
 
@@ -175,9 +170,7 @@ function updateToggleButton(): void {
 function setupToggleButton(): void {
   const toggleBtn = document.getElementById("theme-toggle");
   if (toggleBtn) {
-    console.log("✓ Theme toggle button found, attaching click handler");
     toggleBtn.addEventListener("click", function () {
-      console.log("✓ Theme toggle clicked");
       toggleTheme();
     });
     updateToggleButton();

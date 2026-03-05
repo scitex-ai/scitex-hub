@@ -3,10 +3,6 @@
  * Central export point for all PDF scroll/zoom submodules
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/pdf-scroll-zoom/index.ts loaded",
-);
-
 export { PDFZoomControl } from "./pdf-zoom-control";
 export type { ZoomOptions } from "./pdf-zoom-control";
 

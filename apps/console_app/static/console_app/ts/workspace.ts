@@ -11,10 +11,6 @@ import { WorkspaceOrchestrator } from "./_workspace/index";
 // Panel resizing: Auto-initialized via data attributes in HTML template
 import type { EditorConfig, Project } from "./_workspace/core/types";
 
-console.log(
-  "[DEBUG] apps/console_app/static/console_app/ts/workspace.ts loaded",
-);
-
 // Make toggleCodeFolder available globally for HTML onclick handlers
 (window as any).toggleCodeFolder = toggleCodeFolder;
 

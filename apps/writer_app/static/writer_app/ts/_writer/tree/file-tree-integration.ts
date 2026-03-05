@@ -3,10 +3,6 @@
  * Handles integration between WorkspaceFilesTree and writer components
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/writer/tree/file-tree-integration.ts loaded"
-);
-
 import {
   doctypeToDirectory,
   doctypeDirs,

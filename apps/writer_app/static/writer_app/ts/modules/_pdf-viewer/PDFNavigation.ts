@@ -3,7 +3,6 @@
  * Handles page navigation and page change tracking
  */
 
-console.log("[DEBUG] PDFNavigation.ts loaded");
 
 export class PDFNavigation {
   private currentPage: number = 1;

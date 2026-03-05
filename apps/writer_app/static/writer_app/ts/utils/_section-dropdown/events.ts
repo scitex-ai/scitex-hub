@@ -9,10 +9,6 @@ import { getWriterConfig } from "../../_helpers";
 import { statePersistence } from "../../modules/_state-persistence";
 import type { CompilationManager } from "../../modules/index";
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/utils/_section-dropdown/events.ts loaded",
-);
-
 /**
  * Toggle section visibility (exclude/include from compilation)
  *

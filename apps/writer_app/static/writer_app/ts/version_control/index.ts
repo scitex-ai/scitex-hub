@@ -3,9 +3,6 @@
  * Corresponds to: templates/writer_app/version_control/index.html
  */
 
-console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/version_control/index.ts loaded",
-);
 class VersionControlIndexPage {
   private _versionList: HTMLElement | null;
   private _branchList: HTMLElement | null;

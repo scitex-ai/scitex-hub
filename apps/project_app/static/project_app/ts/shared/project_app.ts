@@ -23,5 +23,3 @@
 
 // Import and re-export everything from the orchestrator
 export * from "./project-app/index";
-
-console.log("[DEBUG] project_app.ts entry point loaded (orchestrator pattern)");
