@@ -114,7 +114,7 @@ echo ""
 if [ -n "$SPECIFIC_PKG" ]; then
     PKGS="$SPECIFIC_PKG"
 else
-    PKGS="$ECOSYSTEM_PKGS scitex-container"
+    PKGS="$ECOSYSTEM_PKGS scitex-container scitex-cloud"
 fi
 
 # pip flags
