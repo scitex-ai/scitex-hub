@@ -458,7 +458,7 @@ class GlobalAIChat {
         if (!resp.ok) return;
         const data = await resp.json();
         const n = (data.running || 0) + (data.pending || 0);
-        for (const id of ["ai-jobs-badge", "jobs-badge"]) {
+        for (const id of ["jobs-badge"]) {
           const el = document.getElementById(id);
           if (el) {
             el.textContent = String(n);
