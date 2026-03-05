@@ -81,82 +81,13 @@
     <!-- Shared data table styles (comprehensive module from vis_app) -->
     <link rel="stylesheet"
           href="{% static 'shared/css/components/data-table/data-table.css' %}" />
-    <!-- Monaco Editor CSS - Use cdnjs like writer app -->
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.min.css" />
+    <!-- Monaco CSS bundled locally via Vite (imported by monaco-init.ts) -->
     <!-- xterm.js for real PTY terminal -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
 {% endblock %}
 {% block extra_js %}
     {% tree_preseed_script current_project %}
-    <!-- Monaco Editor - Load with proper AMD handling -->
-    <script>
-    (function() {
-      'use strict';
-
-      // Save any existing AMD loaders
-      var savedDefine = window.define;
-      var savedRequire = window.require;
-
-      // Clear AMD environment for Monaco
-      delete window.define;
-      delete window.require;
-
-      // Load Monaco loader
-      var loaderScript = document.createElement('script');
-      loaderScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js';
-      loaderScript.onload = function() {
-        console.log('[Monaco] Loader loaded, configuring...');
-
-        // Now require should be available from Monaco's loader
-        if (typeof require === 'undefined') {
-          console.error('[Monaco] require is still undefined after loader');
-          return;
-        }
-
-        // Configure Monaco paths
-        require.config({
-          paths: {
-            'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs'
-          }
-        });
-
-        // Load Monaco editor main module with timeout and error handling
-        var monacoLoadTimeout = setTimeout(function() {
-          console.error('[Monaco] Loading timeout - require might have failed');
-        }, 5000);
-
-        try {
-          require(['vs/editor/editor.main'], function() {
-            clearTimeout(monacoLoadTimeout);
-            console.log('[Monaco] Loaded successfully - window.monaco:', !!window.monaco);
-
-            if (window.monaco) {
-              window.monacoReady = true;
-              window.dispatchEvent(new Event('monaco-ready'));
-            } else {
-              console.error('[Monaco] Loaded but window.monaco is undefined');
-            }
-          }, function(err) {
-            clearTimeout(monacoLoadTimeout);
-            console.error('[Monaco] Failed to load editor.main:', err);
-          });
-        } catch (err) {
-          clearTimeout(monacoLoadTimeout);
-          console.error('[Monaco] Exception during require call:', err);
-        }
-      };
-
-      loaderScript.onerror = function() {
-        console.error('[Monaco] Failed to load loader.min.js');
-        // Restore original AMD loaders if Monaco fails
-        if (savedDefine) window.define = savedDefine;
-        if (savedRequire) window.require = savedRequire;
-      };
-
-      document.head.appendChild(loaderScript);
-    })();
-    </script>
+    <!-- Monaco loaded locally via Vite bundle (workspace-inline.ts imports monaco-init.ts) -->
 {% endblock %}
 {% block content %}
     <!-- Config data for TypeScript -->
