@@ -18,7 +18,7 @@ def register_on_site_tools(mcp) -> None:
         project_id: int,
         message: str = "",
     ) -> str:
-        """[on_site] Capture screenshot of current workspace page.
+        """Capture screenshot of current workspace page.
 
         Sends a capture request to the user's browser. The browser captures
         the page and saves the screenshot to scitex/downloads/.
@@ -97,7 +97,7 @@ def register_on_site_tools(mcp) -> None:
     async def on_site_check_permission(
         project_id: int,
     ) -> str:
-        """[on_site] Check if page capture is allowed for a project.
+        """Check if page capture is allowed for a project.
 
         Returns the current permission state: 'allow', 'deny', or 'ask'.
         """
@@ -110,7 +110,7 @@ def register_on_site_tools(mcp) -> None:
 
     @mcp.tool()
     async def on_site_get_context(page: str = "") -> str:
-        """[on_site] Get web app context: username, page, skills, available actions.
+        """Get web app context: username, page, skills, available actions.
 
         Returns the current user, active skill for the page, all registered
         app skills, available UI actions, and media rendering capabilities.
@@ -124,7 +124,7 @@ def register_on_site_tools(mcp) -> None:
 
     @mcp.tool()
     async def on_site_eval_js(code: str, timeout: int = 10) -> str:
-        """[on_site] Evaluate JavaScript in user's browser and return result.
+        """Evaluate JavaScript in user's browser and return result.
 
         Sends JS code to the user's browser via WebSocket relay,
         waits for the evaluation result, and returns it.
@@ -139,7 +139,7 @@ def register_on_site_tools(mcp) -> None:
 
     @mcp.tool()
     async def on_site_ui_action(steps: list, delay_ms: int = 900) -> str:
-        """[on_site] Drive browser UI: navigate, highlight, click, fill, scroll.
+        """Drive browser UI: navigate, highlight, click, fill, scroll.
 
         Steps is a list of action dicts, e.g.:
         [{"action": "navigate", "url": "/writer/"},

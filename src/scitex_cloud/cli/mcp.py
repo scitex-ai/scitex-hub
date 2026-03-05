@@ -206,6 +206,28 @@ def mcp_installation():
     click.echo("Run 'scitex-cloud mcp list-tools' to see all tools.")
 
 
+def _format_signature(tool_obj, indent: str = "  ") -> str:
+    """Format tool as Python-like function signature."""
+    params = []
+    if hasattr(tool_obj, "parameters") and tool_obj.parameters:
+        schema = tool_obj.parameters
+        props = schema.get("properties", {})
+        required = schema.get("required", [])
+        for name, info in props.items():
+            ptype = info.get("type", "any")
+            default = info.get("default")
+            if name in required:
+                p = f"{click.style(name, fg='white', bold=True)}: {click.style(ptype, fg='cyan')}"
+            elif default is not None:
+                def_str = repr(default) if len(repr(default)) < 20 else "..."
+                p = f"{click.style(name, fg='white', bold=True)}: {click.style(ptype, fg='cyan')} = {click.style(def_str, fg='yellow')}"
+            else:
+                p = f"{click.style(name, fg='white', bold=True)}: {click.style(ptype, fg='cyan')} = {click.style('None', fg='yellow')}"
+            params.append(p)
+    name_s = click.style(tool_obj.name, fg="green", bold=True)
+    return f"{indent}{name_s}({', '.join(params)})"
+
+
 @mcp.command("list-tools", context_settings=CONTEXT_SETTINGS)
 @click.option(
     "-v", "--verbose", count=True, help="Verbosity: -v sig, -vv +desc, -vvv full"
@@ -288,9 +310,10 @@ def mcp_list_tools(verbose: int, as_json: bool):
 
             if verbose == 0:
                 click.echo(f"  {tool_name}")
-            elif verbose >= 1:
-                click.echo(f"  {tool_name}")
-                if tool_obj and tool_obj.description and verbose >= 2:
+            else:
+                sig = _format_signature(tool_obj) if tool_obj else f"  {tool_name}"
+                click.echo(sig)
+                if verbose >= 2 and tool_obj and tool_obj.description:
                     desc = tool_obj.description.split("\n")[0].strip()
                     click.echo(f"    {desc}")
                     if verbose >= 3:

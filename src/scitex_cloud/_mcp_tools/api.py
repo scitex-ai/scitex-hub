@@ -88,7 +88,7 @@ def register_api_tools(mcp) -> None:
         query: str,
         limit: int = 10,
     ) -> str:
-        """[api] Search papers via SciTeX Cloud (public, no auth).
+        """Search papers via SciTeX Cloud (public, no auth).
 
         Searches the scholar database for papers matching the query.
         """
@@ -106,7 +106,7 @@ def register_api_tools(mcp) -> None:
         rows: int = 10,
         offset: int = 0,
     ) -> str:
-        """[api] Search CrossRef database via cloud proxy.
+        """Search CrossRef database via cloud proxy.
 
         Requires authentication.
         """
@@ -119,7 +119,7 @@ def register_api_tools(mcp) -> None:
 
     @mcp.tool()
     async def api_crossref_by_doi(doi: str) -> str:
-        """[api] Get CrossRef metadata by DOI."""
+        """Get CrossRef metadata by DOI."""
         result = _make_request(
             "GET",
             "/scholar/api/crossref/doi/",
@@ -132,7 +132,7 @@ def register_api_tools(mcp) -> None:
         project_id: str,
         document_type: str = "manuscript",
     ) -> str:
-        """[api] Compile LaTeX manuscript via cloud.
+        """Compile LaTeX manuscript via cloud.
 
         Document types: manuscript, supplementary, revision
         """
@@ -145,7 +145,7 @@ def register_api_tools(mcp) -> None:
 
     @mcp.tool()
     async def api_writer_list_sections(project_id: str) -> str:
-        """[api] List manuscript sections for a project."""
+        """List manuscript sections for a project."""
         result = _make_request(
             "GET",
             "/writer/api/sections/",
@@ -158,7 +158,7 @@ def register_api_tools(mcp) -> None:
         project_id: str,
         path: str = "",
     ) -> str:
-        """[api] List files in a cloud project."""
+        """List files in a cloud project."""
         result = _make_request(
             "GET",
             "/project/api/files/",
@@ -172,7 +172,7 @@ def register_api_tools(mcp) -> None:
         message: str,
         files: Optional[list] = None,
     ) -> str:
-        """[api] Commit changes to a cloud project.
+        """Commit changes to a cloud project.
 
         Files should be a list of file paths to include in the commit.
         If not specified, commits all changes.
@@ -188,7 +188,7 @@ def register_api_tools(mcp) -> None:
         bibtex_content: str,
         use_cache: bool = True,
     ) -> str:
-        """[api] Enrich BibTeX content with metadata.
+        """Enrich BibTeX content with metadata.
 
         Uploads BibTeX content and returns enriched version with
         abstracts, DOIs, impact factors, etc.
@@ -266,7 +266,7 @@ def register_api_tools(mcp) -> None:
 
     @mcp.tool()
     async def api_status() -> str:
-        """[api] Check SciTeX Cloud API status and configuration."""
+        """Check SciTeX Cloud API status and configuration."""
         config = _get_config()
         result = {
             "base_url": config["base_url"],
