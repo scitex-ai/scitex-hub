@@ -118,10 +118,10 @@ def _get_tool_info() -> tuple[dict, list]:
             return {}, {}
 
         # FastMCP 2.x/3.x compat
-        tm = getattr(mcp_server, "_tool_manager", None)
-        if tm is not None and hasattr(tm, "_tools"):
-            tools = dict(tm._tools)
-        else:
+        from scitex._mcp_tools._compat import get_tools_sync
+
+        tools = get_tools_sync(mcp_server)
+        if not tools:
             return {}, {}
 
         counts = {}
@@ -146,15 +146,16 @@ def _get_mcp_status() -> dict:
         if mcp_server is None:
             return {"status": "unavailable", "message": "MCP server not initialized"}
 
-        tm = getattr(mcp_server, "_tool_manager", None)
-        if tm is not None and hasattr(tm, "_tools"):
-            count = len(tm._tools)
-            return {
-                "status": "healthy",
-                "message": f"{count} tools loaded",
-                "count": count,
-            }
-        return {"status": "warning", "message": "Tool manager unavailable"}
+        # FastMCP 2.x/3.x compat
+        from scitex._mcp_tools._compat import get_tools_sync
+
+        tools = get_tools_sync(mcp_server)
+        count = len(tools)
+        return {
+            "status": "healthy",
+            "message": f"{count} tools loaded",
+            "count": count,
+        }
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
