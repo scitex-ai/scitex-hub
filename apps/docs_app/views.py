@@ -57,6 +57,13 @@ DOCS_PAGES = [
         "badges": ["user"],
     },
     {
+        "slug": "chat",
+        "label": "AI Chat",
+        "icon": "fas fa-comments",
+        "template": "docs_app/docs_chat.html",
+        "badges": ["user"],
+    },
+    {
         "slug": "agent-tooling",
         "label": "AI Agent Tooling",
         "icon": "fas fa-tools",

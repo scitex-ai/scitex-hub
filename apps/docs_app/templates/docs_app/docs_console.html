@@ -124,6 +124,86 @@
                 Controlled by the <code>SCITEX_CLOUD_SHOW_MOTD</code> environment variable.
             </p>
         </section>
+        <!-- Terminal Tabs -->
+        <span id="terminal-tabs"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-window-restore"></i> Terminal Tabs
+            </h2>
+            <h4 class="mt-4">Multi-Tab Support</h4>
+            <p>
+                The console supports <strong>multiple terminal tabs</strong> (T1, T2, T3&hellip;).
+                Each tab runs an independent shell session inside its own SLURM job.
+            </p>
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Action</th>
+                        <th>Behavior</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <i class="fas fa-plus"></i> New tab
+                        </td>
+                        <td>Creates next sequential tab (T1, T2&hellip;)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <i class="fas fa-times"></i> Close tab
+                        </td>
+                        <td>Kills session, remaining tabs renumber to T1&hellip;TN</td>
+                    </tr>
+                    <tr>
+                        <td>Double-click tab</td>
+                        <td>Rename the tab</td>
+                    </tr>
+                    <tr>
+                        <td>Hover tab</td>
+                        <td>Tooltip shows session UUID</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h4 class="mt-4">Session Persistence (UUID)</h4>
+            <p>
+                Each terminal tab is assigned a <strong>UUID</strong> on creation, stored in
+                <code>localStorage</code>. This UUID identifies the broker session, enabling:
+            </p>
+            <ul>
+                <li>
+                    <strong>Browser reload</strong> &mdash; reconnects to the same shell session
+                </li>
+                <li>
+                    <strong>Tab close &amp; reopen</strong> &mdash; same UUID, same session
+                </li>
+                <li>
+                    <strong>Scrollback replay</strong> &mdash; broker replays buffered output on reconnect
+                </li>
+            </ul>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code>Tab "T1" created
+    → UUID generated: crypto.randomUUID()
+    → Stored: localStorage["scitex-console-session-T1"] = uuid
+    → Session name: "ai-panel-&lt;uuid&gt;"
+    → WebSocket: ws://...?session=ai-panel-&lt;uuid&gt;
+    → Broker matches (username, session_name) → reattaches or spawns</code></pre>
+                </div>
+            </div>
+            <h4 class="mt-4">Tab Renumbering</h4>
+            <p>
+                When a tab is closed, remaining tabs are renumbered sequentially
+                (T1, T2, &hellip; TN). UUIDs are preserved &mdash; only display names change.
+                This keeps the tab bar clean without losing session identity.
+            </p>
+            <h4 class="mt-4">Project Switching</h4>
+            <p>
+                Changing the project in the header selector sends a <code>cd</code> command
+                to the active terminal, switching to the new project directory without
+                disconnecting or restarting the shell.
+            </p>
+        </section>
         <!-- Security -->
         <span id="security"></span>
         <section class="api-section">
