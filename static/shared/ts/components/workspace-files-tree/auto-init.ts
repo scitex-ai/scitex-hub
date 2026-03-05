@@ -140,8 +140,8 @@ export async function autoInitWorktreePanes(): Promise<void> {
     const tree = new WorkspaceFilesTree({
       mode: "hub" as WorkspaceMode,
       containerId: pane.id,
-      username,
-      slug,
+      ownerUsername: username,
+      projectSlug: slug,
       showFolderActions: true,
       showGitStatus: true,
       onFileSelect,
@@ -207,8 +207,8 @@ export async function autoInitWorktreePanes(): Promise<void> {
       const newTree = new WorkspaceFilesTree({
         mode: "hub" as WorkspaceMode,
         containerId: pane.id,
-        username: newOwnerUsername,
-        slug: newProjectSlug,
+        ownerUsername: newOwnerUsername,
+        projectSlug: newProjectSlug,
         showFolderActions: true,
         showGitStatus: true,
         onFileSelect: window.scitexOnFileSelect || (() => {}),

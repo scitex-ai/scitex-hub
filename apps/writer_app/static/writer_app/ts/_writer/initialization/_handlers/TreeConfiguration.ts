@@ -3,25 +3,35 @@
  * Writer-specific tree configuration and folder mapping
  */
 
-
 /**
  * Default allowed extensions for writer file tree
  */
 export const WRITER_ALLOWED_EXTENSIONS = [
-  '.tex', '.bib', '.cls', '.sty', '.pdf',
-  '.csv', '.xlsx', '.xls',
-  '.png', '.jpg', '.jpeg', '.svg', '.eps',
-  '.bbl', '.bst'
+  ".tex",
+  ".bib",
+  ".cls",
+  ".sty",
+  ".pdf",
+  ".csv",
+  ".xlsx",
+  ".xls",
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".svg",
+  ".eps",
+  ".bbl",
+  ".bst",
 ];
 
 /**
  * Doctype to folder path mapping
  */
 export const DOCTYPE_FOLDER_MAP: Record<string, string> = {
-  'manuscript': 'scitex/writer/01_manuscript',
-  'supplementary': 'scitex/writer/02_supplementary',
-  'revision': 'scitex/writer/03_revision',
-  'shared': 'scitex/writer/00_shared',
+  manuscript: "scitex/writer/01_manuscript",
+  supplementary: "scitex/writer/02_supplementary",
+  revision: "scitex/writer/03_revision",
+  shared: "scitex/writer/00_shared",
 };
 
 /**
@@ -30,7 +40,7 @@ export const DOCTYPE_FOLDER_MAP: Record<string, string> = {
  * @returns Folder path like 'scitex/writer/01_manuscript'
  */
 export function getDoctypeFolder(doctype: string): string {
-  return DOCTYPE_FOLDER_MAP[doctype] || 'scitex/writer/01_manuscript';
+  return DOCTYPE_FOLDER_MAP[doctype] || "scitex/writer/01_manuscript";
 }
 
 /**
@@ -39,13 +49,13 @@ export function getDoctypeFolder(doctype: string): string {
 export function createWriterTreeConfig(
   projectOwner: string,
   projectSlug: string,
-  onFileSelect: (path: string, item: any) => void
+  onFileSelect: (path: string, item: any) => void,
 ): any {
   return {
-    mode: 'writer',
-    containerId: 'writer-file-tree',
-    username: projectOwner,
-    slug: projectSlug,
+    mode: "writer",
+    containerId: "writer-file-tree",
+    ownerUsername: projectOwner,
+    projectSlug: projectSlug,
     showFolderActions: true,
     showGitStatus: true,
     allowedExtensions: WRITER_ALLOWED_EXTENSIONS,

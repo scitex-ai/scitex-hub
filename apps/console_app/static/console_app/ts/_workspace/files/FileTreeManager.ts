@@ -81,8 +81,8 @@ export class FileTreeManager {
       this.tree = new WorkspaceFilesTree({
         mode: "console",
         containerId: "file-tree",
-        username: owner,
-        slug: slug,
+        ownerUsername: owner,
+        projectSlug: slug,
         showFolderActions: true,
         showGitStatus: true,
         onFileSelect: (path: string, item: TreeItem) => {
