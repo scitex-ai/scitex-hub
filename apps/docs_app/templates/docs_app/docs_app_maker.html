@@ -115,6 +115,36 @@
                     </div>
                 </div>
             </section>
+            <!-- App Lifecycle -->
+            <span id="lifecycle"></span>
+            <section class="api-section">
+                <h2>
+                    <i class="fas fa-sync-alt"></i> App Lifecycle
+                </h2>
+                <p>Apps progress through these stages:</p>
+                <ol>
+                    <li>
+                        <strong>Dev Install</strong> &mdash; Install from Hub Explore for personal use.
+                        TypeScript is compiled on-the-fly by a container Vite server (port 5174) with Hot Module Replacement.
+                    </li>
+                    <li>
+                        <strong>Validate &amp; Submit</strong> &mdash; Run <code>scitex-cloud app validate .</code>
+                        then submit a PR for review.
+                    </li>
+                    <li>
+                        <strong>Published</strong> &mdash; After approval, TypeScript is pre-built into static bundles.
+                        The app is hosted under <code>/scitex/apps/</code> and available to all users via the Apps Catalog.
+                    </li>
+                </ol>
+                <div class="api-callout api-callout-info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>Dual-Vite Architecture:</strong> Platform modules use the host Vite server (port 5173, dev only).
+                        Dev-installed apps use a separate container Vite server (port 5174, all environments).
+                        See <a href="/docs/content/app-maker-creators/#typescript-vite">TypeScript &amp; Vite</a> for details.
+                    </div>
+                </div>
+            </section>
             <!-- Quick Start -->
             <span id="quick-start"></span>
             <section class="api-section">

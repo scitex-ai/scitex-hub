@@ -66,6 +66,9 @@ STATICFILES_DIRS = [BASE_DIR / "static", BASE_DIR / ".jsbuild"]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Vite dev server port for dev app TypeScript (container Vite)
+VITE_DEV_APP_PORT = 5174
+
 # Allow larger request bodies for base64 image attachments in AI chat (default 2.5MB)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024  # 100 MB
 

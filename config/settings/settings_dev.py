@@ -111,7 +111,7 @@ STATICFILES_DIRS = [
 
 # Dual-Vite architecture ports
 # Host Vite (port 5173): platform files — runs on host with native FS watching
-# Container Vite (port 5174): dev app files only — runs in container on-demand
+# Container Vite (port 5174): developmentally-installed app files — runs in container on-demand
 VITE_HOST_PORT = 5173
 VITE_DEV_APP_PORT = 5174
 

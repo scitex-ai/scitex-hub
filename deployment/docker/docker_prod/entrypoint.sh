@@ -108,6 +108,43 @@ else
 fi
 
 # ============================================
+# Dev App Vite Server (On-Demand)
+# ============================================
+# Container Vite for developmentally-installed app TypeScript
+# Platform TS is pre-built above; this serves live TS for user-installed dev apps
+start_dev_app_vite() {
+    local DEV_APP_TS
+    DEV_APP_TS=$(find /app/data/users/*/proj/*/static -name '*.ts' 2>/dev/null | head -1)
+
+    if [ -z "$DEV_APP_TS" ]; then
+        echo_info "No dev app TypeScript found — skipping dev app Vite"
+        return 0
+    fi
+
+    if pgrep -f "vite.*config.*devapp" >/dev/null 2>&1; then
+        echo_info "Dev app Vite already running"
+        return 0
+    fi
+
+    echo_info "Starting dev app Vite (port 5174, dev apps only)..."
+    nohup bash -c '
+        while true; do
+            echo "[$(date)] Dev app Vite starting on port 5174..." >> /app/logs/vite-devapp.log
+            npx vite --config vite.config.devapp.ts >> /app/logs/vite-devapp.log 2>&1
+            EXIT_CODE=$?
+            echo "[$(date)] Dev app Vite exited (code $EXIT_CODE), restarting in 3s..." >> /app/logs/vite-devapp.log
+            sleep 3
+        done
+    ' >/dev/null 2>&1 &
+    echo_success "Dev app Vite started (PID: $!)"
+}
+
+# Only start for Django container, not celery
+if [[ ! "$*" =~ "celery" ]]; then
+    start_dev_app_vite
+fi
+
+# ============================================
 # Start Terminal Broker (Background) - Required for PTY operations
 # ============================================
 # The terminal broker handles pty.fork() in a separate process from Daphne.

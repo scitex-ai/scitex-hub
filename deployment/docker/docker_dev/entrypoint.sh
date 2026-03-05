@@ -113,7 +113,7 @@ start_vite_dev_server() {
     fi
 
     # Check if dev app Vite is already running
-    if pgrep -f "vite.*config.*app" >/dev/null 2>&1; then
+    if pgrep -f "vite.*config.*devapp" >/dev/null 2>&1; then
         echo_info "Dev app Vite already running on port 5174"
         return 0
     fi
@@ -124,7 +124,7 @@ start_vite_dev_server() {
     nohup bash -c '
         while true; do
             echo "[$(date)] Dev app Vite starting on port 5174..." >> /app/logs/vite-app.log
-            npx vite --config vite.config.app.ts >> /app/logs/vite-app.log 2>&1
+            npx vite --config vite.config.devapp.ts >> /app/logs/vite-app.log 2>&1
             EXIT_CODE=$?
             echo "[$(date)] Dev app Vite exited (code $EXIT_CODE), restarting in 3s..." >> /app/logs/vite-app.log
             sleep 3

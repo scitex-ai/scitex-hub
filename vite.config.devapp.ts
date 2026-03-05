@@ -1,5 +1,5 @@
 /**
- * vite.config.app.ts — Container-only Vite for dev app development.
+ * vite.config.devapp.ts — Container-only Vite for developmentally-installed apps.
  *
  * Runs on port 5174 inside the Docker container.
  * Only watches dev app TypeScript files (data/users/*/ proj; /*/static/).
@@ -71,20 +71,24 @@ function scanDir(
 
 const devEntries = getDevAppEntries(__dirname);
 const hasEntries = Object.keys(devEntries).length > 0;
+const isProd = process.env.SCITEX_CLOUD_ENV === "prod";
 
 if (hasEntries) {
   console.log(
-    `[vite:app] Found ${Object.keys(devEntries).length} dev app entries:`,
+    `[vite:devapp] Found ${Object.keys(devEntries).length} dev app entries:`,
   );
   for (const [name, filepath] of Object.entries(devEntries)) {
     console.log(`  ${name} → ${path.relative(__dirname, filepath)}`);
   }
 } else {
-  console.log("[vite:app] No dev app TypeScript files found.");
+  console.log("[vite:devapp] No dev app TypeScript files found.");
 }
 
 export default defineConfig({
   root: ".",
+  // In production, nginx proxies /_vite_dev_app/ to this server
+  // base must match so Vite serves files and HMR WebSocket on the proxy path
+  base: isProd ? "/_vite_dev_app/" : "/",
   publicDir: false,
   logLevel: "info",
 
@@ -92,10 +96,9 @@ export default defineConfig({
     port: 5174,
     strictPort: true,
     host: "0.0.0.0",
-    hmr: {
-      port: 5174,
-      host: "127.0.0.1",
-    },
+    // In dev: direct browser access at 127.0.0.1:5174
+    // In prod: HMR auto-detects from import.meta.url (loaded via nginx proxy)
+    ...(isProd ? {} : { hmr: { port: 5174, host: "127.0.0.1" } }),
     cors: true,
     watch: {
       usePolling: true,

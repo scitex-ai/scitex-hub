@@ -664,6 +664,143 @@ register(
             </li>
         </ul>
     </section>
+    <!-- TypeScript & Vite -->
+    <span id="typescript-vite"></span>
+    <section class="api-section">
+        <h2>
+            <i class="fas fa-code-branch"></i> TypeScript &amp; Vite
+        </h2>
+        <p>
+            Apps can include TypeScript files for interactive frontend logic.
+            SciTeX uses a <strong>dual-Vite architecture</strong> to handle TypeScript compilation
+            differently for platform modules and user-installed dev apps.
+        </p>
+        <table class="api-table">
+            <thead>
+                <tr>
+                    <th>Vite Instance</th>
+                    <th>Port</th>
+                    <th>Scope</th>
+                    <th>Runs On</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <strong>Host Vite</strong>
+                    </td>
+                    <td>
+                        <code>5173</code>
+                    </td>
+                    <td>Platform modules (Console, Writer, Scholar, etc.)</td>
+                    <td>Host machine (dev only)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Container Vite</strong>
+                    </td>
+                    <td>
+                        <code>5174</code>
+                    </td>
+                    <td>Developmentally-installed apps only</td>
+                    <td>Docker container (dev + prod)</td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="mt-3">
+            <strong>Adding TypeScript to your app:</strong>
+        </p>
+        <pre><code>your_app/
+├── static/your_app/
+│   ├── ts/
+│   │   ├── main.ts              # Entry point (auto-discovered)
+│   │   └── components/
+│   │       └── widget.ts        # Additional modules
+│   └── css/
+│       └── your_app.css
+└── templates/your_app/
+    └── index_partial.html</code></pre>
+        <p>
+            TypeScript files under <code>static/your_app/ts/</code> are <strong>auto-discovered</strong>
+            by the container Vite server. No manual entry point configuration is needed.
+        </p>
+        <p>
+            <strong>Loading scripts in templates:</strong>
+        </p>
+        <pre><code>{% verbatim %}{% load vite %}
+{# In your template's script block #}
+{% vite_script 'your_app/main' %}{% endverbatim %}</code></pre>
+        <div class="api-callout api-callout-info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>How it works:</strong> During developmental installation, the container Vite
+                server (port 5174) serves your TypeScript files with Hot Module Replacement (HMR).
+                Changes to <code>.ts</code> files are reflected in the browser without a full page reload.
+                In production, the same Vite server runs behind an nginx proxy at
+                <code>/_vite_dev_app/</code>.
+            </div>
+        </div>
+    </section>
+    <!-- App Lifecycle -->
+    <span id="app-lifecycle"></span>
+    <section class="api-section">
+        <h2>
+            <i class="fas fa-sync-alt"></i> App Lifecycle
+        </h2>
+        <p>Apps progress through distinct stages, each with different build behavior:</p>
+        <table class="api-table">
+            <thead>
+                <tr>
+                    <th>Stage</th>
+                    <th>TypeScript Build</th>
+                    <th>Visibility</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <strong>1. Dev Install</strong>
+                    </td>
+                    <td>Live Vite dev server (port 5174) &mdash; HMR enabled, instant feedback</td>
+                    <td>Only the installing user</td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>2. Validation</strong>
+                    </td>
+                    <td>
+                        <code>scitex-cloud app validate .</code> &mdash; checks structure
+                    </td>
+                    <td>&mdash;</td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>3. Submit PR</strong>
+                    </td>
+                    <td>
+                        <code>scitex-cloud app submit .</code> &mdash; code review
+                    </td>
+                    <td>Reviewers</td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>4. Published</strong>
+                    </td>
+                    <td>Pre-built bundle (Vite production build) &mdash; stable, versioned</td>
+                    <td>All users via Apps Catalog</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="api-callout api-callout-info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>Dev Install vs Published:</strong> During development, TypeScript is served
+                live by the container Vite server for instant iteration. Once published, TypeScript is
+                pre-built into static bundles &mdash; no live compilation needed, ensuring stability
+                for all users.
+            </div>
+        </div>
+    </section>
     <!-- Testing -->
     <span id="testing"></span>
     <section class="api-section">

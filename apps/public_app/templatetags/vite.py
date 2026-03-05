@@ -3,9 +3,9 @@
 """
 Vite integration for Django — dual-Vite architecture.
 
-Host Vite (port 5173): Platform files — runs on host with native FS watching.
-Container Vite (port 5174): Dev app files only — runs in container on-demand.
-Production (DEBUG=False): Uses built files from staticfiles/vite manifest.
+Host Vite (port 5173): Platform files — runs on host with native FS watching (dev only).
+Container Vite (port 5174): Dev app files only — runs in container on-demand (dev + prod).
+Production platform files: Uses built files from staticfiles/vite manifest.
 
 Usage in templates:
   {% load vite %}
@@ -13,6 +13,7 @@ Usage in templates:
 
 Note: In development, host Vite must be running (npm run dev on host).
       Container Vite starts automatically when dev apps have TypeScript files.
+      In production, container Vite handles dev app TS; platform uses manifest.
 """
 
 import json
@@ -70,21 +71,25 @@ def get_manifest() -> dict:
 @register.simple_tag
 def vite_hmr_client():
     """
-    Include Vite HMR client(s) in development.
+    Include Vite HMR client(s).
 
-    Host Vite (5173) is always included for platform files.
-    Container Vite (5174) is included when dev apps may be active.
-    Returns empty string in production.
+    Dev: Host Vite (5173) + Container Vite (5174) HMR clients.
+    Prod: Container Vite (5174) HMR client only (for dev apps).
+    Browser silently ignores clients for servers that aren't running.
     """
+    scripts = ""
+
     if settings.DEBUG:
         host_port = getattr(settings, "VITE_HOST_PORT", 5173)
+        scripts += f'<script type="module" src="http://127.0.0.1:{host_port}/@vite/client"></script>\n'
+        # Dev app Vite HMR — direct access in dev
         dev_port = getattr(settings, "VITE_DEV_APP_PORT", 5174)
-        # Always include host Vite HMR + dev app Vite HMR (browser ignores if not running)
-        return mark_safe(
-            f'<script type="module" src="http://127.0.0.1:{host_port}/@vite/client"></script>\n'
-            f'<script type="module" src="http://127.0.0.1:{dev_port}/@vite/client" onerror=""></script>'
-        )
-    return ""
+        scripts += f'<script type="module" src="http://127.0.0.1:{dev_port}/@vite/client" onerror=""></script>'
+    else:
+        # Production: dev app Vite HMR through nginx proxy
+        scripts += '<script type="module" src="/_vite_dev_app/@vite/client" onerror=""></script>'
+
+    return mark_safe(scripts) if scripts else ""
 
 
 def _is_dev_app_entry(entry_name: str) -> bool:
@@ -98,20 +103,32 @@ def vite_script(entry_name: str):
     """
     Load a Vite entry point script.
 
-    In development (DEBUG=True):
-      - Platform entries → host Vite (port 5173)
-      - Dev app entries → container Vite (port 5174)
-    In production (DEBUG=False): Load from Vite-built manifest
+    Dev app entries → container Vite (port 5174) in BOTH dev and prod.
+    Platform entries:
+      - DEBUG=True → host Vite (port 5173)
+      - DEBUG=False → Vite-built manifest
 
     Args:
         entry_name: Entry name like 'console_app/workspace'
     """
+    # Dev app entries use container Vite — works in dev and prod
+    if _is_dev_app_entry(entry_name):
+        ts_path = _entry_to_ts_path(entry_name)
+        if settings.DEBUG:
+            port = getattr(settings, "VITE_DEV_APP_PORT", 5174)
+            return mark_safe(
+                f'<script type="module" src="http://127.0.0.1:{port}/{ts_path}"></script>'
+            )
+        else:
+            # Production: through nginx proxy
+            return mark_safe(
+                f'<script type="module" src="/_vite_dev_app/{ts_path}"></script>'
+            )
+
+    # Platform entries
     if settings.DEBUG:
         ts_path = _entry_to_ts_path(entry_name)
-        if _is_dev_app_entry(entry_name):
-            port = getattr(settings, "VITE_DEV_APP_PORT", 5174)
-        else:
-            port = getattr(settings, "VITE_HOST_PORT", 5173)
+        port = getattr(settings, "VITE_HOST_PORT", 5173)
         return mark_safe(
             f'<script type="module" src="http://127.0.0.1:{port}/{ts_path}"></script>'
         )
