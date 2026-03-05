@@ -279,3 +279,43 @@ def mcp_settings_api(request):
 
     regenerated = _regenerate_claude_config(request.user)
     return JsonResponse({"ok": True, "regenerated": regenerated})
+
+
+# Default auto-response values (must match auto-response-config.ts DEFAULT_CONFIG)
+AUTO_RESPONSE_DEFAULTS = {
+    "y_n": "1",
+    "y_y_n": "2",
+    "waiting": "/speak-signature",
+    "suggestion": "",
+}
+
+# Allowed keys for auto-response preferences
+AUTO_RESPONSE_KEYS = frozenset(AUTO_RESPONSE_DEFAULTS.keys())
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def auto_response_prefs_api(request):
+    """AJAX endpoint for reading/saving auto-response command preferences."""
+    profile = request.user.profile
+    prefs = profile.auto_response_preferences or {}
+
+    if request.method == "GET":
+        # Merge defaults with saved prefs
+        merged = {**AUTO_RESPONSE_DEFAULTS, **prefs}
+        return JsonResponse({"responses": merged})
+
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    # Only accept known keys, coerce to string
+    new_prefs = {}
+    for key in AUTO_RESPONSE_KEYS:
+        if key in data:
+            new_prefs[key] = str(data[key])
+
+    profile.auto_response_preferences = new_prefs
+    profile.save(update_fields=["auto_response_preferences"])
+    return JsonResponse({"ok": True, "responses": new_prefs})

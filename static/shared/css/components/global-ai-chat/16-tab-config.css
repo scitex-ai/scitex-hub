@@ -57,7 +57,8 @@
   color: var(--text-muted, #6e7681);
 }
 
-.scitex-ai-config-popover .ai-settings-select {
+.scitex-ai-config-popover .ai-settings-select,
+.scitex-ai-config-popover .ai-settings-input {
   flex: 1;
   max-width: 160px;
   padding: 3px 6px;

@@ -8,6 +8,7 @@ from .views import (
     api_generate_ssh_key,
     api_keys,
     appearance_settings,
+    auto_response_prefs_api,
     git_integrations,
     mcp_settings,
     mcp_settings_api,
@@ -59,5 +60,10 @@ urlpatterns = [
         "api/ai-limits/",
         ai_limits_api,
         name="ai_limits_api",
+    ),
+    path(
+        "api/auto-response-prefs/",
+        auto_response_prefs_api,
+        name="auto_response_prefs_api",
     ),
 ]

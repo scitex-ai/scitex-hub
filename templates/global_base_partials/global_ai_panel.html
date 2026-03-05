@@ -250,6 +250,40 @@
                                         </select>
                                     </div>
                                 </div>
+                                <div class="ai-settings-section" id="ai-auto-response-config">
+                                    <label class="scitex-ai-settings-label"
+                                           title="Commands sent automatically for each Claude state">
+                                        <i class="fas fa-reply"></i> Auto-Response Commands
+                                    </label>
+                                    <div class="ai-settings-row">
+                                        <label class="scitex-ai-settings-label"
+                                               title="Command sent when Claude is thinking or idle">Waiting</label>
+                                        <input id="ai-auto-response-waiting"
+                                               class="ai-settings-input"
+                                               type="text"
+                                               placeholder="/speak-signature"
+                                               title="Command sent when Claude is thinking or idle" />
+                                    </div>
+                                    <div class="ai-settings-row">
+                                        <label class="scitex-ai-settings-label" title="Response for Y/N permission prompts">Y/N</label>
+                                        <select id="ai-auto-response-yn"
+                                                class="ai-settings-select"
+                                                title="Response for Y/N permission prompts">
+                                            <option value="1">1 (Allow)</option>
+                                            <option value="2">2 (Deny)</option>
+                                        </select>
+                                    </div>
+                                    <div class="ai-settings-row">
+                                        <label class="scitex-ai-settings-label" title="Response for Y/Y/N permission prompts">Y/Y/N</label>
+                                        <select id="ai-auto-response-yyn"
+                                                class="ai-settings-select"
+                                                title="Response for Y/Y/N permission prompts">
+                                            <option value="1">1 (Allow once)</option>
+                                            <option value="2" selected>2 (Allow always)</option>
+                                            <option value="3">3 (Deny)</option>
+                                        </select>
+                                    </div>
+                                </div>
                                 <div class="ai-settings-section" id="ai-agent-sources">
                                     <label class="scitex-ai-settings-label">
                                         <i class="fas fa-sitemap"></i> Agent Sources
