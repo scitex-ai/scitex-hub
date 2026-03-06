@@ -34,6 +34,7 @@ export abstract class BaseResizer {
   protected isInApp: boolean;
   protected storageKey: string;
   protected accordion: boolean;
+  protected snapPointsExplicit: number[];
   private _onDragStart?: () => void;
   private _onDragEnd?: () => void;
   protected externalToggleBtn: HTMLElement | null = null;
@@ -64,6 +65,7 @@ export abstract class BaseResizer {
     this.isInApp = opts.isInApp;
     this.storageKey = opts.storageKey;
     this.accordion = opts.accordion ?? false;
+    this.snapPointsExplicit = opts.snapPoints ?? [];
     this._onDragStart = opts.onDragStart;
     this._onDragEnd = opts.onDragEnd;
 
@@ -120,6 +122,9 @@ export abstract class BaseResizer {
   }
   getAccordion(): boolean {
     return this.accordion;
+  }
+  getSnapPoints(): number[] {
+    return this.snapPointsExplicit;
   }
   getCursorPublic(): string {
     return this.getCursor();

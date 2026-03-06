@@ -43,6 +43,7 @@ export class HorizontalResizer extends BaseResizer {
       onDragEnd: config.onDragEnd,
       externalToggleBtnId: config.externalToggleBtnId,
       accordion: config.accordion,
+      snapPoints: config.snapPoints,
     });
   }
 
@@ -156,6 +157,9 @@ export class HorizontalResizer extends BaseResizer {
       storageKey: el.dataset.storageKey,
       externalToggleBtnId: el.dataset.externalToggle,
       accordion: el.hasAttribute("data-accordion"),
+      snapPoints: el.dataset.snap
+        ? el.dataset.snap.split(",").map((s) => parseInt(s.trim(), 10))
+        : undefined,
     };
   }
 }

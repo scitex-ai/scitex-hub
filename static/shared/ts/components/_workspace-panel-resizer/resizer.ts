@@ -12,6 +12,7 @@
 import type { PanelConfig } from "./types";
 import { saveWidth, restoreWidth } from "./state";
 import { updateToggleIcon } from "./toggle";
+import { snapToNearest, percentSnapPoints } from "../resizer/_snap";
 
 /** Shared collapse threshold — panel collapses when width drops to this */
 const COLLAPSE_WIDTH = 40;
@@ -156,6 +157,7 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
   let startWidth = 0;
   let wasCollapsed = false;
   let primaryCollapsed = false; // true once primary panel collapses during drag
+  let snapTimer: ReturnType<typeof setTimeout> | undefined;
 
   // Track propagation state: when the primary panel collapses during drag,
   // we start resizing the adjacent panel
@@ -268,6 +270,15 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
       const propMax = getMaxAllowedWidth(propagationTarget.panel);
       if (propNewWidth > propMax) propNewWidth = propMax;
 
+      // Snap propagation target to percentage points
+      const propFlex = propagationTarget.panel.closest(
+        ".workspace-three-col",
+      ) as HTMLElement;
+      if (propFlex) {
+        const propSnaps = percentSnapPoints(propFlex.clientWidth);
+        propNewWidth = snapToNearest(propNewWidth, propSnaps);
+      }
+
       if (propNewWidth < COLLAPSE_WIDTH) {
         // Collapse propagation target too, then try next panel
         collapsePanel(
@@ -309,6 +320,22 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
     // Cap width so siblings always fit on screen
     const maxWidth = getMaxAllowedWidth(targetPanel);
     if (newWidth > maxWidth) newWidth = maxWidth;
+
+    // Snap to percentage-based points
+    const rawWidth = newWidth;
+    const flexContainer = targetPanel.closest(
+      ".workspace-three-col",
+    ) as HTMLElement;
+    if (flexContainer) {
+      const snaps = percentSnapPoints(flexContainer.clientWidth);
+      newWidth = snapToNearest(newWidth, snaps);
+    }
+    // Flash resizer when snap engages
+    if (newWidth !== rawWidth) {
+      resizer.classList.add("snapped");
+      clearTimeout(snapTimer);
+      snapTimer = setTimeout(() => resizer.classList.remove("snapped"), 150);
+    }
 
     // Smart collapse: if dragged below threshold, collapse and propagate
     if (newWidth < COLLAPSE_WIDTH) {

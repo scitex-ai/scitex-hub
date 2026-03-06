@@ -40,7 +40,7 @@
   left: auto !important;
   height: 100% !important;
   box-shadow: none !important;
-  border-right: 1px solid var(--border-default, #30363d) !important;
+  /* border-right removed — resizer handles visual separation */
   border-bottom: none !important;
 }
 
@@ -57,7 +57,7 @@
   height: 100%;
   width: 240px;
   background: var(--bg-secondary, #161b22);
-  border-right: 1px solid var(--border-default, #30363d);
+  /* border-right removed — resizer (2px) handles visual separation */
   overflow: visible;
   transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -171,7 +171,7 @@
   width: 56px;
   max-width: 56px;
   background: var(--bg-secondary, #161b22);
-  border-right: 1px solid var(--border-default, #30363d);
+  /* border-right removed — resizer handles visual separation */
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;

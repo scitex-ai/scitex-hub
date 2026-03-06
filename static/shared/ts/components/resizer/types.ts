@@ -21,6 +21,7 @@ export interface HorizontalConfig {
   onDragEnd?: () => void;
   externalToggleBtnId?: string;
   accordion?: boolean;
+  snapPoints?: number[];
 }
 
 /** Configuration for VerticalResizer */
@@ -37,6 +38,7 @@ export interface VerticalConfig {
   onDragStart?: () => void;
   onDragEnd?: () => void;
   accordion?: boolean;
+  snapPoints?: number[];
 }
 
 /** Internal options passed from subclass to BaseResizer */
@@ -52,6 +54,7 @@ export interface BaseOpts {
   onDragEnd?: () => void;
   externalToggleBtnId?: string;
   accordion?: boolean;
+  snapPoints?: number[];
 }
 
 /** Cascade propagation target tracked during a drag operation */

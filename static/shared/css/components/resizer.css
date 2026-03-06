@@ -81,6 +81,15 @@
   background: var(--workspace-icon-primary, #059669);
 }
 
+/* --- Snap feedback flash ------------------------------------------------- */
+.h-resizer.snapped,
+.v-resizer.snapped,
+.panel-resizer.snapped,
+.split-resizer.snapped {
+  background: var(--workspace-icon-primary, #059669);
+  transition: background 0.05s ease;
+}
+
 /* --- Toggle Button (shared for both axes) -------------------------------- */
 .h-resizer .resizer-toggle-btn,
 .v-resizer .resizer-toggle-btn {
