@@ -316,9 +316,36 @@ export class WorkspaceViewer {
   private initModeToggle(): void {
     if (!this.modeToggle) return;
     this.updateToggleIcon();
-    this.modeToggle.addEventListener("click", () => {
-      this.setViewMode(this.viewMode === "edit" ? "preview" : "edit");
-    });
+
+    const isTitle = this.modeToggle.classList.contains(
+      "ws-viewer-mode-toggle-title",
+    );
+
+    if (isTitle) {
+      // Delay single-click to distinguish from double-click
+      let clickTimer: ReturnType<typeof setTimeout> | null = null;
+
+      this.modeToggle.addEventListener("click", () => {
+        if (clickTimer) clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => {
+          this.setViewMode(this.viewMode === "edit" ? "preview" : "edit");
+          clickTimer = null;
+        }, 250);
+      });
+
+      this.modeToggle.addEventListener("dblclick", () => {
+        if (clickTimer) {
+          clearTimeout(clickTimer);
+          clickTimer = null;
+        }
+        const toggleBtn = document.getElementById("ws-viewer-toggle");
+        toggleBtn?.click();
+      });
+    } else {
+      this.modeToggle.addEventListener("click", () => {
+        this.setViewMode(this.viewMode === "edit" ? "preview" : "edit");
+      });
+    }
   }
 
   private setViewMode(mode: ViewMode): void {
@@ -333,20 +360,43 @@ export class WorkspaceViewer {
 
   private updateToggleIcon(): void {
     if (!this.modeToggle) return;
-    const icon = this.modeToggle.querySelector("i");
-    if (icon) {
-      icon.className =
-        this.viewMode === "edit" ? "fas fa-eye" : "fas fa-pencil-alt";
+    const isEdit = this.viewMode === "edit";
+    const iconClass = isEdit ? "fas fa-eye" : "fas fa-pencil-alt";
+    const label = isEdit ? " Viewer" : " Editor";
+
+    if (this.modeToggle.classList.contains("ws-viewer-mode-toggle-title")) {
+      this.modeToggle.innerHTML = `<i class="${iconClass}"></i>${label}`;
+    } else {
+      const icon = this.modeToggle.querySelector("i");
+      if (icon) icon.className = iconClass;
     }
-    this.modeToggle.title =
-      this.viewMode === "edit"
-        ? "Switch to Preview (double-click)"
-        : "Switch to Edit (double-click)";
+
+    this.modeToggle.title = isEdit ? "Switch to Editor" : "Switch to Viewer";
+
+    // Sync collapsed title icon
+    const shortTitle = document.getElementById("ws-viewer-title-short");
+    if (shortTitle) {
+      shortTitle.innerHTML = `<i class="${iconClass}"></i>${label}`;
+      shortTitle.title = isEdit ? "Viewer" : "Editor";
+    }
   }
 
   private showModeToggle(show: boolean): void {
-    if (this.modeToggle)
+    if (!this.modeToggle) return;
+    if (this.modeToggle.classList.contains("ws-viewer-mode-toggle-title")) {
+      if (!show) {
+        this.viewMode = "edit";
+        this.modeToggle.innerHTML = '<i class="fas fa-eye"></i> Viewer';
+        this.modeToggle.title = "Viewer";
+        const shortTitle = document.getElementById("ws-viewer-title-short");
+        if (shortTitle) {
+          shortTitle.innerHTML = '<i class="fas fa-eye"></i> Viewer';
+          shortTitle.title = "Viewer";
+        }
+      }
+    } else {
       this.modeToggle.style.display = show ? "inline-flex" : "none";
+    }
   }
 
   private async applyViewMode(filePath?: string): Promise<void> {

@@ -63,6 +63,12 @@ function initWorkspaceViewer(): void {
   // Show empty state until a file is opened
   if (emptyState) emptyState.style.display = "";
 
+  // Wire keyboard shortcuts button (no inline onclick)
+  const shortcutsBtn = document.getElementById("ws-viewer-shortcuts-btn");
+  shortcutsBtn?.addEventListener("click", () => {
+    (window as any).toggleShortcutsModal?.();
+  });
+
   // Listen for file-select events from ANY tree container (worktree pane or module tree).
   // The event has bubbles: true, so listening on document catches them all.
   document.addEventListener("file-select", ((e: CustomEvent) => {
