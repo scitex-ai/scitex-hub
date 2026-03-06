@@ -1,2 +1,6 @@
 /* SciTeX Web - Landing Page Styles */
 
+/* Breathing room between header/footer and hero content */
+.landing-cushion {
+  height: 48px;
+}
