@@ -100,6 +100,26 @@ def scholar_unified(request):
             "-created_at"
         )
         current_project = get_current_project(request, user=request.user)
+
+        # Ensure scholar workspace exists on first access
+        if current_project:
+            try:
+                from apps.project_app.services.project_filesystem import (
+                    get_project_filesystem_manager,
+                )
+
+                mgr = get_project_filesystem_manager(request.user)
+                project_root = mgr.get_project_root_path(current_project)
+                if project_root and not (project_root / "scitex" / "scholar").exists():
+                    from scitex.scholar import ensure_workspace
+
+                    ensure_workspace(str(project_root))
+                    logger.info(
+                        f"Auto-initialized scholar workspace for: {current_project.slug}"
+                    )
+            except Exception as e:
+                logger.warning(f"Failed to auto-initialize scholar: {e}")
+
         # Get user's recent enrichment jobs
         recent_jobs = (
             BibTeXEnrichmentJob.objects.filter(user=request.user)

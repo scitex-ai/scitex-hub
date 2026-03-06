@@ -27,6 +27,9 @@ Returned by /hub/api/projects-overview/ for inline back-navigation.
                                    data-project-id="{{ proj.id }}"
                                    data-project-slug="{{ proj.slug }}">{{ proj.name }}</a>
                             </h3>
+                            {% if proj.is_app %}
+                                <span class="badge badge-app" title="SciTeX App"><i class="fas fa-puzzle-piece"></i> App</span>
+                            {% endif %}
                             <span class="badge badge-{{ proj.visibility }}">{{ proj.visibility }}</span>
                         </div>
                         <div class="project-card-body">

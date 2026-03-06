@@ -101,6 +101,17 @@ function showMenu(x: number, y: number, moduleName: string): void {
     },
   ];
 
+  // Dev apps get a "Submit to App Store" option
+  if (moduleName.startsWith("dev__")) {
+    items.push({ separator: true });
+    items.push({
+      label: "Submit to App Store",
+      icon: "fa-upload",
+      cls: "module-ctx-submit",
+      action: () => submitDevApp(moduleName),
+    });
+  }
+
   for (const item of items) {
     if (item.separator) {
       const sep = document.createElement("div");
@@ -215,6 +226,43 @@ function applySavedColors(): void {
   const colors = (window as any).SCITEX_MODULE_COLORS || {};
   for (const [name, color] of Object.entries(colors)) {
     if (color) applyModuleColor(name, color as string);
+  }
+}
+
+async function submitDevApp(moduleName: string): Promise<void> {
+  // Parse dev__<owner>__<repo>
+  const parts = moduleName.split("__");
+  if (parts.length < 3) {
+    alert("Invalid dev app name format.");
+    return;
+  }
+  const owner = parts[1];
+  const repo = parts.slice(2).join("__");
+
+  if (
+    !confirm(
+      `Submit "${owner}/${repo}" to the App Store?\n\nThis will run validation and open a review PR.`,
+    )
+  ) {
+    return;
+  }
+
+  try {
+    const data = await apiPost(`${APPS_API}/dev/${owner}/${repo}/submit/`);
+    if (data.success) {
+      const prUrl = (data as any).pr_url;
+      alert(`App submitted! Review PR opened:\n${prUrl}`);
+    } else {
+      const errors = (data as any).errors;
+      if (errors && Array.isArray(errors)) {
+        alert(`Validation failed:\n\n${errors.join("\n")}`);
+      } else {
+        alert(data.error || "Submission failed.");
+      }
+    }
+  } catch (err) {
+    console.error("[module-ctx] Submit error:", err);
+    alert("Failed to submit app.");
   }
 }
 

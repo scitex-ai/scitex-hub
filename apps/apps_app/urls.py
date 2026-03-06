@@ -19,6 +19,11 @@ urlpatterns = [
         views.api_dev_uninstall,
         name="api_dev_uninstall",
     ),
+    path(
+        "api/dev/<str:owner>/<str:repo>/submit/",
+        views.api_submit_dev_app,
+        name="api_submit_dev_app",
+    ),
     # API — must come before <str:module_name> catch-all
     path("api/reorder/", views.api_reorder, name="api_reorder"),
     path("api/<str:module_name>/install/", views.api_install, name="api_install"),
