@@ -5,6 +5,15 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.6-alpha] - 2026-03-07
+
+### Changed
+- **Docs sidebar reorder**: Grouped by logical audience — Getting Started → AI → App Maker → Developer Reference → Admin → Legal
+- **App Maker Overview rewrite**: Now explains "Why" (tailored to project, unified environment, collaboration, community, plug-and-play, local deployment, AI-assisted development) and "What" before linking to detailed guides
+- **App Maker Creators rewrite**: Replaced internal developer content (ModuleConfig, registry.py) with real examples from Pomodoro and EEG Visualizer apps — correct CSS variables, template patterns, views.py, testing
+- **Docs cross-references**: AI Chat, Agent Tooling, and App Maker: Creators now link to each other
+- **Shared partial**: Web-Based and AI-Assisted creation methods extracted into reusable `{% include %}` partial
+
 ## [0.12.5-alpha] - 2026-03-07
 
 ### Added
