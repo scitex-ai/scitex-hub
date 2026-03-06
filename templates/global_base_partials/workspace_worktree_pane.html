@@ -32,8 +32,10 @@
                     {% endif %}
                 </span>
                 <div class="sidebar-header-actions ws-worktree-actions">
-                    <button class="sort-toggle" id="sort-toggle" title="Sort by recent (newest first)">
-                        <i class="fas fa-sort-alpha-down"></i>
+                    <button class="scitex-ai-action-btn"
+                            title="Keyboard Shortcuts"
+                            onclick="window.showShortcutsModal()">
+                        <i class="fas fa-keyboard"></i>
                     </button>
                 </div>
             </div>
@@ -41,17 +43,11 @@
                 <div class="ws-worktree-tree-area">
                     {% if current_project %}
                         {% tree_preseed_script current_project %}
-                        <div id="ws-worktree-tree"
-                             data-workspace-tree
-                             data-project-id="{{ current_project.id }}"
-                             data-project-slug="{{ current_project.slug }}"
-                             data-username="{{ current_project.owner.username }}"></div>
-                    {% else %}
-                        <div class="ws-worktree-empty">
-                            <i class="fas fa-folder"></i>
-                            <span>No project selected</span>
-                        </div>
                     {% endif %}
+                    <div id="ws-worktree-tree"
+                         data-workspace-tree
+                         {% if current_project %} data-project-id="{{ current_project.id }}" data-project-slug="{{ current_project.slug }}" data-username="{{ current_project.owner.username }}" {% endif %}>
+                    </div>
                 </div>
                 <!-- Vertical resizer: tree / repo monitor split -->
                 <div class="v-resizer"
@@ -71,6 +67,19 @@
                         <i class="fas fa-clock-rotate-left"></i>
                         <span>Recent</span>
                         <span class="repo-monitor-status" id="repo-monitor-status"></span>
+                        <span class="repo-monitor-toolbar">
+                            <button id="repo-monitor-config-toggle" class="rm-toolbar-btn" title="Filter settings">
+                                <i class="fas fa-gear"></i>
+                            </button>
+                            <button id="repo-monitor-pause-toggle"
+                                    class="rm-toolbar-btn"
+                                    title="Pause/resume monitor">
+                                <i class="fas fa-pause"></i>
+                            </button>
+                            <button id="repo-monitor-clear" class="rm-toolbar-btn" title="Clear feed">
+                                <i class="fas fa-trash-can"></i>
+                            </button>
+                        </span>
                     </div>
                     <div class="repo-monitor-content" id="repo-monitor-feed"></div>
                 </div>

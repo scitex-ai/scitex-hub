@@ -4,9 +4,9 @@
  * Imports all modular CSS files
  */
 
-@import url('./tabs.css');
-@import url('./toolbar.css');
-@import url('./list.css');
-@import url('./sections.css');
-@import url('./cards.css');
-@import url('./scrollbar.css');
+@import url("./tabs.css");
+@import url("./toolbar.css");
+@import url("./list.css");
+@import url("./sections.css");
+@import url("./cards.css");
+/* scrollbar: uses global shared/css/utilities/scrollbars.css */

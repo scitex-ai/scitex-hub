@@ -19,6 +19,9 @@
   min-height: 40px;
   overflow: hidden;
   border-top: 1px solid var(--border-default, #30363d);
+  /* Sit above v-resizer ::before (z-index: 1) so scrolling wins */
+  position: relative;
+  z-index: 2;
 }
 
 .ws-repo-monitor-area.collapsed {
@@ -102,7 +105,6 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-width: thin;
   min-height: 0;
 }
 
@@ -113,17 +115,17 @@
 .repo-monitor-entry {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 1px 8px;
-  font-size: 0.68rem;
-  font-family: var(--font-mono, "SFMono-Regular", "Consolas", monospace);
-  border-bottom: 1px solid var(--border-subtle, rgba(48, 54, 61, 0.5));
-  line-height: 1.6;
+  gap: 4px;
+  padding: 1px 8px 1px 4px;
+  /* Inherit font from .ws-worktree-split — stays in sync with Files tree */
+  font: inherit;
+  min-height: 20px;
+  cursor: pointer;
+  border-radius: 4px;
 }
 
 .repo-monitor-entry:hover {
-  background: var(--bg-tertiary, #21262d);
-  cursor: pointer;
+  background-color: var(--color-canvas-subtle, rgba(127, 127, 127, 0.1));
 }
 
 /* Colour coding via semantic status tokens */
@@ -143,29 +145,21 @@
   color: var(--status-info, #8fa9cc);
 }
 
-/* Timestamp column */
-.rm-time {
-  color: var(--text-dimmed, #484f58);
-  min-width: 50px;
-  flex-shrink: 0;
-  font-size: 0.6rem;
-}
-
-/* Icon column */
+/* Timestamp and icon hidden — keep entries synced with Files tree look */
+.rm-time,
 .rm-icon {
-  width: 14px;
-  text-align: center;
-  flex-shrink: 0;
-  font-size: 0.6rem;
+  display: none;
 }
 
-/* File path — truncate with ellipsis */
+/* File path — matches .wft-name in workspace-files-tree.
+   Inherits color from parent .repo-monitor-entry (semantic: create/modify/delete). */
 .rm-path {
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  min-width: 0;
-  flex: 1;
+  color: inherit;
+  font-weight: 400;
 }
 
 /* ============================================================

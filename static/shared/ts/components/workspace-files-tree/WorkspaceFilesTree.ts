@@ -10,7 +10,6 @@ import { EventHandlers } from "./_handlers/EventHandlers";
 import { DragDropHandlers } from "./_handlers/DragDropHandlers";
 import { KeyboardHandlers } from "./_handlers/KeyboardHandlers";
 import { FileActions } from "./_handlers/FileActions";
-import type { ResizeHandler } from "./_handlers/ResizeHandler";
 import { DirectoryFilterHandler } from "./_handlers/DirectoryFilterHandler";
 import { PathNavigator } from "./_handlers/PathNavigator";
 import { TreeUtils } from "./_handlers/TreeUtils";
@@ -41,7 +40,6 @@ export class WorkspaceFilesTree {
   private dragDropHandlers: DragDropHandlers;
   private keyboardHandlers: KeyboardHandlers | null = null;
   private fileActions: FileActions;
-  private resizeHandler: ResizeHandler | null = null;
   private directoryFilterHandler: DirectoryFilterHandler;
   private pathNavigator: PathNavigator;
   private selectionHandler: SelectionHandler;
@@ -225,7 +223,6 @@ export class WorkspaceFilesTree {
         loadTree: () => this.loadTree(),
       },
     );
-    this.resizeHandler = result.resizeHandler;
     this.contextMenuActionHandler = result.contextMenuActionHandler;
     this.searchUIHandler = result.searchUIHandler;
     this.workspaceKeyboardHandler = result.workspaceKeyboardHandler;

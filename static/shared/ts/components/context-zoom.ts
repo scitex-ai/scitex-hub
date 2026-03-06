@@ -18,6 +18,8 @@ export interface ZoomZone {
   step?: number;
   /** If true, zone handles zoom internally — just preventDefault */
   passthrough?: boolean;
+  /** Group name — zones in the same group synchronize their zoom level */
+  group?: string;
 }
 
 const zones: ZoomZone[] = [];
@@ -40,9 +42,16 @@ export function registerZoomZone(zone: ZoomZone): void {
   const saved = localStorage.getItem(zone.storageKey);
   if (saved) {
     const size = parseFloat(saved);
+    console.debug(
+      `[zoom] restoring ${zone.storageKey}: saved=${saved}, parsed=${size}, range=[${zone.min},${zone.max}], valid=${size >= zone.min && size <= zone.max}`,
+    );
     if (size >= zone.min && size <= zone.max) {
       zone.setSize(size);
     }
+  } else {
+    console.debug(
+      `[zoom] no saved value for ${zone.storageKey}, using default=${zone.default}`,
+    );
   }
 
   zone.el.addEventListener("mouseenter", () => {
@@ -65,12 +74,25 @@ function adjustZoom(zone: ZoomZone, direction: number): void {
   );
   zone.setSize(next);
   localStorage.setItem(zone.storageKey, String(next));
+  syncGroup(zone, next);
 }
 
 function resetZoom(zone: ZoomZone): void {
   if (zone.passthrough) return;
   zone.setSize(zone.default);
   localStorage.setItem(zone.storageKey, String(zone.default));
+  syncGroup(zone, zone.default);
+}
+
+/** Propagate zoom level to all other zones in the same group. */
+function syncGroup(source: ZoomZone, value: number): void {
+  if (!source.group) return;
+  for (const z of zones) {
+    if (z === source || z.group !== source.group || z.passthrough) continue;
+    const clamped = Math.min(z.max, Math.max(z.min, value));
+    z.setSize(clamped);
+    localStorage.setItem(z.storageKey, String(clamped));
+  }
 }
 
 /**
@@ -123,7 +145,13 @@ export function registerFontZoom(
   selector: string,
   storageKey: string,
   _defaultSize = 13,
-  opts?: { passthrough?: boolean; min?: number; max?: number },
+  opts?: {
+    passthrough?: boolean;
+    min?: number;
+    max?: number;
+    /** Group name — zones in the same group synchronize their zoom level */
+    group?: string;
+  },
 ): boolean {
   const el = document.querySelector<HTMLElement>(selector);
   if (!el) return false;
@@ -139,6 +167,67 @@ export function registerFontZoom(
     step: 0.05,
     storageKey,
     passthrough: opts?.passthrough,
+    group: opts?.group,
+  });
+  return true;
+}
+
+/**
+ * Register a font-size zoom zone.
+ *
+ * Adjusts `font-size` (in px) on targeted elements within the zone container.
+ * Unlike `registerFontZoom` (CSS zoom), this only scales text — padding, borders,
+ * and layout stay fixed. Ideal for file lists, code views, and plugin panels.
+ *
+ * @param selector  CSS selector for the zone container (mouse-tracking area)
+ * @param storageKey  localStorage key for persistence
+ * @param opts.target  CSS selector for elements to apply font-size to.
+ *                     If omitted, applies to the zone element itself.
+ * @param opts.group   Group name — zones in the same group synchronize.
+ */
+export function registerFontSizeZoom(
+  selector: string,
+  storageKey: string,
+  opts?: {
+    defaultSize?: number;
+    min?: number;
+    max?: number;
+    step?: number;
+    group?: string;
+    /** CSS selector for target elements within the zone. Omit = zone element. */
+    target?: string;
+  },
+): boolean {
+  const el = document.querySelector<HTMLElement>(selector);
+  if (!el) return false;
+
+  const defaultSize = opts?.defaultSize ?? 13;
+  const targetSel = opts?.target;
+
+  function getTargets(): HTMLElement[] {
+    if (!targetSel) return [el];
+    return Array.from(el.querySelectorAll<HTMLElement>(targetSel));
+  }
+
+  registerZoomZone({
+    el,
+    getSize: () => {
+      const targets = getTargets();
+      if (targets.length === 0) return defaultSize;
+      return parseFloat(targets[0].style.fontSize || String(defaultSize));
+    },
+    setSize: (val) => {
+      const px = `${val}px`;
+      for (const t of getTargets()) {
+        t.style.fontSize = px;
+      }
+    },
+    min: opts?.min ?? 8,
+    max: opts?.max ?? 24,
+    default: defaultSize,
+    step: opts?.step ?? 1,
+    storageKey,
+    group: opts?.group,
   });
   return true;
 }

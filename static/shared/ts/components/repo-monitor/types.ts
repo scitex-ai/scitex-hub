@@ -27,6 +27,6 @@ export type FilterChangeCallback = (filters: FilterConfig) => void;
 
 export const DEFAULT_FILTER_CONFIG: FilterConfig = {
   respectGitignore: true,
-  blacklistPatterns: [],
+  blacklistPatterns: [".*"],
   whitelistPatterns: [],
 };

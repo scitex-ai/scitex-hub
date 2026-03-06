@@ -14,7 +14,6 @@ import type { UndoRedoHandler } from "./UndoRedoHandler";
 import type { ContextMenuHandler } from "./ContextMenuHandler";
 import type { SearchHandler } from "./SearchHandler";
 import type { TreeFileOperations } from "./TreeFileOperations";
-import { ResizeHandler } from "./ResizeHandler";
 import { ContextMenuActionHandler } from "./ContextMenuActionHandler";
 import { SearchUIHandler } from "./SearchUIHandler";
 import { WorkspaceKeyboardHandler } from "./WorkspaceKeyboardHandler";
@@ -36,7 +35,6 @@ export interface TreeInitCallbacks {
 }
 
 export interface TreeInitResult {
-  resizeHandler: ResizeHandler;
   contextMenuActionHandler: ContextMenuActionHandler;
   searchUIHandler: SearchUIHandler;
   workspaceKeyboardHandler: WorkspaceKeyboardHandler;
@@ -61,8 +59,7 @@ export function initializeTreeHandlers(
   container.classList.add("workspace-files-tree");
   container.innerHTML = renderer.renderLoadingSkeleton();
 
-  const resizeHandler = new ResizeHandler(container, config.mode);
-  resizeHandler.initialize();
+  // Font zoom handled by context-zoom system (registerFontSizeZoom on #ws-worktree-sidebar)
 
   const searchUIHandler = new SearchUIHandler(container, searchHandler, {
     setSearchQuery: callbacks.setSearchQuery,
@@ -116,7 +113,6 @@ export function initializeTreeHandlers(
   initContextMenu(container, contextMenuHandler);
 
   return {
-    resizeHandler,
     contextMenuActionHandler,
     searchUIHandler,
     workspaceKeyboardHandler,

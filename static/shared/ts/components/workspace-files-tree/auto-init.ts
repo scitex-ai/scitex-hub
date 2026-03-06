@@ -169,6 +169,12 @@ export async function autoInitWorktreePanes(): Promise<void> {
 
       // Wire repo monitor → tree refresh (replaces polling)
       currentMonitorClient = initRepoMonitorForTree(tree, username, slug);
+    } else {
+      // No project at page load — show empty state (replaced on project switch)
+      pane.innerHTML = `<div class="ws-worktree-empty">
+        <i class="fas fa-folder"></i>
+        <span>No project selected</span>
+      </div>`;
     }
 
     // Listen for project switch — (re)initialize tree + repo monitor
