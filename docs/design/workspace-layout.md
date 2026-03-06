@@ -28,9 +28,16 @@ Both global header and footer are minimizable via:
 ## App Highlighter System
 
 - **App Selector indicator**: right-side 4px partial bar (~60% height, centered, rounded inner corners)
-- **App pane top border**: same accent color, synchronized thickness
+- **Module accent line**: continuous 4px bar across the top of `#main-content`, framework-controlled
 - Each app has a configurable accent color (stored as user preference)
-- **Single source of truth**: workspace sets `data-module-accent` on container; all children inherit `--module-accent-color`
+- **Single source of truth**: workspace sets `data-module-accent` on `#main-content`; CSS attribute selectors resolve `--module-accent-color`
+
+### Architecture Principles
+
+1. **Framework-controlled** — accent line is rendered by `workspace-sidebar.css` via `#main-content[data-module-accent]::before`, not by individual apps
+2. **Override-proof** — uses `!important` and `z-index: 100` to prevent app-side CSS from hiding or overriding the accent
+3. **No inline styles** — color resolution happens purely through CSS attribute selectors (`[data-module-accent="writer"]`), not inline `style` attributes
+4. **Continuous line** — single `::before` pseudo-element spans the entire module content area with no gaps at sub-panel boundaries
 
 ### CSS Variable Cascade
 
@@ -43,15 +50,32 @@ Both global header and footer are minimizable via:
   --module-accent-console: #d97706;   /* amber */
 }
 
-/* 2. Workspace container maps active module */
+/* 2. CSS attribute selectors map module name → color variable */
 [data-module-accent="writer"]  { --module-accent-color: var(--module-accent-writer); }
 [data-module-accent="scholar"] { --module-accent-color: var(--module-accent-scholar); }
 
-/* 3. Children inherit automatically */
+/* 3. Framework renders the accent line (workspace-sidebar.css) */
+#main-content[data-module-accent]::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0; left: 0; right: 0;
+  height: 4px !important;
+  background: var(--module-accent-color, transparent) !important;
+  z-index: 100 !important;
+  pointer-events: none !important;
+}
+
+/* 4. Children inherit --module-accent-color automatically */
 .selector-nav-item.active::after {
   background: var(--module-accent-color);
 }
 ```
+
+### Do NOT
+
+- Set `--module-accent-color` via inline `style` attribute — CSS attribute selectors handle it
+- Add `border-top` to individual panel headers for accent — use the `::before` on `#main-content`
+- Override accent styles from app-side CSS — the framework uses `!important`
 
 ## Console Pane
 

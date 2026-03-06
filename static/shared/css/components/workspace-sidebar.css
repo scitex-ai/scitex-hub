@@ -227,16 +227,28 @@
 
 /* ===========================================================================
    MODULE ACCENT BORDER
-   Subtle top-border accent on module-specific pane headers.
-   Headers with data-pane-type="module" display the accent;
-   shared pane headers (AI, Files, Editor) remain unaffected.
+   Continuous accent line across the top of the module content area.
+   Framework-controlled via #main-content[data-module-accent].
+   Uses ::before pseudo-element with high z-index to prevent app overrides.
 
-   Usage: Add data-module-accent="writer" on the module container,
-   and data-pane-type="module" on each module-specific pane header.
+   Usage: Add data-module-accent="writer" on the module container.
    =========================================================================== */
 
+/* Accent line: single continuous bar across the top of module content */
+#main-content[data-module-accent]::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 4px !important;
+  background: var(--module-accent-color, transparent) !important;
+  z-index: 100 !important;
+  pointer-events: none !important;
+}
+
+/* Module panel headers still get tinted background */
 [data-pane-type="module"] {
-  border-top: 4px solid var(--module-accent-color, transparent);
   background: var(--module-accent-tint, transparent);
 }
 
@@ -287,10 +299,7 @@
   --module-accent-tint: var(--module-accent-docs-tint);
 }
 
-/* Fallback: module pane without data-pane-type headers gets accent on its container */
-#main-content[data-module-accent]:not(:has([data-pane-type="module"])) {
-  border-top: 4px solid var(--module-accent-color, transparent);
-}
+/* No fallback needed — accent is always on #main-content::before */
 
 /* ===========================================================================
    RESPONSIVE
