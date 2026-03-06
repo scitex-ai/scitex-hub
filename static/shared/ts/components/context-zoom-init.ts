@@ -12,23 +12,42 @@
 import {
   getActiveZone,
   initContextZoom,
+  registerFontSizeZoom,
   registerFontZoom,
   registerZoomZone,
 } from "./context-zoom";
 
-/** Pane definitions: selector → localStorage key */
+/** Pane definitions: selector → localStorage key (CSS zoom mode) */
 const FONT_ZOOM_ZONES: Array<{ selector: string; key: string }> = [
   // AI panel (whole sidebar — CSS neutralizes zoom when collapsed)
   // NOTE: #scitex-ai-console-terminal is NOT listed here — xterm.js terminals
   // register their own custom zoom zones (adjusting terminal fontSize) in
   // console-mode.ts and console-terminal-factory.ts.
   { selector: "#scitex-ai-panel", key: "scitex-ai-panel-zoom" },
-  // Worktree pane (whole sidebar — CSS neutralizes zoom when collapsed)
-  { selector: "#ws-worktree-sidebar", key: "scitex-worktree-zoom" },
   // Viewer pane (whole sidebar — CSS neutralizes zoom when collapsed)
   { selector: "#ws-viewer-sidebar", key: "scitex-viewer-zoom" },
   // Module (center) pane
   { selector: "#main-content", key: "scitex-module-zoom" },
+];
+
+/** Font-size zoom zones — zoom text only, not the container.
+ *  target: CSS selector for elements whose font-size is adjusted.
+ *  group: zones in the same group synchronize their zoom level. */
+const FONT_SIZE_ZOOM_ZONES: Array<{
+  selector: string;
+  key: string;
+  target?: string;
+  group?: string;
+  defaultSize?: number;
+}> = [
+  // Worktree pane — zoom file paths in both Files tree and Recent pane
+  {
+    selector: "#ws-worktree-sidebar",
+    key: "scitex-worktree-font-zoom",
+    target: ".ws-worktree-split",
+    group: "worktree",
+    defaultSize: 13,
+  },
 ];
 
 /** Track which selectors have been successfully registered */
@@ -70,11 +89,69 @@ function getZoomLabel(): string | null {
 /** Try to register any not-yet-registered zones. Returns count of newly registered. */
 function registerPendingZones(): number {
   let count = 0;
+  // CSS-zoom zones (scale everything uniformly)
   for (const { selector, key } of FONT_ZOOM_ZONES) {
     if (registeredSelectors.has(selector)) continue;
     if (registerFontZoom(selector, key)) {
       registeredSelectors.add(selector);
       count++;
+      console.debug(`[zoom] CSS-zoom registered: ${selector} (key=${key})`);
+    }
+  }
+  // Font-size zones (scale text only, with target + group support)
+  for (const {
+    selector,
+    key,
+    target,
+    group,
+    defaultSize,
+  } of FONT_SIZE_ZOOM_ZONES) {
+    if (registeredSelectors.has(selector)) continue;
+    if (registerFontSizeZoom(selector, key, { target, group, defaultSize })) {
+      registeredSelectors.add(selector);
+      count++;
+      console.debug(
+        `[zoom] font-size registered: ${selector} → target=${target}, group=${group}, default=${defaultSize}px`,
+      );
+      // Debug: check computed state
+      const el = document.querySelector<HTMLElement>(selector);
+      const tgt = target ? el?.querySelector<HTMLElement>(target) : el;
+      if (tgt) {
+        const saved = localStorage.getItem(key);
+        console.debug(
+          `[zoom]   target computed fontSize=${getComputedStyle(tgt).fontSize}, ` +
+            `style.fontSize=${tgt.style.fontSize}, localStorage=${saved}`,
+        );
+      }
+    }
+  }
+  // Cleanup: remove stale values from old zoom systems
+  const wsSidebar = document.getElementById("ws-worktree-sidebar");
+  if (wsSidebar && wsSidebar.style.zoom) {
+    console.debug(
+      `[zoom] clearing stale style.zoom="${wsSidebar.style.zoom}" on #ws-worktree-sidebar`,
+    );
+    wsSidebar.style.zoom = "";
+    localStorage.removeItem("scitex-worktree-zoom");
+  }
+  // Cleanup: remove stale inline fontSize from old ResizeHandler on .workspace-files-tree
+  const filesTree = wsSidebar?.querySelector<HTMLElement>(
+    ".workspace-files-tree",
+  );
+  if (filesTree && filesTree.style.fontSize) {
+    console.debug(
+      `[zoom] clearing stale style.fontSize="${filesTree.style.fontSize}" on .workspace-files-tree (old ResizeHandler)`,
+    );
+    filesTree.style.fontSize = "";
+    filesTree.style.removeProperty("--wft-icon-size");
+  }
+  // Remove old ResizeHandler localStorage keys + migrate font-zoom to default
+  for (const key of Object.keys(localStorage)) {
+    if (key.startsWith("scitex-tree-font-size-")) {
+      console.debug(`[zoom] removing old localStorage key: ${key}`);
+      localStorage.removeItem(key);
+      // One-time migration: reset font-zoom to default since old handler had different scale
+      localStorage.removeItem("scitex-worktree-font-zoom");
     }
   }
   // Monaco: passthrough — it handles its own Ctrl+Wheel zoom
@@ -132,7 +209,8 @@ export function initAllZoomZones(): void {
   registerPendingZones();
 
   // Watch for lazy-loaded panes via MutationObserver
-  const totalZones = FONT_ZOOM_ZONES.length + 2; // +1 Monaco, +1 PDF viewer
+  // +font-size zones, +1 Monaco, +1 PDF viewer
+  const totalZones = FONT_ZOOM_ZONES.length + FONT_SIZE_ZOOM_ZONES.length + 2;
   if (registeredSelectors.size < totalZones) {
     const observer = new MutationObserver(() => {
       const newCount = registerPendingZones();

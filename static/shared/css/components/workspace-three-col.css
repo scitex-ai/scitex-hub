@@ -138,6 +138,17 @@
   height: 100%;
   overflow: hidden;
   padding: 0;
+  /* Shared font for Files tree + Recent pane — single source of truth */
+  font-size: 13px;
+  font-family: var(
+    --font-mono,
+    "JetBrains Mono",
+    "Monaco",
+    "Menlo",
+    "Consolas",
+    monospace
+  );
+  line-height: 1.4;
 }
 
 .ws-worktree-tree-area {

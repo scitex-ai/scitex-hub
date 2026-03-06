@@ -5,16 +5,9 @@
 
 /* Container */
 .workspace-files-tree {
-  font-family: var(
-    --font-mono,
-    "JetBrains Mono",
-    "Monaco",
-    "Menlo",
-    "Consolas",
-    monospace
-  );
-  font-size: 13px;
-  line-height: 1.4;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
   overflow: hidden; /* Children handle scrolling */
   height: 100%;
   user-select: none;
