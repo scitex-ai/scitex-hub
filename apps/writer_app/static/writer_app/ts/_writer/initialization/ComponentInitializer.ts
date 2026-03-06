@@ -37,6 +37,7 @@ export interface InitializedComponents {
   tablesPanel: TablesPanel;
   tablePreviewModal: TablePreviewModalOrchestrator;
   panelResizer: HorizontalResizer | null;
+  previewResizer: HorizontalResizer | null;
   editorControls: any;
 }
 
@@ -109,8 +110,10 @@ export class ComponentInitializer {
       Promise.resolve(new CompilationManager("")),
     ]);
 
-    // Initialize editor/preview resizer with PDF optimization hooks
+    // Initialize editor/preview resizers with PDF optimization hooks
+    // Two resizers bracket the mode-selector: left (editor-side) and right (preview-side)
     const panelResizer = this.initializeEditorResizer();
+    const previewResizer = this.initializePreviewResizer();
 
     // Make panels available globally
     (window as any).citationsPanel = citationsPanel;
@@ -126,6 +129,7 @@ export class ComponentInitializer {
     return {
       monacoReady,
       panelResizer,
+      previewResizer,
       citationsPanel,
       figuresPanel,
       tablesPanel,
@@ -328,6 +332,49 @@ export class ComponentInitializer {
       });
     } catch (e) {
       console.warn("[ComponentInitializer] Failed to init editor resizer:", e);
+      return null;
+    }
+  }
+
+  /**
+   * Initialize preview-side resizer (right of mode-selector)
+   * Mirrors editor resizer but positioned on the other side of the nav bar.
+   */
+  private initializePreviewResizer(): HorizontalResizer | null {
+    const resizerEl = document.getElementById("writer-preview-resizer");
+    if (!resizerEl) {
+      console.warn("[ComponentInitializer] Preview resizer element not found");
+      return null;
+    }
+
+    try {
+      return new HorizontalResizer(resizerEl, {
+        left: ".latex-panel",
+        right: ".preview-panel",
+        icon: "",
+        title: "Split",
+        isMostLeft: false,
+        isMostRight: false,
+        thresholdPx: 40,
+        isInApp: true,
+        storageKey: "scitex-writer-editor-split",
+        onDragStart: () => {
+          const pdfIframe = document.querySelector(
+            ".preview-panel iframe",
+          ) as HTMLElement;
+          if (pdfIframe) pdfIframe.style.visibility = "hidden";
+        },
+        onDragEnd: () => {
+          const pdfIframe = document.querySelector(
+            ".preview-panel iframe",
+          ) as HTMLElement;
+          if (pdfIframe) pdfIframe.style.visibility = "visible";
+          const pdfViewer = (window as any).pdfViewerInstance;
+          if (pdfViewer?.fitWidth) pdfViewer.fitWidth();
+        },
+      });
+    } catch (e) {
+      console.warn("[ComponentInitializer] Failed to init preview resizer:", e);
       return null;
     }
   }
