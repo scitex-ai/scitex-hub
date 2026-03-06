@@ -139,7 +139,9 @@ function applyResize(r: BaseResizer, delta: number, e: MouseEvent): void {
   const snaps = getSnapPoints(r);
 
   if (secondCan && !firstCan) {
-    const newSize = snap(r, startSecond - delta, snaps);
+    const totalSize = startFirst + startSecond;
+    const maxSize = totalSize - threshold; // protect first panel
+    const newSize = Math.min(snap(r, startSecond - delta, snaps), maxSize);
     if (newSize < threshold) {
       r.markPrimaryCollapsed();
       r.collapsePanelPublic("second");
@@ -154,7 +156,9 @@ function applyResize(r: BaseResizer, delta: number, e: MouseEvent): void {
     second.style.flexShrink = "0";
     second.style.flexGrow = "0";
   } else if (firstCan && !secondCan) {
-    const newSize = snap(r, startFirst + delta, snaps);
+    const totalSize = startFirst + startSecond;
+    const maxSize = totalSize - threshold; // protect second panel
+    const newSize = Math.min(snap(r, startFirst + delta, snaps), maxSize);
     if (newSize < threshold) {
       r.markPrimaryCollapsed();
       r.collapsePanelPublic("first");
