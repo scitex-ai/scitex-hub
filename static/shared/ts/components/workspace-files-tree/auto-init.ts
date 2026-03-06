@@ -132,60 +132,74 @@ export async function autoInitWorktreePanes(): Promise<void> {
 
     const slug = pane.dataset.projectSlug;
     const username = pane.dataset.username;
-    if (!slug || !username) continue;
-
-    // Delegate to custom handler if set; file viewing handled by workspace-viewer pane
-    const onFileSelect = window.scitexOnFileSelect || (() => {});
-
-    const tree = new WorkspaceFilesTree({
-      mode: "hub" as WorkspaceMode,
-      containerId: pane.id,
-      ownerUsername: username,
-      projectSlug: slug,
-      showFolderActions: true,
-      showGitStatus: true,
-      onFileSelect,
-    });
-
-    await tree.initialize();
-
-    initHiddenFilesToggle(tree);
-    initGitStatusToggle(tree);
-    initSortToggle(tree);
-    initModuleFilterButtons(tree, "hub");
-
-    window.workspaceFilesTree = tree;
-
-    // Notify modules that tree is ready
-    if (window.scitexOnTreeDataLoaded) {
-      const data = tree.getTreeData?.() ?? [];
-      window.scitexOnTreeDataLoaded(data);
-    }
 
     // Initialize repository monitor toggle (always — collapse/expand + localStorage)
     initMonitorToggle();
 
-    // Wire repo monitor → tree refresh (replaces polling)
-    let currentMonitorClient = initRepoMonitorForTree(tree, username, slug);
+    let currentMonitorClient: RepoMonitorClient | null = null;
 
-    // Listen for project switch — reinitialize tree + repo monitor
+    // Initialize tree if project is already selected
+    if (slug && username) {
+      const onFileSelect = window.scitexOnFileSelect || (() => {});
+
+      const tree = new WorkspaceFilesTree({
+        mode: "hub" as WorkspaceMode,
+        containerId: pane.id,
+        ownerUsername: username,
+        projectSlug: slug,
+        showFolderActions: true,
+        showGitStatus: true,
+        onFileSelect,
+      });
+
+      await tree.initialize();
+
+      initHiddenFilesToggle(tree);
+      initGitStatusToggle(tree);
+      initSortToggle(tree);
+      initModuleFilterButtons(tree, "hub");
+
+      window.workspaceFilesTree = tree;
+
+      // Notify modules that tree is ready
+      if (window.scitexOnTreeDataLoaded) {
+        const data = tree.getTreeData?.() ?? [];
+        window.scitexOnTreeDataLoaded(data);
+      }
+
+      // Wire repo monitor → tree refresh (replaces polling)
+      currentMonitorClient = initRepoMonitorForTree(tree, username, slug);
+    }
+
+    // Listen for project switch — (re)initialize tree + repo monitor
+    // Registered unconditionally so switching works even when no initial project is set
     window.addEventListener("scitex:project-switched", (async (
       e: CustomEvent<ProjectSwitchedDetail>,
     ) => {
       const newProjectSlug = e.detail.projectSlug;
-      const newOwnerUsername = e.detail.ownerUsername || username;
+      const newOwnerUsername = e.detail.ownerUsername || username || "";
       if (!newProjectSlug) return;
 
       // Update DOM data attributes
       pane.dataset.projectSlug = newProjectSlug;
       pane.dataset.username = newOwnerUsername;
 
-      // Update sidebar title
-      const titleFull = document.querySelector(
-        ".sidebar-title-full",
+      // Update sidebar title (worktree pane)
+      const worktreePane =
+        pane.closest(".ws-worktree-pane") || pane.parentElement?.parentElement;
+      const titleSelectors = [".sidebar-title-expanded", ".sidebar-title-full"];
+      for (const sel of titleSelectors) {
+        const titleEl = worktreePane?.querySelector(sel) as HTMLElement;
+        if (titleEl) {
+          titleEl.innerHTML = `<i class="fas fa-folder-open"></i> ${newOwnerUsername}/${newProjectSlug}`;
+        }
+      }
+      // Also update collapsed title
+      const collapsedTitle = worktreePane?.querySelector(
+        ".sidebar-title",
       ) as HTMLElement;
-      if (titleFull) {
-        titleFull.innerHTML = `<i class="fas fa-folder-open"></i> ${newOwnerUsername}/${newProjectSlug}`;
+      if (collapsedTitle) {
+        collapsedTitle.textContent = `${newOwnerUsername}/${newProjectSlug}`;
       }
 
       // Update project ID on config elements (used by viewer's getProjectId())
