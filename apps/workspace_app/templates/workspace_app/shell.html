@@ -112,7 +112,8 @@
                 </div>
                 <div class="sidebar-content">
                     <div data-workspace-tree
-                         {% if current_project %}data-project-slug="{{ current_project.slug }}"{% endif %}></div>
+                         {% if current_project %}data-project-slug="{{ current_project.slug }}" data-username="{{ current_project.owner.username }}"{% endif %}>
+                    </div>
                 </div>
             </div>
         </div>
