@@ -12,7 +12,7 @@
 import type { PanelConfig } from "./types";
 import { saveWidth, restoreWidth } from "./state";
 import { updateToggleIcon } from "./toggle";
-import { snapToNearest, percentSnapPoints } from "../resizer/_snap";
+import { magneticSnap, percentSnapPoints } from "../resizer/_snap";
 
 /** Shared collapse threshold — panel collapses when width drops to this */
 const COLLAPSE_WIDTH = 40;
@@ -157,8 +157,6 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
   let startWidth = 0;
   let wasCollapsed = false;
   let primaryCollapsed = false; // true once primary panel collapses during drag
-  let snapTimer: ReturnType<typeof setTimeout> | undefined;
-
   // Track propagation state: when the primary panel collapses during drag,
   // we start resizing the adjacent panel
   let propagationTarget: {
@@ -270,13 +268,19 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
       const propMax = getMaxAllowedWidth(propagationTarget.panel);
       if (propNewWidth > propMax) propNewWidth = propMax;
 
-      // Snap propagation target to percentage points
+      // Magnetic snap propagation target to percentage points
       const propFlex = propagationTarget.panel.closest(
         ".workspace-three-col",
       ) as HTMLElement;
       if (propFlex) {
         const propSnaps = percentSnapPoints(propFlex.clientWidth);
-        propNewWidth = snapToNearest(propNewWidth, propSnaps);
+        const propSnap = magneticSnap(propNewWidth, propSnaps);
+        propNewWidth = propSnap.value;
+        if (propSnap.snapped) {
+          resizer.classList.add("snapped");
+        } else {
+          resizer.classList.remove("snapped");
+        }
       }
 
       if (propNewWidth < COLLAPSE_WIDTH) {
@@ -321,20 +325,19 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
     const maxWidth = getMaxAllowedWidth(targetPanel);
     if (newWidth > maxWidth) newWidth = maxWidth;
 
-    // Snap to percentage-based points
-    const rawWidth = newWidth;
+    // Magnetic snap to percentage-based points
     const flexContainer = targetPanel.closest(
       ".workspace-three-col",
     ) as HTMLElement;
     if (flexContainer) {
       const snaps = percentSnapPoints(flexContainer.clientWidth);
-      newWidth = snapToNearest(newWidth, snaps);
-    }
-    // Flash resizer when snap engages
-    if (newWidth !== rawWidth) {
-      resizer.classList.add("snapped");
-      clearTimeout(snapTimer);
-      snapTimer = setTimeout(() => resizer.classList.remove("snapped"), 150);
+      const snapResult = magneticSnap(newWidth, snaps);
+      newWidth = snapResult.value;
+      if (snapResult.snapped) {
+        resizer.classList.add("snapped");
+      } else {
+        resizer.classList.remove("snapped");
+      }
     }
 
     // Smart collapse: if dragged below threshold, collapse and propagate
@@ -368,6 +371,7 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
     document.body.style.cursor = "";
     document.body.style.userSelect = "";
     resizer.classList.remove("active");
+    resizer.classList.remove("snapped");
     enableTransitions();
 
     // Clear drag flag after click event has been processed (rAF delay)

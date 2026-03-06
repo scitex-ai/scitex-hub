@@ -1,32 +1,59 @@
 /**
- * Snap utility for resizer drag operations.
+ * Magnetic snap utility for resizer drag operations.
  *
- * Provides magnetic snap points so panels align to common
- * percentage-based positions (25%, 33%, 50%, etc.) during drag.
+ * Provides physics-based magnetic attraction: the resizer is smoothly
+ * pulled toward snap points with force proportional to proximity.
+ * Farther away = no effect. Closer = stronger pull. Very close = locks on.
  */
 
-/** Default snap proximity in px — cursor must be within this range to snap */
-const SNAP_PROXIMITY = 16;
+/** Outer radius: start feeling the pull */
+const SNAP_RADIUS = 32;
+
+/** Inner radius: lock onto the snap point (hard snap) */
+const SNAP_LOCK = 8;
 
 /**
- * Snap a size value to the nearest snap point if within proximity.
- * Returns the original value if no snap point is close enough.
+ * Apply magnetic snap to a size value.
+ *
+ * Physics model:
+ *   - Beyond SNAP_RADIUS: no effect, free movement
+ *   - Between SNAP_RADIUS and SNAP_LOCK: smooth quadratic pull
+ *     (gentle at edge, strong near center)
+ *   - Within SNAP_LOCK: hard lock to the snap point
+ *
+ * Returns { value, snapped } where `snapped` is true if attraction
+ * is active (for visual feedback).
  */
-export function snapToNearest(
+export function magneticSnap(
   value: number,
   snapPoints: number[],
-  proximity: number = SNAP_PROXIMITY,
-): number {
-  let nearest = value;
-  let minDist = proximity;
+  radius: number = SNAP_RADIUS,
+  lock: number = SNAP_LOCK,
+): { value: number; snapped: boolean } {
+  let bestPoint = value;
+  let bestDist = radius;
+
   for (const pt of snapPoints) {
     const d = Math.abs(value - pt);
-    if (d < minDist) {
-      minDist = d;
-      nearest = pt;
+    if (d < bestDist) {
+      bestDist = d;
+      bestPoint = pt;
     }
   }
-  return nearest;
+
+  // No snap point within radius
+  if (bestPoint === value) return { value, snapped: false };
+
+  // Hard lock when very close
+  if (bestDist <= lock) return { value: bestPoint, snapped: true };
+
+  // Smooth magnetic pull: quadratic easing
+  // t = 0 at outer edge, 1 at lock boundary
+  const t = 1 - (bestDist - lock) / (radius - lock);
+  const pull = t * t; // quadratic — gentle at edge, strong near lock
+  const pulled = value + (bestPoint - value) * pull;
+
+  return { value: pulled, snapped: true };
 }
 
 /**
