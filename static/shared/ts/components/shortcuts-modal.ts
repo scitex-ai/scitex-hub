@@ -3,7 +3,6 @@
  * Shows context-aware keyboard shortcuts help with sleek vis-style layout
  */
 
-
 /**
  * App context types
  */
@@ -69,18 +68,34 @@ const CONTEXT_SECTIONS: Record<AppContext, ShortcutSection[]> = {
     {
       title: "Navigation",
       shortcuts: [
-        { keys: "Enter", description: "Open item" },
-        { keys: "Backspace", description: "Parent folder" },
-        { keys: "/", description: "Focus search" },
+        { keys: "Enter", description: "Open file / toggle folder" },
+        { keys: "Backspace", description: "Go to parent folder" },
+        { keys: "Alt+\u2191", description: "Navigate to parent" },
+        { keys: "Alt+\u2192", description: "Enter first child" },
       ],
     },
     {
-      title: "File Actions",
+      title: "File Operations (dired-style)",
       shortcuts: [
+        { keys: "g", description: "Refresh tree" },
+        { keys: "+", description: "Create new folder" },
+        { keys: "/", description: "Search / filter" },
         { keys: "Ctrl+N", description: "New file" },
         { keys: "Ctrl+Shift+N", description: "New folder" },
         { keys: "F2", description: "Rename" },
         { keys: "Del", description: "Delete" },
+      ],
+    },
+    {
+      title: "Selection & Clipboard",
+      shortcuts: [
+        { keys: "Ctrl+A", description: "Select all" },
+        { keys: "Ctrl+C", description: "Copy" },
+        { keys: "Ctrl+X", description: "Cut" },
+        { keys: "Ctrl+V", description: "Paste" },
+        { keys: "Ctrl+Z", description: "Undo" },
+        { keys: "Ctrl+Y", description: "Redo" },
+        { keys: "Escape", description: "Clear selection" },
       ],
     },
   ],

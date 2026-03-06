@@ -171,6 +171,32 @@ export class WorkspaceKeyboardHandler {
       return;
     }
 
+    // --- Dired-style bare-key shortcuts (no modifier) ---
+    if (!ctrlOrMeta && !e.altKey && !e.shiftKey) {
+      if (e.key === "g") {
+        e.preventDefault();
+        this.callbacks.refresh();
+        return;
+      }
+      if (e.key === "+" || e.key === "=") {
+        e.preventDefault();
+        const sel = this.stateManager.getSelected();
+        const targetPath =
+          sel && this.callbacks.isItemDirectory(sel)
+            ? sel
+            : sel
+              ? this.callbacks.getParentPath(sel)
+              : "";
+        this.fileActions.createNewFolder(targetPath);
+        return;
+      }
+      if (e.key === "/") {
+        e.preventDefault();
+        this.callbacks.showSearchInput();
+        return;
+      }
+    }
+
     const selectedPaths = this.selectionHandler.getSelectedPaths();
     const selected = this.stateManager.getSelected();
 
