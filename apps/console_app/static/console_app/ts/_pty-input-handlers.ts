@@ -6,10 +6,30 @@
 import { showPastePreview } from "./_paste-preview";
 import { uploadFiles } from "./_upload-utils";
 
+/** Show a brief thumbnail toast for pasted images (auto-dismiss). */
+function showImageToast(blob: Blob, containerEl: HTMLElement): void {
+  const url = URL.createObjectURL(blob);
+  const toast = document.createElement("div");
+  toast.className = "pty-image-toast";
+  const img = document.createElement("img");
+  img.src = url;
+  const span = document.createElement("span");
+  span.textContent = "Uploading\u2026";
+  toast.appendChild(img);
+  toast.appendChild(span);
+  containerEl.appendChild(toast);
+  setTimeout(() => {
+    toast.remove();
+    URL.revokeObjectURL(url);
+  }, 2000);
+}
+
 /** Attach keyboard shortcut handler (clipboard, navigation, zen mode). */
 export function attachKeyboardHandler(
   term: any,
   getWs: () => WebSocket | null,
+  containerEl: HTMLElement,
+  projectId: number,
 ): void {
   term.attachCustomKeyEventHandler((event: KeyboardEvent) => {
     // Global navigation shortcuts (Alt+key) - HIGHEST PRIORITY
@@ -57,14 +77,44 @@ export function attachKeyboardHandler(
       return true;
     }
 
-    // Ctrl+V: Paste from clipboard (text only — images handled by paste event)
+    // Ctrl+V: Paste — check for images first, then fall back to text
     if (event.ctrlKey && (event.key === "V" || event.key === "v")) {
-      navigator.clipboard.readText().then((text: string) => {
-        const ws = getWs();
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(text);
-        }
-      });
+      navigator.clipboard
+        .read()
+        .then(async (items) => {
+          for (const item of items) {
+            const imageType = item.types.find((t: string) =>
+              t.startsWith("image/"),
+            );
+            if (imageType) {
+              const blob = await item.getType(imageType);
+              const ext = imageType.split("/")[1] || "png";
+              const file = new File([blob], `clipboard.${ext}`, {
+                type: imageType,
+              });
+              showImageToast(blob, containerEl);
+              try {
+                const paths = await uploadFiles([file], projectId);
+                const ws = getWs();
+                if (ws?.readyState === WebSocket.OPEN) ws.send(paths.join(" "));
+              } catch (err) {
+                console.error("[PTY] Clipboard image upload error:", err);
+              }
+              return;
+            }
+          }
+          // No image — text paste
+          const text = await navigator.clipboard.readText();
+          const ws = getWs();
+          if (ws && ws.readyState === WebSocket.OPEN) ws.send(text);
+        })
+        .catch(() => {
+          // clipboard.read() not supported or denied — fall back to text
+          navigator.clipboard.readText().then((text: string) => {
+            const ws = getWs();
+            if (ws && ws.readyState === WebSocket.OPEN) ws.send(text);
+          });
+        });
       return false;
     }
 
