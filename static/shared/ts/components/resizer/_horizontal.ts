@@ -56,10 +56,12 @@ export class HorizontalResizer extends BaseResizer {
   }
 
   protected setSize(el: HTMLElement, px: number): void {
+    el.style.flexBasis = `${px}px`;
     el.style.width = `${px}px`;
   }
 
   protected clearSize(el: HTMLElement): void {
+    el.style.flexBasis = "";
     el.style.width = "";
   }
 

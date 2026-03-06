@@ -176,8 +176,12 @@
 }
 
 /* Dark mode background for pdfjs-viewer - matches Monaco/VS Code background */
-[data-theme="dark"] .pdfjs-viewer,
-.pdfjs-viewer[data-theme="dark"] {
+/* Global dark theme: parent has data-theme="dark" */
+[data-theme="dark"] .pdfjs-viewer {
+  background: #1e1e1e;
+}
+/* PDF-specific dark mode: viewer has data-pdf-theme="dark" (independent of global theme) */
+.pdfjs-viewer[data-pdf-theme="dark"] {
   background: #1e1e1e;
 }
 

@@ -115,7 +115,6 @@ export class ComponentInitializer {
     this.resetPanelStyles();
 
     // Initialize editor/preview resizers with PDF optimization hooks
-    // Two resizers bracket the mode-selector: left (editor-side) and right (preview-side)
     const panelResizer = this.initializeEditorResizer();
     const previewResizer = this.initializePreviewResizer();
 
@@ -358,15 +357,12 @@ export class ComponentInitializer {
   }
 
   /**
-   * Initialize preview-side resizer (right of mode-selector)
-   * Mirrors editor resizer but positioned on the other side of the nav bar.
+   * Initialize preview-side resizer (right edge of mode-selector)
+   * Shares the same panel pair and storage key as the editor resizer.
    */
   private initializePreviewResizer(): HorizontalResizer | null {
     const resizerEl = document.getElementById("writer-preview-resizer");
-    if (!resizerEl) {
-      console.warn("[ComponentInitializer] Preview resizer element not found");
-      return null;
-    }
+    if (!resizerEl) return null;
 
     try {
       return new HorizontalResizer(resizerEl, {
@@ -378,7 +374,7 @@ export class ComponentInitializer {
         isMostRight: false,
         thresholdPx: 40,
         isInApp: true,
-        storageKey: "scitex-writer-editor-split",
+        storageKey: "scitex-writer-preview-split",
         onDragStart: () => {
           const pdfIframe = document.querySelector(
             ".preview-panel iframe",
