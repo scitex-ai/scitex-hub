@@ -20,7 +20,7 @@
           data-user-type="{% if user.is_authenticated and user.username|slice:':8' == 'visitor-' %}visitor{% elif user.is_authenticated %}registered{% else %}anonymous{% endif %}"
           {% if user.is_authenticated %}data-current-username="{{ user.username }}"{% endif %}
           data-track-module="{% if active_module %}{{ active_module.get_track_module }}{% elif '/server-status' in request.path %}server_status{% elif '/explore/' in request.path %}explore{% elif '/workspace/' in request.path %}files{% endif %}"
-          class="{% if request.path == '/' %}workspace-page landing-page{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
+          class="{% if request.path == '/' or request.path == '/landing/' %}workspace-page landing-page{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
         <!-- Hidden CSRF token for JavaScript API calls -->
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
         {% include 'global_base_partials/global_header.html' %}
