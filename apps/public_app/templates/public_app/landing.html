@@ -42,10 +42,12 @@
     <link rel="stylesheet" href="{% static 'public_app/css/landing-commitment.css' %}" />
 {% endblock %}
 {% block content %}
+    <div class="landing-cushion" aria-hidden="true"></div>
     {% include 'public_app/landing_partials/landing_announcement.html' %}
     {% include 'public_app/landing_partials/landing_hero.html' %}
     {# Ecosystem table moved to Python docs page #}
     {# {% include 'public_app/landing_partials/landing_ecosystem.html' %} #}
+    <div class="landing-cushion" aria-hidden="true"></div>
 {% endblock %}
 {% block extra_js %}
     <!-- Landing page scripts via Vite -->

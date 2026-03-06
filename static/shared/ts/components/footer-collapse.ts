@@ -102,9 +102,15 @@ function initializeFooterCollapse(): void {
   if (!footer || !toggleBtn) return;
 
   // Restore saved state (default: collapsed on workspace pages, expanded on landing)
+  // Landing page always shows footer expanded regardless of user preference
+  const isLanding = document.body.classList.contains("landing-page");
   const saved = localStorage.getItem(FOOTER_COLLAPSE_KEY);
   const isWorkspace = document.body.classList.contains("workspace-page");
-  const isCollapsed = saved === null ? isWorkspace : saved === "true";
+  const isCollapsed = isLanding
+    ? false
+    : saved === null
+      ? isWorkspace
+      : saved === "true";
 
   if (isCollapsed) {
     footer.classList.add("collapsed");
