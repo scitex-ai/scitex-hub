@@ -487,6 +487,6 @@
     <!-- Vis app modules (Vite) -->
     {% vite_script 'vis_app/editor-inline' %}
     {% vite_script 'vis_app/vis-editor' %}
-    <!-- figrecipe React bridge (replaces iframe postMessage integration) -->
-    {% vite_script 'vis_app/figrecipe-bridge-init' %}
+    <!-- figrecipe React bridge (dev only - requires figrecipe mount) -->
+    {% if debug %}{% vite_script 'vis_app/figrecipe-bridge-init' %}{% endif %}
 {% endblock %}
