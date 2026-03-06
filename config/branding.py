@@ -9,7 +9,7 @@ via Django settings or context processors.
 
 # Core branding
 SITE_NAME = "SciTeX"
-SITE_TAGLINE = "Research Automation for Humans and AI Agents"
+SITE_TAGLINE = "Research Automation for AI and Humans"
 SITE_DESCRIPTION = (
     "Python toolkit + MCP server for literature search, "
     "statistics, visualization, and manuscript writing."
