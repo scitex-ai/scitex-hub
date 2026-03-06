@@ -1,0 +1,86 @@
+<!-- Web-Based Creation -->
+<span id="web-creation"></span>
+<section class="api-section">
+    <h2>
+        <i class="fas fa-globe"></i> Web-Based Creation (<code>/new/</code>)
+    </h2>
+    <p>
+        You can also create apps directly from the browser at
+        <a href="/new/">/new/</a>. The creation page offers several project types:
+    </p>
+    <table class="api-table">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <strong>App Template</strong>
+                </td>
+                <td>
+                    Scaffolds a complete app with manifest, views, templates, CSS, skill,
+                    and tests &mdash; same output as <code>scitex-cloud app init</code>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <strong>Project Template</strong>
+                </td>
+                <td>
+                    Clone from templates provided by the <code>scitex</code> Python package
+                    (research_minimal, pip_project, paper_directory, etc.)
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <strong>Empty / Git Clone / GitHub Import</strong>
+                </td>
+                <td>Start from scratch, clone an existing repo, or import from GitHub</td>
+            </tr>
+        </tbody>
+    </table>
+    <p>
+        When you select <strong>App Template</strong>, the platform calls
+        <code>scitex_cloud.app_tools.scaffold()</code> to generate the full boilerplate,
+        creates a Gitea repository, and initializes the project &mdash; all in one step.
+    </p>
+</section>
+<!-- AI-Assisted Creation -->
+<span id="ai-assisted"></span>
+<section class="api-section">
+    <h2>
+        <i class="fas fa-robot"></i> AI-Assisted Creation
+    </h2>
+    <p>
+        AI agents in the <a href="/docs/content/chat/">AI Chat</a> panel and the
+        <a href="/docs/content/console/">Console</a> terminal already have knowledge
+        of the entire SciTeX app architecture. You can ask the AI to:
+    </p>
+    <ul>
+        <li>Scaffold a new app end-to-end (file structure, registry, URLs, tests)</li>
+        <li>Explain any concept on this page interactively</li>
+        <li>Generate manifest schemas for your data models</li>
+        <li>Wire up Platform Services (DataStore, JobQueue, etc.)</li>
+        <li>Create CSS theming with the correct variable names</li>
+        <li>Debug validation errors before submission</li>
+    </ul>
+    <p>
+        This works because each module registers a
+        <a href="/docs/content/agent-tooling/#skills">Skill</a> that feeds
+        domain knowledge to the AI. The platform skill is auto-generated from
+        all <code>apps/*/skill.py</code> registrations and deployed on every
+        terminal connect.
+    </p>
+    <div class="api-callout api-callout-info">
+        <i class="fas fa-info-circle"></i>
+        <div>
+            <strong>Try it:</strong> Open the Console terminal and ask
+            <em>&ldquo;Create a new workspace app called sample_tracker_app
+                with a DataStore for samples&rdquo;</em> &mdash; the AI will scaffold
+                the entire app structure for you.
+            </div>
+        </div>
+    </section>

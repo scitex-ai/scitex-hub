@@ -1,5 +1,7 @@
 <h3>Resizer</h3>
-<p>Drag-to-resize panels horizontally or vertically, with collapse/expand and persistent sizing via localStorage.</p>
+<p>
+    Drag-to-resize panels horizontally or vertically, with collapse/expand, magnetic snap, and persistent sizing via localStorage.
+</p>
 <h4>
     <i class="fas fa-download me-1"></i>Import
 </h4>
@@ -7,10 +9,11 @@
 // For manual use:
 import { HorizontalResizer, VerticalResizer, autoInit } from '@shared/components/resizer';</code></pre>
 <h4>
-    <i class="fas fa-code me-1"></i>HTML — Horizontal
+    <i class="fas fa-code me-1"></i>HTML — Horizontal (data-attribute auto-init)
 </h4>
-<pre><code>&lt;div class="my-layout" style="display:flex"&gt;
-  &lt;div class="left-panel" style="width:240px"&gt;...&lt;/div&gt;
+<pre><code>&lt;!-- Parent must be display:flex (via CSS class) --&gt;
+&lt;div class="my-flex-layout"&gt;
+  &lt;div class="left-panel"&gt;...&lt;/div&gt;
 
   &lt;div class="h-resizer"
        data-h-resizer
@@ -19,16 +22,20 @@ import { HorizontalResizer, VerticalResizer, autoInit } from '@shared/components
        data-icon="fa-chevron-left"
        data-title="Files"
        data-most-left
-       data-threshold="40"&gt;
+       data-dblclick-toggle
+       data-threshold="40"
+       data-storage-key="my-app-sidebar"
+       data-external-toggle="my-toggle-btn"&gt;
   &lt;/div&gt;
 
-  &lt;div class="right-panel" style="flex:1"&gt;...&lt;/div&gt;
+  &lt;div class="right-panel"&gt;...&lt;/div&gt;
 &lt;/div&gt;</code></pre>
 <h4>
-    <i class="fas fa-code me-1"></i>HTML — Vertical
+    <i class="fas fa-code me-1"></i>HTML — Vertical (data-attribute auto-init)
 </h4>
-<pre><code>&lt;div class="my-layout" style="display:flex;flex-direction:column"&gt;
-  &lt;div class="top-panel" style="height:300px"&gt;...&lt;/div&gt;
+<pre><code>&lt;!-- Parent must be display:flex; flex-direction:column (via CSS class) --&gt;
+&lt;div class="my-column-layout"&gt;
+  &lt;div class="top-panel"&gt;...&lt;/div&gt;
 
   &lt;div class="v-resizer"
        data-v-resizer
@@ -37,11 +44,37 @@ import { HorizontalResizer, VerticalResizer, autoInit } from '@shared/components
        data-icon="fa-chevron-up"
        data-title="Output"
        data-most-bottom
+       data-dblclick-toggle
        data-threshold="40"&gt;
   &lt;/div&gt;
 
-  &lt;div class="bottom-panel" style="flex:1"&gt;...&lt;/div&gt;
+  &lt;div class="bottom-panel"&gt;...&lt;/div&gt;
 &lt;/div&gt;</code></pre>
+<h4>
+    <i class="fas fa-code me-1"></i>Programmatic (TypeScript)
+</h4>
+<pre><code>import { HorizontalResizer } from '@shared/components/resizer';
+
+// Programmatic initialization with callbacks (e.g. Writer editor/preview)
+const resizer = new HorizontalResizer(resizerEl, {
+  left: ".latex-panel",
+  right: ".preview-panel",
+  icon: "",            // No toggle button
+  title: "Split",
+  isMostLeft: false,   // Left panel cannot collapse
+  isMostRight: false,  // Right panel cannot collapse
+  thresholdPx: 40,
+  isInApp: true,       // In-app scoping
+  storageKey: "my-app-editor-split",
+  onDragStart: () =&gt; {
+    // Hide iframes/heavy content during drag for performance
+    iframe.visibility = "hidden";
+  },
+  onDragEnd: () =&gt; {
+    iframe.visibility = "visible";
+    pdfViewer?.fitWidth();
+  },
+});</code></pre>
 <h4>
     <i class="fas fa-sliders-h me-1"></i>Data Attributes
 </h4>
@@ -152,8 +185,85 @@ import { HorizontalResizer, VerticalResizer, autoInit } from '@shared/components
             <td>string</td>
             <td>Tooltip title for the toggle button</td>
         </tr>
+        <tr>
+            <td>
+                <code>data-dblclick-toggle</code>
+            </td>
+            <td>flag</td>
+            <td>Enables double-click on resizer handle to toggle collapse/expand</td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-storage-key</code>
+            </td>
+            <td>string</td>
+            <td>Custom localStorage key (default: auto-generated from panel selectors)</td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-external-toggle</code>
+            </td>
+            <td>string</td>
+            <td>ID of an external button that toggles collapse (e.g. a sidebar toggle in a toolbar)</td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-accordion</code>
+            </td>
+            <td>flag</td>
+            <td>When one panel collapses, the other expands fully and the resizer hides</td>
+        </tr>
+        <tr>
+            <td>
+                <code>data-snap</code>
+            </td>
+            <td>string</td>
+            <td>
+                Explicit snap points in pixels, comma-separated (e.g. <code>"200,400,600"</code>)
+            </td>
+        </tr>
     </tbody>
 </table>
+<h4>
+    <i class="fas fa-magnet me-1"></i>Magnetic Snap
+</h4>
+<p>
+    Resizers have built-in <strong>magnetic snap</strong> at percentage-based positions
+    (20%, 25%, 33%, 50%, 67%, 75%, 80% of the container). When dragging near a snap point,
+    the resizer is physically pulled toward it (32px radius, 8px lock zone). A brief
+    green flash on the resizer handle provides visual feedback. Explicit pixel snap points
+    can be added via <code>data-snap</code>.
+</p>
+<h4>
+    <i class="fas fa-exclamation-triangle me-1"></i>Gotchas for App Makers
+</h4>
+<ul>
+    <li>
+        <strong>flex-basis priority</strong>: In flex layouts, <code>flex-basis</code> takes
+        precedence over <code>width</code>/<code>height</code>. The resizer sets both
+        <code>flexBasis</code> and <code>width</code>/<code>height</code> during drag. If your
+        CSS declares <code>flex: 1 1 0%</code>, the <code>flex-basis: 0%</code> will override
+        width &mdash; the resizer handles this automatically.
+    </li>
+    <li>
+        <strong>Double-init prevention</strong>: The <code>data-resizer-initialized</code>
+        attribute prevents re-initialization when multiple Vite bundles load on the same page.
+        If you programmatically create a resizer, the auto-init from <code>data-h-resizer</code>
+        will skip it.
+    </li>
+    <li>
+        <strong>iframes during drag</strong>: Hide iframes (PDF viewers, embeds) during drag
+        via <code>onDragStart</code>/<code>onDragEnd</code> callbacks. Otherwise the iframe
+        captures mouse events and breaks drag.
+    </li>
+    <li>
+        <strong>Two resizer systems</strong>: The <em>new</em> system (<code>data-h-resizer</code> /
+        <code>data-v-resizer</code>) in <code>shared/ts/components/resizer/</code> and the
+        <em>legacy</em> system (<code>data-panel-resizer</code>) in
+        <code>shared/ts/components/_workspace-panel-resizer/</code> coexist.
+        New apps should use the new system exclusively.
+    </li>
+</ul>
 <div class="api-callout api-callout-info">
     <i class="fas fa-info-circle"></i>
     <div>

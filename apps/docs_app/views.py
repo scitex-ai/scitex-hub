@@ -14,6 +14,7 @@ from ._context_builders import build_page_context
 # Documentation page registry — single source of truth for sidebar + content
 # ---------------------------------------------------------------------------
 DOCS_PAGES = [
+    # ── Getting Started ─────────────────────────────────────────────
     {
         "slug": "python-packages",
         "label": "Python Packages",
@@ -43,31 +44,25 @@ DOCS_PAGES = [
         "badges": ["user"],
     },
     {
-        "slug": "agent",
-        "label": "Agent Integration",
-        "icon": "fas fa-robot",
-        "template": "docs_app/docs_agent.html",
-        "badges": ["user"],
-    },
-    {
         "slug": "console",
         "label": "Console",
         "icon": "fas fa-terminal",
         "template": "docs_app/docs_console.html",
         "badges": ["user"],
     },
-    {
-        "slug": "auto-response",
-        "label": "Auto-Response",
-        "icon": "fas fa-reply",
-        "template": "docs_app/docs_auto_response.html",
-        "badges": ["user"],
-    },
+    # ── AI Features ─────────────────────────────────────────────────
     {
         "slug": "chat",
         "label": "AI Chat",
         "icon": "fas fa-comments",
         "template": "docs_app/docs_chat.html",
+        "badges": ["user"],
+    },
+    {
+        "slug": "agent",
+        "label": "Agent Integration",
+        "icon": "fas fa-robot",
+        "template": "docs_app/docs_agent.html",
         "badges": ["user"],
     },
     {
@@ -78,25 +73,19 @@ DOCS_PAGES = [
         "badges": ["user"],
     },
     {
+        "slug": "auto-response",
+        "label": "Auto-Response",
+        "icon": "fas fa-reply",
+        "template": "docs_app/docs_auto_response.html",
+        "badges": ["user"],
+    },
+    # ── App Maker (User → Dev → Admin) ──────────────────────────────
+    {
         "slug": "app-maker",
         "label": "App Maker: Overview",
         "icon": "fas fa-puzzle-piece",
         "template": "docs_app/docs_app_maker.html",
         "badges": ["user"],
-    },
-    {
-        "slug": "agpl-v3",
-        "label": "AGPL v3.0",
-        "icon": "fas fa-balance-scale",
-        "template": "docs_app/docs_agpl.html",
-        "badges": [],
-    },
-    {
-        "slug": "web-api",
-        "label": "Web API",
-        "icon": "fas fa-plug",
-        "template": "docs_app/docs_api_content.html",
-        "badges": ["dev"],
     },
     {
         "slug": "app-maker-users",
@@ -113,18 +102,19 @@ DOCS_PAGES = [
         "badges": ["dev"],
     },
     {
-        "slug": "self-hosting",
-        "label": "Self-Hosting",
-        "icon": "fas fa-server",
-        "template": "docs_app/docs_self_hosting.html",
-        "badges": ["admin"],
-    },
-    {
         "slug": "app-maker-admins",
         "label": "App Maker: Admins",
         "icon": "fas fa-cog",
         "template": "docs_app/docs_app_maker_admins.html",
         "badges": ["admin"],
+    },
+    # ── Developer Reference ─────────────────────────────────────────
+    {
+        "slug": "web-api",
+        "label": "Web API",
+        "icon": "fas fa-plug",
+        "template": "docs_app/docs_api_content.html",
+        "badges": ["dev"],
     },
     {
         "slug": "design-rules",
@@ -160,6 +150,22 @@ DOCS_PAGES = [
         "icon": "fas fa-user-clock",
         "template": "docs_app/docs_visitor_lifecycle.html",
         "badges": ["dev"],
+    },
+    # ── Administration ──────────────────────────────────────────────
+    {
+        "slug": "self-hosting",
+        "label": "Self-Hosting",
+        "icon": "fas fa-server",
+        "template": "docs_app/docs_self_hosting.html",
+        "badges": ["admin"],
+    },
+    # ── Legal ───────────────────────────────────────────────────────
+    {
+        "slug": "agpl-v3",
+        "label": "AGPL v3.0",
+        "icon": "fas fa-balance-scale",
+        "template": "docs_app/docs_agpl.html",
+        "badges": [],
     },
 ]
 
