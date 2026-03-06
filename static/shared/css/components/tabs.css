@@ -41,7 +41,6 @@
   margin-bottom: 1.5rem;
   overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-width: thin;
   scroll-behavior: smooth;
 }
 
@@ -311,7 +310,6 @@
   margin-bottom: 1.5rem;
   overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-width: thin;
   scroll-behavior: smooth;
 }
 

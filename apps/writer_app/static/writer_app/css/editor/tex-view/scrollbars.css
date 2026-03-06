@@ -67,33 +67,10 @@
   background: #5a6269 !important;
 }
 
-/* Firefox scrollbar styling (applies to all elements globally) */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--workspace-border-default) var(--workspace-bg-secondary);
-}
+/* Global scrollbar: handled by shared/css/utilities/scrollbars.css */
 
 /* Dark mode Firefox scrollbar for PDF preview */
 [data-theme="dark"] .text-preview,
 .text-preview[data-pdf-theme="dark"] {
   scrollbar-color: #4a5259 #2d3339;
-}
-
-*::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-*::-webkit-scrollbar-track {
-  background: var(--workspace-bg-secondary);
-}
-
-*::-webkit-scrollbar-thumb {
-  background: var(--workspace-border-default);
-  border-radius: 5px;
-  border: 2px solid var(--workspace-bg-secondary);
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
 }

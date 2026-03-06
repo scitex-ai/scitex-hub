@@ -32,23 +32,7 @@
   outline-color: var(--color-accent-fg, rgba(47, 129, 247, 0.4));
 }
 
-/* Scrollbar styling */
-.workspace-files-tree::-webkit-scrollbar {
-  width: 8px;
-}
-
-.workspace-files-tree::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.workspace-files-tree::-webkit-scrollbar-thumb {
-  background-color: var(--color-border-muted, rgba(127, 127, 127, 0.3));
-  border-radius: 4px;
-}
-
-.workspace-files-tree::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-border-default, rgba(127, 127, 127, 0.5));
-}
+/* Scrollbar: uses global scrollbars.css — no per-component overrides needed */
 
 /* Keyboard focus - disabled to avoid distracting border changes during tree actions */
 .workspace-files-tree:focus,
