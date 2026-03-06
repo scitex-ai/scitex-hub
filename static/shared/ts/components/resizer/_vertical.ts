@@ -42,6 +42,7 @@ export class VerticalResizer extends BaseResizer {
       onDragStart: config.onDragStart,
       onDragEnd: config.onDragEnd,
       accordion: config.accordion,
+      snapPoints: config.snapPoints,
     });
   }
 
@@ -86,6 +87,9 @@ export class VerticalResizer extends BaseResizer {
       isInApp: el.hasAttribute("data-in-app"),
       storageKey: el.dataset.storageKey,
       accordion: el.hasAttribute("data-accordion"),
+      snapPoints: el.dataset.snap
+        ? el.dataset.snap.split(",").map((s) => parseInt(s.trim(), 10))
+        : undefined,
     };
   }
 }

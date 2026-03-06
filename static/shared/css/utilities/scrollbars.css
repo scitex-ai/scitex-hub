@@ -37,3 +37,18 @@
   scrollbar-width: thin;
   scrollbar-color: var(--workspace-border-default) var(--workspace-bg-secondary);
 }
+
+/* Scroll-snap: align to item boundaries in list-like panes.
+   Uses "proximity" so snapping only engages near an item edge — free
+   scrolling still feels natural. */
+.wft-content,
+.repo-monitor-content,
+.jobs-list {
+  scroll-snap-type: y proximity;
+}
+
+.wft-content > *,
+.repo-monitor-content > *,
+.jobs-list > * {
+  scroll-snap-align: start;
+}

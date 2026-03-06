@@ -14,8 +14,7 @@ Order is determined by each module's `order` field in registry.py.
                class="module-tab-btn{% if mod.is_active %} active{% endif %}"
                data-module="{{ mod.name }}"
                data-module-accent="{{ mod.name }}"
-               aria-label="{{ mod.label }}"
-               {% if mod.accent_color %}style="--module-accent-color: {{ mod.accent_color }}"{% endif %}>
+               aria-label="{{ mod.label }}">
                 {% module_icon mod.name %}
                 <span class="tab-label">{{ mod.label }}</span>
                 {% if mod.status == "wip" or mod.name == "apps" %}

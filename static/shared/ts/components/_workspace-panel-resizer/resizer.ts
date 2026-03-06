@@ -12,6 +12,7 @@
 import type { PanelConfig } from "./types";
 import { saveWidth, restoreWidth } from "./state";
 import { updateToggleIcon } from "./toggle";
+import { magneticSnap, percentSnapPoints } from "../resizer/_snap";
 
 /** Shared collapse threshold — panel collapses when width drops to this */
 const COLLAPSE_WIDTH = 40;
@@ -50,14 +51,15 @@ function getMaxAllowedWidth(panel: HTMLElement): number {
   return containerWidth - reserved;
 }
 
-/** Find the next non-collapsed resizable panel in the drag direction.
- *  Walks through siblings, skipping panes that are already collapsed or
- *  have no resizer (e.g., the module pane). This enables domino-style
- *  cascading through multiple panels.
+/** Find the next resizable panel in the given direction.
+ *  Walks through siblings, skipping panes that have no resizer (e.g.,
+ *  the module pane). Collapsed panels are skipped by default, but
+ *  included when curtain=true (for fixed-width curtain handles).
  */
 function findAdjacentPanel(
   config: PanelConfig,
   dragDirection: "shrink-left" | "shrink-right",
+  curtain: boolean = false,
 ): { panel: HTMLElement; config: PanelConfig } | null {
   const targetPanel = document.querySelector(config.targetPanel) as HTMLElement;
   if (!targetPanel) return null;
@@ -67,7 +69,7 @@ function findAdjacentPanel(
   );
   if (!paneContainer) return null;
 
-  // Walk siblings until we find a non-collapsed resizable panel
+  // Walk siblings until we find a resizable panel
   let current: Element | null = paneContainer;
   while (current) {
     const sibling =
@@ -89,13 +91,13 @@ function findAdjacentPanel(
       continue;
     }
 
-    // Skip already-collapsed panels (force passes through them)
-    if (siblingPanel.classList.contains("collapsed")) {
+    // Skip collapsed panels unless curtain mode (curtain un-collapses them)
+    if (siblingPanel.classList.contains("collapsed") && !curtain) {
       current = sibling;
       continue;
     }
 
-    // Found a non-collapsed, resizable panel
+    // Found a resizable panel
     const sibConfig: PanelConfig = {
       resizerId: siblingResizer.id,
       targetPanel: `#${siblingPanel.id}`,
@@ -156,7 +158,6 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
   let startWidth = 0;
   let wasCollapsed = false;
   let primaryCollapsed = false; // true once primary panel collapses during drag
-
   // Track propagation state: when the primary panel collapses during drag,
   // we start resizing the adjacent panel
   let propagationTarget: {
@@ -236,13 +237,36 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
   const handleMouseMove = (e: MouseEvent) => {
     if (!isResizing) return;
 
-    // Fixed-width panel: propagate to adjacent panel based on drag direction
+    // Curtain handle: fixed-width panel propagates to the resizeDirection side.
+    // Drag delta sign naturally handles shrink vs grow — no direction flip needed.
     if (config.fixedWidth && !propagationTarget) {
       const delta = e.clientX - startX;
       if (Math.abs(delta) < 3) return; // dead zone
-      const dragDir = delta < 0 ? "shrink-left" : "shrink-right";
-      const adjacent = findAdjacentPanel(config, dragDir);
+      const curtainDir: "shrink-left" | "shrink-right" =
+        config.resizeDirection === "left" ? "shrink-left" : "shrink-right";
+      const adjacent = findAdjacentPanel(config, curtainDir, true);
       if (adjacent) {
+        // Un-collapse panel if needed (curtain pulls it open)
+        if (adjacent.panel.classList.contains("collapsed")) {
+          adjacent.panel.classList.remove("collapsed");
+          adjacent.panel.style.width = `${adjacent.config.minWidth}px`;
+          adjacent.panel.style.flexShrink = "0";
+          adjacent.panel.style.flexGrow = "0";
+          if (adjacent.config.toggleButtonId) {
+            const toggleBtn = document.getElementById(
+              adjacent.config.toggleButtonId,
+            );
+            if (toggleBtn)
+              updateToggleIcon(
+                toggleBtn,
+                adjacent.config.resizeDirection,
+                false,
+              );
+          }
+          if (adjacent.config.collapseStorageKey) {
+            localStorage.setItem(adjacent.config.collapseStorageKey, "false");
+          }
+        }
         propagationTarget = {
           panel: adjacent.panel,
           config: adjacent.config,
@@ -267,6 +291,21 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
       // Cap propagation target so it doesn't push siblings off-screen
       const propMax = getMaxAllowedWidth(propagationTarget.panel);
       if (propNewWidth > propMax) propNewWidth = propMax;
+
+      // Magnetic snap propagation target to percentage points
+      const propFlex = propagationTarget.panel.closest(
+        ".workspace-three-col",
+      ) as HTMLElement;
+      if (propFlex) {
+        const propSnaps = percentSnapPoints(propFlex.clientWidth);
+        const propSnap = magneticSnap(propNewWidth, propSnaps);
+        propNewWidth = propSnap.value;
+        if (propSnap.snapped) {
+          resizer.classList.add("snapped");
+        } else {
+          resizer.classList.remove("snapped");
+        }
+      }
 
       if (propNewWidth < COLLAPSE_WIDTH) {
         // Collapse propagation target too, then try next panel
@@ -310,6 +349,21 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
     const maxWidth = getMaxAllowedWidth(targetPanel);
     if (newWidth > maxWidth) newWidth = maxWidth;
 
+    // Magnetic snap to percentage-based points
+    const flexContainer = targetPanel.closest(
+      ".workspace-three-col",
+    ) as HTMLElement;
+    if (flexContainer) {
+      const snaps = percentSnapPoints(flexContainer.clientWidth);
+      const snapResult = magneticSnap(newWidth, snaps);
+      newWidth = snapResult.value;
+      if (snapResult.snapped) {
+        resizer.classList.add("snapped");
+      } else {
+        resizer.classList.remove("snapped");
+      }
+    }
+
     // Smart collapse: if dragged below threshold, collapse and propagate
     if (newWidth < COLLAPSE_WIDTH) {
       primaryCollapsed = true;
@@ -341,6 +395,7 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
     document.body.style.cursor = "";
     document.body.style.userSelect = "";
     resizer.classList.remove("active");
+    resizer.classList.remove("snapped");
     enableTransitions();
 
     // Clear drag flag after click event has been processed (rAF delay)

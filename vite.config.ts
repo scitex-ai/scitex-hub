@@ -55,10 +55,15 @@ export default defineConfig({
       "@": resolve(__dirname, "static/shared/ts"),
       "@types": resolve(__dirname, "static/shared/ts/types"),
       "@utils": resolve(__dirname, "static/shared/ts/utils"),
-      "figrecipe-editor": resolve(
-        __dirname,
-        "../figrecipe/src/figrecipe/_django/frontend/src",
-      ),
+      // Only include figrecipe alias if figrecipe directory exists (dev only)
+      ...(fs.existsSync(resolve(__dirname, "../figrecipe"))
+        ? {
+            "figrecipe-editor": resolve(
+              __dirname,
+              "../figrecipe/src/figrecipe/_django/frontend/src",
+            ),
+          }
+        : {}),
     },
     extensions: [".ts", ".js", ".tsx", ".jsx", ".json"],
   },

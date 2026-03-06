@@ -3,7 +3,6 @@
  * Handles color mode management and theme application
  */
 
-
 export class PDFTheme {
   private colorMode: "light" | "dark" = "light";
 
@@ -63,7 +62,7 @@ export class PDFTheme {
    * Apply theme to viewer container
    */
   applyThemeToViewer(viewer: HTMLElement): void {
-    viewer.setAttribute("data-theme", this.colorMode);
+    viewer.setAttribute("data-pdf-theme", this.colorMode);
   }
 }
 

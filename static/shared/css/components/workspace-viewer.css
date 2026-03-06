@@ -16,6 +16,21 @@
   overflow: visible;
 }
 
+#ws-viewer-resizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+/* Initial hidden state for viewer sub-panes (toggled by JS) */
+.ws-viewer-monaco,
+.ws-viewer-preview,
+.ws-viewer-media {
+  display: none;
+}
+
 #ws-viewer-sidebar {
   position: relative;
   height: 100%;
@@ -42,6 +57,16 @@
 
 #ws-viewer-sidebar:not(.collapsed) .sidebar-title {
   display: none;
+}
+
+/* Mode toggle embedded in title */
+.ws-viewer-mode-toggle-title {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.ws-viewer-mode-toggle-title:hover {
+  color: var(--text-primary, #d4e1e8);
 }
 
 /* Hide header actions when collapsed */

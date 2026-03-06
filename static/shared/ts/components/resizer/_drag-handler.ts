@@ -4,6 +4,7 @@
  * Handles mousedown → mousemove → mouseup with:
  * - Smart collapse: panel collapses instantly during drag (not on mouseUp)
  * - Cascade propagation: remaining delta transfers to adjacent panel
+ * - Magnetic snap: resizer is physically pulled toward snap points
  * - Four resize modes: only-second, only-first, both, neither
  */
 
@@ -11,6 +12,7 @@ import type { BaseResizer } from "./_base";
 import type { PropagationTarget } from "./types";
 import { saveCollapsed, saveSize } from "./_state";
 import { updateToggleIcon } from "./_toggle";
+import { magneticSnap, percentSnapPoints } from "./_snap";
 
 /** Attach drag handling to a BaseResizer instance */
 export function attachDragHandler(resizer: BaseResizer): void {
@@ -71,6 +73,7 @@ function handleMouseUp(
   document.body.style.cursor = "";
   document.body.style.userSelect = "";
   r.getResizerEl().classList.remove("active");
+  r.getResizerEl().classList.remove("snapped");
   r.getFirstPanel().style.transition = "";
   r.getSecondPanel().style.transition = "";
   if (!r.getIsInApp()) {
@@ -96,12 +99,34 @@ function handleMouseUp(
   r.saveStatePublic();
 }
 
+/** Compute snap points for the current drag context */
+function getSnapPoints(r: BaseResizer): number[] {
+  const container = r.getFirstPanel().parentElement;
+  if (!container) return r.getSnapPoints();
+  const containerSize = r.getSizePublic(container);
+  const pctSnaps = percentSnapPoints(containerSize);
+  const explicit = r.getSnapPoints();
+  return explicit.length > 0 ? [...pctSnaps, ...explicit] : pctSnaps;
+}
+
+/** Apply magnetic snap to a raw size value and update visual feedback */
+function snap(r: BaseResizer, raw: number, snaps: number[]): number {
+  const result = magneticSnap(raw, snaps);
+  const el = r.getResizerEl();
+  if (result.snapped) {
+    el.classList.add("snapped");
+  } else {
+    el.classList.remove("snapped");
+  }
+  return result.value;
+}
+
 /**
  * Apply resize delta to primary panels.
  * Four cases via if/else if/else:
  *   1. Only second can collapse → size set on second
  *   2. Only first can collapse → size set on first
- *   3. Both/neither → proportional
+ *   3. Both/neither → proportional (snap first panel only to avoid conflicts)
  */
 function applyResize(r: BaseResizer, delta: number, e: MouseEvent): void {
   const first = r.getFirstPanel();
@@ -111,9 +136,12 @@ function applyResize(r: BaseResizer, delta: number, e: MouseEvent): void {
   const [startFirst, startSecond] = r.getStartSizes();
   const firstCan = r.getFirstCanCollapse();
   const secondCan = r.getSecondCanCollapse();
+  const snaps = getSnapPoints(r);
 
   if (secondCan && !firstCan) {
-    const newSize = startSecond - delta;
+    const totalSize = startFirst + startSecond;
+    const maxSize = totalSize - threshold; // protect first panel
+    const newSize = Math.min(snap(r, startSecond - delta, snaps), maxSize);
     if (newSize < threshold) {
       r.markPrimaryCollapsed();
       r.collapsePanelPublic("second");
@@ -128,7 +156,9 @@ function applyResize(r: BaseResizer, delta: number, e: MouseEvent): void {
     second.style.flexShrink = "0";
     second.style.flexGrow = "0";
   } else if (firstCan && !secondCan) {
-    const newSize = startFirst + delta;
+    const totalSize = startFirst + startSecond;
+    const maxSize = totalSize - threshold; // protect second panel
+    const newSize = Math.min(snap(r, startFirst + delta, snaps), maxSize);
     if (newSize < threshold) {
       r.markPrimaryCollapsed();
       r.collapsePanelPublic("first");
@@ -143,8 +173,9 @@ function applyResize(r: BaseResizer, delta: number, e: MouseEvent): void {
     first.style.flexShrink = "0";
     first.style.flexGrow = "0";
   } else {
-    let newFirst = startFirst + delta;
-    let newSecond = startSecond - delta;
+    // Snap first panel only; second adjusts to fill remaining space
+    const newFirst = snap(r, startFirst + delta, snaps);
+    let newSecond = startSecond - (newFirst - startFirst);
 
     if (firstCan && newFirst < threshold) {
       r.markPrimaryCollapsed();
@@ -159,8 +190,12 @@ function applyResize(r: BaseResizer, delta: number, e: MouseEvent): void {
       return;
     }
 
-    if (!firstCan && newFirst < threshold) newFirst = threshold;
+    if (!firstCan && newFirst < threshold) {
+      newSecond = startFirst + startSecond - threshold;
+    }
     if (!secondCan && newSecond < threshold) newSecond = threshold;
+
+    const finalFirst = !firstCan && newFirst < threshold ? threshold : newFirst;
 
     if (first.classList.contains("collapsed")) {
       first.classList.remove("collapsed");
@@ -171,7 +206,7 @@ function applyResize(r: BaseResizer, delta: number, e: MouseEvent): void {
       saveCollapsed(key + "-second", false);
     }
 
-    r.setSizePublic(first, newFirst);
+    r.setSizePublic(first, finalFirst);
     first.style.flexShrink = "0";
     first.style.flexGrow = "0";
     r.setSizePublic(second, newSecond);
@@ -200,7 +235,8 @@ function applyPropagation(r: BaseResizer, e: MouseEvent): void {
   if (!prop) return;
 
   const propDelta = r.getMousePosPublic(e) - prop.startPos;
-  const newSize = prop.startSize + propDelta;
+  const snaps = getSnapPoints(r);
+  const newSize = snap(r, prop.startSize + propDelta, snaps);
 
   if (newSize < prop.thresholdPx) {
     // Cascade: collapse target, find next

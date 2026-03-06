@@ -43,6 +43,7 @@ export class HorizontalResizer extends BaseResizer {
       onDragEnd: config.onDragEnd,
       externalToggleBtnId: config.externalToggleBtnId,
       accordion: config.accordion,
+      snapPoints: config.snapPoints,
     });
   }
 
@@ -55,10 +56,12 @@ export class HorizontalResizer extends BaseResizer {
   }
 
   protected setSize(el: HTMLElement, px: number): void {
+    el.style.flexBasis = `${px}px`;
     el.style.width = `${px}px`;
   }
 
   protected clearSize(el: HTMLElement): void {
+    el.style.flexBasis = "";
     el.style.width = "";
   }
 
@@ -156,6 +159,9 @@ export class HorizontalResizer extends BaseResizer {
       storageKey: el.dataset.storageKey,
       externalToggleBtnId: el.dataset.externalToggle,
       accordion: el.hasAttribute("data-accordion"),
+      snapPoints: el.dataset.snap
+        ? el.dataset.snap.split(",").map((s) => parseInt(s.trim(), 10))
+        : undefined,
     };
   }
 }

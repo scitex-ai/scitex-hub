@@ -11,7 +11,7 @@
 [data-theme="dark"] .preview-panel {
   background-color: var(--workspace-bg-primary) !important;
   border-color: var(--workspace-border-subtle);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: none; /* flat workspace design — resizers handle separation */
 }
 
 /* PDF viewer and preview areas - match Monaco editor background */

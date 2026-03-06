@@ -49,9 +49,8 @@
 #writer-mode-selector {
   width: 50px;
   flex-shrink: 0;
-  box-shadow:
-    inset 1px 0 0 var(--workspace-border-default, #3a3a3a),
-    inset -1px 0 0 var(--workspace-border-default, #3a3a3a);
+  /* Left border removed — h-resizer handles separation from latex panel */
+  box-shadow: inset -1px 0 0 var(--workspace-border-default, #3a3a3a);
 }
 
 /* Views inside preview-body take remaining space */

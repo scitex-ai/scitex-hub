@@ -34,6 +34,7 @@ export abstract class BaseResizer {
   protected isInApp: boolean;
   protected storageKey: string;
   protected accordion: boolean;
+  protected snapPointsExplicit: number[];
   private _onDragStart?: () => void;
   private _onDragEnd?: () => void;
   protected externalToggleBtn: HTMLElement | null = null;
@@ -64,6 +65,7 @@ export abstract class BaseResizer {
     this.isInApp = opts.isInApp;
     this.storageKey = opts.storageKey;
     this.accordion = opts.accordion ?? false;
+    this.snapPointsExplicit = opts.snapPoints ?? [];
     this._onDragStart = opts.onDragStart;
     this._onDragEnd = opts.onDragEnd;
 
@@ -120,6 +122,9 @@ export abstract class BaseResizer {
   }
   getAccordion(): boolean {
     return this.accordion;
+  }
+  getSnapPoints(): number[] {
+    return this.snapPointsExplicit;
   }
   getCursorPublic(): string {
     return this.getCursor();
@@ -204,6 +209,14 @@ export abstract class BaseResizer {
   // --- Initialization ---
 
   private init(): void {
+    // Prevent double-initialization across Vite bundles.
+    // Each bundle has its own module scope, so the module-level Set doesn't help.
+    if (this.resizerEl.hasAttribute("data-resizer-initialized")) {
+      console.log(`${LOG} Skipping double-init for ${this.storageKey}`);
+      return;
+    }
+    this.resizerEl.setAttribute("data-resizer-initialized", "true");
+
     // Toggle button: on resizer handle (in-app) or external (frame-level)
     if (this.icon && !this.externalToggleBtn) {
       this.toggleBtn = createToggleButton(
@@ -252,9 +265,20 @@ export abstract class BaseResizer {
     } else if (secondCollapsed === true && this.secondCanCollapse) {
       this.collapsePanel("second");
     } else {
+      // Guard: compute available space so a restored size can't squeeze
+      // the opposite panel below threshold (protects against stale values)
+      const container = this.firstPanel.parentElement;
+      const totalAvailable = container
+        ? this.getSize(container)
+        : this.getSize(this.firstPanel) + this.getSize(this.secondPanel);
+
       if (this.firstCanCollapse) {
         const s = restoreSize(this.storageKey + "-first");
-        if (s && s > this.thresholdPx) {
+        if (
+          s &&
+          s > this.thresholdPx &&
+          s < totalAvailable - this.thresholdPx
+        ) {
           this.setSize(this.firstPanel, s);
           this.firstPanel.style.flexShrink = "0";
           this.firstPanel.style.flexGrow = "0";
@@ -262,7 +286,11 @@ export abstract class BaseResizer {
       }
       if (this.secondCanCollapse) {
         const s = restoreSize(this.storageKey + "-second");
-        if (s && s > this.thresholdPx) {
+        if (
+          s &&
+          s > this.thresholdPx &&
+          s < totalAvailable - this.thresholdPx
+        ) {
           this.setSize(this.secondPanel, s);
           this.secondPanel.style.flexShrink = "0";
           this.secondPanel.style.flexGrow = "0";

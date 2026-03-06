@@ -3,7 +3,6 @@
  * Handles canvas-based rendering of PDF pages with quality settings
  */
 
-
 export class PDFRenderer {
   private renderQuality: number = 2.0; // 2x default (144 DPI, crisp on screen)
   private colorMode: "light" | "dark" = "light";
@@ -27,7 +26,7 @@ export class PDFRenderer {
     this.colorMode = colorMode;
 
     // Create viewer container
-    const viewerHtml = `<div class="pdfjs-viewer" id="pdfjs-viewer" data-theme="${this.colorMode}"></div>`;
+    const viewerHtml = `<div class="pdfjs-viewer" id="pdfjs-viewer" data-pdf-theme="${this.colorMode}"></div>`;
     container.innerHTML = viewerHtml;
 
     const viewer = document.getElementById("pdfjs-viewer");
