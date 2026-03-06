@@ -12,6 +12,7 @@ urlpatterns = [
     path("my/", views.my_modules, name="my_modules"),
     path("review/", views.review_queue, name="review_queue"),
     # Dev install — must come before <str:module_name> catch-all
+    path("api/dev/url/", views.api_dev_app_url, name="api_dev_app_url"),
     path("api/dev/install/", views.api_dev_install, name="api_dev_install"),
     path(
         "api/dev/<str:owner>/<str:repo>/uninstall/",
