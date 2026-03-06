@@ -137,7 +137,7 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  padding: 0;
+  padding: 0 2px 0 0; /* right: clear resizer so scrollbar is not obscured */
   /* Shared font for Files tree + Recent pane — single source of truth */
   font-size: 13px;
   font-family: var(
