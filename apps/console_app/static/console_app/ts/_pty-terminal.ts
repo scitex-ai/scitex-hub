@@ -108,7 +108,7 @@ export class PTYTerminal {
 
     // Attach input handlers from extracted module
     const getWs = () => this.ws;
-    attachKeyboardHandler(this.term, getWs);
+    attachKeyboardHandler(this.term, getWs, containerEl, this.projectId);
     attachRightClickHandler(containerEl, getWs);
     attachFileDropHandler(containerEl, getWs, this.projectId);
     attachClipboardPasteHandler(containerEl, getWs, this.projectId);

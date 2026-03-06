@@ -90,25 +90,54 @@ else
 fi
 
 # ============================================
-# Vite Dev Server — Dual Architecture
+# Vite Dev Server — All-in-Container
 # ============================================
-# Platform Vite (port 5173): runs on HOST with native FS events
-# Dev App Vite (port 5174): runs in container ONLY for dev apps with TypeScript
-start_vite_dev_server() {
+# Platform Vite (port 5173): serves all platform TypeScript
+# Dev App Vite (port 5174): serves dev app TypeScript (if any)
+
+start_platform_vite() {
     cd /app || return 0
 
-    # Check if node_modules exists (needed for dev app Vite)
+    # Ensure node_modules exists
     if [ ! -d "node_modules" ]; then
         echo_warning "Installing Node dependencies..."
         npm install --silent 2>&1 | grep -v "npm WARN" || true
     fi
 
+    # Check if platform Vite is already running
+    if pgrep -f "vite.*5173" >/dev/null 2>&1; then
+        echo_info "Platform Vite already running on port 5173"
+        return 0
+    fi
+
+    # Clean stale .vite cache (may have wrong ownership from previous runs)
+    rm -rf /app/node_modules/.vite/deps 2>/dev/null || true
+
+    echo_info "Starting platform Vite (port 5173, in container)..."
+
+    nohup bash -c '
+        while true; do
+            echo "[$(date)] Platform Vite starting on port 5173..." >> /app/logs/vite-platform.log
+            npx vite >> /app/logs/vite-platform.log 2>&1
+            EXIT_CODE=$?
+            echo "[$(date)] Platform Vite exited (code $EXIT_CODE), restarting in 3s..." >> /app/logs/vite-platform.log
+            sleep 3
+        done
+    ' >/dev/null 2>&1 &
+    VITE_PLATFORM_PID=$!
+    echo_success "Platform Vite started (PID: $VITE_PLATFORM_PID)"
+    echo "   URL: http://127.0.0.1:5173"
+    echo "   Log: tail -f /app/logs/vite-platform.log"
+}
+
+start_devapp_vite() {
+    cd /app || return 0
+
     # Check if any dev apps have TypeScript files
     DEV_APP_TS=$(find /app/data/users/*/proj/*/static -name '*.ts' 2>/dev/null | head -1)
 
     if [ -z "$DEV_APP_TS" ]; then
-        echo_info "No dev app TypeScript found — skipping container Vite"
-        echo_info "Platform Vite should be running on host: npm run dev"
+        echo_info "No dev app TypeScript found — skipping dev app Vite"
         return 0
     fi
 
@@ -120,7 +149,6 @@ start_vite_dev_server() {
 
     echo_info "Starting dev app Vite (port 5174, dev apps only)..."
 
-    # Start dev app Vite in watchdog loop
     nohup bash -c '
         while true; do
             echo "[$(date)] Dev app Vite starting on port 5174..." >> /app/logs/vite-app.log
@@ -135,7 +163,6 @@ start_vite_dev_server() {
     echo "   URL: http://127.0.0.1:5174"
     echo "   Scope: Dev app TypeScript only"
     echo "   Log: tail -f /app/logs/vite-app.log"
-    echo_info "Platform Vite should be running on host (port 5173): npm run dev"
 }
 
 # ============================================
@@ -183,8 +210,9 @@ for arg in "$@"; do
 done
 
 if [ "$IS_DJANGO_CONTAINER" = true ]; then
-    # Start Vite (with fallback to tsc --watch)
-    start_vite_dev_server
+    # Start Vite servers (platform + dev app)
+    start_platform_vite
+    start_devapp_vite
 else
     echo_info "Non-Django container - skipping Vite dev server"
 fi

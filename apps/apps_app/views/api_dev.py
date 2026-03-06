@@ -127,6 +127,42 @@ def api_dev_uninstall(request, owner, repo):
     return JsonResponse({"success": True})
 
 
+@login_required
+def api_dev_app_url(request):
+    """Return the workspace URL for a dev app given a project slug.
+
+    GET /apps/api/dev/url/?project_id=<slug>
+    Returns: {"success": true, "url": "/dev__<owner>__<repo>/", "module_name": "..."}
+    """
+    project_id = request.GET.get("project_id", "").strip()
+    if not project_id:
+        return JsonResponse(
+            {"success": False, "error": "project_id required"}, status=400
+        )
+
+    dev_install = DevInstallation.objects.filter(
+        user=request.user,
+        source_repo=project_id,
+    ).first()
+
+    if not dev_install:
+        return JsonResponse(
+            {"success": False, "error": "No dev installation for this project"},
+            status=404,
+        )
+
+    rest = dev_install.module_name.removeprefix("dev__")
+    url = f"/dev__{rest}/"
+
+    return JsonResponse(
+        {
+            "success": True,
+            "url": url,
+            "module_name": dev_install.module_name,
+        }
+    )
+
+
 def _can_access_repo(user, owner, repo) -> bool:
     """Check if user can access the repo via Gitea.
 

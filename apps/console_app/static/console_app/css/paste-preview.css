@@ -103,3 +103,49 @@
 .paste-preview-cancel:hover {
   background: var(--workspace-bg-tertiary, #161620);
 }
+
+/* Image paste toast (brief thumbnail feedback) */
+.pty-image-toast {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: var(--workspace-bg-secondary, #1e1e2e);
+  border: 1px solid var(--workspace-border-default, #30363d);
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 100;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  animation: pty-toast-fade 2s ease forwards;
+}
+
+.pty-image-toast img {
+  max-height: 80px;
+  max-width: 120px;
+  border-radius: 4px;
+  object-fit: contain;
+}
+
+.pty-image-toast span {
+  color: var(--workspace-text-secondary, #8b949e);
+  font-size: 12px;
+}
+
+@keyframes pty-toast-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

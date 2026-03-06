@@ -138,6 +138,23 @@ def register_on_site_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
+    async def on_site_get_dev_app_url(project_id: str) -> str:
+        """Get the workspace URL for a dev-installed app.
+
+        Given a project slug, returns the URL path for the dev app page.
+        Use this before on_site_ui_action navigate or on_site_capture_page.
+
+        Args:
+            project_id: Project slug (e.g. "pomodoro-app").
+        """
+        result = _make_request(
+            "GET",
+            "/apps/api/dev/url/",
+            data={"project_id": project_id},
+        )
+        return _json(result)
+
+    @mcp.tool()
     async def on_site_ui_action(steps: list, delay_ms: int = 900) -> str:
         """Drive browser UI: navigate, highlight, click, fill, scroll.
 
