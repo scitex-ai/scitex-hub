@@ -51,14 +51,15 @@ function getMaxAllowedWidth(panel: HTMLElement): number {
   return containerWidth - reserved;
 }
 
-/** Find the next non-collapsed resizable panel in the drag direction.
- *  Walks through siblings, skipping panes that are already collapsed or
- *  have no resizer (e.g., the module pane). This enables domino-style
- *  cascading through multiple panels.
+/** Find the next resizable panel in the given direction.
+ *  Walks through siblings, skipping panes that have no resizer (e.g.,
+ *  the module pane). Collapsed panels are skipped by default, but
+ *  included when curtain=true (for fixed-width curtain handles).
  */
 function findAdjacentPanel(
   config: PanelConfig,
   dragDirection: "shrink-left" | "shrink-right",
+  curtain: boolean = false,
 ): { panel: HTMLElement; config: PanelConfig } | null {
   const targetPanel = document.querySelector(config.targetPanel) as HTMLElement;
   if (!targetPanel) return null;
@@ -68,7 +69,7 @@ function findAdjacentPanel(
   );
   if (!paneContainer) return null;
 
-  // Walk siblings until we find a non-collapsed resizable panel
+  // Walk siblings until we find a resizable panel
   let current: Element | null = paneContainer;
   while (current) {
     const sibling =
@@ -90,13 +91,13 @@ function findAdjacentPanel(
       continue;
     }
 
-    // Skip already-collapsed panels (force passes through them)
-    if (siblingPanel.classList.contains("collapsed")) {
+    // Skip collapsed panels unless curtain mode (curtain un-collapses them)
+    if (siblingPanel.classList.contains("collapsed") && !curtain) {
       current = sibling;
       continue;
     }
 
-    // Found a non-collapsed, resizable panel
+    // Found a resizable panel
     const sibConfig: PanelConfig = {
       resizerId: siblingResizer.id,
       targetPanel: `#${siblingPanel.id}`,
@@ -236,13 +237,36 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
   const handleMouseMove = (e: MouseEvent) => {
     if (!isResizing) return;
 
-    // Fixed-width panel: propagate to adjacent panel based on drag direction
+    // Curtain handle: fixed-width panel propagates to the resizeDirection side.
+    // Drag delta sign naturally handles shrink vs grow — no direction flip needed.
     if (config.fixedWidth && !propagationTarget) {
       const delta = e.clientX - startX;
       if (Math.abs(delta) < 3) return; // dead zone
-      const dragDir = delta < 0 ? "shrink-left" : "shrink-right";
-      const adjacent = findAdjacentPanel(config, dragDir);
+      const curtainDir: "shrink-left" | "shrink-right" =
+        config.resizeDirection === "left" ? "shrink-left" : "shrink-right";
+      const adjacent = findAdjacentPanel(config, curtainDir, true);
       if (adjacent) {
+        // Un-collapse panel if needed (curtain pulls it open)
+        if (adjacent.panel.classList.contains("collapsed")) {
+          adjacent.panel.classList.remove("collapsed");
+          adjacent.panel.style.width = `${adjacent.config.minWidth}px`;
+          adjacent.panel.style.flexShrink = "0";
+          adjacent.panel.style.flexGrow = "0";
+          if (adjacent.config.toggleButtonId) {
+            const toggleBtn = document.getElementById(
+              adjacent.config.toggleButtonId,
+            );
+            if (toggleBtn)
+              updateToggleIcon(
+                toggleBtn,
+                adjacent.config.resizeDirection,
+                false,
+              );
+          }
+          if (adjacent.config.collapseStorageKey) {
+            localStorage.setItem(adjacent.config.collapseStorageKey, "false");
+          }
+        }
         propagationTarget = {
           panel: adjacent.panel,
           config: adjacent.config,
