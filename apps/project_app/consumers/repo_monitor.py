@@ -8,9 +8,11 @@ Supports filtering, pause/resume, and gitignore integration.
 import asyncio
 import json
 import logging
+import os
 import re
 import shutil
 import time
+from datetime import datetime
 from pathlib import Path
 
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -186,6 +188,66 @@ class RepoMonitorConsumer(AsyncWebsocketConsumer):
             return
 
         self.reader_task = asyncio.create_task(self._read_events())
+
+        # Send recently modified files so the feed isn't empty on connect
+        await self._send_recent_files(filters)
+
+    async def _send_recent_files(self, filters: dict, limit: int = 50):
+        """Scan project directory and send the most recently modified files."""
+        try:
+            files = await asyncio.to_thread(self._collect_recent_files, filters, limit)
+            for entry in files:
+                await self.send(text_data=json.dumps(entry))
+        except Exception as exc:
+            logger.warning(f"RepoMonitorConsumer recent files scan failed: {exc}")
+
+    def _collect_recent_files(self, filters: dict, limit: int) -> list[dict]:
+        """Walk project tree and return the N most recently modified files.
+
+        Respects the same filter settings as the live watcher:
+        gitignore, blacklist, and whitelist.
+        """
+        # Build exclude regex from filters (same logic as inotifywait watcher)
+        exclude_pattern = self._build_exclude_pattern(filters)
+        exclude_re = re.compile(exclude_pattern) if exclude_pattern != "^$" else None
+        entries = []
+
+        for root, dirs, files in os.walk(self._project_path):
+            # Prune excluded directories in-place
+            dirs[:] = [
+                d for d in dirs if not exclude_re or not exclude_re.search(f"{d}/")
+            ]
+            for fname in files:
+                fpath = Path(root) / fname
+                rel = str(fpath.relative_to(self._project_path))
+                if exclude_re and exclude_re.search(rel):
+                    continue
+                # Apply whitelist
+                if self.whitelist_patterns:
+                    if not any(p.search(rel) for p in self.whitelist_patterns):
+                        continue
+                try:
+                    mtime = fpath.stat().st_mtime
+                except OSError:
+                    continue
+                entries.append((mtime, rel))
+
+        # Sort by mtime descending, take top N
+        entries.sort(key=lambda x: x[0], reverse=True)
+        result = []
+        for mtime, rel_path in entries[:limit]:
+            ts = datetime.fromtimestamp(mtime).strftime("%Y-%m-%dT%H:%M:%S")
+            result.append(
+                {
+                    "type": "fs_event",
+                    "event": "modify",
+                    "path": rel_path,
+                    "timestamp": ts,
+                }
+            )
+        # Reverse so oldest is sent first (newest ends up at top of feed)
+        result.reverse()
+        return result
 
     async def _restart_watcher(self, filters: dict):
         """Stop existing watcher and start a fresh one."""
