@@ -110,6 +110,10 @@ export class ComponentInitializer {
       Promise.resolve(new CompilationManager("")),
     ]);
 
+    // Clear stale inline styles from previous sessions before resizer init.
+    // Without this, panels may keep width:0px from a previous broken drag.
+    this.resetPanelStyles();
+
     // Initialize editor/preview resizers with PDF optimization hooks
     // Two resizers bracket the mode-selector: left (editor-side) and right (preview-side)
     const panelResizer = this.initializeEditorResizer();
@@ -292,6 +296,23 @@ export class ComponentInitializer {
       maxZoom: 300,
       zoomStep: 10,
     });
+  }
+
+  /**
+   * Clear stale inline styles on editor/preview panels.
+   * Previous drag sessions may have left width/flex overrides that
+   * persist in the DOM after page reload or HMR.
+   */
+  private resetPanelStyles(): void {
+    const panels = document.querySelectorAll(
+      ".latex-panel, .preview-panel",
+    ) as NodeListOf<HTMLElement>;
+    for (const panel of panels) {
+      panel.style.width = "";
+      panel.style.flexShrink = "";
+      panel.style.flexGrow = "";
+      panel.style.flexBasis = "";
+    }
   }
 
   /**
