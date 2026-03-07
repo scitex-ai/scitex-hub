@@ -283,95 +283,12 @@ pre::before {
   content: "plaintext";
 }
 
+/* Dynamic language label — reads directly from data-language attribute.
+ * No per-language CSS rules needed; just set data-language="python" on <pre>.
+ * For aliases (js→javascript, py→python, etc.), a small JS auto-normalizer
+ * runs on DOMContentLoaded (see code-blocks-init.ts). */
 pre[data-language]::before {
-  position: absolute;
-  top: 0.45rem;
-  left: 1.25rem;
-  background-color: transparent;
-  color: var(--text-muted);
-  padding: 0.25rem 0.5rem;
-  border-radius: 0;
-  border: none;
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  pointer-events: none;
-  z-index: 2;
-  font-family: var(--font-body);
-  white-space: nowrap;
-}
-
-/* Define content for each language */
-pre[data-language="css"]::before {
-  content: "css";
-}
-
-pre[data-language="html"]::before {
-  content: "html";
-}
-
-pre[data-language="javascript"]::before {
-  content: "javascript";
-}
-
-pre[data-language="js"]::before {
-  content: "javascript";
-}
-
-pre[data-language="python"]::before {
-  content: "python";
-}
-
-pre[data-language="py"]::before {
-  content: "python";
-}
-
-pre[data-language="bash"]::before {
-  content: "bash";
-}
-
-pre[data-language="sh"]::before {
-  content: "shell";
-}
-
-pre[data-language="sql"]::before {
-  content: "sql";
-}
-
-pre[data-language="json"]::before {
-  content: "json";
-}
-
-pre[data-language="xml"]::before {
-  content: "xml";
-}
-
-pre[data-language="yaml"]::before {
-  content: "yaml";
-}
-
-pre[data-language="markdown"]::before {
-  content: "markdown";
-}
-
-pre[data-language="diff"]::before {
-  content: "diff";
-}
-
-pre[data-language="bibtex"]::before {
-  content: "bibtex";
-}
-
-pre[data-language="bib"]::before {
-  content: "bibtex";
-}
-
-pre[data-language="latex"]::before {
-  content: "latex";
-}
-
-pre[data-language="tex"]::before {
-  content: "latex";
+  content: attr(data-language);
 }
 
 /* =========================================

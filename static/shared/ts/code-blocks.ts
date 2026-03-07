@@ -102,12 +102,54 @@ class CodeBlockManager {
     });
   }
 
+  // Alias map for language normalization (short → display name)
+  private static LANG_ALIASES: Record<string, string> = {
+    js: "javascript",
+    ts: "typescript",
+    py: "python",
+    sh: "shell",
+    bib: "bibtex",
+    tex: "latex",
+    yml: "yaml",
+    md: "markdown",
+    rb: "ruby",
+    rs: "rust",
+  };
+
+  /**
+   * Auto-detect language from <code class="language-xxx"> and set data-language
+   * on the parent <pre>. Normalizes aliases (py→python, js→javascript, etc.).
+   */
+  private autoDetectLanguage(
+    codeBlock: HTMLElement,
+    preElement: HTMLElement,
+  ): void {
+    // Skip if data-language already set on <pre>
+    if (preElement.dataset.language) return;
+
+    // Extract language from code element's class (e.g. "language-python")
+    const langClass = Array.from(codeBlock.classList).find((c) =>
+      c.startsWith("language-"),
+    );
+    if (!langClass) return;
+
+    const raw = langClass.replace("language-", "");
+    const normalized = CodeBlockManager.LANG_ALIASES[raw] || raw;
+    preElement.dataset.language = normalized;
+  }
+
   /**
    * Process a single code block
    */
   private processCodeBlock(codeBlock: HTMLElement): void {
     // Skip code blocks inside .api-example (they have their own copy/label UI)
     if (codeBlock.closest(".api-example")) return;
+
+    // Auto-detect language from <code> class and set data-language on <pre>
+    const preEl = codeBlock.parentElement;
+    if (preEl && preEl.tagName === "PRE") {
+      this.autoDetectLanguage(codeBlock, preEl);
+    }
 
     // Apply syntax highlighting if hljs is available
     if (
