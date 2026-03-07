@@ -1,12 +1,14 @@
 /**
- * Dev Install — install/uninstall app repos from Hub as personal dev apps.
+ * Private Install — install/uninstall app repos from Hub as private apps.
  *
  * Uses event delegation on data-action="dev-install" and data-action="dev-uninstall"
- * buttons, plus .dev-reinstall-btn for re-enabling uninstalled dev apps.
+ * buttons, plus .dev-reinstall-btn for re-enabling uninstalled private apps.
  *
  * On successful install, injects a nav item into the sidebar immediately
  * so the user sees the app tab without a page reload.
  */
+
+import { buildModuleIconHtml } from "../../../../static/shared/ts/utils/module-icon";
 
 function getCsrf(): string {
   const meta = document.querySelector(
@@ -34,12 +36,10 @@ function injectSidebarNavItem(
   link.title = label;
   link.dataset.moduleAccent = moduleName;
 
-  // Icon + lock overlay for private apps
+  // Icon via shared builder (private apps get lock overlay)
+  const iconHtml = buildModuleIconHtml({ icon, isPrivate: true });
   link.innerHTML =
-    `<span class="module-icon-wrap">` +
-    `<i class="${icon}"></i>` +
-    `<i class="fas fa-lock module-private-lock"></i>` +
-    `</span>` +
+    iconHtml +
     `<span class="selector-nav-label ws-apps-nav-label">${label}</span>`;
 
   nav.appendChild(link);
