@@ -8,7 +8,7 @@
  * so the user sees the app tab without a page reload.
  */
 
-import { buildModuleIconHtml } from "../../../../static/shared/ts/utils/module-icon";
+import { buildModuleIconHtml } from "@utils/module-icon";
 
 function getCsrf(): string {
   const meta = document.querySelector(
