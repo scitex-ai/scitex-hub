@@ -119,11 +119,17 @@ def browse_context(request, current_project=None):
     if request.user.is_authenticated:
         dev_apps = list(DevInstallation.objects.filter(user=request.user))
 
+    from django.conf import settings
+
+    gitea_url = getattr(settings, "SCITEX_CLOUD_GITEA_URL", "")
+
     return {
         "current_project": current_project,
         "modules": module_list,
         "categories": CATEGORY_CHOICES,
         "dev_apps": dev_apps,
+        "gitea_url": gitea_url,
+        "apps_org": "scitex-apps",
     }
 
 

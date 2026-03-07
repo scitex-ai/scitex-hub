@@ -107,6 +107,13 @@ class AppsModule(models.Model):
     )
     pinned_at = models.DateTimeField(null=True, blank=True)
 
+    # Registry fork URL (set on approval — canonical copy under scitex-apps org)
+    registry_repo_url = models.URLField(
+        blank=True,
+        default="",
+        help_text="URL of the canonical fork under scitex-apps org",
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -136,6 +136,20 @@
             margin-bottom: 16px;
             opacity: 0.5;
         }
+
+        .org-pagination {
+            margin-top: 24px;
+        }
+
+        .org-pagination-controls {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .org-pagination-info {
+            padding: 8px 12px;
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -166,14 +180,51 @@
         <!-- Organization Content -->
         <div class="org-content">
             <div class="repo-section-header">
-                <h2>Repositories</h2>
-                {% if is_admin %}
-                    <a href="{% url 'project_create' %}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> New repository
-                    </a>
+                {% if app_modules %}
+                    <h2>Apps</h2>
+                {% else %}
+                    <h2>Repositories</h2>
+                    {% if is_admin %}
+                        <a href="{% url 'project_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> New repository
+                        </a>
+                    {% endif %}
                 {% endif %}
             </div>
-            {% if projects %}
+            {% if app_modules %}
+                <div class="repo-list">
+                    {% for mod in app_modules %}
+                        <div class="repo-item">
+                            <h3>
+                                <a href="/apps/{{ mod.module_name }}/">{{ organization.slug }}/{{ mod.module_name }}</a>
+                            </h3>
+                            {% if mod.short_description %}<p class="repo-description">{{ mod.short_description }}</p>{% endif %}
+                            <div class="repo-meta">
+                                <span><i class="fas fa-star"></i> {{ mod.star_count }}</span>
+                                &middot;
+                                <span><i class="fas fa-download"></i> {{ mod.install_count }}</span>
+                                &middot;
+                                <span>{{ mod.get_category_display }}</span>
+                                &middot;
+                                Updated {{ mod.updated_at|timesince }} ago
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if app_modules.has_other_pages %}
+                    <nav class="org-pagination" aria-label="Page navigation">
+                        <div class="org-pagination-controls">
+                            {% if app_modules.has_previous %}
+                                <a href="?page={{ app_modules.previous_page_number }}" class="btn btn-secondary">Previous</a>
+                            {% endif %}
+                            <span class="org-pagination-info">{{ app_modules.number }} / {{ app_modules.paginator.num_pages }}</span>
+                            {% if app_modules.has_next %}
+                                <a href="?page={{ app_modules.next_page_number }}" class="btn btn-secondary">Next</a>
+                            {% endif %}
+                        </div>
+                    </nav>
+                {% endif %}
+            {% elif projects %}
                 <div class="repo-list">
                     {% for project in projects %}
                         <div class="repo-item">
@@ -185,14 +236,13 @@
                         </div>
                     {% endfor %}
                 </div>
-                <!-- Pagination -->
                 {% if projects.has_other_pages %}
-                    <nav aria-label="Repository pagination" style="margin-top: 24px">
-                        <div style="display: flex; justify-content: center; gap: 8px">
+                    <nav class="org-pagination" aria-label="Page navigation">
+                        <div class="org-pagination-controls">
                             {% if projects.has_previous %}
                                 <a href="?page={{ projects.previous_page_number }}" class="btn btn-secondary">Previous</a>
                             {% endif %}
-                            <span style="padding: 8px 12px">{{ projects.number }} / {{ projects.paginator.num_pages }}</span>
+                            <span class="org-pagination-info">{{ projects.number }} / {{ projects.paginator.num_pages }}</span>
                             {% if projects.has_next %}
                                 <a href="?page={{ projects.next_page_number }}" class="btn btn-secondary">Next</a>
                             {% endif %}

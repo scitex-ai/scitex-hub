@@ -2,6 +2,16 @@
 
 <link rel="stylesheet" href="{% static 'apps_app/css/apps.css' %}" />
 <div class="apps-container">
+    <!-- Registry org banner -->
+    {% if apps_org %}
+        <a href="/{{ apps_org }}/" class="apps-org-banner">
+            <i class="fas fa-boxes" aria-hidden="true"></i>
+            <span class="apps-org-banner-text">
+                <strong>{{ apps_org }}</strong> — Browse all published app source repositories
+            </span>
+            <i class="fas fa-chevron-right apps-org-banner-arrow" aria-hidden="true"></i>
+        </a>
+    {% endif %}
     <!-- Top bar: category filter tabs, search, sort -->
     <div class="apps-topbar">
         <nav class="apps-category-tabs" aria-label="App categories">
