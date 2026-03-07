@@ -78,9 +78,7 @@ def pin_commit(app_module):
         client = GiteaClient()
         owner = app_module.project.owner.username
         repo = app_module.project.slug
-        commits = client._request(
-            "GET", f"/repos/{owner}/{repo}/commits", params={"limit": 1}
-        )
+        commits = client.list_commits(owner, repo, limit=1)
         if commits and len(commits) > 0:
             from django.utils import timezone
 

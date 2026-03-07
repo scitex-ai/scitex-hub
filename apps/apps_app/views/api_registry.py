@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Registry API views — JWT app submission and Gitea webhook for PR-based review.
+"""Registry API views — reverse-fork app submission and org-level webhook.
 
-All submission paths (web UI, project page, CLI) converge on
-``_open_registry_pr()`` which opens a PR on the central ``scitex/apps``
-repo.  Merge = approval (via webhook).  Like MELPA.
+Reverse-fork model:
+  1. ``_create_app_repo()`` creates a scaffold repo in ``scitex-apps/<app>``
+  2. User forks it to ``user/<app>`` and develops
+  3. ``_submit_app_pr()`` opens a cross-repo PR: ``user/<app>`` -> ``scitex-apps/<app>``
+  4. Merge = approval (via org-level webhook on ``scitex-apps``)
 """
 
 from __future__ import annotations
 
-import base64
 import json
 import logging
 
@@ -23,9 +24,7 @@ from ..models import AppsModule, ModuleSubmission
 
 logger = logging.getLogger(__name__)
 
-# Central registry lives at the ``scitex`` org on Gitea
-REGISTRY_REPO_OWNER = "scitex"
-REGISTRY_REPO_NAME = "apps"
+APPS_ORG = "scitex-apps"
 
 
 # ---------------------------------------------------------------------------
@@ -39,7 +38,7 @@ def api_submit_jwt(request):
     """JWT-authenticated app submission endpoint for CLI.
 
     Accepts: {"project_name": "...", "manifest": {...}}
-    Creates AppsModule + ModuleSubmission + opens PR on central registry.
+    Creates AppsModule + ModuleSubmission + opens cross-repo PR.
     """
     project_name = request.data.get("project_name", "").strip()
     manifest = request.data.get("manifest", {})
@@ -84,13 +83,10 @@ def api_submit_jwt(request):
             status=400,
         )
 
-    # Open PR on central registry
-    pr_url = _open_registry_pr(
+    # Open cross-repo PR: user/<app> -> scitex-apps/<app>
+    pr_url = _submit_app_pr(
         app_module=app_module,
-        manifest=manifest,
         version=version,
-        author_username=request.user.username,
-        pinned_commit=pinned_commit,
     )
 
     submission = ModuleSubmission.objects.create(
@@ -111,16 +107,16 @@ def api_submit_jwt(request):
 
 
 # ---------------------------------------------------------------------------
-# Gitea webhook for PR merge → auto-approval
+# Org-level Gitea webhook for PR merge -> auto-approval
 # ---------------------------------------------------------------------------
 
 
 @require_http_methods(["POST"])
 def api_registry_webhook(request):
-    """Gitea webhook handler for PR merge events on the registry repo.
+    """Org-level webhook handler for PR merge events on scitex-apps repos.
 
-    When a PR is merged in scitex/apps, this activates the corresponding
-    app (sets visibility=public, is_verified=True).
+    When a PR is merged in any scitex-apps/<repo>, this activates the
+    corresponding app (sets visibility=public, is_verified=True).
     """
     try:
         payload = json.loads(request.body)
@@ -134,20 +130,16 @@ def api_registry_webhook(request):
     if action != "closed" or not is_merged:
         return JsonResponse({"ok": True, "skipped": "not a merge event"})
 
-    head_branch = pr.get("head", {}).get("ref", "")
-    if not head_branch.startswith("submit/"):
-        return JsonResponse({"ok": True, "skipped": "not a submit branch"})
-
-    # Parse app name from branch: submit/<app-name>-v<version>
-    app_ref = head_branch.removeprefix("submit/")
-    parts = app_ref.rsplit("-v", 1)
-    app_name = parts[0] if len(parts) == 2 and parts[1] else app_ref
+    # Extract repo name from the webhook payload
+    repo_name = payload.get("repository", {}).get("name", "")
+    if not repo_name:
+        return JsonResponse({"ok": True, "skipped": "no repository name"})
 
     try:
-        app_module = AppsModule.objects.get(module_name=app_name)
+        app_module = AppsModule.objects.get(module_name=repo_name)
     except AppsModule.DoesNotExist:
         return JsonResponse(
-            {"ok": False, "error": f"AppsModule '{app_name}' not found"}, status=404
+            {"ok": False, "error": f"AppsModule '{repo_name}' not found"}, status=404
         )
 
     submission = (
@@ -172,161 +164,155 @@ def api_registry_webhook(request):
 
     app_module.visibility = "public"
     app_module.is_verified = True
-    app_module.save(update_fields=["visibility", "is_verified"])
+    app_module.registry_repo_url = f"/{APPS_ORG}/{repo_name}/"
+    app_module.save(update_fields=["visibility", "is_verified", "registry_repo_url"])
 
     _activate_approved_app(app_module)
 
-    # Update Django PullRequest record to reflect merge
     pr_number = pr.get("number")
-    if pr_number:
-        from apps.project_app.models import PullRequest as DjangoPR
-
-        DjangoPR.objects.filter(
-            project__owner__username=REGISTRY_REPO_OWNER,
-            project__slug=REGISTRY_REPO_NAME,
-            number=pr_number,
-        ).update(state="merged", merged_at=now)
-
-    return JsonResponse({"ok": True, "approved": app_name, "pr": pr_number})
+    return JsonResponse({"ok": True, "approved": repo_name, "pr": pr_number})
 
 
 # ---------------------------------------------------------------------------
-# Helpers (shared by all submission paths)
+# Scaffold repo creation
 # ---------------------------------------------------------------------------
 
 
-def _fetch_head_commit(username: str, repo_slug: str) -> str:
-    """Fetch the HEAD commit SHA from the user's Gitea repo.
+def _create_app_repo(app_name: str, description: str = "") -> str:
+    """Create a scaffold repo in scitex-apps org for a new app.
 
-    Raises on failure — callers must handle the error.
-    """
-    from apps.gitea_app.api_client import GiteaClient
-
-    client = GiteaClient()
-    repo_info = client.get_repository(owner=username, repo=repo_slug)
-    default_branch = repo_info.get("default_branch", "main")
-    branch_resp = client._request(
-        "GET",
-        f"/repos/{username}/{repo_slug}/branches/{default_branch}",
-    )
-    commit_sha = branch_resp.json().get("commit", {}).get("id", "")
-    if not commit_sha:
-        raise RuntimeError(f"Could not resolve HEAD commit for {username}/{repo_slug}")
-    return commit_sha
-
-
-def _open_registry_pr(
-    app_module,
-    manifest: dict,
-    version: str,
-    author_username: str,
-    pinned_commit: str,
-) -> str:
-    """Open a PR on the central ``scitex/apps`` registry repo.
-
-    Returns the PR HTML URL.  Raises on failure — callers must handle.
+    Returns the repo HTML URL.  Raises on failure.
     """
     from apps.gitea_app.api_client import GiteaAPIError, GiteaClient
 
     client = GiteaClient()
 
-    metadata = {
-        "name": app_module.module_name,
-        "version": version,
-        "description": manifest.get("description", ""),
-        "category": manifest.get("category", "other"),
-        "author": author_username,
-        "source_repo": f"{author_username}/{app_module.project.slug}",
-        "pinned_commit": pinned_commit,
-        "manifest": manifest,
-    }
-    content_b64 = base64.b64encode(json.dumps(metadata, indent=2).encode()).decode()
-
-    branch_name = f"submit/{app_module.module_name}-v{version}"
-    file_path = f"apps/{app_module.module_name}.json"
-
-    # Create branch from main
+    # Check if repo already exists
     try:
-        client._request(
-            "POST",
-            f"/repos/{REGISTRY_REPO_OWNER}/{REGISTRY_REPO_NAME}/branches",
-            json={"new_branch_name": branch_name, "old_branch_name": "main"},
-        )
-    except GiteaAPIError as exc:
-        # 409 = branch already exists, which is fine for re-submission
-        if "409" not in str(exc):
-            raise
-
-    # Create or update metadata file on the branch
-    sha = ""
-    try:
-        existing = client.get_file_contents(
-            owner=REGISTRY_REPO_OWNER,
-            repo=REGISTRY_REPO_NAME,
-            filepath=file_path,
-            ref=branch_name,
-        )
-        sha = existing.get("sha", "")
+        existing = client.get_repository(owner=APPS_ORG, repo=app_name)
+        return existing.get("html_url", f"/{APPS_ORG}/{app_name}/")
     except GiteaAPIError:
-        pass  # file doesn't exist yet — will create
+        pass  # 404 — doesn't exist, create it
 
-    if sha:
-        client._request(
-            "PUT",
-            f"/repos/{REGISTRY_REPO_OWNER}/{REGISTRY_REPO_NAME}/contents/{file_path}",
-            json={
-                "message": f"Update {app_module.module_name} v{version}",
-                "content": content_b64,
-                "branch": branch_name,
-                "sha": sha,
-            },
-        )
-    else:
-        client._request(
-            "POST",
-            f"/repos/{REGISTRY_REPO_OWNER}/{REGISTRY_REPO_NAME}/contents/{file_path}",
-            json={
-                "message": f"Add {app_module.module_name} v{version}",
-                "content": content_b64,
-                "branch": branch_name,
-            },
-        )
-
-    # Open PR
-    pr_resp = client._request(
-        "POST",
-        f"/repos/{REGISTRY_REPO_OWNER}/{REGISTRY_REPO_NAME}/pulls",
-        json={
-            "title": f"[App] {app_module.module_name} v{version}",
-            "body": (
-                f"**App:** {app_module.module_name}\n"
-                f"**Version:** {version}\n"
-                f"**Author:** {author_username}\n"
-                f"**Description:** {manifest.get('description', '')}\n\n"
-                f"Source: `{author_username}/{app_module.project.slug}`\n"
-                f"Pinned commit: `{pinned_commit[:12]}`"
-            ),
-            "head": branch_name,
-            "base": "main",
-        },
+    # Create repo in org
+    repo_data = client.create_org_repository(
+        org=APPS_ORG,
+        name=app_name,
+        description=description or f"SciTeX app: {app_name}",
+        private=False,
+        auto_init=True,
     )
-    pr_data = pr_resp.json()
+    repo_url = repo_data.get("html_url", "")
+
+    # Commit scaffold files
+    _commit_scaffold_files(client, app_name)
+
+    return repo_url
+
+
+def _commit_scaffold_files(client, app_name: str) -> None:
+    """Commit scaffold template files to the new app repo."""
+    from apps.gitea_app.api_client import GiteaAPIError
+
+    scaffold_files = {
+        "manifest.json": json.dumps(
+            {
+                "name": app_name,
+                "version": "0.1.0",
+                "description": f"SciTeX app: {app_name}",
+                "category": "other",
+                "author": "",
+                "entry_template": "templates/index_partial.html",
+            },
+            indent=2,
+        ),
+        "templates/index_partial.html": (
+            f"{{% comment %}}Scaffold for {app_name}{{% endcomment %}}\n"
+            '<div class="app-container">\n'
+            f"  <h2>{app_name}</h2>\n"
+            "  <p>Replace this with your app content.</p>\n"
+            "</div>\n"
+        ),
+        "skill.py": (
+            f'"""Skill module for {app_name}."""\n\n\n# Add your skill functions here\n'
+        ),
+        "README.md": (
+            f"# {app_name}\n\n"
+            f"SciTeX app scaffold. Fork this repo, develop your app, "
+            f"and submit a PR back to publish.\n"
+        ),
+    }
+
+    for filepath, content in scaffold_files.items():
+        try:
+            client.create_file(
+                owner=APPS_ORG,
+                repo=app_name,
+                filepath=filepath,
+                content=content,
+                message=f"Add scaffold: {filepath}",
+            )
+        except GiteaAPIError as exc:
+            logger.warning("Failed to create %s in %s: %s", filepath, app_name, exc)
+
+
+# ---------------------------------------------------------------------------
+# Cross-repo PR submission
+# ---------------------------------------------------------------------------
+
+
+def _submit_app_pr(app_module, version: str) -> str:
+    """Open a cross-repo PR: author's fork -> scitex-apps/<repo>.
+
+    Returns the PR HTML URL.  Raises on failure.
+    """
+    from apps.gitea_app.api_client import GiteaClient
+
+    client = GiteaClient()
+    repo = app_module.project.slug
+    author = app_module.project.owner.username
+
+    pr_data = client.create_pull_request(
+        owner=APPS_ORG,
+        repo=repo,
+        title=f"[App] {app_module.module_name} v{version}",
+        body=(
+            f"**App:** {app_module.module_name}\n"
+            f"**Version:** {version}\n"
+            f"**Author:** {author}\n"
+            f"**Description:** {app_module.short_description}\n\n"
+            f"Source: `{author}/{repo}`\n"
+            f"Pinned commit: `{app_module.pinned_commit[:12] if app_module.pinned_commit else 'N/A'}`"
+        ),
+        head=f"{author}:main",
+        base="main",
+    )
     pr_url = pr_data.get("html_url", "")
     if not pr_url:
         raise RuntimeError(
             f"PR created but no html_url returned for {app_module.module_name}"
         )
 
-    # Sync to Django PullRequest model for UI visibility
-    _sync_pr_to_django(
-        pr_number=int(pr_data.get("number", 0)),
-        title=f"[App] {app_module.module_name} v{version}",
-        description=pr_data.get("body", ""),
-        author=app_module.author,
-        source_branch=branch_name,
-    )
-
     return pr_url
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _fetch_head_commit(username: str, repo_slug: str) -> str:
+    """Fetch the HEAD commit SHA from the user's Gitea repo."""
+    from apps.gitea_app.api_client import GiteaClient
+
+    client = GiteaClient()
+    repo_info = client.get_repository(owner=username, repo=repo_slug)
+    default_branch = repo_info.get("default_branch", "main")
+    branch_data = client.get_branch(username, repo_slug, default_branch)
+    commit_sha = branch_data.get("commit", {}).get("id", "")
+    if not commit_sha:
+        raise RuntimeError(f"Could not resolve HEAD commit for {username}/{repo_slug}")
+    return commit_sha
 
 
 # ---------------------------------------------------------------------------
@@ -334,8 +320,8 @@ def _open_registry_pr(
 # ---------------------------------------------------------------------------
 
 
-def merge_registry_pr(pr_url: str) -> None:
-    """Merge a PR on the registry repo via Gitea API."""
+def merge_app_pr(pr_url: str, app_repo: str) -> None:
+    """Merge a PR on a scitex-apps repo via Gitea API."""
     pr_number = _extract_pr_number(pr_url)
     if not pr_number:
         raise ValueError(f"Cannot extract PR number from: {pr_url}")
@@ -343,15 +329,11 @@ def merge_registry_pr(pr_url: str) -> None:
     from apps.gitea_app.api_client import GiteaClient
 
     client = GiteaClient()
-    client._request(
-        "POST",
-        f"/repos/{REGISTRY_REPO_OWNER}/{REGISTRY_REPO_NAME}/pulls/{pr_number}/merge",
-        json={"Do": "merge"},
-    )
+    client.merge_pull_request(APPS_ORG, app_repo, pr_number)
 
 
-def close_registry_pr(pr_url: str, comment: str = "") -> None:
-    """Close a PR on the registry repo (rejection)."""
+def close_app_pr(pr_url: str, app_repo: str, comment: str = "") -> None:
+    """Close a PR on a scitex-apps repo (rejection)."""
     pr_number = _extract_pr_number(pr_url)
     if not pr_number:
         raise ValueError(f"Cannot extract PR number from: {pr_url}")
@@ -361,21 +343,13 @@ def close_registry_pr(pr_url: str, comment: str = "") -> None:
     client = GiteaClient()
 
     if comment:
-        client._request(
-            "POST",
-            f"/repos/{REGISTRY_REPO_OWNER}/{REGISTRY_REPO_NAME}/issues/{pr_number}/comments",
-            json={"body": comment},
-        )
+        client.comment_on_issue(APPS_ORG, app_repo, pr_number, comment)
 
-    client._request(
-        "PATCH",
-        f"/repos/{REGISTRY_REPO_OWNER}/{REGISTRY_REPO_NAME}/pulls/{pr_number}",
-        json={"state": "closed"},
-    )
+    client.close_pull_request(APPS_ORG, app_repo, pr_number)
 
 
-def comment_on_registry_pr(pr_url: str, comment: str) -> None:
-    """Add a review comment on a registry PR."""
+def comment_on_app_pr(pr_url: str, app_repo: str, comment: str) -> None:
+    """Add a review comment on an app PR."""
     pr_number = _extract_pr_number(pr_url)
     if not pr_number:
         raise ValueError(f"Cannot extract PR number from: {pr_url}")
@@ -383,50 +357,7 @@ def comment_on_registry_pr(pr_url: str, comment: str) -> None:
     from apps.gitea_app.api_client import GiteaClient
 
     client = GiteaClient()
-    client._request(
-        "POST",
-        f"/repos/{REGISTRY_REPO_OWNER}/{REGISTRY_REPO_NAME}/issues/{pr_number}/comments",
-        json={"body": comment},
-    )
-
-
-def _sync_pr_to_django(
-    pr_number: int,
-    title: str,
-    description: str,
-    author,
-    source_branch: str,
-    state: str = "open",
-) -> None:
-    """Create or update a Django PullRequest record mirroring a Gitea registry PR."""
-    if not pr_number:
-        return
-
-    from apps.project_app.models import Project, PullRequest
-
-    registry_project = Project.objects.filter(
-        owner__username=REGISTRY_REPO_OWNER, slug=REGISTRY_REPO_NAME
-    ).first()
-    if not registry_project:
-        logger.warning(
-            "Registry project %s/%s not found in Django",
-            REGISTRY_REPO_OWNER,
-            REGISTRY_REPO_NAME,
-        )
-        return
-
-    PullRequest.objects.update_or_create(
-        project=registry_project,
-        number=pr_number,
-        defaults={
-            "title": title,
-            "description": description,
-            "author": author,
-            "source_branch": source_branch,
-            "target_branch": "main",
-            "state": state,
-        },
-    )
+    client.comment_on_issue(APPS_ORG, app_repo, pr_number, comment)
 
 
 def _extract_pr_number(pr_url: str) -> str | None:

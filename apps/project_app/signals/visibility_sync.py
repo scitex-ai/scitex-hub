@@ -9,8 +9,10 @@ Tracks visibility changes and syncs them to the Gitea repository.
 """
 
 import logging
-from django.db.models.signals import pre_save, post_save
+
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+
 from ..models import Project
 
 logger = logging.getLogger(__name__)
@@ -61,12 +63,11 @@ def sync_project_visibility(sender, instance, created, **kwargs):
         client = GiteaClient()
         is_private = instance.visibility == "private"
 
-        # Update Gitea repository visibility
-        # Note: Gitea API uses PATCH /repos/{owner}/{repo}
-        endpoint = f"/repos/{instance.owner.username}/{instance.slug}"
-        client._request("PATCH", endpoint, json={"private": is_private})
+        client.update_repository(
+            instance.owner.username, instance.slug, private=is_private
+        )
 
-        logger.info(f"✓ Synced visibility for {instance.slug}: {instance.visibility}")
+        logger.info(f"Synced visibility for {instance.slug}: {instance.visibility}")
 
     except Exception as e:
         logger.error(f"Failed to sync visibility for {instance.slug}: {e}")

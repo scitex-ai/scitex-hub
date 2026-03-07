@@ -14,8 +14,10 @@ import os
 import subprocess
 from pathlib import Path
 from typing import Optional, Tuple
+
 from django.contrib.auth.models import User
 from django.utils import timezone
+
 from apps.project_app.models import Project
 
 logger = logging.getLogger(__name__)
@@ -41,7 +43,9 @@ class GiteaAutoSync:
         """Get path to user's workspace directory"""
         return Path(f"/app/data/users/{self.user.username}/{self.project.name}")
 
-    def _run_git_command(self, cmd: list[str], cwd: Optional[Path] = None) -> Tuple[bool, str]:
+    def _run_git_command(
+        self, cmd: list[str], cwd: Optional[Path] = None
+    ) -> Tuple[bool, str]:
         """
         Run git command safely
 
@@ -57,11 +61,7 @@ class GiteaAutoSync:
 
         try:
             result = subprocess.run(
-                cmd,
-                cwd=cwd,
-                capture_output=True,
-                text=True,
-                timeout=30
+                cmd, cwd=cwd, capture_output=True, text=True, timeout=30
             )
 
             if result.returncode == 0:
@@ -90,24 +90,32 @@ class GiteaAutoSync:
             return True
 
         # Initialize repo
-        success, output = self._run_git_command(['git', 'init'])
+        success, output = self._run_git_command(["git", "init"])
         if not success:
             logger.error(f"Failed to initialize git repo: {output}")
             return False
 
         # Configure user
-        self._run_git_command([
-            'git', 'config', 'user.name',
-            self.user.get_full_name() or self.user.username
-        ])
-        self._run_git_command([
-            'git', 'config', 'user.email',
-            self.user.email or f"{self.user.username}@scitex.local"
-        ])
+        self._run_git_command(
+            [
+                "git",
+                "config",
+                "user.name",
+                self.user.get_full_name() or self.user.username,
+            ]
+        )
+        self._run_git_command(
+            [
+                "git",
+                "config",
+                "user.email",
+                self.user.email or f"{self.user.username}@scitex.local",
+            ]
+        )
 
         # Add Gitea remote
         gitea_url = f"ssh://git@gitea:2222/{self.user.username}/{self.project.name}.git"
-        self._run_git_command(['git', 'remote', 'add', 'origin', gitea_url])
+        self._run_git_command(["git", "remote", "add", "origin", gitea_url])
 
         logger.info(f"✓ Initialized git repo: {self.workspace_path}")
         return True
@@ -119,7 +127,7 @@ class GiteaAutoSync:
         Returns:
             True if there are changes to commit
         """
-        success, output = self._run_git_command(['git', 'status', '--porcelain'])
+        success, output = self._run_git_command(["git", "status", "--porcelain"])
         return success and bool(output.strip())
 
     def _ensure_gitea_repo_exists(self) -> bool:
@@ -129,25 +137,25 @@ class GiteaAutoSync:
         Returns:
             True if repo exists or was created
         """
-        from apps.gitea_app.api_client import GiteaClient, GiteaAPIError
+        from apps.gitea_app.api_client import GiteaAPIError, GiteaClient
 
         try:
             client = GiteaClient()
-            # Try to get repo
             try:
-                client._request("GET", f"/repos/{self.user.username}/{self.project.name}")
+                client.get_repository(self.user.username, self.project.name)
                 return True
             except GiteaAPIError:
-                # Repo doesn't exist, create it
                 logger.info(f"Creating Gitea repo for {self.project.name}")
-                repo_data = {
-                    "name": self.project.name,
-                    "description": self.project.description or f"Project: {self.project.name}",
-                    "private": not self.project.is_public,
-                    "auto_init": False,  # Don't auto-initialize (we'll push from workspace)
-                }
-                client._request("POST", f"/user/repos", json=repo_data)
-                logger.info(f"✓ Created Gitea repo: {self.user.username}/{self.project.name}")
+                client.create_repository(
+                    name=self.project.name,
+                    description=self.project.description
+                    or f"Project: {self.project.name}",
+                    private=not self.project.is_public,
+                    auto_init=False,
+                )
+                logger.info(
+                    f"Created Gitea repo: {self.user.username}/{self.project.name}"
+                )
                 return True
 
         except Exception as e:
@@ -167,7 +175,7 @@ class GiteaAutoSync:
         try:
             for root, dirs, files in os.walk(self.workspace_path):
                 # Skip .git directory
-                if '.git' in root:
+                if ".git" in root:
                     continue
 
                 for file in files:
@@ -195,7 +203,7 @@ class GiteaAutoSync:
             # Read existing gitignore
             existing_lines = set()
             if gitignore_path.exists():
-                with open(gitignore_path, 'r') as f:
+                with open(gitignore_path, "r") as f:
                     existing_lines = set(line.strip() for line in f if line.strip())
 
             # Add large files
@@ -205,9 +213,9 @@ class GiteaAutoSync:
                 logger.warning(f"Adding large file to .gitignore: {file_path}")
 
             # Write back
-            with open(gitignore_path, 'w') as f:
-                f.write('\n'.join(sorted(new_lines)))
-                f.write('\n')
+            with open(gitignore_path, "w") as f:
+                f.write("\n".join(sorted(new_lines)))
+                f.write("\n")
 
         except Exception as e:
             logger.error(f"Failed to update .gitignore: {e}")
@@ -242,7 +250,7 @@ class GiteaAutoSync:
             return True, "No changes to sync"
 
         # Stage all changes
-        success, output = self._run_git_command(['git', 'add', '-A'])
+        success, output = self._run_git_command(["git", "add", "-A"])
         if not success:
             return False, f"Failed to stage changes: {output}"
 
@@ -250,35 +258,34 @@ class GiteaAutoSync:
         timestamp = timezone.now().strftime("%Y-%m-%d %H:%M:%S")
         commit_msg = f"Auto-sync: {timestamp}" if auto_message else "Manual sync"
 
-        success, output = self._run_git_command([
-            'git', 'commit', '-m', commit_msg
-        ])
+        success, output = self._run_git_command(["git", "commit", "-m", commit_msg])
         if not success and "nothing to commit" not in output.lower():
             return False, f"Failed to commit: {output}"
 
         # Pull with rebase to handle remote changes (graceful handling)
-        success, output = self._run_git_command([
-            'git', 'pull', '--rebase', 'origin', 'main'
-        ])
+        success, output = self._run_git_command(
+            ["git", "pull", "--rebase", "origin", "main"]
+        )
         if not success:
             # Check if it's just first push (no remote branch yet)
-            if "couldn't find remote ref" in output.lower() or "does not appear" in output.lower():
+            if (
+                "couldn't find remote ref" in output.lower()
+                or "does not appear" in output.lower()
+            ):
                 logger.debug("First push to Gitea, no remote branch yet")
             else:
                 # Real pull error - try to resolve automatically
                 logger.warning(f"Pull failed, attempting auto-resolve: {output}")
                 # Abort rebase and force our version
-                self._run_git_command(['git', 'rebase', '--abort'])
+                self._run_git_command(["git", "rebase", "--abort"])
 
         # Push to Gitea
-        success, output = self._run_git_command([
-            'git', 'push', '-u', 'origin', 'main'
-        ])
+        success, output = self._run_git_command(["git", "push", "-u", "origin", "main"])
         if not success:
             # Try force push if regular push fails (for first push or conflicts)
-            success, output = self._run_git_command([
-                'git', 'push', '-u', 'origin', 'main', '--force'
-            ])
+            success, output = self._run_git_command(
+                ["git", "push", "-u", "origin", "main", "--force"]
+            )
             if not success:
                 return False, f"Failed to push to Gitea: {output}"
             else:

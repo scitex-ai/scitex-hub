@@ -220,7 +220,6 @@ def api_submit_dev_app(request, owner, repo):
     from apps.project_app.models import Project
 
     from ..models import AppsModule, ModuleSubmission
-    from .api_registry import _open_registry_pr
 
     # 1. Verify user owns this dev installation
     dev_install = DevInstallation.objects.filter(
@@ -297,19 +296,20 @@ def api_submit_dev_app(request, owner, repo):
     except Exception:
         pinned_commit = "unknown"
 
-    # 8. Open registry PR
+    # 8. Open cross-repo PR: user/<app> -> scitex-apps/<app>
+    from .api_registry import _submit_app_pr
+
+    app_module.pinned_commit = pinned_commit
+    app_module.save(update_fields=["pinned_commit"])
     try:
-        pr_url = _open_registry_pr(
+        pr_url = _submit_app_pr(
             app_module=app_module,
-            manifest=manifest,
             version=manifest.get("version", "0.1.0"),
-            author_username=owner,
-            pinned_commit=pinned_commit,
         )
     except Exception as e:
-        logger.error("[api_dev] Failed to open registry PR: %s", e)
+        logger.error("[api_dev] Failed to open app PR: %s", e)
         return JsonResponse(
-            {"success": False, "error": f"Failed to open registry PR: {e}"},
+            {"success": False, "error": f"Failed to open app PR: {e}"},
             status=500,
         )
 
@@ -354,14 +354,7 @@ def _can_access_repo(user, owner, repo) -> bool:
             return True
 
         # Check collaborator access
-        try:
-            client._request(
-                "GET",
-                f"/repos/{owner}/{repo}/collaborators/{user.username}",
-            )
-            return True
-        except Exception:
-            return False
+        return client.check_collaborator(owner, repo, user.username)
 
     except Exception:
         # If Gitea is down or repo doesn't exist, deny

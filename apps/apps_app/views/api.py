@@ -298,11 +298,7 @@ def api_fork(request, module_name):
         client = GiteaClient()
         owner = app_module.project.owner.username
         repo = app_module.project.slug
-        result = client._request(
-            "POST",
-            f"/repos/{owner}/{repo}/forks",
-            json={"organization": request.user.username},
-        )
+        result = client.fork_repository(owner, repo, organization=request.user.username)
         fork_url = f"/{request.user.username}/{result.get('name', repo)}/"
         return JsonResponse({"success": True, "url": fork_url})
     except Exception as exc:

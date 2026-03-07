@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-10-20 20:10:00 (ywatanabe)"
-# File: ./apps/workspace_app/gitea_sync.py
+# File: ./apps/gitea_app/services/gitea_sync_service.py
 
 """
 Gitea synchronization utilities for SciTeX Cloud
 
-Provides helper functions for syncing Django users and projects with Gitea.
+Canonical module for syncing Django users, SSH keys, and projects with Gitea.
 """
 
 import logging
-from typing import Optional
+from typing import Optional, Tuple
+
 from django.contrib.auth.models import User
+
 from apps.gitea_app.api_client import GiteaClient
 from apps.gitea_app.exceptions import (
     GiteaAPIError,
-    GiteaUserCreationError,
     GiteaConnectionError,
+    GiteaUserCreationError,
 )
 
 logger = logging.getLogger(__name__)
@@ -36,35 +38,24 @@ def sync_user_to_gitea(user: User, password: Optional[str] = None) -> bool:
     try:
         client = GiteaClient()
 
-        # Check if user exists in Gitea
-        try:
-            gitea_user = client._request("GET", f"/users/{user.username}").json()
+        if client.user_exists(user.username):
             logger.info(f"Gitea user already exists: {user.username}")
             return True
-        except GiteaAPIError:
-            # User doesn't exist, create it
-            pass
 
-        # Create new Gitea user (requires admin token)
         if not password:
             logger.warning(
                 f"Cannot create Gitea user {user.username}: password required"
             )
             return False
 
-        user_data = {
-            "username": user.username,
-            "email": user.email,
-            "password": password,
-            "full_name": user.get_full_name() or user.username,
-            "send_notify": False,
-            "must_change_password": False,
-        }
+        client.create_user(
+            username=user.username,
+            email=user.email,
+            password=password,
+            must_change_password=False,
+        )
 
-        response = client._request("POST", "/admin/users", json=user_data)
-        gitea_user = response.json()
-
-        logger.info(f"✓ Created Gitea user: {user.username}")
+        logger.info(f"Created Gitea user: {user.username}")
         return True
 
     except Exception as e:
@@ -86,7 +77,6 @@ def sync_all_users_to_gitea():
     failed_count = 0
 
     for user in users:
-        # Try to sync (will fail for password, but creates user record)
         if sync_user_to_gitea(user):
             success_count += 1
         else:
@@ -118,45 +108,145 @@ def ensure_gitea_user_exists(user: User) -> bool:
         logger.error(error_msg)
         raise GiteaConnectionError(error_msg)
 
-    # Check if user already exists
-    try:
-        gitea_user = client._request("GET", f"/users/{user.username}").json()
+    if client.user_exists(user.username):
         logger.info(f"Gitea user already exists: {user.username}")
         return True
-    except GiteaAPIError:
-        # User doesn't exist, create it
-        logger.info(f"Gitea user not found, creating: {user.username}")
 
-        # Generate a random password for Gitea account
-        # Users don't need to know this password since they authenticate via Django
-        import secrets
-        import string
+    logger.info(f"Gitea user not found, creating: {user.username}")
 
-        alphabet = string.ascii_letters + string.digits + string.punctuation
-        random_password = "".join(secrets.choice(alphabet) for _ in range(20))
+    import secrets
 
-        # Create Gitea user via admin API
-        user_data = {
-            "username": user.username,
-            "email": user.email,
-            "password": random_password,
-            "full_name": user.get_full_name() or user.username,
-            "send_notify": False,
-            "must_change_password": False,
-        }
+    random_password = secrets.token_urlsafe(32)
+
+    try:
+        client.create_user(
+            username=user.username,
+            email=user.email,
+            password=random_password,
+            must_change_password=False,
+        )
+        logger.info(f"Created Gitea user: {user.username}")
+        return True
+    except GiteaAPIError as e:
+        error_msg = f"Gitea API error during user creation: {str(e)}"
+        logger.error(error_msg)
+        raise GiteaUserCreationError(user.username, error_msg)
+    except Exception as e:
+        error_msg = f"Unexpected error during user creation: {str(e)}"
+        logger.error(error_msg)
+        raise GiteaUserCreationError(user.username, error_msg)
+
+
+def sync_ssh_key_to_gitea(user: User) -> Tuple[bool, Optional[str]]:
+    """
+    Sync user's SSH key from SciTeX to Gitea.
+
+    Args:
+        user: Django User instance
+
+    Returns:
+        Tuple of (success, error_message)
+    """
+    try:
+        from apps.accounts_app.models import UserProfile
 
         try:
-            response = client._request("POST", "/admin/users", json=user_data)
-            logger.info(f"✓ Created Gitea user: {user.username}")
-            return True
-        except GiteaAPIError as e:
-            error_msg = f"Gitea API error during user creation: {str(e)}"
-            logger.error(error_msg)
-            raise GiteaUserCreationError(user.username, error_msg)
-        except Exception as e:
-            error_msg = f"Unexpected error during user creation: {str(e)}"
-            logger.error(error_msg)
-            raise GiteaUserCreationError(user.username, error_msg)
+            profile = UserProfile.objects.get(user=user)
+        except UserProfile.DoesNotExist:
+            return False, "User profile not found"
+
+        if not profile.ssh_public_key:
+            return False, "No SSH key found for user"
+
+        client = GiteaClient()
+
+        fingerprint = profile.ssh_key_fingerprint
+        if fingerprint:
+            parts = fingerprint.split()
+            sha256_hash = None
+            for part in parts:
+                if part.startswith("SHA256:"):
+                    sha256_hash = part.replace("SHA256:", "")
+                    break
+
+            if sha256_hash:
+                existing_key = client.find_ssh_key_by_fingerprint(
+                    sha256_hash, user.username
+                )
+                if existing_key:
+                    logger.info(
+                        f"SSH key already exists in Gitea for user: {user.username}"
+                    )
+                    return True, None
+
+        title = f"SciTeX Cloud Key ({user.username})"
+        client.add_ssh_key(
+            title=title, key=profile.ssh_public_key, username=user.username
+        )
+
+        logger.info(f"Synced SSH key to Gitea for user: {user.username}")
+        return True, None
+
+    except GiteaAPIError as e:
+        error_msg = f"Gitea API error: {str(e)}"
+        logger.error(f"Failed to sync SSH key for {user.username}: {error_msg}")
+        return False, error_msg
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Failed to sync SSH key for {user.username}: {error_msg}")
+        return False, error_msg
+
+
+def remove_ssh_key_from_gitea(user: User) -> Tuple[bool, Optional[str]]:
+    """
+    Remove user's SSH key from Gitea.
+
+    Args:
+        user: Django User instance
+
+    Returns:
+        Tuple of (success, error_message)
+    """
+    try:
+        from apps.accounts_app.models import UserProfile
+
+        try:
+            profile = UserProfile.objects.get(user=user)
+        except UserProfile.DoesNotExist:
+            return True, None
+
+        if not profile.ssh_key_fingerprint:
+            return True, None
+
+        client = GiteaClient()
+
+        parts = profile.ssh_key_fingerprint.split()
+        sha256_hash = None
+        for part in parts:
+            if part.startswith("SHA256:"):
+                sha256_hash = part.replace("SHA256:", "")
+                break
+
+        if not sha256_hash:
+            return True, None
+
+        existing_key = client.find_ssh_key_by_fingerprint(sha256_hash, user.username)
+        if existing_key:
+            key_id = existing_key.get("id")
+            if key_id:
+                client.delete_ssh_key(key_id, user.username)
+                logger.info(f"Removed SSH key from Gitea for user: {user.username}")
+
+        return True, None
+
+    except GiteaAPIError as e:
+        error_msg = f"Gitea API error: {str(e)}"
+        logger.error(f"Failed to remove SSH key for {user.username}: {error_msg}")
+        return False, error_msg
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Failed to remove SSH key for {user.username}: {error_msg}")
+        return False, error_msg
 
 
 # EOF

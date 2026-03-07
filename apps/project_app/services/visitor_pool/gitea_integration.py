@@ -27,6 +27,7 @@ class GiteaIntegration:
         """
         try:
             from apps.gitea_app.api_client import GiteaClient
+
             client = GiteaClient()
 
             for i in range(1, pool_size + 1):
@@ -50,18 +51,16 @@ class GiteaIntegration:
         if client is None:
             try:
                 from apps.gitea_app.api_client import GiteaClient
+
                 client = GiteaClient()
             except Exception as e:
                 logger.warning(f"[VisitorPool] Failed to initialize Gitea client: {e}")
                 return
 
         try:
-            # Check if user exists in Gitea
-            try:
-                client._request("GET", f"/users/{username}")
+            if client.user_exists(username):
                 logger.debug(f"[VisitorPool] Gitea user already exists: {username}")
-            except Exception:
-                # User doesn't exist, create it
+            else:
                 cls._create_gitea_user(client, username, visitor_num)
 
         except Exception as e:
@@ -70,14 +69,11 @@ class GiteaIntegration:
     @classmethod
     def _create_gitea_user(cls, client, username: str, visitor_num: str):
         """Create a new user in Gitea."""
-        visitor_password = secrets.token_urlsafe(32)  # Random password, never to be used
-        user_data = {
-            "username": username,
-            "email": f"{username}@visitor.scitex.local",
-            "password": visitor_password,
-            "full_name": f"Visitor {visitor_num}",
-            "send_notify": False,
-            "must_change_password": False,
-        }
-        client._request("POST", "/admin/users", json=user_data)
+        visitor_password = secrets.token_urlsafe(32)
+        client.create_user(
+            username=username,
+            email=f"{username}@visitor.scitex.local",
+            password=visitor_password,
+            must_change_password=False,
+        )
         logger.info(f"[VisitorPool] Created Gitea user: {username}")

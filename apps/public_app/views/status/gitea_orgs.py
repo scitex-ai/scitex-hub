@@ -33,7 +33,7 @@ def check_gitea_orgs(status_data):
             from apps.gitea_app.api_client import GiteaClient
 
             client = GiteaClient()
-            data = client._request("GET", f"/orgs/{org_name}")
+            data = client.get_organization(org_name)
             entry.update(
                 {
                     "is_running": True,
