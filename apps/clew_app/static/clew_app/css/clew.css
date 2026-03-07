@@ -106,7 +106,7 @@
   text-align: center;
   color: var(--workspace-text-muted);
   width: 100%;
-  max-width: 100%;
+  max-width: 720px;
 }
 
 .dag-placeholder i {
