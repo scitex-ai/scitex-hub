@@ -27,6 +27,12 @@ Provides Scholar, Writer, Vis, Console, and Hub modules as a Django web applicat
 
 > **Status**: Alpha (data may be lost)
 
+## Screenshots
+
+| Writer | Scholar | Apps |
+|:---:|:---:|:---:|
+| ![Writer](docs/images/screenshot-writer.png) | ![Scholar](docs/images/screenshot-scholar.png) | ![Apps](docs/images/screenshot-apps.png) |
+
 ## Four Freedoms for Research
 
 0. The freedom to **run** your research anywhere — your machine, your terms.
