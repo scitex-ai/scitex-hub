@@ -202,18 +202,21 @@
   background: #a07040;
 }
 
+.module-status-badge--alpha,
+.module-status-badge--beta {
+  font-family: serif;
+  font-size: 7px;
+  padding: 0 2px;
+  min-width: 10px;
+  text-align: center;
+}
+
 .module-status-badge--alpha {
   background: #e6a817;
-  font-style: italic;
-  font-size: 8px;
-  padding: 1px 2px;
 }
 
 .module-status-badge--beta {
   background: #3b82f6;
-  font-style: italic;
-  font-size: 8px;
-  padding: 1px 2px;
 }
 
 /* Private app lock icon overlay */
