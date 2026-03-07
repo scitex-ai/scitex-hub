@@ -7,12 +7,13 @@ Custom middleware for SciTeX Cloud.
 from django.conf import settings
 
 
-class JSNoCacheMiddleware:
+class DevNoCacheMiddleware:
     """
-    Middleware to prevent browser caching of JS files in development.
+    Middleware to prevent browser caching in development.
 
-    This is needed because ES modules are cached by the browser's module map
-    independently of HTTP cache headers. Adding no-store ensures fresh fetches.
+    Applies to:
+    - JS static files (ES modules cached by browser's module map)
+    - HTML responses (Django template changes need immediate visibility)
     """
 
     def __init__(self, get_response):
@@ -23,12 +24,22 @@ class JSNoCacheMiddleware:
 
         # Only apply in development (DEBUG mode)
         if settings.DEBUG:
-            # Check if this is a JS file request
             path = request.path.lower()
-            if path.endswith('.js') and '/static/' in path:
-                # Prevent ALL caching of JS files
-                response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-                response['Pragma'] = 'no-cache'
-                response['Expires'] = '0'
+            content_type = response.get("Content-Type", "")
+
+            # JS static files: prevent all caching
+            if path.endswith(".js") and "/static/" in path:
+                response["Cache-Control"] = (
+                    "no-store, no-cache, must-revalidate, max-age=0"
+                )
+                response["Pragma"] = "no-cache"
+                response["Expires"] = "0"
+            # HTML responses: revalidate on every request
+            elif "text/html" in content_type:
+                response["Cache-Control"] = "no-cache, must-revalidate, max-age=0"
+                response["Pragma"] = "no-cache"
 
         return response
+
+
+# EOF
