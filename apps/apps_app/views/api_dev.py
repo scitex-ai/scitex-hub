@@ -48,12 +48,25 @@ def api_dev_install(request):
             {"success": False, "error": "owner and repo are required"}, status=400
         )
 
-    # Check if already installed
-    if DevInstallation.objects.filter(
+    # Check if already installed (possibly disabled)
+    existing = DevInstallation.objects.filter(
         user=request.user, source_owner=owner, source_repo=repo
-    ).exists():
+    ).first()
+    if existing:
+        if existing.is_enabled:
+            return JsonResponse(
+                {"success": False, "error": "Already installed as dev app"}, status=409
+            )
+        # Re-enable previously uninstalled dev app
+        existing.is_enabled = True
+        existing.save(update_fields=["is_enabled"])
         return JsonResponse(
-            {"success": False, "error": "Already installed as dev app"}, status=409
+            {
+                "success": True,
+                "module_name": existing.module_name,
+                "label": existing.label,
+                "icon": existing.icon,
+            }
         )
 
     # Check repo accessibility
@@ -103,22 +116,53 @@ def api_dev_install(request):
 @login_required
 @require_POST
 def api_dev_uninstall(request, owner, repo):
-    """Uninstall a dev app.
+    """Uninstall a dev app (soft-delete: sets is_enabled=False).
 
     POST /apps/api/dev/<owner>/<repo>/uninstall/
-    Deletes the DevInstallation record.
     """
-    deleted, _ = DevInstallation.objects.filter(
+    dev_install = DevInstallation.objects.filter(
         user=request.user, source_owner=owner, source_repo=repo
-    ).delete()
+    ).first()
 
-    if not deleted:
+    if not dev_install:
         return JsonResponse(
             {"success": False, "error": "Dev app not found"}, status=404
         )
 
+    dev_install.is_enabled = False
+    dev_install.save(update_fields=["is_enabled"])
+
     logger.info(
         "[api_dev] User %s uninstalled dev app %s/%s",
+        request.user.username,
+        owner,
+        repo,
+    )
+
+    return JsonResponse({"success": True})
+
+
+@login_required
+@require_POST
+def api_dev_reinstall(request, owner, repo):
+    """Re-install a previously uninstalled dev app (sets is_enabled=True).
+
+    POST /apps/api/dev/<owner>/<repo>/reinstall/
+    """
+    dev_install = DevInstallation.objects.filter(
+        user=request.user, source_owner=owner, source_repo=repo
+    ).first()
+
+    if not dev_install:
+        return JsonResponse(
+            {"success": False, "error": "Dev app not found"}, status=404
+        )
+
+    dev_install.is_enabled = True
+    dev_install.save(update_fields=["is_enabled"])
+
+    logger.info(
+        "[api_dev] User %s reinstalled dev app %s/%s",
         request.user.username,
         owner,
         repo,

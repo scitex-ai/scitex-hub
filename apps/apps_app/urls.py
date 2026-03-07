@@ -20,6 +20,11 @@ urlpatterns = [
         name="api_dev_uninstall",
     ),
     path(
+        "api/dev/<str:owner>/<str:repo>/reinstall/",
+        views.api_dev_reinstall,
+        name="api_dev_reinstall",
+    ),
+    path(
         "api/dev/<str:owner>/<str:repo>/submit/",
         views.api_submit_dev_app,
         name="api_submit_dev_app",

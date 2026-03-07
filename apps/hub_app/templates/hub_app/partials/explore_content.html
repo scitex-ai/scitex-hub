@@ -18,6 +18,11 @@ Returned by /hub/api/explore/?tab=repositories|users
            data-explore-tab="users">
             <i class="fas fa-users"></i> Users
         </a>
+        <a href="#"
+           class="hub-explore-tab {% if tab == 'groups' %}active{% endif %}"
+           data-explore-tab="groups">
+            <i class="fas fa-building"></i> Groups
+        </a>
     </nav>
     {% if tab == 'repositories' %}
         {% if repositories %}
@@ -53,8 +58,8 @@ Returned by /hub/api/explore/?tab=repositories|users
                                         data-action="dev-install"
                                         data-owner="{{ repo.owner.username }}"
                                         data-repo="{{ repo.slug }}"
-                                        title="Install as dev app in your workspace">
-                                    <i class="fas fa-download"></i> Dev Install
+                                        title="Install privately in your workspace">
+                                    <i class="fas fa-download"></i> Private Install
                                 </button>
                             {% endif %}
                         </div>
@@ -89,6 +94,31 @@ Returned by /hub/api/explore/?tab=repositories|users
                 {% endfor %}
             {% else %}
                 <p class="text-muted hub-explore-empty">No users to display</p>
+            {% endif %}
+        </div>
+    {% elif tab == 'groups' %}
+        <div class="projects-grid">
+            {% if organizations %}
+                {% for org in organizations %}
+                    <div class="project-card">
+                        <div class="project-card-header">
+                            <h3>
+                                <a href="/{{ org.slug }}/">{{ org.name }}</a>
+                            </h3>
+                        </div>
+                        <div class="project-card-body">
+                            <p class="text-muted">@{{ org.slug }}</p>
+                            {% if org.description %}<p class="text-muted">{{ org.description|truncatewords:20 }}</p>{% endif %}
+                            <div class="project-meta">
+                                <span class="meta-item">
+                                    <i class="fas fa-users"></i> {{ org.member_count }} member{{ org.member_count|pluralize }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted hub-explore-empty">No groups to display</p>
             {% endif %}
         </div>
     {% endif %}

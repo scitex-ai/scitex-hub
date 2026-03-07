@@ -325,6 +325,13 @@ def api_explore(request):
             .order_by("-follower_count", "-repo_count")[:20]
         )
         context["users"] = users
+    elif tab == "groups":
+        from apps.organizations_app.models import Organization
+
+        organizations = Organization.objects.annotate(
+            member_count=Count("members")
+        ).order_by("-member_count", "name")[:20]
+        context["organizations"] = organizations
 
     html = render_to_string(
         "hub_app/partials/explore_content.html", context, request=request

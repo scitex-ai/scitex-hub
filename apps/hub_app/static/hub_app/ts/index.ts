@@ -7,8 +7,8 @@
 
 import { handleAboutClick } from "./about-edit";
 import { hubGet, hubPost } from "./hub-api";
+import { handleBrowseHash } from "./hub-hash-router";
 import { getBranch, pushDashboardUrl, pushProjectUrl } from "./hub-url";
-import "./toolbar-dropdowns"; // Exposes dropdown toggle functions to window
 import "./toolbar-dropdowns"; // Exposes dropdown toggle functions to window
 
 let currentTab = "files";
@@ -478,10 +478,15 @@ window.addEventListener("popstate", (event) => {
 });
 
 // Auto-init
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initHub);
-} else {
+function boot(): void {
   initHub();
+  handleBrowseHash(selectProject);
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", boot);
+} else {
+  boot();
 }
 
 export {};

@@ -3,8 +3,8 @@
 .ap-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
+  gap: 10px;
+  padding: 6px 10px;
   background-color: var(--workspace-bg-primary, var(--bg-primary));
   border: 1px solid var(--workspace-border-default, var(--border-color));
   transition:
@@ -33,7 +33,7 @@
   color: inherit;
 }
 
-/* Icon — compact */
+/* Icon — compact, with optional status overlay badge */
 .ap-card-icon {
   flex-shrink: 0;
   width: 32px;
@@ -45,6 +45,41 @@
   border: 1px solid var(--workspace-border-default, var(--border-color));
   font-size: 1rem;
   color: var(--workspace-icon-primary, var(--accent));
+  position: relative;
+}
+
+/* Overlay badge on icon (DEV, WIP, BETA, etc.) */
+.ap-icon-badge {
+  position: absolute;
+  bottom: -4px;
+  right: -6px;
+  font-size: 0.45rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0 3px;
+  line-height: 1.4;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+
+.ap-icon-badge--dev {
+  color: #fff;
+  background: #b87fff;
+}
+
+.ap-icon-badge--wip {
+  color: #fff;
+  background: #e6a817;
+}
+
+.ap-icon-badge--beta {
+  color: #fff;
+  background: #3b82f6;
+}
+
+.ap-icon-badge--deprecated {
+  color: #fff;
+  background: #6b7280;
 }
 
 /* Info block — title row + description */
@@ -67,6 +102,12 @@
   white-space: nowrap;
 }
 
+.ap-card-version {
+  font-size: 0.7rem;
+  color: var(--text-tertiary, #6a737d);
+  white-space: nowrap;
+}
+
 .ap-card-badges {
   display: flex;
   flex-wrap: nowrap;
@@ -85,13 +126,53 @@
   text-overflow: ellipsis;
 }
 
+/* Meta — owner info */
+.ap-card-meta {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.ap-card-owner {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+a.ap-card-owner:hover {
+  color: var(--workspace-icon-primary, var(--accent));
+  text-decoration: none;
+}
+
+.ap-owner-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.ap-owner-avatar--letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.08));
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  color: var(--text-muted);
+  font-size: 0.6rem;
+  font-weight: 600;
+}
+
 /* Stats — right-aligned */
 .ap-card-stats {
   display: flex;
   gap: 10px;
   align-items: center;
   flex-shrink: 0;
-  margin-left: auto;
 }
 
 .ap-stat {
@@ -107,20 +188,35 @@
   color: #f6c90e;
 }
 
-.ap-hub-link {
+/* "View in Hub" button */
+.ap-btn-hub {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 0.72rem;
   color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--workspace-border-default, var(--border-color));
   text-decoration: none;
-  opacity: 0;
-  transition: opacity 0.15s;
+  white-space: nowrap;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
 }
 
-.ap-card:hover .ap-hub-link {
-  opacity: 0.6;
-}
-
-.ap-hub-link:hover {
+.ap-btn-hub:hover {
   color: var(--workspace-icon-primary, var(--accent));
-  opacity: 1 !important;
+  border-color: var(--workspace-icon-primary, var(--accent));
+  text-decoration: none;
+}
+
+/* Links row — Details, Owner Hub, scitex-apps */
+.ap-card-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 /* Actions — rightmost */

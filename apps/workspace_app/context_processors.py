@@ -158,16 +158,23 @@ def _filter_modules_for_user(request, modules):
             ).select_related("module")
         }
 
-        # Populate apps status from AppsModule directly
-        mp_statuses = dict(
-            AppsModule.objects.filter(
-                module_name__in=[m.name for m in modules]
-            ).values_list("module_name", "status")
+        # Populate version from AppsModule (latest version per module)
+        from django.db.models import OuterRef, Subquery
+
+        from apps.apps_app.models import ModuleVersion
+
+        latest_ver_sq = (
+            ModuleVersion.objects.filter(module=OuterRef("pk"))
+            .order_by("-released_at")
+            .values("version")[:1]
+        )
+        mp_data = dict(
+            AppsModule.objects.filter(module_name__in=[m.name for m in modules])
+            .annotate(latest_version=Subquery(latest_ver_sq))
+            .values_list("module_name", "latest_version")
         )
         for mod in modules:
-            db_status = mp_statuses.get(mod.name)
-            if db_status:
-                mod.status = db_status
+            mod.version = mp_data.get(mod.name, "0.1.0") or "0.1.0"
     except Exception:
         # apps_app not migrated yet or other DB issue
         for mod in modules:
@@ -213,6 +220,7 @@ def _append_dev_apps(user, modules):
         for dev_inst in dev_installs:
             config = build_module_config(dev_inst)
             config.accent_color = ""
+            config.version = "0.1.0-dev"
             modules.append(config)
     except Exception:
         pass  # apps_app not migrated yet

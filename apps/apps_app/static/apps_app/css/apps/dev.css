@@ -1,37 +1,20 @@
-/* Dev Apps section — personal dev installs in Apps browse */
+/* Private Apps section — personal app installs in Apps browse */
 
-.apps-dev-section {
-  margin-bottom: 1.5rem;
-}
-
-.apps-dev-heading {
-  font-size: 0.9rem;
-  color: var(--workspace-text-muted);
-  margin-bottom: 0.75rem;
-}
-
-.apps-dev-grid {
+.apps-private-section {
   margin-bottom: 1rem;
 }
 
-.ap-card-dev {
+.apps-private-heading {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.apps-private-grid {
+  margin-bottom: 0;
+}
+
+/* Private cards use the same .ap-card layout; only add a left accent */
+.ap-card-private {
   border-left: 3px solid #b87fff;
-}
-
-.badge-dev-tag {
-  font-size: 0.65rem;
-  padding: 0.05rem 0.35rem;
-}
-
-.dev-uninstall-btn {
-  font-size: 0.7rem;
-  color: #e57373;
-  border-color: #e57373;
-  background: transparent;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.dev-uninstall-btn:hover {
-  background: rgba(229, 115, 115, 0.1);
 }
