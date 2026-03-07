@@ -5,6 +5,21 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.10] - 2026-03-08
+
+### Added
+- **Consistent icon+badge system**: `{% module_icon %}` template tag and `buildModuleIconHtml()` TS utility as single source of truth for module icons with badge overlays
+- **Version-based badges**: DEV text, Greek α (alpha), β (beta) as bare colored overlays with drop shadow
+- **Private Apps**: Renamed "Dev Apps" to "My Private Apps" with purple lock icon overlay
+- **Version info on cards**: All app cards show version string next to app name
+- **Details & Star for private apps**: Private app cards now show Details link and Star button
+- **scitex-apps org**: Auto-fork pipeline, org profile page, health check endpoint
+- **Hub hash routing**: Groups tab, module cleanup
+
+### Changed
+- **Namespace**: First-come-first-served on module_name (unique constraint), no owner prefix in repo names
+- **Badge system**: Replaced status-based badges (WIP/deprecated) with version-suffix-derived badges
+
 ## [0.12.7] - 2026-03-07
 
 ### Added
