@@ -21,6 +21,7 @@ REGISTRY_REPO_DESC = (
     "Central registry for SciTeX app submissions — "
     "submit via PR, merge to approve (like MELPA)"
 )
+APPS_ORG = "scitex-apps"
 
 
 class Command(BaseCommand):
@@ -36,6 +37,9 @@ class Command(BaseCommand):
 
         # ── 1b. Add superusers to org Owners team ─────────────────────
         self._add_superusers_to_org(client)
+
+        # ── 1c. Ensure the `scitex-apps` organisation exists ────────────
+        self._ensure_apps_org(client)
 
         # ── 2. Create the `apps` repo under the org ─────────────────────
         created = self._create_repo(client)
@@ -76,15 +80,74 @@ class Command(BaseCommand):
                 raise
 
     # ------------------------------------------------------------------
-    def _add_superusers_to_org(self, client):
-        """Add Django superusers to the scitex org Owners team."""
+    def _ensure_apps_org(self, client):
+        """Create the `scitex-apps` Gitea organisation for published app forks."""
+        from apps.gitea_app.api_client import GiteaAPIError
+
+        try:
+            client._request("GET", f"/orgs/{APPS_ORG}")
+            self.stdout.write(f"Organisation '{APPS_ORG}' already exists.")
+        except GiteaAPIError:
+            try:
+                client._request(
+                    "POST",
+                    "/orgs",
+                    json={
+                        "username": APPS_ORG,
+                        "full_name": "SciTeX Apps",
+                        "description": (
+                            "Published SciTeX apps — canonical forks "
+                            "of approved app source repositories"
+                        ),
+                        "visibility": "public",
+                    },
+                )
+                self.stdout.write(
+                    self.style.SUCCESS(f"Created organisation: {APPS_ORG}")
+                )
+            except GiteaAPIError as exc:
+                self.stderr.write(f"Failed to create org '{APPS_ORG}': {exc}")
+                raise
+
+        # Add superusers to apps org too
+        self._add_superusers_to_org(client, org_name=APPS_ORG)
+
+        # Ensure Django Organization record exists
+        self._ensure_django_org()
+
+    # ------------------------------------------------------------------
+    def _ensure_django_org(self):
+        """Create a Django Organization record for scitex-apps so /<slug>/ works."""
+        from apps.organizations_app.models import Organization
+
+        org, created = Organization.objects.get_or_create(
+            slug=APPS_ORG,
+            defaults={
+                "name": "SciTeX Apps",
+                "description": (
+                    "Published SciTeX apps — canonical forks "
+                    "of approved app source repositories"
+                ),
+            },
+        )
+        if created:
+            self.stdout.write(
+                self.style.SUCCESS(f"Created Django Organisation: {APPS_ORG}")
+            )
+        else:
+            self.stdout.write(f"Django Organisation '{APPS_ORG}' exists.")
+
+    # ------------------------------------------------------------------
+    def _add_superusers_to_org(self, client, org_name=None):
+        """Add Django superusers to an org's Owners team."""
+        org = org_name or REGISTRY_ORG
         from django.contrib.auth.models import User
 
         from apps.gitea_app.api_client import GiteaAPIError
 
         # Find the Owners team ID
         try:
-            teams = client._request("GET", f"/orgs/{REGISTRY_ORG}/teams").json()
+            teams = client._request("GET", f"/orgs/{org}/teams").json()
             owners_team = next((t for t in teams if t.get("name") == "Owners"), None)
             if not owners_team:
                 self.stderr.write("No Owners team found in org")

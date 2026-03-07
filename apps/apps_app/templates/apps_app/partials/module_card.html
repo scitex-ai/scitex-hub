@@ -76,6 +76,14 @@
                 {{ mod_item.app.avg_rating }}
             </span>
         {% endif %}
+        {% if mod_item.app.registry_repo_url %}
+            <a href="/apps/{{ mod_item.app.module_name }}/"
+               class="ap-stat ap-registry-link"
+               title="View in {{ apps_org }}"
+               onclick="event.stopPropagation();">
+                <i class="fas fa-code-branch" aria-hidden="true"></i>
+            </a>
+        {% endif %}
         {% if mod_item.app.author %}
             <a href="/{{ mod_item.app.author.username }}/{{ mod_item.app.module_name }}/"
                class="ap-stat ap-hub-link"

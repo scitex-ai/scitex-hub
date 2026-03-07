@@ -182,12 +182,43 @@ def api_review_submission(request, submission_id):
 # ---------------------------------------------------------------------------
 
 
+APPS_ORG = "scitex-apps"
+
+
 def _activate_approved_app(app_module):
-    """Pin commit and register an approved app into the workspace registry."""
+    """Pin commit, fork to apps org, and register into the workspace registry."""
     from ..services.app_loader import load_single_app, pin_commit
 
     pin_commit(app_module)
+    _fork_to_apps_org(app_module)
     load_single_app(app_module)
+
+
+def _fork_to_apps_org(app_module):
+    """Fork the author's source repo to the scitex-apps organisation on approval."""
+    if not app_module.project:
+        return
+
+    from apps.gitea_app.api_client import GiteaAPIError, GiteaClient
+
+    client = GiteaClient()
+    owner = app_module.project.owner.username
+    repo = app_module.project.slug
+
+    try:
+        client.get_repository(owner=APPS_ORG, repo=repo)
+        logger.info("Fork already exists: %s/%s", APPS_ORG, repo)
+    except GiteaAPIError:
+        try:
+            client.fork_repository(owner=owner, repo=repo, organization=APPS_ORG)
+            logger.info("Forked %s/%s to %s/%s", owner, repo, APPS_ORG, repo)
+        except GiteaAPIError:
+            logger.exception("Failed to fork %s/%s to %s", owner, repo, APPS_ORG)
+            return
+
+    # Store the registry repo URL on the module
+    app_module.registry_repo_url = f"/{APPS_ORG}/{repo}/"
+    app_module.save(update_fields=["registry_repo_url"])
 
 
 def _sync_project_status(submission, now, reviewer):

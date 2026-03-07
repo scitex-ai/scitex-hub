@@ -35,6 +35,15 @@ def user_profile(request, username):
     if username.lower() in [path.lower() for path in RESERVED_PATHS]:
         raise Http404("This path is reserved and not a valid username")
 
+    # Check for organization first (works for both auth and anon users)
+    from apps.organizations_app.models import Organization
+
+    try:
+        org = Organization.objects.get(slug=username)
+        return organization_profile(request, org)
+    except Organization.DoesNotExist:
+        pass
+
     # Authenticated users see profile inside Hub workspace (rendered at /<username>/)
     if request.user.is_authenticated:
         from apps.hub_app.views.index import _build_profile_context, build_hub_context
@@ -45,10 +54,10 @@ def user_profile(request, username):
         context.update(_build_profile_context(request, username))
         return render(request, "hub_app/index.html", context)
 
-    # First, try to find a user with this username
+    # Unauthenticated: try to find a user with this username
     try:
-        user = User.objects.get(username=username)
-        tab = request.GET.get("tab", "repositories")  # Default to repositories
+        User.objects.get(username=username)
+        tab = request.GET.get("tab", "repositories")
 
         if tab == "repositories":
             return user_project_list(request, username)
@@ -65,17 +74,9 @@ def user_profile(request, username):
 
             return user_stars(request, username)
         else:
-            # Invalid tab - redirect to repositories
             return user_project_list(request, username)
     except User.DoesNotExist:
-        # Not a user, check if it's an organization
-        from apps.organizations_app.models import Organization
-
-        try:
-            org = Organization.objects.get(slug=username)
-            return organization_profile(request, org)
-        except Organization.DoesNotExist:
-            raise Http404("User or organization not found")
+        raise Http404("User or organization not found")
 
 
 def organization_profile(request, org):
@@ -83,23 +84,24 @@ def organization_profile(request, org):
     Organization profile page (GitHub-style /<org-slug>/)
 
     Shows organization info and public projects.
+    For the `scitex-apps` org, shows published AppsModule entries instead.
     """
-    # Get organization's projects (via memberships or direct ownership)
-    # For now, organizations don't directly own projects, but we can
-    # show projects from all org members
-    member_ids = org.members.values_list("id", flat=True)
+    is_member = request.user.is_authenticated and request.user in org.members.all()
+    is_admin = org.can_edit(request.user) if request.user.is_authenticated else False
 
-    # Get projects from organization members
+    # scitex-apps org: show published app modules (not member projects)
+    if org.slug == "scitex-apps":
+        return _apps_org_profile(request, org, is_member, is_admin)
+
+    # Regular org: show member projects
+    member_ids = org.members.values_list("id", flat=True)
     org_projects = Project.objects.filter(owner_id__in=member_ids)
 
-    # Filter by visibility for non-members
-    is_member = request.user.is_authenticated and request.user in org.members.all()
     if not is_member:
         org_projects = org_projects.filter(visibility="public")
 
     org_projects = org_projects.order_by("-updated_at")
 
-    # Pagination
     paginator = Paginator(org_projects, 12)
     page_number = request.GET.get("page")
     projects = paginator.get_page(page_number)
@@ -108,9 +110,31 @@ def organization_profile(request, org):
         "organization": org,
         "projects": projects,
         "is_member": is_member,
-        "is_admin": (
-            org.can_edit(request.user) if request.user.is_authenticated else False
-        ),
+        "is_admin": is_admin,
+        "member_count": org.members.count(),
+        "active_tab": "repositories",
+    }
+
+    return render(request, "organizations_app/profile.html", context)
+
+
+def _apps_org_profile(request, org, is_member, is_admin):
+    """Profile page for the scitex-apps org — shows published app modules."""
+    from apps.apps_app.models import AppsModule
+
+    modules = AppsModule.objects.filter(visibility="public").order_by(
+        "-star_count", "-install_count"
+    )
+
+    paginator = Paginator(modules, 24)
+    page_number = request.GET.get("page")
+    page = paginator.get_page(page_number)
+
+    context = {
+        "organization": org,
+        "app_modules": page,
+        "is_member": is_member,
+        "is_admin": is_admin,
         "member_count": org.members.count(),
         "active_tab": "repositories",
     }

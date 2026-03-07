@@ -10,6 +10,44 @@
   padding: 0.5rem 1rem 1rem;
 }
 
+/* ─── Registry Org Banner ──────────────────────────────────────── */
+.apps-org-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+  background-color: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.82rem;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
+}
+
+.apps-org-banner:hover {
+  border-color: var(--workspace-icon-primary, var(--accent));
+  background-color: var(--workspace-bg-tertiary, rgba(255, 255, 255, 0.06));
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.apps-org-banner > i:first-child {
+  color: var(--workspace-icon-primary, var(--accent));
+  font-size: 1rem;
+}
+
+.apps-org-banner-text {
+  flex: 1;
+}
+
+.apps-org-banner-arrow {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+
 /* ─── Top Bar ──────────────────────────────────────────────────── */
 .apps-topbar {
   display: flex;
