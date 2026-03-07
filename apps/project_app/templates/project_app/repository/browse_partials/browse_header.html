@@ -6,6 +6,9 @@
         <a href="/{{ project.owner.username }}/" class="repo-header-owner">{{ project.owner.username }}</a>
         <span class="repo-header-separator">/</span>
         <a href="/{{ project.owner.username }}/{{ project.slug }}/" class="repo-title">{{ project.name }}</a>
+        {% if project.is_app %}
+            <span class="badge badge-app" title="SciTeX App"><i class="fas fa-puzzle-piece"></i> App</span>
+        {% endif %}
         {% if breadcrumbs %}
             {% for breadcrumb in breadcrumbs %}
                 {% if breadcrumb.name != project.name %}
@@ -178,6 +181,16 @@
                         <span>Dev Install</span>
                     </button>
                 {% endif %}
+            {% endif %}
+            <!-- Submit to App Store (owner of app repos only) -->
+            {% if project.is_app and request.user == project.owner %}
+                <button class="repo-action-btn repo-action-btn-submit"
+                        id="submit-app-btn"
+                        onclick="submitToAppStore('{{ project.owner.username }}', '{{ project.slug }}')"
+                        title="Submit to App Store for review">
+                    <i class="fas fa-upload"></i>
+                    <span>Submit to App Store</span>
+                </button>
             {% endif %}
         </div>
         <!-- About: description + topics (inline editable for owner) -->

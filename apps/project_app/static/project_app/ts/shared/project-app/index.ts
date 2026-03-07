@@ -13,7 +13,6 @@ import * as DirectoryOps from "./directory-ops";
 import * as UserProfile from "./user-profile";
 import * as Utils from "./utils";
 
-
 // Re-export all public functions for use in other modules
 export * from "./sidebar-manager";
 export * from "./file-tree-manager";
@@ -59,6 +58,8 @@ document.addEventListener("DOMContentLoaded", function () {
 (window as any).showDeleteModal = ProjectForms.showDeleteModal;
 (window as any).hideDeleteModal = ProjectForms.hideDeleteModal;
 (window as any).submitDelete = ProjectForms.submitDelete;
+// App Store submission
+(window as any).submitToAppStore = ProjectActions.submitToAppStore;
 // Directory operations
 (window as any).toggleBranchDropdown = DirectoryOps.toggleBranchDropdown;
 (window as any).toggleAddFileDropdown = DirectoryOps.toggleAddFileDropdown;

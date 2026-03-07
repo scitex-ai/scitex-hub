@@ -176,7 +176,18 @@ def api_registry_webhook(request):
 
     _activate_approved_app(app_module)
 
-    return JsonResponse({"ok": True, "approved": app_name, "pr": pr.get("number")})
+    # Update Django PullRequest record to reflect merge
+    pr_number = pr.get("number")
+    if pr_number:
+        from apps.project_app.models import PullRequest as DjangoPR
+
+        DjangoPR.objects.filter(
+            project__owner__username=REGISTRY_REPO_OWNER,
+            project__slug=REGISTRY_REPO_NAME,
+            number=pr_number,
+        ).update(state="merged", merged_at=now)
+
+    return JsonResponse({"ok": True, "approved": app_name, "pr": pr_number})
 
 
 # ---------------------------------------------------------------------------
@@ -299,11 +310,22 @@ def _open_registry_pr(
             "base": "main",
         },
     )
-    pr_url = pr_resp.json().get("html_url", "")
+    pr_data = pr_resp.json()
+    pr_url = pr_data.get("html_url", "")
     if not pr_url:
         raise RuntimeError(
             f"PR created but no html_url returned for {app_module.module_name}"
         )
+
+    # Sync to Django PullRequest model for UI visibility
+    _sync_pr_to_django(
+        pr_number=int(pr_data.get("number", 0)),
+        title=f"[App] {app_module.module_name} v{version}",
+        description=pr_data.get("body", ""),
+        author=app_module.author,
+        source_branch=branch_name,
+    )
+
     return pr_url
 
 
@@ -365,6 +387,45 @@ def comment_on_registry_pr(pr_url: str, comment: str) -> None:
         "POST",
         f"/repos/{REGISTRY_REPO_OWNER}/{REGISTRY_REPO_NAME}/issues/{pr_number}/comments",
         json={"body": comment},
+    )
+
+
+def _sync_pr_to_django(
+    pr_number: int,
+    title: str,
+    description: str,
+    author,
+    source_branch: str,
+    state: str = "open",
+) -> None:
+    """Create or update a Django PullRequest record mirroring a Gitea registry PR."""
+    if not pr_number:
+        return
+
+    from apps.project_app.models import Project, PullRequest
+
+    registry_project = Project.objects.filter(
+        owner__username=REGISTRY_REPO_OWNER, slug=REGISTRY_REPO_NAME
+    ).first()
+    if not registry_project:
+        logger.warning(
+            "Registry project %s/%s not found in Django",
+            REGISTRY_REPO_OWNER,
+            REGISTRY_REPO_NAME,
+        )
+        return
+
+    PullRequest.objects.update_or_create(
+        project=registry_project,
+        number=pr_number,
+        defaults={
+            "title": title,
+            "description": description,
+            "author": author,
+            "source_branch": source_branch,
+            "target_branch": "main",
+            "state": state,
+        },
     )
 
 

@@ -12,3 +12,12 @@
   gap: 1.5rem;
 }
 
+.scitex-tab .badge-count {
+  background: var(--workspace-border-active, #f78166);
+  color: white;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-left: 4px;
+}
