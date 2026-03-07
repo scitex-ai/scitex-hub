@@ -33,7 +33,7 @@
                        aria-label="{{ mod.label }}"
                        title="{{ mod.label }}"
                        data-module-accent="{{ mod.name }}">
-                        {% module_icon mod.name "tab" mod.version mod.icon_fa %}
+                        {% module_icon mod.name "tab" mod.version mod.icon_fa mod.is_dev %}
                         <span class="selector-nav-label ws-apps-nav-label">{{ mod.label }}</span></a>
                 {% endfor %}
             </nav>

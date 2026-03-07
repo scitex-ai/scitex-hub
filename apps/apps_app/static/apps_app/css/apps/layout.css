@@ -195,23 +195,23 @@
 
 /* ─── Section Headings ─────────────────────────────────────────── */
 .apps-section-heading,
-.apps-dev-heading {
+.apps-private-heading {
   font-size: 0.85rem;
   color: var(--text-muted);
   margin: 0 0 0.5rem;
 }
 
 .apps-section-heading i,
-.apps-dev-heading i {
+.apps-private-heading i {
   margin-right: 3px;
 }
 
-/* ─── Dev Section ──────────────────────────────────────────────── */
-.apps-dev-section {
+/* ─── Private Apps Section ─────────────────────────────────────── */
+.apps-private-section {
   margin-bottom: 1rem;
 }
 
-.apps-dev-grid {
+.apps-private-grid {
   margin-bottom: 0;
 }
 

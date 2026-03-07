@@ -20,22 +20,24 @@ _BADGE_MAP = {
 
 
 @register.simple_tag
-def module_icon(name, context="tab", version="", icon_fa=""):
+def module_icon(name, context="tab", version="", icon_fa="", is_private=""):
     """
     Render the canonical icon for a workspace module, with version-based badge.
 
     Badge is derived from version suffix: -dev → DEV, -alpha → ALPHA, -beta → BETA.
+    Private (non-published) apps show a PRIVATE badge.
 
     Args:
         name: Module name (writer, scholar, vis, dev__owner__repo, etc.)
         context: 'tab' for module tab bar, 'nav' for global header nav
         version: Version string (e.g. "0.1.0-alpha") — suffix determines badge
         icon_fa: Explicit FontAwesome class (used when module not in registry)
+        is_private: If truthy, show PRIVATE badge instead of version-based badge
 
     Usage:
         {% module_icon "writer" %}
         {% module_icon "apps" "tab" "0.1.0-alpha" %}
-        {% module_icon "dev__user__repo" "tab" "0.1.0-dev" "fas fa-puzzle-piece" %}
+        {% module_icon "dev__user__repo" "tab" "" "fas fa-puzzle-piece" "1" %}
     """
     from apps.workspace_app.registry import get_module
 
@@ -60,13 +62,18 @@ def module_icon(name, context="tab", version="", icon_fa=""):
     if not icon_html:
         icon_html = '<i class="fas fa-puzzle-piece"></i>'
 
-    # Derive badge from version suffix
+    # Derive badge: PRIVATE overrides version-based badges
     badge_html = ""
-    version_str = str(version or "")
-    for suffix, (css_cls, label) in _BADGE_MAP.items():
-        if version_str.endswith(suffix):
-            badge_html = f'<span class="module-status-badge {css_cls}">{label}</span>'
-            break
+    if is_private:
+        badge_html = '<span class="module-status-badge module-status-badge--private">PRIVATE</span>'
+    else:
+        version_str = str(version or "")
+        for suffix, (css_cls, label) in _BADGE_MAP.items():
+            if version_str.endswith(suffix):
+                badge_html = (
+                    f'<span class="module-status-badge {css_cls}">{label}</span>'
+                )
+                break
 
     if badge_html:
         return mark_safe(

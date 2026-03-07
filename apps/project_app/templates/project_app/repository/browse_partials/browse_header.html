@@ -161,7 +161,7 @@
             </button>
             <!-- Clone Button -->
             {% include 'project_app/partials/clone_button.html' %}
-            <!-- Dev Install Button (app repos only) -->
+            <!-- Private Install Button (app repos only) -->
             {% if project.is_app and request.user.is_authenticated %}
                 {% if is_dev_installed %}
                     <button class="repo-action-btn repo-action-btn-installed"
@@ -178,7 +178,7 @@
                             data-owner="{{ project.owner.username }}"
                             data-repo="{{ project.slug }}">
                         <i class="fas fa-download"></i>
-                        <span>Dev Install</span>
+                        <span>Private Install</span>
                     </button>
                 {% endif %}
             {% endif %}

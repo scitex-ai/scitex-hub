@@ -1,20 +1,20 @@
-/* Dev Apps section — personal dev installs in Apps browse */
+/* Private Apps section — personal app installs in Apps browse */
 
-.apps-dev-section {
+.apps-private-section {
   margin-bottom: 1rem;
 }
 
-.apps-dev-heading {
+.apps-private-heading {
   font-size: 0.9rem;
   color: var(--text-muted);
   margin-bottom: 0.5rem;
 }
 
-.apps-dev-grid {
+.apps-private-grid {
   margin-bottom: 0;
 }
 
-/* Dev cards use the same .ap-card layout; only add a left accent */
-.ap-card-dev {
+/* Private cards use the same .ap-card layout; only add a left accent */
+.ap-card-private {
   border-left: 3px solid #b87fff;
 }

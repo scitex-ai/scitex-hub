@@ -43,13 +43,13 @@
             </select>
         </div>
     </div>
-    <!-- Dev Apps section (uses same card template as public apps) -->
+    <!-- Private Apps section (uses same card template as public apps) -->
     {% if dev_modules %}
-        <div class="apps-dev-section">
-            <h3 class="apps-dev-heading">
-                <i class="fas fa-code-branch"></i> My Dev Apps
+        <div class="apps-private-section">
+            <h3 class="apps-private-heading">
+                <i class="fas fa-lock"></i> My Private Apps
             </h3>
-            <div class="apps-grid apps-dev-grid">
+            <div class="apps-grid apps-private-grid">
                 {% for mod_item in dev_modules %}
                     {% include "apps_app/partials/module_card.html" %}
                 {% endfor %}

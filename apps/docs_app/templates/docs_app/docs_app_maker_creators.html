@@ -543,7 +543,7 @@ register(
             <p>
                 Apps can include TypeScript files for interactive frontend logic.
                 SciTeX uses a <strong>dual-Vite architecture</strong> to handle TypeScript compilation
-                differently for platform modules and user-installed dev apps.
+                differently for platform modules and user-installed private apps.
             </p>
             <table class="api-table">
                 <thead>
@@ -629,7 +629,7 @@ register(
                 <tbody>
                     <tr>
                         <td>
-                            <strong>1. Dev Install</strong>
+                            <strong>1. Private Install</strong>
                         </td>
                         <td>Live Vite dev server (port 5174) &mdash; HMR enabled, instant feedback</td>
                         <td>Only the installing user</td>
@@ -664,7 +664,7 @@ register(
             <div class="api-callout api-callout-info">
                 <i class="fas fa-info-circle"></i>
                 <div>
-                    <strong>Dev Install vs Published:</strong> During development, TypeScript is served
+                    <strong>Private Install vs Published:</strong> During development, TypeScript is served
                     live by the container Vite server for instant iteration. Once published, TypeScript is
                     pre-built into static bundles &mdash; no live compilation needed, ensuring stability
                     for all users.
@@ -742,9 +742,9 @@ class PomodoroContextTest(TestCase):
             <div class="api-callout api-callout-info">
                 <i class="fas fa-info-circle"></i>
                 <div>
-                    <strong>Dev Install (no approval needed):</strong> Any user can dev-install your app
+                    <strong>Private Install (no approval needed):</strong> Any user can privately install your app
                     directly from <a href="/hub/">Hub Explore</a> without going through the submission process.
-                    Dev installs are personal and only visible to the user who installed them.
+                    Private installs are personal and only visible to the user who installed them.
                 </div>
             </div>
             <div class="api-callout api-callout-info">

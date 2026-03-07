@@ -34,11 +34,11 @@ function injectSidebarNavItem(
   link.title = label;
   link.dataset.moduleAccent = moduleName;
 
-  // Icon + DEV badge overlay
+  // Icon + PRIVATE badge overlay
   link.innerHTML =
-    `<span class="dev-icon-wrap">` +
+    `<span class="module-icon-wrap">` +
     `<i class="${icon}"></i>` +
-    `<span class="dev-badge">DEV</span>` +
+    `<span class="module-status-badge module-status-badge--private">PRIVATE</span>` +
     `</span>` +
     `<span class="selector-nav-label ws-apps-nav-label">${label}</span>`;
 
@@ -98,7 +98,7 @@ function handleDevInstall(btn: HTMLButtonElement): void {
       }
     })
     .catch(() => {
-      btn.innerHTML = '<i class="fas fa-download"></i> Dev Install';
+      btn.innerHTML = '<i class="fas fa-download"></i> Private Install';
       btn.disabled = false;
     });
 }

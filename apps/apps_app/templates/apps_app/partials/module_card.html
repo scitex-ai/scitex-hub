@@ -1,4 +1,4 @@
-<article class="ap-card{% if mod_item.is_dev %} ap-card-dev{% endif %}"
+<article class="ap-card{% if mod_item.is_dev %} ap-card-private{% endif %}"
          data-module="{{ mod_item.app.module_name }}"
          data-category="{{ mod_item.app.category }}"
          data-stars="{{ mod_item.app.star_count }}"
@@ -15,7 +15,7 @@
             {% load module_icons %}
 
             {% if mod_item.reg %}
-                {% module_icon mod_item.reg.name "tab" mod_item.app.latest_version mod_item.reg.icon_fa %}
+                {% module_icon mod_item.reg.name "tab" mod_item.app.latest_version mod_item.reg.icon_fa mod_item.is_dev %}
             {% else %}
                 <i class="fas fa-puzzle-piece" aria-hidden="true"></i>
             {% endif %}

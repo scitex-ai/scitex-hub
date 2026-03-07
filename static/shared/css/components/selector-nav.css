@@ -210,6 +210,10 @@
   background: #3b82f6;
 }
 
+.module-status-badge--private {
+  background: #b87fff;
+}
+
 /* Legacy .dev-badge alias */
 .dev-badge {
   position: absolute;
