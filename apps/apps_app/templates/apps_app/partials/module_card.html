@@ -110,16 +110,14 @@
     </div>
     <div class="ap-card-actions">
         {% if user.is_authenticated %}
-            {% if not mod_item.is_dev %}
-                <button class="ap-btn-star {% if mod_item.is_starred %}ap-btn-star--active{% endif %}"
-                        data-module="{{ mod_item.app.module_name }}"
-                        data-starred="{{ mod_item.is_starred|yesno:'true,false' }}"
-                        aria-label="{% if mod_item.is_starred %}Unstar{% else %}Star{% endif %} {{ mod_item.app.module_name }}"
-                        title="{% if mod_item.is_starred %}Unstar{% else %}Star{% endif %}">
-                    <i class="{% if mod_item.is_starred %}fas{% else %}far{% endif %} fa-star"
-                       aria-hidden="true"></i>
-                </button>
-            {% endif %}
+            <button class="ap-btn-star {% if mod_item.is_starred %}ap-btn-star--active{% endif %}"
+                    data-module="{{ mod_item.app.module_name }}"
+                    data-starred="{{ mod_item.is_starred|yesno:'true,false' }}"
+                    aria-label="{% if mod_item.is_starred %}Unstar{% else %}Star{% endif %} {{ mod_item.app.module_name }}"
+                    title="{% if mod_item.is_starred %}Unstar{% else %}Star{% endif %}">
+                <i class="{% if mod_item.is_starred %}fas{% else %}far{% endif %} fa-star"
+                   aria-hidden="true"></i>
+            </button>
             {% if mod_item.is_dev %}
                 {% if mod_item.is_enabled %}
                     <div class="ap-status-dropdown"
