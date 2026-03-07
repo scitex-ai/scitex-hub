@@ -37,7 +37,7 @@ _DESCRIPTIONS = {
 }
 
 # Modules under active development
-_WIP_MODULES = {"clew", "vis"}
+_WIP_MODULES = {"vis"}
 
 
 def ensure_builtin_modules(author_username="ywatanabe"):
@@ -76,6 +76,11 @@ def ensure_builtin_modules(author_username="ywatanabe"):
                 version=f"0.1.0{suffix}",
                 changelog="Initial release.",
                 is_stable=suffix == "",
+            )
+        elif mod.name not in _WIP_MODULES:
+            # Promote any lingering alpha versions to stable
+            obj.versions.filter(version__endswith="-alpha").update(
+                version="0.1.0", is_stable=True
             )
 
         if was_created:
