@@ -410,327 +410,381 @@
     </style>
 {% endblock %}
 {% block content %}
-    <!-- Scholar main content (workspace sidebar handled by global_base worktree pane) -->
-    <main class="scholar-main">
-        <div class="pane-header" data-pane-type="module">
-            <nav class="scholar-tabs">
-                <a href="#library" class="scholar-tab" data-tab="library">
-                    <i class="fas fa-book-reader"></i> Library
-                    {% if library_count %}<span class="scholar-tab-badge">{{ library_count }}</span>{% endif %}
-                </a>
-                <a href="#search" class="scholar-tab" data-tab="search">
-                    <i class="fas fa-search"></i> Search
-                </a>
-                <a href="#bibtex" class="scholar-tab" data-tab="bibtex">
-                    <i class="fas fa-wand-magic-sparkles"></i> Metadata Enrichment
-                </a>
-                <a href="#graph" class="scholar-tab" data-tab="graph">
-                    <i class="fas fa-project-diagram"></i> Citation Graph
-                </a>
-            </nav>
-            <div class="pane-header-actions"></div>
+    {% if needs_scholar_init %}
+        <div id="scholar-init-message" class="container py-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="card shadow-sm">
+                        <div class="card-body text-center p-5">
+                            <i class="fas fa-book fa-3x text-primary mb-3"></i>
+                            <h3 class="mb-3">Initialize Scholar</h3>
+                            <p class="text-muted mb-4">
+                                This project does not have a Scholar workspace yet.
+                                Initialize one to manage your bibliography and search literature.
+                            </p>
+                            <button id="init-scholar-btn"
+                                    class="btn btn-primary btn-lg"
+                                    onclick="initScholarWorkspace()">
+                                <i class="fas fa-magic me-2"></i>Initialize Scholar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="pane-content">
-            <!-- Search Tab Content -->
-            <div id="tab-search" class="scholar-tab-content" data-tab="search">
-                <div class="scholar-search-container" style="flex:1; min-width:0; overflow-y:auto;">
-                    {% include "scholar_app/search_partials/search.html" with show_results=True %}
-                </div>
-                <div class="h-resizer scholar-tab-resizer"
-                     id="search-resizer"
-                     data-h-resizer
-                     data-in-app
-                     data-left=".scholar-search-container"
-                     data-right="#search-controls-panel"
-                     data-threshold="120"
-                     data-storage-key="scholar-search-split"></div>
-                <div class="search-controls-inline"
-                     id="search-controls-panel"
-                     style="width:280px;
-                            flex-shrink:0;
-                            overflow-y:auto;
-                            border-left:1px solid var(--workspace-border-default, #30363d);
-                            padding:8px">{% include "scholar_app/search_partials/search_controls.html" %}</div>
-                <!-- Configuration for JavaScript (hidden, not a flex child) -->
-                <div id="scholar-config-data" style="display:none" data-bibtex-upload-url="{% url 'scholar_app:bibtex_upload' %}" data-resource-status-url="{% url 'scholar_app:bibtex_resource_status' %}" data-scitex-search-url="{% url 'scholar_app:api_scitex_search' %}" data-scitex-capabilities-url="{% url 'scholar_app:api_scitex_capabilities' %}" data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-user-projects='[{% for project in user_projects %}{"id": {{ project.id }}, "name": "{{ project.name|escapejs }}"}
-                    {% if not forloop.last %},{% endif %}
-                {% endfor %}
-                ]' data-current-project='{% if current_project %}{"id": {{ current_project.id }}, "name": "{{ current_project.name|escapejs }}"}
-            {% else %}
-                null
-            {% endif %}
-            ' {% if query and results %} data-search-results='[{% for result in results %}{"title": "{{ result.title|escapejs }}", "year": {% if result.year %}{{ result.year }}{% else %}null{% endif %}, "citations": {% if result.citations %}{{ result.citations }}{% else %}0{% endif %}, "impact_factor": {% if result.impact_factor %}{{ result.impact_factor }}{% else %}null{% endif %}, "authors": "{{ result.authors|escapejs }}", "journal": "{{ result.journal|escapejs }}", "url": "{{ result.url|escapejs }}"}
-            {% if not forloop.last %},{% endif %}
-        {% endfor %}
-        ]' {% endif %}></div>
-</div>
-<!-- BibTeX Tab Content: 2-column layout (enrich | status tiles) -->
-<div id="tab-bibtex" class="scholar-tab-content" data-tab="bibtex">
-    <div class="bibtex-main-content" style="flex:1; min-width:0; overflow-y:auto;">
-        {% include "scholar_app/bibtex_partials/enrich.html" %}
-        <!-- AI2 Prompt Modal -->
-        {% if current_project %}
-            {% include "writer_app/compilation_view_partials/ai2_modal.html" %}
-        {% endif %}
+        <script>
+        function initScholarWorkspace() {
+            var btn = document.getElementById('init-scholar-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Initializing...';
+            fetch('/scholar/api/initialize/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ project_id: {{ current_project.id }} })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-magic me-2"></i>Initialize Scholar';
+                    alert('Failed: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(function(err) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-magic me-2"></i>Initialize Scholar';
+                alert('Error: ' + err.message);
+            });
+        }
+        </script>
+    {% else %}
+        <!-- Scholar main content (workspace sidebar handled by global_base worktree pane) -->
+        <main class="scholar-main">
+            <div class="pane-header" data-pane-type="module">
+                <nav class="scholar-tabs">
+                    <a href="#library" class="scholar-tab" data-tab="library">
+                        <i class="fas fa-book-reader"></i> Library
+                        {% if library_count %}<span class="scholar-tab-badge">{{ library_count }}</span>{% endif %}
+                    </a>
+                    <a href="#search" class="scholar-tab" data-tab="search">
+                        <i class="fas fa-search"></i> Search
+                    </a>
+                    <a href="#bibtex" class="scholar-tab" data-tab="bibtex">
+                        <i class="fas fa-wand-magic-sparkles"></i> Metadata Enrichment
+                    </a>
+                    <a href="#graph" class="scholar-tab" data-tab="graph">
+                        <i class="fas fa-project-diagram"></i> Citation Graph
+                    </a>
+                </nav>
+                <div class="pane-header-actions"></div>
+            </div>
+            <div class="pane-content">
+                <!-- Search Tab Content -->
+                <div id="tab-search" class="scholar-tab-content" data-tab="search">
+                    <div class="scholar-search-container" style="flex:1; min-width:0; overflow-y:auto;">
+                        {% include "scholar_app/search_partials/search.html" with show_results=True %}
+                    </div>
+                    <div class="h-resizer scholar-tab-resizer"
+                         id="search-resizer"
+                         data-h-resizer
+                         data-in-app
+                         data-left=".scholar-search-container"
+                         data-right="#search-controls-panel"
+                         data-threshold="120"
+                         data-storage-key="scholar-search-split"></div>
+                    <div class="search-controls-inline"
+                         id="search-controls-panel"
+                         style="width:280px;
+                                flex-shrink:0;
+                                overflow-y:auto;
+                                border-left:1px solid var(--workspace-border-default, #30363d);
+                                padding:8px">{% include "scholar_app/search_partials/search_controls.html" %}</div>
+                    <!-- Configuration for JavaScript (hidden, not a flex child) -->
+                    <div id="scholar-config-data" style="display:none" data-bibtex-upload-url="{% url 'scholar_app:bibtex_upload' %}" data-resource-status-url="{% url 'scholar_app:bibtex_resource_status' %}" data-scitex-search-url="{% url 'scholar_app:api_scitex_search' %}" data-scitex-capabilities-url="{% url 'scholar_app:api_scitex_capabilities' %}" data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-user-projects='[{% for project in user_projects %}{"id": {{ project.id }}, "name": "{{ project.name|escapejs }}"}
+                        {% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                    ]' data-current-project='{% if current_project %}{"id": {{ current_project.id }}, "name": "{{ current_project.name|escapejs }}"}
+                {% else %}
+                    null
+                {% endif %}
+                ' {% if query and results %} data-search-results='[{% for result in results %}{"title": "{{ result.title|escapejs }}", "year": {% if result.year %}{{ result.year }}{% else %}null{% endif %}, "citations": {% if result.citations %}{{ result.citations }}{% else %}0{% endif %}, "impact_factor": {% if result.impact_factor %}{{ result.impact_factor }}{% else %}null{% endif %}, "authors": "{{ result.authors|escapejs }}", "journal": "{{ result.journal|escapejs }}", "url": "{{ result.url|escapejs }}"}
+                {% if not forloop.last %},{% endif %}
+            {% endfor %}
+            ]' {% endif %}></div>
     </div>
-    <div class="h-resizer scholar-tab-resizer"
-         id="bibtex-resizer"
-         data-h-resizer
-         data-in-app
-         data-left=".bibtex-main-content"
-         data-right="#bibtex-controls-panel"
-         data-threshold="120"
-         data-storage-key="scholar-bibtex-split"></div>
-    <div class="bibtex-controls-inline"
-         id="bibtex-controls-panel"
-         style="width:280px;
-                flex-shrink:0;
-                overflow-y:auto;
-                border-left:1px solid var(--workspace-border-default, #30363d);
-                padding:8px">{% include "scholar_app/bibtex_partials/status_tiles.html" %}</div>
-</div>
-<!-- Graph Tab Content: 2-column layout (graph | sidebar) -->
-<div id="tab-graph" class="scholar-tab-content" data-tab="graph">
-    <div class="citation-graph-container" style="flex:1; min-width:0;">
-        <div class="graph-input-section">
-            <div class="graph-card">
-                <div class="graph-card__header">
-                    <div class="graph-card__title">
-                        <i class="fas fa-project-diagram"></i>
-                        <span>Citation Network Explorer</span>
+    <!-- BibTeX Tab Content: 2-column layout (enrich | status tiles) -->
+    <div id="tab-bibtex" class="scholar-tab-content" data-tab="bibtex">
+        <div class="bibtex-main-content" style="flex:1; min-width:0; overflow-y:auto;">
+            {% include "scholar_app/bibtex_partials/enrich.html" %}
+            <!-- AI2 Prompt Modal -->
+            {% if current_project %}
+                {% include "writer_app/compilation_view_partials/ai2_modal.html" %}
+            {% endif %}
+        </div>
+        <div class="h-resizer scholar-tab-resizer"
+             id="bibtex-resizer"
+             data-h-resizer
+             data-in-app
+             data-left=".bibtex-main-content"
+             data-right="#bibtex-controls-panel"
+             data-threshold="120"
+             data-storage-key="scholar-bibtex-split"></div>
+        <div class="bibtex-controls-inline"
+             id="bibtex-controls-panel"
+             style="width:280px;
+                    flex-shrink:0;
+                    overflow-y:auto;
+                    border-left:1px solid var(--workspace-border-default, #30363d);
+                    padding:8px">{% include "scholar_app/bibtex_partials/status_tiles.html" %}</div>
+    </div>
+    <!-- Graph Tab Content: 2-column layout (graph | sidebar) -->
+    <div id="tab-graph" class="scholar-tab-content" data-tab="graph">
+        <div class="citation-graph-container" style="flex:1; min-width:0;">
+            <div class="graph-input-section">
+                <div class="graph-card">
+                    <div class="graph-card__header">
+                        <div class="graph-card__title">
+                            <i class="fas fa-project-diagram"></i>
+                            <span>Citation Network Explorer</span>
+                        </div>
                     </div>
-                </div>
-                <div class="graph-card__body">
-                    <div class="graph-input-tabs">
-                        <button class="graph-input-tab active" data-input-mode="search">
-                            <i class="fas fa-search"></i> Search
-                        </button>
-                        <button class="graph-input-tab" data-input-mode="library">
-                            <i class="fas fa-bookmark"></i> Library
-                        </button>
-                    </div>
-                    <form id="graphForm" class="graph-form">
-                        <!-- Search input (default) -->
-                        <div id="graphInputSearch" class="graph-input-panel">
-                            <div class="form-row">
-                                <div class="form-group form-group--doi">
-                                    <div class="input-wrapper">
-                                        <input type="text"
-                                               id="graphSearchInput"
-                                               class="form-input"
-                                               placeholder="Search by topic, DOI, title, or keywords..." />
-                                        <button type="button" class="btn-build" id="graphSearchBtn">
-                                            <i class="fas fa-search"></i>
-                                            <span>Build</span>
-                                        </button>
+                    <div class="graph-card__body">
+                        <div class="graph-input-tabs">
+                            <button class="graph-input-tab active" data-input-mode="search">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                            <button class="graph-input-tab" data-input-mode="library">
+                                <i class="fas fa-bookmark"></i> Library
+                            </button>
+                        </div>
+                        <form id="graphForm" class="graph-form">
+                            <!-- Search input (default) -->
+                            <div id="graphInputSearch" class="graph-input-panel">
+                                <div class="form-row">
+                                    <div class="form-group form-group--doi">
+                                        <div class="input-wrapper">
+                                            <input type="text"
+                                                   id="graphSearchInput"
+                                                   class="form-input"
+                                                   placeholder="Search by topic, DOI, title, or keywords..." />
+                                            <button type="button" class="btn-build" id="graphSearchBtn">
+                                                <i class="fas fa-search"></i>
+                                                <span>Build</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group--options">
+                                        <select id="topN" name="top_n" class="form-select">
+                                            <option value="10">10</option>
+                                            <option value="20" selected>20</option>
+                                            <option value="30">30</option>
+                                            <option value="50">50</option>
+                                        </select>
                                     </div>
                                 </div>
-                                <div class="form-group form-group--options">
-                                    <select id="topN" name="top_n" class="form-select">
-                                        <option value="10">10</option>
-                                        <option value="20" selected>20</option>
-                                        <option value="30">30</option>
-                                        <option value="50">50</option>
-                                    </select>
+                                <div id="graphSearchResults" class="graph-search-results hidden"></div>
+                            </div>
+                            <!-- Library picker -->
+                            <div id="graphInputLibrary" class="graph-input-panel hidden">
+                                <div id="graphLibraryList" class="graph-library-list">
+                                    <p class="empty-message">No papers in library yet. Add papers from Search or import BibTeX.</p>
                                 </div>
                             </div>
-                            <div id="graphSearchResults" class="graph-search-results hidden"></div>
-                        </div>
-                        <!-- Library picker -->
-                        <div id="graphInputLibrary" class="graph-input-panel hidden">
-                            <div id="graphLibraryList" class="graph-library-list">
-                                <p class="empty-message">No papers in library yet. Add papers from Search or import BibTeX.</p>
-                            </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div id="graphTabsBar" class="graph-tabs-bar hidden">
-            <div id="graphTabsList" class="graph-tabs-list"></div>
-            <button id="graphSaveBtn" class="graph-tab graph-tab--save hidden" title="Save graph">
-                <i class="fas fa-plus"></i>
-            </button>
-        </div>
-        <div id="graphVisualization" class="graph-visualization hidden">
-            <div class="graph-card graph-card--full">
-                <div class="graph-card__header">
-                    <div class="graph-card__title">
-                        <i class="fas fa-share-alt"></i>
-                        <span id="graphTitle">Citation Network</span>
-                    </div>
-                    <div class="graph-controls">
-                        <div class="edge-filter-group" title="Toggle edge types">
-                            <button class="edge-filter-btn active"
-                                    data-edge-type="coupling"
-                                    title="Bibliographic coupling">
-                                <span class="edge-color-dot edge-dot-coupling"></span>Coupling
+            <div id="graphTabsBar" class="graph-tabs-bar hidden">
+                <div id="graphTabsList" class="graph-tabs-list"></div>
+                <button id="graphSaveBtn" class="graph-tab graph-tab--save hidden" title="Save graph">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            <div id="graphVisualization" class="graph-visualization hidden">
+                <div class="graph-card graph-card--full">
+                    <div class="graph-card__header">
+                        <div class="graph-card__title">
+                            <i class="fas fa-share-alt"></i>
+                            <span id="graphTitle">Citation Network</span>
+                        </div>
+                        <div class="graph-controls">
+                            <div class="edge-filter-group" title="Toggle edge types">
+                                <button class="edge-filter-btn active"
+                                        data-edge-type="coupling"
+                                        title="Bibliographic coupling">
+                                    <span class="edge-color-dot edge-dot-coupling"></span>Coupling
+                                </button>
+                                <button class="edge-filter-btn active" data-edge-type="cocitation" title="Co-citation">
+                                    <span class="edge-color-dot edge-dot-cocitation"></span>Co-cite
+                                </button>
+                                <button class="edge-filter-btn active" data-edge-type="direct" title="Direct citation">
+                                    <span class="edge-color-dot edge-dot-direct"></span>Direct
+                                </button>
+                            </div>
+                            <button class="btn-control" id="fitViewBtn" title="Fit to View">
+                                <i class="fas fa-expand"></i>
                             </button>
-                            <button class="edge-filter-btn active" data-edge-type="cocitation" title="Co-citation">
-                                <span class="edge-color-dot edge-dot-cocitation"></span>Co-cite
+                            <button class="btn-control" id="resetZoomBtn" title="Reset Zoom">
+                                <i class="fas fa-compress-arrows-alt"></i>
                             </button>
-                            <button class="edge-filter-btn active" data-edge-type="direct" title="Direct citation">
-                                <span class="edge-color-dot edge-dot-direct"></span>Direct
+                            <button class="btn-control" id="graphSaveBtn2" title="Save Graph">
+                                <i class="fas fa-save"></i>
+                            </button>
+                            <button class="btn-control" id="downloadSvgBtn" title="Download SVG">
+                                <i class="fas fa-download"></i>
                             </button>
                         </div>
-                        <button class="btn-control" id="fitViewBtn" title="Fit to View">
-                            <i class="fas fa-expand"></i>
-                        </button>
-                        <button class="btn-control" id="resetZoomBtn" title="Reset Zoom">
-                            <i class="fas fa-compress-arrows-alt"></i>
-                        </button>
-                        <button class="btn-control" id="graphSaveBtn2" title="Save Graph">
-                            <i class="fas fa-save"></i>
-                        </button>
-                        <button class="btn-control" id="downloadSvgBtn" title="Download SVG">
-                            <i class="fas fa-download"></i>
-                        </button>
                     </div>
-                </div>
-                <div class="graph-card__body graph-canvas-wrapper">
-                    <div id="graphCanvas"></div>
-                    <div id="nodeDetailsPanel" class="node-details-panel hidden"></div>
-                </div>
-            </div>
-        </div>
-        <div id="relatedPapersList" class="related-papers-section hidden">
-            <div class="graph-card">
-                <div class="graph-card__header">
-                    <div class="graph-card__title">
-                        <i class="fas fa-list-ol"></i><span>Related Papers</span>
-                    </div>
-                </div>
-                <div class="graph-card__body">
-                    <div id="relatedPapersContent"></div>
-                </div>
-            </div>
-        </div>
-        <div id="graphLoading" class="graph-loading hidden"></div>
-        <div id="graphError" class="graph-error hidden">
-            <i class="fas fa-exclamation-triangle"></i>
-            <p id="graphErrorMessage"></p>
-            <button class="btn-retry"
-                    onclick="document.getElementById('graphError').classList.add('hidden')">Dismiss</button>
-        </div>
-    </div>
-    <div class="h-resizer scholar-tab-resizer"
-         id="graph-resizer"
-         data-h-resizer
-         data-in-app
-         data-left=".citation-graph-container"
-         data-right="#graph-controls-panel"
-         data-threshold="120"
-         data-storage-key="scholar-graph-split"></div>
-    <div class="graph-controls-inline"
-         id="graph-controls-panel"
-         style="width:280px;
-                flex-shrink:0;
-                overflow-y:auto;
-                border-left:1px solid var(--workspace-border-default, #30363d);
-                padding:8px">
-        <div class="graph-sidebar">
-            <div class="sidebar-section collapsed" data-panel-id="graph-service-status">
-                <div class="sidebar-section__header"
-                     onclick="window._toggleInlinePanel && window._toggleInlinePanel(this)">
-                    <h5 class="sidebar-section__title">
-                        <i class="fas fa-heartbeat"></i> Service Status
-                    </h5>
-                    <i class="fas fa-chevron-down sidebar-section__toggle"></i>
-                </div>
-                <div class="sidebar-section__content">
-                    <div id="serviceStatus">
-                        <div class="status-indicator status-checking">
-                            <i class="fas fa-circle-notch fa-spin"></i>
-                            <span>Checking...</span>
-                        </div>
+                    <div class="graph-card__body graph-canvas-wrapper">
+                        <div id="graphCanvas"></div>
+                        <div id="nodeDetailsPanel" class="node-details-panel hidden"></div>
                     </div>
                 </div>
             </div>
-            <div class="sidebar-section collapsed" data-panel-id="graph-how-it-works">
-                <div class="sidebar-section__header"
-                     onclick="window._toggleInlinePanel && window._toggleInlinePanel(this)">
-                    <h5 class="sidebar-section__title">
-                        <i class="fas fa-info-circle"></i> How It Works
-                    </h5>
-                    <i class="fas fa-chevron-down sidebar-section__toggle"></i>
+            <div id="relatedPapersList" class="related-papers-section hidden">
+                <div class="graph-card">
+                    <div class="graph-card__header">
+                        <div class="graph-card__title">
+                            <i class="fas fa-list-ol"></i><span>Related Papers</span>
+                        </div>
+                    </div>
+                    <div class="graph-card__body">
+                        <div id="relatedPapersContent"></div>
+                    </div>
                 </div>
-                <div class="sidebar-section__content">
-                    <div class="info-list">
-                        <div class="info-item">
-                            <i class="fas fa-link"></i>
-                            <div>
-                                <strong>Bibliographic Coupling</strong>
-                                <p>Papers sharing common references</p>
-                            </div>
-                        </div>
-                        <div class="info-item">
-                            <i class="fas fa-quote-right"></i>
-                            <div>
-                                <strong>Co-citation</strong>
-                                <p>Papers frequently cited together</p>
-                            </div>
-                        </div>
-                        <div class="info-item">
-                            <i class="fas fa-arrow-right"></i>
-                            <div>
-                                <strong>Direct Citations</strong>
-                                <p>Papers citing or cited by seed</p>
+            </div>
+            <div id="graphLoading" class="graph-loading hidden"></div>
+            <div id="graphError" class="graph-error hidden">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p id="graphErrorMessage"></p>
+                <button class="btn-retry"
+                        onclick="document.getElementById('graphError').classList.add('hidden')">Dismiss</button>
+            </div>
+        </div>
+        <div class="h-resizer scholar-tab-resizer"
+             id="graph-resizer"
+             data-h-resizer
+             data-in-app
+             data-left=".citation-graph-container"
+             data-right="#graph-controls-panel"
+             data-threshold="120"
+             data-storage-key="scholar-graph-split"></div>
+        <div class="graph-controls-inline"
+             id="graph-controls-panel"
+             style="width:280px;
+                    flex-shrink:0;
+                    overflow-y:auto;
+                    border-left:1px solid var(--workspace-border-default, #30363d);
+                    padding:8px">
+            <div class="graph-sidebar">
+                <div class="sidebar-section collapsed" data-panel-id="graph-service-status">
+                    <div class="sidebar-section__header"
+                         onclick="window._toggleInlinePanel && window._toggleInlinePanel(this)">
+                        <h5 class="sidebar-section__title">
+                            <i class="fas fa-heartbeat"></i> Service Status
+                        </h5>
+                        <i class="fas fa-chevron-down sidebar-section__toggle"></i>
+                    </div>
+                    <div class="sidebar-section__content">
+                        <div id="serviceStatus">
+                            <div class="status-indicator status-checking">
+                                <i class="fas fa-circle-notch fa-spin"></i>
+                                <span>Checking...</span>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="sidebar-section collapsed" data-panel-id="graph-controls">
-                <div class="sidebar-section__header"
-                     onclick="window._toggleInlinePanel && window._toggleInlinePanel(this)">
-                    <h5 class="sidebar-section__title">
-                        <i class="fas fa-keyboard"></i> Controls
-                    </h5>
-                    <i class="fas fa-chevron-down sidebar-section__toggle"></i>
+                <div class="sidebar-section collapsed" data-panel-id="graph-how-it-works">
+                    <div class="sidebar-section__header"
+                         onclick="window._toggleInlinePanel && window._toggleInlinePanel(this)">
+                        <h5 class="sidebar-section__title">
+                            <i class="fas fa-info-circle"></i> How It Works
+                        </h5>
+                        <i class="fas fa-chevron-down sidebar-section__toggle"></i>
+                    </div>
+                    <div class="sidebar-section__content">
+                        <div class="info-list">
+                            <div class="info-item">
+                                <i class="fas fa-link"></i>
+                                <div>
+                                    <strong>Bibliographic Coupling</strong>
+                                    <p>Papers sharing common references</p>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-quote-right"></i>
+                                <div>
+                                    <strong>Co-citation</strong>
+                                    <p>Papers frequently cited together</p>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-arrow-right"></i>
+                                <div>
+                                    <strong>Direct Citations</strong>
+                                    <p>Papers citing or cited by seed</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="sidebar-section__content">
-                    <div class="controls-list">
-                        <div class="control-item">
-                            <kbd>Scroll</kbd>
-                            <span>Zoom in/out</span>
-                        </div>
-                        <div class="control-item">
-                            <kbd>Drag</kbd>
-                            <span>Pan view</span>
-                        </div>
-                        <div class="control-item">
-                            <kbd>Drag Node</kbd>
-                            <span>Move node</span>
-                        </div>
-                        <div class="control-item">
-                            <kbd>Click Node</kbd>
-                            <span>View details</span>
+                <div class="sidebar-section collapsed" data-panel-id="graph-controls">
+                    <div class="sidebar-section__header"
+                         onclick="window._toggleInlinePanel && window._toggleInlinePanel(this)">
+                        <h5 class="sidebar-section__title">
+                            <i class="fas fa-keyboard"></i> Controls
+                        </h5>
+                        <i class="fas fa-chevron-down sidebar-section__toggle"></i>
+                    </div>
+                    <div class="sidebar-section__content">
+                        <div class="controls-list">
+                            <div class="control-item">
+                                <kbd>Scroll</kbd>
+                                <span>Zoom in/out</span>
+                            </div>
+                            <div class="control-item">
+                                <kbd>Drag</kbd>
+                                <span>Pan view</span>
+                            </div>
+                            <div class="control-item">
+                                <kbd>Drag Node</kbd>
+                                <span>Move node</span>
+                            </div>
+                            <div class="control-item">
+                                <kbd>Click Node</kbd>
+                                <span>View details</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<!-- Library Tab: 3-column layout (paper list | details | integrations) -->
-<div id="tab-library" class="scholar-tab-content" data-tab="library">
-    <div class="library-tab-inner">{% include "scholar_app/library_partials/library_main.html" %}</div>
-    <div class="h-resizer library-resizer"
-         id="library-resizer"
-         data-h-resizer
-         data-in-app
-         data-left=".library-tab-inner"
-         data-right="#library-details-panel"
-         data-threshold="120"
-         data-storage-key="scholar-library-split"></div>
-    <div class="library-details-panel" id="library-details-panel">
-        {% include "scholar_app/library_partials/library_details.html" %}
+    <!-- Library Tab: 3-column layout (paper list | details | integrations) -->
+    <div id="tab-library" class="scholar-tab-content" data-tab="library">
+        <div class="library-tab-inner">{% include "scholar_app/library_partials/library_main.html" %}</div>
+        <div class="h-resizer library-resizer"
+             id="library-resizer"
+             data-h-resizer
+             data-in-app
+             data-left=".library-tab-inner"
+             data-right="#library-details-panel"
+             data-threshold="120"
+             data-storage-key="scholar-library-split"></div>
+        <div class="library-details-panel" id="library-details-panel">
+            {% include "scholar_app/library_partials/library_details.html" %}
+        </div>
+        <div class="library-integrations-panel" id="library-integrations-panel">
+            {% include "scholar_app/library_partials/library_import_export.html" %}
+        </div>
     </div>
-    <div class="library-integrations-panel" id="library-integrations-panel">
-        {% include "scholar_app/library_partials/library_import_export.html" %}
-    </div>
-</div>
 </main>
+{% endif %}
 {% endblock %}
 {% block extra_js %}
     {{ block.super }}
