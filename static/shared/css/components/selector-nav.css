@@ -205,18 +205,19 @@
 .module-status-badge--alpha,
 .module-status-badge--beta {
   font-family: serif;
-  font-size: 7px;
-  padding: 0 2px;
-  min-width: 10px;
-  text-align: center;
+  font-size: 8px;
+  font-weight: 900;
+  padding: 0;
+  background: none;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
 }
 
 .module-status-badge--alpha {
-  background: #e6a817;
+  color: #e6a817;
 }
 
 .module-status-badge--beta {
-  background: #3b82f6;
+  color: #3b82f6;
 }
 
 /* Private app lock icon overlay */
