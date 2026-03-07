@@ -34,12 +34,22 @@ NC='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
+# Parse arguments
+AUTO_YES=false
+ENV=""
+for arg in "$@"; do
+    case "$arg" in
+    --yes | -y) AUTO_YES=true ;;
+    *) ENV="$arg" ;;
+    esac
+done
+
 # Validate environment argument
-ENV="${1:-}"
 if [ -z "$ENV" ]; then
     echo -e "${RED}Error: Environment required${NC}"
-    echo "Usage: $0 <env>"
+    echo "Usage: $0 [--yes] <env>"
     echo "  env: dev, staging, or prod"
+    echo "  --yes, -y: Skip confirmation prompts"
     exit 1
 fi
 
@@ -67,7 +77,7 @@ if [ ! -d "$DOCKER_DIR" ]; then
 fi
 
 # Production safety confirmation
-if [ "$ENV" = "prod" ]; then
+if [ "$ENV" = "prod" ] && [ "$AUTO_YES" = false ]; then
     echo ""
     echo -e "${RED}⚠️  WARNING: Production rebuild!${NC}"
     echo -e "${YELLOW}   This will cause downtime.${NC}"
