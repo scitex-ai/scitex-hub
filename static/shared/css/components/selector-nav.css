@@ -204,14 +204,27 @@
 
 .module-status-badge--alpha {
   background: #e6a817;
+  font-style: italic;
+  font-size: 8px;
+  padding: 1px 2px;
 }
 
 .module-status-badge--beta {
   background: #3b82f6;
+  font-style: italic;
+  font-size: 8px;
+  padding: 1px 2px;
 }
 
-.module-status-badge--private {
-  background: #b87fff;
+/* Private app lock icon overlay */
+.module-private-lock {
+  position: absolute;
+  bottom: -3px;
+  right: -6px;
+  font-size: 8px;
+  color: #b87fff;
+  pointer-events: none;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
 }
 
 /* Legacy .dev-badge alias */

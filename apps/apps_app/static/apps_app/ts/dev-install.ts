@@ -34,11 +34,11 @@ function injectSidebarNavItem(
   link.title = label;
   link.dataset.moduleAccent = moduleName;
 
-  // Icon + PRIVATE badge overlay
+  // Icon + lock overlay for private apps
   link.innerHTML =
     `<span class="module-icon-wrap">` +
     `<i class="${icon}"></i>` +
-    `<span class="module-status-badge module-status-badge--private">PRIVATE</span>` +
+    `<i class="fas fa-lock module-private-lock"></i>` +
     `</span>` +
     `<span class="selector-nav-label ws-apps-nav-label">${label}</span>`;
 

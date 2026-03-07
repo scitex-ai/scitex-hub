@@ -11,11 +11,11 @@ from django.utils.safestring import mark_safe
 register = template.Library()
 
 
-# Badge mapping: version suffix → (CSS class, label)
+# Badge mapping: version suffix → (CSS class, content HTML)
 _BADGE_MAP = {
     "-dev": ("module-status-badge--dev", "DEV"),
-    "-alpha": ("module-status-badge--alpha", "ALPHA"),
-    "-beta": ("module-status-badge--beta", "BETA"),
+    "-alpha": ("module-status-badge--alpha", "\u03b1"),  # Greek alpha: α
+    "-beta": ("module-status-badge--beta", "\u03b2"),  # Greek beta: β
 }
 
 
@@ -62,10 +62,10 @@ def module_icon(name, context="tab", version="", icon_fa="", is_private=""):
     if not icon_html:
         icon_html = '<i class="fas fa-puzzle-piece"></i>'
 
-    # Derive badge: PRIVATE overrides version-based badges
+    # Derive badge: private lock icon overrides version-based badges
     badge_html = ""
     if is_private:
-        badge_html = '<span class="module-status-badge module-status-badge--private">PRIVATE</span>'
+        badge_html = '<i class="fas fa-lock module-private-lock"></i>'
     else:
         version_str = str(version or "")
         for suffix, (css_cls, label) in _BADGE_MAP.items():
