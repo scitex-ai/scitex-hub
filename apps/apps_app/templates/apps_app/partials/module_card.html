@@ -76,7 +76,14 @@
         {% endif %}
     </div>
     <div class="ap-card-links">
-        {% if not mod_item.is_dev %}
+        {% if mod_item.is_dev %}
+            <a href="/{{ mod_item.dev_owner }}/{{ mod_item.dev_repo }}/"
+               class="ap-btn-hub"
+               title="App details"
+               onclick="event.stopPropagation();">
+                <i class="fas fa-info-circle" aria-hidden="true"></i> Details
+            </a>
+        {% else %}
             <a href="/apps/{{ mod_item.app.module_name }}/"
                class="ap-btn-hub"
                title="App details"
