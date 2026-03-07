@@ -215,6 +215,13 @@ def handle_app_template_creation(request, project, manager):
     project.app_status = "draft"
     project.save(update_fields=["is_app", "app_status"])
 
+    # Create scaffold repo in scitex-apps org (reverse-fork model)
+    from apps.apps_app.views.api_registry import _create_app_repo
+
+    description = request.POST.get("app_about", "").strip()
+    _create_app_repo(project.slug, description=description)
+    logger.info("Created scitex-apps/%s scaffold repo", project.slug)
+
     messages.success(
         request,
         f'App project "{project.name}" created with {len(created)} boilerplate files',

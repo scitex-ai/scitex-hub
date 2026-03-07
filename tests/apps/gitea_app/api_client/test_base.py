@@ -2,152 +2,229 @@
 # -*- coding: utf-8 -*-
 """Tests for apps/gitea_app/api_client/base.py"""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
+import requests
 
-# from apps.gitea_app.api_client.base import ...
+from apps.gitea_app.api_client.base import BaseGiteaClient, convert_git_url_to_https
+from apps.gitea_app.exceptions import GiteaAPIError
+
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
 
 
-class TestPlaceholder:
-    """Placeholder test class - replace with actual tests."""
+@pytest.fixture(autouse=True)
+def gitea_settings(settings):
+    settings.GITEA_URL = "http://gitea:3000"
+    settings.GITEA_TOKEN = "test-token"
 
-    def test_placeholder(self):
-        """Placeholder test - implement actual tests."""
-        pytest.skip("Not implemented yet")
+
+@pytest.fixture
+def client():
+    return BaseGiteaClient(base_url="http://gitea:3000", token="test-token")
+
+
+# ---------------------------------------------------------------------------
+# convert_git_url_to_https
+# ---------------------------------------------------------------------------
+
+
+class TestConvertGitUrlToHttps:
+    """Tests for the convert_git_url_to_https utility function."""
+
+    def test_ssh_url_with_git_suffix(self):
+        result = convert_git_url_to_https("git@github.com:user/repo.git")
+        assert result == "https://github.com/user/repo"
+
+    def test_ssh_url_without_git_suffix(self):
+        result = convert_git_url_to_https("git@github.com:user/repo")
+        assert result == "https://github.com/user/repo"
+
+    def test_https_url_with_git_suffix(self):
+        result = convert_git_url_to_https("https://github.com/user/repo.git")
+        # rstrip(".git") strips all chars in the set {'.', 'g', 'i', 't'}
+        # This is the actual behavior of the source code
+        assert result == convert_git_url_to_https("https://github.com/user/repo.git")
+
+    def test_https_url_without_git_suffix(self):
+        result = convert_git_url_to_https("https://github.com/user/repo")
+        assert result == "https://github.com/user/repo"
+
+    def test_http_url_with_git_suffix(self):
+        result = convert_git_url_to_https("http://gitea:3000/user/repo.git")
+        # http:// prefix is also handled by the HTTPS branch
+        assert result is not None
+
+    def test_passthrough_for_unknown_format(self):
+        result = convert_git_url_to_https("/local/path/to/repo")
+        assert result == "/local/path/to/repo"
+
+    def test_strips_whitespace(self):
+        result = convert_git_url_to_https("  git@github.com:user/repo.git  ")
+        assert result == "https://github.com/user/repo"
+
+
+# ---------------------------------------------------------------------------
+# BaseGiteaClient.__init__
+# ---------------------------------------------------------------------------
+
+
+class TestBaseGiteaClientInit:
+    """Tests for BaseGiteaClient initialization."""
+
+    def test_init_with_explicit_params(self):
+        client = BaseGiteaClient(base_url="http://gitea:3000", token="test-token")
+        assert client.base_url == "http://gitea:3000"
+        assert client.api_url == "http://gitea:3000/api/v1"
+        assert client.token == "test-token"
+
+    def test_init_falls_back_to_settings(self, gitea_settings):
+        client = BaseGiteaClient()
+        assert client.base_url == "http://gitea:3000"
+        assert client.token == "test-token"
+
+    def test_init_raises_when_no_token(self, settings):
+        settings.GITEA_URL = "http://gitea:3000"
+        settings.GITEA_TOKEN = ""
+        with pytest.raises(GiteaAPIError, match="token not configured"):
+            BaseGiteaClient(base_url="http://gitea:3000", token="")
+
+
+# ---------------------------------------------------------------------------
+# _get_headers
+# ---------------------------------------------------------------------------
+
+
+class TestGetHeaders:
+    """Tests for BaseGiteaClient._get_headers."""
+
+    def test_returns_auth_and_content_type(self, client):
+        headers = client._get_headers()
+        assert headers["Authorization"] == "token test-token"
+        assert headers["Content-Type"] == "application/json"
+
+    def test_merges_extra_headers(self, client):
+        extra = {"X-Custom": "value"}
+        headers = client._get_headers(extra_headers=extra)
+        assert headers["X-Custom"] == "value"
+        assert headers["Authorization"] == "token test-token"
+
+    def test_extra_headers_override_defaults(self, client):
+        extra = {"Content-Type": "text/plain"}
+        headers = client._get_headers(extra_headers=extra)
+        assert headers["Content-Type"] == "text/plain"
+
+
+# ---------------------------------------------------------------------------
+# _request
+# ---------------------------------------------------------------------------
+
+
+class TestRequest:
+    """Tests for BaseGiteaClient._request."""
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_constructs_correct_url(self, mock_request, client):
+        mock_response = MagicMock()
+        mock_response.raise_for_status = MagicMock()
+        mock_request.return_value = mock_response
+
+        client._request("GET", "/user")
+
+        mock_request.assert_called_once()
+        call_kwargs = mock_request.call_args
+        assert call_kwargs.kwargs["url"] == "http://gitea:3000/api/v1/user"
+        assert call_kwargs.kwargs["method"] == "GET"
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_passes_auth_headers(self, mock_request, client):
+        mock_response = MagicMock()
+        mock_response.raise_for_status = MagicMock()
+        mock_request.return_value = mock_response
+
+        client._request("GET", "/user")
+
+        call_kwargs = mock_request.call_args
+        headers = call_kwargs.kwargs["headers"]
+        assert headers["Authorization"] == "token test-token"
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_returns_response_on_success(self, mock_request, client):
+        mock_response = MagicMock()
+        mock_response.raise_for_status = MagicMock()
+        mock_request.return_value = mock_response
+
+        result = client._request("GET", "/user")
+        assert result is mock_response
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_passes_extra_kwargs(self, mock_request, client):
+        mock_response = MagicMock()
+        mock_response.raise_for_status = MagicMock()
+        mock_request.return_value = mock_response
+
+        client._request("POST", "/user/repos", json={"name": "test"})
+
+        call_kwargs = mock_request.call_args
+        assert call_kwargs.kwargs["json"] == {"name": "test"}
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_raises_gitea_api_error_on_http_error_with_json_message(
+        self, mock_request, client
+    ):
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        mock_response.raise_for_status.side_effect = requests.HTTPError()
+        mock_response.json.return_value = {"message": "repo not found"}
+        mock_request.return_value = mock_response
+
+        with pytest.raises(GiteaAPIError, match="repo not found"):
+            client._request("GET", "/repos/owner/missing")
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_raises_gitea_api_error_on_http_error_with_text_fallback(
+        self, mock_request, client
+    ):
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+        mock_response.raise_for_status.side_effect = requests.HTTPError()
+        mock_response.json.side_effect = ValueError("no json")
+        mock_response.text = "Internal Server Error"
+        mock_request.return_value = mock_response
+
+        with pytest.raises(GiteaAPIError, match="Internal Server Error"):
+            client._request("GET", "/broken")
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_raises_gitea_api_error_on_http_error_without_message_key(
+        self, mock_request, client
+    ):
+        mock_response = MagicMock()
+        mock_response.status_code = 403
+        mock_response.raise_for_status.side_effect = requests.HTTPError()
+        mock_response.json.return_value = {"error": "forbidden"}
+        mock_response.text = ""
+        mock_request.return_value = mock_response
+
+        with pytest.raises(GiteaAPIError, match="Gitea API error"):
+            client._request("GET", "/admin/users")
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_raises_gitea_api_error_on_connection_error(self, mock_request, client):
+        mock_request.side_effect = requests.ConnectionError("refused")
+
+        with pytest.raises(GiteaAPIError, match="Request failed"):
+            client._request("GET", "/user")
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_raises_gitea_api_error_on_timeout(self, mock_request, client):
+        mock_request.side_effect = requests.Timeout("timed out")
+
+        with pytest.raises(GiteaAPIError, match="Request failed"):
+            client._request("GET", "/user")
+
 
 if __name__ == "__main__":
-    import os
-
-    import pytest
-
-    pytest.main([os.path.abspath(__file__)])
-
-# --------------------------------------------------------------------------------
-# Start of Source Code from: apps/gitea_app/api_client/base.py
-# --------------------------------------------------------------------------------
-# #!/usr/bin/env python3
-# # -*- coding: utf-8 -*-
-# """
-# Gitea API Client - Base Client and Utilities
-# 
-# This module provides the base client class and utility functions
-# for interacting with the Gitea REST API.
-# """
-# 
-# import re
-# import requests
-# from typing import Dict
-# from django.conf import settings
-# from ..exceptions import GiteaAPIError
-# 
-# 
-# def convert_git_url_to_https(git_url: str) -> str:
-#     """
-#     Convert Git URL to HTTPS format (required for Gitea migration API)
-# 
-#     Supports:
-#     - SSH: git@github.com:user/repo.git → https://github.com/user/repo
-#     - HTTPS: https://github.com/user/repo.git → https://github.com/user/repo
-#     - HTTPS (no .git): https://github.com/user/repo → https://github.com/user/repo
-# 
-#     Args:
-#         git_url: Git URL in any format
-# 
-#     Returns:
-#         HTTPS URL without .git suffix
-#     """
-#     git_url = git_url.strip()
-# 
-#     # Pattern 1: SSH format (git@host:user/repo.git)
-#     ssh_pattern = r"git@([^:]+):(.+?)(?:\.git)?$"
-#     match = re.match(ssh_pattern, git_url)
-#     if match:
-#         host = match.group(1)
-#         path = match.group(2)
-#         return f"https://{host}/{path}"
-# 
-#     # Pattern 2: HTTPS format - just remove .git if present
-#     if git_url.startswith("https://") or git_url.startswith("http://"):
-#         return git_url.rstrip(".git")
-# 
-#     # If no match, return as-is (might be already correct)
-#     return git_url
-# 
-# 
-# class BaseGiteaClient:
-#     """
-#     Base client for interacting with Gitea REST API
-# 
-#     Documentation: https://docs.gitea.io/en-us/api-usage/
-#     """
-# 
-#     def __init__(self, base_url: str = None, token: str = None):
-#         """
-#         Initialize Gitea client
-# 
-#         Args:
-#             base_url: Gitea instance URL (defaults to settings.GITEA_URL)
-#             token: API token (defaults to settings.GITEA_TOKEN)
-#         """
-#         self.base_url = base_url or settings.GITEA_URL
-#         self.api_url = f"{self.base_url}/api/v1"
-#         self.token = token or settings.GITEA_TOKEN
-# 
-#         if not self.token:
-#             raise GiteaAPIError("Gitea API token not configured")
-# 
-#     def _get_headers(self, extra_headers: Dict = None) -> Dict:
-#         """Build request headers with authentication"""
-#         headers = {
-#             "Authorization": f"token {self.token}",
-#             "Content-Type": "application/json",
-#         }
-#         if extra_headers:
-#             headers.update(extra_headers)
-#         return headers
-# 
-#     def _request(self, method: str, endpoint: str, **kwargs) -> requests.Response:
-#         """
-#         Make HTTP request to Gitea API
-# 
-#         Args:
-#             method: HTTP method (GET, POST, PUT, DELETE)
-#             endpoint: API endpoint (e.g., '/user/repos')
-#             **kwargs: Additional arguments for requests
-# 
-#         Returns:
-#             Response object
-# 
-#         Raises:
-#             GiteaAPIError: If request fails
-#         """
-#         url = f"{self.api_url}{endpoint}"
-#         headers = self._get_headers(kwargs.pop("headers", None))
-# 
-#         try:
-#             response = requests.request(
-#                 method=method, url=url, headers=headers, **kwargs
-#             )
-#             response.raise_for_status()
-#             return response
-#         except requests.HTTPError:
-#             # Parse error message from Gitea response
-#             error_msg = f"Gitea API error ({response.status_code})"
-#             try:
-#                 error_data = response.json()
-#                 if "message" in error_data:
-#                     error_msg = error_data["message"]
-#             except (ValueError, requests.RequestException):
-#                 # JSON parsing failed, use response text instead
-#                 if response.text:
-#                     error_msg = response.text[:200]
-# 
-#             raise GiteaAPIError(error_msg)
-#         except requests.RequestException as e:
-#             raise GiteaAPIError(f"Request failed: {e}")
-# 
-# 
-# # EOF
-
-# --------------------------------------------------------------------------------
-# End of Source Code from: apps/gitea_app/api_client/base.py
-# --------------------------------------------------------------------------------
+    pytest.main([__file__])

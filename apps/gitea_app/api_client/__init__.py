@@ -7,14 +7,16 @@ This package provides a modular structure for the Gitea REST API client.
 All components are re-exported here for backward compatibility.
 """
 
+from ..exceptions import GiteaAPIError
 from .base import BaseGiteaClient, convert_git_url_to_https
-from .users import UserOperationsMixin
-from .repositories import RepositoryOperationsMixin
+from .client import GiteaClient
 from .files import FileOperationsMixin
 from .organizations import OrganizationOperationsMixin
+from .pull_requests import PullRequestOperationsMixin
+from .repositories import RepositoryOperationsMixin
 from .ssh_keys import SSHKeyOperationsMixin
-from .client import GiteaClient
-from ..exceptions import GiteaAPIError
+from .users import UserOperationsMixin
+from .webhooks import WebhookOperationsMixin
 
 __all__ = [
     "BaseGiteaClient",
@@ -24,6 +26,8 @@ __all__ = [
     "FileOperationsMixin",
     "OrganizationOperationsMixin",
     "SSHKeyOperationsMixin",
+    "PullRequestOperationsMixin",
+    "WebhookOperationsMixin",
     "GiteaClient",
     "GiteaAPIError",
 ]

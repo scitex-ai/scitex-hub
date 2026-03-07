@@ -167,27 +167,16 @@ def api_app_submit(request, username, slug):
             update_fields=["short_description", "category", "project", "visibility"]
         )
 
-    # Open PR on central registry — single pipeline for all submission paths
-    from apps.apps_app.views.api_registry import _fetch_head_commit, _open_registry_pr
+    # Open cross-repo PR: user/<app> -> scitex-apps/<app>
+    from apps.apps_app.views.api_registry import _fetch_head_commit, _submit_app_pr
 
     pinned_commit = _fetch_head_commit(username, project.slug)
     app_module.pinned_commit = pinned_commit
     app_module.save(update_fields=["pinned_commit"])
 
-    manifest = {
-        "name": module_name,
-        "description": short_description,
-        "category": category or "other",
-        "version": "0.1.0",
-        "license": spdx_license,
-    }
-
-    pr_url = _open_registry_pr(
+    pr_url = _submit_app_pr(
         app_module=app_module,
-        manifest=manifest,
         version="0.1.0",
-        author_username=username,
-        pinned_commit=pinned_commit,
     )
 
     # Create submission record with PR URL

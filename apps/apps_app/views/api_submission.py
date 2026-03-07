@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 """App submission and staff review API views.
 
-Submission creates a PR on the central ``scitex/apps`` registry.
-Staff review actions (approve/reject/request_changes) act through that PR.
+Reverse-fork model: PRs target ``scitex-apps/<repo>`` directly.
+Staff review actions (approve/reject/request_changes) act through those PRs.
 """
 
 from __future__ import annotations
@@ -26,8 +26,7 @@ logger = logging.getLogger(__name__)
 def api_submit_for_review(request, module_name):
     """Submit a private module for apps publication review.
 
-    Opens a PR on the central ``scitex/apps`` registry (same pipeline
-    as the CLI ``scitex cloud app submit``).
+    Opens a cross-repo PR: ``user/<app>`` -> ``scitex-apps/<app>``.
     """
     app_module = get_object_or_404(
         AppsModule, module_name=module_name, author=request.user
@@ -45,30 +44,20 @@ def api_submit_for_review(request, module_name):
             status=400,
         )
 
-    # Open a PR on the central registry — single pipeline for all paths
-    from .api_registry import _fetch_head_commit, _open_registry_pr
+    from .api_registry import _fetch_head_commit, _submit_app_pr
 
     pinned_commit = _fetch_head_commit(request.user.username, app_module.project.slug)
 
-    manifest = {
-        "name": app_module.module_name,
-        "description": app_module.short_description,
-        "category": app_module.category,
-        "version": getattr(app_module, "latest_version", "0.1.0") or "0.1.0",
-    }
-    version = manifest["version"]
-
-    pr_url = _open_registry_pr(
-        app_module=app_module,
-        manifest=manifest,
-        version=version,
-        author_username=request.user.username,
-        pinned_commit=pinned_commit,
-    )
+    version = getattr(app_module, "latest_version", "0.1.0") or "0.1.0"
 
     # Update pinned commit
     app_module.pinned_commit = pinned_commit
     app_module.save(update_fields=["pinned_commit"])
+
+    pr_url = _submit_app_pr(
+        app_module=app_module,
+        version=version,
+    )
 
     submission = ModuleSubmission.objects.create(
         module=app_module,
@@ -88,11 +77,11 @@ def api_submit_for_review(request, module_name):
 @login_required
 @require_http_methods(["POST"])
 def api_review_submission(request, submission_id):
-    """Staff reviews a submission by acting through the registry PR.
+    """Staff reviews a submission by acting through the app PR.
 
-    - ``approve``  → merges the PR on scitex/apps (webhook auto-activates)
-    - ``reject``   → closes the PR with a comment
-    - ``request_changes`` → adds a review comment on the PR
+    - ``approve``  -> merges the PR on scitex-apps/<repo> (webhook auto-activates)
+    - ``reject``   -> closes the PR with a comment
+    - ``request_changes`` -> adds a review comment on the PR
     """
     if not request.user.is_staff:
         return JsonResponse({"success": False, "error": "Staff only."}, status=403)
@@ -114,13 +103,10 @@ def api_review_submission(request, submission_id):
     note = data.get("note", "")
     now = timezone.now()
 
-    from .api_registry import (
-        close_registry_pr,
-        comment_on_registry_pr,
-        merge_registry_pr,
-    )
+    from .api_registry import close_app_pr, comment_on_app_pr, merge_app_pr
 
     pr_url = submission.pr_url or ""
+    app_repo = submission.module.project.slug if submission.module.project else ""
 
     if action == "approve":
         if not pr_url:
@@ -128,9 +114,7 @@ def api_review_submission(request, submission_id):
                 {"success": False, "error": "No PR URL — cannot merge."},
                 status=400,
             )
-        # Merge the registry PR — webhook will auto-activate the app
-        merge_registry_pr(pr_url)
-        # Update locally for immediate feedback (webhook also sets this)
+        merge_app_pr(pr_url, app_repo)
         submission.status = "approved"
 
     elif action == "reject":
@@ -138,13 +122,14 @@ def api_review_submission(request, submission_id):
             comment = f"Rejected by {request.user.username}"
             if note:
                 comment += f": {note}"
-            close_registry_pr(pr_url, comment=comment)
+            close_app_pr(pr_url, app_repo, comment=comment)
         submission.status = "rejected"
 
     elif action == "request_changes":
         if pr_url and note:
-            comment_on_registry_pr(
+            comment_on_app_pr(
                 pr_url,
+                app_repo,
                 f"**Changes requested** by {request.user.username}:\n\n{note}",
             )
         submission.status = "changes_requested"
@@ -163,10 +148,7 @@ def api_review_submission(request, submission_id):
     submission.reviewed_at = now
     submission.save()
 
-    # Sync status back to the linked Project
     _sync_project_status(submission, now, request.user)
-
-    # Notify author
     _notify_author(submission)
 
     return JsonResponse(
@@ -182,43 +164,12 @@ def api_review_submission(request, submission_id):
 # ---------------------------------------------------------------------------
 
 
-APPS_ORG = "scitex-apps"
-
-
 def _activate_approved_app(app_module):
-    """Pin commit, fork to apps org, and register into the workspace registry."""
+    """Pin commit and register into the workspace registry."""
     from ..services.app_loader import load_single_app, pin_commit
 
     pin_commit(app_module)
-    _fork_to_apps_org(app_module)
     load_single_app(app_module)
-
-
-def _fork_to_apps_org(app_module):
-    """Fork the author's source repo to the scitex-apps organisation on approval."""
-    if not app_module.project:
-        return
-
-    from apps.gitea_app.api_client import GiteaAPIError, GiteaClient
-
-    client = GiteaClient()
-    owner = app_module.project.owner.username
-    repo = app_module.project.slug
-
-    try:
-        client.get_repository(owner=APPS_ORG, repo=repo)
-        logger.info("Fork already exists: %s/%s", APPS_ORG, repo)
-    except GiteaAPIError:
-        try:
-            client.fork_repository(owner=owner, repo=repo, organization=APPS_ORG)
-            logger.info("Forked %s/%s to %s/%s", owner, repo, APPS_ORG, repo)
-        except GiteaAPIError:
-            logger.exception("Failed to fork %s/%s to %s", owner, repo, APPS_ORG)
-            return
-
-    # Store the registry repo URL on the module
-    app_module.registry_repo_url = f"/{APPS_ORG}/{repo}/"
-    app_module.save(update_fields=["registry_repo_url"])
 
 
 def _sync_project_status(submission, now, reviewer):

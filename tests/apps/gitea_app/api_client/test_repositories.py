@@ -2,230 +2,314 @@
 # -*- coding: utf-8 -*-
 """Tests for apps/gitea_app/api_client/repositories.py"""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
+import requests as req
 
-# from apps.gitea_app.api_client.repositories import ...
+from apps.gitea_app.api_client.client import GiteaClient
+from apps.gitea_app.exceptions import GiteaAPIError
+
+BASE_API = "http://gitea:3000/api/v1"
 
 
-class TestPlaceholder:
-    """Placeholder test class - replace with actual tests."""
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
 
-    def test_placeholder(self):
-        """Placeholder test - implement actual tests."""
-        pytest.skip("Not implemented yet")
+
+@pytest.fixture(autouse=True)
+def gitea_settings(settings):
+    settings.GITEA_URL = "http://gitea:3000"
+    settings.GITEA_TOKEN = "test-token"
+
+
+@pytest.fixture
+def client():
+    return GiteaClient(base_url="http://gitea:3000", token="test-token")
+
+
+def _mock_ok(json_data=None):
+    """Create a mock response that passes raise_for_status."""
+    resp = MagicMock()
+    resp.raise_for_status = MagicMock()
+    resp.json.return_value = json_data if json_data is not None else {}
+    return resp
+
+
+def _mock_error(status_code, message):
+    """Create a mock response that triggers HTTPError."""
+    resp = MagicMock()
+    resp.status_code = status_code
+    resp.raise_for_status.side_effect = req.HTTPError()
+    resp.json.return_value = {"message": message}
+    return resp
+
+
+# ---------------------------------------------------------------------------
+# list_repositories
+# ---------------------------------------------------------------------------
+
+
+class TestListRepositories:
+    """Tests for RepositoryOperationsMixin.list_repositories."""
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_lists_current_user_repos_when_no_username(self, mock_request, client):
+        repos = [{"name": "repo1"}, {"name": "repo2"}]
+        mock_request.return_value = _mock_ok(repos)
+
+        result = client.list_repositories()
+
+        kw = mock_request.call_args.kwargs
+        assert kw["method"] == "GET"
+        assert kw["url"] == f"{BASE_API}/user/repos"
+        assert result == repos
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_lists_specific_user_repos(self, mock_request, client):
+        repos = [{"name": "their-repo"}]
+        mock_request.return_value = _mock_ok(repos)
+
+        result = client.list_repositories(username="otheruser")
+
+        kw = mock_request.call_args.kwargs
+        assert kw["url"] == f"{BASE_API}/users/otheruser/repos"
+        assert result == repos
+
+
+# ---------------------------------------------------------------------------
+# create_repository
+# ---------------------------------------------------------------------------
+
+
+class TestCreateRepository:
+    """Tests for RepositoryOperationsMixin.create_repository."""
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_creates_repo_for_current_user(self, mock_request, client):
+        created = {"name": "my-repo", "id": 10}
+        mock_request.return_value = _mock_ok(created)
+
+        result = client.create_repository("my-repo")
+
+        kw = mock_request.call_args.kwargs
+        assert kw["method"] == "POST"
+        assert kw["url"] == f"{BASE_API}/user/repos"
+        payload = kw["json"]
+        assert payload["name"] == "my-repo"
+        assert payload["auto_init"] is True
+        assert result == created
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_creates_repo_for_specific_owner(self, mock_request, client):
+        created = {"name": "team-repo", "id": 11}
+        mock_request.return_value = _mock_ok(created)
+
+        result = client.create_repository("team-repo", owner="orguser")
+
+        kw = mock_request.call_args.kwargs
+        assert kw["url"] == f"{BASE_API}/admin/users/orguser/repos"
+        assert result == created
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_includes_optional_fields(self, mock_request, client):
+        mock_request.return_value = _mock_ok({"name": "r"})
+
+        client.create_repository(
+            "r",
+            description="desc",
+            private=True,
+            gitignores="Python",
+            license="MIT",
+            readme="Default",
+        )
+
+        payload = mock_request.call_args.kwargs["json"]
+        assert payload["description"] == "desc"
+        assert payload["private"] is True
+        assert payload["gitignores"] == "Python"
+        assert payload["license"] == "MIT"
+        assert payload["readme"] == "Default"
+
+
+# ---------------------------------------------------------------------------
+# get_repository
+# ---------------------------------------------------------------------------
+
+
+class TestGetRepository:
+    """Tests for RepositoryOperationsMixin.get_repository."""
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_gets_repo_by_owner_and_name(self, mock_request, client):
+        repo = {"full_name": "alice/project", "id": 5}
+        mock_request.return_value = _mock_ok(repo)
+
+        result = client.get_repository("alice", "project")
+
+        kw = mock_request.call_args.kwargs
+        assert kw["method"] == "GET"
+        assert kw["url"] == f"{BASE_API}/repos/alice/project"
+        assert result == repo
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_propagates_not_found_error(self, mock_request, client):
+        mock_request.return_value = _mock_error(404, "repo not found")
+
+        with pytest.raises(GiteaAPIError, match="repo not found"):
+            client.get_repository("alice", "missing")
+
+
+# ---------------------------------------------------------------------------
+# delete_repository
+# ---------------------------------------------------------------------------
+
+
+class TestDeleteRepository:
+    """Tests for RepositoryOperationsMixin.delete_repository."""
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_sends_delete_request(self, mock_request, client):
+        mock_request.return_value = _mock_ok()
+
+        result = client.delete_repository("alice", "old-repo")
+
+        kw = mock_request.call_args.kwargs
+        assert kw["method"] == "DELETE"
+        assert kw["url"] == f"{BASE_API}/repos/alice/old-repo"
+        assert result is True
+
+
+# ---------------------------------------------------------------------------
+# fork_repository
+# ---------------------------------------------------------------------------
+
+
+class TestForkRepository:
+    """Tests for RepositoryOperationsMixin.fork_repository."""
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_forks_repo(self, mock_request, client):
+        forked = {"name": "upstream-repo", "fork": True}
+        mock_request.return_value = _mock_ok(forked)
+
+        result = client.fork_repository("upstream", "upstream-repo")
+
+        kw = mock_request.call_args.kwargs
+        assert kw["method"] == "POST"
+        assert kw["url"] == f"{BASE_API}/repos/upstream/upstream-repo/forks"
+        assert kw["json"] == {}
+        assert result == forked
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_forks_repo_to_organization(self, mock_request, client):
+        forked = {"name": "upstream-repo", "fork": True}
+        mock_request.return_value = _mock_ok(forked)
+
+        client.fork_repository("upstream", "upstream-repo", organization="myorg")
+
+        kw = mock_request.call_args.kwargs
+        assert kw["json"] == {"organization": "myorg"}
+
+
+# ---------------------------------------------------------------------------
+# update_repository
+# ---------------------------------------------------------------------------
+
+
+class TestUpdateRepository:
+    """Tests for RepositoryOperationsMixin.update_repository."""
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_patches_repo_with_kwargs(self, mock_request, client):
+        updated = {"name": "project", "private": True}
+        mock_request.return_value = _mock_ok(updated)
+
+        result = client.update_repository("alice", "project", private=True)
+
+        kw = mock_request.call_args.kwargs
+        assert kw["method"] == "PATCH"
+        assert kw["url"] == f"{BASE_API}/repos/alice/project"
+        assert kw["json"] == {"private": True}
+        assert result == updated
+
+
+# ---------------------------------------------------------------------------
+# get_branch
+# ---------------------------------------------------------------------------
+
+
+class TestGetBranch:
+    """Tests for RepositoryOperationsMixin.get_branch."""
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_gets_branch_info(self, mock_request, client):
+        branch = {"name": "main", "commit": {"id": "abc123"}}
+        mock_request.return_value = _mock_ok(branch)
+
+        result = client.get_branch("alice", "project", "main")
+
+        kw = mock_request.call_args.kwargs
+        assert kw["method"] == "GET"
+        assert kw["url"] == f"{BASE_API}/repos/alice/project/branches/main"
+        assert result == branch
+
+
+# ---------------------------------------------------------------------------
+# list_commits
+# ---------------------------------------------------------------------------
+
+
+class TestListCommits:
+    """Tests for RepositoryOperationsMixin.list_commits."""
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_lists_commits_with_default_params(self, mock_request, client):
+        commits = [{"sha": "aaa"}, {"sha": "bbb"}]
+        mock_request.return_value = _mock_ok(commits)
+
+        result = client.list_commits("alice", "project")
+
+        kw = mock_request.call_args.kwargs
+        assert kw["method"] == "GET"
+        assert kw["url"] == f"{BASE_API}/repos/alice/project/git/commits"
+        assert kw["params"] == {"limit": 10}
+        assert result == commits
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_passes_sha_and_limit_params(self, mock_request, client):
+        mock_request.return_value = _mock_ok([])
+
+        client.list_commits("alice", "project", sha="develop", limit=5)
+
+        kw = mock_request.call_args.kwargs
+        assert kw["params"] == {"limit": 5, "sha": "develop"}
+
+
+# ---------------------------------------------------------------------------
+# check_collaborator
+# ---------------------------------------------------------------------------
+
+
+class TestCheckCollaborator:
+    """Tests for RepositoryOperationsMixin.check_collaborator."""
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_returns_true_when_collaborator(self, mock_request, client):
+        mock_request.return_value = _mock_ok()
+
+        assert client.check_collaborator("alice", "project", "bob") is True
+
+        kw = mock_request.call_args.kwargs
+        assert kw["url"] == f"{BASE_API}/repos/alice/project/collaborators/bob"
+
+    @patch("apps.gitea_app.api_client.base.requests.request")
+    def test_returns_false_when_not_collaborator(self, mock_request, client):
+        mock_request.return_value = _mock_error(404, "not a collaborator")
+
+        assert client.check_collaborator("alice", "project", "stranger") is False
+
 
 if __name__ == "__main__":
-    import os
-
-    import pytest
-
-    pytest.main([os.path.abspath(__file__)])
-
-# --------------------------------------------------------------------------------
-# Start of Source Code from: apps/gitea_app/api_client/repositories.py
-# --------------------------------------------------------------------------------
-# #!/usr/bin/env python3
-# # -*- coding: utf-8 -*-
-# """
-# Gitea API Client - Repository Operations
-# 
-# This module provides repository-related operations for the Gitea REST API.
-# """
-# 
-# from typing import Dict, List
-# from .base import BaseGiteaClient, convert_git_url_to_https
-# 
-# 
-# class RepositoryOperationsMixin:
-#     """Mixin class for repository-related operations"""
-# 
-#     def list_repositories(self, username: str = None) -> List[Dict]:
-#         """
-#         List repositories
-# 
-#         Args:
-#             username: Username to list repos for (defaults to current user)
-# 
-#         Returns:
-#             List of repository objects
-#         """
-#         if username:
-#             endpoint = f"/users/{username}/repos"
-#         else:
-#             endpoint = "/user/repos"
-# 
-#         response = self._request("GET", endpoint)
-#         return response.json()
-# 
-#     def create_repository(
-#         self,
-#         name: str,
-#         description: str = "",
-#         private: bool = False,
-#         auto_init: bool = True,
-#         gitignores: str = "",
-#         license: str = "",
-#         readme: str = "Default",
-#         owner: str = None,
-#     ) -> Dict:
-#         """
-#         Create a new repository
-# 
-#         Args:
-#             name: Repository name
-#             description: Repository description
-#             private: Make repository private
-#             auto_init: Initialize with README
-#             gitignores: Gitignore template (e.g., 'Python')
-#             license: License template (e.g., 'MIT')
-#             readme: README template (e.g., 'Default')
-#             owner: Username to create repo for (requires admin token, defaults to authenticated user)
-# 
-#         Returns:
-#             Created repository object
-#         """
-#         data = {
-#             "name": name,
-#             "description": description,
-#             "private": private,
-#             "auto_init": auto_init,
-#         }
-# 
-#         if gitignores:
-#             data["gitignores"] = gitignores
-#         if license:
-#             data["license"] = license
-#         if readme:
-#             data["readme"] = readme
-# 
-#         # Use admin endpoint to create repo for specific user
-#         if owner:
-#             endpoint = f"/admin/users/{owner}/repos"
-#         else:
-#             endpoint = "/user/repos"
-# 
-#         response = self._request("POST", endpoint, json=data)
-#         return response.json()
-# 
-#     def get_repository(self, owner: str, repo: str) -> Dict:
-#         """
-#         Get repository information
-# 
-#         Args:
-#             owner: Repository owner username
-#             repo: Repository name
-# 
-#         Returns:
-#             Repository object
-#         """
-#         response = self._request("GET", f"/repos/{owner}/{repo}")
-#         return response.json()
-# 
-#     def delete_repository(self, owner: str, repo: str) -> bool:
-#         """
-#         Delete a repository
-# 
-#         Args:
-#             owner: Repository owner username
-#             repo: Repository name
-# 
-#         Returns:
-#             True if successful
-#         """
-#         self._request("DELETE", f"/repos/{owner}/{repo}")
-#         return True
-# 
-#     def migrate_repository(
-#         self,
-#         clone_addr: str,
-#         repo_name: str = None,
-#         service: str = "github",
-#         auth_token: str = "",
-#         mirror: bool = False,
-#         private: bool = False,
-#         description: str = "",
-#         wiki: bool = True,
-#         milestones: bool = True,
-#         labels: bool = True,
-#         issues: bool = True,
-#         pull_requests: bool = True,
-#         releases: bool = True,
-#     ) -> Dict:
-#         """
-#         Migrate/import repository from external source
-# 
-#         Args:
-#             clone_addr: Git clone URL (HTTPS or SSH format)
-#             repo_name: Name for imported repo (extracted from URL if not provided)
-#             service: Source service ('github', 'gitlab', 'gitea', 'gogs')
-#             auth_token: Authentication token for private repos
-#             mirror: Create as mirror (keep synced)
-#             private: Make repository private
-#             description: Repository description
-#             wiki: Import wiki
-#             milestones: Import milestones
-#             labels: Import labels
-#             issues: Import issues
-#             pull_requests: Import pull requests
-#             releases: Import releases
-# 
-#         Returns:
-#             Created repository object
-#         """
-#         # Convert SSH URLs to HTTPS (Gitea API requires HTTPS)
-#         clone_addr = convert_git_url_to_https(clone_addr)
-# 
-#         # Extract repo name from URL if not provided
-#         # Preserves original name from the source repository
-#         if not repo_name:
-#             repo_name = clone_addr.rstrip("/").split("/")[-1]
-#             # Remove .git suffix while preserving case and other characters
-#             if repo_name.endswith(".git"):
-#                 repo_name = repo_name[:-4]
-# 
-#         data = {
-#             "clone_addr": clone_addr,
-#             "service": service,
-#             "repo_name": repo_name,
-#             "mirror": mirror,
-#             "private": private,
-#             "description": description or f"Imported from {clone_addr}",
-#             "wiki": wiki,
-#             "milestones": milestones,
-#             "labels": labels,
-#             "issues": issues,
-#             "pull_requests": pull_requests,
-#             "releases": releases,
-#         }
-# 
-#         if auth_token:
-#             data["auth_token"] = auth_token
-# 
-#         response = self._request("POST", "/repos/migrate", json=data)
-#         return response.json()
-# 
-#     def fork_repository(self, owner: str, repo: str, organization: str = None) -> Dict:
-#         """
-#         Fork a repository
-# 
-#         Args:
-#             owner: Original repository owner
-#             repo: Original repository name
-#             organization: Organization to fork to (optional)
-# 
-#         Returns:
-#             Forked repository object
-#         """
-#         data = {}
-#         if organization:
-#             data["organization"] = organization
-# 
-#         response = self._request("POST", f"/repos/{owner}/{repo}/forks", json=data)
-#         return response.json()
-# 
-# 
-# # EOF
-
-# --------------------------------------------------------------------------------
-# End of Source Code from: apps/gitea_app/api_client/repositories.py
-# --------------------------------------------------------------------------------
+    pytest.main([__file__])

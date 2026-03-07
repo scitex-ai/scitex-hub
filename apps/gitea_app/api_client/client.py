@@ -7,11 +7,13 @@ This module provides the main GiteaClient class that combines all operation mixi
 """
 
 from .base import BaseGiteaClient
-from .users import UserOperationsMixin
-from .repositories import RepositoryOperationsMixin
 from .files import FileOperationsMixin
 from .organizations import OrganizationOperationsMixin
+from .pull_requests import PullRequestOperationsMixin
+from .repositories import RepositoryOperationsMixin
 from .ssh_keys import SSHKeyOperationsMixin
+from .users import UserOperationsMixin
+from .webhooks import WebhookOperationsMixin
 
 
 class GiteaClient(
@@ -21,6 +23,8 @@ class GiteaClient(
     FileOperationsMixin,
     OrganizationOperationsMixin,
     SSHKeyOperationsMixin,
+    PullRequestOperationsMixin,
+    WebhookOperationsMixin,
 ):
     """
     Complete Gitea API Client

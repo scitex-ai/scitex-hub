@@ -7,7 +7,8 @@ This module provides repository-related operations for the Gitea REST API.
 """
 
 from typing import Dict, List
-from .base import BaseGiteaClient, convert_git_url_to_https
+
+from .base import convert_git_url_to_https
 
 
 class RepositoryOperationsMixin:
@@ -196,6 +197,91 @@ class RepositoryOperationsMixin:
 
         response = self._request("POST", f"/repos/{owner}/{repo}/forks", json=data)
         return response.json()
+
+    def update_repository(
+        self,
+        owner: str,
+        repo: str,
+        **kwargs,
+    ) -> Dict:
+        """
+        Update repository properties.
+
+        Args:
+            owner: Repository owner
+            repo: Repository name
+            **kwargs: Fields to update (name, description, private, etc.)
+
+        Returns:
+            Updated repository object
+        """
+        response = self._request("PATCH", f"/repos/{owner}/{repo}", json=kwargs)
+        return response.json()
+
+    def get_branch(self, owner: str, repo: str, branch: str) -> Dict:
+        """
+        Get branch information.
+
+        Args:
+            owner: Repository owner
+            repo: Repository name
+            branch: Branch name
+
+        Returns:
+            Branch object
+        """
+        response = self._request("GET", f"/repos/{owner}/{repo}/branches/{branch}")
+        return response.json()
+
+    def list_commits(
+        self,
+        owner: str,
+        repo: str,
+        sha: str = "",
+        limit: int = 10,
+    ) -> List[Dict]:
+        """
+        List commits on a repository.
+
+        Args:
+            owner: Repository owner
+            repo: Repository name
+            sha: Branch or commit SHA to start from
+            limit: Max number of commits to return
+
+        Returns:
+            List of commit objects
+        """
+        params = {"limit": limit}
+        if sha:
+            params["sha"] = sha
+        response = self._request(
+            "GET", f"/repos/{owner}/{repo}/git/commits", params=params
+        )
+        return response.json()
+
+    def check_collaborator(self, owner: str, repo: str, username: str) -> bool:
+        """
+        Check if a user is a collaborator on a repository.
+
+        Args:
+            owner: Repository owner
+            repo: Repository name
+            username: Username to check
+
+        Returns:
+            True if user is a collaborator
+        """
+        from ..exceptions import GiteaAPIError
+
+        try:
+            self._request(
+                "GET",
+                f"/repos/{owner}/{repo}/collaborators/{username}",
+            )
+            return True
+        except GiteaAPIError:
+            return False
 
 
 # EOF

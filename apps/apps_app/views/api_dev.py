@@ -70,9 +70,18 @@ def api_dev_install(request):
         )
 
     # Check repo accessibility
-    if not _can_access_repo(request.user, owner, repo):
+    try:
+        if not _can_access_repo(request.user, owner, repo):
+            return JsonResponse(
+                {"success": False, "error": "Repository not accessible"}, status=403
+            )
+    except Exception as e:
+        logger.error(
+            "[api_dev] Gitea error checking repo access %s/%s: %s", owner, repo, e
+        )
         return JsonResponse(
-            {"success": False, "error": "Repository not accessible"}, status=403
+            {"success": False, "error": f"Cannot verify repository access: {e}"},
+            status=503,
         )
 
     # Validate repo has templates
@@ -220,7 +229,6 @@ def api_submit_dev_app(request, owner, repo):
     from apps.project_app.models import Project
 
     from ..models import AppsModule, ModuleSubmission
-    from .api_registry import _open_registry_pr
 
     # 1. Verify user owns this dev installation
     dev_install = DevInstallation.objects.filter(
@@ -285,31 +293,34 @@ def api_submit_dev_app(request, owner, repo):
     )
 
     # 7. Get pinned commit
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
-            cwd=str(project_dir),
-            capture_output=True,
-            text=True,
-            timeout=10,
+    result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=str(project_dir),
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+    if result.returncode != 0:
+        return JsonResponse(
+            {"success": False, "error": "Failed to read commit SHA from project"},
+            status=500,
         )
-        pinned_commit = result.stdout.strip() or "unknown"
-    except Exception:
-        pinned_commit = "unknown"
+    pinned_commit = result.stdout.strip()
 
-    # 8. Open registry PR
+    # 8. Open cross-repo PR: user/<app> -> scitex-apps/<app>
+    from .api_registry import _submit_app_pr
+
+    app_module.pinned_commit = pinned_commit
+    app_module.save(update_fields=["pinned_commit"])
     try:
-        pr_url = _open_registry_pr(
+        pr_url = _submit_app_pr(
             app_module=app_module,
-            manifest=manifest,
             version=manifest.get("version", "0.1.0"),
-            author_username=owner,
-            pinned_commit=pinned_commit,
         )
     except Exception as e:
-        logger.error("[api_dev] Failed to open registry PR: %s", e)
+        logger.error("[api_dev] Failed to open app PR: %s", e)
         return JsonResponse(
-            {"success": False, "error": f"Failed to open registry PR: {e}"},
+            {"success": False, "error": f"Failed to open app PR: {e}"},
             status=500,
         )
 
@@ -338,34 +349,26 @@ def _can_access_repo(user, owner, repo) -> bool:
     - The repo is public, OR
     - The user is the owner, OR
     - The user is a collaborator
+
+    Raises:
+        GiteaAPIError: If repo does not exist or API call fails
+        GiteaConnectionError: If Gitea is unreachable
     """
-    try:
-        from apps.gitea_app.api_client import GiteaClient
+    from apps.gitea_app.api_client import GiteaClient
 
-        client = GiteaClient()
-        repo_info = client.get_repository(owner=owner, repo=repo)
+    client = GiteaClient()
+    repo_info = client.get_repository(owner=owner, repo=repo)
 
-        # Public repos are accessible to anyone
-        if not repo_info.get("private", True):
-            return True
+    # Public repos are accessible to anyone
+    if not repo_info.get("private", True):
+        return True
 
-        # Owner can always access
-        if owner == user.username:
-            return True
+    # Owner can always access
+    if owner == user.username:
+        return True
 
-        # Check collaborator access
-        try:
-            client._request(
-                "GET",
-                f"/repos/{owner}/{repo}/collaborators/{user.username}",
-            )
-            return True
-        except Exception:
-            return False
-
-    except Exception:
-        # If Gitea is down or repo doesn't exist, deny
-        return False
+    # Check collaborator access
+    return client.check_collaborator(owner, repo, user.username)
 
 
 # EOF
