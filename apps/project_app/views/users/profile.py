@@ -122,8 +122,10 @@ def _apps_org_profile(request, org, is_member, is_admin):
     """Profile page for the scitex-apps org — shows published app modules."""
     from apps.apps_app.models import AppsModule
 
-    modules = AppsModule.objects.filter(visibility="public").order_by(
-        "-star_count", "-install_count"
+    modules = (
+        AppsModule.objects.filter(visibility="public")
+        .exclude(registry_repo_url="")
+        .order_by("-star_count", "-install_count")
     )
 
     paginator = Paginator(modules, 24)

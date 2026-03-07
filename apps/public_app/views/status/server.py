@@ -24,6 +24,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from django.shortcuts import render
 
 from .compute_resources import check_container_runtime_status, check_slurm_status
+from .gitea_orgs import check_gitea_orgs
 from .health_checks import (
     check_api_services,
     check_database,
@@ -77,6 +78,7 @@ def server_status(request):
         check_system_resources,
         check_registered_users_count,
         check_package_versions,
+        check_gitea_orgs,
     ]
 
     with ThreadPoolExecutor(max_workers=len(simple_checks) + 1) as pool:

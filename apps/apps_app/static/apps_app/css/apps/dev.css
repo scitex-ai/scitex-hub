@@ -1,37 +1,41 @@
 /* Dev Apps section — personal dev installs in Apps browse */
 
 .apps-dev-section {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .apps-dev-heading {
   font-size: 0.9rem;
-  color: var(--workspace-text-muted);
-  margin-bottom: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
 }
 
 .apps-dev-grid {
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 
+/* Dev cards use the same .ap-card layout; only add a left accent */
 .ap-card-dev {
   border-left: 3px solid #b87fff;
 }
 
-.badge-dev-tag {
-  font-size: 0.65rem;
-  padding: 0.05rem 0.35rem;
+/* DEV badge in title row */
+.ap-badge-dev {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #b87fff;
+  background: rgba(184, 127, 255, 0.12);
+  border: 1px solid rgba(184, 127, 255, 0.3);
+  text-transform: uppercase;
 }
 
-.dev-uninstall-btn {
-  font-size: 0.7rem;
-  color: #e57373;
-  border-color: #e57373;
-  background: transparent;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.dev-uninstall-btn:hover {
-  background: rgba(229, 115, 115, 0.1);
+/* Star placeholder — keeps actions aligned with public cards */
+.ap-btn-star-placeholder {
+  display: inline-block;
+  width: 26px;
+  flex-shrink: 0;
 }

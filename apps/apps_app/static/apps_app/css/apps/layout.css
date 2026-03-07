@@ -7,53 +7,73 @@
 .apps-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0.5rem 1rem 1rem;
+  padding: 0.25rem 1rem 1rem;
 }
 
 /* ─── Registry Org Banner ──────────────────────────────────────── */
 .apps-org-banner {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  margin-bottom: 0.75rem;
-  background-color: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--workspace-border-default, var(--border-color));
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(
+    135deg,
+    rgba(56, 139, 253, 0.08) 0%,
+    rgba(139, 92, 246, 0.08) 100%
+  );
+  border: 1px solid rgba(56, 139, 253, 0.25);
   color: var(--text-primary);
   text-decoration: none;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   transition:
-    border-color 0.15s,
-    background-color 0.15s;
+    border-color 0.2s,
+    background 0.2s,
+    box-shadow 0.2s;
 }
 
 .apps-org-banner:hover {
-  border-color: var(--workspace-icon-primary, var(--accent));
-  background-color: var(--workspace-bg-tertiary, rgba(255, 255, 255, 0.06));
+  border-color: rgba(56, 139, 253, 0.5);
+  background: linear-gradient(
+    135deg,
+    rgba(56, 139, 253, 0.14) 0%,
+    rgba(139, 92, 246, 0.14) 100%
+  );
+  box-shadow: 0 2px 8px rgba(56, 139, 253, 0.12);
   color: var(--text-primary);
   text-decoration: none;
 }
 
 .apps-org-banner > i:first-child {
-  color: var(--workspace-icon-primary, var(--accent));
-  font-size: 1rem;
+  color: #388bfd;
+  font-size: 1.2rem;
 }
 
 .apps-org-banner-text {
   flex: 1;
+  line-height: 1.4;
+}
+
+.apps-org-banner-text strong {
+  color: #388bfd;
 }
 
 .apps-org-banner-arrow {
   color: var(--text-muted);
-  font-size: 0.7rem;
+  font-size: 0.8rem;
+  transition: transform 0.2s;
+}
+
+.apps-org-banner:hover .apps-org-banner-arrow {
+  transform: translateX(2px);
 }
 
 /* ─── Top Bar ──────────────────────────────────────────────────── */
 .apps-topbar {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  margin-bottom: 0.75rem;
+  gap: 0.25rem;
+  margin-bottom: 0.35rem;
 }
 
 /* Category tab row */
@@ -68,7 +88,7 @@
 .apps-cat-tab {
   display: inline-flex;
   align-items: center;
-  padding: 4px 12px;
+  padding: 3px 10px;
   font-size: 0.82rem;
   font-family: inherit;
   color: var(--text-primary);
@@ -128,8 +148,8 @@
   background-color: var(--workspace-bg-secondary, var(--bg-primary));
   border: 1px solid var(--workspace-border-default, var(--border-color));
   color: var(--text-primary);
-  padding: 5px 28px;
-  font-size: 0.85rem;
+  padding: 4px 28px;
+  font-size: 0.82rem;
   border-radius: 0;
   outline: none;
   transition: border-color 0.15s;
@@ -167,17 +187,39 @@
   background-color: var(--workspace-bg-secondary, var(--bg-primary));
   border: 1px solid var(--workspace-border-default, var(--border-color));
   color: var(--text-primary);
-  padding: 5px 8px;
+  padding: 4px 8px;
   font-size: 0.82rem;
   border-radius: 0;
   cursor: pointer;
+}
+
+/* ─── Section Headings ─────────────────────────────────────────── */
+.apps-section-heading,
+.apps-dev-heading {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0 0 0.35rem;
+}
+
+.apps-section-heading i,
+.apps-dev-heading i {
+  margin-right: 3px;
+}
+
+/* ─── Dev Section ──────────────────────────────────────────────── */
+.apps-dev-section {
+  margin-bottom: 0.5rem;
+}
+
+.apps-dev-grid {
+  margin-bottom: 0;
 }
 
 /* ─── Module Grid ──────────────────────────────────────────────── */
 .apps-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.5rem;
+  gap: 6px;
 }
 
 /* ─── Empty State ──────────────────────────────────────────────── */

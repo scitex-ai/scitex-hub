@@ -61,6 +61,28 @@
             {% endif %}
         </div>
     </a>
+    <div class="ap-card-meta">
+        {% if mod_item.app.author %}
+            <a href="/{{ mod_item.app.author.username }}/"
+               class="ap-card-owner"
+               title="{{ mod_item.app.author.username }}"
+               onclick="event.stopPropagation();">
+                {% if mod_item.app.author.profile.avatar %}
+                    <img src="{{ mod_item.app.author.profile.avatar.url }}"
+                         alt="{{ mod_item.app.author.username }}"
+                         class="ap-owner-avatar" />
+                {% else %}
+                    <span class="ap-owner-avatar ap-owner-avatar--letter">{{ mod_item.app.author.username|first|upper }}</span>
+                {% endif %}
+                {{ mod_item.app.author.username }}
+            </a>
+        {% elif mod_item.app.is_builtin %}
+            <span class="ap-card-owner">
+                <span class="ap-owner-avatar ap-owner-avatar--letter"><i class="fas fa-cube" aria-hidden="true"></i></span>
+                built-in
+            </span>
+        {% endif %}
+    </div>
     <div class="ap-card-stats">
         <span class="ap-stat" title="Stars">
             <i class="fas fa-star" aria-hidden="true"></i>
@@ -76,20 +98,28 @@
                 {{ mod_item.app.avg_rating }}
             </span>
         {% endif %}
-        {% if mod_item.app.registry_repo_url %}
-            <a href="/apps/{{ mod_item.app.module_name }}/"
-               class="ap-stat ap-registry-link"
-               title="View in {{ apps_org }}"
-               onclick="event.stopPropagation();">
-                <i class="fas fa-code-branch" aria-hidden="true"></i>
-            </a>
-        {% endif %}
+    </div>
+    <div class="ap-card-links">
+        <a href="/apps/{{ mod_item.app.module_name }}/"
+           class="ap-btn-hub"
+           title="App details"
+           onclick="event.stopPropagation();">
+            <i class="fas fa-info-circle" aria-hidden="true"></i> Details
+        </a>
         {% if mod_item.app.author %}
             <a href="/{{ mod_item.app.author.username }}/{{ mod_item.app.module_name }}/"
-               class="ap-stat ap-hub-link"
-               title="View in Hub"
+               class="ap-btn-hub"
+               title="View in {{ mod_item.app.author.username }}'s Hub"
                onclick="event.stopPropagation();">
-                <i class="fas fa-external-link-alt" aria-hidden="true"></i>
+                <i class="fas fa-user" aria-hidden="true"></i> Owner Hub
+            </a>
+        {% endif %}
+        {% if mod_item.app.registry_repo_url %}
+            <a href="/{{ apps_org }}/{{ mod_item.app.module_name }}/"
+               class="ap-btn-hub ap-btn-hub--registry"
+               title="View in {{ apps_org }}"
+               onclick="event.stopPropagation();">
+                <i class="fas fa-boxes" aria-hidden="true"></i> {{ apps_org }}
             </a>
         {% endif %}
     </div>

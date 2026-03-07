@@ -68,12 +68,14 @@ def browse_context(request, current_project=None):
     """Build browse page context — all modules returned, filtering is client-side."""
     ensure_builtin_modules()
 
-    modules = AppsModule.objects.filter(visibility="public").order_by(
-        "-star_count", "-install_count"
+    modules = (
+        AppsModule.objects.filter(visibility="public")
+        .select_related("author", "author__profile")
+        .order_by("-star_count", "-install_count")
     )
 
     # Modules disabled by default (installed but hidden from tab bar)
-    DEFAULT_DISABLED = {"example", "modulemaker"}
+    DEFAULT_DISABLED: set[str] = set()
 
     # Annotate with user-specific state
     install_map = {}  # module_name -> {is_enabled, tab_order}
@@ -114,10 +116,12 @@ def browse_context(request, current_project=None):
 
     from ..models import CATEGORY_CHOICES, DevInstallation
 
-    # Dev installations for the "My Dev Apps" section
+    # Dev installations for the "My Dev Apps" section (show all, including disabled)
     dev_apps = []
     if request.user.is_authenticated:
-        dev_apps = list(DevInstallation.objects.filter(user=request.user))
+        dev_apps = list(
+            DevInstallation.objects.filter(user=request.user).order_by("tab_order")
+        )
 
     from django.conf import settings
 

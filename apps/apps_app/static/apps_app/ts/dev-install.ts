@@ -2,7 +2,7 @@
  * Dev Install — install/uninstall app repos from Hub as personal dev apps.
  *
  * Uses event delegation on data-action="dev-install" and data-action="dev-uninstall"
- * buttons. No inline onclick handlers.
+ * buttons, plus .dev-reinstall-btn for re-enabling uninstalled dev apps.
  *
  * On successful install, injects a nav item into the sidebar immediately
  * so the user sees the app tab without a page reload.
@@ -89,14 +89,8 @@ function handleDevInstall(btn: HTMLButtonElement): void {
     .then((r) => r.json())
     .then((data) => {
       if (data.success) {
-        btn.innerHTML = '<i class="fas fa-check"></i> Installed';
-        btn.classList.remove("repo-action-btn-dev");
-        btn.classList.add("repo-action-btn-installed");
-        injectSidebarNavItem(
-          data.module_name,
-          data.label,
-          data.icon || "fas fa-puzzle-piece",
-        );
+        // Reload to get full card with correct state
+        location.reload();
       } else {
         btn.innerHTML =
           '<i class="fas fa-times"></i> ' + (data.error || "Failed");
@@ -126,13 +120,9 @@ function handleDevUninstall(btn: HTMLButtonElement): void {
     .then((r) => r.json())
     .then((data) => {
       if (data.success) {
-        // Remove from sidebar
         removeSidebarNavItem(owner, repo);
-        // Remove card from Apps browse page
-        const card = btn.closest(".ap-card-dev");
-        if (card) card.remove();
-        const section = document.querySelector(".apps-dev-section");
-        if (section && !section.querySelector(".ap-card-dev")) section.remove();
+        // Reload to show card with Install button instead
+        location.reload();
       } else {
         btn.disabled = false;
       }
@@ -142,16 +132,57 @@ function handleDevUninstall(btn: HTMLButtonElement): void {
     });
 }
 
-/** Event delegation — listen on document for dev install/uninstall clicks. */
+function handleDevReinstall(btn: HTMLButtonElement): void {
+  const owner = btn.dataset.owner;
+  const repo = btn.dataset.repo;
+  if (!owner || !repo) return;
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Installing...';
+
+  fetch(`/apps/api/dev/${owner}/${repo}/reinstall/`, {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": getCsrf(),
+      "Content-Type": "application/json",
+    },
+  })
+    .then((r) => r.json())
+    .then((data) => {
+      if (data.success) {
+        location.reload();
+      } else {
+        btn.innerHTML = '<i class="fas fa-download"></i> Install';
+        btn.disabled = false;
+      }
+    })
+    .catch(() => {
+      btn.innerHTML = '<i class="fas fa-download"></i> Install';
+      btn.disabled = false;
+    });
+}
+
+/** Event delegation — listen on document for dev install/uninstall/reinstall. */
 document.addEventListener("click", (e: Event) => {
   const target = e.target as HTMLElement;
-  const btn = target.closest("[data-action]") as HTMLButtonElement | null;
-  if (!btn) return;
 
-  const action = btn.dataset.action;
-  if (action === "dev-install") {
-    handleDevInstall(btn);
-  } else if (action === "dev-uninstall") {
-    handleDevUninstall(btn);
+  // Handle data-action buttons
+  const actionBtn = target.closest("[data-action]") as HTMLButtonElement | null;
+  if (actionBtn) {
+    const action = actionBtn.dataset.action;
+    if (action === "dev-install") {
+      handleDevInstall(actionBtn);
+    } else if (action === "dev-uninstall") {
+      handleDevUninstall(actionBtn);
+    }
+    return;
+  }
+
+  // Handle reinstall buttons
+  const reinstallBtn = target.closest(
+    ".dev-reinstall-btn",
+  ) as HTMLButtonElement | null;
+  if (reinstallBtn) {
+    handleDevReinstall(reinstallBtn);
   }
 });

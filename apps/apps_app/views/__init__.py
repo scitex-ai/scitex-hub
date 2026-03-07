@@ -15,6 +15,7 @@ from .api import (
 from .api_dev import (
     api_dev_app_url,
     api_dev_install,
+    api_dev_reinstall,
     api_dev_uninstall,
     api_submit_dev_app,
 )
@@ -43,6 +44,7 @@ __all__ = [
     "api_registry_webhook",
     "api_dev_app_url",
     "api_dev_install",
+    "api_dev_reinstall",
     "api_dev_uninstall",
     "api_submit_dev_app",
     "review_queue",

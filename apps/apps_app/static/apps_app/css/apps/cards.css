@@ -3,8 +3,8 @@
 .ap-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
+  gap: 10px;
+  padding: 6px 10px;
   background-color: var(--workspace-bg-primary, var(--bg-primary));
   border: 1px solid var(--workspace-border-default, var(--border-color));
   transition:
@@ -85,13 +85,53 @@
   text-overflow: ellipsis;
 }
 
+/* Meta — owner info */
+.ap-card-meta {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.ap-card-owner {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+a.ap-card-owner:hover {
+  color: var(--workspace-icon-primary, var(--accent));
+  text-decoration: none;
+}
+
+.ap-owner-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.ap-owner-avatar--letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.08));
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  color: var(--text-muted);
+  font-size: 0.6rem;
+  font-weight: 600;
+}
+
 /* Stats — right-aligned */
 .ap-card-stats {
   display: flex;
   gap: 10px;
   align-items: center;
   flex-shrink: 0;
-  margin-left: auto;
 }
 
 .ap-stat {
@@ -107,20 +147,35 @@
   color: #f6c90e;
 }
 
-.ap-hub-link {
+/* "View in Hub" button */
+.ap-btn-hub {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 0.72rem;
   color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--workspace-border-default, var(--border-color));
   text-decoration: none;
-  opacity: 0;
-  transition: opacity 0.15s;
+  white-space: nowrap;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
 }
 
-.ap-card:hover .ap-hub-link {
-  opacity: 0.6;
-}
-
-.ap-hub-link:hover {
+.ap-btn-hub:hover {
   color: var(--workspace-icon-primary, var(--accent));
-  opacity: 1 !important;
+  border-color: var(--workspace-icon-primary, var(--accent));
+  text-decoration: none;
+}
+
+/* Links row — Details, Owner Hub, scitex-apps */
+.ap-card-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 /* Actions — rightmost */

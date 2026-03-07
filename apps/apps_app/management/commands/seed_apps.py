@@ -21,9 +21,7 @@ _CATEGORY_MAP = {
     "clew": "reference",
     "hub": "utility",
     "tools": "utility",
-    "example": "other",
     "apps": "utility",
-    "modulemaker": "utility",
 }
 
 # Module descriptions
@@ -35,13 +33,11 @@ _DESCRIPTIONS = {
     "clew": "Verification system — trace manuscript claims (statistics, figures, tables) back through computational chains to source data.",
     "hub": "Project dashboard showing recent activity, file browser, and quick actions.",
     "tools": "Collection of standalone research utilities — converters, calculators, and helpers.",
-    "example": "Reference implementation for module developers. Copy this to create your own module.",
     "apps": "Browse, install, and manage workspace modules.",
-    "modulemaker": "Create, edit, and manage custom workspace modules with @stx.module.",
 }
 
 # Modules under active development
-_WIP_MODULES = {"modulemaker", "example", "clew", "vis", "apps"}
+_WIP_MODULES = {"clew", "vis", "apps"}
 
 
 def ensure_builtin_modules(author_username="ywatanabe"):

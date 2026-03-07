@@ -114,6 +114,44 @@ else
     echo -e "    Fix: restart Django container (entrypoint runs vite build)"
 fi
 
+# Gitea organisations check (scitex registry + scitex-apps)
+ORGS_OK=$(docker exec "$CONTAINER" python -c "
+from apps.gitea_app.api_client import GiteaClient
+c = GiteaClient()
+missing = []
+for org in ('scitex', 'scitex-apps'):
+    try:
+        c._request('GET', f'/orgs/{org}')
+    except Exception:
+        missing.append(org)
+if missing:
+    print(','.join(missing))
+else:
+    print('ok')
+" 2>/dev/null | tail -1 || echo "error")
+if [ "$ORGS_OK" = "ok" ]; then
+    echo -e "  [OK] Gitea Orgs: scitex + scitex-apps"
+elif [ "$ORGS_OK" = "error" ]; then
+    echo -e "  ${YELLOW}[WARN] Gitea Orgs: check failed${NC}"
+else
+    echo -e "  ${RED}[FAIL] Gitea Orgs: missing ${ORGS_OK}${NC}"
+    echo -e "    Fix: python manage.py setup_registry_repo"
+fi
+
+# Django Organisation record check
+DJANGO_ORG_OK=$(docker exec "$CONTAINER" python -c "
+from apps.organizations_app.models import Organization
+print('ok' if Organization.objects.filter(slug='scitex-apps').exists() else 'missing')
+" 2>/dev/null | tail -1 || echo "error")
+if [ "$DJANGO_ORG_OK" = "ok" ]; then
+    echo -e "  [OK] Django Org: scitex-apps"
+elif [ "$DJANGO_ORG_OK" = "missing" ]; then
+    echo -e "  ${RED}[FAIL] Django Org: scitex-apps record missing${NC}"
+    echo -e "    Fix: python manage.py setup_registry_repo"
+else
+    echo -e "  ${YELLOW}[WARN] Django Org: check failed${NC}"
+fi
+
 # Pending migrations check
 MIGRATIONS_OK=$(docker exec "$CONTAINER" python manage.py showmigrations --plan 2>/dev/null | grep -c '^\[ \]' 2>/dev/null) || MIGRATIONS_OK=0
 if [ "$MIGRATIONS_OK" = "0" ]; then

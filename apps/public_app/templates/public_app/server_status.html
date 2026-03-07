@@ -342,6 +342,56 @@
                 {% endfor %}
             </div>
         </div>
+        <!-- Gitea Organisations -->
+        {% if status_data.gitea_orgs %}
+            <div class="status-section">
+                <h2 class="section-title has-tooltip"
+                    data-tooltip="Required Gitea organisations for the app publishing pipeline.">
+                    <i class="fas fa-building"></i> Gitea Organisations
+                </h2>
+                <div class="services-grid">
+                    {% for org in status_data.gitea_orgs %}
+                        <div class="service-card {{ org.health_class }}">
+                            <div class="service-header">
+                                <div class="service-name">
+                                    <i class="fas fa-building"></i> {{ org.name }}
+                                </div>
+                                <span class="status-badge {{ org.health_class }}">
+                                    <i class="fas fa-circle"></i>
+                                    {{ org.status|upper }}
+                                </span>
+                            </div>
+                            <div class="service-details">
+                                <div>{{ org.description }}</div>
+                                {% if org.details %}
+                                    <div>
+                                        <strong>Info:</strong> {{ org.details }}
+                                    </div>
+                                {% endif %}
+                                {% if org.django_record != None %}
+                                    <div>
+                                        <strong>Django record:</strong>
+                                        {% if org.django_record %}
+                                            Yes
+                                        {% else %}
+                                            Missing
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                                {% if org.error %}
+                                    <div class="error-message">
+                                        <strong>Error:</strong> {{ org.error }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <p class="section-help">
+                    Fix: <code>python manage.py setup_registry_repo</code>
+                </p>
+            </div>
+        {% endif %}
         <!-- Package Versions -->
         <div class="status-section">
             <h2 class="section-title has-tooltip"
