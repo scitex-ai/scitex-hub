@@ -1,6 +1,7 @@
 /* Project Creation — Two-Column Layout */
 
 .create-page {
+  width: 100%;
   max-width: 960px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
@@ -115,16 +116,20 @@
   margin-bottom: 0;
 }
 
-.form-label {
+form.create-form-card .form-label {
   display: block;
   font-size: 0.875rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: var(--color-fg-default, #c9d1d9);
+  color: #e6edf3;
 }
 
-.form-label .required {
+form.create-form-card .form-label .required {
   color: var(--color-danger-fg, #f85149);
+}
+
+form.create-form-card .form-label.form-label-optional {
+  color: var(--color-fg-muted, #8b949e);
 }
 
 form.create-form-card .form-control {
@@ -366,6 +371,102 @@ form.create-form-card textarea.form-control {
   background: var(--color-accent-subtle, rgba(35, 134, 54, 0.15));
   border-color: var(--color-accent-emphasis, #238636);
   color: var(--color-accent-fg, #3fb950);
+}
+
+/* ============================================
+   Required vs Optional Label Distinction
+   ============================================ */
+
+/* NOTE: .form-label-optional specificity is handled above
+   in the form.create-form-card .form-label.form-label-optional rule */
+
+.label-hint {
+  color: var(--color-fg-muted, #8b949e);
+  font-weight: 400;
+}
+
+.label-icon {
+  margin-right: 0.25rem;
+}
+
+/* ============================================
+   Collapsible Optional Section (App tab)
+   ============================================ */
+
+.app-optional-details {
+  margin-top: 0.5rem;
+  border: 1px solid var(--color-border-default, #30363d);
+  border-radius: 6px;
+}
+
+.app-optional-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-fg-muted, #8b949e);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.app-optional-summary::-webkit-details-marker {
+  display: none;
+}
+
+.app-optional-summary::after {
+  content: "\f078";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  font-size: 0.65rem;
+  margin-left: auto;
+  transition: transform 0.2s ease;
+}
+
+.app-optional-details[open] > .app-optional-summary::after {
+  transform: rotate(180deg);
+}
+
+.app-optional-hint {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--color-fg-subtle, #484f58);
+}
+
+.app-optional-fields {
+  padding: 0 1rem 1rem;
+}
+
+/* JSON/YAML textarea in App tab */
+.app-manifest-textarea {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.75rem;
+}
+
+.app-manifest-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.app-manifest-parse-btn {
+  font-size: 0.75rem;
+  padding: 0.375rem 0.75rem;
+}
+
+.app-manifest-status {
+  font-size: 0.75rem;
+  line-height: 2;
+  color: var(--color-fg-muted);
+}
+
+/* Icon filter input */
+.app-icon-filter {
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  padding: 0.375rem 0.5rem;
 }
 
 /* Info Box */

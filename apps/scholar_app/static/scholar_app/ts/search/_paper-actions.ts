@@ -92,7 +92,7 @@ async function saveToProject(
       body: formData.toString(),
     });
 
-    const result = await response.tson();
+    const result = await response.json();
 
     if (response.ok && result.success) {
       const shortTitle =

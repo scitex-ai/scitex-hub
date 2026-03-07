@@ -197,7 +197,7 @@ function pollJobStatus(
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      return response.tson();
+      return response.json();
     })
     .then((data) => {
       console.log(

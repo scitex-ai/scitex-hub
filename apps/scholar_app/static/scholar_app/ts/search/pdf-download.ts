@@ -49,7 +49,7 @@ class PDFDownloadManager {
         if (pmid)
             params.set("pmid", pmid);
         const promise = fetch(`/scholar/api/pdf/status/?${params.toString()}`)
-            .then((response) => response.tson())
+            .then((response) => response.json())
             .finally(() => {
             this.pendingChecks.delete(cacheKey);
         });
@@ -75,7 +75,7 @@ class PDFDownloadManager {
                 prefer_open_access: true,
             }),
         });
-        return response.tson();
+        return response.json();
     }
     /**
      * Update badge status for a paper

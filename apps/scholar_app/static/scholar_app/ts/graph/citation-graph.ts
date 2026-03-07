@@ -141,7 +141,7 @@ class CitationGraphManager {
     if (!statusEl) return;
     try {
       const response = await fetch(this.config.urls.health);
-      const data = await response.tson();
+      const data = await response.json();
       statusEl.innerHTML =
         data.status === "healthy"
           ? `<div class="status-indicator status-healthy"><i class="fas fa-check-circle"></i><span>Service available</span></div>`
@@ -165,10 +165,10 @@ class CitationGraphManager {
       const networkUrl = `${this.config.urls.buildNetworkMulti}?dois=${doisParam}&num_related_per_doi=${numRelated}`;
       const networkResponse = await this.fetchWithTimeout(networkUrl, 120000);
       if (!networkResponse.ok) {
-        const errorData = await networkResponse.tson();
+        const errorData = await networkResponse.json();
         throw new Error(errorData.error || "Failed to build network");
       }
-      const networkData: NetworkData = await networkResponse.tson();
+      const networkData: NetworkData = await networkResponse.json();
       this.currentData = networkData;
       this.sourceInfo = {
         source_type: "dois",
@@ -201,10 +201,10 @@ class CitationGraphManager {
       const networkUrl = `${this.config.urls.buildNetworkQuery}?q=${encodeURIComponent(query)}&num_related_per_doi=${numRelated}`;
       const networkResponse = await this.fetchWithTimeout(networkUrl, 120000);
       if (!networkResponse.ok) {
-        const errorData = await networkResponse.tson();
+        const errorData = await networkResponse.json();
         throw new Error(errorData.error || "Failed to build network");
       }
-      const networkData: NetworkData = await networkResponse.tson();
+      const networkData: NetworkData = await networkResponse.json();
       if (networkData.nodes.length === 0) {
         this.showError("No papers with DOI found for this query");
         return;

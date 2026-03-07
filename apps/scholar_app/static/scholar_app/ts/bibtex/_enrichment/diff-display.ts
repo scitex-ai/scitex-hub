@@ -29,7 +29,7 @@ export async function showBibtexDiff(jobId: string): Promise<void> {
       throw new Error(`HTTP ${response.status}`);
     }
 
-    const data = await response.tson();
+    const data = await response.json();
 
     if (data.success) {
       displayBibtexDiff(data.diff, data.stats, data.files);

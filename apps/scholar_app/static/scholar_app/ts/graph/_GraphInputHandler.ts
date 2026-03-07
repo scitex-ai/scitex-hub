@@ -86,7 +86,7 @@ export class GraphInputHandler {
         credentials: "same-origin",
       });
       if (!response.ok) throw new Error("Failed to load library");
-      const data = await response.tson();
+      const data = await response.json();
       const papers = data.papers || [];
 
       this.librarySpinner?.stop();

@@ -53,7 +53,7 @@ export async function loadRecentJobs(): Promise<void> {
       return;
     }
 
-    const data: RecentJobsResponse = await response.tson();
+    const data: RecentJobsResponse = await response.json();
 
     if (!data.success || !data.jobs || data.jobs.length === 0) {
       showNoJobsMessage();
@@ -326,7 +326,7 @@ export async function deleteJob(jobId: string): Promise<void> {
       // Reload recent jobs
       await loadRecentJobs();
     } else {
-      const data = await response.tson().catch(() => ({}));
+      const data = await response.json().catch(() => ({}));
       const errorMsg = data.error || "Failed to delete job";
       showAlert(errorMsg, "error");
     }

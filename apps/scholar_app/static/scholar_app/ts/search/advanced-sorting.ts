@@ -387,7 +387,7 @@ function exportSelectedPapers(): void {
       collection_name: "search_results",
     }),
   })
-    .then((response) => response.tson())
+    .then((response) => response.json())
     .then((data) => {
       if (data.success) {
         // Create a blob and download

@@ -114,7 +114,7 @@ function stopQueueManagement(): void {
  */
 function updateResourceMonitor(resourceStatusUrl: string): void {
   fetch(resourceStatusUrl)
-    .then((response) => response.tson())
+    .then((response) => response.json())
     .then((data: ResourceStatusResponse) => {
       updateSystemStats(data.system);
       updateActiveJobs(data.jobs);
@@ -364,7 +364,7 @@ function updateRefreshTime(timestamp: string): void {
       "Content-Type": "application/json",
     },
   })
-    .then((response) => response.tson())
+    .then((response) => response.json())
     .then((data: any) => {
       if (data.success) {
         alert("Job cancelled successfully");

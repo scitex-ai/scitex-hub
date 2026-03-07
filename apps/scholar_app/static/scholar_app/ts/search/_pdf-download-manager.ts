@@ -56,7 +56,7 @@ export class PDFDownloadManager {
     if (pmid) params.set("pmid", pmid);
 
     const promise = fetch(`/scholar/api/pdf/status/?${params.toString()}`)
-      .then((response) => response.tson())
+      .then((response) => response.json())
       .finally(() => {
         this.pendingChecks.delete(cacheKey);
       });
@@ -91,7 +91,7 @@ export class PDFDownloadManager {
       }),
     });
 
-    return response.tson();
+    return response.json();
   }
 
   /**

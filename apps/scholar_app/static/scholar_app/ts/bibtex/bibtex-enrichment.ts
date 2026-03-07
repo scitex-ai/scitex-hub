@@ -116,7 +116,7 @@ class BibtexEnrichmentOrchestrator {
         return;
       }
 
-      const data = await response.tson();
+      const data = await response.json();
 
       if (data.success && data.job_id) {
         window.currentBibtexJobId = data.job_id;
@@ -152,7 +152,7 @@ class BibtexEnrichmentOrchestrator {
     uploadUrl: string,
     csrfToken: string,
   ): Promise<void> {
-    const data = await response.tson();
+    const data = await response.json();
 
     if (data.requires_confirmation && data.existing_job) {
       // Force cancel existing and start new job
@@ -165,7 +165,7 @@ class BibtexEnrichmentOrchestrator {
           "X-CSRFToken": csrfToken,
         },
       });
-      const retryData = await retryResponse.tson();
+      const retryData = await retryResponse.json();
 
       if (retryData.success && retryData.job_id) {
         this.jobPollingManager.pollJobStatus(retryData.job_id);
@@ -265,7 +265,7 @@ class BibtexEnrichmentOrchestrator {
   private async updateUrlCountForJob(jobId: string): Promise<void> {
     try {
       const response = await fetch(`/scholar/api/bibtex/job/${jobId}/urls/`);
-      const urlData = await response.tson();
+      const urlData = await response.json();
       const count = urlData.total_urls || 0;
 
       const urlButtonText = document.getElementById("urlButtonText");
