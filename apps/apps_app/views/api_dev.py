@@ -221,8 +221,12 @@ def api_submit_dev_app(request, owner, repo):
         )
 
     # 6. Create or update AppsModule record
-    app_name = manifest.get("slug", repo.replace("-", "_"))
-    module_name = app_name if app_name.endswith("_app") else f"{app_name}_app"
+    app_name = manifest.get("slug") or manifest.get("name") or repo.replace("-", "_")
+    module_name = (
+        app_name
+        if (app_name.endswith("_app") or app_name.endswith("-app"))
+        else f"{app_name}_app"
+    )
 
     app_module, created = AppsModule.objects.update_or_create(
         module_name=module_name,
