@@ -133,6 +133,9 @@ VALID_ENVS := dev staging prod
 ifdef env
   ENV := $(env)
 endif
+ifdef yes
+  YES := $(yes)
+endif
 
 # Normalize ENV aliases (stag -> staging)
 ifeq ($(ENV),stag)

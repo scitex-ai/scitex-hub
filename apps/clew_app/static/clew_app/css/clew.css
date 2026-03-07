@@ -95,7 +95,7 @@
 .dag-visualization-area {
   flex: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   overflow: auto;
   padding: 1rem;

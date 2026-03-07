@@ -163,16 +163,52 @@
   color: var(--color-done-fg, #a371f7);
 }
 
+/* Run File - Green */
+.wft-context-item.context-run-file .wft-context-icon {
+  color: var(--color-success-fg, #3fb950);
+}
+
+/* Git submenu trigger - Orange */
+.wft-context-item.context-git-submenu .wft-context-icon {
+  color: var(--color-attention-fg, #d29922);
+}
+
 /* Hover states - maintain icon colors */
 .wft-context-item.context-new-file:hover .wft-context-icon,
 .wft-context-item.context-new-folder:hover .wft-context-icon,
 .wft-context-item.context-rename:hover .wft-context-icon,
 .wft-context-item.context-duplicate:hover .wft-context-icon,
 .wft-context-item.context-delete:hover .wft-context-icon,
+.wft-context-item.context-run-file:hover .wft-context-icon,
+.wft-context-item.context-git-submenu:hover .wft-context-icon,
 .wft-context-item.context-git-stage:hover .wft-context-icon,
 .wft-context-item.context-git-unstage:hover .wft-context-icon,
 .wft-context-item.context-git-discard:hover .wft-context-icon,
 .wft-context-item.context-git-history:hover .wft-context-icon,
 .wft-context-item.context-git-diff:hover .wft-context-icon {
   /* Keep the same color on hover - don't override to accent color */
+}
+
+/* ========== Submenu Styles ========== */
+
+.wft-context-submenu-wrap {
+  position: relative;
+}
+
+.wft-context-submenu-trigger .wft-context-arrow {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--color-fg-muted, #768390);
+}
+
+/* Hidden by default, shown on hover */
+.wft-context-submenu {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 100%;
+}
+
+.wft-context-submenu-wrap:hover > .wft-context-submenu {
+  display: block;
 }

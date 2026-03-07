@@ -1,17 +1,30 @@
 /**
  * Event Handlers for WorkspaceFilesTree
- * Handles file/folder click events
+ *
+ * Click behavior (file-manager style):
+ *   Single click         → select/highlight only
+ *   Click on selected    → rename (after 400ms delay, cancelled by dblclick)
+ *   Double click         → open in viewer/editor
+ *   Triple click         → run (for .py, .sh, .js)
  */
 
 import type { TreeItem, TreeConfig } from "../types";
 import type { TreeStateManager } from "../_TreeState";
 
+const RUNNABLE_EXTS = [".py", ".sh", ".js"];
+const RENAME_DELAY_MS = 400;
+
 export class EventHandlers {
+  private renameTimer: number | null = null;
+  private lastSelectedPath: string | null = null;
+
   constructor(
     private config: TreeConfig,
     private stateManager: TreeStateManager,
     private onToggleFolder: (path: string) => void,
     private onSelectFile: (path: string, event?: MouseEvent) => void,
+    private onOpenFile: (path: string) => void,
+    private onRunFile: (path: string) => void,
     private onRename: (path: string, el: HTMLElement) => void,
     private onDelete?: (path: string) => void,
     private onNewFile?: (folderPath: string) => void,
@@ -19,6 +32,13 @@ export class EventHandlers {
     private onCopy?: (path: string) => void,
     private onGitAction?: (action: string, path: string) => void,
   ) {}
+
+  private cancelPendingRename(): void {
+    if (this.renameTimer !== null) {
+      clearTimeout(this.renameTimer);
+      this.renameTimer = null;
+    }
+  }
 
   attachEventListeners(container: HTMLElement): void {
     const treeEl = container.querySelector(".wft-tree");
@@ -34,28 +54,7 @@ export class EventHandlers {
       // Action buttons (delete, new-file, new-folder)
       const actionBtn = target.closest(".wft-action-btn") as HTMLElement;
       if (actionBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        const action = actionBtn.getAttribute("data-action");
-        const path = actionBtn.getAttribute("data-path");
-
-        if (action === "delete" && path && this.onDelete) {
-          this.onDelete(path);
-        } else if (action === "new-file" && path && this.onNewFile) {
-          this.onNewFile(path);
-        } else if (action === "new-folder" && path && this.onNewFolder) {
-          this.onNewFolder(path);
-        } else if (action === "rename" && path) {
-          const item = actionBtn.closest("[data-path]") as HTMLElement;
-          if (item) {
-            this.onRename(path, item);
-          }
-        } else if (action === "copy" && path && this.onCopy) {
-          this.onCopy(path);
-        } else if (action?.startsWith("git-") && path && this.onGitAction) {
-          // Git actions: git-stage, git-unstage, git-discard, git-history, git-diff
-          this.onGitAction(action, path);
-        }
+        this.handleActionButton(actionBtn, e);
         return;
       }
 
@@ -65,19 +64,17 @@ export class EventHandlers {
         e.preventDefault();
         const folderItem = chevron.closest("[data-path]");
         if (folderItem) {
-          const path = folderItem.getAttribute("data-path")!;
-          this.onToggleFolder(path);
+          this.onToggleFolder(folderItem.getAttribute("data-path")!);
         }
         return;
       }
 
-      // File selection
+      // File selection — single click = select only
       const fileItem = target.closest(".wft-file[data-path]");
       if (fileItem && !fileItem.classList.contains("disabled")) {
         e.preventDefault();
         const path = fileItem.getAttribute("data-path")!;
-        this.onSelectFile(path, e);
-        container.focus(); // Focus container for keyboard shortcuts
+        this.handleFileClick(path, fileItem as HTMLElement, container);
         return;
       }
 
@@ -85,7 +82,8 @@ export class EventHandlers {
       const rootItem = target.closest('.wft-root[data-path=""]');
       if (rootItem) {
         e.preventDefault();
-        this.onSelectFile("", e); // Empty path = root
+        this.cancelPendingRename();
+        this.onSelectFile("", e);
         container.focus();
         return;
       }
@@ -93,52 +91,111 @@ export class EventHandlers {
       // Folder selection (click anywhere on folder row)
       const folderItem = target.closest(".wft-folder[data-path]");
       if (folderItem && !folderItem.classList.contains("disabled")) {
-        // Exclude clicks on action buttons
         const clickedOnAction = target.closest(".wft-action-btn");
-
         if (!clickedOnAction) {
           e.preventDefault();
           const path = folderItem.getAttribute("data-path")!;
-
-          // Always select the folder first
+          this.cancelPendingRename();
           this.onSelectFile(path, e);
-
-          // For normal clicks (no modifier), also toggle expand/collapse
           if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
             this.onToggleFolder(path);
           }
-          container.focus(); // Focus container for keyboard shortcuts
+          container.focus();
         }
         return;
       }
 
-      // Click on empty space (tree area but not on any item) - select root
+      // Click on empty space — select root
       const treeArea = target.closest(".wft-tree");
       if (treeArea) {
-        // Clicked on tree but not on any item - select project root
         e.preventDefault();
+        this.cancelPendingRename();
         this.stateManager.clearSelection();
-        this.onSelectFile("", e); // Empty path = root
-        // Focus the container for keyboard shortcuts
+        this.onSelectFile("", e);
         container.focus();
       }
     });
 
-    // Double-click to rename
+    // Double-click → open file in viewer/editor
     treeEl.addEventListener("dblclick", (e) => {
+      this.cancelPendingRename();
       const target = e.target as HTMLElement;
-      const item = target.closest("[data-path]");
-      if (item) {
+      const fileItem = target.closest(".wft-file[data-path]");
+      if (fileItem) {
         e.preventDefault();
-        const path = item.getAttribute("data-path")!;
-        this.onRename(path, item as HTMLElement);
+        const path = fileItem.getAttribute("data-path")!;
+        this.onOpenFile(path);
+      }
+    });
+
+    // Triple-click → run (for executable files)
+    treeEl.addEventListener("click", (evt) => {
+      const e = evt as MouseEvent;
+      if (e.detail === 3) {
+        this.cancelPendingRename();
+        const target = e.target as HTMLElement;
+        const fileItem = target.closest(".wft-file[data-path]");
+        if (fileItem) {
+          const path = fileItem.getAttribute("data-path")!;
+          const ext = path.substring(path.lastIndexOf("."));
+          if (RUNNABLE_EXTS.includes(ext)) {
+            e.preventDefault();
+            this.onRunFile(path);
+          }
+        }
       }
     });
 
     // Context menu
     treeEl.addEventListener("contextmenu", (e) => {
       e.preventDefault();
-      // Context menu can be implemented here
     });
+  }
+
+  /** Handle single click on a file: select, or rename if already selected */
+  private handleFileClick(
+    path: string,
+    el: HTMLElement,
+    container: HTMLElement,
+  ): void {
+    this.cancelPendingRename();
+
+    const wasAlreadySelected = this.lastSelectedPath === path;
+
+    // Always select first
+    this.onSelectFile(path);
+    this.lastSelectedPath = path;
+    container.focus();
+
+    // If clicking an already-selected file, start rename after delay
+    // (cancelled if dblclick fires within RENAME_DELAY_MS)
+    if (wasAlreadySelected) {
+      this.renameTimer = window.setTimeout(() => {
+        this.renameTimer = null;
+        this.onRename(path, el);
+      }, RENAME_DELAY_MS);
+    }
+  }
+
+  private handleActionButton(actionBtn: HTMLElement, e: MouseEvent): void {
+    e.preventDefault();
+    e.stopPropagation();
+    const action = actionBtn.getAttribute("data-action");
+    const path = actionBtn.getAttribute("data-path");
+
+    if (action === "delete" && path && this.onDelete) {
+      this.onDelete(path);
+    } else if (action === "new-file" && path && this.onNewFile) {
+      this.onNewFile(path);
+    } else if (action === "new-folder" && path && this.onNewFolder) {
+      this.onNewFolder(path);
+    } else if (action === "rename" && path) {
+      const item = actionBtn.closest("[data-path]") as HTMLElement;
+      if (item) this.onRename(path, item);
+    } else if (action === "copy" && path && this.onCopy) {
+      this.onCopy(path);
+    } else if (action?.startsWith("git-") && path && this.onGitAction) {
+      this.onGitAction(action, path);
+    }
   }
 }

@@ -58,7 +58,16 @@ export function registerZoomZone(zone: ZoomZone): void {
     activeZone = zone;
   });
   zone.el.addEventListener("mouseleave", () => {
-    if (activeZone === zone) activeZone = null;
+    if (activeZone !== zone) return;
+    // Fall back to the most-specific ancestor zone (fixes nested zone nesting)
+    activeZone = null;
+    for (const z of zones) {
+      if (z !== zone && z.el.contains(zone.el)) {
+        if (!activeZone || activeZone.el.contains(z.el)) {
+          activeZone = z;
+        }
+      }
+    }
   });
 }
 

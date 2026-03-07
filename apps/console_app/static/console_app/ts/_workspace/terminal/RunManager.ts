@@ -15,34 +15,18 @@ export class RunManager {
   async runFile(
     filePath: string,
     terminal: PTYTerminal,
-    saveCallback: () => Promise<void>
+    saveCallback: () => Promise<void>,
   ): Promise<void> {
     if (!filePath) {
       console.warn("[RunManager] No file to run");
       return;
     }
 
-    const ext = filePath.substring(filePath.lastIndexOf("."));
-
-    switch (ext) {
-      case ".py":
-        await saveCallback();
-        terminal.executeCommand(`python ${filePath}`);
-        console.log(`[RunManager] Running: python ${filePath}`);
-        break;
-      case ".sh":
-        await saveCallback();
-        terminal.executeCommand(`bash ${filePath}`);
-        console.log(`[RunManager] Running: bash ${filePath}`);
-        break;
-      case ".js":
-        await saveCallback();
-        terminal.executeCommand(`node ${filePath}`);
-        console.log(`[RunManager] Running: node ${filePath}`);
-        break;
-      default:
-        alert(`Cannot run ${ext} files. Only Python (.py), Shell (.sh), and JavaScript (.js) are supported.`);
-    }
+    await saveCallback();
+    // Send the file path to the terminal — let the shell handle execution
+    const cmd = filePath.startsWith("/") ? filePath : `./${filePath}`;
+    terminal.executeCommand(cmd);
+    console.log(`[RunManager] Running: ${cmd}`);
   }
 
   /**
@@ -51,7 +35,7 @@ export class RunManager {
    */
   async runScratchBuffer(
     content: string,
-    terminal: PTYTerminal
+    terminal: PTYTerminal,
   ): Promise<void> {
     if (!this.config.currentProject) {
       alert("No project selected");
@@ -100,7 +84,10 @@ export class RunManager {
         console.log("[RunManager] Running scratch buffer as", tempFileName);
       } else {
         console.error("[RunManager] Failed to save scratch:", data);
-        alert("Failed to save scratch buffer: " + (data.error || data.message || "Unknown error"));
+        alert(
+          "Failed to save scratch buffer: " +
+            (data.error || data.message || "Unknown error"),
+        );
       }
     } catch (err) {
       console.error("[RunManager] Error saving scratch buffer:", err);

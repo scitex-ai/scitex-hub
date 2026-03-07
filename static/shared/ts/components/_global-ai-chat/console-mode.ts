@@ -378,7 +378,7 @@ export class AIPanelConsoleMode {
 
   // --- Active tab accessors ---
 
-  private getActiveWs(): WebSocket | null {
+  getActiveWs(): WebSocket | null {
     if (!this.activeTabId) return null;
     return this.instances.get(this.activeTabId)?.ws ?? null;
   }

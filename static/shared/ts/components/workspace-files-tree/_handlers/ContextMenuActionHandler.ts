@@ -187,6 +187,13 @@ export class ContextMenuActionHandler {
         await this.gitActions.pull();
         break;
 
+      case "run-file":
+        // Dispatch run-file event so the workspace terminal picks it up
+        document.dispatchEvent(
+          new CustomEvent("run-file", { detail: { path } }),
+        );
+        break;
+
       case "clew":
         // Dispatch fileSelected so the Clew pane picks it up
         document.dispatchEvent(

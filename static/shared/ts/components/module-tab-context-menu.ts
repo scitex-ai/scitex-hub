@@ -239,14 +239,6 @@ async function submitDevApp(moduleName: string): Promise<void> {
   const owner = parts[1];
   const repo = parts.slice(2).join("__");
 
-  if (
-    !confirm(
-      `Submit "${owner}/${repo}" to the App Store?\n\nThis will run validation and open a review PR.`,
-    )
-  ) {
-    return;
-  }
-
   try {
     const data = await apiPost(`${APPS_API}/dev/${owner}/${repo}/submit/`);
     if (data.success) {

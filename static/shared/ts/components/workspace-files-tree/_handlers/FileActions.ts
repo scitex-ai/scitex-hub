@@ -3,8 +3,8 @@
  * Handles file/folder operations (toggle, select, rename, etc.)
  */
 
-import type { TreeItem, TreeConfig } from '../types';
-import type { TreeStateManager } from '../_TreeState';
+import type { TreeItem, TreeConfig } from "../types";
+import type { TreeStateManager } from "../_TreeState";
 
 export class FileActions {
   constructor(
@@ -14,7 +14,7 @@ export class FileActions {
     private getCsrfToken: () => string,
     private rerender: () => void,
     private emitEvent: (type: string, detail: any) => void,
-    private refreshTree?: () => Promise<void>
+    private refreshTree?: () => Promise<void>,
   ) {}
 
   toggleFolder(path: string): void {
@@ -27,9 +27,21 @@ export class FileActions {
     }
   }
 
+  /** Select (highlight) without opening */
   selectFile(path: string): void {
     this.stateManager.setSelected(path);
-    this.emitEvent('file-select', { path });
+    this.emitEvent("file-select", { path });
+  }
+
+  /** Open file in viewer/editor (double-click) */
+  openFile(path: string): void {
+    this.stateManager.setSelected(path);
+    this.emitEvent("file-open", { path });
+  }
+
+  /** Run file in terminal (triple-click) */
+  runFile(path: string): void {
+    document.dispatchEvent(new CustomEvent("run-file", { detail: { path } }));
   }
 
   findItem(path: string): TreeItem | null {
@@ -46,36 +58,47 @@ export class FileActions {
     return search(this.getTreeData());
   }
 
-  async startRename(path: string, itemEl: HTMLElement): Promise<{ newPath: string } | null> {
+  async startRename(
+    path: string,
+    itemEl: HTMLElement,
+  ): Promise<{ newPath: string } | null> {
     const item = this.findItem(path);
     if (!item) {
-      console.error('[FileActions] startRename: item not found for path:', path);
+      console.error(
+        "[FileActions] startRename: item not found for path:",
+        path,
+      );
       return null;
     }
 
     // Find the name element within the item
-    const nameEl = itemEl.querySelector('.wft-name, .wft-file-name, .wft-folder-name') as HTMLElement;
+    const nameEl = itemEl.querySelector(
+      ".wft-name, .wft-file-name, .wft-folder-name",
+    ) as HTMLElement;
     if (!nameEl) {
-      console.error('[FileActions] startRename: name element not found in:', itemEl);
+      console.error(
+        "[FileActions] startRename: name element not found in:",
+        itemEl,
+      );
       return null;
     }
 
     const originalName = item.name;
-    const isDirectory = item.type === 'directory';
+    const isDirectory = item.type === "directory";
 
     // Create input to replace the name text only (keep icon as is)
-    const input = document.createElement('input');
-    input.type = 'text';
+    const input = document.createElement("input");
+    input.type = "text";
     input.value = originalName;
-    input.className = 'wft-inline-input';
+    input.className = "wft-inline-input";
 
     // Replace name element with input
     nameEl.replaceWith(input);
 
     input.focus();
     // Select filename without extension for files
-    if (!isDirectory && originalName.includes('.')) {
-      const extIndex = originalName.lastIndexOf('.');
+    if (!isDirectory && originalName.includes(".")) {
+      const extIndex = originalName.lastIndexOf(".");
       input.setSelectionRange(0, extIndex);
     } else {
       input.select();
@@ -104,15 +127,15 @@ export class FileActions {
         }
       };
 
-      input.addEventListener('blur', () => {
+      input.addEventListener("blur", () => {
         // Small delay to allow click events to fire first
         setTimeout(() => finishRename(true), 100);
       });
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
           e.preventDefault();
           finishRename(true);
-        } else if (e.key === 'Escape') {
+        } else if (e.key === "Escape") {
           e.preventDefault();
           finishRename(false);
         }
@@ -120,20 +143,26 @@ export class FileActions {
     });
   }
 
-  private async performRename(oldPath: string, newName: string): Promise<string | null> {
+  private async performRename(
+    oldPath: string,
+    newName: string,
+  ): Promise<string | null> {
     try {
-      const response = await fetch(`/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/rename/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': this.getCsrfToken(),
+      const response = await fetch(
+        `/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/rename/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": this.getCsrfToken(),
+          },
+          body: JSON.stringify({ old_path: oldPath, new_name: newName }),
         },
-        body: JSON.stringify({ old_path: oldPath, new_name: newName }),
-      });
+      );
 
       const data = await response.json();
       if (data.success) {
-        this.emitEvent('file-rename', { oldPath, newPath: data.new_path });
+        this.emitEvent("file-rename", { oldPath, newPath: data.new_path });
         // Trigger full tree reload to reflect changes from server
         if (this.refreshTree) {
           await this.refreshTree();
@@ -142,11 +171,11 @@ export class FileActions {
         }
         return data.new_path;
       } else {
-        console.error('[FileActions] Rename failed:', data.error);
+        console.error("[FileActions] Rename failed:", data.error);
         return null;
       }
     } catch (error) {
-      console.error('[FileActions] Error renaming file:', error);
+      console.error("[FileActions] Error renaming file:", error);
       return null;
     }
   }
@@ -154,19 +183,22 @@ export class FileActions {
   async deleteFile(path: string): Promise<void> {
     // No confirmation - delete directly (files can be recovered via git)
     try {
-      const response = await fetch(`/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/delete/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': this.getCsrfToken(),
+      const response = await fetch(
+        `/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/delete/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": this.getCsrfToken(),
+          },
+          body: JSON.stringify({ path }),
         },
-        body: JSON.stringify({ path }),
-      });
+      );
 
       const data = await response.json();
       if (data.success) {
-        console.log('[FileActions] File deleted:', path);
-        this.emitEvent('file-delete', { path });
+        console.log("[FileActions] File deleted:", path);
+        this.emitEvent("file-delete", { path });
         // Trigger full tree reload to reflect changes from server
         if (this.refreshTree) {
           await this.refreshTree();
@@ -174,12 +206,12 @@ export class FileActions {
           this.rerender();
         }
       } else {
-        console.error('[FileActions] Delete failed:', data.error);
+        console.error("[FileActions] Delete failed:", data.error);
         alert(`Failed to delete file: ${data.error}`);
       }
     } catch (error) {
-      console.error('[FileActions] Error deleting file:', error);
-      alert('Error deleting file. Please try again.');
+      console.error("[FileActions] Error deleting file:", error);
+      alert("Error deleting file. Please try again.");
     }
   }
 
@@ -192,63 +224,82 @@ export class FileActions {
 
     // Wait for DOM update then insert inline input
     requestAnimationFrame(() => {
-      this.insertInlineInput(folderPath, 'file');
+      this.insertInlineInput(folderPath, "file");
     });
   }
 
-  private insertInlineInput(folderPath: string, type: 'file' | 'directory'): void {
+  private insertInlineInput(
+    folderPath: string,
+    type: "file" | "directory",
+  ): void {
     // Handle root (empty path) - insert after root item in .wft-tree
-    if (folderPath === '') {
-      const treeEl = document.querySelector('.wft-tree');
-      const rootItem = treeEl?.querySelector('.wft-root');
+    if (folderPath === "") {
+      const treeEl = document.querySelector(".wft-tree");
+      const rootItem = treeEl?.querySelector(".wft-root");
       if (treeEl && rootItem) {
-        this.createInlineInputElementForRoot(treeEl as HTMLElement, rootItem as HTMLElement, type);
+        this.createInlineInputElementForRoot(
+          treeEl as HTMLElement,
+          rootItem as HTMLElement,
+          type,
+        );
       }
       return;
     }
 
     // Find the folder's children container
-    const folderEl = document.querySelector(`.wft-folder[data-path="${folderPath}"]`);
+    const folderEl = document.querySelector(
+      `.wft-folder[data-path="${folderPath}"]`,
+    );
     if (!folderEl) return;
 
     const childrenContainer = folderEl.nextElementSibling as HTMLElement;
-    if (!childrenContainer || !childrenContainer.classList.contains('wft-children')) {
+    if (
+      !childrenContainer ||
+      !childrenContainer.classList.contains("wft-children")
+    ) {
       // Folder has no children container, create one
-      const newContainer = document.createElement('div');
-      newContainer.className = 'wft-children expanded';
+      const newContainer = document.createElement("div");
+      newContainer.className = "wft-children expanded";
       folderEl.after(newContainer);
       this.createInlineInputElement(newContainer, folderPath, type);
       return;
     }
 
     // Make sure children container is visible
-    childrenContainer.style.display = '';
-    childrenContainer.classList.add('expanded');
+    childrenContainer.style.display = "";
+    childrenContainer.classList.add("expanded");
 
     this.createInlineInputElement(childrenContainer, folderPath, type);
   }
 
   /** Create inline input for root level (after root item) */
-  private createInlineInputElementForRoot(treeEl: HTMLElement, rootItem: HTMLElement, type: 'file' | 'directory'): void {
+  private createInlineInputElementForRoot(
+    treeEl: HTMLElement,
+    rootItem: HTMLElement,
+    type: "file" | "directory",
+  ): void {
     // Create inline input row
-    const inputRow = document.createElement('div');
+    const inputRow = document.createElement("div");
     inputRow.className = `wft-item wft-${type} wft-inline-create`;
-    inputRow.style.paddingLeft = '8px';
+    inputRow.style.paddingLeft = "8px";
 
-    const icon = type === 'file'
-      ? '<i class="fas fa-file" style="color: var(--color-fg-muted);"></i>'
-      : '<i class="fas fa-folder" style="color: var(--workspace-icon-primary);"></i>';
+    const icon =
+      type === "file"
+        ? '<i class="fas fa-file" style="color: var(--color-fg-muted);"></i>'
+        : '<i class="fas fa-folder" style="color: var(--workspace-icon-primary);"></i>';
 
     inputRow.innerHTML = `
       <span class="wft-spacer"></span>
       <span class="wft-icon">${icon}</span>
-      <input type="text" class="wft-inline-input" placeholder="${type === 'file' ? 'filename.ext' : 'folder name'}" />
+      <input type="text" class="wft-inline-input" placeholder="${type === "file" ? "filename.ext" : "folder name"}" />
     `;
 
     // Insert after root item
     rootItem.after(inputRow);
 
-    const input = inputRow.querySelector('.wft-inline-input') as HTMLInputElement;
+    const input = inputRow.querySelector(
+      ".wft-inline-input",
+    ) as HTMLInputElement;
     if (!input) return;
 
     input.focus();
@@ -268,48 +319,55 @@ export class FileActions {
         return;
       }
 
-      await this.performCreate('', name, type);  // Empty path = root
+      await this.performCreate("", name, type); // Empty path = root
       cleanup();
     };
 
-    input.addEventListener('blur', () => {
+    input.addEventListener("blur", () => {
       setTimeout(() => submit(), 100);
     });
 
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
         e.preventDefault();
         input.blur();
-      } else if (e.key === 'Escape') {
+      } else if (e.key === "Escape") {
         e.preventDefault();
         cleanup();
       }
     });
   }
 
-  private createInlineInputElement(container: HTMLElement, folderPath: string, type: 'file' | 'directory'): void {
+  private createInlineInputElement(
+    container: HTMLElement,
+    folderPath: string,
+    type: "file" | "directory",
+  ): void {
     // Create inline input row - match sibling indentation
-    const inputRow = document.createElement('div');
+    const inputRow = document.createElement("div");
     inputRow.className = `wft-item wft-${type} wft-inline-create`;
 
     // Match sibling padding - wft-children already provides the indentation via margin-left
     // so we just need the standard item padding
-    inputRow.style.paddingLeft = '8px';
+    inputRow.style.paddingLeft = "8px";
 
-    const icon = type === 'file'
-      ? '<i class="fas fa-file" style="color: var(--color-fg-muted);"></i>'
-      : '<i class="fas fa-folder" style="color: var(--workspace-icon-primary);"></i>';
+    const icon =
+      type === "file"
+        ? '<i class="fas fa-file" style="color: var(--color-fg-muted);"></i>'
+        : '<i class="fas fa-folder" style="color: var(--workspace-icon-primary);"></i>';
 
     inputRow.innerHTML = `
       <span class="wft-spacer"></span>
       <span class="wft-icon">${icon}</span>
-      <input type="text" class="wft-inline-input" placeholder="${type === 'file' ? 'filename.ext' : 'folder name'}" />
+      <input type="text" class="wft-inline-input" placeholder="${type === "file" ? "filename.ext" : "folder name"}" />
     `;
 
     // Insert at the beginning of children
     container.insertBefore(inputRow, container.firstChild);
 
-    const input = inputRow.querySelector('.wft-inline-input') as HTMLInputElement;
+    const input = inputRow.querySelector(
+      ".wft-inline-input",
+    ) as HTMLInputElement;
     if (!input) return;
 
     input.focus();
@@ -333,23 +391,27 @@ export class FileActions {
       cleanup();
     };
 
-    input.addEventListener('blur', () => {
+    input.addEventListener("blur", () => {
       // Small delay to allow click events to fire first
       setTimeout(() => submit(), 100);
     });
 
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
         e.preventDefault();
         input.blur();
-      } else if (e.key === 'Escape') {
+      } else if (e.key === "Escape") {
         e.preventDefault();
         cleanup();
       }
     });
   }
 
-  private async performCreate(folderPath: string, name: string, type: 'file' | 'directory'): Promise<void> {
+  private async performCreate(
+    folderPath: string,
+    name: string,
+    type: "file" | "directory",
+  ): Promise<void> {
     const url = `/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/create/`;
     const csrfToken = this.getCsrfToken();
 
@@ -361,22 +423,32 @@ export class FileActions {
     while (attempt < maxAttempts) {
       const newPath = folderPath ? `${folderPath}/${finalName}` : finalName;
 
-      console.log(`[FileActions] Creating ${type} at:`, newPath, attempt > 0 ? `(attempt ${attempt + 1})` : '');
+      console.log(
+        `[FileActions] Creating ${type} at:`,
+        newPath,
+        attempt > 0 ? `(attempt ${attempt + 1})` : "",
+      );
 
       try {
         const response = await fetch(url, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken,
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
           },
-          body: JSON.stringify({ path: newPath, type: type === 'file' ? 'file' : 'directory' }),
+          body: JSON.stringify({
+            path: newPath,
+            type: type === "file" ? "file" : "directory",
+          }),
         });
 
         const data = await response.json();
         if (data.success) {
           console.log(`[FileActions] ${type} created:`, newPath);
-          this.emitEvent(type === 'file' ? 'file-create' : 'folder-create', { path: newPath, type });
+          this.emitEvent(type === "file" ? "file-create" : "folder-create", {
+            path: newPath,
+            type,
+          });
           this.stateManager.expand(folderPath);
           // Trigger full tree reload to reflect changes from server
           if (this.refreshTree) {
@@ -385,7 +457,7 @@ export class FileActions {
             this.rerender();
           }
           return;
-        } else if (data.error && data.error.includes('already exists')) {
+        } else if (data.error && data.error.includes("already exists")) {
           // File exists, try with suffix
           attempt++;
           finalName = this.getNameWithSuffix(name, attempt);
@@ -408,7 +480,7 @@ export class FileActions {
   private getNameWithSuffix(name: string, suffix: number): string {
     // For files: test.txt -> test (1).txt, test (2).txt, etc.
     // For folders/no extension: folder -> folder (1), folder (2), etc.
-    const dotIndex = name.lastIndexOf('.');
+    const dotIndex = name.lastIndexOf(".");
     if (dotIndex > 0) {
       const baseName = name.substring(0, dotIndex);
       const ext = name.substring(dotIndex);
@@ -426,49 +498,56 @@ export class FileActions {
 
     // Wait for DOM update then insert inline input
     requestAnimationFrame(() => {
-      this.insertInlineInput(folderPath, 'directory');
+      this.insertInlineInput(folderPath, "directory");
     });
   }
 
-  async copyFile(path: string): Promise<{ sourcePath: string; destPath: string } | null> {
+  async copyFile(
+    path: string,
+  ): Promise<{ sourcePath: string; destPath: string } | null> {
     const item = this.findItem(path);
     if (!item) return null;
 
     // Generate copy name: file.txt -> file_copy.txt or folder -> folder_copy
-    const parts = item.name.split('.');
+    const parts = item.name.split(".");
     let copyName: string;
-    if (parts.length > 1 && item.type === 'file') {
+    if (parts.length > 1 && item.type === "file") {
       const ext = parts.pop();
-      copyName = `${parts.join('.')}_copy.${ext}`;
+      copyName = `${parts.join(".")}_copy.${ext}`;
     } else {
       copyName = `${item.name}_copy`;
     }
 
-    const newName = prompt('Enter name for copy:', copyName);
+    const newName = prompt("Enter name for copy:", copyName);
     if (!newName || !newName.trim()) {
       return null;
     }
 
     // Get parent directory
-    const pathParts = path.split('/');
+    const pathParts = path.split("/");
     pathParts.pop();
-    const parentPath = pathParts.join('/');
-    const newPath = parentPath ? `${parentPath}/${newName.trim()}` : newName.trim();
+    const parentPath = pathParts.join("/");
+    const newPath = parentPath
+      ? `${parentPath}/${newName.trim()}`
+      : newName.trim();
 
     try {
-      const response = await fetch(`/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/copy/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': this.getCsrfToken(),
+      const response = await fetch(
+        `/${this.config.ownerUsername}/${this.config.projectSlug}/api/files/copy/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": this.getCsrfToken(),
+          },
+          body: JSON.stringify({ source_path: path, dest_path: newPath }),
         },
-        body: JSON.stringify({ source_path: path, dest_path: newPath }),
-      });
+      );
 
       const data = await response.json();
       if (data.success) {
-        console.log('[FileActions] File copied:', path, '->', newPath);
-        this.emitEvent('file-copy', { sourcePath: path, destPath: newPath });
+        console.log("[FileActions] File copied:", path, "->", newPath);
+        this.emitEvent("file-copy", { sourcePath: path, destPath: newPath });
         // Trigger full tree reload to reflect changes from server
         if (this.refreshTree) {
           await this.refreshTree();
@@ -477,13 +556,13 @@ export class FileActions {
         }
         return { sourcePath: path, destPath: newPath };
       } else {
-        console.error('[FileActions] Copy failed:', data.error);
+        console.error("[FileActions] Copy failed:", data.error);
         alert(`Failed to copy: ${data.error}`);
         return null;
       }
     } catch (error) {
-      console.error('[FileActions] Error copying file:', error);
-      alert('Error copying file. Please try again.');
+      console.error("[FileActions] Error copying file:", error);
+      alert("Error copying file. Please try again.");
       return null;
     }
   }
