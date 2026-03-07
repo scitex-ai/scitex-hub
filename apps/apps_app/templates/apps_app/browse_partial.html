@@ -43,84 +43,15 @@
             </select>
         </div>
     </div>
-    <!-- Dev Apps section (personal dev installs) -->
-    {% if dev_apps %}
+    <!-- Dev Apps section (uses same card template as public apps) -->
+    {% if dev_modules %}
         <div class="apps-dev-section">
             <h3 class="apps-dev-heading">
                 <i class="fas fa-code-branch"></i> My Dev Apps
             </h3>
             <div class="apps-grid apps-dev-grid">
-                {% for dev in dev_apps %}
-                    <article class="ap-card ap-card-dev">
-                        <a href="/{{ dev.source_owner }}/{{ dev.source_repo }}/"
-                           class="ap-card-link"
-                           aria-label="View {{ dev.label|default:dev.source_repo }}">
-                            <div class="ap-card-icon">
-                                <i class="{{ dev.icon }}" aria-hidden="true"></i>
-                            </div>
-                            <div class="ap-card-info">
-                                <div class="ap-card-title-row">
-                                    <h3 class="ap-card-title">{{ dev.label|default:dev.source_repo }}</h3>
-                                    <div class="ap-card-badges">
-                                        <span class="ap-badge ap-badge-dev">DEV</span>
-                                    </div>
-                                </div>
-                                <p class="ap-card-description">{{ dev.description|default:"A SciTeX Cloud app." }}</p>
-                            </div>
-                        </a>
-                        <div class="ap-card-meta">
-                            <a href="/{{ dev.source_owner }}/"
-                               class="ap-card-owner"
-                               title="{{ dev.source_owner }}">
-                                <span class="ap-owner-avatar ap-owner-avatar--letter">{{ dev.source_owner|first|upper }}</span>
-                                {{ dev.source_owner }}
-                            </a>
-                        </div>
-                        <div class="ap-card-stats">
-                            <span class="ap-stat" title="Stars">
-                                <i class="fas fa-star" aria-hidden="true"></i> 0
-                            </span>
-                            <span class="ap-stat" title="Installs">
-                                <i class="fas fa-download" aria-hidden="true"></i> 0
-                            </span>
-                        </div>
-                        <div class="ap-card-links">
-                            <a href="/{{ dev.source_owner }}/{{ dev.source_repo }}/"
-                               class="ap-btn-hub"
-                               title="View in owner's Hub"
-                               onclick="event.stopPropagation();">
-                                <i class="fas fa-user" aria-hidden="true"></i> Owner Hub
-                            </a>
-                        </div>
-                        <div class="ap-card-actions">
-                            <span class="ap-btn-star-placeholder"></span>
-                            {% if dev.is_enabled %}
-                                <div class="ap-status-dropdown"
-                                     data-dev-owner="{{ dev.source_owner }}"
-                                     data-dev-repo="{{ dev.source_repo }}">
-                                    <button type="button" class="ap-badge-installed ap-status-trigger" data-enabled="true">
-                                        <i class="fas fa-check" aria-hidden="true"></i> Installed <i class="fas fa-caret-down ap-caret" aria-hidden="true"></i>
-                                    </button>
-                                    <div class="ap-status-menu">
-                                        <button type="button"
-                                                class="ap-status-item ap-status-item--danger dev-uninstall-btn"
-                                                data-action="dev-uninstall"
-                                                data-owner="{{ dev.source_owner }}"
-                                                data-repo="{{ dev.source_repo }}">
-                                            <i class="fas fa-trash" aria-hidden="true"></i> Uninstall
-                                        </button>
-                                    </div>
-                                </div>
-                            {% else %}
-                                <button class="ap-btn-install dev-reinstall-btn"
-                                        data-owner="{{ dev.source_owner }}"
-                                        data-repo="{{ dev.source_repo }}"
-                                        aria-label="Install {{ dev.label|default:dev.source_repo }}">
-                                    <i class="fas fa-download" aria-hidden="true"></i> Install
-                                </button>
-                            {% endif %}
-                        </div>
-                    </article>
+                {% for mod_item in dev_modules %}
+                    {% include "apps_app/partials/module_card.html" %}
                 {% endfor %}
             </div>
         </div>

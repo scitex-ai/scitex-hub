@@ -18,24 +18,3 @@
 .ap-card-dev {
   border-left: 3px solid #b87fff;
 }
-
-/* DEV badge in title row */
-.ap-badge-dev {
-  display: inline-flex;
-  align-items: center;
-  padding: 1px 6px;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: #b87fff;
-  background: rgba(184, 127, 255, 0.12);
-  border: 1px solid rgba(184, 127, 255, 0.3);
-  text-transform: uppercase;
-}
-
-/* Star placeholder — keeps actions aligned with public cards */
-.ap-btn-star-placeholder {
-  display: inline-block;
-  width: 26px;
-  flex-shrink: 0;
-}

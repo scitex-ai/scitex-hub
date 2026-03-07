@@ -7,7 +7,7 @@
 .apps-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0.25rem 1rem 1rem;
+  padding: 0.75rem 1rem 1rem;
 }
 
 /* ─── Registry Org Banner ──────────────────────────────────────── */
@@ -16,7 +16,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.6rem 1rem;
-  margin-bottom: 0.5rem;
+  margin: 0.75rem 0 1rem;
   background: linear-gradient(
     135deg,
     rgba(56, 139, 253, 0.08) 0%,
@@ -73,7 +73,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  margin-bottom: 0.35rem;
+  margin-bottom: 1rem;
 }
 
 /* Category tab row */
@@ -198,7 +198,7 @@
 .apps-dev-heading {
   font-size: 0.85rem;
   color: var(--text-muted);
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.5rem;
 }
 
 .apps-section-heading i,
@@ -208,7 +208,7 @@
 
 /* ─── Dev Section ──────────────────────────────────────────────── */
 .apps-dev-section {
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .apps-dev-grid {
