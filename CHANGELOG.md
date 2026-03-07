@@ -5,6 +5,16 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.7] - 2026-03-07
+
+### Added
+- **Writer/Scholar init instruction**: App projects without `scitex/writer` or `scitex/scholar` now show an "Initialize" card instead of auto-creating the workspace
+- **Linter false-positive guidance**: STX-S001/S002 suggestions now explain `library_dirs` and `SCITEX_LINTER_LIBRARY_DIRS` for library code outside standard dirs
+
+### Fixed
+- **Dev cache busting**: HTML responses now include `Cache-Control: no-cache` in development, eliminating the need for Ctrl+Shift+R after template changes
+- **Linter config/ recognition**: Added `config` to default `library_dirs` so Django config files aren't flagged as scripts
+
 ## [0.12.6-alpha] - 2026-03-07
 
 ### Changed

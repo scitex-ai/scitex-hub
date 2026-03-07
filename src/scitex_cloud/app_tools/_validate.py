@@ -91,9 +91,9 @@ def validate_security(app_dir: str | Path) -> list[str]:
     errors = []
     root = Path(app_dir)
 
+    excluded_dirs = {"__pycache__", ".git", "scitex", "node_modules", ".venv", "venv"}
     for py_file in root.rglob("*.py"):
-        # Skip __pycache__ and .git
-        if "__pycache__" in str(py_file) or ".git" in str(py_file):
+        if excluded_dirs & set(py_file.relative_to(root).parts):
             continue
         try:
             content = py_file.read_text(encoding="utf-8", errors="replace")

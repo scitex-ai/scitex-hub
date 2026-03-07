@@ -94,12 +94,37 @@ def scholar_unified(request):
     user_projects = []
     current_project = None
     recent_jobs = []
+    needs_scholar_init = False
 
     if request.user.is_authenticated:
         user_projects = Project.objects.filter(owner=request.user).order_by(
             "-created_at"
         )
         current_project = get_current_project(request, user=request.user)
+
+        # Ensure scholar workspace exists on first access
+        if current_project:
+            try:
+                from apps.project_app.services.project_filesystem import (
+                    get_project_filesystem_manager,
+                )
+
+                mgr = get_project_filesystem_manager(request.user)
+                project_root = mgr.get_project_root_path(current_project)
+                if project_root and not (project_root / "scitex" / "scholar").exists():
+                    # App projects: show init instruction instead of auto-creating
+                    if getattr(current_project, "is_app", False):
+                        needs_scholar_init = True
+                    else:
+                        from scitex.scholar import ensure_workspace
+
+                        ensure_workspace(str(project_root))
+                        logger.info(
+                            f"Auto-initialized scholar workspace for: {current_project.slug}"
+                        )
+            except Exception as e:
+                logger.warning(f"Failed to auto-initialize scholar: {e}")
+
         # Get user's recent enrichment jobs
         recent_jobs = (
             BibTeXEnrichmentJob.objects.filter(user=request.user)
@@ -139,6 +164,7 @@ def scholar_unified(request):
         "recent_jobs": recent_jobs,
         "filter_ranges": filter_ranges,
         "library_count": library_count,
+        "needs_scholar_init": needs_scholar_init,
     }
 
     return render(request, "scholar_app/scholar_unified.html", context)

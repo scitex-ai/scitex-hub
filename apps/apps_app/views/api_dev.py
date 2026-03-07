@@ -163,6 +163,130 @@ def api_dev_app_url(request):
     )
 
 
+@login_required
+@require_POST
+def api_submit_dev_app(request, owner, repo):
+    """Submit a dev app to the App Store via registry PR.
+
+    POST /apps/api/dev/<owner>/<repo>/submit/
+    Validates the app, creates an AppsModule record, opens a PR on scitex/apps.
+    """
+    import subprocess
+
+    from apps.project_app.models import Project
+
+    from ..models import AppsModule, ModuleSubmission
+    from .api_registry import _open_registry_pr
+
+    # 1. Verify user owns this dev installation
+    dev_install = DevInstallation.objects.filter(
+        user=request.user, source_owner=owner, source_repo=repo
+    ).first()
+    if not dev_install:
+        return JsonResponse(
+            {"success": False, "error": "Dev app not found"}, status=404
+        )
+
+    # 2. Resolve project directory
+    project_dir = resolve_dev_project_dir(owner, repo)
+    if not project_dir or not project_dir.exists():
+        return JsonResponse(
+            {"success": False, "error": "Project directory not found"}, status=404
+        )
+
+    # 3. Read and validate manifest
+    manifest = read_manifest(project_dir)
+    if not manifest:
+        return JsonResponse(
+            {"success": False, "error": "manifest.json not found or invalid"},
+            status=400,
+        )
+
+    # 4. Run validation
+    from scitex_cloud.app_tools import validate
+
+    errors = validate(str(project_dir))
+    if errors:
+        return JsonResponse(
+            {"success": False, "error": "Validation failed", "errors": errors},
+            status=400,
+        )
+
+    # 5. Look up Django Project record
+    project = Project.objects.filter(owner__username=owner, slug=repo).first()
+    if not project:
+        return JsonResponse(
+            {"success": False, "error": f"Project '{owner}/{repo}' not found"},
+            status=404,
+        )
+
+    # 6. Create or update AppsModule record
+    app_name = manifest.get("slug") or manifest.get("name") or repo.replace("-", "_")
+    module_name = (
+        app_name
+        if (app_name.endswith("_app") or app_name.endswith("-app"))
+        else f"{app_name}_app"
+    )
+
+    app_module, created = AppsModule.objects.update_or_create(
+        module_name=module_name,
+        defaults={
+            "author": request.user,
+            "short_description": manifest.get("description", ""),
+            "category": manifest.get("category", "other"),
+            "visibility": "private",
+            "project": project,
+            "repository_url": project.gitea_repo_url or "",
+        },
+    )
+
+    # 7. Get pinned commit
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=str(project_dir),
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        pinned_commit = result.stdout.strip() or "unknown"
+    except Exception:
+        pinned_commit = "unknown"
+
+    # 8. Open registry PR
+    try:
+        pr_url = _open_registry_pr(
+            app_module=app_module,
+            manifest=manifest,
+            version=manifest.get("version", "0.1.0"),
+            author_username=owner,
+            pinned_commit=pinned_commit,
+        )
+    except Exception as e:
+        logger.error("[api_dev] Failed to open registry PR: %s", e)
+        return JsonResponse(
+            {"success": False, "error": f"Failed to open registry PR: {e}"},
+            status=500,
+        )
+
+    # 9. Create submission record
+    ModuleSubmission.objects.create(
+        module=app_module,
+        submitted_by=request.user,
+        pr_url=pr_url,
+    )
+
+    logger.info(
+        "[api_dev] User %s submitted dev app %s/%s → PR: %s",
+        request.user.username,
+        owner,
+        repo,
+        pr_url,
+    )
+
+    return JsonResponse({"success": True, "pr_url": pr_url})
+
+
 def _can_access_repo(user, owner, repo) -> bool:
     """Check if user can access the repo via Gitea.
 

@@ -79,6 +79,9 @@ Hub inline user profile — returned by /hub/api/user-profile/?username=X
                             <h3>
                                 <a href="#" class="hub-explore-repo" data-project-id="{{ project.id }}">{{ project.name }}</a>
                             </h3>
+                            {% if project.is_app %}
+                                <span class="badge badge-app" title="SciTeX App"><i class="fas fa-puzzle-piece"></i> App</span>
+                            {% endif %}
                             <span class="badge badge-{{ project.visibility }}">{{ project.visibility }}</span>
                         </div>
                         <div class="project-card-body">

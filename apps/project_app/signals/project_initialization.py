@@ -117,7 +117,9 @@ def _clone_gitea_repo_to_data_dir(project):
             # _setup_project_venv(project, project_dir)
 
             # Initialize scitex structure (writer + scholar + integration)
-            _initialize_scitex_structure(project, project_dir)
+            # Skip for app projects — they don't need writer/scholar
+            if not project.is_app:
+                _initialize_scitex_structure(project, project_dir)
 
         else:
             logger.error(f"Failed to clone repo: {result.stderr}")

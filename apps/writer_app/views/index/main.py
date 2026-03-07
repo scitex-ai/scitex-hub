@@ -77,15 +77,19 @@ def build_writer_context(request, current_project=None):
             if project_root:
                 manuscript_dir = project_root / "scitex" / "writer" / "01_manuscript"
                 if not manuscript_dir.exists():
-                    try:
-                        from scitex.writer import ensure_workspace
+                    # App projects: show init instruction instead of auto-creating
+                    if getattr(current_project, "is_app", False):
+                        context["needs_writer_init"] = True
+                    else:
+                        try:
+                            from scitex.writer import ensure_workspace
 
-                        ensure_workspace(str(project_root))
-                        logger.info(
-                            f"Auto-initialized writer workspace for: {current_project.slug}"
-                        )
-                    except Exception as e:
-                        logger.warning(f"Failed to auto-initialize writer: {e}")
+                            ensure_workspace(str(project_root))
+                            logger.info(
+                                f"Auto-initialized writer workspace for: {current_project.slug}"
+                            )
+                        except Exception as e:
+                            logger.warning(f"Failed to auto-initialize writer: {e}")
 
         context["manuscript"] = manuscript
         context["manuscript_id"] = manuscript.id

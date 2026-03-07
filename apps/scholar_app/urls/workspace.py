@@ -21,6 +21,11 @@ urlpatterns = [
     path("api-keys/", api_key_views.api_key_management, name="api_keys"),
     path("api/test-api-key/", api_key_views.test_api_key, name="test_api_key"),
     path("api/usage-stats/", api_key_views.api_usage_stats, name="api_usage_stats"),
+    path(
+        "api/initialize/",
+        workspace_views.initialize_scholar_workspace,
+        name="initialize_scholar_workspace",
+    ),
 ]
 
 

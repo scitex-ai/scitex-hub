@@ -169,6 +169,34 @@ def _build_all_files(
         license_text = generate_license_text("AGPL-3.0")
     files["LICENSE"] = license_text
 
+    # .gitignore
+    files[".gitignore"] = "\n".join(
+        [
+            "# Runtime data (created by platform, not app source)",
+            "scitex/",
+            "",
+            "# Python",
+            "__pycache__/",
+            "*.pyc",
+            "*.pyo",
+            "*.egg-info/",
+            "",
+            "# Environment",
+            ".venv/",
+            "venv/",
+            "node_modules/",
+            "",
+            "# IDE",
+            ".vscode/",
+            ".idea/",
+            "",
+            "# OS",
+            ".DS_Store",
+            "Thumbs.db",
+            "",
+        ]
+    )
+
     # React frontend files
     if use_react:
         files.update(build_react_files(name, label, icon))

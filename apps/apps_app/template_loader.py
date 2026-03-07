@@ -92,7 +92,18 @@ class UserAppTemplateLoader(Loader):
             return None
 
         # Look in the project's Gitea-cloned directory
-        project_dir = settings.BASE_DIR / "data" / "projects" / app_module.project.slug
+        # Projects live at data/users/<owner>/proj/<slug>/
+        owner = app_module.author.username if app_module.author else ""
+        if not owner:
+            return None
+        project_dir = (
+            settings.BASE_DIR
+            / "data"
+            / "users"
+            / owner
+            / "proj"
+            / app_module.project.slug
+        )
         partial = project_dir / "templates" / module_name / "index_partial.html"
         if partial.is_file():
             return partial
