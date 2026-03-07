@@ -139,13 +139,29 @@ class AppsModule(models.Model):
         self.save(update_fields=["star_count", "install_count", "avg_rating"])
 
 
+def _validate_version(value):
+    """Validate version follows X.Y.Z[-suffix] format.
+
+    Valid: 0.1.0, 1.2.3, 0.1.0-alpha, 0.1.0-beta, 0.1.0-dev
+    """
+    import re
+
+    pattern = r"^\d+\.\d+\.\d+(-(?:dev|alpha|beta))?$"
+    if not re.match(pattern, value):
+        from django.core.exceptions import ValidationError
+
+        raise ValidationError(
+            f"Version '{value}' must follow X.Y.Z or X.Y.Z-{{dev,alpha,beta}} format."
+        )
+
+
 class ModuleVersion(models.Model):
     """Version history for an app module."""
 
     module = models.ForeignKey(
         AppsModule, on_delete=models.CASCADE, related_name="versions"
     )
-    version = models.CharField(max_length=20)
+    version = models.CharField(max_length=20, validators=[_validate_version])
     changelog = models.TextField(blank=True)
     min_scitex_version = models.CharField(max_length=20, blank=True)
     is_stable = models.BooleanField(default=True)

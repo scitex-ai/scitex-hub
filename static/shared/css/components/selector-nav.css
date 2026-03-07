@@ -202,16 +202,12 @@
   background: #a07040;
 }
 
-.module-status-badge--wip {
+.module-status-badge--alpha {
   background: #e6a817;
 }
 
 .module-status-badge--beta {
   background: #3b82f6;
-}
-
-.module-status-badge--deprecated {
-  background: #6b7280;
 }
 
 /* Legacy .dev-badge alias */

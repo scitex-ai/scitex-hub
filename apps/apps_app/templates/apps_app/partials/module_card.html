@@ -15,7 +15,7 @@
             {% load module_icons %}
 
             {% if mod_item.reg %}
-                {% module_icon mod_item.reg.name "tab" mod_item.app.status mod_item.is_dev mod_item.reg.icon_fa %}
+                {% module_icon mod_item.reg.name "tab" mod_item.app.latest_version mod_item.reg.icon_fa %}
             {% else %}
                 <i class="fas fa-puzzle-piece" aria-hidden="true"></i>
             {% endif %}

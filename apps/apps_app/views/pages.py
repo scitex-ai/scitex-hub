@@ -59,6 +59,7 @@ def detail(request, module_name):
 
     reviews = app_module.reviews.select_related("user")[:20]
     versions = app_module.versions.all()[:10]
+    app_module.latest_version = versions[0].version if versions else "0.1.0"
 
     # Skill data for capabilities section
     from apps.llm_app.skills import get_skill

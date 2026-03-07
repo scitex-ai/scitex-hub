@@ -13,7 +13,7 @@
                 {% load module_icons %}
 
                 {% if reg_module %}
-                    {% module_icon reg_module.name "tab" reg_module.status reg_module.is_dev reg_module.icon_fa %}
+                    {% module_icon reg_module.name "tab" app_module.latest_version reg_module.icon_fa %}
                 {% else %}
                     <i class="fas fa-puzzle-piece" aria-hidden="true"></i>
                 {% endif %}

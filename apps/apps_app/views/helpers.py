@@ -35,7 +35,7 @@ class _DevAppProxy:
         self.is_verified = False
         self.author = owner_user
         self.registry_repo_url = ""
-        self.latest_version = "0.1.0"
+        self.latest_version = "0.1.0-dev"
 
     def get_category_display(self):
         return "Other"

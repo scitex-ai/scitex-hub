@@ -70,11 +70,12 @@ def ensure_builtin_modules(author_username="ywatanabe"):
         )
 
         if not obj.versions.exists():
+            suffix = "-alpha" if mod.name in _WIP_MODULES else ""
             ModuleVersion.objects.create(
                 module=obj,
-                version="0.1.0",
+                version=f"0.1.0{suffix}",
                 changelog="Initial release.",
-                is_stable=True,
+                is_stable=suffix == "",
             )
 
         if was_created:

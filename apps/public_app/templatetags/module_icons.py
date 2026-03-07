@@ -11,25 +11,31 @@ from django.utils.safestring import mark_safe
 register = template.Library()
 
 
-@register.simple_tag
-def module_icon(name, context="tab", status="", is_dev=False, icon_fa=""):
-    """
-    Render the canonical icon for a workspace module, with optional status badge.
+# Badge mapping: version suffix → (CSS class, label)
+_BADGE_MAP = {
+    "-dev": ("module-status-badge--dev", "DEV"),
+    "-alpha": ("module-status-badge--alpha", "ALPHA"),
+    "-beta": ("module-status-badge--beta", "BETA"),
+}
 
-    Looks up icon from the central registry first. For dev apps (not in registry),
-    pass icon_fa explicitly.
+
+@register.simple_tag
+def module_icon(name, context="tab", version="", icon_fa=""):
+    """
+    Render the canonical icon for a workspace module, with version-based badge.
+
+    Badge is derived from version suffix: -dev → DEV, -alpha → ALPHA, -beta → BETA.
 
     Args:
         name: Module name (writer, scholar, vis, dev__owner__repo, etc.)
         context: 'tab' for module tab bar, 'nav' for global header nav
-        status: Module status (wip, beta, deprecated) — shows badge overlay
-        is_dev: True for dev-installed apps — shows DEV badge overlay
+        version: Version string (e.g. "0.1.0-alpha") — suffix determines badge
         icon_fa: Explicit FontAwesome class (used when module not in registry)
 
     Usage:
         {% module_icon "writer" %}
-        {% module_icon "apps" "tab" "wip" %}
-        {% module_icon "dev__user__repo" "tab" "" True "fas fa-puzzle-piece" %}
+        {% module_icon "apps" "tab" "0.1.0-alpha" %}
+        {% module_icon "dev__user__repo" "tab" "0.1.0-dev" "fas fa-puzzle-piece" %}
     """
     from apps.workspace_app.registry import get_module
 
@@ -52,25 +58,15 @@ def module_icon(name, context="tab", status="", is_dev=False, icon_fa=""):
         icon_html = f'<i class="{icon_fa} {css_class}"></i>'.replace("  ", " ").strip()
 
     if not icon_html:
-        # Fallback: generic puzzle piece
         icon_html = '<i class="fas fa-puzzle-piece"></i>'
 
-    # Determine badge
+    # Derive badge from version suffix
     badge_html = ""
-    if is_dev:
-        badge_html = (
-            '<span class="module-status-badge module-status-badge--dev">DEV</span>'
-        )
-    elif status == "wip":
-        badge_html = (
-            '<span class="module-status-badge module-status-badge--wip">WIP</span>'
-        )
-    elif status == "beta":
-        badge_html = (
-            '<span class="module-status-badge module-status-badge--beta">BETA</span>'
-        )
-    elif status == "deprecated":
-        badge_html = '<span class="module-status-badge module-status-badge--deprecated">OLD</span>'
+    version_str = str(version or "")
+    for suffix, (css_cls, label) in _BADGE_MAP.items():
+        if version_str.endswith(suffix):
+            badge_html = f'<span class="module-status-badge {css_cls}">{label}</span>'
+            break
 
     if badge_html:
         return mark_safe(
