@@ -64,14 +64,11 @@ export class TreeRenderer {
     this.sortMode = mode;
   }
 
-  /** Sort items: directories first, then by name or mtime */
+  /** Sort items by name or mtime (flat alphabetical, no directory-first grouping) */
   private sortItems(items: TreeItem[]): TreeItem[] {
-    if (this.sortMode === "name") return items; // Backend already sorts by name
     return [...items].sort((a, b) => {
-      // Directories before files
-      if (a.type !== b.type) return a.type === "directory" ? -1 : 1;
-      // Within same type: newest first (higher mtime = more recent)
-      return (b.mtime || 0) - (a.mtime || 0);
+      if (this.sortMode === "mtime") return (b.mtime || 0) - (a.mtime || 0);
+      return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
     });
   }
 

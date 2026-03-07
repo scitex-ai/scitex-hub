@@ -167,9 +167,8 @@ export class WorkspaceViewer {
 
   private async renderFile(filePath: string): Promise<void> {
     const previewable = isPreviewable(filePath);
-    this.showModeToggle(previewable);
-
     const fileType = detectFileType(filePath);
+    this.showModeToggle(previewable, fileType);
 
     // Previewable media types (mermaid, graphviz, csv) go through Monaco in edit mode
     if (previewable && fileType !== "text") {
@@ -381,17 +380,26 @@ export class WorkspaceViewer {
     }
   }
 
-  private showModeToggle(show: boolean): void {
+  private showModeToggle(show: boolean, fileType?: string): void {
     if (!this.modeToggle) return;
     if (this.modeToggle.classList.contains("ws-viewer-mode-toggle-title")) {
-      if (!show) {
-        this.viewMode = "edit";
-        this.modeToggle.innerHTML = '<i class="fas fa-eye"></i> Viewer';
-        this.modeToggle.title = "Viewer";
+      if (show) {
+        // Previewable file: restore toggle clickability
+        this.modeToggle.style.cursor = "";
+        this.updateToggleIcon();
+      } else {
+        // Non-toggleable file: show current mode label (not toggle action)
+        const isEditor = fileType === "text";
+        const iconClass = isEditor ? "fas fa-pencil-alt" : "fas fa-eye";
+        const label = isEditor ? " Editor" : " Viewer";
+        this.viewMode = isEditor ? "edit" : "preview";
+        this.modeToggle.innerHTML = `<i class="${iconClass}"></i>${label}`;
+        this.modeToggle.title = label.trim();
+        this.modeToggle.style.cursor = "default";
         const shortTitle = document.getElementById("ws-viewer-title-short");
         if (shortTitle) {
-          shortTitle.innerHTML = '<i class="fas fa-eye"></i> Viewer';
-          shortTitle.title = "Viewer";
+          shortTitle.innerHTML = `<i class="${iconClass}"></i>${label}`;
+          shortTitle.title = label.trim();
         }
       }
     } else {
@@ -448,7 +456,7 @@ export class WorkspaceViewer {
         language,
         automaticLayout: true,
         theme: this.resolveMonacoTheme(),
-        fontSize: 14,
+        fontSize: this.getSavedFontSize(),
         fontFamily: "'JetBrains Mono', 'Monaco', 'Menlo', monospace",
         minimap: { enabled: true },
         scrollBeyondLastLine: false,
@@ -461,6 +469,13 @@ export class WorkspaceViewer {
       this.monacoEditor.setValue(content);
       this.monacoEditor.updateOptions({ readOnly: true });
     }
+  }
+
+  /** Get saved font size from context-zoom system, or default 14px. */
+  private getSavedFontSize(): number {
+    const saved = localStorage.getItem("scitex-viewer-font-zoom");
+    if (saved) return Math.round(parseFloat(saved) * 14);
+    return 14;
   }
 
   private resolveMonacoTheme(): string {

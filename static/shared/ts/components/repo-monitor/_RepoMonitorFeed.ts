@@ -158,9 +158,9 @@ export class RepoMonitorFeed {
     const path = entry.dataset.path;
     if (!path) return;
 
-    // Dispatch same event as file tree so viewer opens the file
+    // Dispatch file-open event so viewer opens the file
     document.dispatchEvent(
-      new CustomEvent("file-select", { detail: { path }, bubbles: true }),
+      new CustomEvent("file-open", { detail: { path }, bubbles: true }),
     );
   }
 

@@ -69,16 +69,16 @@ function initWorkspaceViewer(): void {
     (window as any).toggleShortcutsModal?.();
   });
 
-  // Listen for file-select events from ANY tree container (worktree pane or module tree).
-  // The event has bubbles: true, so listening on document catches them all.
-  document.addEventListener("file-select", ((e: CustomEvent) => {
+  // Listen for file-open events (double-click) from ANY tree container.
+  // Single-click (file-select) only highlights — does NOT open in viewer.
+  document.addEventListener("file-open", ((e: CustomEvent) => {
     const path = e.detail?.path;
     if (path) {
       openFileInViewer(viewer, path, emptyState);
     }
   }) as EventListener);
 
-  // Also support double-click to open (more intentional action)
+  // Also support legacy workspace-file-open event
   document.addEventListener("workspace-file-open", ((e: CustomEvent) => {
     const path = e.detail?.path;
     if (path) {
@@ -101,14 +101,23 @@ function openFileInViewer(
   path: string,
   emptyState: HTMLElement | null,
 ): void {
+  const sidebar = document.getElementById("ws-viewer-sidebar");
+
+  // Toggle: if same file is already open, collapse the viewer pane
+  const activeFile = sidebar?.dataset.aiViewerActive?.split(" (")[0] ?? "";
+  const isCollapsed = sidebar?.classList.contains("collapsed");
+  if (activeFile === path && !isCollapsed) {
+    sidebar?.classList.add("collapsed");
+    sidebar!.style.width = "";
+    return;
+  }
+
   // Hide empty state
   if (emptyState) emptyState.style.display = "none";
 
   // Auto-expand viewer pane if collapsed
-  const sidebar = document.getElementById("ws-viewer-sidebar");
   if (sidebar?.classList.contains("collapsed")) {
     sidebar.classList.remove("collapsed");
-    // Restore saved width or use default
     const savedWidth = localStorage.getItem("ws-viewer-width");
     sidebar.style.width = savedWidth ? `${savedWidth}px` : "480px";
   }
@@ -129,10 +138,26 @@ function registerNavRestore(): void {
   });
 }
 
+// Global run-file handler: sends ./path to the Console terminal pane
+function registerRunFileHandler(): void {
+  document.addEventListener("run-file", ((e: CustomEvent) => {
+    const path = e.detail?.path;
+    if (!path) return;
+    const cmd = path.startsWith("/") ? path : `./${path}`;
+    const ai = (window as any).scitexAI;
+    if (ai?.sendToTerminal) {
+      ai.sendToTerminal(`${cmd}\r`);
+    } else {
+      console.warn("[run-file] No terminal available");
+    }
+  }) as EventListener);
+}
+
 // Auto-run on DOMContentLoaded
 if (typeof document !== "undefined") {
   document.addEventListener("DOMContentLoaded", () => {
     initWorkspaceViewer();
     registerNavRestore();
+    registerRunFileHandler();
   });
 }

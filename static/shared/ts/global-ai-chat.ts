@@ -255,6 +255,13 @@ class GlobalAIChat {
       open: () => this.open(),
       close: () => this.close(),
       toggle: () => this.toggle(),
+      sendToTerminal: (text: string) => {
+        if (this.mode !== "console") this.switchMode("console");
+        const ws = this.consoleMode?.getActiveWs();
+        return ws?.readyState === WebSocket.OPEN
+          ? (ws.send(text), true)
+          : false;
+      },
     };
   }
 

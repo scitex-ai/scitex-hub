@@ -96,6 +96,8 @@ export class WorkspaceFilesTree {
       this.stateManager,
       (path) => this.fileActions.toggleFolder(path),
       (path, event) => this.handleFileClick(path, event),
+      (path) => this.fileActions.openFile(path),
+      (path) => this.fileActions.runFile(path),
       (path, el) => this.fileActions.startRename(path, el),
       (path) => this.fileActions.deleteFile(path),
       (folderPath) => this.fileActions.createNewFile(folderPath),
@@ -336,7 +338,7 @@ export class WorkspaceFilesTree {
         this.stateManager,
         this.container,
         (path) => this.fileActions.toggleFolder(path),
-        (path) => this.fileActions.selectFile(path),
+        (path) => this.fileActions.openFile(path),
       );
       this.boundKeyboardHandler = (e: KeyboardEvent) =>
         this.keyboardHandlers?.handleKeyboard(e);
@@ -349,7 +351,8 @@ export class WorkspaceFilesTree {
     this.container.dispatchEvent(
       new CustomEvent(type, { detail, bubbles: true }),
     );
-    if (type === "file-select" && this.config.onFileSelect) {
+    if (type === "file-open" && this.config.onFileSelect) {
+      // Double-click opens file via the onFileSelect callback
       const item = TreeUtils.findItem(detail.path, this.treeData);
       if (item) this.config.onFileSelect(detail.path, item);
     } else if (type === "folder-toggle" && this.config.onFolderToggle) {

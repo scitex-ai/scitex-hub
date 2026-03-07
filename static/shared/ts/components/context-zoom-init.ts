@@ -24,8 +24,7 @@ const FONT_ZOOM_ZONES: Array<{ selector: string; key: string }> = [
   // register their own custom zoom zones (adjusting terminal fontSize) in
   // console-mode.ts and console-terminal-factory.ts.
   { selector: "#scitex-ai-panel", key: "scitex-ai-panel-zoom" },
-  // Viewer pane (whole sidebar — CSS neutralizes zoom when collapsed)
-  { selector: "#ws-viewer-sidebar", key: "scitex-viewer-zoom" },
+  // NOTE: #ws-viewer-sidebar is NOT here — it uses Monaco font-size zoom (registered below)
   // Module (center) pane
   { selector: "#main-content", key: "scitex-module-zoom" },
 ];
@@ -154,21 +153,42 @@ function registerPendingZones(): number {
       localStorage.removeItem("scitex-worktree-font-zoom");
     }
   }
-  // Monaco: passthrough — it handles its own Ctrl+Wheel zoom
-  if (!registeredSelectors.has("#ws-viewer-monaco")) {
-    const monacoEl = document.getElementById("ws-viewer-monaco");
-    if (monacoEl) {
+  // Viewer pane: Monaco font-size zoom (not CSS zoom on sidebar)
+  // Uses scale factor (1.0 = 14px default) so indicator shows xx%.
+  if (!registeredSelectors.has("#ws-viewer-sidebar")) {
+    const viewerSidebar = document.getElementById("ws-viewer-sidebar");
+    if (viewerSidebar) {
+      // Clean up stale CSS zoom from old system
+      if (viewerSidebar.style.zoom) {
+        viewerSidebar.style.zoom = "";
+        localStorage.removeItem("scitex-viewer-zoom");
+      }
+      const BASE_FONT = 14;
+      const STORAGE_KEY = "scitex-viewer-font-zoom";
       registerZoomZone({
-        el: monacoEl,
-        getSize: () => 13,
-        setSize: () => {},
-        min: 8,
-        max: 32,
-        default: 13,
-        storageKey: "scitex-monaco-passthrough",
-        passthrough: true,
+        el: viewerSidebar,
+        getSize: () => {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          return saved ? parseFloat(saved) : 1.0;
+        },
+        setSize: (scale) => {
+          const fontSize = Math.round(scale * BASE_FONT);
+          const monaco = (window as any).monaco;
+          if (monaco) {
+            for (const ed of monaco.editor.getEditors()) {
+              if (viewerSidebar.contains(ed.getDomNode())) {
+                ed.updateOptions({ fontSize });
+              }
+            }
+          }
+        },
+        min: 0.6,
+        max: 2.5,
+        default: 1.0,
+        step: 0.05,
+        storageKey: STORAGE_KEY,
       });
-      registeredSelectors.add("#ws-viewer-monaco");
+      registeredSelectors.add("#ws-viewer-sidebar");
       count++;
     }
   }
@@ -209,7 +229,7 @@ export function initAllZoomZones(): void {
   registerPendingZones();
 
   // Watch for lazy-loaded panes via MutationObserver
-  // +font-size zones, +1 Monaco, +1 PDF viewer
+  // +font-size zones, +1 viewer sidebar, +1 PDF viewer
   const totalZones = FONT_ZOOM_ZONES.length + FONT_SIZE_ZOOM_ZONES.length + 2;
   if (registeredSelectors.size < totalZones) {
     const observer = new MutationObserver(() => {

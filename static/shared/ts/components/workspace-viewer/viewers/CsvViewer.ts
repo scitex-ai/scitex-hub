@@ -1,6 +1,5 @@
 /**
  * CsvViewer - Uses the shared DataTableManager for rich spreadsheet rendering.
- * Supports table view (with selection, copy/paste, column resize) and raw text toggle.
  */
 
 import type { Viewer } from "../types";
@@ -22,46 +21,13 @@ export class CsvViewer implements Viewer {
     container.innerHTML = "";
     this.abortController = new AbortController();
 
-    const wrapper = document.createElement("div");
-    wrapper.style.cssText =
-      "display:flex; flex-direction:column; height:100%; overflow:hidden;";
-
-    const toolbar = document.createElement("div");
-    toolbar.style.cssText =
-      "display:flex; align-items:center; gap:8px; padding:6px 10px; border-bottom:1px solid #333; flex-shrink:0; font-size:0.85em;";
-
-    const nameSpan = document.createElement("span");
-    nameSpan.style.cssText = "color:#888; margin-right:auto;";
-    nameSpan.title = filePath;
-    nameSpan.textContent = fileName;
-
-    const toggleBtn = document.createElement("button");
-    toggleBtn.textContent = "Raw";
-    toggleBtn.style.cssText =
-      "cursor:pointer; padding:2px 8px; font-size:0.85em;";
-
-    toolbar.appendChild(nameSpan);
-    toolbar.appendChild(toggleBtn);
-    wrapper.appendChild(toolbar);
-
     const content = document.createElement("div");
-    content.style.cssText = "flex:1; overflow:auto; padding:0;";
-    wrapper.appendChild(content);
-    container.appendChild(wrapper);
-
-    // Table container needs a unique ID for DataTableManager
-    const tableId = "ws-viewer-csv-table";
-    const tableContainer = document.createElement("div");
-    tableContainer.id = tableId;
-    tableContainer.className = "data-table-container";
-    tableContainer.style.cssText = "width:100%; height:100%;";
-    content.appendChild(tableContainer);
-
+    content.style.cssText = "height:100%; overflow:auto; padding:0;";
     content.innerHTML =
       '<div style="color:#888; padding:10px;">Loading...</div>';
+    container.appendChild(content);
 
     let rawText = "";
-    let showRaw = false;
 
     try {
       const resp = await fetch(apiUrl, { signal: this.abortController.signal });
@@ -79,48 +45,28 @@ export class CsvViewer implements Viewer {
       return;
     }
 
-    const renderTable = () => {
+    content.innerHTML = "";
+    content.style.padding = "0";
+    const tableId = "ws-viewer-csv-table";
+    const tc = document.createElement("div");
+    tc.id = tableId;
+    tc.className = "data-table-container";
+    tc.style.cssText = "width:100%; height:100%;";
+    content.appendChild(tc);
+
+    try {
+      this.tableManager = new DataTableManager({
+        container: `#${tableId}`,
+        readOnly: true,
+      });
+      this.tableManager.loadFromCSVContent(rawText, fileName);
+      this.tableManager.renderEditableDataTable();
+      this.tableManager.setupColumnResizing();
+    } catch (err) {
+      console.error("[CsvViewer] DataTableManager error:", err);
       content.innerHTML = "";
-      content.style.padding = "0";
-      const tc = document.createElement("div");
-      tc.id = tableId;
-      tc.className = "data-table-container";
-      tc.style.cssText = "width:100%; height:100%;";
-      content.appendChild(tc);
-
-      try {
-        this.tableManager = new DataTableManager({
-          container: `#${tableId}`,
-          readOnly: true,
-        });
-        this.tableManager.loadFromCSVContent(rawText, fileName);
-        this.tableManager.renderEditableDataTable();
-        this.tableManager.setupColumnResizing();
-      } catch (err) {
-        console.error("[CsvViewer] DataTableManager error:", err);
-        content.innerHTML = "";
-        renderFallbackTable(content, rawText);
-      }
-    };
-
-    const renderRaw = () => {
-      content.innerHTML = "";
-      content.style.padding = "8px";
-      const pre = document.createElement("pre");
-      pre.style.cssText =
-        "margin:0; font-size:0.85em; white-space:pre; color:#ccc;";
-      pre.textContent = rawText;
-      content.appendChild(pre);
-    };
-
-    renderTable();
-
-    toggleBtn.addEventListener("click", () => {
-      showRaw = !showRaw;
-      toggleBtn.textContent = showRaw ? "Table" : "Raw";
-      if (showRaw) renderRaw();
-      else renderTable();
-    });
+      renderFallbackTable(content, rawText);
+    }
   }
 
   destroy(): void {

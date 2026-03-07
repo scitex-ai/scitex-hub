@@ -16,6 +16,7 @@
 #   make ENV=dev start             # Start dev (stops others first)
 #   make ENV=staging start         # Start staging
 #   make ENV=prod rebuild          # Rebuild prod (with confirmation)
+#   make ENV=prod YES=1 rebuild   # Rebuild prod (skip confirmation)
 
 # Use bash for proper echo -e support (dash/sh don't support -e flag)
 SHELL := /bin/bash
@@ -131,6 +132,9 @@ VALID_ENVS := dev staging prod
 # Accept both env= and ENV= (convert lowercase to uppercase) - MUST BE FIRST
 ifdef env
   ENV := $(env)
+endif
+ifdef yes
+  YES := $(yes)
 endif
 
 # Normalize ENV aliases (stag -> staging)
@@ -621,7 +625,7 @@ apptainer-purge-sifs: ## Remove all SIF files (sandbox is the runtime format)
 	@scitex-container sandbox purge-sifs -d deployment/singularity
 
 rebuild: validate-docker
-	@./scripts/deploy/rebuild.sh $(ENV)
+	@./scripts/deploy/rebuild.sh $(if $(YES),--yes,) $(ENV)
 	@$(MAKE) --no-print-directory validate
 
 rebuild-no-cache: validate-docker

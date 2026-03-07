@@ -160,6 +160,7 @@ export class WorkspaceOrchestrator {
     this.toolbarManager.attachAll();
     this.setupFileSearch();
     this.uiComponents.initializeAll();
+    this.listenForRunFileEvent();
 
     // Initialize project ID for tab persistence
     this.fileTabManager.initializeProjectId();
@@ -293,6 +294,20 @@ export class WorkspaceOrchestrator {
         }
       }
     });
+  }
+
+  /** Listen for run-file events dispatched from the file tree context menu */
+  private listenForRunFileEvent(): void {
+    document.addEventListener("run-file", ((e: CustomEvent) => {
+      const filePath = e.detail?.path;
+      if (!filePath) return;
+      const terminal = this.ptyManager.getTerminal();
+      if (!terminal) {
+        alert("Terminal not available. Please wait for it to initialize.");
+        return;
+      }
+      this.runManager.runFile(filePath, terminal, async () => {});
+    }) as EventListener);
   }
 
   private async runCurrentFile(): Promise<void> {
