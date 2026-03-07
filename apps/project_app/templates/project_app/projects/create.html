@@ -93,8 +93,8 @@
                     <!-- Shared: Name + Description -->
                     {% include 'project_app/projects/create_partials/create_name_field.html' %}
                     <div class="form-group">
-                        <label class="form-label" for="description">
-                            Description <span style="color: var(--color-fg-muted)">(optional)</span>
+                        <label class="form-label form-label-optional" for="description">
+                            Description <span class="label-hint">(optional)</span>
                         </label>
                         <textarea name="description"
                                   id="description"
@@ -132,353 +132,359 @@
                                 {{ template_map.app.description|default:"Pip-installable Python package for building reusable SciTeX workspace modules" }}
                             </p>
                         </div>
-                        <!-- Icon -->
-                        <div class="form-group"
-                             data-ai-hint="Font Awesome icon selector for the app module tab">
-                            <label class="form-label" for="app_icon">
-                                Icon <span style="color: var(--color-fg-muted)">(Font Awesome)</span>
-                            </label>
-                            <div class="app-icon-picker">
-                                <span class="app-icon-preview" id="app-icon-preview">
-                                    <i class="fas fa-puzzle-piece"></i>
-                                </span>
-                                <input type="text"
-                                       name="app_icon"
-                                       id="app_icon"
-                                       class="form-control"
-                                       placeholder="fas fa-puzzle-piece"
-                                       value="fas fa-puzzle-piece"
-                                       disabled />
-                            </div>
-                            <input type="text"
-                                   class="form-control app-icon-filter"
-                                   id="app-icon-filter"
-                                   placeholder="Filter icons..."
-                                   disabled
-                                   style="margin-bottom: 0.5rem;
-                                          font-size: 0.75rem;
-                                          padding: 0.375rem 0.5rem" />
-                            <div class="app-icon-grid"
-                                 id="app-icon-grid"
-                                 data-ai-hint="Click to select app icon">
-                                <button type="button"
-                                        class="app-icon-btn active"
-                                        data-icon="fas fa-puzzle-piece"
-                                        title="puzzle-piece"
-                                        disabled>
-                                    <i class="fas fa-puzzle-piece"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-flask"
-                                        title="flask"
-                                        disabled>
-                                    <i class="fas fa-flask"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-chart-bar"
-                                        title="chart-bar"
-                                        disabled>
-                                    <i class="fas fa-chart-bar"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-brain"
-                                        title="brain"
-                                        disabled>
-                                    <i class="fas fa-brain"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-microscope"
-                                        title="microscope"
-                                        disabled>
-                                    <i class="fas fa-microscope"></i>
-                                </button>
-                                <button type="button" class="app-icon-btn" data-icon="fas fa-dna" title="dna" disabled>
-                                    <i class="fas fa-dna"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-atom"
-                                        title="atom"
-                                        disabled>
-                                    <i class="fas fa-atom"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-robot"
-                                        title="robot"
-                                        disabled>
-                                    <i class="fas fa-robot"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-code"
-                                        title="code"
-                                        disabled>
-                                    <i class="fas fa-code"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-terminal"
-                                        title="terminal"
-                                        disabled>
-                                    <i class="fas fa-terminal"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-database"
-                                        title="database"
-                                        disabled>
-                                    <i class="fas fa-database"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-file-alt"
-                                        title="file-alt"
-                                        disabled>
-                                    <i class="fas fa-file-alt"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-table"
-                                        title="table"
-                                        disabled>
-                                    <i class="fas fa-table"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-image"
-                                        title="image"
-                                        disabled>
-                                    <i class="fas fa-image"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-calculator"
-                                        title="calculator"
-                                        disabled>
-                                    <i class="fas fa-calculator"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-chart-line"
-                                        title="chart-line"
-                                        disabled>
-                                    <i class="fas fa-chart-line"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-chart-pie"
-                                        title="chart-pie"
-                                        disabled>
-                                    <i class="fas fa-chart-pie"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-cube"
-                                        title="cube"
-                                        disabled>
-                                    <i class="fas fa-cube"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-cogs"
-                                        title="cogs"
-                                        disabled>
-                                    <i class="fas fa-cogs"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-search"
-                                        title="search"
-                                        disabled>
-                                    <i class="fas fa-search"></i>
-                                </button>
-                                <button type="button" class="app-icon-btn" data-icon="fas fa-pen" title="pen" disabled>
-                                    <i class="fas fa-pen"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-book"
-                                        title="book"
-                                        disabled>
-                                    <i class="fas fa-book"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-globe"
-                                        title="globe"
-                                        disabled>
-                                    <i class="fas fa-globe"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-satellite"
-                                        title="satellite"
-                                        disabled>
-                                    <i class="fas fa-satellite"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-wave-square"
-                                        title="wave-square"
-                                        disabled>
-                                    <i class="fas fa-wave-square"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-project-diagram"
-                                        title="project-diagram"
-                                        disabled>
-                                    <i class="fas fa-project-diagram"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-network-wired"
-                                        title="network-wired"
-                                        disabled>
-                                    <i class="fas fa-network-wired"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-server"
-                                        title="server"
-                                        disabled>
-                                    <i class="fas fa-server"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-layer-group"
-                                        title="layer-group"
-                                        disabled>
-                                    <i class="fas fa-layer-group"></i>
-                                </button>
-                                <button type="button"
-                                        class="app-icon-btn"
-                                        data-icon="fas fa-filter"
-                                        title="filter"
-                                        disabled>
-                                    <i class="fas fa-filter"></i>
-                                </button>
-                            </div>
-                            <p class="help-text">
-                                Click an icon above, or type a custom
-                                <a href="https://fontawesome.com/icons?d=gallery&s=solid" target="_blank">FA class</a>.
-                            </p>
-                        </div>
-                        <!-- Subtitle -->
-                        <div class="form-group" data-ai-hint="Short tagline for the app">
-                            <label class="form-label" for="app_subtitle">Subtitle</label>
-                            <input type="text"
-                                   name="app_subtitle"
-                                   id="app_subtitle"
-                                   class="form-control"
-                                   placeholder="A short tagline for your app"
-                                   maxlength="80"
-                                   disabled />
-                        </div>
-                        <!-- About -->
-                        <div class="form-group" data-ai-hint="One-line description of what the app does">
-                            <label class="form-label" for="app_about">
-                                About <span style="color: var(--color-fg-muted)">(1 line)</span>
-                            </label>
-                            <input type="text"
-                                   name="app_about"
-                                   id="app_about"
-                                   class="form-control"
-                                   placeholder="What does this app do in one sentence?"
-                                   maxlength="200"
-                                   disabled />
-                        </div>
-                        <!-- License -->
-                        <div class="form-group" data-ai-hint="License selection, AGPL-3.0 by default">
-                            <label class="form-label" for="app_license">License</label>
-                            <select name="app_license" id="app_license" class="form-control" disabled>
-                                <option value="AGPL-3.0" selected>AGPL-3.0 (default)</option>
-                                <option value="GPL-3.0">GPL-3.0</option>
-                                <option value="MIT">MIT</option>
-                                <option value="Apache-2.0">Apache-2.0</option>
-                                <option value="BSD-3-Clause">BSD-3-Clause</option>
-                                <option value="BSD-2-Clause">BSD-2-Clause</option>
-                                <option value="MPL-2.0">MPL-2.0</option>
-                                <option value="Proprietary">Proprietary</option>
-                            </select>
-                        </div>
-                        <!-- Capabilities / Skills -->
-                        <div class="form-group"
-                             data-ai-hint="Capabilities for agents and humans, comma-separated skills">
-                            <label class="form-label" for="app_capabilities">
-                                Capabilities / Skills
-                                <span style="color: var(--color-fg-muted)">(for agents and humans)</span>
-                            </label>
-                            <textarea name="app_capabilities"
-                                      id="app_capabilities"
-                                      class="form-control"
-                                      placeholder="data-visualization, csv-import, statistical-analysis"
-                                      rows="2"
-                                      disabled></textarea>
-                            <p class="help-text">Comma-separated list of what this app can do.</p>
-                        </div>
-                        <!-- Supported Filetypes -->
-                        <div class="form-group"
-                             data-ai-hint="Optional file extension filter for the workspace file tree">
-                            <label class="form-label" for="app_filetypes">
-                                Supported Filetypes
-                                <span style="color: var(--color-fg-muted)">(optional)</span>
-                            </label>
-                            <input type="text"
-                                   name="app_filetypes"
-                                   id="app_filetypes"
-                                   class="form-control"
-                                   placeholder=".csv, .json, .xlsx, .tsv"
-                                   disabled />
-                            <p class="help-text">Comma-separated extensions. If set, the file tree filters to these types.</p>
-                        </div>
-                        <!-- WIP State -->
-                        <div class="form-group" data-ai-hint="Mark app as work-in-progress">
-                            <label class="option-item" style="margin:0">
-                                <input type="checkbox" name="app_wip" value="true" checked disabled />
-                                <div class="option-content">
-                                    <div class="option-label">Mark as WIP</div>
-                                    <div class="option-description">Shows a WIP badge in the Apps browser. Uncheck when ready for production.</div>
+                        <!-- Optional settings (collapsed by default — most set by App Maker AI) -->
+                        <details class="app-optional-details">
+                            <summary class="app-optional-summary">
+                                <i class="fas fa-sliders-h"></i> Optional Settings
+                                <span class="app-optional-hint">Auto-configured by App Maker</span>
+                            </summary>
+                            <div class="app-optional-fields">
+                                <!-- Icon -->
+                                <div class="form-group"
+                                     data-ai-hint="Font Awesome icon selector for the app module tab">
+                                    <label class="form-label form-label-optional" for="app_icon">
+                                        Icon <span class="label-hint">(Font Awesome)</span>
+                                    </label>
+                                    <div class="app-icon-picker">
+                                        <span class="app-icon-preview" id="app-icon-preview">
+                                            <i class="fas fa-puzzle-piece"></i>
+                                        </span>
+                                        <input type="text"
+                                               name="app_icon"
+                                               id="app_icon"
+                                               class="form-control"
+                                               placeholder="fas fa-puzzle-piece"
+                                               value="fas fa-puzzle-piece"
+                                               disabled />
+                                    </div>
+                                    <input type="text"
+                                           class="form-control app-icon-filter"
+                                           id="app-icon-filter"
+                                           placeholder="Filter icons..."
+                                           disabled
+                                           style="margin-bottom: 0.5rem;
+                                                  font-size: 0.75rem;
+                                                  padding: 0.375rem 0.5rem" />
+                                    <div class="app-icon-grid"
+                                         id="app-icon-grid"
+                                         data-ai-hint="Click to select app icon">
+                                        <button type="button"
+                                                class="app-icon-btn active"
+                                                data-icon="fas fa-puzzle-piece"
+                                                title="puzzle-piece"
+                                                disabled>
+                                            <i class="fas fa-puzzle-piece"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-flask"
+                                                title="flask"
+                                                disabled>
+                                            <i class="fas fa-flask"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-chart-bar"
+                                                title="chart-bar"
+                                                disabled>
+                                            <i class="fas fa-chart-bar"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-brain"
+                                                title="brain"
+                                                disabled>
+                                            <i class="fas fa-brain"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-microscope"
+                                                title="microscope"
+                                                disabled>
+                                            <i class="fas fa-microscope"></i>
+                                        </button>
+                                        <button type="button" class="app-icon-btn" data-icon="fas fa-dna" title="dna" disabled>
+                                            <i class="fas fa-dna"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-atom"
+                                                title="atom"
+                                                disabled>
+                                            <i class="fas fa-atom"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-robot"
+                                                title="robot"
+                                                disabled>
+                                            <i class="fas fa-robot"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-code"
+                                                title="code"
+                                                disabled>
+                                            <i class="fas fa-code"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-terminal"
+                                                title="terminal"
+                                                disabled>
+                                            <i class="fas fa-terminal"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-database"
+                                                title="database"
+                                                disabled>
+                                            <i class="fas fa-database"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-file-alt"
+                                                title="file-alt"
+                                                disabled>
+                                            <i class="fas fa-file-alt"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-table"
+                                                title="table"
+                                                disabled>
+                                            <i class="fas fa-table"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-image"
+                                                title="image"
+                                                disabled>
+                                            <i class="fas fa-image"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-calculator"
+                                                title="calculator"
+                                                disabled>
+                                            <i class="fas fa-calculator"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-chart-line"
+                                                title="chart-line"
+                                                disabled>
+                                            <i class="fas fa-chart-line"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-chart-pie"
+                                                title="chart-pie"
+                                                disabled>
+                                            <i class="fas fa-chart-pie"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-cube"
+                                                title="cube"
+                                                disabled>
+                                            <i class="fas fa-cube"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-cogs"
+                                                title="cogs"
+                                                disabled>
+                                            <i class="fas fa-cogs"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-search"
+                                                title="search"
+                                                disabled>
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                        <button type="button" class="app-icon-btn" data-icon="fas fa-pen" title="pen" disabled>
+                                            <i class="fas fa-pen"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-book"
+                                                title="book"
+                                                disabled>
+                                            <i class="fas fa-book"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-globe"
+                                                title="globe"
+                                                disabled>
+                                            <i class="fas fa-globe"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-satellite"
+                                                title="satellite"
+                                                disabled>
+                                            <i class="fas fa-satellite"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-wave-square"
+                                                title="wave-square"
+                                                disabled>
+                                            <i class="fas fa-wave-square"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-project-diagram"
+                                                title="project-diagram"
+                                                disabled>
+                                            <i class="fas fa-project-diagram"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-network-wired"
+                                                title="network-wired"
+                                                disabled>
+                                            <i class="fas fa-network-wired"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-server"
+                                                title="server"
+                                                disabled>
+                                            <i class="fas fa-server"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-layer-group"
+                                                title="layer-group"
+                                                disabled>
+                                            <i class="fas fa-layer-group"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="app-icon-btn"
+                                                data-icon="fas fa-filter"
+                                                title="filter"
+                                                disabled>
+                                            <i class="fas fa-filter"></i>
+                                        </button>
+                                    </div>
+                                    <p class="help-text">
+                                        Click an icon above, or type a custom
+                                        <a href="https://fontawesome.com/icons?d=gallery&s=solid" target="_blank">FA class</a>.
+                                    </p>
                                 </div>
-                            </label>
-                        </div>
-                        <!-- JSON/YAML Paste -->
-                        <div class="form-group"
-                             data-ai-hint="Paste JSON or YAML manifest to auto-fill all fields">
-                            <label class="form-label">
-                                <i class="fas fa-file-code" style="margin-right:0.25rem"></i>
-                                Create from JSON / YAML
-                                <span style="color: var(--color-fg-muted)">(for agents)</span>
-                            </label>
-                            <textarea name="app_manifest_raw"
-                                      id="app_manifest_raw"
-                                      class="form-control"
-                                      rows="6"
-                                      disabled
-                                      placeholder='{"name": "my_awesome_app", "icon": "fas fa-brain", "subtitle": "AI assistant", "about": "What it does", "license": "AGPL-3.0", "capabilities": ["analysis"], "filetypes": [".csv"], "wip": true}'
-                                      style="font-family: 'JetBrains Mono', monospace;
-                                             font-size: 0.75rem"></textarea>
-                            <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
-                                <button type="button"
-                                        class="btn btn-secondary"
-                                        id="app-manifest-parse-btn"
-                                        disabled
-                                        style="font-size:0.75rem;
-                                               padding:0.375rem 0.75rem">
-                                    <i class="fas fa-magic"></i> Parse &amp; Fill
-                                </button>
-                                <span id="app-manifest-status"
-                                      style="font-size:0.75rem;
-                                             line-height:2;
-                                             color:var(--color-fg-muted)"></span>
+                                <!-- Subtitle -->
+                                <div class="form-group" data-ai-hint="Short tagline for the app">
+                                    <label class="form-label form-label-optional" for="app_subtitle">Subtitle</label>
+                                    <input type="text"
+                                           name="app_subtitle"
+                                           id="app_subtitle"
+                                           class="form-control"
+                                           placeholder="A short tagline for your app"
+                                           maxlength="80"
+                                           disabled />
+                                </div>
+                                <!-- About -->
+                                <div class="form-group" data-ai-hint="One-line description of what the app does">
+                                    <label class="form-label form-label-optional" for="app_about">
+                                        About <span class="label-hint">(1 line)</span>
+                                    </label>
+                                    <input type="text"
+                                           name="app_about"
+                                           id="app_about"
+                                           class="form-control"
+                                           placeholder="What does this app do in one sentence?"
+                                           maxlength="200"
+                                           disabled />
+                                </div>
+                                <!-- License -->
+                                <div class="form-group" data-ai-hint="License selection, AGPL-3.0 by default">
+                                    <label class="form-label form-label-optional" for="app_license">License</label>
+                                    <select name="app_license" id="app_license" class="form-control" disabled>
+                                        <option value="AGPL-3.0" selected>AGPL-3.0 (default)</option>
+                                        <option value="GPL-3.0">GPL-3.0</option>
+                                        <option value="MIT">MIT</option>
+                                        <option value="Apache-2.0">Apache-2.0</option>
+                                        <option value="BSD-3-Clause">BSD-3-Clause</option>
+                                        <option value="BSD-2-Clause">BSD-2-Clause</option>
+                                        <option value="MPL-2.0">MPL-2.0</option>
+                                        <option value="Proprietary">Proprietary</option>
+                                    </select>
+                                </div>
+                                <!-- Capabilities / Skills -->
+                                <div class="form-group"
+                                     data-ai-hint="Capabilities for agents and humans, comma-separated skills">
+                                    <label class="form-label form-label-optional" for="app_capabilities">
+                                        Capabilities / Skills
+                                        <span class="label-hint">(for agents and humans)</span>
+                                    </label>
+                                    <textarea name="app_capabilities"
+                                              id="app_capabilities"
+                                              class="form-control"
+                                              placeholder="data-visualization, csv-import, statistical-analysis"
+                                              rows="2"
+                                              disabled></textarea>
+                                    <p class="help-text">Comma-separated list of what this app can do.</p>
+                                </div>
+                                <!-- Supported Filetypes -->
+                                <div class="form-group"
+                                     data-ai-hint="Optional file extension filter for the workspace file tree">
+                                    <label class="form-label form-label-optional" for="app_filetypes">Supported Filetypes</label>
+                                    <input type="text"
+                                           name="app_filetypes"
+                                           id="app_filetypes"
+                                           class="form-control"
+                                           placeholder=".csv, .json, .xlsx, .tsv"
+                                           disabled />
+                                    <p class="help-text">Comma-separated extensions. If set, the file tree filters to these types.</p>
+                                </div>
+                                <!-- WIP State -->
+                                <div class="form-group" data-ai-hint="Mark app as work-in-progress">
+                                    <label class="option-item" style="margin:0">
+                                        <input type="checkbox" name="app_wip" value="true" checked disabled />
+                                        <div class="option-content">
+                                            <div class="option-label">Mark as WIP</div>
+                                            <div class="option-description">Shows a WIP badge in the Apps browser. Uncheck when ready for production.</div>
+                                        </div>
+                                    </label>
+                                </div>
+                                <!-- JSON/YAML Paste -->
+                                <div class="form-group"
+                                     data-ai-hint="Paste JSON or YAML manifest to auto-fill all fields">
+                                    <label class="form-label form-label-optional">
+                                        <i class="fas fa-file-code label-icon"></i>
+                                        Create from JSON / YAML
+                                        <span class="label-hint">(for agents)</span>
+                                    </label>
+                                    <textarea name="app_manifest_raw"
+                                              id="app_manifest_raw"
+                                              class="form-control"
+                                              rows="6"
+                                              disabled
+                                              placeholder='{"name": "my_awesome_app", "icon": "fas fa-brain", "subtitle": "AI assistant", "about": "What it does", "license": "AGPL-3.0", "capabilities": ["analysis"], "filetypes": [".csv"], "wip": true}'
+                                              style="font-family: 'JetBrains Mono', monospace;
+                                                     font-size: 0.75rem"></textarea>
+                                    <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+                                        <button type="button"
+                                                class="btn btn-secondary"
+                                                id="app-manifest-parse-btn"
+                                                disabled
+                                                style="font-size:0.75rem;
+                                                       padding:0.375rem 0.75rem">
+                                            <i class="fas fa-magic"></i> Parse &amp; Fill
+                                        </button>
+                                        <span id="app-manifest-status"
+                                              style="font-size:0.75rem;
+                                                     line-height:2;
+                                                     color:var(--color-fg-muted)"></span>
+                                    </div>
+                                    <p class="help-text">Paste a JSON or YAML manifest and click "Parse & Fill" to auto-populate the form fields above.</p>
+                                </div>
                             </div>
-                            <p class="help-text">Paste a JSON or YAML manifest and click "Parse & Fill" to auto-populate the form fields above.</p>
-                        </div>
+                        </details>
                     </div>
                     <!-- ===== Import from GitHub/GitLab ===== -->
                     <div class="tab-fields" data-for-tab="import" style="display: none">
