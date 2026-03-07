@@ -132,35 +132,31 @@ class GiteaAutoSync:
 
     def _ensure_gitea_repo_exists(self) -> bool:
         """
-        Ensure Gitea repository exists, create if needed
+        Ensure Gitea repository exists, create if needed.
 
         Returns:
             True if repo exists or was created
+
+        Raises:
+            GiteaAPIError: If repository creation fails
+            GiteaConnectionError: If Gitea is unreachable
         """
         from apps.gitea_app.api_client import GiteaAPIError, GiteaClient
 
+        client = GiteaClient()
         try:
-            client = GiteaClient()
-            try:
-                client.get_repository(self.user.username, self.project.name)
-                return True
-            except GiteaAPIError:
-                logger.info(f"Creating Gitea repo for {self.project.name}")
-                client.create_repository(
-                    name=self.project.name,
-                    description=self.project.description
-                    or f"Project: {self.project.name}",
-                    private=not self.project.is_public,
-                    auto_init=False,
-                )
-                logger.info(
-                    f"Created Gitea repo: {self.user.username}/{self.project.name}"
-                )
-                return True
-
-        except Exception as e:
-            logger.error(f"Failed to ensure Gitea repo exists: {e}")
-            return False
+            client.get_repository(self.user.username, self.project.name)
+            return True
+        except GiteaAPIError:
+            logger.info(f"Creating Gitea repo for {self.project.name}")
+            client.create_repository(
+                name=self.project.name,
+                description=self.project.description or f"Project: {self.project.name}",
+                private=not self.project.is_public,
+                auto_init=False,
+            )
+            logger.info(f"Created Gitea repo: {self.user.username}/{self.project.name}")
+            return True
 
     def _check_large_files(self) -> list[str]:
         """
