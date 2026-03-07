@@ -1,6 +1,6 @@
 [project]
 name = "scitex-cloud"
-version = "0.12.12"
+version = "0.12.13"
 description = "SciTeX Cloud - Deployment and management CLI for SciTeX"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -94,6 +94,7 @@ test = [
     "pytest-playwright>=0.7",
     "pytest-base-url>=2.1",
     "pytest-asyncio>=1.2",
+    "scitex>=2.19",
 ]
 gui = [
     "dearpygui>=1.11",
