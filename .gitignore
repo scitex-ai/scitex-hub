@@ -179,6 +179,12 @@ data/ssh_keys/
 !templates/**/*.jpg
 !templates/**/*.gif
 
+# Documentation images should be tracked
+!docs/images/**/*.png
+!docs/images/**/*.jpg
+!docs/images/**/*.svg
+!docs/images/**/*.gif
+
 ### Source: /home/ywatanabe/.git-templates/.gitignore-templates/Python.gitignore ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
