@@ -280,7 +280,7 @@ export function exportPapers(format: "bibtex" | "json" | "text" | "csv"): void {
       break;
     case "json":
       content = generateJsonExport(papers);
-      filename = `${baseName}.tson`;
+      filename = `${baseName}.json`;
       mimeType = "application/json";
       break;
     case "csv":

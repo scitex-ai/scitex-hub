@@ -144,7 +144,7 @@ export function initializeFilters() {
                     filters: filters,
                 }),
             })
-                .then((response) => response.tson())
+                .then((response) => response.json())
                 .then((data) => {
                 if (data.status === "success") {
                     alert("Search saved successfully!");

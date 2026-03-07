@@ -252,7 +252,7 @@ function setupExportDropdown(buttonId: string): void {
       <i class="fas fa-table"></i> CSV (.csv)
     </button>
     <button type="button" class="export-format-option" data-format="json">
-      <i class="fas fa-code"></i> JSON (.tson)
+      <i class="fas fa-code"></i> JSON (.json)
     </button>
     <button type="button" class="export-format-option" data-format="text">
       <i class="fas fa-file-lines"></i> Plain Text (.txt)

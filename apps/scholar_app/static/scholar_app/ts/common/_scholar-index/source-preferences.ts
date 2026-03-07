@@ -35,7 +35,7 @@ export function saveSourcePreferences(): void {
       },
       body: JSON.stringify({ sources: preferences }),
     })
-      .then((response) => response.tson())
+      .then((response) => response.json())
       .then((data: any) => {
         if (data.status === "success") {
           console.log("Source preferences saved to profile");
@@ -64,7 +64,7 @@ export function loadSourcePreferences(): void {
   ) {
     // Load from database for logged-in users
     fetch("/scholar/api/preferences/")
-      .then((response) => response.tson())
+      .then((response) => response.json())
       .then((data: any) => {
         if (data.status === "success" && data.preferences.preferred_sources) {
           const preferences = data.preferences.preferred_sources;

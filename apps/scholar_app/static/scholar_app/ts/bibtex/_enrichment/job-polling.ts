@@ -81,7 +81,7 @@ export class JobPollingManager {
       const response = await fetch(`/scholar/api/bibtex/job/${jobId}/status/`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-      const data: JobStatusResponse = await response.tson();
+      const data: JobStatusResponse = await response.json();
 
       // Update UI with current status
       this.updateProgressUI(data);
@@ -229,7 +229,7 @@ export class JobPollingManager {
   private async updateUrlCount(jobId: string): Promise<void> {
     try {
       const response = await fetch(`/scholar/api/bibtex/job/${jobId}/urls/`);
-      const urlData = await response.tson();
+      const urlData = await response.json();
       const count = urlData.total_urls || 0;
 
       // Update sidebar button count

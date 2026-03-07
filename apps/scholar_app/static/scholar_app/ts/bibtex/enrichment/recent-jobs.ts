@@ -16,7 +16,7 @@ export async function loadRecentJobs() {
             console.warn("[BibTeX] Failed to load recent jobs:", response.status);
             return;
         }
-        const data = await response.tson();
+        const data = await response.json();
         if (!data.success || !data.jobs || data.jobs.length === 0) {
             showNoJobsMessage();
             return;
@@ -271,7 +271,7 @@ export async function deleteJob(jobId) {
             await loadRecentJobs();
         }
         else {
-            const data = await response.tson().catch(() => ({}));
+            const data = await response.json().catch(() => ({}));
             const errorMsg = data.error || "Failed to delete job";
             showAlert(errorMsg, "error");
         }

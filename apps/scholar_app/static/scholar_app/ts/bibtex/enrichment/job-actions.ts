@@ -69,7 +69,7 @@ export async function openAllPaperUrls(jobId) {
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
         }
-        const data = await response.tson();
+        const data = await response.json();
         console.log("[Open URLs] Received data:", data);
         if (data.urls && data.urls.length > 0) {
             showConfirm({
@@ -150,7 +150,7 @@ export async function saveJobToProject(jobId) {
             body: `project_id=${encodeURIComponent(projectId)}`,
         });
         console.log("[Save to Project] Response status:", response.status);
-        const data = await response.tson();
+        const data = await response.json();
         console.log("[Save to Project] Response data:", data);
         if (response.ok && data.success) {
             const projectName = data.project || "project";

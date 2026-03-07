@@ -113,7 +113,7 @@ async function checkSourceHealth(sourceName: string): Promise<void> {
 
   try {
     const response = await fetch(endpoint);
-    const data: HealthResponse = await response.tson();
+    const data: HealthResponse = await response.json();
 
     if (data.ready) {
       const tooltip = `${data.service}: Ready - Local database available`;
