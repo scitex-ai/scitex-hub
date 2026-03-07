@@ -37,7 +37,7 @@ _DESCRIPTIONS = {
 }
 
 # Modules under active development
-_WIP_MODULES = {"clew", "vis", "apps"}
+_WIP_MODULES = {"clew", "vis"}
 
 
 def ensure_builtin_modules(author_username="ywatanabe"):

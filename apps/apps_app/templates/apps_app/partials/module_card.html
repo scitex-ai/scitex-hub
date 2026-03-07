@@ -23,6 +23,7 @@
         <div class="ap-card-info">
             <div class="ap-card-title-row">
                 <h3 class="ap-card-title">{{ mod_item.app.module_name }}</h3>
+                <span class="ap-card-version">v{{ mod_item.app.latest_version|default:"0.1.0" }}</span>
                 <div class="ap-card-badges">
                     <span class="ap-category-badge ap-category-{{ mod_item.app.category }}">{{ mod_item.app.get_category_display }}</span>
                     {% if mod_item.app.visibility == "private" %}
@@ -74,10 +75,6 @@
                 {{ mod_item.app.avg_rating }}
             </span>
         {% endif %}
-        <span class="ap-stat ap-stat-version" title="Version">
-            <i class="fas fa-tag" aria-hidden="true"></i>
-            v{{ mod_item.app.latest_version|default:"0.1.0" }}
-        </span>
     </div>
     <div class="ap-card-links">
         {% if mod_item.is_dev %}

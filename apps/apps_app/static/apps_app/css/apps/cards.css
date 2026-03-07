@@ -33,7 +33,7 @@
   color: inherit;
 }
 
-/* Icon — compact */
+/* Icon — compact, with optional status overlay badge */
 .ap-card-icon {
   flex-shrink: 0;
   width: 32px;
@@ -45,6 +45,41 @@
   border: 1px solid var(--workspace-border-default, var(--border-color));
   font-size: 1rem;
   color: var(--workspace-icon-primary, var(--accent));
+  position: relative;
+}
+
+/* Overlay badge on icon (DEV, WIP, BETA, etc.) */
+.ap-icon-badge {
+  position: absolute;
+  bottom: -4px;
+  right: -6px;
+  font-size: 0.45rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0 3px;
+  line-height: 1.4;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+
+.ap-icon-badge--dev {
+  color: #fff;
+  background: #b87fff;
+}
+
+.ap-icon-badge--wip {
+  color: #fff;
+  background: #e6a817;
+}
+
+.ap-icon-badge--beta {
+  color: #fff;
+  background: #3b82f6;
+}
+
+.ap-icon-badge--deprecated {
+  color: #fff;
+  background: #6b7280;
 }
 
 /* Info block — title row + description */
@@ -64,6 +99,12 @@
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
+  white-space: nowrap;
+}
+
+.ap-card-version {
+  font-size: 0.7rem;
+  color: var(--text-tertiary, #6a737d);
   white-space: nowrap;
 }
 

@@ -260,7 +260,6 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         body_class="apps-page",
         keyboard_shortcut="M",
         order=90,
-        status="wip",
         ai_hint="Browse, install, and publish community modules.",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
