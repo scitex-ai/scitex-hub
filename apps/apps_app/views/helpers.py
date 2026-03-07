@@ -35,6 +35,7 @@ class _DevAppProxy:
         self.is_verified = False
         self.author = owner_user
         self.registry_repo_url = ""
+        self.latest_version = "0.1.0"
 
     def get_category_display(self):
         return "Other"
@@ -92,9 +93,19 @@ def browse_context(request, current_project=None):
     """Build browse page context — all modules returned, filtering is client-side."""
     ensure_builtin_modules()
 
+    from django.db.models import OuterRef, Subquery
+
+    from ..models import ModuleVersion
+
+    latest_ver_sq = (
+        ModuleVersion.objects.filter(module=OuterRef("pk"))
+        .order_by("-released_at")
+        .values("version")[:1]
+    )
     modules = (
         AppsModule.objects.filter(visibility="public")
         .select_related("author", "author__profile")
+        .annotate(latest_version=Subquery(latest_ver_sq))
         .order_by("-star_count", "-install_count")
     )
 

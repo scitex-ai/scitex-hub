@@ -74,6 +74,10 @@
                 {{ mod_item.app.avg_rating }}
             </span>
         {% endif %}
+        <span class="ap-stat ap-stat-version" title="Version">
+            <i class="fas fa-tag" aria-hidden="true"></i>
+            v{{ mod_item.app.latest_version|default:"0.1.0" }}
+        </span>
     </div>
     <div class="ap-card-links">
         {% if mod_item.is_dev %}

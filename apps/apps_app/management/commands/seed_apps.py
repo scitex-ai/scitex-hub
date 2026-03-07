@@ -72,8 +72,8 @@ def ensure_builtin_modules(author_username="ywatanabe"):
         if not obj.versions.exists():
             ModuleVersion.objects.create(
                 module=obj,
-                version="1.0.0",
-                changelog="Initial built-in release.",
+                version="0.1.0",
+                changelog="Initial release.",
                 is_stable=True,
             )
 
