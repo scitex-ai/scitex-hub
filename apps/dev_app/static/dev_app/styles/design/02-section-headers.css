@@ -12,14 +12,9 @@
 }
 
 .section-header-icon {
-  display: inline-block;
-  vertical-align: text-bottom;
-  margin-right: 8px;
-  width: 32px;
-  height: 32px;
+  display: none;
 }
 
 .section-header-badge {
   font-size: 0.9rem;
 }
-

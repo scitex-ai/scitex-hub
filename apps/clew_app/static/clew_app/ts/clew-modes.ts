@@ -108,18 +108,14 @@ export async function renderProjectDag(
     `;
   } else {
     dagArea.innerHTML = `
-      <div class="dag-placeholder">
+      <div class="dag-placeholder clew-empty-state">
         <i class="fas fa-project-diagram fa-3x"></i>
         <h3>No Runs Yet</h3>
-        <div class="clew-instructions">
-          <div class="clew-direction">
-            <h4>How Clew Works</h4>
-            <p>
-              Wrap your script with <code>@stx.session</code> and use
-              <code>stx.io</code> for file I/O. Clew records every input/output
-              with SHA-256 hashes, building a verifiable dependency DAG.
-            </p>
-            <pre><code>import scitex as stx
+        <p class="clew-empty-subtitle">Use <code>@stx.session</code> + <code>stx.io</code> to track reproducible pipelines</p>
+        <div class="clew-instructions clew-instructions-vertical">
+          <div class="clew-direction clew-direction-code">
+            <h4><i class="fas fa-code"></i> Example Script</h4>
+            <pre data-language="python"><code class="language-python">import scitex as stx
 
 @stx.session
 def main():
@@ -131,17 +127,29 @@ def main():
     ax.plot_line(result.index, result.values)
     stx.io.save(fig, "figure_1.png")</code></pre>
           </div>
-          <div class="clew-direction">
-            <h4>Quick Start</h4>
+          <div class="clew-direction clew-direction-start">
+            <h4><i class="fas fa-rocket"></i> Quick Start</h4>
             <ol>
-              <li>Click <strong>Add Examples</strong> to get sample scripts</li>
-              <li>Run: <code>cd examples/clew &amp;&amp; bash 00_run_all.sh</code></li>
+              <li>Click <strong>Add Examples</strong> above</li>
+              <li>Run from project root:
+                <pre data-language="bash"><code class="language-bash">bash ./examples/clew/00_run_all.sh</code></pre>
+              </li>
               <li>Switch to <strong>Project</strong> mode to view the DAG</li>
             </ol>
-            <p class="text-muted" style="margin-top:0.5rem;">
-              <code>stx.io</code> supports 30+ formats (CSV, NumPy, images, pickle, etc.).<br>
-              <code>stx.plt</code> creates publication-ready figures with auto CSV export.
-            </p>
+            <div class="clew-features">
+              <div class="clew-feature">
+                <code>stx.io</code>
+                <span>30+ formats (CSV, NumPy, images, pickle, etc.)</span>
+              </div>
+              <div class="clew-feature">
+                <code>stx.plt</code>
+                <span>Publication-ready figures with auto CSV export</span>
+              </div>
+              <div class="clew-feature">
+                <code>stx.clew</code>
+                <span>SHA-256 hashed dependency DAG</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

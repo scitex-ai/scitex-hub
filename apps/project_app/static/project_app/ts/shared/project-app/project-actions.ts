@@ -203,3 +203,66 @@ export async function handleFork(event: Event) {
     btn.disabled = false;
   }
 }
+
+/**
+ * Submit an app to the App Store via registry PR
+ */
+export async function submitToAppStore(
+  owner: string,
+  repo: string,
+): Promise<void> {
+  if (
+    !confirm(
+      `Submit "${owner}/${repo}" to the App Store?\n\nThis will run validation and open a review PR.`,
+    )
+  ) {
+    return;
+  }
+
+  const btn = document.getElementById("submit-app-btn") as HTMLButtonElement;
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML =
+      '<i class="fas fa-spinner fa-spin"></i> <span>Submitting...</span>';
+  }
+
+  try {
+    const response = await fetch(`/apps/api/dev/${owner}/${repo}/submit/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCsrfToken(),
+      },
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      showNotification(
+        `App submitted! Review PR opened: ${data.pr_url}`,
+        "success",
+      );
+      if (btn) {
+        btn.innerHTML = '<i class="fas fa-check"></i> <span>Submitted</span>';
+      }
+    } else {
+      const errorMsg = data.errors
+        ? `Validation failed:\n${data.errors.join("\n")}`
+        : data.error || "Submission failed";
+      showNotification(errorMsg, "error");
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML =
+          '<i class="fas fa-upload"></i> <span>Submit to App Store</span>';
+      }
+    }
+  } catch (error) {
+    console.error("Error submitting app:", error);
+    showNotification("Failed to submit app", "error");
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML =
+        '<i class="fas fa-upload"></i> <span>Submit to App Store</span>';
+    }
+  }
+}

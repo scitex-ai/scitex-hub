@@ -105,7 +105,8 @@
 .dag-placeholder {
   text-align: center;
   color: var(--workspace-text-muted);
-  max-width: 500px;
+  width: 100%;
+  max-width: 720px;
 }
 
 .dag-placeholder i {
@@ -162,12 +163,87 @@
 
 .clew-direction pre {
   background: var(--workspace-bg-tertiary);
-  padding: 0.5rem 0.75rem;
+  padding: 1.75rem 0.75rem 0.5rem !important;
   border-radius: 4px;
   margin: 0;
   overflow-x: auto;
   font-size: 0.78rem;
   line-height: 1.5;
+  border: none;
+  box-shadow: none;
+}
+
+/* Suppress shared code-block header bar inside Clew, but keep language label */
+.clew-direction pre::after {
+  display: none !important;
+}
+
+.clew-direction pre::before {
+  top: 0.25rem;
+  left: 0.5rem;
+  font-size: 0.65rem;
+}
+
+/* Empty state subtitle */
+.clew-empty-subtitle {
+  font-size: 0.88rem;
+  color: var(--workspace-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+/* Vertical layout: example script on top, quick start below */
+.clew-instructions-vertical {
+  flex-direction: column;
+}
+
+/* Code column takes more space (horizontal layout) */
+.clew-direction-code {
+  flex: 1.3;
+}
+
+.clew-direction-start {
+  flex: 1;
+}
+
+.clew-direction-start ol {
+  padding-left: 1.2rem;
+  margin: 0;
+}
+
+.clew-direction-start ol li {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+
+.clew-direction-start ol li pre {
+  margin-top: 0.4rem;
+}
+
+/* Feature list at bottom of Quick Start */
+.clew-features {
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--workspace-border-default);
+  padding-top: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.clew-feature {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+}
+
+.clew-feature code {
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.clew-feature span {
+  color: var(--workspace-text-muted);
 }
 
 /* Right Sidebar - Details Panel */

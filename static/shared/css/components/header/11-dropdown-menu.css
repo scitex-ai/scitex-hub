@@ -57,6 +57,12 @@
   color: var(--text-muted); /* Muted icon */
 }
 
+.dropdown-item svg {
+  display: inline-block;
+  vertical-align: text-bottom;
+  flex-shrink: 0;
+}
+
 .dropdown-divider {
   height: 1px;
   background: var(--border-default);

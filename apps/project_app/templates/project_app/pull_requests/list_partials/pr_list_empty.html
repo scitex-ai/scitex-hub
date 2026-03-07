@@ -7,11 +7,9 @@
     <p class="text-muted">
         {% if state_filter == 'open' %}
             There are no open pull requests.
-        {% elif
-            state_filter == 'closed' %}
+        {% elif state_filter == 'closed' %}
             There are no closed pull requests.
-        {% elif
-            state_filter == 'merged' %}
+        {% elif state_filter == 'merged' %}
             There are no merged pull requests.
         {% else %}
             There are no pull requests in this project.

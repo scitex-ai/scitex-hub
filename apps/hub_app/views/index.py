@@ -235,6 +235,13 @@ def _add_file_browser_context(request, project, context):
             f"{gitea_url}/{owner_name}/{slug}/archive/{current_branch}.zip"
         )
 
+        # Open PR count for tab badge
+        from apps.project_app.models import PullRequest
+
+        open_pr_count = PullRequest.objects.filter(
+            project=project, state="open"
+        ).count()
+
         context.update(
             {
                 "directories": dirs,
@@ -250,6 +257,7 @@ def _add_file_browser_context(request, project, context):
                 "gitea_https_url": gitea_https_url,
                 "gitea_ssh_url": gitea_ssh_url,
                 "download_zip_url": download_zip_url,
+                "open_pr_count": open_pr_count,
             }
         )
     except Exception as e:
