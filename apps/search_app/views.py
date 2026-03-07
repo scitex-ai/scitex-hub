@@ -78,18 +78,18 @@ def search_users(query, current_user=None, limit=20):
             Q(username__icontains=query)
             | Q(first_name__icontains=query)
             | Q(last_name__icontains=query)
-            | Q(profile__institution__icontains=query)
-            | Q(profile__research_interests__icontains=query)
-            | Q(profile__bio__icontains=query)
+            | Q(auth_profile__institution__icontains=query)
+            | Q(auth_profile__research_interests__icontains=query)
+            | Q(auth_profile__bio__icontains=query)
         )
-        .select_related("profile")
+        .select_related("auth_profile")
         .distinct()[:limit]
     )
 
     # Format results
     results = []
     for user in users:
-        profile = getattr(user, "profile", None)
+        profile = getattr(user, "auth_profile", None)
         results.append(
             {
                 "username": user.username,
@@ -176,7 +176,7 @@ def autocomplete(request):
         Q(username__istartswith=query)
         | Q(first_name__istartswith=query)
         | Q(last_name__istartswith=query)
-    ).select_related("profile")[:5]
+    ).select_related("auth_profile")[:5]
 
     for user in users:
         suggestions.append(

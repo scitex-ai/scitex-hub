@@ -104,7 +104,7 @@ def browse_context(request, current_project=None):
     )
     modules = (
         AppsModule.objects.filter(visibility="public")
-        .select_related("author", "author__profile")
+        .select_related("author", "author__auth_profile")
         .annotate(latest_version=Subquery(latest_ver_sq))
         .order_by("-star_count", "-install_count")
     )
@@ -164,7 +164,7 @@ def browse_context(request, current_project=None):
             owner_users = {
                 u.username: u
                 for u in User.objects.filter(username__in=owner_names).select_related(
-                    "profile"
+                    "auth_profile"
                 )
             }
             for d in dev_installs:

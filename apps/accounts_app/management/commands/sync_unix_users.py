@@ -35,7 +35,7 @@ class Command(BaseCommand):
         User = get_user_model()
         dry_run = options["dry_run"]
 
-        users = User.objects.select_related("profile").order_by("pk")
+        users = User.objects.select_related("auth_profile").order_by("pk")
         total = users.count()
 
         self.stdout.write(
