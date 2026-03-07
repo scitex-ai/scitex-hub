@@ -10,8 +10,10 @@
     <div class="apps-container">
         <div class="ap-detail-header">
             <div class="ap-detail-icon">
-                {% if reg_module and reg_module.icon_fa %}
-                    <i class="{{ reg_module.icon_fa }}" aria-hidden="true"></i>
+                {% load module_icons %}
+
+                {% if reg_module %}
+                    {% module_icon reg_module.name "tab" reg_module.status reg_module.is_dev reg_module.icon_fa %}
                 {% else %}
                     <i class="fas fa-puzzle-piece" aria-hidden="true"></i>
                 {% endif %}

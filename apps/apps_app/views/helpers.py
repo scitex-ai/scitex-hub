@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import logging
+import types
 
 from apps.workspace_app.registry import get_module
 
@@ -15,6 +16,29 @@ from ..models import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class _DevAppProxy:
+    """Make DevInstallation quack like AppsModule for the shared card template."""
+
+    def __init__(self, dev, owner_user=None):
+        self.module_name = dev.label or dev.source_repo
+        self.category = "other"
+        self.star_count = 0
+        self.install_count = 0
+        self.avg_rating = None
+        self.created_at = dev.installed_at
+        self.short_description = dev.description or ""
+        self.status = "stable"
+        self.visibility = "public"
+        self.is_builtin = False
+        self.is_verified = False
+        self.author = owner_user
+        self.registry_repo_url = ""
+
+    def get_category_display(self):
+        return "Other"
+
 
 # Module-level flag — ensures built-in modules exist on first apps visit
 _builtins_ensured = False
@@ -116,12 +140,42 @@ def browse_context(request, current_project=None):
 
     from ..models import CATEGORY_CHOICES, DevInstallation
 
-    # Dev installations for the "My Dev Apps" section (show all, including disabled)
-    dev_apps = []
+    # Dev installations → same mod_item shape as public modules (single card template)
+    dev_modules = []
     if request.user.is_authenticated:
-        dev_apps = list(
+        dev_installs = list(
             DevInstallation.objects.filter(user=request.user).order_by("tab_order")
         )
+        if dev_installs:
+            from django.contrib.auth.models import User
+
+            owner_names = {d.source_owner for d in dev_installs}
+            owner_users = {
+                u.username: u
+                for u in User.objects.filter(username__in=owner_names).select_related(
+                    "profile"
+                )
+            }
+            for d in dev_installs:
+                owner_user = owner_users.get(d.source_owner)
+                dev_modules.append(
+                    {
+                        "app": _DevAppProxy(d, owner_user),
+                        "reg": types.SimpleNamespace(
+                            name=d.module_name,
+                            icon_fa=d.icon,
+                            order=d.tab_order,
+                            status="",
+                        ),
+                        "is_installed": True,
+                        "is_enabled": d.is_enabled,
+                        "tab_order": d.tab_order,
+                        "is_starred": False,
+                        "is_dev": True,
+                        "dev_owner": d.source_owner,
+                        "dev_repo": d.source_repo,
+                    }
+                )
 
     from django.conf import settings
 
@@ -131,7 +185,7 @@ def browse_context(request, current_project=None):
         "current_project": current_project,
         "modules": module_list,
         "categories": CATEGORY_CHOICES,
-        "dev_apps": dev_apps,
+        "dev_modules": dev_modules,
         "gitea_url": gitea_url,
         "apps_org": "scitex-apps",
     }
