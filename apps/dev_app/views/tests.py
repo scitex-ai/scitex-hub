@@ -115,7 +115,7 @@ class TestMonitorView(TemplateView):
     ) -> TestResult:
         """Run a single test and return result."""
         start = time.time()
-        timeout = 5
+        timeout = 2  # Reduced from 5s to fail fast and prevent blocking
         try:
             if method == "GET":
                 resp = requests.get(
@@ -428,7 +428,18 @@ class TestMonitorView(TemplateView):
 
 
 def run_tests_api(request, category):
-    """API endpoint: run tests for a single category, return JSON."""
+    """API endpoint: run tests for a single category, return JSON.
+
+    Requires staff authentication to prevent external crawlers from
+    triggering resource-intensive tests.
+    """
+    # Block unauthenticated/non-staff access (prevents crawler-induced DoS)
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return JsonResponse(
+            {"error": "Staff authentication required"},
+            status=403,
+        )
+
     method_name = _CATEGORY_METHOD_MAP.get(category)
     if not method_name:
         return JsonResponse({"error": f"Unknown category: {category}"}, status=404)
