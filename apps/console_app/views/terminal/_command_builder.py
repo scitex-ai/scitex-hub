@@ -139,12 +139,13 @@ def build_shell_in_allocation_cmd(
     project_slug: str = "",
 ) -> list[str]:
     """Build ``srun --overlap`` command to attach shell inside existing allocation."""
-    return build_shell_in_allocation_command(
-        job_id=job_id,
-        instance_name=instance_name,
-        username=username,
-        project_slug=project_slug,
-    )
+    import inspect
+
+    sig = inspect.signature(build_shell_in_allocation_command)
+    kwargs = dict(job_id=job_id, instance_name=instance_name, username=username)
+    if "project_slug" in sig.parameters:
+        kwargs["project_slug"] = project_slug
+    return build_shell_in_allocation_command(**kwargs)
 
 
 # EOF
