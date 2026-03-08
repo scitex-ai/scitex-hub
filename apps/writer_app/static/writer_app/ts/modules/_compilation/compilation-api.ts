@@ -36,7 +36,7 @@ export class CompilationAPI {
       }
 
       const response = await fetch(
-        `/writer/api/project/${options.projectId}/compile_preview/`,
+        `/apps/writer/api/project/${options.projectId}/compile_preview/`,
         {
           method: "POST",
           headers: {
@@ -98,7 +98,7 @@ export class CompilationAPI {
       );
 
       const response = await fetch(
-        `/writer/api/project/${options.projectId}/compile_full/`,
+        `/apps/writer/api/project/${options.projectId}/compile_full/`,
         {
           method: "POST",
           headers: {
@@ -141,7 +141,7 @@ export class CompilationAPI {
     jobId: string,
   ): Promise<CompilationResult> {
     const response = await fetch(
-      `/writer/api/project/${projectId}/compilation/status/${jobId}/`,
+      `/apps/writer/api/project/${projectId}/compilation/status/${jobId}/`,
     );
 
     if (!response.ok) {
@@ -156,13 +156,16 @@ export class CompilationAPI {
    */
   async cancel(jobId: string): Promise<boolean> {
     try {
-      const response = await fetch(`/writer/api/cancel-compilation/${jobId}/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCsrfToken(),
+      const response = await fetch(
+        `/apps/writer/api/cancel-compilation/${jobId}/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCsrfToken(),
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         return false;
@@ -185,7 +188,7 @@ export class CompilationAPI {
   ): Promise<string | null> {
     try {
       const response = await fetch(
-        `/writer/api/pdf/${projectSlug}/${docType}/`,
+        `/apps/writer/api/pdf/${projectSlug}/${docType}/`,
       );
 
       if (!response.ok) {

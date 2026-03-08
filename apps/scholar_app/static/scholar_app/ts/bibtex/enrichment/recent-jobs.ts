@@ -10,81 +10,78 @@ import { getCsrfToken, showAlert } from "./ui-utils";
  * Load and display recent jobs
  */
 export async function loadRecentJobs() {
-    try {
-        const response = await fetch("/scholar/api/bibtex/recent-jobs/");
-        if (!response.ok) {
-            console.warn("[BibTeX] Failed to load recent jobs:", response.status);
-            return;
-        }
-        const data = await response.json();
-        if (!data.success || !data.jobs || data.jobs.length === 0) {
-            showNoJobsMessage();
-            return;
-        }
-        // Hide "no jobs" message and show container
-        const noJobsMsg = document.getElementById("noRecentJobsMessage");
-        const jobsContainer = document.getElementById("recentJobsContainer");
-        if (noJobsMsg)
-            noJobsMsg.style.display = "none";
-        if (jobsContainer) {
-            jobsContainer.style.display = "flex";
-            renderRecentJobs(data.jobs, jobsContainer);
-        }
+  try {
+    const response = await fetch("/apps/scholar/api/bibtex/recent-jobs/");
+    if (!response.ok) {
+      console.warn("[BibTeX] Failed to load recent jobs:", response.status);
+      return;
     }
-    catch (error) {
-        console.error("[BibTeX] Error loading recent jobs:", error);
+    const data = await response.json();
+    if (!data.success || !data.jobs || data.jobs.length === 0) {
+      showNoJobsMessage();
+      return;
     }
+    // Hide "no jobs" message and show container
+    const noJobsMsg = document.getElementById("noRecentJobsMessage");
+    const jobsContainer = document.getElementById("recentJobsContainer");
+    if (noJobsMsg) noJobsMsg.style.display = "none";
+    if (jobsContainer) {
+      jobsContainer.style.display = "flex";
+      renderRecentJobs(data.jobs, jobsContainer);
+    }
+  } catch (error) {
+    console.error("[BibTeX] Error loading recent jobs:", error);
+  }
 }
 /**
  * Show "no jobs" message
  */
 function showNoJobsMessage() {
-    const noJobsMsg = document.getElementById("noRecentJobsMessage");
-    const jobsContainer = document.getElementById("recentJobsContainer");
-    if (noJobsMsg)
-        noJobsMsg.style.display = "block";
-    if (jobsContainer)
-        jobsContainer.style.display = "none";
+  const noJobsMsg = document.getElementById("noRecentJobsMessage");
+  const jobsContainer = document.getElementById("recentJobsContainer");
+  if (noJobsMsg) noJobsMsg.style.display = "block";
+  if (jobsContainer) jobsContainer.style.display = "none";
 }
 /**
  * Deduplicate jobs by filename, keeping the most recent one
  */
 function deduplicateJobs(jobs) {
-    const jobsByFilename = new Map();
-    for (const job of jobs) {
-        const filename = job.original_filename;
-        const existing = jobsByFilename.get(filename);
-        if (!existing) {
-            jobsByFilename.set(filename, job);
-        }
-        else {
-            // Keep the most recent job (compare by created_at or id)
-            const existingDate = existing.created_at ? new Date(existing.created_at).getTime() : 0;
-            const currentDate = job.created_at ? new Date(job.created_at).getTime() : 0;
-            if (currentDate > existingDate) {
-                jobsByFilename.set(filename, job);
-            }
-        }
+  const jobsByFilename = new Map();
+  for (const job of jobs) {
+    const filename = job.original_filename;
+    const existing = jobsByFilename.get(filename);
+    if (!existing) {
+      jobsByFilename.set(filename, job);
+    } else {
+      // Keep the most recent job (compare by created_at or id)
+      const existingDate = existing.created_at
+        ? new Date(existing.created_at).getTime()
+        : 0;
+      const currentDate = job.created_at
+        ? new Date(job.created_at).getTime()
+        : 0;
+      if (currentDate > existingDate) {
+        jobsByFilename.set(filename, job);
+      }
     }
-    return Array.from(jobsByFilename.values());
+  }
+  return Array.from(jobsByFilename.values());
 }
 /**
  * Render recent jobs as compact cards
  */
 function renderRecentJobs(jobs, container) {
-    // Deduplicate jobs by filename, keeping only the most recent
-    const uniqueJobs = deduplicateJobs(jobs);
-    container.innerHTML = uniqueJobs
-        .map((job) => buildJobCard(job))
-        .join("");
+  // Deduplicate jobs by filename, keeping only the most recent
+  const uniqueJobs = deduplicateJobs(jobs);
+  container.innerHTML = uniqueJobs.map((job) => buildJobCard(job)).join("");
 }
 /**
  * Build HTML for a single job card
  */
 function buildJobCard(job) {
-    const jobUrl = `/scholar/bibtex/job/${job.id}/`;
-    const downloadUrl = `/scholar/api/bibtex/job/${job.id}/download/`;
-    return `
+  const jobUrl = `/apps/scholar/bibtex/job/${job.id}/`;
+  const downloadUrl = `/apps/scholar/api/bibtex/job/${job.id}/download/`;
+  return `
     <div class="recent-job-card" style="position: relative; min-width: 180px; max-width: 200px; padding: 0.75rem; border: 1px solid var(--color-border-default); border-radius: 6px; background: var(--color-canvas-subtle); transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.12); display: flex; flex-direction: column; gap: 0.6rem;">
 
       ${buildCloseButton(job.id)}
@@ -100,7 +97,7 @@ function buildJobCard(job) {
  * Build close button
  */
 function buildCloseButton(jobId) {
-    return `
+  return `
     <button onclick="event.stopPropagation(); deleteJob('${jobId}')"
             style="position: absolute; top: 0.4rem; right: 0.4rem; background: none; border: none; color: var(--color-fg-muted); cursor: pointer; padding: 3px; border-radius: 3px; font-size: 0.75rem; line-height: 1; transition: all 0.2s; z-index: 10;"
             onmouseover="this.style.background='var(--color-danger-subtle)'; this.style.color='var(--color-danger-fg)';"
@@ -114,7 +111,7 @@ function buildCloseButton(jobId) {
  * Build filename section
  */
 function buildFilenameSection(job, jobUrl) {
-    return `
+  return `
     <div style="display: flex; align-items: center; gap: 0.4rem; padding-right: 1.2rem; cursor: pointer;" onclick="window.location.href='${jobUrl}'">
       <i class="fas fa-check-circle" style="color: var(--scitex-color-03); font-size: 0.85rem;"></i>
       <div style="font-weight: 500; color: var(--color-fg-default); font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;" title="${job.original_filename}">
@@ -127,7 +124,7 @@ function buildFilenameSection(job, jobUrl) {
  * Build paper count section
  */
 function buildPaperCount(job, jobUrl) {
-    return `
+  return `
     <div style="font-size: 0.7rem; color: var(--color-fg-muted); cursor: pointer;" onclick="window.location.href='${jobUrl}'">
       ${job.total_papers || 0} papers
     </div>
@@ -137,31 +134,30 @@ function buildPaperCount(job, jobUrl) {
  * Build progress bar (if processing)
  */
 function buildProgressBar(job) {
-    if (job.status === "processing" && job.progress_percentage !== undefined) {
-        return `
+  if (job.status === "processing" && job.progress_percentage !== undefined) {
+    return `
       <div style="background: var(--color-border-default); height: 3px; border-radius: 2px; overflow: hidden;">
         <div style="height: 100%; background: var(--scitex-color-03); width: ${job.progress_percentage}%; transition: width 0.3s ease;"></div>
       </div>
     `;
-    }
-    return "";
+  }
+  return "";
 }
 /**
  * Build action buttons
  */
 function buildActionButtons(job, downloadUrl) {
-    if (job.status === "completed") {
-        return buildCompletedButtons(job, downloadUrl);
-    }
-    else {
-        return buildDisabledButtons();
-    }
+  if (job.status === "completed") {
+    return buildCompletedButtons(job, downloadUrl);
+  } else {
+    return buildDisabledButtons();
+  }
 }
 /**
  * Build buttons for completed jobs
  */
 function buildCompletedButtons(job, downloadUrl) {
-    return `
+  return `
     <div style="display: flex; gap: 0.4rem; margin-top: auto;">
       <button onclick="event.stopPropagation(); saveJobToProject('${job.id}')"
               class="btn btn-warning"
@@ -197,7 +193,7 @@ function buildCompletedButtons(job, downloadUrl) {
  * Build disabled buttons for non-completed jobs
  */
 function buildDisabledButtons() {
-    return `
+  return `
     <div style="display: flex; gap: 0.4rem; margin-top: auto;">
       <button disabled
               style="flex: 1; padding: 0.4rem; background: var(--color-neutral-muted); border: none; border-radius: 4px; color: var(--color-fg-muted); font-size: 0.7rem; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 0.3rem; opacity: 0.5;">
@@ -218,67 +214,68 @@ function buildDisabledButtons() {
  * Get status badge styling data
  */
 export function getStatusBadgeData(status) {
-    const badges = {
-        completed: {
-            text: "Completed",
-            bgColor: "var(--scitex-color-03)",
-            textColor: "white",
-        },
-        processing: {
-            text: "Processing",
-            bgColor: "var(--scitex-color-04)",
-            textColor: "var(--color-fg-default)",
-        },
-        failed: {
-            text: "Failed",
-            bgColor: "var(--color-danger-emphasis)",
-            textColor: "white",
-        },
-        pending: {
-            text: "Pending",
-            bgColor: "var(--color-neutral-muted)",
-            textColor: "var(--color-fg-default)",
-        },
-        cancelled: {
-            text: "Cancelled",
-            bgColor: "var(--color-danger-subtle)",
-            textColor: "var(--color-danger-fg)",
-        },
-    };
-    return badges[status] || badges["pending"];
+  const badges = {
+    completed: {
+      text: "Completed",
+      bgColor: "var(--scitex-color-03)",
+      textColor: "white",
+    },
+    processing: {
+      text: "Processing",
+      bgColor: "var(--scitex-color-04)",
+      textColor: "var(--color-fg-default)",
+    },
+    failed: {
+      text: "Failed",
+      bgColor: "var(--color-danger-emphasis)",
+      textColor: "white",
+    },
+    pending: {
+      text: "Pending",
+      bgColor: "var(--color-neutral-muted)",
+      textColor: "var(--color-fg-default)",
+    },
+    cancelled: {
+      text: "Cancelled",
+      bgColor: "var(--color-danger-subtle)",
+      textColor: "var(--color-danger-fg)",
+    },
+  };
+  return badges[status] || badges["pending"];
 }
 /**
  * Delete a job
  */
 export async function deleteJob(jobId) {
-    try {
-        const csrfToken = getCsrfToken();
-        if (!csrfToken) {
-            showAlert("CSRF token not found. Please refresh the page.", "error");
-            return;
-        }
-        const response = await fetch(`/scholar/api/bibtex/job/${jobId}/delete/`, {
-            method: "DELETE",
-            headers: {
-                "X-CSRFToken": csrfToken,
-                "Content-Type": "application/json",
-            },
-        });
-        if (response.ok) {
-            // Show success alert
-            showAlert("Job deleted successfully", "success");
-            // Reload recent jobs
-            await loadRecentJobs();
-        }
-        else {
-            const data = await response.json().catch(() => ({}));
-            const errorMsg = data.error || "Failed to delete job";
-            showAlert(errorMsg, "error");
-        }
+  try {
+    const csrfToken = getCsrfToken();
+    if (!csrfToken) {
+      showAlert("CSRF token not found. Please refresh the page.", "error");
+      return;
     }
-    catch (error) {
-        console.error("Error deleting job:", error);
-        showAlert("Failed to delete job", "error");
+    const response = await fetch(
+      `/apps/scholar/api/bibtex/job/${jobId}/delete/`,
+      {
+        method: "DELETE",
+        headers: {
+          "X-CSRFToken": csrfToken,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    if (response.ok) {
+      // Show success alert
+      showAlert("Job deleted successfully", "success");
+      // Reload recent jobs
+      await loadRecentJobs();
+    } else {
+      const data = await response.json().catch(() => ({}));
+      const errorMsg = data.error || "Failed to delete job";
+      showAlert(errorMsg, "error");
     }
+  } catch (error) {
+    console.error("Error deleting job:", error);
+    showAlert("Failed to delete job", "error");
+  }
 }
 //# sourceMappingURL=recent-jobs.ts.map

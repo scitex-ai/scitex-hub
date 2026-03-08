@@ -55,7 +55,7 @@ export class PDFDownloadManager {
     if (arxivId) params.set("arxiv_id", arxivId);
     if (pmid) params.set("pmid", pmid);
 
-    const promise = fetch(`/scholar/api/pdf/status/?${params.toString()}`)
+    const promise = fetch(`/apps/scholar/api/pdf/status/?${params.toString()}`)
       .then((response) => response.json())
       .finally(() => {
         this.pendingChecks.delete(cacheKey);
@@ -75,7 +75,7 @@ export class PDFDownloadManager {
     pdfUrl?: string,
     title?: string,
   ): Promise<PDFDownloadResponse> {
-    const response = await fetch("/scholar/api/pdf/download/", {
+    const response = await fetch("/apps/scholar/api/pdf/download/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -162,7 +162,7 @@ export class PDFDownloadManager {
     const pmid = badge.dataset.pmid || "";
 
     if (status === "downloaded" && badge.dataset.pdfPath) {
-      const url = `/scholar/api/pdf/serve/?path=${encodeURIComponent(badge.dataset.pdfPath)}`;
+      const url = `/apps/scholar/api/pdf/serve/?path=${encodeURIComponent(badge.dataset.pdfPath)}`;
       window.open(url, "_blank");
       return;
     }

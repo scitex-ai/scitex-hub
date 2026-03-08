@@ -100,6 +100,11 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
     ),
     ...generateEntriesRecursive(
       rootDir,
+      "apps/discovery_app/static/discovery_app/ts",
+      "discovery_app",
+    ),
+    ...generateEntriesRecursive(
+      rootDir,
       "apps/clew_app/static/clew_app/ts",
       "clew_app",
     ),

@@ -63,7 +63,7 @@ export async function openAllPaperUrls(jobId) {
         return;
     }
     console.log("[Open URLs] Fetching URLs for job:", jobId);
-    const urlsEndpoint = `/scholar/api/bibtex/job/${jobId}/urls/`;
+    const urlsEndpoint = `/apps/scholar/api/bibtex/job/${jobId}/urls/`;
     try {
         const response = await fetch(urlsEndpoint);
         if (!response.ok) {
@@ -141,7 +141,7 @@ export async function saveJobToProject(jobId) {
         return;
     }
     try {
-        const response = await fetch(`/scholar/api/bibtex/job/${jobId}/save-to-project/`, {
+        const response = await fetch(`/apps/scholar/api/bibtex/job/${jobId}/save-to-project/`, {
             method: "POST",
             headers: {
                 "X-CSRFToken": csrfToken,

@@ -158,7 +158,7 @@ export class CsvDataCoordinator {
                     found = true;
                     console.log(`[CsvDataCoordinator] Found matching plot: ${plot.name} in ${category}`);
                     // Load CSV data
-                    const csvUrl = plot.csv || `/vis/api/gallery/project/${category}/${plot.name}/csv/`;
+                    const csvUrl = plot.csv || `/apps/vis/api/gallery/project/${category}/${plot.name}/csv/`;
                     try {
                         const csvResponse = await fetch(csvUrl);
                         if (csvResponse.ok) {
@@ -176,7 +176,7 @@ export class CsvDataCoordinator {
                     // Load axis metadata if not already present
                     if (!obj.axisMetadata) {
                         try {
-                            const metaResponse = await fetch(`/vis/api/gallery/metadata/${category}/${plot.name}/`);
+                            const metaResponse = await fetch(`/apps/vis/api/gallery/metadata/${category}/${plot.name}/`);
                             if (metaResponse.ok) {
                                 const metadata = await metaResponse.json();
                                 if (metadata.success && metadata.axes_bbox_px) {
@@ -222,7 +222,7 @@ export class CsvDataCoordinator {
         console.log(`[CsvDataCoordinator] Loading CSV for bundle panel: ${pltzPath}`);
 
         try {
-            const csvUrl = `/vis/api/bundles/pltz/data/?path=${encodeURIComponent(pltzPath)}`;
+            const csvUrl = `/apps/vis/api/bundles/pltz/data/?path=${encodeURIComponent(pltzPath)}`;
             const response = await fetch(csvUrl);
 
             if (response.ok) {
@@ -278,7 +278,7 @@ export class CsvDataCoordinator {
                 const { category, plot } = obj.plotInfo;
                 if (!category || !plot?.name) continue;
 
-                const metaResponse = await fetch(`/vis/api/gallery/metadata/${category}/${plot.name}/`);
+                const metaResponse = await fetch(`/apps/vis/api/gallery/metadata/${category}/${plot.name}/`);
                 if (metaResponse.ok) {
                     const metadata = await metaResponse.json();
                     if (metadata.success && metadata.axes_bbox_px) {

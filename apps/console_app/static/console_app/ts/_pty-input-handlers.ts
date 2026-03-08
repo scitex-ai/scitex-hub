@@ -36,9 +36,9 @@ export function attachKeyboardHandler(
     if (event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
       const key = event.key.toLowerCase();
       const navigationRoutes: Record<string, string> = {
-        s: "/scholar/",
-        v: "/vis/",
-        w: "/writer/",
+        s: "/apps/scholar/",
+        v: "/apps/vis/",
+        w: "/apps/writer/",
       };
 
       if (key === "z") {

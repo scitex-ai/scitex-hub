@@ -181,7 +181,7 @@ function triggerFileUpload(): void {
       (document.cookie.match(/csrftoken=([^;]+)/)?.[1] || "");
 
     try {
-      const resp = await fetch("/llm/api/upload/", {
+      const resp = await fetch("/apps/llm/api/upload/", {
         method: "POST",
         headers: { "X-CSRFToken": csrf },
         body: form,
@@ -271,5 +271,4 @@ export function initKeyboardShortcuts(): void {
       return;
     }
   });
-
 }

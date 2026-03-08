@@ -374,7 +374,7 @@ export class AIPanelChatMode {
     this.context.page_hints = this.collectPageHints();
 
     try {
-      const resp = await fetch("/llm/api/chat/stream/", {
+      const resp = await fetch("/apps/llm/api/chat/stream/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

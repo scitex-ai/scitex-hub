@@ -58,8 +58,9 @@ class Allocation:
         3. stop() — stops instance, cancels job.
     """
 
-    # Job name format: exactly one per user
-    JOB_NAME_PREFIX = "scitex-cloud-terminal"
+    # Job name format: matches build_sbatch_command() in scitex_container
+    # Pattern: scitex_{username}_{project_slug}
+    JOB_NAME_PREFIX = "scitex"
 
     def __init__(
         self,
@@ -89,26 +90,37 @@ class Allocation:
         """Query squeue for existing terminal jobs for this user.
 
         Returns list of SLURM job IDs (RUNNING or PENDING).
+
+        Job name pattern from build_sbatch_command: scitex_{username}_{project_slug}
+        We search for all jobs matching scitex_{username}_* pattern.
         """
-        job_name = f"{Allocation.JOB_NAME_PREFIX}-{username}"
+        job_prefix = f"{Allocation.JOB_NAME_PREFIX}_{username}_"
         try:
+            # Get all jobs for scitex user and filter by name prefix
             result = subprocess.run(
                 [
                     "squeue",
-                    f"--name={job_name}",
+                    "-u",
+                    "scitex",
                     "--noheader",
-                    "--format=%i",
+                    "--format=%i %j",
                 ],
                 capture_output=True,
                 text=True,
                 timeout=5,
             )
-            job_ids = [
-                jid.strip() for jid in result.stdout.strip().split("\n") if jid.strip()
-            ]
+            job_ids = []
+            for line in result.stdout.strip().split("\n"):
+                if not line.strip():
+                    continue
+                parts = line.split()
+                if len(parts) >= 2:
+                    jid, jname = parts[0], parts[1]
+                    if jname.startswith(job_prefix):
+                        job_ids.append(jid)
             return job_ids
         except Exception as e:
-            logger.error(f"Failed to query squeue for {job_name}: {e}")
+            logger.error(f"Failed to query squeue for {job_prefix}*: {e}")
             return []
 
     def attach_to_existing(self, job_id: str) -> bool:

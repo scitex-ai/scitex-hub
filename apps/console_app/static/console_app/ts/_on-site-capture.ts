@@ -127,7 +127,7 @@ async function savePermission(
   projectId: string | number,
 ): Promise<void> {
   try {
-    await fetch("/console/api/on-site/permission/", {
+    await fetch("/apps/console/api/on-site/permission/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -156,7 +156,7 @@ async function captureAndUpload(requestId: string): Promise<void> {
     const base64 = dataUrl.split(",")[1];
 
     // Upload to server
-    const resp = await fetch("/console/api/on-site/capture/upload/", {
+    const resp = await fetch("/apps/console/api/on-site/capture/upload/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -189,7 +189,7 @@ export async function handleCaptureRequest(msg: CaptureRequest): Promise<void> {
       console.log("[OnSite] Capture denied by user");
       // Notify server of denial
       try {
-        await fetch("/console/api/on-site/capture/upload/", {
+        await fetch("/apps/console/api/on-site/capture/upload/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

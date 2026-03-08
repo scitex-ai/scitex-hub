@@ -41,7 +41,7 @@ export class TexFileDropdown {
 
   constructor(
     dropdownId: string | undefined,
-    onSectionSelect: (sectionId: string, sectionName: string) => void
+    onSectionSelect: (sectionId: string, sectionName: string) => void,
   ) {
     this.dropdownId = dropdownId;
     this.onSectionSelect = onSectionSelect;
@@ -54,7 +54,7 @@ export class TexFileDropdown {
     if (!this.dropdownId) return;
 
     const dropdown = document.getElementById(
-      this.dropdownId
+      this.dropdownId,
     ) as HTMLSelectElement;
     if (!dropdown) {
       console.warn("[FileTree] Dropdown element not found:", this.dropdownId);
@@ -64,7 +64,7 @@ export class TexFileDropdown {
     dropdown.innerHTML = "";
 
     try {
-      const response = await fetch("/writer/api/sections-config/");
+      const response = await fetch("/apps/writer/api/sections-config/");
       const data = await response.json();
 
       if (!data.success || !data.hierarchy) {
@@ -83,7 +83,7 @@ export class TexFileDropdown {
         this.addSections(
           dropdown,
           "Supplementary",
-          hierarchy.supplementary.sections
+          hierarchy.supplementary.sections,
         );
       } else if (docType === "revision" && hierarchy.revision) {
         this.addSections(dropdown, "Revision", hierarchy.revision.sections);
@@ -95,14 +95,17 @@ export class TexFileDropdown {
 
       console.log(
         "[FileTree] Populated dropdown with hierarchical sections for",
-        docType
+        docType,
       );
 
       // Select first option if nothing selected
       if (dropdown.options.length > 0 && !dropdown.value) {
         dropdown.selectedIndex = 0;
         const firstOption = dropdown.options[0];
-        console.log("[FileTree] Auto-selected first section:", firstOption.value);
+        console.log(
+          "[FileTree] Auto-selected first section:",
+          firstOption.value,
+        );
         this.onSectionSelect(firstOption.value, firstOption.textContent || "");
       }
 
@@ -131,7 +134,7 @@ export class TexFileDropdown {
   private addSections(
     dropdown: HTMLSelectElement,
     groupLabel: string,
-    sections: any[]
+    sections: any[],
   ): void {
     if (sections.length === 0) return;
 
@@ -160,16 +163,13 @@ export class TexFileDropdown {
   /**
    * Fallback population method
    */
-  private populateFallback(
-    dropdown: HTMLSelectElement,
-    docType: string
-  ): void {
+  private populateFallback(dropdown: HTMLSelectElement, docType: string): void {
     const sections = this.sectionsByDocType[docType] || [];
 
     if (sections.length === 0) {
       console.warn(
         "[FileTree] No sections available for document type:",
-        docType
+        docType,
       );
       return;
     }
@@ -192,7 +192,7 @@ export class TexFileDropdown {
    */
   public extractTexFiles(
     nodes: FileTreeNode[],
-    files: Array<{ path: string; name: string }> = []
+    files: Array<{ path: string; name: string }> = [],
   ): Array<{ path: string; name: string }> {
     nodes.forEach((node) => {
       if (node.type === "file" && node.name.endsWith(".tex")) {

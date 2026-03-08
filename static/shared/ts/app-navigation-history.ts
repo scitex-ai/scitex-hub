@@ -179,9 +179,9 @@ class AppNavigationHistory {
   }
 
   private buildUrl(state: NavState): string {
-    const isWorkspaceShell = location.pathname.startsWith("/workspace/");
+    const isWorkspaceShell = location.pathname.startsWith("/apps/workspace/");
     if (isWorkspaceShell) {
-      return `/workspace/${state.module}/`;
+      return `/apps/workspace/${state.module}/`;
     }
     return `/${state.module}/`;
   }

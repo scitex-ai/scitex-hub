@@ -47,7 +47,7 @@ interface StatusBadgeData {
  */
 export async function loadRecentJobs(): Promise<void> {
   try {
-    const response = await fetch("/scholar/api/bibtex/recent-jobs/");
+    const response = await fetch("/apps/scholar/api/bibtex/recent-jobs/");
     if (!response.ok) {
       console.warn("[BibTeX] Failed to load recent jobs:", response.status);
       return;
@@ -98,8 +98,12 @@ function deduplicateJobs(jobs: RecentJob[]): RecentJob[] {
       jobsByFilename.set(filename, job);
     } else {
       // Keep the most recent job (compare by created_at or id)
-      const existingDate = existing.created_at ? new Date(existing.created_at).getTime() : 0;
-      const currentDate = job.created_at ? new Date(job.created_at).getTime() : 0;
+      const existingDate = existing.created_at
+        ? new Date(existing.created_at).getTime()
+        : 0;
+      const currentDate = job.created_at
+        ? new Date(job.created_at).getTime()
+        : 0;
 
       if (currentDate > existingDate) {
         jobsByFilename.set(filename, job);
@@ -117,17 +121,15 @@ function renderRecentJobs(jobs: RecentJob[], container: HTMLElement): void {
   // Deduplicate jobs by filename, keeping only the most recent
   const uniqueJobs = deduplicateJobs(jobs);
 
-  container.innerHTML = uniqueJobs
-    .map((job) => buildJobCard(job))
-    .join("");
+  container.innerHTML = uniqueJobs.map((job) => buildJobCard(job)).join("");
 }
 
 /**
  * Build HTML for a single job card
  */
 function buildJobCard(job: RecentJob): string {
-  const jobUrl = `/scholar/bibtex/job/${job.id}/`;
-  const downloadUrl = `/scholar/api/bibtex/job/${job.id}/download/`;
+  const jobUrl = `/apps/scholar/bibtex/job/${job.id}/`;
+  const downloadUrl = `/apps/scholar/api/bibtex/job/${job.id}/download/`;
 
   return `
     <div class="recent-job-card" style="position: relative; min-width: 180px; max-width: 200px; padding: 0.75rem; border: 1px solid var(--color-border-default); border-radius: 6px; background: var(--color-canvas-subtle); transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.12); display: flex; flex-direction: column; gap: 0.6rem;">
@@ -312,13 +314,16 @@ export async function deleteJob(jobId: string): Promise<void> {
       return;
     }
 
-    const response = await fetch(`/scholar/api/bibtex/job/${jobId}/delete/`, {
-      method: "DELETE",
-      headers: {
-        "X-CSRFToken": csrfToken,
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `/apps/scholar/api/bibtex/job/${jobId}/delete/`,
+      {
+        method: "DELETE",
+        headers: {
+          "X-CSRFToken": csrfToken,
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
 
     if (response.ok) {
       // Show success alert

@@ -24,7 +24,7 @@ export async function showBibtexDiff(jobId: string): Promise<void> {
   updateElementHTML("bibtexDiffContent", "Loading comparison...");
 
   try {
-    const response = await fetch(`/scholar/api/bibtex/job/${jobId}/diff/`);
+    const response = await fetch(`/apps/scholar/api/bibtex/job/${jobId}/diff/`);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }

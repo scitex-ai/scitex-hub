@@ -113,7 +113,7 @@ export class CompilationHandler {
     sectionName: string,
     colorMode: "light" | "dark",
   ): Promise<boolean> {
-    const existingPdfUrl = `/writer/api/project/${this.projectId}/pdf/preview-${sectionName}-${colorMode}.pdf?t=${Date.now()}`;
+    const existingPdfUrl = `/apps/writer/api/project/${this.projectId}/pdf/preview-${sectionName}-${colorMode}.pdf?t=${Date.now()}`;
 
     try {
       const response = await fetch(existingPdfUrl, { method: "HEAD" });
@@ -127,14 +127,14 @@ export class CompilationHandler {
    * Get existing PDF URL (without cache-buster — displayPdf() adds it when loading)
    */
   getExistingPdfUrl(sectionName: string, colorMode: "light" | "dark"): string {
-    return `/writer/api/project/${this.projectId}/pdf/preview-${sectionName}-${colorMode}.pdf`;
+    return `/apps/writer/api/project/${this.projectId}/pdf/preview-${sectionName}-${colorMode}.pdf`;
   }
 
   /**
    * Get themed PDF URL
    */
   getThemedPdfUrl(sectionName: string, colorMode: "light" | "dark"): string {
-    return `/writer/api/project/${this.projectId}/pdf/preview-${sectionName}-${colorMode}.pdf`;
+    return `/apps/writer/api/project/${this.projectId}/pdf/preview-${sectionName}-${colorMode}.pdf`;
   }
 
   /**

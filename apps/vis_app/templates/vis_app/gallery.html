@@ -351,7 +351,7 @@
                         {% for plot in cat_info.plots %}
                             <div class="plot-card" data-category="{{ cat_id }}" data-plot="{{ plot.name }}">
                                 <div class="plot-thumbnail">
-                                    <img src="/vis/api/gallery/project/{{ cat_id }}/{{ plot.name }}/image/?format=binary"
+                                    <img src="/apps/vis/api/gallery/project/{{ cat_id }}/{{ plot.name }}/image/?format=binary"
                                          alt="{{ plot.display_name }}"
                                          loading="lazy" />
                                 </div>
@@ -443,7 +443,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingOverlay.classList.add('active');
 
         try {
-            const response = await fetch('/vis/api/gallery/generate/', {
+            const response = await fetch('/apps/vis/api/gallery/generate/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

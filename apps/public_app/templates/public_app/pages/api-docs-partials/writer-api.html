@@ -6,10 +6,10 @@
     <div class="api-example">
         <div class="api-example-header">
             <span class="method method-get">GET</span>
-            <code>/writer/api/project/{project_id}/section/{section_name}/</code>
+            <code>/apps/writer/api/project/{project_id}/section/{section_name}/</code>
         </div>
         <div class="api-example-body">
-            <pre><code>curl "https://scitex.ai/writer/api/project/123/section/introduction/" \
+            <pre><code>curl "https://scitex.ai/apps/writer/api/project/123/section/introduction/" \
   -H "Authorization: Bearer YOUR_TOKEN"</code></pre>
         </div>
     </div>
@@ -28,10 +28,10 @@
     <div class="api-example">
         <div class="api-example-header">
             <span class="method method-put">PUT</span>
-            <code>/writer/api/project/{project_id}/section/{section_name}/</code>
+            <code>/apps/writer/api/project/{project_id}/section/{section_name}/</code>
         </div>
         <div class="api-example-body">
-            <pre><code>curl -X PUT "https://scitex.ai/writer/api/project/123/section/introduction/" \
+            <pre><code>curl -X PUT "https://scitex.ai/apps/writer/api/project/123/section/introduction/" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"content": "\\section{Introduction}\n\nUpdated content here..."}'</code></pre>
@@ -47,10 +47,10 @@
     <div class="api-example">
         <div class="api-example-header">
             <span class="method method-post">POST</span>
-            <code>/writer/api/project/{project_id}/compile_full/</code>
+            <code>/apps/writer/api/project/{project_id}/compile_full/</code>
         </div>
         <div class="api-example-body">
-            <pre><code>curl -X POST "https://scitex.ai/writer/api/project/123/compile_full/" \
+            <pre><code>curl -X POST "https://scitex.ai/apps/writer/api/project/123/compile_full/" \
   -H "Authorization: Bearer YOUR_TOKEN"</code></pre>
         </div>
     </div>
@@ -61,7 +61,7 @@
   "success": true,
   "job_id": "compile-abc123",
   "status": "completed",
-  "pdf_url": "/writer/api/project/123/preview-pdf/",
+  "pdf_url": "/apps/writer/api/project/123/preview-pdf/",
   "compile_time": "3.2s"
 }</code></pre>
         </div>
@@ -75,29 +75,29 @@
     <div class="api-endpoints-list">
         <div class="api-endpoint-item">
             <span class="method method-get">GET</span>
-            <code>/writer/api/project/{id}/git/status/</code>
+            <code>/apps/writer/api/project/{id}/git/status/</code>
             <span>Get current git status</span>
         </div>
         <div class="api-endpoint-item">
             <span class="method method-get">GET</span>
-            <code>/writer/api/project/{id}/git/history/</code>
+            <code>/apps/writer/api/project/{id}/git/history/</code>
             <span>List commit history</span>
         </div>
         <div class="api-endpoint-item">
             <span class="method method-post">POST</span>
-            <code>/writer/api/project/{id}/git/commit/</code>
+            <code>/apps/writer/api/project/{id}/git/commit/</code>
             <span>Create a new commit</span>
         </div>
         <div class="api-endpoint-item">
             <span class="method method-get">GET</span>
-            <code>/writer/api/project/{id}/git/diff/</code>
+            <code>/apps/writer/api/project/{id}/git/diff/</code>
             <span>View uncommitted changes</span>
         </div>
     </div>
     <h4>Example: Commit Changes</h4>
     <div class="api-example">
         <div class="api-example-body">
-            <pre><code>curl -X POST "https://scitex.ai/writer/api/project/123/git/commit/" \
+            <pre><code>curl -X POST "https://scitex.ai/apps/writer/api/project/123/git/commit/" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"message": "Updated methodology section with new analysis"}'</code></pre>

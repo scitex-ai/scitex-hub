@@ -1,6 +1,6 @@
 /**
  * SSE Stream Handler for AI Chat
- * Processes Server-Sent Events from /llm/api/chat/stream/
+ * Processes Server-Sent Events from /apps/llm/api/chat/stream/
  */
 
 import { setModelBadge } from "./model-badge";

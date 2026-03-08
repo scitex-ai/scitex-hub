@@ -119,7 +119,7 @@ export class FigureUpload {
     });
 
     try {
-      const apiUrl = `/writer/api/project/${this.projectId}/upload-figures/`;
+      const apiUrl = `/apps/writer/api/project/${this.projectId}/upload-figures/`;
       console.log(`[FigureUpload] Uploading ${files.length} files to:`, apiUrl);
 
       const response = await fetch(apiUrl, {

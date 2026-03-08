@@ -520,7 +520,7 @@
         } else {
           // In overlay mode, toggle iframe visibility
           if (!splitView) return;
-          frame.src = '/vis/figrecipe/?recipe=' + encodeURIComponent(recipePath);
+          frame.src = '/apps/vis/figrecipe/?recipe=' + encodeURIComponent(recipePath);
           frame.style.display = 'block';
           splitView.style.display = 'none';
         }

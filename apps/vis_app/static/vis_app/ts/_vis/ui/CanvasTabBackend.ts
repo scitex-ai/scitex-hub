@@ -23,7 +23,7 @@ export async function createFigzBundleOnBackend(
   }
 
   try {
-    const response = await fetch("/vis/api/bundles/figz/create-empty/", {
+    const response = await fetch("/apps/vis/api/bundles/figz/create-empty/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

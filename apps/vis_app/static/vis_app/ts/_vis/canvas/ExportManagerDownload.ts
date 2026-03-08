@@ -46,7 +46,7 @@ export function downloadFigzBundle(
     return;
   }
 
-  const downloadUrl = `/vis/api/bundles/figz/download/?path=${encodeURIComponent(currentFigzPath)}`;
+  const downloadUrl = `/apps/vis/api/bundles/figz/download/?path=${encodeURIComponent(currentFigzPath)}`;
   triggerDownloadLink(downloadUrl, "");
 
   if (statusCallback) {
@@ -70,7 +70,7 @@ export function downloadFigzBundleZip(
     return;
   }
 
-  const downloadUrl = `/vis/api/bundles/figz/download/?path=${encodeURIComponent(currentFigzPath)}`;
+  const downloadUrl = `/apps/vis/api/bundles/figz/download/?path=${encodeURIComponent(currentFigzPath)}`;
   triggerDownloadLink(downloadUrl, "");
 
   if (statusCallback) {
@@ -97,7 +97,7 @@ export function downloadPltzBundle(
     return;
   }
 
-  const downloadUrl = `/vis/api/bundles/pltz/download/?path=${encodeURIComponent(pltzPath)}`;
+  const downloadUrl = `/apps/vis/api/bundles/pltz/download/?path=${encodeURIComponent(pltzPath)}`;
   triggerDownloadLink(downloadUrl, "");
 
   if (statusCallback) {

@@ -22,7 +22,7 @@ export class CsvViewer {
   async display(
     wrapper: HTMLElement,
     filePath: string,
-    createToolbar?: (filePath: string, fileType: string) => HTMLElement
+    createToolbar?: (filePath: string, fileType: string) => HTMLElement,
   ): Promise<void> {
     this.currentFilePath = filePath;
     wrapper.className = "media-viewer-csv-wrapper";
@@ -36,7 +36,8 @@ export class CsvViewer {
 
     // Table container for DataTableManager
     const tableContainer = document.createElement("div");
-    tableContainer.className = "media-viewer-csv-container data-table-container";
+    tableContainer.className =
+      "media-viewer-csv-container data-table-container";
     tableContainer.id = "csv-table-container";
     tableContainer.innerHTML = `
       <div class="csv-loading">
@@ -79,7 +80,10 @@ export class CsvViewer {
   /**
    * Load and render CSV file using the shared DataTableManager
    */
-  private async loadCsvWithDataTable(filePath: string, container: HTMLElement): Promise<void> {
+  private async loadCsvWithDataTable(
+    filePath: string,
+    container: HTMLElement,
+  ): Promise<void> {
     try {
       const projectData = document.getElementById("project-data");
       const projectId = projectData?.dataset.projectId || "";
@@ -97,8 +101,8 @@ export class CsvViewer {
         container: container,
         readOnly: false,
         onDataChange: (data) => {
-          console.log('[CsvViewer] CSV data changed');
-        }
+          console.log("[CsvViewer] CSV data changed");
+        },
       });
 
       // First initialize a large blank table
@@ -113,7 +117,6 @@ export class CsvViewer {
 
       // Setup feature buttons
       this.setupFeatureButtons(content, filePath, container);
-
     } catch (error) {
       console.error("[CsvViewer] Error loading CSV:", error);
       container.innerHTML = `
@@ -135,15 +138,19 @@ export class CsvViewer {
     const currentData = this.dataTableManager.getCurrentData();
     if (!currentData) return;
 
-    const delimiter = filename.toLowerCase().endsWith('.tsv') ? '\t' : ',';
-    const lines = content.trim().split('\n');
+    const delimiter = filename.toLowerCase().endsWith(".tsv") ? "\t" : ",";
+    const lines = content.trim().split("\n");
     if (lines.length === 0) return;
 
     const firstRow = this.parseCSVLine(lines[0], delimiter);
     const colCount = firstRow.length;
 
     // Parse and place ALL rows as data (no header row detection)
-    for (let rowIndex = 0; rowIndex < lines.length && rowIndex < currentData.rows.length; rowIndex++) {
+    for (
+      let rowIndex = 0;
+      rowIndex < lines.length && rowIndex < currentData.rows.length;
+      rowIndex++
+    ) {
       const csvRow = this.parseCSVLine(lines[rowIndex], delimiter);
       const dataRow = currentData.rows[rowIndex];
 
@@ -152,24 +159,31 @@ export class CsvViewer {
         if (colName) {
           const trimmedValue = value.trim();
           const numValue = parseFloat(trimmedValue);
-          dataRow[colName] = isNaN(numValue) || trimmedValue === '' ? trimmedValue : numValue;
+          dataRow[colName] =
+            isNaN(numValue) || trimmedValue === "" ? trimmedValue : numValue;
         }
       });
     }
 
     this.dataTableManager.setCurrentData(currentData);
-    console.log(`[CsvViewer] CSV loaded: ${lines.length} rows × ${colCount} columns`);
+    console.log(
+      `[CsvViewer] CSV loaded: ${lines.length} rows × ${colCount} columns`,
+    );
   }
 
   /**
    * Setup Plot, Stats, LaTeX, Raw toggle, and Save buttons
    */
-  private setupFeatureButtons(content: string, filePath: string, container: HTMLElement): void {
+  private setupFeatureButtons(
+    content: string,
+    filePath: string,
+    container: HTMLElement,
+  ): void {
     // Plot button
     const plotBtn = document.getElementById("csv-plot-btn");
     plotBtn?.addEventListener("click", () => {
       console.log("[CsvViewer] Plot panel - coming soon");
-      alert("Plot feature coming soon! Will integrate with /vis/ app.");
+      alert("Plot feature coming soon! Will integrate with /apps/vis/ app.");
     });
 
     // Stats button
@@ -219,14 +233,17 @@ export class CsvViewer {
       const projectData = document.getElementById("project-data");
       const projectId = projectData?.dataset.projectId || "";
 
-      const response = await fetch(`/code/api/file-content/${filePath}?project_id=${projectId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": this.getCsrfToken(),
+      const response = await fetch(
+        `/code/api/file-content/${filePath}?project_id=${projectId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": this.getCsrfToken(),
+          },
+          body: JSON.stringify({ content }),
         },
-        body: JSON.stringify({ content }),
-      });
+      );
 
       if (!response.ok) throw new Error("Failed to save CSV");
 
@@ -251,7 +268,7 @@ export class CsvViewer {
    */
   private parseCSVLine(line: string, delimiter: string): string[] {
     const result: string[] = [];
-    let currentValue = '';
+    let currentValue = "";
     let inQuotes = false;
 
     for (let i = 0; i < line.length; i++) {
@@ -272,7 +289,7 @@ export class CsvViewer {
           inQuotes = true;
         } else if (char === delimiter) {
           result.push(currentValue);
-          currentValue = '';
+          currentValue = "";
         } else {
           currentValue += char;
         }

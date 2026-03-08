@@ -43,6 +43,7 @@ class TerminalBrokerClient:
         self.session_state_callback: Optional[Callable[[dict], None]] = None
         self._reader_task: Optional[asyncio.Task] = None
         self._connected = False
+        self._last_spawn_error: Optional[str] = None
 
     async def connect(self) -> bool:
         """Connect to the terminal broker."""
@@ -112,13 +113,15 @@ class TerminalBrokerClient:
                 error = (
                     response.get("error", "Unknown error")
                     if response
-                    else "No response"
+                    else "No response from broker (timeout after 90s)"
                 )
                 logger.error(f"Spawn failed: {error}")
+                self._last_spawn_error = error
                 return None
 
         except Exception as e:
             logger.error(f"Spawn error: {e}")
+            self._last_spawn_error = str(e)
             return None
 
     async def send_input(self, data: bytes):

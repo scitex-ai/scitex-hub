@@ -228,7 +228,7 @@ async function loadFigureFromDiskIfExists(
   try {
     // Try to load the figz bundle from disk (include project context for path resolution)
     const response = await fetch(
-      `/vis/api/bundles/figz/load/?path=${encodeURIComponent(figzPath)}&project_owner=${encodeURIComponent(projectOwner)}&project_slug=${encodeURIComponent(projectSlug)}`,
+      `/apps/vis/api/bundles/figz/load/?path=${encodeURIComponent(figzPath)}&project_owner=${encodeURIComponent(projectOwner)}&project_slug=${encodeURIComponent(projectSlug)}`,
     );
 
     if (response.ok) {

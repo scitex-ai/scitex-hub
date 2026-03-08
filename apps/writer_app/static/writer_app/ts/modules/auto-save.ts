@@ -122,7 +122,7 @@ export async function saveSections(
     );
 
     const response = await fetch(
-      `/writer/api/project/${config.projectId}/save-sections/`,
+      `/apps/writer/api/project/${config.projectId}/save-sections/`,
       {
         method: "POST",
         headers: {

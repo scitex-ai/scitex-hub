@@ -119,7 +119,7 @@ export class CitationUpload {
     });
 
     try {
-      const apiUrl = `/writer/api/project/${this.projectId}/upload-bibliography/`;
+      const apiUrl = `/apps/writer/api/project/${this.projectId}/upload-bibliography/`;
       console.log(
         `[CitationUpload] Uploading ${files.length} files to:`,
         apiUrl,

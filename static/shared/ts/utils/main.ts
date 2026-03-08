@@ -116,9 +116,9 @@ function initMobileMenu(): void {
  */
 function initModuleSwitcher(): void {
   const moduleRoutes: Record<string, string> = {
-    s: "/scholar/",
-    v: "/vis/",
-    w: "/_writer/",
+    s: "/apps/scholar/",
+    v: "/apps/vis/",
+    w: "/apps/writer/",
   };
 
   // Use capture phase to intercept before Monaco/xterm can consume the event

@@ -3,7 +3,7 @@
 Sessions persist across client disconnects. Reconnecting clients with
 the same (username, session_name) reattach to the existing PTY fd.
 
-Supports two modes (controlled by SCITEX_SHARED_ALLOCATION env var):
+Supports two modes (controlled by SCITEX_CLOUD_SLURM_SHARED_ALLOCATION env var):
 - Legacy: one srun per terminal tab
 - Shared: one sbatch per (user, project), shells via srun --overlap
 """
@@ -26,11 +26,10 @@ logger = logging.getLogger(__name__)
 SOCKET_PATH = "/tmp/scitex-terminal-broker.sock"
 
 # Feature flag: when True, use shared sbatch allocation per (user, project)
-SHARED_ALLOCATION = os.environ.get("SCITEX_SHARED_ALLOCATION", "").lower() in (
-    "true",
-    "1",
-    "yes",
-)
+SHARED_ALLOCATION = (
+    os.environ.get("SCITEX_CLOUD_SLURM_SHARED_ALLOCATION", "")
+    or os.environ.get("SCITEX_SHARED_ALLOCATION", "")  # backward compat
+).lower() in ("true", "1", "yes")
 
 
 class TerminalBroker:

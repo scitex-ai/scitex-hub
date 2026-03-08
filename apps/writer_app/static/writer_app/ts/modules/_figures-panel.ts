@@ -3,7 +3,6 @@
  * Coordinates all figure-related modules
  */
 
-
 import type { Figure } from "./_figures-panel/figures-list";
 import { FiguresList } from "./_figures-panel/figures-list";
 import { FigureUpload } from "./_figures-panel/figure-upload";
@@ -71,11 +70,13 @@ export class FiguresPanel {
 
     // Setup list module event handlers
     this.figuresList.setEventHandlers({
-      onCheckboxChange: (label, checked) => this.handleCheckboxChange(label, checked),
+      onCheckboxChange: (label, checked) =>
+        this.handleCheckboxChange(label, checked),
       onCardClick: (figure) => this.handleCardClick(figure),
       onCardDoubleClick: (card, figure) =>
         this.figurePreview.handleDoubleClick(card, figure),
-      onDragStart: (event, figure) => this.figureActions.handleDragStart(event, figure),
+      onDragStart: (event, figure) =>
+        this.figureActions.handleDragStart(event, figure),
       onDragEnd: (event) => this.figureActions.handleDragEnd(event),
     });
 
@@ -119,7 +120,7 @@ export class FiguresPanel {
     this.figureState.showLoading();
 
     try {
-      const apiUrl = `/writer/api/project/${this.projectId}/figures/`;
+      const apiUrl = `/apps/writer/api/project/${this.projectId}/figures/`;
       console.log("[FiguresPanel] Fetching from:", apiUrl);
 
       const response = await fetch(apiUrl);
@@ -189,7 +190,9 @@ export class FiguresPanel {
    */
   private handleCheckboxChange(label: string, checked: boolean): void {
     this.updateCountDisplay();
-    console.log(`[FiguresPanel] ${label} ${checked ? "selected" : "deselected"}`);
+    console.log(
+      `[FiguresPanel] ${label} ${checked ? "selected" : "deselected"}`,
+    );
   }
 
   /**

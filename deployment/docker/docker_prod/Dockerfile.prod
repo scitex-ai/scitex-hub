@@ -78,6 +78,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         squashfs-tools \
         fuse2fs \
         fuse-overlayfs \
+        libfuse3-3 \
         libseccomp2 \
         fakeroot \
     && curl -L -o /tmp/apptainer.deb \

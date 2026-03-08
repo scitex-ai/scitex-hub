@@ -376,7 +376,7 @@ function exportSelectedPapers(): void {
   }
 
   // Send to export endpoint via fetch
-  fetch("/scholar/api/export/bibtex/", {
+  fetch("/apps/scholar/api/export/bibtex/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

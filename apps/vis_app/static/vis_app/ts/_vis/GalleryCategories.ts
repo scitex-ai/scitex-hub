@@ -2,7 +2,7 @@
  * GalleryCategories - Category-based plot gallery with thumbnails
  *
  * Shows plot type thumbnails in a popup below category buttons
- * Uses API endpoints: /vis/api/gallery/project/{category}/{plot}/image/
+ * Uses API endpoints: /apps/vis/api/gallery/project/{category}/{plot}/image/
  *
  * Scientific reproducibility:
  * - Original CSV data is preserved
@@ -11,7 +11,7 @@
  */
 
 // Gallery API base URL (serves images from template gallery)
-const GALLERY_API_URL = "/vis/api/gallery/project";
+const GALLERY_API_URL = "/apps/vis/api/gallery/project";
 
 export type {
   GalleryCategoryInfo,
@@ -109,7 +109,7 @@ export class GalleryCategories {
 
     try {
       // Get available categories from API
-      const response = await fetch("/vis/api/gallery/available/");
+      const response = await fetch("/apps/vis/api/gallery/available/");
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
       }

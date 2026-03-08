@@ -19,7 +19,7 @@
                          style="background: white;
                                 border-radius: 8px;
                                 padding: 1.5rem">
-                        <form action="/scholar/" method="get">
+                        <form action="/apps/scholar/" method="get">
                             <div class="input-group">
                                 <input type="text"
                                        name="q"
@@ -74,11 +74,11 @@
         <div class="container text-center">
             {% if user.is_authenticated %}
                 <h3>Ready to search?</h3>
-                <a href="/scholar/" class="btn btn-primary">Go to Scholar</a>
+                <a href="/apps/scholar/" class="btn btn-primary">Go to Scholar</a>
             {% else %}
                 <h3>Get started with Scholar</h3>
                 <a href="{% url 'public_app:signup' %}" class="btn btn-primary me-3">Sign Up</a>
-                <a href="/scholar/" class="btn btn-outline-primary">Try Search</a>
+                <a href="/apps/scholar/" class="btn btn-outline-primary">Try Search</a>
             {% endif %}
         </div>
     </div>

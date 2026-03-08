@@ -118,7 +118,7 @@ export interface ClaimInfo {
 }
 
 export class ClewApiClient {
-  private baseUrl = "/clew/api";
+  private baseUrl = "/apps/clew/api";
 
   private getCsrf(): string {
     const match = document.cookie.match(/csrftoken=([^;]+)/);

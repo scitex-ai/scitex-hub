@@ -3,12 +3,12 @@
  */
 
 export const API = {
-  papers: "/scholar/api/library/papers/",
-  collections: "/scholar/api/library/collections/",
-  updatePaper: (id: string) => `/scholar/api/library/papers/${id}/update/`,
-  removePaper: (id: string) => `/scholar/api/library/papers/${id}/remove/`,
-  exportBibtex: "/scholar/api/export/bibtex/",
-  importBibtex: "/scholar/api/import/bibtex/",
+  papers: "/apps/scholar/api/library/papers/",
+  collections: "/apps/scholar/api/library/collections/",
+  updatePaper: (id: string) => `/apps/scholar/api/library/papers/${id}/update/`,
+  removePaper: (id: string) => `/apps/scholar/api/library/papers/${id}/remove/`,
+  exportBibtex: "/apps/scholar/api/export/bibtex/",
+  importBibtex: "/apps/scholar/api/import/bibtex/",
 };
 
 export interface LibraryPaper {

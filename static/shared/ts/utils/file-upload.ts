@@ -1,6 +1,6 @@
 /**
  * Shared file upload utility.
- * Uploads files via FormData to /llm/api/upload/ and returns server paths.
+ * Uploads files via FormData to /apps/llm/api/upload/ and returns server paths.
  */
 
 import { getCsrfToken } from "./csrf";
@@ -9,7 +9,7 @@ export async function uploadFiles(files: FileList): Promise<string[]> {
   const form = new FormData();
   for (let i = 0; i < files.length; i++) form.append("files", files[i]);
 
-  const resp = await fetch("/llm/api/upload/", {
+  const resp = await fetch("/apps/llm/api/upload/", {
     method: "POST",
     headers: { "X-CSRFToken": getCsrfToken() },
     body: form,

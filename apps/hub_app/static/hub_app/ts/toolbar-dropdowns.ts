@@ -42,7 +42,7 @@ function toggleToolbarDropdown(dropdownId: string): void {
 (window as any).showImportModal = (source: string) => {
   closeAllToolbarDropdowns();
   if (["zotero", "connected-papers", "prism"].includes(source)) {
-    window.location.href = "/scholar/#library";
+    window.location.href = "/apps/scholar/#library";
     return;
   }
   alert(`Import from ${source} — coming soon.`);
@@ -51,7 +51,7 @@ function toggleToolbarDropdown(dropdownId: string): void {
 (window as any).handleExport = (target: string) => {
   closeAllToolbarDropdowns();
   if (["zotero", "connected-papers", "prism"].includes(target)) {
-    window.location.href = "/scholar/#library";
+    window.location.href = "/apps/scholar/#library";
     return;
   }
   alert(`Export to ${target} — coming soon.`);

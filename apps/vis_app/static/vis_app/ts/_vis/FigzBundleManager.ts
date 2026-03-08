@@ -22,7 +22,7 @@ import type {
 } from "./types";
 
 // API endpoints
-const API_BASE = "/vis/api/bundles/figz";
+const API_BASE = "/apps/vis/api/bundles/figz";
 
 export interface CreateFigzBundleParams {
   name: string;

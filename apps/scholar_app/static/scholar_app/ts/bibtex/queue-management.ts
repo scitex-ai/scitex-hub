@@ -72,7 +72,7 @@ let resourceMonitorInterval: number | null = null;
 function initQueueManagement(config: QueueConfig = {}): void {
   console.log("[Queue Management] initQueueManagement() called");
   const {
-    resourceStatusUrl = "/scholar/api/bibtex/resource-status/",
+    resourceStatusUrl = "/apps/scholar/api/bibtex/resource-status/",
     pollInterval = 2000,
   } = config;
 
@@ -356,7 +356,7 @@ function updateRefreshTime(timestamp: string): void {
     return;
   }
 
-  fetch(`/scholar/api/bibtex/job/${jobId}/cancel/`, {
+  fetch(`/apps/scholar/api/bibtex/job/${jobId}/cancel/`, {
     method: "POST",
     headers: {
       "X-Requested-With": "XMLHttpRequest",
@@ -369,7 +369,7 @@ function updateRefreshTime(timestamp: string): void {
       if (data.success) {
         alert("Job cancelled successfully");
         // Refresh status immediately
-        updateResourceMonitor("/scholar/api/bibtex/resource-status/");
+        updateResourceMonitor("/apps/scholar/api/bibtex/resource-status/");
       } else {
         alert(`Failed to cancel job: ${data.error}`);
       }

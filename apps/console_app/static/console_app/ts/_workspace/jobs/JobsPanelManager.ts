@@ -152,7 +152,7 @@ export class JobsPanelManager {
    */
   private async updateJobBadge(): Promise<void> {
     try {
-      const response = await fetch("/console/api/jobs/");
+      const response = await fetch("/apps/console/api/jobs/");
       const data: JobsResponse = await response.json();
 
       const activeJobs = data.running + data.pending;
@@ -184,7 +184,7 @@ export class JobsPanelManager {
     }
 
     try {
-      const response = await fetch("/console/api/jobs/");
+      const response = await fetch("/apps/console/api/jobs/");
       const data: JobsResponse = await response.json();
 
       // Update status indicator
@@ -412,7 +412,7 @@ export class JobsPanelManager {
         ) as HTMLInputElement
       )?.value;
 
-      const response = await fetch(`/code/api/jobs/${jobId}/cancel/`, {
+      const response = await fetch(`/apps/console/api/jobs/${jobId}/cancel/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -461,13 +461,16 @@ export class JobsPanelManager {
       if (!jobId) continue;
 
       try {
-        const response = await fetch(`/code/api/jobs/${jobId}/cancel/`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrfToken || "",
+        const response = await fetch(
+          `/apps/console/api/jobs/${jobId}/cancel/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": csrfToken || "",
+            },
           },
-        });
+        );
 
         const data = await response.json();
         if (data.success) {

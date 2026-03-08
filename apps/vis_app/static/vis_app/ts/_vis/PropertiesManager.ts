@@ -290,7 +290,7 @@ export class PropertiesManager {
 
     try {
       const response = await fetch(
-        `/vis/api/bundles/pltz/load/?path=${encodeURIComponent(pltzPath)}`,
+        `/apps/vis/api/bundles/pltz/load/?path=${encodeURIComponent(pltzPath)}`,
       );
       if (!response.ok) throw new Error("Failed to load pltz bundle");
 
@@ -421,18 +421,21 @@ export class PropertiesManager {
 
     try {
       // Use new fine-grained property update endpoint
-      const response = await fetch("/vis/api/bundles/pltz/update-property/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": this.csrfToken,
+      const response = await fetch(
+        "/apps/vis/api/bundles/pltz/update-property/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": this.csrfToken,
+          },
+          body: JSON.stringify({
+            path: pltzPath,
+            property_path: property,
+            value: parsedValue,
+          }),
         },
-        body: JSON.stringify({
-          path: pltzPath,
-          property_path: property,
-          value: parsedValue,
-        }),
-      });
+      );
 
       if (!response.ok) {
         const error = await response.json();

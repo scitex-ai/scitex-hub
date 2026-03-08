@@ -21,8 +21,8 @@ interface HealthResponse {
 }
 
 const HEALTH_ENDPOINTS: Record<string, string> = {
-  crossref_local: "/scholar/api/health/crossref-local/",
-  openalex_local: "/scholar/api/health/openalex-local/",
+  crossref_local: "/apps/scholar/api/health/crossref-local/",
+  openalex_local: "/apps/scholar/api/health/openalex-local/",
 };
 
 // Map source names to their ready-indicator element IDs

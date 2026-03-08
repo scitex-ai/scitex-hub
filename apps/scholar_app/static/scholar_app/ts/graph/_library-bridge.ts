@@ -27,7 +27,7 @@ export async function saveNodeToLibrary(node: NetworkNode): Promise<boolean> {
         ?.split("=")[1] ||
       "";
 
-    const response = await fetch("/scholar/api/library/papers/", {
+    const response = await fetch("/apps/scholar/api/library/papers/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

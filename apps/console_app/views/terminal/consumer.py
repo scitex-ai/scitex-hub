@@ -289,7 +289,11 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
             )
 
             if not session_id:
-                raise Exception("Failed to spawn terminal session")
+                broker_error = (
+                    getattr(self.broker_client, "_last_spawn_error", None)
+                    or "Failed to spawn terminal session"
+                )
+                raise Exception(broker_error)
 
             logger.info(f"Terminal session started via broker: {session_id}")
 

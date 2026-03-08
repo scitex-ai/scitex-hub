@@ -26,7 +26,22 @@ export function pushProjectUrl(suffix?: string): void {
   }
 }
 
-/** Push the dashboard URL. */
+/** Push the dashboard (current project) URL. */
 export function pushDashboardUrl(): void {
   history.pushState({ view: "dashboard" }, "", "/");
+}
+
+/** Push the explore URL. */
+export function pushExploreUrl(): void {
+  if (location.pathname !== "/explore/") {
+    history.pushState({ view: "explore" }, "", "/explore/");
+  }
+}
+
+/** Push the Me (user profile) URL. */
+export function pushMeUrl(username: string): void {
+  const url = `/${encodeURIComponent(username)}/`;
+  if (location.pathname !== url) {
+    history.pushState({ view: "me", username }, "", url);
+  }
 }

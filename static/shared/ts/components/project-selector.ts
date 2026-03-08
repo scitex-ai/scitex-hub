@@ -162,6 +162,8 @@ function initializeProjectSelector(): void {
                     projectId,
                     projectSlug,
                     ownerUsername: projectOwner,
+                    projectName,
+                    source: "header",
                   },
                 }),
               );
@@ -194,6 +196,45 @@ function initializeProjectSelector(): void {
     }
   });
 }
+
+// Sync header UI when project switched from an external source (e.g. hub Me tab)
+window.addEventListener("scitex:project-switched", (e: Event) => {
+  const detail = (e as CustomEvent<Record<string, string>>).detail;
+  if (detail.source === "header") return; // already handled by initializeProjectSelector
+
+  const { projectId, projectName } = detail;
+  if (!projectId) return;
+
+  // Update button text in header selectors
+  document
+    .querySelectorAll<HTMLElement>(
+      ".header-project-selector-inline .project-selector-text, .header-project-selector .project-selector-text",
+    )
+    .forEach((el) => {
+      if (projectName) el.textContent = projectName;
+    });
+
+  // Update data attribute on header selector buttons
+  document
+    .querySelectorAll<HTMLElement>(
+      ".header-project-selector-inline .project-selector-btn, .header-project-selector .project-selector-btn",
+    )
+    .forEach((btn) => {
+      btn.dataset.activeProjectId = projectId;
+    });
+
+  // Update check marks and active state in header dropdowns
+  document
+    .querySelectorAll<HTMLElement>(
+      ".header-project-selector-inline .dropdown-project-item, .header-project-selector .dropdown-project-item",
+    )
+    .forEach((item) => {
+      const isActive = item.getAttribute("data-project-id") === projectId;
+      item.classList.toggle("active", isActive);
+      const check = item.querySelector<HTMLElement>(".project-item-check");
+      if (check) check.style.display = isActive ? "inline" : "none";
+    });
+});
 
 // Initialize immediately if DOM is ready, otherwise wait
 if (document.readyState === "loading") {

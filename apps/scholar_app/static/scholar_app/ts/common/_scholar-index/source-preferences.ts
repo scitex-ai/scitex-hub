@@ -27,7 +27,7 @@ export function saveSourcePreferences(): void {
     window.scholarConfig.user &&
     window.scholarConfig.user.isAuthenticated
   ) {
-    fetch("/scholar/api/preferences/sources/", {
+    fetch("/apps/scholar/api/preferences/sources/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -63,7 +63,7 @@ export function loadSourcePreferences(): void {
     window.scholarConfig.user.isAuthenticated
   ) {
     // Load from database for logged-in users
-    fetch("/scholar/api/preferences/")
+    fetch("/apps/scholar/api/preferences/")
       .then((response) => response.json())
       .then((data: any) => {
         if (data.status === "success" && data.preferences.preferred_sources) {

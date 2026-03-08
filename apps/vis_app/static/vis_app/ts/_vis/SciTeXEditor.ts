@@ -97,7 +97,7 @@ export class SciTeXEditor {
     this.setStatus("Loading figure...");
 
     try {
-      const response = await fetch("/vis/api/editor/load/", {
+      const response = await fetch("/apps/vis/api/editor/load/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -153,7 +153,7 @@ export class SciTeXEditor {
     this.setStatus("Updating...");
 
     try {
-      const response = await fetch("/vis/api/editor/preview/", {
+      const response = await fetch("/apps/vis/api/editor/preview/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -199,7 +199,7 @@ export class SciTeXEditor {
     this.setStatus("Saving...");
 
     try {
-      const response = await fetch("/vis/api/editor/save/", {
+      const response = await fetch("/apps/vis/api/editor/save/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -242,7 +242,7 @@ export class SciTeXEditor {
     this.setStatus(`Exporting ${format.toUpperCase()}...`);
 
     try {
-      const response = await fetch("/vis/api/editor/export/", {
+      const response = await fetch("/apps/vis/api/editor/export/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -19,13 +19,13 @@ Returned by /hub/api/projects-overview/ for inline back-navigation.
         <div class="hub-section mb-4">
             <div class="projects-grid">
                 {% for proj in user_projects %}
-                    <div class="project-card">
+                    <div class="project-card hub-project-card-link"
+                         data-project-id="{{ proj.id }}"
+                         data-project-slug="{{ proj.slug }}"
+                         data-project-name="{{ proj.name }}">
                         <div class="project-card-header">
                             <h3>
-                                <a href="#"
-                                   class="hub-project-link"
-                                   data-project-id="{{ proj.id }}"
-                                   data-project-slug="{{ proj.slug }}">{{ proj.name }}</a>
+                                <span class="hub-project-name-link">{{ proj.name }}</span>
                             </h3>
                             {% if proj.is_app %}
                                 <span class="badge badge-app" title="SciTeX App"><i class="fas fa-puzzle-piece"></i> App</span>

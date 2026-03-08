@@ -107,7 +107,7 @@ export function showImportModal(source: string): void {
     source === "connected-papers" ||
     source === "prism"
   ) {
-    window.location.href = "/scholar/#library";
+    window.location.href = "/apps/scholar/#library";
     return;
   }
   alert(`Import from ${source} — coming soon.`);
@@ -120,7 +120,7 @@ export function handleExport(target: string): void {
     target === "connected-papers" ||
     target === "prism"
   ) {
-    window.location.href = "/scholar/#library";
+    window.location.href = "/apps/scholar/#library";
     return;
   }
   alert(`Export to ${target} — coming soon.`);

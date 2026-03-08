@@ -99,7 +99,7 @@ export class CollaborativeEditorManager {
    * Open version control dashboard
    */
   openVersionControl(): void {
-    window.location.href = `/writer/version-control/${this.manuscriptConfig.id}/`;
+    window.location.href = `/apps/writer/version-control/${this.manuscriptConfig.id}/`;
   }
 
   /**

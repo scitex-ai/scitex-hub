@@ -13,7 +13,7 @@ export { MODEL_KEY };
 export function fetchCurrentModel(
   onModel: (name: string, campaign?: boolean, display?: string) => void,
 ): void {
-  fetch("/llm/api/model/")
+  fetch("/apps/llm/api/model/")
     .then((r) => r.json())
     .then((data) => {
       if (data.success && data.model)

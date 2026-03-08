@@ -3,7 +3,6 @@
  * Handles generation and display of prompts for AI2 Asta paper search
  */
 
-
 import { getCsrfToken, showToast } from "../shared/utils";
 
 interface AI2PromptResponse {
@@ -77,7 +76,7 @@ export async function generateAI2Prompt(
     promptTextArea.value = "Generating prompt...";
 
     const response = await fetch(
-      `/writer/api/project/${projectId}/generate-ai2-prompt/`,
+      `/apps/writer/api/project/${projectId}/generate-ai2-prompt/`,
       {
         method: "POST",
         headers: {

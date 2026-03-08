@@ -163,7 +163,7 @@ function updateLed(service, status) {
 
 // Check Zotero status on load
 (function checkZoteroStatus() {
-    fetch('/scholar/api/library/zotero/status/')
+    fetch('/apps/scholar/api/library/zotero/status/')
         .then(r => r.json())
         .then(data => {
             const el = document.getElementById('zotero-status-indicator');
@@ -172,7 +172,7 @@ function updateLed(service, status) {
             if (data.available) {
                 el.innerHTML = '<span class="mig-card__hint" style="color:var(--color-success-fg,#3fb950);"><i class="fas fa-check-circle"></i> Zotero DB found</span>';
                 // Load collections
-                fetch('/scholar/api/library/zotero/collections/')
+                fetch('/apps/scholar/api/library/zotero/collections/')
                     .then(r => r.json())
                     .then(cd => {
                         const sel = document.getElementById('zotero-collection-select');
@@ -209,7 +209,7 @@ function scholarZoteroImport() {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
     result.style.display = 'none';
 
-    fetch('/scholar/api/library/zotero/import/', {
+    fetch('/apps/scholar/api/library/zotero/import/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -256,7 +256,7 @@ function scholarZoteroExport() {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
     result.style.display = 'none';
 
-    fetch('/scholar/api/library/zotero/export/', {
+    fetch('/apps/scholar/api/library/zotero/export/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -301,7 +301,7 @@ function scholarZoteroExport() {
 
 // Check Connected Papers status on load
 (function checkCPStatus() {
-    fetch('/scholar/api/library/connected-papers/status/')
+    fetch('/apps/scholar/api/library/connected-papers/status/')
         .then(r => r.json())
         .then(data => {
             updateLed('connected-papers', data.available ? 'ready' : 'error');
@@ -337,7 +337,7 @@ function scholarCPImport() {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing graph...';
     result.style.display = 'none';
 
-    fetch('/scholar/api/library/connected-papers/import/', {
+    fetch('/apps/scholar/api/library/connected-papers/import/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

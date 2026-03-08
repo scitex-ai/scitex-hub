@@ -24,7 +24,7 @@ export async function getApplicableTests(context: StatContext): Promise<{
   effect_sizes: string[];
   posthoc: string[];
 }> {
-  const response = await fetch("/vis/api/stats/applicable/", {
+  const response = await fetch("/apps/vis/api/stats/applicable/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(context),
@@ -54,7 +54,7 @@ export async function runTest(
     correction_method?: string;
   } = {},
 ): Promise<{ result: TestResult; annotation: StatAnnotation }> {
-  const response = await fetch("/vis/api/stats/run/", {
+  const response = await fetch("/apps/vis/api/stats/run/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -91,7 +91,7 @@ export async function runAllApplicable(
   recommended: string;
   inspector_data: any;
 }> {
-  const response = await fetch("/vis/api/stats/run-all/", {
+  const response = await fetch("/apps/vis/api/stats/run-all/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -130,7 +130,7 @@ export async function buildContextFromPlot(
   recommended: string[];
   summary: SummaryStats[];
 }> {
-  const response = await fetch("/vis/api/stats/context/", {
+  const response = await fetch("/apps/vis/api/stats/context/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

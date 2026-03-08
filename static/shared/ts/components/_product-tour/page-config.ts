@@ -24,19 +24,22 @@ export function getPageConfig(): PageTourConfig | null {
   if (path === "/") {
     return { steps: LANDING_TOUR_STEPS, storageKey: STORAGE_KEYS.landing };
   }
-  if (path.includes("/browse/") || document.body.dataset.trackModule === "files") {
+  if (
+    path.includes("/browse/") ||
+    document.body.dataset.trackModule === "files"
+  ) {
     return { steps: FILES_TOUR_STEPS, storageKey: STORAGE_KEYS.files };
   }
-  if (path.includes("/scholar/")) {
+  if (path.includes("/apps/scholar/")) {
     return { steps: SCHOLAR_TOUR_STEPS, storageKey: STORAGE_KEYS.scholar };
   }
-  if (path.includes("/console/") || path.includes("/workspace/")) {
+  if (path.includes("/apps/console/") || path.includes("/apps/workspace/")) {
     return { steps: CONSOLE_TOUR_STEPS, storageKey: STORAGE_KEYS.console };
   }
-  if (path.includes("/vis/")) {
+  if (path.includes("/apps/vis/")) {
     return { steps: VISUALIZER_TOUR_STEPS, storageKey: STORAGE_KEYS.vis };
   }
-  if (path.includes("/_writer/")) {
+  if (path.includes("/apps/writer/")) {
     return { steps: WRITER_TOUR_STEPS, storageKey: STORAGE_KEYS.writer };
   }
 

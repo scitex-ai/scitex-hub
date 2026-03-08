@@ -191,7 +191,7 @@ function pollJobStatus(
     return;
   }
 
-  fetch(`/scholar/api/bibtex/job/${jobId}/status/`)
+  fetch(`/apps/scholar/api/bibtex/job/${jobId}/status/`)
     .then((response) => {
       console.log(`[POLL-SCHOLAR] Response status: ${response.status}`);
       if (!response.ok) {

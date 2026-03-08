@@ -437,7 +437,7 @@
             var btn = document.getElementById('init-scholar-btn');
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Initializing...';
-            fetch('/scholar/api/initialize/', {
+            fetch('/apps/scholar/api/initialize/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

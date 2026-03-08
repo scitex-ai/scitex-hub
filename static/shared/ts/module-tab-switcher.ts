@@ -7,7 +7,7 @@
  * The AI pane and Worktree pane are never re-rendered.
  */
 
-const CONTENT_BASE = "/workspace/content/";
+const CONTENT_BASE = "/apps/workspace/content/";
 
 /** Read module names from the DOM data attribute set by the registry context processor. */
 function getKnownModules(): Set<string> {

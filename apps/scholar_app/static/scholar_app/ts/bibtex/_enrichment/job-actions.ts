@@ -77,7 +77,7 @@ export async function openAllPaperUrls(jobId: string): Promise<void> {
   }
 
   console.log("[Open URLs] Fetching URLs for job:", jobId);
-  const urlsEndpoint = `/scholar/api/bibtex/job/${jobId}/urls/`;
+  const urlsEndpoint = `/apps/scholar/api/bibtex/job/${jobId}/urls/`;
 
   try {
     const response = await fetch(urlsEndpoint);
@@ -184,7 +184,7 @@ export async function saveJobToProject(jobId: string): Promise<void> {
 
   try {
     const response = await fetch(
-      `/scholar/api/bibtex/job/${jobId}/save-to-project/`,
+      `/apps/scholar/api/bibtex/job/${jobId}/save-to-project/`,
       {
         method: "POST",
         headers: {

@@ -169,7 +169,7 @@ export function initializeFilters(): void {
         });
 
       // Save to backend
-      fetch("/scholar/api/save-search/", {
+      fetch("/apps/scholar/api/save-search/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

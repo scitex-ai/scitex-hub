@@ -148,7 +148,7 @@ export class SyncManager {
 
     try {
       const response = await fetch(
-        `/writer/api/version/${this.manuscriptConfig.id}/create/`,
+        `/apps/writer/api/version/${this.manuscriptConfig.id}/create/`,
         {
           method: "POST",
           headers: {

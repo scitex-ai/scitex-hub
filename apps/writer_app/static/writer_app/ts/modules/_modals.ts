@@ -21,7 +21,9 @@ export function showCompilationOptionsModal(
     // Get modal, modalBody, and descriptionText from modalElement
     const modal = modalElement;
     const modalBody = modalElement.querySelector(".scitex-modal-body");
-    const descriptionText = modalElement.querySelector(".text-muted.small.mb-3");
+    const descriptionText = modalElement.querySelector(
+      ".text-muted.small.mb-3",
+    );
 
     // Update modal description for full compilation options
     if (descriptionText) {
@@ -339,7 +341,7 @@ export async function handleGitCommit(state: any): Promise<void> {
 
     // Call API endpoint to commit
     const response = await fetch(
-      `/writer/api/project/${config.projectId}/section/${sectionName}/commit/`,
+      `/apps/writer/api/project/${config.projectId}/section/${sectionName}/commit/`,
       {
         method: "POST",
         headers: {
