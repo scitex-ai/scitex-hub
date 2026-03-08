@@ -56,7 +56,13 @@ Hub inline user profile — returned by /hub/api/user-profile/?username=X
                     <div class="hub-user-orgs-list">
                         {% for org in organizations %}
                             <a href="/{{ org.slug }}/" class="hub-user-org-link" title="{{ org.name }}">
-                                <span class="hub-user-org-avatar">{{ org.name|slice:":1"|upper }}</span>
+                                <span class="hub-user-org-avatar">
+                                    {% if org.avatar %}
+                                        <img src="{{ org.avatar.url }}" alt="{{ org.name }}" class="hub-user-org-avatar-img" />
+                                    {% else %}
+                                        {{ org.name|slice:":1"|upper }}
+                                    {% endif %}
+                                </span>
                             </a>
                         {% endfor %}
                     </div>
