@@ -3,6 +3,6 @@
 <!-- Preview Panel Manager configuration and script (legacy - not used by main index.html) -->
 <div id="preview-panel-config"
      style="display: none"
-     data-quick-compile-url="{% url 'writer_app:api-compile-preview' project.id %}"
-     data-compilation-status-url="{% url 'writer_app:api-compilation-status' project.id '__JOB_ID__' %}"></div>
+     data-quick-compile-url="{% url 'writer_app:api_compile_preview' project.id %}"
+     data-compilation-status-url="{% url 'writer_app:api_compilation_status' project.id '__JOB_ID__' %}"></div>
 {% vite_script 'writer_app/editor/preview-panel/index' %}

@@ -1,0 +1,36 @@
+# -*- coding: utf-8 -*-
+# Timestamp: 2026-03-09
+# File: /home/ywatanabe/proj/scitex-cloud/config/urls_legacy_redirects.py
+"""
+Legacy redirect patterns: /<app>/ → /apps/<app>/
+Extracted from config/urls.py to eliminate 11 copy-paste blocks.
+"""
+
+from __future__ import annotations
+
+from django.urls import path
+from django.views.generic import RedirectView
+
+LEGACY_APP_NAMES = [
+    "scholar",
+    "console",
+    "vis",
+    "vis-react",
+    "writer",
+    "workspace",
+    "example",
+    "notebook",
+    "modulemaker",
+    "llm",
+    "clew",
+]
+
+urlpatterns = [
+    path(
+        f"{name}/",
+        RedirectView.as_view(url=f"/apps/{name}/", permanent=True, query_string=True),
+    )
+    for name in LEGACY_APP_NAMES
+]
+
+# EOF

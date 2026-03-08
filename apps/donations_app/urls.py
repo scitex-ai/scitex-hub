@@ -4,6 +4,7 @@
 # File: /home/ywatanabe/proj/scitex-cloud/apps/donations_app/urls.py
 # ----------------------------------------
 from __future__ import annotations
+
 import os
 
 __FILE__ = "./apps/donations_app/urls.py"
@@ -25,7 +26,7 @@ urlpatterns = [
     path(
         "donation-success/<int:donation_id>/",
         views.donation_success,
-        name="donation-success",
+        name="donation_success_detail",
     ),
 ]
 

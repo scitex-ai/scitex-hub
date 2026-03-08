@@ -4,13 +4,14 @@
  */
 
 import { renderLimits, bindLimitsInputs } from "./config-limits";
+import { API_URLS } from "../../utils/api-urls";
 
 /** Populate limits into #ai-chat-limits-content (once). */
 export async function populateChatLimits(): Promise<void> {
   const container = document.getElementById("ai-chat-limits-content");
   if (!container || container.dataset.loaded) return;
   try {
-    const resp = await fetch("/accounts/api/ai-limits/").then((r) => r.json());
+    const resp = await fetch(API_URLS.accounts.aiLimits).then((r) => r.json());
     container.innerHTML = renderLimits(resp);
     bindLimitsInputs(container, () => {});
     container.dataset.loaded = "1";

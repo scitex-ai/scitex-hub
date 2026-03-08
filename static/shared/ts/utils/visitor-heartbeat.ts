@@ -5,6 +5,8 @@
  * This allows the server to track idle time and manage session resources.
  */
 
+import { API_URLS, NAV_URLS } from "./api-urls";
+
 const HEARTBEAT_INTERVAL_MS = 30000; // 30 seconds
 const IDLE_THRESHOLD_MS = 60000; // 1 minute of no activity = idle
 
@@ -76,7 +78,7 @@ class VisitorHeartbeat {
 
   private async sendHeartbeat(): Promise<void> {
     try {
-      const response = await fetch("/api/visitor/heartbeat/", {
+      const response = await fetch(API_URLS.visitor.heartbeat, {
         method: "GET",
         credentials: "same-origin",
       });
@@ -101,7 +103,7 @@ class VisitorHeartbeat {
           "[Heartbeat] Session expired, redirecting to visitor-expired",
         );
         this.destroy(); // Stop heartbeat before redirect
-        window.location.replace("/visitor-expired/");
+        window.location.replace(NAV_URLS.visitorExpired);
       }
     } catch (error) {
       console.warn("[Heartbeat] Error:", error);

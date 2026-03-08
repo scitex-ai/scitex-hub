@@ -21,15 +21,15 @@ urlpatterns = [
     path(
         "initialize-workspace/",
         index_views.initialize_workspace,
-        name="initialize-workspace",
+        name="initialize_workspace",
     ),
     # PDF rendering debug
     path(
         "pdf-debug/",
         TemplateView.as_view(template_name="writer_app/pdf_debug.html"),
-        name="pdf-debug",
+        name="pdf_debug",
     ),
-    path("pdf-debug/test.pdf", test_pdf, name="pdf-debug-test-pdf"),
+    path("pdf-debug/test.pdf", test_pdf, name="pdf_debug_test_pdf"),
 ]
 
 # EOF

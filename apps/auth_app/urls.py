@@ -4,6 +4,7 @@
 # File: /home/ywatanabe/proj/scitex-cloud/apps/auth_app/urls.py
 # ----------------------------------------
 from __future__ import annotations
+
 import os
 
 __FILE__ = "./apps/auth_app/urls.py"
@@ -12,8 +13,7 @@ __DIR__ = os.path.dirname(__FILE__)
 
 from django.urls import path
 
-from . import views
-from . import api_views
+from . import api_views, views
 
 app_name = "auth_app"
 
@@ -23,40 +23,40 @@ urlpatterns = [
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
     path("signout/", views.logout_view, name="signout"),
-    path("forgot-password/", views.forgot_password, name="forgot-password"),
+    path("forgot-password/", views.forgot_password, name="forgot_password"),
     path(
         "reset-password/<str:uidb64>/<str:token>/",
         views.reset_password,
-        name="reset-password",
+        name="reset_password",
     ),
-    path("verify-email/", views.verify_email, name="verify-email"),
-    path("delete-account/", views.delete_account, name="delete-account"),
+    path("verify-email/", views.verify_email, name="verify_email"),
+    path("delete-account/", views.delete_account, name="delete_account"),
     # API endpoints for email verification
     path(
         "api/verify-email/",
         api_views.verify_email_api,
-        name="api-verify-email",
+        name="api_verify_email",
     ),
-    path("api/resend-otp/", api_views.resend_otp_api, name="api-resend-otp"),
+    path("api/resend-otp/", api_views.resend_otp_api, name="api_resend_otp"),
     # API endpoints for signup validation
     path(
         "api/check-username/",
         api_views.check_username_availability,
-        name="api-check-username",
+        name="api_check_username",
     ),
     # API endpoints for theme preferences
     path(
         "api/save-theme/",
         views.api_save_theme_preference,
-        name="api-save-theme",
+        name="api_save_theme",
     ),
-    path("api/get-theme/", views.api_get_theme_preference, name="api-get-theme"),
+    path("api/get-theme/", views.api_get_theme_preference, name="api_get_theme"),
     # Account switcher (multi-account support)
-    path("switch/<int:user_id>/", views.switch_account, name="switch-account"),
+    path("switch/<int:user_id>/", views.switch_account, name="switch_account"),
     path(
         "api/authenticated-accounts/",
         views.get_authenticated_accounts,
-        name="api-authenticated-accounts",
+        name="api_authenticated_accounts",
     ),
 ]
 

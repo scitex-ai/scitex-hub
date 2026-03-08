@@ -7,6 +7,7 @@ import type { AIPanelChatMode } from "./chat-mode";
 import { renderSkills } from "./config-skills";
 import type { SkillInfo } from "./config-skills";
 import { readActiveProjectSlug } from "./context";
+import { API_URLS } from "../../utils/api-urls";
 
 interface McpToolParam {
   name: string;
@@ -235,7 +236,7 @@ export class AIPanelConfigMode {
     const page = window.location.href;
     let html = `<div class="ai-config-context-preview">`;
     html += `<div class="ai-config-tool-name"><code>Agent Context</code>`;
-    html += ` <span class="ai-config-tool-returns">→ POST /apps/llm/api/chat/stream/</span></div>`;
+    html += ` <span class="ai-config-tool-returns">→ POST ${API_URLS.llm.chatStream}</span></div>`;
     html += `<div class="ai-config-tool-desc">`;
     html += `<code>page</code>: ${page}<br>`;
     html += `<code>project_slug</code>: active project<br>`;
