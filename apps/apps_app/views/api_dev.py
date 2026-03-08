@@ -340,8 +340,14 @@ def api_submit_dev_app(request, owner, repo):
     app_module.save(update_fields=["pinned_commit"])
 
     # Ensure the target registry repo in scitex-apps org exists
+    # Mirror source project privacy: private stays private until approved
+    source_is_private = app_module.project.visibility != "public"
     try:
-        _create_app_repo(app_module.project.slug, manifest.get("description", ""))
+        _create_app_repo(
+            app_module.project.slug,
+            manifest.get("description", ""),
+            private=source_is_private,
+        )
     except Exception as e:
         logger.error("[api_dev] Failed to create registry repo: %s", e)
         return JsonResponse(

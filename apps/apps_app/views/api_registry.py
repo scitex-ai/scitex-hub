@@ -167,6 +167,11 @@ def api_registry_webhook(request):
     app_module.registry_repo_url = f"/{APPS_ORG}/{repo_name}/"
     app_module.save(update_fields=["visibility", "is_verified", "registry_repo_url"])
 
+    # Note: the Gitea registry repo privacy is NOT changed here.
+    # It mirrors the source project's privacy setting — private projects
+    # remain private even after approval (privacy-first research groups).
+    # Only the AppsModule record becomes public (listed in marketplace).
+
     _activate_approved_app(app_module)
 
     pr_number = pr.get("number")
@@ -178,8 +183,11 @@ def api_registry_webhook(request):
 # ---------------------------------------------------------------------------
 
 
-def _create_app_repo(app_name: str, description: str = "") -> str:
+def _create_app_repo(app_name: str, description: str = "", private: bool = True) -> str:
     """Create a scaffold repo in scitex-apps org for a new app.
+
+    The repo is created with the same privacy as the source project.
+    It becomes public only when the submission PR is approved and merged.
 
     Returns the repo HTML URL.  Raises on failure.
     """
@@ -194,12 +202,12 @@ def _create_app_repo(app_name: str, description: str = "") -> str:
     except GiteaAPIError:
         pass  # 404 — doesn't exist, create it
 
-    # Create repo in org
+    # Create repo in org with same privacy as source project
     repo_data = client.create_org_repository(
         org=APPS_ORG,
         name=app_name,
         description=description or f"SciTeX app: {app_name}",
-        private=False,
+        private=private,
         auto_init=True,
     )
     repo_url = repo_data.get("html_url", "")
