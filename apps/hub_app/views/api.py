@@ -11,7 +11,6 @@ import logging
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.db import models
 from django.db.models import Count
 from django.http import JsonResponse
 from django.template.loader import render_to_string
@@ -235,12 +234,14 @@ def api_select_project(request):
     if not project.can_view(request.user):
         return JsonResponse({"success": False, "error": "Access denied"}, status=403)
 
-    # Set as current project in session and profile
-    set_current_project(request, project)
-    # Only set last_active_repository for projects the user owns
-    if hasattr(request.user, "profile") and project.owner_id == request.user.id:
-        request.user.profile.last_active_repository = project
-        request.user.profile.save(update_fields=["last_active_repository"])
+    # browse=true means read-only view — do not switch the active project
+    browse_only = bool(data.get("browse", False))
+    if not browse_only:
+        set_current_project(request, project)
+        # Only set last_active_repository for projects the user owns
+        if hasattr(request.user, "profile") and project.owner_id == request.user.id:
+            request.user.profile.last_active_repository = project
+            request.user.profile.save(update_fields=["last_active_repository"])
 
     context = {"project": project}
 
@@ -264,6 +265,7 @@ def api_select_project(request):
             "success": True,
             "html": html,
             "project_id": project.id,
+            "project_name": project.name,
             "project_slug": project.slug,
             "owner": project.owner.username,
         }
@@ -271,15 +273,46 @@ def api_select_project(request):
 
 
 @login_required
-@require_http_methods(["GET"])
-def api_me(request):
-    """GET /hub/api/me/ — User account overview."""
-    html = render_to_string(
-        "hub_app/partials/me_content.html",
-        {},
-        request=request,
+@require_http_methods(["POST"])
+def api_set_active_project(request):
+    """POST /hub/api/set-active-project/ — Persist active project without loading workspace."""
+    from apps.project_app.services.project_utils import set_current_project
+
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+
+    project_id = data.get("project_id")
+    if not project_id:
+        return JsonResponse(
+            {"success": False, "error": "project_id required"}, status=400
+        )
+
+    try:
+        project = Project.objects.get(id=project_id)
+    except Project.DoesNotExist:
+        return JsonResponse(
+            {"success": False, "error": "Project not found"}, status=404
+        )
+
+    if not project.can_view(request.user):
+        return JsonResponse({"success": False, "error": "Access denied"}, status=403)
+
+    set_current_project(request, project)
+    if hasattr(request.user, "profile") and project.owner_id == request.user.id:
+        request.user.profile.last_active_repository = project
+        request.user.profile.save(update_fields=["last_active_repository"])
+
+    return JsonResponse(
+        {
+            "success": True,
+            "project_id": str(project.id),
+            "project_name": project.name,
+            "project_slug": project.slug,
+            "owner": project.owner.username,
+        }
     )
-    return JsonResponse({"success": True, "html": html})
 
 
 @login_required
@@ -294,6 +327,21 @@ def api_projects_overview(request):
     html = render_to_string(
         "hub_app/partials/projects_overview.html",
         {"user_projects": user_projects, "projects_count": projects_count},
+        request=request,
+    )
+    return JsonResponse({"success": True, "html": html})
+
+
+@login_required
+@require_http_methods(["GET"])
+def api_account_settings(request):
+    """GET /hub/api/account-settings/ — Account settings partial for inline rendering."""
+    from apps.accounts_app.models import UserProfile
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    html = render_to_string(
+        "hub_app/partials/account_settings_content.html",
+        {"profile": profile, "user": request.user},
         request=request,
     )
     return JsonResponse({"success": True, "html": html})
@@ -349,117 +397,6 @@ def api_explore(request):
         "hub_app/partials/explore_content.html", context, request=request
     )
     return JsonResponse({"success": True, "html": html})
-
-
-@login_required
-@require_http_methods(["GET"])
-def api_user_profile(request):
-    """GET /hub/api/user-profile/?username=ywatanabe — User profile inline."""
-    from django.shortcuts import get_object_or_404
-
-    from apps.social_app.models import UserFollow
-
-    username = request.GET.get("username", "")
-    if not username:
-        return JsonResponse(
-            {"success": False, "error": "username required"}, status=400
-        )
-
-    profile_user = get_object_or_404(User, username=username)
-
-    # Filter projects based on visibility
-    user_projects = Project.objects.filter(owner=profile_user)
-    if request.user != profile_user:
-        if request.user.is_authenticated:
-            user_projects = user_projects.filter(
-                models.Q(visibility="public") | models.Q(memberships__user=request.user)
-            ).distinct()
-        else:
-            user_projects = user_projects.filter(visibility="public")
-
-    user_projects = user_projects.order_by("-updated_at")[:20]
-
-    followers_count = UserFollow.get_followers_count(profile_user)
-    following_count = UserFollow.get_following_count(profile_user)
-    is_following = UserFollow.is_following(request.user, profile_user)
-
-    html = render_to_string(
-        "hub_app/partials/user_profile_content.html",
-        {
-            "profile_user": profile_user,
-            "projects": user_projects,
-            "followers_count": followers_count,
-            "following_count": following_count,
-            "is_following": is_following,
-            "is_own_projects": request.user == profile_user,
-        },
-        request=request,
-    )
-    return JsonResponse({"success": True, "html": html})
-
-
-@login_required
-@require_http_methods(["POST"])
-def api_update_about(request):
-    """POST /hub/api/update-about/ — Update project description and/or topics."""
-    from apps.project_app.services.project_utils import get_current_project
-
-    current_project = get_current_project(request, user=request.user)
-    if not current_project:
-        return JsonResponse(
-            {"success": False, "error": "No project selected"}, status=400
-        )
-
-    if current_project.owner != request.user:
-        return JsonResponse(
-            {"success": False, "error": "Permission denied"}, status=403
-        )
-
-    try:
-        data = json.loads(request.body)
-    except (json.JSONDecodeError, ValueError):
-        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
-
-    update_fields = []
-    if "description" in data:
-        current_project.description = data["description"].strip()
-        update_fields.append("description")
-    if "topics" in data:
-        current_project.topics = data["topics"].strip()
-        update_fields.append("topics")
-
-    if update_fields:
-        current_project.save(update_fields=update_fields)
-
-    return JsonResponse(
-        {
-            "success": True,
-            "description": current_project.description,
-            "topics": current_project.topics,
-        }
-    )
-
-
-# Keep old endpoint as alias for backward compatibility
-api_update_topics = api_update_about
-
-
-@login_required
-@require_http_methods(["POST"])
-def api_avatar_upload(request):
-    """POST /hub/api/avatar-upload/ — Upload avatar via AJAX."""
-    from apps.accounts_app.models import UserProfile
-
-    if "avatar" not in request.FILES:
-        return JsonResponse(
-            {"success": False, "error": "No avatar file provided"}, status=400
-        )
-
-    profile, _ = UserProfile.objects.get_or_create(user=request.user)
-    profile.avatar = request.FILES["avatar"]
-    profile.save(update_fields=["avatar"])
-
-    return JsonResponse({"success": True, "avatar_url": profile.avatar.url})
 
 
 # EOF

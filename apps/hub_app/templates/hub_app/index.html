@@ -34,17 +34,31 @@
 {% block content %}
     <div class="hub-workspace">
         <!-- Main Area -->
-        <main class="hub-main">
-            <!-- Me | My Projects | Explore mode switcher -->
+        <main class="hub-main"
+              data-username="{{ user.username }}"
+              data-initial-mode="{{ hub_initial_mode|default:'' }}">
+            <!-- My | Current Project mode switcher -->
             <div class="hub-mode-switcher" id="hub-mode-switcher">
-                <a href="#" class="hub-mode" data-hub-mode="me">
-                    <i class="fas fa-user"></i> Me
+                <a href="#"
+                   class="hub-mode {% if hub_initial_mode != 'projects' %}hub-mode-active{% endif %}"
+                   data-hub-mode="me">
+                    <i class="fas fa-user"></i> My
                 </a>
-                <a href="#" class="hub-mode hub-mode-active" data-hub-mode="projects">
-                    <i class="fas fa-th-large"></i> My Projects
+                <a href="#" class="hub-mode" data-hub-mode="settings">
+                    <i class="fas fa-cog"></i> Settings
                 </a>
-                <a href="#" class="hub-mode" data-hub-mode="explore">
-                    <i class="fas fa-compass"></i> Explore
+                <a href="#"
+                   class="hub-mode {% if hub_initial_mode == 'projects' %}hub-mode-active{% endif %}"
+                   data-hub-mode="projects"
+                   {% if current_project %}data-project-id="{{ current_project.id }}"{% endif %}>
+                    <i class="fas fa-folder-open"></i>
+                    <span class="hub-mode-project-label">
+                        {% if current_project %}
+                            {{ current_project.slug }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </span>
                 </a>
             </div>
             <!-- Dynamic main content: project workspace or projects overview -->
