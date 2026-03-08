@@ -293,6 +293,14 @@ def api_submit_dev_app(request, owner, repo):
         else f"{app_name}_app"
     )
 
+    # Visibility from manifest or request body; default private
+    VALID_VISIBILITIES = {"private", "unlisted", "public"}
+    requested_visibility = (
+        manifest.get("visibility") or request.POST.get("visibility") or "private"
+    )
+    if requested_visibility not in VALID_VISIBILITIES:
+        requested_visibility = "private"
+
     try:
         app_module, created = AppsModule.objects.update_or_create(
             project=project,
@@ -301,7 +309,7 @@ def api_submit_dev_app(request, owner, repo):
                 "author": request.user,
                 "short_description": manifest.get("description", ""),
                 "category": manifest.get("category", "other"),
-                "visibility": "private",
+                "visibility": requested_visibility,
                 "repository_url": project.gitea_repo_url or "",
             },
         )
