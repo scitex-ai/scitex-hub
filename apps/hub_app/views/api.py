@@ -272,6 +272,18 @@ def api_select_project(request):
 
 @login_required
 @require_http_methods(["GET"])
+def api_me(request):
+    """GET /hub/api/me/ — User account overview."""
+    html = render_to_string(
+        "hub_app/partials/me_content.html",
+        {},
+        request=request,
+    )
+    return JsonResponse({"success": True, "html": html})
+
+
+@login_required
+@require_http_methods(["GET"])
 def api_projects_overview(request):
     """GET /hub/api/projects-overview/ — Project cards grid HTML."""
     user_projects = Project.objects.filter(owner=request.user).order_by("-updated_at")[

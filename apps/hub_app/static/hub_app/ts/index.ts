@@ -10,6 +10,10 @@ import { hubGet, hubPost } from "./hub-api";
 import { handleBrowseHash } from "./hub-hash-router";
 import { getBranch, pushDashboardUrl, pushProjectUrl } from "./hub-url";
 import "./toolbar-dropdowns"; // Exposes dropdown toggle functions to window
+import { submitToAppStore } from "../../../../../apps/project_app/static/project_app/ts/shared/project-app/project-actions";
+
+// Expose project actions to global scope (hub renders browse_header but doesn't load browse_scripts)
+(window as any).submitToAppStore = submitToAppStore;
 
 let currentTab = "files";
 
@@ -264,6 +268,8 @@ async function switchHubMode(mode: string): Promise<void> {
 
   if (mode === "explore") {
     loadExplore("repositories");
+  } else if (mode === "me") {
+    loadMe();
   } else {
     backToProjects();
   }
@@ -308,6 +314,16 @@ async function loadExplore(tab: string): Promise<void> {
 async function loadUserProfile(username: string): Promise<void> {
   if (!username) return;
   window.location.href = `/${encodeURIComponent(username)}/`;
+}
+
+async function loadMe(): Promise<void> {
+  const content = document.getElementById("hub-main-content");
+  if (!content) return;
+  content.style.opacity = "0.5";
+  pushDashboardUrl();
+  const data = await hubGet("/hub/api/me/");
+  if (data?.success) content.innerHTML = data.html;
+  content.style.opacity = "1";
 }
 
 async function backToProjects(): Promise<void> {

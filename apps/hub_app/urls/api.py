@@ -11,6 +11,8 @@ from ..views import api as api_views
 from ..views import api_browse as browse_views
 
 urlpatterns = [
+    # Me tab
+    path("me/", api_views.api_me, name="api_me"),
     # Project listing
     path("projects/", api_views.api_projects_list, name="api_projects_list"),
     # Activity feed
