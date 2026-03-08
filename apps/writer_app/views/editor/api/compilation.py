@@ -80,10 +80,10 @@ def compile_api(request, project_id):
 
             pdf_path = Path(result["output_pdf"])
             # Convert: /app/data/users/USER/PROJECT/scitex/writer/.preview/preview-abstract-light.pdf
-            # To URL: /writer/api/project/101/pdf/preview-abstract-light.pdf
+            # To URL: /apps/writer/api/project/101/pdf/preview-abstract-light.pdf
             pdf_filename = pdf_path.name
             result["output_pdf"] = (
-                f"/writer/api/project/{project_id}/pdf/{pdf_filename}"
+                f"/apps/writer/api/project/{project_id}/pdf/{pdf_filename}"
             )
             logger.info(
                 f"[CompileAPI] Converted PDF path to URL: {result['output_pdf']}"
@@ -292,7 +292,7 @@ def run_compilation_async(
 
             pdf_path = Path(result["output_pdf"])
             pdf_filename = pdf_path.name
-            pdf_url = f"/writer/api/project/{project_id}/pdf/{pdf_filename}"
+            pdf_url = f"/apps/writer/api/project/{project_id}/pdf/{pdf_filename}"
             result["output_pdf"] = pdf_url
             result["pdf_path"] = pdf_url
             logger.info(f"[CompileFullAPI {job_id}] PDF URL: {pdf_url}")
