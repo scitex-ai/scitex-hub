@@ -3,7 +3,11 @@
  * Handles loading section content from API and switching between sections
  */
 
-import type { WriterEditor, SectionsManager, PDFPreviewManager } from "../../modules/index";
+import type {
+  WriterEditor,
+  SectionsManager,
+  PDFPreviewManager,
+} from "../../modules/index";
 import { setLoadingContent } from "../../modules/index";
 import { getWriterConfig } from "../../_helpers";
 import { getUserContext } from "../ui";
@@ -48,7 +52,7 @@ export async function loadSectionContent(
     );
 
     const response = await fetch(
-      `/writer/api/project/${config.projectId}/section/${sectionName}/?doc_type=${docType}`,
+      `/apps/writer/api/project/${config.projectId}/section/${sectionName}/?doc_type=${docType}`,
     );
 
     if (!response.ok) {
@@ -128,7 +132,8 @@ export async function switchSection(
     // Extract section name for display (e.g., "manuscript/abstract" -> "Abstract")
     const parts = sectionId.split("/");
     const sectionName = parts.length > 1 ? parts[1] : sectionId;
-    const displayName = sectionName.charAt(0).toUpperCase() + sectionName.slice(1);
+    const displayName =
+      sectionName.charAt(0).toUpperCase() + sectionName.slice(1);
     fileTabManager.openFile(sectionId, displayName);
   }
 
@@ -147,7 +152,13 @@ export async function switchSection(
     // Load compiled_tex content
     const compiledTexId = sectionId.replace("/compiled_pdf", "/compiled_tex");
     try {
-      await loadSectionContent(editor, sectionsManager, state, compiledTexId, pdfPreviewManager);
+      await loadSectionContent(
+        editor,
+        sectionsManager,
+        state,
+        compiledTexId,
+        pdfPreviewManager,
+      );
     } catch (error) {
       const errorMsg = `Failed to load compiled TeX: ${error}`;
       console.error("[Writer]", errorMsg);
@@ -165,7 +176,13 @@ export async function switchSection(
 
   // Load fresh content from API
   try {
-    await loadSectionContent(editor, sectionsManager, state, sectionId, pdfPreviewManager);
+    await loadSectionContent(
+      editor,
+      sectionsManager,
+      state,
+      sectionId,
+      pdfPreviewManager,
+    );
   } catch (error) {
     const errorMsg = `Failed to load section ${sectionId}: ${error}`;
     console.error("[Writer]", errorMsg);

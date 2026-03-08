@@ -83,7 +83,7 @@ async function saveToProject(
     formData.append("url", data.externalUrl);
     formData.append("pmid", data.pmid);
 
-    const response = await fetch("/scholar/api/save-paper/", {
+    const response = await fetch("/apps/scholar/api/save-paper/", {
       method: "POST",
       headers: {
         "X-CSRFToken": csrfToken,

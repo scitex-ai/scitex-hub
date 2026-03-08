@@ -70,10 +70,18 @@ export class GitHistoryManager {
     const timeline = document.getElementById("gitCommitTimeline");
     const diffViewer = document.getElementById("gitDiffViewer");
     const diffContent = document.getElementById("gitDiffContent");
-    const branchSelect = document.getElementById("gitBranchSelect") as HTMLSelectElement;
+    const branchSelect = document.getElementById(
+      "gitBranchSelect",
+    ) as HTMLSelectElement;
     const statusBadge = document.getElementById("gitStatusBadge");
 
-    if (!timeline || !diffViewer || !diffContent || !branchSelect || !statusBadge) {
+    if (
+      !timeline ||
+      !diffViewer ||
+      !diffContent ||
+      !branchSelect ||
+      !statusBadge
+    ) {
       console.error("[GitHistory] Required elements not found");
       return;
     }
@@ -114,13 +122,14 @@ export class GitHistoryManager {
     try {
       const branch = this.branchSelect.value;
       const response = await fetch(
-        `/writer/api/project/${this.projectId}/git/history/?max_count=50&branch=${encodeURIComponent(branch)}`
+        `/apps/writer/api/project/${this.projectId}/git/history/?max_count=50&branch=${encodeURIComponent(branch)}`,
       );
 
       if (!response.ok) throw new Error("Failed to load git history");
 
       const data = await response.json();
-      if (!data.success) throw new Error(data.error || "Failed to load history");
+      if (!data.success)
+        throw new Error(data.error || "Failed to load history");
 
       this.currentCommits = data.commits;
       this.renderTimeline();
@@ -189,7 +198,7 @@ export class GitHistoryManager {
           }
         </div>
       </div>
-    `
+    `,
       )
       .join("");
 
@@ -200,10 +209,14 @@ export class GitHistoryManager {
     try {
       // Update selected commit visuals
       this.selectedCommit = commitSha;
-      this.timelineContainer.querySelectorAll(".git-commit-item").forEach((item) => {
-        item.classList.remove("active");
-      });
-      const selectedItem = this.timelineContainer.querySelector(`[data-sha="${commitSha}"]`);
+      this.timelineContainer
+        .querySelectorAll(".git-commit-item")
+        .forEach((item) => {
+          item.classList.remove("active");
+        });
+      const selectedItem = this.timelineContainer.querySelector(
+        `[data-sha="${commitSha}"]`,
+      );
       if (selectedItem) {
         selectedItem.classList.add("active");
       }
@@ -218,7 +231,7 @@ export class GitHistoryManager {
 
       // Fetch diff
       const response = await fetch(
-        `/writer/api/project/${this.projectId}/git/diff/?commit_sha=${encodeURIComponent(commitSha)}`
+        `/apps/writer/api/project/${this.projectId}/git/diff/?commit_sha=${encodeURIComponent(commitSha)}`,
       );
 
       if (!response.ok) throw new Error("Failed to load diff");
@@ -263,7 +276,7 @@ export class GitHistoryManager {
           ${this.formatDiffLines(file.diff)}
         </div>
       </div>
-    `
+    `,
       )
       .join("");
 
@@ -290,19 +303,24 @@ export class GitHistoryManager {
     this.selectedCommit = null;
 
     // Remove active state from all commits
-    this.timelineContainer.querySelectorAll(".git-commit-item").forEach((item) => {
-      item.classList.remove("active");
-    });
+    this.timelineContainer
+      .querySelectorAll(".git-commit-item")
+      .forEach((item) => {
+        item.classList.remove("active");
+      });
   }
 
   public async loadBranches(): Promise<void> {
     try {
-      const response = await fetch(`/writer/api/project/${this.projectId}/git/branches/`);
+      const response = await fetch(
+        `/apps/writer/api/project/${this.projectId}/git/branches/`,
+      );
 
       if (!response.ok) throw new Error("Failed to load branches");
 
       const data = await response.json();
-      if (!data.success) throw new Error(data.error || "Failed to load branches");
+      if (!data.success)
+        throw new Error(data.error || "Failed to load branches");
 
       const branches: GitBranch[] = data.branches;
 
@@ -313,7 +331,7 @@ export class GitHistoryManager {
         <option value="${this.escapeHtml(branch.name)}" ${branch.is_current ? "selected" : ""}>
           ${this.escapeHtml(branch.name)}${branch.is_current ? " (current)" : ""}
         </option>
-      `
+      `,
         )
         .join("");
     } catch (error) {
@@ -323,7 +341,9 @@ export class GitHistoryManager {
 
   public async loadStatus(): Promise<void> {
     try {
-      const response = await fetch(`/writer/api/project/${this.projectId}/git/status/`);
+      const response = await fetch(
+        `/apps/writer/api/project/${this.projectId}/git/status/`,
+      );
 
       if (!response.ok) throw new Error("Failed to load status");
 
@@ -335,10 +355,13 @@ export class GitHistoryManager {
       // Update status badge
       if (status.clean) {
         this.statusBadge.className = "badge bg-success";
-        this.statusBadge.innerHTML = '<i class="fas fa-check-circle me-1"></i>Working directory clean';
+        this.statusBadge.innerHTML =
+          '<i class="fas fa-check-circle me-1"></i>Working directory clean';
       } else {
         const totalChanges =
-          status.files.modified.length + status.files.staged.length + status.files.untracked.length;
+          status.files.modified.length +
+          status.files.staged.length +
+          status.files.untracked.length;
         this.statusBadge.className = "badge bg-warning";
         this.statusBadge.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i>${totalChanges} uncommitted change${totalChanges !== 1 ? "s" : ""}`;
       }
@@ -352,17 +375,21 @@ export class GitHistoryManager {
     if (!branchName) return;
 
     try {
-      const response = await fetch(`/writer/api/project/${this.projectId}/git/branch/create/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": this.getCSRFToken(),
+      const response = await fetch(
+        `/apps/writer/api/project/${this.projectId}/git/branch/create/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": this.getCSRFToken(),
+          },
+          body: JSON.stringify({ branch_name: branchName }),
         },
-        body: JSON.stringify({ branch_name: branchName }),
-      });
+      );
 
       const data = await response.json();
-      if (!data.success) throw new Error(data.error || "Failed to create branch");
+      if (!data.success)
+        throw new Error(data.error || "Failed to create branch");
 
       alert(`Branch '${branchName}' created successfully!`);
       await this.loadBranches();
@@ -379,7 +406,9 @@ export class GitHistoryManager {
   }
 
   private getCSRFToken(): string {
-    const cookie = document.cookie.split("; ").find((row) => row.startsWith("csrftoken="));
+    const cookie = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("csrftoken="));
     return cookie ? cookie.split("=")[1] : "";
   }
 }

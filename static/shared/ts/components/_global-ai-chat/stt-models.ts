@@ -20,7 +20,7 @@ export function fetchAndPopulateSttModels(
   select: HTMLSelectElement,
   micBtn: HTMLButtonElement | null,
 ): void {
-  fetch("/llm/api/stt/models/")
+  fetch("/apps/llm/api/stt/models/")
     .then((r) => r.json())
     .then((data: SttModelsResponse) => {
       if (!data.available || data.models.length === 0) return;

@@ -3,7 +3,6 @@
  * Handles API communication for table data
  */
 
-
 import { getCsrfToken } from "../../shared/utils";
 import { TableData } from "./types";
 
@@ -11,7 +10,7 @@ export class TableAPIClient {
   constructor(private projectId: string) {}
 
   async loadTableData(fileHash: string): Promise<TableData> {
-    const apiUrl = `/writer/api/project/${this.projectId}/table-data/${fileHash}/`;
+    const apiUrl = `/apps/writer/api/project/${this.projectId}/table-data/${fileHash}/`;
     console.log("[TableAPIClient] Fetching from:", apiUrl);
 
     const response = await fetch(apiUrl);
@@ -29,7 +28,7 @@ export class TableAPIClient {
     data: Record<string, any>[],
     columns: string[],
   ): Promise<void> {
-    const apiUrl = `/writer/api/project/${this.projectId}/table-update/${fileHash}/`;
+    const apiUrl = `/apps/writer/api/project/${this.projectId}/table-update/${fileHash}/`;
     console.log("[TableAPIClient] Saving to:", apiUrl);
 
     const response = await fetch(apiUrl, {

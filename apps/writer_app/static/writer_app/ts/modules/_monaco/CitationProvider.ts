@@ -39,7 +39,7 @@ export class CitationProvider {
     }
 
     try {
-      const apiUrl = `/writer/api/project/${projectId}/citations/`;
+      const apiUrl = `/apps/writer/api/project/${projectId}/citations/`;
       const response = await fetch(apiUrl);
 
       if (!response.ok) return [];
@@ -76,7 +76,13 @@ export class CitationProvider {
           return this.getNoResultsSuggestion(monaco, position);
         }
 
-        return this.buildSuggestions(monaco, citations, citeMatch, beforeCursor, position);
+        return this.buildSuggestions(
+          monaco,
+          citations,
+          citeMatch,
+          beforeCursor,
+          position,
+        );
       },
     });
   }
@@ -180,10 +186,9 @@ export class CitationProvider {
         const detailLine = detailLines.join("\n");
 
         // Sort by citation count (higher first)
-        const sortPrefix = String(1000000 - (cite.citation_count || 0)).padStart(
-          7,
-          "0",
-        );
+        const sortPrefix = String(
+          1000000 - (cite.citation_count || 0),
+        ).padStart(7, "0");
 
         return {
           label: cite.key,

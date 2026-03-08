@@ -78,7 +78,7 @@ export class JobPollingManager {
     }
 
     try {
-      const response = await fetch(`/scholar/api/bibtex/job/${jobId}/status/`);
+      const response = await fetch(`/apps/scholar/api/bibtex/job/${jobId}/status/`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data: JobStatusResponse = await response.json();
@@ -211,7 +211,7 @@ export class JobPollingManager {
     if (downloadBtn) {
       setButtonState("downloadBtn", true);
       downloadBtn.onclick = () => {
-        const downloadUrl = `/scholar/api/bibtex/job/${jobId}/download/`;
+        const downloadUrl = `/apps/scholar/api/bibtex/job/${jobId}/download/`;
         (window as any).autoDownloadBibtexFile?.(downloadUrl);
       };
     }
@@ -228,7 +228,7 @@ export class JobPollingManager {
    */
   private async updateUrlCount(jobId: string): Promise<void> {
     try {
-      const response = await fetch(`/scholar/api/bibtex/job/${jobId}/urls/`);
+      const response = await fetch(`/apps/scholar/api/bibtex/job/${jobId}/urls/`);
       const urlData = await response.json();
       const count = urlData.total_urls || 0;
 

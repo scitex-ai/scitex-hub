@@ -157,7 +157,7 @@ export class PltzRenderManager {
     try {
       // Call render API
       const response = await fetch(
-        `/vis/api/bundles/pltz/render/?path=${encodeURIComponent(pltzPath)}`,
+        `/apps/vis/api/bundles/pltz/render/?path=${encodeURIComponent(pltzPath)}`,
         {
           method: "POST",
           headers: {

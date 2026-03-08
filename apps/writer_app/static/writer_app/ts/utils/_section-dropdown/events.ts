@@ -33,7 +33,7 @@ export async function toggleSectionVisibility(
   try {
     // Call API to toggle exclusion
     const response = await fetch(
-      `/writer/api/project/${config.projectId}/section/${sectionId}/toggle-exclude/`,
+      `/apps/writer/api/project/${config.projectId}/section/${sectionId}/toggle-exclude/`,
       {
         method: "POST",
         headers: {
@@ -150,11 +150,7 @@ export function setupSectionEvents(
         if (compilationManager && state) {
           // Import handleCompileFull dynamically to avoid circular dependency
           const { handleCompileFull } = await import("../../index.js");
-          await handleCompileFull(
-            compilationManager,
-            state,
-            docTypeToCompile,
-          );
+          await handleCompileFull(compilationManager, state, docTypeToCompile);
         } else {
           console.error("[Writer] compilationManager or state not available");
           showToast("Compilation manager not initialized", "error");
@@ -176,7 +172,8 @@ export function setupSectionEvents(
           "section";
         if (sectionId) {
           // Import handleDownloadSectionPDF dynamically to avoid circular dependency
-          const { handleDownloadSectionPDF } = await import("../../_writer/index.js");
+          const { handleDownloadSectionPDF } =
+            await import("../../_writer/index.js");
           handleDownloadSectionPDF(sectionId, sectionLabel);
         }
         dropdownContainer.style.display = "none";
@@ -211,7 +208,9 @@ export function setupSectionEvents(
 
         // Update button text with page number
         const pageNum = sectionIndex ? parseInt(sectionIndex) + 1 : "";
-        selectorText.textContent = pageNum ? `${pageNum}. ${sectionName}` : sectionName;
+        selectorText.textContent = pageNum
+          ? `${pageNum}. ${sectionName}`
+          : sectionName;
 
         // Close dropdown
         dropdownContainer.style.display = "none";
@@ -220,11 +219,18 @@ export function setupSectionEvents(
         statePersistence.saveSection(sectionId);
 
         // Extract doctype from sectionId (format: doctype/section_name)
-        const doctypeMatch = sectionId.match(/^(manuscript|supplementary|revision|shared)\//);
+        const doctypeMatch = sectionId.match(
+          /^(manuscript|supplementary|revision|shared)\//,
+        );
         if (doctypeMatch) {
           const doctype = doctypeMatch[1];
           statePersistence.saveSectionForDoctype(doctype, sectionId);
-          console.log("[Writer] Saved section for doctype:", doctype, "->", sectionId);
+          console.log(
+            "[Writer] Saved section for doctype:",
+            doctype,
+            "->",
+            sectionId,
+          );
         } else {
           console.log("[Writer] Saved section to persistence:", sectionId);
         }

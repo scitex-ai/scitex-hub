@@ -16,7 +16,7 @@ export function fetchAndPopulateLlmModels(
   select: HTMLSelectElement,
   badgeEl: HTMLElement | null,
 ): void {
-  fetch("/llm/api/providers/")
+  fetch("/apps/llm/api/providers/")
     .then((r) => r.json())
     .then((data: { providers: Provider[] }) => {
       if (!data.providers || data.providers.length === 0) {

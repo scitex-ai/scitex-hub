@@ -1,7 +1,7 @@
 /**
  * AI Panel Jobs Mode
  * Displays SLURM job list with auto-refresh and cancel support.
- * Calls existing REST API at /console/api/jobs/.
+ * Calls existing REST API at /apps/console/api/jobs/.
  */
 
 import { getCsrfToken } from "../../utils/csrf";
@@ -61,7 +61,7 @@ export class AIPanelJobsMode {
     if (!this.listEl || !this.summaryEl) return;
 
     try {
-      const resp = await fetch("/console/api/jobs/", {
+      const resp = await fetch("/apps/console/api/jobs/", {
         headers: { "X-CSRFToken": getCsrfToken() },
       });
 
@@ -187,7 +187,7 @@ export class AIPanelJobsMode {
 
   private async cancelJob(jobId: string): Promise<void> {
     try {
-      const resp = await fetch(`/console/api/jobs/${jobId}/cancel/`, {
+      const resp = await fetch(`/apps/console/api/jobs/${jobId}/cancel/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

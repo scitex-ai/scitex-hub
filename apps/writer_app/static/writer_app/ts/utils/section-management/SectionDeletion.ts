@@ -6,7 +6,10 @@
 import type { WriterEditor, SectionsManager } from "../../modules/index";
 import { getCsrfToken } from "@/utils/csrf.js";
 import { showToast } from "../ui";
-import { populateSectionDropdownDirect, handleDocTypeSwitch } from "../_section-dropdown/index";
+import {
+  populateSectionDropdownDirect,
+  handleDocTypeSwitch,
+} from "../_section-dropdown/index";
 
 /**
  * Core sections that cannot be deleted
@@ -80,7 +83,7 @@ export function setupDeleteSectionButton(
 
       try {
         const response = await fetch(
-          `/writer/api/project/${config.projectId}/section/${encodeURIComponent(currentSection)}/delete/`,
+          `/apps/writer/api/project/${config.projectId}/section/${encodeURIComponent(currentSection)}/delete/`,
           {
             method: "DELETE",
             headers: {

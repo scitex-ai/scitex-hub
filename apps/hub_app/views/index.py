@@ -68,6 +68,24 @@ def build_hub_context(request, current_project=None):
     )[:5]
     context["recent_activities"] = recent_activities
 
+    # Set initial active tab: "projects" when a project is loaded, "me" otherwise
+    context["hub_initial_mode"] = "projects" if current_project else "me"
+
+    # Add profile context for Me tab initial render (when no project is loaded)
+    if not current_project:
+        from apps.social_app.models import UserFollow
+
+        context.update(
+            {
+                "profile_user": request.user,
+                "projects": user_projects,
+                "followers_count": UserFollow.get_followers_count(request.user),
+                "following_count": UserFollow.get_following_count(request.user),
+                "is_own_projects": True,
+                "show_account_settings": True,
+            }
+        )
+
     # When a project is selected, add file browser data
     if current_project:
         _add_file_browser_context(request, current_project, context)
@@ -139,6 +157,25 @@ def index_view(request):
         else None
     )
     context = build_hub_context(request, current_project=current_project)
+    return render(request, "hub_app/index.html", context)
+
+
+def explore_view(request):
+    """GET /explore/ — Hub with Explore tab pre-selected."""
+    if not request.user.is_authenticated:
+        return redirect("public_app:visitor_pool_full")
+    context = build_hub_context(request)
+    context["hub_initial_mode"] = "explore"
+    return render(request, "hub_app/index.html", context)
+
+
+def current_project_view(request):
+    """GET /current-project/ — Hub with Current Project tab pre-selected."""
+    if not request.user.is_authenticated:
+        return redirect("public_app:visitor_pool_full")
+    current_project = get_current_project(request, user=request.user)
+    context = build_hub_context(request, current_project=current_project)
+    context["hub_initial_mode"] = "projects"
     return render(request, "hub_app/index.html", context)
 
 

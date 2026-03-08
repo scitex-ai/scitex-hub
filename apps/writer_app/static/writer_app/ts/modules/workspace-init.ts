@@ -31,7 +31,7 @@ export function setupWorkspaceInitialization(config: any): void {
 
       if (projectId) {
         // Redirect to the selected project's writer page
-        window.location.href = `/writer/project/${projectId}/`;
+        window.location.href = `/apps/writer/project/${projectId}/`;
       }
     });
   }
@@ -53,7 +53,7 @@ export function setupWorkspaceInitialization(config: any): void {
     initBtn.innerHTML = "Cloning...";
 
     try {
-      const response = await fetch("/writer/api/initialize-workspace/", {
+      const response = await fetch("/apps/writer/api/initialize-workspace/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

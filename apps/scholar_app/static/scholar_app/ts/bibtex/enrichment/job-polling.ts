@@ -39,7 +39,7 @@ export class JobPollingManager {
             return;
         }
         try {
-            const response = await fetch(`/scholar/api/bibtex/job/${jobId}/status/`);
+            const response = await fetch(`/apps/scholar/api/bibtex/job/${jobId}/status/`);
             if (!response.ok)
                 throw new Error(`HTTP ${response.status}`);
             const data = await response.json();
@@ -156,7 +156,7 @@ export class JobPollingManager {
         if (downloadBtn) {
             setButtonState("downloadBtn", true);
             downloadBtn.onclick = () => {
-                const downloadUrl = `/scholar/api/bibtex/job/${jobId}/download/`;
+                const downloadUrl = `/apps/scholar/api/bibtex/job/${jobId}/download/`;
                 window.autoDownloadBibtexFile?.(downloadUrl);
             };
         }
@@ -172,7 +172,7 @@ export class JobPollingManager {
      */
     async updateUrlCount(jobId) {
         try {
-            const response = await fetch(`/scholar/api/bibtex/job/${jobId}/urls/`);
+            const response = await fetch(`/apps/scholar/api/bibtex/job/${jobId}/urls/`);
             const urlData = await response.json();
             const count = urlData.total_urls || 0;
             // Update sidebar button count

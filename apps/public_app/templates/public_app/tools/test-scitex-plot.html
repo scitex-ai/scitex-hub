@@ -488,7 +488,7 @@ async function renderPlot() {
     resultContainer.innerHTML = '<p style="color: var(--workspace-text-muted); font-size: 12px;">Rendering...</p>';
 
     // Send to backend
-    const response = await fetch('/vis/api/plot/', {
+    const response = await fetch('/apps/vis/api/plot/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

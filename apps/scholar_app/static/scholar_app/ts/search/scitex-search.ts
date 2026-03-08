@@ -325,32 +325,40 @@ function searchSource(source: SourceConfig, query: string): void {
  * maxResults: N = request at most N results
  */
 const ALL_SOURCES: SourceConfig[] = [
-  { name: "pubmed", endpoint: "/scholar/api/search/pubmed/", maxResults: 50 },
-  { name: "arxiv", endpoint: "/scholar/api/search/arxiv/", maxResults: 50 },
+  {
+    name: "pubmed",
+    endpoint: "/apps/scholar/api/search/pubmed/",
+    maxResults: 50,
+  },
+  {
+    name: "arxiv",
+    endpoint: "/apps/scholar/api/search/arxiv/",
+    maxResults: 50,
+  },
   {
     name: "semantic",
-    endpoint: "/scholar/api/search/semantic/",
+    endpoint: "/apps/scholar/api/search/semantic/",
     maxResults: 25,
   },
   {
     name: "crossref",
-    endpoint: "/scholar/api/search/crossref/",
+    endpoint: "/apps/scholar/api/search/crossref/",
     maxResults: 50,
   },
   // Local sources: maxResults=0 means backend controls the limit
   {
     name: "crossref_local",
-    endpoint: "/scholar/api/search/crossref-local/",
+    endpoint: "/apps/scholar/api/search/crossref-local/",
     maxResults: 0,
   },
   {
     name: "openalex",
-    endpoint: "/scholar/api/search/openalex/",
+    endpoint: "/apps/scholar/api/search/openalex/",
     maxResults: 50,
   },
   {
     name: "openalex_local",
-    endpoint: "/scholar/api/search/openalex-local/",
+    endpoint: "/apps/scholar/api/search/openalex-local/",
     maxResults: 0,
   },
 ];

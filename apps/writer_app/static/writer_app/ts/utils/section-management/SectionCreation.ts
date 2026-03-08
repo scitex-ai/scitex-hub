@@ -70,7 +70,7 @@ export function setupAddSectionButton(
       try {
         const docType = state.currentDocType || "manuscript";
         const response = await fetch(
-          `/writer/api/project/${config.projectId}/section/create/`,
+          `/apps/writer/api/project/${config.projectId}/section/create/`,
           {
             method: "POST",
             headers: {

@@ -12,7 +12,7 @@ export async function execBashCommand(
   projectSlug: string | null,
   csrfToken: string,
 ): Promise<BashResult> {
-  const resp = await fetch("/llm/api/bash/", {
+  const resp = await fetch("/apps/llm/api/bash/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

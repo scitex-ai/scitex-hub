@@ -99,33 +99,33 @@ export function addGlobalNavigationKeybindings(editor: any, monaco: any): void {
 
   // Alt+S: Scholar
   editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyS, () => {
-    if (!window.location.pathname.startsWith("/scholar/")) {
+    if (!window.location.pathname.startsWith("/apps/scholar/")) {
       console.log("[Monaco] Alt+S - Navigate to Scholar");
-      window.location.href = "/scholar/";
+      window.location.href = "/apps/scholar/";
     }
   });
 
   // Alt+C: Code
   editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyC, () => {
-    if (!window.location.pathname.startsWith("/console/")) {
+    if (!window.location.pathname.startsWith("/apps/console/")) {
       console.log("[Monaco] Alt+C - Navigate to Code");
-      window.location.href = "/console/";
+      window.location.href = "/apps/console/";
     }
   });
 
   // Alt+V: Vis
   editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyV, () => {
-    if (!window.location.pathname.startsWith("/vis/")) {
+    if (!window.location.pathname.startsWith("/apps/vis/")) {
       console.log("[Monaco] Alt+V - Navigate to Vis");
-      window.location.href = "/vis/";
+      window.location.href = "/apps/vis/";
     }
   });
 
   // Alt+W: Writer
   editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyW, () => {
-    if (!window.location.pathname.startsWith("/writer/")) {
+    if (!window.location.pathname.startsWith("/apps/writer/")) {
       console.log("[Monaco] Alt+W - Navigate to Writer");
-      window.location.href = "/writer/";
+      window.location.href = "/apps/writer/";
     }
   });
 

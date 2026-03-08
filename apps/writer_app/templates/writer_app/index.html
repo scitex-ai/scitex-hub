@@ -112,7 +112,7 @@
             var btn = document.getElementById('init-writer-btn');
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Initializing...';
-            fetch('/writer/api/initialize-workspace/', {
+            fetch('/apps/writer/api/initialize-workspace/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

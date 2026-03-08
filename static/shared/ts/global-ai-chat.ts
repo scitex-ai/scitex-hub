@@ -8,6 +8,7 @@ import { AIPanelConsoleMode } from "./components/_global-ai-chat/console-mode";
 import { initEvalJsRelay } from "./components/_global-ai-chat/eval-js-relay";
 import { initFileDrop } from "./components/_global-ai-chat/file-drop";
 import { AIPanelJobsMode } from "./components/_global-ai-chat/jobs-mode";
+import { startJobsBadgePoller } from "./components/_global-ai-chat/jobs-badge-poller";
 import { SessionsPanel } from "./components/_global-ai-chat/sessions-panel";
 import { fetchAndPopulateSttModels } from "./components/_global-ai-chat/stt-models";
 import { fetchAndPopulateLlmModels } from "./components/_global-ai-chat/llm-model-selector";
@@ -139,7 +140,7 @@ class GlobalAIChat {
     this.setupModeToggle();
     this.setupHeaderDblClick();
     this.setupGearButtons();
-    this.startJobsBadgePoller();
+    startJobsBadgePoller();
     this.fab?.addEventListener("click", () => this.toggle());
     this.sendBtn?.addEventListener("click", () => void this.chatMode?.send());
     this.micBtn?.addEventListener("click", () =>
@@ -454,30 +455,6 @@ class GlobalAIChat {
     if (!listEl || !summaryEl) return;
     if (!this.jobsMode) this.jobsMode = new AIPanelJobsMode();
     this.jobsMode.init(listEl, summaryEl);
-  }
-
-  /* ── Jobs Badge Poller (runs on ALL pages) ───────────────── */
-
-  private startJobsBadgePoller(): void {
-    const update = async () => {
-      try {
-        const resp = await fetch("/console/api/jobs/");
-        if (!resp.ok) return;
-        const data = await resp.json();
-        const n = (data.running || 0) + (data.pending || 0);
-        for (const id of ["jobs-badge"]) {
-          const el = document.getElementById(id);
-          if (el) {
-            el.textContent = String(n);
-            el.style.display = n > 0 ? "" : "none";
-          }
-        }
-      } catch {
-        /* silent */
-      }
-    };
-    void update();
-    setInterval(() => void update(), 10_000);
   }
 
   /* ── Panel Open / Close ───────────────────────────────────── */

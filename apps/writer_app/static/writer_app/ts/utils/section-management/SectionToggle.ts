@@ -28,7 +28,7 @@ export function setupToggleIncludeButton(config: any, state: any): void {
 
       try {
         const response = await fetch(
-          `/writer/api/project/${config.projectId}/section/${encodeURIComponent(currentSection)}/toggle-exclude/`,
+          `/apps/writer/api/project/${config.projectId}/section/${encodeURIComponent(currentSection)}/toggle-exclude/`,
           {
             method: "POST",
             headers: {

@@ -95,7 +95,7 @@ export interface SectionHierarchy {
  */
 export async function loadSectionHierarchy(): Promise<SectionHierarchy | null> {
   try {
-    const response = await fetch("/writer/api/sections-config/");
+    const response = await fetch("/apps/writer/api/sections-config/");
     const data = await response.json();
 
     if (data.success && data.hierarchy) {

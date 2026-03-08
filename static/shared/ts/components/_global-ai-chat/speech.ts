@@ -1,6 +1,6 @@
 /**
  * Text-to-speech utilities for the AI Agent panel.
- * Calls /llm/api/tts/ (delegates to scitex.audio) with browser
+ * Calls /apps/llm/api/tts/ (delegates to scitex.audio) with browser
  * speechSynthesis as fallback when the server endpoint is unavailable.
  */
 
@@ -28,7 +28,7 @@ export async function speakText(
   if (!clean) return null;
 
   try {
-    const r = await fetch("/llm/api/tts/", {
+    const r = await fetch("/apps/llm/api/tts/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -26,7 +26,9 @@ export class TableUploadHandler {
    */
   setupDropZone(): void {
     const dropZone = document.getElementById("tables-drop-zone");
-    const fileInput = document.getElementById("tables-file-input") as HTMLInputElement;
+    const fileInput = document.getElementById(
+      "tables-file-input",
+    ) as HTMLInputElement;
 
     if (!dropZone || !fileInput) {
       console.warn("[TableUploadHandler] Drop zone elements not found");
@@ -135,8 +137,11 @@ export class TableUploadHandler {
     });
 
     try {
-      const apiUrl = `/writer/api/project/${this.projectId}/upload-tables/`;
-      console.log(`[TableUploadHandler] Uploading ${valid.length} files to:`, apiUrl);
+      const apiUrl = `/apps/writer/api/project/${this.projectId}/upload-tables/`;
+      console.log(
+        `[TableUploadHandler] Uploading ${valid.length} files to:`,
+        apiUrl,
+      );
 
       const response = await fetch(apiUrl, {
         method: "POST",

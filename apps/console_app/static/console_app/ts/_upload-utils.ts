@@ -21,7 +21,7 @@ export async function uploadFiles(
   form.append("project_id", String(projectId));
   for (const file of files) form.append("files", file);
 
-  const resp = await fetch("/console/api/paste-upload/", {
+  const resp = await fetch("/apps/console/api/paste-upload/", {
     method: "POST",
     headers: { "X-CSRFToken": getCsrf() },
     body: form,

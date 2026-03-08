@@ -53,7 +53,7 @@ export function autoSavePapers(papers: PaperData[], source: string): void {
   const batches = Math.ceil(tagged.length / BATCH_SIZE);
   for (let i = 0; i < batches; i++) {
     const batch = tagged.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE);
-    fetch("/scholar/api/papers/save-bulk/", {
+    fetch("/apps/scholar/api/papers/save-bulk/", {
       method: "POST",
       headers: {
         "X-CSRFToken": csrfToken,

@@ -82,7 +82,7 @@ export class GraphInputHandler {
     this.librarySpinner = startInspiringSpinner(listEl, "Loading library...");
 
     try {
-      const response = await fetch("/scholar/api/library/papers/", {
+      const response = await fetch("/apps/scholar/api/library/papers/", {
         credentials: "same-origin",
       });
       if (!response.ok) throw new Error("Failed to load library");

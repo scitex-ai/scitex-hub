@@ -25,7 +25,7 @@ export function setupReorderButtons(config: any, state: any): void {
 
       try {
         const response = await fetch(
-          `/writer/api/project/${config.projectId}/section/${encodeURIComponent(currentSection)}/move-up/`,
+          `/apps/writer/api/project/${config.projectId}/section/${encodeURIComponent(currentSection)}/move-up/`,
           {
             method: "POST",
             headers: {
@@ -72,7 +72,7 @@ export function setupReorderButtons(config: any, state: any): void {
 
       try {
         const response = await fetch(
-          `/writer/api/project/${config.projectId}/section/${encodeURIComponent(currentSection)}/move-down/`,
+          `/apps/writer/api/project/${config.projectId}/section/${encodeURIComponent(currentSection)}/move-down/`,
           {
             method: "POST",
             headers: {

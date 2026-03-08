@@ -63,7 +63,7 @@ export function loadCompiledPDF(sectionId: string): void {
   const docType = parts[0];
 
   // Use API endpoint for PDF with doc_type query parameter
-  const pdfUrl = `/writer/api/project/${config.projectId}/pdf/?doc_type=${docType}`;
+  const pdfUrl = `/apps/writer/api/project/${config.projectId}/pdf/?doc_type=${docType}`;
 
   console.log(
     "[Writer] Loading compiled PDF for section:",

@@ -27,7 +27,7 @@ export class CitationLoader {
     }
 
     try {
-      const apiUrl = `/writer/api/project/${this.projectId}/citations/`;
+      const apiUrl = `/apps/writer/api/project/${this.projectId}/citations/`;
       console.log("[CitationLoader] Fetching from:", apiUrl);
 
       const response = await fetch(apiUrl);

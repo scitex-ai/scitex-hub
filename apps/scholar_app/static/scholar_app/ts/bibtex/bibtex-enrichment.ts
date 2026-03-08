@@ -98,7 +98,8 @@ class BibtexEnrichmentOrchestrator {
     }
 
     const uploadUrl =
-      window.SCHOLAR_CONFIG?.urls?.bibtexUpload || "/scholar/bibtex/upload/";
+      window.SCHOLAR_CONFIG?.urls?.bibtexUpload ||
+      "/apps/scholar/bibtex/upload/";
 
     try {
       const response = await fetch(uploadUrl, {
@@ -222,7 +223,7 @@ class BibtexEnrichmentOrchestrator {
       (document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? "");
     if (!csrfToken) return;
 
-    fetch(`/scholar/api/bibtex/job/${jobId}/save-to-project/`, {
+    fetch(`/apps/scholar/api/bibtex/job/${jobId}/save-to-project/`, {
       method: "POST",
       headers: {
         "X-CSRFToken": csrfToken,
@@ -264,7 +265,9 @@ class BibtexEnrichmentOrchestrator {
    */
   private async updateUrlCountForJob(jobId: string): Promise<void> {
     try {
-      const response = await fetch(`/scholar/api/bibtex/job/${jobId}/urls/`);
+      const response = await fetch(
+        `/apps/scholar/api/bibtex/job/${jobId}/urls/`,
+      );
       const urlData = await response.json();
       const count = urlData.total_urls || 0;
 
@@ -313,7 +316,7 @@ function initBibtexEnrichment(config: BibtexEnrichmentConfig = {}): void {
     return;
   }
 
-  const downloadUrl = `/scholar/api/bibtex/job/${jobId}/download/`;
+  const downloadUrl = `/apps/scholar/api/bibtex/job/${jobId}/download/`;
 
   const originalHTML = downloadBtn.innerHTML;
   downloadBtn.disabled = true;

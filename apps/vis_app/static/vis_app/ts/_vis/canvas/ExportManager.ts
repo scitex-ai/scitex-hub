@@ -184,7 +184,7 @@ export class ExportManager {
 
     try {
       // First, trigger a save to ensure bundle is up-to-date
-      const response = await fetch("/vis/api/bundles/figz/export/", {
+      const response = await fetch("/apps/vis/api/bundles/figz/export/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -413,7 +413,7 @@ export class ExportManager {
 
     try {
       // Build export URL with project context for path resolution
-      let exportUrl = `/vis/api/bundles/figz/export-image/?path=${encodeURIComponent(this.currentFigzPath)}&format=${format}&dpi=${dpi}`;
+      let exportUrl = `/apps/vis/api/bundles/figz/export-image/?path=${encodeURIComponent(this.currentFigzPath)}&format=${format}&dpi=${dpi}`;
       if (this.bundleProjectOwner && this.bundleProjectSlug) {
         exportUrl += `&project_owner=${encodeURIComponent(this.bundleProjectOwner)}&project_slug=${encodeURIComponent(this.bundleProjectSlug)}`;
       }

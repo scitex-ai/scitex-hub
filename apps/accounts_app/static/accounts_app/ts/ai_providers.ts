@@ -45,7 +45,7 @@ let providerCache: ProviderInfo[] | null = null;
 
 async function fetchProviders(): Promise<ProviderInfo[]> {
   if (providerCache) return providerCache;
-  const resp = await fetch("/llm/api/providers/available/");
+  const resp = await fetch("/apps/llm/api/providers/available/");
   const data = await resp.json();
   providerCache = data.providers ?? [];
   return providerCache!;
@@ -150,13 +150,16 @@ async function testProvider(providerId: string): Promise<void> {
   resultEl.className = "provider-test-result";
 
   try {
-    const response = await fetch(`/llm/api/providers/${providerId}/test/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": getCsrfToken(),
+    const response = await fetch(
+      `/apps/llm/api/providers/${providerId}/test/`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCsrfToken(),
+        },
       },
-    });
+    );
     const data = await response.json();
 
     if (data.success) {
@@ -203,7 +206,7 @@ async function toggleRevealKey(providerId: string): Promise<void> {
     maskedKeys[providerId] = keyEl.textContent?.trim() ?? "";
     btn.disabled = true;
     try {
-      const resp = await fetch(`/llm/api/providers/${providerId}/key/`);
+      const resp = await fetch(`/apps/llm/api/providers/${providerId}/key/`);
       const data = await resp.json();
       if (data.success) {
         revealedKeys[providerId] = data.key;

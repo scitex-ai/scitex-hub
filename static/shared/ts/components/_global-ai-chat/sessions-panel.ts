@@ -73,7 +73,7 @@ export class SessionsPanel {
 
   async loadSessions(): Promise<void> {
     try {
-      const resp = await fetch("/llm/api/sessions/");
+      const resp = await fetch("/apps/llm/api/sessions/");
       if (!resp.ok) return;
       const data = (await resp.json()) as { sessions: Session[] };
       this.sessions = data.sessions;
@@ -89,7 +89,7 @@ export class SessionsPanel {
 
   async createSession(title?: string): Promise<number | null> {
     try {
-      const resp = await fetch("/llm/api/sessions/", {
+      const resp = await fetch("/apps/llm/api/sessions/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -110,7 +110,7 @@ export class SessionsPanel {
 
   async switchSession(id: number): Promise<void> {
     try {
-      const resp = await fetch(`/llm/api/sessions/${id}/messages/`);
+      const resp = await fetch(`/apps/llm/api/sessions/${id}/messages/`);
       if (!resp.ok) return;
       const data = (await resp.json()) as {
         session_id: number;
@@ -135,7 +135,7 @@ export class SessionsPanel {
   ): Promise<void> {
     if (!this.currentSessionId) return;
     try {
-      await fetch(`/llm/api/sessions/${this.currentSessionId}/messages/add/`, {
+      await fetch(`/apps/llm/api/sessions/${this.currentSessionId}/messages/add/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -185,7 +185,7 @@ export class SessionsPanel {
     token: string,
   ): Promise<void> {
     try {
-      await fetch(`/llm/api/sessions/${id}/`, {
+      await fetch(`/apps/llm/api/sessions/${id}/`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -348,7 +348,7 @@ export class SessionsPanel {
       input.replaceWith(titleEl);
       titleEl.textContent = val;
       if (val !== current) {
-        await fetch(`/llm/api/sessions/${id}/`, {
+        await fetch(`/apps/llm/api/sessions/${id}/`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -373,7 +373,7 @@ export class SessionsPanel {
 
   private async deleteSession(id: number): Promise<void> {
     try {
-      await fetch(`/llm/api/sessions/${id}/`, {
+      await fetch(`/apps/llm/api/sessions/${id}/`, {
         method: "DELETE",
         headers: { "X-CSRFToken": getCsrf() },
       });

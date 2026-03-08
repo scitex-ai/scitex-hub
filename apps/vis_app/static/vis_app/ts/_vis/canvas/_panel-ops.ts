@@ -28,7 +28,7 @@ export async function loadFigzBundle(
     callbacks.clearCanvasFn();
 
     const response = await fetch(
-      `/vis/api/bundles/figz/load/?path=${encodeURIComponent(figzPath)}&project_owner=${encodeURIComponent(state.projectOwner)}&project_slug=${encodeURIComponent(state.projectSlug)}`,
+      `/apps/vis/api/bundles/figz/load/?path=${encodeURIComponent(figzPath)}&project_owner=${encodeURIComponent(state.projectOwner)}&project_slug=${encodeURIComponent(state.projectSlug)}`,
     );
     if (!response.ok) {
       const error = await response.json();
@@ -91,7 +91,7 @@ export async function loadPltzPanel(
     figzPath.endsWith(".plt.zip") || figzPath.endsWith(".pltz")
       ? figzPath
       : `${figzPath}#${panel.label}`;
-  const previewUrl = `/vis/api/bundles/pltz/preview/?path=${encodeURIComponent(pltzPath)}&project_owner=${encodeURIComponent(state.projectOwner)}&project_slug=${encodeURIComponent(state.projectSlug)}&t=${Date.now()}`;
+  const previewUrl = `/apps/vis/api/bundles/pltz/preview/?path=${encodeURIComponent(pltzPath)}&project_owner=${encodeURIComponent(state.projectOwner)}&project_slug=${encodeURIComponent(state.projectSlug)}&t=${Date.now()}`;
 
   const mmToPx = state.bundleRenderDpi / 25.4;
   const x = (panel.position.x_mm || 0) * mmToPx;
@@ -163,7 +163,7 @@ export async function refreshPanelImage(
   }
 
   // The backend PltzService handles reading from inside figz ZIP files via scitex
-  const previewUrl = `/vis/api/bundles/pltz/preview/?path=${encodeURIComponent(pltzPath)}&project_owner=${encodeURIComponent(state.projectOwner)}&project_slug=${encodeURIComponent(state.projectSlug)}&t=${Date.now()}`;
+  const previewUrl = `/apps/vis/api/bundles/pltz/preview/?path=${encodeURIComponent(pltzPath)}&project_owner=${encodeURIComponent(state.projectOwner)}&project_slug=${encodeURIComponent(state.projectSlug)}&t=${Date.now()}`;
 
   try {
     panelImg.setSrc(

@@ -73,7 +73,7 @@ export class AIPanelConfigMode {
         [
           fetch("/accounts/api/mcp-preferences/").then((r) => r.json()),
           fetch("/api/mcp/tools/").then((r) => r.json()),
-          fetch("/llm/api/skills/").then((r) => r.json()),
+          fetch("/apps/llm/api/skills/").then((r) => r.json()),
           Promise.resolve(chatMode?.collectPageHints() ?? []),
         ],
       );
@@ -235,7 +235,7 @@ export class AIPanelConfigMode {
     const page = window.location.href;
     let html = `<div class="ai-config-context-preview">`;
     html += `<div class="ai-config-tool-name"><code>Agent Context</code>`;
-    html += ` <span class="ai-config-tool-returns">→ POST /llm/api/chat/stream/</span></div>`;
+    html += ` <span class="ai-config-tool-returns">→ POST /apps/llm/api/chat/stream/</span></div>`;
     html += `<div class="ai-config-tool-desc">`;
     html += `<code>page</code>: ${page}<br>`;
     html += `<code>project_slug</code>: active project<br>`;
@@ -435,7 +435,7 @@ export class AIPanelConfigMode {
         document.querySelector<HTMLInputElement>("[name=csrfmiddlewaretoken]")
           ?.value ??
         (document.cookie.match(/csrftoken=([^;]+)/)?.[1] || "");
-      const resp = await fetch("/llm/api/agent-context/", {
+      const resp = await fetch("/apps/llm/api/agent-context/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

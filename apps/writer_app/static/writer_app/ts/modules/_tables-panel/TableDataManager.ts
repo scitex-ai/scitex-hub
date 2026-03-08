@@ -22,7 +22,10 @@ export class TableDataManager {
     const writerConfig = (window as any).WRITER_CONFIG;
     if (writerConfig?.projectId) {
       this.projectId = String(writerConfig.projectId);
-      console.log("[TableDataManager] Initialized with project:", this.projectId);
+      console.log(
+        "[TableDataManager] Initialized with project:",
+        this.projectId,
+      );
     }
   }
 
@@ -76,7 +79,7 @@ export class TableDataManager {
     }
 
     try {
-      const apiUrl = `/writer/api/project/${this.projectId}/tables/`;
+      const apiUrl = `/apps/writer/api/project/${this.projectId}/tables/`;
       console.log("[TableDataManager] Fetching from:", apiUrl);
 
       const response = await fetch(apiUrl);
@@ -139,13 +142,19 @@ export class TableDataManager {
         });
         break;
       case "size":
-        this.filteredTables.sort((a, b) => (b.file_size || 0) - (a.file_size || 0));
+        this.filteredTables.sort(
+          (a, b) => (b.file_size || 0) - (a.file_size || 0),
+        );
         break;
       case "size-desc":
-        this.filteredTables.sort((a, b) => (a.file_size || 0) - (b.file_size || 0));
+        this.filteredTables.sort(
+          (a, b) => (a.file_size || 0) - (b.file_size || 0),
+        );
         break;
       case "recent":
-        this.filteredTables.sort((a, b) => (b.last_modified || 0) - (a.last_modified || 0));
+        this.filteredTables.sort(
+          (a, b) => (b.last_modified || 0) - (a.last_modified || 0),
+        );
         break;
       default:
         this.filteredTables.sort((a, b) => {

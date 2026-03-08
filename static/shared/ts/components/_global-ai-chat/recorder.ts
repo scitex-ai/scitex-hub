@@ -1,6 +1,6 @@
 /**
  * VoiceRecorder — MediaRecorder + Web Audio volume visualizer for the AI panel.
- * Uploads recorded audio to /llm/api/stt/ and returns the transcribed text.
+ * Uploads recorded audio to /apps/llm/api/stt/ and returns the transcribed text.
  */
 
 export class VoiceRecorder {
@@ -108,7 +108,7 @@ export class VoiceRecorder {
     form.append("audio", blob, "recording.webm");
     if (model) form.append("model", model);
     try {
-      const resp = await fetch("/llm/api/stt/", {
+      const resp = await fetch("/apps/llm/api/stt/", {
         method: "POST",
         headers: { "X-CSRFToken": csrf },
         body: form,
