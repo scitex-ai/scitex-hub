@@ -30,73 +30,111 @@
   min-width: 0;
 }
 
-.clew-header {
-  padding: 0 1rem;
-  border-bottom: 1px solid var(--workspace-border-default);
-  background: var(--workspace-bg-secondary);
-  height: 50px;
-  min-height: 50px;
+/* Pane header — mirrors .scholar-main .pane-header */
+.clew-main .pane-header {
   display: flex;
   align-items: center;
-}
-
-.clew-header-title {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--workspace-text-primary);
-}
-
-.clew-header-title i {
-  color: var(--workspace-icon-primary);
-  margin-right: 0.4rem;
-}
-
-/* Position badge in header */
-.clew-header .badge {
-  margin-left: auto;
-}
-
-/* Mode Selector */
-.clew-mode-selector {
-  display: flex;
-  gap: 2px;
-  margin-left: auto;
-  background: var(--workspace-bg-tertiary);
-  border-radius: 4px;
-  padding: 2px;
-}
-
-.clew-mode-btn {
-  border: none;
-  background: transparent;
-  color: var(--workspace-text-muted);
-  padding: 3px 10px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  border-radius: 3px;
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    color 0.15s;
-}
-
-.clew-mode-btn:hover {
-  color: var(--workspace-text-primary);
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 50px;
+  min-height: 50px;
   background: var(--workspace-bg-secondary);
+  border-bottom: 1px solid var(--workspace-border-default);
+  flex-shrink: 0;
 }
 
-.clew-mode-btn.active {
+/* Tab nav — mirrors .scholar-tabs */
+.clew-tabs {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 8px;
+  gap: 4px;
+  overflow-x: auto;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Individual tabs — mirrors .scholar-tab */
+.clew-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 6px 6px 0 0;
+  color: var(--workspace-text-secondary, #6c8ba0);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.clew-tab:hover {
+  background: var(--workspace-bg-tertiary);
   color: var(--workspace-text-primary);
-  background: var(--workspace-bg-primary);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+}
+
+.clew-tab.active {
+  background: transparent;
+  color: var(--workspace-text-primary);
+  font-weight: 600;
+  border-bottom: 2px solid rgba(5, 150, 105, 0.6);
+}
+
+.clew-tab i {
+  font-size: 12px;
+}
+
+.clew-tab.active i {
+  color: var(--workspace-icon-primary);
+}
+
+/* Light mode tab styles */
+[data-theme="light"] .clew-tab {
+  color: var(--text-muted, #57606a);
+}
+
+[data-theme="light"] .clew-tab:hover {
+  color: var(--text-primary, #1a2a40);
+  background: var(--workspace-bg-tertiary, #d8dee4);
+}
+
+[data-theme="light"] .clew-tab.active {
+  color: var(--text-primary, #1a2a40);
+  border-bottom: 2px solid rgba(16, 185, 129, 0.5);
+}
+
+/* Disabled tab state */
+.clew-tab.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.clew-tab.disabled:hover {
+  background: transparent;
+  color: inherit;
+}
+
+/* Pane header actions (right side) */
+.clew-main .pane-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* DAG Visualization Area */
 .dag-visualization-area {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   overflow: auto;
   padding: 1rem;
   min-height: 0;
@@ -109,15 +147,9 @@
   max-width: 720px;
 }
 
-.dag-placeholder i {
-  color: var(--workspace-icon-primary);
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-  opacity: 0.3;
-}
-
 .dag-placeholder h3 {
   font-size: 1.5rem;
+  margin-top: 2rem;
   margin-bottom: 0.5rem;
   color: var(--workspace-text-primary);
 }

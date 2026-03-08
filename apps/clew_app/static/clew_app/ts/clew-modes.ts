@@ -12,51 +12,15 @@ import {
 
 export type ClewMode = "project" | "claims" | "file";
 
-const MODE_DEFS: Array<{ mode: ClewMode; label: string; title: string }> = [
-  { mode: "project", label: "Project", title: "Show full project DAG" },
-  {
-    mode: "claims",
-    label: "Claims",
-    title: "Show claims-based DAG from manuscript",
-  },
-  { mode: "file", label: "File", title: "Drop or select files to trace" },
-];
-
 export function setupModeSelector(
   onModeChange: (mode: ClewMode) => void,
   getCurrentMode: () => ClewMode,
 ) {
-  const header = document.querySelector(".clew-header");
-  if (!header) return;
-
-  // Create mode selector if it doesn't exist yet
-  let selector = document.getElementById("clewModeSelector");
-  if (!selector) {
-    selector = document.createElement("div");
-    selector.className = "clew-mode-selector";
-    selector.id = "clewModeSelector";
-    for (const def of MODE_DEFS) {
-      const btn = document.createElement("button");
-      btn.className = "clew-mode-btn";
-      btn.dataset.mode = def.mode;
-      btn.title = def.title;
-      btn.textContent = def.label;
-      if (def.mode === getCurrentMode()) btn.classList.add("active");
-      selector.appendChild(btn);
-    }
-    // Insert after the title span, before any existing buttons
-    const firstBtn = header.querySelector("button");
-    if (firstBtn) {
-      header.insertBefore(selector, firstBtn);
-    } else {
-      header.appendChild(selector);
-    }
-  }
+  const selector = document.getElementById("clewModeSelector");
+  if (!selector) return;
 
   selector.addEventListener("click", (e) => {
-    const btn = (e.target as HTMLElement).closest(
-      ".clew-mode-btn",
-    ) as HTMLElement;
+    const btn = (e.target as HTMLElement).closest(".clew-tab") as HTMLElement;
     if (!btn) return;
 
     const mode = btn.dataset.mode as ClewMode;
@@ -69,7 +33,7 @@ export function setupModeSelector(
 export function updateModeButtons(mode: ClewMode) {
   const selector = document.getElementById("clewModeSelector");
   if (!selector) return;
-  selector.querySelectorAll(".clew-mode-btn").forEach((btn) => {
+  selector.querySelectorAll(".clew-tab").forEach((btn) => {
     btn.classList.toggle("active", (btn as HTMLElement).dataset.mode === mode);
   });
 }
@@ -101,7 +65,6 @@ export async function renderProjectDag(
   if (stats && stats.total_runs > 0) {
     dagArea.innerHTML = `
       <div class="dag-placeholder">
-        <i class="fas fa-project-diagram fa-3x"></i>
         <h3>DAG Visualization</h3>
         <p>${stats.total_runs} runs tracked</p>
       </div>
@@ -109,9 +72,8 @@ export async function renderProjectDag(
   } else {
     dagArea.innerHTML = `
       <div class="dag-placeholder clew-empty-state">
-        <i class="fas fa-project-diagram fa-3x"></i>
         <h3>No Runs Yet</h3>
-        <p class="clew-empty-subtitle">Use <code>@stx.session</code> + <code>stx.io</code> to track reproducible pipelines</p>
+        <p class="clew-empty-subtitle">To use Clew, a project needs script execution with 1) <code>@scitex.session</code> decorator for the main entry function 2) <code>scitex.io.load</code> and <code>scitex.io.save</code> for data IO</p>
         <div class="clew-instructions clew-instructions-vertical">
           <div class="clew-direction clew-direction-code">
             <h4><i class="fas fa-code"></i> Example Script</h4>
@@ -130,7 +92,10 @@ def main():
           <div class="clew-direction clew-direction-start">
             <h4><i class="fas fa-rocket"></i> Quick Start</h4>
             <ol>
-              <li>Click <strong>Add Examples</strong> above</li>
+              <li>
+                <button class="clew-add-examples-btn btn btn-sm btn-outline-primary">Add Examples</button>
+                to load example scripts into this project
+              </li>
               <li>Run from project root:
                 <pre data-language="bash"><code class="language-bash">bash ./examples/clew/00_run_all.sh</code></pre>
               </li>
