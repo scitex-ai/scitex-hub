@@ -50,6 +50,20 @@ Hub inline user profile — returned by /hub/api/user-profile/?username=X
                     <strong>{{ following_count }}</strong>&nbsp;following
                 </span>
             </div>
+            <div class="hub-user-orgs">
+                <h4 class="hub-user-orgs-title">Organizations</h4>
+                {% if organizations %}
+                    <div class="hub-user-orgs-list">
+                        {% for org in organizations %}
+                            <a href="/{{ org.slug }}/" class="hub-user-org-link" title="{{ org.name }}">
+                                <span class="hub-user-org-avatar">{{ org.name|slice:":1"|upper }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="hub-user-orgs-empty">Not a member of any organizations.</p>
+                {% endif %}
+            </div>
             {% if is_own_projects %}
                 <a href="#" class="hub-profile-settings-btn" data-hub-mode="settings">
                     <i class="fas fa-cog"></i> Settings

@@ -260,6 +260,24 @@ class RepositoryOperationsMixin:
         )
         return response.json()
 
+    def add_collaborator(
+        self, owner: str, repo: str, username: str, permission: str = "read"
+    ) -> None:
+        """
+        Add a user as collaborator on a repository.
+
+        Args:
+            owner: Repository owner
+            repo: Repository name
+            username: Username to add
+            permission: Permission level ("read", "write", "admin")
+        """
+        self._request(
+            "PUT",
+            f"/repos/{owner}/{repo}/collaborators/{username}",
+            json={"permission": permission},
+        )
+
     def check_collaborator(self, owner: str, repo: str, username: str) -> bool:
         """
         Check if a user is a collaborator on a repository.
