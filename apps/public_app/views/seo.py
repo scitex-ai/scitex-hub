@@ -14,18 +14,6 @@ def robots_txt(request):
     triggering test endpoints that can hang the server.
     """
     lines = [
-        "# AI assistants (explicitly allowed)",
-        "User-agent: ClaudeBot",
-        "Allow: /",
-        "",
-        "User-agent: GPTBot",
-        "Allow: /",
-        "",
-        "# Search engines",
-        "User-agent: Googlebot",
-        "Allow: /",
-        "",
-        "# All other crawlers",
         "User-agent: *",
         "Allow: /",
         "",
@@ -39,9 +27,6 @@ def robots_txt(request):
         "",
         "# Block visitor/temporary paths",
         "Disallow: /visitor-",
-        "",
-        "# Crawl-delay for considerate crawling",
-        "Crawl-delay: 1",
         "",
         "# Sitemap location",
         f"Sitemap: {request.build_absolute_uri('/sitemap.xml')}",
