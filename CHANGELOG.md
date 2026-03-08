@@ -5,6 +5,22 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.18] - 2026-03-08
+
+### Added
+- **Discovery app**: Standalone workspace module at `/discovery/` with hub-consistent tab/card styling
+- **Discovery owner badges**: Avatar photos (or initial-letter circles) for repo owners and user cards
+- **Hub Settings tab**: Inline AJAX settings (no full navigation), 2nd tab in mode switcher
+- **Hub repo filter**: Fuzzy search on Your Repositories with Ctrl+K shortcut and `⌃K` kbd badge
+- **Hub current-project label**: Shows slug only (e.g. `test-001-app`) instead of `Current Project (slug)`
+
+### Changed
+- **Hub sidebar**: Removed redundant account links card; renamed "Edit profile" → "Settings"
+- **Discovery queries**: `select_related("owner__profile")` to avoid N+1 on avatar lookups
+
+### Fixed
+- **Discovery 404**: Added root URL handler (`/discovery/` → workspace shell with discovery module)
+
 ## [0.12.10] - 2026-03-08
 
 ### Added
