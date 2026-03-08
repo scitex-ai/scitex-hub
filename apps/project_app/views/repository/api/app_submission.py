@@ -178,7 +178,11 @@ def api_app_submit(request, username, slug):
     # Ensure scitex-apps/<slug> is a fork of the user's repo (required for cross-repo PR)
     _client = GiteaClient()
     try:
-        _client.get_repository(owner=APPS_ORG, repo=project.slug)
+        existing = _client.get_repository(owner=APPS_ORG, repo=project.slug)
+        if not existing.get("fork"):
+            # Standalone repo exists but is not in the fork network — delete and re-fork
+            _client._request("DELETE", f"/repos/{APPS_ORG}/{project.slug}")
+            raise GiteaAPIError("not a fork — deleted, will re-fork")
     except GiteaAPIError:
         # Fork user's repo into scitex-apps org so both repos share the same fork network
         _client.fork_repository(
