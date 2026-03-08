@@ -119,14 +119,25 @@ def organization_profile(request, org):
 
 
 def _apps_org_profile(request, org, is_member, is_admin):
-    """Profile page for the scitex-apps org — shows published app modules."""
+    """Profile page for the scitex-apps org — shows published and submitted app modules.
+
+    - Public: visible to everyone (approved apps)
+    - Pending: visible to the submitter and admins
+    """
+    from django.db.models import Q
+
     from apps.apps_app.models import AppsModule
 
-    modules = (
-        AppsModule.objects.filter(visibility="public")
-        .exclude(registry_repo_url="")
-        .order_by("-star_count", "-install_count")
-    )
+    # Public approved apps — visible to all
+    qs = AppsModule.objects.filter(visibility="public").exclude(registry_repo_url="")
+
+    # Members/submitters also see their own pending submissions
+    if request.user.is_authenticated and (is_member or is_admin):
+        qs = AppsModule.objects.filter(
+            Q(visibility="public") | Q(author=request.user)
+        ).distinct()
+
+    modules = qs.order_by("-star_count", "-install_count", "-id")
 
     paginator = Paginator(modules, 24)
     page_number = request.GET.get("page")
