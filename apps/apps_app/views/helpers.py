@@ -79,14 +79,36 @@ def ensure_builtin_modules():
 
 
 def can_view_module(user, app_module):
-    """Check if user can view this module based on visibility."""
+    """Check if user can view/install this module based on visibility.
+
+    public   → everyone
+    unlisted → any authenticated user (direct URL / org-gated discovery)
+    private  → author, staff, or users sharing an org with the author
+    """
     if app_module.visibility == "public" or app_module.is_builtin:
         return True
-    if user.is_authenticated and app_module.author == user:
+    if not user.is_authenticated:
+        return False
+    if app_module.author == user or user.is_staff:
         return True
-    if user.is_authenticated and user.is_staff:
-        return True
-    return False
+    if app_module.visibility == "unlisted":
+        return True  # any authenticated user with the direct link
+    # private: check shared org membership with author
+    return _shares_org(user, app_module.author)
+
+
+def _shares_org(user, other_user) -> bool:
+    """Return True if two users share at least one organization."""
+    if other_user is None:
+        return False
+    from apps.organizations_app.models import Organization
+
+    user_org_ids = set(
+        Organization.objects.filter(members=user).values_list("id", flat=True)
+    )
+    if not user_org_ids:
+        return False
+    return Organization.objects.filter(id__in=user_org_ids, members=other_user).exists()
 
 
 def browse_context(request, current_project=None):
@@ -102,11 +124,38 @@ def browse_context(request, current_project=None):
         .order_by("-released_at")
         .values("version")[:1]
     )
+    from django.db.models import Q
+
+    # Base: public apps always visible
+    visibility_q = Q(visibility="public")
+
+    if request.user.is_authenticated:
+        # Unlisted: authenticated users can see with direct link — show to author + staff
+        visibility_q |= Q(visibility="unlisted", author=request.user)
+        if request.user.is_staff:
+            visibility_q |= Q(visibility__in=["unlisted", "private"])
+        else:
+            # Private: author or shared-org members
+            from apps.organizations_app.models import Organization
+
+            user_org_ids = list(
+                Organization.objects.filter(members=request.user).values_list(
+                    "id", flat=True
+                )
+            )
+            if user_org_ids:
+                org_author_ids = Organization.objects.filter(
+                    id__in=user_org_ids
+                ).values_list("members__id", flat=True)
+                visibility_q |= Q(visibility="private", author__id__in=org_author_ids)
+            visibility_q |= Q(visibility="private", author=request.user)
+
     modules = (
-        AppsModule.objects.filter(visibility="public")
+        AppsModule.objects.filter(visibility_q)
         .select_related("author", "author__auth_profile")
         .annotate(latest_version=Subquery(latest_ver_sq))
         .order_by("-star_count", "-install_count")
+        .distinct()
     )
 
     # Modules disabled by default (installed but hidden from tab bar)

@@ -167,6 +167,11 @@ def api_registry_webhook(request):
     app_module.registry_repo_url = f"/{APPS_ORG}/{repo_name}/"
     app_module.save(update_fields=["visibility", "is_verified", "registry_repo_url"])
 
+    # Note: the Gitea registry repo privacy is NOT changed here.
+    # It mirrors the source project's privacy setting — private projects
+    # remain private even after approval (privacy-first research groups).
+    # Only the AppsModule record becomes public (listed in marketplace).
+
     _activate_approved_app(app_module)
 
     pr_number = pr.get("number")
@@ -178,8 +183,11 @@ def api_registry_webhook(request):
 # ---------------------------------------------------------------------------
 
 
-def _create_app_repo(app_name: str, description: str = "") -> str:
+def _create_app_repo(app_name: str, description: str = "", private: bool = True) -> str:
     """Create a scaffold repo in scitex-apps org for a new app.
+
+    The repo is created with the same privacy as the source project.
+    It becomes public only when the submission PR is approved and merged.
 
     Returns the repo HTML URL.  Raises on failure.
     """
@@ -194,12 +202,12 @@ def _create_app_repo(app_name: str, description: str = "") -> str:
     except GiteaAPIError:
         pass  # 404 — doesn't exist, create it
 
-    # Create repo in org
+    # Create repo in org with same privacy as source project
     repo_data = client.create_org_repository(
         org=APPS_ORG,
         name=app_name,
         description=description or f"SciTeX app: {app_name}",
-        private=False,
+        private=private,
         auto_init=True,
     )
     repo_url = repo_data.get("html_url", "")
@@ -262,38 +270,133 @@ def _commit_scaffold_files(client, app_name: str) -> None:
 
 
 def _submit_app_pr(app_module, version: str) -> str:
-    """Open a cross-repo PR: author's fork -> scitex-apps/<repo>.
+    """Open a PR for app submission: author's code -> scitex-apps/<repo>.
+
+    Supports two modes:
+    1. Cross-repo PR (author's repo is a fork of scitex-apps/<repo>)
+    2. Branch-based PR (author's repo is independent — pushes to a branch)
 
     Returns the PR HTML URL.  Raises on failure.
     """
-    from apps.gitea_app.api_client import GiteaClient
+    from apps.gitea_app.api_client import GiteaAPIError, GiteaClient
 
     client = GiteaClient()
     repo = app_module.project.slug
     author = app_module.project.owner.username
-
-    pr_data = client.create_pull_request(
-        owner=APPS_ORG,
-        repo=repo,
-        title=f"[App] {app_module.module_name} v{version}",
-        body=(
-            f"**App:** {app_module.module_name}\n"
-            f"**Version:** {version}\n"
-            f"**Author:** {author}\n"
-            f"**Description:** {app_module.short_description}\n\n"
-            f"Source: `{author}/{repo}`\n"
-            f"Pinned commit: `{app_module.pinned_commit[:12] if app_module.pinned_commit else 'N/A'}`"
-        ),
-        head=f"{author}:main",
-        base="main",
+    pr_title = f"[App] {app_module.module_name} v{version}"
+    pr_body = (
+        f"**App:** {app_module.module_name}\n"
+        f"**Version:** {version}\n"
+        f"**Author:** {author}\n"
+        f"**Description:** {app_module.short_description}\n\n"
+        f"Source: `{author}/{repo}`\n"
+        f"Pinned commit: `{app_module.pinned_commit[:12] if app_module.pinned_commit else 'N/A'}`"
     )
-    pr_url = pr_data.get("html_url", "")
-    if not pr_url:
-        raise RuntimeError(
-            f"PR created but no html_url returned for {app_module.module_name}"
+
+    # Check if user's repo is a fork of scitex-apps repo
+    is_fork = False
+    try:
+        user_repo = client.get_repository(owner=author, repo=repo)
+        parent = user_repo.get("parent")
+        if parent and parent.get("full_name") == f"{APPS_ORG}/{repo}":
+            is_fork = True
+    except GiteaAPIError:
+        pass
+
+    if is_fork:
+        # Mode 1: Cross-repo PR (standard fork workflow)
+        pr_data = client.create_pull_request(
+            owner=APPS_ORG,
+            repo=repo,
+            title=pr_title,
+            body=pr_body,
+            head=f"{author}:main",
+            base="main",
+        )
+    else:
+        # Mode 2: Push user's code to a branch on scitex-apps/<repo>
+        _push_to_registry_branch(app_module, author, repo)
+        pr_data = client.create_pull_request(
+            owner=APPS_ORG,
+            repo=repo,
+            title=pr_title,
+            body=pr_body,
+            head=f"submit/{author}",
+            base="main",
         )
 
-    return pr_url
+    pr_number = pr_data.get("number")
+    if not pr_number:
+        raise RuntimeError(
+            f"PR created but no number returned for {app_module.module_name}"
+        )
+
+    # Sync PR into Django so platform PR page works (not external Gitea)
+    from ..services.registry_sync import sync_app_pr_to_django
+
+    sync_app_pr_to_django(
+        repo_slug=repo,
+        pr_number=pr_number,
+        pr_data=pr_data,
+        author_username=author,
+    )
+
+    # Return platform PR URL (within SciTeX, not Gitea)
+    return f"/{APPS_ORG}/{repo}/pull/{pr_number}/"
+
+
+def _push_to_registry_branch(app_module, author: str, repo: str) -> None:
+    """Push user's app code to a submit/<author> branch on scitex-apps/<repo>.
+
+    Uses git push via the Gitea admin token for authentication.
+    """
+    import subprocess
+
+    from django.conf import settings
+
+    from apps.apps_app.services.dev_app_loader import resolve_dev_project_dir
+
+    project_dir = resolve_dev_project_dir(author, repo)
+    if not project_dir or not project_dir.exists():
+        raise RuntimeError(f"Project directory not found for {author}/{repo}")
+
+    gitea_url = settings.GITEA_URL
+    gitea_token = settings.GITEA_TOKEN
+    remote_url = f"{gitea_url}/{APPS_ORG}/{repo}.git"
+    # Use token auth in URL for push
+    if gitea_token:
+        remote_url = remote_url.replace("://", f"://scitex-admin:{gitea_token}@")
+
+    remote_name = "scitex-apps-registry"
+    branch_name = f"submit/{author}"
+
+    # Add remote (ignore error if already exists)
+    subprocess.run(
+        ["git", "remote", "add", remote_name, remote_url],
+        cwd=str(project_dir),
+        capture_output=True,
+        timeout=10,
+    )
+    # Update remote URL in case token changed
+    subprocess.run(
+        ["git", "remote", "set-url", remote_name, remote_url],
+        cwd=str(project_dir),
+        capture_output=True,
+        timeout=10,
+    )
+
+    # Push user's main to submit/<author> branch on scitex-apps
+    result = subprocess.run(
+        ["git", "push", "--force", remote_name, f"main:{branch_name}"],
+        cwd=str(project_dir),
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"Failed to push to {APPS_ORG}/{repo}:{branch_name}: {result.stderr.strip()}"
+        )
 
 
 # ---------------------------------------------------------------------------

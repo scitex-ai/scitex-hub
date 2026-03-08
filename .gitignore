@@ -879,3 +879,5 @@ static/figrecipe/
 /.claude-worktree-symlinks
 # Claude worktree symlink
 /misc
+# Claude worktree symlink
+/refactor-urls

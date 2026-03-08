@@ -5,6 +5,8 @@
  * Uses existing apps API endpoints.
  */
 
+import { showToast } from "../utils/ui";
+
 const APPS_API = "/apps/api";
 
 const COLOR_SWATCHES = [
@@ -44,6 +46,12 @@ async function apiPost(
     credentials: "same-origin",
     body: body ? JSON.stringify(body) : undefined,
   });
+  const contentType = resp.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    throw new Error(
+      `Server returned ${resp.status} (non-JSON). Check login session or CSRF token.`,
+    );
+  }
   return resp.json();
 }
 
@@ -233,7 +241,7 @@ async function submitDevApp(moduleName: string): Promise<void> {
   // Parse dev__<owner>__<repo>
   const parts = moduleName.split("__");
   if (parts.length < 3) {
-    alert("Invalid dev app name format.");
+    showToast("Invalid dev app name format.", "error");
     return;
   }
   const owner = parts[1];
@@ -243,18 +251,22 @@ async function submitDevApp(moduleName: string): Promise<void> {
     const data = await apiPost(`${APPS_API}/dev/${owner}/${repo}/submit/`);
     if (data.success) {
       const prUrl = (data as any).pr_url;
-      alert(`App submitted! Review PR opened:\n${prUrl}`);
+      if (prUrl) {
+        window.location.href = prUrl;
+      }
+      showToast("App submitted! Review PR opened.", "success", 8000);
     } else {
       const errors = (data as any).errors;
       if (errors && Array.isArray(errors)) {
-        alert(`Validation failed:\n\n${errors.join("\n")}`);
+        showToast(`Validation failed: ${errors.join("; ")}`, "error", 10000);
       } else {
-        alert(data.error || "Submission failed.");
+        showToast(data.error || "Submission failed.", "error");
       }
     }
   } catch (err) {
     console.error("[module-ctx] Submit error:", err);
-    alert("Failed to submit app.");
+    const msg = err instanceof Error ? err.message : String(err);
+    showToast(`Failed to submit app: ${msg}`, "error");
   }
 }
 
@@ -264,11 +276,11 @@ async function toggleModule(name: string): Promise<void> {
     if (data.success) {
       location.reload();
     } else {
-      alert(data.error || "Failed to toggle module.");
+      showToast(data.error || "Failed to toggle module.", "error");
     }
   } catch (err) {
     console.error("[module-ctx] Toggle error:", err);
-    alert("Failed to toggle module.");
+    showToast("Failed to toggle module.", "error");
   }
 }
 
@@ -278,11 +290,11 @@ async function uninstallModule(name: string): Promise<void> {
     if (data.success) {
       location.reload();
     } else {
-      alert(data.error || "Failed to uninstall module.");
+      showToast(data.error || "Failed to uninstall module.", "error");
     }
   } catch (err) {
     console.error("[module-ctx] Uninstall error:", err);
-    alert("Failed to uninstall module.");
+    showToast("Failed to uninstall module.", "error");
   }
 }
 

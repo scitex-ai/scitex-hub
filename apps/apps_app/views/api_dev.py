@@ -255,9 +255,22 @@ def api_submit_dev_app(request, owner, repo):
         )
 
     # 4. Run validation
-    from scitex_cloud.app_tools import validate
+    try:
+        from scitex_cloud.app_tools import validate
 
-    errors = validate(str(project_dir))
+        errors = validate(str(project_dir))
+    except ImportError as e:
+        logger.error("[api_dev] scitex_cloud.app_tools unavailable: %s", e)
+        return JsonResponse(
+            {"success": False, "error": f"Validation module unavailable: {e}"},
+            status=500,
+        )
+    except Exception as e:
+        logger.error("[api_dev] Validation crashed: %s", e)
+        return JsonResponse(
+            {"success": False, "error": f"Validation error: {e}"},
+            status=500,
+        )
     if errors:
         return JsonResponse(
             {"success": False, "error": "Validation failed", "errors": errors},
@@ -280,26 +293,47 @@ def api_submit_dev_app(request, owner, repo):
         else f"{app_name}_app"
     )
 
-    app_module, created = AppsModule.objects.update_or_create(
-        module_name=module_name,
-        defaults={
-            "author": request.user,
-            "short_description": manifest.get("description", ""),
-            "category": manifest.get("category", "other"),
-            "visibility": "private",
-            "project": project,
-            "repository_url": project.gitea_repo_url or "",
-        },
+    # Visibility from manifest or request body; default private
+    VALID_VISIBILITIES = {"private", "unlisted", "public"}
+    requested_visibility = (
+        manifest.get("visibility") or request.POST.get("visibility") or "private"
     )
+    if requested_visibility not in VALID_VISIBILITIES:
+        requested_visibility = "private"
+
+    try:
+        app_module, created = AppsModule.objects.update_or_create(
+            project=project,
+            defaults={
+                "module_name": module_name,
+                "author": request.user,
+                "short_description": manifest.get("description", ""),
+                "category": manifest.get("category", "other"),
+                "visibility": requested_visibility,
+                "repository_url": project.gitea_repo_url or "",
+            },
+        )
+    except Exception as e:
+        logger.error("[api_dev] Failed to create/update AppsModule: %s", e)
+        return JsonResponse(
+            {"success": False, "error": f"Failed to register app module: {e}"},
+            status=500,
+        )
 
     # 7. Get pinned commit
-    result = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        cwd=str(project_dir),
-        capture_output=True,
-        text=True,
-        timeout=10,
-    )
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=str(project_dir),
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except Exception as e:
+        return JsonResponse(
+            {"success": False, "error": f"Failed to run git in project directory: {e}"},
+            status=500,
+        )
     if result.returncode != 0:
         return JsonResponse(
             {"success": False, "error": "Failed to read commit SHA from project"},
@@ -308,16 +342,57 @@ def api_submit_dev_app(request, owner, repo):
     pinned_commit = result.stdout.strip()
 
     # 8. Open cross-repo PR: user/<app> -> scitex-apps/<app>
-    from .api_registry import _submit_app_pr
+    from .api_registry import _create_app_repo, _submit_app_pr
 
     app_module.pinned_commit = pinned_commit
     app_module.save(update_fields=["pinned_commit"])
+
+    # Ensure the target registry repo in scitex-apps org exists
+    # Mirror source project privacy: private stays private until approved
+    source_is_private = app_module.project.visibility != "public"
+    try:
+        _create_app_repo(
+            app_module.project.slug,
+            manifest.get("description", ""),
+            private=source_is_private,
+        )
+    except Exception as e:
+        logger.error("[api_dev] Failed to create registry repo: %s", e)
+        return JsonResponse(
+            {
+                "success": False,
+                "error": f"Failed to create registry repo in scitex-apps: {e}",
+            },
+            status=500,
+        )
+
     try:
         pr_url = _submit_app_pr(
             app_module=app_module,
             version=manifest.get("version", "0.1.0"),
         )
     except Exception as e:
+        error_msg = str(e)
+        # If PR already exists, find and return the existing PR URL
+        if "pull request already exists" in error_msg.lower():
+            from ..services.registry_sync import (
+                ensure_registry_read_access,
+                find_existing_pr_url,
+            )
+
+            existing_pr_url = find_existing_pr_url(app_module.project.slug)
+            if existing_pr_url:
+                ensure_registry_read_access(owner, repo)
+                from ..services.registry_sync import ensure_scitex_apps_org_membership
+
+                ensure_scitex_apps_org_membership(request.user.username)
+                logger.info(
+                    "[api_dev] PR already exists for %s/%s: %s",
+                    owner,
+                    repo,
+                    existing_pr_url,
+                )
+                return JsonResponse({"success": True, "pr_url": existing_pr_url})
         logger.error("[api_dev] Failed to open app PR: %s", e)
         return JsonResponse(
             {"success": False, "error": f"Failed to open app PR: {e}"},
@@ -325,11 +400,19 @@ def api_submit_dev_app(request, owner, repo):
         )
 
     # 9. Create submission record
-    ModuleSubmission.objects.create(
-        module=app_module,
-        submitted_by=request.user,
-        pr_url=pr_url,
-    )
+    try:
+        ModuleSubmission.objects.create(
+            module=app_module,
+            submitted_by=request.user,
+            pr_url=pr_url,
+        )
+    except Exception as e:
+        logger.warning("[api_dev] Failed to create submission record: %s", e)
+
+    # 10. Add submitter to scitex-apps Organization (shows in profile sidebar)
+    from ..services.registry_sync import ensure_scitex_apps_org_membership
+
+    ensure_scitex_apps_org_membership(request.user.username)
 
     logger.info(
         "[api_dev] User %s submitted dev app %s/%s → PR: %s",

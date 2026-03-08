@@ -200,6 +200,15 @@
                         <div class="repo-item">
                             <h3>
                                 <a href="/apps/{{ mod.module_name }}/">{{ organization.slug }}/{{ mod.module_name }}</a>
+                                {% if mod.visibility != "public" %}
+                                    <span class="badge badge-warning" title="Pending staff review">
+                                        <i class="fas fa-clock"></i> Pending Review
+                                    </span>
+                                {% elif mod.is_verified %}
+                                    <span class="badge badge-verified" title="Verified app">
+                                        <i class="fas fa-check-circle"></i> Verified
+                                    </span>
+                                {% endif %}
                             </h3>
                             {% if mod.short_description %}<p class="repo-description">{{ mod.short_description }}</p>{% endif %}
                             <div class="repo-meta">

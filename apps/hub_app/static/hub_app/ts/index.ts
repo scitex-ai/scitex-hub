@@ -10,12 +10,12 @@ import { handleBrowseHash } from "./hub-hash-router";
 import {
   browseProject,
   loadAccountSettings,
-  loadUserProfile,
   selectProject,
   setModeActive,
   switchHubMode,
   updateCurrentProjectTab,
 } from "./hub-navigate";
+import { handleExploreClick } from "./hub-explore";
 import {
   handleMeProjectDropdown,
   handleMeProjectSelect,
@@ -132,15 +132,8 @@ function initHub(): void {
       return;
     }
 
-    // Explore user clicks (from explore content that may still appear)
-    const userLink = target.closest(
-      "a.hub-explore-user",
-    ) as HTMLAnchorElement | null;
-    if (userLink) {
-      e.preventDefault();
-      loadUserProfile(userLink.getAttribute("data-username") || "");
-      return;
-    }
+    // Explore clicks (tab switching + user profile links)
+    if (handleExploreClick(target, e)) return;
 
     // --- Project workspace navigation ---
     const container = target.closest(

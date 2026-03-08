@@ -1,19 +1,30 @@
-# SciTeX robots.txt
-# Allow all crawlers
+# AI assistants (explicitly allowed)
+User-agent: ClaudeBot
+Allow: /
 
+User-agent: GPTBot
+Allow: /
+
+# Search engines
+User-agent: Googlebot
+Allow: /
+
+# All other crawlers
 User-agent: *
 Allow: /
+
+# Block development and internal paths
+Disallow: /dev/
 Disallow: /admin/
 Disallow: /api/
-Disallow: /core/dashboard/
-Disallow: /core/documents/
-Disallow: /core/projects/
-Disallow: /core/profile/
-Disallow: /static/admin/
-Disallow: /*.json$
+Disallow: /_vite_dev_app/
+Disallow: /__reload__/
+Disallow: /__debug__/
+
+# Block visitor/temporary paths
+Disallow: /visitor-
+
+Crawl-delay: 1
 
 # Sitemap location
 Sitemap: https://scitex.ai/sitemap.xml
-
-# Crawl-delay for considerate crawling
-Crawl-delay: 1

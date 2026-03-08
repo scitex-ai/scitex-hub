@@ -58,7 +58,6 @@ class ClewApp {
 
     this.setupEventListeners();
     this.setupDropTarget();
-    this.setupHeaderButtons();
 
     const urlParams = new URLSearchParams(window.location.search);
     const targetFile = urlParams.get("file");
@@ -95,31 +94,29 @@ class ClewApp {
         showFileModeInstructions(this.dagArea);
         break;
     }
+    this.updateAddExamplesVisibility();
   }
 
-  // ── Header buttons ──────────────────────────────────────────────────────
-  private setupHeaderButtons() {
-    const header = document.querySelector(".clew-header");
-    if (!header) return;
-
-    const btn = document.createElement("button");
-    btn.className = "btn btn-sm btn-outline-secondary ms-2";
-    btn.innerHTML = '<i class="fas fa-play-circle"></i> Add Examples';
-    btn.title = "Load example Clew pipeline scripts into this project";
+  private updateAddExamplesVisibility() {
+    if (!this.dagArea) return;
+    const btn = this.dagArea.querySelector<HTMLButtonElement>(
+      ".clew-add-examples-btn",
+    );
+    if (!btn) return;
     btn.addEventListener("click", () => this.addExamples(btn));
-    header.appendChild(btn);
   }
 
   private async addExamples(btn: HTMLButtonElement) {
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+    btn.innerHTML = "Adding...";
 
     const response = await clewApi.addExamples();
     if (response.success) {
-      btn.innerHTML = '<i class="fas fa-check"></i> Added';
+      btn.innerHTML = "Added";
       this.showExamplesGuidance();
+      btn.style.display = "none";
     } else {
-      btn.innerHTML = '<i class="fas fa-play-circle"></i> Add Examples';
+      btn.innerHTML = "Add Examples";
       btn.disabled = false;
       console.error("[Clew] Failed to add examples:", response.error);
       alert(`Failed to add examples: ${response.error}`);

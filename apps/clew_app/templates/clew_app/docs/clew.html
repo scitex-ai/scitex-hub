@@ -47,23 +47,23 @@
                 <i class="fas fa-arrow-right"></i> Forward: Track
             </h2>
             <p>
-                Use <code>@stx.session</code> and <code>stx.io</code> in your scripts.
+                Use <code>@scitex.session</code> and <code>scitex.io</code> in your scripts.
                 Clew automatically records every input and output with SHA-256 hashes.
             </p>
-            <pre><code>import scitex as stx
-@stx.session
+            <pre><code>import scitex
+@scitex.session
 def main():
     # Inputs are tracked automatically
-    data = stx.io.load("raw_data.csv")
+    data = scitex.io.load("raw_data.csv")
 
     # Processing...
     result = data.groupby("condition").mean()
 
     # Outputs are tracked with hashes
-    stx.io.save(result, "summary.csv")
-    fig, ax = stx.plt.subplots()
+    scitex.io.save(result, "summary.csv")
+    fig, ax = scitex.plt.subplots()
     ax.plot_line(result.index, result.values)
-    stx.io.save(fig, "figure_1.png")  # Saves .png + .csv
+    scitex.io.save(fig, "figure_1.png")  # Saves .png + .csv
 
     return 0
 
@@ -104,15 +104,15 @@ scitex clew list</code></pre>
                 Claims link manuscript assertions to their computational source.
                 Register a claim wherever your code produces a result that appears in the paper.
             </p>
-            <pre><code>import scitex as stx
-@stx.session
+            <pre><code>import scitex
+@scitex.session
 def main():
-    data = stx.io.load("experiment_results.csv")
+    data = scitex.io.load("experiment_results.csv")
     from scipy import stats
     t_stat, p_val = stats.ttest_ind(data["control"], data["treatment"])
 
     # Register claim: links this p-value to the manuscript
-    stx.clew.add_claim(
+    scitex.clew.add_claim(
         claim_type="statistic",
         claim_value=f"p = {p_val:.4f}",
         file_path="manuscript.tex",
@@ -346,8 +346,8 @@ def main():
                 </tbody>
             </table>
             <p>
-                When using <code>@stx.session</code> in scripts, all file I/O via
-                <code>stx.io</code> is automatically tracked. No additional configuration needed.
+                When using <code>@scitex.session</code> in scripts, all file I/O via
+                <code>scitex.io</code> is automatically tracked. No additional configuration needed.
             </p>
         </section>
     </div>

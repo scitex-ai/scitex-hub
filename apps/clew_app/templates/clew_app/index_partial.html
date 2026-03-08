@@ -11,10 +11,21 @@
          data-mode="clew"></div>
 {% endif %}
 <div class="clew-main unified-clew-main" style="flex:1; overflow:auto;">
-    <div class="clew-header">
-        <span class="clew-header-title">
-            <i class="fas fa-check-circle"></i> Clew
-        </span>
+    <div class="pane-header" data-pane-type="module">
+        <nav class="clew-tabs" id="clewModeSelector">
+            <button class="clew-tab active" data-mode="project" title="Show full project DAG">
+                <i class="fas fa-diagram-project"></i> Project
+            </button>
+            <button class="clew-tab"
+                    data-mode="claims"
+                    title="Show claims-based DAG from manuscript">
+                <i class="fas fa-list-check"></i> Claims
+            </button>
+            <button class="clew-tab" data-mode="file" title="Drop or select files to trace">
+                <i class="fas fa-file-code"></i> File
+            </button>
+        </nav>
+        <div class="pane-header-actions"></div>
     </div>
     <div class="dag-visualization-area">
         <div class="dag-placeholder">
@@ -28,13 +39,14 @@
                 <div class="clew-direction">
                     <h4>Forward: Track</h4>
                     <p>
-                        Use <code>@stx.session</code> and <code>stx.io</code> in your scripts.
+                        Use <code>@scitex.session</code> and <code>scitex.io</code> in your scripts.
                         Clew automatically records inputs, outputs, and hashes.
                     </p>
-                    <pre data-language="python"><code class="language-python">@stx.session
+                    <pre data-language="python"><code class="language-python">import scitex
+@scitex.session
 def main():
-    data = stx.io.load("input.csv")
-    stx.io.save(result, "output.png")</code></pre>
+    data = scitex.io.load("input.csv")
+    scitex.io.save(result, "output.png")</code></pre>
                 </div>
                 <div class="clew-direction">
                     <h4>Backward: Verify</h4>

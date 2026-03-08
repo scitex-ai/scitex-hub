@@ -23,12 +23,14 @@ logger = logging.getLogger(__name__)
 @require_http_methods(["GET"])
 def api_me(request):
     """GET /hub/api/me/ — Own profile with account settings in sidebar."""
+    from apps.organizations_app.models import Organization
     from apps.social_app.models import UserFollow
 
     user = request.user
     user_projects = Project.objects.filter(owner=user).order_by("-updated_at")[:20]
     followers_count = UserFollow.get_followers_count(user)
     following_count = UserFollow.get_following_count(user)
+    organizations = Organization.objects.filter(members=user).order_by("name")
 
     html = render_to_string(
         "hub_app/partials/user_profile_content.html",
@@ -40,6 +42,7 @@ def api_me(request):
             "is_following": False,
             "is_own_projects": True,
             "show_account_settings": True,
+            "organizations": organizations,
         },
         request=request,
     )
@@ -76,6 +79,10 @@ def api_user_profile(request):
     following_count = UserFollow.get_following_count(profile_user)
     is_following = UserFollow.is_following(request.user, profile_user)
 
+    from apps.organizations_app.models import Organization
+
+    organizations = Organization.objects.filter(members=profile_user).order_by("name")
+
     html = render_to_string(
         "hub_app/partials/user_profile_content.html",
         {
@@ -85,6 +92,7 @@ def api_user_profile(request):
             "following_count": following_count,
             "is_following": is_following,
             "is_own_projects": request.user == profile_user,
+            "organizations": organizations,
         },
         request=request,
     )
