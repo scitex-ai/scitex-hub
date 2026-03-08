@@ -23,9 +23,10 @@ INSTANCE_VERIFY_TIMEOUT = 30  # seconds
 INSTANCE_VERIFY_INTERVAL = 2.0  # seconds
 
 # Shared script directory: Docker writes here, SLURM reads from host path
-# Docker path: /app/data/.cache/alloc-scripts/
-# Host path: derived from SLURM_USER_DATA_ROOT (e.g., .../data/users -> .../data/.cache/...)
-_DOCKER_SCRIPT_DIR = Path("/app/data/.cache/alloc-scripts")
+# MUST be under /app/data/users/ which is bind-mounted to /opt/scitex/data/users/
+# Docker path: /app/data/users/.cache/alloc-scripts/
+# Host path: /opt/scitex/data/users/.cache/alloc-scripts/
+_DOCKER_SCRIPT_DIR = Path("/app/data/users/.cache/alloc-scripts")
 _HOST_SCRIPT_DIR: Optional[Path] = None
 
 
@@ -35,9 +36,9 @@ def _get_host_script_dir() -> Path:
     if _HOST_SCRIPT_DIR is None:
         from apps.console_app.views.terminal.config import SLURM_USER_DATA_ROOT
 
-        # SLURM_USER_DATA_ROOT is e.g. /home/.../scitex-cloud/data/users
-        # We want /home/.../scitex-cloud/data/.cache/alloc-scripts
-        _HOST_SCRIPT_DIR = SLURM_USER_DATA_ROOT.parent / ".cache" / "alloc-scripts"
+        # SLURM_USER_DATA_ROOT is /opt/scitex/data/users
+        # Scripts go under /opt/scitex/data/users/.cache/alloc-scripts
+        _HOST_SCRIPT_DIR = SLURM_USER_DATA_ROOT / ".cache" / "alloc-scripts"
     return _HOST_SCRIPT_DIR
 
 
@@ -202,9 +203,9 @@ class Allocation:
                 instance_name=self.instance_name,
             )
 
-            # 2. Write script to shared volume (accessible by both Docker and host)
-            # Docker writes here; sbatch reads from here (Docker path).
-            # Script CONTENT uses host paths (for apptainer on compute node).
+            # 2. Write script to shared volume (bind-mounted: Docker <-> host)
+            # Docker writes to /app/data/users/.cache/alloc-scripts/
+            # SLURM reads from /opt/scitex/data/users/.cache/alloc-scripts/
             _DOCKER_SCRIPT_DIR.mkdir(parents=True, exist_ok=True)
             script_name = f"scitex-alloc-{self.allocation_id[:8]}.sh"
             docker_script_path = _DOCKER_SCRIPT_DIR / script_name
@@ -212,10 +213,12 @@ class Allocation:
             docker_script_path.chmod(0o755)
             self._script_path = str(docker_script_path)
 
-            # 3. Submit via sbatch with Docker path (sbatch reads file locally)
+            # 3. Submit via sbatch with HOST path (SLURM runs on host, not Docker)
+            host_script_dir = _get_host_script_dir()
+            host_script_path = host_script_dir / script_name
             sbatch_cmd = build_sbatch_cmd(
                 instance_name=self.instance_name,
-                script_path=str(docker_script_path),
+                script_path=str(host_script_path),
                 username=self.username,
                 project_slug=self.project_slug,
             )
