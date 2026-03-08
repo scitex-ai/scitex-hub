@@ -10,6 +10,7 @@ import { DebugInfoCollector } from "./_debug-info-collector";
 import { NotificationManager } from "./_notification-manager";
 import { LayerPickerPanel } from "./_LayerPickerPanel";
 import { LabelRenderer } from "./_LabelRenderer";
+import { getDepth, getColorForDepth } from "./_depth-utils";
 
 export class ElementScanner {
   private elementBoxMap: Map<HTMLDivElement, Element> = new Map();
@@ -48,8 +49,8 @@ export class ElementScanner {
     this.layerPicker = new LayerPickerPanel(
       debugCollector,
       notificationManager,
-      (el) => this.getDepth(el),
-      (depth) => this.getColorForDepth(depth)
+      (el) => getDepth(el),
+      (depth) => getColorForDepth(depth),
     );
     this.layerPicker.setHighlightCallback((el) => {
       if (this.overlayContainerRef) {
@@ -82,7 +83,9 @@ export class ElementScanner {
    * Get the currently selected element (via scroll wheel depth selection)
    */
   public getDepthSelectedElement(): Element | null {
-    return this.layerPicker.getSelectedElement() || this.currentlyHoveredElement;
+    return (
+      this.layerPicker.getSelectedElement() || this.currentlyHoveredElement
+    );
   }
 
   public clearElementBoxMap(): void {
@@ -131,12 +134,18 @@ export class ElementScanner {
     const allElements = document.querySelectorAll("*");
 
     for (const element of allElements) {
+      if (!element || !element.tagName) continue;
+
       // Skip our own overlay elements
       if (element.closest("#element-inspector-overlay")) continue;
 
       // Skip script, style, and other non-visual elements
       const tagName = element.tagName.toLowerCase();
-      if (["script", "style", "link", "meta", "head", "noscript", "br"].includes(tagName)) {
+      if (
+        ["script", "style", "link", "meta", "head", "noscript", "br"].includes(
+          tagName,
+        )
+      ) {
         continue;
       }
 
@@ -144,13 +153,20 @@ export class ElementScanner {
       const rect = element.getBoundingClientRect();
 
       // Skip zero-size and very small elements
-      if (rect.width < ElementScanner.MIN_SIZE || rect.height < ElementScanner.MIN_SIZE) {
+      if (
+        rect.width < ElementScanner.MIN_SIZE ||
+        rect.height < ElementScanner.MIN_SIZE
+      ) {
         continue;
       }
 
       // Quick visibility check
       if (element instanceof HTMLElement) {
-        if (element.offsetParent === null && tagName !== "body" && tagName !== "html") {
+        if (
+          element.offsetParent === null &&
+          tagName !== "body" &&
+          tagName !== "html"
+        ) {
           if (element.style.display === "none") continue;
         }
       }
@@ -159,7 +175,9 @@ export class ElementScanner {
     }
 
     const elapsed = (performance.now() - startTime).toFixed(1);
-    console.log(`[ElementInspector] Found ${this.allVisibleElements.length} visible elements in ${elapsed}ms`);
+    console.log(
+      `[ElementInspector] Found ${this.allVisibleElements.length} visible elements in ${elapsed}ms`,
+    );
   }
 
   /**
@@ -175,7 +193,7 @@ export class ElementScanner {
 
     const batchEnd = Math.min(
       this.currentBatchStart + ElementScanner.BATCH_SIZE,
-      this.allVisibleElements.length
+      this.allVisibleElements.length,
     );
 
     let count = 0;
@@ -194,8 +212,8 @@ export class ElementScanner {
         continue;
       }
 
-      const depth = this.getDepth(element);
-      const color = this.getColorForDepth(depth);
+      const depth = getDepth(element);
+      const color = getColorForDepth(depth);
       const tagName = element.tagName.toLowerCase();
 
       // Scale border width: thinner for larger elements
@@ -234,7 +252,10 @@ export class ElementScanner {
       box.addEventListener("click", (e: MouseEvent) => {
         // Allow left clicks to pass through by temporarily disabling pointer events
         box.style.pointerEvents = "none";
-        const underlyingElement = document.elementFromPoint(e.clientX, e.clientY);
+        const underlyingElement = document.elementFromPoint(
+          e.clientX,
+          e.clientY,
+        );
         box.style.pointerEvents = "";
 
         if (underlyingElement && underlyingElement !== box) {
@@ -260,7 +281,8 @@ export class ElementScanner {
 
         selectedBox.classList.add("highlighted");
 
-        const debugInfo = this.debugCollector.gatherElementDebugInfo(selectedElement);
+        const debugInfo =
+          this.debugCollector.gatherElementDebugInfo(selectedElement);
         try {
           await navigator.clipboard.writeText(debugInfo);
           this.notificationManager.showNotification("✓ Copied!", "success");
@@ -273,22 +295,34 @@ export class ElementScanner {
         }
       });
 
-      const shouldShowLabel = this.labelRenderer.shouldShowLabel(element, rect, depth);
+      const shouldShowLabel = this.labelRenderer.shouldShowLabel(
+        element,
+        rect,
+        depth,
+      );
 
       if (shouldShowLabel) {
         const label = this.labelRenderer.createLabel(element, depth);
         if (label) {
-          const labelPos = this.labelRenderer.findLabelPosition(rect, occupiedPositions);
+          const labelPos = this.labelRenderer.findLabelPosition(
+            rect,
+            occupiedPositions,
+          );
 
           if (labelPos.isValid) {
             label.style.top = `${labelPos.top}px`;
             label.style.left = `${labelPos.left}px`;
 
             this.labelRenderer.addCopyToClipboard(label, element);
-            this.labelRenderer.addHoverHighlight(label, box, element, (b, e) => {
-              this.currentlyHoveredBox = b;
-              this.currentlyHoveredElement = e;
-            });
+            this.labelRenderer.addHoverHighlight(
+              label,
+              box,
+              element,
+              (b, e) => {
+                this.currentlyHoveredBox = b;
+                this.currentlyHoveredElement = e;
+              },
+            );
 
             const labelPadding = 8;
             occupiedPositions.push({
@@ -314,14 +348,16 @@ export class ElementScanner {
     const remaining = total - batchEnd;
     console.log(
       `[ElementInspector] Rendered ${count} elements (${this.currentBatchStart + 1}-${batchEnd}/${total}) in ${elapsed}ms` +
-      (remaining > 0 ? ` | Ctrl+I for next ${Math.min(remaining, ElementScanner.BATCH_SIZE)}` : "")
+        (remaining > 0
+          ? ` | Ctrl+I for next ${Math.min(remaining, ElementScanner.BATCH_SIZE)}`
+          : ""),
     );
 
     if (remaining > 0) {
       this.notificationManager.showNotification(
         `${batchEnd}/${total} elements | Ctrl+I for more`,
         "success",
-        2000
+        2000,
       );
     }
   }
@@ -336,7 +372,10 @@ export class ElementScanner {
     const nextStart = this.currentBatchStart + ElementScanner.BATCH_SIZE;
 
     if (nextStart >= total) {
-      this.notificationManager.showNotification("All elements loaded", "success");
+      this.notificationManager.showNotification(
+        "All elements loaded",
+        "success",
+      );
       return false;
     }
 
@@ -349,7 +388,10 @@ export class ElementScanner {
    * Check if more batches are available
    */
   public hasMoreBatches(): boolean {
-    return this.currentBatchStart + ElementScanner.BATCH_SIZE < this.allVisibleElements.length;
+    return (
+      this.currentBatchStart + ElementScanner.BATCH_SIZE <
+      this.allVisibleElements.length
+    );
   }
 
   /**
@@ -382,7 +424,7 @@ export class ElementScanner {
       e.stopPropagation();
 
       // Scroll up = shallower (parent), scroll down = deeper (child)
-      this.layerPicker.navigate(e.deltaY > 0 ? 'down' : 'up');
+      this.layerPicker.navigate(e.deltaY > 0 ? "down" : "up");
     };
 
     document.addEventListener("wheel", this.wheelHandler, { passive: false });
@@ -396,6 +438,7 @@ export class ElementScanner {
     const allAtPoint = document.elementsFromPoint(x, y);
 
     for (const el of allAtPoint) {
+      if (!el || !el.tagName) continue;
       if (el.closest("#element-inspector-overlay")) continue;
       if (el.closest(".element-inspector-layer-picker")) continue;
       const tag = el.tagName.toLowerCase();
@@ -420,11 +463,16 @@ export class ElementScanner {
   /**
    * Highlight a specific element and update hover state
    */
-  private highlightElement(element: Element, overlayContainer: HTMLDivElement): void {
+  private highlightElement(
+    element: Element,
+    overlayContainer: HTMLDivElement,
+  ): void {
     // Clear previous highlights
-    overlayContainer.querySelectorAll(".element-inspector-box.highlighted").forEach((box) => {
-      box.classList.remove("highlighted");
-    });
+    overlayContainer
+      .querySelectorAll(".element-inspector-box.highlighted")
+      .forEach((box) => {
+        box.classList.remove("highlighted");
+      });
     this.clearDirectHighlight();
 
     // Try to find the box for this element in rendered batch
@@ -447,30 +495,4 @@ export class ElementScanner {
       this.currentlyHoveredElement = element;
     }
   }
-
-  private getDepth(element: Element): number {
-    let depth = 0;
-    let current: Element | null = element;
-
-    while (current && current !== document.body) {
-      depth++;
-      current = current.parentElement;
-    }
-
-    return depth;
-  }
-
-  private getColorForDepth(depth: number): string {
-    const colors = [
-      "#3B82F6", // Blue (depth 0-2)
-      "#10B981", // Green (depth 3-5)
-      "#F59E0B", // Yellow (depth 6-8)
-      "#EF4444", // Red (depth 9-11)
-      "#EC4899", // Pink (depth 12+)
-    ];
-
-    const index = Math.min(Math.floor(depth / 3), colors.length - 1);
-    return colors[index];
-  }
-
 }

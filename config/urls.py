@@ -99,6 +99,7 @@ def get_reserved_paths():
             "verify",
             "confirm",
             "explore",
+            "current-project",
             "trending",
             "discover",
             "social",  # Social auth URLs
@@ -132,18 +133,65 @@ urlpatterns = [
     # Hub workspace and API
     path("hub/api/", include("apps.hub_app.urls.api")),
     path("hub/", include("apps.hub_app.urls.index")),
-    path("scholar/", include(("apps.scholar_app.urls", "scholar_app"))),
-    path("console/", include(("apps.console_app.urls", "console_app"))),
-    path("vis/", include(("apps.vis_app.urls", "vis"))),
-    path("vis-react/", include(("apps.vis_app.urls.vis_react", "vis_react"))),
-    path("writer/", include(("apps.writer_app.urls", "writer_app"))),
-    path("workspace/", include(("apps.workspace_app.urls", "workspace_app"))),
-    path("example/", include(("apps.example_app.urls", "example_app"))),
-    path("notebook/", include(("apps.notebook_app.urls", "notebook_app"))),
+    # Discovery app
+    path("discovery/", include(("apps.discovery_app.urls", "discovery_app"))),
+    # App modules — under /apps/ prefix (more-specific paths must come before apps/ catch-all)
+    path("apps/scholar/", include(("apps.scholar_app.urls", "scholar_app"))),
+    path("apps/console/", include(("apps.console_app.urls", "console_app"))),
+    path("apps/vis-react/", include(("apps.vis_app.urls.vis_react", "vis_react"))),
+    path("apps/vis/", include(("apps.vis_app.urls", "vis"))),
+    path("apps/writer/", include(("apps.writer_app.urls", "writer_app"))),
+    path("apps/workspace/", include(("apps.workspace_app.urls", "workspace_app"))),
+    path("apps/example/", include(("apps.example_app.urls", "example_app"))),
+    path("apps/notebook/", include(("apps.notebook_app.urls", "notebook_app"))),
+    path(
+        "apps/modulemaker/", include(("apps.modulemaker_app.urls", "modulemaker_app"))
+    ),
+    path("apps/llm/", include(("apps.llm_app.urls", "llm_app"))),
     path("apps/", include(("apps.apps_app.urls", "apps_app"))),
-    path("modulemaker/", include(("apps.modulemaker_app.urls", "modulemaker_app"))),
-    # LLM/Agent Support
-    path("llm/", include(("apps.llm_app.urls", "llm_app"))),
+    # 301 redirects from legacy top-level paths → /apps/
+    path(
+        "scholar/",
+        RedirectView.as_view(url="/apps/scholar/", permanent=True, query_string=True),
+    ),
+    path(
+        "console/",
+        RedirectView.as_view(url="/apps/console/", permanent=True, query_string=True),
+    ),
+    path(
+        "vis/",
+        RedirectView.as_view(url="/apps/vis/", permanent=True, query_string=True),
+    ),
+    path(
+        "vis-react/",
+        RedirectView.as_view(url="/apps/vis-react/", permanent=True, query_string=True),
+    ),
+    path(
+        "writer/",
+        RedirectView.as_view(url="/apps/writer/", permanent=True, query_string=True),
+    ),
+    path(
+        "workspace/",
+        RedirectView.as_view(url="/apps/workspace/", permanent=True, query_string=True),
+    ),
+    path(
+        "example/",
+        RedirectView.as_view(url="/apps/example/", permanent=True, query_string=True),
+    ),
+    path(
+        "notebook/",
+        RedirectView.as_view(url="/apps/notebook/", permanent=True, query_string=True),
+    ),
+    path(
+        "modulemaker/",
+        RedirectView.as_view(
+            url="/apps/modulemaker/", permanent=True, query_string=True
+        ),
+    ),
+    path(
+        "llm/",
+        RedirectView.as_view(url="/apps/llm/", permanent=True, query_string=True),
+    ),
     # Deveopment
     path("dev/", include(("apps.dev_app.urls", "dev_app"))),
     path("docs/", include(("apps.docs_app.urls", "docs_app"))),
@@ -241,7 +289,11 @@ urlpatterns = [
 
 # Clew verification (available in all environments)
 urlpatterns += [
-    path("clew/", include(("apps.clew_app.urls", "clew"))),
+    path("apps/clew/", include(("apps.clew_app.urls", "clew"))),
+    path(
+        "clew/",
+        RedirectView.as_view(url="/apps/clew/", permanent=True, query_string=True),
+    ),
 ]
 
 # Add development-only apps BEFORE catch-all username pattern
@@ -262,6 +314,21 @@ def _dev_module_view(request, rest):
 
 urlpatterns += [
     path("dev__<str:rest>/", _dev_module_view, name="dev_module_shell"),
+]
+
+# Hub mode shortcuts — /current-project/ (before username catch-all)
+from apps.hub_app.views.index import (  # noqa: E402
+    current_project_view as _cp_view,
+)
+
+urlpatterns += [
+    # /explore/ redirects to /discovery/ (discovery is now a standalone module)
+    path(
+        "explore/",
+        RedirectView.as_view(url="/discovery/", permanent=True, query_string=True),
+        name="hub_explore_redirect",
+    ),
+    path("current-project/", _cp_view, name="hub_current_project"),
 ]
 
 # GitHub-style username/project URLs (MUST be last to avoid conflicts)

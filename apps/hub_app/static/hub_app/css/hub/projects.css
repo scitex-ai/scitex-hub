@@ -21,6 +21,15 @@
   border-color: var(--module-accent-hub);
 }
 
+.hub-project-card-link {
+  cursor: pointer;
+}
+
+.hub-project-name-link {
+  color: var(--module-accent-hub);
+  font-weight: 600;
+}
+
 .project-card-header {
   display: flex;
   justify-content: space-between;
@@ -41,6 +50,13 @@
 
 .project-card-header h3 a:hover {
   text-decoration: underline;
+}
+
+.project-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
 }
 
 .project-card-header .badge {
@@ -86,6 +102,15 @@
 .dev-install-btn.btn-success {
   border-color: rgba(40, 167, 69, 0.5);
   color: #5cb85c;
+}
+
+/* Fuzzy match highlight — used in repo cards and project selector */
+.hub-project-name-link mark,
+.project-item-name mark {
+  background: rgba(88, 166, 255, 0.3);
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
 }
 
 /* Topic tags (GitHub-style blue pills) */

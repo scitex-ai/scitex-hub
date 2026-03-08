@@ -26,14 +26,31 @@
     <link rel="stylesheet"
           href="{% static 'project_app/css/repository/file_browser.css' %}" />
 {% endif %}
-<div class="hub-partial-content">
-    <!-- Dashboard | Explore mode switcher -->
+<div class="hub-partial-content hub-main"
+     data-username="{{ user.username }}"
+     data-initial-mode="{{ hub_initial_mode|default:'me' }}">
+    <!-- My | Current Project mode switcher -->
     <div class="hub-mode-switcher" id="hub-mode-switcher">
-        <a href="#" class="hub-mode hub-mode-active" data-hub-mode="dashboard">
-            <i class="fas fa-th-large"></i> Dashboard
+        <a href="#"
+           class="hub-mode {% if hub_initial_mode != 'projects' %}hub-mode-active{% endif %}"
+           data-hub-mode="me">
+            <i class="fas fa-user"></i> My
         </a>
-        <a href="#" class="hub-mode" data-hub-mode="explore">
-            <i class="fas fa-compass"></i> Explore
+        <a href="#" class="hub-mode" data-hub-mode="settings">
+            <i class="fas fa-cog"></i> Settings
+        </a>
+        <a href="#"
+           class="hub-mode {% if hub_initial_mode == 'projects' %}hub-mode-active{% endif %}"
+           data-hub-mode="projects"
+           {% if current_project %}data-project-id="{{ current_project.id }}"{% endif %}>
+            <i class="fas fa-folder-open"></i>
+            <span class="hub-mode-project-label">
+                {% if current_project %}
+                    {{ current_project.slug }}
+                {% else %}
+                    —
+                {% endif %}
+            </span>
         </a>
     </div>
     <div id="hub-main-content">
@@ -46,7 +63,7 @@
                 </div>
             </div>
         {% else %}
-            {% include 'hub_app/partials/projects_overview.html' %}
+            {% include 'hub_app/partials/user_profile_content.html' %}
         {% endif %}
     </div>
 </div>

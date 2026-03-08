@@ -19,6 +19,9 @@ from . import api_views, views
 app_name = "public_app"
 
 urlpatterns = [
+    # SEO files
+    path("robots.txt", views.robots_txt, name="robots_txt"),
+    # Landing
     path("", views.index, name="index"),
     path("landing/", views.index, name="landing"),
     path("cloud/", lambda request: redirect("public_app:index"), name="cloud"),

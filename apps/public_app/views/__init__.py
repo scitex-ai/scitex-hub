@@ -94,6 +94,9 @@ from .tools import (
     tools,
 )
 
+# SEO views
+from .seo import robots_txt
+
 # Utility views
 from .utils import demo, donation_success, send_donation_confirmation
 
@@ -169,6 +172,8 @@ __all__ = [
     "tool_test_scitex_plot",
     "tool_view_image",
     "tool_view_plot",
+    # SEO
+    "robots_txt",
     # Utils
     "demo",
     "donation_success",

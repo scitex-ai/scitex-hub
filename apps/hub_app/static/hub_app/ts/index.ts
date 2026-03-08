@@ -1,17 +1,41 @@
 /**
  * Hub App - Main Entry Point
- * All navigation within the Hub workspace is handled inline.
- * Dashboard mode: project list + project workspace (files/issues/PRs/settings)
- * Explore mode: public repos, users, user profiles
+ * Dashboard: My profile + project list
+ * Current Project: GitHub-like workspace at /<owner>/<repo>/
  */
 
 import { handleAboutClick } from "./about-edit";
 import { hubGet, hubPost } from "./hub-api";
 import { handleBrowseHash } from "./hub-hash-router";
-import { getBranch, pushDashboardUrl, pushProjectUrl } from "./hub-url";
+import {
+  browseProject,
+  loadAccountSettings,
+  loadUserProfile,
+  selectProject,
+  setModeActive,
+  switchHubMode,
+  updateCurrentProjectTab,
+} from "./hub-navigate";
+import {
+  handleMeProjectDropdown,
+  handleMeProjectSelect,
+  closeMeProjectDropdowns,
+  filterRepoCards,
+  initRepoFilterShortcut,
+} from "./hub-me-tab";
 import "./toolbar-dropdowns"; // Exposes dropdown toggle functions to window
+import { submitToAppStore } from "../../../../../apps/project_app/static/project_app/ts/shared/project-app/project-actions";
+import {
+  switchHubTab,
+  loadHubTabContent,
+  loadHubBrowse,
+  loadHubFile,
+  extractRelPath,
+  extractFileRelPath,
+} from "./hub-workspace-browse";
 
-let currentTab = "files";
+// Expose project actions to global scope
+(window as any).submitToAppStore = submitToAppStore;
 
 function initHub(): void {
   const hubMain = document.querySelector(".hub-main") as HTMLElement | null;
@@ -22,53 +46,99 @@ function initHub(): void {
 
     // --- Top-level navigation ---
 
-    // Mode switcher (Dashboard / Explore)
-    const modeLink = target.closest("a.hub-mode") as HTMLAnchorElement | null;
+    // Browse tab close button (must precede modeLink handler)
+    const browseClose = target.closest(
+      ".hub-browse-tab-close",
+    ) as HTMLElement | null;
+    if (browseClose) {
+      e.preventDefault();
+      e.stopPropagation();
+      const browseTab = browseClose.closest(
+        ".hub-mode-browse",
+      ) as HTMLElement | null;
+      if (browseTab) {
+        const wasActive = browseTab.classList.contains("hub-mode-active");
+        browseTab.remove();
+        if (wasActive) {
+          const projectsTab = document.querySelector<HTMLElement>(
+            '[data-hub-mode="projects"]',
+          );
+          switchHubMode("projects", projectsTab?.dataset.projectId || "");
+        }
+      }
+      return;
+    }
+
+    // Mode switcher (My / Current Project / Browse tabs)
+    const modeLink = target.closest(
+      "a.hub-mode[data-hub-mode]",
+    ) as HTMLAnchorElement | null;
     if (modeLink) {
       e.preventDefault();
-      switchHubMode(modeLink.getAttribute("data-hub-mode") || "dashboard");
+      const mode = modeLink.getAttribute("data-hub-mode") || "me";
+      const projectId = modeLink.getAttribute("data-project-id") || "";
+      if (mode === "browse") {
+        const slug =
+          modeLink.querySelector<HTMLElement>(".hub-mode-project-label")
+            ?.textContent || "";
+        browseProject(projectId, slug, slug);
+      } else if (mode === "settings") {
+        setModeActive("settings");
+        loadAccountSettings();
+      } else {
+        switchHubMode(mode, projectId);
+      }
       return;
     }
 
-    // Project card clicks (Dashboard overview)
-    const projectLink = target.closest(
-      "a.hub-project-link",
+    // Settings shortcut link (e.g. "Edit profile" button in Me tab)
+    const settingsShortcut = target.closest(
+      "a[data-hub-mode='settings']:not(.hub-mode)",
     ) as HTMLAnchorElement | null;
-    if (projectLink) {
+    if (settingsShortcut) {
       e.preventDefault();
-      selectProject(projectLink.getAttribute("data-project-id") || "");
+      setModeActive("settings");
+      loadAccountSettings();
       return;
     }
 
-    // Explore tab clicks (Repositories / Users)
-    const exploreTab = target.closest(
-      "a.hub-explore-tab",
-    ) as HTMLAnchorElement | null;
-    if (exploreTab) {
+    // Me tab: project selector dropdown toggle
+    if (handleMeProjectDropdown(target, e)) return;
+
+    // Me tab: project dropdown item selection (no navigation — just sets active project)
+    if (handleMeProjectSelect(target, e)) return;
+
+    // Full-area project card click (entire card is hit target)
+    const projectCard = target.closest(
+      ".hub-project-card-link",
+    ) as HTMLElement | null;
+    if (projectCard) {
       e.preventDefault();
-      loadExplore(
-        exploreTab.getAttribute("data-explore-tab") || "repositories",
-      );
+      e.stopPropagation();
+      const pid = projectCard.dataset.projectId || "";
+      if (!pid) return;
+      const currentPid =
+        document.querySelector<HTMLElement>('[data-hub-mode="projects"]')
+          ?.dataset.projectId || "";
+      if (pid === currentPid) {
+        switchHubMode("projects", pid);
+      } else {
+        browseProject(
+          pid,
+          projectCard.dataset.projectSlug || "",
+          projectCard.dataset.projectName || "",
+        );
+      }
       return;
     }
 
-    // Explore user clicks
+    // Explore user clicks (from explore content that may still appear)
     const userLink = target.closest(
       "a.hub-explore-user",
     ) as HTMLAnchorElement | null;
     if (userLink) {
       e.preventDefault();
       loadUserProfile(userLink.getAttribute("data-username") || "");
-      return;
-    }
-
-    // Explore/profile repo clicks
-    const repoLink = target.closest(
-      "a.hub-explore-repo",
-    ) as HTMLAnchorElement | null;
-    if (repoLink) {
-      e.preventDefault();
-      selectProject(repoLink.getAttribute("data-project-id") || "");
       return;
     }
 
@@ -218,12 +288,7 @@ function initHub(): void {
     }
 
     // Header owner link — navigate to /<username>/ profile
-    const ownerLink = target.closest(
-      "a.repo-header-owner",
-    ) as HTMLAnchorElement | null;
-    if (ownerLink) {
-      return;
-    }
+    if (target.closest("a.repo-header-owner")) return;
 
     // Header repo name link — back to files root
     const headerLink = target.closest(
@@ -250,201 +315,52 @@ function initHub(): void {
       else loadHubFile(relPath, container);
     }
   });
-}
 
-// --- Mode switching ---
-
-async function switchHubMode(mode: string): Promise<void> {
-  document
-    .querySelectorAll(".hub-mode")
-    .forEach((m) => m.classList.remove("hub-mode-active"));
-  document
-    .querySelector(`[data-hub-mode="${mode}"]`)
-    ?.classList.add("hub-mode-active");
-
-  if (mode === "explore") {
-    loadExplore("repositories");
-  } else {
-    backToProjects();
-  }
-}
-
-async function selectProject(projectId: string): Promise<void> {
-  if (!projectId) return;
-  const content = document.getElementById("hub-main-content");
-  if (!content) return;
-  content.style.opacity = "0.5";
-
-  const data = await hubPost("/hub/api/select-project/", {
-    project_id: projectId,
-  });
-  if (!data?.success) {
-    content.style.opacity = "1";
-    return;
-  }
-
-  content.innerHTML = data.html;
-  content.style.opacity = "1";
-
-  if (data.owner && data.project_slug) {
-    (window as any).SCITEX_PROJECT_DATA = {
-      owner: data.owner,
-      slug: data.project_slug,
-    };
-    pushProjectUrl();
-  }
-}
-
-async function loadExplore(tab: string): Promise<void> {
-  const content = document.getElementById("hub-main-content");
-  if (!content) return;
-  content.style.opacity = "0.5";
-
-  const data = await hubGet(`/hub/api/explore/?tab=${encodeURIComponent(tab)}`);
-  if (data?.success) content.innerHTML = data.html;
-  content.style.opacity = "1";
-}
-
-async function loadUserProfile(username: string): Promise<void> {
-  if (!username) return;
-  window.location.href = `/${encodeURIComponent(username)}/`;
-}
-
-async function backToProjects(): Promise<void> {
-  const content = document.getElementById("hub-main-content");
-  if (!content) return;
-  content.style.opacity = "0.5";
-  pushDashboardUrl();
-  const data = await hubGet("/hub/api/projects-overview/");
-  if (data?.success) content.innerHTML = data.html;
-  content.style.opacity = "1";
-}
-
-// --- Hub workspace tabs ---
-
-async function switchHubTab(
-  tab: string,
-  container: HTMLElement,
-): Promise<void> {
-  currentTab = tab;
-  container
-    .querySelectorAll(".hub-tab")
-    .forEach((t) => t.classList.remove("scitex-tab-active"));
-  container
-    .querySelector(`[data-hub-tab="${tab}"]`)
-    ?.classList.add("scitex-tab-active");
-
-  const toolbar = container.querySelector(
-    "#hub-files-toolbar",
-  ) as HTMLElement | null;
-  if (toolbar) toolbar.style.display = tab === "files" ? "" : "none";
-
-  if (tab === "files") {
-    loadHubBrowse("", container);
-  } else {
-    pushProjectUrl(tab);
-    await loadHubTabContent(tab, container);
-  }
-}
-
-async function loadHubTabContent(
-  tab: string,
-  container: HTMLElement,
-  qs?: string,
-): Promise<void> {
-  const target = getDynamicArea(container);
-  target.style.opacity = "0.5";
-
-  const data = await hubGet(`/hub/api/${tab}/${qs ? `?${qs}` : ""}`);
-  if (data?.success) target.innerHTML = data.html;
-  target.style.opacity = "1";
-}
-
-// --- File browsing ---
-
-async function loadHubBrowse(
-  path: string,
-  container: HTMLElement,
-): Promise<void> {
-  const target = getDynamicArea(container);
-  target.style.opacity = "0.5";
-
-  if (path) {
-    pushProjectUrl(`tree/${getBranch()}/${path}`);
-  } else {
-    pushProjectUrl();
-  }
-
-  const data = await hubGet(
-    `/hub/api/browse/?path=${encodeURIComponent(path)}`,
-  );
-  if (data?.success) {
-    target.innerHTML = data.html;
-    postLoadHooks();
-  }
-  target.style.opacity = "1";
-}
-
-async function loadHubFile(
-  path: string,
-  container: HTMLElement,
-): Promise<void> {
-  const target = getDynamicArea(container);
-  target.style.opacity = "0.5";
-  pushProjectUrl(`blob/${getBranch()}/${path}`);
-
-  const data = await hubGet(`/hub/api/file/?path=${encodeURIComponent(path)}`);
-  if (data?.success) target.innerHTML = data.html;
-  target.style.opacity = "1";
-}
-
-// --- Utilities ---
-
-function extractRelPath(href: string): string {
-  const parts = href.replace(/^\/|\/$/g, "").split("/");
-  return parts.length <= 2 ? "" : parts.slice(2).join("/");
-}
-
-function extractFileRelPath(href: string): string {
-  const parts = href.replace(/^\/|\/$/g, "").split("/");
-  const blobIdx = parts.indexOf("blob");
-  if (blobIdx >= 0 && blobIdx + 1 < parts.length) {
-    return parts.slice(blobIdx + 1).join("/");
-  }
-  return parts.length <= 2 ? "" : parts.slice(2).join("/");
-}
-
-function getDynamicArea(container: HTMLElement): HTMLElement {
-  let target = container.querySelector(
-    ".hub-browse-dynamic",
-  ) as HTMLElement | null;
-  if (target) return target;
-
-  const fileBrowser = container.querySelector(".file-browser");
-  const readme = container.querySelector(".readme-container");
-  const wrapper = document.createElement("div");
-  wrapper.className = "hub-browse-dynamic";
-
-  if (fileBrowser) {
-    fileBrowser.replaceWith(wrapper);
-    wrapper.appendChild(fileBrowser);
-    if (readme) {
-      readme.remove();
-      wrapper.appendChild(readme);
+  // Repo filter — fuzzy search on repository cards
+  hubMain.addEventListener("input", (e: Event) => {
+    if ((e.target as HTMLElement).id === "hub-repo-filter") {
+      filterRepoCards((e.target as HTMLInputElement).value);
     }
-  } else {
-    container.appendChild(wrapper);
-  }
+  });
 
-  return wrapper;
-}
-
-function postLoadHooks(): void {
-  const showHidden =
-    localStorage.getItem("scitex-show-hidden-files") === "true";
-  document.querySelectorAll<HTMLElement>(".file-browser-row").forEach((row) => {
-    const name = (row.dataset.path || "").split("/").pop() || "";
-    if (name.startsWith(".")) row.style.display = showHidden ? "" : "none";
+  // Account settings form — AJAX submit to avoid full navigation
+  hubMain.addEventListener("submit", async (e: Event) => {
+    const form = (e.target as HTMLElement).closest(
+      ".hub-account-settings-form",
+    ) as HTMLFormElement | null;
+    if (!form) return;
+    e.preventDefault();
+    const msgEl = document.getElementById("hub-settings-message");
+    const submitBtn = form.querySelector<HTMLButtonElement>("[type=submit]");
+    if (submitBtn) submitBtn.disabled = true;
+    const csrfToken =
+      form.querySelector<HTMLInputElement>("[name=csrfmiddlewaretoken]")
+        ?.value ||
+      document.cookie.match(/csrftoken=([^;]+)/)?.[1] ||
+      "";
+    try {
+      await fetch(form.action, {
+        method: "POST",
+        headers: { "X-CSRFToken": csrfToken },
+        body: new FormData(form),
+        redirect: "follow",
+      });
+      if (msgEl) {
+        msgEl.innerHTML =
+          '<div class="alert-banner alert-banner-success mb-3"><div class="warning-banner-container"><div class="warning-banner-content"><i class="fas fa-check-circle warning-banner-icon"></i><div class="warning-banner-text"><div class="warning-banner-description">Profile updated successfully!</div></div></div></div></div>';
+        setTimeout(() => {
+          if (msgEl) msgEl.innerHTML = "";
+        }, 3000);
+      }
+      // Reload account settings to reflect changes
+      loadAccountSettings().then(() => setModeActive("settings"));
+    } catch {
+      if (msgEl)
+        msgEl.innerHTML =
+          '<div class="alert-banner alert-banner-danger mb-3">Failed to save changes. Please try again.</div>';
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+    }
   });
 }
 
@@ -453,9 +369,9 @@ window.addEventListener("popstate", (event) => {
   const content = document.getElementById("hub-main-content");
   if (!content) return;
   content.style.opacity = "0.5";
-
   const state = event.state;
   if (state?.view === "project" && state.owner && state.slug) {
+    setModeActive("projects");
     hubPost("/hub/api/select-project/", {
       owner: state.owner,
       slug: state.slug,
@@ -466,21 +382,117 @@ window.addEventListener("popstate", (event) => {
           owner: state.owner,
           slug: state.slug,
         };
+        updateCurrentProjectTab(state.slug);
       }
       content.style.opacity = "1";
     });
+  } else if (state?.view === "me") {
+    setModeActive("me");
+    hubGet("/hub/api/me/").then((data) => {
+      if (data?.success) content.innerHTML = data.html;
+      content.style.opacity = "1";
+    });
   } else {
-    hubGet("/hub/api/projects-overview/").then((data) => {
+    setModeActive("me");
+    hubGet("/hub/api/me/").then((data) => {
       if (data?.success) content.innerHTML = data.html;
       content.style.opacity = "1";
     });
   }
 });
 
+// Sync hub Me tab when any canonical project switch happens (e.g. global header)
+window.addEventListener("scitex:project-switched", (e: Event) => {
+  const detail = (e as CustomEvent<Record<string, string>>).detail;
+  if (detail.source === "hub-me-tab") return; // already updated by handleMeProjectSelect
+
+  const { projectId, projectSlug, projectName } = detail;
+  if (!projectId) return;
+
+  updateCurrentProjectTab(projectSlug || "", projectId);
+
+  const itemEl = document.querySelector<HTMLElement>(
+    `.hub-me-project-item[data-project-id="${projectId}"]`,
+  );
+  const displayName = projectName || itemEl?.dataset.projectName || projectSlug;
+
+  document
+    .querySelectorAll<HTMLElement>(".hub-me-project-active-name")
+    .forEach((el) => {
+      el.textContent = displayName;
+    });
+
+  document
+    .querySelectorAll<HTMLElement>(".hub-me-project-item .project-item-check")
+    .forEach((check) => {
+      const parent = check.closest<HTMLElement>(".hub-me-project-item");
+      check.classList.toggle(
+        "hub-hidden",
+        parent?.dataset.projectId !== projectId,
+      );
+    });
+});
+
+// Close Me tab dropdown when clicking outside the selector
+document.addEventListener("click", (e: Event) => {
+  if (!(e.target as HTMLElement).closest(".hub-me-project-selector")) {
+    closeMeProjectDropdowns();
+  }
+});
+
+// Sync "Current Project" tab from canonical header selector on boot
+function syncHubFromCanonicalHeader(): void {
+  const headerBtn = document.querySelector<HTMLElement>(
+    "#project-selector-toggle",
+  );
+  const projectId = headerBtn?.dataset.activeProjectId;
+  if (!projectId) return;
+
+  const headerItem = document.querySelector<HTMLElement>(
+    `.header-project-selector-inline .dropdown-project-item[data-project-id="${projectId}"],
+     .header-project-selector .dropdown-project-item[data-project-id="${projectId}"]`,
+  );
+  const slug = headerItem?.dataset.projectSlug || "";
+  const name = headerItem?.dataset.projectName || "";
+
+  updateCurrentProjectTab(slug, projectId);
+
+  if (name) {
+    document
+      .querySelectorAll<HTMLElement>(".hub-me-project-active-name")
+      .forEach((el) => {
+        el.textContent = name;
+      });
+  }
+
+  document
+    .querySelectorAll<HTMLElement>(".hub-me-project-item .project-item-check")
+    .forEach((check) => {
+      const parent = check.closest<HTMLElement>(".hub-me-project-item");
+      check.classList.toggle(
+        "hub-hidden",
+        parent?.dataset.projectId !== projectId,
+      );
+    });
+
+  // If "Current Project" tab is active but workspace not loaded, load it
+  const projectsTab = document.querySelector<HTMLElement>(
+    '[data-hub-mode="projects"]',
+  );
+  if (
+    projectsTab?.classList.contains("hub-mode-active") &&
+    !document.querySelector(".hub-browse-container")
+  ) {
+    selectProject(projectId);
+  }
+}
+
 // Auto-init
 function boot(): void {
   initHub();
+  syncHubFromCanonicalHeader();
   handleBrowseHash(selectProject);
+  initRepoFilterShortcut();
 }
 
 if (document.readyState === "loading") {

@@ -50,4 +50,7 @@
         </div>
     </div>
     {% include 'project_app/repository/browse_partials/browse_scripts.html' %}
+    {% if project.is_app and request.user == project.owner %}
+        {% include 'project_app/repository/browse_partials/app_submit_modal.html' %}
+    {% endif %}
 {% endblock %}

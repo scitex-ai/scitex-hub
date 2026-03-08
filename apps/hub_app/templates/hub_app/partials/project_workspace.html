@@ -14,6 +14,9 @@ Includes browse header, tabs, file browser, and readme.
     {% include 'project_app/repository/browse_partials/browse_empty_state.html' %}
     {% include 'project_app/repository/browse_partials/browse_file_browser.html' %}
     {% include 'project_app/repository/browse_partials/browse_readme.html' %}
+    {% if project.is_app and request.user == project.owner %}
+        {% include 'project_app/repository/browse_partials/app_submit_modal.html' %}
+    {% endif %}
 </div>
 <script>
   window.SCITEX_PROJECT_DATA = {

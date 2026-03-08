@@ -211,14 +211,6 @@ export async function submitToAppStore(
   owner: string,
   repo: string,
 ): Promise<void> {
-  if (
-    !confirm(
-      `Submit "${owner}/${repo}" to the App Store?\n\nThis will run validation and open a review PR.`,
-    )
-  ) {
-    return;
-  }
-
   const btn = document.getElementById("submit-app-btn") as HTMLButtonElement;
   if (btn) {
     btn.disabled = true;
@@ -227,12 +219,13 @@ export async function submitToAppStore(
   }
 
   try {
-    const response = await fetch(`/apps/api/dev/${owner}/${repo}/submit/`, {
+    const response = await fetch(`/${owner}/${repo}/api/app/submit/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-CSRFToken": getCsrfToken(),
       },
+      body: JSON.stringify({}),
     });
 
     const data = await response.json();

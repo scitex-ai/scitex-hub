@@ -168,7 +168,26 @@ def api_app_submit(request, username, slug):
         )
 
     # Open cross-repo PR: user/<app> -> scitex-apps/<app>
-    from apps.apps_app.views.api_registry import _fetch_head_commit, _submit_app_pr
+    from apps.apps_app.views.api_registry import (
+        APPS_ORG,
+        _fetch_head_commit,
+        _submit_app_pr,
+    )
+    from apps.gitea_app.api_client import GiteaAPIError, GiteaClient
+
+    # Ensure scitex-apps/<slug> is a fork of the user's repo (required for cross-repo PR)
+    _client = GiteaClient()
+    try:
+        existing = _client.get_repository(owner=APPS_ORG, repo=project.slug)
+        if not existing.get("fork"):
+            # Standalone repo exists but is not in the fork network — delete and re-fork
+            _client._request("DELETE", f"/repos/{APPS_ORG}/{project.slug}")
+            raise GiteaAPIError("not a fork — deleted, will re-fork")
+    except GiteaAPIError:
+        # Fork user's repo into scitex-apps org so both repos share the same fork network
+        _client.fork_repository(
+            owner=username, repo=project.slug, organization=APPS_ORG
+        )
 
     pinned_commit = _fetch_head_commit(username, project.slug)
     app_module.pinned_commit = pinned_commit

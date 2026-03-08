@@ -32,9 +32,12 @@
   font-weight: 500;
 }
 
-/* Mode Switcher (Dashboard | Explore) */
+/* Mode Switcher (Me | Current Project | Explore) */
 .hub-mode-switcher {
   display: flex;
+  align-items: center;
+  height: 50px;
+  min-height: 50px;
   padding: 0 1rem;
   border-bottom: 1px solid var(--workspace-border-default);
 }
@@ -43,7 +46,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.6rem 1rem;
+  padding: 0 1rem;
+  height: 100%;
   color: var(--workspace-text-muted);
   text-decoration: none;
   border-bottom: 2px solid transparent;
@@ -58,6 +62,34 @@
 .hub-mode-active {
   color: var(--workspace-text-primary);
   border-bottom-color: var(--module-accent-hub);
+}
+
+/* Browse tabs — ephemeral, added dynamically for non-current projects */
+.hub-mode-browse {
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.hub-browse-tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--workspace-text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.hub-browse-tab-close:hover {
+  background: var(--workspace-bg-tertiary);
+  color: var(--workspace-text-primary);
 }
 
 /* Explore tabs (Repositories | Users) */
@@ -213,6 +245,61 @@
   color: var(--workspace-text-muted);
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--workspace-border-default);
+}
+
+/* Repo filter wrapper + icon + input */
+.hub-repo-filter-wrap {
+  position: relative;
+  flex: 1;
+  max-width: 280px;
+}
+
+.hub-repo-filter-icon {
+  position: absolute;
+  left: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--workspace-text-muted);
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+
+.hub-repo-filter-input {
+  width: 100%;
+  padding: 0.3rem 2.2rem 0.3rem 1.8rem;
+  background: var(--workspace-bg-tertiary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
+  color: var(--workspace-text-primary);
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.hub-repo-filter-input:focus {
+  border-color: var(--module-accent-hub);
+}
+
+.hub-repo-filter-kbd {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family:
+    ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, Monaco,
+    monospace;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  background: transparent;
+  border: none;
+  padding: 1px 4px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.hub-repo-no-results {
+  padding: 1rem 0;
+  color: var(--workspace-text-muted);
+  font-size: 0.9rem;
 }
 
 /* Responsive: stack on narrow views */

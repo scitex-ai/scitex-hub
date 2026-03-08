@@ -51,60 +51,122 @@ Hub inline user profile — returned by /hub/api/user-profile/?username=X
                 </span>
             </div>
             {% if is_own_projects %}
-                <a href="/accounts/settings/profile/" class="hub-profile-settings-btn">
-                    <i class="fas fa-cog"></i> Edit profile
+                <a href="#" class="hub-profile-settings-btn" data-hub-mode="settings">
+                    <i class="fas fa-cog"></i> Settings
                 </a>
             {% endif %}
         </div>
         <div class="hub-user-repos"
              data-ai-hint="User's project repositories list with New Project button">
-            <div class="hub-repos-header">
-                <h3>
-                    {% if is_own_projects %}
-                        Your Repositories
-                    {% else %}
-                        Repositories
-                    {% endif %}
-                </h3>
-                {% if is_own_projects %}
-                    <a href="/new/" class="hub-new-project-btn" data-ai-hint="Create new project">
-                        <i class="fas fa-plus"></i> New
-                    </a>
-                {% endif %}
-            </div>
-            {% if projects %}
-                {% for project in projects %}
-                    <div class="project-card mb-3">
-                        <div class="project-card-header">
-                            <h3>
-                                <a href="#" class="hub-explore-repo" data-project-id="{{ project.id }}">{{ project.name }}</a>
-                            </h3>
-                            {% if project.is_app %}
-                                <span class="badge badge-app" title="SciTeX App"><i class="fas fa-puzzle-piece"></i> App</span>
-                            {% endif %}
-                            <span class="badge badge-{{ project.visibility }}">{{ project.visibility }}</span>
-                        </div>
-                        <div class="project-card-body">
-                            {% if project.description %}<p class="text-muted">{{ project.description|truncatewords:20 }}</p>{% endif %}
-                            {% if project.topics_list %}
-                                <div class="project-topics">
-                                    {% for topic in project.topics_list %}<span class="topic-tag">{{ topic }}</span>{% endfor %}
+            {% if show_account_settings and projects %}
+                <div class="hub-current-project-section">
+                    <h3>Current Project</h3>
+                    {% with active_repo=profile_user.profile.last_active_repository %}
+                        <div class="hub-me-project-selector">
+                            <button type="button"
+                                    class="project-selector-btn hub-me-project-selector-btn"
+                                    title="Switch active project">
+                                <i class="fas fa-folder-open hub-me-project-selector-btn-icon"></i>
+                                <span class="project-selector-text hub-me-project-active-name">{{ active_repo.name|default:"Select Project" }}</span>
+                                <svg class="hub-me-project-selector-chevron"
+                                     width="12"
+                                     height="12"
+                                     viewBox="0 0 16 16"
+                                     fill="currentColor">
+                                    <path d="M4 6l4 4 4-4H4z" />
+                                </svg>
+                            </button>
+                            <div class="project-selector-dropdown hub-me-project-selector-menu hub-hidden">
+                                <div class="hub-project-search-wrapper">
+                                    <input type="text"
+                                           class="hub-project-search-input"
+                                           placeholder="Filter projects..."
+                                           autocomplete="off" />
                                 </div>
-                            {% endif %}
-                            <div class="project-meta">
-                                {% if project.primary_language %}<span class="language-badge">{{ project.primary_language }}</span>{% endif %}
-                                <span class="meta-item">Updated {{ project.updated_at|timesince }} ago</span>
+                                {% for project in projects %}
+                                    <button type="button"
+                                            class="dropdown-project-item hub-me-project-item"
+                                            data-project-id="{{ project.id }}"
+                                            data-project-name="{{ project.name }}"
+                                            data-project-slug="{{ project.slug }}"
+                                            data-project-owner="{{ project.owner.username }}">
+                                        <span class="project-item-name">{{ project.name }}</span>
+                                        <span class="project-item-check {% if not active_repo or project.id != active_repo.id %}hub-hidden{% endif %}">
+                                            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                                                <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 11-1.06-1.06L12.72 4.22a.75.75 0 011.06 0z" />
+                                            </svg>
+                                        </span>
+                                    </button>
+                                {% endfor %}
+                                <div class="hub-project-no-results hub-hidden">No matching projects</div>
                             </div>
                         </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <p class="text-muted">No visible repositories</p>
+                    {% endwith %}
+                </div>
             {% endif %}
+            <div class="hub-repos-section">
+                <div class="hub-repos-header">
+                    <h3>
+                        {% if is_own_projects %}
+                            Your Repositories
+                        {% else %}
+                            Repositories
+                        {% endif %}
+                    </h3>
+                    <div class="hub-repo-filter-wrap">
+                        <i class="fas fa-filter hub-repo-filter-icon"></i>
+                        <input type="text"
+                               id="hub-repo-filter"
+                               class="hub-repo-filter-input"
+                               placeholder="Filter..."
+                               autocomplete="off" />
+                        <kbd class="hub-repo-filter-kbd">⌃K</kbd>
+                    </div>
+                    {% if is_own_projects %}
+                        <a href="/new/" class="hub-new-project-btn" data-ai-hint="Create new project">
+                            <i class="fas fa-plus"></i> New
+                        </a>
+                    {% endif %}
+                </div>
+                <div id="hub-repo-no-results" class="hub-hidden hub-repo-no-results">No matching repositories</div>
+                {% if projects %}
+                    {% for project in projects %}
+                        <div class="project-card hub-project-card-link mb-3"
+                             data-project-id="{{ project.id }}"
+                             data-project-slug="{{ project.slug }}"
+                             data-project-name="{{ project.name }}">
+                            <div class="project-card-header">
+                                <h3>
+                                    <span class="hub-project-name-link">{{ project.name }}</span>
+                                </h3>
+                                <div class="project-card-badges">
+                                    {% if project.is_app %}
+                                        <span class="badge badge-app" title="SciTeX App"><i class="fas fa-puzzle-piece"></i> App</span>
+                                    {% endif %}
+                                    <span class="badge badge-{{ project.visibility }}">{{ project.visibility }}</span>
+                                </div>
+                            </div>
+                            <div class="project-card-body">
+                                {% if project.description %}<p class="text-muted">{{ project.description|truncatewords:20 }}</p>{% endif %}
+                                {% if project.topics_list %}
+                                    <div class="project-topics">
+                                        {% for topic in project.topics_list %}<span class="topic-tag">{{ topic }}</span>{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="project-meta">
+                                    {% if project.primary_language %}<span class="language-badge">{{ project.primary_language }}</span>{% endif %}
+                                    <span class="meta-item">Updated {{ project.updated_at|timesince }} ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No visible repositories</p>
+                {% endif %}
+            </div>
         </div>
     </div>
-</div>
-<script>
+    <script>
 (function() {
     const input = document.getElementById('hub-avatar-input');
     if (!input) return;
@@ -147,4 +209,4 @@ Hub inline user profile — returned by /hub/api/user-profile/?username=X
         }
     });
 })();
-</script>
+    </script>

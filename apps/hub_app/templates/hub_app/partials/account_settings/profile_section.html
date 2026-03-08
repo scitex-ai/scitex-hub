@@ -1,0 +1,124 @@
+{% comment %}
+Profile settings form — used inline inside hub account settings.
+Form submits via AJAX (intercepted by hub JS).
+{% endcomment %}
+<div class="settings-header">
+    <h1 class="settings-title">Profile</h1>
+    <p class="settings-subtitle">Manage your public profile and account security settings.</p>
+</div>
+<div class="settings-group-label">
+    <i class="fas fa-globe"></i> Public profile
+</div>
+<form method="post"
+      action="{% url 'accounts_app:profile_edit' %}"
+      enctype="multipart/form-data"
+      class="hub-account-settings-form"
+      data-section="profile">
+    {% csrf_token %}
+    <details class="settings-details">
+        <summary class="settings-summary">
+            <i class="fas fa-user-circle"></i> Profile picture
+        </summary>
+        <div class="form-section">
+            <div class="avatar-upload">
+                <div class="avatar-preview">
+                    {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" alt="{{ user.username }}" />
+                    {% else %}
+                        {{ user.username|slice:":1"|upper }}
+                    {% endif %}
+                </div>
+                <div class="avatar-upload-controls">
+                    <div class="file-input-wrapper">
+                        <input type="file" name="avatar" id="hub-avatar-input" accept="image/*" />
+                        <label for="hub-avatar-input" class="file-input-label">
+                            <i class="fas fa-upload"></i>
+                            <span>Upload new picture</span>
+                        </label>
+                    </div>
+                    <p class="form-help mt-2">Max size: 2MB. Recommended: 500x500px square image.</p>
+                </div>
+            </div>
+        </div>
+    </details>
+    <details class="settings-details" open>
+        <summary class="settings-summary">
+            <i class="fas fa-id-card"></i> Basic information
+        </summary>
+        <div class="form-section">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" value="{{ user.username }}" disabled />
+                <p class="form-help">Username cannot be changed</p>
+            </div>
+            <div class="form-group">
+                <label for="hub-first-name">First name</label>
+                <input type="text" id="hub-first-name" name="first_name" value="{{ user.first_name }}" />
+            </div>
+            <div class="form-group">
+                <label for="hub-last-name">Last name</label>
+                <input type="text" id="hub-last-name" name="last_name" value="{{ user.last_name }}" />
+            </div>
+            <div class="form-group">
+                <label for="hub-bio">Bio</label>
+                <textarea id="hub-bio" name="bio" placeholder="Tell us about yourself...">{{ profile.bio }}</textarea>
+            </div>
+        </div>
+    </details>
+    <details class="settings-details">
+        <summary class="settings-summary">
+            <i class="fas fa-map-marker-alt"></i> Location & Affiliation
+        </summary>
+        <div class="form-section">
+            <div class="form-group">
+                <label for="hub-location">Location</label>
+                <input type="text"
+                       id="hub-location"
+                       name="location"
+                       value="{{ profile.location }}"
+                       placeholder="e.g., Tokyo, Japan"
+                       autocomplete="off" />
+                <input type="hidden" id="hub-timezone" name="timezone" value="{{ profile.timezone }}" />
+                <p class="form-help">
+                    {% if profile.timezone %}<i class="fas fa-clock"></i> Timezone: <strong>{{ profile.timezone }}</strong>{% endif %}
+                </p>
+            </div>
+            <div class="form-group">
+                <label for="hub-institution">Institution</label>
+                <input type="text"
+                       id="hub-institution"
+                       name="institution"
+                       value="{{ profile.institution }}"
+                       placeholder="e.g., The University of Tokyo" />
+            </div>
+        </div>
+    </details>
+    <details class="settings-details">
+        <summary class="settings-summary">
+            <i class="fas fa-link"></i> Links
+        </summary>
+        <div class="form-section">
+            <div class="form-group">
+                <label for="hub-website">Website</label>
+                <input type="url"
+                       id="hub-website"
+                       name="website"
+                       value="{{ profile.website }}"
+                       placeholder="https://your-website.com" />
+            </div>
+            <div class="form-group">
+                <label for="hub-orcid">ORCID</label>
+                <input type="text"
+                       id="hub-orcid"
+                       name="orcid"
+                       value="{{ profile.orcid }}"
+                       placeholder="0000-0000-0000-0000" />
+            </div>
+        </div>
+    </details>
+    <div class="form-actions">
+        <button type="submit" class="btn-save">
+            <i class="fas fa-check"></i> Save changes
+        </button>
+    </div>
+</form>
