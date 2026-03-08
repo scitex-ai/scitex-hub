@@ -4,6 +4,8 @@
  * speechSynthesis as fallback when the server endpoint is unavailable.
  */
 
+import { API_URLS } from "../../utils/api-urls";
+
 export function cleanForSpeech(text: string): string {
   return text
     .replace(/```[\s\S]*?```/g, " code block. ")
@@ -28,7 +30,7 @@ export async function speakText(
   if (!clean) return null;
 
   try {
-    const r = await fetch("/apps/llm/api/tts/", {
+    const r = await fetch(API_URLS.llm.tts, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

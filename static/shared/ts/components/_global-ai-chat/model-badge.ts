@@ -5,6 +5,8 @@
  * and LLM_PROVIDERS registry — no hardcoded model names here.
  */
 
+import { API_URLS } from "../../utils/api-urls";
+
 const MODEL_KEY = "scitex_ai_model";
 const MODEL_DISPLAY_KEY = "scitex_ai_model_display";
 
@@ -13,7 +15,7 @@ export { MODEL_KEY };
 export function fetchCurrentModel(
   onModel: (name: string, campaign?: boolean, display?: string) => void,
 ): void {
-  fetch("/apps/llm/api/model/")
+  fetch(API_URLS.llm.model)
     .then((r) => r.json())
     .then((data) => {
       if (data.success && data.model)

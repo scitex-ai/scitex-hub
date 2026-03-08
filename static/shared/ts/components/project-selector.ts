@@ -4,6 +4,8 @@
  * Supports multiple project selectors on the same page
  */
 
+import { API_URLS } from "../utils/api-urls";
+
 interface ProjectSwitchResponse {
   success: boolean;
   error?: string;
@@ -135,7 +137,7 @@ function initializeProjectSelector(): void {
                 .find((row) => row.startsWith("csrftoken="))
                 ?.split("=")[1];
 
-            const response = await fetch("/api/project/switch/", {
+            const response = await fetch(API_URLS.project.switch, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

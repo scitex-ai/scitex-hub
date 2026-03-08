@@ -1,7 +1,6 @@
 {% extends "global_base.html" %}
-{% block title %}
-    About SciTeX - Where Research Happens
-{% endblock %}
+
+{% block title %}About SciTeX - Where Research Happens{% endblock %}
 {% block meta_description %}
     SciTeX is an integrated research platform built to automate the routine, structure the work,
     and free researchers to focus on what truly matters. From literature to publication with
@@ -9,20 +8,27 @@
 {% endblock %}
 {% block extra_css %}
     {% load static %}
+
     <!-- About Page CSS Modules (refactored from monolithic about.css) -->
     <link rel="stylesheet" href="{% static 'public_app/css/about/00-about.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/about/01-alpha-notice.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/about/02-context.css' %}" />
-    <link rel="stylesheet" href="{% static 'public_app/css/about/03-technical-stack.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'public_app/css/about/03-technical-stack.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/about/04-use-cases.css' %}" />
-    <link rel="stylesheet" href="{% static 'public_app/css/about/05-workflow-description.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'public_app/css/about/05-workflow-description.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/about/06-hero.css' %}" />
-    <link rel="stylesheet" href="{% static 'public_app/css/about/07-section-styling.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'public_app/css/about/07-section-styling.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/about/08-comparison.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/about/09-workflow.css' %}" />
-    <link rel="stylesheet" href="{% static 'public_app/css/about/10-deployment-democracy.css' %}" />
-    <link rel="stylesheet" href="{% static 'public_app/css/about/11-deployment-list.css' %}" />
-    <link rel="stylesheet" href="{% static 'public_app/css/about/12-reproducibility.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'public_app/css/about/10-deployment-democracy.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'public_app/css/about/11-deployment-list.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'public_app/css/about/12-reproducibility.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/about/13-status-card.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/about/14-cta.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/about/15-join-actions.css' %}" />
@@ -35,7 +41,6 @@
             <i class="fas fa-flask"></i>
             <span>Alpha Release: Active development. Expect breaking changes.</span>
         </div>
-
         <!-- Hero Section -->
         <header class="about-hero">
             <div class="about-hero-content">
@@ -51,26 +56,24 @@
                        target="_blank">
                         <i class="fab fa-github"></i> Repository
                     </a>
-                    <a href="{% url 'public_app:api-docs' %}"
-                       class="btn btn-outline-primary btn-lg">
+                    <a href="{% url 'public_app:api_docs' %}" class="btn btn-outline-primary btn-lg">
                         <i class="fas fa-book"></i> API Docs
                     </a>
                 </div>
             </div>
         </header>
-
         <!-- Context / Problem Statement -->
         <section class="about-section about-context">
             <p class="about-context-text">
                 Modern research suffers from fragmentation.
                 Literature lives in one place, analysis in another, figures elsewhere, and writing somewhere else entirely.
                 Reproducibility is fragile. Context is lost. Routine tasks multiply.
-                <br><br>
+                <br />
+                <br />
                 SciTeX provides integrated infrastructure that treats research as a single connected narrative—
                 automatically preserving context, enabling reproducibility, and minimizing overhead.
             </p>
         </section>
-
         <!-- Core Principles -->
         <section class="about-section">
             <div class="about-section-header">
@@ -78,7 +81,9 @@
             </div>
             <div class="about-usecases-grid">
                 <div class="about-usecase-card">
-                    <h3 class="usecase-title"><i class="fas fa-cogs"></i> Automate the Routine</h3>
+                    <h3 class="usecase-title">
+                        <i class="fas fa-cogs"></i> Automate the Routine
+                    </h3>
                     <ul class="usecase-list">
                         <li>Let machines handle repetitive tasks</li>
                         <li>Focus on insight, not overhead</li>
@@ -86,7 +91,9 @@
                     </ul>
                 </div>
                 <div class="about-usecase-card">
-                    <h3 class="usecase-title"><i class="fas fa-cube"></i> Structure Everything</h3>
+                    <h3 class="usecase-title">
+                        <i class="fas fa-cube"></i> Structure Everything
+                    </h3>
                     <ul class="usecase-list">
                         <li>Machine-readable artifacts</li>
                         <li>Human-understandable format</li>
@@ -94,7 +101,9 @@
                     </ul>
                 </div>
                 <div class="about-usecase-card">
-                    <h3 class="usecase-title"><i class="fas fa-search"></i> Trace and Reproduce</h3>
+                    <h3 class="usecase-title">
+                        <i class="fas fa-search"></i> Trace and Reproduce
+                    </h3>
                     <ul class="usecase-list">
                         <li>Automatic metadata capture</li>
                         <li>Reproducibility as structure</li>
@@ -102,7 +111,9 @@
                     </ul>
                 </div>
                 <div class="about-usecase-card">
-                    <h3 class="usecase-title"><i class="fas fa-clock"></i> Work Asynchronously</h3>
+                    <h3 class="usecase-title">
+                        <i class="fas fa-clock"></i> Work Asynchronously
+                    </h3>
                     <ul class="usecase-list">
                         <li>Resume anytime, anywhere</li>
                         <li>No context loss</li>
@@ -110,7 +121,9 @@
                     </ul>
                 </div>
                 <div class="about-usecase-card">
-                    <h3 class="usecase-title"><i class="fas fa-balance-scale"></i> Open and Fair</h3>
+                    <h3 class="usecase-title">
+                        <i class="fas fa-balance-scale"></i> Open and Fair
+                    </h3>
                     <ul class="usecase-list">
                         <li>Transparent research practices</li>
                         <li>Researcher-owned outputs</li>
@@ -118,7 +131,9 @@
                     </ul>
                 </div>
                 <div class="about-usecase-card">
-                    <h3 class="usecase-title"><i class="fas fa-rocket"></i> Empower Researchers</h3>
+                    <h3 class="usecase-title">
+                        <i class="fas fa-rocket"></i> Empower Researchers
+                    </h3>
                     <ul class="usecase-list">
                         <li>Maximize creative freedom</li>
                         <li>Minimize cognitive load</li>
@@ -127,7 +142,6 @@
                 </div>
             </div>
         </section>
-
         <!-- Technical Architecture -->
         <section class="about-section">
             <div class="about-section-header">
@@ -186,7 +200,6 @@
                 </div>
             </div>
         </section>
-
         <!-- Technical Stack -->
         <section class="about-section">
             <div class="about-section-header">
@@ -196,24 +209,39 @@
                 <div class="about-stack-card">
                     <h3 class="stack-title">Execution Infrastructure</h3>
                     <ul class="stack-list">
-                        <li><strong>Containers:</strong> Apptainer/Singularity (reproducible environments)</li>
-                        <li><strong>Scheduling:</strong> SLURM (resource management at scale)</li>
-                        <li><strong>Platform:</strong> Docker (service orchestration)</li>
-                        <li><strong>Storage:</strong> POSIX filesystems (universal compatibility)</li>
+                        <li>
+                            <strong>Containers:</strong> Apptainer/Singularity (reproducible environments)
+                        </li>
+                        <li>
+                            <strong>Scheduling:</strong> SLURM (resource management at scale)
+                        </li>
+                        <li>
+                            <strong>Platform:</strong> Docker (service orchestration)
+                        </li>
+                        <li>
+                            <strong>Storage:</strong> POSIX filesystems (universal compatibility)
+                        </li>
                     </ul>
                 </div>
                 <div class="about-stack-card">
                     <h3 class="stack-title">Language Support</h3>
                     <ul class="stack-list">
-                        <li><strong>Universal:</strong> Any language via containers</li>
-                        <li><strong>Optimized:</strong> Python, R, Julia</li>
-                        <li><strong>Scripting:</strong> Shell, Bash</li>
-                        <li><strong>LaTeX:</strong> Native compilation support</li>
+                        <li>
+                            <strong>Universal:</strong> Any language via containers
+                        </li>
+                        <li>
+                            <strong>Optimized:</strong> Python, R, Julia
+                        </li>
+                        <li>
+                            <strong>Scripting:</strong> Shell, Bash
+                        </li>
+                        <li>
+                            <strong>LaTeX:</strong> Native compilation support
+                        </li>
                     </ul>
                 </div>
             </div>
         </section>
-
         <!-- SciTeX Workflow -->
         <section class="about-section about-research-os">
             <div class="about-section-header">
@@ -222,27 +250,45 @@
             <div class="about-workflow-container">
                 <div class="about-workflow">
                     <div class="workflow-step">
-                        <div class="workflow-icon"><i class="fas fa-book"></i></div>
+                        <div class="workflow-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
                         <div class="workflow-label">Scholar</div>
                     </div>
-                    <div class="workflow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="workflow-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
                     <div class="workflow-step">
-                        <div class="workflow-icon"><i class="fas fa-pen-fancy"></i></div>
+                        <div class="workflow-icon">
+                            <i class="fas fa-pen-fancy"></i>
+                        </div>
                         <div class="workflow-label">Writer</div>
                     </div>
-                    <div class="workflow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="workflow-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
                     <div class="workflow-step">
-                        <div class="workflow-icon"><i class="fas fa-terminal"></i></div>
+                        <div class="workflow-icon">
+                            <i class="fas fa-terminal"></i>
+                        </div>
                         <div class="workflow-label">Console</div>
                     </div>
-                    <div class="workflow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="workflow-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
                     <div class="workflow-step">
-                        <div class="workflow-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="workflow-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
                         <div class="workflow-label">Visualizer</div>
                     </div>
-                    <div class="workflow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="workflow-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
                     <div class="workflow-step workflow-step-final">
-                        <div class="workflow-icon"><i class="fas fa-file-alt"></i></div>
+                        <div class="workflow-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
                         <div class="workflow-label">Output</div>
                     </div>
                 </div>
@@ -252,7 +298,6 @@
                 </p>
             </div>
         </section>
-
         <!-- What SciTeX Enables -->
         <section class="about-section">
             <div class="about-section-header">
@@ -260,7 +305,9 @@
             </div>
             <div class="about-usecases-grid">
                 <div class="about-usecase-card">
-                    <h3 class="usecase-title"><i class="fas fa-link"></i> Continuous Workflow</h3>
+                    <h3 class="usecase-title">
+                        <i class="fas fa-link"></i> Continuous Workflow
+                    </h3>
                     <ul class="usecase-list">
                         <li>Literature to publication</li>
                         <li>No context switching</li>
@@ -268,7 +315,9 @@
                     </ul>
                 </div>
                 <div class="about-usecase-card">
-                    <h3 class="usecase-title"><i class="fas fa-shield-alt"></i> Structural Reproducibility</h3>
+                    <h3 class="usecase-title">
+                        <i class="fas fa-shield-alt"></i> Structural Reproducibility
+                    </h3>
                     <ul class="usecase-list">
                         <li>Automatic preservation</li>
                         <li>Environment versioning</li>
@@ -276,7 +325,9 @@
                     </ul>
                 </div>
                 <div class="about-usecase-card">
-                    <h3 class="usecase-title"><i class="fas fa-feather-alt"></i> Minimal Overhead</h3>
+                    <h3 class="usecase-title">
+                        <i class="fas fa-feather-alt"></i> Minimal Overhead
+                    </h3>
                     <ul class="usecase-list">
                         <li>Automation by default</li>
                         <li>Reduced cognitive load</li>
@@ -284,7 +335,9 @@
                     </ul>
                 </div>
                 <div class="about-usecase-card">
-                    <h3 class="usecase-title"><i class="fas fa-brain"></i> AI-Native Platform</h3>
+                    <h3 class="usecase-title">
+                        <i class="fas fa-brain"></i> AI-Native Platform
+                    </h3>
                     <ul class="usecase-list">
                         <li>Structured artifacts</li>
                         <li>Intelligent assistance</li>
@@ -293,7 +346,6 @@
                 </div>
             </div>
         </section>
-
         <!-- Deployment Options -->
         <section class="about-section">
             <div class="about-section-header">
@@ -301,7 +353,9 @@
             </div>
             <div class="about-democracy-grid">
                 <div class="about-democracy-card">
-                    <div class="democracy-icon"><i class="fas fa-server"></i></div>
+                    <div class="democracy-icon">
+                        <i class="fas fa-server"></i>
+                    </div>
                     <h3 class="democracy-title">Local</h3>
                     <ul class="deployment-list">
                         <li>Single server deployment</li>
@@ -310,7 +364,9 @@
                     </ul>
                 </div>
                 <div class="about-democracy-card">
-                    <div class="democracy-icon"><i class="fas fa-network-wired"></i></div>
+                    <div class="democracy-icon">
+                        <i class="fas fa-network-wired"></i>
+                    </div>
                     <h3 class="democracy-title">HPC</h3>
                     <ul class="deployment-list">
                         <li>Cluster integration</li>
@@ -319,7 +375,9 @@
                     </ul>
                 </div>
                 <div class="about-democracy-card">
-                    <div class="democracy-icon"><i class="fas fa-cloud"></i></div>
+                    <div class="democracy-icon">
+                        <i class="fas fa-cloud"></i>
+                    </div>
                     <h3 class="democracy-title">Hybrid</h3>
                     <ul class="deployment-list">
                         <li>Multi-site federation</li>
@@ -329,7 +387,6 @@
                 </div>
             </div>
         </section>
-
         <!-- Reproducibility Features -->
         <section class="about-section about-reproducibility">
             <div class="about-section-header">
@@ -370,30 +427,38 @@
                 </div>
             </div>
         </section>
-
         <!-- Vision -->
         <section class="about-section">
             <div class="about-section-header">
                 <h2 class="about-section-title">Vision</h2>
             </div>
             <div class="about-context">
-                <p class="about-context-text">
-                    SciTeX aims to build a new foundation for scientific work where:
-                </p>
+                <p class="about-context-text">SciTeX aims to build a new foundation for scientific work where:</p>
                 <ul class="stack-list" style="max-width: 800px; margin: 2rem auto;">
-                    <li><strong>Reproducibility</strong> becomes a byproduct, not a burden</li>
-                    <li><strong>Figures</strong> exist as structured data, not static images</li>
-                    <li><strong>Manuscripts</strong> become living, traceable documents</li>
-                    <li><strong>AI</strong> serves as an integral partner, not an afterthought</li>
-                    <li><strong>Researchers</strong> are empowered, not overwhelmed</li>
-                    <li><strong>Science</strong> becomes faster, fairer, and more transparent</li>
+                    <li>
+                        <strong>Reproducibility</strong> becomes a byproduct, not a burden
+                    </li>
+                    <li>
+                        <strong>Figures</strong> exist as structured data, not static images
+                    </li>
+                    <li>
+                        <strong>Manuscripts</strong> become living, traceable documents
+                    </li>
+                    <li>
+                        <strong>AI</strong> serves as an integral partner, not an afterthought
+                    </li>
+                    <li>
+                        <strong>Researchers</strong> are empowered, not overwhelmed
+                    </li>
+                    <li>
+                        <strong>Science</strong> becomes faster, fairer, and more transparent
+                    </li>
                 </ul>
                 <p class="about-context-text" style="margin-top: 2rem;">
                     This is not just a tool—it's a foundation for a new research culture.
                 </p>
             </div>
         </section>
-
         <!-- Development Status -->
         <section class="about-section">
             <div class="about-section-header">
@@ -425,7 +490,6 @@
                 </div>
             </div>
         </section>
-
         <!-- Contributing -->
         <section class="about-cta-section">
             <h2 class="about-cta-title">Join the Journey</h2>
@@ -455,12 +519,10 @@
                 <a href="https://github.com/scitex-ai" class="btn btn-primary btn-lg">
                     <i class="fab fa-github"></i> GitHub
                 </a>
-                <a href="{% url 'public_app:api-docs' %}"
-                   class="btn btn-outline-primary btn-lg">
+                <a href="{% url 'public_app:api_docs' %}" class="btn btn-outline-primary btn-lg">
                     <i class="fas fa-book"></i> Docs
                 </a>
-                <a href="{% url 'public_app:contact' %}"
-                   class="btn btn-outline-secondary btn-lg">
+                <a href="{% url 'public_app:contact' %}" class="btn btn-outline-secondary btn-lg">
                     <i class="fas fa-envelope"></i> Contact
                 </a>
             </div>

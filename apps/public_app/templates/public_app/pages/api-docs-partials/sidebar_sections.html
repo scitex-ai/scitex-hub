@@ -8,7 +8,7 @@
                 {% if section.visibility == "public" %}
                     <div class="api-nav-section {% if current_section == section.key %}active-section{% endif %}">
                         <h4>
-                            <a href="{% url 'public_app:api-docs-section' section.key %}"
+                            <a href="{% url 'public_app:api_docs_section' section.key %}"
                                {% if current_section == section.key %}class="active"{% endif %}>{{ section.text }}</a>
                         </h4>
                         {% if current_section == section.key %}
@@ -37,7 +37,7 @@
                     {% if section.visibility == "internal" %}
                         <div class="api-nav-section {% if current_section == section.key %}active-section{% endif %}">
                             <h4>
-                                <a href="{% url 'public_app:api-docs-section' section.key %}"
+                                <a href="{% url 'public_app:api_docs_section' section.key %}"
                                    {% if current_section == section.key %}class="active"{% endif %}>
                                     {{ section.text }}
                                 </a>

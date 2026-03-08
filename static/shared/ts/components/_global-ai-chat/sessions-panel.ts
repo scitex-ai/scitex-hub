@@ -5,6 +5,8 @@
  * Renders as a horizontal bar of session chips above the messages area.
  */
 
+import { API_URLS } from "../../utils/api-urls";
+
 interface Session {
   id: number;
   title: string;
@@ -73,7 +75,7 @@ export class SessionsPanel {
 
   async loadSessions(): Promise<void> {
     try {
-      const resp = await fetch("/apps/llm/api/sessions/");
+      const resp = await fetch(API_URLS.llm.sessions);
       if (!resp.ok) return;
       const data = (await resp.json()) as { sessions: Session[] };
       this.sessions = data.sessions;
@@ -89,7 +91,7 @@ export class SessionsPanel {
 
   async createSession(title?: string): Promise<number | null> {
     try {
-      const resp = await fetch("/apps/llm/api/sessions/", {
+      const resp = await fetch(API_URLS.llm.sessions, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -110,7 +112,7 @@ export class SessionsPanel {
 
   async switchSession(id: number): Promise<void> {
     try {
-      const resp = await fetch(`/apps/llm/api/sessions/${id}/messages/`);
+      const resp = await fetch(`${API_URLS.llm.sessions}${id}/messages/`);
       if (!resp.ok) return;
       const data = (await resp.json()) as {
         session_id: number;
@@ -135,19 +137,22 @@ export class SessionsPanel {
   ): Promise<void> {
     if (!this.currentSessionId) return;
     try {
-      await fetch(`/apps/llm/api/sessions/${this.currentSessionId}/messages/add/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCsrf(),
+      await fetch(
+        `${API_URLS.llm.sessions}${this.currentSessionId}/messages/add/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCsrf(),
+          },
+          body: JSON.stringify({
+            role,
+            text,
+            tools_used: toolsUsed || [],
+            media: media || [],
+          }),
         },
-        body: JSON.stringify({
-          role,
-          text,
-          tools_used: toolsUsed || [],
-          media: media || [],
-        }),
-      });
+      );
       // Refresh session list to update titles/counts
       void this.loadSessions();
     } catch {
@@ -185,7 +190,7 @@ export class SessionsPanel {
     token: string,
   ): Promise<void> {
     try {
-      await fetch(`/apps/llm/api/sessions/${id}/`, {
+      await fetch(`${API_URLS.llm.sessions}${id}/`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -348,7 +353,7 @@ export class SessionsPanel {
       input.replaceWith(titleEl);
       titleEl.textContent = val;
       if (val !== current) {
-        await fetch(`/apps/llm/api/sessions/${id}/`, {
+        await fetch(`${API_URLS.llm.sessions}${id}/`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -373,7 +378,7 @@ export class SessionsPanel {
 
   private async deleteSession(id: number): Promise<void> {
     try {
-      await fetch(`/apps/llm/api/sessions/${id}/`, {
+      await fetch(`${API_URLS.llm.sessions}${id}/`, {
         method: "DELETE",
         headers: { "X-CSRFToken": getCsrf() },
       });

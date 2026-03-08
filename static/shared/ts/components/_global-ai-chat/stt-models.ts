@@ -3,6 +3,8 @@
  * and populates the <select> element in the AI panel.
  */
 
+import { API_URLS } from "../../utils/api-urls";
+
 const STT_MODEL_KEY = "scitex_stt_model";
 
 interface SttModel {
@@ -20,7 +22,7 @@ export function fetchAndPopulateSttModels(
   select: HTMLSelectElement,
   micBtn: HTMLButtonElement | null,
 ): void {
-  fetch("/apps/llm/api/stt/models/")
+  fetch(API_URLS.llm.sttModels)
     .then((r) => r.json())
     .then((data: SttModelsResponse) => {
       if (!data.available || data.models.length === 0) return;
