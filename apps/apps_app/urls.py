@@ -4,6 +4,8 @@
 
 from django.urls import path
 
+app_name = "apps"
+
 from . import views
 
 urlpatterns = [

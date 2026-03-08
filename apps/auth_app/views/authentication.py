@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Authentication views: signup, login, logout."""
-from __future__ import annotations
-from django.shortcuts import render, redirect
-from django.contrib.auth import login, logout, authenticate
-from django.contrib import messages
-from django.contrib.auth.models import User
 
-from ..forms import SignupForm, LoginForm
+from __future__ import annotations
+
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.shortcuts import redirect, render
+
+from ..forms import LoginForm, SignupForm
 from ..models import UserProfile
 
 
 def signup(request):
     """User signup view with email verification required."""
     import logging
+
     from apps.project_app.services.email_service import EmailService
 
     logger = logging.getLogger(__name__)
@@ -33,14 +36,17 @@ def signup(request):
             if existing_user:
                 # Check if it's an unverified account with expired verification
                 if not existing_user.is_active:
-                    from ..models import EmailVerification
-                    from django.utils import timezone
                     from datetime import timedelta
+
+                    from django.utils import timezone
+
+                    from ..models import EmailVerification
 
                     # Check if verification has expired (default: 1 hour after registration)
                     verification_timeout = timedelta(hours=1)
                     account_expired = (
-                        timezone.now() - existing_user.date_joined > verification_timeout
+                        timezone.now() - existing_user.date_joined
+                        > verification_timeout
                     )
 
                     if account_expired:
@@ -53,15 +59,17 @@ def signup(request):
                         # Account not yet expired, prompt to verify
                         messages.warning(
                             request,
-                            f"An unverified account exists with this email. "
-                            f"Please check your inbox or wait 1 hour for the account to expire."
+                            "An unverified account exists with this email. "
+                            "Please check your inbox or wait 1 hour for the account to expire.",
                         )
                         from django.urls import reverse
 
-                        verify_url = reverse("auth_app:verify-email")
+                        verify_url = reverse("auth_app:verify_email")
                         return redirect(f"{verify_url}?email={email}")
                 else:
-                    messages.error(request, "An account with this email already exists.")
+                    messages.error(
+                        request, "An account with this email already exists."
+                    )
                     return render(request, "auth_app/signup.html", {"form": form})
 
             # Create inactive user (cannot log in until email verified)
@@ -137,7 +145,7 @@ def signup(request):
                     # Redirect to email verification page
                     from django.urls import reverse
 
-                    verify_url = reverse("auth_app:verify-email")
+                    verify_url = reverse("auth_app:verify_email")
                     return redirect(f"{verify_url}?email={email}")
                 else:
                     logger.error(
@@ -146,24 +154,24 @@ def signup(request):
                     # Don't delete user - let them retry verification
                     messages.warning(
                         request,
-                        f"Account created but verification email failed to send. "
-                        f"Please contact support or try logging in later.",
+                        "Account created but verification email failed to send. "
+                        "Please contact support or try logging in later.",
                     )
                     from django.urls import reverse
 
-                    verify_url = reverse("auth_app:verify-email")
+                    verify_url = reverse("auth_app:verify_email")
                     return redirect(f"{verify_url}?email={email}")
             except Exception as e:
                 logger.error(f"Error during signup for {email}: {str(e)}")
                 # Don't delete user - keep the account
                 messages.warning(
                     request,
-                    f"Account created but there was an issue sending verification email. "
-                    f"Please contact support or try logging in later.",
+                    "Account created but there was an issue sending verification email. "
+                    "Please contact support or try logging in later.",
                 )
                 from django.urls import reverse
 
-                verify_url = reverse("auth_app:verify-email")
+                verify_url = reverse("auth_app:verify_email")
                 return redirect(f"{verify_url}?email={email}")
     else:
         form = SignupForm()

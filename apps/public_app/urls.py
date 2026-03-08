@@ -47,25 +47,25 @@ urlpatterns = [
     # Demo page
     path("demo/", views.demo, name="demo"),
     # Web API documentation
-    path("docs/web-api/", views.api_docs, name="api-docs"),
+    path("docs/web-api/", views.api_docs, name="api_docs"),
     path(
         "docs/web-api/<str:section>/",
         views.api_docs_section,
-        name="api-docs-section",
+        name="api_docs_section",
     ),
     path(
         "docs/web-api/scitex-cloud-api-docs.<str:fmt>",
         views.api_docs_download,
-        name="api-docs-download",
+        name="api_docs_download",
     ),
     # Legacy redirects
     path(
-        "api-docs/", lambda r: redirect("public_app:api-docs"), name="api-docs-legacy"
+        "api-docs/", lambda r: redirect("public_app:api_docs"), name="api_docs_legacy"
     ),
     path(
         "api-docs/<str:section>/",
-        lambda r, section: redirect("public_app:api-docs-section", section=section),
-        name="api-docs-section-legacy",
+        lambda r, section: redirect("public_app:api_docs_section", section=section),
+        name="api_docs_section_legacy",
     ),
     # Status pages
     path("server-status/", views.server_status, name="server_status"),

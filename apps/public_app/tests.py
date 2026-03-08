@@ -54,7 +54,7 @@ class ViewsTestCase(TestCase):
         self.assertContains(response, "Choose Your SciTeX Plan")
 
     def test_api_docs_page(self):
-        response = self.client.get(reverse("public_app:api-docs"))
+        response = self.client.get(reverse("public_app:api_docs"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Web API Documentation")
 
