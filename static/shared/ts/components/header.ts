@@ -3,6 +3,8 @@
  * Handles dropdown menus, search, visitor mode, and other header functionality
  */
 
+import { API_URLS, NAV_URLS } from "../utils/api-urls";
+
 // Storage key for header collapse state
 const HEADER_COLLAPSE_STORAGE_KEY = "scitex-header-collapsed";
 
@@ -182,7 +184,7 @@ function initializeHeader(): void {
         // This prevents redirect loops when user tries to sign in/up
         const currentPath = window.location.pathname;
         const noRedirectPaths = [
-          "/visitor-expired/",
+          NAV_URLS.visitorExpired,
           "/visitor-restart/",
           "/visitor-pool-full/",
           "/auth/", // All auth pages (signin, signup, etc.)
@@ -194,7 +196,7 @@ function initializeHeader(): void {
 
         if (!shouldSkipRedirect) {
           setTimeout(() => {
-            window.location.href = "/visitor-expired/";
+            window.location.href = NAV_URLS.visitorExpired;
           }, 2000);
         }
         return;
@@ -245,7 +247,7 @@ function initializeHeader(): void {
 
     async function updateServerHealth(): Promise<void> {
       try {
-        const response = await fetch("/api/server-health/");
+        const response = await fetch(API_URLS.server.health);
         const data = await response.json();
 
         const status = data.status; // "healthy" | "warning" | "error" | "starting"

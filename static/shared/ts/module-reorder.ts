@@ -5,6 +5,8 @@
  * Exposes window._moduleReorder for apps inline scripts.
  */
 
+import { API_URLS } from "./utils/api-urls";
+
 /** CSRF token helper */
 function getCsrf(): string {
   const input = document.querySelector<HTMLInputElement>(
@@ -18,7 +20,7 @@ function getCsrf(): string {
 /** POST the new module order to the backend */
 export function postModuleOrder(order: string[]): Promise<void> {
   console.debug("[Module Reorder] Saving order:", order);
-  return fetch("/apps/api/reorder/", {
+  return fetch(API_URLS.apps.reorder, {
     method: "POST",
     headers: {
       "X-CSRFToken": getCsrf(),

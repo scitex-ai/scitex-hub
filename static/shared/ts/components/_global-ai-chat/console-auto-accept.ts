@@ -11,6 +11,7 @@
 
 import { AutoResponseManager } from "../../../../../apps/console_app/static/console_app/ts/_workspace/terminal/AutoResponseManager";
 import { getCsrfToken } from "../../utils/csrf";
+import { API_URLS } from "../../utils/api-urls";
 
 const STORAGE_KEY = "scitex-auto-accept";
 const INTERVAL_KEY = "scitex-auto-accept-interval";
@@ -160,7 +161,7 @@ function saveResponsePrefs(prefs: ResponsePrefs): void {
 
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
-    fetch("/accounts/api/auto-response-prefs/", {
+    fetch(API_URLS.accounts.autoResponsePrefs, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -214,7 +215,7 @@ function loadResponsePrefs(manager: AutoResponseManager): void {
   }
 
   // Then fetch from server (authoritative)
-  fetch("/accounts/api/auto-response-prefs/")
+  fetch(API_URLS.accounts.autoResponsePrefs)
     .then((r) => (r.ok ? r.json() : null))
     .then((data) => {
       if (!data?.responses) return;

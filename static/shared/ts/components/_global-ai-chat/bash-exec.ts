@@ -2,6 +2,8 @@
  * Bash execution helper for the AI chat "!" prefix mode.
  */
 
+import { API_URLS } from "../../utils/api-urls";
+
 export interface BashResult {
   text: string;
   returncode: number | undefined;
@@ -12,7 +14,7 @@ export async function execBashCommand(
   projectSlug: string | null,
   csrfToken: string,
 ): Promise<BashResult> {
-  const resp = await fetch("/apps/llm/api/bash/", {
+  const resp = await fetch(API_URLS.llm.bash, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

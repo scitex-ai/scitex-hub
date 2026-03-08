@@ -5,6 +5,7 @@
  */
 
 import { getCsrfToken } from "../../utils/csrf";
+import { API_URLS } from "../../utils/api-urls";
 
 interface SlurmJob {
   job_id: number | string;
@@ -61,7 +62,7 @@ export class AIPanelJobsMode {
     if (!this.listEl || !this.summaryEl) return;
 
     try {
-      const resp = await fetch("/apps/console/api/jobs/", {
+      const resp = await fetch(API_URLS.console.jobs, {
         headers: { "X-CSRFToken": getCsrfToken() },
       });
 
@@ -187,7 +188,7 @@ export class AIPanelJobsMode {
 
   private async cancelJob(jobId: string): Promise<void> {
     try {
-      const resp = await fetch(`/apps/console/api/jobs/${jobId}/cancel/`, {
+      const resp = await fetch(`${API_URLS.console.jobs}${jobId}/cancel/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

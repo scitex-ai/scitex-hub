@@ -6,6 +6,8 @@
  * Polls /api/server-health/ every 60s and captures window errors.
  */
 
+import { API_URLS } from "../utils/api-urls";
+
 interface HealthIssue {
   service: string;
   level: "error" | "warning";
@@ -83,7 +85,7 @@ function addBrowserError(source: string, message: string): void {
  */
 async function fetchServerHealth(): Promise<void> {
   try {
-    const resp = await fetch("/api/server-health/");
+    const resp = await fetch(API_URLS.server.health);
     if (!resp.ok) {
       serverIssues = [
         {

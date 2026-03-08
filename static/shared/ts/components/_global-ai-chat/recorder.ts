@@ -3,6 +3,8 @@
  * Uploads recorded audio to /apps/llm/api/stt/ and returns the transcribed text.
  */
 
+import { API_URLS } from "../../utils/api-urls";
+
 export class VoiceRecorder {
   private mediaRecorder: MediaRecorder | null = null;
   private audioChunks: Blob[] = [];
@@ -108,7 +110,7 @@ export class VoiceRecorder {
     form.append("audio", blob, "recording.webm");
     if (model) form.append("model", model);
     try {
-      const resp = await fetch("/apps/llm/api/stt/", {
+      const resp = await fetch(API_URLS.llm.stt, {
         method: "POST",
         headers: { "X-CSRFToken": csrf },
         body: form,

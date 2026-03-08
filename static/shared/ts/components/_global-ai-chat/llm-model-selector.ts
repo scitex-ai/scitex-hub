@@ -3,6 +3,8 @@
  * the model dropdown in the AI panel settings.
  */
 
+import { API_URLS } from "../../utils/api-urls";
+
 const LLM_MODEL_KEY = "scitex_llm_model";
 
 interface Provider {
@@ -16,7 +18,7 @@ export function fetchAndPopulateLlmModels(
   select: HTMLSelectElement,
   badgeEl: HTMLElement | null,
 ): void {
-  fetch("/apps/llm/api/providers/")
+  fetch(API_URLS.llm.providers)
     .then((r) => r.json())
     .then((data: { providers: Provider[] }) => {
       if (!data.providers || data.providers.length === 0) {

@@ -3,6 +3,8 @@
  * Renders limit inputs and handles debounced save to /accounts/api/ai-limits/.
  */
 
+import { API_URLS } from "../../utils/api-urls";
+
 /** Get CSRF token from cookie or hidden form field. */
 function getCsrf(): string {
   return (
@@ -79,7 +81,7 @@ export function bindLimitsInputs(
               if (key) data[key] = inp.value === "" ? null : inp.value;
             });
           try {
-            const resp = await fetch("/accounts/api/ai-limits/", {
+            const resp = await fetch(API_URLS.accounts.aiLimits, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
