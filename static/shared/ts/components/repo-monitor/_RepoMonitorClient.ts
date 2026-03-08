@@ -29,7 +29,8 @@ export class RepoMonitorClient {
   }
 
   private openSocket(): void {
-    const url = `ws://${location.host}/ws/project/repo-monitor/?project_id=${this.projectId}`;
+    const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+    const url = `${protocol}//${location.host}/ws/project/repo-monitor/?project_id=${this.projectId}`;
     this.ws = new WebSocket(url);
 
     this.ws.onopen = () => {
