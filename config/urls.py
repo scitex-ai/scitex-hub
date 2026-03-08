@@ -22,6 +22,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from apps.accounts_app.api.user_views import api_search_users
 from apps.apps_app.views import api_registry_webhook, api_submit_jwt
+from apps.gitea_app.views.webhook_sync import gitea_sync_webhook
 from apps.hub_app.views.dispatch import root_dispatch
 from apps.integrations_app.views_events import list_events, receive_event
 from apps.project_app.views import (
@@ -270,6 +271,12 @@ urlpatterns = [
         "api/apps/webhook/",
         csrf_exempt(api_registry_webhook),
         name="api_apps_registry_webhook",
+    ),
+    # Gitea → Django org/member sync webhook
+    path(
+        "api/gitea/webhook/sync/",
+        gitea_sync_webhook,
+        name="api_gitea_sync_webhook",
     ),
     # GitHub-like operations
     # /new - Create new project

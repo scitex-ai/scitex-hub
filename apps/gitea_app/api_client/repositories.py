@@ -301,5 +301,30 @@ class RepositoryOperationsMixin:
         except GiteaAPIError:
             return False
 
+    def remove_collaborator(self, owner: str, repo: str, username: str) -> None:
+        """
+        Remove a collaborator from a repository.
+
+        Args:
+            owner: Repository owner
+            repo: Repository name
+            username: Username to remove
+        """
+        self._request("DELETE", f"/repos/{owner}/{repo}/collaborators/{username}")
+
+    def list_collaborators(self, owner: str, repo: str) -> List[Dict]:
+        """
+        List collaborators of a repository.
+
+        Args:
+            owner: Repository owner
+            repo: Repository name
+
+        Returns:
+            List of user objects
+        """
+        response = self._request("GET", f"/repos/{owner}/{repo}/collaborators")
+        return response.json()
+
 
 # EOF

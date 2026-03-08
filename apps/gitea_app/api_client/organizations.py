@@ -128,5 +128,62 @@ class OrganizationOperationsMixin:
         response = self._request("POST", f"/orgs/{org}/repos", json=data)
         return response.json()
 
+    def list_org_members(self, org: str) -> List[Dict]:
+        """
+        List members of an organization.
+
+        Args:
+            org: Organization name
+
+        Returns:
+            List of user objects
+        """
+        response = self._request("GET", f"/orgs/{org}/members")
+        return response.json()
+
+    def add_org_member(self, org: str, username: str, role: str = "member") -> None:
+        """
+        Add a user to an organization (via Owners team or direct invite).
+
+        Gitea's org member API works through teams. This method adds the user
+        to the org's default team or creates a membership invite if supported.
+
+        Args:
+            org: Organization name
+            username: Username to add
+            role: Role in the org ("owner" or "member")
+        """
+        # Gitea adds org members via team membership. Use admin API to directly set.
+        self._request("PUT", f"/orgs/{org}/members/{username}")
+
+    def remove_org_member(self, org: str, username: str) -> None:
+        """
+        Remove a user from an organization.
+
+        Args:
+            org: Organization name
+            username: Username to remove
+        """
+        self._request("DELETE", f"/orgs/{org}/members/{username}")
+
+    def is_org_member(self, org: str, username: str) -> bool:
+        """
+        Check if a user is a member of an organization.
+
+        Args:
+            org: Organization name
+            username: Username to check
+
+        Returns:
+            True if user is a member
+        """
+        from ..exceptions import GiteaAPIError
+
+        try:
+            self._request("GET", f"/orgs/{org}/members/{username}")
+            return True
+        except GiteaAPIError:
+            return False
+
 
 # EOF

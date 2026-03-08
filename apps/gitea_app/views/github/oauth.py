@@ -4,14 +4,14 @@ Handles OAuth flow and token exchange for GitHub integration
 """
 
 import requests
-from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from ...models import Project
+from django.views.decorators.http import require_http_methods
 
+from apps.project_app.models import Project
 
 # GitHub OAuth Configuration
 GITHUB_CLIENT_ID = getattr(settings, "GITHUB_CLIENT_ID", "")

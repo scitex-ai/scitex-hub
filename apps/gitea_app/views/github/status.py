@@ -3,14 +3,17 @@ GitHub Status and Sync Views
 Monitor and sync Git status for project files
 """
 
-import subprocess
 import os
-from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
+import subprocess
+
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from ...models import Project, GitFileStatus
+from django.views.decorators.http import require_http_methods
+
+from apps.gitea_app.models import GitFileStatus
+from apps.project_app.models import Project
 
 
 @login_required
