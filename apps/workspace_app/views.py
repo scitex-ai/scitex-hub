@@ -189,7 +189,7 @@ def workspace_module_content(request, module):
 
 
 def _serve_dev_module(request, module):
-    """Serve a dev-installed app's partial template, rendered through Django."""
+    """Serve a dev-installed app's partial template with sandboxed context."""
     from django.http import HttpResponse, HttpResponseNotFound
     from django.template import engines
 
@@ -199,11 +199,56 @@ def _serve_dev_module(request, module):
     if not template_path:
         return HttpResponseNotFound(f"Dev module '{module}' template not found")
 
+    # Parse owner/repo from dev__ prefix
+    parts = module.split("__", 2)
+    if len(parts) != 3:
+        from django.http import HttpResponseServerError
+
+        return HttpResponseServerError(f"Invalid dev module name: {module}")
+
+    owner, repo = parts[1], parts[2]
+
+    # Get dev_install record
+    dev_install = None
+    try:
+        from apps.apps_app.models import DevInstallation
+
+        dev_install = DevInstallation.objects.filter(
+            source_owner=owner,
+            source_repo=repo,
+            user=request.user,
+            is_enabled=True,
+        ).first()
+    except Exception:
+        pass
+
+    # Build context: run views.py context builder inside Apptainer (if available)
+    context = {"request": request}
+    if dev_install is not None:
+        from apps.apps_app.services.dev_app_runner import run_dev_context
+        from apps.project_app.services.project_utils import get_current_project
+
+        current_project = None
+        try:
+            current_project = get_current_project(request)
+        except Exception:
+            pass
+
+        extra_ctx = run_dev_context(
+            dev_install=dev_install,
+            username=request.user.username,
+            project_id=current_project.id if current_project else None,
+            project_slug=current_project.slug if current_project else "",
+            get_params=dict(request.GET),
+        )
+        context.update(extra_ctx)
+        context["current_project"] = current_project
+
     try:
         raw = template_path.read_text(encoding="utf-8")
         engine = engines["django"]
         tpl = engine.from_string(raw)
-        html = tpl.render({"request": request}, request)
+        html = tpl.render(context, request)
         return HttpResponse(html)
     except Exception as e:
         from django.http import HttpResponseServerError

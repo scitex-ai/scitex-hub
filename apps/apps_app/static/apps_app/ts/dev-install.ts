@@ -29,7 +29,7 @@ function injectSidebarNavItem(
   if (!nav) return;
 
   const link = document.createElement("a");
-  link.href = `/${moduleName}/`;
+  link.href = `/apps/${moduleName}/`;
   link.className = "selector-nav-item ws-apps-nav-item module-tab-btn";
   link.dataset.module = moduleName;
   link.setAttribute("aria-label", label);

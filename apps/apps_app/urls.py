@@ -54,6 +54,27 @@ urlpatterns = [
     ),
     path("api/<str:module_name>/fork/", views.api_fork, name="api_fork"),
     path("api/list/", views.api_list_public, name="api_list_public"),
+    # Dev app project file CRUD — must come before catch-all
+    path(
+        "dev/<str:owner>/<str:repo>/project/<str:project_slug>/files/",
+        dev_project_files.api_dev_file_read,
+        name="dev_project_file_read",
+    ),
+    path(
+        "dev/<str:owner>/<str:repo>/project/<str:project_slug>/files/write/",
+        dev_project_files.api_dev_file_write,
+        name="dev_project_file_write",
+    ),
+    path(
+        "dev/<str:owner>/<str:repo>/project/<str:project_slug>/files/delete/",
+        dev_project_files.api_dev_file_delete,
+        name="dev_project_file_delete",
+    ),
+    path(
+        "dev/<str:owner>/<str:repo>/project/<str:project_slug>/files/list/",
+        dev_project_files.api_dev_file_list,
+        name="dev_project_file_list",
+    ),
     # Detail — catch-all last
     path("<str:module_name>/", views.detail, name="detail"),
 ]

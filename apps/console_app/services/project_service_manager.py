@@ -4,13 +4,19 @@ Project Service Manager
 Manages services (TensorBoard, Jupyter, etc.) running for projects
 """
 
-import subprocess
-import psutil
+import logging
 import socket
-from typing import Optional, Dict, Any
+import subprocess
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+import psutil
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils import timezone
+
 from apps.console_app.models import ProjectService
+
+logger = logging.getLogger(__name__)
 
 
 class ProjectServiceManager:
@@ -25,41 +31,52 @@ class ProjectServiceManager:
     SERVICE_COMMANDS = {
         "tensorboard": [
             "tensorboard",
-            "--logdir", "{workspace}/logs",
-            "--port", "{port}",
-            "--host", "127.0.0.1",
-            "--bind_all"
+            "--logdir",
+            "{workspace}/logs",
+            "--port",
+            "{port}",
+            "--host",
+            "127.0.0.1",
+            "--bind_all",
         ],
         "jupyter": [
-            "jupyter", "lab",
-            "--port", "{port}",
-            "--ip", "127.0.0.1",
+            "jupyter",
+            "lab",
+            "--port",
+            "{port}",
+            "--ip",
+            "127.0.0.1",
             "--no-browser",
-            "--notebook-dir", "{workspace}",
+            "--notebook-dir",
+            "{workspace}",
             "--ServerApp.token=",  # No token for now
-            "--ServerApp.password="
+            "--ServerApp.password=",
         ],
         "mlflow": [
-            "mlflow", "ui",
-            "--port", "{port}",
-            "--host", "127.0.0.1",
-            "--backend-store-uri", "{workspace}/mlruns"
+            "mlflow",
+            "ui",
+            "--port",
+            "{port}",
+            "--host",
+            "127.0.0.1",
+            "--backend-store-uri",
+            "{workspace}/mlruns",
         ],
         "streamlit": [
-            "streamlit", "run",
+            "streamlit",
+            "run",
             "{workspace}/app.py",
-            "--server.port", "{port}",
-            "--server.address", "127.0.0.1",
-            "--server.headless", "true"
+            "--server.port",
+            "{port}",
+            "--server.address",
+            "127.0.0.1",
+            "--server.headless",
+            "true",
         ],
     }
 
     def start_service(
-        self,
-        user,
-        project,
-        service_type: str,
-        config: Optional[Dict[str, Any]] = None
+        self, user, project, service_type: str, config: Optional[Dict[str, Any]] = None
     ) -> ProjectService:
         """
         Start a service for a project.
@@ -89,7 +106,7 @@ class ProjectServiceManager:
         existing = ProjectService.objects.filter(
             project=project,
             service_type=service_type,
-            status__in=["starting", "running"]
+            status__in=["starting", "running"],
         ).first()
 
         if existing:
@@ -97,8 +114,7 @@ class ProjectServiceManager:
 
         # 4. Check service limits
         active_services_count = ProjectService.objects.filter(
-            project=project,
-            status__in=["starting", "running"]
+            project=project, status__in=["starting", "running"]
         ).count()
 
         if active_services_count >= self.MAX_SERVICES_PER_PROJECT:
@@ -114,7 +130,7 @@ class ProjectServiceManager:
             service_type=service_type,
             port=port,
             workspace=self._get_project_workspace(project),
-            config=config or {}
+            config=config or {},
         )
 
         # 7. Register service
@@ -125,7 +141,7 @@ class ProjectServiceManager:
             port=port,
             process_id=process.pid if process else None,
             status="running" if process else "error",
-            config=config or {}
+            config=config or {},
         )
 
         return service
@@ -184,8 +200,7 @@ class ProjectServiceManager:
         cutoff_time = timezone.now() - timedelta(hours=idle_hours)
 
         idle_services = ProjectService.objects.filter(
-            status__in=["starting", "running"],
-            last_accessed__lt=cutoff_time
+            status__in=["starting", "running"], last_accessed__lt=cutoff_time
         )
 
         count = 0
@@ -227,8 +242,7 @@ class ProjectServiceManager:
         # Get used ports
         used_ports = set(
             ProjectService.objects.filter(
-                project=project,
-                status__in=["starting", "running"]
+                project=project, status__in=["starting", "running"]
             ).values_list("port", flat=True)
         )
 
@@ -252,54 +266,60 @@ class ProjectServiceManager:
             return False
 
     def _start_service_process(
-        self,
-        service_type: str,
-        port: int,
-        workspace: str,
-        config: Dict[str, Any]
+        self, service_type: str, port: int, workspace: str, config: Dict[str, Any]
     ) -> Optional[subprocess.Popen]:
         """
-        Start the actual service process.
+        Start the actual service process inside an Apptainer sandbox.
 
         Args:
             service_type: Type of service
             port: Port to run on
-            workspace: Project workspace directory
+            workspace: Host filesystem path of the project workspace
             config: Service configuration
 
         Returns:
             Process object or None if failed
         """
-        # Get command template
+        from apps.console_app.services.apptainer_runner import build_apptainer_exec_cmd
+
         cmd_template = self.SERVICE_COMMANDS.get(service_type)
         if not cmd_template:
             return None
 
-        # Format command with parameters
-        cmd = [
-            part.format(port=port, workspace=workspace, **config)
+        # Inside Apptainer the project dir is mounted at /workspace
+        inner_cmd = [
+            part.format(port=port, workspace="/workspace", **config)
             for part in cmd_template
         ]
 
+        # Wrap in Apptainer sandbox
+        cmd = build_apptainer_exec_cmd(
+            inner_cmd=inner_cmd,
+            project_dir=Path(workspace),
+        )
+
         try:
-            # Start process
             process = subprocess.Popen(
                 cmd,
                 cwd=workspace,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                start_new_session=True  # Detach from parent
+                start_new_session=True,
             )
             return process
         except Exception as e:
-            print(f"Failed to start {service_type}: {e}")
+            logger.error("Failed to start %s in Apptainer: %s", service_type, e)
             return None
 
     def _get_project_workspace(self, project) -> str:
         """Get workspace directory for project."""
         # This should be adjusted based on your actual workspace structure
-        from pathlib import Path
-        base = Path("/workspace") if Path("/workspace").exists() else Path.home() / "workspace"
+
+        base = (
+            Path("/workspace")
+            if Path("/workspace").exists()
+            else Path.home() / "workspace"
+        )
         return str(base / project.owner.username / project.slug)
 
     def _has_project_access(self, user, project) -> bool:
@@ -313,5 +333,7 @@ class ProjectServiceManager:
 
     def is_port_in_allowed_range(self, port: int) -> bool:
         """Check if port is in the allowed range for services."""
-        max_port = self.BASE_PORT + (1000 * self.PORTS_PER_PROJECT)  # Allow up to 1000 projects
+        max_port = self.BASE_PORT + (
+            1000 * self.PORTS_PER_PROJECT
+        )  # Allow up to 1000 projects
         return self.BASE_PORT <= port < max_port

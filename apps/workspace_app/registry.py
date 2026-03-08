@@ -68,6 +68,9 @@ class ModuleConfig:
     # Legal
     license: str = "AGPL-3.0"  # SPDX identifier, default matches SciTeX project license
 
+    # URL override — empty means default to /apps/{name}/
+    url: str = ""  # e.g. "/hub/" for top-level exceptions
+
     # File tree configuration
     tree_mode: str = ""  # WorkspaceMode in types.ts (defaults to name)
     allowed_extensions: list = field(default_factory=list)
@@ -77,6 +80,12 @@ class ModuleConfig:
 
     def get_track_module(self) -> str:
         return self.track_module or self.name
+
+    def get_url(self) -> str:
+        """Return the navigation URL for this module."""
+        if self.url:
+            return self.url
+        return f"/apps/{self.name}/"
 
     def get_tree_mode(self) -> str:
         return self.tree_mode or self.name
@@ -233,6 +242,7 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         body_class="hub-page",
         keyboard_shortcut="H",
         order=10,
+        url="/hub/",
         ai_hint="User dashboard: profile, projects, and current project workspace.",
         accent_color="hub",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
@@ -247,6 +257,7 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         body_class="tools-page",
         keyboard_shortcut="T",
         order=60,
+        url="/tools/",
         ai_hint="Shared utilities and tools for project management.",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
@@ -260,6 +271,7 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         body_class="apps-page",
         keyboard_shortcut="M",
         order=90,
+        url="/apps/",
         ai_hint="Browse, install, and publish community modules.",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
@@ -273,6 +285,7 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         body_class="docs-page",
         keyboard_shortcut="D",
         order=100,
+        url="/docs/",
         ai_hint="Documentation: Python packages, MCP tools, SSH access, API reference, self-hosting guide, licensing.",
         accent_color="docs",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
@@ -302,6 +315,7 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         body_class="discovery-page",
         keyboard_shortcut="X",
         order=15,
+        url="/discovery/",
         ai_hint="Discover public repositories, researchers, and organizations.",
         accent_color="hub",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
