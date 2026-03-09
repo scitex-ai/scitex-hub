@@ -4,7 +4,7 @@
 
 from django.urls import path
 
-app_name = "apps"
+app_name = "apps_app"
 
 from . import views
 from .views import dev_project_files
