@@ -149,7 +149,7 @@ function downloadSelectedMd(): void {
   ) as HTMLInputElement | null;
   const csrf =
     csrfMeta?.value ?? document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? "";
-  fetch("/docs/export-batch/", {
+  fetch("/apps/docs/export-batch/", {
     method: "POST",
     headers: { "X-CSRFToken": csrf, "Content-Type": "application/json" },
     body: JSON.stringify({ slugs }),
@@ -170,7 +170,7 @@ function downloadSelectedPdf(): void {
   const navItems =
     document.querySelectorAll<HTMLAnchorElement>(".docs-nav-item");
   const fetches = slugs.map((s) =>
-    fetch("/docs/content/" + s + "/", {
+    fetch("/apps/docs/content/" + s + "/", {
       headers: { "X-Requested-With": "XMLHttpRequest" },
     }).then((r) => r.text()),
   );
@@ -187,7 +187,7 @@ function downloadSelectedPdf(): void {
       "th,td{border:1px solid #ddd;padding:8px;text-align:left}";
     const combined = pages
       .map((html, i) => "<h1>" + labels[i] + "</h1>" + html)
-      .join('<hr style="page-break-after:always" />');
+      .join('<hr class="docs-print-page-break" />');
     const win = window.open("", "_blank");
     if (!win) return;
     const doc = win.document;

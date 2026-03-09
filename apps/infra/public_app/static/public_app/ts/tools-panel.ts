@@ -36,10 +36,10 @@ function loadTool(toolUrl: string, toolName: string): void {
   // Update URL hash
   const slug =
     toolUrl
-      .split("/tools/")[1]
+      .split("/apps/tools/")[1]
       ?.replace(/\/?\?embed=1$/, "")
       .replace(/\/$/, "") || "";
-  if (slug) history.replaceState(null, "", `/tools/#${slug}`);
+  if (slug) history.replaceState(null, "", `/apps/tools/#${slug}`);
 }
 
 function closeTool(): void {
@@ -53,7 +53,7 @@ function closeTool(): void {
   document
     .querySelectorAll(".tools-nav-item")
     .forEach((item) => item.classList.remove("active"));
-  history.replaceState(null, "", "/tools/");
+  history.replaceState(null, "", "/apps/tools/");
 }
 
 // --- Sidebar domain expand/collapse ---
@@ -134,7 +134,7 @@ function restoreFromHash(): void {
   if (!hash) return;
   // Match hash against tool slugs extracted from bookmarklet URLs
   const navItem = document.querySelector(
-    `.tools-nav-item[data-tool-slug="/tools/${hash}/"]`,
+    `.tools-nav-item[data-tool-slug="/apps/tools/${hash}/"]`,
   ) as HTMLElement | null;
   if (navItem) {
     const url = navItem.dataset.toolUrl;

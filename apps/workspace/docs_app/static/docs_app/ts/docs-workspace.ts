@@ -154,7 +154,7 @@ function injectSectionExportButtons(
     '<button class="docs-export-btn docs-dropdown-toggle">' +
     '<i class="fas fa-download"></i> Download</button>' +
     '<div class="docs-dropdown-menu">' +
-    '<a href="/docs/export/' +
+    '<a href="/apps/docs/export/' +
     slug +
     '/" class="docs-dropdown-item">' +
     '<i class="fas fa-file-alt"></i> .md</a>' +
@@ -193,7 +193,7 @@ function loadDocPage(
   // Show loading
   contentArea.style.opacity = "0.5";
 
-  fetch("/docs/content/" + slug + "/", {
+  fetch("/apps/docs/content/" + slug + "/", {
     headers: { "X-Requested-With": "XMLHttpRequest" },
   })
     .then((response) => {
@@ -366,7 +366,7 @@ function downloadSelectedMd(): void {
   ) as HTMLInputElement | null;
   const csrf =
     csrfMeta?.value ?? document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? "";
-  fetch("/docs/export-batch/", {
+  fetch("/apps/docs/export-batch/", {
     method: "POST",
     headers: { "X-CSRFToken": csrf, "Content-Type": "application/json" },
     body: JSON.stringify({ slugs: Array.from(selectedSlugs) }),
@@ -384,7 +384,7 @@ function downloadSelectedMd(): void {
 function downloadSelectedPdf(navItems: NodeListOf<HTMLAnchorElement>): void {
   const slugs = Array.from(selectedSlugs);
   const fetches = slugs.map((s) =>
-    fetch("/docs/content/" + s + "/", {
+    fetch("/apps/docs/content/" + s + "/", {
       headers: { "X-Requested-With": "XMLHttpRequest" },
     }).then((r) => r.text()),
   );
@@ -421,7 +421,7 @@ function initDocsWorkspace(): void {
     allPdfBtn.onclick = () => {
       const slugs = Array.from(navItems).map((i) => i.dataset.docSlug ?? "");
       const fetches = slugs.map((s) =>
-        fetch("/docs/content/" + s + "/", {
+        fetch("/apps/docs/content/" + s + "/", {
           headers: { "X-Requested-With": "XMLHttpRequest" },
         }).then((r) => r.text()),
       );

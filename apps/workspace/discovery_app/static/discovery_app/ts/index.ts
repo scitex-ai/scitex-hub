@@ -9,7 +9,7 @@ async function loadDiscoveryTab(tab: string): Promise<void> {
   tabContent.style.opacity = "0.5";
 
   const resp = await fetch(
-    `/discovery/api/explore/?tab=${encodeURIComponent(tab)}`,
+    `/apps/discovery/api/explore/?tab=${encodeURIComponent(tab)}`,
     {
       headers: { "X-Requested-With": "XMLHttpRequest" },
     },
