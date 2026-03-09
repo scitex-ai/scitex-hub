@@ -47,7 +47,6 @@ urlpatterns = [
     path("apps/vis/", include(("apps.vis_app.urls", "vis_app"))),
     path("apps/writer/", include(("apps.writer_app.urls", "writer_app"))),
     path("apps/workspace/", include(("apps.workspace_app.urls", "workspace_app"))),
-    path("apps/example/", include(("apps.example_app.urls", "example_app"))),
     path("apps/notebook/", include(("apps.notebook_app.urls", "notebook_app"))),
     path("apps/appmaker/", include(("apps.appmaker_app.urls", "appmaker_app"))),
     path("apps/llm/", include(("apps.llm_app.urls", "llm_app"))),
