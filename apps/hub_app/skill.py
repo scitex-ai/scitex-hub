@@ -3,7 +3,7 @@ from apps.llm_app.skills import Skill, register
 register(
     Skill(
         app_name="hub",
-        display_name="Hub - Project Dashboard",
+        display_name="Dashboard - Project Hub",
         description=(
             "Project dashboard showing all user projects, activity feed, "
             "and quick actions. Entry point for navigating to other modules."
