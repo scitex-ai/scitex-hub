@@ -8,7 +8,7 @@
 import {
   startInspiringSpinner,
   type SpinnerHandle,
-} from "../../../../../../static/shared/ts/components/inspiring-spinner";
+} from "@/components/inspiring-spinner";
 
 let spinnerHandle: SpinnerHandle | null = null;
 

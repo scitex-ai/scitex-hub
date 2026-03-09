@@ -26,7 +26,7 @@ import { autoSavePapers } from "../common/_auto-save-library";
 import {
   startInspiringSpinner,
   type SpinnerHandle,
-} from "../../../../../../static/shared/ts/components/inspiring-spinner";
+} from "@/components/inspiring-spinner";
 
 class CitationGraphManager {
   private config: CitationGraphConfig;

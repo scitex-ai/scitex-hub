@@ -6,7 +6,7 @@
  * @module job-actions
  */
 
-import { showConfirm } from "../../../../../../../static/shared/ts/components/confirm-modal";
+import { showConfirm } from "@/components/confirm-modal";
 import { showAlert, getCsrfToken, formatFileSize } from "./ui-utils";
 
 /**

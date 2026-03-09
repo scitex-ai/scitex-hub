@@ -11,7 +11,7 @@ export * from "./types";
 export { RulersManager } from "./RulersManager";
 export { CanvasManager } from "./CanvasManager";
 // DataTableManager from shared module
-export { DataTableManager } from "../../../../../../static/shared/ts/components/data-table/DataTableManager";
+export { DataTableManager } from "@/components/data-table/DataTableManager";
 export { PropertiesManager } from "./PropertiesManager";
 export { UIManager } from "./UIManager";
 // ResizerManager removed — migrated to unified resizer (data-h-resizer)
