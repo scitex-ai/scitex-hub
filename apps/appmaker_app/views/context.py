@@ -1,4 +1,3 @@
-jjj
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """App Maker — context builder for workspace tab integration."""
