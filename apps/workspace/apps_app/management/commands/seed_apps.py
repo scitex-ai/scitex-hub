@@ -19,7 +19,7 @@ _CATEGORY_MAP = {
     "vis": "visualization",
     "console": "utility",
     "clew": "reference",
-    "hub": "utility",
+    "home": "utility",
     "tools": "utility",
     "apps": "utility",
 }
@@ -31,7 +31,7 @@ _DESCRIPTIONS = {
     "vis": "Data visualization workspace for creating publication-ready figures.",
     "console": "Python console with file browser for running scripts and managing project files.",
     "clew": "Verification system — trace manuscript claims (statistics, figures, tables) back through computational chains to source data.",
-    "hub": "Home — project overview with recent activity, file browser, and quick actions.",
+    "home": "Home workspace — project overview with recent activity, file browser, and quick actions.",
     "tools": "Collection of standalone research utilities — converters, calculators, and helpers.",
     "apps": "Browse, install, and manage workspace modules.",
 }
