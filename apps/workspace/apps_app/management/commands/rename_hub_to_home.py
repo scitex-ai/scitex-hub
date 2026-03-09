@@ -9,10 +9,16 @@ class Command(BaseCommand):
     help = "Rename hub module to home in the apps catalog"
 
     def handle(self, *args, **options):
-        updated = AppsModule.objects.filter(module_name="hub").update(
-            module_name="home"
-        )
-        self.stdout.write(f"Renamed {updated} 'hub' record(s) to 'home'")
-        deleted = AppsModule.objects.filter(module_name="hub").delete()
-        self.stdout.write(f"Deleted {deleted} remaining stale 'hub' record(s)")
+        home_exists = AppsModule.objects.filter(module_name="home").exists()
+        if home_exists:
+            # "home" already exists — just remove the stale "hub" duplicate
+            deleted, _ = AppsModule.objects.filter(module_name="hub").delete()
+            self.stdout.write(
+                f"Deleted {deleted} stale 'hub' record(s) ('home' already exists)"
+            )
+        else:
+            updated = AppsModule.objects.filter(module_name="hub").update(
+                module_name="home"
+            )
+            self.stdout.write(f"Renamed {updated} 'hub' record(s) to 'home'")
         self.stdout.write(self.style.SUCCESS("Done."))

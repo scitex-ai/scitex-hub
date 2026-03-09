@@ -11,17 +11,25 @@ class Command(BaseCommand):
     help = "Rename AppsModule record from 'apps' to 'store'"
 
     def handle(self, *args, **options):
-        updated = AppsModule.objects.filter(module_name="apps").update(
-            module_name="store"
-        )
-        if updated:
+        store_exists = AppsModule.objects.filter(module_name="store").exists()
+        if store_exists:
+            deleted, _ = AppsModule.objects.filter(module_name="apps").delete()
             self.stdout.write(
-                self.style.SUCCESS(f"Renamed {updated} record(s): apps → store")
+                f"Deleted {deleted} stale 'apps' record(s) ('store' already exists)"
             )
         else:
-            self.stdout.write(
-                "No 'apps' record found (already renamed or not seeded yet)."
+            updated = AppsModule.objects.filter(module_name="apps").update(
+                module_name="store"
             )
+            if updated:
+                self.stdout.write(
+                    self.style.SUCCESS(f"Renamed {updated} record(s): apps → store")
+                )
+            else:
+                self.stdout.write(
+                    "No 'apps' record found (already renamed or not seeded yet)."
+                )
+        self.stdout.write(self.style.SUCCESS("Done."))
 
 
 # EOF
