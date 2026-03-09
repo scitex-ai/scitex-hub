@@ -68,19 +68,23 @@ def get_console_logs(request):
                 # Get last N lines
                 recent_lines = lines[-max_lines:]
                 content = "".join(recent_lines)
-                return JsonResponse({
-                    "success": True,
-                    "logs": content,
-                    "total_lines": len(lines),
-                    "returned_lines": len(recent_lines),
-                })
+                return JsonResponse(
+                    {
+                        "success": True,
+                        "logs": content,
+                        "total_lines": len(lines),
+                        "returned_lines": len(recent_lines),
+                    }
+                )
         else:
-            return JsonResponse({
-                "success": True,
-                "logs": "No console logs file found.",
-                "total_lines": 0,
-                "returned_lines": 0,
-            })
+            return JsonResponse(
+                {
+                    "success": True,
+                    "logs": "No console logs file found.",
+                    "total_lines": 0,
+                    "returned_lines": 0,
+                }
+            )
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 

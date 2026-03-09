@@ -13,7 +13,7 @@ __DIR__ = os.path.dirname(__FILE__)
 
 from django.urls import path
 
-from apps.core_app.views.console_logger import get_console_logs, log_console
+from apps.dev_app.views.console_logger import get_console_logs, log_console
 
 from . import views
 
