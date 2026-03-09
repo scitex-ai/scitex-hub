@@ -58,7 +58,6 @@ urlpatterns = [
     # --- Other apps ---
     path("dev/", include(("apps.dev_app.urls", "dev_app"))),
     path("docs/", include(("apps.docs_app.urls", "docs_app"))),
-    path("donations/", include(("apps.donations_app.urls", "donations_app"))),
     path("integrations/", include(("apps.integrations_app.urls", "integrations_app"))),
     path(
         "organizations/", include(("apps.organizations_app.urls", "organizations_app"))

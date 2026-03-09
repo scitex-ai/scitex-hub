@@ -33,7 +33,6 @@ from .pages import (
     about,
     contributors,
     demos,
-    donate,
     fundraising,
     keyboard_shortcuts,
     open_source,
@@ -42,6 +41,9 @@ from .pages import (
     setup_guide,
     video_player,
 )
+
+# SEO views
+from .seo import robots_txt
 
 # Status pages
 from .status import (
@@ -94,11 +96,8 @@ from .tools import (
     tools,
 )
 
-# SEO views
-from .seo import robots_txt
-
 # Utility views
-from .utils import demo, donation_success, send_donation_confirmation
+from .utils import demo
 
 __all__ = [
     # Landing
@@ -111,7 +110,6 @@ __all__ = [
     "open_source",
     "video_player",
     "publications",
-    "donate",
     "fundraising",
     "pricing",
     "contributors",
@@ -176,8 +174,6 @@ __all__ = [
     "robots_txt",
     # Utils
     "demo",
-    "donation_success",
-    "send_donation_confirmation",
 ]
 
 # EOF

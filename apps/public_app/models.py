@@ -8,12 +8,8 @@ from django.utils import timezone
 # Import here for backwards compatibility
 from apps.auth_app.models import EmailVerification  # noqa
 
-# Donation models moved to apps.donations_app.models
-# Import here for backwards compatibility
-from apps.donations_app.models import Donation, DonationTier  # noqa
-
-# EmailVerification, Donation and DonationTier model definitions moved to their respective apps
-# Import statements at top of file provide backwards compatibility
+# EmailVerification model definition moved to apps.auth_app.models
+# Import statement above provides backwards compatibility
 
 # Models for SciTeX-Cloud services
 

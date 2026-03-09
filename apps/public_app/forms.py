@@ -1,49 +1,12 @@
-from django import forms
-from django.core.mail import send_mail
-from django.conf import settings
-from .models import Donation, EmailVerification
 import logging
 
+from django import forms
+from django.conf import settings
+from django.core.mail import send_mail
+
+from .models import EmailVerification
+
 logger = logging.getLogger("scitex")
-
-
-class DonationForm(forms.ModelForm):
-    """Form for processing donations."""
-
-    class Meta:
-        model = Donation
-        fields = [
-            "donor_name",
-            "donor_email",
-            "amount",
-            "payment_method",
-            "is_public",
-            "message",
-        ]
-        widgets = {
-            "donor_name": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Your Name"}
-            ),
-            "donor_email": forms.EmailInput(
-                attrs={"class": "form-control", "placeholder": "your.email@example.com"}
-            ),
-            "amount": forms.NumberInput(
-                attrs={"class": "form-control", "min": "1", "step": "0.01"}
-            ),
-            "payment_method": forms.Select(attrs={"class": "form-control"}),
-            "message": forms.Textarea(
-                attrs={
-                    "class": "form-control",
-                    "rows": 3,
-                    "placeholder": "Optional: Leave a message (will be public if you choose)",
-                }
-            ),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["is_public"].label = "List me as a public supporter"
-        self.fields["message"].required = False
 
 
 class EmailVerificationForm(forms.Form):

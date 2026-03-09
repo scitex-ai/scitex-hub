@@ -16,16 +16,13 @@ from django.http import Http404
 from django.shortcuts import render
 
 from .pages_data import KEYBOARD_SHORTCUTS_DATA, OG_BASE_URL, VIDEO_CATALOG
-from .pages_donate import donate
 
-# Re-export donate for backward compatibility
 __all__ = [
     "about",
     "setup_guide",
     "demos",
     "video_player",
     "publications",
-    "donate",
     "fundraising",
     "pricing",
     "keyboard_shortcuts",

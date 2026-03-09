@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from .models import Donation, EmailVerification, SubscriptionPlan
+from .models import EmailVerification, SubscriptionPlan
 
 
 class SubscriptionPlanTestCase(TestCase):
@@ -132,15 +132,3 @@ class EmailVerificationTestCase(TestCase):
         self.assertIsNotNone(verification.code)
         self.assertEqual(len(verification.code), 6)
         self.assertFalse(verification.is_verified)
-
-
-class DonationTestCase(TestCase):
-    def test_donation_creation(self):
-        donation = Donation.objects.create(
-            donor_name="Test Donor",
-            donor_email="donor@example.com",
-            amount=100.00,
-            payment_method="stripe",
-        )
-        self.assertEqual(donation.status, "pending")
-        self.assertEqual(donation.amount, 100.00)
