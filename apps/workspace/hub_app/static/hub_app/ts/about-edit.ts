@@ -73,7 +73,7 @@ async function saveAbout(container: HTMLElement): Promise<void> {
   saveBtn.textContent = "Saving...";
 
   try {
-    const resp = await fetch("/hub/api/update-about/", {
+    const resp = await fetch("/apps/home/api/update-about/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

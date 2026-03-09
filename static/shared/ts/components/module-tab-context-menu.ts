@@ -104,7 +104,7 @@ function showMenu(x: number, y: number, moduleName: string): void {
       icon: "fa-code-branch",
       cls: "",
       action: () => {
-        window.location.href = `/hub/#browse/${moduleName}`;
+        window.location.href = `/apps/home/#browse/${moduleName}`;
       },
     },
   ];

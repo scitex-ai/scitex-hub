@@ -47,7 +47,7 @@ async function selectProjectByOwnerSlug(
   if (!content) return;
   content.style.opacity = "0.5";
 
-  const data = await hubPost("/hub/api/select-project/", { owner, slug });
+  const data = await hubPost("/apps/home/api/select-project/", { owner, slug });
   if (!data?.success) {
     content.style.opacity = "1";
     return;

@@ -16,7 +16,7 @@ export async function selectProject(projectId: string): Promise<void> {
   if (!content) return;
   content.style.opacity = "0.5";
 
-  const data = await hubPost("/hub/api/select-project/", {
+  const data = await hubPost("/apps/home/api/select-project/", {
     project_id: projectId,
   });
   if (!data?.success) {
@@ -47,7 +47,9 @@ export async function loadExplore(tab: string): Promise<void> {
   if (!content) return;
   content.style.opacity = "0.5";
   pushExploreUrl();
-  const data = await hubGet(`/hub/api/explore/?tab=${encodeURIComponent(tab)}`);
+  const data = await hubGet(
+    `/apps/home/api/explore/?tab=${encodeURIComponent(tab)}`,
+  );
   if (data?.success) content.innerHTML = data.html;
   content.style.opacity = "1";
 }
@@ -63,7 +65,7 @@ export async function loadMe(): Promise<void> {
   content.style.opacity = "0.5";
   const username = getHubUsername();
   if (username) pushMeUrl(username);
-  const data = await hubGet("/hub/api/me/");
+  const data = await hubGet("/apps/home/api/me/");
   if (data?.success) content.innerHTML = data.html;
   content.style.opacity = "1";
 }
@@ -73,7 +75,7 @@ export async function backToProjects(): Promise<void> {
   if (!content) return;
   content.style.opacity = "0.5";
   pushDashboardUrl();
-  const data = await hubGet("/hub/api/projects-overview/");
+  const data = await hubGet("/apps/home/api/projects-overview/");
   if (data?.success) content.innerHTML = data.html;
   content.style.opacity = "1";
 }
@@ -180,7 +182,7 @@ export async function browseProject(
   if (!content) return;
   content.style.opacity = "0.5";
 
-  const data = await hubPost("/hub/api/select-project/", {
+  const data = await hubPost("/apps/home/api/select-project/", {
     project_id: projectId,
     browse: true,
   });
@@ -200,7 +202,7 @@ export async function loadAccountSettings(): Promise<void> {
   const content = document.getElementById("hub-main-content");
   if (!content) return;
   content.style.opacity = "0.5";
-  const data = await hubGet("/hub/api/account-settings/");
+  const data = await hubGet("/apps/home/api/account-settings/");
   if (data?.success) content.innerHTML = data.html;
   content.style.opacity = "1";
 }

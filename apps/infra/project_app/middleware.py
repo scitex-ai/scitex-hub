@@ -65,7 +65,7 @@ class VisitorAutoLoginMiddleware:
             "/api-docs/",
             "/keyboard-shortcuts/",
             # Tools (client-side, no login needed)
-            "/tools/",
+            "/apps/tools/",
             # Auth pages
             "/auth/",
         )

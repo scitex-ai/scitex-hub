@@ -38,7 +38,7 @@ export async function loadHubTabContent(
 ): Promise<void> {
   const target = getDynamicArea(container);
   target.style.opacity = "0.5";
-  const data = await hubGet(`/hub/api/${tab}/${qs ? `?${qs}` : ""}`);
+  const data = await hubGet(`/apps/home/api/${tab}/${qs ? `?${qs}` : ""}`);
   if (data?.success) target.innerHTML = data.html;
   target.style.opacity = "1";
 }
@@ -52,7 +52,7 @@ export async function loadHubBrowse(
   if (path) pushProjectUrl(`tree/${getBranch()}/${path}`);
   else pushProjectUrl();
   const data = await hubGet(
-    `/hub/api/browse/?path=${encodeURIComponent(path)}`,
+    `/apps/home/api/browse/?path=${encodeURIComponent(path)}`,
   );
   if (data?.success) {
     target.innerHTML = data.html;
@@ -68,7 +68,9 @@ export async function loadHubFile(
   const target = getDynamicArea(container);
   target.style.opacity = "0.5";
   pushProjectUrl(`blob/${getBranch()}/${path}`);
-  const data = await hubGet(`/hub/api/file/?path=${encodeURIComponent(path)}`);
+  const data = await hubGet(
+    `/apps/home/api/file/?path=${encodeURIComponent(path)}`,
+  );
   if (data?.success) target.innerHTML = data.html;
   target.style.opacity = "1";
 }

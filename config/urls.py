@@ -17,14 +17,14 @@ from django.urls import include, path, re_path
 from django.views.generic import RedirectView
 from django.views.static import serve
 
-from apps.workspace.hub_app.views.dispatch import root_dispatch
-from apps.workspace.hub_app.views.index import current_project_view
 from apps.infra.project_app.views import (
     accept_invitation,
     decline_invitation,
     project_create,
 )
 from apps.infra.public_app.views import healthz
+from apps.workspace.hub_app.views.dispatch import root_dispatch
+from apps.workspace.hub_app.views.index import current_project_view
 from config.urls_helpers import RESERVED_PATHS, dev_module_view  # noqa: F401
 
 urlpatterns = [
@@ -33,7 +33,7 @@ urlpatterns = [
     # --- Root ---
     path("", root_dispatch, name="root"),
     path("", include("apps.infra.public_app.urls")),
-    path("", include(("apps.workspace.tools_app.urls", "tools_app"))),
+    path("apps/", include(("apps.workspace.tools_app.urls", "tools_app"))),
     # --- Admin ---
     path("admin/", admin.site.urls),
     # --- Auth ---
@@ -41,10 +41,13 @@ urlpatterns = [
     path("auth/", include(("apps.infra.auth_app.urls", "auth_app"))),
     path("auth/social/", include("allauth.urls")),
     # --- Hub ---
-    path("hub/api/", include("apps.workspace.hub_app.urls.api")),
-    path("hub/", include("apps.workspace.hub_app.urls.index")),
+    path("apps/home/api/", include("apps.workspace.hub_app.urls.api")),
+    path("apps/home/", include("apps.workspace.hub_app.urls.index")),
     # --- Discovery ---
-    path("discovery/", include(("apps.workspace.discovery_app.urls", "discovery_app"))),
+    path(
+        "apps/discovery/",
+        include(("apps.workspace.discovery_app.urls", "discovery_app")),
+    ),
     # --- App modules (/apps/) ---
     path("apps/scholar/", include(("apps.workspace.scholar_app.urls", "scholar_app"))),
     path("apps/console/", include(("apps.workspace.console_app.urls", "console_app"))),
@@ -65,7 +68,7 @@ urlpatterns = [
     path("", include("config.urls_legacy_redirects")),
     # --- Other apps ---
     path("dev/", include(("apps.workspace.dev_app.urls", "dev_app"))),
-    path("docs/", include(("apps.workspace.docs_app.urls", "docs_app"))),
+    path("apps/docs/", include(("apps.workspace.docs_app.urls", "docs_app"))),
     path(
         "integrations/",
         include(("apps.infra.integrations_app.urls", "integrations_app")),
@@ -105,7 +108,7 @@ urlpatterns = [
     # --- Hub shortcuts ---
     path(
         "explore/",
-        RedirectView.as_view(url="/discovery/", permanent=True, query_string=True),
+        RedirectView.as_view(url="/apps/discovery/", permanent=True, query_string=True),
         name="hub_explore_redirect",
     ),
     path("current-project/", current_project_view, name="hub_current_project"),

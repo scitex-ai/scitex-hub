@@ -204,7 +204,7 @@ Hub inline user profile — returned by /hub/api/user-profile/?username=X
         try {
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value
                 || document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
-            const resp = await fetch('/hub/api/avatar-upload/', {
+            const resp = await fetch('/apps/home/api/avatar-upload/', {
                 method: 'POST',
                 headers: { 'X-CSRFToken': csrfToken },
                 body: formData,

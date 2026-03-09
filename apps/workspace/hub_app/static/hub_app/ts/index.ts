@@ -218,7 +218,7 @@ function initHub(): void {
         document.cookie.match(/csrftoken=([^;]+)/)?.[1] ||
         "";
       topicsSave.textContent = "Saving...";
-      fetch("/hub/api/update-topics/", {
+      fetch("/apps/home/api/update-topics/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -365,7 +365,7 @@ window.addEventListener("popstate", (event) => {
   const state = event.state;
   if (state?.view === "project" && state.owner && state.slug) {
     setModeActive("projects");
-    hubPost("/hub/api/select-project/", {
+    hubPost("/apps/home/api/select-project/", {
       owner: state.owner,
       slug: state.slug,
     }).then((data) => {
@@ -381,13 +381,13 @@ window.addEventListener("popstate", (event) => {
     });
   } else if (state?.view === "me") {
     setModeActive("me");
-    hubGet("/hub/api/me/").then((data) => {
+    hubGet("/apps/home/api/me/").then((data) => {
       if (data?.success) content.innerHTML = data.html;
       content.style.opacity = "1";
     });
   } else {
     setModeActive("me");
-    hubGet("/hub/api/me/").then((data) => {
+    hubGet("/apps/home/api/me/").then((data) => {
       if (data?.success) content.innerHTML = data.html;
       content.style.opacity = "1";
     });
