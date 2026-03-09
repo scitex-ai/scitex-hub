@@ -16,7 +16,7 @@ from .pages import urlpatterns as page_patterns
 from .stats import urlpatterns as stats_patterns
 from .style import urlpatterns as style_patterns
 
-app_name = "vis"
+app_name = "vis_app"
 
 # Combine all URL patterns
 urlpatterns = (

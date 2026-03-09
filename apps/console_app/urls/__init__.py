@@ -1,6 +1,6 @@
 from django.urls import include, path
 
-app_name = "code"
+app_name = "console_app"
 
 urlpatterns = [
     # Workspace and notebook API endpoints

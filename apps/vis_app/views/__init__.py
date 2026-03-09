@@ -121,7 +121,7 @@ def create_figure(request):
     )
 
     messages.success(request, f"Figure '{title}' created successfully!")
-    return redirect("vis:figure_detail", figure_id=figure.id)
+    return redirect("vis_app:figure_detail", figure_id=figure.id)
 
 
 @login_required

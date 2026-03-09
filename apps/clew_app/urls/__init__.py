@@ -12,7 +12,7 @@ from django.urls import include, path
 from .api import urlpatterns as api_patterns
 from .index import urlpatterns as index_patterns
 
-app_name = "clew"
+app_name = "clew_app"
 
 # Combine: index pages at root, API under api/ prefix
 urlpatterns = index_patterns + [
