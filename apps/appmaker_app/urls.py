@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from django.urls import path
 
-app_name = "appmaker"
+app_name = "appmaker_app"
 
 from . import views
 
