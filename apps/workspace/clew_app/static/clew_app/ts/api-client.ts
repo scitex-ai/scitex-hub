@@ -96,11 +96,12 @@ export interface DagData {
 
 export interface DatabaseStats {
   total_runs: number;
-  success_runs: number;
-  failed_runs: number;
-  total_file_records: number;
-  unique_files: number;
-  db_path: string;
+  success_runs?: number;
+  failed_runs?: number;
+  total_file_records?: number;
+  unique_files?: number;
+  db_path: string | null;
+  db_found: boolean;
 }
 
 export interface ClaimInfo {

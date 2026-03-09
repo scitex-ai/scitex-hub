@@ -36,6 +36,38 @@ export function updateModeButtons(mode: ClewMode) {
   selector.querySelectorAll(".clew-tab").forEach((btn) => {
     btn.classList.toggle("active", (btn as HTMLElement).dataset.mode === mode);
   });
+  updateModeInfo(mode);
+}
+
+const MODE_INFO: Record<ClewMode, string> = {
+  project:
+    "Visualizes the full verification DAG for all tracked runs. Each node shows a script or file with its SHA-256 hash status — green means verified, red means the file has changed since it was recorded.",
+  file: "Drop or select any output file from the file tree to trace its full dependency chain back to the original source data. Multiple files merge into a single DAG.",
+  claims:
+    "Links specific manuscript assertions (statistics, figures, tables) to the scripts and data that produced them. Register claims with <code>scitex.clew.add_claim()</code> in your analysis scripts.",
+};
+
+function updateModeInfo(mode: ClewMode) {
+  const infoEl = document.getElementById("clewModeInfo");
+  if (!infoEl) return;
+  infoEl.innerHTML = MODE_INFO[mode] ?? "";
+}
+
+// ── DB status badge ──────────────────────────────────────────────────────
+export function updateDbStatusBadge(dbFound: boolean, dbPath: string | null) {
+  const actions = document.querySelector(".pane-header-actions");
+  if (!actions) return;
+  const existing = actions.querySelector(".clew-db-badge");
+  if (existing) existing.remove();
+  const badge = document.createElement("span");
+  badge.className = `clew-db-badge ${dbFound ? "clew-db-badge--found" : "clew-db-badge--missing"}`;
+  const label = dbFound ? "DB found" : "No DB";
+  const title = dbPath
+    ? `${dbFound ? "Database" : "Expected"}: ${dbPath}`
+    : "No project database";
+  badge.title = title;
+  badge.innerHTML = `<i class="fas fa-database"></i> ${label}`;
+  actions.appendChild(badge);
 }
 
 // ── Project mode ────────────────────────────────────────────────────────
@@ -44,6 +76,12 @@ export async function renderProjectDag(
   projectId: string | null,
 ) {
   const response = await clewApi.getStats();
+  if (response.success && response.data) {
+    updateDbStatusBadge(
+      response.data.db_found ?? false,
+      response.data.db_path ?? null,
+    );
+  }
   if (response.success && response.data && response.data.total_runs > 0) {
     showLoading(dagArea);
     const dagResp = await clewApi.getMermaidDag({ pathMode: "name" });
@@ -51,13 +89,6 @@ export async function renderProjectDag(
       await renderMermaidContent(dagArea, dagResp.data.mermaid);
       return;
     }
-  }
-
-  // Fallback: try dag.mmd from project
-  const dagContent = await fetchFileContent("dag.mmd", projectId);
-  if (dagContent) {
-    await renderMermaidContent(dagArea, dagContent);
-    return;
   }
 
   // Empty state
@@ -73,21 +104,21 @@ export async function renderProjectDag(
     dagArea.innerHTML = `
       <div class="dag-placeholder clew-empty-state">
         <h3>No Runs Yet</h3>
-        <p class="clew-empty-subtitle">To use Clew, a project needs script execution with 1) <code>@scitex.session</code> decorator for the main entry function 2) <code>scitex.io.load</code> and <code>scitex.io.save</code> for data IO</p>
+        <p class="clew-empty-subtitle">Clew tracks every script run — recording inputs, outputs, and their SHA-256 hashes — then visualizes the full dependency DAG so you can verify reproducibility at any time.</p>
         <div class="clew-instructions clew-instructions-vertical">
           <div class="clew-direction clew-direction-code">
             <h4><i class="fas fa-code"></i> Example Script</h4>
-            <pre data-language="python"><code class="language-python">import scitex as stx
+            <pre data-language="python"><code class="language-python">import scitex
 
-@stx.session
+@scitex.session
 def main():
-    data = stx.io.load("raw_data.csv")
+    data = scitex.io.load("raw_data.csv")
     result = data.groupby("condition").mean()
-    stx.io.save(result, "summary.csv")
+    scitex.io.save(result, "summary.csv")
 
-    fig, ax = stx.plt.subplots()
+    fig, ax = scitex.plt.subplots()
     ax.plot_line(result.index, result.values)
-    stx.io.save(fig, "figure_1.png")</code></pre>
+    scitex.io.save(fig, "figure_1.png")</code></pre>
           </div>
           <div class="clew-direction clew-direction-start">
             <h4><i class="fas fa-rocket"></i> Quick Start</h4>
@@ -103,15 +134,15 @@ def main():
             </ol>
             <div class="clew-features">
               <div class="clew-feature">
-                <code>stx.io</code>
+                <code>scitex.io</code>
                 <span>30+ formats (CSV, NumPy, images, pickle, etc.)</span>
               </div>
               <div class="clew-feature">
-                <code>stx.plt</code>
+                <code>scitex.plt</code>
                 <span>Publication-ready figures with auto CSV export</span>
               </div>
               <div class="clew-feature">
-                <code>stx.clew</code>
+                <code>scitex.clew</code>
                 <span>SHA-256 hashed dependency DAG</span>
               </div>
             </div>
@@ -142,7 +173,7 @@ export async function renderClaimsDag(dagArea: HTMLElement) {
       dagArea,
       "fa-file-contract",
       "No Claims Registered",
-      "Register claims with <code>stx.clew.add_claim()</code> to link manuscript assertions to source data.",
+      "Claims link specific manuscript assertions (statistics, figures, tables) to the source data and scripts that produced them. Register claims with <code>scitex.clew.add_claim()</code> in your analysis scripts.",
     );
   }
 
@@ -197,7 +228,7 @@ export function showFileModeInstructions(dagArea: HTMLElement) {
     dagArea,
     "fa-crosshairs",
     "File Trace Mode",
-    "Drop file(s) from the file tree or select a file to trace its dependency chain.<br>" +
+    "Select any output file to trace its full dependency chain back to the original source data as a DAG. Each node shows the script and hash status — green means verified, red means the file has changed since it was recorded.<br><br>" +
       "<span class='text-muted'>Drop multiple files to see a merged DAG.</span>",
   );
 }

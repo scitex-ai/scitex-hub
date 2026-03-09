@@ -4,34 +4,35 @@
 
 from __future__ import annotations
 
-import scitex as stx
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
 
+import scitex as stx
 
-def _set_project_db(request) -> bool:
+
+def _set_project_db(request) -> dict:
     """Set clew DB to current project's scitex/clew.db.
 
-    Returns True if DB was set, False if no project context.
+    Returns dict with keys: db_found (bool), db_path (str).
     """
     if not request.user.is_authenticated:
-        return False
+        return {"db_found": False, "db_path": None}
     from apps.infra.project_app.services.filesystem.paths import get_project_root_path
     from apps.infra.project_app.services.project_utils import get_current_project
 
     project = get_current_project(request)
     if not project:
-        return False
+        return {"db_found": False, "db_path": None}
     project_path = get_project_root_path(request.user, project)
     if not project_path:
-        return False
+        return {"db_found": False, "db_path": None}
     db_path = project_path / "scitex" / "clew.db"
     if db_path.exists():
         stx.clew.set_db(str(db_path))
-        return True
-    return False
+        return {"db_found": True, "db_path": str(db_path)}
+    return {"db_found": False, "db_path": str(db_path)}
 
 
 @require_http_methods(["GET"])
@@ -331,13 +332,27 @@ def get_mermaid_dag(request):
 
 @require_http_methods(["GET"])
 def database_stats(request):
-    """Get database statistics.
+    """Get database statistics including DB path and existence status.
 
     Wrapper around scitex.clew.stats()
     """
     try:
-        _set_project_db(request)
+        db_info = _set_project_db(request)
+        if not db_info["db_found"]:
+            return JsonResponse(
+                {
+                    "success": True,
+                    "data": {
+                        "db_found": False,
+                        "db_path": db_info["db_path"],
+                        "total_runs": 0,
+                    },
+                }
+            )
         stats = stx.clew.stats()
+        if isinstance(stats, dict):
+            stats["db_found"] = True
+            stats["db_path"] = db_info["db_path"]
         return JsonResponse(
             {
                 "success": True,

@@ -4,36 +4,38 @@
 <link rel="stylesheet" href="{% static 'clew_app/css/clew.css' %}" />
 {% if current_project %}
     <div id="workspace-project-config"
-         style="display: none"
          data-project-id="{{ current_project.id }}"
          data-username="{{ current_project.owner.username }}"
          data-project-slug="{{ current_project.slug }}"
          data-mode="clew"></div>
 {% endif %}
-<div class="clew-main unified-clew-main" style="flex:1; overflow:auto;">
+<div class="clew-main unified-clew-main">
     <div class="pane-header" data-pane-type="module">
         <nav class="clew-tabs" id="clewModeSelector">
-            <button class="clew-tab active" data-mode="project" title="Show full project DAG">
+            <button class="clew-tab active"
+                    data-mode="project"
+                    title="Full pipeline DAG — shows all tracked runs and their dependencies">
                 <i class="fas fa-diagram-project"></i> Project
             </button>
             <button class="clew-tab"
-                    data-mode="claims"
-                    title="Show claims-based DAG from manuscript">
-                <i class="fas fa-list-check"></i> Claims
+                    data-mode="file"
+                    title="File trace — drop or select a file to trace its dependency chain back to source data">
+                <i class="fas fa-file-code"></i> File(s)
             </button>
-            <button class="clew-tab" data-mode="file" title="Drop or select files to trace">
-                <i class="fas fa-file-code"></i> File
+            <button class="clew-tab"
+                    data-mode="claims"
+                    title="Claims — link manuscript assertions (statistics, figures, tables) to the scripts that produced them">
+                <i class="fas fa-list-check"></i> Claims
             </button>
         </nav>
         <div class="pane-header-actions"></div>
     </div>
+    <div id="clewModeInfo" class="clew-mode-info"></div>
     <div class="dag-visualization-area">
         <div class="dag-placeholder">
             <img src="{% static 'clew_app/clew-icon.svg' %}"
                  alt="Clew"
-                 style="width:3rem;
-                        height:3rem;
-                        opacity:0.6" />
+                 class="dag-placeholder-icon" />
             <h3>How to Use Clew</h3>
             <div class="clew-instructions clew-instructions-vertical">
                 <div class="clew-direction">
@@ -59,7 +61,7 @@ scitex clew status
 scitex clew list</code></pre>
                 </div>
             </div>
-            <p class="text-muted" style="margin-top:0.75rem;">
+            <p class="text-muted clew-footnote">
                 Click <strong>Add Examples</strong> to get started,
                 then run <code>bash ./examples/clew/00_run_all.sh</code> from the project root.
             </p>

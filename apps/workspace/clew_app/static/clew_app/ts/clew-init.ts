@@ -56,6 +56,9 @@ class ClewApp {
       () => this.currentMode,
     );
 
+    // Show explanation for the initial (project) mode
+    updateModeButtons(this.currentMode);
+
     this.setupEventListeners();
     this.setupDropTarget();
 
