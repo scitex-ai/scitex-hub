@@ -99,8 +99,14 @@ def build_instance_start_script_cmd(
     project_slug: str,
     instance_name: str,
 ) -> str:
-    """Build instance start script, injecting Django config automatically."""
-    return build_instance_start_script(
+    """Build instance start script, injecting Django config automatically.
+
+    Prepends a stale-instance cleanup step so that leftover instances
+    from cancelled jobs or restarts don't block new allocations.
+    """
+    import shlex
+
+    script = build_instance_start_script(
         container_path=container_path,
         username=username,
         host_user_dir=host_user_dir,
@@ -111,6 +117,22 @@ def build_instance_start_script_cmd(
         host_mounts=HOST_MOUNTS or None,
         texlive_prefix=HOST_TEXLIVE_PREFIX,
     )
+
+    # Inject stale-instance cleanup before "apptainer instance start"
+    instance_quoted = shlex.quote(instance_name)
+    cleanup = (
+        f"# Stop stale instance if it exists from a previous allocation\n"
+        f"if apptainer instance list 2>/dev/null | grep -q {instance_quoted}; then\n"
+        f"    apptainer instance stop {instance_quoted} 2>/dev/null || true\n"
+        f"    sleep 1\n"
+        f"fi\n"
+    )
+    script = script.replace(
+        "apptainer instance start",
+        cleanup + "apptainer instance start",
+        1,
+    )
+    return script
 
 
 def build_sbatch_cmd(
