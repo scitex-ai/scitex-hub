@@ -18,7 +18,7 @@
 }
 
 .project-card:hover {
-  border-color: var(--module-accent-hub);
+  border-color: var(--app-accent-hub);
 }
 
 .hub-project-card-link {
@@ -26,7 +26,7 @@
 }
 
 .hub-project-name-link {
-  color: var(--module-accent-hub);
+  color: var(--app-accent-hub);
   font-weight: 600;
 }
 
@@ -44,7 +44,7 @@
 }
 
 .project-card-header h3 a {
-  color: var(--module-accent-hub);
+  color: var(--app-accent-hub);
   text-decoration: none;
 }
 
@@ -224,7 +224,7 @@
 }
 
 .repo-about-edit-btn:hover {
-  color: var(--module-accent-hub);
+  color: var(--app-accent-hub);
 }
 
 .repo-description-empty {

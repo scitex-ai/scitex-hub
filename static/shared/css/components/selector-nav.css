@@ -129,7 +129,7 @@
   width: 4px;
   border-radius: 0 2px 2px 0;
   background: var(
-    --module-accent-color,
+    --app-accent-color,
     var(--workspace-icon-primary, #059669)
   );
   z-index: 2; /* Above adjacent panel-resizer (z-index:1) */
@@ -145,7 +145,7 @@
   width: 4px;
   border-radius: 2px 0 0 2px;
   background: var(
-    --module-accent-color,
+    --app-accent-color,
     var(--workspace-icon-primary, #059669)
   );
   z-index: 2; /* Above adjacent panel-resizer (z-index:1) */

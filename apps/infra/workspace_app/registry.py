@@ -60,7 +60,7 @@ class ModuleConfig:
 
     # LLM integration
     ai_hint: str = ""  # Short description for data-ai-hint (shown to LLM)
-    accent_color: str = ""  # Module accent identifier (maps to CSS --module-accent-X)
+    accent_color: str = ""  # Module accent identifier (maps to CSS --app-accent-X)
 
     # Documentation
     docs_slug: str = ""  # Slug for auto-registering docs page (e.g. "clew")
@@ -284,7 +284,7 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         context_builder="apps.workspace.docs_app.views.build_docs_context",
         body_class="docs-page",
         keyboard_shortcut="D",
-        order=100,
+        order=80,
         url="/apps/docs/",
         ai_hint="Documentation: Python packages, MCP tools, SSH access, API reference, self-hosting guide, licensing.",
         accent_color="docs",
@@ -314,10 +314,10 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         context_builder="apps.workspace.discovery_app.views.build_discovery_context",
         body_class="discovery-page",
         keyboard_shortcut="X",
-        order=15,
+        order=70,
         url="/apps/discovery/",
         ai_hint="Discover public repositories, researchers, and organizations.",
-        accent_color="home",
+        accent_color="discovery",
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
 ]

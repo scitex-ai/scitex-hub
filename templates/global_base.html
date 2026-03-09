@@ -62,7 +62,7 @@
             {% endif %}
             <main id="main-content"
                   class="{% if workspace_has_panes and user.is_authenticated %}ws-module-pane{% endif %}"
-                  {% if active_module_name %}data-module-accent="{{ active_module_name }}"{% endif %}>
+                  {% if active_module_name %}data-app-accent="{{ active_module_name }}"{% endif %}>
                 {% block content %}{% endblock %}
             </main>
         </div>

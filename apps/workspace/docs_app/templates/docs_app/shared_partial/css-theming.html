@@ -67,7 +67,7 @@
     <tbody>
         <tr>
             <td>
-                <code>--module-accent-writer</code>
+                <code>--app-accent-writer</code>
             </td>
             <td>Writer</td>
             <td>
@@ -79,7 +79,7 @@
         </tr>
         <tr>
             <td>
-                <code>--module-accent-scholar</code>
+                <code>--app-accent-scholar</code>
             </td>
             <td>Scholar</td>
             <td>
@@ -91,7 +91,7 @@
         </tr>
         <tr>
             <td>
-                <code>--module-accent-visualizer</code>
+                <code>--app-accent-visualizer</code>
             </td>
             <td>Visualizer</td>
             <td>
@@ -103,7 +103,7 @@
         </tr>
         <tr>
             <td>
-                <code>--module-accent-console</code>
+                <code>--app-accent-console</code>
             </td>
             <td>Console</td>
             <td>
@@ -115,7 +115,7 @@
         </tr>
         <tr>
             <td>
-                <code>--module-accent-clew</code>
+                <code>--app-accent-clew</code>
             </td>
             <td>Clew</td>
             <td>
@@ -127,7 +127,7 @@
         </tr>
         <tr>
             <td>
-                <code>--module-accent-hub</code>
+                <code>--app-accent-hub</code>
             </td>
             <td>Hub</td>
             <td>
@@ -139,7 +139,7 @@
         </tr>
         <tr>
             <td>
-                <code>--module-accent-docs</code>
+                <code>--app-accent-docs</code>
             </td>
             <td>Docs</td>
             <td>
@@ -149,7 +149,7 @@
         </tr>
         <tr>
             <td>
-                <code>--module-accent-tools</code>
+                <code>--app-accent-tools</code>
             </td>
             <td>Tools</td>
             <td>
@@ -162,16 +162,16 @@
     </tbody>
 </table>
 <p>
-    Each accent also has a <code>-tint</code> variant (e.g. <code>--module-accent-writer-tint</code>) at ~7-8% opacity for subtle panel background tinting.
+    Each accent also has a <code>-tint</code> variant (e.g. <code>--app-accent-writer-tint</code>) at ~7-8% opacity for subtle panel background tinting.
 </p>
 <pre><code>/* Apply accent to your module's pane header */
 [data-mode="mymodule"] .pane-header {
-  border-top: 2px solid var(--module-accent-mymodule);
-  background: var(--module-accent-mymodule-tint);
+  border-top: 2px solid var(--app-accent-mymodule);
+  background: var(--app-accent-mymodule-tint);
 }</code></pre>
 <div class="api-callout api-callout--info">
     <i class="fas fa-info-circle me-1"></i>
     <div>
-        The default <code>--module-accent-color</code> and <code>--module-accent-tint</code> are both <code>transparent</code>. Shared panes that serve multiple modules should use the generic token, not a module-specific one.
+        The default <code>--app-accent-color</code> and <code>--app-accent-tint</code> are both <code>transparent</code>. Shared panes that serve multiple modules should use the generic token, not a module-specific one.
     </div>
 </div>

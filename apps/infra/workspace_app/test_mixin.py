@@ -125,7 +125,7 @@ class ModuleTestMixin:
         if os.path.exists(css_path):
             with open(css_path) as f:
                 css = f.read()
-            var_name = f"--module-accent-{mod.accent_color}:"
+            var_name = f"--app-accent-{mod.accent_color}:"
             self.assertIn(
                 var_name,
                 css,

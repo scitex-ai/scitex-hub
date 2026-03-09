@@ -230,7 +230,7 @@
 }
 
 .hub-project-search-input:focus {
-  border-color: var(--module-accent-hub);
+  border-color: var(--app-accent-hub);
   box-shadow: 0 0 0 2px rgba(106, 90, 138, 0.15);
 }
 
@@ -256,7 +256,7 @@
 /* Fuzzy match highlight */
 .hub-me-project-item mark {
   background: transparent;
-  color: var(--module-accent-hub);
+  color: var(--app-accent-hub);
   font-weight: 700;
 }
 

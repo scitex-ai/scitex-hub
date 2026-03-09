@@ -61,7 +61,7 @@
 
 .discovery-tab.active {
   color: var(--workspace-text-primary);
-  border-bottom-color: var(--module-accent-hub);
+  border-bottom-color: var(--app-accent-hub);
 }
 
 /* ── Tab content area ─────────────────────────────────────────────────────── */
@@ -113,7 +113,7 @@
 }
 
 .discovery-repo-name-part {
-  color: var(--module-accent-hub);
+  color: var(--app-accent-hub);
 }
 
 .discovery-repo-title a {
@@ -159,7 +159,7 @@
 .discovery-user-name {
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--module-accent-hub);
+  color: var(--app-accent-hub);
   text-decoration: none;
 }
 

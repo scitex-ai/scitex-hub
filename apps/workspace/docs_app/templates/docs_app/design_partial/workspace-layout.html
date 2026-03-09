@@ -92,7 +92,7 @@
                         Rounded inner corners (<code>border-radius: 2px 0 0 2px</code>)
                     </li>
                     <li>
-                        Color from <code>--module-accent-color</code>
+                        Color from <code>--app-accent-color</code>
                     </li>
                 </ul>
             </div>
@@ -113,7 +113,7 @@
         <h5 class="docs-subsection-title docs-mt-1">Architecture Principles</h5>
         <ul class="docs-detail-list">
             <li>
-                <strong>Framework-controlled</strong> &mdash; accent line rendered by <code>workspace-sidebar.css</code> via <code>#main-content[data-module-accent]::before</code>
+                <strong>Framework-controlled</strong> &mdash; accent line rendered by <code>workspace-sidebar.css</code> via <code>#main-content[data-app-accent]::before</code>
             </li>
             <li>
                 <strong>Override-proof</strong> &mdash; uses <code>!important</code> and <code>z-index: 100</code> to prevent app-side CSS overrides
@@ -128,35 +128,35 @@
         <h5 class="docs-subsection-title docs-mt-1">CSS Variable Cascade</h5>
         <pre class="docs-code-block" data-language="css"><code class="language-css">/* 1. Root defines per-module accent colors */
 :root {
-  --module-accent-writer:  #059669;   /* emerald */
-  --module-accent-scholar: #2563eb;   /* blue */
-  --module-accent-vis:     #7c3aed;   /* violet */
-  --module-accent-console: #d97706;   /* amber */
+  --app-accent-writer:  #059669;   /* emerald */
+  --app-accent-scholar: #2563eb;   /* blue */
+  --app-accent-vis:     #7c3aed;   /* violet */
+  --app-accent-console: #d97706;   /* amber */
 }
 
 /* 2. CSS attribute selectors map module name → color variable */
-[data-module-accent="writer"]  { --module-accent-color: var(--module-accent-writer); }
-[data-module-accent="scholar"] { --module-accent-color: var(--module-accent-scholar); }
+[data-app-accent="writer"]  { --app-accent-color: var(--app-accent-writer); }
+[data-app-accent="scholar"] { --app-accent-color: var(--app-accent-scholar); }
 
 /* 3. Framework renders the accent line (workspace-sidebar.css) */
-#main-content[data-module-accent]::before {
+#main-content[data-app-accent]::before {
   content: "" !important;
   position: absolute !important;
   top: 0; left: 0; right: 0;
   height: 4px !important;
-  background: var(--module-accent-color, transparent) !important;
+  background: var(--app-accent-color, transparent) !important;
   z-index: 100 !important;
   pointer-events: none !important;
 }
 
-/* 4. Children inherit --module-accent-color automatically */
+/* 4. Children inherit --app-accent-color automatically */
 .selector-nav-item.active::after {
-  background: var(--module-accent-color);
+  background: var(--app-accent-color);
 }</code></pre>
         <h5 class="docs-subsection-title docs-mt-1">Do NOT</h5>
         <ul class="docs-detail-list docs-warning-list">
             <li>
-                Set <code>--module-accent-color</code> via inline <code>style</code> attribute &mdash; CSS attribute selectors handle it
+                Set <code>--app-accent-color</code> via inline <code>style</code> attribute &mdash; CSS attribute selectors handle it
             </li>
             <li>
                 Add <code>border-top</code> to individual panel headers for accent &mdash; use the <code>::before</code> on <code>#main-content</code>

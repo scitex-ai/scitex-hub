@@ -115,7 +115,7 @@
                         Rounded inner corners (<code>border-radius: 2px 0 0 2px</code>)
                     </li>
                     <li>
-                        Color from <code>--module-accent-color</code>
+                        Color from <code>--app-accent-color</code>
                     </li>
                 </ul>
             </div>
@@ -125,7 +125,7 @@
                     <li>Top border on the actual app pane container</li>
                     <li>Same accent color as the selector indicator</li>
                     <li>
-                        Controlled by workspace via <code>data-module-accent</code> attribute
+                        Controlled by workspace via <code>data-app-accent</code> attribute
                     </li>
                     <li>Synchronized thickness with selector indicator</li>
                 </ul>
@@ -134,19 +134,19 @@
         <h5 style="font-size: 0.95rem; margin-top: 1rem; margin-bottom: 0.75rem;">CSS Variable Cascade</h5>
         <pre data-language="css" style="background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto;"><code class="language-css">/* 1. Root defines per-module accent colors */
 :root {
-  --module-accent-writer:  #059669;   /* emerald */
-  --module-accent-scholar: #2563eb;   /* blue */
-  --module-accent-vis:     #7c3aed;   /* violet */
-  --module-accent-console: #d97706;   /* amber */
+  --app-accent-writer:  #059669;   /* emerald */
+  --app-accent-scholar: #2563eb;   /* blue */
+  --app-accent-vis:     #7c3aed;   /* violet */
+  --app-accent-console: #d97706;   /* amber */
 }
 
 /* 2. Workspace container sets active color via data attribute */
-[data-module-accent="writer"]  { --module-accent-color: var(--module-accent-writer); }
-[data-module-accent="scholar"] { --module-accent-color: var(--module-accent-scholar); }
+[data-app-accent="writer"]  { --app-accent-color: var(--app-accent-writer); }
+[data-app-accent="scholar"] { --app-accent-color: var(--app-accent-scholar); }
 
-/* 3. All children inherit --module-accent-color automatically */
+/* 3. All children inherit --app-accent-color automatically */
 .selector-nav-item.active::after {
-  background: var(--module-accent-color);
+  background: var(--app-accent-color);
 }</code></pre>
     </div>
     <!-- Configurable Sizing -->

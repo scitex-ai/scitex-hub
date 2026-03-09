@@ -14,7 +14,7 @@
 }
 
 .hub-breadcrumb-link {
-  color: var(--module-accent-hub);
+  color: var(--app-accent-hub);
   text-decoration: none;
   cursor: pointer;
 }
@@ -61,7 +61,7 @@
 
 .hub-mode-active {
   color: var(--workspace-text-primary);
-  border-bottom-color: var(--module-accent-hub);
+  border-bottom-color: var(--app-accent-hub);
 }
 
 /* Browse tabs — ephemeral, added dynamically for non-current projects */
@@ -116,7 +116,7 @@
 }
 
 .hub-explore-tab.active {
-  border-bottom-color: var(--module-accent-hub);
+  border-bottom-color: var(--app-accent-hub);
 }
 
 /* User profile inline */
@@ -205,8 +205,8 @@
 
 .hub-avatar-overlay:hover {
   background: var(--workspace-bg-tertiary);
-  color: var(--module-accent-hub);
-  border-color: var(--module-accent-hub);
+  color: var(--app-accent-hub);
+  border-color: var(--app-accent-hub);
 }
 
 /* Edit profile / settings button */
@@ -230,7 +230,7 @@
 
 .hub-profile-settings-btn:hover {
   background: var(--workspace-bg-quaternary);
-  border-color: var(--module-accent-hub);
+  border-color: var(--app-accent-hub);
   color: var(--workspace-text-primary);
   text-decoration: none;
 }
@@ -283,7 +283,7 @@
 }
 
 .hub-user-org-link:hover .hub-user-org-avatar {
-  border-color: var(--module-accent-hub);
+  border-color: var(--app-accent-hub);
   color: var(--workspace-text-primary);
 }
 
@@ -337,7 +337,7 @@
 }
 
 .hub-repo-filter-input:focus {
-  border-color: var(--module-accent-hub);
+  border-color: var(--app-accent-hub);
 }
 
 .hub-repo-filter-kbd {

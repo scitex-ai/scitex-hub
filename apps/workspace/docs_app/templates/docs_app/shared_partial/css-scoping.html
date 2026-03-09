@@ -13,7 +13,7 @@
 /* CORRECT — all rules scoped */
 [data-mode="mymodule"] .panel { background: var(--bg-surface); }
 [data-mode="mymodule"] .header { font-size: 13px; }
-[data-mode="mymodule"] .btn-run { color: var(--module-accent-mymodule); }
+[data-mode="mymodule"] .btn-run { color: var(--app-accent-mymodule); }
 
 /* WRONG — unscoped rules leak globally */
 .panel { background: var(--bg-surface); }
@@ -100,7 +100,7 @@
             <td>Accent color wrong in dark mode</td>
             <td>Hardcoded hex instead of token</td>
             <td>
-                Use <code>var(--module-accent-yourmodule)</code>
+                Use <code>var(--app-accent-yourmodule)</code>
             </td>
         </tr>
         <tr>
@@ -138,8 +138,8 @@
 
 [data-mode="mymodule"] .pane-header {
   height: var(--local-header-height);
-  border-top: 2px solid var(--module-accent-mymodule);
-  background: var(--module-accent-mymodule-tint);
+  border-top: 2px solid var(--app-accent-mymodule);
+  background: var(--app-accent-mymodule-tint);
   color: var(--text-primary);
 }</code></pre>
 <div class="api-callout api-callout--info">

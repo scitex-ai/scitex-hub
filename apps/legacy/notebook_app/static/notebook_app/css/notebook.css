@@ -30,7 +30,7 @@
 }
 
 .notebook-header h1 i {
-  color: var(--module-accent-notebook, #7a9a6a);
+  color: var(--app-accent-notebook, #7a9a6a);
 }
 
 .notebook-header p {
@@ -60,7 +60,7 @@
 }
 
 .notebook-card h3 i {
-  color: var(--module-accent-notebook, #7a9a6a);
+  color: var(--app-accent-notebook, #7a9a6a);
 }
 
 .notebook-row {
@@ -114,7 +114,7 @@ textarea#nb-notes {
 }
 
 .notebook-btn:hover {
-  border-color: var(--module-accent-notebook, #7a9a6a);
+  border-color: var(--app-accent-notebook, #7a9a6a);
   background: rgba(122, 154, 106, 0.08);
 }
 

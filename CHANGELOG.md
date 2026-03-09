@@ -139,7 +139,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Bulk rename tool**: Added HTML, CSS, TS, JS, and other web file types to path_includes
 
 ### Fixed
-- **Module accent colors broken**: Inline `--module-accent-color` was set to name identifiers (e.g., "writer") instead of CSS colors, overriding the CSS `[data-module-accent]` rules. Removed inline style; CSS attribute selectors now handle all default accents correctly
+- **Module accent colors broken**: Inline `--app-accent-color` was set to name identifiers (e.g., "writer") instead of CSS colors, overriding the CSS `[data-app-accent]` rules. Removed inline style; CSS attribute selectors now handle all default accents correctly
 
 ## [0.11.0-alpha] - 2026-03-01
 
@@ -153,7 +153,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Repo monitor filter UI**: Enhanced event type and path filtering with vertical split
 
 ### Changed
-- **Unified accent color system**: Single `--module-accent-color` CSS variable replaces three separate systems (`--tab-accent`, `--module-pane-accent`, `--module-accent-color`)
+- **Unified accent color system**: Single `--app-accent-color` CSS variable replaces three separate systems (`--tab-accent`, `--module-pane-accent`, `--app-accent-color`)
 - **App tab indicator**: Active tab changed from bottom underline to right-side 4px border
 - **Docs consolidation**: Removed redundant sidebar from App Maker docs, merged licensing page into creator docs
 

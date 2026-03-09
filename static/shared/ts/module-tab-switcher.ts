@@ -113,14 +113,14 @@ function updateActiveTab(name: string): void {
     const isActive = (btn as HTMLElement).dataset.module === name;
     btn.classList.toggle("active", isActive);
   });
-  // Set module accent on the pane — workspace-sidebar.css [data-module-accent] selectors
-  // resolve --module-accent-color which drives both tab highlight and pane top border.
+  // Set module accent on the pane — workspace-sidebar.css [data-app-accent] selectors
+  // resolve --app-accent-color which drives both tab highlight and pane top border.
   const pane = document.getElementById("main-content");
   if (pane) {
-    pane.setAttribute("data-module-accent", name);
-    // CSS [data-module-accent="<name>"] rules handle --module-accent-color resolution.
+    pane.setAttribute("data-app-accent", name);
+    // CSS [data-app-accent="<name>"] rules handle --app-accent-color resolution.
     // Clear any stale inline override so CSS takes effect.
-    pane.style.removeProperty("--module-accent-color");
+    pane.style.removeProperty("--app-accent-color");
   }
 }
 

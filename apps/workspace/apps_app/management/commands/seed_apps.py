@@ -22,6 +22,9 @@ _CATEGORY_MAP = {
     "home": "utility",
     "tools": "utility",
     "apps": "utility",
+    "discovery": "social",
+    "figrecipe": "visualization",
+    "docs": "reference",
 }
 
 # Module descriptions
@@ -34,6 +37,9 @@ _DESCRIPTIONS = {
     "home": "Home workspace — project overview with recent activity, file browser, and quick actions.",
     "tools": "Collection of standalone research utilities — converters, calculators, and helpers.",
     "apps": "Browse, install, and manage workspace modules.",
+    "discovery": "Discover public repositories, researchers, and organizations across the SciTeX community.",
+    "figrecipe": "Declarative figure editor — define publication-ready figures as structured recipes.",
+    "docs": "Documentation hub — Python packages, MCP tools, API reference, and self-hosting guide.",
 }
 
 # Modules under active development
