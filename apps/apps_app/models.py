@@ -315,6 +315,16 @@ class DevInstallation(models.Model):
     is_enabled = models.BooleanField(default=True)
     tab_order = models.IntegerField(default=95)
     installed_at = models.DateTimeField(auto_now_add=True)
+    # Optional per-app Apptainer container — overrides user's default
+    apptainer_container_path = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+        help_text=(
+            "Absolute path to a custom Apptainer .sif for this app. "
+            "Leave blank to use the user's default container."
+        ),
+    )
 
     class Meta:
         db_table = "marketplace_app_devinstallation"

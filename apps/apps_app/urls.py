@@ -7,6 +7,7 @@ from django.urls import path
 app_name = "apps"
 
 from . import views
+from .views import dev_project_files
 
 urlpatterns = [
     # Pages

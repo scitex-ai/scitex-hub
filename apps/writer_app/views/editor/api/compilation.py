@@ -14,6 +14,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
+from apps.console_app.services.apptainer_runner import run_in_user_allocation
+
 from ..auth_utils import api_login_optional, get_user_for_request
 
 logger = logging.getLogger(__name__)
@@ -252,7 +254,6 @@ def run_compilation_async(
     try:
         from django.contrib.auth import get_user_model
 
-        from apps.console_app.services.apptainer_runner import run_in_apptainer
         from apps.project_app.models import Project
 
         User = get_user_model()
@@ -310,7 +311,8 @@ def run_compilation_async(
 
         inner_cmd = ["bash", f"/workspace/{script_rel}"] + flags
 
-        result = run_in_apptainer(
+        result = run_in_user_allocation(
+            username=user.username,
             inner_cmd=inner_cmd,
             project_dir=project_dir,
             timeout=timeout,

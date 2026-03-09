@@ -125,12 +125,15 @@ def api_update_module(request, slug):
 @login_required
 @require_http_methods(["POST"])
 def api_run_module(request, slug):
-    """Trigger module execution (placeholder for MVP).
+    """Execute a user module inside the user's Apptainer/SLURM allocation."""
+    import uuid
+    from pathlib import Path
 
-    In the full implementation this will delegate to sandboxed execution
-    via scitex_cloud.module._runner.run_module().
-    For now it creates a success execution record as a placeholder.
-    """
+    from django.conf import settings
+    from django.utils import timezone
+
+    from apps.console_app.services.apptainer_runner import run_in_user_allocation
+
     user_module = get_object_or_404(UserModule, slug=slug, is_active=True)
 
     if user_module.visibility == "private" and user_module.author != request.user:
@@ -140,23 +143,68 @@ def api_run_module(request, slug):
 
     current_project = get_current_project(request)
 
+    # Write module source to project dir (visible inside container at /workspace)
+    if current_project:
+        project_dir = (
+            Path(settings.BASE_DIR)
+            / "data"
+            / "users"
+            / request.user.username
+            / "proj"
+            / current_project.slug
+        )
+    else:
+        project_dir = (
+            Path(settings.BASE_DIR) / "data" / "users" / request.user.username / "tmp"
+        )
+
+    runs_dir = project_dir / ".scitex_runs"
+    runs_dir.mkdir(parents=True, exist_ok=True)
+
+    run_id = uuid.uuid4().hex[:12]
+    script_host = runs_dir / f"module_{run_id}.py"
+    script_container = f"/workspace/.scitex_runs/module_{run_id}.py"
+
     execution = ModuleExecution.objects.create(
         module=user_module,
         user=request.user,
         project=current_project,
-        status="success",
-        output_json=[
-            {
-                "type": "text",
-                "content": (
-                    f"Module '{user_module.label}' executed successfully (placeholder). "
-                    "Real execution engine coming soon."
-                ),
-            }
-        ],
+        status="running",
+        output_json=[],
     )
 
-    from django.utils import timezone
+    try:
+        script_host.write_text(user_module.source_code, encoding="utf-8")
+
+        result = run_in_user_allocation(
+            username=request.user.username,
+            inner_cmd=["python", script_container],
+            project_dir=project_dir,
+            timeout=60,
+        )
+
+        if result["success"]:
+            outputs = [{"type": "text", "content": result["stdout"]}]
+            status = "success"
+        else:
+            outputs = [
+                {"type": "error", "content": result["stdout"] or result["stderr"]}
+            ]
+            status = "error"
+
+    except Exception as exc:
+        logger.error("[AppMaker] run error: %s", exc, exc_info=True)
+        outputs = [{"type": "error", "content": str(exc)}]
+        status = "error"
+    finally:
+        try:
+            script_host.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+    execution.status = status
+    execution.output_json = outputs
+    execution.save(update_fields=["status", "output_json"])
 
     user_module.run_count += 1
     user_module.last_run_at = timezone.now()
@@ -164,7 +212,7 @@ def api_run_module(request, slug):
 
     return JsonResponse(
         {
-            "success": True,
+            "success": status == "success",
             "execution_id": execution.id,
             "status": execution.status,
             "outputs": execution.output_json,

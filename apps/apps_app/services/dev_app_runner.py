@@ -5,6 +5,10 @@ DevAppRunner — executes dev app context builders inside Apptainer.
 
 Prevents dev app backend code from running inside the Django process.
 Uses JSON stdin/stdout protocol with run_dev_context.py as the sandboxed runner.
+
+Primary path: reuse the user's existing SLURM allocation via run_in_user_allocation.
+The runner script is written temporarily to project_dir so it is visible inside
+the container at /workspace/.scitex_run_dev_context.py.
 """
 
 from __future__ import annotations
@@ -18,7 +22,7 @@ from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
-# Path to the runner script (inside Django container, bind-mounted into Apptainer)
+# Path to the runner script (inside Django container, copied to project dir at runtime)
 _RUNNER_SCRIPT = Path(__file__).parent.parent / "scripts" / "run_dev_context.py"
 
 
@@ -33,9 +37,9 @@ def run_dev_context(
     """
     Run a dev app's context builder inside Apptainer.
 
-    The dev app directory is bound to /workspace. The runner script
-    imports views.py from /workspace, calls the context builder,
-    and returns JSON context.
+    The runner script is written to project_dir/.scitex_run_dev_context.py so
+    it is accessible inside the container at /workspace/.scitex_run_dev_context.py.
+    JSON input is passed via stdin; output is read from stdout.
 
     Args:
         dev_install: DevInstallation model instance.
@@ -49,7 +53,11 @@ def run_dev_context(
         Dict to use as template context (empty on error).
     """
     from apps.apps_app.services.dev_app_loader import resolve_dev_project_dir
-    from apps.console_app.services.apptainer_runner import _get_container_path
+    from apps.console_app.services.apptainer_runner import (
+        _instance_name,
+        build_apptainer_exec_cmd,
+    )
+    from apps.console_app.services.terminal_broker.allocation import Allocation
 
     project_dir = resolve_dev_project_dir(
         dev_install.source_owner, dev_install.source_repo
@@ -62,7 +70,6 @@ def run_dev_context(
         )
         return {}
 
-    # Derive context builder function name from module name
     fn_name = _infer_function_name(dev_install)
 
     input_data = {
@@ -73,32 +80,58 @@ def run_dev_context(
         "get_params": get_params or {},
     }
 
-    container = _get_container_path()
+    # Write runner script to project_dir so it is visible inside the container
+    runner_dest = project_dir / ".scitex_run_dev_context.py"
+    runner_in_container = "/workspace/.scitex_run_dev_context.py"
 
-    # The runner script needs to be visible inside the container.
-    # Bind-mount it as a read-only file at a known path.
-    runner_script_host = str(_RUNNER_SCRIPT.resolve())
-    runner_in_container = "/tmp/_scitex_run_dev_context.py"
-
-    cmd = [
-        "apptainer",
-        "exec",
-        "--contain",
-        "--cleanenv",
-        "--no-home",
-        "--bind",
-        f"{project_dir}:/workspace:rw",
-        "--bind",
-        f"{runner_script_host}:{runner_in_container}:ro",
-        container,
-        "python",
-        runner_in_container,
-    ]
-
-    logger.debug("[DevAppRunner] cmd: %s", " ".join(cmd))
-
-    start = time.time()
     try:
+        runner_dest.write_text(
+            _RUNNER_SCRIPT.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    except Exception as exc:
+        logger.error("[DevAppRunner] failed to write runner script: %s", exc)
+        return {}
+
+    inner_cmd = ["python", runner_in_container]
+
+    try:
+        job_ids = Allocation.find_existing_jobs(username)
+
+        if job_ids:
+            job_id = job_ids[0]
+            instance = _instance_name(username)
+            logger.info(
+                "[DevAppRunner] reusing allocation job=%s instance=%s for %s",
+                job_id,
+                instance,
+                username,
+            )
+            cmd = [
+                "srun",
+                "--overlap",
+                f"--jobid={job_id}",
+                "apptainer",
+                "instance",
+                "exec",
+                instance,
+                *inner_cmd,
+            ]
+        else:
+            logger.info(
+                "[DevAppRunner] no active allocation for %s — using local apptainer exec",
+                username,
+            )
+            # Per-app container takes priority over user default
+            container = getattr(
+                dev_install, "apptainer_container_path", ""
+            ) or get_container_for_user(username)
+            cmd = build_apptainer_exec_cmd(
+                inner_cmd, project_dir, container_path=container
+            )
+
+        logger.debug("[DevAppRunner] cmd: %s", " ".join(cmd))
+
+        start = time.time()
         proc = subprocess.run(
             cmd,
             input=json.dumps(input_data),
@@ -135,13 +168,18 @@ def run_dev_context(
         return {}
     except FileNotFoundError:
         logger.error(
-            "[DevAppRunner] apptainer not found"
+            "[DevAppRunner] apptainer or srun not found"
             " — running context builder unsandboxed is not allowed"
         )
         return {}
     except Exception as exc:
         logger.error("[DevAppRunner] error: %s", exc, exc_info=True)
         return {}
+    finally:
+        try:
+            runner_dest.unlink(missing_ok=True)
+        except OSError:
+            pass
 
 
 def _infer_function_name(dev_install) -> str:

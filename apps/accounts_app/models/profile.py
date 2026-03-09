@@ -214,6 +214,17 @@ class UserProfile(models.Model):
         help_text="Linux GID for OS-level process isolation (same as unix_uid)",
     )
 
+    # Apptainer container override — empty means use the shared default SIF
+    apptainer_container_path = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+        help_text=(
+            "Absolute path to a custom Apptainer .sif or sandbox directory. "
+            "Leave blank to use the shared default container."
+        ),
+    )
+
     # MCP tool group preferences for Claude Code in Apptainer
     mcp_preferences = models.JSONField(
         default=dict,
