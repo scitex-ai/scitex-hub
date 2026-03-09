@@ -122,7 +122,7 @@
         statusEl.textContent = 'Submitting...';
         statusEl.className = 'ap-review-status';
 
-        fetch('/apps/api/' + moduleName + '/review/', {
+        fetch('/apps/store/api/' + moduleName + '/review/', {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCsrf(),

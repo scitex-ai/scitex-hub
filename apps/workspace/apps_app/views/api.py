@@ -206,7 +206,9 @@ def api_review(request, module_name):
 @login_required
 @require_http_methods(["POST"])
 def api_reorder(request):
-    """Reorder user's installed modules."""
+    """Reorder user's installed modules (including dev apps)."""
+    from ..models import DevInstallation
+
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
@@ -225,6 +227,10 @@ def api_reorder(request):
             "module"
         )
     }
+    dev_installations = {
+        inst.module_name: inst
+        for inst in DevInstallation.objects.filter(user=request.user)
+    }
 
     # Build AppsModule lookup for auto-creating missing installations
     all_modules = {m.module_name: m for m in AppsModule.objects.all()}
@@ -235,6 +241,11 @@ def api_reorder(request):
             inst = installations[name]
             inst.tab_order = tab_order
             inst.save(update_fields=["tab_order"])
+        elif name in dev_installations:
+            # Persist order for dev apps
+            dev_inst = dev_installations[name]
+            dev_inst.tab_order = tab_order
+            dev_inst.save(update_fields=["tab_order"])
         elif name in all_modules:
             # Auto-create installation for modules without one (e.g. clew)
             inst, _created = ModuleInstallation.objects.update_or_create(

@@ -218,7 +218,7 @@
         btn.addEventListener('click', function () {
             var moduleName = btn.dataset.module;
             btn.disabled = true;
-            fetch('/apps/api/' + moduleName + '/install/', {
+            fetch('/apps/store/api/' + moduleName + '/install/', {
                 method: 'POST',
                 headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/json' }
             })
@@ -242,7 +242,7 @@
         btn.addEventListener('click', function () {
             var moduleName = btn.dataset.module;
             btn.disabled = true;
-            fetch('/apps/api/' + moduleName + '/toggle/', {
+            fetch('/apps/store/api/' + moduleName + '/toggle/', {
                 method: 'POST',
                 headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/json' }
             })
@@ -267,7 +267,7 @@
             var moduleName = btn.dataset.module;
             if (!confirm('Uninstall ' + moduleName + '?')) return;
             btn.disabled = true;
-            fetch('/apps/api/' + moduleName + '/uninstall/', {
+            fetch('/apps/store/api/' + moduleName + '/uninstall/', {
                 method: 'POST',
                 headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/json' }
             })
@@ -291,8 +291,8 @@
         btn.addEventListener('click', function () {
             var moduleName = btn.dataset.module;
             var starred = btn.dataset.starred === 'true';
-            var endpoint = starred ? '/apps/api/' + moduleName + '/unstar/'
-                                   : '/apps/api/' + moduleName + '/star/';
+            var endpoint = starred ? '/apps/store/api/' + moduleName + '/unstar/'
+                                   : '/apps/store/api/' + moduleName + '/star/';
             btn.disabled = true;
             fetch(endpoint, {
                 method: 'POST',

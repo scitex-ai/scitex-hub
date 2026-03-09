@@ -236,7 +236,7 @@
             });
 
             /* Persist to server + sync tab bar */
-            fetch('/apps/api/reorder/', {
+            fetch('/apps/store/api/reorder/', {
                 method: 'POST',
                 headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/json' },
                 body: JSON.stringify({ order: order })

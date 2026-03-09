@@ -127,7 +127,7 @@ def api_dev_install(request):
 def api_dev_uninstall(request, owner, repo):
     """Uninstall a dev app (soft-delete: sets is_enabled=False).
 
-    POST /apps/api/dev/<owner>/<repo>/uninstall/
+    POST /apps/store/api/dev/<owner>/<repo>/uninstall/
     """
     dev_install = DevInstallation.objects.filter(
         user=request.user, source_owner=owner, source_repo=repo
@@ -156,7 +156,7 @@ def api_dev_uninstall(request, owner, repo):
 def api_dev_reinstall(request, owner, repo):
     """Re-install a previously uninstalled dev app (sets is_enabled=True).
 
-    POST /apps/api/dev/<owner>/<repo>/reinstall/
+    POST /apps/store/api/dev/<owner>/<repo>/reinstall/
     """
     dev_install = DevInstallation.objects.filter(
         user=request.user, source_owner=owner, source_repo=repo
@@ -184,7 +184,7 @@ def api_dev_reinstall(request, owner, repo):
 def api_dev_app_url(request):
     """Return the workspace URL for a dev app given a project slug.
 
-    GET /apps/api/dev/url/?project_id=<slug>
+    GET /apps/store/api/dev/url/?project_id=<slug>
     Returns: {"success": true, "url": "/dev__<owner>__<repo>/", "module_name": "..."}
     """
     project_id = request.GET.get("project_id", "").strip()
@@ -221,7 +221,7 @@ def api_dev_app_url(request):
 def api_submit_dev_app(request, owner, repo):
     """Submit a dev app to the App Store via registry PR.
 
-    POST /apps/api/dev/<owner>/<repo>/submit/
+    POST /apps/store/api/dev/<owner>/<repo>/submit/
     Validates the app, creates an AppsModule record, opens a PR on scitex/apps.
     """
     import subprocess

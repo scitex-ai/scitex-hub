@@ -31,7 +31,7 @@ export const API_URLS = {
   },
   // --- Apps API ---
   apps: {
-    reorder: "/apps/api/reorder/",
+    reorder: "/apps/store/api/reorder/",
   },
   // --- LLM ---
   llm: {

@@ -78,7 +78,7 @@ function handleDevInstall(btn: HTMLButtonElement): void {
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Installing...';
 
-  fetch("/apps/api/dev/install/", {
+  fetch("/apps/store/api/dev/install/", {
     method: "POST",
     headers: {
       "X-CSRFToken": getCsrf(),
@@ -110,7 +110,7 @@ function handleDevUninstall(btn: HTMLButtonElement): void {
 
   btn.disabled = true;
 
-  fetch(`/apps/api/dev/${owner}/${repo}/uninstall/`, {
+  fetch(`/apps/store/api/dev/${owner}/${repo}/uninstall/`, {
     method: "POST",
     headers: {
       "X-CSRFToken": getCsrf(),
@@ -140,7 +140,7 @@ function handleDevReinstall(btn: HTMLButtonElement): void {
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Installing...';
 
-  fetch(`/apps/api/dev/${owner}/${repo}/reinstall/`, {
+  fetch(`/apps/store/api/dev/${owner}/${repo}/reinstall/`, {
     method: "POST",
     headers: {
       "X-CSRFToken": getCsrf(),

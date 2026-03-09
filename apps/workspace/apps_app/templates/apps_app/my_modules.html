@@ -100,7 +100,7 @@
             var moduleName = checkbox.dataset.module;
             var listItem = checkbox.closest('.ap-my-item');
             checkbox.disabled = true;
-            postApi('/apps/api/' + moduleName + '/toggle/',
+            postApi('/apps/store/api/' + moduleName + '/toggle/',
                 function (data) {
                     checkbox.disabled = false;
                     checkbox.checked = data.is_enabled;
@@ -122,7 +122,7 @@
             var moduleName = btn.dataset.module;
             if (!confirm('Uninstall ' + moduleName + '?')) { return; }
             btn.disabled = true;
-            postApi('/apps/api/' + moduleName + '/uninstall/',
+            postApi('/apps/store/api/' + moduleName + '/uninstall/',
                 function () {
                     var listItem = btn.closest('.ap-my-item');
                     if (listItem) { listItem.remove(); }

@@ -339,7 +339,7 @@
     if (installBtn) {
         installBtn.addEventListener('click', function () {
             installBtn.disabled = true;
-            postApi('/apps/api/' + installBtn.dataset.module + '/install/',
+            postApi('/apps/store/api/' + installBtn.dataset.module + '/install/',
                 function () { location.reload(); },
                 function () { installBtn.disabled = false; }
             );
@@ -351,7 +351,7 @@
         uninstallBtn.addEventListener('click', function () {
             if (!confirm('Uninstall this app?')) { return; }
             uninstallBtn.disabled = true;
-            postApi('/apps/api/' + uninstallBtn.dataset.module + '/uninstall/',
+            postApi('/apps/store/api/' + uninstallBtn.dataset.module + '/uninstall/',
                 function () { location.reload(); },
                 function () { uninstallBtn.disabled = false; }
             );
@@ -363,8 +363,8 @@
         starBtn.addEventListener('click', function () {
             var starred = starBtn.dataset.starred === 'true';
             var endpoint = starred
-                ? '/apps/api/' + starBtn.dataset.module + '/unstar/'
-                : '/apps/api/' + starBtn.dataset.module + '/star/';
+                ? '/apps/store/api/' + starBtn.dataset.module + '/unstar/'
+                : '/apps/store/api/' + starBtn.dataset.module + '/star/';
             starBtn.disabled = true;
             postApi(endpoint, function (data) {
                 starBtn.disabled = false;
@@ -390,7 +390,7 @@
         publishBtn.addEventListener('click', function () {
             if (!confirm('Submit this app for apps review?')) { return; }
             publishBtn.disabled = true;
-            postApi('/apps/api/' + publishBtn.dataset.module + '/submit/',
+            postApi('/apps/store/api/' + publishBtn.dataset.module + '/submit/',
                 function () { location.reload(); },
                 function (data) {
                     publishBtn.disabled = false;
@@ -406,7 +406,7 @@
         forkBtn.addEventListener('click', function () {
             if (!confirm('Fork this app to your account?')) { return; }
             forkBtn.disabled = true;
-            postApi('/apps/api/' + forkBtn.dataset.module + '/fork/',
+            postApi('/apps/store/api/' + forkBtn.dataset.module + '/fork/',
                 function (data) {
                     if (data.url) { window.location.href = data.url; }
                     else { location.reload(); }
@@ -423,7 +423,7 @@
     if (toggleBtn) {
         toggleBtn.addEventListener('click', function () {
             toggleBtn.disabled = true;
-            postApi('/apps/api/' + toggleBtn.dataset.module + '/toggle/',
+            postApi('/apps/store/api/' + toggleBtn.dataset.module + '/toggle/',
                 function (data) {
                     toggleBtn.disabled = false;
                     var icon = toggleBtn.querySelector('i');

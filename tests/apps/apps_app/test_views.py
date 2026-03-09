@@ -94,7 +94,7 @@ class AppsInstallTest(TestCase):
         )
 
     def test_install(self):
-        resp = self.client.post("/apps/api/t-install/install/")
+        resp = self.client.post("/apps/store/api/t-install/install/")
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         self.assertTrue(data["success"])
@@ -105,13 +105,13 @@ class AppsInstallTest(TestCase):
         )
 
     def test_double_install(self):
-        self.client.post("/apps/api/t-install/install/")
-        resp = self.client.post("/apps/api/t-install/install/")
+        self.client.post("/apps/store/api/t-install/install/")
+        resp = self.client.post("/apps/store/api/t-install/install/")
         self.assertEqual(resp.status_code, 400)
 
     def test_uninstall(self):
         ModuleInstallation.objects.create(user=self.user, module=self.module)
-        resp = self.client.post("/apps/api/t-install/uninstall/")
+        resp = self.client.post("/apps/store/api/t-install/uninstall/")
         self.assertEqual(resp.status_code, 200)
         self.assertFalse(
             ModuleInstallation.objects.filter(
@@ -121,7 +121,7 @@ class AppsInstallTest(TestCase):
 
     def test_uninstall_builtin_blocked(self):
         ModuleInstallation.objects.create(user=self.user, module=self.builtin)
-        resp = self.client.post("/apps/api/t-builtin/uninstall/")
+        resp = self.client.post("/apps/store/api/t-builtin/uninstall/")
         self.assertEqual(resp.status_code, 400)
         self.assertIn("Built-in", resp.json()["error"])
 
@@ -129,11 +129,11 @@ class AppsInstallTest(TestCase):
         ModuleInstallation.objects.create(
             user=self.user, module=self.module, is_enabled=True
         )
-        resp = self.client.post("/apps/api/t-install/toggle/")
+        resp = self.client.post("/apps/store/api/t-install/toggle/")
         self.assertEqual(resp.status_code, 200)
         self.assertFalse(resp.json()["is_enabled"])
 
-        resp = self.client.post("/apps/api/t-install/toggle/")
+        resp = self.client.post("/apps/store/api/t-install/toggle/")
         self.assertTrue(resp.json()["is_enabled"])
 
 
@@ -159,18 +159,18 @@ class AppsStarTest(TestCase):
         )
 
     def test_star(self):
-        resp = self.client.post("/apps/api/t-star/star/")
+        resp = self.client.post("/apps/store/api/t-star/star/")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()["star_count"], 1)
 
     def test_double_star(self):
-        self.client.post("/apps/api/t-star/star/")
-        resp = self.client.post("/apps/api/t-star/star/")
+        self.client.post("/apps/store/api/t-star/star/")
+        resp = self.client.post("/apps/store/api/t-star/star/")
         self.assertEqual(resp.status_code, 400)
 
     def test_unstar(self):
         ModuleStar.objects.create(user=self.user, module=self.module)
-        resp = self.client.post("/apps/api/t-star/unstar/")
+        resp = self.client.post("/apps/store/api/t-star/unstar/")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()["star_count"], 0)
 
@@ -198,7 +198,7 @@ class AppsReviewTest(TestCase):
 
     def test_create_review(self):
         resp = self.client.post(
-            "/apps/api/t-review/review/",
+            "/apps/store/api/t-review/review/",
             data=json.dumps({"rating": 5, "title": "Excellent", "body": "Love it."}),
             content_type="application/json",
         )
@@ -212,7 +212,7 @@ class AppsReviewTest(TestCase):
             user=self.user, module=self.module, rating=3, title="OK"
         )
         resp = self.client.post(
-            "/apps/api/t-review/review/",
+            "/apps/store/api/t-review/review/",
             data=json.dumps({"rating": 5, "title": "Better now"}),
             content_type="application/json",
         )
@@ -221,7 +221,7 @@ class AppsReviewTest(TestCase):
 
     def test_invalid_rating(self):
         resp = self.client.post(
-            "/apps/api/t-review/review/",
+            "/apps/store/api/t-review/review/",
             data=json.dumps({"rating": 0, "title": "Bad"}),
             content_type="application/json",
         )
@@ -229,7 +229,7 @@ class AppsReviewTest(TestCase):
 
     def test_invalid_json(self):
         resp = self.client.post(
-            "/apps/api/t-review/review/",
+            "/apps/store/api/t-review/review/",
             data="not json",
             content_type="application/json",
         )
@@ -266,7 +266,7 @@ class AppsReorderTest(TestCase):
 
     def test_reorder(self):
         resp = self.client.post(
-            "/apps/api/reorder/",
+            "/apps/store/api/reorder/",
             data=json.dumps({"order": ["t-reorder-b", "t-reorder-a"]}),
             content_type="application/json",
         )
@@ -286,15 +286,15 @@ class AppsAuthTest(TestCase):
         )
 
     def test_install_requires_login(self):
-        resp = self.client.post("/apps/api/t-auth/install/")
+        resp = self.client.post("/apps/store/api/t-auth/install/")
         self.assertEqual(resp.status_code, 302)  # Redirect to login
 
     def test_star_requires_login(self):
-        resp = self.client.post("/apps/api/t-auth/star/")
+        resp = self.client.post("/apps/store/api/t-auth/star/")
         self.assertEqual(resp.status_code, 302)
 
     def test_review_requires_login(self):
-        resp = self.client.post("/apps/api/t-auth/review/")
+        resp = self.client.post("/apps/store/api/t-auth/review/")
         self.assertEqual(resp.status_code, 302)
 
 

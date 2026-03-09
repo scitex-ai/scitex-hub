@@ -149,7 +149,7 @@
                 var action = btn.dataset.action;
                 var note = document.getElementById('note-' + id).value;
                 btn.disabled = true;
-                fetch('/apps/api/submissions/' + id + '/review/', {
+                fetch('/apps/store/api/submissions/' + id + '/review/', {
                     method: 'POST',
                     headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: action, note: note })
