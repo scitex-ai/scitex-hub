@@ -39,7 +39,7 @@ def workspace_context(request):
     has_panes = is_ws and active_name is not None
     # Non-module workspace pages: user profiles get panes, others don't
     if is_ws and active_name is None:
-        active_name = "hub"
+        active_name = "home"
         if request.user.is_authenticated and (
             _is_user_profile_path(path) or path.rstrip("/") == "/new"
         ):

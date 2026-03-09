@@ -233,7 +233,7 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
     ModuleConfig(
-        name="hub",
+        name="home",
         label="Home",
         app_name="hub_app",
         icon_fa="fas fa-home",
@@ -351,11 +351,10 @@ _WORKSPACE_EXTRA_PREFIXES = ("/accounts/",)
 
 def is_workspace_path(path: str) -> bool:
     """Check if a URL path belongs to a workspace module or extra workspace page."""
-    # Root path "/" is the hub dashboard for authenticated users
     if path == "/":
         return True
-    for name in _registry_by_name:
-        if f"/{name}/" in path:
+    for mod in sorted(_registry, key=lambda m: len(m.url or ""), reverse=True):
+        if mod.url and path.startswith(mod.url):
             return True
     for prefix in _WORKSPACE_EXTRA_PREFIXES:
         if path.startswith(prefix):
@@ -365,12 +364,11 @@ def is_workspace_path(path: str) -> bool:
 
 def extract_module_from_path(path: str) -> Optional[str]:
     """Extract module name from URL path. Returns None if not a module path."""
-    # Root path "/" maps to hub module
     if path == "/":
-        return "hub"
-    for name in _registry_by_name:
-        if f"/{name}/" in path:
-            return name
+        return "home"
+    for mod in sorted(_registry, key=lambda m: len(m.url or ""), reverse=True):
+        if mod.url and path.startswith(mod.url):
+            return mod.name
     return None
 
 
