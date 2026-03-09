@@ -1,6 +1,7 @@
+jjj
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Module Maker — context builder for workspace tab integration."""
+"""App Maker — context builder for workspace tab integration."""
 
 from __future__ import annotations
 
@@ -8,7 +9,7 @@ from ..models import UserModule
 
 
 def build_usermod_context(request, current_project=None):
-    """Context builder for Module Maker workspace tab.
+    """Context builder for App Maker workspace tab.
 
     Called by the workspace registry for AJAX partial loading.
     Returns the user's modules list for the my_modules_partial template.

@@ -1,6 +1,7 @@
+jjj
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Module Maker — validation and utility helpers."""
+"""App Maker — validation and utility helpers."""
 
 from __future__ import annotations
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Module Maker models — user-authored workspace modules and their execution history.
+App Maker models — user-authored workspace apps and their execution history.
 
-UserModule stores the source code and metadata for a custom module.
+UserModule stores the source code and metadata for a custom app.
 ModuleExecution tracks each run with timing, memory, status, and outputs.
 """
 
@@ -77,9 +77,10 @@ class UserModule(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        db_table = "modulemaker_app_usermodule"
         unique_together = ("author", "slug")
         ordering = ["-updated_at"]
-        verbose_name = "User Module"
+        verbose_name = "User App"
 
     @property
     def is_git_sourced(self):
@@ -122,8 +123,9 @@ class ModuleExecution(models.Model):
     output_json = models.JSONField(default=list)
 
     class Meta:
+        db_table = "modulemaker_app_moduleexecution"
         ordering = ["-started_at"]
-        verbose_name = "Module Execution"
+        verbose_name = "App Execution"
 
     def __str__(self):
         return f"{self.module.slug} run by {self.user.username} ({self.status})"

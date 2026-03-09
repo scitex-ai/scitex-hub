@@ -1,7 +1,7 @@
 {% load static %}
 
 <!-- Module code editor -->
-<link rel="stylesheet" href="{% static 'modulemaker_app/css/editor.css' %}" />
+<link rel="stylesheet" href="{% static 'appmaker_app/css/editor.css' %}" />
 <div class="modeditor-workspace">
     <div class="modeditor-header">
         <h2>
@@ -12,7 +12,7 @@
                 New Module
             {% endif %}
         </h2>
-        <a href="{% url 'modulemaker_app:my_modules' %}" class="btn btn-sm btn-outline">
+        <a href="{% url 'appmaker_app:my_modules' %}" class="btn btn-sm btn-outline">
             <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
@@ -122,8 +122,8 @@
         if (!source_code) { showValidation("Source code is required."); return; }
 
         const url = isEdit
-            ? "{% url 'modulemaker_app:api_update' slug='__SLUG__' %}".replace("__SLUG__", slug)
-            : "{% url 'modulemaker_app:api_create' %}";
+            ? "{% url 'appmaker_app:api_update' slug='__SLUG__' %}".replace("__SLUG__", slug)
+            : "{% url 'appmaker_app:api_create' %}";
 
         try {
             const resp = await fetch(url, {
@@ -137,7 +137,7 @@
             const data = await resp.json();
             if (data.success) {
                 if (!isEdit && data.slug) {
-                    window.location.href = "/modulemaker/" + data.slug + "/edit/";
+                    window.location.href = "/appmaker/" + data.slug + "/edit/";
                 } else {
                     showValidation("Saved successfully.");
                     validationEl.classList.add("modeditor-validation--success");
@@ -154,7 +154,7 @@
     if (runBtn) {
         runBtn.addEventListener("click", async function () {
             hideValidation();
-            const runUrl = "{% url 'modulemaker_app:api_run' slug='__SLUG__' %}".replace("__SLUG__", slug);
+            const runUrl = "{% url 'appmaker_app:api_run' slug='__SLUG__' %}".replace("__SLUG__", slug);
             try {
                 const resp = await fetch(runUrl, {
                     method: "POST",

@@ -1,6 +1,7 @@
+jjj
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Module Maker views — re-exports all public views."""
+"""App Maker views — re-exports all public views."""
 
 from __future__ import annotations
 

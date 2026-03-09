@@ -1,6 +1,7 @@
+jjj
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Module Maker — page views (my_modules list, code editor)."""
+"""App Maker — page views (my_modules list, code editor)."""
 
 from __future__ import annotations
 
@@ -19,7 +20,7 @@ def my_modules(request):
     modules = UserModule.objects.filter(author=request.user, is_active=True)
     return render(
         request,
-        "modulemaker_app/my_modules.html",
+        "appmaker_app/my_modules.html",
         {
             "current_project": current_project,
             "modules": modules,
@@ -41,7 +42,7 @@ def editor(request, slug=None):
 
     return render(
         request,
-        "modulemaker_app/editor.html",
+        "appmaker_app/editor.html",
         {
             "current_project": current_project,
             "module": user_module,

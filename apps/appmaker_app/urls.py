@@ -1,12 +1,13 @@
+jjj
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Module Maker URL configuration."""
+"""App Maker URL configuration."""
 
 from __future__ import annotations
 
 from django.urls import path
 
-app_name = "modulemaker"
+app_name = "appmaker"
 
 from . import views
 

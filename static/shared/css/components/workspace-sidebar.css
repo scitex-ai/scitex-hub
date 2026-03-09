@@ -290,9 +290,9 @@
   --module-accent-color: var(--module-accent-apps);
   --module-accent-tint: var(--module-accent-apps-tint);
 }
-[data-module-accent="modulemaker"] {
-  --module-accent-color: var(--module-accent-modulemaker);
-  --module-accent-tint: var(--module-accent-modulemaker-tint);
+[data-module-accent="appmaker"] {
+  --module-accent-color: var(--module-accent-appmaker);
+  --module-accent-tint: var(--module-accent-appmaker-tint);
 }
 [data-module-accent="docs"] {
   --module-accent-color: var(--module-accent-docs);

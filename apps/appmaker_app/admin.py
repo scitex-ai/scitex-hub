@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Module Maker admin configuration."""
+"""App Maker admin configuration."""
 
 from __future__ import annotations
 

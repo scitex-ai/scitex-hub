@@ -2,8 +2,8 @@ from apps.llm_app.skills import Skill, register
 
 register(
     Skill(
-        app_name="modulemaker",
-        display_name="Module Maker - Custom Modules",
+        app_name="appmaker",
+        display_name="App Maker - Custom Apps",
         description=(
             "Create, edit, and manage custom workspace modules. "
             "Build new modules using the template system."
@@ -14,8 +14,8 @@ register(
             "Preview and test modules",
             "Publish to apps catalog",
         ],
-        page_patterns=["/modulemaker/"],
-        url_prefix="/modulemaker/",
+        page_patterns=["/appmaker/"],
+        url_prefix="/appmaker/",
         module_description=("Create, edit, and manage custom workspace modules."),
     )
 )

@@ -49,9 +49,7 @@ urlpatterns = [
     path("apps/workspace/", include(("apps.workspace_app.urls", "workspace_app"))),
     path("apps/example/", include(("apps.example_app.urls", "example_app"))),
     path("apps/notebook/", include(("apps.notebook_app.urls", "notebook_app"))),
-    path(
-        "apps/modulemaker/", include(("apps.modulemaker_app.urls", "modulemaker_app"))
-    ),
+    path("apps/appmaker/", include(("apps.appmaker_app.urls", "appmaker_app"))),
     path("apps/llm/", include(("apps.llm_app.urls", "llm_app"))),
     path("apps/clew/", include(("apps.clew_app.urls", "clew"))),
     path("apps/", include(("apps.apps_app.urls", "apps_app"))),

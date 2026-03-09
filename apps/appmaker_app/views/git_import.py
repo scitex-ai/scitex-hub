@@ -1,6 +1,7 @@
+jjj
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Module Maker — GitHub/git repository import endpoints."""
+"""App Maker — GitHub/git repository import endpoints."""
 
 from __future__ import annotations
 

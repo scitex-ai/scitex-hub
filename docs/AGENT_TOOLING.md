@@ -1,3 +1,4 @@
+jjj
 # AI Agent Tooling
 
 > Skills, commands, hooks, and the `agents` CLI for cross-agent configuration management.
@@ -54,7 +55,7 @@ SciTeX compiles a `SKILL.md` from all registered app modules and deploys it to `
 | Hub | — | Project dashboard, activity feed, quick actions |
 | Notebook | — | Experiment logger (DataStore, FileVault, JobQueue) |
 | Apps | — | Browse, install, publish community apps |
-| Module Maker | — | Create, edit, preview custom workspace modules |
+| App Maker | — | Create, edit, preview custom workspace modules |
 | Examples | — | Interactive demos (plotting, stats, IO, sessions) |
 | Tools | — | Shared utilities, converters, validators |
 

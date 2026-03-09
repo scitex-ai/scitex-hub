@@ -1,7 +1,7 @@
 {% load static %}
 
 <!-- My Modules grid partial -->
-<link rel="stylesheet" href="{% static 'modulemaker_app/css/usermod.css' %}" />
+<link rel="stylesheet" href="{% static 'appmaker_app/css/usermod.css' %}" />
 <div class="usermod-workspace">
     <div class="usermod-list-header">
         <h2>
@@ -11,7 +11,7 @@
             <button class="btn btn-outline" id="import-github-btn" title="Import from GitHub">
                 <i class="fab fa-github"></i> Import from GitHub
             </button>
-            <a href="{% url 'modulemaker_app:editor_new' %}" class="btn btn-primary">
+            <a href="{% url 'appmaker_app:editor_new' %}" class="btn btn-primary">
                 <i class="fas fa-plus"></i> New Module
             </a>
         </div>
@@ -83,7 +83,7 @@
                         {% endif %}
                     </div>
                     <div class="usermod-grid-actions">
-                        <a href="{% url 'modulemaker_app:editor' slug=mod.slug %}"
+                        <a href="{% url 'appmaker_app:editor' slug=mod.slug %}"
                            class="btn btn-sm btn-outline"
                            title="Edit module">
                             <i class="fas fa-edit"></i> Edit
@@ -143,7 +143,7 @@
         try {
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value
                            || document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
-            const resp = await fetch('{% url "modulemaker_app:api_import_github" %}', {
+            const resp = await fetch('{% url "appmaker_app:api_import_github" %}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -181,7 +181,7 @@
             try {
                 const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value
                                || document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
-                const resp = await fetch(`/modulemaker/api/${slug}/sync/`, {
+                const resp = await fetch(`/appmaker/api/${slug}/sync/`, {
                     method: 'POST',
                     headers: { 'X-CSRFToken': csrfToken },
                 });

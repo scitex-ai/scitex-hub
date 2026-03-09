@@ -20,7 +20,7 @@ LEGACY_APP_NAMES = [
     "workspace",
     "example",
     "notebook",
-    "modulemaker",
+    "appmaker",
     "llm",
     "clew",
 ]

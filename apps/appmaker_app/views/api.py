@@ -1,6 +1,7 @@
+jjj
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Module Maker — CRUD API endpoints for user modules."""
+"""App Maker — CRUD API endpoints for user modules."""
 
 from __future__ import annotations
 
