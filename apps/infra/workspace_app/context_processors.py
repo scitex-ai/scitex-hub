@@ -39,7 +39,8 @@ def workspace_context(request):
     has_panes = is_ws and active_name is not None
     # Non-module workspace pages: user profiles get panes, others don't
     if is_ws and active_name is None:
-        active_name = "home"
+        # Org profiles → Discovery context; user profiles → Home context
+        active_name = "discovery" if _is_org_profile_path(path) else "home"
         if request.user.is_authenticated and (
             _is_user_profile_path(path) or path.rstrip("/") == "/new"
         ):
@@ -141,6 +142,20 @@ def _is_user_profile_path(path: str) -> bool:
         "__reload__",
     }
     return first not in _NON_USER_PREFIXES
+
+
+def _is_org_profile_path(path: str) -> bool:
+    """Check if path is an organization profile (/<org-slug>/...)."""
+    parts = [p for p in path.strip("/").split("/") if p]
+    if not parts:
+        return False
+    first = parts[0]
+    try:
+        from apps.infra.organizations_app.models import Organization
+
+        return Organization.objects.filter(slug=first).exists()
+    except Exception:
+        return False
 
 
 def _filter_modules_for_user(request, modules):

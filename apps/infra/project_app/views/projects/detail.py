@@ -42,9 +42,18 @@ def project_detail(request, username, slug):
 
     # Authenticated users → hub workspace with project pre-selected
     if request.user.is_authenticated:
+        # Check if this is an org-owned repo — if so, mark it so the template
+        # hides the personal "My | Settings" hub mode tabs (GitHub-style).
+        from apps.infra.organizations_app.models import Organization
+
+        is_org_context = Organization.objects.filter(slug=username).exists()
+
         from apps.workspace.hub_app.views.index import build_hub_context
 
         context = build_hub_context(request, current_project=project)
+        if is_org_context:
+            context["is_org_context"] = True
+            context["org_slug"] = username
         return render(request, "hub_app/index.html", context)
 
     # Check for port proxy request (e.g., ?port=6006)
@@ -192,9 +201,13 @@ def project_tree_or_blob(request, username, slug, branch=None, path=None):
     """GitHub-style tree/blob URLs — render via hub for authenticated users."""
     project = request.project
     if request.user.is_authenticated:
+        from apps.infra.organizations_app.models import Organization
         from apps.workspace.hub_app.views.index import build_hub_context
 
         context = build_hub_context(request, current_project=project)
+        if Organization.objects.filter(slug=username).exists():
+            context["is_org_context"] = True
+            context["org_slug"] = username
         return render(request, "hub_app/index.html", context)
     # Unauthenticated: fall through to standalone project detail
     return project_detail(request, username, slug)

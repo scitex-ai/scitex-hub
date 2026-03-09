@@ -328,6 +328,16 @@ class Project(
         return self.org_owner_id is not None
 
     @property
+    def owner_org(self):
+        """Return Organization if owner's username matches an org slug (for non-org_owner repos)."""
+        if self.org_owner_id is not None:
+            return self.org_owner
+        try:
+            return Organization.objects.get(slug=self.owner.username)
+        except Organization.DoesNotExist:
+            return None
+
+    @property
     def effective_owner_slug(self):
         """GitHub-style: org slug or username."""
         if self.org_owner:

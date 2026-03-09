@@ -30,29 +30,51 @@
      data-username="{{ user.username }}"
      data-initial-mode="{{ hub_initial_mode|default:'me' }}">
     <!-- My | Current Project mode switcher -->
-    <div class="hub-mode-switcher" id="hub-mode-switcher">
-        <a href="#"
-           class="hub-mode {% if hub_initial_mode != 'projects' %}hub-mode-active{% endif %}"
-           data-hub-mode="me">
-            <i class="fas fa-user"></i> My
-        </a>
-        <a href="#" class="hub-mode" data-hub-mode="settings">
-            <i class="fas fa-cog"></i> Settings
-        </a>
-        <a href="#"
-           class="hub-mode {% if hub_initial_mode == 'projects' %}hub-mode-active{% endif %}"
-           data-hub-mode="projects"
-           {% if current_project %}data-project-id="{{ current_project.id }}"{% endif %}>
-            <i class="fas fa-folder-open"></i>
-            <span class="hub-mode-project-label">
-                {% if current_project %}
-                    {{ current_project.slug }}
-                {% else %}
-                    —
-                {% endif %}
-            </span>
-        </a>
-    </div>
+    {% if is_org_context %}
+        {# Org repo: show org mode switcher instead of personal tabs #}
+        <div class="hub-mode-switcher" id="hub-mode-switcher">
+            <a href="/{{ org_slug }}/" class="hub-mode">
+                <i class="fas fa-th-large"></i> {{ org_slug }}
+            </a>
+            <a href="#"
+               class="hub-mode hub-mode-active"
+               data-hub-mode="projects"
+               {% if current_project %}data-project-id="{{ current_project.id }}"{% endif %}>
+                <i class="fas fa-folder-open"></i>
+                <span class="hub-mode-project-label">
+                    {% if current_project %}
+                        {{ current_project.slug }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </span>
+            </a>
+        </div>
+    {% else %}
+        <div class="hub-mode-switcher" id="hub-mode-switcher">
+            <a href="#"
+               class="hub-mode {% if hub_initial_mode != 'projects' %}hub-mode-active{% endif %}"
+               data-hub-mode="me">
+                <i class="fas fa-user"></i> My
+            </a>
+            <a href="#" class="hub-mode" data-hub-mode="settings">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+            <a href="#"
+               class="hub-mode {% if hub_initial_mode == 'projects' %}hub-mode-active{% endif %}"
+               data-hub-mode="projects"
+               {% if current_project %}data-project-id="{{ current_project.id }}"{% endif %}>
+                <i class="fas fa-folder-open"></i>
+                <span class="hub-mode-project-label">
+                    {% if current_project %}
+                        {{ current_project.slug }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </span>
+            </a>
+        </div>
+    {% endif %}
     <div id="hub-main-content">
         {% if current_project %}
             <div class="hub-browse-container p-3">

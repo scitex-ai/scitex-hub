@@ -42,12 +42,42 @@ _PLATFORM_APPS = frozenset(
         "apps_app",
         "dev_app",
         "workspace_app",
+        "organizations_app",
+        "discovery_app",
         "shared",
     }
 )
 
 # Cache manifest in production
 _manifest_cache = None
+
+# Cache app group lookups (workspace/ vs infra/)
+_app_group_cache: dict = {}
+
+
+def _find_app_ts_path(app_name: str, ts_rest: str) -> str:
+    """Resolve TS path for an app, searching workspace/ and infra/ groups."""
+    import os
+
+    from django.conf import settings
+
+    if app_name not in _app_group_cache:
+        base = settings.BASE_DIR
+        for group in ("workspace", "infra", ""):
+            dir_path = (
+                os.path.join(base, "apps", group, app_name)
+                if group
+                else os.path.join(base, "apps", app_name)
+            )
+            if os.path.isdir(dir_path):
+                _app_group_cache[app_name] = group
+                break
+        else:
+            _app_group_cache[app_name] = ""
+
+    group = _app_group_cache[app_name]
+    prefix = f"apps/{group}/" if group else "apps/"
+    return f"{prefix}{app_name}/static/{app_name}/ts/{ts_rest}.ts"
 
 
 def get_manifest() -> dict:
@@ -113,14 +143,14 @@ def vite_script(entry_name: str):
     """
     # Dev app entries use container Vite — works in dev and prod
     if _is_dev_app_entry(entry_name):
-        ts_path = _entry_to_ts_path(entry_name)
         if settings.DEBUG:
             port = getattr(settings, "VITE_DEV_APP_PORT", 5174)
             return mark_safe(
-                f'<script type="module" src="http://127.0.0.1:{port}/{ts_path}"></script>'
+                f'<script type="module" src="http://127.0.0.1:{port}/{entry_name}.ts"></script>'
             )
         else:
             # Production: through nginx proxy
+            ts_path = _entry_to_ts_path(entry_name)
             return mark_safe(
                 f'<script type="module" src="/_vite_dev_app/{ts_path}"></script>'
             )
@@ -174,153 +204,42 @@ def vite_legacy_script(static_path: str):
 def _entry_to_ts_path(entry_name: str) -> str:
     """Convert entry name to TypeScript file path (for Vite).
 
-    First checks explicit mappings, then falls back to convention-based path:
-    - "{app}_app/{path}" -> "apps/{app}_app/static/{app}_app/ts/{path}.ts"
+    Convention:
+    - "{app}_app/{path}" -> "apps/{group}/{app}_app/static/{app}_app/ts/{path}.ts"
+      where {group} is resolved via filesystem lookup (workspace/ or infra/)
     - "shared/{path}" -> "static/shared/ts/{path}.ts"
+
+    Non-conventional explicit overrides are listed below.
     """
-    # Map entry names to actual TS file locations
-    mappings = {
-        # Code app
-        "console_app/workspace": "apps/console_app/static/console_app/ts/workspace.ts",
-        # Vis app
-        "vis_app/vis-editor": "apps/vis_app/static/vis_app/ts/vis-editor.ts",
-        "vis_app/editor-inline": "apps/vis_app/static/vis_app/ts/editor-inline.ts",
-        # Writer app
-        "writer_app/index": "apps/writer_app/static/writer_app/ts/index.ts",
-        "writer_app/collaboration-panel": "apps/writer_app/static/writer_app/ts/collaboration-panel.ts",
-        "writer_app/modules/ai2-prompt": "apps/writer_app/static/writer_app/ts/modules/ai2-prompt.ts",
-        "writer_app/arxiv/submission": "apps/writer_app/static/writer_app/ts/arxiv/submission.ts",
-        "writer_app/collaboration/session": "apps/writer_app/static/writer_app/ts/collaboration/session.ts",
-        "writer_app/version_control/index": "apps/writer_app/static/writer_app/ts/version_control/index.ts",
-        "writer_app/compilation/compilation": "apps/writer_app/static/writer_app/ts/compilation/compilation.ts",
-        "writer_app/shared/utils": "apps/writer_app/static/writer_app/ts/shared/utils.ts",
-        "writer_app/editor/preview-panel/index": "apps/writer_app/static/writer_app/ts/editor/preview-panel/index.ts",
-        "writer_app/editor/collaborative/index": "apps/writer_app/static/writer_app/ts/editor/collaborative/index.ts",
-        # Project app
-        "project_app/clone_button": "apps/project_app/static/project_app/ts/clone_button.ts",
-        "project_app/create_project_type": "apps/project_app/static/project_app/ts/create_project_type.ts",
-        "project_app/init-git-gutter": "apps/project_app/static/project_app/ts/init-git-gutter.ts",
-        "project_app/shared/project_app": "apps/project_app/static/project_app/ts/shared/project_app.ts",
-        "project_app/shared/file-tree": "apps/project_app/static/project_app/ts/shared/file-tree.ts",
-        "project_app/shared/pdf_viewer": "apps/project_app/static/project_app/ts/shared/pdf_viewer.ts",
-        "project_app/projects/create": "apps/project_app/static/project_app/ts/projects/create.ts",
-        "project_app/projects/delete_confirmation": "apps/project_app/static/project_app/ts/projects/delete_confirmation.ts",
-        "project_app/projects/settings_collaborators": "apps/project_app/static/project_app/ts/projects/settings_collaborators.ts",
-        "project_app/repository/browse": "apps/project_app/static/project_app/ts/repository/browse.ts",
-        "project_app/repository/browse_toolbar": "apps/project_app/static/project_app/ts/repository/browse_toolbar.ts",
-        "project_app/repository/colorful-icons": "apps/project_app/static/project_app/ts/repository/colorful-icons.ts",
-        "project_app/repository/file_browser_git_status": "apps/project_app/static/project_app/ts/repository/file_browser_git_status.ts",
-        "project_app/repository/file_view": "apps/project_app/static/project_app/ts/repository/file_view.ts",
-        "project_app/repository/file_edit": "apps/project_app/static/project_app/ts/repository/file_edit.ts",
-        "project_app/repository/file_history": "apps/project_app/static/project_app/ts/repository/file_history.ts",
-        "project_app/repository/admin/index": "apps/project_app/static/project_app/ts/repository/admin/index.ts",
-        "project_app/components/DiffMerge/index": "apps/project_app/static/project_app/ts/components/DiffMerge/index.ts",
-        "project_app/issues/detail": "apps/project_app/static/project_app/ts/issues/detail.ts",
-        "project_app/projects/detail": "apps/project_app/static/project_app/ts/projects/detail.ts",
-        "project_app/pull_requests/conversation": "apps/project_app/static/project_app/ts/pull_requests/conversation.ts",
-        "project_app/pull_requests/detail": "apps/project_app/static/project_app/ts/pull_requests/detail.ts",
-        "project_app/pull_requests/form": "apps/project_app/static/project_app/ts/pull_requests/form.ts",
-        "project_app/security/scan": "apps/project_app/static/project_app/ts/security/scan.ts",
-        "project_app/security/alert_detail": "apps/project_app/static/project_app/ts/security/alert_detail.ts",
-        "project_app/users/profile": "apps/project_app/static/project_app/ts/users/profile.ts",
-        "project_app/workflows/detail": "apps/project_app/static/project_app/ts/workflows/detail.ts",
-        "project_app/workflows/editor": "apps/project_app/static/project_app/ts/workflows/editor.ts",
-        "project_app/workflows/run_detail": "apps/project_app/static/project_app/ts/workflows/run_detail.ts",
-        # Scholar app
-        "scholar_app/scholar-config": "apps/scholar_app/static/scholar_app/ts/scholar-config.ts",
-        # Public app
-        "public_app/visitor-status": "apps/public_app/static/public_app/ts/visitor-status.ts",
-        "public_app/server-status": "apps/public_app/static/public_app/ts/server-status.ts",
-        "public_app/landing-demos-inline": "apps/public_app/static/public_app/ts/landing-demos-inline.ts",
-        "public_app/landing/module-cards": "apps/public_app/static/public_app/ts/landing/module-cards.ts",
-        "public_app/tools/view-plot/index": "apps/public_app/static/public_app/ts/tools/view-plot/index.ts",
-        "public_app/tools/run-stats": "apps/public_app/static/public_app/ts/tools/run-stats/index.ts",
-        "public_app/pages/api-docs": "apps/public_app/static/public_app/ts/pages/api-docs.ts",
-        "public_app/pages/release-timeline": "apps/public_app/static/public_app/ts/pages/release-timeline.ts",
-        # Accounts app
-        "accounts_app/profile": "apps/accounts_app/static/accounts_app/ts/profile.ts",
-        "accounts_app/account-settings": "apps/accounts_app/static/accounts_app/ts/account-settings.ts",
-        "accounts_app/ssh_keys": "apps/accounts_app/static/accounts_app/ts/ssh_keys.ts",
-        "accounts_app/remote_credentials": "apps/accounts_app/static/accounts_app/ts/remote_credentials.ts",
-        # Docs app
-        "docs_app/rtd-embed": "apps/docs_app/static/docs_app/ts/rtd-embed.ts",
-        # Social app
-        "social_app/explore-inline": "apps/social_app/static/social_app/ts/explore-inline.ts",
-        # Scholar app - additional
-        "scholar_app/bibtex/status-tiles": "apps/scholar_app/static/scholar_app/ts/bibtex/status-tiles.ts",
-        "scholar_app/bibtex/bibtex-enrichment": "apps/scholar_app/static/scholar_app/ts/bibtex/bibtex-enrichment.ts",
-        "scholar_app/bibtex/queue-management": "apps/scholar_app/static/scholar_app/ts/bibtex/queue-management.ts",
-        "scholar_app/shared/collapsible-panels": "apps/scholar_app/static/scholar_app/ts/shared/collapsible-panels.ts",
-        "scholar_app/shared/panel-resizer": "apps/scholar_app/static/scholar_app/ts/shared/panel-resizer.ts",
-        "scholar_app/common/project-selector": "apps/scholar_app/static/scholar_app/ts/common/project-selector.ts",
-        "scholar_app/scholar-workspace-init": "apps/scholar_app/static/scholar_app/ts/scholar-workspace-init.ts",
-        "scholar_app/bibtex/job-detail-ui": "apps/scholar_app/static/scholar_app/ts/bibtex/job-detail-ui.ts",
-        "scholar_app/bibtex/scholar-ai2-integration": "apps/scholar_app/static/scholar_app/ts/bibtex/scholar-ai2-integration.ts",
-        "scholar_app/common/init-tabs": "apps/scholar_app/static/scholar_app/ts/common/init-tabs.ts",
-        "scholar_app/common/scholar-index-main": "apps/scholar_app/static/scholar_app/ts/common/scholar-index-main.ts",
-        "scholar_app/search/nouislider-init": "apps/scholar_app/static/scholar_app/ts/search/nouislider-init.ts",
-        "scholar_app/search/panel-toggle": "apps/scholar_app/static/scholar_app/ts/search/panel-toggle.ts",
-        "scholar_app/search/scitex-search": "apps/scholar_app/static/scholar_app/ts/search/scitex-search.ts",
-        "scholar_app/search/advanced-sorting": "apps/scholar_app/static/scholar_app/ts/search/advanced-sorting.ts",
-        "scholar_app/search/drag-sort": "apps/scholar_app/static/scholar_app/ts/search/drag-sort.ts",
-        "scholar_app/search/swarm-plots": "apps/scholar_app/static/scholar_app/ts/search/swarm-plots.ts",
-        "scholar_app/search/seekbar-integration": "apps/scholar_app/static/scholar_app/ts/search/seekbar-integration.ts",
-        "scholar_app/search/search-ui": "apps/scholar_app/static/scholar_app/ts/search/search-ui.ts",
-        "scholar_app/init/swarm-plots-init": "apps/scholar_app/static/scholar_app/ts/init/swarm-plots-init.ts",
-        "scholar_app/graph/citation-graph": "apps/scholar_app/static/scholar_app/ts/graph/citation-graph.ts",
-        "scholar_app/search/search-controls": "apps/scholar_app/static/scholar_app/ts/search/search-controls.ts",
-        "scholar_app/search/source-health-check": "apps/scholar_app/static/scholar_app/ts/search/source-health-check.ts",
-        # Project app - additional
-        "project_app/projects/settings": "apps/project_app/static/project_app/ts/projects/settings.ts",
-        # Workspace app (non-standard static location)
+    # Non-conventional overrides: entries where path doesn't follow standard convention.
+    # Standard convention is handled dynamically below.
+    _non_conventional = {
+        # workspace_app: non-standard static location (top-level static/, not apps/)
         "workspace_app/workspace-shell": "static/workspace_app/ts/workspace-shell.ts",
-        # Shared utilities
-        "shared/utils/theme-switcher": "static/shared/ts/utils/theme-switcher.ts",
-        "shared/utils/tooltip-auto-position": "static/shared/ts/utils/tooltip-auto-position.ts",
-        "shared/utils/main": "static/shared/ts/utils/main.ts",
-        "shared/utils/dropdown": "static/shared/ts/utils/dropdown.ts",
-        "shared/utils/django-messages": "static/shared/ts/utils/django-messages.ts",
-        "shared/utils/element-inspector": "static/shared/ts/utils/element-inspector.ts",
-        "shared/utils/console-interceptor": "static/shared/ts/utils/console-interceptor.ts",
-        "shared/code-blocks": "static/shared/ts/code-blocks.ts",
-        "shared/components/confirm-modal": "static/shared/ts/components/confirm-modal.ts",
-        "shared/components/header": "static/shared/ts/components/header.ts",
-        "shared/components/dev-tools": "static/shared/ts/components/dev-tools.ts",
+        # shared: entries where key name != file path under static/shared/ts/
+        "shared/workspace-tree-init": "static/shared/ts/components/workspace-files-tree/auto-init.ts",
+        "shared/workspace-viewer-init": "static/shared/ts/components/workspace-viewer/init.ts",
         "shared/components/workspace-files-tree": "static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree.ts",
-        "shared/components/seekbar": "static/shared/ts/components/seekbar.ts",
-        "shared/utils/highlight-js-bibtex": "static/shared/ts/utils/highlight-js-bibtex.ts",
         "shared/workspace-panel-resizer": "static/shared/ts/components/workspace-panel-resizer.ts",
         "shared/collapsible-panel-click-expand": "static/shared/ts/components/collapsible-panel-click-expand.ts",
         "shared/resizer": "static/shared/ts/components/resizer/index.ts",
         "shared/repo-monitor": "static/shared/ts/components/repo-monitor/index.ts",
-        "shared/components/footer-collapse": "static/shared/ts/components/footer-collapse.ts",
-        "shared/utils/analytics": "static/shared/ts/utils/analytics.ts",
-        "shared/utils/visitor-heartbeat": "static/shared/ts/utils/visitor-heartbeat.ts",
-        "shared/components/product-tour": "static/shared/ts/components/product-tour.ts",
-        "shared/components/cookie-consent": "static/shared/ts/components/cookie-consent.ts",
-        "shared/components/project-selector": "static/shared/ts/components/project-selector.ts",
-        "shared/workspace-tree-init": "static/shared/ts/components/workspace-files-tree/auto-init.ts",
-        "shared/workspace-viewer-init": "static/shared/ts/components/workspace-viewer/init.ts",
-        # Landing page
-        "public_app/landing/hero-demo": "apps/public_app/static/public_app/ts/landing/hero-demo.ts",
-        "public_app/pages/visitor-pool-full": "apps/public_app/static/public_app/ts/pages/visitor-pool-full.ts",
     }
 
-    # Check explicit mapping first
-    if entry_name in mappings:
-        return mappings[entry_name]
+    if entry_name in _non_conventional:
+        return _non_conventional[entry_name]
 
-    # Convention-based fallback: derive path from entry name
+    # Convention-based resolution
     parts = entry_name.split("/")
     if len(parts) >= 2:
         app_name = parts[0]
         rest = "/".join(parts[1:])
 
-        # App-specific paths: "{app}_app/{path}" -> "apps/{app}_app/static/{app}_app/ts/{path}.ts"
+        # App-specific: search workspace/ and infra/ groups dynamically
         if app_name.endswith("_app"):
-            return f"apps/{app_name}/static/{app_name}/ts/{rest}.ts"
+            return _find_app_ts_path(app_name, rest)
 
-        # Shared paths: "shared/{path}" -> "static/shared/ts/{path}.ts"
+        # Shared: "shared/{path}" -> "static/shared/ts/{path}.ts"
         if app_name == "shared":
             return f"static/shared/ts/{rest}.ts"
 

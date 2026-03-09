@@ -1,0 +1,77 @@
+{% comment %}
+Organization Members settings section.
+{% endcomment %}
+<div class="settings-header">
+    <h1 class="settings-title">Members</h1>
+    <p class="settings-subtitle">Manage who has access to this organization.</p>
+</div>
+<!-- Add member form -->
+<div class="form-section">
+    <h3 class="form-section-title">Invite member</h3>
+    <form class="org-add-member-form" data-org-slug="{{ organization.slug }}">
+        {% csrf_token %}
+        <div class="org-invite-row">
+            <div class="form-group org-invite-username">
+                <label for="invite-username">Username</label>
+                <input type="text"
+                       id="invite-username"
+                       name="username"
+                       placeholder="Enter username"
+                       required />
+            </div>
+            <div class="form-group org-invite-role">
+                <label for="invite-role">Role</label>
+                <select id="invite-role" name="role" class="form-select">
+                    <option value="member">Member</option>
+                    <option value="admin">Admin</option>
+                    <option value="viewer">Viewer</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-save org-invite-btn">
+                <i class="fas fa-user-plus"></i> Invite
+            </button>
+        </div>
+    </form>
+</div>
+<!-- Members list -->
+<div class="form-section">
+    <h3 class="form-section-title">Organization members</h3>
+    <div class="org-members-list" id="org-members-list">
+        {% if memberships %}
+            {% for m in memberships %}
+                <div class="org-member-row" data-username="{{ m.user.username }}">
+                    <div class="org-member-info">
+                        {% if m.user.profile.avatar %}
+                            <img src="{{ m.user.profile.avatar.url }}"
+                                 class="org-member-avatar"
+                                 alt="{{ m.user.username }}" />
+                        {% else %}
+                            <div class="org-member-avatar org-member-avatar-letter">{{ m.user.username|slice:":1"|upper }}</div>
+                        {% endif %}
+                        <div>
+                            <div class="org-member-name">{{ m.user.get_full_name|default:m.user.username }}</div>
+                            <div class="org-member-handle">@{{ m.user.username }}</div>
+                        </div>
+                    </div>
+                    <div class="org-member-actions">
+                        <select class="form-select org-role-select"
+                                data-username="{{ m.user.username }}"
+                                data-org-slug="{{ organization.slug }}">
+                            <option value="admin" {% if m.role == 'admin' %}selected{% endif %}>Admin</option>
+                            <option value="member" {% if m.role == 'member' %}selected{% endif %}>Member</option>
+                            <option value="viewer" {% if m.role == 'viewer' %}selected{% endif %}>Viewer</option>
+                        </select>
+                        <button class="btn-danger-sm org-remove-member-btn"
+                                data-username="{{ m.user.username }}"
+                                data-org-slug="{{ organization.slug }}"
+                                title="Remove member">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted">No members yet. Invite someone above.</p>
+        {% endif %}
+    </div>
+</div>

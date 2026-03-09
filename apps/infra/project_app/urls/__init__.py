@@ -30,6 +30,8 @@ The main config/urls.py includes this at: path('<str:username>/', include('apps.
 
 from django.urls import include, path
 
+from apps.infra.organizations_app import views as org_views
+
 from .. import views
 from ..api_views_module import api_views
 from ..views import pr as pr_views
@@ -82,6 +84,31 @@ urlpatterns = [
         "api/repository-restore/",
         views.api_repository_restore,
         name="api_repository_restore",
+    ),
+    # Organization settings (must be before <slug:slug>/ catch-all)
+    # /<org-slug>/settings/ — org settings page
+    path("settings/api/general/", org_views.api_update_general, name="org_api_general"),
+    path(
+        "settings/api/members/add/",
+        org_views.api_add_member,
+        name="org_api_add_member",
+    ),
+    path(
+        "settings/api/members/role/",
+        org_views.api_update_member_role,
+        name="org_api_update_member_role",
+    ),
+    path(
+        "settings/api/members/remove/",
+        org_views.api_remove_member,
+        name="org_api_remove_member",
+    ),
+    path("settings/api/delete/", org_views.api_delete_org, name="org_api_delete"),
+    path("settings/", org_views.org_settings, name="org_settings"),
+    path(
+        "settings/<str:section>/",
+        org_views.org_settings_section,
+        name="org_settings_section",
     ),
     # Project-level URLs (require slug parameter)
     # /<username>/<slug>/...

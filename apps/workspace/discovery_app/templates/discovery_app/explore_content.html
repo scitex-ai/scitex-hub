@@ -21,6 +21,16 @@ Also included directly in discovery_partial.html for initial render.
                                      alt="{{ repo.org_owner.name }}" />
                             {% elif repo.is_org_owned %}
                                 <span class="discovery-owner-badge"><i class="fas fa-building"></i></span>
+                            {% elif repo.owner_org and repo.owner_org.avatar %}
+                                <img src="{{ repo.owner_org.avatar.url }}"
+                                     class="discovery-owner-badge-img"
+                                     alt="{{ repo.owner_org.name }}" />
+                            {% elif repo.owner_org and repo.owner_org.avatar_static_url %}
+                                <img src="{% static repo.owner_org.avatar_static_url %}"
+                                     class="discovery-owner-badge-img"
+                                     alt="{{ repo.owner_org.name }}" />
+                            {% elif repo.owner_org %}
+                                <span class="discovery-owner-badge"><i class="fas fa-building"></i></span>
                             {% elif repo.owner.profile.avatar %}
                                 <img src="{{ repo.owner.profile.avatar.url }}"
                                      class="discovery-owner-badge-img"

@@ -1,0 +1,79 @@
+{% comment %}
+Organization General settings section.
+{% endcomment %}
+{% load static %}
+
+<div class="settings-header">
+    <h1 class="settings-title">General</h1>
+    <p class="settings-subtitle">Manage your organization's profile and settings.</p>
+</div>
+<form method="post"
+      action="/{{ organization.slug }}/settings/api/general/"
+      enctype="multipart/form-data"
+      class="org-settings-form"
+      data-section="general">
+    {% csrf_token %}
+    <details class="settings-details">
+        <summary class="settings-summary">
+            <i class="fas fa-image"></i> Organization avatar
+        </summary>
+        <div class="form-section">
+            <div class="avatar-upload">
+                <div class="avatar-preview org-avatar-preview">
+                    {% if organization.avatar %}
+                        <img src="{{ organization.avatar.url }}" alt="{{ organization.name }}" />
+                    {% elif organization.avatar_static_url %}
+                        <img src="{% static organization.avatar_static_url %}" alt="{{ organization.name }}" />
+                    {% else %}
+                        <i class="fas fa-building"></i>
+                    {% endif %}
+                </div>
+                <div class="avatar-upload-controls">
+                    <div class="file-input-wrapper">
+                        <input type="file" name="avatar" id="org-avatar-input" accept="image/*" />
+                        <label for="org-avatar-input" class="file-input-label">
+                            <i class="fas fa-upload"></i>
+                            <span>Upload new avatar</span>
+                        </label>
+                    </div>
+                    <p class="form-help mt-2">Max size: 2MB. Recommended: 500x500px square image.</p>
+                </div>
+            </div>
+        </div>
+    </details>
+    <details class="settings-details" open>
+        <summary class="settings-summary">
+            <i class="fas fa-building"></i> Organization profile
+        </summary>
+        <div class="form-section">
+            <div class="form-group">
+                <label for="org-name">Organization name</label>
+                <input type="text" id="org-name" name="name" value="{{ organization.name }}" required />
+            </div>
+            <div class="form-group">
+                <label>Slug</label>
+                <input type="text" value="{{ organization.slug }}" disabled />
+                <p class="form-help">URL identifier cannot be changed</p>
+            </div>
+            <div class="form-group">
+                <label for="org-description">Description</label>
+                <textarea id="org-description"
+                          name="description"
+                          placeholder="What does your organization do?">{{ organization.description }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="org-website">Website</label>
+                <input type="url"
+                       id="org-website"
+                       name="website"
+                       value="{{ organization.website }}"
+                       placeholder="https://example.com" />
+            </div>
+        </div>
+    </details>
+    <div class="form-actions">
+        <button type="submit" class="btn-save">
+            <i class="fas fa-check"></i> Save changes
+        </button>
+    </div>
+</form>
