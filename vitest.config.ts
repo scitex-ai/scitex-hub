@@ -16,26 +16,26 @@ export default defineConfig({
   resolve: {
     alias: {
       // App aliases for imports
-      "@vis_app": path.resolve(__dirname, "apps/vis_app/static/vis_app/ts"),
+      "@vis_app": path.resolve(__dirname, "apps/workspace/vis_app/static/vis_app/ts"),
       "@console_app": path.resolve(
         __dirname,
-        "apps/console_app/static/console_app/ts",
+        "apps/workspace/console_app/static/console_app/ts",
       ),
       "@project_app": path.resolve(
         __dirname,
-        "apps/project_app/static/project_app/ts",
+        "apps/infra/project_app/static/project_app/ts",
       ),
       "@scholar_app": path.resolve(
         __dirname,
-        "apps/scholar_app/static/scholar_app/ts",
+        "apps/workspace/scholar_app/static/scholar_app/ts",
       ),
       "@writer_app": path.resolve(
         __dirname,
-        "apps/writer_app/static/writer_app/ts",
+        "apps/workspace/writer_app/static/writer_app/ts",
       ),
       "@public_app": path.resolve(
         __dirname,
-        "apps/public_app/static/public_app/ts",
+        "apps/infra/public_app/static/public_app/ts",
       ),
       "@shared": path.resolve(__dirname, "static/shared/ts"),
     },
