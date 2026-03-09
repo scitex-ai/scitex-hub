@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from ..models import UserModule
+from ..models import UserApp
 
 
 def build_usermod_context(request, current_project=None):
@@ -14,9 +14,9 @@ def build_usermod_context(request, current_project=None):
     Returns the user's modules list for the my_modules_partial template.
     """
     if request.user.is_authenticated:
-        modules = UserModule.objects.filter(author=request.user, is_active=True)
+        modules = UserApp.objects.filter(author=request.user, is_active=True)
     else:
-        modules = UserModule.objects.none()
+        modules = UserApp.objects.none()
 
     return {
         "current_project": current_project,

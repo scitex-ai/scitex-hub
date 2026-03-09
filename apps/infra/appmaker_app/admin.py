@@ -6,11 +6,11 @@ from __future__ import annotations
 
 from django.contrib import admin
 
-from .models import ModuleExecution, UserModule
+from .models import AppExecution, UserApp
 
 
-@admin.register(UserModule)
-class UserModuleAdmin(admin.ModelAdmin):
+@admin.register(UserApp)
+class UserAppAdmin(admin.ModelAdmin):
     list_display = (
         "slug",
         "label",
@@ -37,8 +37,8 @@ class UserModuleAdmin(admin.ModelAdmin):
         return obj.is_git_sourced
 
 
-@admin.register(ModuleExecution)
-class ModuleExecutionAdmin(admin.ModelAdmin):
+@admin.register(AppExecution)
+class AppExecutionAdmin(admin.ModelAdmin):
     list_display = (
         "module",
         "user",

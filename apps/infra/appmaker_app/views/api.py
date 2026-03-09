@@ -15,7 +15,7 @@ from django.views.decorators.http import require_http_methods
 
 from apps.infra.project_app.services.project_utils import get_current_project
 
-from ..models import ModuleExecution, UserModule
+from ..models import AppExecution, UserApp
 from ._helpers import has_forbidden_patterns
 
 logger = logging.getLogger(__name__)
@@ -58,13 +58,13 @@ def api_create_module(request):
             status=400,
         )
 
-    if UserModule.objects.filter(author=request.user, slug=slug).exists():
+    if UserApp.objects.filter(author=request.user, slug=slug).exists():
         return JsonResponse(
             {"success": False, "error": f"Module with slug '{slug}' already exists."},
             status=400,
         )
 
-    user_module = UserModule.objects.create(
+    user_module = UserApp.objects.create(
         slug=slug,
         label=label,
         author=request.user,
@@ -88,7 +88,7 @@ def api_create_module(request):
 def api_update_module(request, slug):
     """Update an existing user module."""
     user_module = get_object_or_404(
-        UserModule, slug=slug, author=request.user, is_active=True
+        UserApp, slug=slug, author=request.user, is_active=True
     )
 
     try:
@@ -136,7 +136,7 @@ def api_run_module(request, slug):
         run_in_user_allocation,
     )
 
-    user_module = get_object_or_404(UserModule, slug=slug, is_active=True)
+    user_module = get_object_or_404(UserApp, slug=slug, is_active=True)
 
     if user_module.visibility == "private" and user_module.author != request.user:
         return JsonResponse(
@@ -167,7 +167,7 @@ def api_run_module(request, slug):
     script_host = runs_dir / f"module_{run_id}.py"
     script_container = f"/workspace/.scitex_runs/module_{run_id}.py"
 
-    execution = ModuleExecution.objects.create(
+    execution = AppExecution.objects.create(
         module=user_module,
         user=request.user,
         project=current_project,
@@ -228,7 +228,7 @@ def api_run_module(request, slug):
 def api_delete_module(request, slug):
     """Soft-delete a user module (set is_active=False)."""
     user_module = get_object_or_404(
-        UserModule, slug=slug, author=request.user, is_active=True
+        UserApp, slug=slug, author=request.user, is_active=True
     )
 
     user_module.is_active = False

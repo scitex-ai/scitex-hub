@@ -18,7 +18,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 from django.views.decorators.http import require_http_methods
 
-from ..models import UserModule
+from ..models import UserApp
 from ._helpers import has_forbidden_patterns
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ def api_import_from_github(request):
     """Import a module from a GitHub/git repository URL.
 
     Clones the repo to a temp dir, reads module.py for source code,
-    reads manifest.yaml for metadata, validates, and creates UserModule.
+    reads manifest.yaml for metadata, validates, and creates UserApp.
     """
     try:
         data = json.loads(request.body)
@@ -74,13 +74,13 @@ def api_import_from_github(request):
             status=400,
         )
 
-    if UserModule.objects.filter(author=request.user, slug=slug).exists():
+    if UserApp.objects.filter(author=request.user, slug=slug).exists():
         return JsonResponse(
             {"success": False, "error": f"Module with slug '{slug}' already exists."},
             status=400,
         )
 
-    user_module = UserModule.objects.create(
+    user_module = UserApp.objects.create(
         slug=slug,
         label=module_data["label"],
         author=request.user,
@@ -107,7 +107,7 @@ def api_import_from_github(request):
 def api_sync_from_github(request, slug):
     """Re-sync a git-sourced module from its origin repository."""
     user_module = get_object_or_404(
-        UserModule, slug=slug, author=request.user, is_active=True
+        UserApp, slug=slug, author=request.user, is_active=True
     )
 
     if not user_module.source_repo_url:

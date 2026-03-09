@@ -3,8 +3,8 @@
 """
 App Maker models — user-authored workspace apps and their execution history.
 
-UserModule stores the source code and metadata for a custom app.
-ModuleExecution tracks each run with timing, memory, status, and outputs.
+UserApp stores the source code and metadata for a custom app.
+AppExecution tracks each run with timing, memory, status, and outputs.
 """
 
 from __future__ import annotations
@@ -12,8 +12,8 @@ from __future__ import annotations
 from django.contrib.auth.models import User
 from django.db import models
 
-from apps.workspace.apps_app.models import CATEGORY_CHOICES
 from apps.infra.project_app.models import Project
+from apps.workspace.apps_app.models import CATEGORY_CHOICES
 
 VISIBILITY_CHOICES = [
     ("private", "Private"),
@@ -29,7 +29,7 @@ EXECUTION_STATUS_CHOICES = [
 ]
 
 
-class UserModule(models.Model):
+class UserApp(models.Model):
     """A user-authored workspace module with Python source code."""
 
     slug = models.SlugField(max_length=60, db_index=True)
@@ -90,11 +90,11 @@ class UserModule(models.Model):
         return f"{self.author.username}/{self.slug} v{self.version}"
 
 
-class ModuleExecution(models.Model):
+class AppExecution(models.Model):
     """Record of a single module execution with timing and output data."""
 
     module = models.ForeignKey(
-        UserModule,
+        UserApp,
         on_delete=models.CASCADE,
         related_name="executions",
     )
