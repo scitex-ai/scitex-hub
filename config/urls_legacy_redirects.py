@@ -23,6 +23,12 @@ LEGACY_APP_NAMES = [
     "appmaker",
     "llm",
     "clew",
+    # Moved to /apps/ prefix
+    "home",
+    "hub",
+    "discovery",
+    "tools",
+    "docs",
 ]
 
 urlpatterns = [
