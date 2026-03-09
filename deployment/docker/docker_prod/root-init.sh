@@ -114,10 +114,12 @@ fi
 # ============================================
 # Fix Vite staticfiles permissions
 # ============================================
-# Fix ownership instead of deleting (preserve built files)
+# Clean stale vite output so the scitex user can rebuild fresh.
+# The build step in entrypoint will recreate this directory.
 if [ -d "/app/staticfiles/vite" ]; then
-    chown -R scitex:scitex /app/staticfiles/vite 2>/dev/null || true
-    chmod -R 755 /app/staticfiles/vite 2>/dev/null || true
+    rm -rf /app/staticfiles/vite
+    echo "✅ Vite staticfiles cleaned (will rebuild)"
+else
     echo "✅ Vite staticfiles permissions fixed"
 fi
 

@@ -94,6 +94,10 @@ elif [ -n "$(find static apps -name '*.ts' -newer staticfiles/vite/.build-timest
 fi
 
 if [ "$VITE_REBUILD_NEEDED" = true ]; then
+    # Ensure vite output dir is writable (collectstatic or prior build may leave root-owned files)
+    if [ -d "staticfiles/vite" ]; then
+        chmod -R u+rwX staticfiles/vite 2>/dev/null || true
+    fi
     echo_info "Building TypeScript files with Vite..."
     npm run build
     touch staticfiles/vite/.build-timestamp
