@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 from django.test import RequestFactory
 
-from apps.vis_app.views.api.bundles.pltz_property import (
+from apps.workspace.vis_app.views.api.bundles.pltz_property import (
     batch_update_pltz_properties,
     update_pltz_property,
 )
@@ -68,7 +68,7 @@ class TestUpdatePltzProperty:
         request.user = user
 
         with patch(
-            "apps.vis_app.views.api.bundles.pltz_property._get_pltz_class"
+            "apps.workspace.vis_app.views.api.bundles.pltz_property._get_pltz_class"
         ) as mock_get_pltz:
             mock_pltz_instance = MagicMock()
             mock_pltz_instance.spec = {"axes": [{"labels": {"title": "Test"}}]}
@@ -100,7 +100,7 @@ class TestUpdatePltzProperty:
         request.user = user
 
         with patch(
-            "apps.vis_app.views.api.bundles.pltz_property._get_pltz_class"
+            "apps.workspace.vis_app.views.api.bundles.pltz_property._get_pltz_class"
         ) as mock_get_pltz:
             mock_pltz_instance = MagicMock()
             mock_pltz_instance.spec = {"axes": [{"labels": {"title": "Old"}}]}
@@ -190,7 +190,7 @@ class TestBatchUpdatePltzProperties:
         request.user = user
 
         with patch(
-            "apps.vis_app.views.api.bundles.pltz_property._get_pltz_class"
+            "apps.workspace.vis_app.views.api.bundles.pltz_property._get_pltz_class"
         ) as mock_get_pltz:
             mock_pltz_instance = MagicMock()
             mock_pltz_instance.spec = {"axes": [{"labels": {"title": "Old"}}]}
@@ -227,7 +227,7 @@ class TestBatchUpdatePltzProperties:
         request.user = user
 
         with patch(
-            "apps.vis_app.views.api.bundles.pltz_property._get_pltz_class"
+            "apps.workspace.vis_app.views.api.bundles.pltz_property._get_pltz_class"
         ) as mock_get_pltz:
             mock_pltz_instance = MagicMock()
             mock_pltz_instance.spec = {"axes": [{"labels": {"title": "Old"}}]}

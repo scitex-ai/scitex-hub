@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.views.repository.api.directory import ...
+# from apps.infra.project_app.views.repository.api.directory import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,24 +32,24 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # """
 # Directory Concatenation API
-# 
+#
 # This module contains API endpoints for directory operations like concatenation.
 # """
-# 
+#
 # from __future__ import annotations
 # import logging
-# 
+#
 # from django.shortcuts import get_object_or_404
 # from django.contrib.auth.decorators import login_required
 # from django.contrib.auth.models import User
 # from django.http import JsonResponse
-# 
+#
 # from ....models import Project
 # from .permissions import check_project_write_access
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # # File extensions and sizes configuration
 # WHITELIST_EXTS = {
 #     ".txt",
@@ -63,8 +64,8 @@ if __name__ == "__main__":
 #     ".bib",
 # }
 # MAX_FILE_SIZE = 100000  # 100KB
-# 
-# 
+#
+#
 # # Language mapping for syntax highlighting
 # LANG_MAP = {
 #     ".py": "python",
@@ -75,8 +76,8 @@ if __name__ == "__main__":
 #     ".md": "markdown",
 #     ".tex": "latex",
 # }
-# 
-# 
+#
+#
 # @login_required
 # def api_concatenate_directory(request, username, slug, directory_path=""):
 #     """
@@ -85,24 +86,24 @@ if __name__ == "__main__":
 #     """
 #     user = get_object_or_404(User, username=username)
 #     project = get_object_or_404(Project, slug=slug, owner=user)
-# 
+#
 #     # Check access
 #     if not check_project_write_access(request, project):
 #         return JsonResponse({"success": False, "error": "Permission denied"})
-# 
+#
 #     # Get directory path
-#     from apps.project_app.services.project_filesystem import (
+#     from apps.infra.project_app.services.project_filesystem import (
 #         get_project_filesystem_manager,
 #     )
-# 
+#
 #     manager = get_project_filesystem_manager(project.owner)
 #     project_path = manager.get_project_root_path(project)
-# 
+#
 #     if not project_path or not project_path.exists():
 #         return JsonResponse({"success": False, "error": "Project directory not found"})
-# 
+#
 #     dir_path = project_path / directory_path
-# 
+#
 #     # Security check
 #     try:
 #         dir_path = dir_path.resolve()
@@ -111,10 +112,10 @@ if __name__ == "__main__":
 #     except (ValueError, OSError, RuntimeError) as e:
 #         logger.warning(f"Path resolution failed: {e}")
 #         return JsonResponse({"success": False, "error": "Invalid path"})
-# 
+#
 #     if not dir_path.exists() or not dir_path.is_dir():
 #         return JsonResponse({"success": False, "error": "Directory not found"})
-# 
+#
 #     output = []
 #     output.append(
 #         f"# Directory View: {directory_path if directory_path else 'Project Root'}"
@@ -124,7 +125,7 @@ if __name__ == "__main__":
 #     output.append(f"")
 #     output.append(f"## File Contents")
 #     output.append(f"")
-# 
+#
 #     # Recursively get all files
 #     for file_path in sorted(dir_path.rglob("*")):
 #         if not file_path.is_file():
@@ -138,13 +139,13 @@ if __name__ == "__main__":
 #             continue
 #         if file_path.stat().st_size > MAX_FILE_SIZE:
 #             continue
-# 
+#
 #         try:
 #             rel_path = file_path.relative_to(dir_path)
 #             content = file_path.read_text(encoding="utf-8", errors="ignore")
-# 
+#
 #             lang = LANG_MAP.get(file_path.suffix.lower(), "plaintext")
-# 
+#
 #             output.append(f"### `{rel_path}`")
 #             output.append(f"")
 #             output.append(f"```{lang}")
@@ -155,9 +156,9 @@ if __name__ == "__main__":
 #             output.append(f"")
 #         except Exception:
 #             continue
-# 
+#
 #     concatenated_content = "\n".join(output)
-# 
+#
 #     return JsonResponse(
 #         {
 #             "success": True,
@@ -165,8 +166,8 @@ if __name__ == "__main__":
 #             "file_count": len([l for l in output if l.startswith("###")]),
 #         }
 #     )
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

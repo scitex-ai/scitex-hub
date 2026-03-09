@@ -84,7 +84,9 @@ class TestPaperToDict:
     """Tests for the _paper_to_dict adapter."""
 
     def test_basic_conversion(self):
-        from apps.scholar_app.views.library.zotero_import import _paper_to_dict
+        from apps.workspace.scholar_app.views.library.zotero_import import (
+            _paper_to_dict,
+        )
 
         paper = MagicMock()
         paper.metadata.basic.title = "Test Title"
@@ -111,7 +113,9 @@ class TestPaperToDict:
         assert result["source"] == "zotero"
 
     def test_empty_authors(self):
-        from apps.scholar_app.views.library.zotero_import import _paper_to_dict
+        from apps.workspace.scholar_app.views.library.zotero_import import (
+            _paper_to_dict,
+        )
 
         paper = MagicMock()
         paper.metadata.basic.title = "Title"

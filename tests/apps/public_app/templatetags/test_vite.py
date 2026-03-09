@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.public_app.templatetags.vite import ...
+# from apps.infra.public_app.templatetags.vite import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,46 +29,46 @@ if __name__ == "__main__":
 # # -*- coding: utf-8 -*-
 # """
 # Vite integration for Django.
-# 
+#
 # In development (DEBUG=True): Serves JS from Vite dev server with HMR
 # In production (DEBUG=False): Uses built files from staticfiles/vite manifest
-# 
+#
 # Usage in templates:
 #   {% load vite %}
 #   {% vite_script 'console_app/workspace' %}
-# 
+#
 # Note: In development, Vite dev server must be running (npm run dev).
 #       No fallback to tsc-compiled JS - keeps the system simple and predictable.
 # """
-# 
+#
 # import json
 # from pathlib import Path
 # from django import template
 # from django.conf import settings
 # from django.utils.safestring import mark_safe
-# 
+#
 # register = template.Library()
-# 
+#
 # # Cache manifest in production
 # _manifest_cache = None
-# 
-# 
+#
+#
 # def get_manifest() -> dict:
 #     """Load the Vite manifest file (production only)."""
 #     global _manifest_cache
 #     if _manifest_cache is not None:
 #         return _manifest_cache
-# 
+#
 #     manifest_path = Path(settings.BASE_DIR) / 'staticfiles' / 'vite' / '.vite' / 'manifest.json'
 #     if manifest_path.exists():
 #         with open(manifest_path) as f:
 #             _manifest_cache = json.load(f)
 #     else:
 #         _manifest_cache = {}
-# 
+#
 #     return _manifest_cache
-# 
-# 
+#
+#
 # @register.simple_tag
 # def vite_hmr_client():
 #     """
@@ -79,16 +80,16 @@ if __name__ == "__main__":
 #             '<script type="module" src="http://127.0.0.1:5173/@vite/client"></script>'
 #         )
 #     return ''
-# 
-# 
+#
+#
 # @register.simple_tag
 # def vite_script(entry_name: str):
 #     """
 #     Load a Vite entry point script.
-# 
+#
 #     In development (DEBUG=True): Load from Vite dev server (HMR)
 #     In production (DEBUG=False): Load from Vite-built manifest
-# 
+#
 #     Args:
 #         entry_name: Entry name like 'console_app/workspace'
 #     """
@@ -102,7 +103,7 @@ if __name__ == "__main__":
 #         # Production: Load from Vite manifest
 #         manifest = get_manifest()
 #         ts_path = _entry_to_ts_path(entry_name)
-# 
+#
 #         if ts_path in manifest:
 #             js_file = manifest[ts_path]['file']
 #             return mark_safe(
@@ -113,8 +114,8 @@ if __name__ == "__main__":
 #             import logging
 #             logging.getLogger(__name__).error(f"Vite entry '{entry_name}' not found in manifest")
 #             return ''
-# 
-# 
+#
+#
 # @register.simple_tag
 # def vite_legacy_script(static_path: str):
 #     """
@@ -122,18 +123,18 @@ if __name__ == "__main__":
 #     Uses traditional Django static with build_id cache-busting.
 #     """
 #     from config.context_processors import cache_buster
-# 
+#
 #     # Get build_id (pass a mock request)
 #     class MockRequest:
 #         pass
 #     ctx = cache_buster(MockRequest())
 #     build_id = ctx.get('build_id', '')
-# 
+#
 #     return mark_safe(
 #         f'<script type="module" src="{settings.STATIC_URL}{static_path}?v={build_id}"></script>'
 #     )
-# 
-# 
+#
+#
 # def _entry_to_ts_path(entry_name: str) -> str:
 #     """Convert entry name to TypeScript file path (for Vite)."""
 #     # Map entry names to actual TS file locations
@@ -241,8 +242,8 @@ if __name__ == "__main__":
 #         'shared/workspace-panel-resizer': 'static/shared/ts/components/workspace-panel-resizer.ts',
 #     }
 #     return mappings.get(entry_name, f'{entry_name}.ts')
-# 
-# 
+#
+#
 
 # --------------------------------------------------------------------------------
 # End of Source Code from: apps/public_app/templatetags/vite.py

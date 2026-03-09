@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.services.utils.model_imports import ...
+# from apps.infra.project_app.services.utils.model_imports import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,11 +27,11 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # # Central import file for accessing models from modular apps
 # # This allows backward compatibility while maintaining modular architecture
-# 
+#
 # # Auth models
 # try:
-#     from apps.auth_app.models import UserProfile, EmailVerification
-#     from apps.auth_app.models import (
+#     from apps.infra.auth_app.models import UserProfile, EmailVerification
+#     from apps.infra.auth_app.models import (
 #         is_japanese_academic_email,
 #         JAPANESE_ACADEMIC_DOMAINS,
 #     )
@@ -40,16 +41,16 @@ if __name__ == "__main__":
 #     EmailVerification = None
 #     is_japanese_academic_email = None
 #     JAPANESE_ACADEMIC_DOMAINS = []
-# 
+#
 # # Document models
 # try:
 #     from apps.document_app.models import Document
 # except ImportError:
 #     Document = None
-# 
+#
 # # Project models
 # try:
-#     from apps.project_app.models import (
+#     from apps.infra.project_app.models import (
 #         Project,
 #         ProjectMembership,
 #         Organization,
@@ -64,7 +65,7 @@ if __name__ == "__main__":
 #     ResearchGroup = None
 #     ResearchGroupMembership = None
 #     ProjectPermission = None
-# 
+#
 # # Export all models for easy importing
 # __all__ = [
 #     "UserProfile",

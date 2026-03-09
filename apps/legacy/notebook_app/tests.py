@@ -8,7 +8,7 @@ Run: pytest apps/notebook_app/tests.py
 
 from django.test import TestCase
 
-from apps.workspace_app.registry import ModuleTestMixin
+from apps.infra.workspace_app.registry import ModuleTestMixin
 
 
 class NotebookModuleTest(ModuleTestMixin, TestCase):

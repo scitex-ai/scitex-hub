@@ -7,8 +7,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from apps.gitea_app.api_client.base import BaseGiteaClient, convert_git_url_to_https
-from apps.gitea_app.exceptions import GiteaAPIError
+from apps.infra.gitea_app.api_client.base import (
+    BaseGiteaClient,
+    convert_git_url_to_https,
+)
+from apps.infra.gitea_app.exceptions import GiteaAPIError
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -125,7 +128,7 @@ class TestGetHeaders:
 class TestRequest:
     """Tests for BaseGiteaClient._request."""
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_constructs_correct_url(self, mock_request, client):
         mock_response = MagicMock()
         mock_response.raise_for_status = MagicMock()
@@ -138,7 +141,7 @@ class TestRequest:
         assert call_kwargs.kwargs["url"] == "http://gitea:3000/api/v1/user"
         assert call_kwargs.kwargs["method"] == "GET"
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_passes_auth_headers(self, mock_request, client):
         mock_response = MagicMock()
         mock_response.raise_for_status = MagicMock()
@@ -150,7 +153,7 @@ class TestRequest:
         headers = call_kwargs.kwargs["headers"]
         assert headers["Authorization"] == "token test-token"
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_returns_response_on_success(self, mock_request, client):
         mock_response = MagicMock()
         mock_response.raise_for_status = MagicMock()
@@ -159,7 +162,7 @@ class TestRequest:
         result = client._request("GET", "/user")
         assert result is mock_response
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_passes_extra_kwargs(self, mock_request, client):
         mock_response = MagicMock()
         mock_response.raise_for_status = MagicMock()
@@ -170,7 +173,7 @@ class TestRequest:
         call_kwargs = mock_request.call_args
         assert call_kwargs.kwargs["json"] == {"name": "test"}
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_raises_gitea_api_error_on_http_error_with_json_message(
         self, mock_request, client
     ):
@@ -183,7 +186,7 @@ class TestRequest:
         with pytest.raises(GiteaAPIError, match="repo not found"):
             client._request("GET", "/repos/owner/missing")
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_raises_gitea_api_error_on_http_error_with_text_fallback(
         self, mock_request, client
     ):
@@ -197,7 +200,7 @@ class TestRequest:
         with pytest.raises(GiteaAPIError, match="Internal Server Error"):
             client._request("GET", "/broken")
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_raises_gitea_api_error_on_http_error_without_message_key(
         self, mock_request, client
     ):
@@ -211,14 +214,14 @@ class TestRequest:
         with pytest.raises(GiteaAPIError, match="Gitea API error"):
             client._request("GET", "/admin/users")
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_raises_gitea_api_error_on_connection_error(self, mock_request, client):
         mock_request.side_effect = requests.ConnectionError("refused")
 
         with pytest.raises(GiteaAPIError, match="Request failed"):
             client._request("GET", "/user")
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_raises_gitea_api_error_on_timeout(self, mock_request, client):
         mock_request.side_effect = requests.Timeout("timed out")
 

@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.vis_app.plot_renderer import ...
+# from apps.workspace.vis_app.plot_renderer import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -29,12 +30,12 @@ if __name__ == "__main__":
 # """
 # Backend Plot Renderer
 # Uses matplotlib/scitex.plt to render scientific plots from JSON specifications.
-# 
+#
 # BACKWARD COMPATIBILITY MODULE:
 # This module now imports from the refactored services/plot_renderer/ package.
 # All functionality has been preserved for backward compatibility.
 # """
-# 
+#
 # from .services.plot_renderer import (
 #     # Constants
 #     MM_PER_INCH,
@@ -60,7 +61,7 @@ if __name__ == "__main__":
 #     render_multipanel_from_spec,
 #     render_plot_from_spec,
 # )
-# 
+#
 # __all__ = [
 #     # Constants
 #     'MM_PER_INCH',
@@ -86,8 +87,8 @@ if __name__ == "__main__":
 #     'render_multipanel_from_spec',
 #     'render_plot_from_spec',
 # ]
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

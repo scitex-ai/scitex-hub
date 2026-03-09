@@ -30,7 +30,7 @@ from __future__ import annotations
 
 from django.shortcuts import render
 
-from apps.project_app.services.project_utils import get_current_project
+from apps.infra.project_app.services.project_utils import get_current_project
 
 
 def build_{name}_context(request, current_project=None):
@@ -82,7 +82,7 @@ def _tests_py(name, label):
 
 from django.test import TestCase
 
-from apps.workspace_app.test_mixin import ModuleTestMixin
+from apps.infra.workspace_app.test_mixin import ModuleTestMixin
 
 
 class {class_label}ModuleTest(ModuleTestMixin, TestCase):
@@ -123,7 +123,7 @@ def _skill_py(name, label, description):
     caps_str = json.dumps(caps, ensure_ascii=False)
     return f'''"""Skill registration for {label}."""
 
-from apps.llm_app.skills import Skill, register
+from apps.infra.llm_app.skills import Skill, register
 
 register(
     Skill(

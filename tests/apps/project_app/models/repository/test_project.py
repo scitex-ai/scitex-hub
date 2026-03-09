@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.models.repository.project import ...
+# from apps.infra.project_app.models.repository.project import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,36 +29,36 @@ if __name__ == "__main__":
 # Repository Project Models
 # Contains: Project, ProjectMembership
 # """
-# 
+#
 # from django.db import models
 # from django.contrib.auth.models import User
-# 
+#
 # # Import Organization models from dedicated app
-# from apps.organizations_app.models import Organization, ResearchGroup
-# 
+# from apps.infra.organizations_app.models import Organization, ResearchGroup
+#
 # # Import mixins and managers
 # from .project_methods import ProjectMethodsMixin
 # from .project_gitea_methods import ProjectGiteaMethodsMixin
 # from .project_scitex_methods import ProjectSciTeXMethodsMixin
 # from .project_managers import ProjectManager
-# 
-# 
+#
+#
 # class ProjectMembership(models.Model):
 #     """Enhanced membership model for project collaboration"""
-# 
+#
 #     ROLE_CHOICES = [
 #         ("owner", "Owner"),
 #         ("admin", "Administrator"),
 #         ("collaborator", "Collaborator"),
 #         ("viewer", "Viewer"),
 #     ]
-# 
+#
 #     PERMISSION_CHOICES = [
 #         ("read", "Read Only"),
 #         ("write", "Read/Write"),
 #         ("admin", "Full Admin"),
 #     ]
-# 
+#
 #     project = models.ForeignKey(
 #         "Project", on_delete=models.CASCADE, related_name="memberships"
 #     )
@@ -76,14 +77,14 @@ if __name__ == "__main__":
 #         blank=True,
 #         related_name="project_invitations_sent",
 #     )
-# 
+#
 #     class Meta:
 #         unique_together = ("project", "user")
-# 
+#
 #     def __str__(self):
 #         return f"{self.user.username} - {self.project.name} ({self.role})"
-# 
-# 
+#
+#
 # class Project(
 #     ProjectMethodsMixin,
 #     ProjectGiteaMethodsMixin,
@@ -91,17 +92,17 @@ if __name__ == "__main__":
 #     models.Model
 # ):
 #     """Model for research projects with enhanced collaboration"""
-# 
+#
 #     VISIBILITY_CHOICES = [
 #         ("public", "Public"),
 #         ("private", "Private"),
 #     ]
-# 
+#
 #     PROJECT_TYPES = [
 #         ('local', 'Local Repository'),    # Git-enabled, Gitea
 #         ('remote', 'Remote Filesystem'),  # SSHFS mount, no Git
 #     ]
-# 
+#
 #     SOURCE_CHOICES = [
 #         ("scitex", "Created in SciTeX"),
 #         ("github", "Imported from GitHub"),
@@ -109,7 +110,7 @@ if __name__ == "__main__":
 #         ("bitbucket", "Imported from Bitbucket"),
 #         ("git", "Cloned from Git URL"),
 #     ]
-# 
+#
 #     # Basic Information
 #     name = models.CharField(max_length=200)
 #     slug = models.SlugField(max_length=200, default="project")
@@ -117,7 +118,7 @@ if __name__ == "__main__":
 #     owner = models.ForeignKey(
 #         User, on_delete=models.CASCADE, related_name="project_app_owned_projects"
 #     )
-# 
+#
 #     # Project Type (local vs remote)
 #     project_type = models.CharField(
 #         max_length=20,
@@ -125,7 +126,7 @@ if __name__ == "__main__":
 #         default='local',
 #         help_text="Local (Git-enabled) or Remote (SSH mount, no Git)"
 #     )
-# 
+#
 #     # Privacy settings
 #     visibility = models.CharField(
 #         max_length=20,
@@ -133,7 +134,7 @@ if __name__ == "__main__":
 #         default="public",
 #         help_text="Repository visibility: public (anyone can see) or private (only collaborators)",
 #     )
-# 
+#
 #     # Organization and Research Group
 #     organization = models.ForeignKey(
 #         Organization,
@@ -150,7 +151,7 @@ if __name__ == "__main__":
 #         related_name="projects",
 #         help_text="Associated research group/lab",
 #     )
-# 
+#
 #     # Enhanced collaboration through ProjectMembership
 #     collaborators = models.ManyToManyField(
 #         User,
@@ -158,7 +159,7 @@ if __name__ == "__main__":
 #         through_fields=("project", "user"),
 #         related_name="project_app_collaborative_projects",
 #     )
-# 
+#
 #     # Project Progress and Timestamps
 #     progress = models.IntegerField(
 #         default=0, help_text="Project progress percentage (0-100)"
@@ -166,7 +167,7 @@ if __name__ == "__main__":
 #     created_at = models.DateTimeField(auto_now_add=True)
 #     updated_at = models.DateTimeField(auto_now=True)
 #     deadline = models.DateTimeField(null=True, blank=True)
-# 
+#
 #     # Research data - Core SciTeX workflow fields
 #     source_code_url = models.URLField(
 #         blank=True, help_text="GitHub/GitLab repository URL"
@@ -174,7 +175,7 @@ if __name__ == "__main__":
 #     data_location = models.CharField(
 #         max_length=500, blank=True, help_text="Relative path to project directory"
 #     )
-# 
+#
 #     # Enhanced GitHub Integration fields
 #     github_token = models.CharField(
 #         max_length=255, blank=True, help_text="GitHub OAuth token"
@@ -197,7 +198,7 @@ if __name__ == "__main__":
 #     github_integration_enabled = models.BooleanField(
 #         default=False, help_text="GitHub integration status"
 #     )
-# 
+#
 #     # Gitea Integration fields
 #     gitea_repo_id = models.IntegerField(
 #         null=True, blank=True, help_text="Gitea repository ID"
@@ -217,7 +218,7 @@ if __name__ == "__main__":
 #     gitea_enabled = models.BooleanField(
 #         default=False, help_text="Gitea integration enabled"
 #     )
-# 
+#
 #     # Source tracking (where did this project come from?)
 #     source = models.CharField(
 #         max_length=20,
@@ -228,7 +229,7 @@ if __name__ == "__main__":
 #     source_url = models.URLField(
 #         blank=True, help_text="Original source URL (if imported)"
 #     )
-# 
+#
 #     # Directory management fields
 #     directory_created = models.BooleanField(
 #         default=False, help_text="Whether project directory has been created"
@@ -239,7 +240,7 @@ if __name__ == "__main__":
 #     last_activity = models.DateTimeField(
 #         auto_now=True, help_text="Last activity in project directory"
 #     )
-# 
+#
 #     # SciTeX Integration (scitex.project package)
 #     scitex_project_id = models.CharField(
 #         max_length=100,
@@ -253,7 +254,7 @@ if __name__ == "__main__":
 #         blank=True,
 #         help_text="Path to local project directory (where scitex/.metadata/ lives)",
 #     )
-# 
+#
 #     # SciTeX Engine Integration Status
 #     search_completed = models.BooleanField(
 #         default=False, help_text="Literature search completed"
@@ -270,7 +271,7 @@ if __name__ == "__main__":
 #     manuscript_generated = models.BooleanField(
 #         default=False, help_text="Manuscript generated"
 #     )
-# 
+#
 #     # Language detection
 #     primary_language = models.CharField(
 #         max_length=50,
@@ -278,10 +279,10 @@ if __name__ == "__main__":
 #         default="",
 #         help_text="Auto-detected primary programming language",
 #     )
-# 
+#
 #     # Custom Manager
 #     objects = ProjectManager()
-# 
+#
 #     class Meta:
 #         ordering = ["-updated_at"]
 #         unique_together = [
@@ -300,10 +301,10 @@ if __name__ == "__main__":
 #                 name="unique_gitea_repo_id",
 #             ),
 #         ]
-# 
+#
 #     def __str__(self):
 #         return self.name
-# 
+#
 #     def save(self, *args, **kwargs):
 #         if not self.slug:
 #             self.slug = self.generate_unique_slug(self.name, owner=self.owner)

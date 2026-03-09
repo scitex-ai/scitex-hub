@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.models.workflows.workflow import ...
+# from apps.infra.project_app.models.workflows.workflow import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,21 +29,21 @@ if __name__ == "__main__":
 # # -*- coding: utf-8 -*-
 # """
 # Workflow model for SciTeX Projects
-# 
+#
 # GitHub Actions-style workflow definition (similar to .github/workflows/*.yml)
 # """
-# 
+#
 # from django.db import models
 # from django.contrib.auth.models import User
 # import yaml
-# 
-# 
+#
+#
 # class Workflow(models.Model):
 #     """
 #     Workflow definition (similar to .github/workflows/*.yml)
 #     Stored in .scitex/workflows/ directory of each project
 #     """
-# 
+#
 #     TRIGGER_EVENT_CHOICES = [
 #         ("push", "Push"),
 #         ("pull_request", "Pull Request"),
@@ -51,7 +52,7 @@ if __name__ == "__main__":
 #         ("issue", "Issue"),
 #         ("release", "Release"),
 #     ]
-# 
+#
 #     project = models.ForeignKey(
 #         "project_app.Project",
 #         on_delete=models.CASCADE,
@@ -65,21 +66,21 @@ if __name__ == "__main__":
 #         max_length=500, help_text="Path to workflow YAML file in .scitex/workflows/"
 #     )
 #     description = models.TextField(blank=True, help_text="Workflow description")
-# 
+#
 #     # Workflow configuration
 #     yaml_content = models.TextField(help_text="YAML workflow definition content")
 #     trigger_events = models.JSONField(
 #         default=list, help_text="List of trigger events (push, pull_request, etc.)"
 #     )
 #     enabled = models.BooleanField(default=True, help_text="Whether workflow is enabled")
-# 
+#
 #     # Schedule configuration
 #     schedule_cron = models.CharField(
 #         max_length=100,
 #         blank=True,
 #         help_text="Cron expression for scheduled runs (e.g., '0 0 * * *')",
 #     )
-# 
+#
 #     # Metadata
 #     created_at = models.DateTimeField(auto_now_add=True)
 #     updated_at = models.DateTimeField(auto_now=True)
@@ -90,7 +91,7 @@ if __name__ == "__main__":
 #         related_name="created_workflows",
 #         help_text="User who created this workflow",
 #     )
-# 
+#
 #     # Statistics
 #     total_runs = models.IntegerField(default=0, help_text="Total number of runs")
 #     successful_runs = models.IntegerField(
@@ -105,7 +106,7 @@ if __name__ == "__main__":
 #         blank=True,
 #         help_text="Last run status (success, failure, cancelled)",
 #     )
-# 
+#
 #     class Meta:
 #         app_label = "project_app"
 #         unique_together = ("project", "name")
@@ -114,21 +115,21 @@ if __name__ == "__main__":
 #             models.Index(fields=["project", "enabled"]),
 #             models.Index(fields=["project", "updated_at"]),
 #         ]
-# 
+#
 #     def __str__(self):
 #         return f"{self.project.name} - {self.name}"
-# 
+#
 #     def parse_yaml(self):
 #         """Parse YAML content and return Python dict"""
 #         try:
 #             return yaml.safe_load(self.yaml_content)
 #         except yaml.YAMLError as e:
 #             return {"error": str(e)}
-# 
+#
 #     def get_absolute_url(self):
 #         """Get workflow detail URL"""
 #         from django.urls import reverse
-# 
+#
 #         return reverse(
 #             "project_app:workflow_detail",
 #             kwargs={
@@ -137,8 +138,8 @@ if __name__ == "__main__":
 #                 "workflow_id": self.id,
 #             },
 #         )
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

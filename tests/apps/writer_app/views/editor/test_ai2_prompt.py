@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.views.editor.ai2_prompt import ...
+# from apps.workspace.writer_app.views.editor.ai2_prompt import ...
 
 
 class TestPlaceholder:
@@ -125,7 +125,7 @@ if __name__ == "__main__":
 #     """
 #     try:
 #         import json
-#         from apps.project_app.models import Project
+#         from apps.infra.project_app.models import Project
 #
 #         # Get project
 #         project = Project.objects.get(id=project_id)
@@ -153,7 +153,7 @@ if __name__ == "__main__":
 #         # Get project path
 #         if is_visitor:
 #             # For visitors, use visitor pool directory
-#             from apps.project_app.services.project_filesystem import get_project_filesystem_manager
+#             from apps.infra.project_app.services.project_filesystem import get_project_filesystem_manager
 #             manager = get_project_filesystem_manager(user)
 #             visitor_dir = manager.get_project_root_path(project)
 #             if not visitor_dir:

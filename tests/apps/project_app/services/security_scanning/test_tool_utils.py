@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.services.security_scanning.tool_utils import ...
+# from apps.infra.project_app.services.security_scanning.tool_utils import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,13 +28,13 @@ if __name__ == "__main__":
 # """
 # Security scanning tool utilities
 # """
-# 
+#
 # import subprocess
-# 
-# 
+#
+#
 # class ToolUtilsMixin:
 #     """Tool availability checks and severity mapping"""
-# 
+#
 #     def _has_pip_audit(self) -> bool:
 #         """Check if pip-audit is installed"""
 #         try:
@@ -41,7 +42,7 @@ if __name__ == "__main__":
 #             return True
 #         except (subprocess.SubprocessError, FileNotFoundError):
 #             return False
-# 
+#
 #     def _has_safety(self) -> bool:
 #         """Check if safety is installed"""
 #         try:
@@ -49,7 +50,7 @@ if __name__ == "__main__":
 #             return True
 #         except (subprocess.SubprocessError, FileNotFoundError):
 #             return False
-# 
+#
 #     def _has_detect_secrets(self) -> bool:
 #         """Check if detect-secrets is installed"""
 #         try:
@@ -59,7 +60,7 @@ if __name__ == "__main__":
 #             return True
 #         except (subprocess.SubprocessError, FileNotFoundError):
 #             return False
-# 
+#
 #     def _has_bandit(self) -> bool:
 #         """Check if bandit is installed"""
 #         try:
@@ -67,7 +68,7 @@ if __name__ == "__main__":
 #             return True
 #         except (subprocess.SubprocessError, FileNotFoundError):
 #             return False
-# 
+#
 #     @staticmethod
 #     def _map_severity(severity: str) -> str:
 #         """Map external severity levels to our severity levels"""
@@ -81,7 +82,7 @@ if __name__ == "__main__":
 #         if severity in ["info", "minor"]:
 #             return "low"
 #         return "medium"
-# 
+#
 #     @staticmethod
 #     def _map_bandit_severity(severity: str) -> str:
 #         """Map bandit severity to our severity levels"""
@@ -92,8 +93,8 @@ if __name__ == "__main__":
 #             "LOW": "low",
 #         }
 #         return mapping.get(severity, "medium")
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

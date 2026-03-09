@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.utils.project_db.references import ...
+# from apps.workspace.writer_app.utils.project_db.references import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -29,28 +30,28 @@ if __name__ == "__main__":
 # """
 # Reference tracking operations for ProjectDatabase.
 # """
-# 
+#
 # import logging
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # class ReferenceOperations:
 #     """LaTeX reference tracking operations."""
-# 
+#
 #     def __init__(self, db):
 #         """
 #         Initialize with database instance.
-# 
+#
 #         Args:
 #             db: ProjectDatabase instance
 #         """
 #         self.db = db
-# 
+#
 #     def update_references(self, figure_id: int, is_referenced: bool, reference_count: int):
 #         """
 #         Update reference status for a figure.
-# 
+#
 #         Args:
 #             figure_id: Figure ID
 #             is_referenced: Whether figure is referenced
@@ -62,11 +63,11 @@ if __name__ == "__main__":
 #                 SET is_referenced = ?, reference_count = ?
 #                 WHERE id = ?
 #             ''', (int(is_referenced), reference_count, figure_id))
-# 
+#
 #     def add_latex_reference(self, figure_id: int, tex_file: str, line_number: int = None, context: str = None):
 #         """
 #         Add a LaTeX reference record.
-# 
+#
 #         Args:
 #             figure_id: Figure ID
 #             tex_file: Path to .tex file
@@ -78,18 +79,18 @@ if __name__ == "__main__":
 #                 INSERT INTO latex_references (figure_id, tex_file, line_number, context)
 #                 VALUES (?, ?, ?, ?)
 #             ''', (figure_id, tex_file, line_number, context))
-# 
+#
 #     def clear_latex_references(self, figure_id: int):
 #         """
 #         Clear all LaTeX references for a figure.
-# 
+#
 #         Args:
 #             figure_id: Figure ID
 #         """
 #         with self.db.connection() as conn:
 #             conn.execute('DELETE FROM latex_references WHERE figure_id = ?', (figure_id,))
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

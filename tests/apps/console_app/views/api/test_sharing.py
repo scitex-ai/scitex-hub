@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.views.api.sharing import ...
+# from apps.workspace.console_app.views.api.sharing import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,11 +29,11 @@ if __name__ == "__main__":
 # """
 # API views for SciTeX-Code Jupyter notebook integration.
 # """
-# 
+#
 # import json
 # import logging
 # import threading
-# 
+#
 # from django.contrib.auth.decorators import login_required
 # from django.http import JsonResponse
 # from django.utils.decorators import method_decorator
@@ -42,7 +43,7 @@ if __name__ == "__main__":
 # from rest_framework.permissions import IsAuthenticated
 # from rest_framework.response import Response
 # from rest_framework import status
-# 
+#
 # from ...models import Notebook, CodeExecutionJob
 # from ...services.jupyter import (
 #     NotebookManager,
@@ -51,48 +52,48 @@ if __name__ == "__main__":
 #     NotebookTemplates,
 #     NotebookValidator,
 # )
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # @method_decorator(login_required, name="dispatch")
 # class NotebookAPIView(View):
 #     """Base API view for notebook operations."""
-# 
+#
 #     def get_notebook_manager(self):
 #         return NotebookManager(self.request.user)
-# 
-# 
+#
+#
 # class NotebookSharingAPI(NotebookAPIView):
 #     """API for notebook sharing."""
-# 
+#
 #     def post(self, request, notebook_id):
 #         """Share notebook with other users."""
 #         try:
 #             data = json.loads(request.body)
 #             usernames = data.get("usernames", [])
 #             is_public = data.get("is_public", False)
-# 
+#
 #             manager = self.get_notebook_manager()
 #             notebook = manager.load_notebook(notebook_id)
-# 
+#
 #             if not notebook:
 #                 return JsonResponse(
 #                     {"status": "error", "message": "Notebook not found"}, status=404
 #                 )
-# 
+#
 #             # Update public status
 #             notebook.is_public = is_public
-# 
+#
 #             # Share with specific users
 #             if usernames:
 #                 from django.contrib.auth.models import User
-# 
+#
 #                 users = User.objects.filter(username__in=usernames)
 #                 notebook.shared_with.set(users)
-# 
+#
 #             notebook.save()
-# 
+#
 #             return JsonResponse(
 #                 {
 #                     "status": "success",
@@ -103,7 +104,7 @@ if __name__ == "__main__":
 #                     "is_public": notebook.is_public,
 #                 }
 #             )
-# 
+#
 #         except json.JSONDecodeError:
 #             return JsonResponse(
 #                 {"status": "error", "message": "Invalid JSON"}, status=400
@@ -111,8 +112,8 @@ if __name__ == "__main__":
 #         except Exception as e:
 #             logger.error(f"Error sharing notebook {notebook_id}: {e}")
 #             return JsonResponse({"status": "error", "message": str(e)}, status=500)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

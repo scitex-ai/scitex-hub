@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.views.api.conversion import ...
+# from apps.workspace.console_app.views.api.conversion import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,11 +29,11 @@ if __name__ == "__main__":
 # """
 # API views for SciTeX-Code Jupyter notebook integration.
 # """
-# 
+#
 # import json
 # import logging
 # import threading
-# 
+#
 # from django.contrib.auth.decorators import login_required
 # from django.http import JsonResponse
 # from django.utils.decorators import method_decorator
@@ -42,7 +43,7 @@ if __name__ == "__main__":
 # from rest_framework.permissions import IsAuthenticated
 # from rest_framework.response import Response
 # from rest_framework import status
-# 
+#
 # from ...models import Notebook, CodeExecutionJob
 # from ...services.jupyter import (
 #     NotebookManager,
@@ -51,32 +52,32 @@ if __name__ == "__main__":
 #     NotebookTemplates,
 #     NotebookValidator,
 # )
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # @method_decorator(login_required, name="dispatch")
 # class NotebookAPIView(View):
 #     """Base API view for notebook operations."""
-# 
+#
 #     def get_notebook_manager(self):
 #         return NotebookManager(self.request.user)
-# 
-# 
+#
+#
 # class NotebookConversionAPI(NotebookAPIView):
 #     """API for notebook format conversion."""
-# 
+#
 #     def get(self, request, notebook_id, format_type):
 #         """Convert notebook to different formats."""
 #         try:
 #             manager = self.get_notebook_manager()
 #             notebook = manager.load_notebook(notebook_id)
-# 
+#
 #             if not notebook:
 #                 return JsonResponse(
 #                     {"status": "error", "message": "Notebook not found"}, status=404
 #                 )
-# 
+#
 #             if format_type == "html":
 #                 content = NotebookConverter.to_html(notebook)
 #                 return JsonResponse(
@@ -87,7 +88,7 @@ if __name__ == "__main__":
 #                         "filename": f"{notebook.title}.html",
 #                     }
 #                 )
-# 
+#
 #             elif format_type == "python":
 #                 content = NotebookConverter.to_python(notebook)
 #                 return JsonResponse(
@@ -98,7 +99,7 @@ if __name__ == "__main__":
 #                         "filename": f"{notebook.title}.py",
 #                     }
 #                 )
-# 
+#
 #             elif format_type == "markdown":
 #                 content = NotebookConverter.to_markdown(notebook)
 #                 return JsonResponse(
@@ -109,7 +110,7 @@ if __name__ == "__main__":
 #                         "filename": f"{notebook.title}.md",
 #                     }
 #                 )
-# 
+#
 #             else:
 #                 return JsonResponse(
 #                     {
@@ -118,14 +119,14 @@ if __name__ == "__main__":
 #                     },
 #                     status=400,
 #                 )
-# 
+#
 #         except Exception as e:
 #             logger.error(
 #                 f"Error converting notebook {notebook_id} to {format_type}: {e}"
 #             )
 #             return JsonResponse({"status": "error", "message": str(e)}, status=500)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

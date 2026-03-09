@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.search.saved_searches import ...
+# from apps.workspace.scholar_app.views.search.saved_searches import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,7 +32,7 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/scholar_app/views/search/saved_searches.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
@@ -56,45 +57,45 @@ if __name__ == "__main__":
 #     CollaborationGroup, GroupMembership,
 #     AnnotationTag, UserPreference,
 # )
-# from apps.project_app.services import get_current_project
-# 
+# from apps.infra.project_app.services import get_current_project
+#
 # # Import from other search modules
 # from .engines import search_papers_online
 # from .search_helpers import search_database_papers, apply_advanced_filters, get_paper_authors
 # from ...models import SavedSearch
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
+#
 # # Import scitex.scholar if available
 # try:
 #     from scitex.scholar.pipelines.ScholarPipelineSearchParallel import ScholarPipelineSearchParallel
 #     SCITEX_SCHOLAR_AVAILABLE = True
 # except ImportError:
 #     SCITEX_SCHOLAR_AVAILABLE = False
-# 
-# 
+#
+#
 # # TODO: Implement saved search functionality
 # # These are placeholder stubs created to fix import errors
 # # Original implementation needs to be restored or re-implemented
-# 
+#
 # @login_required
 # def save_search(request):
 #     """Placeholder for save_search - TODO: implement"""
 #     return JsonResponse({"error": "Not implemented"}, status=501)
-# 
-# 
+#
+#
 # @login_required
 # def get_saved_searches(request):
 #     """Placeholder for get_saved_searches - TODO: implement"""
 #     return JsonResponse({"searches": []}, status=200)
-# 
-# 
+#
+#
 # @login_required
 # def delete_saved_search(request, search_id):
 #     """Placeholder for delete_saved_search - TODO: implement"""
 #     return JsonResponse({"error": "Not implemented"}, status=501)
-# 
-# 
+#
+#
 # @login_required
 # def run_saved_search(request, search_id):
 #     """Placeholder for run_saved_search - TODO: implement"""

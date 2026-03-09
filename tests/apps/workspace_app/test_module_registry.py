@@ -8,7 +8,7 @@ Ensures all registered modules are properly configured and functional.
 
 from django.test import TestCase
 
-from apps.workspace_app.registry import (
+from apps.infra.workspace_app.registry import (
     _import_builder,
     get_all_modules,
     get_module,

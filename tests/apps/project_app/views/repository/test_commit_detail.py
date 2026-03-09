@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.views.repository.commit_detail import ...
+# from apps.infra.project_app.views.repository.commit_detail import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,32 +32,32 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # """
 # Repository Commit Detail
-# 
+#
 # Handles commit detail viewing functionality.
 # """
-# 
+#
 # from __future__ import annotations
-# 
+#
 # import logging
 # import subprocess
 # from pathlib import Path
 # from datetime import datetime
-# 
+#
 # from django.shortcuts import render, redirect, get_object_or_404
 # from django.contrib import messages
 # from django.contrib.auth.models import User
-# 
-# from apps.project_app.models import Project
-# 
+#
+# from apps.infra.project_app.models import Project
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # def commit_detail(request, username, slug, commit_hash):
 #     """
 #     GitHub-style commit detail page showing diff and metadata.
-# 
+#
 #     URL: /<username>/<slug>/commit/<commit_hash>/
-# 
+#
 #     Shows:
 #     - Commit metadata (author, date, message)
 #     - Changed files with stats
@@ -64,39 +65,39 @@ if __name__ == "__main__":
 #     """
 #     user = get_object_or_404(User, username=username)
 #     project = get_object_or_404(Project, slug=slug, owner=user)
-# 
+#
 #     # Check access permissions
 #     has_access = (
 #         project.owner == request.user
 #         or project.collaborators.filter(id=request.user.id).exists()
 #         or getattr(project, "visibility", None) == "public"
 #     )
-# 
+#
 #     if not has_access:
 #         if not request.user.is_authenticated:
 #             from django.contrib.auth.views import redirect_to_login
-# 
+#
 #             return redirect_to_login(request.get_full_path())
 #         else:
 #             messages.error(request, "You don't have permission to access this project.")
 #             return redirect("project_app:detail", username=username, slug=slug)
-# 
+#
 #     # Get project path
-#     from apps.project_app.services.project_filesystem import (
+#     from apps.infra.project_app.services.project_filesystem import (
 #         get_project_filesystem_manager,
 #     )
-# 
+#
 #     manager = get_project_filesystem_manager(project.owner)
 #     project_path = manager.get_project_root_path(project)
-# 
+#
 #     if not project_path or not project_path.exists():
 #         messages.error(request, "Project directory not found.")
 #         return redirect("project_app:detail", username=username, slug=slug)
-# 
+#
 #     # Fetch commit information using git
 #     commit_info = {}
 #     changed_files = []
-# 
+#
 #     try:
 #         # Get commit metadata: author, email, date, message
 #         result = subprocess.run(
@@ -112,11 +113,11 @@ if __name__ == "__main__":
 #             text=True,
 #             timeout=10,
 #         )
-# 
+#
 #         if result.returncode != 0:
 #             messages.error(request, f"Commit {commit_hash} not found.")
 #             return redirect("project_app:detail", username=username, slug=slug)
-# 
+#
 #         parts = result.stdout.strip().split("|", 6)
 #         commit_info = {
 #             "author_name": parts[0],
@@ -130,7 +131,7 @@ if __name__ == "__main__":
 #             "full_hash": parts[6] if len(parts) > 6 else commit_hash,
 #             "short_hash": commit_hash[:7],
 #         }
-# 
+#
 #         # Get list of changed files with stats
 #         stats_result = subprocess.run(
 #             ["git", "diff-tree", "--no-commit-id", "--numstat", "-r", commit_hash],
@@ -139,7 +140,7 @@ if __name__ == "__main__":
 #             text=True,
 #             timeout=10,
 #         )
-# 
+#
 #         if stats_result.returncode == 0:
 #             for line in stats_result.stdout.strip().split("\n"):
 #                 if not line:
@@ -149,7 +150,7 @@ if __name__ == "__main__":
 #                     added = parts[0]
 #                     deleted = parts[1]
 #                     filepath = parts[2]
-# 
+#
 #                     # Get the actual diff for this file
 #                     diff_result = subprocess.run(
 #                         ["git", "show", "--format=", commit_hash, "--", filepath],
@@ -158,7 +159,7 @@ if __name__ == "__main__":
 #                         text=True,
 #                         timeout=10,
 #                     )
-# 
+#
 #                     # Parse unified diff to get line-by-line changes
 #                     diff_lines = []
 #                     if diff_result.returncode == 0 and diff_result.stdout:
@@ -174,12 +175,12 @@ if __name__ == "__main__":
 #                                 line_type = "addition"
 #                             elif diff_line.startswith("-"):
 #                                 line_type = "deletion"
-# 
+#
 #                             diff_lines.append({"content": diff_line, "type": line_type})
-# 
+#
 #                     # Determine file extension for syntax highlighting hint
 #                     file_ext = Path(filepath).suffix.lower()
-# 
+#
 #                     changed_files.append(
 #                         {
 #                             "path": filepath,
@@ -189,7 +190,7 @@ if __name__ == "__main__":
 #                             "extension": file_ext,
 #                         }
 #                     )
-# 
+#
 #         # Get current branch
 #         branch_result = subprocess.run(
 #             ["git", "branch", "--show-current"],
@@ -202,7 +203,7 @@ if __name__ == "__main__":
 #             commit_info["current_branch"] = branch_result.stdout.strip() or "main"
 #         else:
 #             commit_info["current_branch"] = "main"
-# 
+#
 #     except subprocess.TimeoutExpired:
 #         messages.error(request, "Git command timed out.")
 #         return redirect("project_app:detail", username=username, slug=slug)
@@ -210,7 +211,7 @@ if __name__ == "__main__":
 #         logger.error(f"Error fetching commit details: {e}")
 #         messages.error(request, f"Error fetching commit details: {e}")
 #         return redirect("project_app:detail", username=username, slug=slug)
-# 
+#
 #     context = {
 #         "project": project,
 #         "commit": commit_info,
@@ -228,10 +229,10 @@ if __name__ == "__main__":
 #             for f in changed_files
 #         ),
 #     }
-# 
+#
 #     return render(request, "project_app/repository/commit_detail.html", context)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

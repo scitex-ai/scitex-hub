@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.repository.api_views import ...
+# from apps.workspace.scholar_app.views.repository.api_views import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,30 +28,30 @@ if __name__ == "__main__":
 # """
 # API views for repository sync and statistics.
 # """
-# 
+#
 # import logging
 # from django.shortcuts import get_object_or_404
 # from rest_framework import status
 # from rest_framework.decorators import api_view, permission_classes
 # from rest_framework.response import Response
 # from rest_framework.permissions import IsAuthenticated
-# 
+#
 # from ...models import (
 #     Dataset,
 #     RepositoryConnection,
 #     RepositorySync,
 # )
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # @api_view(["GET"])
 # @permission_classes([IsAuthenticated])
 # def sync_status(request, sync_id):
 #     """Get sync operation status"""
 #     try:
 #         sync_record = get_object_or_404(RepositorySync, id=sync_id, user=request.user)
-# 
+#
 #         return Response(
 #             {
 #                 "id": str(sync_record.id),
@@ -67,23 +68,23 @@ if __name__ == "__main__":
 #                 "result_data": sync_record.result_data,
 #             }
 #         )
-# 
+#
 #     except RepositorySync.DoesNotExist:
 #         return Response(
 #             {"error": "Sync record not found"}, status=status.HTTP_404_NOT_FOUND
 #         )
-# 
-# 
+#
+#
 # @api_view(["GET"])
 # @permission_classes([IsAuthenticated])
 # def user_repository_stats(request):
 #     """Get user's repository usage statistics"""
 #     user = request.user
-# 
+#
 #     # Repository connections
 #     connections = RepositoryConnection.objects.filter(user=user)
 #     active_connections = connections.filter(status="active").count()
-# 
+#
 #     # Datasets
 #     datasets = Dataset.objects.filter(owner=user)
 #     dataset_stats = {
@@ -93,32 +94,32 @@ if __name__ == "__main__":
 #         "by_repository": {},
 #         "total_size_bytes": 0,
 #     }
-# 
+#
 #     for status_choice in Dataset.STATUS_CHOICES:
 #         count = datasets.filter(status=status_choice[0]).count()
 #         if count > 0:
 #             dataset_stats["by_status"][status_choice[0]] = count
-# 
+#
 #     for type_choice in Dataset.DATASET_TYPES:
 #         count = datasets.filter(dataset_type=type_choice[0]).count()
 #         if count > 0:
 #             dataset_stats["by_type"][type_choice[0]] = count
-# 
+#
 #     # Repository breakdown
 #     for connection in connections:
 #         repo_name = connection.repository.name
 #         count = datasets.filter(repository_connection=connection).count()
 #         if count > 0:
 #             dataset_stats["by_repository"][repo_name] = count
-# 
+#
 #     # Total storage used
 #     dataset_stats["total_size_bytes"] = sum(
 #         dataset.total_size_bytes for dataset in datasets
 #     )
-# 
+#
 #     # Recent activity
 #     recent_syncs = RepositorySync.objects.filter(user=user).order_by("-created_at")[:10]
-# 
+#
 #     sync_data = []
 #     for sync in recent_syncs:
 #         sync_data.append(
@@ -132,7 +133,7 @@ if __name__ == "__main__":
 #                 "completed_at": sync.completed_at,
 #             }
 #         )
-# 
+#
 #     return Response(
 #         {
 #             "connections": {

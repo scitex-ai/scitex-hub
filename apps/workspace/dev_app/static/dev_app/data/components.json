@@ -1,0 +1,561 @@
+{
+  "components": [
+    {
+      "id": "Toggle Button (Checkbox)",
+      "name": "Toggle Button (Checkbox)",
+      "description": "Button-style checkbox toggles with checkbox square indicator for on/off states. Distinct from simple checkboxes by having a button-like container with borders.",
+      "category": "Form and Selection",
+      "css_file": "/static/css/common/toggles.css",
+      "darkmode": true,
+      "variants": [],
+      "states": [
+        {
+          "name": "off",
+          "description": "Unchecked state, checkbox square is empty"
+        },
+        {
+          "name": "on",
+          "description": "Checked state, checkbox square shows checkmark (\u2713)"
+        }
+      ],
+      "examples": [
+        "<div class=\"scitex-toggle-wrapper\">\n  <input type=\"checkbox\" id=\"feature1\" class=\"scitex-toggle\">\n  <label for=\"feature1\" class=\"scitex-toggle-label\">Enable Feature</label>\n</div>",
+        "<div class=\"scitex-toggle-wrapper\">\n  <input type=\"checkbox\" id=\"feature2\" class=\"scitex-toggle\" checked>\n  <label for=\"feature2\" class=\"scitex-toggle-label\">Feature Enabled</label>\n</div>"
+      ]
+    },
+    {
+      "id": "Form Input",
+      "name": "Form Input",
+      "description": "Standard form input controls including text fields, textareas, selects, and input groups",
+      "category": "Form and Selection",
+      "css_file": "/static/css/common/forms.css",
+      "darkmode": true,
+      "variants": [],
+      "states": [
+        {
+          "name": "default",
+          "description": "Normal interactive state"
+        },
+        {
+          "name": "focus",
+          "description": "Highlighted border and shadow when focused"
+        },
+        {
+          "name": "disabled",
+          "description": "Non-interactive disabled state"
+        },
+        {
+          "name": "readonly",
+          "description": "Read-only state (not editable)"
+        },
+        {
+          "name": "valid",
+          "description": "Valid input state (green border with checkmark icon)"
+        },
+        {
+          "name": "invalid",
+          "description": "Invalid input state (red border with error icon)"
+        },
+        {
+          "name": "warning",
+          "description": "Warning input state (yellow border with warning icon)"
+        }
+      ],
+      "examples": [
+        "<div class=\"form-group\">\n  <label class=\"form-label\" for=\"email\">Email Address</label>\n  <input type=\"email\" id=\"email\" class=\"form-control\" placeholder=\"you@example.com\">\n  <div class=\"form-text\">We'll never share your email with anyone else.</div>\n</div>",
+        "<div class=\"form-group\">\n  <label class=\"form-label\" for=\"username\">Username</label>\n  <input type=\"text\" id=\"username\" class=\"form-control is-valid\" value=\"john_doe\">\n  <div class=\"valid-feedback\">Looks good!</div>\n</div>",
+        "<div class=\"form-group\">\n  <label class=\"form-label\" for=\"password\">Password</label>\n  <input type=\"password\" id=\"password\" class=\"form-control is-invalid\" value=\"123\">\n  <div class=\"invalid-feedback\">Password must be at least 8 characters.</div>\n</div>",
+        "<div class=\"form-group\">\n  <label class=\"form-label\" for=\"age\">Age</label>\n  <input type=\"number\" id=\"age\" class=\"form-control is-warning\" value=\"17\">\n  <div class=\"warning-feedback\">You must be 18 or older to proceed.</div>\n</div>",
+        "<div class=\"form-group\">\n  <label class=\"form-label\" for=\"country\">Country</label>\n  <select id=\"country\" class=\"form-control\">\n    <option>Select country...</option>\n    <option>United States</option>\n    <option>United Kingdom</option>\n    <option>Canada</option>\n  </select>\n</div>"
+      ]
+    },
+    {
+      "id": "Button",
+      "name": "Button",
+      "description": "Versatile button component with multiple variants, sizes, and states including loading, icon, and split button variants",
+      "category": "Form and Selection",
+      "css_file": "/static/css/common/buttons.css",
+      "darkmode": false,
+      "variants": [
+        {
+          "class_name": "btn",
+          "description": "Base button class (required)"
+        }
+      ],
+      "states": [
+        {
+          "name": "default",
+          "description": "Normal interactive state"
+        },
+        {
+          "name": "hover",
+          "description": "Highlighted on mouse over"
+        },
+        {
+          "name": "focus",
+          "description": "Highlighted when focused (keyboard navigation)"
+        },
+        {
+          "name": "disabled",
+          "description": "Non-interactive disabled state (opacity reduced)"
+        },
+        {
+          "name": "loading",
+          "description": "Shows spinner, non-interactive"
+        }
+      ],
+      "examples": [
+        "<button class=\"btn btn-primary\">Primary</button>\n<button class=\"btn btn-secondary\">Secondary</button>\n<button class=\"btn btn-danger\">Delete</button>\n<button class=\"btn btn-success\">Save</button>",
+        "<button class=\"btn btn-text\">Text Button</button>\n<button class=\"btn btn-outline-primary\">Outline</button>",
+        "<button class=\"btn btn-primary btn-icon\">\ud83d\udd0d</button>\n<button class=\"btn btn-primary btn-with-icon\"><span class=\"icon\">\ud83d\udcc1</span> Upload</button>",
+        "<button class=\"btn btn-primary btn-loading\"><span class=\"btn-text\">Loading...</span></button>",
+        "<div class=\"btn-split\">\n  <button class=\"btn btn-primary btn-main\">Save</button>\n  <button class=\"btn btn-primary btn-dropdown-toggle\"></button>\n  <div class=\"dropdown-menu\">\n    <a href=\"#\" class=\"dropdown-item\">Save and Close</a>\n    <a href=\"#\" class=\"dropdown-item\">Save as Draft</a>\n  </div>\n</div>",
+        "<div class=\"btn-group\">\n  <button class=\"btn btn-primary\">Left</button>\n  <button class=\"btn btn-primary\">Middle</button>\n  <button class=\"btn btn-primary\">Right</button>\n</div>"
+      ]
+    },
+    {
+      "id": "File Upload",
+      "name": "File Upload",
+      "description": "Custom-styled file input with drag-and-drop support and upload button",
+      "category": "Form and Selection",
+      "css_file": "/static/css/common/file-upload.css",
+      "darkmode": true,
+      "variants": [],
+      "states": [
+        {
+          "name": "default",
+          "description": "Empty state with prompt text"
+        },
+        {
+          "name": "hover",
+          "description": "Highlighted border when hovering"
+        },
+        {
+          "name": "dragover",
+          "description": "Visual feedback during drag-and-drop"
+        },
+        {
+          "name": "selected",
+          "description": "Shows selected filename"
+        }
+      ],
+      "examples": [
+        "<div class=\"file-upload\">\n  <input type=\"file\" id=\"file1\" class=\"file-upload-input\">\n  <label for=\"file1\" class=\"file-upload-label\">\n    <span class=\"file-upload-icon\">\ud83d\udcc1</span>\n    <span class=\"file-upload-text\">Click to upload or drag and drop</span>\n  </label>\n</div>",
+        "<div class=\"file-upload\">\n  <input type=\"file\" id=\"file2\" class=\"file-upload-input\" multiple>\n  <label for=\"file2\" class=\"file-upload-button\">\n    <span class=\"file-upload-icon\">\ud83d\udcce</span>\n    Choose Files\n  </label>\n  <span class=\"file-upload-text\">No files selected</span>\n</div>"
+      ]
+    },
+    {
+      "id": "Segmented Radio Control",
+      "name": "Segmented Radio Control",
+      "description": "Segmented radio button groups with circular radio indicators (iOS-style segmented control). Each option shows a circular radio button indicator.",
+      "category": "Form and Selection",
+      "css_file": "/static/css/common/radios.css",
+      "darkmode": true,
+      "variants": [],
+      "states": [
+        {
+          "name": "default",
+          "description": "Unchecked with empty circle indicator"
+        },
+        {
+          "name": "checked",
+          "description": "Circle filled with primary color and inner dot"
+        },
+        {
+          "name": "hover",
+          "description": "Background highlight on hover"
+        },
+        {
+          "name": "mobile",
+          "description": "Stacks vertically on mobile (<768px)"
+        }
+      ],
+      "examples": [
+        "<div class=\"scitex-radio-group\">\n  <input type=\"radio\" id=\"all\" name=\"sources\" class=\"scitex-radio\" checked>\n  <label for=\"all\" class=\"scitex-radio-label\">All Sources</label>\n  <input type=\"radio\" id=\"pubmed\" name=\"sources\" class=\"scitex-radio\">\n  <label for=\"pubmed\" class=\"scitex-radio-label\">PubMed</label>\n  <input type=\"radio\" id=\"scholar\" name=\"sources\" class=\"scitex-radio\">\n  <label for=\"scholar\" class=\"scitex-radio-label\">Scholar</label>\n</div>",
+        "<div class=\"scitex-radio-group scitex-radio-group-sm\">\n  <input type=\"radio\" id=\"opt1\" name=\"small\" class=\"scitex-radio\" checked>\n  <label for=\"opt1\" class=\"scitex-radio-label\">Option 1</label>\n  <input type=\"radio\" id=\"opt2\" name=\"small\" class=\"scitex-radio\">\n  <label for=\"opt2\" class=\"scitex-radio-label\">Option 2</label>\n</div>"
+      ]
+    },
+    {
+      "id": "Badge",
+      "name": "Badge",
+      "description": "Small count and labeling component for status indicators and labels",
+      "category": "Visual Identity",
+      "css_file": "/static/css/common/badges.css",
+      "darkmode": false,
+      "variants": [
+        {
+          "class_name": "badge",
+          "description": "Base badge class (required)"
+        }
+      ],
+      "states": [
+        {
+          "name": "default",
+          "description": "Normal display state"
+        },
+        {
+          "name": "responsive",
+          "description": "Smaller on mobile devices (<768px)"
+        }
+      ],
+      "examples": [
+        "<span class=\"badge badge-primary\">New</span>\n<span class=\"badge badge-success\">Active</span>\n<span class=\"badge badge-warning\">Pending</span>\n<span class=\"badge badge-error\">Failed</span>",
+        "<button class=\"btn btn-primary\">\n  Notifications <span class=\"badge badge-light\">4</span>\n</button>"
+      ]
+    },
+    {
+      "id": "Checkbox",
+      "name": "Checkbox",
+      "description": "Custom-styled checkboxes with theme support",
+      "category": "Form and Selection",
+      "css_file": "/static/css/common/checkboxes.css",
+      "darkmode": true,
+      "variants": [],
+      "states": [
+        {
+          "name": "default",
+          "description": "Unchecked state with border"
+        },
+        {
+          "name": "checked",
+          "description": "Checked with white checkmark icon"
+        },
+        {
+          "name": "hover",
+          "description": "Background highlight on label hover"
+        },
+        {
+          "name": "disabled",
+          "description": "Reduced opacity (not yet implemented)"
+        }
+      ],
+      "examples": [
+        "<div class=\"scitex-checkbox-wrapper\">\n  <input type=\"checkbox\" id=\"option1\" class=\"scitex-checkbox\">\n  <label for=\"option1\" class=\"scitex-checkbox-label\">Option 1</label>\n</div>",
+        "<div class=\"scitex-checkbox-wrapper\">\n  <input type=\"checkbox\" id=\"option2\" class=\"scitex-checkbox\" checked>\n  <label for=\"option2\" class=\"scitex-checkbox-label\">Option 2 (Checked)</label>\n</div>"
+      ]
+    },
+    {
+      "id": "Select Dropdown",
+      "name": "Select Dropdown",
+      "description": "Styled select dropdown for form selections with custom arrow indicator",
+      "category": "Form and Selection",
+      "css_file": "/static/css/common/select.css",
+      "darkmode": true,
+      "variants": [],
+      "states": [
+        {
+          "name": "default",
+          "description": "Normal interactive state"
+        },
+        {
+          "name": "focus",
+          "description": "Highlighted border when focused"
+        },
+        {
+          "name": "disabled",
+          "description": "Non-interactive disabled state"
+        },
+        {
+          "name": "valid",
+          "description": "Valid state with green border"
+        },
+        {
+          "name": "invalid",
+          "description": "Invalid state with red border"
+        }
+      ],
+      "examples": [
+        "<div class=\"form-group\">\n  <label class=\"form-label\" for=\"country\">Country</label>\n  <select id=\"country\" class=\"form-select\">\n    <option value=\"\">Select a country...</option>\n    <option value=\"us\">United States</option>\n    <option value=\"uk\">United Kingdom</option>\n    <option value=\"ca\">Canada</option>\n  </select>\n</div>",
+        "<div class=\"form-group\">\n  <label class=\"form-label\" for=\"category\">Category</label>\n  <select id=\"category\" class=\"form-select form-select-sm\">\n    <option value=\"\">Choose...</option>\n    <option value=\"tech\">Technology</option>\n    <option value=\"science\">Science</option>\n    <option value=\"health\">Health</option>\n  </select>\n</div>",
+        "<div class=\"form-group\">\n  <label class=\"form-label\" for=\"status\">Status</label>\n  <select id=\"status\" class=\"form-select is-valid\">\n    <option value=\"active\" selected>Active</option>\n    <option value=\"inactive\">Inactive</option>\n    <option value=\"pending\">Pending</option>\n  </select>\n  <div class=\"valid-feedback\">Status updated successfully!</div>\n</div>"
+      ]
+    },
+    {
+      "id": "Module Icons",
+      "name": "Module Icons",
+      "description": "SciTeX ecosystem module iconography using both professional SVG icons and emoji variants. Provides consistent visual identity across all modules (Engine, Scholar, Writer, Code, Viz, Cloud, Developer). For generic icon sizing and styling utilities, see the Icon component.",
+      "category": "Visual Identity",
+      "css_file": "/static/css/common/module-icons.css",
+      "darkmode": true,
+      "variants": [],
+      "states": [
+        {
+          "name": "default",
+          "description": "Standard display state"
+        },
+        {
+          "name": "hover",
+          "description": "Scale and opacity enhancement on hover"
+        },
+        {
+          "name": "dark",
+          "description": "Bluish theme colors in dark mode"
+        }
+      ],
+      "examples": [
+        "<div class=\"module-icons-grid\">\n  <div class=\"icon-showcase\">\n    <div class=\"module-icon\">\n      <img src=\"{% static 'images/scitex-scholar-icon.svg' %}\" alt=\"SciTeX Scholar\" width=\"56\" height=\"56\">\n    </div>\n    <h5>Scholar</h5>\n    <p>Literature discovery</p>\n    <code>scitex-scholar-icon.svg</code>\n  </div>\n</div>",
+        "<div class=\"emoji-icons-grid\">\n  <div class=\"emoji-showcase\">\n    <div class=\"emoji-icon\">\ud83d\udd0d</div>\n    <h5>Scholar</h5>\n    <p>Magnifying glass - search & discovery</p>\n    <code>\ud83d\udd0d U+1F50D</code>\n  </div>\n</div>",
+        "<a href=\"/scholar\" class=\"header-nav-item\" title=\"Literature review and research\">\n  <img src=\"{% static 'images/scitex-scholar-icon.svg' %}\" alt=\"\" class=\"nav-icon\">\n  <span class=\"nav-label\">Scholar</span>\n</a>",
+        "<a href=\"/repositories\" class=\"header-nav-item\" title=\"Your repositories\">\n  <svg width=\"20\" height=\"20\" viewBox=\"0 0 16 16\" fill=\"currentColor\" class=\"nav-icon-svg\">\n    <path d=\"M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 1 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 0 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 0 1 1-1h8zM5 12.25v3.25a.25.25 0 0 0 .4.2l1.45-1.087a.25.25 0 0 1 .3 0L8.6 15.7a.25.25 0 0 0 .4-.2v-3.25a.25.25 0 0 0-.25-.25h-3.5a.25.25 0 0 0-.25.25z\"/>\n  </svg>\n  <span class=\"nav-label\">Repositories</span>\n</a>"
+      ]
+    },
+    {
+      "id": "Card",
+      "name": "Card",
+      "description": "Flexible content container with optional header, body, and footer sections",
+      "category": "Layout Components",
+      "css_file": "/static/css/common/cards.css",
+      "darkmode": false,
+      "variants": [
+        {
+          "class_name": "card",
+          "description": "Base card container (required)"
+        }
+      ],
+      "states": [
+        {
+          "name": "default",
+          "description": "Normal display state with shadow"
+        },
+        {
+          "name": "hover",
+          "description": "Elevated shadow and background on hover (clickable/hover variants)"
+        },
+        {
+          "name": "active",
+          "description": "Pressed down effect (clickable variant only)"
+        }
+      ],
+      "examples": [
+        "<div class=\"card\">\n  <div class=\"card-body\">\n    <h5 class=\"card-title\">Card Title</h5>\n    <p class=\"card-text\">Some quick example text to build on the card.</p>\n    <a href=\"#\" class=\"card-link\">Card link</a>\n  </div>\n</div>",
+        "<div class=\"card\">\n  <div class=\"card-header\">Header</div>\n  <div class=\"card-body\">\n    <h5 class=\"card-title\">Card with header</h5>\n    <p class=\"card-text\">Content goes here.</p>\n  </div>\n  <div class=\"card-footer\">Footer</div>\n</div>",
+        "<div class=\"card card-clickable\">\n  <div class=\"card-body\">\n    <h5 class=\"card-title\">Clickable Card</h5>\n    <p class=\"card-text\">This card has hover and active states.</p>\n  </div>\n</div>",
+        "<div class=\"card\">\n  <img src=\"image.jpg\" class=\"card-img-top\" alt=\"Card image\">\n  <div class=\"card-body\">\n    <h5 class=\"card-title\">Card with Image</h5>\n    <p class=\"card-text\">Text below image.</p>\n  </div>\n</div>"
+      ]
+    },
+    {
+      "id": "Tabs",
+      "name": "Tabs",
+      "description": "Tabbed interface for organizing content into separate views",
+      "category": "Navigation Components",
+      "css_file": "/static/css/components/tabs.css",
+      "darkmode": true,
+      "variants": [
+        {
+          "class_name": "tabs",
+          "description": "Tab navigation container"
+        }
+      ],
+      "states": [
+        {
+          "name": "default",
+          "description": "Inactive tab"
+        },
+        {
+          "name": "active",
+          "description": "Currently selected tab"
+        },
+        {
+          "name": "hover",
+          "description": "Hover state"
+        },
+        {
+          "name": "disabled",
+          "description": "Non-interactive disabled tab"
+        }
+      ],
+      "examples": [
+        "<div class=\"tabs\">\n  <button class=\"tab-item active\">Overview</button>\n  <button class=\"tab-item\">Details</button>\n  <button class=\"tab-item\">Settings</button>\n</div>\n<div class=\"tab-content\">\n  <div class=\"tab-pane active\">Overview content here</div>\n  <div class=\"tab-pane\">Details content here</div>\n  <div class=\"tab-pane\">Settings content here</div>\n</div>",
+        "<div class=\"tabs\">\n  <button class=\"tab-item active\">\ud83d\udcca Analytics</button>\n  <button class=\"tab-item\">\ud83d\udcc1 Files</button>\n  <button class=\"tab-item\">\u2699\ufe0f Config</button>\n  <button class=\"tab-item\" disabled>\ud83d\udd12 Advanced</button>\n</div>"
+      ]
+    },
+    {
+      "id": "Dropdown Menu",
+      "name": "Dropdown Menu",
+      "description": "Toggleable dropdown menu for navigation and actions (user menus, action buttons, etc.). For form selection dropdowns, use the Select Dropdown component instead.",
+      "category": "Navigation Components",
+      "css_file": "/static/css/components/dropdown.css",
+      "darkmode": false,
+      "variants": [
+        {
+          "class_name": "dropdown",
+          "description": "Container for dropdown component"
+        }
+      ],
+      "states": [
+        {
+          "name": "closed",
+          "description": "Menu hidden (default)"
+        },
+        {
+          "name": "open",
+          "description": "Menu visible with animation"
+        },
+        {
+          "name": "hover",
+          "description": "Toggle and item hover states with transitions"
+        },
+        {
+          "name": "mobile",
+          "description": "Simplified mobile view (<768px)"
+        },
+        {
+          "name": "desktop",
+          "description": "Hover-triggered view (>768px)"
+        }
+      ],
+      "examples": [
+        "<div class=\"dropdown\">\n  <a href=\"#\" class=\"dropdown-toggle\">Actions</a>\n  <div class=\"dropdown-menu show\">\n    <a href=\"#\" class=\"dropdown-item\">Edit</a>\n    <a href=\"#\" class=\"dropdown-item\">Delete</a>\n    <div class=\"dropdown-divider\"></div>\n    <a href=\"#\" class=\"dropdown-item\">Share</a>\n  </div>\n</div>",
+        "<div class=\"dropdown\">\n  <a href=\"#\" class=\"dropdown-toggle\">User Menu</a>\n  <div class=\"dropdown-menu dropdown-menu-end\">\n    <a href=\"#\" class=\"dropdown-item\"><i class=\"icon\"></i>Profile</a>\n    <a href=\"#\" class=\"dropdown-item\"><i class=\"icon\"></i>Settings</a>\n    <div class=\"dropdown-divider\"></div>\n    <a href=\"#\" class=\"dropdown-item\"><i class=\"icon\"></i>Logout</a>\n  </div>\n</div>"
+      ]
+    },
+    {
+      "id": "Sidebar Navigation",
+      "name": "Sidebar Navigation",
+      "description": "Sticky side navigation panel with section links and active states",
+      "category": "Navigation Components",
+      "css_file": "/static/css/components/sidebar.css",
+      "darkmode": true,
+      "variants": [
+        {
+          "class_name": "sidebar",
+          "description": "Main sidebar container (sticky positioned)"
+        }
+      ],
+      "states": [
+        {
+          "name": "default",
+          "description": "Normal sidebar with links"
+        },
+        {
+          "name": "sticky",
+          "description": "Fixed position during scroll (top: 80px)"
+        },
+        {
+          "name": "active",
+          "description": "Highlighted current section"
+        },
+        {
+          "name": "hover",
+          "description": "Link hover effects"
+        },
+        {
+          "name": "mobile",
+          "description": "Collapsed or hidden on mobile (<768px)"
+        }
+      ],
+      "examples": [
+        "<nav class=\"sidebar\">\n  <div class=\"sidebar-heading\">Navigation</div>\n  <ul class=\"sidebar-nav\">\n    <li><a href=\"#section1\" class=\"sidebar-nav-item sidebar-nav-item-active\">Section 1</a></li>\n    <li><a href=\"#section2\" class=\"sidebar-nav-item\">Section 2</a></li>\n    <li><a href=\"#section3\" class=\"sidebar-nav-item\">Section 3</a></li>\n  </ul>\n  <div class=\"sidebar-divider\"></div>\n  <div class=\"sidebar-heading\">Resources</div>\n  <ul class=\"sidebar-nav\">\n    <li><a href=\"#docs\" class=\"sidebar-nav-item\">Documentation</a></li>\n  </ul>\n</nav>",
+        "<div style=\"display: flex; gap: 2rem;\">\n  <nav class=\"sidebar\" style=\"width: 250px;\">\n    <ul class=\"sidebar-nav\">\n      <li><a href=\"#\" class=\"sidebar-nav-item sidebar-nav-item-active\">Active Link</a></li>\n      <li><a href=\"#\" class=\"sidebar-nav-item\">Regular Link</a></li>\n      <li><a href=\"#\" class=\"sidebar-nav-item\">Another Link</a></li>\n    </ul>\n  </nav>\n  <div style=\"flex: 1; padding: 2rem; background: var(--color-canvas-subtle); border-radius: 8px;\">\n    <p>Main content area goes here</p>\n  </div>\n</div>"
+      ]
+    },
+    {
+      "id": "Breadcrumb",
+      "name": "Breadcrumb",
+      "description": "Navigation breadcrumb trail showing current page location",
+      "category": "Navigation Components",
+      "css_file": "/static/css/components/breadcrumb.css",
+      "darkmode": true,
+      "variants": [
+        {
+          "class_name": "breadcrumb",
+          "description": "Breadcrumb container"
+        }
+      ],
+      "states": [
+        {
+          "name": "default",
+          "description": "Normal breadcrumb link"
+        },
+        {
+          "name": "active",
+          "description": "Current page (no link)"
+        },
+        {
+          "name": "hover",
+          "description": "Hover state for links"
+        }
+      ],
+      "examples": [
+        "<nav class=\"breadcrumb\">\n  <a href=\"/\" class=\"breadcrumb-item\">Home</a>\n  <span class=\"breadcrumb-separator\">/</span>\n  <a href=\"/projects\" class=\"breadcrumb-item\">Projects</a>\n  <span class=\"breadcrumb-separator\">/</span>\n  <span class=\"breadcrumb-item active\">Project Details</span>\n</nav>",
+        "<nav class=\"breadcrumb\">\n  <a href=\"/\" class=\"breadcrumb-item\">\ud83c\udfe0 Home</a>\n  <span class=\"breadcrumb-separator\">\u203a</span>\n  <a href=\"/docs\" class=\"breadcrumb-item\">Documentation</a>\n  <span class=\"breadcrumb-separator\">\u203a</span>\n  <span class=\"breadcrumb-item active\">Getting Started</span>\n</nav>"
+      ]
+    },
+    {
+      "id": "Navbar",
+      "name": "Navbar",
+      "description": "Top navigation bar with branding, links, and actions",
+      "category": "Navigation Components",
+      "css_file": "/static/css/components/navbar.css",
+      "darkmode": true,
+      "variants": [
+        {
+          "class_name": "navbar",
+          "description": "Main navbar container"
+        }
+      ],
+      "states": [
+        {
+          "name": "default",
+          "description": "Normal state"
+        },
+        {
+          "name": "active",
+          "description": "Active/current page link"
+        },
+        {
+          "name": "hover",
+          "description": "Hover state for links"
+        },
+        {
+          "name": "collapsed",
+          "description": "Mobile collapsed state"
+        },
+        {
+          "name": "expanded",
+          "description": "Mobile expanded state"
+        }
+      ],
+      "examples": [
+        "<nav class=\"navbar\">\n  <div class=\"navbar-brand\">\n    <a href=\"/\" class=\"brand-logo\">SciTeX</a>\n  </div>\n  <ul class=\"navbar-nav\">\n    <li class=\"nav-item\"><a href=\"#\" class=\"nav-link active\">Home</a></li>\n    <li class=\"nav-item\"><a href=\"#\" class=\"nav-link\">About</a></li>\n    <li class=\"nav-item\"><a href=\"#\" class=\"nav-link\">Contact</a></li>\n  </ul>\n</nav>",
+        "<nav class=\"navbar\">\n  <div class=\"navbar-brand\">\n    <a href=\"/\" class=\"brand-logo\">SciTeX Cloud</a>\n  </div>\n  <button class=\"navbar-toggler\">\u2630</button>\n  <div class=\"navbar-collapse\">\n    <ul class=\"navbar-nav\">\n      <li class=\"nav-item\"><a href=\"#\" class=\"nav-link\">Dashboard</a></li>\n      <li class=\"nav-item\"><a href=\"#\" class=\"nav-link\">Projects</a></li>\n      <li class=\"nav-item\"><a href=\"#\" class=\"nav-link\">Settings</a></li>\n    </ul>\n  </div>\n</nav>"
+      ]
+    },
+    {
+      "id": "Hero",
+      "name": "Hero",
+      "description": "Large header section for landing pages with title, subtitle, and CTA buttons",
+      "category": "Layout Components",
+      "css_file": "/static/css/components/hero.css",
+      "darkmode": false,
+      "variants": [
+        {
+          "class_name": "hero",
+          "description": "Base hero container with centered content"
+        }
+      ],
+      "states": [
+        {
+          "name": "default",
+          "description": "Light background, centered text"
+        },
+        {
+          "name": "responsive",
+          "description": "Adjusted sizing on mobile (<768px)"
+        }
+      ],
+      "examples": [
+        "<div class=\"hero\">\n  <div class=\"hero-content\">\n    <h1 class=\"hero-title\">Welcome to SciTeX</h1>\n    <p class=\"hero-subtitle\">Your research companion</p>\n    <p class=\"hero-description\">Discover, organize, and share scientific knowledge.</p>\n    <div class=\"hero-buttons\">\n      <a href=\"#\" class=\"btn btn-primary\">Get Started</a>\n      <a href=\"#\" class=\"btn btn-outline-secondary\">Learn More</a>\n    </div>\n  </div>\n</div>",
+        "<div class=\"hero hero-bg-image\" style=\"background-image: url('bg.jpg')\">\n  <div class=\"hero-content\">\n    <h1 class=\"hero-title\">Background Hero</h1>\n    <p class=\"hero-description\">With image background and overlay</p>\n  </div>\n</div>"
+      ]
+    }
+  ],
+  "metadata": {
+    "total_components": 16,
+    "generated_at": "2025-10-21T14:32:10.570047",
+    "source_directories": [
+      "static/css/common/",
+      "static/css/components/"
+    ]
+  }
+}

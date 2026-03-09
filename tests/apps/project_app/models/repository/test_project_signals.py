@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.models.repository.project_signals import ...
+# from apps.infra.project_app.models.repository.project_signals import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,18 +29,18 @@ if __name__ == "__main__":
 # Project Signal Handlers
 # Contains: Signal handlers for Project model
 # """
-# 
+#
 # from django.db.models.signals import post_save, post_delete
 # from django.dispatch import receiver
 # import logging
-# 
-# 
+#
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # # Currently, no signals are defined in the original project.py
 # # This file is created for future signal handlers
-# 
+#
 # # Example signal structure (commented out):
 # #
 # # @receiver(post_save, sender='project_app.Project')

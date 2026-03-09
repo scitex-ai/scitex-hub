@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.vis_app.services.plot_renderer.element_bboxes import ...
+# from apps.workspace.vis_app.services.plot_renderer.element_bboxes import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -29,17 +30,17 @@ if __name__ == "__main__":
 # """
 # Element bounding box extraction for figure elements.
 # Used for element-level selection in the canvas editor.
-# 
+#
 # Enhanced with Schema v0.3 geometry for shape-based hit testing:
 # - Lines: path_simplified (Douglas-Peucker simplified polyline)
 # - Scatter: points with hit_radius_px
 # - Fill/Violin: polygon (closed shape)
 # - Bar: rectangles
 # """
-# 
+#
 # import numpy as np
 # from typing import Dict, Any, List, Tuple
-# 
+#
 # # Try to import schema v0.3 geometry extraction (from scitex package)
 # try:
 #     import sys
@@ -56,63 +57,63 @@ if __name__ == "__main__":
 #     GEOMETRY_V03_AVAILABLE = True
 # except ImportError:
 #     GEOMETRY_V03_AVAILABLE = False
-# 
-# 
+#
+#
 # def extract_element_bboxes(
 #     fig, ax, renderer, img_width: int, img_height: int
 # ) -> Dict[str, Any]:
 #     """Extract bounding boxes for all figure elements.
-# 
+#
 #     Args:
 #         fig: Matplotlib figure
 #         ax: Matplotlib axes
 #         renderer: Matplotlib renderer
 #         img_width: Actual saved image width in pixels
 #         img_height: Actual saved image height in pixels
-# 
+#
 #     Returns:
 #         Dict with element bboxes keyed by element name
 #     """
 #     from matplotlib.transforms import Bbox
-# 
+#
 #     # Get figure tight bbox in inches
 #     fig_bbox = fig.get_tightbbox(renderer)
 #     tight_x0 = fig_bbox.x0
 #     tight_y0 = fig_bbox.y0
 #     tight_width = fig_bbox.width
 #     tight_height = fig_bbox.height
-# 
+#
 #     # bbox_inches='tight' adds pad_inches around the tight bbox
 #     pad_inches = 0.1
 #     saved_width_inches = tight_width + 2 * pad_inches
 #     saved_height_inches = tight_height + 2 * pad_inches
-# 
+#
 #     # Scale factors for converting inches to pixels
 #     scale_x = img_width / saved_width_inches
 #     scale_y = img_height / saved_height_inches
-# 
+#
 #     bboxes = {}
-# 
+#
 #     def get_element_bbox(element, name: str) -> None:
 #         """Get element bbox in image pixel coordinates."""
 #         try:
 #             bbox = element.get_window_extent(renderer)
-# 
+#
 #             # Check for invalid bbox
 #             if not (np.isfinite(bbox.x0) and np.isfinite(bbox.x1) and
 #                     np.isfinite(bbox.y0) and np.isfinite(bbox.y1)):
 #                 return
-# 
+#
 #             elem_x0_inches = bbox.x0 / fig.dpi
 #             elem_x1_inches = bbox.x1 / fig.dpi
 #             elem_y0_inches = bbox.y0 / fig.dpi
 #             elem_y1_inches = bbox.y1 / fig.dpi
-# 
+#
 #             x0_rel = elem_x0_inches - tight_x0 + pad_inches
 #             x1_rel = elem_x1_inches - tight_x0 + pad_inches
 #             y0_rel = saved_height_inches - (elem_y1_inches - tight_y0 + pad_inches)
 #             y1_rel = saved_height_inches - (elem_y0_inches - tight_y0 + pad_inches)
-# 
+#
 #             bboxes[name] = {
 #                 "x0": max(0, int(x0_rel * scale_x)),
 #                 "y0": max(0, int(y0_rel * scale_y)),
@@ -122,7 +123,7 @@ if __name__ == "__main__":
 #             }
 #         except Exception as e:
 #             print(f"Error getting bbox for {name}: {e}")
-# 
+#
 #     def coords_to_img_points(data_coords: List[Tuple[float, float]]) -> List[List[int]]:
 #         """Convert data coordinates to image pixel coordinates."""
 #         if len(data_coords) == 0:
@@ -145,7 +146,7 @@ if __name__ == "__main__":
 #             step = len(points_img) // 100
 #             points_img = points_img[::step]
 #         return points_img
-# 
+#
 #     def bbox_to_img_coords(bbox) -> Dict[str, int]:
 #         """Convert matplotlib bbox to image pixel coordinates."""
 #         x0_inches = bbox.x0 / fig.dpi
@@ -162,7 +163,7 @@ if __name__ == "__main__":
 #             "x1": int(x1_rel * scale_x),
 #             "y1": int((saved_height_inches - y0_rel) * scale_y),
 #         }
-# 
+#
 #     # Get axes panel bbox
 #     try:
 #         ax_bbox = ax.get_window_extent(renderer)
@@ -174,28 +175,28 @@ if __name__ == "__main__":
 #         }
 #     except Exception as e:
 #         print(f"Error getting panel bbox: {e}")
-# 
+#
 #     # Get title bbox
 #     if ax.title.get_text():
 #         get_element_bbox(ax.title, "title")
-# 
+#
 #     # Get axis labels
 #     if ax.xaxis.label.get_text():
 #         get_element_bbox(ax.xaxis.label, "xlabel")
 #     if ax.yaxis.label.get_text():
 #         get_element_bbox(ax.yaxis.label, "ylabel")
-# 
+#
 #     # Get legend bbox
 #     legend = ax.get_legend()
 #     if legend:
 #         get_element_bbox(legend, "legend")
-# 
+#
 #     # Get axis tick bboxes
 #     _extract_axis_bboxes(ax, renderer, bboxes, bbox_to_img_coords, Bbox)
-# 
+#
 #     # Get trace bboxes (lines, scatter, bars, etc.)
 #     _extract_trace_bboxes(ax, fig, bboxes, get_element_bbox, coords_to_img_points, bbox_to_img_coords, img_width, img_height)
-# 
+#
 #     # Add schema v0.3 axes bbox for coordinate transformation (axes-local pixels)
 #     if GEOMETRY_V03_AVAILABLE:
 #         try:
@@ -207,10 +208,10 @@ if __name__ == "__main__":
 #             }
 #         except Exception as e:
 #             print(f"Error extracting axes bbox for schema v0.3: {e}")
-# 
+#
 #     return bboxes
-# 
-# 
+#
+#
 # def _extract_axis_bboxes(ax, renderer, bboxes, bbox_to_img_coords, Bbox):
 #     """Extract bboxes for X and Y axis elements."""
 #     try:
@@ -246,7 +247,7 @@ if __name__ == "__main__":
 #             combined = Bbox.union(x_axis_bboxes)
 #             bboxes["xaxis_ticks"] = bbox_to_img_coords(combined)
 #             bboxes["xaxis_ticks"]["label"] = "X Spine & Ticks"
-# 
+#
 #         # Y-axis: combine spine and tick labels
 #         y_axis_bboxes = []
 #         for ticklabel in ax.yaxis.get_ticklabels():
@@ -282,46 +283,46 @@ if __name__ == "__main__":
 #             )
 #             bboxes["yaxis_ticks"] = bbox_to_img_coords(padded)
 #             bboxes["yaxis_ticks"]["label"] = "Y Spine & Ticks"
-# 
+#
 #     except Exception as e:
 #         print(f"Error getting axis bboxes: {e}")
-# 
-# 
+#
+#
 # def _extract_trace_bboxes(ax, fig, bboxes, get_element_bbox, coords_to_img_points, bbox_to_img_coords, img_width, img_height):
 #     """Extract bboxes for all data elements (lines, scatter, bars, etc.)."""
 #     from matplotlib.transforms import Bbox
-# 
+#
 #     # 1. Extract lines (separate user lines from boxplot lines)
 #     line_idx = 0
 #     boxplot_lines = []  # Collect boxplot lines for grouping
-# 
+#
 #     for line in ax.get_lines():
 #         try:
 #             label = line.get_label()
-# 
+#
 #             # Check if this is a boxplot line (starts with _child or _nolegend_)
 #             if label.startswith("_child") or label == "_nolegend_":
 #                 boxplot_lines.append(line)
 #                 continue
-# 
+#
 #             # Skip other underscore-prefixed labels
 #             if label.startswith("_"):
 #                 continue
-# 
+#
 #             trace_name = f"trace_{line_idx}"
 #             get_element_bbox(line, trace_name)
-# 
+#
 #             if trace_name in bboxes:
 #                 bboxes[trace_name]["label"] = label or f"Line {line_idx}"
 #                 bboxes[trace_name]["trace_idx"] = line_idx
 #                 bboxes[trace_name]["element_type"] = "line"
-# 
+#
 #                 xdata, ydata = line.get_xdata(), line.get_ydata()
 #                 if len(xdata) > 0:
 #                     bboxes[trace_name]["points"] = coords_to_img_points(
 #                         list(zip(xdata, ydata))
 #                     )
-# 
+#
 #                     # Add schema v0.3 geometry (axes-local pixels with path simplification)
 #                     if GEOMETRY_V03_AVAILABLE:
 #                         try:
@@ -332,11 +333,11 @@ if __name__ == "__main__":
 #             line_idx += 1
 #         except Exception as e:
 #             print(f"Error getting line bbox: {e}")
-# 
+#
 #     # 1b. Group boxplot lines into box elements by x-position
 #     if boxplot_lines:
 #         _extract_boxplot_bboxes(ax, boxplot_lines, bboxes, bbox_to_img_coords, Bbox)
-# 
+#
 #     # 2. Extract collections (scatter, fill_between, violin, etc.)
 #     coll_idx = 0
 #     scatter_idx = 0
@@ -348,13 +349,13 @@ if __name__ == "__main__":
 #             is_internal = label.startswith("_") if label else False
 #             if is_internal:
 #                 label = None
-# 
+#
 #             coll_type = type(coll).__name__
 #             if coll_type == "PathCollection":
 #                 # Scatter points - need special handling as get_window_extent returns inf
 #                 element_name = f"scatter_{scatter_idx}"
 #                 offsets = coll.get_offsets()
-# 
+#
 #                 if len(offsets) > 0:
 #                     # Compute bbox from the scatter point coordinates
 #                     points_img = coords_to_img_points(offsets)
@@ -372,7 +373,7 @@ if __name__ == "__main__":
 #                             "element_type": "scatter",
 #                             "points": points_img,
 #                         }
-# 
+#
 #                         # Add schema v0.3 geometry (axes-local pixels with hit_radius_px)
 #                         if GEOMETRY_V03_AVAILABLE:
 #                             try:
@@ -381,16 +382,16 @@ if __name__ == "__main__":
 #                             except Exception:
 #                                 pass
 #                 scatter_idx += 1
-# 
+#
 #             elif coll_type == "FillBetweenPolyCollection":
 #                 # Violin plot bodies / fill_between
 #                 element_name = f"violin_{violin_idx}"
 #                 get_element_bbox(coll, element_name)
-# 
+#
 #                 if element_name in bboxes:
 #                     bboxes[element_name]["label"] = f"Violin {violin_idx + 1}"
 #                     bboxes[element_name]["element_type"] = "violin"
-# 
+#
 #                     # Add schema v0.3 geometry (axes-local polygon)
 #                     if GEOMETRY_V03_AVAILABLE:
 #                         try:
@@ -399,16 +400,16 @@ if __name__ == "__main__":
 #                         except Exception:
 #                             pass
 #                 violin_idx += 1
-# 
+#
 #             elif coll_type == "PolyCollection":
 #                 # Fill areas
 #                 element_name = f"fill_{fill_idx}"
 #                 get_element_bbox(coll, element_name)
-# 
+#
 #                 if element_name in bboxes:
 #                     bboxes[element_name]["label"] = label or f"Fill {fill_idx}"
 #                     bboxes[element_name]["element_type"] = "fill"
-# 
+#
 #                     # Add schema v0.3 geometry (axes-local polygon)
 #                     if GEOMETRY_V03_AVAILABLE:
 #                         try:
@@ -417,39 +418,39 @@ if __name__ == "__main__":
 #                         except Exception:
 #                             pass
 #                 fill_idx += 1
-# 
+#
 #             # Skip LineCollection from violin plots (internal elements)
 #             elif coll_type == "LineCollection" and is_internal:
 #                 pass
-# 
+#
 #             coll_idx += 1
 #         except Exception as e:
 #             print(f"Error getting collection bbox: {e}")
-# 
+#
 #     # 3. Extract patches (bars, rectangles, etc.)
 #     patch_idx = 0
 #     for patch in ax.patches:
 #         try:
 #             label = patch.get_label()
 #             patch_type = type(patch).__name__
-# 
+#
 #             if patch_type == "Rectangle":
 #                 element_name = f"bar_{patch_idx}"
 #                 get_element_bbox(patch, element_name)
-# 
+#
 #                 if element_name in bboxes:
 #                     bboxes[element_name]["label"] = label or f"Bar {patch_idx}"
 #                     bboxes[element_name]["element_type"] = "bar"
-# 
+#
 #             patch_idx += 1
 #         except Exception as e:
 #             print(f"Error getting patch bbox: {e}")
-# 
-# 
+#
+#
 # def _extract_boxplot_bboxes(ax, boxplot_lines, bboxes, bbox_to_img_coords, Bbox):
 #     """Extract bboxes for boxplot elements by grouping lines by x-position."""
 #     import numpy as np
-# 
+#
 #     # Group lines by their x center position
 #     x_groups = {}
 #     for line in boxplot_lines:
@@ -464,16 +465,16 @@ if __name__ == "__main__":
 #             x_groups[x_center].append(line)
 #         except Exception:
 #             pass
-# 
+#
 #     # Create a bbox for each box group
 #     renderer = ax.figure.canvas.get_renderer()
 #     sorted_positions = sorted(x_groups.keys())
-# 
+#
 #     for idx, x_pos in enumerate(sorted_positions):
 #         lines = x_groups[x_pos]
 #         if not lines:
 #             continue
-# 
+#
 #         try:
 #             # Combine all line bboxes in this group
 #             line_bboxes = []
@@ -484,7 +485,7 @@ if __name__ == "__main__":
 #                         line_bboxes.append(lb)
 #                 except Exception:
 #                     pass
-# 
+#
 #             if line_bboxes:
 #                 combined = Bbox.union(line_bboxes)
 #                 element_name = f"boxplot_{idx}"
@@ -496,8 +497,8 @@ if __name__ == "__main__":
 #                 }
 #         except Exception as e:
 #             print(f"Error extracting boxplot bbox: {e}")
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

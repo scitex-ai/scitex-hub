@@ -12,9 +12,9 @@ from __future__ import annotations
 
 def execute(job_id: int, **params) -> dict:
     """Export all experiments for a project to CSV via FileVault."""
-    from apps.platform_app.models import PlatformJob
-    from apps.platform_app.services.datastore import get_engine
-    from apps.platform_app.services.filevault import FileVault
+    from apps.infra.platform_app.models import PlatformJob
+    from apps.infra.platform_app.services.datastore import get_engine
+    from apps.infra.platform_app.services.filevault import FileVault
 
     job = PlatformJob.objects.get(pk=job_id)
     engine = get_engine("notebook", "Experiment")

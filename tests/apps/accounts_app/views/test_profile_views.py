@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.accounts_app.views.profile_views import ...
+# from apps.infra.accounts_app.views.profile_views import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,20 +29,20 @@ if __name__ == "__main__":
 # import logging
 # import os
 # from pathlib import Path
-# 
+#
 # from django.contrib import messages
 # from django.contrib.auth.decorators import login_required
 # from django.shortcuts import redirect, render
-# 
-# from apps.accounts_app.models import UserProfile
-# 
+#
+# from apps.infra.accounts_app.models import UserProfile
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # def calculate_storage_usage(user):
 #     """Calculate storage usage for user's local projects."""
-#     from apps.project_app.models import Project
-# 
+#     from apps.infra.project_app.models import Project
+#
 #     total_storage_bytes = 0
 #     try:
 #         for project in Project.objects.filter(user=user, project_type='local'):
@@ -57,10 +58,10 @@ if __name__ == "__main__":
 #                             pass
 #     except Exception as e:
 #         logger.warning(f"Error calculating storage usage: {e}")
-# 
+#
 #     return total_storage_bytes
-# 
-# 
+#
+#
 # def human_readable_size(bytes_size):
 #     """Convert bytes to human-readable format."""
 #     for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
@@ -68,39 +69,39 @@ if __name__ == "__main__":
 #             return f"{bytes_size:.1f} {unit}"
 #         bytes_size /= 1024.0
 #     return f"{bytes_size:.1f} PB"
-# 
-# 
+#
+#
 # def gather_resource_statistics(user):
 #     """Gather comprehensive resource allocation statistics."""
-#     from apps.console_app.models import ProjectService
-#     from apps.project_app.models import Project, RemoteCredential
-# 
+#     from apps.workspace.console_app.models import ProjectService
+#     from apps.infra.project_app.models import Project, RemoteCredential
+#
 #     # Project statistics
 #     total_projects = Project.objects.filter(owner=user).count()
 #     local_projects = Project.objects.filter(owner=user, project_type='local').count()
 #     remote_projects = Project.objects.filter(owner=user, project_type='remote').count()
-# 
+#
 #     # Remote credentials
 #     remote_credentials_count = RemoteCredential.objects.filter(user=user, is_active=True).count()
-# 
+#
 #     # Active services (TensorBoard, Jupyter, etc.)
 #     active_services = ProjectService.objects.filter(
 #         user=user,
 #         status__in=['starting', 'running']
 #     ).count()
-# 
+#
 #     # SSH keys count
 #     workspace_ssh_keys = user.ssh_public_keys.filter(key_type='workspace').count()
 #     git_ssh_keys = user.ssh_public_keys.filter(key_type='git').count()
 #     total_ssh_keys = workspace_ssh_keys + git_ssh_keys
-# 
+#
 #     # Storage usage
 #     total_storage_bytes = calculate_storage_usage(user)
 #     storage_used = human_readable_size(total_storage_bytes)
-# 
+#
 #     # Collaborations
 #     total_collaborations = Project.objects.filter(collaborators=user).count()
-# 
+#
 #     return {
 #         "total_projects": total_projects,
 #         "local_projects": local_projects,
@@ -114,35 +115,35 @@ if __name__ == "__main__":
 #         "storage_bytes": total_storage_bytes,
 #         "total_collaborations": total_collaborations,
 #     }
-# 
-# 
+#
+#
 # @login_required
 # def profile_view(request):
 #     """User profile view."""
 #     profile, created = UserProfile.objects.get_or_create(user=request.user)
-# 
+#
 #     resources = gather_resource_statistics(request.user)
-# 
+#
 #     context = {
 #         "profile": profile,
 #         "resources": resources,
 #     }
-# 
+#
 #     return render(request, "accounts_app/profile.html", context)
-# 
-# 
+#
+#
 # @login_required
 # def profile_edit(request):
 #     """Edit user profile (GitHub-style settings page)."""
 #     profile, created = UserProfile.objects.get_or_create(user=request.user)
-# 
+#
 #     if request.method == "POST":
 #         # Update user basic info
 #         request.user.first_name = request.POST.get("first_name", "").strip()
 #         request.user.last_name = request.POST.get("last_name", "").strip()
 #         request.user.email = request.POST.get("email", "").strip()
 #         request.user.save()
-# 
+#
 #         # Update profile info
 #         profile.bio = request.POST.get("bio", "").strip()
 #         profile.location = request.POST.get("location", "").strip()
@@ -152,24 +153,24 @@ if __name__ == "__main__":
 #         profile.orcid = request.POST.get("orcid", "").strip()
 #         profile.google_scholar = request.POST.get("google_scholar", "").strip()
 #         profile.twitter = request.POST.get("twitter", "").strip()
-# 
+#
 #         # Handle avatar upload
 #         if "avatar" in request.FILES:
 #             profile.avatar = request.FILES["avatar"]
-# 
+#
 #         profile.save()
-# 
+#
 #         messages.success(request, "Profile updated successfully!")
 #         return redirect("accounts_app:profile_edit")
-# 
+#
 #     context = {
 #         "profile": profile,
 #         "user": request.user,
 #     }
-# 
+#
 #     return render(request, "accounts_app/profile_edit.html", context)
-# 
-# 
+#
+#
 # @login_required
 # def appearance_settings(request):
 #     """Appearance settings page (GitHub-style /settings/appearance)."""

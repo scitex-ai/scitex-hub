@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.views.projects.detail_redirect import ...
+# from apps.infra.project_app.views.projects.detail_redirect import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,16 +29,16 @@ if __name__ == "__main__":
 # # -*- coding: utf-8 -*-
 # """
 # Project Detail Redirect View
-# 
+#
 # Handle backward compatibility redirects for old URL patterns.
 # """
-# 
+#
 # from django.shortcuts import redirect, get_object_or_404
 # from django.contrib.auth.decorators import login_required
-# 
+#
 # from ...models import Project
-# 
-# 
+#
+#
 # @login_required
 # def project_detail_redirect(request, pk=None, slug=None):
 #     """Redirect old URLs to new username/project URLs for backward compatibility"""
@@ -61,8 +62,8 @@ if __name__ == "__main__":
 #         )
 #     else:
 #         return redirect("project_app:list")
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

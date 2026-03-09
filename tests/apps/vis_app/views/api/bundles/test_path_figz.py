@@ -27,7 +27,7 @@ class TestLoadFigzByPath:
 
     def test_missing_path_returns_400(self, request_factory, mock_user):
         """Should return 400 if path parameter is missing."""
-        from apps.vis_app.views.api.bundles.path_figz import load_figz_by_path
+        from apps.workspace.vis_app.views.api.bundles.path_figz import load_figz_by_path
 
         request = request_factory.get("/vis/api/bundles/figz/load/")
         request.user = mock_user
@@ -38,14 +38,14 @@ class TestLoadFigzByPath:
 
     def test_resolves_relative_path(self, request_factory, mock_user):
         """Should resolve relative paths using project context."""
-        from apps.vis_app.views.api.bundles.path_figz import load_figz_by_path
+        from apps.workspace.vis_app.views.api.bundles.path_figz import load_figz_by_path
 
         with patch(
-            "apps.vis_app.views.api.bundles.path_figz.resolve_bundle_path"
+            "apps.workspace.vis_app.views.api.bundles.path_figz.resolve_bundle_path"
         ) as mock_resolve:
             mock_resolve.return_value = Path("/data/projects/owner/slug/figure.figz")
             with patch(
-                "apps.vis_app.services.figz.FigzService.load_bundle"
+                "apps.workspace.vis_app.services.figz.FigzService.load_bundle"
             ) as mock_load:
                 mock_load.return_value = {"spec": {"panels": []}, "style": {}}
 
@@ -70,7 +70,7 @@ class TestSaveFigzCanvas:
 
     def test_invalid_json_returns_400(self, request_factory, mock_user):
         """Should return 400 for invalid JSON."""
-        from apps.vis_app.views.api.bundles.path_figz import save_figz_canvas
+        from apps.workspace.vis_app.views.api.bundles.path_figz import save_figz_canvas
 
         request = request_factory.post(
             "/vis/api/bundles/figz/save/",
@@ -87,10 +87,10 @@ class TestSaveFigzCanvas:
         """Should save canvas state as figz bundle."""
         import json
 
-        from apps.vis_app.views.api.bundles.path_figz import save_figz_canvas
+        from apps.workspace.vis_app.views.api.bundles.path_figz import save_figz_canvas
 
         with patch(
-            "apps.vis_app.services.figz.FigzService.save_canvas_as_bundle"
+            "apps.workspace.vis_app.services.figz.FigzService.save_canvas_as_bundle"
         ) as mock_save:
             mock_save.return_value = {"bundle_path": "/path/to/Figure1.figz"}
 

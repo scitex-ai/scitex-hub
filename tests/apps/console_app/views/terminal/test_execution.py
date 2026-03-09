@@ -44,7 +44,7 @@ def _install_django_stubs():
     sys.modules["django.conf"] = django_conf
 
     # console_app.views.terminal.config stub — imported as relative .config
-    config_stub = types.ModuleType("apps.console_app.views.terminal.config")
+    config_stub = types.ModuleType("apps.workspace.console_app.views.terminal.config")
     config_stub.SLURM_CONTAINER_PATH = _SLURM_CONTAINER_PATH
     config_stub.BASE_CONTAINER_PATH = _BASE_CONTAINER_PATH
     config_stub.SLURM_PARTITION = _SLURM_PARTITION
@@ -64,12 +64,16 @@ def _install_django_stubs():
     config_stub.SLURM_CPUS = 2
     config_stub.SLURM_MEMORY_GB = 4
 
-    sys.modules["apps.console_app.views.terminal.config"] = config_stub
+    sys.modules["apps.workspace.console_app.views.terminal.config"] = config_stub
 
     # _command_builder stub (used by exec_slurm_shell, not under test here)
-    builder_stub = types.ModuleType("apps.console_app.views.terminal._command_builder")
+    builder_stub = types.ModuleType(
+        "apps.workspace.console_app.views.terminal._command_builder"
+    )
     builder_stub.build_srun_cmd = MagicMock(return_value=["srun", "--pty"])
-    sys.modules["apps.console_app.views.terminal._command_builder"] = builder_stub
+    sys.modules["apps.workspace.console_app.views.terminal._command_builder"] = (
+        builder_stub
+    )
 
 
 _install_django_stubs()
@@ -87,23 +91,25 @@ if str(_PROJECT_ROOT) not in sys.path:
 # Patch the relative config import that execution.py uses internally.
 # execution.py does: from .config import SLURM_CONTAINER_PATH, SLURM_PARTITION, SLURM_USER_DATA_ROOT
 # We inject the package so Python resolves the relative import correctly.
-_pkg_name = "apps.console_app.views.terminal"
+_pkg_name = "apps.workspace.console_app.views.terminal"
 for _part in [
     "apps",
-    "apps.console_app",
-    "apps.console_app.views",
-    "apps.console_app.views.terminal",
+    "apps.workspace.console_app",
+    "apps.workspace.console_app.views",
+    "apps.workspace.console_app.views.terminal",
 ]:
     sys.modules.setdefault(_part, types.ModuleType(_part))
 
 # Point the package's __init__ at our config stub
-_term_pkg = sys.modules["apps.console_app.views.terminal"]
-_term_pkg.config = sys.modules["apps.console_app.views.terminal.config"]
+_term_pkg = sys.modules["apps.workspace.console_app.views.terminal"]
+_term_pkg.config = sys.modules["apps.workspace.console_app.views.terminal.config"]
 
 # Finally import the module under test
 import importlib
 
-_execution_mod = importlib.import_module("apps.console_app.views.terminal.execution")
+_execution_mod = importlib.import_module(
+    "apps.workspace.console_app.views.terminal.execution"
+)
 check_slurm_status = _execution_mod.check_slurm_status
 is_slurm_available = _execution_mod.is_slurm_available
 select_container = _execution_mod.select_container
@@ -111,7 +117,7 @@ ContainerNotFoundError = _execution_mod.ContainerNotFoundError
 SlurmUnavailableError = _execution_mod.SlurmUnavailableError
 
 # parse_time_limit_seconds lives in config.py — import directly
-from apps.console_app.views.terminal.config import (  # noqa: E402
+from apps.workspace.console_app.views.terminal.config import (  # noqa: E402
     parse_time_limit_seconds,
 )
 
@@ -129,7 +135,7 @@ class TestCheckSlurmStatus:
         mock_result.returncode = 0
 
         with patch(
-            "apps.console_app.views.terminal.execution.subprocess.run",
+            "apps.workspace.console_app.views.terminal.execution.subprocess.run",
             return_value=mock_result,
         ) as mock_run:
             available, status = check_slurm_status()
@@ -148,7 +154,7 @@ class TestCheckSlurmStatus:
         mock_result.returncode = 1
 
         with patch(
-            "apps.console_app.views.terminal.execution.subprocess.run",
+            "apps.workspace.console_app.views.terminal.execution.subprocess.run",
             return_value=mock_result,
         ):
             available, status = check_slurm_status()
@@ -159,7 +165,7 @@ class TestCheckSlurmStatus:
     def test_returns_unavailable_on_timeout(self):
         """(False, 'unavailable') when subprocess.TimeoutExpired is raised."""
         with patch(
-            "apps.console_app.views.terminal.execution.subprocess.run",
+            "apps.workspace.console_app.views.terminal.execution.subprocess.run",
             side_effect=subprocess.TimeoutExpired(cmd=["scontrol", "ping"], timeout=5),
         ):
             available, status = check_slurm_status()
@@ -170,7 +176,7 @@ class TestCheckSlurmStatus:
     def test_returns_not_installed_when_file_not_found(self):
         """(False, 'not_installed') when scontrol binary is missing."""
         with patch(
-            "apps.console_app.views.terminal.execution.subprocess.run",
+            "apps.workspace.console_app.views.terminal.execution.subprocess.run",
             side_effect=FileNotFoundError("scontrol not found"),
         ):
             available, status = check_slurm_status()
@@ -184,7 +190,7 @@ class TestCheckSlurmStatus:
         mock_result.returncode = 0
 
         with patch(
-            "apps.console_app.views.terminal.execution.subprocess.run",
+            "apps.workspace.console_app.views.terminal.execution.subprocess.run",
             return_value=mock_result,
         ):
             result = check_slurm_status()
@@ -206,7 +212,7 @@ class TestIsSlurmAvailable:
     def test_returns_true_when_slurm_ready(self):
         """Delegates to check_slurm_status and returns True when ready."""
         with patch(
-            "apps.console_app.views.terminal.execution.check_slurm_status",
+            "apps.workspace.console_app.views.terminal.execution.check_slurm_status",
             return_value=(True, "ready"),
         ):
             assert is_slurm_available() is True
@@ -214,7 +220,7 @@ class TestIsSlurmAvailable:
     def test_returns_false_when_slurm_unavailable(self):
         """Returns False when status is unavailable."""
         with patch(
-            "apps.console_app.views.terminal.execution.check_slurm_status",
+            "apps.workspace.console_app.views.terminal.execution.check_slurm_status",
             return_value=(False, "unavailable"),
         ):
             assert is_slurm_available() is False
@@ -222,7 +228,7 @@ class TestIsSlurmAvailable:
     def test_returns_false_when_not_installed(self):
         """Returns False when SLURM is not installed."""
         with patch(
-            "apps.console_app.views.terminal.execution.check_slurm_status",
+            "apps.workspace.console_app.views.terminal.execution.check_slurm_status",
             return_value=(False, "not_installed"),
         ):
             assert is_slurm_available() is False
@@ -235,7 +241,7 @@ class TestIsSlurmAvailable:
             (False, "not_installed"),
         ]:
             with patch(
-                "apps.console_app.views.terminal.execution.check_slurm_status",
+                "apps.workspace.console_app.views.terminal.execution.check_slurm_status",
                 return_value=(available, status),
             ):
                 result = is_slurm_available()
@@ -351,11 +357,11 @@ class TestSelectContainer:
         # Simulate: docker path does not exist, but host path does
         with (
             patch(
-                "apps.console_app.views.terminal.config.BASE_CONTAINER_PATH",
+                "apps.workspace.console_app.views.terminal.config.BASE_CONTAINER_PATH",
                 "/nonexistent/docker/path",
             ),
             patch(
-                "apps.console_app.views.terminal.execution.SLURM_CONTAINER_PATH",
+                "apps.workspace.console_app.views.terminal.execution.SLURM_CONTAINER_PATH",
                 str(tmp_path / "host_container.sif"),
             ),
         ):
@@ -378,11 +384,11 @@ class TestSelectContainer:
 
         with (
             patch(
-                "apps.console_app.views.terminal.config.BASE_CONTAINER_PATH",
+                "apps.workspace.console_app.views.terminal.config.BASE_CONTAINER_PATH",
                 str(tmp_path / "nonexistent_docker.sif"),
             ),
             patch(
-                "apps.console_app.views.terminal.execution.SLURM_CONTAINER_PATH",
+                "apps.workspace.console_app.views.terminal.execution.SLURM_CONTAINER_PATH",
                 str(tmp_path / "nonexistent_host.sif"),
             ),
         ):
@@ -402,11 +408,11 @@ class TestSelectContainer:
 
         with (
             patch(
-                "apps.console_app.views.terminal.config.BASE_CONTAINER_PATH",
+                "apps.workspace.console_app.views.terminal.config.BASE_CONTAINER_PATH",
                 fake_path,
             ),
             patch(
-                "apps.console_app.views.terminal.execution.SLURM_CONTAINER_PATH",
+                "apps.workspace.console_app.views.terminal.execution.SLURM_CONTAINER_PATH",
                 fake_path,
             ),
         ):
@@ -427,11 +433,11 @@ class TestSelectContainer:
 
         with (
             patch(
-                "apps.console_app.views.terminal.config.BASE_CONTAINER_PATH",
+                "apps.workspace.console_app.views.terminal.config.BASE_CONTAINER_PATH",
                 str(base_sif),
             ),
             patch(
-                "apps.console_app.views.terminal.execution.SLURM_CONTAINER_PATH",
+                "apps.workspace.console_app.views.terminal.execution.SLURM_CONTAINER_PATH",
                 str(base_sif),
             ),
         ):

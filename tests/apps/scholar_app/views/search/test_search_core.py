@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.search.search_core import ...
+# from apps.workspace.scholar_app.views.search.search_core import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,7 +32,7 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/scholar_app/views/search/search_core.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
@@ -56,25 +57,25 @@ if __name__ == "__main__":
 #     CollaborationGroup, GroupMembership,
 #     AnnotationTag, UserPreference,
 # )
-# from apps.project_app.services import get_current_project
-# 
+# from apps.infra.project_app.services import get_current_project
+#
 # # Import from other search modules
 # from .search_helpers import extract_search_filters, search_database_papers, apply_advanced_filters, get_paper_authors, parse_query_operators
 # from .engines import search_papers_online
 # from .storage import store_search_result
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
+#
 # # Import scitex.scholar if available
 # try:
 #     from scitex.scholar.pipelines.ScholarPipelineSearchParallel import ScholarPipelineSearchParallel
 #     SCITEX_SCHOLAR_AVAILABLE = True
 # except ImportError:
 #     SCITEX_SCHOLAR_AVAILABLE = False
-# 
-# 
-# 
-# 
+#
+#
+#
+#
 # def simple_search_with_tab(
 #     request, active_tab="search", template_name="scholar_app/index.html"
 # ):
@@ -94,21 +95,21 @@ if __name__ == "__main__":
 #     sources = ",".join(selected_sources) if selected_sources else "all"
 #     sort_by = request.GET.get("sort_by", "")
 #     sort_dir = request.GET.get("sort_dir", "desc")  # desc = highest first, asc = lowest first
-# 
+#
 #     # Check for API key alerts if user is authenticated
 #     missing_api_keys = []
 #     if request.user.is_authenticated:
 #         user_prefs = UserPreference.get_or_create_for_user(request.user)
 #         missing_api_keys = user_prefs.get_missing_api_keys()
-# 
+#
 #     # Extract advanced filters from request
 #     filters = extract_search_filters(request)
 #     results = []
-# 
+#
 #     # Parse shell-style operators from query
 #     parsed_operators = parse_query_operators(query) if query else None
 #     search_query = parsed_operators['query'] if parsed_operators else query
-# 
+#
 #     # If there's a query, search for papers
 #     if search_query or (parsed_operators and any([
 #         parsed_operators.get('title_includes'),
@@ -117,15 +118,15 @@ if __name__ == "__main__":
 #     ])):
 #         # Use clean query (without operators) for API search
 #         effective_query = search_query or query
-# 
+#
 #         # First check existing papers in our database with filters applied
 #         existing_papers = search_database_papers(effective_query, filters)
-# 
+#
 #         # Perform web search for additional results with filters
 #         user_prefs = None
 #         if request.user.is_authenticated:
 #             user_prefs = UserPreference.get_or_create_for_user(request.user)
-# 
+#
 #         web_results = search_papers_online(
 #             effective_query,
 #             sources=sources,
@@ -133,10 +134,10 @@ if __name__ == "__main__":
 #             user_preferences=user_prefs,
 #             user=request.user if request.user.is_authenticated else None,
 #         )
-# 
+#
 #         # Combine and store results
 #         all_results = []
-# 
+#
 #         # Add existing papers
 #         for paper in existing_papers:
 #             all_results.append(
@@ -171,7 +172,7 @@ if __name__ == "__main__":
 #                     else [],
 #                 }
 #             )
-# 
+#
 #         # Add web search results
 #         for result in web_results:
 #             # Store in database for future searches
@@ -205,10 +206,10 @@ if __name__ == "__main__":
 #                     "source_engines": result.get("source_engines", []),
 #                 }
 #             )
-# 
+#
 #         # Apply advanced filters to results (including parsed operators)
 #         all_results = apply_advanced_filters(all_results, filters, parsed_operators)
-# 
+#
 #         # Apply sorting (reverse=True for desc, False for asc)
 #         is_desc = sort_dir == "desc"
 #         if sort_by == "year":
@@ -218,9 +219,9 @@ if __name__ == "__main__":
 #         elif sort_by == "impact_factor":
 #             all_results.sort(key=lambda x: float(x.get("impact_factor", 0) or 0), reverse=is_desc)
 #         # else: Keep original order (relevance from APIs)
-# 
+#
 #         results = all_results[:10000]  # Return up to 10k results
-# 
+#
 #     # Calculate dynamic filter ranges from results
 #     filter_ranges = {
 #         "year_min": 1900,
@@ -230,14 +231,14 @@ if __name__ == "__main__":
 #         "impact_factor_min": 0,
 #         "impact_factor_max": 50.0,  # Default fallback
 #     }
-# 
+#
 #     if results:
 #         # Extract publication years (filter out None values)
 #         years = [r.get("year") for r in results if r.get("year") is not None]
 #         if years:
 #             filter_ranges["year_min"] = min(years)
 #             filter_ranges["year_max"] = max(years)
-# 
+#
 #         # Extract citation counts and smart round to nice values
 #         citation_counts = [
 #             r.get("citations", 0) for r in results if r.get("citations") is not None
@@ -254,7 +255,7 @@ if __name__ == "__main__":
 #                 filter_ranges["citations_max"] = ((max_cit // 1000) + 1) * 1000
 #             else:
 #                 filter_ranges["citations_max"] = ((max_cit // 5000) + 1) * 5000
-# 
+#
 #         # Extract impact factors and smart round
 #         impact_factors = [
 #             r.get("impact_factor", 0)
@@ -270,17 +271,17 @@ if __name__ == "__main__":
 #                 filter_ranges["impact_factor_max"] = ((max_if // 10) + 1) * 10
 #             else:
 #                 filter_ranges["impact_factor_max"] = ((max_if // 25) + 1) * 25
-# 
+#
 #     # Get user projects for BibTeX enrichment form and determine current project
 #     user_projects = []
 #     current_project = None
 #     if request.user.is_authenticated:
-#         from apps.project_app.models import Project
-# 
+#         from apps.infra.project_app.models import Project
+#
 #         user_projects = Project.objects.filter(owner=request.user).order_by(
 #             "-created_at"
 #         )
-# 
+#
 #         # Determine current project (use same logic as writer_app and scholar_app elsewhere)
 #         # Try session-based project selection first
 #         current_project_slug = request.session.get("current_project_slug")
@@ -291,7 +292,7 @@ if __name__ == "__main__":
 #                 )
 #             except Project.DoesNotExist:
 #                 pass
-# 
+#
 #         # Fallback: try profile's last active repository
 #         if (
 #             not current_project
@@ -299,11 +300,11 @@ if __name__ == "__main__":
 #             and request.user.profile.last_active_repository
 #         ):
 #             current_project = request.user.profile.last_active_repository
-# 
+#
 #         # Fallback: use first project if available
 #         if not current_project and user_projects.exists():
 #             current_project = user_projects.first()
-# 
+#
 #     context = {
 #         "query": query,
 #         "project": project,
@@ -317,11 +318,11 @@ if __name__ == "__main__":
 #         "active_tab": active_tab,  # Indicate which tab is active
 #         "filter_ranges": filter_ranges,  # Add dynamic filter ranges
 #     }
-# 
+#
 #     return render(request, template_name, context)
-# 
-# 
-# 
+#
+#
+#
 
 # --------------------------------------------------------------------------------
 # End of Source Code from: apps/scholar_app/views/search/search_core.py

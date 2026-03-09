@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests as req
 
-from apps.gitea_app.api_client.client import GiteaClient
-from apps.gitea_app.exceptions import GiteaAPIError
+from apps.infra.gitea_app.api_client.client import GiteaClient
+from apps.infra.gitea_app.exceptions import GiteaAPIError
 
 BASE_API = "http://gitea:3000/api/v1"
 
@@ -54,7 +54,7 @@ def _mock_error(status_code, message):
 class TestListRepositories:
     """Tests for RepositoryOperationsMixin.list_repositories."""
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_lists_current_user_repos_when_no_username(self, mock_request, client):
         repos = [{"name": "repo1"}, {"name": "repo2"}]
         mock_request.return_value = _mock_ok(repos)
@@ -66,7 +66,7 @@ class TestListRepositories:
         assert kw["url"] == f"{BASE_API}/user/repos"
         assert result == repos
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_lists_specific_user_repos(self, mock_request, client):
         repos = [{"name": "their-repo"}]
         mock_request.return_value = _mock_ok(repos)
@@ -86,7 +86,7 @@ class TestListRepositories:
 class TestCreateRepository:
     """Tests for RepositoryOperationsMixin.create_repository."""
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_creates_repo_for_current_user(self, mock_request, client):
         created = {"name": "my-repo", "id": 10}
         mock_request.return_value = _mock_ok(created)
@@ -101,7 +101,7 @@ class TestCreateRepository:
         assert payload["auto_init"] is True
         assert result == created
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_creates_repo_for_specific_owner(self, mock_request, client):
         created = {"name": "team-repo", "id": 11}
         mock_request.return_value = _mock_ok(created)
@@ -112,7 +112,7 @@ class TestCreateRepository:
         assert kw["url"] == f"{BASE_API}/admin/users/orguser/repos"
         assert result == created
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_includes_optional_fields(self, mock_request, client):
         mock_request.return_value = _mock_ok({"name": "r"})
 
@@ -141,7 +141,7 @@ class TestCreateRepository:
 class TestGetRepository:
     """Tests for RepositoryOperationsMixin.get_repository."""
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_gets_repo_by_owner_and_name(self, mock_request, client):
         repo = {"full_name": "alice/project", "id": 5}
         mock_request.return_value = _mock_ok(repo)
@@ -153,7 +153,7 @@ class TestGetRepository:
         assert kw["url"] == f"{BASE_API}/repos/alice/project"
         assert result == repo
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_propagates_not_found_error(self, mock_request, client):
         mock_request.return_value = _mock_error(404, "repo not found")
 
@@ -169,7 +169,7 @@ class TestGetRepository:
 class TestDeleteRepository:
     """Tests for RepositoryOperationsMixin.delete_repository."""
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_sends_delete_request(self, mock_request, client):
         mock_request.return_value = _mock_ok()
 
@@ -189,7 +189,7 @@ class TestDeleteRepository:
 class TestForkRepository:
     """Tests for RepositoryOperationsMixin.fork_repository."""
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_forks_repo(self, mock_request, client):
         forked = {"name": "upstream-repo", "fork": True}
         mock_request.return_value = _mock_ok(forked)
@@ -202,7 +202,7 @@ class TestForkRepository:
         assert kw["json"] == {}
         assert result == forked
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_forks_repo_to_organization(self, mock_request, client):
         forked = {"name": "upstream-repo", "fork": True}
         mock_request.return_value = _mock_ok(forked)
@@ -221,7 +221,7 @@ class TestForkRepository:
 class TestUpdateRepository:
     """Tests for RepositoryOperationsMixin.update_repository."""
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_patches_repo_with_kwargs(self, mock_request, client):
         updated = {"name": "project", "private": True}
         mock_request.return_value = _mock_ok(updated)
@@ -243,7 +243,7 @@ class TestUpdateRepository:
 class TestGetBranch:
     """Tests for RepositoryOperationsMixin.get_branch."""
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_gets_branch_info(self, mock_request, client):
         branch = {"name": "main", "commit": {"id": "abc123"}}
         mock_request.return_value = _mock_ok(branch)
@@ -264,7 +264,7 @@ class TestGetBranch:
 class TestListCommits:
     """Tests for RepositoryOperationsMixin.list_commits."""
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_lists_commits_with_default_params(self, mock_request, client):
         commits = [{"sha": "aaa"}, {"sha": "bbb"}]
         mock_request.return_value = _mock_ok(commits)
@@ -277,7 +277,7 @@ class TestListCommits:
         assert kw["params"] == {"limit": 10}
         assert result == commits
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_passes_sha_and_limit_params(self, mock_request, client):
         mock_request.return_value = _mock_ok([])
 
@@ -295,7 +295,7 @@ class TestListCommits:
 class TestCheckCollaborator:
     """Tests for RepositoryOperationsMixin.check_collaborator."""
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_returns_true_when_collaborator(self, mock_request, client):
         mock_request.return_value = _mock_ok()
 
@@ -304,7 +304,7 @@ class TestCheckCollaborator:
         kw = mock_request.call_args.kwargs
         assert kw["url"] == f"{BASE_API}/repos/alice/project/collaborators/bob"
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_returns_false_when_not_collaborator(self, mock_request, client):
         mock_request.return_value = _mock_error(404, "not a collaborator")
 

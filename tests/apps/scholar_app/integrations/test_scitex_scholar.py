@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.integrations.scitex_scholar import ...
+# from apps.workspace.scholar_app.integrations.scitex_scholar import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -29,27 +30,27 @@ if __name__ == "__main__":
 # # File: /home/ywatanabe/proj/scitex-cloud/apps/scholar_app/integrations/scitex_scholar.py
 # """
 # Integration layer between Django and scitex.scholar package.
-# 
+#
 # This module provides a bridge between Django views and the scitex.scholar
 # package, which contains the core search engine logic that works both
 # locally and in the cloud.
-# 
+#
 # The scitex.scholar package provides:
 # - SearchQueryParser: Advanced query parsing with filters
 # - ScholarSearchEngine: Unified search across multiple databases
 # - Individual search engines: ArXiv, PubMed, CrossRef, Semantic Scholar, OpenAlex
 # """
-# 
+#
 # import logging
 # import asyncio
 # from pathlib import Path
 # from typing import Dict, Any, List, Optional
 # from functools import lru_cache
-# 
+#
 # from django.conf import settings
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
+#
 # # Try to import scitex.scholar
 # try:
 #     from scitex.scholar.pipelines.SearchQueryParser import SearchQueryParser
@@ -60,31 +61,31 @@ if __name__ == "__main__":
 #     SCITEX_SCHOLAR_AVAILABLE = False
 #     ScholarConfig = None
 #     logger.warning("scitex.scholar package not available, falling back to Django-only search")
-# 
-# 
+#
+#
 # def get_user_scitex_dir(user, session_key: Optional[str] = None) -> Path:
 #     """
 #     Get the user-specific SCITEX directory path.
-# 
+#
 #     Resolution order:
 #     1. SCITEX_USER_DATA_ROOT env var (for containerized per-user setups)
 #     2. USER_DATA_ROOT Django setting
 #     3. Default: {BASE_DIR}/data/users/{username}/.scitex
-# 
+#
 #     This provides thread-safe, per-user isolation for scitex.scholar operations.
 #     NEVER use os.environ["SCITEX_DIR"] directly in multi-user Django - it's not thread-safe.
-# 
+#
 #     Args:
 #         user: Django User instance or None for anonymous
 #         session_key: Session key for anonymous users
-# 
+#
 #     Returns:
 #         Path to user's .scitex directory
 #     """
 #     import os
-# 
+#
 #     base_dir = getattr(settings, 'BASE_DIR', Path.cwd())
-# 
+#
 #     # Check for containerized setup with per-user $HOME
 #     user_data_root = os.environ.get('SCITEX_USER_DATA_ROOT')
 #     if user_data_root:
@@ -98,7 +99,7 @@ if __name__ == "__main__":
 #             base_path = Path(user_data_root_setting)
 #         else:
 #             base_path = Path(base_dir) / "data" / "users"
-# 
+#
 #         if user and user.is_authenticated:
 #             user_scitex_dir = base_path / user.username / ".scitex"
 #         elif session_key:
@@ -107,65 +108,65 @@ if __name__ == "__main__":
 #         else:
 #             # Fallback for anonymous without session
 #             user_scitex_dir = Path(base_dir) / "data" / "visitor" / "shared" / ".scitex"
-# 
+#
 #     user_scitex_dir.mkdir(parents=True, exist_ok=True)
 #     return user_scitex_dir
-# 
-# 
+#
+#
 # def get_scholar_config(user=None) -> Optional['ScholarConfig']:
 #     """
 #     Get a ScholarConfig instance with user-specific paths.
-# 
+#
 #     This is the SAFE way to get ScholarConfig in Django - it passes
 #     the scholar_dir directly instead of using environment variables.
-# 
+#
 #     Args:
 #         user: Django User instance or None
-# 
+#
 #     Returns:
 #         ScholarConfig instance or None if not available
 #     """
 #     if not SCITEX_SCHOLAR_AVAILABLE or ScholarConfig is None:
 #         return None
-# 
+#
 #     user_scitex_dir = get_user_scitex_dir(user)
 #     return ScholarConfig(scholar_dir=user_scitex_dir)
-# 
-# 
+#
+#
 # @lru_cache(maxsize=1)
 # def get_search_engine(email: Optional[str] = None) -> Optional['ScholarSearchEngine']:
 #     """
 #     Get a cached instance of ScholarSearchEngine.
-# 
+#
 #     Args:
 #         email: User email for API rate limit benefits
-# 
+#
 #     Returns:
 #         ScholarSearchEngine instance or None if not available
 #     """
 #     if not SCITEX_SCHOLAR_AVAILABLE:
 #         return None
-# 
+#
 #     return ScholarSearchEngine(
 #         default_mode='parallel',
 #         use_cache=True,
 #         email=email,
 #     )
-# 
-# 
+#
+#
 # def parse_query_scitex(query: str) -> Dict[str, Any]:
 #     """
 #     Parse a search query using scitex's SearchQueryParser.
-# 
+#
 #     This is the recommended way to parse queries as it provides
 #     more advanced syntax than the Django-only implementation.
-# 
+#
 #     Args:
 #         query: Search query string with optional filters
-# 
+#
 #     Returns:
 #         Dictionary with parsed filters and keyword query
-# 
+#
 #     Examples:
 #         >>> parse_query_scitex("hippocampus -seizure year:2020-2024 if:>5")
 #         {
@@ -185,15 +186,15 @@ if __name__ == "__main__":
 #             'positive_keywords': query.split(),
 #             'negative_keywords': [],
 #         }
-# 
+#
 #     parser = SearchQueryParser(query)
 #     filters = parser.get_filters()
 #     filters['keyword_query'] = parser.get_keyword_query()
 #     filters['original_query'] = query
-# 
+#
 #     return filters
-# 
-# 
+#
+#
 # async def search_async(
 #     query: str,
 #     mode: str = 'parallel',
@@ -202,13 +203,13 @@ if __name__ == "__main__":
 # ) -> Dict[str, Any]:
 #     """
 #     Execute an async search using scitex.scholar.
-# 
+#
 #     Args:
 #         query: Search query (supports advanced syntax)
 #         mode: 'parallel' or 'single' (sequential)
 #         max_results: Maximum results per source
 #         email: User email for rate limit benefits
-# 
+#
 #     Returns:
 #         Dict with results and metadata
 #     """
@@ -219,15 +220,15 @@ if __name__ == "__main__":
 #             'metadata': {'error': 'scitex.scholar not available'},
 #             'stats': {},
 #         }
-# 
+#
 #     return await engine.search(
 #         query=query,
 #         mode=mode,
 #         max_results=max_results,
 #         parse_query=True,
 #     )
-# 
-# 
+#
+#
 # def search_sync(
 #     query: str,
 #     mode: str = 'parallel',
@@ -236,13 +237,13 @@ if __name__ == "__main__":
 # ) -> Dict[str, Any]:
 #     """
 #     Execute a synchronous search (wrapper for async).
-# 
+#
 #     Args:
 #         query: Search query
 #         mode: 'parallel' or 'single'
 #         max_results: Maximum results per source
 #         email: User email for rate limit benefits
-# 
+#
 #     Returns:
 #         Dict with results and metadata
 #     """
@@ -251,33 +252,33 @@ if __name__ == "__main__":
 #     except RuntimeError:
 #         loop = asyncio.new_event_loop()
 #         asyncio.set_event_loop(loop)
-# 
+#
 #     return loop.run_until_complete(
 #         search_async(query, mode, max_results, email)
 #     )
-# 
-# 
+#
+#
 # def get_supported_sources() -> List[str]:
 #     """Get list of supported search sources from scitex."""
 #     engine = get_search_engine()
 #     if engine:
 #         return engine.get_supported_engines()
 #     return ['pubmed', 'arxiv', 'semantic_scholar', 'crossref', 'openalex']
-# 
-# 
+#
+#
 # def get_engine_statistics() -> Dict[str, Any]:
 #     """Get search engine statistics."""
 #     engine = get_search_engine()
 #     if engine:
 #         return engine.get_statistics()
 #     return {}
-# 
-# 
+#
+#
 # def is_available() -> bool:
 #     """Check if scitex.scholar is available."""
 #     return SCITEX_SCHOLAR_AVAILABLE
-# 
-# 
+#
+#
 # # Mapping between Django filter names and scitex filter names
 # FILTER_MAPPING = {
 #     # Django name -> scitex name
@@ -290,43 +291,43 @@ if __name__ == "__main__":
 #     'title_includes': 'positive_keywords',
 #     'title_excludes': 'negative_keywords',
 # }
-# 
-# 
+#
+#
 # def convert_django_filters_to_scitex(django_filters: Dict[str, Any]) -> Dict[str, Any]:
 #     """
 #     Convert Django filter format to scitex filter format.
-# 
+#
 #     Args:
 #         django_filters: Filters from Django parse_query_operators
-# 
+#
 #     Returns:
 #         Filters compatible with scitex.scholar
 #     """
 #     scitex_filters = {}
-# 
+#
 #     for django_key, value in django_filters.items():
 #         if django_key in FILTER_MAPPING:
 #             scitex_key = FILTER_MAPPING[django_key]
 #             scitex_filters[scitex_key] = value
 #         else:
 #             scitex_filters[django_key] = value
-# 
+#
 #     return scitex_filters
-# 
-# 
+#
+#
 # def convert_scitex_results_to_django(scitex_results: Dict[str, Any]) -> List[Dict[str, Any]]:
 #     """
 #     Convert scitex search results to Django SearchIndex-compatible format.
-# 
+#
 #     Args:
 #         scitex_results: Results from ScholarSearchEngine.search()
-# 
+#
 #     Returns:
 #         List of paper dictionaries compatible with Django templates
 #     """
 #     if not scitex_results or 'results' not in scitex_results:
 #         return []
-# 
+#
 #     django_results = []
 #     for paper in scitex_results['results']:
 #         # Skip papers without titles
@@ -350,10 +351,10 @@ if __name__ == "__main__":
 #             'impact_factor': paper.get('impact_factor'),
 #             'open_access': paper.get('open_access', False),
 #         })
-# 
+#
 #     return django_results
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

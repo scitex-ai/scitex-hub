@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.urls.security import ...
+# from apps.infra.project_app.urls.security import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,7 +27,7 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # Security Feature URLs
-# 
+#
 # Handles all security-related URLs.
 # GitHub-style patterns:
 # - /<username>/<slug>/security/ - Security overview
@@ -35,7 +36,7 @@ if __name__ == "__main__":
 # - /<username>/<slug>/security/advisories/ - Security advisories
 # - /<username>/<slug>/security/dependabot/ - Dependency graph
 # """
-# 
+#
 # from django.urls import path
 # from ..views.security_views import (
 #     security_overview,
@@ -51,9 +52,9 @@ if __name__ == "__main__":
 #     create_fix_pr,
 #     api_dependency_tree,
 # )
-# 
+#
 # # No app_name here - namespace is provided by parent (user_projects)
-# 
+#
 # urlpatterns = [
 #     # Security overview
 #     path("", security_overview, name="overview"),

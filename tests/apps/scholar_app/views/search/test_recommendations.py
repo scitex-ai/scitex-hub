@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.search.recommendations import ...
+# from apps.workspace.scholar_app.views.search.recommendations import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -29,21 +30,21 @@ if __name__ == "__main__":
 # # File: apps/scholar_app/views/search/recommendations.py
 # """
 # Scholar App - Recommendations Module
-# 
+#
 # Paper and user recommendation functions based on similarity algorithms.
 # Extracted from monolithic views.py for better modularity.
 # """
-# 
+#
 # from django.http import JsonResponse
 # from django.views.decorators.http import require_http_methods
 # from django.contrib.auth.decorators import login_required
 # from scitex import logging
 # from ...models import SearchIndex
-# 
+#
 # # Set up logger
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # # TODO: These helper functions need to be implemented or imported
 # def _calculate_paper_similarity(paper, limit=10):
 #     """
@@ -52,8 +53,8 @@ if __name__ == "__main__":
 #     """
 #     # Placeholder implementation
 #     return []
-# 
-# 
+#
+#
 # def _get_similar_papers_recommendations(user, recent_views):
 #     """
 #     Generate personalized recommendations based on user activity.
@@ -61,20 +62,20 @@ if __name__ == "__main__":
 #     """
 #     # Placeholder implementation
 #     return []
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # def paper_recommendations(request, paper_id):
 #     """Get similarity recommendations for a specific paper."""
 #     try:
 #         from . import get_paper_authors
-# 
+#
 #         # Get the source paper
 #         paper = SearchIndex.objects.get(id=paper_id, status="active")
-# 
+#
 #         # Get similarity recommendations
 #         similar_papers = _calculate_paper_similarity(paper, limit=10)
-# 
+#
 #         # Format recommendations for API response
 #         recommendations = []
 #         for sim_paper, score, reason in similar_papers:
@@ -97,7 +98,7 @@ if __name__ == "__main__":
 #                     "doi": sim_paper.doi,
 #                 }
 #             )
-# 
+#
 #         return JsonResponse(
 #             {
 #                 "status": "success",
@@ -107,7 +108,7 @@ if __name__ == "__main__":
 #                 "count": len(recommendations),
 #             }
 #         )
-# 
+#
 #     except SearchIndex.DoesNotExist:
 #         return JsonResponse(
 #             {"status": "error", "message": "Paper not found"}, status=404
@@ -120,8 +121,8 @@ if __name__ == "__main__":
 #             {"status": "error", "message": "Failed to generate recommendations"},
 #             status=500,
 #         )
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["GET"])
 # def user_recommendations(request):
@@ -129,19 +130,19 @@ if __name__ == "__main__":
 #     try:
 #         from . import get_paper_authors
 #         from ...models import RecommendationLog
-# 
+#
 #         # Get user's recent views for recommendations
 #         recent_views = (
 #             RecommendationLog.objects.filter(user=request.user, clicked=True)
 #             .select_related("source_paper")
 #             .order_by("-created_at")[:10]
 #         )
-# 
+#
 #         # Generate recommendations
 #         recommendations = _get_similar_papers_recommendations(
 #             request.user, recent_views
 #         )
-# 
+#
 #         # Format for API response
 #         formatted_recommendations = []
 #         for rec in recommendations:
@@ -166,7 +167,7 @@ if __name__ == "__main__":
 #                     "doi": paper.doi,
 #                 }
 #             )
-# 
+#
 #         return JsonResponse(
 #             {
 #                 "status": "success",
@@ -174,7 +175,7 @@ if __name__ == "__main__":
 #                 "count": len(formatted_recommendations),
 #             }
 #         )
-# 
+#
 #     except Exception as e:
 #         logger.error(
 #             f"Error generating user recommendations for user {request.user.id}: {e}"

@@ -31,7 +31,9 @@ class TestUserDataPermissions:
         proj_dir.mkdir()
 
         status_data = {}
-        with patch("apps.public_app.views.status.health_checks.Path") as mock_path:
+        with patch(
+            "apps.infra.public_app.views.status.health_checks.Path"
+        ) as mock_path:
             mock_path.return_value = users_dir
             # Actually use the real path for iteration
             with patch.object(

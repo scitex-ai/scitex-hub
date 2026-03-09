@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from django.test import TestCase, override_settings
 
-from apps.apps_app.finders import DevAppStaticFinder
+from apps.workspace.apps_app.finders import DevAppStaticFinder
 
 
 class TestDevAppStaticFinder(TestCase):
@@ -51,7 +51,7 @@ class TestDevAppStaticFinder(TestCase):
         items = list(finder.list([]))
         self.assertEqual(items, [])
 
-    @patch("apps.apps_app.finders.settings")
+    @patch("apps.workspace.apps_app.finders.settings")
     def test_find_handles_permission_error(self, mock_settings):
         """Finder should not crash on PermissionError."""
         mock_settings.BASE_DIR = Path("/root")  # Typically inaccessible

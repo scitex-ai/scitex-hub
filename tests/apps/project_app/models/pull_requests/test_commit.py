@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.models.pull_requests.commit import ...
+# from apps.infra.project_app.models.pull_requests.commit import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,15 +28,15 @@ if __name__ == "__main__":
 # """
 # Pull Request Commit model - tracks commits included in a PR.
 # """
-# 
+#
 # from django.db import models
-# 
-# 
+#
+#
 # class PullRequestCommit(models.Model):
 #     """
 #     Model to track commits included in a PR.
 #     """
-# 
+#
 #     pull_request = models.ForeignKey(
 #         "project_app.PullRequest",
 #         on_delete=models.CASCADE,
@@ -48,7 +49,7 @@ if __name__ == "__main__":
 #     author_email = models.CharField(max_length=255, help_text="Git author email")
 #     committed_at = models.DateTimeField(help_text="Git commit timestamp")
 #     created_at = models.DateTimeField(auto_now_add=True)
-# 
+#
 #     class Meta:
 #         unique_together = ("pull_request", "commit_hash")
 #         ordering = ["committed_at"]
@@ -58,7 +59,7 @@ if __name__ == "__main__":
 #         ]
 #         verbose_name = "Pull Request Commit"
 #         verbose_name_plural = "Pull Request Commits"
-# 
+#
 #     def __str__(self):
 #         return f"{self.commit_hash[:7]} - {self.commit_message[:50]}"
 

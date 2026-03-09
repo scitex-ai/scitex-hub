@@ -27,14 +27,29 @@ def require_env(var_name: str) -> str:
 
 
 def discover_local_apps():
-    """Discover all Django apps in the apps directory."""
+    """Discover all Django apps in apps/, apps/infra/, and apps/workspace/."""
     apps_path = BASE_DIR / "apps"
     local_apps = []
-    if apps_path.exists():
-        for item in sorted(apps_path.iterdir()):
-            if item.is_dir() and not item.name.startswith("_"):
-                if (item / "apps.py").exists() or (item / "__init__.py").exists():
-                    local_apps.append(f"apps.{item.name}")
+    if not apps_path.exists():
+        return local_apps
+
+    # Scan subdirectory groups first
+    for group in ("infra", "workspace"):
+        group_path = apps_path / group
+        if group_path.exists():
+            for item in sorted(group_path.iterdir()):
+                if item.is_dir() and not item.name.startswith("_"):
+                    if (item / "apps.py").exists():
+                        local_apps.append(f"apps.{group}.{item.name}")
+
+    # Scan flat apps/ level (legacy fallback, future additions)
+    for item in sorted(apps_path.iterdir()):
+        if item.is_dir() and not item.name.startswith("_"):
+            if item.name in ("infra", "workspace", "legacy"):
+                continue
+            if (item / "apps.py").exists():
+                local_apps.append(f"apps.{item.name}")
+
     return local_apps
 
 
@@ -66,7 +81,7 @@ STATICFILES_DIRS = [BASE_DIR / "static", BASE_DIR / ".jsbuild"]
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "apps.apps_app.finders.DevAppStaticFinder",
+    "apps.workspace.apps_app.finders.DevAppStaticFinder",
 ]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -137,13 +152,13 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "apps.project_app.middleware.OnSiteAuthMiddleware",
+    "apps.infra.project_app.middleware.OnSiteAuthMiddleware",
     "allauth.account.middleware.AccountMiddleware",
-    "apps.project_app.middleware.VisitorAutoLoginMiddleware",
-    "apps.project_app.middleware.VisitorExpirationMiddleware",
+    "apps.infra.project_app.middleware.VisitorAutoLoginMiddleware",
+    "apps.infra.project_app.middleware.VisitorExpirationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "apps.project_app.middleware.GuestSessionMiddleware",
+    "apps.infra.project_app.middleware.GuestSessionMiddleware",
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -167,21 +182,21 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "apps.project_app.context_processors.version_context",
-                "apps.project_app.context_processors.project_context",
-                "apps.project_app.context_processors.visitor_expiration_context",
+                "apps.infra.project_app.context_processors.version_context",
+                "apps.infra.project_app.context_processors.project_context",
+                "apps.infra.project_app.context_processors.visitor_expiration_context",
                 "config.context_processors.cache_buster",
                 "config.context_processors.debug_mode",
                 "config.context_processors.scitex_version",
                 "config.context_processors.umami_analytics",
                 "config.context_processors.site_branding",
                 "config.context_processors.scitex_env",
-                "apps.workspace_app.context_processors.workspace_context",
+                "apps.infra.workspace_app.context_processors.workspace_context",
             ],
             "loaders": [
                 "django.template.loaders.filesystem.Loader",
                 "django.template.loaders.app_directories.Loader",
-                "apps.apps_app.template_loader.UserAppTemplateLoader",
+                "apps.workspace.apps_app.template_loader.UserAppTemplateLoader",
             ],
         },
     },

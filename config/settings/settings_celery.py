@@ -20,18 +20,18 @@ CELERY_RESULT_EXTENDED = True
 
 # Task routing to dedicated queues
 CELERY_TASK_ROUTES = {
-    "apps.writer_app.tasks.*": {"queue": "ai_queue"},
-    "apps.scholar_app.tasks.*": {"queue": "search_queue"},
-    "apps.console_app.tasks.*": {"queue": "compute_queue"},
-    "apps.vis_app.tasks.*": {"queue": "vis_queue"},
+    "apps.workspace.writer_app.tasks.*": {"queue": "ai_queue"},
+    "apps.workspace.scholar_app.tasks.*": {"queue": "search_queue"},
+    "apps.workspace.console_app.tasks.*": {"queue": "compute_queue"},
+    "apps.workspace.vis_app.tasks.*": {"queue": "vis_queue"},
 }
 
 # Fair scheduling: Rate limits per task
 CELERY_TASK_ANNOTATIONS = {
-    "apps.writer_app.tasks.ai_suggest": {"rate_limit": "10/m"},
-    "apps.writer_app.tasks.ai_generate": {"rate_limit": "5/m"},
-    "apps.scholar_app.tasks.search_papers": {"rate_limit": "30/m"},
-    "apps.scholar_app.tasks.process_pdf": {"rate_limit": "20/m"},
+    "apps.workspace.writer_app.tasks.ai_suggest": {"rate_limit": "10/m"},
+    "apps.workspace.writer_app.tasks.ai_generate": {"rate_limit": "5/m"},
+    "apps.workspace.scholar_app.tasks.search_papers": {"rate_limit": "30/m"},
+    "apps.workspace.scholar_app.tasks.process_pdf": {"rate_limit": "20/m"},
 }
 
 # Worker configuration for fairness
@@ -45,7 +45,7 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_BEAT_SCHEDULE = {
     # Clean up expired visitor allocations every 5 minutes
     "cleanup-expired-visitor-allocations": {
-        "task": "apps.public_app.tasks.cleanup_expired_visitor_allocations",
+        "task": "apps.infra.public_app.tasks.cleanup_expired_visitor_allocations",
         "schedule": 300.0,  # Every 5 minutes (in seconds)
         "options": {
             "expires": 270.0,  # Expire after 4.5 minutes if not started
@@ -53,7 +53,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     # Generate server status charts every 1 minute
     "generate-status-charts": {
-        "task": "apps.public_app.tasks.generate_status_charts",
+        "task": "apps.infra.public_app.tasks.generate_status_charts",
         "schedule": 60.0,  # Every 1 minute
         "options": {
             "expires": 55.0,  # Expire after 55 seconds if not started
@@ -61,7 +61,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     # Check site health every 1 minute and notify on failures
     "check-site-health": {
-        "task": "apps.public_app.tasks.check_site_health",
+        "task": "apps.infra.public_app.tasks.check_site_health",
         "schedule": 60.0,  # Every 1 minute
         "options": {
             "expires": 55.0,  # Expire after 55 seconds if not started
@@ -69,7 +69,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     # Check for request flood patterns every 1 minute
     "check-request-flood": {
-        "task": "apps.public_app.tasks.check_request_flood",
+        "task": "apps.infra.public_app.tasks.check_request_flood",
         "schedule": 60.0,  # Every 1 minute
         "options": {
             "expires": 55.0,  # Expire after 55 seconds if not started

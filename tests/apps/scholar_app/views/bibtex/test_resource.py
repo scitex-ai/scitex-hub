@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.bibtex.resource import ...
+# from apps.workspace.scholar_app.views.bibtex.resource import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,13 +28,13 @@ if __name__ == "__main__":
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
 # # File: /home/ywatanabe/proj/scitex-cloud/apps/scholar_app/views/bibtex/resource.py
-# 
+#
 # """
 # BibTeX Resource Status View
-# 
+#
 # Monitor system resource usage and job queue status.
 # """
-# 
+#
 # import logging
 # from django.http import JsonResponse
 # from django.views.decorators.http import require_http_methods
@@ -41,39 +42,39 @@ if __name__ == "__main__":
 # from datetime import timedelta
 # from django.db.models import Q
 # from ...models import BibTeXEnrichmentJob
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # def bibtex_resource_status(request):
 #     """AJAX endpoint to get current resource usage and job queue status."""
 #     import psutil
-# 
+#
 #     # Get all active and queued jobs
 #     active_jobs = (
 #         BibTeXEnrichmentJob.objects.filter(status="processing")
 #         .select_related("user")
 #         .order_by("started_at")
 #     )
-# 
+#
 #     queued_jobs = (
 #         BibTeXEnrichmentJob.objects.filter(status="pending")
 #         .select_related("user")
 #         .order_by("created_at")
 #     )
-# 
+#
 #     # Get recently completed jobs (last hour)
 #     one_hour_ago = timezone.now() - timedelta(hours=1)
-# 
+#
 #     recent_completed = BibTeXEnrichmentJob.objects.filter(
 #         Q(status="completed") | Q(status="failed"), completed_at__gte=one_hour_ago
 #     ).count()
-# 
+#
 #     # Get system resource usage
 #     cpu_percent = psutil.cpu_percent(interval=0.1)
 #     memory = psutil.virtual_memory()
-# 
+#
 #     # Check if current user owns any jobs
 #     if request.user.is_authenticated:
 #         user_identifier = request.user
@@ -81,7 +82,7 @@ if __name__ == "__main__":
 #     else:
 #         user_identifier = None
 #         user_session = request.session.session_key
-# 
+#
 #     # Build active jobs list (security: only show owner's jobs)
 #     active_jobs_list = []
 #     for job in active_jobs:
@@ -89,7 +90,7 @@ if __name__ == "__main__":
 #             not request.user.is_authenticated
 #             and job.session_key == request.session.session_key
 #         )
-# 
+#
 #         if is_owner:
 #             active_jobs_list.append(
 #                 {
@@ -104,19 +105,19 @@ if __name__ == "__main__":
 #                     "is_owner": True,
 #                 }
 #             )
-# 
+#
 #     # Build queued jobs list with position (security: only show owner's jobs)
 #     queued_jobs_list = []
 #     user_queue_position = None
 #     total_queue_position = 0
-# 
+#
 #     for idx, job in enumerate(queued_jobs):
 #         total_queue_position = idx + 1
 #         is_owner = (request.user.is_authenticated and job.user == request.user) or (
 #             not request.user.is_authenticated
 #             and job.session_key == request.session.session_key
 #         )
-# 
+#
 #         if is_owner:
 #             user_queue_position = idx + 1
 #             queued_jobs_list.append(
@@ -130,7 +131,7 @@ if __name__ == "__main__":
 #                     "is_owner": True,
 #                 }
 #             )
-# 
+#
 #     return JsonResponse(
 #         {
 #             "system": {
@@ -149,8 +150,8 @@ if __name__ == "__main__":
 #             "timestamp": timezone.now().isoformat(),
 #         }
 #     )
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

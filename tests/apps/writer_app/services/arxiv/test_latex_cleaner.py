@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.services.arxiv.latex_cleaner import ...
+# from apps.workspace.writer_app.services.arxiv.latex_cleaner import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,17 +27,17 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # LaTeX Cleaning and Validation for arXiv Submission
-# 
+#
 # Provides utilities for cleaning, validating, and normalizing
 # LaTeX content to meet arXiv compliance requirements.
 # """
-# 
+#
 # import re
-# 
-# 
+#
+#
 # class ArxivLatexCleaner:
 #     """Clean and validate LaTeX content for arXiv compliance."""
-# 
+#
 #     def __init__(self):
 #         # Packages to remove or replace
 #         self.problematic_packages = {
@@ -45,7 +46,7 @@ if __name__ == "__main__":
 #             "pdfpages": None,  # Not allowed
 #             "epstopdf": None,  # Automatic conversion
 #         }
-# 
+#
 #         # arXiv-approved packages
 #         self.approved_packages = {
 #             "amsmath",
@@ -75,23 +76,23 @@ if __name__ == "__main__":
 #             "caption",
 #             "float",
 #         }
-# 
+#
 #     def clean_latex_for_arxiv(self, latex_content: str) -> str:
 #         """Clean LaTeX content for arXiv compliance."""
 #         # Remove problematic packages
 #         latex_content = self.remove_problematic_packages(latex_content)
-# 
+#
 #         # Fix common issues
 #         latex_content = self.fix_common_latex_issues(latex_content)
-# 
+#
 #         # Validate package usage
 #         latex_content = self.validate_packages(latex_content)
-# 
+#
 #         # Clean up formatting
 #         latex_content = self.clean_formatting(latex_content)
-# 
+#
 #         return latex_content
-# 
+#
 #     def remove_problematic_packages(self, content: str) -> str:
 #         """Remove or replace packages not supported by arXiv."""
 #         for problematic, replacement in self.problematic_packages.items():
@@ -103,9 +104,9 @@ if __name__ == "__main__":
 #                 content = re.sub(
 #                     pattern, f"% Removed unsupported package: {problematic}", content
 #                 )
-# 
+#
 #         return content
-# 
+#
 #     def fix_common_latex_issues(self, content: str) -> str:
 #         """Fix common LaTeX issues for arXiv."""
 #         # Fix figure paths (remove absolute paths)
@@ -114,7 +115,7 @@ if __name__ == "__main__":
 #             r"\\includegraphics{\1}",
 #             content,
 #         )
-# 
+#
 #         # Ensure UTF-8 encoding
 #         if (
 #             "\\usepackage[utf8]{inputenc}" not in content
@@ -123,58 +124,58 @@ if __name__ == "__main__":
 #             content = content.replace(
 #                 "\\documentclass", "\\usepackage[utf8]{inputenc}\n\\documentclass"
 #             )
-# 
+#
 #         # Fix citation commands
 #         content = re.sub(r"\\cite\s*\{([^}]+)\}", r"\\cite{\1}", content)
-# 
+#
 #         # Remove excessive whitespace
 #         content = re.sub(r"\n\s*\n\s*\n", "\n\n", content)
-# 
+#
 #         return content
-# 
+#
 #     def validate_packages(self, content: str) -> str:
 #         """Validate that only approved packages are used."""
 #         # Find all package imports
 #         package_pattern = r"\\usepackage(?:\[[^\]]*\])?\{([^}]+)\}"
 #         packages = re.findall(package_pattern, content)
-# 
+#
 #         warnings = []
 #         for package in packages:
 #             if package not in self.approved_packages:
 #                 warnings.append(
 #                     f"Warning: Package '{package}' may not be supported by arXiv"
 #                 )
-# 
+#
 #         if warnings:
 #             warning_comment = (
 #                 "% arXiv Package Warnings:\n% " + "\n% ".join(warnings) + "\n\n"
 #             )
 #             content = warning_comment + content
-# 
+#
 #         return content
-# 
+#
 #     def clean_formatting(self, content: str) -> str:
 #         """Clean up LaTeX formatting."""
 #         # Remove extra spaces around braces
 #         content = re.sub(r"\s*\{\s*", "{", content)
 #         content = re.sub(r"\s*\}\s*", "}", content)
-# 
+#
 #         # Fix line breaks
 #         content = re.sub(r"(?<!\\)\\\\(?!\s*\n)", "\\\\\n", content)
-# 
+#
 #         # Clean up comments
 #         content = re.sub(r"%\s*$", "%", content, flags=re.MULTILINE)
-# 
+#
 #         return content
-# 
+#
 #     def clean_section_content(self, content: str) -> str:
 #         """Clean individual section content."""
 #         # Remove section commands if they exist (will be added by main document)
 #         content = re.sub(r"^\\section\*?\{[^}]+\}\s*", "", content, flags=re.MULTILINE)
-# 
+#
 #         # Clean up whitespace
 #         content = content.strip()
-# 
+#
 #         return content
 
 # --------------------------------------------------------------------------------

@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.views.api.project_crud import ...
+# from apps.infra.project_app.views.api.project_crud import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,26 +32,26 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # """
 # Project CRUD API Views
-# 
+#
 # This module contains API endpoints for project CRUD operations.
 # """
-# 
+#
 # from __future__ import annotations
 # import json
-# 
+#
 # from django.shortcuts import get_object_or_404
 # from django.contrib.auth.decorators import login_required
 # from django.http import JsonResponse
 # from django.views.decorators.http import require_http_methods
-# 
+#
 # from ...models import Project
-# 
-# 
+#
+#
 # # ============================================================================
 # # Project CRUD APIs
 # # ============================================================================
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["GET"])
 # def api_project_list(request):
@@ -59,8 +60,8 @@ if __name__ == "__main__":
 #         "id", "name", "description", "created_at", "updated_at"
 #     )
 #     return JsonResponse({"projects": list(projects)})
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["POST"])
 # def api_project_create(request):
@@ -69,19 +70,19 @@ if __name__ == "__main__":
 #         data = json.loads(request.body)
 #         name = data.get("name", "").strip()
 #         description = data.get("description", "").strip()
-# 
+#
 #         if not name:
 #             return JsonResponse({"success": False, "error": "Project name is required"})
-# 
+#
 #         # Ensure unique name
 #         unique_name = Project.generate_unique_name(name, request.user)
-# 
+#
 #         project = Project.objects.create(
 #             name=unique_name,
 #             description=description,
 #             owner=request.user,
 #         )
-# 
+#
 #         return JsonResponse(
 #             {
 #                 "success": True,
@@ -89,11 +90,11 @@ if __name__ == "__main__":
 #                 "message": f'Project "{project.name}" created successfully',
 #             }
 #         )
-# 
+#
 #     except Exception as e:
 #         return JsonResponse({"success": False, "error": str(e)})
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["GET"])
 # def api_project_detail(request, pk):
@@ -111,8 +112,8 @@ if __name__ == "__main__":
 #         return JsonResponse({"success": True, "project": data})
 #     except Exception as e:
 #         return JsonResponse({"success": False, "error": str(e)})
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

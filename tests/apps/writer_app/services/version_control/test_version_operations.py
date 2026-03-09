@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.services.version_control.version_operations import ...
+# from apps.workspace.writer_app.services.version_control.version_operations import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -25,7 +26,7 @@ if __name__ == "__main__":
 # Start of Source Code from: apps/writer_app/services/version_control/version_operations.py
 # --------------------------------------------------------------------------------
 # """Version creation and rollback operations."""
-# 
+#
 # from typing import Optional
 # from datetime import timedelta
 # from django.utils import timezone
@@ -33,15 +34,15 @@ if __name__ == "__main__":
 # from ...models import Manuscript, ManuscriptVersion, DiffResult
 # from .diff_generators import DiffEngine
 # from .diff_utils import DiffUtils
-# 
-# 
+#
+#
 # class VersionOperations:
 #     """Manage manuscript version operations."""
-# 
+#
 #     def __init__(self):
 #         self.diff_engine = DiffEngine()
 #         self.diff_utils = DiffUtils()
-# 
+#
 #     def create_version(
 #         self,
 #         manuscript: Manuscript,
@@ -52,7 +53,7 @@ if __name__ == "__main__":
 #         is_major: bool = False,
 #     ) -> ManuscriptVersion:
 #         """Create a new version of the manuscript."""
-# 
+#
 #         # Generate version number
 #         latest_version = manuscript.versions.filter(branch_name=branch_name).first()
 #         if latest_version:
@@ -65,12 +66,12 @@ if __name__ == "__main__":
 #                 version_number = f"{version_parts[0]}.{minor + 1}"
 #         else:
 #             version_number = "1.0" if is_major else "0.1"
-# 
+#
 #         # Collect current manuscript state
 #         sections = manuscript.sections.all()
 #         section_contents = {}
 #         total_word_count = 0
-# 
+#
 #         for section in sections:
 #             section_contents[section.section_type] = {
 #                 "title": section.title,
@@ -79,7 +80,7 @@ if __name__ == "__main__":
 #                 "order": section.order,
 #             }
 #             total_word_count += len(section.content.split())
-# 
+#
 #         manuscript_data = {
 #             "title": manuscript.title,
 #             "abstract": manuscript.abstract,
@@ -90,20 +91,20 @@ if __name__ == "__main__":
 #             "created_at": manuscript.created_at.isoformat(),
 #             "updated_at": manuscript.updated_at.isoformat(),
 #         }
-# 
+#
 #         # Calculate changes from previous version
 #         changes_count = 0
 #         word_delta = 0
 #         lines_added = 0
 #         lines_removed = 0
-# 
+#
 #         if latest_version:
 #             # Calculate diff statistics
 #             old_content = self.diff_utils.reconstruct_content(
 #                 latest_version.section_contents
 #             )
 #             new_content = self.diff_utils.reconstruct_content(section_contents)
-# 
+#
 #             diff_result = self.diff_engine.generate_unified_diff(
 #                 old_content, new_content
 #             )
@@ -113,7 +114,7 @@ if __name__ == "__main__":
 #             )
 #             lines_added = diff_result["stats"]["additions"]
 #             lines_removed = diff_result["stats"]["deletions"]
-# 
+#
 #         # Create version
 #         version = ManuscriptVersion.objects.create(
 #             manuscript=manuscript,
@@ -131,13 +132,13 @@ if __name__ == "__main__":
 #             lines_added=lines_added,
 #             lines_removed=lines_removed,
 #         )
-# 
+#
 #         # Update manuscript version counter
 #         manuscript.version += 1
 #         manuscript.save()
-# 
+#
 #         return version
-# 
+#
 #     def generate_diff(
 #         self,
 #         from_version: ManuscriptVersion,
@@ -145,21 +146,21 @@ if __name__ == "__main__":
 #         diff_type: str = "unified",
 #     ) -> DiffResult:
 #         """Generate diff between two versions."""
-# 
+#
 #         # Check for cached diff
 #         cached_diff = DiffResult.objects.filter(
 #             from_version=from_version, to_version=to_version, diff_type=diff_type
 #         ).first()
-# 
+#
 #         if cached_diff and cached_diff.is_valid_cache():
 #             return cached_diff
-# 
+#
 #         # Generate new diff
 #         from_content = self.diff_utils.reconstruct_content(
 #             from_version.section_contents
 #         )
 #         to_content = self.diff_utils.reconstruct_content(to_version.section_contents)
-# 
+#
 #         if diff_type == "unified":
 #             diff_data = self.diff_engine.generate_unified_diff(from_content, to_content)
 #         elif diff_type == "side_by_side":
@@ -176,13 +177,13 @@ if __name__ == "__main__":
 #             )
 #         else:
 #             raise ValueError(f"Unsupported diff type: {diff_type}")
-# 
+#
 #         # Generate HTML representation
 #         diff_html = self.diff_utils.generate_diff_html(diff_data)
-# 
+#
 #         # Cache the result
 #         cache_expires = timezone.now() + timedelta(hours=24)
-# 
+#
 #         diff_result = DiffResult.objects.create(
 #             manuscript=from_version.manuscript,
 #             from_version=from_version,
@@ -193,14 +194,14 @@ if __name__ == "__main__":
 #             diff_stats=diff_data.get("stats", {}),
 #             cache_expires=cache_expires,
 #         )
-# 
+#
 #         return diff_result
-# 
+#
 #     def rollback_to_version(
 #         self, manuscript: Manuscript, target_version: ManuscriptVersion, user: User
 #     ) -> ManuscriptVersion:
 #         """Rollback manuscript to a specific version."""
-# 
+#
 #         # Create rollback version with target content
 #         rollback_version = ManuscriptVersion.objects.create(
 #             manuscript=manuscript,
@@ -213,7 +214,7 @@ if __name__ == "__main__":
 #             section_contents=target_version.section_contents,
 #             parent_version=manuscript.versions.first(),
 #         )
-# 
+#
 #         # Update manuscript sections with rollback content
 #         for section_type, section_data in target_version.section_contents.items():
 #             section, created = manuscript.sections.get_or_create(
@@ -229,10 +230,10 @@ if __name__ == "__main__":
 #                 section.content = section_data["content"]
 #                 section.order = section_data["order"]
 #                 section.save()
-# 
+#
 #         return rollback_version
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

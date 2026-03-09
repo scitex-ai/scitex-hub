@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.search.engines.semantic import ...
+# from apps.workspace.scholar_app.views.search.engines.semantic import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,7 +32,7 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/scholar_app/views/search/engines/semantic.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
@@ -48,15 +49,15 @@ if __name__ == "__main__":
 # from ..citations import get_journal_impact_factor, get_pubmed_citations, validate_citation_count
 # from ..search_helpers import search_database_papers, get_paper_authors
 # from ..storage import store_search_result
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
+#
 # try:
 #     from scitex.scholar.pipelines.ScholarPipelineSearchParallel import ScholarPipelineSearchParallel
 #     SCITEX_SCHOLAR_AVAILABLE = True
 # except ImportError:
 #     SCITEX_SCHOLAR_AVAILABLE = False
-# 
+#
 # def search_semantic_scholar(query, max_results=100, filters=None):
 #     """Search Semantic Scholar API with rate limiting."""
 #     try:
@@ -66,16 +67,16 @@ if __name__ == "__main__":
 #             "limit": min(max_results, 10),  # Reduced to avoid rate limits
 #             "fields": "title,authors,year,journal,abstract,openAccessPdf,citationCount",
 #         }
-# 
+#
 #         # Add delay to respect rate limits
 #         import time
-# 
+#
 #         time.sleep(0.5)
-# 
+#
 #         response = requests.get(base_url, params=params, timeout=10)
 #         response.raise_for_status()
 #         data = response.json()
-# 
+#
 #         results = []
 #         if "data" in data:
 #             for paper in data["data"]:
@@ -84,18 +85,18 @@ if __name__ == "__main__":
 #                     for author in paper["authors"][:3]:  # Limit to 3 authors
 #                         if "name" in author:
 #                             authors.append(author["name"])
-# 
+#
 #                 pdf_url = ""
 #                 if paper.get("openAccessPdf") and paper["openAccessPdf"].get("url"):
 #                     pdf_url = paper["openAccessPdf"]["url"]
-# 
+#
 #                 journal_name = "Unknown Journal"
 #                 if paper.get("journal") and paper["journal"].get("name"):
 #                     journal_name = paper["journal"]["name"]
-# 
+#
 #                 # Get impact factor for journal
 #                 impact_factor = get_journal_impact_factor(journal_name) if journal_name != "Unknown Journal" else None
-# 
+#
 #                 results.append(
 #                     {
 #                         "title": paper.get("title") or "Unknown Title",
@@ -110,17 +111,17 @@ if __name__ == "__main__":
 #                         "impact_factor": impact_factor,
 #                     }
 #                 )
-# 
+#
 #         return results
-# 
+#
 #     except Exception as e:
 #         print(f"Error searching Semantic Scholar: {e}")
 #         return []
-# 
-# 
-# 
-# 
-# 
+#
+#
+#
+#
+#
 
 # --------------------------------------------------------------------------------
 # End of Source Code from: apps/scholar_app/views/search/engines/semantic.py

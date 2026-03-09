@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.services.filesystem_utils.project_scanner import ...
+# from apps.infra.project_app.services.filesystem_utils.project_scanner import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,53 +27,53 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # SciTeX Cloud - Project Scanner
-# 
+#
 # Project directory scanning and structured views.
 # No database dependencies - pure filesystem scanning.
 # """
-# 
+#
 # from pathlib import Path
 # from typing import List, Dict
-# 
+#
 # from .file_handler import NativeFileHandler
 # from .file_operations import read_file_content
-# 
-# 
+#
+#
 # class ProjectFileScanner:
 #     """
 #     Scan project directories and provide structured views.
 #     No database dependencies - pure filesystem scanning.
 #     """
-# 
+#
 #     def __init__(self, project_path: Path):
 #         self.project_path = project_path
 #         self.handler = NativeFileHandler()
-# 
+#
 #     def scan_structure(self, max_depth: int = 3) -> Dict:
 #         """
 #         Scan project and return structured tree.
-# 
+#
 #         Args:
 #             max_depth: Maximum depth to scan
-# 
+#
 #         Returns:
 #             Nested dictionary representing directory structure
 #         """
-# 
+#
 #         def scan_dir(path: Path, depth: int = 0) -> Dict:
 #             if depth > max_depth:
 #                 return {"truncated": True}
-# 
+#
 #             try:
 #                 items = self.handler.list_directory(path, recursive=False)
-# 
+#
 #                 result = {
 #                     "name": path.name,
 #                     "path": str(path.relative_to(self.project_path)),
 #                     "files": [],
 #                     "directories": [],
 #                 }
-# 
+#
 #                 for item in items:
 #                     if item["is_dir"]:
 #                         sub_path = Path(item["path"])
@@ -88,58 +89,58 @@ if __name__ == "__main__":
 #                                 "extension": item["extension"],
 #                             }
 #                         )
-# 
+#
 #                 return result
-# 
+#
 #             except Exception as e:
 #                 return {"error": str(e)}
-# 
+#
 #         return scan_dir(self.project_path)
-# 
+#
 #     def get_recent_files(self, limit: int = 10) -> List[Dict]:
 #         """
 #         Get most recently modified files.
-# 
+#
 #         Args:
 #             limit: Maximum number of files to return
-# 
+#
 #         Returns:
 #             List of file info dictionaries sorted by modification time
 #         """
 #         all_files = self.handler.list_directory(self.project_path, recursive=True)
-# 
+#
 #         # Filter to files only
 #         files = [f for f in all_files if f["is_file"]]
-# 
+#
 #         # Sort by modification time
 #         files.sort(key=lambda x: x["modified_timestamp"], reverse=True)
-# 
+#
 #         return files[:limit]
-# 
+#
 #     def search_content(
 #         self, query: str, file_patterns: List[str] = ["*.py", "*.md", "*.txt"]
 #     ) -> List[Dict]:
 #         """
 #         Search file contents for query string.
-# 
+#
 #         Args:
 #             query: Search string
 #             file_patterns: File patterns to search
-# 
+#
 #         Returns:
 #             List of matches with context
 #         """
 #         results = []
-# 
+#
 #         for pattern in file_patterns:
 #             files = self.handler.find_files(self.project_path, pattern)
-# 
+#
 #             for file_path in files:
 #                 try:
 #                     success, content = read_file_content(file_path)
 #                     if not success:
 #                         continue
-# 
+#
 #                     # Search for query
 #                     lines = content.split("\n")
 #                     for line_no, line in enumerate(lines, 1):
@@ -157,21 +158,21 @@ if __name__ == "__main__":
 #                 except (UnicodeDecodeError, OSError, IOError):
 #                     # Unable to read or decode file, skip it
 #                     continue
-# 
+#
 #         return results
-# 
+#
 #     @staticmethod
 #     def _get_context(
 #         lines: List[str], line_idx: int, context_lines: int = 2
 #     ) -> List[str]:
 #         """
 #         Get surrounding lines for context.
-# 
+#
 #         Args:
 #             lines: All lines from file
 #             line_idx: Index of target line
 #             context_lines: Number of lines before/after to include
-# 
+#
 #         Returns:
 #             List of context lines
 #         """

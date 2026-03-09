@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from apps.console_app.services.terminal_broker.broker import TerminalBroker
+from apps.workspace.console_app.services.terminal_broker.broker import TerminalBroker
 
 # ---------------------------------------------------------------------------
 # Message routing
@@ -41,12 +41,15 @@ class TestHandleMessageRouting:
         assert result["status"] == "error"
         assert "Unknown action" in result["error"]
 
-    @patch("apps.console_app.services.terminal_broker.broker.SHARED_ALLOCATION", False)
+    @patch(
+        "apps.workspace.console_app.services.terminal_broker.broker.SHARED_ALLOCATION",
+        False,
+    )
     def test_spawn_routes_to_legacy(self):
         broker = self._make_broker()
         client = MagicMock()
         with patch(
-            "apps.console_app.services.terminal_broker.broker.TerminalBroker._handle_spawn"
+            "apps.workspace.console_app.services.terminal_broker.broker.TerminalBroker._handle_spawn"
         ) as mock:
             mock.return_value = {"status": "ok"}
             result = broker._handle_message({"action": "spawn"}, client)

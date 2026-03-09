@@ -25,8 +25,8 @@ import pytest
 # We inject a stub package into sys.modules before importing.
 # ---------------------------------------------------------------------------
 
-_MODULE_PATH = "apps.console_app.views.terminal.workspace"
-_DOTFILES_PATH = "apps.console_app.views.terminal.dotfiles"
+_MODULE_PATH = "apps.workspace.console_app.views.terminal.workspace"
+_DOTFILES_PATH = "apps.workspace.console_app.views.terminal.dotfiles"
 
 
 def _make_stub_dotfiles_package():
@@ -49,9 +49,9 @@ def _import_workspace(stub_dotfiles=None):
     # Build the intermediate package stubs required for a dotted import
     for pkg in [
         "apps",
-        "apps.console_app",
-        "apps.console_app.views",
-        "apps.console_app.views.terminal",
+        "apps.workspace.console_app",
+        "apps.workspace.console_app.views",
+        "apps.workspace.console_app.views.terminal",
     ]:
         if pkg not in sys.modules:
             sys.modules[pkg] = types.ModuleType(pkg)

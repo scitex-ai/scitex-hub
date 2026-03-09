@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.services.project_filesystem.file_ops import ...
+# from apps.infra.project_app.services.project_filesystem.file_ops import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,34 +27,34 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # File Operations Manager Module
-# 
+#
 # Handles file storage, listing, and project structure operations.
 # """
-# 
+#
 # import json
 # from pathlib import Path
 # from typing import Dict, List, Optional, Tuple
 # from datetime import datetime
 # import logging
-# 
+#
 # from django.utils.text import slugify
 # from ...models import Project
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # class FileOperationsManager:
 #     """Manages file operations for projects."""
-# 
+#
 #     def __init__(self, filesystem_manager):
 #         """
 #         Initialize FileOperationsManager.
-# 
+#
 #         Args:
 #             filesystem_manager: Parent ProjectFilesystemManager instance
 #         """
 #         self.manager = filesystem_manager
-# 
+#
 #     def store_document(
 #         self,
 #         document,
@@ -71,25 +72,25 @@ if __name__ == "__main__":
 #                 project_path = self.manager.get_project_root_path(document.project)
 #                 if not project_path:
 #                     return False, None
-# 
+#
 #                 extension = self._get_file_extension(document.document_type)
 #                 filename = f"{slugify(document.title)}{extension}"
 #                 file_path = project_path / "documents" / doc_type / filename
-# 
+#
 #             if not self.manager._ensure_directory(file_path.parent):
 #                 return False, None
-# 
+#
 #             with open(file_path, "w", encoding="utf-8") as f:
 #                 f.write(content)
-# 
+#
 #             document.file_location = str(file_path.relative_to(self.manager.base_path))
 #             document.save()
-# 
+#
 #             return True, file_path
 #         except Exception as e:
 #             logger.error(f"Error storing document: {e}")
 #             return False, None
-# 
+#
 #     def store_file(
 #         self,
 #         project: Project,
@@ -102,21 +103,21 @@ if __name__ == "__main__":
 #             project_path = self.manager.get_project_root_path(project)
 #             if not project_path:
 #                 return False, None
-# 
+#
 #             subcategory = self._get_subcategory(filename, category)
 #             file_path = project_path / category / subcategory / filename
-# 
+#
 #             if not self.manager._ensure_directory(file_path.parent):
 #                 return False, None
-# 
+#
 #             with open(file_path, "wb") as f:
 #                 f.write(file_content)
-# 
+#
 #             return True, file_path
 #         except Exception as e:
 #             logger.error(f"Error storing file: {e}")
 #             return False, None
-# 
+#
 #     def list_project_files(
 #         self,
 #         project: Project,
@@ -127,10 +128,10 @@ if __name__ == "__main__":
 #             project_path = self.manager.get_project_root_path(project)
 #             if not project_path or not project_path.exists():
 #                 return []
-# 
+#
 #             files = []
 #             search_path = project_path / category if category else project_path
-# 
+#
 #             for file_path in search_path.rglob("*"):
 #                 if file_path.is_file():
 #                     stat = file_path.stat()
@@ -146,19 +147,19 @@ if __name__ == "__main__":
 #                         if file_path.parent != project_path
 #                         else "",
 #                     })
-# 
+#
 #             return sorted(files, key=lambda x: x["modified"], reverse=True)
 #         except Exception as e:
 #             logger.error(f"Error listing project files: {e}")
 #             return []
-# 
+#
 #     def get_project_structure(self, project: Project) -> Dict:
 #         """Get the complete directory structure for a project."""
 #         try:
 #             project_path = self.manager.get_project_root_path(project)
 #             if not project_path or not project_path.exists():
 #                 return {}
-# 
+#
 #             def build_tree(path: Path) -> Dict:
 #                 tree = {
 #                     "name": path.name,
@@ -166,7 +167,7 @@ if __name__ == "__main__":
 #                     "path": str(path.relative_to(project_path)),
 #                     "children": [],
 #                 }
-# 
+#
 #                 if path.is_dir():
 #                     for child in sorted(path.iterdir()):
 #                         tree["children"].append(build_tree(child))
@@ -178,14 +179,14 @@ if __name__ == "__main__":
 #                             stat.st_mtime
 #                         ).isoformat(),
 #                     })
-# 
+#
 #                 return tree
-# 
+#
 #             return build_tree(project_path)
 #         except Exception as e:
 #             logger.error(f"Error getting project structure: {e}")
 #             return {}
-# 
+#
 #     def _get_file_extension(self, doc_type: str) -> str:
 #         """Get appropriate file extension for document type."""
 #         extensions = {
@@ -198,11 +199,11 @@ if __name__ == "__main__":
 #             "code": ".py",
 #         }
 #         return extensions.get(doc_type, ".txt")
-# 
+#
 #     def _get_subcategory(self, filename: str, category: str) -> str:
 #         """Determine subcategory based on file type and category."""
 #         extension = Path(filename).suffix.lower()
-# 
+#
 #         if category == "data":
 #             if extension in [".csv", ".xlsx", ".json", ".xml", ".gz", ".zip"]:
 #                 return "raw"
@@ -239,7 +240,7 @@ if __name__ == "__main__":
 #                 return "cache"
 #         elif category == "config":
 #             return ""
-# 
+#
 #         return "misc"
 
 # --------------------------------------------------------------------------------

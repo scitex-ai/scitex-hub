@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.services.repository.services.base_service import ...
+# from apps.workspace.scholar_app.services.repository.services.base_service import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -25,7 +26,7 @@ if __name__ == "__main__":
 # Start of Source Code from: apps/scholar_app/services/repository/services/base_service.py
 # --------------------------------------------------------------------------------
 # """Base repository service abstract class."""
-# 
+#
 # import requests
 # import logging
 # import mimetypes
@@ -34,60 +35,60 @@ if __name__ == "__main__":
 # from django.utils import timezone
 # from ....models import RepositoryConnection, Dataset, DatasetFile
 # from .exceptions import AuthenticationError, APIError
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # class BaseRepositoryService(ABC):
 #     """Base class for repository service implementations"""
-# 
+#
 #     def __init__(self, repository_connection: RepositoryConnection):
 #         self.connection = repository_connection
 #         self.repository = repository_connection.repository
 #         self.logger = logging.getLogger(f"{self.__class__.__name__}")
-# 
+#
 #     @abstractmethod
 #     def authenticate(self) -> bool:
 #         """Authenticate with the repository"""
 #         pass
-# 
+#
 #     @abstractmethod
 #     def create_dataset(self, metadata: Dict) -> Dict:
 #         """Create a new dataset in the repository"""
 #         pass
-# 
+#
 #     @abstractmethod
 #     def update_dataset(self, dataset_id: str, metadata: Dict) -> Dict:
 #         """Update an existing dataset"""
 #         pass
-# 
+#
 #     @abstractmethod
 #     def upload_file(
 #         self, dataset_id: str, file_path: str, file_data: bytes, metadata: Dict = None
 #     ) -> Dict:
 #         """Upload a file to a dataset"""
 #         pass
-# 
+#
 #     @abstractmethod
 #     def get_dataset(self, dataset_id: str) -> Dict:
 #         """Retrieve dataset metadata"""
 #         pass
-# 
+#
 #     @abstractmethod
 #     def list_datasets(self, filters: Dict = None) -> List[Dict]:
 #         """List datasets for the authenticated user"""
 #         pass
-# 
+#
 #     @abstractmethod
 #     def publish_dataset(self, dataset_id: str) -> Dict:
 #         """Publish a dataset (make it public)"""
 #         pass
-# 
+#
 #     @abstractmethod
 #     def get_download_url(self, dataset_id: str, file_id: str) -> str:
 #         """Get download URL for a file"""
 #         pass
-# 
+#
 #     def _make_request(
 #         self,
 #         method: str,
@@ -107,16 +108,16 @@ if __name__ == "__main__":
 #                 files=files,
 #                 timeout=timeout,
 #             )
-# 
+#
 #             # Log request for debugging
 #             self.logger.debug(f"{method} {url} - Status: {response.status_code}")
-# 
+#
 #             return response
-# 
+#
 #         except requests.exceptions.RequestException as e:
 #             self.logger.error(f"Request failed: {e}")
 #             raise APIError(f"Request failed: {e}")
-# 
+#
 #     def _handle_api_error(self, response: requests.Response) -> None:
 #         """Handle API error responses"""
 #         if response.status_code == 401:
@@ -134,12 +135,12 @@ if __name__ == "__main__":
 #             except ValueError:
 #                 error_message = f"API error: {response.status_code} - {response.text}"
 #             raise APIError(error_message)
-# 
+#
 #     def sync_dataset_from_repository(self, repository_dataset_id: str) -> Dataset:
 #         """Sync a dataset from the repository to local database"""
 #         # Get dataset metadata from repository
 #         repo_data = self.get_dataset(repository_dataset_id)
-# 
+#
 #         # Create or update local dataset
 #         dataset, created = Dataset.objects.get_or_create(
 #             repository_connection=self.connection,
@@ -155,7 +156,7 @@ if __name__ == "__main__":
 #                 "last_synced": timezone.now(),
 #             },
 #         )
-# 
+#
 #         if not created:
 #             # Update existing dataset
 #             dataset.title = repo_data.get("title", dataset.title)
@@ -165,14 +166,14 @@ if __name__ == "__main__":
 #             dataset.version = repo_data.get("version", dataset.version)
 #             dataset.last_synced = timezone.now()
 #             dataset.save()
-# 
+#
 #         # Sync files
 #         files_data = repo_data.get("files", [])
 #         for file_data in files_data:
 #             self._sync_dataset_file(dataset, file_data)
-# 
+#
 #         return dataset
-# 
+#
 #     def _sync_dataset_file(self, dataset: Dataset, file_data: Dict) -> DatasetFile:
 #         """Sync a single file from repository"""
 #         dataset_file, created = DatasetFile.objects.get_or_create(
@@ -190,7 +191,7 @@ if __name__ == "__main__":
 #                 or "",
 #             },
 #         )
-# 
+#
 #         if not created:
 #             # Update existing file
 #             dataset_file.filename = file_data.get("filename", dataset_file.filename)
@@ -199,13 +200,13 @@ if __name__ == "__main__":
 #                 "download_url", dataset_file.download_url
 #             )
 #             dataset_file.save()
-# 
+#
 #         return dataset_file
-# 
+#
 #     def _determine_file_type(self, filename: str) -> str:
 #         """Determine file type based on filename"""
 #         filename_lower = filename.lower()
-# 
+#
 #         if filename_lower in ["readme.md", "readme.txt", "readme"]:
 #             return "readme"
 #         elif filename_lower.endswith((".py", ".r", ".m", ".ipynb", ".sh", ".bat")):
@@ -222,14 +223,14 @@ if __name__ == "__main__":
 #             return "license"
 #         else:
 #             return "data"  # Default to data
-# 
+#
 #     def _get_file_extension(self, filename: str) -> str:
 #         """Get file extension"""
 #         parts = filename.split(".")
 #         return parts[-1] if len(parts) > 1 else ""
-# 
-# 
-# 
+#
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

@@ -4,7 +4,7 @@
 
 import pytest
 
-from apps.scholar_app.views.search.citation_export_core import (
+from apps.workspace.scholar_app.views.search.citation_export_core import (
     generate_bibtex,
     generate_citation,
     generate_endnote,

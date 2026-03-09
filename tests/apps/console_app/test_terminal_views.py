@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.terminal_views import ...
+# from apps.workspace.console_app.terminal_views import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,16 +27,16 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # Terminal Views - Backward Compatibility Wrapper
-# 
+#
 # This file maintains backward compatibility for existing imports.
 # Actual implementation has been moved to apps/console_app/views/terminal/
-# 
+#
 # Migration:
-#     Old: from apps.console_app.terminal_views import TerminalConsumer
-#     New: from apps.console_app.views.terminal import TerminalConsumer
+#     Old: from apps.workspace.console_app.terminal_views import TerminalConsumer
+#     New: from apps.workspace.console_app.views.terminal import TerminalConsumer
 # """
-# 
-# from apps.console_app.views.terminal import (
+#
+# from apps.workspace.console_app.views.terminal import (
 #     TerminalConsumer,
 #     BASE_CONTAINER_PATH,
 #     USER_DATA_ROOT,
@@ -46,7 +47,7 @@ if __name__ == "__main__":
 #     SLURM_CONTAINER_PATH,
 #     SLURM_USER_DATA_ROOT,
 # )
-# 
+#
 # __all__ = [
 #     'TerminalConsumer',
 #     'BASE_CONTAINER_PATH',
@@ -58,7 +59,7 @@ if __name__ == "__main__":
 #     'SLURM_CONTAINER_PATH',
 #     'SLURM_USER_DATA_ROOT',
 # ]
-# 
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

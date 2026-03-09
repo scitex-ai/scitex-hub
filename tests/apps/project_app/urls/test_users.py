@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.urls.users import ...
+# from apps.infra.project_app.urls.users import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,7 +27,7 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # Users Feature URLs
-# 
+#
 # Handles user profile and user-level operations.
 # GitHub-style patterns:
 # - /<username>/ - User profile/overview
@@ -34,7 +35,7 @@ if __name__ == "__main__":
 # - /<username>?tab=stars - User's starred projects
 # - /<username>/settings/repositories/ - Repository maintenance
 # """
-# 
+#
 # from django.urls import path
 # from ..views.users import (
 #     user_profile,
@@ -48,9 +49,9 @@ if __name__ == "__main__":
 #     api_repository_sync,
 #     api_repository_restore,
 # )
-# 
+#
 # # No app_name here - namespace is provided by parent (user_projects)
-# 
+#
 # # Note: username is passed via kwargs from parent URL pattern
 # urlpatterns = [
 #     # User profile - GitHub-style /<username>/ with ?tab support

@@ -12,11 +12,11 @@ from django.urls import include, path
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from apps.accounts_app.api.user_views import api_search_users
-from apps.apps_app.views import api_registry_webhook, api_submit_jwt
-from apps.integrations_app.views_events import list_events, receive_event
-from apps.project_app.views import api_check_name_availability
-from apps.project_app.views.projects.api import (
+from apps.infra.accounts_app.api.user_views import api_search_users
+from apps.workspace.apps_app.views import api_registry_webhook, api_submit_jwt
+from apps.infra.integrations_app.views_events import list_events, receive_event
+from apps.infra.project_app.views import api_check_name_availability
+from apps.infra.project_app.views.projects.api import (
     api_me,
     api_project_create_jwt,
     api_project_list_jwt,
@@ -73,7 +73,7 @@ urlpatterns = [
     path(
         "gitea/webhook/sync/",
         __import__(
-            "apps.gitea_app.views.webhook_sync", fromlist=["gitea_sync_webhook"]
+            "apps.infra.gitea_app.views.webhook_sync", fromlist=["gitea_sync_webhook"]
         ).gitea_sync_webhook,
         name="api_gitea_sync_webhook",
     ),
@@ -83,9 +83,9 @@ urlpatterns = [
     # User search
     path("users/search/", api_search_users, name="api_search_users"),
     # Shared workspace API
-    path("workspace/", include("apps.workspace_api.urls")),
+    path("workspace/", include("apps.infra.workspace_api.urls")),
     # Public Scholar API (v1)
-    path("v1/scholar/", include("apps.scholar_app.urls.public_api")),
+    path("v1/scholar/", include("apps.workspace.scholar_app.urls.public_api")),
 ]
 
 # EOF

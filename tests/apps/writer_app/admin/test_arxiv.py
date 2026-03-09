@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.admin.arxiv import ...
+# from apps.workspace.writer_app.admin.arxiv import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,15 +27,15 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # from django.contrib import admin
 # from ..models import ArxivSubmission, ArxivAccount
-# 
-# 
+#
+#
 # @admin.register(ArxivSubmission)
 # class ArxivSubmissionAdmin(admin.ModelAdmin):
 #     list_display = ["title", "arxiv_id", "status", "user", "submitted_at"]
 #     search_fields = ["title", "arxiv_id"]
 #     list_filter = ["status", "submission_type", "submitted_at"]
-# 
-# 
+#
+#
 # @admin.register(ArxivAccount)
 # class ArxivAccountAdmin(admin.ModelAdmin):
 #     list_display = ["arxiv_username", "user", "is_verified", "is_active"]

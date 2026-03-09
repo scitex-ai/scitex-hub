@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.models.workflows.run import ...
+# from apps.infra.project_app.models.workflows.run import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,19 +29,19 @@ if __name__ == "__main__":
 # # -*- coding: utf-8 -*-
 # """
 # WorkflowRun model for SciTeX Projects
-# 
+#
 # Single execution of a workflow (similar to GitHub Actions run)
 # """
-# 
+#
 # from django.db import models
 # from django.contrib.auth.models import User
-# 
-# 
+#
+#
 # class WorkflowRun(models.Model):
 #     """
 #     Single execution of a workflow (similar to GitHub Actions run)
 #     """
-# 
+#
 #     STATUS_CHOICES = [
 #         ("queued", "Queued"),
 #         ("in_progress", "In Progress"),
@@ -48,7 +49,7 @@ if __name__ == "__main__":
 #         ("cancelled", "Cancelled"),
 #         ("failed", "Failed"),
 #     ]
-# 
+#
 #     CONCLUSION_CHOICES = [
 #         ("success", "Success"),
 #         ("failure", "Failure"),
@@ -56,7 +57,7 @@ if __name__ == "__main__":
 #         ("skipped", "Skipped"),
 #         ("timed_out", "Timed Out"),
 #     ]
-# 
+#
 #     workflow = models.ForeignKey(
 #         "project_app.Workflow",
 #         on_delete=models.CASCADE,
@@ -66,7 +67,7 @@ if __name__ == "__main__":
 #     run_number = models.IntegerField(
 #         help_text="Sequential run number for this workflow"
 #     )
-# 
+#
 #     # Trigger information
 #     trigger_event = models.CharField(
 #         max_length=50,
@@ -83,7 +84,7 @@ if __name__ == "__main__":
 #     trigger_data = models.JSONField(
 #         default=dict, help_text="Additional trigger data (commit SHA, branch, etc.)"
 #     )
-# 
+#
 #     # Status tracking
 #     status = models.CharField(
 #         max_length=20,
@@ -97,7 +98,7 @@ if __name__ == "__main__":
 #         blank=True,
 #         help_text="Final run conclusion",
 #     )
-# 
+#
 #     # Timing
 #     started_at = models.DateTimeField(null=True, blank=True, help_text="Run start time")
 #     completed_at = models.DateTimeField(
@@ -106,24 +107,24 @@ if __name__ == "__main__":
 #     duration_seconds = models.IntegerField(
 #         null=True, blank=True, help_text="Run duration in seconds"
 #     )
-# 
+#
 #     # Git information
 #     commit_sha = models.CharField(
 #         max_length=40, blank=True, help_text="Git commit SHA that triggered this run"
 #     )
 #     branch = models.CharField(max_length=200, blank=True, help_text="Git branch")
-# 
+#
 #     # Metadata
 #     created_at = models.DateTimeField(auto_now_add=True)
 #     updated_at = models.DateTimeField(auto_now=True)
-# 
+#
 #     # Environment
 #     environment = models.CharField(
 #         max_length=100,
 #         default="default",
 #         help_text="Environment name (e.g., production, staging, development)",
 #     )
-# 
+#
 #     class Meta:
 #         app_label = "project_app"
 #         unique_together = ("workflow", "run_number")
@@ -133,10 +134,10 @@ if __name__ == "__main__":
 #             models.Index(fields=["workflow", "-run_number"]),
 #             models.Index(fields=["status", "created_at"]),
 #         ]
-# 
+#
 #     def __str__(self):
 #         return f"{self.workflow.name} #{self.run_number}"
-# 
+#
 #     def save(self, *args, **kwargs):
 #         """Auto-generate run number if not set"""
 #         if not self.run_number:
@@ -147,20 +148,20 @@ if __name__ == "__main__":
 #                 .first()
 #             )
 #             self.run_number = (last_run.run_number + 1) if last_run else 1
-# 
+#
 #         super().save(*args, **kwargs)
-# 
+#
 #     def calculate_duration(self):
 #         """Calculate and update duration"""
 #         if self.started_at and self.completed_at:
 #             delta = self.completed_at - self.started_at
 #             self.duration_seconds = int(delta.total_seconds())
 #             self.save(update_fields=["duration_seconds"])
-# 
+#
 #     def get_absolute_url(self):
 #         """Get run detail URL"""
 #         from django.urls import reverse
-# 
+#
 #         return reverse(
 #             "project_app:workflow_run_detail",
 #             kwargs={
@@ -169,8 +170,8 @@ if __name__ == "__main__":
 #                 "run_id": self.id,
 #             },
 #         )
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

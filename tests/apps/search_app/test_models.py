@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.search_app.models import ...
+# from apps.infra.search_app.models import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,14 +27,14 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # from django.db import models
 # from django.contrib.auth.models import User
-# 
-# 
+#
+#
 # class GlobalSearchQuery(models.Model):
 #     """
 #     Track global search queries for analytics and autocomplete suggestions.
 #     Different from scholar_app.SearchQuery which is paper-specific.
 #     """
-# 
+#
 #     query = models.CharField(max_length=200)
 #     search_type = models.CharField(
 #         max_length=20,
@@ -55,22 +56,22 @@ if __name__ == "__main__":
 #     )
 #     results_count = models.IntegerField(default=0)
 #     created_at = models.DateTimeField(auto_now_add=True)
-# 
+#
 #     class Meta:
 #         ordering = ["-created_at"]
 #         indexes = [
 #             models.Index(fields=["query", "-created_at"]),
 #             models.Index(fields=["user", "-created_at"]),
 #         ]
-# 
+#
 #     def __str__(self):
 #         return f"{self.query} ({self.search_type})"
-# 
+#
 #     @classmethod
 #     def get_popular_queries(cls, limit=10):
 #         """Get most popular search queries"""
 #         from django.db.models import Count
-# 
+#
 #         return (
 #             cls.objects.values("query")
 #             .annotate(count=Count("query"))

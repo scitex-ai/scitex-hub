@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.routing import ...
+# from apps.workspace.console_app.routing import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,10 +28,10 @@ if __name__ == "__main__":
 # """
 # WebSocket routing for Code Workspace
 # """
-# 
+#
 # from django.urls import path
 # from .views import terminal
-# 
+#
 # websocket_urlpatterns = [
 #     path('ws/code/terminal/', terminal.TerminalConsumer.as_asgi()),
 # ]

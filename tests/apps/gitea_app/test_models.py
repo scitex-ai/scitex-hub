@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.gitea_app.models import ...
+# from apps.infra.gitea_app.models import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,17 +27,17 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # Gitea App Models
-# 
+#
 # Models for Git/GitHub/Gitea integration functionality.
 # Extracted from workspace_app to resolve model duplication and properly organize Git-specific features.
 # """
-# 
+#
 # from django.db import models
-# 
-# 
+#
+#
 # class GitFileStatus(models.Model):
 #     """Model for tracking Git file status within projects"""
-# 
+#
 #     GIT_STATUS_CHOICES = [
 #         ("untracked", "Untracked"),
 #         ("modified", "Modified"),
@@ -47,7 +48,7 @@ if __name__ == "__main__":
 #         ("staged", "Staged"),
 #         ("committed", "Committed"),
 #     ]
-# 
+#
 #     project = models.ForeignKey(
 #         "project_app.Project", on_delete=models.CASCADE, related_name="git_files"
 #     )
@@ -66,7 +67,7 @@ if __name__ == "__main__":
 #     last_modified_at = models.DateTimeField(auto_now=True)
 #     file_size = models.BigIntegerField(default=0, help_text="File size in bytes")
 #     is_binary = models.BooleanField(default=False, help_text="Whether file is binary")
-# 
+#
 #     class Meta:
 #         unique_together = ("project", "file_path")
 #         ordering = ["file_path"]
@@ -76,10 +77,10 @@ if __name__ == "__main__":
 #         ]
 #         verbose_name = "Git File Status"
 #         verbose_name_plural = "Git File Statuses"
-# 
+#
 #     def __str__(self):
 #         return f"{self.project.name}:{self.file_path} ({self.git_status})"
-# 
+#
 #     def get_status_icon(self):
 #         """Get FontAwesome icon for git status"""
 #         icons = {
@@ -93,7 +94,7 @@ if __name__ == "__main__":
 #             "committed": "fas fa-check text-muted",
 #         }
 #         return icons.get(self.git_status, "fas fa-file")
-# 
+#
 #     def get_status_color(self):
 #         """Get color class for git status"""
 #         colors = {

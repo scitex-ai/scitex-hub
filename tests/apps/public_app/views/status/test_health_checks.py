@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.public_app.views.status.health_checks import ...
+# from apps.infra.public_app.views.status.health_checks import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,29 +32,29 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/public_app/views/status/health_checks.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
-# 
+#
 # """
 # Health Check Functions
-# 
+#
 # Core health checking for Docker, SSH, Database, Redis, and Disk.
 # """
-# 
+#
 # import logging
 # import socket
 # from pathlib import Path
-# 
+#
 # import psutil
 # from django.conf import settings
 # from django.core.cache import cache
 # from django.db import connection
-# 
+#
 # logger = logging.getLogger("scitex")
-# 
-# 
+#
+#
 # def check_docker_containers(status_data):
 #     """Check Docker containers status."""
 #     try:
@@ -62,7 +63,7 @@ if __name__ == "__main__":
 #         scitex_env = os.environ.get("SCITEX_CLOUD_ENV", "dev")
 #         container_name_prefix = f"scitex-cloud-{scitex_env}"
 #         containers = client.containers.list(all=True, filters={"name": container_name_prefix})
-# 
+#
 #         for container in containers:
 #             health_status = None
 #             try:
@@ -70,7 +71,7 @@ if __name__ == "__main__":
 #                 health_status = health.get('Status') if health else None
 #             except Exception:
 #                 pass
-# 
+#
 #             is_running = container.status == "running"
 #             if health_status:
 #                 display_status = f"{container.status} ({health_status})"
@@ -78,7 +79,7 @@ if __name__ == "__main__":
 #             else:
 #                 display_status = container.status
 #                 health_class = "healthy" if is_running else "down"
-# 
+#
 #             status_data["services"].append({
 #                 "name": container.name.replace("scitex-cloud-dev-", "").replace("-1", ""),
 #                 "status": container.status,
@@ -101,14 +102,14 @@ if __name__ == "__main__":
 #             "is_healthy": False,
 #             "error": str(e),
 #         })
-# 
-# 
+#
+#
 # def check_ssh_services(status_data):
 #     """Check SSH services (Workspace Gateway and Gitea)."""
 #     ssh_check_host = '127.0.0.1'
 #     if Path('/.dockerenv').exists():
 #         ssh_check_host = 'host.docker.internal'
-# 
+#
 #     # Workspace SSH Gateway (port 2200)
 #     try:
 #         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -132,7 +133,7 @@ if __name__ == "__main__":
 #             "health_class": "unhealthy",
 #             "error": str(e),
 #         })
-# 
+#
 #     # Gitea SSH
 #     gitea_ssh_port = int(getattr(settings, 'SCITEX_CLOUD_GITEA_SSH_PORT', 2222))
 #     try:
@@ -157,8 +158,8 @@ if __name__ == "__main__":
 #             "health_class": "unhealthy",
 #             "error": str(e),
 #         })
-# 
-# 
+#
+#
 # def check_database(status_data):
 #     """Check database connection."""
 #     try:
@@ -178,8 +179,8 @@ if __name__ == "__main__":
 #             "health_class": "unhealthy",
 #             "error": str(e),
 #         }
-# 
-# 
+#
+#
 # def check_redis(status_data):
 #     """Check Redis connection."""
 #     try:
@@ -198,8 +199,8 @@ if __name__ == "__main__":
 #             "health_class": "unhealthy",
 #             "error": str(e),
 #         }
-# 
-# 
+#
+#
 # def check_disk(status_data):
 #     """Check disk usage."""
 #     try:
@@ -216,14 +217,14 @@ if __name__ == "__main__":
 #             "is_healthy": False,
 #             "error": str(e),
 #         }
-# 
-# 
+#
+#
 # def check_citation_graph(status_data):
 #     """
 #     Check Citation Graph service availability.
-# 
+#
 #     Reports mode (local/proxy) and health status.
-# 
+#
 #     NOTE: Temporarily skipped for health endpoint to prevent timeout issues.
 #     Full check available on /server-status/ page.
 #     """
@@ -237,8 +238,8 @@ if __name__ == "__main__":
 #         "mode": "not_checked",
 #         "note": "Check skipped for performance (see /server-status/ for details)",
 #     }
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

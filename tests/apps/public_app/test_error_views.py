@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.public_app.error_views import ...
+# from apps.infra.public_app.error_views import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,11 +28,11 @@ if __name__ == "__main__":
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
 # """Error handlers for the public app."""
-# 
+#
 # from django.shortcuts import render
 # from django.http import HttpResponse
-# 
-# 
+#
+#
 # def handler404(request, exception=None):
 #     """Custom 404 handler that renders the 404.html template."""
 #     try:
@@ -61,8 +62,8 @@ if __name__ == "__main__":
 #         </html>
 #         """
 #         return HttpResponse(html, status=404)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.views.projects.api import ...
+# from apps.infra.project_app.views.projects.api import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,56 +32,56 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # """
 # Project-related REST API endpoints
-# 
+#
 # This module contains API endpoints for:
 # - Name availability checking
 # - Project CRUD operations (list, create, detail)
 # """
-# 
+#
 # from __future__ import annotations
 # import json
 # import logging
-# 
+#
 # from django.shortcuts import get_object_or_404
 # from django.contrib.auth.decorators import login_required
 # from django.http import JsonResponse
 # from django.views.decorators.http import require_http_methods
-# 
+#
 # from ...models import Project
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # # ============================================================================
 # # Name Availability API
 # # ============================================================================
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["GET"])
 # def api_check_name_availability(request):
 #     """
 #     API endpoint to check if project name is available.
-# 
+#
 #     Enforces strict 1:1 mapping: Local ↔ Django ↔ Gitea
 #     A name is only available if it's free in BOTH Django AND Gitea.
 #     """
 #     name = request.GET.get("name", "").strip()
-# 
+#
 #     if not name:
 #         return JsonResponse({"available": False, "message": "Project name is required"})
-# 
+#
 #     # Validate name using scitex.project validator
 #     try:
 #         from scitex.project import validate_name
-# 
+#
 #         is_valid, error = validate_name(name)
 #         if not is_valid:
 #             return JsonResponse({"available": False, "message": error})
 #     except ImportError:
 #         # Fallback to basic validation if scitex.project not available
 #         pass
-# 
+#
 #     # Check 1: Django database (name must be unique per user)
 #     exists_in_django = Project.objects.filter(name=name, owner=request.user).exists()
 #     if exists_in_django:
@@ -90,18 +91,18 @@ if __name__ == "__main__":
 #                 "message": f'You already have a project named "{name}"',
 #             }
 #         )
-# 
+#
 #     # Check 2: Gitea repository (enforce 1:1 mapping)
 #     # Generate slug to check in Gitea
 #     from django.utils.text import slugify
-# 
+#
 #     slug = slugify(name)
-# 
+#
 #     try:
-#         from apps.gitea_app.api_client import GiteaClient, GiteaAPIError
-# 
+#         from apps.infra.gitea_app.api_client import GiteaClient, GiteaAPIError
+#
 #         client = GiteaClient()
-# 
+#
 #         try:
 #             existing_repo = client.get_repository(
 #                 owner=request.user.username, repo=slug
@@ -127,15 +128,15 @@ if __name__ == "__main__":
 #         # If Gitea check fails entirely, log but don't block
 #         logger.warning(f"Gitea availability check failed: {e}")
 #         pass  # Continue, assume available
-# 
+#
 #     return JsonResponse({"available": True, "message": f'"{name}" is available'})
-# 
-# 
+#
+#
 # # ============================================================================
 # # Project CRUD APIs
 # # ============================================================================
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["GET"])
 # def api_project_list(request):
@@ -144,8 +145,8 @@ if __name__ == "__main__":
 #         "id", "name", "description", "created_at", "updated_at"
 #     )
 #     return JsonResponse({"projects": list(projects)})
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["POST"])
 # def api_project_create(request):
@@ -154,19 +155,19 @@ if __name__ == "__main__":
 #         data = json.loads(request.body)
 #         name = data.get("name", "").strip()
 #         description = data.get("description", "").strip()
-# 
+#
 #         if not name:
 #             return JsonResponse({"success": False, "error": "Project name is required"})
-# 
+#
 #         # Ensure unique name
 #         unique_name = Project.generate_unique_name(name, request.user)
-# 
+#
 #         project = Project.objects.create(
 #             name=unique_name,
 #             description=description,
 #             owner=request.user,
 #         )
-# 
+#
 #         return JsonResponse(
 #             {
 #                 "success": True,
@@ -174,11 +175,11 @@ if __name__ == "__main__":
 #                 "message": f'Project "{project.name}" created successfully',
 #             }
 #         )
-# 
+#
 #     except Exception as e:
 #         return JsonResponse({"success": False, "error": str(e)})
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["GET"])
 # def api_project_detail(request, pk):
@@ -196,34 +197,34 @@ if __name__ == "__main__":
 #         return JsonResponse({"success": True, "project": data})
 #     except Exception as e:
 #         return JsonResponse({"success": False, "error": str(e)})
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["POST"])
 # def api_switch_active_project(request):
 #     """
 #     API endpoint to switch the active project for the current user.
-# 
+#
 #     Updates user.profile.last_active_repository to keep frontend and backend in sync.
 #     This ensures the project selector shows the correct project across page refreshes.
 #     """
 #     try:
 #         data = json.loads(request.body)
 #         project_id = data.get("project_id")
-# 
+#
 #         if not project_id:
 #             return JsonResponse({"success": False, "error": "Project ID is required"})
-# 
+#
 #         # Get the project and verify ownership
 #         project = get_object_or_404(Project, pk=project_id, owner=request.user)
-# 
+#
 #         # Update the user's last active repository
 #         profile = request.user.profile
 #         profile.last_active_repository = project
 #         profile.save()
-# 
+#
 #         logger.info(f"User {request.user.username} switched to project {project.name}")
-# 
+#
 #         return JsonResponse({
 #             "success": True,
 #             "project": {
@@ -234,14 +235,14 @@ if __name__ == "__main__":
 #             },
 #             "message": f"Switched to project {project.name}",
 #         })
-# 
+#
 #     except json.JSONDecodeError:
 #         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
 #     except Exception as e:
 #         logger.error(f"Error switching active project: {e}")
 #         return JsonResponse({"success": False, "error": str(e)}, status=500)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

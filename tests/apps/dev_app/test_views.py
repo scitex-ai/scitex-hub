@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.dev_app.views import ...
+# from apps.workspace.dev_app.views import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,24 +32,24 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/dev_app/views.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
-# 
+#
 # import json
 # from pathlib import Path
 # from django.shortcuts import render
 # from django.views import View
 # from django.conf import settings
 # from django.http import Http404
-# 
-# 
+#
+#
 # def index(request):
 #     """Dev app index page."""
 #     return render(request, "dev_app/index.html")
-# 
-# 
+#
+#
 # def _load_components():
 #     """Load components from JSON."""
 #     components_path = (
@@ -59,13 +60,13 @@ if __name__ == "__main__":
 #         with open(components_path, "r") as f:
 #             components_data = json.load(f)
 #     return components_data
-# 
-# 
+#
+#
 # class DesignSystemView(View):
 #     """Main design system page - shows colors."""
-# 
+#
 #     template_name = "dev_app/design.html"
-# 
+#
 #     def get(self, request):
 #         components_data = _load_components()
 #         context = {
@@ -73,13 +74,13 @@ if __name__ == "__main__":
 #             "metadata": components_data.get("metadata", {}),
 #         }
 #         return render(request, self.template_name, context)
-# 
-# 
+#
+#
 # class DesignSectionView(View):
 #     """Generic design section page."""
-# 
+#
 #     template_name = "dev_app/design_section_template.html"
-# 
+#
 #     def get(self, request, section):
 #         components_data = _load_components()
 #         sections = {
@@ -220,10 +221,10 @@ if __name__ == "__main__":
 #                 "partial": "dev_app/design_partial/resizer.html",
 #             },
 #         }
-# 
+#
 #         if section not in sections:
 #             raise Http404(f"Section '{section}' not found")
-# 
+#
 #         section_info = sections[section]
 #         context = {
 #             "components": components_data.get("components", []),
@@ -233,150 +234,150 @@ if __name__ == "__main__":
 #             "section_template": section_info["partial"],
 #         }
 #         return render(request, self.template_name, context)
-# 
-# 
+#
+#
 # # Backward compatibility views using DesignSectionView
 # class DesignColorsView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "colors")
-# 
-# 
+#
+#
 # class DesignWorkspaceColorsView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "workspace-colors")
-# 
-# 
+#
+#
 # class DesignWorkspaceIconsView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "workspace-icons")
-# 
-# 
+#
+#
 # class DesignTypographyView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "typography")
-# 
-# 
+#
+#
 # class DesignCodeBlocksView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "code-blocks")
-# 
-# 
+#
+#
 # class DesignSpacingView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "spacing")
-# 
-# 
+#
+#
 # class DesignThemeView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "theme")
-# 
-# 
+#
+#
 # class DesignGuidelinesView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "guidelines")
-# 
-# 
+#
+#
 # class DesignTerminalLogView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "terminal-log")
-# 
-# 
+#
+#
 # class DesignTerminalView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "terminal")
-# 
-# 
+#
+#
 # # Component Views
 # class DesignBadgeView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "badge")
-# 
-# 
+#
+#
 # class DesignButtonView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "button")
-# 
-# 
+#
+#
 # class DesignCardView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "card")
-# 
-# 
+#
+#
 # class DesignCheckboxView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "checkbox")
-# 
-# 
+#
+#
 # class DesignFormInputView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "form-input")
-# 
-# 
+#
+#
 # class DesignToggleButtonCheckboxView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "toggle-button-checkbox")
-# 
-# 
+#
+#
 # class DesignSelectDropdownView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "select-dropdown")
-# 
-# 
+#
+#
 # class DesignTabsView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "tabs")
-# 
-# 
+#
+#
 # class DesignBreadcrumbView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "breadcrumb")
-# 
-# 
+#
+#
 # class DesignDropdownMenuView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "dropdown-menu")
-# 
-# 
+#
+#
 # class DesignFileUploadView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "file-upload")
-# 
-# 
+#
+#
 # class DesignSegmentedRadioControlView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "segmented-radio-control")
-# 
-# 
+#
+#
 # class DesignNavbarView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "navbar")
-# 
-# 
+#
+#
 # class DesignAlertsView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "alerts")
-# 
-# 
+#
+#
 # class DesignHeroView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "hero-guideline")
-# 
-# 
+#
+#
 # class DesignResizerView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "resizer")
-# 
-# 
+#
+#
 # class DesignIconsView(DesignSectionView):
 #     def get(self, request):
 #         return super().get(request, "icons")
-# 
-# 
+#
+#
 # class DesignAllView(View):
 #     """Design system - All sections combined for printing/reference."""
-# 
+#
 #     template_name = "dev_app/design_all.html"
-# 
+#
 #     def get(self, request):
 #         components_data = _load_components()
 #         # All section partials in logical order
@@ -415,8 +416,8 @@ if __name__ == "__main__":
 #             "sections": sections,
 #         }
 #         return render(request, self.template_name, context)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

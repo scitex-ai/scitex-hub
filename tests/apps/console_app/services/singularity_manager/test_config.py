@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.services.singularity_manager.config import ...
+# from apps.workspace.console_app.services.singularity_manager.config import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -30,30 +31,30 @@ if __name__ == "__main__":
 # # File: .../apps/console_app/services/singularity_manager/config.py
 # # ----------------------------------------
 # from __future__ import annotations
-# 
+#
 # __FILE__ = "./apps/console_app/services/singularity_manager/config.py"
 # # ----------------------------------------
-# 
+#
 # """
 # Singularity Manager Configuration
-# 
+#
 # Configuration and verification for Singularity containers.
 # """
-# 
+#
 # import subprocess
 # import logging
 # from pathlib import Path
 # from django.conf import settings
-# 
+#
 # from .exceptions import SingularityError
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # class SingularityConfig:
 #     """
 #     Configuration manager for Singularity containers
-# 
+#
 #     Handles:
 #     - Image path configuration
 #     - Timeout settings
@@ -61,22 +62,22 @@ if __name__ == "__main__":
 #     - Cache configuration
 #     - Singularity installation verification
 #     """
-# 
+#
 #     def __init__(self):
 #         # Get configuration from Django settings
 #         self.image_path = Path(settings.SINGULARITY_IMAGE_PATH)
 #         self.max_concurrent = settings.SINGULARITY_MAX_CONCURRENT_JOBS
 #         self.default_timeout = settings.SINGULARITY_DEFAULT_TIMEOUT
 #         self.max_timeout = settings.SINGULARITY_MAX_TIMEOUT
-# 
+#
 #         # Cache keys
 #         self.cache_key_active = 'singularity_active_jobs'
 #         self.cache_key_stats = 'singularity_stats'
 #         self.cache_ttl = 300  # 5 minutes
-# 
+#
 #         # Verify Singularity is installed
 #         self._verify_singularity()
-# 
+#
 #         # Verify image exists
 #         if not self.image_path.exists():
 #             logger.error(f"Singularity image not found: {self.image_path}")
@@ -84,7 +85,7 @@ if __name__ == "__main__":
 #                 f"Singularity image not found: {self.image_path}\n"
 #                 f"Build it with: sudo singularity build {self.image_path} {self.image_path.with_suffix('.def')}"
 #             )
-# 
+#
 #     def _verify_singularity(self):
 #         """Verify Singularity is installed and accessible"""
 #         try:
@@ -105,8 +106,8 @@ if __name__ == "__main__":
 #             )
 #         except subprocess.TimeoutExpired:
 #             raise SingularityError("Singularity command timed out")
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

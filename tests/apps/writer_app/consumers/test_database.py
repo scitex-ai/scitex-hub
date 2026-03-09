@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.consumers.database import ...
+# from apps.workspace.writer_app.consumers.database import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,13 +29,13 @@ if __name__ == "__main__":
 # Database operations for WriterConsumer.
 # Uses Django 5.2 async ORM for optimal performance.
 # """
-# 
+#
 # from ..models import CollaborativeSession
-# 
-# 
+#
+#
 # class DatabaseMixin:
 #     """Mixin providing database operation methods for WriterConsumer."""
-# 
+#
 #     async def check_access(self):
 #         """Check if user has access to manuscript."""
 #         if self.manuscript.owner_id == self.user.id:
@@ -43,7 +44,7 @@ if __name__ == "__main__":
 #             id=self.user.id
 #         ).aexists()
 #         return is_collaborator
-# 
+#
 #     async def create_session(self):
 #         """Create or update collaborative session."""
 #         session, created = await CollaborativeSession.objects.aupdate_or_create(
@@ -53,13 +54,13 @@ if __name__ == "__main__":
 #             defaults={"is_active": True, "locked_sections": []},
 #         )
 #         return session
-# 
+#
 #     async def end_session(self):
 #         """End collaborative session."""
 #         if hasattr(self, "session"):
 #             self.session.is_active = False
 #             await self.session.asave()
-# 
+#
 #     async def get_active_collaborators(self):
 #         """Get list of currently active collaborators."""
 #         collaborators = []
@@ -75,11 +76,11 @@ if __name__ == "__main__":
 #                     }
 #                 )
 #         return collaborators
-# 
+#
 #     async def log_change(self, section, operation):
 #         """Log document change to database."""
 #         from ..models import ManuscriptSection
-# 
+#
 #         try:
 #             section_obj = await ManuscriptSection.objects.aget(
 #                 manuscript=self.manuscript, section_type=section
@@ -95,13 +96,13 @@ if __name__ == "__main__":
 #             # )
 #         except ManuscriptSection.DoesNotExist:
 #             pass
-# 
+#
 #     async def update_cursor_position(self, section, position):
 #         """Update cursor position in session."""
 #         if hasattr(self, "session"):
 #             self.session.cursor_position = {"section": section, "position": position}
 #             await self.session.asave(update_fields=["cursor_position", "last_activity"])
-# 
+#
 #     async def is_section_locked(self, section):
 #         """Check if section is locked by another user."""
 #         return (
@@ -113,13 +114,13 @@ if __name__ == "__main__":
 #             .exclude(user=self.user)
 #             .aexists()
 #         )
-# 
+#
 #     async def lock_section(self, section):
 #         """Lock a section for current user."""
 #         if hasattr(self, "session") and section not in self.session.locked_sections:
 #             self.session.locked_sections.append(section)
 #             await self.session.asave(update_fields=["locked_sections"])
-# 
+#
 #     async def unlock_section(self, section):
 #         """Unlock a section for current user."""
 #         if hasattr(self, "session") and section in self.session.locked_sections:

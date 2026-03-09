@@ -7,7 +7,7 @@ import json
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from apps.apps_app.models import (
+from apps.workspace.apps_app.models import (
     AppsModule,
     ModuleInstallation,
     ModuleReview,

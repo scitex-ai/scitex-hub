@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.services.repository.datasets import ...
+# from apps.workspace.writer_app.services.repository.datasets import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,14 +28,14 @@ if __name__ == "__main__":
 # """
 # Dataset creation functionality for manuscript repository integration.
 # """
-# 
+#
 # import logging
 # from typing import List, Optional
-# 
+#
 # from django.db import transaction
-# 
-# from apps.scholar_app.models import Dataset
-# from apps.scholar_app.services.repository_services import (
+#
+# from apps.workspace.scholar_app.models import Dataset
+# from apps.workspace.scholar_app.services.repository_services import (
 #     upload_dataset_to_repository,
 # )
 # from .files import (
@@ -48,21 +49,21 @@ if __name__ == "__main__":
 #     generate_arxiv_dataset_description,
 #     generate_keywords,
 # )
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # def create_supplementary_dataset_impl(
 #     integrator, title: str = None, description: str = None, auto_upload: bool = True
 # ) -> Optional[Dataset]:
 #     """Create a supplementary dataset for the manuscript"""
-# 
+#
 #     if not integrator.repository_connection:
 #         logger.warning(
 #             f"No repository connection available for user {integrator.manuscript.owner.username}"
 #         )
 #         return None
-# 
+#
 #     try:
 #         with transaction.atomic():
 #             # Create dataset
@@ -72,7 +73,7 @@ if __name__ == "__main__":
 #             dataset_description = (
 #                 description or generate_dataset_description(integrator.manuscript)
 #             )
-# 
+#
 #             dataset = Dataset.objects.create(
 #                 title=dataset_title,
 #                 description=dataset_description,
@@ -83,27 +84,27 @@ if __name__ == "__main__":
 #                 status="draft",
 #                 license="CC-BY-4.0",  # Default open license
 #             )
-# 
+#
 #             # Link dataset to manuscript
 #             dataset.cited_in_manuscripts.add(integrator.manuscript)
-# 
+#
 #             # Add manuscript files to dataset
 #             add_manuscript_files_to_dataset(dataset, integrator.manuscript)
-# 
+#
 #             # Auto-upload if requested
 #             if auto_upload:
 #                 upload_dataset_to_repository(dataset)
-# 
+#
 #             logger.info(
 #                 f"Created supplementary dataset {dataset.id} for manuscript {integrator.manuscript.slug}"
 #             )
 #             return dataset
-# 
+#
 #     except Exception as e:
 #         logger.error(f"Failed to create supplementary dataset: {e}")
 #         return None
-# 
-# 
+#
+#
 # def create_replication_dataset_impl(
 #     integrator,
 #     code_outputs: List = None,
@@ -111,13 +112,13 @@ if __name__ == "__main__":
 #     auto_upload: bool = True,
 # ) -> Optional[Dataset]:
 #     """Create a replication dataset with code and data for reproducibility"""
-# 
+#
 #     if not integrator.repository_connection:
 #         logger.warning(
 #             f"No repository connection available for user {integrator.manuscript.owner.username}"
 #         )
 #         return None
-# 
+#
 #     try:
 #         with transaction.atomic():
 #             dataset = Dataset.objects.create(
@@ -130,38 +131,38 @@ if __name__ == "__main__":
 #                 status="draft",
 #                 license="CC-BY-4.0",
 #             )
-# 
+#
 #             # Link dataset to manuscript
 #             dataset.cited_in_manuscripts.add(integrator.manuscript)
-# 
+#
 #             # Add replication materials
 #             add_replication_materials_to_dataset(
 #                 dataset, integrator.manuscript, code_outputs, analysis_data
 #             )
-# 
+#
 #             # Auto-upload if requested
 #             if auto_upload:
 #                 upload_dataset_to_repository(dataset)
-# 
+#
 #             logger.info(
 #                 f"Created replication dataset {dataset.id} for manuscript {integrator.manuscript.slug}"
 #             )
 #             return dataset
-# 
+#
 #     except Exception as e:
 #         logger.error(f"Failed to create replication dataset: {e}")
 #         return None
-# 
-# 
+#
+#
 # def create_arxiv_dataset_impl(integrator, arxiv_submission) -> Optional[Dataset]:
 #     """Create a dataset for arXiv submission materials"""
-# 
+#
 #     if not integrator.repository_connection:
 #         logger.warning(
 #             f"No repository connection available for user {integrator.manuscript.owner.username}"
 #         )
 #         return None
-# 
+#
 #     try:
 #         with transaction.atomic():
 #             dataset = Dataset.objects.create(
@@ -174,18 +175,18 @@ if __name__ == "__main__":
 #                 status="draft",
 #                 license="CC-BY-4.0",
 #             )
-# 
+#
 #             # Link dataset to manuscript
 #             dataset.cited_in_manuscripts.add(integrator.manuscript)
-# 
+#
 #             # Add arXiv submission files
 #             add_arxiv_files_to_dataset(dataset, arxiv_submission)
-# 
+#
 #             logger.info(
 #                 f"Created arXiv dataset {dataset.id} for submission {arxiv_submission.submission_id}"
 #             )
 #             return dataset
-# 
+#
 #     except Exception as e:
 #         logger.error(f"Failed to create arXiv dataset: {e}")
 #         return None

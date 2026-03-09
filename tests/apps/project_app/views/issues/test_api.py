@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.views.issues.api import ...
+# from apps.infra.project_app.views.issues.api import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,7 +32,7 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # """
 # Issue-related REST API endpoints
-# 
+#
 # This module contains API endpoints for:
 # - Issue comments
 # - Issue state management (close, reopen)
@@ -40,16 +41,16 @@ if __name__ == "__main__":
 # - Issue milestones
 # - Issue search
 # """
-# 
+#
 # from __future__ import annotations
 # import json
-# 
+#
 # from django.shortcuts import get_object_or_404
 # from django.contrib.auth.decorators import login_required
 # from django.contrib.auth.models import User
 # from django.http import JsonResponse
 # from django.views.decorators.http import require_POST, require_http_methods
-# 
+#
 # from ...models import (
 #     Project,
 #     Issue,
@@ -59,8 +60,8 @@ if __name__ == "__main__":
 #     IssueAssignment,
 #     IssueEvent,
 # )
-# 
-# 
+#
+#
 # @require_POST
 # @login_required
 # def api_issue_comment(request, username, slug, issue_number):
@@ -70,7 +71,7 @@ if __name__ == "__main__":
 #     """
 #     project = get_object_or_404(Project, owner__username=username, slug=slug)
 #     issue = get_object_or_404(Issue, project=project, number=issue_number)
-# 
+#
 #     # Check permissions
 #     if not issue.can_comment(request.user):
 #         return JsonResponse(
@@ -80,18 +81,18 @@ if __name__ == "__main__":
 #             },
 #             status=403,
 #         )
-# 
+#
 #     content = request.POST.get("content", "").strip()
 #     if not content:
 #         return JsonResponse(
 #             {"success": False, "error": "Comment content is required"}, status=400
 #         )
-# 
+#
 #     # Create comment
 #     comment = IssueComment.objects.create(
 #         issue=issue, author=request.user, content=content
 #     )
-# 
+#
 #     return JsonResponse(
 #         {
 #             "success": True,
@@ -104,8 +105,8 @@ if __name__ == "__main__":
 #             },
 #         }
 #     )
-# 
-# 
+#
+#
 # @require_POST
 # @login_required
 # def api_issue_close(request, username, slug, issue_number):
@@ -115,7 +116,7 @@ if __name__ == "__main__":
 #     """
 #     project = get_object_or_404(Project, owner__username=username, slug=slug)
 #     issue = get_object_or_404(Issue, project=project, number=issue_number)
-# 
+#
 #     # Check permissions
 #     if not issue.can_edit(request.user):
 #         return JsonResponse(
@@ -125,18 +126,18 @@ if __name__ == "__main__":
 #             },
 #             status=403,
 #         )
-# 
+#
 #     if issue.state == "closed":
 #         return JsonResponse(
 #             {"success": False, "error": "Issue is already closed"}, status=400
 #         )
-# 
+#
 #     # Close issue
 #     issue.close(request.user)
-# 
+#
 #     # Create event
 #     IssueEvent.objects.create(issue=issue, event_type="closed", actor=request.user)
-# 
+#
 #     return JsonResponse(
 #         {
 #             "success": True,
@@ -148,8 +149,8 @@ if __name__ == "__main__":
 #             },
 #         }
 #     )
-# 
-# 
+#
+#
 # @require_POST
 # @login_required
 # def api_issue_reopen(request, username, slug, issue_number):
@@ -159,7 +160,7 @@ if __name__ == "__main__":
 #     """
 #     project = get_object_or_404(Project, owner__username=username, slug=slug)
 #     issue = get_object_or_404(Issue, project=project, number=issue_number)
-# 
+#
 #     # Check permissions
 #     if not issue.can_edit(request.user):
 #         return JsonResponse(
@@ -169,18 +170,18 @@ if __name__ == "__main__":
 #             },
 #             status=403,
 #         )
-# 
+#
 #     if issue.state == "open":
 #         return JsonResponse(
 #             {"success": False, "error": "Issue is already open"}, status=400
 #         )
-# 
+#
 #     # Reopen issue
 #     issue.reopen()
-# 
+#
 #     # Create event
 #     IssueEvent.objects.create(issue=issue, event_type="reopened", actor=request.user)
-# 
+#
 #     return JsonResponse(
 #         {
 #             "success": True,
@@ -191,8 +192,8 @@ if __name__ == "__main__":
 #             },
 #         }
 #     )
-# 
-# 
+#
+#
 # @require_POST
 # @login_required
 # def api_issue_assign(request, username, slug, issue_number):
@@ -203,38 +204,38 @@ if __name__ == "__main__":
 #     """
 #     project = get_object_or_404(Project, owner__username=username, slug=slug)
 #     issue = get_object_or_404(Issue, project=project, number=issue_number)
-# 
+#
 #     # Check permissions
 #     if not project.can_edit(request.user):
 #         return JsonResponse(
 #             {"success": False, "error": "You do not have permission to assign users"},
 #             status=403,
 #         )
-# 
+#
 #     try:
 #         data = json.loads(request.body)
 #     except json.JSONDecodeError:
 #         data = request.POST
-# 
+#
 #     user_id = data.get("user_id")
 #     action = data.get("action", "add")
-# 
+#
 #     if not user_id:
 #         return JsonResponse(
 #             {"success": False, "error": "User ID is required"}, status=400
 #         )
-# 
+#
 #     try:
 #         user = User.objects.get(id=user_id)
 #     except User.DoesNotExist:
 #         return JsonResponse({"success": False, "error": "User not found"}, status=404)
-# 
+#
 #     if action == "add":
 #         # Add assignment
 #         assignment, created = IssueAssignment.objects.get_or_create(
 #             issue=issue, user=user, defaults={"assigned_by": request.user}
 #         )
-# 
+#
 #         if created:
 #             # Create event
 #             IssueEvent.objects.create(
@@ -246,13 +247,13 @@ if __name__ == "__main__":
 #             message = f"{user.username} assigned successfully"
 #         else:
 #             message = f"{user.username} is already assigned"
-# 
+#
 #     elif action == "remove":
 #         # Remove assignment
 #         deleted_count, _ = IssueAssignment.objects.filter(
 #             issue=issue, user=user
 #         ).delete()
-# 
+#
 #         if deleted_count > 0:
 #             # Create event
 #             IssueEvent.objects.create(
@@ -264,13 +265,13 @@ if __name__ == "__main__":
 #             message = f"{user.username} unassigned successfully"
 #         else:
 #             message = f"{user.username} was not assigned"
-# 
+#
 #     else:
 #         return JsonResponse(
 #             {"success": False, "error": 'Invalid action. Use "add" or "remove"'},
 #             status=400,
 #         )
-# 
+#
 #     return JsonResponse(
 #         {
 #             "success": True,
@@ -280,8 +281,8 @@ if __name__ == "__main__":
 #             ],
 #         }
 #     )
-# 
-# 
+#
+#
 # @require_POST
 # @login_required
 # def api_issue_label(request, username, slug, issue_number):
@@ -292,32 +293,32 @@ if __name__ == "__main__":
 #     """
 #     project = get_object_or_404(Project, owner__username=username, slug=slug)
 #     issue = get_object_or_404(Issue, project=project, number=issue_number)
-# 
+#
 #     # Check permissions
 #     if not project.can_edit(request.user):
 #         return JsonResponse(
 #             {"success": False, "error": "You do not have permission to modify labels"},
 #             status=403,
 #         )
-# 
+#
 #     try:
 #         data = json.loads(request.body)
 #     except json.JSONDecodeError:
 #         data = request.POST
-# 
+#
 #     label_id = data.get("label_id")
 #     action = data.get("action", "add")
-# 
+#
 #     if not label_id:
 #         return JsonResponse(
 #             {"success": False, "error": "Label ID is required"}, status=400
 #         )
-# 
+#
 #     try:
 #         label = IssueLabel.objects.get(id=label_id, project=project)
 #     except IssueLabel.DoesNotExist:
 #         return JsonResponse({"success": False, "error": "Label not found"}, status=404)
-# 
+#
 #     if action == "add":
 #         # Add label
 #         issue.labels.add(label)
@@ -329,7 +330,7 @@ if __name__ == "__main__":
 #             metadata={"label": label.name, "color": label.color},
 #         )
 #         message = f'Label "{label.name}" added successfully'
-# 
+#
 #     elif action == "remove":
 #         # Remove label
 #         issue.labels.remove(label)
@@ -341,13 +342,13 @@ if __name__ == "__main__":
 #             metadata={"label": label.name, "color": label.color},
 #         )
 #         message = f'Label "{label.name}" removed successfully'
-# 
+#
 #     else:
 #         return JsonResponse(
 #             {"success": False, "error": 'Invalid action. Use "add" or "remove"'},
 #             status=400,
 #         )
-# 
+#
 #     return JsonResponse(
 #         {
 #             "success": True,
@@ -358,8 +359,8 @@ if __name__ == "__main__":
 #             ],
 #         }
 #     )
-# 
-# 
+#
+#
 # @require_POST
 # @login_required
 # def api_issue_milestone(request, username, slug, issue_number):
@@ -370,7 +371,7 @@ if __name__ == "__main__":
 #     """
 #     project = get_object_or_404(Project, owner__username=username, slug=slug)
 #     issue = get_object_or_404(Issue, project=project, number=issue_number)
-# 
+#
 #     # Check permissions
 #     if not project.can_edit(request.user):
 #         return JsonResponse(
@@ -380,14 +381,14 @@ if __name__ == "__main__":
 #             },
 #             status=403,
 #         )
-# 
+#
 #     try:
 #         data = json.loads(request.body)
 #     except json.JSONDecodeError:
 #         data = request.POST
-# 
+#
 #     milestone_id = data.get("milestone_id")
-# 
+#
 #     if milestone_id:
 #         # Set milestone
 #         try:
@@ -395,7 +396,7 @@ if __name__ == "__main__":
 #             old_milestone = issue.milestone
 #             issue.milestone = milestone
 #             issue.save()
-# 
+#
 #             # Create event
 #             IssueEvent.objects.create(
 #                 issue=issue,
@@ -403,7 +404,7 @@ if __name__ == "__main__":
 #                 actor=request.user,
 #                 metadata={"milestone": milestone.title},
 #             )
-# 
+#
 #             message = f'Milestone "{milestone.title}" set successfully'
 #         except IssueMilestone.DoesNotExist:
 #             return JsonResponse(
@@ -415,7 +416,7 @@ if __name__ == "__main__":
 #         if old_milestone:
 #             issue.milestone = None
 #             issue.save()
-# 
+#
 #             # Create event
 #             IssueEvent.objects.create(
 #                 issue=issue,
@@ -423,11 +424,11 @@ if __name__ == "__main__":
 #                 actor=request.user,
 #                 metadata={"milestone": old_milestone.title},
 #             )
-# 
+#
 #             message = "Milestone removed successfully"
 #         else:
 #             message = "Issue has no milestone"
-# 
+#
 #     return JsonResponse(
 #         {
 #             "success": True,
@@ -437,8 +438,8 @@ if __name__ == "__main__":
 #             else None,
 #         }
 #     )
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # def api_issue_search(request, username, slug):
 #     """
@@ -446,7 +447,7 @@ if __name__ == "__main__":
 #     GET /<username>/<slug>/api/issues/search/?q=<query>&state=<state>
 #     """
 #     project = get_object_or_404(Project, owner__username=username, slug=slug)
-# 
+#
 #     # Check permissions
 #     if not project.can_view(request.user):
 #         return JsonResponse(
@@ -456,25 +457,25 @@ if __name__ == "__main__":
 #             },
 #             status=403,
 #         )
-# 
+#
 #     query = request.GET.get("q", "").strip()
 #     state = request.GET.get("state", "open")
-# 
+#
 #     issues = project.issues.select_related("author")
-# 
+#
 #     if state != "all":
 #         issues = issues.filter(state=state)
-# 
+#
 #     if query:
 #         from django.db.models import Q
-# 
+#
 #         issues = issues.filter(
 #             Q(title__icontains=query) | Q(description__icontains=query)
 #         )
-# 
+#
 #     # Limit to 10 results
 #     issues = issues[:10]
-# 
+#
 #     return JsonResponse(
 #         {
 #             "success": True,
@@ -491,8 +492,8 @@ if __name__ == "__main__":
 #             ],
 #         }
 #     )
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

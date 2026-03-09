@@ -1,0 +1,44 @@
+/* Folder action buttons - sleek hover effects */
+.folder-actions {
+  display: flex;
+  gap: 2px;
+  margin-left: 4px;
+  align-items: center;
+  opacity: 0.4;
+  transition: opacity 0.2s ease;
+}
+
+.file-tree-item--folder:hover .folder-actions {
+  opacity: 1;
+}
+
+.folder-action-btn {
+  padding: 4px 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--code-text-muted);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 11px;
+  transition: all 0.2s ease-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.folder-action-btn:hover {
+  background: var(--code-hover-bg);
+  border-color: var(--code-active-border);
+  color: var(--code-active-border);
+  transform: scale(1.15);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.folder-action-btn:active {
+  transform: scale(1.0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .folder-action-btn:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}

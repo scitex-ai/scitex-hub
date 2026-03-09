@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.services.user_container_manager.package_ops import ...
+# from apps.workspace.console_app.services.user_container_manager.package_ops import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,29 +29,29 @@ if __name__ == "__main__":
 # """
 # Package installation operations for User Container Manager
 # """
-# 
+#
 # import subprocess
 # import logging
 # from typing import Dict, Any, List
 # from django.contrib.auth.models import User
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # class PackageOperations:
 #     """
 #     Package installation operations
-# 
+#
 #     Handles:
 #     - pip package installation
 #     - apt package installation
 #     - conda package installation
 #     """
-# 
+#
 #     def __init__(self, config, path_utils):
 #         self.config = config
 #         self.path_utils = path_utils
-# 
+#
 #     def install_package(
 #         self,
 #         user: User,
@@ -59,23 +60,23 @@ if __name__ == "__main__":
 #     ) -> Dict[str, Any]:
 #         """
 #         Install packages to user's sandbox
-# 
+#
 #         Args:
 #             user: Django user
 #             package_manager: 'pip', 'apt', or 'conda'
 #             packages: List of package names
-# 
+#
 #         Returns:
 #             Dict with success status and output
 #         """
 #         sandbox_path = self.path_utils.get_sandbox_path(user)
-# 
+#
 #         if not sandbox_path.exists():
 #             return {
 #                 'success': False,
 #                 'message': 'Sandbox does not exist. Create one first.'
 #             }
-# 
+#
 #         # Build install command
 #         if package_manager == 'pip':
 #             packages_str = ' '.join(packages)
@@ -91,7 +92,7 @@ if __name__ == "__main__":
 #                 'success': False,
 #                 'message': f'Invalid package manager: {package_manager}'
 #             }
-# 
+#
 #         # Execute in sandbox with fakeroot
 #         cmd = [
 #             self.config.container_cmd, "exec",
@@ -101,13 +102,13 @@ if __name__ == "__main__":
 #             "/bin/bash", "-c",
 #             install_cmd
 #         ]
-# 
+#
 #         try:
 #             logger.info(
 #                 f"Installing {packages} with {package_manager} "
 #                 f"for user {user.username}"
 #             )
-# 
+#
 #             result = subprocess.run(
 #                 cmd,
 #                 capture_output=True,
@@ -115,7 +116,7 @@ if __name__ == "__main__":
 #                 timeout=300,  # 5 minutes for package installation
 #                 check=True
 #             )
-# 
+#
 #             return {
 #                 'success': True,
 #                 'packages': packages,
@@ -123,7 +124,7 @@ if __name__ == "__main__":
 #                 'stdout': result.stdout,
 #                 'message': f'Successfully installed: {", ".join(packages)}'
 #             }
-# 
+#
 #         except subprocess.CalledProcessError as e:
 #             logger.error(
 #                 f"Package installation failed for {user.username}: {e.stderr}"
@@ -134,14 +135,14 @@ if __name__ == "__main__":
 #                 'stderr': e.stderr,
 #                 'message': f'Installation failed. See stderr for details.'
 #             }
-# 
+#
 #         except subprocess.TimeoutExpired:
 #             return {
 #                 'success': False,
 #                 'packages': packages,
 #                 'message': 'Installation timed out after 5 minutes'
 #             }
-# 
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

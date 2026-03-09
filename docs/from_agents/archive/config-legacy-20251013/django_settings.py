@@ -4,9 +4,8 @@
 # File: /home/ywatanabe/proj/SciTeX-Cloud/config/django_settings.py
 # ----------------------------------------
 import os
-__FILE__ = (
-    "./config/django_settings.py"
-)
+
+__FILE__ = "./config/django_settings.py"
 __DIR__ = os.path.dirname(__FILE__)
 # ----------------------------------------
 
@@ -33,11 +32,11 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "apps.cloud_app",
-    "apps.console_app",
-    "apps.workspace_app",
+    "apps.workspace.console_app",
+    "apps.infra.workspace_app",
     "apps.doc_app",
     "apps.engine_app",
-    "apps.search_app",
+    "apps.infra.search_app",
     "apps.viz_app",
 ]
 

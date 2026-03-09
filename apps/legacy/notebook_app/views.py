@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from django.shortcuts import render
 
-from apps.project_app.services.project_utils import get_current_project
+from apps.infra.project_app.services.project_utils import get_current_project
 
 
 def build_notebook_context(request, current_project=None):

@@ -24,10 +24,10 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
 django.setup()
 
 # Import routing after Django setup (must come after django.setup())
-from apps.console_app import routing as code_routing  # noqa: E402
-from apps.llm_app import routing as llm_routing  # noqa: E402
-from apps.project_app import routing as project_routing  # noqa: E402
-from apps.writer_app import routing as writer_routing  # noqa: E402
+from apps.workspace.console_app import routing as code_routing  # noqa: E402
+from apps.infra.llm_app import routing as llm_routing  # noqa: E402
+from apps.infra.project_app import routing as project_routing  # noqa: E402
+from apps.workspace.writer_app import routing as writer_routing  # noqa: E402
 
 logger = logging.getLogger("config.asgi")
 
@@ -142,7 +142,7 @@ async def _mcp_api_key_valid(scope) -> bool:
     try:
         from django.utils import timezone
 
-        from apps.accounts_app.models import APIKey
+        from apps.infra.accounts_app.models import APIKey
 
         api_key = await APIKey.objects.aget(key_hash=key_hash, is_active=True)
         # Require mcp or full-access scope
@@ -159,7 +159,10 @@ async def _mcp_api_key_valid(scope) -> bool:
 def _is_valid_campaign_key(raw_key: str) -> bool:
     """Check if a key is a valid, non-expired campaign API key."""
     try:
-        from apps.public_app.config import is_valid_campaign_token, parse_campaign_token
+        from apps.infra.public_app.config import (
+            is_valid_campaign_token,
+            parse_campaign_token,
+        )
 
         if not is_valid_campaign_token(raw_key):
             return False

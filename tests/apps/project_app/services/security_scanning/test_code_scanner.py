@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.services.security_scanning.code_scanner import ...
+# from apps.infra.project_app.services.security_scanning.code_scanner import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,32 +28,32 @@ if __name__ == "__main__":
 # """
 # Static code analysis for security issues
 # """
-# 
+#
 # import subprocess
 # import json
 # from typing import Dict
 # import logging
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # class CodeScannerMixin:
 #     """Static code analysis functionality"""
-# 
+#
 #     def scan_code(self) -> Dict:
 #         """
 #         Static code analysis for security issues
 #         Uses bandit for Python
-# 
+#
 #         Returns:
 #             dict: Code analysis results
 #         """
 #         results = {"alerts": [], "errors": []}
-# 
+#
 #         if not self._has_bandit():
 #             logger.info("bandit not available")
 #             return results
-# 
+#
 #         try:
 #             cmd = [
 #                 "bandit",
@@ -62,7 +63,7 @@ if __name__ == "__main__":
 #                 "json",
 #                 "-ll",  # Only report low severity and above
 #             ]
-# 
+#
 #             result = subprocess.run(
 #                 cmd,
 #                 capture_output=True,
@@ -70,7 +71,7 @@ if __name__ == "__main__":
 #                 cwd=str(self.project_path),
 #                 timeout=300,
 #             )
-# 
+#
 #             # Parse JSON output
 #             try:
 #                 data = json.loads(result.stdout)
@@ -89,16 +90,16 @@ if __name__ == "__main__":
 #                     results["alerts"].append(alert)
 #             except json.JSONDecodeError:
 #                 logger.error("Failed to parse bandit output")
-# 
+#
 #         except subprocess.TimeoutExpired:
 #             results["errors"].append("Code scan timed out")
 #         except Exception as e:
 #             logger.error(f"Code scan failed: {e}")
 #             results["errors"].append(str(e))
-# 
+#
 #         return results
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

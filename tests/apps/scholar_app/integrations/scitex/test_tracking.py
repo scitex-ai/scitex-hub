@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.integrations.scitex.tracking import ...
+# from apps.workspace.scholar_app.integrations.scitex.tracking import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -25,13 +26,13 @@ if __name__ == "__main__":
 # Start of Source Code from: apps/scholar_app/integrations/scitex/tracking.py
 # --------------------------------------------------------------------------------
 # """Search query tracking utilities."""
-# 
+#
 # import logging
 # from typing import Dict
 # from ...models import SearchQuery
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
+#
 # def track_search_query(
 #     request,
 #     query_text: str,
@@ -42,7 +43,7 @@ if __name__ == "__main__":
 # ):
 #     """
 #     Track user search query in database for analytics.
-# 
+#
 #     Args:
 #         request: Django HttpRequest
 #         query_text: The search query string
@@ -53,7 +54,7 @@ if __name__ == "__main__":
 #     """
 #     if not request.user.is_authenticated:
 #         return
-# 
+#
 #     try:
 #         SearchQuery.objects.create(
 #             user=request.user,
@@ -67,8 +68,8 @@ if __name__ == "__main__":
 #         )
 #     except Exception as e:
 #         logger.warning(f"Failed to track search query: {e}")
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

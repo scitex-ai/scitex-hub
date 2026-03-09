@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.integrations.scitex.api_search import ...
+# from apps.workspace.scholar_app.integrations.scitex.api_search import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -25,7 +26,7 @@ if __name__ == "__main__":
 # Start of Source Code from: apps/scholar_app/integrations/scitex/api_search.py
 # --------------------------------------------------------------------------------
 # """API endpoint for parallel SciTeX search."""
-# 
+#
 # import asyncio
 # import logging
 # from django.http import JsonResponse
@@ -34,13 +35,13 @@ if __name__ == "__main__":
 # from .filters import django_to_scitex_filters
 # from .converters import scitex_to_django_paper
 # from .tracking import track_search_query
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
+#
 # def api_scitex_search(request):
 #     """
 #     API endpoint for SciTeX-powered paper search (parallel pipeline).
-# 
+#
 #     Query Parameters:
 #         q: Search query string (required)
 #         search_fields: Comma-separated fields to search (title,abstract,keywords)
@@ -50,14 +51,14 @@ if __name__ == "__main__":
 #         author: Filter by author name
 #         journal: Filter by journal name
 #         max_results: Maximum number of results (default: 100)
-# 
+#
 #     Returns:
 #         JSON response with search results and metadata
 #     """
 #     import time
-# 
+#
 #     start_time = time.time()
-# 
+#
 #     # Check if SciTeX is available
 #     if not SCITEX_AVAILABLE:
 #         return JsonResponse(
@@ -68,45 +69,45 @@ if __name__ == "__main__":
 #             },
 #             status=503,
 #         )
-# 
+#
 #     # Get query parameter
 #     query = request.GET.get("q", "").strip()
 #     if not query:
 #         return JsonResponse(
 #             {"error": 'Query parameter "q" is required', "results": []}, status=400
 #         )
-# 
+#
 #     # Get search fields
 #     search_fields_param = request.GET.get("search_fields", "title,abstract")
 #     search_fields = [f.strip() for f in search_fields_param.split(",")]
-# 
+#
 #     # Get filters
 #     filters = django_to_scitex_filters(request)
-# 
+#
 #     # Get max results
 #     try:
 #         max_results = int(request.GET.get("max_results", 100))
 #         max_results = min(max_results, 1000)  # Cap at 1000
 #     except ValueError:
 #         max_results = 100
-# 
+#
 #     # Get pipeline
 #     pipeline = get_parallel_pipeline()
 #     if not pipeline:
 #         return JsonResponse(
 #             {"error": "Failed to initialize search pipeline", "results": []}, status=500
 #         )
-# 
+#
 #     # Execute search
 #     try:
 #         logger.info(
 #             f"SciTeX search: query='{query[:50]}...', fields={search_fields}, filters={filters}"
 #         )
-# 
+#
 #         # Run async search in sync context
 #         loop = asyncio.new_event_loop()
 #         asyncio.set_event_loop(loop)
-# 
+#
 #         try:
 #             scitex_result = loop.run_until_complete(
 #                 pipeline.search_async(
@@ -118,10 +119,10 @@ if __name__ == "__main__":
 #             )
 #         finally:
 #             loop.close()
-# 
+#
 #         # Convert results to Django format
 #         django_results = []
-# 
+#
 #         for scitex_paper in scitex_result.get("results", []):
 #             # Store in database
 #             try:
@@ -129,7 +130,7 @@ if __name__ == "__main__":
 #                     scitex_paper,
 #                     request.user if request.user.is_authenticated else None,
 #                 )
-# 
+#
 #                 # Format for API response
 #                 django_results.append(
 #                     {
@@ -161,7 +162,7 @@ if __name__ == "__main__":
 #                         "error": "Failed to save to database",
 #                     }
 #                 )
-# 
+#
 #         # Track search query
 #         execution_time = time.time() - start_time
 #         track_search_query(
@@ -172,7 +173,7 @@ if __name__ == "__main__":
 #             execution_time=execution_time,
 #             filters=filters,
 #         )
-# 
+#
 #         # Return response
 #         response_data = {
 #             "query": query,
@@ -186,20 +187,20 @@ if __name__ == "__main__":
 #             },
 #             "stats": pipeline.get_statistics(),
 #         }
-# 
+#
 #         logger.info(
 #             f"SciTeX search completed: {len(django_results)} results in {execution_time:.2f}s"
 #         )
-# 
+#
 #         return JsonResponse(response_data)
-# 
+#
 #     except Exception as e:
 #         logger.error(f"SciTeX search failed: {e}", exc_info=True)
 #         return JsonResponse(
 #             {"error": "Search failed", "detail": str(e), "results": []}, status=500
 #         )
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.tests import ...
+# from apps.workspace.writer_app.tests import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,17 +27,17 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # Tests for Writer app.
-# 
+#
 # DEPRECATED: Old model tests removed.
 # New API tests to be added in Phase 3.
 # """
-# 
+#
 # from django.test import TestCase
-# 
-# 
+#
+#
 # class WriterAPITestCase(TestCase):
 #     """Placeholder for new API tests."""
-# 
+#
 #     pass
 
 # --------------------------------------------------------------------------------

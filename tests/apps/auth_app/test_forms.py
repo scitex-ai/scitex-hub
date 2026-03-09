@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.auth_app.forms import ...
+# from apps.infra.auth_app.forms import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -30,11 +31,11 @@ if __name__ == "__main__":
 # from django import forms
 # from django.contrib.auth.models import User
 # import re
-# 
-# 
+#
+#
 # class SignupForm(forms.Form):
 #     """Form for user registration."""
-# 
+#
 #     username = forms.CharField(
 #         max_length=39,  # GitHub's maximum username length
 #         min_length=1,
@@ -67,22 +68,22 @@ if __name__ == "__main__":
 #         widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
 #         label="I agree to the Terms of Service and Privacy Policy",
 #     )
-# 
+#
 #     def clean_username(self):
 #         """Validate username follows GitHub-style rules and is unique."""
 #         username = self.cleaned_data["username"]
-# 
+#
 #         # GitHub-style validation rules
 #         if not re.match(r"^[a-zA-Z0-9]([a-zA-Z0-9-_]*[a-zA-Z0-9])?$", username):
 #             raise forms.ValidationError(
 #                 "Username may only contain alphanumeric characters, hyphens, and underscores. "
 #                 "Username cannot begin or end with a hyphen or underscore, and cannot contain consecutive hyphens."
 #             )
-# 
+#
 #         # Check for consecutive hyphens (GitHub doesn't allow this)
 #         if "--" in username:
 #             raise forms.ValidationError("Username cannot contain consecutive hyphens.")
-# 
+#
 #         # Reserved usernames (like GitHub)
 #         reserved_usernames = [
 #             "admin",
@@ -121,35 +122,35 @@ if __name__ == "__main__":
 #         ]
 #         if username.lower() in reserved_usernames:
 #             raise forms.ValidationError("This username is reserved.")
-# 
+#
 #         # Check uniqueness (case-insensitive)
 #         if User.objects.filter(username__iexact=username).exists():
 #             raise forms.ValidationError("This username is already taken.")
-# 
+#
 #         return username
-# 
+#
 #     def clean_email(self):
 #         """Validate email is unique."""
 #         email = self.cleaned_data["email"]
 #         if User.objects.filter(email=email).exists():
 #             raise forms.ValidationError("An account with this email already exists.")
 #         return email
-# 
+#
 #     def clean(self):
 #         """Validate passwords match."""
 #         cleaned_data = super().clean()
 #         password = cleaned_data.get("password")
 #         password2 = cleaned_data.get("password2")
-# 
+#
 #         if password and password2 and password != password2:
 #             raise forms.ValidationError("Passwords do not match.")
-# 
+#
 #         return cleaned_data
-# 
-# 
+#
+#
 # class LoginForm(forms.Form):
 #     """Form for user login."""
-# 
+#
 #     username = forms.CharField(
 #         widget=forms.TextInput(
 #             attrs={"class": "form-control", "placeholder": "Username or Email"}
@@ -166,8 +167,8 @@ if __name__ == "__main__":
 #         widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
 #         label="Remember me",
 #     )
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

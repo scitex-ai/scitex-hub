@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.bibtex.views import ...
+# from apps.workspace.scholar_app.views.bibtex.views import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,15 +28,15 @@ if __name__ == "__main__":
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
 # # File: /home/ywatanabe/proj/scitex-cloud/apps/scholar_app/views/bibtex/views.py
-# 
+#
 # """
 # BibTeX Views Aggregator
-# 
+#
 # Re-export all views from bibtex package for URL routing compatibility.
 # """
-# 
+#
 # from . import *
-# 
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

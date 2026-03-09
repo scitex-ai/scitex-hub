@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.urls.index import ...
+# from apps.workspace.writer_app.urls.index import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -30,13 +31,13 @@ if __name__ == "__main__":
 # # File: /home/ywatanabe/proj/scitex-cloud/apps/writer_app/urls/index.py
 # # ----------------------------------------
 # """Writer App Index URLs
-# 
+#
 # Main index page and workspace initialization endpoints.
 # """
-# 
+#
 # from django.urls import path
 # from ..views.index import main as index_views
-# 
+#
 # urlpatterns = [
 #     # Main index page
 #     path("", index_views.index_view, name="index"),
@@ -47,7 +48,7 @@ if __name__ == "__main__":
 #         name="initialize-workspace",
 #     ),
 # ]
-# 
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.auth_app.views.theme import ...
+# from apps.infra.auth_app.views.theme import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,15 +32,15 @@ if __name__ == "__main__":
 # from django.views.decorators.http import require_POST
 # from django.http import JsonResponse
 # import json
-# 
+#
 # from ..models import UserProfile
-# 
-# 
+#
+#
 # @require_POST
 # def api_save_theme_preference(request):
 #     """
 #     API endpoint to save user's theme preference.
-# 
+#
 #     POST /auth/api/save-theme/
 #     Body: {
 #         "theme": "light" | "dark",
@@ -51,7 +52,7 @@ if __name__ == "__main__":
 #         return JsonResponse(
 #             {"success": False, "error": "Not authenticated"}, status=401
 #         )
-# 
+#
 #     try:
 #         data = json.loads(request.body)
 #         theme = data.get("theme")
@@ -59,16 +60,16 @@ if __name__ == "__main__":
 #         code_theme_dark = data.get("code_theme_dark")
 #         editor_theme_light = data.get("editor_theme_light")
 #         editor_theme_dark = data.get("editor_theme_dark")
-# 
+#
 #         # Validate theme
 #         if theme and theme not in ["light", "dark"]:
 #             return JsonResponse(
 #                 {"success": False, "error": "Invalid theme"}, status=400
 #             )
-# 
+#
 #         # Get or create user profile
 #         profile, created = UserProfile.objects.get_or_create(user=request.user)
-# 
+#
 #         # Update theme preferences
 #         if theme:
 #             profile.theme_preference = theme
@@ -80,9 +81,9 @@ if __name__ == "__main__":
 #             profile.editor_theme_light = editor_theme_light
 #         if editor_theme_dark:
 #             profile.editor_theme_dark = editor_theme_dark
-# 
+#
 #         profile.save()
-# 
+#
 #         return JsonResponse(
 #             {
 #                 "success": True,
@@ -93,17 +94,17 @@ if __name__ == "__main__":
 #                 "editor_theme_dark": profile.editor_theme_dark,
 #             }
 #         )
-# 
+#
 #     except json.JSONDecodeError:
 #         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
 #     except Exception as e:
 #         return JsonResponse({"success": False, "error": str(e)}, status=500)
-# 
-# 
+#
+#
 # def api_get_theme_preference(request):
 #     """
 #     API endpoint to get user's theme preference.
-# 
+#
 #     GET /auth/api/get-theme/
 #     Returns: {
 #         "theme": "light" | "dark",
@@ -122,7 +123,7 @@ if __name__ == "__main__":
 #                 "editor_theme_dark": "nord",
 #             }
 #         )
-# 
+#
 #     try:
 #         profile = request.user.auth_profile
 #         return JsonResponse(
@@ -145,8 +146,8 @@ if __name__ == "__main__":
 #                 "editor_theme_dark": "nord",
 #             }
 #         )
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

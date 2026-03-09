@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.services.jupyter.templates_data import ...
+# from apps.workspace.console_app.services.jupyter.templates_data import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,11 +29,11 @@ if __name__ == "__main__":
 # """
 # Data analysis notebook template.
 # """
-# 
-# 
+#
+#
 # class DataTemplate:
 #     """Data analysis notebook template."""
-# 
+#
 #     @staticmethod
 #     def get_data_analysis_template() -> dict:
 #         """Get data analysis notebook template."""

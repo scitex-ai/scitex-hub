@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.search.search_helpers import ...
+# from apps.workspace.scholar_app.views.search.search_helpers import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,7 +32,7 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/scholar_app/views/search/search_helpers.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
@@ -56,22 +57,22 @@ if __name__ == "__main__":
 #     CollaborationGroup, GroupMembership,
 #     AnnotationTag, UserPreference,
 # )
-# from apps.project_app.services import get_current_project
-# 
+# from apps.infra.project_app.services import get_current_project
+#
 # logger = logging.getLogger(__name__)
-# 
+#
 # # Import scitex.scholar if available
 # try:
 #     from scitex.scholar.pipelines.ScholarPipelineSearchParallel import ScholarPipelineSearchParallel
 #     SCITEX_SCHOLAR_AVAILABLE = True
 # except ImportError:
 #     SCITEX_SCHOLAR_AVAILABLE = False
-# 
-# 
+#
+#
 # def parse_query_operators(query):
 #     """
 #     Parse shell-style operators from query string.
-# 
+#
 #     Syntax:
 #     -t VALUE or --title VALUE: Title filter (include)
 #     -t -VALUE: Title filter (exclude, - prefix on value)
@@ -83,12 +84,12 @@ if __name__ == "__main__":
 #     -cmax N or --citations-max: Maximum citations
 #     -ifmin N or --if-min: Minimum impact factor
 #     -ifmax N or --if-max: Maximum impact factor
-# 
+#
 #     Returns:
 #         dict with parsed operators and clean query
 #     """
 #     import re
-# 
+#
 #     result = {
 #         'query': query,
 #         'title_includes': [],
@@ -104,19 +105,19 @@ if __name__ == "__main__":
 #         'impact_factor_min': None,
 #         'impact_factor_max': None,
 #     }
-# 
+#
 #     if not query:
 #         return result
-# 
+#
 #     remaining = query
-# 
+#
 #     # Pattern for text filters: -t/-a/-j with optional - prefix on value
 #     text_patterns = [
 #         (r'(?:-t|--title)\s+(-?)([^\s]+|"[^"]+"|\'[^\']+\')', 'title'),
 #         (r'(?:-a|--author)\s+(-?)([^\s]+|"[^"]+"|\'[^\']+\')', 'author'),
 #         (r'(?:-j|--journal)\s+(-?)([^\s]+|"[^"]+"|\'[^\']+\')', 'journal'),
 #     ]
-# 
+#
 #     for pattern, field_name in text_patterns:
 #         for match in re.finditer(pattern, remaining, re.IGNORECASE):
 #             is_exclude = match.group(1) == '-'
@@ -126,7 +127,7 @@ if __name__ == "__main__":
 #             else:
 #                 result[f'{field_name}_includes'].append(value)
 #             remaining = remaining.replace(match.group(0), '', 1)
-# 
+#
 #     # Pattern for numeric filters
 #     numeric_patterns = [
 #         (r'(?:-ymin|--year-min)\s+(\d{4})', 'year_min'),
@@ -136,7 +137,7 @@ if __name__ == "__main__":
 #         (r'(?:-ifmin|--if-min)\s+(\d+(?:\.\d+)?)', 'impact_factor_min'),
 #         (r'(?:-ifmax|--if-max)\s+(\d+(?:\.\d+)?)', 'impact_factor_max'),
 #     ]
-# 
+#
 #     for pattern, field_name in numeric_patterns:
 #         match = re.search(pattern, remaining, re.IGNORECASE)
 #         if match:
@@ -146,17 +147,17 @@ if __name__ == "__main__":
 #             else:
 #                 result[field_name] = int(value)
 #             remaining = remaining.replace(match.group(0), '', 1)
-# 
+#
 #     # Clean up remaining query
 #     result['query'] = ' '.join(remaining.split())
-# 
+#
 #     return result
-# 
-# 
+#
+#
 # def extract_search_filters(request):
 #     """Extract all advanced search filters from request."""
 #     filters = {}
-# 
+#
 #     # Year range filters
 #     year_from = request.GET.get("year_from")
 #     year_to = request.GET.get("year_to")
@@ -170,7 +171,7 @@ if __name__ == "__main__":
 #             filters["year_to"] = int(year_to)
 #         except ValueError:
 #             pass
-# 
+#
 #     # Citation count filter
 #     min_citations = request.GET.get("min_citations")
 #     if min_citations:
@@ -178,7 +179,7 @@ if __name__ == "__main__":
 #             filters["min_citations"] = int(min_citations)
 #         except ValueError:
 #             pass
-# 
+#
 #     # Impact factor filter
 #     min_impact_factor = request.GET.get("min_impact_factor")
 #     if min_impact_factor:
@@ -186,52 +187,52 @@ if __name__ == "__main__":
 #             filters["min_impact_factor"] = float(min_impact_factor)
 #         except ValueError:
 #             pass
-# 
+#
 #     # Author filter
 #     author = request.GET.get("author", "").strip()
 #     if author:
 #         # Split by comma and clean up
 #         authors = [a.strip() for a in author.split(",") if a.strip()]
 #         filters["authors"] = authors
-# 
+#
 #     # Journal filter
 #     journal = request.GET.get("journal", "").strip()
 #     if journal:
 #         filters["journal"] = journal
-# 
+#
 #     # Document type filter
 #     doc_type = request.GET.get("doc_type", "").strip()
 #     if doc_type:
 #         filters["doc_type"] = doc_type
-# 
+#
 #     # Study type filter
 #     study_type = request.GET.get("study_type", "").strip()
 #     if study_type:
 #         filters["study_type"] = study_type
-# 
+#
 #     # Language filter
 #     language = request.GET.get("language", "").strip()
 #     if language:
 #         filters["language"] = language
-# 
+#
 #     # Quick filters
 #     if request.GET.get("open_access"):
 #         filters["open_access"] = True
-# 
+#
 #     if request.GET.get("recent_only"):
 #         from datetime import datetime
-# 
+#
 #         current_year = datetime.now().year
 #         filters["year_from"] = max(filters.get("year_from", 0), current_year - 5)
-# 
+#
 #     if request.GET.get("high_impact"):
 #         filters["min_impact_factor"] = max(filters.get("min_impact_factor", 0), 5.0)
-# 
+#
 #     return filters
-# 
-# 
-# 
-# 
+#
+#
+#
+#
 # def search_database_papers(query, filters, ignore_cache=False):
 #     """Optimized database search with reduced complexity."""
 #     # Cache database results for better performance
@@ -242,7 +243,7 @@ if __name__ == "__main__":
 #         cached_results = cache.get(cache_key)
 #         if cached_results is not None:
 #             return cached_results
-# 
+#
 #     # Start with optimized text search - only essential fields
 #     queryset = (
 #         SearchIndex.objects.filter(title__icontains=query, status="active")
@@ -259,87 +260,87 @@ if __name__ == "__main__":
 #             "journal__impact_factor",
 #         )
 #     )
-# 
+#
 #     # Apply only essential filters for performance
 #     if filters.get("year_from"):
 #         queryset = queryset.filter(publication_date__year__gte=filters["year_from"])
 #     if filters.get("year_to"):
 #         queryset = queryset.filter(publication_date__year__lte=filters["year_to"])
-# 
+#
 #     if filters.get("min_citations"):
 #         queryset = queryset.filter(citation_count__gte=filters["min_citations"])
-# 
+#
 #     if filters.get("open_access"):
 #         queryset = queryset.filter(is_open_access=True)
-# 
+#
 #     # Simplified journal filter
 #     if filters.get("journal"):
 #         queryset = queryset.filter(journal__name__icontains=filters["journal"])
-# 
+#
 #     # Skip complex author filtering for performance - can be added back if needed
 #     # Author search adds significant complexity and JOIN overhead
-# 
+#
 #     # Limit results and cache for 30 minutes
 #     results = list(queryset.order_by("-relevance_score", "-citation_count")[:10])
 #     cache.set(cache_key, results, 1800)
-# 
+#
 #     return results
-# 
-# 
-# 
-# 
+#
+#
+#
+#
 # def apply_advanced_filters(results, filters, parsed_operators=None):
 #     """Apply advanced filters to search results."""
 #     if not filters and not parsed_operators:
 #         return results
-# 
+#
 #     filtered_results = []
-# 
+#
 #     for result in results:
 #         # Title includes/excludes from parsed operators
 #         if parsed_operators:
 #             title = result.get("title", "").lower()
-# 
+#
 #             # Title must include all specified terms
 #             if parsed_operators.get("title_includes"):
 #                 if not all(term.lower() in title for term in parsed_operators["title_includes"]):
 #                     continue
-# 
+#
 #             # Title must NOT include any excluded terms
 #             if parsed_operators.get("title_excludes"):
 #                 if any(term.lower() in title for term in parsed_operators["title_excludes"]):
 #                     continue
-# 
+#
 #             # Author includes/excludes
 #             authors_text = " ".join(result.get("authors", [])).lower()
-# 
+#
 #             if parsed_operators.get("author_includes"):
 #                 if not all(term.lower() in authors_text for term in parsed_operators["author_includes"]):
 #                     continue
-# 
+#
 #             if parsed_operators.get("author_excludes"):
 #                 if any(term.lower() in authors_text for term in parsed_operators["author_excludes"]):
 #                     continue
-# 
+#
 #             # Journal includes/excludes
 #             journal_name = result.get("journal", "").lower()
-# 
+#
 #             if parsed_operators.get("journal_includes"):
 #                 if not all(term.lower() in journal_name for term in parsed_operators["journal_includes"]):
 #                     continue
-# 
+#
 #             if parsed_operators.get("journal_excludes"):
 #                 if any(term.lower() in journal_name for term in parsed_operators["journal_excludes"]):
 #                     continue
-# 
+#
 #         # Year range filter (from filters or parsed operators)
 #         year_from = filters.get("year_from") if filters else None
 #         year_to = filters.get("year_to") if filters else None
-# 
+#
 #         if parsed_operators:
 #             year_from = parsed_operators.get("year_min") or year_from
 #             year_to = parsed_operators.get("year_max") or year_to
-# 
+#
 #         if year_from or year_to:
 #             try:
 #                 year = int(result.get("year", 0))
@@ -349,15 +350,15 @@ if __name__ == "__main__":
 #                     continue
 #             except (ValueError, TypeError):
 #                 continue
-# 
+#
 #         # Citation count filter
 #         min_citations = filters.get("min_citations") if filters else None
 #         max_citations = filters.get("max_citations") if filters else None
-# 
+#
 #         if parsed_operators:
 #             min_citations = parsed_operators.get("citations_min") or min_citations
 #             max_citations = parsed_operators.get("citations_max") or max_citations
-# 
+#
 #         if min_citations or max_citations:
 #             try:
 #                 citations = int(result.get("citations", 0))
@@ -367,15 +368,15 @@ if __name__ == "__main__":
 #                     continue
 #             except (ValueError, TypeError):
 #                 continue
-# 
+#
 #         # Impact factor filter
 #         min_if = filters.get("min_impact_factor") if filters else None
 #         max_if = filters.get("max_impact_factor") if filters else None
-# 
+#
 #         if parsed_operators:
 #             min_if = parsed_operators.get("impact_factor_min") or min_if
 #             max_if = parsed_operators.get("impact_factor_max") or max_if
-# 
+#
 #         if min_if or max_if:
 #             try:
 #                 impact_factor = float(result.get("impact_factor", 0) or 0)
@@ -385,7 +386,7 @@ if __name__ == "__main__":
 #                     continue
 #             except (ValueError, TypeError):
 #                 continue
-# 
+#
 #         # Author filter from form (legacy)
 #         if filters and filters.get("authors"):
 #             authors_text = " ".join(result.get("authors", [])).lower()
@@ -396,24 +397,24 @@ if __name__ == "__main__":
 #                     break
 #             if not author_match:
 #                 continue
-# 
+#
 #         # Journal filter from form (legacy)
 #         if filters and filters.get("journal"):
 #             journal_name = result.get("journal", "").lower()
 #             if filters["journal"].lower() not in journal_name:
 #                 continue
-# 
+#
 #         # Open access filter
 #         if filters and filters.get("open_access") and not result.get("is_open_access"):
 #             continue
-# 
+#
 #         # Document type filter (basic implementation)
 #         if filters and filters.get("doc_type"):
 #             title_and_abstract = (
 #                 result.get("title", "") + " " + result.get("snippet", "")
 #             ).lower()
 #             doc_type = filters["doc_type"].lower()
-# 
+#
 #             if doc_type == "review" and "review" not in title_and_abstract:
 #                 continue
 #             elif (
@@ -421,26 +422,26 @@ if __name__ == "__main__":
 #                 and "preprint" not in result.get("source", "").lower()
 #             ):
 #                 continue
-# 
+#
 #         # Language filter (basic implementation)
 #         if filters and filters.get("language"):
 #             if filters["language"].lower() != "english":
 #                 continue
-# 
+#
 #         filtered_results.append(result)
-# 
+#
 #     return filtered_results
-# 
-# 
-# 
-# 
+#
+#
+#
+#
 # def get_paper_authors(paper):
 #     """Get formatted author string for a paper."""
 #     try:
 #         author_papers = paper.authors.through.objects.filter(paper=paper).order_by(
 #             "author_order"
 #         )[:3]  # Limit to 3 authors
-# 
+#
 #         authors = []
 #         for ap in author_papers:
 #             author = ap.author
@@ -450,14 +451,14 @@ if __name__ == "__main__":
 #                 authors.append(author.last_name)
 #             elif author.first_name:
 #                 authors.append(author.first_name)
-# 
+#
 #         return ", ".join(authors) if authors else "Unknown Authors"
-# 
+#
 #     except Exception:
 #         return "Unknown Authors"
-# 
-# 
-# 
+#
+#
+#
 
 # --------------------------------------------------------------------------------
 # End of Source Code from: apps/scholar_app/views/search/search_helpers.py

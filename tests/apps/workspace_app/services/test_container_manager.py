@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.workspace_app.services.container_manager import ...
+# from apps.infra.workspace_app.services.container_manager import ...
 
 
 class TestPlaceholder:
@@ -323,7 +323,7 @@ if __name__ == "__main__":
 #             idle_minutes = self.IDLE_TIMEOUT_MINUTES
 #
 #         # Import here to avoid circular dependency
-#         from apps.workspace_app.models import UserWorkspace
+#         from apps.infra.workspace_app.models import UserWorkspace
 #
 #         cutoff_time = timezone.now() - timezone.timedelta(minutes=idle_minutes)
 #
@@ -377,7 +377,7 @@ if __name__ == "__main__":
 #         started: bool
 #     ):
 #         """Update UserWorkspace model with container state"""
-#         from apps.workspace_app.models import UserWorkspace
+#         from apps.infra.workspace_app.models import UserWorkspace
 #
 #         workspace, created = UserWorkspace.objects.get_or_create(user=user)
 #         workspace.container_id = container.id
@@ -390,7 +390,7 @@ if __name__ == "__main__":
 #
 #     def _mark_activity(self, user: User):
 #         """Mark user workspace as recently active"""
-#         from apps.workspace_app.models import UserWorkspace
+#         from apps.infra.workspace_app.models import UserWorkspace
 #
 #         try:
 #             workspace = UserWorkspace.objects.get(user=user)
@@ -400,7 +400,7 @@ if __name__ == "__main__":
 #
 #     def _clear_workspace_state(self, user: User):
 #         """Clear workspace state when container is removed"""
-#         from apps.workspace_app.models import UserWorkspace
+#         from apps.infra.workspace_app.models import UserWorkspace
 #
 #         try:
 #             workspace = UserWorkspace.objects.get(user=user)

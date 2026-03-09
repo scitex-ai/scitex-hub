@@ -190,27 +190,27 @@ LOGGING = {
             "propagate": False,
         },
         # App-specific loggers
-        "apps.vis_app": {
+        "apps.workspace.vis_app": {
             "handlers": ["vis_app_file", "console"],
             "level": "DEBUG",
             "propagate": False,
         },
-        "apps.writer_app": {
+        "apps.workspace.writer_app": {
             "handlers": ["writer_app_file", "console"],
             "level": "DEBUG",
             "propagate": False,
         },
-        "apps.scholar_app": {
+        "apps.workspace.scholar_app": {
             "handlers": ["scholar_app_file", "console"],
             "level": "DEBUG",
             "propagate": False,
         },
-        "apps.console_app": {
+        "apps.workspace.console_app": {
             "handlers": ["console_app_file", "console"],
             "level": "DEBUG",
             "propagate": False,
         },
-        "apps.project_app": {
+        "apps.infra.project_app": {
             "handlers": ["project_app_file", "console"],
             "level": "DEBUG",
             "propagate": False,

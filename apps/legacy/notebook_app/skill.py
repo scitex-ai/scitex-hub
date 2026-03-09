@@ -1,4 +1,4 @@
-from apps.llm_app.skills import Skill, register
+from apps.infra.llm_app.skills import Skill, register
 
 register(
     Skill(

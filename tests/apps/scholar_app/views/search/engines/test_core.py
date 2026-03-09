@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.search.engines.core import ...
+# from apps.workspace.scholar_app.views.search.engines.core import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,7 +32,7 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/scholar_app/views/search/engines/core.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
@@ -48,20 +49,20 @@ if __name__ == "__main__":
 # from ..citations import get_journal_impact_factor, get_pubmed_citations, validate_citation_count
 # from ..search_helpers import search_database_papers, get_paper_authors
 # from ..storage import store_search_result
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
+#
 # try:
 #     from scitex.scholar.pipelines.ScholarPipelineSearchParallel import ScholarPipelineSearchParallel
 #     SCITEX_SCHOLAR_AVAILABLE = True
 # except ImportError:
 #     SCITEX_SCHOLAR_AVAILABLE = False
-# 
+#
 # def search_papers_online(
 #     query, max_results=200, sources="all", filters=None, user_preferences=None, user=None
 # ):
 #     """Search for papers using multiple online sources with user API keys and impact factor integration.
-# 
+#
 #     Args:
 #         query: Search query string
 #         max_results: Maximum number of results
@@ -72,9 +73,9 @@ if __name__ == "__main__":
 #     """
 #     # Disable caching for fresh results and debugging
 #     logger.info(f"Scholar search: fresh search (no cache) for query: '{query}'")
-# 
+#
 #     results = []
-# 
+#
 #     # Parse sources parameter (can be comma-separated list or single source)
 #     source_list = []
 #     if sources == "all":
@@ -84,11 +85,11 @@ if __name__ == "__main__":
 #         source_list = [s.strip() for s in sources.split(",") if s.strip()]
 #         if not source_list:
 #             source_list = ["arxiv", "pubmed", "semantic"]  # Default fallback
-# 
+#
 #     logger.info(f"📚 EXTERNAL API SEARCH:")
 #     logger.info(f"   Sources to search: {source_list}")
 #     logger.info(f"   Query: '{query}'")
-# 
+#
 #     # Always search SciTeX database for cached results
 #     existing_paper_count = 0
 #     try:
@@ -124,7 +125,7 @@ if __name__ == "__main__":
 #         logger.info(f"SciTeX Index search returned {existing_paper_count} results")
 #     except Exception as e:
 #         logger.warning(f"SciTeX Index search failed: {e}")
-# 
+#
 #     # Use SciTeX-Scholar package for REAL external API searches with user API keys
 #     if SCITEX_SCHOLAR_AVAILABLE and source_list:
 #         external_results = search_with_scitex_scholar(
@@ -137,7 +138,7 @@ if __name__ == "__main__":
 #         )
 #         results.extend(external_results)
 #         logger.info(f"SciTeX-Scholar returned {len(external_results)} real results")
-# 
+#
 #         # Show API key alert if user is missing keys
 #         if user_preferences:
 #             missing_keys = user_preferences.get_missing_api_keys()
@@ -153,7 +154,7 @@ if __name__ == "__main__":
 #             )
 #             # Fallback: Use direct API calls for sources that have implementations
 #             from .semantic import search_semantic_scholar
-# 
+#
 #             for source in source_list:
 #                 if source == "arxiv":
 #                     logger.debug("   arXiv search using database only")
@@ -168,26 +169,26 @@ if __name__ == "__main__":
 #                         logger.warning(f"   ⚠️ Semantic Scholar search failed: {e}")
 #                 elif source == "google_scholar":
 #                     logger.warning("   ⚠️ Google Scholar search disabled (not implemented)")
-# 
+#
 #     # Return fresh results without caching
 #     final_results = results[:max_results]
 #     logger.info(
 #         f"Scholar search completed: {len(final_results)} fresh results from {len(source_list)} sources"
 #     )
-# 
+#
 #     return final_results
-# 
-# 
-# 
-# 
-# 
+#
+#
+#
+#
+#
 # def search_with_scitex_scholar(
 #     query, sources, max_results=30, filters=None, user_preferences=None, user=None
 # ):
 #     """
 #     Use SciTeX-Scholar parallel search pipeline for real external API searches.
 #     Searches all engines in parallel and returns deduplicated, enriched results.
-# 
+#
 #     Args:
 #         query: Search query string
 #         sources: List of sources to search
@@ -198,7 +199,7 @@ if __name__ == "__main__":
 #     """
 #     if not SCITEX_SCHOLAR_AVAILABLE:
 #         return []
-# 
+#
 #     try:
 #         # Extract user email for API rate limit benefits
 #         user_email = None
@@ -207,15 +208,15 @@ if __name__ == "__main__":
 #             logger.info(f"🚀 Using SciTeX-Scholar with user email for rate limits")
 #         else:
 #             logger.info(f"🚀 Using SciTeX-Scholar parallel search pipeline")
-# 
+#
 #         logger.info(f"   Query: '{query}'")
 #         logger.info(f"   Sources requested: {sources}")
-# 
+#
 #         # Create search pipeline with user email for rate limit benefits
 #         pipeline = ScholarPipelineSearchParallel(
 #             max_workers=5, timeout_per_engine=30.0, use_cache=True, email=user_email
 #         )
-# 
+#
 #         # Prepare filters for the pipeline
 #         search_filters = {}
 #         if filters:
@@ -229,11 +230,11 @@ if __name__ == "__main__":
 #                 search_filters["min_impact_factor"] = filters["min_impact_factor"]
 #             if filters.get("open_access"):
 #                 search_filters["open_access"] = filters["open_access"]
-# 
+#
 #         # Run async search in sync context
 #         loop = asyncio.new_event_loop()
 #         asyncio.set_event_loop(loop)
-# 
+#
 #         try:
 #             # Execute parallel search across all engines
 #             search_response = loop.run_until_complete(
@@ -244,14 +245,14 @@ if __name__ == "__main__":
 #                     max_results=max_results,
 #                 )
 #             )
-# 
+#
 #             papers = search_response.get("results", [])
 #             metadata = search_response.get("metadata", {})
-# 
+#
 #             logger.info(f"   SciTeX-Scholar found {len(papers)} unique papers")
 #             logger.info(f"   Engines used: {metadata.get('engines_used', [])}")
 #             logger.info(f"   Search time: {metadata.get('search_time', 0):.2f}s")
-# 
+#
 #             # Convert to Django format with proper author formatting
 #             results = []
 #             for paper in papers:
@@ -260,7 +261,7 @@ if __name__ == "__main__":
 #                 authors_str = (
 #                     ", ".join(authors) if isinstance(authors, list) else str(authors)
 #                 )
-# 
+#
 #                 abstract = paper.get("abstract") or ""
 #                 result = {
 #                     "title": paper.get("title") or "Unknown Title",
@@ -289,23 +290,23 @@ if __name__ == "__main__":
 #                 logger.debug(
 #                     f"   ✓ Converted: {paper.get('title', '')[:50]}... (IF: {paper.get('impact_factor') or 'N/A'})"
 #                 )
-# 
+#
 #             return results
-# 
+#
 #         finally:
 #             loop.close()
-# 
+#
 #     except Exception as e:
 #         logger.error(f"SciTeX-Scholar parallel search failed: {e}")
 #         import traceback
-# 
+#
 #         logger.error(f"Traceback:\n{traceback.format_exc()}")
 #         return []
-# 
-# 
-# 
-# 
-# 
+#
+#
+#
+#
+#
 
 # --------------------------------------------------------------------------------
 # End of Source Code from: apps/scholar_app/views/search/engines/core.py

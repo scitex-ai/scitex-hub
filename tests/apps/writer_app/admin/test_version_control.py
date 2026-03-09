@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.admin.version_control import ...
+# from apps.workspace.writer_app.admin.version_control import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,8 +27,8 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # from django.contrib import admin
 # from ..models import ManuscriptVersion, ManuscriptBranch
-# 
-# 
+#
+#
 # @admin.register(ManuscriptVersion)
 # class ManuscriptVersionAdmin(admin.ModelAdmin):
 #     list_display = [
@@ -39,8 +40,8 @@ if __name__ == "__main__":
 #     ]
 #     search_fields = ["manuscript__title", "version_number"]
 #     list_filter = ["branch_name", "created_at"]
-# 
-# 
+#
+#
 # @admin.register(ManuscriptBranch)
 # class ManuscriptBranchAdmin(admin.ModelAdmin):
 #     list_display = ["name", "manuscript", "created_by", "is_active", "created_at"]

@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.views.repository.api.commits import ...
+# from apps.infra.project_app.views.repository.api.commits import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,16 +32,16 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # """
 # Commit operations API endpoints
-# 
+#
 # This module is a placeholder for future commit-related API endpoints.
 # """
-# 
+#
 # from __future__ import annotations
 # import logging
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # # ============================================================================
 # # Commit Operations APIs
 # # ============================================================================
@@ -50,8 +51,8 @@ if __name__ == "__main__":
 # # - api_commit_diff
 # # - api_commit_revert
 # # ============================================================================
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.services.writer.templates import ...
+# from apps.workspace.writer_app.services.writer.templates import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,31 +27,31 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # Template handling for Writer sections.
-# 
+#
 # Provides access to original template content for sections.
 # """
-# 
+#
 # from typing import Optional
 # from scitex import logging
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # class TemplatesMixin:
 #     """Mixin for template operations."""
-# 
+#
 #     def get_template_content(
 #         self, section_name: str, doc_type: str = "manuscript"
 #     ) -> Optional[str]:
 #         """Get original template content for a section.
-# 
+#
 #         This retrieves the clean template content from scitex.writer.Writer,
 #         which can be used to reset a section to its original state.
-# 
+#
 #         Args:
 #             section_name: Section name (e.g., 'introduction', 'abstract', 'title', 'authors')
 #             doc_type: 'shared', 'manuscript', 'supplementary', or 'revision'
-# 
+#
 #         Returns:
 #             Template content string, or None if template not found
 #         """
@@ -70,11 +71,11 @@ if __name__ == "__main__":
 #                 section = getattr(doc.contents, section_name, None)
 #             else:
 #                 raise ValueError(f"Unknown document type: {doc_type}")
-# 
+#
 #             if section is None:
 #                 logger.warning(f"Section '{section_name}' not found in {doc_type}")
 #                 return None
-# 
+#
 #             # Get template content from the section's template
 #             # The Writer class should have a method or property to access template content
 #             if hasattr(section, "template"):
@@ -85,7 +86,7 @@ if __name__ == "__main__":
 #                 # Fallback: return empty string with comment
 #                 logger.warning(f"No template method found for section '{section_name}'")
 #                 return f"% Template for {section_name}\n\n"
-# 
+#
 #         except Exception as e:
 #             logger.error(
 #                 f"Error getting template content for {section_name}: {e}", exc_info=True

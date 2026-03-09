@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.services.repository.files import ...
+# from apps.workspace.writer_app.services.repository.files import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,28 +28,28 @@ if __name__ == "__main__":
 # """
 # File operations for manuscript repository integration.
 # """
-# 
+#
 # import json
 # import logging
 # from typing import List
-# 
+#
 # from django.core.files.base import ContentFile
-# 
-# from apps.scholar_app.models import DatasetFile
+#
+# from apps.workspace.scholar_app.models import DatasetFile
 # from .metadata import generate_replication_readme
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # def add_manuscript_files_to_dataset(dataset, manuscript):
 #     """Add manuscript files to the dataset"""
-# 
+#
 #     # Add compiled PDF if available
 #     if manuscript.compiled_pdf:
 #         try:
 #             with manuscript.compiled_pdf.open("rb") as f:
 #                 pdf_content = f.read()
-# 
+#
 #             pdf_file = DatasetFile.objects.create(
 #                 dataset=dataset,
 #                 filename=f"{manuscript.slug}.pdf",
@@ -59,10 +60,10 @@ if __name__ == "__main__":
 #                 description="Compiled manuscript PDF",
 #                 local_file=ContentFile(pdf_content, name=f"{manuscript.slug}.pdf"),
 #             )
-# 
+#
 #         except Exception as e:
 #             logger.error(f"Failed to add manuscript PDF to dataset: {e}")
-# 
+#
 #     # Add LaTeX source if using modular structure
 #     if manuscript.is_modular:
 #         _add_modular_manuscript_files(dataset, manuscript)
@@ -80,17 +81,17 @@ if __name__ == "__main__":
 #                 description="Manuscript LaTeX source",
 #                 local_file=ContentFile(latex_content, name=f"{manuscript.slug}.tex"),
 #             )
-# 
+#
 #     # Add manuscript metadata
 #     add_manuscript_metadata_to_dataset(dataset, manuscript)
-# 
+#
 #     # Update dataset stats
 #     update_dataset_stats(dataset)
-# 
-# 
+#
+#
 # def _add_modular_manuscript_files(dataset, manuscript):
 #     """Add modular manuscript files to dataset"""
-# 
+#
 #     manuscript_info = {
 #         "title": manuscript.title,
 #         "abstract": manuscript.abstract,
@@ -109,7 +110,7 @@ if __name__ == "__main__":
 #         "created_at": manuscript.created_at.isoformat(),
 #         "updated_at": manuscript.updated_at.isoformat(),
 #     }
-# 
+#
 #     info_content = json.dumps(manuscript_info, indent=2).encode("utf-8")
 #     info_file = DatasetFile.objects.create(
 #         dataset=dataset,
@@ -121,22 +122,22 @@ if __name__ == "__main__":
 #         description="Manuscript structure and metadata",
 #         local_file=ContentFile(info_content, name="manuscript_info.json"),
 #     )
-# 
-# 
+#
+#
 # def add_replication_materials_to_dataset(
 #     dataset, manuscript, code_outputs: List = None, analysis_data: List = None
 # ):
 #     """Add replication materials to dataset"""
-# 
+#
 #     # Add linked code execution outputs
 #     if manuscript.project:
-#         from apps.console_app.models import CodeExecutionJob
-# 
+#         from apps.workspace.console_app.models import CodeExecutionJob
+#
 #         # Get code jobs from the project
 #         code_jobs = CodeExecutionJob.objects.filter(
 #             user=manuscript.owner, status="completed"
 #         )
-# 
+#
 #         for job in code_jobs[:5]:  # Limit to recent jobs
 #             # Add job metadata
 #             job_info = {
@@ -152,7 +153,7 @@ if __name__ == "__main__":
 #                 "output_files": job.output_files,
 #                 "plot_files": job.plot_files,
 #             }
-# 
+#
 #             job_content = json.dumps(job_info, indent=2).encode("utf-8")
 #             job_file = DatasetFile.objects.create(
 #                 dataset=dataset,
@@ -164,10 +165,10 @@ if __name__ == "__main__":
 #                 description=f"Code execution job metadata for {job.job_id}",
 #                 local_file=ContentFile(job_content, name=f"code_job_{job.job_id}.json"),
 #             )
-# 
+#
 #     # Add manuscript metadata for replication
 #     add_manuscript_metadata_to_dataset(dataset, manuscript)
-# 
+#
 #     # Create replication README
 #     readme_content = generate_replication_readme(manuscript)
 #     readme_file_content = readme_content.encode("utf-8")
@@ -181,20 +182,20 @@ if __name__ == "__main__":
 #         description="Replication instructions and documentation",
 #         local_file=ContentFile(readme_file_content, name="README.md"),
 #     )
-# 
+#
 #     # Update dataset stats
 #     update_dataset_stats(dataset)
-# 
-# 
+#
+#
 # def add_arxiv_files_to_dataset(dataset, arxiv_submission):
 #     """Add arXiv submission files to dataset"""
-# 
+#
 #     # Add LaTeX source if available
 #     if arxiv_submission.latex_source:
 #         try:
 #             with arxiv_submission.latex_source.open("rb") as f:
 #                 latex_content = f.read()
-# 
+#
 #             latex_file = DatasetFile.objects.create(
 #                 dataset=dataset,
 #                 filename=f"arxiv_source_{arxiv_submission.submission_id}.zip",
@@ -208,16 +209,16 @@ if __name__ == "__main__":
 #                     name=f"arxiv_source_{arxiv_submission.submission_id}.zip",
 #                 ),
 #             )
-# 
+#
 #         except Exception as e:
 #             logger.error(f"Failed to add arXiv LaTeX source to dataset: {e}")
-# 
+#
 #     # Add PDF if available
 #     if arxiv_submission.pdf_file:
 #         try:
 #             with arxiv_submission.pdf_file.open("rb") as f:
 #                 pdf_content = f.read()
-# 
+#
 #             pdf_file = DatasetFile.objects.create(
 #                 dataset=dataset,
 #                 filename=f"arxiv_manuscript_{arxiv_submission.submission_id}.pdf",
@@ -231,10 +232,10 @@ if __name__ == "__main__":
 #                     name=f"arxiv_manuscript_{arxiv_submission.submission_id}.pdf",
 #                 ),
 #             )
-# 
+#
 #         except Exception as e:
 #             logger.error(f"Failed to add arXiv PDF to dataset: {e}")
-# 
+#
 #     # Add arXiv metadata
 #     arxiv_metadata = {
 #         "submission_id": str(arxiv_submission.submission_id),
@@ -259,7 +260,7 @@ if __name__ == "__main__":
 #         if arxiv_submission.published_at
 #         else None,
 #     }
-# 
+#
 #     metadata_content = json.dumps(arxiv_metadata, indent=2).encode("utf-8")
 #     metadata_file = DatasetFile.objects.create(
 #         dataset=dataset,
@@ -271,14 +272,14 @@ if __name__ == "__main__":
 #         description="arXiv submission metadata",
 #         local_file=ContentFile(metadata_content, name="arxiv_metadata.json"),
 #     )
-# 
+#
 #     # Update dataset stats
 #     update_dataset_stats(dataset)
-# 
-# 
+#
+#
 # def add_manuscript_metadata_to_dataset(dataset, manuscript):
 #     """Add manuscript metadata to dataset"""
-# 
+#
 #     metadata = {
 #         "manuscript_id": str(manuscript.id),
 #         "title": manuscript.title,
@@ -311,7 +312,7 @@ if __name__ == "__main__":
 #         if manuscript.last_compiled
 #         else None,
 #     }
-# 
+#
 #     metadata_content = json.dumps(metadata, indent=2).encode("utf-8")
 #     metadata_file = DatasetFile.objects.create(
 #         dataset=dataset,
@@ -323,19 +324,19 @@ if __name__ == "__main__":
 #         description="Manuscript metadata and information",
 #         local_file=ContentFile(metadata_content, name="manuscript_metadata.json"),
 #     )
-# 
-# 
+#
+#
 # def update_dataset_stats(dataset):
 #     """Update dataset file count and total size"""
-# 
+#
 #     files = dataset.files.all()
 #     dataset.file_count = files.count()
 #     dataset.total_size_bytes = sum(f.size_bytes for f in files)
-# 
+#
 #     # Update file formats list
 #     formats = list(set(f.file_format for f in files if f.file_format))
 #     dataset.file_formats = formats
-# 
+#
 #     dataset.save()
 
 # --------------------------------------------------------------------------------

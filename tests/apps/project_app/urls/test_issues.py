@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.urls.issues import ...
+# from apps.infra.project_app.urls.issues import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,7 +27,7 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # Issues Feature URLs
-# 
+#
 # Handles all issue tracking related URLs.
 # GitHub-style patterns:
 # - /<username>/<slug>/issues/ - List all issues
@@ -36,7 +37,7 @@ if __name__ == "__main__":
 # - /<username>/<slug>/issues/labels/ - Manage labels
 # - /<username>/<slug>/issues/milestones/ - Manage milestones
 # """
-# 
+#
 # from django.urls import path
 # from ..views.issues import (
 #     issues_list,
@@ -54,9 +55,9 @@ if __name__ == "__main__":
 #     api_issue_label,
 #     api_issue_milestone,
 # )
-# 
+#
 # # No app_name here - namespace is provided by parent (user_projects)
-# 
+#
 # urlpatterns = [
 #     # Issue list
 #     path("", issues_list, name="list"),

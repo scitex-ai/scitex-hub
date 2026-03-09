@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.services.jupyter.exceptions import ...
+# from apps.workspace.console_app.services.jupyter.exceptions import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,11 +29,11 @@ if __name__ == "__main__":
 # """
 # Custom exceptions for Jupyter notebook integration.
 # """
-# 
-# 
+#
+#
 # class NotebookExecutionError(Exception):
 #     """Raised when notebook execution fails."""
-# 
+#
 #     pass
 
 # --------------------------------------------------------------------------------

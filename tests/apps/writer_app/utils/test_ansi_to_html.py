@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.utils.ansi_to_html import ...
+# from apps.workspace.writer_app.utils.ansi_to_html import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,14 +29,14 @@ if __name__ == "__main__":
 # # -*- coding: utf-8 -*-
 # """
 # ANSI Color Code to HTML Converter
-# 
+#
 # Converts ANSI escape sequences to HTML spans with semantic classes
 # for proper color rendering in web terminals.
 # """
-# 
+#
 # import re
-# 
-# 
+#
+#
 # # ANSI color code to CSS class mapping
 # ANSI_TO_CLASS = {
 #     # Regular colors
@@ -57,35 +58,35 @@ if __name__ == "__main__":
 #     "96": "ansi-bright-cyan",
 #     "97": "ansi-bright-white",
 # }
-# 
-# 
+#
+#
 # def ansi_to_html(text: str) -> str:
 #     """
 #     Convert ANSI escape sequences to HTML spans.
-# 
+#
 #     Args:
 #         text: Text with ANSI codes (e.g., "\\x1b[0;32mSuccess\\x1b[0m")
-# 
+#
 #     Returns:
 #         HTML with semantic classes (e.g., "<span class='ansi-green'>Success</span>")
-# 
+#
 #     Examples:
 #         >>> ansi_to_html("\\x1b[0;32mSuccess\\x1b[0m")
 #         "<span class='ansi-green'>Success</span>"
-# 
+#
 #         >>> ansi_to_html("\\x1b[31mError\\x1b[0m")
 #         "<span class='ansi-red'>Error</span>"
 #     """
 #     if not text:
 #         return text
-# 
+#
 #     # Pattern to match ANSI codes: \x1b[...m or \033[...m
 #     ansi_pattern = re.compile(r"\x1b\[([0-9;]+)m")
-# 
+#
 #     result = []
 #     last_end = 0
 #     current_classes = []
-# 
+#
 #     for match in ansi_pattern.finditer(text):
 #         # Add text before this code
 #         if match.start() > last_end:
@@ -96,10 +97,10 @@ if __name__ == "__main__":
 #                 )
 #             else:
 #                 result.append(escape_html(text_segment))
-# 
+#
 #         # Parse the ANSI code
 #         codes = match.group(1).split(";")
-# 
+#
 #         # Handle reset
 #         if "0" in codes or codes == [""]:
 #             # Close any open spans and reset
@@ -111,9 +112,9 @@ if __name__ == "__main__":
 #                     css_class = ANSI_TO_CLASS[code]
 #                     if css_class not in current_classes:
 #                         current_classes.append(css_class)
-# 
+#
 #         last_end = match.end()
-# 
+#
 #     # Add remaining text
 #     if last_end < len(text):
 #         text_segment = text[last_end:]
@@ -123,10 +124,10 @@ if __name__ == "__main__":
 #             )
 #         else:
 #             result.append(escape_html(text_segment))
-# 
+#
 #     return "".join(result)
-# 
-# 
+#
+#
 # def escape_html(text: str) -> str:
 #     """Escape HTML special characters."""
 #     return (
@@ -136,22 +137,22 @@ if __name__ == "__main__":
 #         .replace('"', "&quot;")
 #         .replace("'", "&#39;")
 #     )
-# 
-# 
+#
+#
 # def strip_ansi(text: str) -> str:
 #     """
 #     Strip ANSI escape codes from text (alternative to conversion).
-# 
+#
 #     Args:
 #         text: Text with ANSI codes
-# 
+#
 #     Returns:
 #         Plain text without ANSI codes
 #     """
 #     ansi_escape = re.compile(r"\x1b\[([0-9;]+)m")
 #     return ansi_escape.sub("", text)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

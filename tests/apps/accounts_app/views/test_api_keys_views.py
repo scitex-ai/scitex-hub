@@ -8,7 +8,7 @@ import pytest
 from django.contrib.auth.models import User
 from django.test import Client
 
-from apps.accounts_app.models import APIKey
+from apps.infra.accounts_app.models import APIKey
 
 
 @pytest.mark.django_db

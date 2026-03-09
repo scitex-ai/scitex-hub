@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.services.visualization.base_generator import ...
+# from apps.workspace.console_app.services.visualization.base_generator import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -29,13 +30,13 @@ if __name__ == "__main__":
 # Data Visualization Pipeline for SciTeX-Code
 # Integrates with Viz Module for publication-ready figure generation.
 # """
-# 
+#
 # import json
 # import uuid
 # from pathlib import Path
 # from typing import Dict, List, Tuple, Any
 # import logging
-# 
+#
 # import matplotlib.pyplot as plt
 # import seaborn as sns
 # import pandas as pd
@@ -43,22 +44,22 @@ if __name__ == "__main__":
 # from django.conf import settings
 # from django.utils import timezone
 # from django.contrib.auth.models import User
-# 
-# 
+#
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # class VisualizationGenerator:
 #     """Generates publication-ready visualizations from data."""
-# 
+#
 #     def __init__(self, user: User):
 #         self.user = user
 #         self.output_dir = Path(settings.MEDIA_ROOT) / "visualizations" / str(user.id)
 #         self.output_dir.mkdir(parents=True, exist_ok=True)
-# 
+#
 #         # Set publication-ready defaults
 #         self._setup_matplotlib_style()
-# 
+#
 #     def _setup_matplotlib_style(self):
 #         """Configure matplotlib for publication-ready plots."""
 #         plt.rcParams.update(
@@ -85,7 +86,7 @@ if __name__ == "__main__":
 #                 "lines.markersize": 8,
 #             }
 #         )
-# 
+#
 #         # Set color palette
 #         colors = [
 #             "#1f77b4",
@@ -100,13 +101,13 @@ if __name__ == "__main__":
 #             "#17becf",
 #         ]
 #         plt.rcParams["axes.prop_cycle"] = plt.cycler(color=colors)
-# 
+#
 #     def generate_plot(
 #         self, plot_type: str, data: Dict[str, Any], options: Dict[str, Any] = None
 #     ) -> Tuple[bool, Dict[str, Any]]:
 #         """Generate a plot based on type and data."""
 #         options = options or {}
-# 
+#
 #         try:
 #             if plot_type == "line":
 #                 return self._generate_line_plot(data, options)
@@ -126,11 +127,11 @@ if __name__ == "__main__":
 #                 return self._generate_pair_plot(data, options)
 #             else:
 #                 return False, {"error": f"Unsupported plot type: {plot_type}"}
-# 
+#
 #         except Exception as e:
 #             logger.error(f"Error generating {plot_type} plot: {e}")
 #             return False, {"error": str(e)}
-# 
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

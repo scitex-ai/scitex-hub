@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.job_api_views import ...
+# from apps.workspace.console_app.job_api_views import ...
 
 
 class TestPlaceholder:

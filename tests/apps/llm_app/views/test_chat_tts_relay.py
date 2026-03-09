@@ -111,7 +111,7 @@ class TestTtsRelayChannelSend(TestCase):
         mock_layer.group_send = AsyncMock(return_value=None)
 
         with patch(
-            "apps.llm_app.views.chat.get_channel_layer", return_value=mock_layer
+            "apps.infra.llm_app.views.chat.get_channel_layer", return_value=mock_layer
         ):
             response = self._post_text("hello from container")
 
@@ -127,7 +127,7 @@ class TestTtsRelayChannelSend(TestCase):
         mock_layer.group_send = AsyncMock(return_value=None)
 
         with patch(
-            "apps.llm_app.views.chat.get_channel_layer", return_value=mock_layer
+            "apps.infra.llm_app.views.chat.get_channel_layer", return_value=mock_layer
         ):
             response = self._post_text("speak this")
 
@@ -143,7 +143,7 @@ class TestTtsRelayChannelSend(TestCase):
         mock_layer.group_send = AsyncMock(return_value=None)
 
         with patch(
-            "apps.llm_app.views.chat.get_channel_layer", return_value=mock_layer
+            "apps.infra.llm_app.views.chat.get_channel_layer", return_value=mock_layer
         ):
             response = self._post_text(expected_text)
 
@@ -166,7 +166,7 @@ class TestTtsRelaySuccessResponse(TestCase):
         mock_layer.group_send = AsyncMock(return_value=None)
 
         with patch(
-            "apps.llm_app.views.chat.get_channel_layer", return_value=mock_layer
+            "apps.infra.llm_app.views.chat.get_channel_layer", return_value=mock_layer
         ):
             response = self.client.post(
                 _RELAY_URL,
@@ -184,7 +184,7 @@ class TestTtsRelaySuccessResponse(TestCase):
         mock_layer.group_send = AsyncMock(return_value=None)
 
         with patch(
-            "apps.llm_app.views.chat.get_channel_layer", return_value=mock_layer
+            "apps.infra.llm_app.views.chat.get_channel_layer", return_value=mock_layer
         ):
             response = self.client.post(
                 _RELAY_URL,
@@ -204,7 +204,7 @@ class TestTtsRelaySuccessResponse(TestCase):
         mock_layer.group_send = AsyncMock(return_value=None)
 
         with patch(
-            "apps.llm_app.views.chat.get_channel_layer", return_value=mock_layer
+            "apps.infra.llm_app.views.chat.get_channel_layer", return_value=mock_layer
         ):
             response = self.client.post(
                 _RELAY_URL,

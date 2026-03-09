@@ -165,7 +165,7 @@ def build_{name}_context(request, current_project=None):
 
 def index_view(request):
     \"\"\"Full page view.\"\"\"
-    from apps.project_app.services.project_utils import get_current_project
+    from apps.infra.project_app.services.project_utils import get_current_project
     project = get_current_project(request)
     context = build_{name}_context(request, project)
     return render(request, "{name}/index.html", context)
@@ -178,7 +178,7 @@ def index_view(request):
 Register a Skill so AI assistants understand your module's capabilities:
 
 ```python
-from apps.llm_app.skills import Skill, register
+from apps.infra.llm_app.skills import Skill, register
 
 register(
     Skill(
@@ -246,7 +246,7 @@ Apps can use pre-built UI components (all auto-loaded):
 
 ```python
 from django.test import TestCase
-from apps.workspace_app.test_mixin import ModuleTestMixin
+from apps.infra.workspace_app.test_mixin import ModuleTestMixin
 
 class MyModuleTest(ModuleTestMixin, TestCase):
     module_name = "{module_name}"

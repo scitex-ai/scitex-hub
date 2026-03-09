@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.urls.api import ...
+# from apps.workspace.writer_app.urls.api import ...
 
 
 class TestPlaceholder:

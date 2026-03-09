@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.public_app.views.status.chart_renderer import ...
+# from apps.infra.public_app.views.status.chart_renderer import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,16 +29,16 @@ if __name__ == "__main__":
 # # -*- coding: utf-8 -*-
 # # Timestamp: "2025-12-02 03:35:00 (ywatanabe)"
 # # File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/views/status/chart_renderer.py
-# 
+#
 # """
 # Chart renderer following demo_matplotlib_basic.py pattern STRICTLY.
 # Uses @stx.session with SCITEX_STYLE.
 # """
-# 
+#
 # import scitex as stx
 # from scitex.plt.styles.presets import SCITEX_STYLE
-# 
-# 
+#
+#
 # @stx.session
 # def render_chart(
 #     timestamps,
@@ -53,9 +54,9 @@ if __name__ == "__main__":
 #     STYLE = SCITEX_STYLE.copy()
 #     STYLE['axes_width_mm'] = width_mm
 #     STYLE['axes_height_mm'] = height_mm
-# 
+#
 #     fig, ax = stx.plt.subplots(**STYLE)
-# 
+#
 #     # Plot
 #     if isinstance(data, dict):
 #         colors = config.get('colors', ['#4BC0C0', '#FF9F40'])
@@ -71,25 +72,25 @@ if __name__ == "__main__":
 #         ax.plot(timestamps[:len(y)], y, color=color, linewidth=1)
 #         if config.get('fill', False):
 #             ax.fill_between(timestamps[:len(y)], y, alpha=0.2, color=color)
-# 
+#
 #     # Y limits
 #     if 'y_max' in config:
 #         ax.set_ylim(0, config['y_max'])
 #     else:
 #         ax.set_ylim(bottom=0)
-# 
+#
 #     # Format x-axis
 #     import matplotlib.dates as mdates
 #     ax_mpl = ax._axis_mpl if hasattr(ax, '_axis_mpl') else ax
 #     ax_mpl.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
 #     ax_mpl.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=3, maxticks=5))
-# 
+#
 #     stx.io.save(fig, output_path)
 #     fig.close()
-# 
+#
 #     return 0
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

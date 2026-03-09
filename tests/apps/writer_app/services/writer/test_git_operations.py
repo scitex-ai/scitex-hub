@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.services.writer.git_operations import ...
+# from apps.workspace.writer_app.services.writer.git_operations import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,28 +27,28 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # Git version control operations for Writer sections.
-# 
+#
 # Handles history, diff, checkout, and commit operations.
 # """
-# 
+#
 # from scitex import logging
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # class GitOperationsMixin:
 #     """Mixin for git version control operations."""
-# 
+#
 #     def commit_section(
 #         self, section_name: str, message: str, doc_type: str = "manuscript"
 #     ) -> bool:
 #         """Commit changes to a section.
-# 
+#
 #         Args:
 #             section_name: Section name
 #             message: Commit message
 #             doc_type: 'shared', 'manuscript', 'supplementary', or 'revision'
-# 
+#
 #         Returns:
 #             True if successful
 #         """
@@ -87,32 +88,32 @@ if __name__ == "__main__":
 #                 section = getattr(doc.contents, section_name)
 #             else:
 #                 raise ValueError(f"Unknown document type: {doc_type}")
-# 
+#
 #             logger.info(f"Committing section {section_name} with message: {message}")
-# 
+#
 #             # Check if section has commit method
 #             if not hasattr(section, "commit"):
 #                 logger.error(f"Section {section_name} does not have commit method")
 #                 raise AttributeError(
 #                     f"Section {section_name} does not support git commits"
 #                 )
-# 
+#
 #             result = section.commit(message)
 #             logger.info(f"Commit result for {section_name}: {result}")
 #             return result
 #         except Exception as e:
 #             logger.error(f"Error committing section {section_name}: {e}", exc_info=True)
 #             raise
-# 
+#
 #     def get_section_history(
 #         self, section_name: str, doc_type: str = "manuscript"
 #     ) -> list:
 #         """Get git history for a section.
-# 
+#
 #         Args:
 #             section_name: Section name
 #             doc_type: 'shared', 'manuscript', 'supplementary', or 'revision'
-# 
+#
 #         Returns:
 #             List of commit messages
 #         """
@@ -152,22 +153,22 @@ if __name__ == "__main__":
 #                 section = getattr(doc.contents, section_name)
 #             else:
 #                 raise ValueError(f"Unknown document type: {doc_type}")
-# 
+#
 #             return section.history()
 #         except Exception as e:
 #             logger.error(f"Error getting history for {section_name}: {e}")
 #             return []
-# 
+#
 #     def get_section_diff(
 #         self, section_name: str, ref: str = "HEAD", doc_type: str = "manuscript"
 #     ) -> str:
 #         """Get uncommitted changes for a section.
-# 
+#
 #         Args:
 #             section_name: Section name
 #             ref: Git reference (default: HEAD)
 #             doc_type: 'shared', 'manuscript', 'supplementary', or 'revision'
-# 
+#
 #         Returns:
 #             Diff string (empty if no changes)
 #         """
@@ -207,22 +208,22 @@ if __name__ == "__main__":
 #                 section = getattr(doc.contents, section_name)
 #             else:
 #                 raise ValueError(f"Unknown document type: {doc_type}")
-# 
+#
 #             return section.diff(ref=ref)
 #         except Exception as e:
 #             logger.error(f"Error getting diff for {section_name}: {e}")
 #             return ""
-# 
+#
 #     def checkout_section(
 #         self, section_name: str, ref: str = "HEAD", doc_type: str = "manuscript"
 #     ) -> bool:
 #         """Restore a section from git history.
-# 
+#
 #         Args:
 #             section_name: Section name
 #             ref: Git reference (commit hash, branch, tag, etc.)
 #             doc_type: 'shared', 'manuscript', 'supplementary', or 'revision'
-# 
+#
 #         Returns:
 #             True if successful
 #         """
@@ -262,7 +263,7 @@ if __name__ == "__main__":
 #                 section = getattr(doc.contents, section_name)
 #             else:
 #                 raise ValueError(f"Unknown document type: {doc_type}")
-# 
+#
 #             return section.checkout(ref)
 #         except Exception as e:
 #             logger.error(f"Error checking out {section_name}: {e}")

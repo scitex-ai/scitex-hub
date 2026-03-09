@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.views.api.detail import ...
+# from apps.workspace.console_app.views.api.detail import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,11 +29,11 @@ if __name__ == "__main__":
 # """
 # API views for SciTeX-Code Jupyter notebook integration.
 # """
-# 
+#
 # import json
 # import logging
 # import threading
-# 
+#
 # from django.contrib.auth.decorators import login_required
 # from django.http import JsonResponse
 # from django.utils.decorators import method_decorator
@@ -42,7 +43,7 @@ if __name__ == "__main__":
 # from rest_framework.permissions import IsAuthenticated
 # from rest_framework.response import Response
 # from rest_framework import status
-# 
+#
 # from ...models import Notebook, CodeExecutionJob
 # from ...services.jupyter import (
 #     NotebookManager,
@@ -51,32 +52,32 @@ if __name__ == "__main__":
 #     NotebookTemplates,
 #     NotebookValidator,
 # )
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # @method_decorator(login_required, name="dispatch")
 # class NotebookAPIView(View):
 #     """Base API view for notebook operations."""
-# 
+#
 #     def get_notebook_manager(self):
 #         return NotebookManager(self.request.user)
-# 
-# 
+#
+#
 # class NotebookDetailAPI(NotebookAPIView):
 #     """API for individual notebook operations."""
-# 
+#
 #     def get(self, request, notebook_id):
 #         """Get notebook details and content."""
 #         try:
 #             manager = self.get_notebook_manager()
 #             notebook = manager.load_notebook(notebook_id)
-# 
+#
 #             if not notebook:
 #                 return JsonResponse(
 #                     {"status": "error", "message": "Notebook not found"}, status=404
 #                 )
-# 
+#
 #             return JsonResponse(
 #                 {
 #                     "status": "success",
@@ -99,11 +100,11 @@ if __name__ == "__main__":
 #                     },
 #                 }
 #             )
-# 
+#
 #         except Exception as e:
 #             logger.error(f"Error getting notebook {notebook_id}: {e}")
 #             return JsonResponse({"status": "error", "message": str(e)}, status=500)
-# 
+#
 #     def put(self, request, notebook_id):
 #         """Update notebook content."""
 #         try:
@@ -111,15 +112,15 @@ if __name__ == "__main__":
 #             content = data.get("content")
 #             title = data.get("title")
 #             description = data.get("description")
-# 
+#
 #             manager = self.get_notebook_manager()
 #             notebook = manager.load_notebook(notebook_id)
-# 
+#
 #             if not notebook:
 #                 return JsonResponse(
 #                     {"status": "error", "message": "Notebook not found"}, status=404
 #                 )
-# 
+#
 #             # Update metadata if provided
 #             updated = False
 #             if title and title != notebook.title:
@@ -138,11 +139,11 @@ if __name__ == "__main__":
 #                     )
 #                 notebook.title = title
 #                 updated = True
-# 
+#
 #             if description is not None and description != notebook.description:
 #                 notebook.description = description
 #                 updated = True
-# 
+#
 #             # Update content if provided
 #             if content:
 #                 # Validate notebook content
@@ -156,7 +157,7 @@ if __name__ == "__main__":
 #                         },
 #                         status=400,
 #                     )
-# 
+#
 #                 success = manager.save_notebook(notebook_id, content)
 #                 if not success:
 #                     return JsonResponse(
@@ -167,14 +168,14 @@ if __name__ == "__main__":
 #                         status=500,
 #                     )
 #                 updated = True
-# 
+#
 #             if updated:
 #                 notebook.save()
-# 
+#
 #             return JsonResponse(
 #                 {"status": "success", "message": "Notebook updated successfully"}
 #             )
-# 
+#
 #         except json.JSONDecodeError:
 #             return JsonResponse(
 #                 {"status": "error", "message": "Invalid JSON"}, status=400
@@ -182,44 +183,44 @@ if __name__ == "__main__":
 #         except Exception as e:
 #             logger.error(f"Error updating notebook {notebook_id}: {e}")
 #             return JsonResponse({"status": "error", "message": str(e)}, status=500)
-# 
+#
 #     def delete(self, request, notebook_id):
 #         """Delete a notebook."""
 #         try:
 #             manager = self.get_notebook_manager()
 #             notebook = manager.load_notebook(notebook_id)
-# 
+#
 #             if not notebook:
 #                 return JsonResponse(
 #                     {"status": "error", "message": "Notebook not found"}, status=404
 #                 )
-# 
+#
 #             # Delete file if exists
 #             if notebook.file_path and notebook.file_path.startswith(
 #                 str(manager.base_path)
 #             ):
 #                 try:
 #                     import os
-# 
+#
 #                     if os.path.exists(notebook.file_path):
 #                         os.remove(notebook.file_path)
 #                 except Exception as e:
 #                     logger.warning(
 #                         f"Could not delete notebook file {notebook.file_path}: {e}"
 #                     )
-# 
+#
 #             # Delete from database
 #             notebook.delete()
-# 
+#
 #             return JsonResponse(
 #                 {"status": "success", "message": "Notebook deleted successfully"}
 #             )
-# 
+#
 #         except Exception as e:
 #             logger.error(f"Error deleting notebook {notebook_id}: {e}")
 #             return JsonResponse({"status": "error", "message": str(e)}, status=500)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

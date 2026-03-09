@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.vis_app.services.plot_renderer.plot_types import ...
+# from apps.workspace.vis_app.services.plot_renderer.plot_types import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -30,7 +31,7 @@ if __name__ == "__main__":
 # Plot Type Dispatcher
 # Imports all plot renderers and provides a unified dispatcher.
 # """
-# 
+#
 # from .plot_types_basic import (
 #     render_line_plot,
 #     render_scatter_plot,
@@ -45,8 +46,8 @@ if __name__ == "__main__":
 #     render_violin_plot,
 #     render_raster_plot,
 # )
-# 
-# 
+#
+#
 # # Plot type dispatcher
 # PLOT_RENDERERS = {
 #     'line': render_line_plot,
@@ -60,34 +61,34 @@ if __name__ == "__main__":
 #     'violin': render_violin_plot,
 #     'raster': render_raster_plot,
 # }
-# 
-# 
+#
+#
 # def render_plot_by_type(ax, df, plot_spec, style_spec):
 #     """
 #     Render a plot based on its type.
-# 
+#
 #     Args:
 #         ax: Matplotlib axis
 #         df: DataFrame with data
 #         plot_spec: Plot specification
 #         style_spec: Style specification
-# 
+#
 #     Returns:
 #         ax: Modified axis
 #     """
 #     plot_kind = plot_spec.get('kind', 'line')
-# 
+#
 #     if plot_kind not in PLOT_RENDERERS:
 #         supported_types = ', '.join(PLOT_RENDERERS.keys())
 #         raise ValueError(
 #             f"Unsupported plot kind: {plot_kind}. "
 #             f"Supported types: {supported_types}"
 #         )
-# 
+#
 #     renderer = PLOT_RENDERERS[plot_kind]
 #     return renderer(ax, df, plot_spec, style_spec)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

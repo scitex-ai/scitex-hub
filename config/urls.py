@@ -17,10 +17,14 @@ from django.urls import include, path, re_path
 from django.views.generic import RedirectView
 from django.views.static import serve
 
-from apps.hub_app.views.dispatch import root_dispatch
-from apps.hub_app.views.index import current_project_view
-from apps.project_app.views import accept_invitation, decline_invitation, project_create
-from apps.public_app.views import healthz
+from apps.workspace.hub_app.views.dispatch import root_dispatch
+from apps.workspace.hub_app.views.index import current_project_view
+from apps.infra.project_app.views import (
+    accept_invitation,
+    decline_invitation,
+    project_create,
+)
+from apps.infra.public_app.views import healthz
 from config.urls_helpers import RESERVED_PATHS, dev_module_view  # noqa: F401
 
 urlpatterns = [
@@ -28,45 +32,54 @@ urlpatterns = [
     path("healthz/", healthz, name="healthz"),
     # --- Root ---
     path("", root_dispatch, name="root"),
-    path("", include("apps.public_app.urls")),
-    path("", include(("apps.tools_app.urls", "tools_app"))),
+    path("", include("apps.infra.public_app.urls")),
+    path("", include(("apps.workspace.tools_app.urls", "tools_app"))),
     # --- Admin ---
     path("admin/", admin.site.urls),
     # --- Auth ---
-    path("accounts/", include(("apps.accounts_app.urls", "accounts_app"))),
-    path("auth/", include(("apps.auth_app.urls", "auth_app"))),
+    path("accounts/", include(("apps.infra.accounts_app.urls", "accounts_app"))),
+    path("auth/", include(("apps.infra.auth_app.urls", "auth_app"))),
     path("auth/social/", include("allauth.urls")),
     # --- Hub ---
-    path("hub/api/", include("apps.hub_app.urls.api")),
-    path("hub/", include("apps.hub_app.urls.index")),
+    path("hub/api/", include("apps.workspace.hub_app.urls.api")),
+    path("hub/", include("apps.workspace.hub_app.urls.index")),
     # --- Discovery ---
-    path("discovery/", include(("apps.discovery_app.urls", "discovery_app"))),
+    path("discovery/", include(("apps.workspace.discovery_app.urls", "discovery_app"))),
     # --- App modules (/apps/) ---
-    path("apps/scholar/", include(("apps.scholar_app.urls", "scholar_app"))),
-    path("apps/console/", include(("apps.console_app.urls", "console_app"))),
-    path("apps/vis-react/", include(("apps.vis_app.urls.vis_react", "vis_react"))),
-    path("apps/vis/", include(("apps.vis_app.urls", "vis_app"))),
-    path("apps/writer/", include(("apps.writer_app.urls", "writer_app"))),
-    path("apps/workspace/", include(("apps.workspace_app.urls", "workspace_app"))),
-    path("apps/appmaker/", include(("apps.appmaker_app.urls", "appmaker_app"))),
-    path("apps/llm/", include(("apps.llm_app.urls", "llm_app"))),
-    path("apps/clew/", include(("apps.clew_app.urls", "clew_app"))),
-    path("apps/", include(("apps.apps_app.urls", "apps_app"))),
+    path("apps/scholar/", include(("apps.workspace.scholar_app.urls", "scholar_app"))),
+    path("apps/console/", include(("apps.workspace.console_app.urls", "console_app"))),
+    path(
+        "apps/vis-react/",
+        include(("apps.workspace.vis_app.urls.vis_react", "vis_react")),
+    ),
+    path("apps/vis/", include(("apps.workspace.vis_app.urls", "vis_app"))),
+    path("apps/writer/", include(("apps.workspace.writer_app.urls", "writer_app"))),
+    path(
+        "apps/workspace/", include(("apps.infra.workspace_app.urls", "workspace_app"))
+    ),
+    path("apps/appmaker/", include(("apps.infra.appmaker_app.urls", "appmaker_app"))),
+    path("apps/llm/", include(("apps.infra.llm_app.urls", "llm_app"))),
+    path("apps/clew/", include(("apps.workspace.clew_app.urls", "clew_app"))),
+    path("apps/", include(("apps.workspace.apps_app.urls", "apps_app"))),
     # --- Legacy redirects (/<app>/ → /apps/<app>/) ---
     path("", include("config.urls_legacy_redirects")),
     # --- Other apps ---
-    path("dev/", include(("apps.dev_app.urls", "dev_app"))),
-    path("docs/", include(("apps.docs_app.urls", "docs_app"))),
-    path("integrations/", include(("apps.integrations_app.urls", "integrations_app"))),
+    path("dev/", include(("apps.workspace.dev_app.urls", "dev_app"))),
+    path("docs/", include(("apps.workspace.docs_app.urls", "docs_app"))),
     path(
-        "organizations/", include(("apps.organizations_app.urls", "organizations_app"))
+        "integrations/",
+        include(("apps.infra.integrations_app.urls", "integrations_app")),
     ),
-    path("search/", include(("apps.search_app.urls", "search_app"))),
-    path("social/", include(("apps.social_app.urls", "social_app"))),
+    path(
+        "organizations/",
+        include(("apps.infra.organizations_app.urls", "organizations_app")),
+    ),
+    path("search/", include(("apps.infra.search_app.urls", "search_app"))),
+    path("social/", include(("apps.infra.social_app.urls", "social_app"))),
     # --- API (/api/) ---
     path("api/", include("config.urls_api")),
     # --- Platform API ---
-    path("platform/api/", include("apps.platform_app.urls.api")),
+    path("platform/api/", include("apps.infra.platform_app.urls.api")),
     # --- Legacy: /project/api/check-name/ → now at /api/project/check-name/ ---
     path(
         "project/api/check-name/",
@@ -97,7 +110,7 @@ urlpatterns = [
     ),
     path("current-project/", current_project_view, name="hub_current_project"),
     # --- GitHub-style catch-all (MUST BE LAST) ---
-    path("<str:username>/", include(("apps.project_app.urls", "user_projects"))),
+    path("<str:username>/", include(("apps.infra.project_app.urls", "user_projects"))),
 ]
 
 # --- Debug-only ---

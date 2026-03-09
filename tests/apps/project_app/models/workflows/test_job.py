@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.models.workflows.job import ...
+# from apps.infra.project_app.models.workflows.job import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,20 +29,20 @@ if __name__ == "__main__":
 # # -*- coding: utf-8 -*-
 # """
 # WorkflowJob model for SciTeX Projects
-# 
+#
 # Single job within a workflow run.
 # A workflow can have multiple jobs that run sequentially or in parallel.
 # """
-# 
+#
 # from django.db import models
-# 
-# 
+#
+#
 # class WorkflowJob(models.Model):
 #     """
 #     Single job within a workflow run
 #     A workflow can have multiple jobs that run sequentially or in parallel
 #     """
-# 
+#
 #     STATUS_CHOICES = [
 #         ("queued", "Queued"),
 #         ("in_progress", "In Progress"),
@@ -50,7 +51,7 @@ if __name__ == "__main__":
 #         ("failed", "Failed"),
 #         ("skipped", "Skipped"),
 #     ]
-# 
+#
 #     run = models.ForeignKey(
 #         "project_app.WorkflowRun",
 #         on_delete=models.CASCADE,
@@ -61,7 +62,7 @@ if __name__ == "__main__":
 #     job_id = models.CharField(
 #         max_length=100, help_text="Job identifier from workflow YAML"
 #     )
-# 
+#
 #     # Job configuration
 #     runs_on = models.CharField(
 #         max_length=100,
@@ -71,7 +72,7 @@ if __name__ == "__main__":
 #     depends_on = models.JSONField(
 #         default=list, help_text="List of job IDs that must complete before this job"
 #     )
-# 
+#
 #     # Status tracking
 #     status = models.CharField(
 #         max_length=20,
@@ -82,7 +83,7 @@ if __name__ == "__main__":
 #     conclusion = models.CharField(
 #         max_length=20, blank=True, help_text="Job conclusion (success, failure, etc.)"
 #     )
-# 
+#
 #     # Timing
 #     started_at = models.DateTimeField(null=True, blank=True, help_text="Job start time")
 #     completed_at = models.DateTimeField(
@@ -91,7 +92,7 @@ if __name__ == "__main__":
 #     duration_seconds = models.IntegerField(
 #         null=True, blank=True, help_text="Job duration in seconds"
 #     )
-# 
+#
 #     # Execution
 #     runner_id = models.CharField(
 #         max_length=100, blank=True, help_text="ID of the runner that executed this job"
@@ -99,17 +100,17 @@ if __name__ == "__main__":
 #     container_id = models.CharField(
 #         max_length=100, blank=True, help_text="Container ID for this job execution"
 #     )
-# 
+#
 #     # Metadata
 #     created_at = models.DateTimeField(auto_now_add=True)
 #     updated_at = models.DateTimeField(auto_now=True)
-# 
+#
 #     # Matrix configuration (for matrix jobs)
 #     matrix_config = models.JSONField(
 #         default=dict,
 #         help_text="Matrix configuration for this job (e.g., {python: '3.11', os: 'ubuntu'})",
 #     )
-# 
+#
 #     class Meta:
 #         app_label = "project_app"
 #         unique_together = ("run", "job_id")
@@ -118,18 +119,18 @@ if __name__ == "__main__":
 #             models.Index(fields=["run", "status"]),
 #             models.Index(fields=["status", "created_at"]),
 #         ]
-# 
+#
 #     def __str__(self):
 #         return f"{self.run} - {self.name}"
-# 
+#
 #     def calculate_duration(self):
 #         """Calculate and update duration"""
 #         if self.started_at and self.completed_at:
 #             delta = self.completed_at - self.started_at
 #             self.duration_seconds = int(delta.total_seconds())
 #             self.save(update_fields=["duration_seconds"])
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

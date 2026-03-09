@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.dev_app.views.console_logger import get_console_logs, log_console
+# from apps.workspace.dev_app.views.console_logger import get_console_logs, log_console
 
 
 class TestPlaceholder:

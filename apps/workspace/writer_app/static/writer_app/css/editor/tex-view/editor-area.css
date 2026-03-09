@@ -1,0 +1,47 @@
+/* Editor Area */
+.writer-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  /* Background is set in 10-dark-mode.css to match workspace theme */
+  overflow: visible; /* Allow Monaco suggestions to overflow */
+}
+
+/* Editor Content Wrapper */
+.editor-content-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: visible; /* Allow Monaco suggestions to overflow */
+}
+
+/* Editor Views */
+.editor-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  flex-direction: column;
+  padding: 0;
+  overflow: visible; /* Allow Monaco suggestions to overflow */
+  width: 100%;
+  height: 100%;
+}
+
+.editor-view.active {
+  display: flex;
+}
+
+.editor-view-header {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--workspace-text-primary);
+  margin-bottom: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  letter-spacing: 0.3px;
+  display: none;
+}
