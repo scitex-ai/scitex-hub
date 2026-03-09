@@ -29,13 +29,26 @@ def _clone_gitea_repo_to_data_dir(project):
     Creates a working tree at: /data/users/{username}/proj/{project_slug}/
     """
     try:
-        # Get user data directory - must match ProjectFilesystemManager structure
-        user_data_dir = (
-            Path(settings.BASE_DIR) / "data" / "users" / project.owner.username / "proj"
-        )
-        user_data_dir.mkdir(parents=True, exist_ok=True)
+        # Get project data directory - org-owned or user-owned
+        if project.is_org_owned:
+            base_dir = (
+                Path(settings.BASE_DIR)
+                / "data"
+                / "organizations"
+                / project.org_owner.slug
+                / "proj"
+            )
+        else:
+            base_dir = (
+                Path(settings.BASE_DIR)
+                / "data"
+                / "users"
+                / project.owner.username
+                / "proj"
+            )
+        base_dir.mkdir(parents=True, exist_ok=True)
 
-        project_dir = user_data_dir / project.slug
+        project_dir = base_dir / project.slug
 
         # Skip if directory already exists and is a git repo
         if project_dir.exists() and (project_dir / ".git").exists():

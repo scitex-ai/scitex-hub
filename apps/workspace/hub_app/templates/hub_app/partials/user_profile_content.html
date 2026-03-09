@@ -1,6 +1,8 @@
 {% comment %}
 Hub inline user profile — returned by /hub/api/user-profile/?username=X
 {% endcomment %}
+{% load static %}
+
 <div class="hub-content">
     <div class="hub-user-profile">
         <div class="hub-user-sidebar">
@@ -59,8 +61,12 @@ Hub inline user profile — returned by /hub/api/user-profile/?username=X
                                 <span class="hub-user-org-avatar">
                                     {% if org.avatar %}
                                         <img src="{{ org.avatar.url }}" alt="{{ org.name }}" class="hub-user-org-avatar-img" />
+                                    {% elif org.avatar_static_url %}
+                                        <img src="{% static org.avatar_static_url %}"
+                                             alt="{{ org.name }}"
+                                             class="hub-user-org-avatar-img" />
                                     {% else %}
-                                        {{ org.name|slice:":1"|upper }}
+                                        <i class="fas fa-building" title="{{ org.name }}"></i>
                                     {% endif %}
                                 </span>
                             </a>

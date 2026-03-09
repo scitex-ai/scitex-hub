@@ -118,6 +118,14 @@ class Project(
         blank=True,
         related_name="projects",
     )
+    org_owner = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="owned_projects",
+        help_text="Organization owner (if org-owned project)",
+    )
     research_group = models.ForeignKey(
         ResearchGroup,
         on_delete=models.SET_NULL,
@@ -314,6 +322,23 @@ class Project(
 
     # Custom Manager
     objects = ProjectManager()
+
+    @property
+    def is_org_owned(self):
+        return self.org_owner_id is not None
+
+    @property
+    def effective_owner_slug(self):
+        """GitHub-style: org slug or username."""
+        if self.org_owner:
+            return self.org_owner.slug
+        return self.owner.username
+
+    @property
+    def effective_owner_name(self):
+        if self.org_owner:
+            return self.org_owner.name
+        return self.owner.get_full_name() or self.owner.username
 
     class Meta:
         ordering = ["-updated_at"]

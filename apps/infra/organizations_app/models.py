@@ -89,6 +89,14 @@ class Organization(models.Model):
         """Compatibility property for URL generation (same as slug)"""
         return self.slug
 
+    @property
+    def avatar_static_url(self):
+        """Return static URL for known orgs without uploaded avatars."""
+        STATIC_AVATARS = {
+            "scitex-apps": "shared/images/scitex_logos/scitex-icon/scitex-icon-green.svg",
+        }
+        return STATIC_AVATARS.get(self.slug)
+
 
 class OrganizationMembership(models.Model):
     """

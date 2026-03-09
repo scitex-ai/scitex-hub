@@ -8,18 +8,18 @@ and execution tracking.
 Extracted from project_filesystem.py for better maintainability.
 """
 
+import logging
 import shutil
 from pathlib import Path
 from typing import Dict, Optional, Tuple
-import logging
 
-from .core import ProjectFilesystemManager
-from .file_ops import FileOperationsManager
-from .execution_ops import ExecutionOperationsManager
-from .template_ops import TemplateOperationsManager
-from .git_ops import GitOperationsManager
-from .directory_builder import DirectoryBuilderManager
 from ...models import Project
+from .core import ProjectFilesystemManager
+from .directory_builder import DirectoryBuilderManager
+from .execution_ops import ExecutionOperationsManager
+from .file_ops import FileOperationsManager
+from .git_ops import GitOperationsManager
+from .template_ops import TemplateOperationsManager
 
 logger = logging.getLogger(__name__)
 
@@ -62,16 +62,17 @@ class ProjectOpsManager(ProjectFilesystemManager):
             Tuple of (success: bool, path: Optional[Path])
         """
         try:
+            base = self._get_effective_base_path(project)
             project_slug = project.slug
-            project_path = self.base_path / project_slug
+            project_path = base / project_slug
 
-            if not self._ensure_directory(self.base_path):
+            if not self._ensure_directory(base):
                 return False, None
 
             if use_template and self.template_ops.copy_from_example_template(
                 project_path, project, template_type
             ):
-                project.data_location = str(project_path.relative_to(self.base_path))
+                project.data_location = str(project_path.relative_to(base))
                 project.directory_created = True
                 project.save()
                 return True, project_path
@@ -81,7 +82,7 @@ class ProjectOpsManager(ProjectFilesystemManager):
 
             self.template_ops.create_minimal_readme(project, project_path)
 
-            project.data_location = str(project_path.relative_to(self.base_path))
+            project.data_location = str(project_path.relative_to(base))
             project.directory_created = True
             project.save()
 
@@ -140,12 +141,25 @@ class ProjectOpsManager(ProjectFilesystemManager):
     def get_project_root_path(self, project: Project) -> Optional[Path]:
         """Get the root directory path for a project.
 
+        For org-owned projects, uses data/organizations/{org-slug}/proj/.
+        For user-owned projects, uses the user's base path.
         Always uses filesystem as source of truth.
         """
-        project_path = self.base_path / project.slug
+        base = self._get_effective_base_path(project)
+        project_path = base / project.slug
         if project_path.exists():
             return project_path
         return None
+
+    def _get_effective_base_path(self, project: Project) -> Path:
+        """Return org base path for org-owned projects, user base path otherwise."""
+        if project.is_org_owned:
+            from apps.infra.project_app.services.filesystem.paths import (
+                get_org_base_path,
+            )
+
+            return get_org_base_path(project.org_owner)
+        return self.base_path
 
     def delete_project_directory(self, project: Project) -> bool:
         """Delete a project directory and all its contents."""

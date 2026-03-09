@@ -96,9 +96,11 @@ def organization_profile(request, org):
     if org.slug == "scitex-apps":
         return _apps_org_profile(request, org, is_member, is_admin)
 
-    # Regular org: show member projects
+    # Regular org: show org-owned projects + member projects
     member_ids = org.members.values_list("id", flat=True)
-    org_projects = Project.objects.filter(owner_id__in=member_ids)
+    org_projects = Project.objects.filter(
+        models.Q(org_owner=org) | models.Q(owner_id__in=member_ids)
+    ).distinct()
 
     if not is_member:
         org_projects = org_projects.filter(visibility="public")

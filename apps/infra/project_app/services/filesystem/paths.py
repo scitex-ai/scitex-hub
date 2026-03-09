@@ -6,8 +6,10 @@ This module handles path resolution and directory structure management.
 
 from pathlib import Path
 from typing import Optional
+
 from django.conf import settings
 from django.contrib.auth.models import User
+
 from ...models import Project
 
 
@@ -21,13 +23,25 @@ def get_user_base_path(user: User) -> Path:
     return Path(settings.BASE_DIR) / "data" / "users" / user.username / "proj"
 
 
+def get_org_base_path(org) -> Path:
+    """Get base directory for an organization's projects.
+
+    Structure: ./data/organizations/{org-slug}/proj/
+    """
+    return Path(settings.BASE_DIR) / "data" / "organizations" / org.slug / "proj"
+
+
 def get_project_root_path(user: User, project: Project) -> Optional[Path]:
     """Get the root directory path for a project.
 
-    Always uses filesystem as the source of truth (data/users/{username}/{project-slug}/).
-    This ensures Django always shows the actual filesystem state in real-time.
+    For org-owned projects, uses data/organizations/{org-slug}/proj/{slug}/.
+    For user-owned projects, uses data/users/{username}/proj/{slug}/.
+    Always uses filesystem as the source of truth.
     """
-    base_path = get_user_base_path(user)
+    if project.is_org_owned:
+        base_path = get_org_base_path(project.org_owner)
+    else:
+        base_path = get_user_base_path(user)
     project_path = base_path / project.slug
     if project_path.exists():
         return project_path

@@ -159,9 +159,8 @@
             <div class="org-avatar">
                 {% if organization.avatar %}
                     <img src="{{ organization.avatar.url }}" alt="{{ organization.name }}" />
-                {% elif organization.slug == 'scitex-apps' %}
-                    <img src="{% static 'shared/images/scitex_logos/scitex-icon/scitex-icon-green.svg' %}"
-                         alt="{{ organization.name }}" />
+                {% elif organization.avatar_static_url %}
+                    <img src="{% static organization.avatar_static_url %}" alt="{{ organization.name }}" />
                 {% else %}
                     <i class="fas fa-building"></i>
                 {% endif %}

@@ -41,11 +41,11 @@ def get_project_by_owner_slug(owner_identifier: str, slug: str) -> Project:
     except User.DoesNotExist:
         pass
 
-    # Second, try to find by organization ownership
+    # Second, try to find by organization ownership (org_owner FK)
     try:
         org = Organization.objects.get(slug=owner_identifier)
         try:
-            return Project.objects.get(organization=org, slug=slug)
+            return Project.objects.get(org_owner=org, slug=slug)
         except Project.DoesNotExist:
             pass
     except Organization.DoesNotExist:

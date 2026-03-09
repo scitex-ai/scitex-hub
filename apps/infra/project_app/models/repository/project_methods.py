@@ -227,19 +227,18 @@ class ProjectMethodsMixin:
     # ----------------------------------------
 
     def get_absolute_url(self):
-        """Get project detail URL using GitHub-style username/project pattern"""
+        """Get project detail URL using GitHub-style owner/project pattern"""
         from django.urls import reverse
         from django.urls.exceptions import NoReverseMatch
 
+        owner_slug = self.effective_owner_slug
         try:
-            # Use the new user_projects namespace
             return reverse(
                 "project_app:detail",
-                kwargs={"username": self.owner.username, "slug": self.slug},
+                kwargs={"username": owner_slug, "slug": self.slug},
             )
         except NoReverseMatch:
-            # Fallback to direct URL construction
-            return f"/{self.owner.username}/{self.slug}/"
+            return f"/{owner_slug}/{self.slug}/"
 
     def is_public(self):
         """Check if repository is public"""
