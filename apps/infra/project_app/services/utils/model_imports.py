@@ -15,12 +15,6 @@ except ImportError:
     is_japanese_academic_email = None
     JAPANESE_ACADEMIC_DOMAINS = []
 
-# Document models
-try:
-    from apps.document_app.models import Document
-except ImportError:
-    Document = None
-
 # Project models
 try:
     from apps.infra.project_app.models import (
@@ -45,7 +39,6 @@ __all__ = [
     "EmailVerification",
     "is_japanese_academic_email",
     "JAPANESE_ACADEMIC_DOMAINS",
-    "Document",
     "Project",
     "ProjectMembership",
     "Organization",

@@ -151,7 +151,7 @@ if [ "$TESTS_FAILED" -eq 0 ]; then
     echo -e ""
     echo -e "${GREEN}Next steps:${NC}"
     echo -e "1. Copy to production: sudo cp $SIF_FILE /app/deployment/singularity/"
-    echo -e "2. Test with Django: python manage.py test apps.code_app.tests.test_singularity"
+    echo -e "2. Test with Django: python manage.py test apps.workspace.console_app.tests.test_singularity"
     echo -e "3. Deploy to NAS"
     echo -e ""
     exit 0

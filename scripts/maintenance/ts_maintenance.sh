@@ -105,23 +105,23 @@ done
 # Note: With Docker-only .jsbuild output, these paths are for cleaning up legacy files on host
 # New builds go to .jsbuild/ (Docker-internal only)
 APP_DIRS=(
-    "apps/vis_app/static/vis_app/ts:apps/vis_app/static/vis_app/js"
-    "apps/writer_app/static/writer_app/ts:apps/writer_app/static/writer_app/js"
-    "apps/code_app/static/code_app/ts:apps/code_app/static/code_app/js"
-    "apps/scholar_app/static/scholar_app/ts:apps/scholar_app/static/scholar_app/js"
-    "apps/project_app/static/project_app/ts:apps/project_app/static/project_app/js"
-    "apps/public_app/static/public_app/ts:apps/public_app/static/public_app/js"
+    "apps/workspace/vis_app/static/vis_app/ts:apps/workspace/vis_app/static/vis_app/js"
+    "apps/workspace/writer_app/static/writer_app/ts:apps/workspace/writer_app/static/writer_app/js"
+    "apps/workspace/console_app/static/console_app/ts:apps/workspace/console_app/static/console_app/js"
+    "apps/workspace/scholar_app/static/scholar_app/ts:apps/workspace/scholar_app/static/scholar_app/js"
+    "apps/infra/project_app/static/project_app/ts:apps/infra/project_app/static/project_app/js"
+    "apps/infra/public_app/static/public_app/ts:apps/infra/public_app/static/public_app/js"
     "static/shared/ts:static/shared/js"
 )
 
 # Legacy js directories on host (for cleanup only)
 LEGACY_JS_DIRS=(
-    "apps/vis_app/static/vis_app/js"
-    "apps/writer_app/static/writer_app/js"
-    "apps/code_app/static/code_app/js"
-    "apps/scholar_app/static/scholar_app/js"
-    "apps/project_app/static/project_app/js"
-    "apps/public_app/static/public_app/js"
+    "apps/workspace/vis_app/static/vis_app/js"
+    "apps/workspace/writer_app/static/writer_app/js"
+    "apps/workspace/console_app/static/console_app/js"
+    "apps/workspace/scholar_app/static/scholar_app/js"
+    "apps/infra/project_app/static/project_app/js"
+    "apps/infra/public_app/static/public_app/js"
     "static/shared/js"
 )
 

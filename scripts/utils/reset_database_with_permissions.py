@@ -36,14 +36,18 @@ def reset_database():
 
     # 2. Remove migration files (keep __init__.py)
     apps_to_reset = [
-        "apps/workspace_app/migrations",
-        "apps/cloud_app/migrations",
-        "apps/scholar/migrations",
-        "apps/writer_app/migrations",
-        "apps/viz_app/migrations",
-        "apps/console_app/migrations",
-        "apps/engine_app/migrations",
-        "apps/monitoring_app/migrations",
+        "apps/workspace/vis_app/migrations",
+        "apps/workspace/console_app/migrations",
+        "apps/workspace/writer_app/migrations",
+        "apps/workspace/scholar_app/migrations",
+        "apps/workspace/hub_app/migrations",
+        "apps/workspace/docs_app/migrations",
+        "apps/workspace/discovery_app/migrations",
+        "apps/infra/project_app/migrations",
+        "apps/infra/public_app/migrations",
+        "apps/infra/accounts_app/migrations",
+        "apps/infra/gitea_app/migrations",
+        "apps/infra/appmaker_app/migrations",
     ]
 
     for migration_dir in apps_to_reset:

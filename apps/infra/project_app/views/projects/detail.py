@@ -98,7 +98,7 @@ def project_detail(request, username, slug):
 
         return code_views.project_code(request, project.id)
     elif mode == "viz":
-        from apps.viz_app import views as viz_views
+        from apps.workspace.vis_app import views as viz_views
 
         return viz_views.project_viz(request, project.id)
 
