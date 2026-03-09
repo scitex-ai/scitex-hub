@@ -39,6 +39,7 @@ SHELL := /bin/bash
 	logs \
 	ps \
 	migrate \
+	seed \
 	shell \
 	force-stop-all \
 	ssl-setup \
@@ -329,7 +330,8 @@ help-all:
 	@echo -e "  ENV=<env> setup              Full setup (build + migrate)"
 	@echo -e ""
 	@echo -e "$(CYAN)🐍 Django:$(NC)"
-	@echo -e "  ENV=<env> migrate            Run migrations"
+	@echo -e "  ENV=<env> migrate            Run schema migrations"
+	@echo -e "  ENV=<env> seed               Seed/rename module DB records (run after migrate)"
 	@echo -e "  ENV=<env> makemigrations     Create migrations"
 	@echo -e "  ENV=<env> shell              Django shell"
 	@echo -e "  ENV=<env> collectstatic      Collect static files"
@@ -669,6 +671,14 @@ setup:
 migrate: validate
 	@echo -e "$(CYAN)🔄 Running migrations ($(ENV))...$(NC)"
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py migrate
+
+# Seed / data-migration: run after schema migrate or code changes that rename modules
+seed: validate
+	@echo -e "$(CYAN)🌱 Seeding DB modules ($(ENV))...$(NC)"
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py rename_hub_to_home || true
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py rename_apps_to_store || true
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py seed_apps
+	@echo -e "$(GREEN)✓ DB modules seeded$(NC)"
 
 makemigrations: validate
 	@echo -e "$(CYAN)📝 Creating migrations ($(ENV))...$(NC)"

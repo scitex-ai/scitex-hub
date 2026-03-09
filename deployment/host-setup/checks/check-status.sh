@@ -76,7 +76,7 @@ check_docker() {
         if echo "$status" | grep -qE "Up [0-9]+ seconds"; then
             looping="${looping}${name}\n"
         fi
-    done <<< "$containers"
+    done <<<"$containers"
 
     if [ -n "$looping" ]; then
         # Only flag as loop if some containers are healthy (stable for minutes+)
@@ -97,6 +97,7 @@ check_docker() {
 run_section "01-env" check_environment &
 run_section "02-docker" check_docker &
 run_section "03-migrations" "${SCRIPT_DIR}/check-migrations.sh" &
+run_section "03b-db-modules" "${SCRIPT_DIR}/check-db-modules.sh" &
 run_section "04-visitors" "${SCRIPT_DIR}/check-visitor-pool.sh" &
 run_section "05-slurm" "${SCRIPT_DIR}/check-slurm.sh" &
 run_section "06-host" "${SCRIPT_DIR}/check-users.sh" &
