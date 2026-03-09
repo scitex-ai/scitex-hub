@@ -16,8 +16,6 @@ app_name = "public_app"
 urlpatterns = [
     # REST API endpoints
     path("", include("apps.public_app.urls.api")),
-    # Research tool page views
-    path("", include("apps.public_app.urls.tools")),
     # Page/template-serving views (must come after API routes)
     path("", include("apps.public_app.urls.pages")),
 ]

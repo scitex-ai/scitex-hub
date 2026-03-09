@@ -29,6 +29,7 @@ urlpatterns = [
     # --- Root ---
     path("", root_dispatch, name="root"),
     path("", include("apps.public_app.urls")),
+    path("", include(("apps.tools_app.urls", "tools_app"))),
     # --- Admin ---
     path("admin/", admin.site.urls),
     # --- Auth ---

@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 
-class PublicAppConfig(AppConfig):
+class ToolsAppConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "apps.public_app"
-    verbose_name = "Public"
+    name = "apps.tools_app"
+    verbose_name = "Tools"
