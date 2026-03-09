@@ -3,9 +3,9 @@ from apps.infra.llm_app.skills import Skill, register
 register(
     Skill(
         app_name="hub",
-        display_name="Dashboard - Project Hub",
+        display_name="Home - Project Hub",
         description=(
-            "Project dashboard showing all user projects, activity feed, "
+            "Home page showing all user projects, activity feed, "
             "and quick actions. Entry point for navigating to other modules."
         ),
         capabilities=[
@@ -17,8 +17,7 @@ register(
         page_patterns=["/"],
         url_prefix="/",
         module_description=(
-            "Project dashboard showing all user projects, activity feed, "
-            "and quick actions."
+            "Home page showing all user projects, activity feed, and quick actions."
         ),
     )
 )

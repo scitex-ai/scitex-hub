@@ -234,7 +234,7 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
     ),
     ModuleConfig(
         name="hub",
-        label="Dashboard",
+        label="Home",
         app_name="hub_app",
         icon_fa="fas fa-home",
         partial_template="hub_app/index_partial.html",

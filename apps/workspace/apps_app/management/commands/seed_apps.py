@@ -9,8 +9,8 @@ Usage: python manage.py seed_apps
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
-from apps.workspace.apps_app.models import AppsModule, ModuleVersion
 from apps.infra.workspace_app.registry import get_all_modules
+from apps.workspace.apps_app.models import AppsModule, ModuleVersion
 
 # Map module names to categories
 _CATEGORY_MAP = {
@@ -31,7 +31,7 @@ _DESCRIPTIONS = {
     "vis": "Data visualization workspace for creating publication-ready figures.",
     "console": "Python console with file browser for running scripts and managing project files.",
     "clew": "Verification system — trace manuscript claims (statistics, figures, tables) back through computational chains to source data.",
-    "hub": "Project dashboard showing recent activity, file browser, and quick actions.",
+    "hub": "Home — project overview with recent activity, file browser, and quick actions.",
     "tools": "Collection of standalone research utilities — converters, calculators, and helpers.",
     "apps": "Browse, install, and manage workspace modules.",
 }
