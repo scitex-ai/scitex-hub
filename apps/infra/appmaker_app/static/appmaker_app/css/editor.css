@@ -1,6 +1,6 @@
 /* Module code editor styles */
 
-.modeditor-workspace {
+.appmaker-editor-workspace {
   padding: 24px;
   max-width: 900px;
   margin: 0 auto;
@@ -8,26 +8,26 @@
   overflow-y: auto;
 }
 
-.modeditor-header {
+.appmaker-editor-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 20px;
 }
 
-.modeditor-header h2 {
+.appmaker-editor-header h2 {
   color: var(--workspace-text-primary, #e6edf3);
   margin: 0;
   font-size: 20px;
 }
 
-.modeditor-header h2 i {
+.appmaker-editor-header h2 i {
   margin-right: 8px;
   color: var(--accent-blue, #388bfd);
 }
 
 /* Validation messages */
-.modeditor-validation {
+.appmaker-editor-validation {
   background: rgba(248, 81, 73, 0.1);
   border: 1px solid var(--accent-red, #f85149);
   border-radius: 6px;
@@ -40,20 +40,20 @@
   font-size: 13px;
 }
 
-.modeditor-validation--success {
+.appmaker-editor-validation--success {
   background: rgba(63, 185, 80, 0.1);
   border-color: var(--accent-green, #3fb950);
   color: var(--accent-green, #3fb950);
 }
 
 /* Metadata form */
-.modeditor-form {
+.appmaker-editor-form {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.modeditor-meta {
+.appmaker-editor-meta {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
@@ -63,7 +63,7 @@
   padding: 16px;
 }
 
-.modeditor-field label {
+.appmaker-editor-field label {
   display: block;
   color: var(--workspace-text-secondary, #8b949e);
   font-size: 12px;
@@ -73,8 +73,8 @@
   letter-spacing: 0.5px;
 }
 
-.modeditor-field input,
-.modeditor-field select {
+.appmaker-editor-field input,
+.appmaker-editor-field select {
   width: 100%;
   padding: 8px 10px;
   background: var(--workspace-bg-tertiary, #0d1117);
@@ -85,29 +85,29 @@
   box-sizing: border-box;
 }
 
-.modeditor-field input:focus,
-.modeditor-field select:focus {
+.appmaker-editor-field input:focus,
+.appmaker-editor-field select:focus {
   outline: none;
   border-color: var(--accent-blue, #388bfd);
 }
 
-.modeditor-field--short {
+.appmaker-editor-field--short {
   /* Already handled by grid */
 }
 
-.modeditor-field--full {
+.appmaker-editor-field--full {
   grid-column: 1 / -1;
 }
 
 /* Source code textarea */
-.modeditor-code-section {
+.appmaker-editor-code-section {
   background: var(--workspace-bg-secondary, #161b22);
   border: 1px solid var(--workspace-border, #30363d);
   border-radius: 6px;
   padding: 16px;
 }
 
-.modeditor-code-section label {
+.appmaker-editor-code-section label {
   display: block;
   color: var(--workspace-text-secondary, #8b949e);
   font-size: 12px;
@@ -117,7 +117,7 @@
   letter-spacing: 0.5px;
 }
 
-.modeditor-code-section textarea {
+.appmaker-editor-code-section textarea {
   width: 100%;
   padding: 14px;
   background: var(--workspace-bg-tertiary, #0d1117);
@@ -132,13 +132,13 @@
   box-sizing: border-box;
 }
 
-.modeditor-code-section textarea:focus {
+.appmaker-editor-code-section textarea:focus {
   outline: none;
   border-color: var(--accent-blue, #388bfd);
 }
 
 /* Action buttons */
-.modeditor-actions {
+.appmaker-editor-actions {
   display: flex;
   gap: 10px;
 }

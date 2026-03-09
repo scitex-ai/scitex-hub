@@ -2,8 +2,8 @@
 
 <!-- App code editor -->
 <link rel="stylesheet" href="{% static 'appmaker_app/css/editor.css' %}" />
-<div class="modeditor-workspace">
-    <div class="modeditor-header">
+<div class="appmaker-editor-workspace">
+    <div class="appmaker-editor-header">
         <h2>
             <i class="fas fa-code"></i>
             {% if module %}
@@ -16,15 +16,15 @@
             <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
-    <div class="modeditor-validation" id="modeditor-validation" style="display: none">
+    <div class="appmaker-editor-validation" id="appmaker-editor-validation" style="display: none">
         <i class="fas fa-exclamation-circle"></i>
-        <span id="modeditor-validation-msg"></span>
+        <span id="appmaker-editor-validation-msg"></span>
     </div>
-    <form class="modeditor-form" id="modeditor-form">
+    <form class="appmaker-editor-form" id="appmaker-editor-form">
         {% csrf_token %}
         <!-- Metadata section -->
-        <div class="modeditor-meta">
-            <div class="modeditor-field">
+        <div class="appmaker-editor-meta">
+            <div class="appmaker-editor-field">
                 <label for="mod-label">Label</label>
                 <input type="text"
                        id="mod-label"
@@ -34,7 +34,7 @@
                        placeholder="My Custom App"
                        value="{{ module.label|default:'' }}" />
             </div>
-            <div class="modeditor-field modeditor-field--short">
+            <div class="appmaker-editor-field appmaker-editor-field--short">
                 <label for="mod-icon">Icon</label>
                 <input type="text"
                        id="mod-icon"
@@ -43,7 +43,7 @@
                        placeholder="fa-puzzle-piece"
                        value="{{ module.icon|default:'fa-puzzle-piece' }}" />
             </div>
-            <div class="modeditor-field modeditor-field--short">
+            <div class="appmaker-editor-field appmaker-editor-field--short">
                 <label for="mod-category">Category</label>
                 <select id="mod-category" name="category">
                     {% for value, display in category_choices %}
@@ -52,7 +52,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="modeditor-field modeditor-field--full">
+            <div class="appmaker-editor-field appmaker-editor-field--full">
                 <label for="mod-description">Description</label>
                 <input type="text"
                        id="mod-description"
@@ -63,7 +63,7 @@
             </div>
         </div>
         <!-- Source code editor -->
-        <div class="modeditor-code-section">
+        <div class="appmaker-editor-code-section">
             <label for="mod-source">Python Source Code</label>
             <textarea id="mod-source"
                       name="source_code"
@@ -72,14 +72,14 @@
                       placeholder="# Write your app code here&#10;import numpy as np&#10;&#10;def run(project, config):&#10;    return [{'type': 'text', 'content': 'Hello from my app!'}]">{% if module %}{{ module.source_code }}{% endif %}</textarea>
         </div>
         <!-- Actions -->
-        <div class="modeditor-actions">
-            <button type="submit" class="btn btn-primary" id="modeditor-save-btn">
+        <div class="appmaker-editor-actions">
+            <button type="submit" class="btn btn-primary" id="appmaker-editor-save-btn">
                 <i class="fas fa-save"></i> Save
             </button>
             {% if module %}
                 <button type="button"
-                        class="btn btn-outline modeditor-run-btn"
-                        data-module-slug="{{ module.slug }}">
+                        class="btn btn-outline appmaker-editor-run-btn"
+                        data-app-slug="{{ module.slug }}">
                     <i class="fas fa-play"></i> Run
                 </button>
             {% endif %}
@@ -88,9 +88,9 @@
 </div>
 <script>
 (function () {
-    const form = document.getElementById("modeditor-form");
-    const validationEl = document.getElementById("modeditor-validation");
-    const validationMsg = document.getElementById("modeditor-validation-msg");
+    const form = document.getElementById("appmaker-editor-form");
+    const validationEl = document.getElementById("appmaker-editor-validation");
+    const validationMsg = document.getElementById("appmaker-editor-validation-msg");
     const isEdit = {{ module|yesno:"true,false" }};
     const slug = "{{ module.slug|default:'' }}";
 
@@ -140,7 +140,7 @@
                     window.location.href = "/appmaker/" + data.slug + "/edit/";
                 } else {
                     showValidation("Saved successfully.");
-                    validationEl.classList.add("modeditor-validation--success");
+                    validationEl.classList.add("appmaker-editor-validation--success");
                 }
             } else {
                 showValidation(data.error || "Save failed.");
@@ -150,7 +150,7 @@
         }
     });
 
-    const runBtn = form.querySelector(".modeditor-run-btn");
+    const runBtn = form.querySelector(".appmaker-editor-run-btn");
     if (runBtn) {
         runBtn.addEventListener("click", async function () {
             hideValidation();
@@ -163,7 +163,7 @@
                 const data = await resp.json();
                 if (data.success) {
                     showValidation(data.message || "Execution complete.");
-                    validationEl.classList.add("modeditor-validation--success");
+                    validationEl.classList.add("appmaker-editor-validation--success");
                 } else {
                     showValidation(data.error || "Execution failed.");
                 }

@@ -1,13 +1,13 @@
 {% load static %}
 
 <!-- My Apps grid partial -->
-<link rel="stylesheet" href="{% static 'appmaker_app/css/usermod.css' %}" />
-<div class="usermod-workspace">
-    <div class="usermod-list-header">
+<link rel="stylesheet" href="{% static 'appmaker_app/css/appmaker.css' %}" />
+<div class="appmaker-workspace">
+    <div class="appmaker-list-header">
         <h2>
             <i class="fas fa-puzzle-piece"></i> My Apps
         </h2>
-        <div class="usermod-header-actions">
+        <div class="appmaker-header-actions">
             <button class="btn btn-outline" id="import-github-btn" title="Import from GitHub">
                 <i class="fab fa-github"></i> Import from GitHub
             </button>
@@ -17,12 +17,12 @@
         </div>
     </div>
     <!-- GitHub Import Dialog (hidden by default) -->
-    <div id="github-import-dialog" class="usermod-import-dialog" style="display:none;">
-        <div class="usermod-import-form">
+    <div id="github-import-dialog" class="appmaker-import-dialog" style="display:none;">
+        <div class="appmaker-import-form">
             <h3>
                 <i class="fab fa-github"></i> Import App from GitHub
             </h3>
-            <p class="usermod-import-hint">
+            <p class="appmaker-import-hint">
                 Paste the URL of a GitHub repository containing a <code>module.py</code>
                 with <code>@stx.module</code> decorator.
             </p>
@@ -39,31 +39,31 @@
                 </label>
                 <input type="text" id="import-repo-ref" class="form-control" placeholder="main" />
             </div>
-            <div class="usermod-import-actions">
+            <div class="appmaker-import-actions">
                 <button class="btn btn-primary" id="import-submit-btn">
                     <i class="fas fa-download"></i> Import
                 </button>
                 <button class="btn btn-outline" id="import-cancel-btn">Cancel</button>
             </div>
-            <div id="import-status" class="usermod-import-status" style="display:none;"></div>
+            <div id="import-status" class="appmaker-import-status" style="display:none;"></div>
         </div>
     </div>
     {% if modules %}
-        <div class="usermod-grid">
+        <div class="appmaker-grid">
             {% for mod in modules %}
-                <div class="usermod-grid-card">
-                    <div class="usermod-grid-card-header">
+                <div class="appmaker-grid-card">
+                    <div class="appmaker-grid-card-header">
                         <i class="fas {{ mod.icon }}"></i>
-                        <span class="usermod-grid-label">{{ mod.label }}</span>
-                        <span class="usermod-badge usermod-badge--{{ mod.visibility }}">{{ mod.visibility }}</span>
+                        <span class="appmaker-grid-label">{{ mod.label }}</span>
+                        <span class="appmaker-badge appmaker-badge--{{ mod.visibility }}">{{ mod.visibility }}</span>
                         {% if mod.source_repo_url %}
-                            <span class="usermod-badge usermod-badge--git" title="Imported from GitHub">
+                            <span class="appmaker-badge appmaker-badge--git" title="Imported from GitHub">
                                 <i class="fab fa-github"></i>
                             </span>
                         {% endif %}
                     </div>
-                    {% if mod.description %}<p class="usermod-grid-desc">{{ mod.description }}</p>{% endif %}
-                    <div class="usermod-grid-meta">
+                    {% if mod.description %}<p class="appmaker-grid-desc">{{ mod.description }}</p>{% endif %}
+                    <div class="appmaker-grid-meta">
                         <span title="Run count">
                             <i class="fas fa-play"></i> {{ mod.run_count }}
                         </span>
@@ -76,27 +76,27 @@
                             <a href="{{ mod.source_repo_url }}"
                                target="_blank"
                                rel="noopener"
-                               class="usermod-source-link"
+                               class="appmaker-source-link"
                                title="View source repository">
                                 <i class="fas fa-external-link-alt"></i> Source
                             </a>
                         {% endif %}
                     </div>
-                    <div class="usermod-grid-actions">
+                    <div class="appmaker-grid-actions">
                         <a href="{% url 'appmaker_app:editor' slug=mod.slug %}"
                            class="btn btn-sm btn-outline"
                            title="Edit module">
                             <i class="fas fa-edit"></i> Edit
                         </a>
                         {% if mod.source_repo_url %}
-                            <button class="btn btn-sm btn-outline usermod-sync-btn"
-                                    data-module-slug="{{ mod.slug }}"
+                            <button class="btn btn-sm btn-outline appmaker-sync-btn"
+                                    data-app-slug="{{ mod.slug }}"
                                     title="Sync from repository">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
                         {% endif %}
-                        <button class="btn btn-sm btn-outline btn-danger usermod-delete-btn"
-                                data-module-slug="{{ mod.slug }}"
+                        <button class="btn btn-sm btn-outline btn-danger appmaker-delete-btn"
+                                data-app-slug="{{ mod.slug }}"
                                 title="Delete module">
                             <i class="fas fa-trash"></i>
                         </button>
@@ -105,7 +105,7 @@
             {% endfor %}
         </div>
     {% else %}
-        <div class="usermod-empty">
+        <div class="appmaker-empty">
             <i class="fas fa-puzzle-piece"></i>
             <p>
                 You have no apps yet. Click <strong>New App</strong> to create from scratch
@@ -131,7 +131,7 @@
 
         if (!repoUrl) {
             statusDiv.textContent = 'Please enter a repository URL.';
-            statusDiv.className = 'usermod-import-status usermod-import-error';
+            statusDiv.className = 'appmaker-import-status appmaker-import-error';
             statusDiv.style.display = 'block';
             return;
         }
@@ -154,17 +154,17 @@
             const data = await resp.json();
             if (data.success) {
                 statusDiv.textContent = data.message;
-                statusDiv.className = 'usermod-import-status usermod-import-success';
+                statusDiv.className = 'appmaker-import-status appmaker-import-success';
                 statusDiv.style.display = 'block';
                 setTimeout(() => window.location.reload(), 1500);
             } else {
                 statusDiv.textContent = data.error || 'Import failed.';
-                statusDiv.className = 'usermod-import-status usermod-import-error';
+                statusDiv.className = 'appmaker-import-status appmaker-import-error';
                 statusDiv.style.display = 'block';
             }
         } catch (err) {
             statusDiv.textContent = 'Network error: ' + err.message;
-            statusDiv.className = 'usermod-import-status usermod-import-error';
+            statusDiv.className = 'appmaker-import-status appmaker-import-error';
             statusDiv.style.display = 'block';
         } finally {
             submitBtn.disabled = false;
@@ -173,7 +173,7 @@
     });
 
     // Sync buttons
-    document.querySelectorAll('.usermod-sync-btn').forEach(btn => {
+    document.querySelectorAll('.appmaker-sync-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
             const slug = btn.dataset.moduleSlug;
             btn.disabled = true;
