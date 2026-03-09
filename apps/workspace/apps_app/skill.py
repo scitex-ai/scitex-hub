@@ -2,8 +2,8 @@ from apps.infra.llm_app.skills import Skill, register
 
 register(
     Skill(
-        app_name="apps",
-        display_name="Apps - App Catalog",
+        app_name="store",
+        display_name="Store - App Catalog",
         description=(
             "Browse, install, and publish community apps. "
             "Discover extensions created by other users."
@@ -14,8 +14,8 @@ register(
             "Star and review apps",
             "Publish custom apps",
         ],
-        page_patterns=["/apps/"],
-        url_prefix="/apps/",
+        page_patterns=["/apps/store/"],
+        url_prefix="/apps/store/",
         module_description=("Browse, install, and publish community apps."),
     )
 )

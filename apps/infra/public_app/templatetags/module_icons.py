@@ -8,7 +8,7 @@ Single source of truth for rendering module icons with badge overlays.
 Usage in templates:
     {% load module_icons %}
     {% module_icon "writer" %}
-    {% module_icon "apps" "tab" "0.1.0-alpha" %}
+    {% module_icon "store" "tab" "0.1.0-alpha" %}
 
 Usage in Python:
     from apps.infra.public_app.templatetags.module_icons import build_module_icon_html
@@ -105,7 +105,7 @@ def module_icon(name, context="tab", version="", icon_fa="", is_private=""):
 
     Usage:
         {% module_icon "writer" %}
-        {% module_icon "apps" "tab" "0.1.0-alpha" %}
+        {% module_icon "store" "tab" "0.1.0-alpha" %}
         {% module_icon "dev__user__repo" "tab" "" "fas fa-puzzle-piece" "1" %}
     """
     return mark_safe(

@@ -126,8 +126,10 @@
   --app-accent-example-tint: rgba(138, 96, 48, 0.07);
   --app-accent-tools: #5a7a5a; /* Sage green - utilities, helpers */
   --app-accent-tools-tint: rgba(90, 122, 90, 0.07);
-  --app-accent-apps: #7a5a6a; /* Muted rose - store, browsing */
+  --app-accent-apps: #7a5a6a; /* Muted rose - store, browsing (legacy) */
   --app-accent-apps-tint: rgba(122, 90, 106, 0.07);
+  --app-accent-store: #7a5a6a; /* Muted rose - app store, browsing */
+  --app-accent-store-tint: rgba(122, 90, 106, 0.07);
   --app-accent-appmaker: #5a6a8a; /* Slate blue - creation, building */
   --app-accent-appmaker-tint: rgba(90, 106, 138, 0.07);
   --app-accent-docs: #4a6a9a; /* Deep blue - documentation, reference */
@@ -325,8 +327,10 @@
   --app-accent-example-tint: rgba(192, 136, 80, 0.08);
   --app-accent-tools: #8ab88a; /* Sage green - utilities, helpers */
   --app-accent-tools-tint: rgba(138, 184, 138, 0.08);
-  --app-accent-apps: #b88a9a; /* Soft rose - store, browsing */
+  --app-accent-apps: #b88a9a; /* Soft rose - store, browsing (legacy) */
   --app-accent-apps-tint: rgba(184, 138, 154, 0.08);
+  --app-accent-store: #b88a9a; /* Soft rose - app store, browsing */
+  --app-accent-store-tint: rgba(184, 138, 154, 0.08);
   --app-accent-appmaker: #8a9ab8; /* Soft slate - creation, building */
   --app-accent-appmaker-tint: rgba(138, 154, 184, 0.08);
   --app-accent-docs: #7a9ac8; /* Soft blue - documentation, reference */

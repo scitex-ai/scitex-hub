@@ -286,9 +286,10 @@
   --app-accent-color: var(--app-accent-tools);
   --app-accent-tint: var(--app-accent-tools-tint);
 }
-[data-app-accent="apps"] {
-  --app-accent-color: var(--app-accent-apps);
-  --app-accent-tint: var(--app-accent-apps-tint);
+[data-app-accent="apps"],
+[data-app-accent="store"] {
+  --app-accent-color: var(--app-accent-store);
+  --app-accent-tint: var(--app-accent-store-tint);
 }
 [data-app-accent="appmaker"] {
   --app-accent-color: var(--app-accent-appmaker);
