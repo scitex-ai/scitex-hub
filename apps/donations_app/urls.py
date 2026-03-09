@@ -14,7 +14,7 @@ from django.urls import path
 
 from . import views
 
-app_name = "donations"
+app_name = "donations_app"
 
 urlpatterns = [
     # Pricing and subscription pages
