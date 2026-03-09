@@ -382,7 +382,7 @@ def compilation_job_status(request, project_id, job_id):
         )
 
     # Convert ANSI codes to HTML
-    from apps.common.utils.ansi_to_html import ansi_to_html
+    from apps.writer_app.utils.ansi_to_html import ansi_to_html
 
     raw_log = "\n".join(job["log"])
     html_log = ansi_to_html(raw_log)
