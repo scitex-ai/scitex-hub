@@ -24,7 +24,7 @@ import {
   initRepoFilterShortcut,
 } from "./hub-me-tab";
 import "./toolbar-dropdowns"; // Exposes dropdown toggle functions to window
-import { submitToAppStore } from "../../../../../apps/project_app/static/project_app/ts/shared/project-app/project-actions";
+import { submitToAppStore } from "../../../../../apps/infra/project_app/static/project_app/ts/shared/project-app/project-actions";
 import {
   switchHubTab,
   loadHubTabContent,
