@@ -65,6 +65,32 @@ check_docker() {
     else
         echo -e "  ${YELLOW}[WARN] No containers running${NC}"
     fi
+
+    # Crash-loop detection: containers restarting with low uptime while others are stable
+    local looping=""
+    while IFS= read -r line; do
+        local name status
+        name=$(echo "$line" | awk '{print $1}')
+        status=$(echo "$line" | cut -d' ' -f2-)
+        # Match "Up N seconds" (under 60s) — sign of restart loop
+        if echo "$status" | grep -qE "Up [0-9]+ seconds"; then
+            looping="${looping}${name}\n"
+        fi
+    done <<< "$containers"
+
+    if [ -n "$looping" ]; then
+        # Only flag as loop if some containers are healthy (stable for minutes+)
+        local has_stable
+        has_stable=$(echo "$containers" | grep -cE "Up [0-9]+ (minutes|hours|days)" || true)
+        if [ "$has_stable" -gt 0 ]; then
+            echo ""
+            echo -e "  ${RED}[CRASH-LOOP] These containers keep restarting:${NC}"
+            echo -e "$looping" | while read -r c; do
+                [ -n "$c" ] && echo -e "    ${RED}→ $c${NC}"
+            done
+            echo -e "  ${YELLOW}Check logs: docker compose logs <service> --tail 50${NC}"
+        fi
+    fi
 }
 
 # ── Launch all sections in parallel ────────────────────────
