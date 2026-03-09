@@ -7,18 +7,19 @@ Loaded via /<org-slug>/settings/ or /<org-slug>/settings/<section>/
 {% load static vite %}
 
 {% block extra_css %}
+    <link rel="stylesheet" href="{% static 'hub_app/css/hub.css' %}" />
     <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
     <link rel="stylesheet" href="{% static 'organizations_app/css/org-profile.css' %}" />
     <link rel="stylesheet" href="{% static 'organizations_app/css/org-settings.css' %}" />
 {% endblock %}
 {% block content %}
-    <!-- Org Mode Switcher (consistent with profile page) -->
+    <!-- Org Mode Switcher — reuses hub-mode classes for visual consistency -->
     <div class="org-profile-page">
-        <div class="org-mode-switcher">
-            <a href="/{{ organization.slug }}/" class="org-mode">
+        <div class="hub-mode-switcher" id="hub-mode-switcher">
+            <a href="/{{ organization.slug }}/" class="hub-mode">
                 <i class="fas fa-th-large"></i> Overview
             </a>
-            <a href="/{{ organization.slug }}/settings/" class="org-mode org-mode-active">
+            <a href="/{{ organization.slug }}/settings/" class="hub-mode hub-mode-active">
                 <i class="fas fa-cog"></i> Settings
             </a>
         </div>

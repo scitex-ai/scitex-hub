@@ -214,7 +214,7 @@ def _filter_modules_for_user(request, modules):
             if not mod.default_enabled:
                 continue  # Respect registry default_enabled=False
             # No record = default visible, keep registry order
-            mod.order = (idx + 1) * 10
+            # mod.order already set by registry (ModuleConfig.order)
             mod.accent_color = ""
             visible.append(mod)
         elif inst.is_enabled:

@@ -8,169 +8,171 @@
     <link rel="stylesheet" href="{% static 'organizations_app/css/org-profile.css' %}" />
 {% endblock %}
 {% block content %}
-    <div class="hub-content">
-        <!-- Org Mode Switcher (like Hub's My | Settings) -->
-        <div class="org-mode-switcher">
-            <a href="/{{ organization.slug }}/" class="org-mode org-mode-active">
+    <div class="hub-main">
+        <!-- Org Mode Switcher — reuses hub-mode classes for visual consistency -->
+        <div class="hub-mode-switcher" id="hub-mode-switcher">
+            <a href="/{{ organization.slug }}/" class="hub-mode hub-mode-active">
                 <i class="fas fa-th-large"></i> Overview
             </a>
             {% if is_admin %}
-                <a href="/{{ organization.slug }}/settings/" class="org-mode">
+                <a href="/{{ organization.slug }}/settings/" class="hub-mode">
                     <i class="fas fa-cog"></i> Settings
                 </a>
             {% endif %}
         </div>
-        <div class="hub-user-profile">
-            <!-- Left sidebar: org info -->
-            <div class="hub-user-sidebar">
-                <div class="hub-user-avatar">
-                    {% if organization.avatar %}
-                        <img src="{{ organization.avatar.url }}"
-                             alt="{{ organization.name }}"
-                             class="hub-user-avatar-img" />
-                    {% elif organization.avatar_static_url %}
-                        <img src="{% static organization.avatar_static_url %}"
-                             alt="{{ organization.name }}"
-                             class="hub-user-avatar-img" />
-                    {% else %}
-                        <i class="fas fa-building"></i>
-                    {% endif %}
-                </div>
-                <h2>{{ organization.name }}</h2>
-                <p class="text-muted org-profile-handle">@{{ organization.slug }}</p>
-                {% if organization.description %}<p class="org-profile-bio">{{ organization.description }}</p>{% endif %}
-                <div class="project-meta org-profile-meta">
-                    <span class="meta-item">
-                        <i class="fas fa-users"></i> {{ member_count }} member{{ member_count|pluralize }}
-                    </span>
-                    {% if organization.website %}
-                        <a href="{{ organization.website }}"
-                           target="_blank"
-                           rel="noopener"
-                           class="meta-item">
-                            <i class="fas fa-link"></i> {{ organization.website }}
-                        </a>
-                    {% endif %}
-                    <span class="meta-item">
-                        <i class="fas fa-calendar-alt"></i> Created {{ organization.created_at|date:"M Y" }}
-                    </span>
-                </div>
-                {% if is_admin %}
-                    <a href="/{{ organization.slug }}/settings/" class="hub-profile-settings-btn">
-                        <i class="fas fa-cog"></i> Settings
-                    </a>
-                {% endif %}
-            </div>
-            <!-- Right content: repos/apps list -->
-            <div class="hub-user-repos">
-                <div class="hub-repos-section">
-                    <div class="hub-repos-header">
-                        <h3>
-                            {% if app_modules %}
-                                Apps
-                            {% else %}
-                                Repositories
-                            {% endif %}
-                        </h3>
-                        <div class="hub-repo-filter-wrap">
-                            <i class="fas fa-filter hub-repo-filter-icon"></i>
-                            <input type="text"
-                                   id="org-repo-filter"
-                                   class="hub-repo-filter-input"
-                                   placeholder="Filter..."
-                                   autocomplete="off" />
-                        </div>
-                        {% if is_admin and not app_modules %}
-                            <a href="{% url 'project_create' %}" class="hub-new-project-btn">
-                                <i class="fas fa-plus"></i> New
-                            </a>
+        <div class="hub-content">
+            <div class="hub-user-profile">
+                <!-- Left sidebar: org info -->
+                <div class="hub-user-sidebar">
+                    <div class="hub-user-avatar">
+                        {% if organization.avatar %}
+                            <img src="{{ organization.avatar.url }}"
+                                 alt="{{ organization.name }}"
+                                 class="hub-user-avatar-img" />
+                        {% elif organization.avatar_static_url %}
+                            <img src="{% static organization.avatar_static_url %}"
+                                 alt="{{ organization.name }}"
+                                 class="hub-user-avatar-img" />
+                        {% else %}
+                            <i class="fas fa-building"></i>
                         {% endif %}
                     </div>
-                    {% if app_modules %}
-                        {% for mod in app_modules %}
-                            <div class="project-card mb-3 org-filterable-item" data-name="{{ mod.module_name }}">
-                                <div class="project-card-header">
-                                    <h3>
-                                        <a href="/apps/store/{{ mod.module_name }}/" class="hub-project-name-link">
-                                            {{ organization.slug }}/{{ mod.module_name }}
-                                        </a>
-                                    </h3>
-                                    <div class="project-card-badges">
-                                        {% if mod.visibility != "public" %}
-                                            <span class="badge badge-warning" title="Pending staff review">
-                                                <i class="fas fa-clock"></i> Pending
-                                            </span>
-                                        {% elif mod.is_verified %}
-                                            <span class="badge badge-verified" title="Verified app">
-                                                <i class="fas fa-check-circle"></i> Verified
-                                            </span>
-                                        {% endif %}
-                                        <span class="badge badge-app"><i class="fas fa-puzzle-piece"></i> App</span>
-                                    </div>
-                                </div>
-                                <div class="project-card-body">
-                                    {% if mod.short_description %}<p class="text-muted">{{ mod.short_description }}</p>{% endif %}
-                                    <div class="project-meta">
-                                        <span class="meta-item"><i class="fas fa-star"></i> {{ mod.star_count }}</span>
-                                        <span class="meta-item"><i class="fas fa-download"></i> {{ mod.install_count }}</span>
-                                        <span class="meta-item">{{ mod.get_category_display }}</span>
-                                        <span class="meta-item">Updated {{ mod.updated_at|timesince }} ago</span>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                        {% if app_modules.has_other_pages %}
-                            <nav class="org-pagination" aria-label="Page navigation">
-                                <div class="org-pagination-controls">
-                                    {% if app_modules.has_previous %}
-                                        <a href="?page={{ app_modules.previous_page_number }}" class="btn btn-secondary">Previous</a>
-                                    {% endif %}
-                                    <span class="org-pagination-info">{{ app_modules.number }} / {{ app_modules.paginator.num_pages }}</span>
-                                    {% if app_modules.has_next %}
-                                        <a href="?page={{ app_modules.next_page_number }}" class="btn btn-secondary">Next</a>
-                                    {% endif %}
-                                </div>
-                            </nav>
+                    <h2>{{ organization.name }}</h2>
+                    <p class="text-muted org-profile-handle">@{{ organization.slug }}</p>
+                    {% if organization.description %}<p class="org-profile-bio">{{ organization.description }}</p>{% endif %}
+                    <div class="project-meta org-profile-meta">
+                        <span class="meta-item">
+                            <i class="fas fa-users"></i> {{ member_count }} member{{ member_count|pluralize }}
+                        </span>
+                        {% if organization.website %}
+                            <a href="{{ organization.website }}"
+                               target="_blank"
+                               rel="noopener"
+                               class="meta-item">
+                                <i class="fas fa-link"></i> {{ organization.website }}
+                            </a>
                         {% endif %}
-                    {% elif projects %}
-                        {% for project in projects %}
-                            <div class="project-card mb-3 org-filterable-item" data-name="{{ project.name }}">
-                                <div class="project-card-header">
-                                    <h3>
-                                        <a href="/{{ project.owner.username }}/{{ project.slug }}/"
-                                           class="hub-project-name-link">
-                                            {{ project.owner.username }}/{{ project.name }}
-                                        </a>
-                                    </h3>
-                                    <div class="project-card-badges">
-                                        {% if project.is_app %}<span class="badge badge-app"><i class="fas fa-puzzle-piece"></i> App</span>{% endif %}
-                                        <span class="badge badge-{{ project.visibility }}">{{ project.visibility }}</span>
-                                    </div>
-                                </div>
-                                <div class="project-card-body">
-                                    {% if project.description %}<p class="text-muted">{{ project.description|truncatewords:20 }}</p>{% endif %}
-                                    <div class="project-meta">
-                                        <span class="meta-item">Updated {{ project.updated_at|timesince }} ago</span>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                        {% if projects.has_other_pages %}
-                            <nav class="org-pagination" aria-label="Page navigation">
-                                <div class="org-pagination-controls">
-                                    {% if projects.has_previous %}
-                                        <a href="?page={{ projects.previous_page_number }}" class="btn btn-secondary">Previous</a>
-                                    {% endif %}
-                                    <span class="org-pagination-info">{{ projects.number }} / {{ projects.paginator.num_pages }}</span>
-                                    {% if projects.has_next %}
-                                        <a href="?page={{ projects.next_page_number }}" class="btn btn-secondary">Next</a>
-                                    {% endif %}
-                                </div>
-                            </nav>
-                        {% endif %}
-                    {% else %}
-                        <p class="text-muted">No visible repositories</p>
+                        <span class="meta-item">
+                            <i class="fas fa-calendar-alt"></i> Created {{ organization.created_at|date:"M Y" }}
+                        </span>
+                    </div>
+                    {% if is_admin %}
+                        <a href="/{{ organization.slug }}/settings/" class="hub-profile-settings-btn">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
                     {% endif %}
+                </div>
+                <!-- Right content: repos/apps list -->
+                <div class="hub-user-repos">
+                    <div class="hub-repos-section">
+                        <div class="hub-repos-header">
+                            <h3>
+                                {% if app_modules %}
+                                    Apps
+                                {% else %}
+                                    Repositories
+                                {% endif %}
+                            </h3>
+                            <div class="hub-repo-filter-wrap">
+                                <i class="fas fa-filter hub-repo-filter-icon"></i>
+                                <input type="text"
+                                       id="org-repo-filter"
+                                       class="hub-repo-filter-input"
+                                       placeholder="Filter..."
+                                       autocomplete="off" />
+                            </div>
+                            {% if is_admin and not app_modules %}
+                                <a href="{% url 'project_create' %}" class="hub-new-project-btn">
+                                    <i class="fas fa-plus"></i> New
+                                </a>
+                            {% endif %}
+                        </div>
+                        {% if app_modules %}
+                            {% for mod in app_modules %}
+                                <div class="project-card mb-3 org-filterable-item" data-name="{{ mod.module_name }}">
+                                    <div class="project-card-header">
+                                        <h3>
+                                            <a href="/apps/store/{{ mod.module_name }}/" class="hub-project-name-link">
+                                                {{ organization.slug }}/{{ mod.module_name }}
+                                            </a>
+                                        </h3>
+                                        <div class="project-card-badges">
+                                            {% if mod.visibility != "public" %}
+                                                <span class="badge badge-warning" title="Pending staff review">
+                                                    <i class="fas fa-clock"></i> Pending
+                                                </span>
+                                            {% elif mod.is_verified %}
+                                                <span class="badge badge-verified" title="Verified app">
+                                                    <i class="fas fa-check-circle"></i> Verified
+                                                </span>
+                                            {% endif %}
+                                            <span class="badge badge-app"><i class="fas fa-puzzle-piece"></i> App</span>
+                                        </div>
+                                    </div>
+                                    <div class="project-card-body">
+                                        {% if mod.short_description %}<p class="text-muted">{{ mod.short_description }}</p>{% endif %}
+                                        <div class="project-meta">
+                                            <span class="meta-item"><i class="fas fa-star"></i> {{ mod.star_count }}</span>
+                                            <span class="meta-item"><i class="fas fa-download"></i> {{ mod.install_count }}</span>
+                                            <span class="meta-item">{{ mod.get_category_display }}</span>
+                                            <span class="meta-item">Updated {{ mod.updated_at|timesince }} ago</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            {% if app_modules.has_other_pages %}
+                                <nav class="org-pagination" aria-label="Page navigation">
+                                    <div class="org-pagination-controls">
+                                        {% if app_modules.has_previous %}
+                                            <a href="?page={{ app_modules.previous_page_number }}" class="btn btn-secondary">Previous</a>
+                                        {% endif %}
+                                        <span class="org-pagination-info">{{ app_modules.number }} / {{ app_modules.paginator.num_pages }}</span>
+                                        {% if app_modules.has_next %}
+                                            <a href="?page={{ app_modules.next_page_number }}" class="btn btn-secondary">Next</a>
+                                        {% endif %}
+                                    </div>
+                                </nav>
+                            {% endif %}
+                        {% elif projects %}
+                            {% for project in projects %}
+                                <div class="project-card mb-3 org-filterable-item" data-name="{{ project.name }}">
+                                    <div class="project-card-header">
+                                        <h3>
+                                            <a href="/{{ project.owner.username }}/{{ project.slug }}/"
+                                               class="hub-project-name-link">
+                                                {{ project.owner.username }}/{{ project.name }}
+                                            </a>
+                                        </h3>
+                                        <div class="project-card-badges">
+                                            {% if project.is_app %}<span class="badge badge-app"><i class="fas fa-puzzle-piece"></i> App</span>{% endif %}
+                                            <span class="badge badge-{{ project.visibility }}">{{ project.visibility }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="project-card-body">
+                                        {% if project.description %}<p class="text-muted">{{ project.description|truncatewords:20 }}</p>{% endif %}
+                                        <div class="project-meta">
+                                            <span class="meta-item">Updated {{ project.updated_at|timesince }} ago</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            {% if projects.has_other_pages %}
+                                <nav class="org-pagination" aria-label="Page navigation">
+                                    <div class="org-pagination-controls">
+                                        {% if projects.has_previous %}
+                                            <a href="?page={{ projects.previous_page_number }}" class="btn btn-secondary">Previous</a>
+                                        {% endif %}
+                                        <span class="org-pagination-info">{{ projects.number }} / {{ projects.paginator.num_pages }}</span>
+                                        {% if projects.has_next %}
+                                            <a href="?page={{ projects.next_page_number }}" class="btn btn-secondary">Next</a>
+                                        {% endif %}
+                                    </div>
+                                </nav>
+                            {% endif %}
+                        {% else %}
+                            <p class="text-muted">No visible repositories</p>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>

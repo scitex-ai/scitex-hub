@@ -73,6 +73,7 @@ def build_hub_context(request, current_project=None):
 
     # Add profile context for Me tab initial render (when no project is loaded)
     if not current_project:
+        from apps.infra.organizations_app.models import Organization
         from apps.infra.social_app.models import UserFollow
 
         context.update(
@@ -83,6 +84,9 @@ def build_hub_context(request, current_project=None):
                 "following_count": UserFollow.get_following_count(request.user),
                 "is_own_projects": True,
                 "show_account_settings": True,
+                "organizations": Organization.objects.filter(
+                    members=request.user
+                ).order_by("name"),
             }
         )
 
@@ -185,6 +189,7 @@ def _build_profile_context(request, username):
     from django.db import models
     from django.shortcuts import get_object_or_404
 
+    from apps.infra.organizations_app.models import Organization
     from apps.infra.social_app.models import UserFollow
 
     profile_user = get_object_or_404(User, username=username)
@@ -207,6 +212,7 @@ def _build_profile_context(request, username):
         if request.user.is_authenticated
         else False
     )
+    organizations = Organization.objects.filter(members=profile_user).order_by("name")
 
     return {
         "profile_user": profile_user,
@@ -215,6 +221,7 @@ def _build_profile_context(request, username):
         "following_count": following_count,
         "is_following": is_following,
         "is_own_projects": request.user == profile_user,
+        "organizations": organizations,
     }
 
 

@@ -1,37 +1,4 @@
-/* Organization Profile — reuses hub-user-* layout classes */
-
-/* Org Mode Switcher — like Hub's My | Settings tabs */
-.org-mode-switcher {
-  display: flex;
-  gap: 0;
-  border-bottom: 1px solid var(--workspace-border-default, #e1e4e8);
-  margin-bottom: 24px;
-  padding-top: 4px;
-}
-
-.org-mode {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--workspace-text-muted, #586069);
-  text-decoration: none;
-  border-bottom: 2px solid transparent;
-  transition:
-    color 0.15s,
-    border-color 0.15s;
-}
-
-.org-mode:hover {
-  color: var(--workspace-text-primary, #24292e);
-}
-
-.org-mode-active {
-  color: var(--workspace-text-primary, #24292e);
-  border-bottom-color: var(--color-accent-fg, #f78166);
-}
+/* Organization Profile — reuses hub-user-* and hub-mode-* layout classes */
 
 /* Org sidebar overrides */
 .org-profile-handle {

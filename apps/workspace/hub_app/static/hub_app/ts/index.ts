@@ -16,6 +16,7 @@ import {
   updateCurrentProjectTab,
 } from "./hub-navigate";
 import { handleExploreClick } from "./hub-explore";
+import { handleSettingsNavClick } from "./hub-settings-nav";
 import {
   handleMeProjectDropdown,
   handleMeProjectSelect,
@@ -135,6 +136,10 @@ function initHub(): void {
     // Explore clicks (tab switching + user profile links)
     if (handleExploreClick(target, e)) return;
 
+    // Settings nav clicks — must be before the container guard since
+    // #hub-account-settings lives outside .hub-browse-container
+    if (handleSettingsNavClick(target, hubMain, e)) return;
+
     // --- Project workspace navigation ---
     const container = target.closest(
       ".hub-browse-container",
@@ -174,31 +179,6 @@ function initHub(): void {
       e.stopPropagation();
       const state = pullsFilter.getAttribute("data-hub-pulls-state") || "open";
       loadHubTabContent("pulls", container, `state=${state}`);
-      return;
-    }
-
-    // Settings nav clicks
-    const settingsNav = target.closest(
-      "a.hub-settings-nav-item",
-    ) as HTMLAnchorElement | null;
-    if (settingsNav) {
-      e.preventDefault();
-      e.stopPropagation();
-      const section = settingsNav.getAttribute("data-section") || "general";
-      container.querySelectorAll(".hub-settings-nav-item").forEach((el) => {
-        (el as HTMLElement).classList.remove("active");
-        (el as HTMLElement).style.background = "";
-        (el as HTMLElement).style.color = "var(--workspace-text-muted)";
-      });
-      settingsNav.classList.add("active");
-      settingsNav.style.background = "var(--workspace-bg-tertiary)";
-      settingsNav.style.color = "var(--workspace-text-primary)";
-      container
-        .querySelectorAll<HTMLElement>(".hub-settings-section")
-        .forEach((el) => {
-          el.style.display =
-            el.getAttribute("data-section") === section ? "block" : "none";
-        });
       return;
     }
 

@@ -1,0 +1,50 @@
+{% comment %}
+Hub mode switcher — shared between index.html and index_partial.html.
+
+Org context: shows "org-slug | project-slug" tabs.
+Personal context: shows "My | Settings | project-slug" tabs.
+{% endcomment %}
+{% if is_org_context %}
+    <div class="hub-mode-switcher" id="hub-mode-switcher">
+        <a href="/{{ org_slug }}/" class="hub-mode">
+            <i class="fas fa-building"></i> {{ org_slug }}
+        </a>
+        <a href="#"
+           class="hub-mode hub-mode-active"
+           data-hub-mode="projects"
+           {% if current_project %}data-project-id="{{ current_project.id }}"{% endif %}>
+            <i class="fas fa-folder-open"></i>
+            <span class="hub-mode-project-label">
+                {% if current_project %}
+                    {{ current_project.slug }}
+                {% else %}
+                    —
+                {% endif %}
+            </span>
+        </a>
+    </div>
+{% else %}
+    <div class="hub-mode-switcher" id="hub-mode-switcher">
+        <a href="#"
+           class="hub-mode {% if hub_initial_mode != 'projects' %}hub-mode-active{% endif %}"
+           data-hub-mode="me">
+            <i class="fas fa-user"></i> My
+        </a>
+        <a href="#" class="hub-mode" data-hub-mode="settings">
+            <i class="fas fa-cog"></i> Settings
+        </a>
+        <a href="#"
+           class="hub-mode {% if hub_initial_mode == 'projects' %}hub-mode-active{% endif %}"
+           data-hub-mode="projects"
+           {% if current_project %}data-project-id="{{ current_project.id }}"{% endif %}>
+            <i class="fas fa-folder-open"></i>
+            <span class="hub-mode-project-label">
+                {% if current_project %}
+                    {{ current_project.slug }}
+                {% else %}
+                    —
+                {% endif %}
+            </span>
+        </a>
+    </div>
+{% endif %}
