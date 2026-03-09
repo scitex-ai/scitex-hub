@@ -3,7 +3,7 @@ from apps.llm_app.skills import Skill, register
 register(
     Skill(
         app_name="vis",
-        display_name="Visualizer - Data Visualization",
+        display_name="Vis - Data Visualization",
         description=(
             "Data visualization and figure management. View plots, manage "
             "figure recipes, and export publication-ready figures."
