@@ -433,3 +433,40 @@
 .library-empty-state-description {
   font-size: 0.9rem;
 }
+
+/* Migration card helpers */
+.icon-bibtex {
+  color: #e8a838;
+}
+.icon-zotero {
+  color: #cc2936;
+}
+.icon-connected-papers {
+  color: #6c7ae0;
+}
+.mig-card__btn-group {
+  display: flex;
+  gap: 4px;
+}
+.mig-card__btn-group .mig-card__btn {
+  flex: 1;
+}
+.mig-card__hr {
+  border-color: var(--workspace-border-default, #3a3a3a);
+  margin: 8px 0;
+}
+.mig-card__status-indicator {
+  margin-bottom: 8px;
+}
+.mig-card__filter-group {
+  margin-bottom: 6px;
+}
+.mig-status--success {
+  color: var(--color-success-fg, #3fb950);
+}
+.mig-status--danger {
+  color: var(--color-danger-fg, #f85149);
+}
+.mig-status--warning {
+  color: var(--color-attention-fg, #d29922);
+}

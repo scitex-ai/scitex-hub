@@ -158,5 +158,11 @@ if (document.readyState === "loading") {
   initFromDataAttributes();
 }
 
+document.addEventListener("workspace:module-injected", (e) => {
+  if ((e as CustomEvent).detail?.module === "scholar") {
+    initFromDataAttributes();
+  }
+});
+
 // Export for external use
 export default { initScholarConfig };

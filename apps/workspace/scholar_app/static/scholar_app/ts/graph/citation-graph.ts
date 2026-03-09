@@ -412,3 +412,10 @@ if (document.readyState === "loading") {
 } else {
   initAll();
 }
+
+// Re-initialize when Scholar partial is re-injected via AJAX (ES modules are cached)
+document.addEventListener("workspace:module-injected", (e) => {
+  if ((e as CustomEvent).detail?.module === "scholar") {
+    initAll();
+  }
+});

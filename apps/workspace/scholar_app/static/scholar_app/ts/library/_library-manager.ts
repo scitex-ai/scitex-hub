@@ -27,6 +27,26 @@ class LibraryManager {
 
   private async fetchPapers(): Promise<void> {
     this.papers = await LibraryAPI.fetchPapers();
+    this.updateTabBadge(this.papers.length);
+  }
+
+  private updateTabBadge(count: number): void {
+    const tabLink = document.querySelector<HTMLElement>(
+      '.scholar-tab[data-tab="library"]',
+    );
+    if (!tabLink) return;
+
+    let badge = tabLink.querySelector<HTMLElement>(".scholar-tab-badge");
+    if (count > 0) {
+      if (!badge) {
+        badge = document.createElement("span");
+        badge.className = "scholar-tab-badge";
+        tabLink.appendChild(badge);
+      }
+      badge.textContent = String(count);
+    } else if (badge) {
+      badge.remove();
+    }
   }
 
   private renderStats(): void {
@@ -282,7 +302,7 @@ class LibraryManager {
   }
 
   async refreshLibrary(): Promise<void> {
-    await this.fetchPapers();
+    await this.fetchPapers(); // also updates badge
     this.renderStats();
     this.applyFilters();
     this.renderPaperList();
@@ -292,14 +312,11 @@ class LibraryManager {
 let _manager: LibraryManager | null = null;
 
 export function initLibraryManager(): void {
-  if (_manager) return; // Already initialized
+  if (_manager) {
+    // Already initialized — just refresh if we're returning to the tab
+    _manager.refreshLibrary();
+    return;
+  }
   _manager = new LibraryManager();
   _manager.initialize();
-
-  // Re-fetch papers when navigating back to Library tab
-  window.addEventListener("hashchange", () => {
-    if (window.location.hash === "#library") {
-      _manager?.refreshLibrary();
-    }
-  });
 }

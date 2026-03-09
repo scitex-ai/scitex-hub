@@ -900,8 +900,15 @@
                     }
                 });
 
-                // Trigger resize for components that need it (like graphs)
-                window.dispatchEvent(new Event('resize'));
+                // Trigger resize after layout is applied (rAF ensures CSS computed)
+                requestAnimationFrame(function() {
+                    window.dispatchEvent(new Event('resize'));
+                    // Re-init any in-app resizers that may not have proper sizes
+                    // (they initialize with hidden containers → zero dimensions)
+                    if (typeof window.initNewResizers === 'function') {
+                        window.initNewResizers();
+                    }
+                });
             }
 
             function init() {

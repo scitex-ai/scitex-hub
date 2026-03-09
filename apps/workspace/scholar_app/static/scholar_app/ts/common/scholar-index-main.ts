@@ -86,3 +86,9 @@ if (document.readyState === "loading") {
 } else {
   initScholarIndexMain();
 }
+
+document.addEventListener("workspace:module-injected", (e) => {
+  if ((e as CustomEvent).detail?.module === "scholar") {
+    initScholarIndexMain();
+  }
+});
