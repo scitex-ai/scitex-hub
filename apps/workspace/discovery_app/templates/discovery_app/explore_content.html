@@ -2,21 +2,33 @@
 Discovery explore content — returned by /discovery/api/explore/?tab=...
 Also included directly in discovery_partial.html for initial render.
 {% endcomment %}
+{% load static %}
+
 {% if tab == 'repositories' %}
     {% if repositories %}
         {% for repo in repositories %}
             <div class="project-card mb-3">
                 <div class="project-card-header">
                     <h3 class="discovery-repo-title">
-                        <a href="/{{ repo.owner.username }}/{{ repo.slug }}/">
-                            {% if repo.owner.profile.avatar %}
+                        <a href="/{{ repo.effective_owner_slug }}/{{ repo.slug }}/">
+                            {% if repo.is_org_owned and repo.org_owner.avatar %}
+                                <img src="{{ repo.org_owner.avatar.url }}"
+                                     class="discovery-owner-badge-img"
+                                     alt="{{ repo.org_owner.name }}" />
+                            {% elif repo.is_org_owned and repo.org_owner.avatar_static_url %}
+                                <img src="{% static repo.org_owner.avatar_static_url %}"
+                                     class="discovery-owner-badge-img"
+                                     alt="{{ repo.org_owner.name }}" />
+                            {% elif repo.is_org_owned %}
+                                <span class="discovery-owner-badge"><i class="fas fa-building"></i></span>
+                            {% elif repo.owner.profile.avatar %}
                                 <img src="{{ repo.owner.profile.avatar.url }}"
                                      class="discovery-owner-badge-img"
                                      alt="{{ repo.owner.username }}" />
                             {% else %}
                                 <span class="discovery-owner-badge">{{ repo.owner.username|slice:":1"|upper }}</span>
                             {% endif %}
-                            <span class="discovery-repo-owner-part">{{ repo.owner.username }}</span>
+                            <span class="discovery-repo-owner-part">{{ repo.effective_owner_slug }}</span>
                             <span class="discovery-repo-sep">/</span>
                             <span class="discovery-repo-name-part">{{ repo.name }}</span>
                         </a>
@@ -43,7 +55,7 @@ Also included directly in discovery_partial.html for initial render.
                             <button type="button"
                                     class="btn btn-sm dev-install-btn"
                                     data-action="dev-install"
-                                    data-owner="{{ repo.owner.username }}"
+                                    data-owner="{{ repo.effective_owner_slug }}"
                                     data-repo="{{ repo.slug }}"
                                     title="Install privately in your workspace">
                                 <i class="fas fa-download"></i> Private Install
@@ -93,7 +105,17 @@ Also included directly in discovery_partial.html for initial render.
                 <div class="project-card">
                     <div class="discovery-user-card-inner">
                         <div class="discovery-user-avatar">
-                            <i class="fas fa-building"></i>
+                            {% if org.avatar %}
+                                <img src="{{ org.avatar.url }}"
+                                     alt="{{ org.name }}"
+                                     class="discovery-user-avatar-img" />
+                            {% elif org.avatar_static_url %}
+                                <img src="{% static org.avatar_static_url %}"
+                                     alt="{{ org.name }}"
+                                     class="discovery-user-avatar-img" />
+                            {% else %}
+                                <i class="fas fa-building"></i>
+                            {% endif %}
                         </div>
                         <div class="discovery-user-info">
                             <div>
