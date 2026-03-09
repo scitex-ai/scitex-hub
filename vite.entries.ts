@@ -51,78 +51,42 @@ function r(rootDir: string, path: string): string {
   return resolve(rootDir, path);
 }
 
+/**
+ * Auto-discover TS entry points for all apps under apps/infra/ and apps/workspace/.
+ * Convention: apps/<group>/<app_name>/static/<app_name>/ts/
+ */
+function discoverAppEntries(rootDir: string): Record<string, string> {
+  const entries: Record<string, string> = {};
+  const appsDir = resolve(rootDir, "apps");
+  for (const group of ["infra", "workspace"]) {
+    const groupDir = resolve(appsDir, group);
+    if (!fs.existsSync(groupDir)) continue;
+    for (const appName of fs.readdirSync(groupDir)) {
+      if (appName.startsWith("_") || appName.startsWith(".")) continue;
+      const tsDir = resolve(groupDir, appName, "static", appName, "ts");
+      if (fs.existsSync(tsDir)) {
+        Object.assign(
+          entries,
+          generateEntriesRecursive(
+            rootDir,
+            `apps/${group}/${appName}/static/${appName}/ts`,
+            appName,
+          ),
+        );
+      }
+    }
+  }
+  return entries;
+}
+
 export function getEntryPoints(rootDir: string): Record<string, string> {
   return {
     // ── Auto-discovered entries ─────────────────────────────────
     // Shared: scans static/shared/ts/ recursively (components, utils, etc.)
     ...generateEntriesRecursive(rootDir, "static/shared/ts", "shared"),
 
-    // App-specific entries
-    ...generateEntriesRecursive(
-      rootDir,
-      "apps/console_app/static/console_app/ts",
-      "console_app",
-    ),
-    ...generateEntriesRecursive(
-      rootDir,
-      "apps/vis_app/static/vis_app/ts",
-      "vis_app",
-    ),
-    ...generateEntriesRecursive(
-      rootDir,
-      "apps/writer_app/static/writer_app/ts",
-      "writer_app",
-    ),
-    ...generateEntriesRecursive(
-      rootDir,
-      "apps/project_app/static/project_app/ts",
-      "project_app",
-    ),
-    ...generateEntriesRecursive(
-      rootDir,
-      "apps/scholar_app/static/scholar_app/ts",
-      "scholar_app",
-    ),
-    ...generateEntriesRecursive(
-      rootDir,
-      "apps/public_app/static/public_app/ts",
-      "public_app",
-    ),
-    ...generateEntriesRecursive(
-      rootDir,
-      "apps/accounts_app/static/accounts_app/ts",
-      "accounts_app",
-    ),
-    ...generateEntriesRecursive(
-      rootDir,
-      "apps/hub_app/static/hub_app/ts",
-      "hub_app",
-    ),
-    ...generateEntriesRecursive(
-      rootDir,
-      "apps/discovery_app/static/discovery_app/ts",
-      "discovery_app",
-    ),
-    ...generateEntriesRecursive(
-      rootDir,
-      "apps/clew_app/static/clew_app/ts",
-      "clew_app",
-    ),
-    ...generateEntriesRecursive(
-      rootDir,
-      "apps/social_app/static/social_app/ts",
-      "social_app",
-    ),
-    ...generateEntriesRecursive(
-      rootDir,
-      "apps/docs_app/static/docs_app/ts",
-      "docs_app",
-    ),
-    ...generateEntriesRecursive(
-      rootDir,
-      "apps/apps_app/static/apps_app/ts",
-      "apps_app",
-    ),
+    // App-specific entries: auto-discovered from apps/infra/ and apps/workspace/
+    ...discoverAppEntries(rootDir),
 
     // ── Explicit overrides ──────────────────────────────────────
     // These entries have template names that differ from convention.
@@ -160,14 +124,14 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       "static/workspace_app/ts/workspace-shell.ts",
     ),
 
-    // Dev app scripts (standalone utilities)
+    // Dev app scripts (standalone utilities — in scripts/ subdir, not ts/)
     "dev_app/scripts/design": r(
       rootDir,
-      "apps/dev_app/static/dev_app/scripts/design.ts",
+      "apps/workspace/dev_app/static/dev_app/scripts/design.ts",
     ),
     "dev_app/scripts/scitex-icon-generator": r(
       rootDir,
-      "apps/dev_app/static/dev_app/scripts/scitex-icon-generator.ts",
+      "apps/workspace/dev_app/static/dev_app/scripts/scitex-icon-generator.ts",
     ),
   };
 }
