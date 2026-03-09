@@ -1,18 +1,18 @@
 {% load static %}
 
-<!-- My Modules grid partial -->
+<!-- My Apps grid partial -->
 <link rel="stylesheet" href="{% static 'appmaker_app/css/usermod.css' %}" />
 <div class="usermod-workspace">
     <div class="usermod-list-header">
         <h2>
-            <i class="fas fa-puzzle-piece"></i> My Modules
+            <i class="fas fa-puzzle-piece"></i> My Apps
         </h2>
         <div class="usermod-header-actions">
             <button class="btn btn-outline" id="import-github-btn" title="Import from GitHub">
                 <i class="fab fa-github"></i> Import from GitHub
             </button>
             <a href="{% url 'appmaker_app:editor_new' %}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> New Module
+                <i class="fas fa-plus"></i> New App
             </a>
         </div>
     </div>
@@ -20,7 +20,7 @@
     <div id="github-import-dialog" class="usermod-import-dialog" style="display:none;">
         <div class="usermod-import-form">
             <h3>
-                <i class="fab fa-github"></i> Import Module from GitHub
+                <i class="fab fa-github"></i> Import App from GitHub
             </h3>
             <p class="usermod-import-hint">
                 Paste the URL of a GitHub repository containing a <code>module.py</code>
@@ -108,7 +108,7 @@
         <div class="usermod-empty">
             <i class="fas fa-puzzle-piece"></i>
             <p>
-                You have no modules yet. Click <strong>New Module</strong> to create from scratch
+                You have no apps yet. Click <strong>New App</strong> to create from scratch
                 or <strong>Import from GitHub</strong> to import a template.
             </p>
         </div>

@@ -1,6 +1,6 @@
 {% load static %}
 
-<!-- Module code editor -->
+<!-- App code editor -->
 <link rel="stylesheet" href="{% static 'appmaker_app/css/editor.css' %}" />
 <div class="modeditor-workspace">
     <div class="modeditor-header">
@@ -9,7 +9,7 @@
             {% if module %}
                 Edit: {{ module.label }}
             {% else %}
-                New Module
+                New App
             {% endif %}
         </h2>
         <a href="{% url 'appmaker_app:my_modules' %}" class="btn btn-sm btn-outline">
@@ -31,7 +31,7 @@
                        name="label"
                        maxlength="100"
                        required
-                       placeholder="My Custom Module"
+                       placeholder="My Custom App"
                        value="{{ module.label|default:'' }}" />
             </div>
             <div class="modeditor-field modeditor-field--short">
@@ -58,7 +58,7 @@
                        id="mod-description"
                        name="description"
                        maxlength="300"
-                       placeholder="Brief description of what this module does"
+                       placeholder="Brief description of what this app does"
                        value="{{ module.description|default:'' }}" />
             </div>
         </div>
@@ -69,7 +69,7 @@
                       name="source_code"
                       rows="20"
                       spellcheck="false"
-                      placeholder="# Write your module code here&#10;import numpy as np&#10;&#10;def run(project, config):&#10;    return [{'type': 'text', 'content': 'Hello from my module!'}]">{% if module %}{{ module.source_code }}{% endif %}</textarea>
+                      placeholder="# Write your app code here&#10;import numpy as np&#10;&#10;def run(project, config):&#10;    return [{'type': 'text', 'content': 'Hello from my app!'}]">{% if module %}{{ module.source_code }}{% endif %}</textarea>
         </div>
         <!-- Actions -->
         <div class="modeditor-actions">
