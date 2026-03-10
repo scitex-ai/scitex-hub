@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.public_app.forms import ...
+# from apps.infra.public_app.forms import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -29,13 +30,13 @@ if __name__ == "__main__":
 # from django.conf import settings
 # from .models import Donation, EmailVerification
 # import logging
-# 
+#
 # logger = logging.getLogger("scitex")
-# 
-# 
+#
+#
 # class DonationForm(forms.ModelForm):
 #     """Form for processing donations."""
-# 
+#
 #     class Meta:
 #         model = Donation
 #         fields = [
@@ -65,47 +66,47 @@ if __name__ == "__main__":
 #                 }
 #             ),
 #         }
-# 
+#
 #     def __init__(self, *args, **kwargs):
 #         super().__init__(*args, **kwargs)
 #         self.fields["is_public"].label = "List me as a public supporter"
 #         self.fields["message"].required = False
-# 
-# 
+#
+#
 # class EmailVerificationForm(forms.Form):
 #     """Form for email verification."""
-# 
+#
 #     email = forms.EmailField(
 #         widget=forms.EmailInput(
 #             attrs={"class": "form-control", "placeholder": "Enter your email"}
 #         )
 #     )
-# 
+#
 #     def send_verification_email(self):
 #         """Send verification email with 6-digit code."""
 #         email = self.cleaned_data["email"]
-# 
+#
 #         # Generate verification code
 #         code = EmailVerification.generate_code()
-# 
+#
 #         # Save to database
 #         verification = EmailVerification.objects.create(email=email, code=code)
-# 
+#
 #         # Send email
 #         subject = "SciTeX Email Verification Code"
 #         message = f"""
 # Dear SciTeX User,
-# 
+#
 # Your verification code is: {code}
-# 
+#
 # This code will expire in 15 minutes.
-# 
+#
 # If you didn't request this verification, please ignore this email.
-# 
+#
 # Best regards,
 # The SciTeX Team
 # """
-# 
+#
 #         try:
 #             send_mail(
 #                 subject,
@@ -119,11 +120,11 @@ if __name__ == "__main__":
 #         except Exception as e:
 #             logger.error(f"Failed to send verification email to {email}: {str(e)}")
 #             return False
-# 
-# 
+#
+#
 # class VerifyCodeForm(forms.Form):
 #     """Form for verifying the 6-digit code."""
-# 
+#
 #     code = forms.CharField(
 #         max_length=6,
 #         min_length=6,
@@ -136,18 +137,18 @@ if __name__ == "__main__":
 #             }
 #         ),
 #     )
-# 
+#
 #     def __init__(self, *args, email=None, **kwargs):
 #         super().__init__(*args, **kwargs)
 #         self.email = email
-# 
+#
 #     def clean_code(self):
 #         """Validate the verification code."""
 #         code = self.cleaned_data["code"]
-# 
+#
 #         if not self.email:
 #             raise forms.ValidationError("Email not provided")
-# 
+#
 #         # Get the latest verification for this email
 #         try:
 #             verification = EmailVerification.objects.filter(
@@ -155,25 +156,25 @@ if __name__ == "__main__":
 #             ).latest("created_at")
 #         except EmailVerification.DoesNotExist:
 #             raise forms.ValidationError("No pending verification found")
-# 
+#
 #         # Check if expired
 #         if verification.is_expired():
 #             raise forms.ValidationError("Verification code has expired")
-# 
+#
 #         # Check if code matches
 #         if verification.code != console:
 #             raise forms.ValidationError("Invalid verification code")
-# 
+#
 #         # Mark as verified
 #         verification.is_verified = True
 #         verification.save()
-# 
+#
 #         return code
-# 
-# 
+#
+#
 # class SignupForm(forms.Form):
 #     """Form for user registration."""
-# 
+#
 #     username = forms.CharField(
 #         max_length=150,
 #         widget=forms.TextInput(
@@ -201,40 +202,40 @@ if __name__ == "__main__":
 #         widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
 #         label="I agree to the Terms of Service and Privacy Policy",
 #     )
-# 
+#
 #     def clean_username(self):
 #         """Validate username is unique."""
 #         from django.contrib.auth.models import User
-# 
+#
 #         username = self.cleaned_data["username"]
 #         if User.objects.filter(username=username).exists():
 #             raise forms.ValidationError("This username is already taken.")
 #         return username
-# 
+#
 #     def clean_email(self):
 #         """Validate email is unique."""
 #         from django.contrib.auth.models import User
-# 
+#
 #         email = self.cleaned_data["email"]
 #         if User.objects.filter(email=email).exists():
 #             raise forms.ValidationError("An account with this email already exists.")
 #         return email
-# 
+#
 #     def clean(self):
 #         """Validate passwords match."""
 #         cleaned_data = super().clean()
 #         password = cleaned_data.get("password")
 #         password2 = cleaned_data.get("password2")
-# 
+#
 #         if password and password2 and password != password2:
 #             raise forms.ValidationError("Passwords do not match.")
-# 
+#
 #         return cleaned_data
-# 
-# 
+#
+#
 # class LoginForm(forms.Form):
 #     """Form for user login."""
-# 
+#
 #     username = forms.CharField(
 #         widget=forms.TextInput(
 #             attrs={"class": "form-control", "placeholder": "Username or Email"}

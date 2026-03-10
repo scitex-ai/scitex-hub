@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.admin.compilation import ...
+# from apps.workspace.writer_app.admin.compilation import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,16 +27,16 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # from django.contrib import admin
 # from ..models import CompilationJob, AIAssistanceLog
-# 
-# 
+#
+#
 # @admin.register(CompilationJob)
 # class CompilationJobAdmin(admin.ModelAdmin):
 #     list_display = ["job_id", "manuscript", "status", "compilation_type", "created_at"]
 #     search_fields = ["manuscript__title"]
 #     list_filter = ["status", "compilation_type", "created_at"]
 #     readonly_fields = ["job_id", "created_at"]
-# 
-# 
+#
+#
 # @admin.register(AIAssistanceLog)
 # class AIAssistanceLogAdmin(admin.ModelAdmin):
 #     list_display = ["assistance_type", "manuscript", "user", "created_at"]

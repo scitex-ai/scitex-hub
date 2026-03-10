@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.vis_app.services.plot_renderer.data_loader import ...
+# from apps.workspace.vis_app.services.plot_renderer.data_loader import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -29,24 +30,24 @@ if __name__ == "__main__":
 # """
 # Data Loading for Plot Rendering
 # """
-# 
+#
 # import os
 # import pandas as pd
-# 
-# 
+#
+#
 # def load_data_from_spec(plot_spec):
 #     """
 #     Load data from plot specification.
-# 
+#
 #     Args:
 #         plot_spec: Dictionary with either 'data' (inline) or 'csv_path' (file)
-# 
+#
 #     Returns:
 #         DataFrame with plot data
 #     """
 #     csv_path = plot_spec.get('csv_path')
 #     inline_data = plot_spec.get('data')
-# 
+#
 #     if inline_data:
 #         # Convert inline data array to DataFrame
 #         # Supports [[x1, y1], [x2, y2], ...] format
@@ -57,10 +58,10 @@ if __name__ == "__main__":
 #         raise ValueError(
 #             f"No data provided. Specify either 'data' (inline array) or 'csv_path' (file path)"
 #         )
-# 
+#
 #     return df
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

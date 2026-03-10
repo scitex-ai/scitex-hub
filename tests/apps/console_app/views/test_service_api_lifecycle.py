@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.views.service_api_lifecycle import ...
+# from apps.workspace.console_app.views.service_api_lifecycle import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,7 +29,7 @@ if __name__ == "__main__":
 # """
 # API views for Project Service lifecycle management (start/stop).
 # """
-# 
+#
 # import json
 # import logging
 # from django.contrib.auth.decorators import login_required
@@ -37,34 +38,34 @@ if __name__ == "__main__":
 # from django.shortcuts import get_object_or_404
 # from django.utils.decorators import method_decorator
 # from django.views import View
-# 
-# from apps.project_app.models.repository.project import Project
-# from apps.console_app.services.project_service_manager import ProjectServiceManager
-# 
+#
+# from apps.infra.project_app.models.repository.project import Project
+# from apps.workspace.console_app.services.project_service_manager import ProjectServiceManager
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # @method_decorator(login_required, name="dispatch")
 # class ProjectServiceAPIView(View):
 #     """Base API view for project service operations."""
-# 
+#
 #     def get_service_manager(self):
 #         return ProjectServiceManager()
-# 
-# 
+#
+#
 # class ServiceStartAPI(ProjectServiceAPIView):
 #     """API for starting services."""
-# 
+#
 #     def post(self, request, username, project_slug):
 #         """
 #         Start a service for a project.
-# 
+#
 #         Request body:
 #             {
 #                 "service_type": "tensorboard",  # or "jupyter", "mlflow", etc.
 #                 "config": {}  # Optional service configuration
 #             }
-# 
+#
 #         Returns:
 #             {
 #                 "success": true,
@@ -82,18 +83,18 @@ if __name__ == "__main__":
 #                 owner__username=username,
 #                 slug=project_slug
 #             )
-# 
+#
 #             # Parse request
 #             data = json.loads(request.body)
 #             service_type = data.get("service_type")
 #             config = data.get("config", {})
-# 
+#
 #             if not service_type:
 #                 return JsonResponse(
 #                     {"success": False, "error": "service_type is required"},
 #                     status=400
 #                 )
-# 
+#
 #             # Start service
 #             manager = self.get_service_manager()
 #             service = manager.start_service(
@@ -102,10 +103,10 @@ if __name__ == "__main__":
 #                 service_type=service_type,
 #                 config=config
 #             )
-# 
+#
 #             # Build URL
 #             service_url = f"/{username}/{project_slug}/?port={service.port}"
-# 
+#
 #             return JsonResponse({
 #                 "success": True,
 #                 "service_id": str(service.service_id),
@@ -114,7 +115,7 @@ if __name__ == "__main__":
 #                 "url": service_url,
 #                 "status": service.status
 #             })
-# 
+#
 #         except PermissionDenied as e:
 #             return JsonResponse(
 #                 {"success": False, "error": str(e)},
@@ -131,15 +132,15 @@ if __name__ == "__main__":
 #                 {"success": False, "error": "Internal server error"},
 #                 status=500
 #             )
-# 
-# 
+#
+#
 # class ServiceStopAPI(ProjectServiceAPIView):
 #     """API for stopping services."""
-# 
+#
 #     def post(self, request, service_id):
 #         """
 #         Stop a running service.
-# 
+#
 #         Returns:
 #             {
 #                 "success": true,
@@ -152,7 +153,7 @@ if __name__ == "__main__":
 #                 user=request.user,
 #                 service_id=service_id
 #             )
-# 
+#
 #             if stopped:
 #                 return JsonResponse({
 #                     "success": True,
@@ -163,7 +164,7 @@ if __name__ == "__main__":
 #                     {"success": False, "error": "Service not found"},
 #                     status=404
 #                 )
-# 
+#
 #         except PermissionDenied as e:
 #             return JsonResponse(
 #                 {"success": False, "error": str(e)},

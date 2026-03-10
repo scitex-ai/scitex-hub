@@ -1,0 +1,395 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% block title %}Images to PDF - Browser Tool | SciTeX{% endblock %}
+{% block meta_description %}
+    Convert multiple images into a single PDF document. Perfect for creating figure compilations and supplements.
+{% endblock %}
+{% block head_extra %}
+    {% load static %}
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+{% endblock %}
+{% block extra_css %}
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .tool-detail-container {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tool-breadcrumb {
+            padding: 8px 16px;
+            font-size: 14px;
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+        }
+
+        .tool-breadcrumb a {
+            color: var(--workspace-text-link);
+            text-decoration: none;
+        }
+
+        .tool-breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .tool-app-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            background: var(--workspace-bg-monaco);
+        }
+
+        .left-panel {
+            width: 400px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--workspace-border-default);
+            overflow-y: auto;
+            background: var(--workspace-bg-secondary);
+        }
+
+        .panel-header {
+            height: 36px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            background: var(--workspace-bg-tertiary);
+            border-bottom: 1px solid var(--workspace-border-default);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--workspace-text-primary);
+        }
+
+        .panel-content {
+            padding: 16px;
+            flex: 1;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--workspace-border-default);
+            border-radius: 4px;
+            padding: 40px 16px;
+            text-align: center;
+            cursor: pointer;
+            background: var(--workspace-bg-monaco);
+            color: var(--workspace-text-muted);
+            transition: all 0.2s;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--workspace-text-link);
+            color: var(--workspace-text-secondary);
+        }
+
+        .controls-panel {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--workspace-text-secondary);
+        }
+
+        .control-select {
+            background: var(--workspace-bg-tertiary);
+            border: 1px solid var(--workspace-border-default);
+            color: var(--workspace-text-primary);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .thumbnail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+            padding: 16px;
+        }
+
+        .thumbnail-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid var(--workspace-border-default);
+            cursor: move;
+            background: var(--workspace-bg-monaco);
+        }
+
+        .thumbnail-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .thumbnail-remove {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: var(--status-error);
+            color: var(--text-inverse);
+            border: none;
+            border-radius: 4px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .btn {
+            padding: 3px 10px;
+            background: transparent;
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            font-size: 11px;
+            color: var(--workspace-text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--workspace-bg-tertiary);
+            border-color: var(--workspace-text-link);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-buttons {
+            margin-top: 16px;
+        }
+
+        .status-message {
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-top: 12px;
+            font-size: 12px;
+            background: var(--workspace-bg-tertiary);
+            color: var(--workspace-text-secondary);
+            border: 1px solid var(--workspace-border-default);
+        }
+
+        .status-message.success {
+            border-color: var(--status-success-border);
+            color: var(--status-success);
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="tool-detail-container">
+        {% if not embed %}
+            <div class="tool-breadcrumb">
+                <a href="{% url 'tools_app:tools' %}">Back to Tools</a>
+            </div>
+            <div class="tool-header" style="text-align: center; padding: 20px;">
+                <h1 class="tool-title">Convert Images to PDF</h1>
+            </div>
+        {% endif %}
+        <div class="tool-app-container">
+            <div class="left-panel">
+                <div class="panel-header">Upload & Settings</div>
+                <div class="panel-content">
+                    <div id="uploadZone" class="upload-zone">
+                        <div style="font-size: 2rem;
+                                    margin-bottom: 8px;
+                                    color: var(--workspace-text-secondary)">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div style="font-size: 14px; margin-bottom: 4px;">Drop images or click to upload</div>
+                        <div style="font-size: 12px;">PNG, JPG, WebP</div>
+                        <input type="file" id="fileInput" accept="image/*" multiple style="display: none" />
+                    </div>
+                    <div id="statusMessage"></div>
+                    <div class="controls-panel" id="controls" style="display: none;">
+                        <div class="control-group">
+                            <label class="control-label">Page Size</label>
+                            <select id="pageSizeSelect" class="control-select">
+                                <option value="A4">A4 (210 × 297 mm)</option>
+                                <option value="Letter">Letter (8.5 × 11 in)</option>
+                                <option value="Legal">Legal (8.5 × 14 in)</option>
+                                <option value="Fit">Fit to Image</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Orientation</label>
+                            <select id="orientationSelect" class="control-select">
+                                <option value="portrait">Portrait</option>
+                                <option value="landscape">Landscape</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Margin (pt)</label>
+                            <select id="marginSelect" class="control-select">
+                                <option value="0">None</option>
+                                <option value="36" selected>0.5 inch</option>
+                                <option value="72">1 inch</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="generateBtn" class="btn" disabled>Generate PDF</button>
+                    </div>
+                </div>
+            </div>
+            <div class="right-panel">
+                <div class="panel-header">
+                    Images (<span id="imageCount">0</span>) - Drag to reorder
+                </div>
+                <div id="thumbnailGrid" class="thumbnail-grid"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+  const { PDFDocument } = PDFLib;
+  let images = [];
+  let draggedIndex = null;
+
+  document.getElementById('uploadZone').addEventListener('click', () => document.getElementById('fileInput').click());
+
+  document.getElementById('fileInput').addEventListener('change', (e) => {
+    handleFiles(e.target.files);
+  });
+
+  function handleFiles(files) {
+    const fileArray = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (fileArray.length === 0) return;
+
+    fileArray.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          images.push({ src: e.target.result, img: img });
+          updateThumbnails();
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function updateThumbnails() {
+    const grid = document.getElementById('thumbnailGrid');
+    grid.innerHTML = '';
+    images.forEach((imageData, index) => {
+      const div = document.createElement('div');
+      div.className = 'thumbnail-item';
+      div.draggable = true;
+      div.innerHTML = `<img src="${imageData.src}" /><button class="thumbnail-remove" data-index="${index}">×</button>`;
+
+      div.addEventListener('dragstart', (e) => { draggedIndex = index; });
+      div.addEventListener('dragover', (e) => { e.preventDefault(); });
+      div.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (draggedIndex !== null && draggedIndex !== index) {
+          const item = images[draggedIndex];
+          images.splice(draggedIndex, 1);
+          images.splice(index, 0, item);
+          updateThumbnails();
+          draggedIndex = null;
+        }
+      });
+
+      grid.appendChild(div);
+    });
+
+    document.querySelectorAll('.thumbnail-remove').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        images.splice(parseInt(btn.dataset.index), 1);
+        updateThumbnails();
+      });
+    });
+
+    document.getElementById('imageCount').textContent = images.length;
+    document.getElementById('controls').style.display = images.length > 0 ? 'flex' : 'none';
+    document.getElementById('generateBtn').disabled = images.length === 0;
+  }
+
+  document.getElementById('generateBtn').addEventListener('click', async () => {
+    if (images.length === 0) return;
+
+    const pdfDoc = await PDFDocument.create();
+    const pageSize = document.getElementById('pageSizeSelect').value;
+    const orientation = document.getElementById('orientationSelect').value;
+    const margin = parseInt(document.getElementById('marginSelect').value);
+
+    const pageSizes = {
+      'A4': [595, 842],
+      'Letter': [612, 792],
+      'Legal': [612, 1008]
+    };
+
+    for (const imageData of images) {
+      const imgBytes = await fetch(imageData.src).then(r => r.arrayBuffer());
+      const img = await pdfDoc.embedPng(imgBytes).catch(() => pdfDoc.embedJpg(imgBytes));
+
+      let [pageWidth, pageHeight] = pageSize === 'Fit' ? [img.width, img.height] : pageSizes[pageSize];
+      if (orientation === 'landscape') [pageWidth, pageHeight] = [pageHeight, pageWidth];
+
+      const page = pdfDoc.addPage([pageWidth, pageHeight]);
+      const availWidth = pageWidth - (2 * margin);
+      const availHeight = pageHeight - (2 * margin);
+
+      const scale = Math.min(availWidth / img.width, availHeight / img.height);
+      const scaledWidth = img.width * scale;
+      const scaledHeight = img.height * scale;
+
+      const x = (pageWidth - scaledWidth) / 2;
+      const y = (pageHeight - scaledHeight) / 2;
+
+      page.drawImage(img, { x, y, width: scaledWidth, height: scaledHeight });
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `images-to-pdf-${Date.now()}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    showStatus('PDF created successfully!', 'success');
+  });
+
+  function showStatus(message, type) {
+    const status = document.getElementById('statusMessage');
+    status.className = `status-message ${type}`;
+    status.textContent = message;
+    status.style.display = 'block';
+  }
+    </script>
+{% endblock %}

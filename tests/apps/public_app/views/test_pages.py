@@ -51,12 +51,12 @@ class TestVideoCatalogStructure:
         # We need to mock the pages_shortcuts import
         import sys
 
-        sys.modules["apps.public_app.views.pages_shortcuts"] = type(sys)(
+        sys.modules["apps.infra.public_app.views.pages_shortcuts"] = type(sys)(
             "pages_shortcuts"
         )
-        sys.modules["apps.public_app.views.pages_shortcuts"].KEYBOARD_SHORTCUTS_DATA = (
-            []
-        )
+        sys.modules[
+            "apps.infra.public_app.views.pages_shortcuts"
+        ].KEYBOARD_SHORTCUTS_DATA = []
 
         # Now manually parse the file to extract OG_BASE_URL
         pages_data_path = os.path.join(
@@ -155,7 +155,7 @@ class TestVideoPlayerView:
 
     def test_video_player_returns_200_for_valid_video(self, rf):
         """video_player should return 200 for valid video ID."""
-        from apps.public_app.views.pages import video_player
+        from apps.infra.public_app.views.pages import video_player
 
         request = rf.get("/demos/watch/figrecipe/")
         response = video_player(request, "figrecipe")
@@ -165,7 +165,7 @@ class TestVideoPlayerView:
         """video_player should raise 404 for invalid video ID."""
         from django.http import Http404
 
-        from apps.public_app.views.pages import video_player
+        from apps.infra.public_app.views.pages import video_player
 
         request = rf.get("/demos/watch/nonexistent/")
         with pytest.raises(Http404):
@@ -173,7 +173,7 @@ class TestVideoPlayerView:
 
     def test_video_player_context_contains_og_fields(self, rf):
         """video_player should pass OG metadata in rendered HTML."""
-        from apps.public_app.views.pages import video_player
+        from apps.infra.public_app.views.pages import video_player
 
         request = rf.get("/demos/watch/figrecipe/")
         response = video_player(request, "figrecipe")
@@ -189,7 +189,7 @@ class TestVideoPlayerView:
 
     def test_og_url_is_absolute(self, rf):
         """og_url should be an absolute URL with HTTPS in rendered HTML."""
-        from apps.public_app.views.pages import video_player
+        from apps.infra.public_app.views.pages import video_player
 
         request = rf.get("/demos/watch/figrecipe/")
         response = video_player(request, "figrecipe")

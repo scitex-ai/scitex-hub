@@ -149,7 +149,7 @@ def register_on_site_tools(mcp) -> None:
         """
         result = _make_request(
             "GET",
-            "/apps/api/dev/url/",
+            "/apps/store/api/dev/url/",
             data={"project_id": project_id},
         )
         return _json(result)

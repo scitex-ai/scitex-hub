@@ -16,22 +16,23 @@ function getKnownModules(): Set<string> {
     const csv = (nav as HTMLElement).dataset.workspaceModules ?? "";
     if (csv) return new Set(csv.split(","));
   }
-  // Fallback: extract from tab bar links
+  // Fallback: use data-module attributes on tab buttons
   const names = new Set<string>();
   document.querySelectorAll(".module-tab-btn").forEach((btn) => {
-    const href = (btn as HTMLAnchorElement).getAttribute("href") ?? "";
-    const match = href.match(/^\/([a-z0-9_-]+)\/?$/i);
-    if (match) names.add(match[1]);
+    const mod = (btn as HTMLElement).dataset.module;
+    if (mod) names.add(mod);
   });
   return names;
 }
 
 let KNOWN_MODULES: Set<string>;
 
-/** Extract the first path segment from a pathname, e.g. "/_writer/" -> "writer". */
+/** Extract module name from pathname. Handles /apps/<name>/ and legacy /<name>/. */
 function extractModule(path: string): string | null {
-  const match = path.match(/^\/([a-z0-9_-]+)\//i);
-  return match ? match[1] : null;
+  const appsMatch = path.match(/^\/apps\/([a-z0-9_-]+)\//i);
+  if (appsMatch) return appsMatch[1];
+  const legacy = path.match(/^\/([a-z0-9_-]+)\//i);
+  return legacy ? legacy[1] : null;
 }
 
 /** Fetch module partial and inject into #main-content. */
@@ -67,12 +68,20 @@ async function switchModule(name: string): Promise<void> {
     const html = await resp.text();
     pane.innerHTML = html;
     reExecScripts(pane);
+    document.dispatchEvent(
+      new CustomEvent("workspace:module-injected", {
+        detail: { module: name },
+      }),
+    );
     window._appNav?.push({ module: name });
     updateActiveTab(name);
   } catch (err) {
     console.error("[module-tab-switcher] Failed to load module:", name, err);
     // Fall back to normal navigation so the user still reaches the page.
-    location.href = `/${name}/`;
+    const btn = document.querySelector<HTMLAnchorElement>(
+      `.module-tab-btn[data-module="${name}"]`,
+    );
+    location.href = btn?.getAttribute("href") ?? `/apps/${name}/`;
   } finally {
     pane.classList.remove("switching");
     // Release height lock after new content has rendered.
@@ -106,18 +115,17 @@ function reExecScripts(container: HTMLElement): void {
 /** Toggle the `active` class on tab buttons to reflect the new module. */
 function updateActiveTab(name: string): void {
   document.querySelectorAll(".module-tab-btn").forEach((btn) => {
-    const href = (btn as HTMLAnchorElement).href ?? "";
-    const isActive = href.includes(`/${name}/`);
+    const isActive = (btn as HTMLElement).dataset.module === name;
     btn.classList.toggle("active", isActive);
   });
-  // Set module accent on the pane — workspace-sidebar.css [data-module-accent] selectors
-  // resolve --module-accent-color which drives both tab highlight and pane top border.
+  // Set module accent on the pane — workspace-sidebar.css [data-app-accent] selectors
+  // resolve --app-accent-color which drives both tab highlight and pane top border.
   const pane = document.getElementById("main-content");
   if (pane) {
-    pane.setAttribute("data-module-accent", name);
-    // CSS [data-module-accent="<name>"] rules handle --module-accent-color resolution.
+    pane.setAttribute("data-app-accent", name);
+    // CSS [data-app-accent="<name>"] rules handle --app-accent-color resolution.
     // Clear any stale inline override so CSS takes effect.
-    pane.style.removeProperty("--module-accent-color");
+    pane.style.removeProperty("--app-accent-color");
   }
 }
 

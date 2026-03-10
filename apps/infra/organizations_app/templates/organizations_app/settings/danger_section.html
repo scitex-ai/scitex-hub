@@ -1,0 +1,55 @@
+{% comment %}
+Organization Danger Zone settings section.
+{% endcomment %}
+<div class="settings-header">
+    <h1 class="settings-title">Danger Zone</h1>
+    <p class="settings-subtitle">Irreversible and destructive actions.</p>
+</div>
+<div class="form-section org-danger-zone">
+    <div class="org-danger-item">
+        <div>
+            <h3 class="form-section-title">Delete this organization</h3>
+            <p class="text-muted">
+                Once you delete an organization, there is no going back.
+                All repositories, members, and settings will be permanently removed.
+            </p>
+        </div>
+        <button type="button"
+                class="btn-danger org-delete-org-btn"
+                data-org-slug="{{ organization.slug }}"
+                data-org-name="{{ organization.name }}">
+            <i class="fas fa-trash"></i> Delete organization
+        </button>
+    </div>
+</div>
+<!-- Delete confirmation modal -->
+<div class="org-delete-modal" id="org-delete-modal" hidden>
+    <div class="org-delete-modal-backdrop"></div>
+    <div class="org-delete-modal-content">
+        <h3>Are you absolutely sure?</h3>
+        <p>
+            This action <strong>cannot</strong> be undone. This will permanently delete the
+            <strong>{{ organization.name }}</strong> organization, its repositories, and remove all member associations.
+        </p>
+        <form class="org-delete-form" data-org-slug="{{ organization.slug }}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>
+                    Please type <strong>{{ organization.name }}</strong> to confirm.
+                </label>
+                <input type="text"
+                       name="confirm_name"
+                       id="org-delete-confirm-input"
+                       placeholder="{{ organization.name }}"
+                       autocomplete="off"
+                       required />
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-cancel org-delete-cancel-btn">Cancel</button>
+                <button type="submit" class="btn-danger" id="org-delete-confirm-btn" disabled>
+                    I understand, delete this organization
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

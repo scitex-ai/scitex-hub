@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.forms.arxiv.submission_forms import ...
+# from apps.workspace.writer_app.forms.arxiv.submission_forms import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,14 +27,14 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # from django import forms
 # from ...models import ArxivSubmission, ArxivCategory
-# 
-# 
+#
+#
 # class ArxivSubmissionForm(forms.ModelForm):
 #     primary_category = forms.ModelChoiceField(
 #         queryset=ArxivCategory.objects.filter(is_active=True),
 #         widget=forms.Select(attrs={"class": "form-control"}),
 #     )
-# 
+#
 #     class Meta:
 #         model = ArxivSubmission
 #         fields = ["title", "abstract", "authors", "primary_category", "submission_type"]

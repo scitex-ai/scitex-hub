@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.models.pull_requests.review import ...
+# from apps.infra.project_app.models.pull_requests.review import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,22 +28,22 @@ if __name__ == "__main__":
 # """
 # Pull Request Review model - allows reviewers to approve, request changes, or comment.
 # """
-# 
+#
 # from django.db import models
 # from django.contrib.auth.models import User
-# 
-# 
+#
+#
 # class PullRequestReview(models.Model):
 #     """
 #     Model for PR reviews - allows reviewers to approve, request changes, or comment.
 #     """
-# 
+#
 #     STATE_CHOICES = [
 #         ("approved", "Approved"),
 #         ("changes_requested", "Changes Requested"),
 #         ("commented", "Commented"),
 #     ]
-# 
+#
 #     pull_request = models.ForeignKey(
 #         "project_app.PullRequest",
 #         on_delete=models.CASCADE,
@@ -62,7 +63,7 @@ if __name__ == "__main__":
 #         blank=True, help_text="Review comments (supports Markdown)"
 #     )
 #     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-# 
+#
 #     class Meta:
 #         ordering = ["-created_at"]
 #         indexes = [
@@ -71,7 +72,7 @@ if __name__ == "__main__":
 #         ]
 #         verbose_name = "Pull Request Review"
 #         verbose_name_plural = "Pull Request Reviews"
-# 
+#
 #     def __str__(self):
 #         return f"{self.reviewer.username} {self.state} PR #{self.pull_request.number}"
 

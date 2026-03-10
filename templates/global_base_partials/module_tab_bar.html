@@ -10,10 +10,10 @@ Order is determined by each module's `order` field in registry.py.
          aria-label="Workspace modules"
          data-workspace-modules="{{ workspace_module_names_csv }}">
         {% for mod in workspace_modules %}
-            <a href="/{{ mod.name }}/"
+            <a href="{{ mod.get_url }}"
                class="module-tab-btn{% if mod.is_active %} active{% endif %}"
                data-module="{{ mod.name }}"
-               data-module-accent="{{ mod.name }}"
+               data-app-accent="{{ mod.name }}"
                aria-label="{{ mod.label }}">
                 {% module_icon mod.name %}
                 <span class="tab-label">{{ mod.label }}</span>

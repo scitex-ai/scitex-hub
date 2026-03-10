@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.services.singularity_manager.exceptions import ...
+# from apps.workspace.console_app.services.singularity_manager.exceptions import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -30,22 +31,22 @@ if __name__ == "__main__":
 # # File: .../apps/console_app/services/singularity_manager/exceptions.py
 # # ----------------------------------------
 # from __future__ import annotations
-# 
+#
 # __FILE__ = "./apps/console_app/services/singularity_manager/exceptions.py"
 # # ----------------------------------------
-# 
+#
 # """
 # Singularity Manager Exceptions
-# 
+#
 # Custom exceptions for Singularity container operations.
 # """
-# 
-# 
+#
+#
 # class SingularityError(Exception):
 #     """Raised when Singularity operations fail."""
 #     pass
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

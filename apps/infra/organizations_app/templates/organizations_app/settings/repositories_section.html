@@ -1,0 +1,30 @@
+{% comment %}
+Organization Repositories settings section.
+{% endcomment %}
+{% load static %}
+
+<div class="settings-header">
+    <h1 class="settings-title">Repositories</h1>
+    <p class="settings-subtitle">Manage repositories owned by this organization.</p>
+</div>
+<div class="form-section">
+    {% if repositories %}
+        <div class="org-repo-list">
+            {% for repo in repositories %}
+                <div class="org-repo-row">
+                    <div class="org-repo-info">
+                        <a href="/{{ organization.slug }}/{{ repo.slug }}/" class="org-repo-name">{{ repo.name }}</a>
+                        {% if repo.description %}<p class="org-repo-description">{{ repo.description|truncatewords:20 }}</p>{% endif %}
+                        <div class="org-repo-meta">
+                            <span class="badge badge-{{ repo.visibility }}">{{ repo.visibility }}</span>
+                            {% if repo.primary_language %}<span class="language-badge">{{ repo.primary_language }}</span>{% endif %}
+                            <span class="meta-item">Updated {{ repo.updated_at|timesince }} ago</span>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">This organization has no repositories yet.</p>
+    {% endif %}
+</div>

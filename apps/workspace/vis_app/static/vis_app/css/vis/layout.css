@@ -1,0 +1,29 @@
+/* ========================================================================
+   MAIN CONTENT AREA
+   ======================================================================== */
+
+.vis-main {
+    grid-row: 2;
+    display: flex;
+    flex-direction: row;
+    gap: 0;
+    overflow: hidden;
+    background: var(--vis-bg-primary);
+    min-height: 0;  /* Critical: allow flexbox/grid shrinking to fit viewport */
+}
+
+/* Dark mode: unified background */
+[data-theme="dark"] .vis-main {
+    background: var(--workspace-bg-primary) !important;
+}
+
+/* Collapsed states */
+.vis-main.sidebar-collapsed .vis-sidebar {
+    width: 0;
+    min-width: 0;
+}
+
+.vis-main.properties-collapsed .vis-properties {
+    width: 0;
+    min-width: 0;
+}

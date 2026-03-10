@@ -27,7 +27,7 @@ class TestValidatePathInUserJail(TestCase):
         return user
 
     def test_user_root_is_inside_jail(self):
-        from apps.project_app.services.filesystem.permissions import (
+        from apps.infra.project_app.services.filesystem.permissions import (
             get_user_data_root,
             validate_path_in_user_jail,
         )
@@ -37,7 +37,7 @@ class TestValidatePathInUserJail(TestCase):
         assert validate_path_in_user_jail(user, jail) is True
 
     def test_subdir_inside_jail(self):
-        from apps.project_app.services.filesystem.permissions import (
+        from apps.infra.project_app.services.filesystem.permissions import (
             get_user_data_root,
             validate_path_in_user_jail,
         )
@@ -48,7 +48,7 @@ class TestValidatePathInUserJail(TestCase):
         assert validate_path_in_user_jail(user, subpath) is True
 
     def test_other_user_dir_is_outside_jail(self):
-        from apps.project_app.services.filesystem.permissions import (
+        from apps.infra.project_app.services.filesystem.permissions import (
             get_user_data_root,
             validate_path_in_user_jail,
         )
@@ -61,7 +61,7 @@ class TestValidatePathInUserJail(TestCase):
 
     def test_traversal_attack_blocked(self):
         """Path traversal like /app/data/users/alice/../../bob must be blocked."""
-        from apps.project_app.services.filesystem.permissions import (
+        from apps.infra.project_app.services.filesystem.permissions import (
             get_user_data_root,
             validate_path_in_user_jail,
         )
@@ -73,7 +73,7 @@ class TestValidatePathInUserJail(TestCase):
 
     def test_absolute_path_outside_data_blocked(self):
         """Absolute paths like /etc must not pass jail validation."""
-        from apps.project_app.services.filesystem.permissions import (
+        from apps.infra.project_app.services.filesystem.permissions import (
             validate_path_in_user_jail,
         )
 
@@ -137,19 +137,23 @@ class TestGetProjectCwd(TestCase):
         return user
 
     def test_no_slug_returns_jail_root(self):
-        from apps.llm_app.views.bash import _get_project_cwd
-        from apps.project_app.services.filesystem.permissions import get_user_data_root
+        from apps.infra.llm_app.views.bash import _get_project_cwd
+        from apps.infra.project_app.services.filesystem.permissions import (
+            get_user_data_root,
+        )
 
         user = self._make_user()
         result = _get_project_cwd(user, "")
         expected = get_user_data_root(user)
         assert result == expected
 
-    @patch("apps.project_app.models.Project.objects")
+    @patch("apps.infra.project_app.models.Project.objects")
     def test_bad_slug_falls_back_to_jail(self, mock_objects):
         """If project lookup fails, fall back to jail root (never raise)."""
-        from apps.llm_app.views.bash import _get_project_cwd
-        from apps.project_app.services.filesystem.permissions import get_user_data_root
+        from apps.infra.llm_app.views.bash import _get_project_cwd
+        from apps.infra.project_app.services.filesystem.permissions import (
+            get_user_data_root,
+        )
 
         mock_objects.get.side_effect = Exception("not found")
         user = self._make_user()

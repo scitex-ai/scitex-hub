@@ -1,0 +1,43 @@
+/* Claims list */
+.claims-list {
+  padding: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+  border-top: 1px solid var(--workspace-border-default);
+  background: var(--workspace-bg-secondary);
+}
+
+.claim-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.78rem;
+  border-radius: 3px;
+}
+
+.claim-item:hover {
+  background: var(--workspace-bg-tertiary);
+}
+
+.claim-item .claim-type-icon {
+  width: 1.2em;
+  text-align: center;
+  color: var(--workspace-icon-primary);
+}
+
+.claim-item .claim-location {
+  color: var(--workspace-text-muted);
+  font-family: monospace;
+  font-size: 0.72rem;
+}
+
+.claim-item .claim-value {
+  color: var(--workspace-text-primary);
+  font-weight: 500;
+}
+
+.claim-item .claim-status {
+  margin-left: auto;
+  font-size: 0.7rem;
+}

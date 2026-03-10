@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.services.filesystem.paths import ...
+# from apps.infra.project_app.services.filesystem.paths import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,30 +27,30 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # Path utilities for project filesystem.
-# 
+#
 # This module handles path resolution and directory structure management.
 # """
-# 
+#
 # from pathlib import Path
 # from typing import Optional
 # from django.conf import settings
 # from django.contrib.auth.models import User
 # from ...models import Project
-# 
-# 
+#
+#
 # def get_user_base_path(user: User) -> Path:
 #     """
 #     Get the base directory path for the user.
-# 
+#
 #     Structure: ./data/users/{username}/proj/
 #     All projects go under the proj subdirectory.
 #     """
 #     return Path(settings.BASE_DIR) / "data" / "users" / user.username / "proj"
-# 
-# 
+#
+#
 # def get_project_root_path(user: User, project: Project) -> Optional[Path]:
 #     """Get the root directory path for a project.
-# 
+#
 #     Always uses filesystem as the source of truth (data/users/{username}/{project-slug}/).
 #     This ensures Django always shows the actual filesystem state in real-time.
 #     """
@@ -58,8 +59,8 @@ if __name__ == "__main__":
 #     if project_path.exists():
 #         return project_path
 #     return None
-# 
-# 
+#
+#
 # def ensure_directory(path: Path) -> bool:
 #     """Ensure a directory exists, create if it doesn't."""
 #     try:
@@ -68,8 +69,8 @@ if __name__ == "__main__":
 #     except Exception as e:
 #         print(f"Error creating directory {path}: {e}")
 #         return False
-# 
-# 
+#
+#
 # def get_file_extension(doc_type: str) -> str:
 #     """Get appropriate file extension for document type."""
 #     extensions = {
@@ -82,12 +83,12 @@ if __name__ == "__main__":
 #         "code": ".py",
 #     }
 #     return extensions.get(doc_type, ".txt")
-# 
-# 
+#
+#
 # def get_subcategory(filename: str, category: str) -> str:
 #     """Determine subcategory based on file type and category."""
 #     extension = Path(filename).suffix.lower()
-# 
+#
 #     if category == "data":
 #         if extension in [".csv", ".xlsx", ".json", ".xml", ".gz", ".zip"]:
 #             return "raw"
@@ -125,7 +126,7 @@ if __name__ == "__main__":
 #             return "cache"
 #     elif category == "config":
 #         return ""
-# 
+#
 #     return "misc"
 
 # --------------------------------------------------------------------------------

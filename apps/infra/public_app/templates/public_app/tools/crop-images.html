@@ -1,0 +1,652 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% block title %}Crop Images - Browser Tool | SciTeX{% endblock %}
+{% block meta_description %}Batch crop with same ROI for consistent figure panels.{% endblock %}
+{% block extra_css %}
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .tool-detail-container {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tool-header {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .tool-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+            color: var(--workspace-text-primary, #c9d1d9);
+        }
+
+        .tool-breadcrumb {
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .tool-breadcrumb a {
+            color: var(--workspace-text-link, #58a6ff);
+            text-decoration: none;
+        }
+
+        .editor-container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 1px;
+            flex: 1;
+            min-height: 0;
+            background: var(--workspace-border-default, #30363d);
+            border-radius: 0 0 6px 6px;
+            overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            .editor-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .controls-panel,
+        .preview-panel {
+            background: var(--workspace-bg-monaco, #1e1e1e);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            background: var(--workspace-bg-secondary, #161b22);
+            padding: 0 12px;
+            height: 36px;
+            border-bottom: 1px solid var(--workspace-border-default, #30363d);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .panel-title {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--workspace-text-secondary, #8b949e);
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn-small {
+            padding: 3px 10px;
+            background: transparent;
+            color: var(--workspace-text-secondary, #8b949e);
+            border: 1px solid var(--workspace-border-default, #30363d);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-small:hover {
+            background: var(--workspace-bg-tertiary, #21262d);
+            color: var(--workspace-text-primary, #c9d1d9);
+            border-color: var(--workspace-text-muted, #484f58);
+        }
+
+        .controls-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--workspace-border-default, #30363d);
+            border-radius: 6px;
+            padding: 40px 16px;
+            text-align: center;
+            cursor: pointer;
+            background: var(--workspace-bg-monaco, #1e1e1e);
+            color: var(--workspace-text-muted, #484f58);
+            transition: all 0.2s ease;
+            margin-bottom: 16px;
+        }
+
+        .upload-zone:hover,
+        .upload-zone.dragover {
+            border-color: var(--workspace-text-link, #58a6ff);
+            background: rgba(88, 166, 255, 0.05);
+        }
+
+        .crop-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .control-label {
+            font-size: 11px;
+            color: var(--workspace-text-muted, #484f58);
+        }
+
+        .control-input {
+            background: var(--workspace-bg-tertiary, #21262d);
+            border: 1px solid var(--workspace-border-default, #30363d);
+            color: var(--workspace-text-primary, #c9d1d9);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: var(--workspace-text-link, #58a6ff);
+        }
+
+        .preview-body {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+            position: relative;
+            cursor: crosshair;
+        }
+
+        .preview-body canvas {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .crop-overlay {
+            position: absolute;
+            border: 2px dashed var(--workspace-text-link, #58a6ff);
+            background: rgba(88, 166, 255, 0.1);
+            pointer-events: none;
+        }
+
+        .status-bar {
+            padding: 0 12px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 11px;
+            color: var(--workspace-text-muted, #484f58);
+            border-top: 1px solid var(--workspace-border-default, #30363d);
+            background: var(--workspace-bg-secondary, #161b22);
+            flex-shrink: 0;
+        }
+
+        .status-bar .info {
+            color: var(--workspace-text-secondary, #8b949e);
+        }
+
+        .thumbnail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+            margin-bottom: 16px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .thumbnail-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 2px solid var(--workspace-border-default, #30363d);
+            cursor: pointer;
+            transition: border-color 0.15s ease;
+        }
+
+        .thumbnail-item:hover {
+            border-color: var(--workspace-text-muted, #484f58);
+        }
+
+        .thumbnail-item.selected {
+            border-color: var(--workspace-text-link, #58a6ff);
+        }
+
+        .thumbnail-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .thumbnail-remove {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 18px;
+            height: 18px;
+            border-radius: 3px;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 11px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+
+        .thumbnail-item:hover .thumbnail-remove {
+            opacity: 1;
+        }
+
+        .warning-message {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-bottom: 16px;
+            font-size: 11px;
+            color: var(--workspace-text-warning, #d29922);
+            display: none;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="tool-detail-container">
+        {% if not embed %}
+            <div class="tool-breadcrumb">
+                <a href="{% url 'tools_app:tools' %}">← Back to Tools</a>
+            </div>
+            <div class="tool-header">
+                <h1 class="tool-title">Crop Images</h1>
+                <p style="font-size: 14px; color: var(--workspace-text-secondary);">
+                    Batch crop with same ROI for consistent figure panels
+                </p>
+            </div>
+        {% endif %}
+        <div class="editor-container">
+            <div class="controls-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Controls</span>
+                    <div class="panel-actions">
+                        <button id="resetBtn" class="btn-small">Reset</button>
+                    </div>
+                </div>
+                <div class="controls-body">
+                    <div id="uploadZone" class="upload-zone">
+                        <div style="font-size: 2rem;
+                                    margin-bottom: 8px;
+                                    color: var(--workspace-text-secondary)">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div style="font-size: 13px;">Drop images or click to upload</div>
+                        <input type="file" id="fileInput" accept="image/*" multiple style="display: none" />
+                    </div>
+                    <div id="warningMessage" class="warning-message"></div>
+                    <div id="thumbnailGrid" class="thumbnail-grid"></div>
+                    <div class="crop-controls">
+                        <div class="control-group">
+                            <label class="control-label">X</label>
+                            <input type="number" id="cropX" class="control-input" value="0" min="0" />
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Y</label>
+                            <input type="number" id="cropY" class="control-input" value="0" min="0" />
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Width</label>
+                            <input type="number" id="cropW" class="control-input" value="0" min="0" />
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Height</label>
+                            <input type="number" id="cropH" class="control-input" value="0" min="0" />
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <button id="cropBtn" class="btn-small" style="flex: 1;" disabled>Crop All</button>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="downloadBtn" class="btn-small" style="flex: 1;" disabled>Download</button>
+                        <button id="downloadAllBtn" class="btn-small" style="flex: 1;" disabled>Download All</button>
+                    </div>
+                </div>
+            </div>
+            <div class="preview-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Preview</span>
+                    <div class="panel-actions">
+                        <button id="selectAllBtn" class="btn-small" disabled>Select All</button>
+                    </div>
+                </div>
+                <div class="preview-body" id="previewBody">
+                    <canvas id="previewCanvas" style="display: none;"></canvas>
+                    <div id="cropOverlay" class="crop-overlay" style="display: none;"></div>
+                    <div id="emptyState" style="color: var(--workspace-text-muted); font-size: 13px;">
+                        Upload an image to start cropping
+                    </div>
+                </div>
+                <div class="status-bar" id="statusBar">
+                    <span class="info" id="imageInfo">No image loaded</span>
+                    <span id="selectionInfo"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+  const fileInput = document.getElementById('fileInput');
+  const uploadZone = document.getElementById('uploadZone');
+  const canvas = document.getElementById('previewCanvas');
+  const ctx = canvas.getContext('2d');
+  const previewBody = document.getElementById('previewBody');
+  const cropOverlay = document.getElementById('cropOverlay');
+  const emptyState = document.getElementById('emptyState');
+  const thumbnailGrid = document.getElementById('thumbnailGrid');
+  const warningMessage = document.getElementById('warningMessage');
+  const cropX = document.getElementById('cropX');
+  const cropY = document.getElementById('cropY');
+  const cropW = document.getElementById('cropW');
+  const cropH = document.getElementById('cropH');
+  const cropBtn = document.getElementById('cropBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const downloadAllBtn = document.getElementById('downloadAllBtn');
+  const selectAllBtn = document.getElementById('selectAllBtn');
+  const imageInfo = document.getElementById('imageInfo');
+  const selectionInfo = document.getElementById('selectionInfo');
+
+  let originalImages = [];
+  let croppedImages = [];
+  let currentIndex = 0;
+  let isDragging = false;
+  let startX = 0, startY = 0;
+
+  uploadZone.addEventListener('click', () => fileInput.click());
+  uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (files.length) loadImages(files);
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length) loadImages(files);
+  });
+
+  function loadImages(files) {
+    originalImages = [];
+    croppedImages = [];
+    thumbnailGrid.innerHTML = '';
+    warningMessage.style.display = 'none';
+
+    let loadedCount = 0;
+    const totalFiles = files.length;
+    let baseDimensions = null;
+    let hasDimensionMismatch = false;
+
+    files.forEach((file, idx) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          if (!baseDimensions) {
+            baseDimensions = { width: img.width, height: img.height };
+          } else if (img.width !== baseDimensions.width || img.height !== baseDimensions.height) {
+            hasDimensionMismatch = true;
+          }
+
+          originalImages.push({ img, name: file.name.replace(/\.[^.]+$/, ''), file });
+          loadedCount++;
+
+          if (loadedCount === totalFiles) {
+            if (hasDimensionMismatch) {
+              warningMessage.textContent = 'Warning: Images have different dimensions. Crop may not align correctly.';
+              warningMessage.style.display = 'block';
+            }
+            renderThumbnails();
+            showImage(0);
+          }
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderThumbnails() {
+    thumbnailGrid.innerHTML = '';
+    originalImages.forEach((item, idx) => {
+      const thumbDiv = document.createElement('div');
+      thumbDiv.className = 'thumbnail-item';
+      if (idx === currentIndex) thumbDiv.classList.add('selected');
+
+      const thumbImg = document.createElement('img');
+      thumbImg.src = item.img.src;
+      thumbImg.alt = item.name;
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'thumbnail-remove';
+      removeBtn.innerHTML = '×';
+      removeBtn.onclick = (e) => {
+        e.stopPropagation();
+        removeImage(idx);
+      };
+
+      thumbDiv.appendChild(thumbImg);
+      thumbDiv.appendChild(removeBtn);
+      thumbDiv.onclick = () => showImage(idx);
+      thumbnailGrid.appendChild(thumbDiv);
+    });
+  }
+
+  function removeImage(idx) {
+    originalImages.splice(idx, 1);
+    if (croppedImages.length) croppedImages.splice(idx, 1);
+
+    if (originalImages.length === 0) {
+      reset();
+      return;
+    }
+
+    if (currentIndex >= originalImages.length) {
+      currentIndex = originalImages.length - 1;
+    }
+    renderThumbnails();
+    showImage(currentIndex);
+  }
+
+  function showImage(idx) {
+    currentIndex = idx;
+    const item = originalImages[idx];
+    const img = item.img;
+
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
+    canvas.style.display = 'block';
+    emptyState.style.display = 'none';
+
+    cropBtn.disabled = false;
+    selectAllBtn.disabled = false;
+
+    const w = parseInt(cropW.value) || img.width;
+    const h = parseInt(cropH.value) || img.height;
+    if (cropW.value === '0' || !cropW.value) {
+      cropX.value = 0; cropY.value = 0;
+      cropW.value = img.width; cropH.value = img.height;
+    }
+
+    updateStatusBar();
+    renderThumbnails();
+  }
+
+  function updateStatusBar() {
+    const count = originalImages.length;
+    const croppedCount = croppedImages.length;
+    const img = originalImages[currentIndex]?.img;
+
+    if (img) {
+      const status = croppedCount ? ` · ${croppedCount} cropped` : '';
+      imageInfo.textContent = `${count} image${count > 1 ? 's' : ''} loaded${status} · ${img.width} × ${img.height}px`;
+    }
+
+    const w = parseInt(cropW.value) || 0;
+    const h = parseInt(cropH.value) || 0;
+    selectionInfo.textContent = w && h ? `Selection: ${w} × ${h}px` : '';
+  }
+
+  // Mouse drag selection
+  previewBody.addEventListener('mousedown', (e) => {
+    if (!originalImages.length) return;
+    const rect = canvas.getBoundingClientRect();
+    const img = originalImages[currentIndex].img;
+    const scaleX = img.width / rect.width;
+    const scaleY = img.height / rect.height;
+    startX = Math.round((e.clientX - rect.left) * scaleX);
+    startY = Math.round((e.clientY - rect.top) * scaleY);
+    isDragging = true;
+    cropOverlay.style.display = 'block';
+  });
+
+  previewBody.addEventListener('mousemove', (e) => {
+    if (!isDragging || !originalImages.length) return;
+    const rect = canvas.getBoundingClientRect();
+    const img = originalImages[currentIndex].img;
+    const scaleX = img.width / rect.width;
+    const scaleY = img.height / rect.height;
+    const curX = Math.round((e.clientX - rect.left) * scaleX);
+    const curY = Math.round((e.clientY - rect.top) * scaleY);
+
+    const x = Math.max(0, Math.min(startX, curX));
+    const y = Math.max(0, Math.min(startY, curY));
+    const w = Math.min(Math.abs(curX - startX), img.width - x);
+    const h = Math.min(Math.abs(curY - startY), img.height - y);
+
+    cropX.value = x; cropY.value = y; cropW.value = w; cropH.value = h;
+
+    const displayX = x / scaleX + rect.left - previewBody.getBoundingClientRect().left;
+    const displayY = y / scaleY + rect.top - previewBody.getBoundingClientRect().top;
+    cropOverlay.style.left = displayX + 'px';
+    cropOverlay.style.top = displayY + 'px';
+    cropOverlay.style.width = (w / scaleX) + 'px';
+    cropOverlay.style.height = (h / scaleY) + 'px';
+    updateStatusBar();
+  });
+
+  document.addEventListener('mouseup', () => { isDragging = false; });
+
+  [cropX, cropY, cropW, cropH].forEach(el => el.addEventListener('input', updateStatusBar));
+
+  cropBtn.addEventListener('click', () => {
+    if (!originalImages.length) return;
+    const x = parseInt(cropX.value) || 0;
+    const y = parseInt(cropY.value) || 0;
+    const w = parseInt(cropW.value) || originalImages[0].img.width;
+    const h = parseInt(cropH.value) || originalImages[0].img.height;
+
+    croppedImages = originalImages.map(item => {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = w;
+      tempCanvas.height = h;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.drawImage(item.img, x, y, w, h, 0, 0, w, h);
+      return { name: item.name, dataURL: tempCanvas.toDataURL('image/png') };
+    });
+
+    cropOverlay.style.display = 'none';
+    downloadBtn.disabled = false;
+    downloadAllBtn.disabled = false;
+
+    canvas.width = w;
+    canvas.height = h;
+    const currentCropped = new Image();
+    currentCropped.onload = () => {
+      ctx.drawImage(currentCropped, 0, 0);
+    };
+    currentCropped.src = croppedImages[currentIndex].dataURL;
+
+    updateStatusBar();
+  });
+
+  downloadBtn.addEventListener('click', () => {
+    if (!croppedImages.length) return;
+    const item = croppedImages[currentIndex];
+    const a = document.createElement('a');
+    a.href = item.dataURL;
+    a.download = `${item.name}-cropped.png`;
+    a.click();
+  });
+
+  downloadAllBtn.addEventListener('click', async () => {
+    if (!croppedImages.length) return;
+    const zip = new JSZip();
+
+    croppedImages.forEach((item, idx) => {
+      const base64Data = item.dataURL.split(',')[1];
+      zip.file(`${item.name}-cropped.png`, base64Data, { base64: true });
+    });
+
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `cropped-images-${Date.now()}.zip`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  selectAllBtn.addEventListener('click', () => {
+    if (!originalImages.length) return;
+    const img = originalImages[currentIndex].img;
+    cropX.value = 0; cropY.value = 0;
+    cropW.value = img.width; cropH.value = img.height;
+    cropOverlay.style.display = 'none';
+    updateStatusBar();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    reset();
+  });
+
+  function reset() {
+    originalImages = [];
+    croppedImages = [];
+    currentIndex = 0;
+    thumbnailGrid.innerHTML = '';
+    warningMessage.style.display = 'none';
+    canvas.style.display = 'none';
+    emptyState.style.display = 'block';
+    cropOverlay.style.display = 'none';
+    cropBtn.disabled = true;
+    downloadBtn.disabled = true;
+    downloadAllBtn.disabled = true;
+    selectAllBtn.disabled = true;
+    imageInfo.textContent = 'No image loaded';
+    selectionInfo.textContent = '';
+    cropX.value = 0; cropY.value = 0; cropW.value = 0; cropH.value = 0;
+    fileInput.value = '';
+  }
+    </script>
+{% endblock %}

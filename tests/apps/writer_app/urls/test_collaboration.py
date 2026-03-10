@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.urls.collaboration import ...
+# from apps.workspace.writer_app.urls.collaboration import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,7 +27,7 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # from django.urls import path
 # from django.views.generic import TemplateView
-# 
+#
 # urlpatterns = [
 #     path(
 #         "",

@@ -15,8 +15,8 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone
 
-from apps.project_app.models import Project, VisitorAllocation
-from apps.project_app.services.visitor_pool import VisitorPool
+from apps.infra.project_app.models import Project, VisitorAllocation
+from apps.infra.project_app.services.visitor_pool import VisitorPool
 
 
 class MockSession(dict):

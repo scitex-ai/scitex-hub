@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.test import RequestFactory
 
-from apps.writer_app.views.editor.api.metadata.bibliography import (
+from apps.workspace.writer_app.views.editor.api.metadata.bibliography import (
     regenerate_bibliography_api,
 )
 
@@ -40,17 +40,19 @@ def mock_project():
 class TestRegenerateBibliographyApi:
     """Test bibliography regeneration API endpoint."""
 
-    @patch("apps.project_app.models.Project.objects")
+    @patch("apps.infra.project_app.models.Project.objects")
     def test_project_not_found_returns_404(self, mock_qs, authenticated_request):
         """@api_login_optional returns 404 when project doesn't exist."""
-        from apps.project_app.models import Project
+        from apps.infra.project_app.models import Project
 
         mock_qs.get.side_effect = Project.DoesNotExist
         response = regenerate_bibliography_api(authenticated_request, project_id=999)
         assert response.status_code == 404
 
-    @patch("apps.project_app.services.bibliography_manager.regenerate_bibliography")
-    @patch("apps.project_app.models.Project.objects")
+    @patch(
+        "apps.infra.project_app.services.bibliography_manager.regenerate_bibliography"
+    )
+    @patch("apps.infra.project_app.models.Project.objects")
     def test_success_returns_scholar_count_and_duplicates(
         self, mock_qs, mock_regen, authenticated_request, mock_project
     ):
@@ -73,8 +75,10 @@ class TestRegenerateBibliographyApi:
         assert "writer_count" not in data
         assert "total_count" not in data
 
-    @patch("apps.project_app.services.bibliography_manager.regenerate_bibliography")
-    @patch("apps.project_app.models.Project.objects")
+    @patch(
+        "apps.infra.project_app.services.bibliography_manager.regenerate_bibliography"
+    )
+    @patch("apps.infra.project_app.models.Project.objects")
     def test_failure_returns_errors(
         self, mock_qs, mock_regen, authenticated_request, mock_project
     ):
@@ -94,7 +98,7 @@ class TestRegenerateBibliographyApi:
         assert data["success"] is False
         assert "Parse error" in data["details"][0]
 
-    @patch("apps.project_app.models.Project.objects")
+    @patch("apps.infra.project_app.models.Project.objects")
     def test_no_git_path_returns_400(
         self, mock_qs, authenticated_request, mock_project
     ):

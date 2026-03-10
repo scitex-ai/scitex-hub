@@ -1,0 +1,43 @@
+{% comment %}
+Organization settings sidebar navigation.
+Pattern follows accounts_app/partials/settings_nav.html
+{% endcomment %}
+<div class="settings-nav-section">
+    <div class="settings-nav-header">Organization</div>
+    <a href="/{{ organization.slug }}/settings/"
+       class="settings-nav-item org-settings-nav-link {% if active_section == 'general' %}active{% endif %}"
+       data-section="general">
+        <i class="fas fa-cog"></i>
+        <span>General</span>
+    </a>
+    <a href="/{{ organization.slug }}/settings/members/"
+       class="settings-nav-item org-settings-nav-link {% if active_section == 'members' %}active{% endif %}"
+       data-section="members">
+        <i class="fas fa-users"></i>
+        <span>Members</span>
+    </a>
+    <a href="/{{ organization.slug }}/settings/repositories/"
+       class="settings-nav-item org-settings-nav-link {% if active_section == 'repositories' %}active{% endif %}"
+       data-section="repositories">
+        <i class="fas fa-book"></i>
+        <span>Repositories</span>
+    </a>
+</div>
+<div class="settings-nav-section">
+    <div class="settings-nav-header">Security</div>
+    <a href="/{{ organization.slug }}/settings/security/"
+       class="settings-nav-item org-settings-nav-link {% if active_section == 'security' %}active{% endif %}"
+       data-section="security">
+        <i class="fas fa-shield-alt"></i>
+        <span>Security</span>
+    </a>
+</div>
+<div class="settings-nav-section">
+    <div class="settings-nav-header">Danger</div>
+    <a href="/{{ organization.slug }}/settings/danger/"
+       class="settings-nav-item org-settings-nav-link {% if active_section == 'danger' %}active{% endif %}"
+       data-section="danger">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>Danger Zone</span>
+    </a>
+</div>

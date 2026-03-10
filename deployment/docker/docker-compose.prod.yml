@@ -75,7 +75,7 @@ services:
       # CrossRef database
       - /home/ywatanabe/proj/crossref_local/data:/data/crossref:ro
       # Live-editable announcement banner
-      - ../../apps/public_app/templates/public_app/landing_partials/landing_announcement.html:/app/apps/public_app/templates/public_app/landing_partials/landing_announcement.html:ro
+      - ../../apps/infra/public_app/templates/public_app/landing_partials/landing_announcement.html:/app/apps/infra/public_app/templates/public_app/landing_partials/landing_announcement.html:ro
     ports:
       - "${SCITEX_CLOUD_SSH_PORT:-2200}:2200"
     expose:

@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.services.language_detector import ...
+# from apps.infra.project_app.services.language_detector import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,15 +27,15 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # Language detection for projects based on file extensions and content.
-# 
+#
 # Maps file extensions to programming languages and provides utilities
 # to auto-detect the primary language of a project.
 # """
-# 
+#
 # from pathlib import Path
 # from typing import Optional, List
 # from collections import defaultdict
-# 
+#
 # # Language color mapping from GitHub/GitLab
 # LANGUAGE_COLORS = {
 #     "Python": "#3572A5",
@@ -70,7 +71,7 @@ if __name__ == "__main__":
 #     "SQL": "#336791",
 #     "Other": "#858585",
 # }
-# 
+#
 # # File extension to language mapping
 # FILE_EXTENSION_MAP = {
 #     # Python
@@ -145,7 +146,7 @@ if __name__ == "__main__":
 #     ".xml": "XML",
 #     ".sql": "SQL",
 # }
-# 
+#
 # # Files to ignore when detecting language
 # IGNORE_PATTERNS = {
 #     ".git",
@@ -165,62 +166,62 @@ if __name__ == "__main__":
 #     "results",
 #     "temp",
 # }
-# 
-# 
+#
+#
 # def detect_language_from_files(
 #     project_path: Path, max_files: int = 1000
 # ) -> Optional[str]:
 #     """
 #     Detect the primary programming language of a project by analyzing file extensions.
-# 
+#
 #     Args:
 #         project_path: Path to the project root directory
 #         max_files: Maximum number of files to scan (for performance)
-# 
+#
 #     Returns:
 #         The detected primary language, or None if no source files found
 #     """
 #     if not project_path.exists() or not project_path.is_dir():
 #         return None
-# 
+#
 #     language_count = defaultdict(int)
 #     file_count = 0
-# 
+#
 #     try:
 #         for path in project_path.rglob("*"):
 #             if file_count >= max_files:
 #                 break
-# 
+#
 #             # Skip ignored directories
 #             if any(ignored in path.parts for ignored in IGNORE_PATTERNS):
 #                 continue
-# 
+#
 #             if path.is_file():
 #                 file_count += 1
 #                 ext = path.suffix.lower()
-# 
+#
 #                 if ext in FILE_EXTENSION_MAP:
 #                     language = FILE_EXTENSION_MAP[ext]
 #                     language_count[language] += 1
-# 
+#
 #     except (PermissionError, OSError):
 #         return None
-# 
+#
 #     # Return the language with the most files
 #     if language_count:
 #         primary_language = max(language_count, key=language_count.get)
 #         return primary_language
-# 
+#
 #     return None
-# 
-# 
+#
+#
 # def get_language_color(language: Optional[str]) -> str:
 #     """Get the color hex code for a language."""
 #     if language is None:
 #         language = "Other"
 #     return LANGUAGE_COLORS.get(language, LANGUAGE_COLORS["Other"])
-# 
-# 
+#
+#
 # def get_all_languages() -> List[tuple]:
 #     """Get all supported languages as tuples for Django choices."""
 #     return sorted(set(LANGUAGE_COLORS.keys()), key=lambda x: (x == "Other", x))

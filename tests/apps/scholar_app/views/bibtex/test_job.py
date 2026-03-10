@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.bibtex.job import ...
+# from apps.workspace.scholar_app.views.bibtex.job import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,13 +28,13 @@ if __name__ == "__main__":
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
 # # File: /home/ywatanabe/proj/scitex-cloud/apps/scholar_app/views/bibtex/job.py
-# 
+#
 # """
 # BibTeX Job Views
-# 
+#
 # Job detail, status, and paper listing endpoints.
 # """
-# 
+#
 # import logging
 # from django.shortcuts import render, get_object_or_404
 # from django.http import JsonResponse
@@ -41,15 +42,15 @@ if __name__ == "__main__":
 # from django.conf import settings
 # from pathlib import Path
 # from ...models import BibTeXEnrichmentJob
-# from apps.scholar_app.api_auth import api_key_optional
-# 
+# from apps.workspace.scholar_app.api_auth import api_key_optional
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # def bibtex_job_detail(request, job_id):
 #     """View details and progress of a BibTeX enrichment job (visitor allowed)."""
 #     from .utils import process_bibtex_job
-# 
+#
 #     # Get job by user or session key
 #     if request.user.is_authenticated:
 #         job = get_object_or_404(BibTeXEnrichmentJob, id=job_id, user=request.user)
@@ -57,28 +58,28 @@ if __name__ == "__main__":
 #         job = get_object_or_404(
 #             BibTeXEnrichmentJob, id=job_id, session_key=request.session.session_key
 #         )
-# 
+#
 #     # If job is pending, start processing
 #     if job.status == "pending":
 #         process_bibtex_job(job)
 #         job.refresh_from_db()
-# 
+#
 #     context = {
 #         "job": job,
 #     }
-# 
+#
 #     return render(request, "scholar_app/bibtex_job_detail.html", context)
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # @api_key_optional
 # def bibtex_job_status(request, job_id):
 #     """API endpoint to get job status and progress (supports API key auth)."""
-# 
+#
 #     # Check for API key authentication
 #     api_authenticated = hasattr(request, "api_user")
 #     user = request.api_user if api_authenticated else request.user
-# 
+#
 #     # Get job by user or session key
 #     if api_authenticated or request.user.is_authenticated:
 #         job = get_object_or_404(BibTeXEnrichmentJob, id=job_id, user=user)
@@ -86,7 +87,7 @@ if __name__ == "__main__":
 #         job = get_object_or_404(
 #             BibTeXEnrichmentJob, id=job_id, session_key=request.session.session_key
 #         )
-# 
+#
 #     data = {
 #         "status": job.status,
 #         "progress_percentage": job.get_progress_percentage(),
@@ -99,15 +100,15 @@ if __name__ == "__main__":
 #         "has_output": bool(job.output_file),
 #         "log": job.processing_log,
 #     }
-# 
+#
 #     return JsonResponse(data)
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # def bibtex_job_papers(request, job_id):
 #     """API endpoint to get all papers in a job as placeholders (visitor allowed)."""
 #     import bibtexparser
-# 
+#
 #     # Get job by user or session key
 #     if request.user.is_authenticated:
 #         job = get_object_or_404(BibTeXEnrichmentJob, id=job_id, user=request.user)
@@ -115,20 +116,20 @@ if __name__ == "__main__":
 #         job = get_object_or_404(
 #             BibTeXEnrichmentJob, id=job_id, session_key=request.session.session_key
 #         )
-# 
+#
 #     # Determine which file to read (output if completed, input otherwise)
 #     if job.status == "completed" and job.output_file:
 #         file_path = Path(settings.MEDIA_ROOT) / job.output_file.name
 #     else:
 #         file_path = Path(settings.MEDIA_ROOT) / job.input_file.name
-# 
+#
 #     if not file_path.exists():
 #         return JsonResponse({"success": False, "error": "File not found"}, status=404)
-# 
+#
 #     try:
 #         with open(file_path, "r", encoding="utf-8") as f:
 #             bib_database = bibtexparser.load(f)
-# 
+#
 #         papers = []
 #         for entry in bib_database.entries:
 #             papers.append(
@@ -148,7 +149,7 @@ if __name__ == "__main__":
 #                     "has_citations": bool(entry.get("citations")),
 #                 }
 #             )
-# 
+#
 #         return JsonResponse(
 #             {
 #                 "success": True,
@@ -158,20 +159,20 @@ if __name__ == "__main__":
 #                 "status": job.status,
 #             }
 #         )
-# 
+#
 #     except Exception as e:
 #         return JsonResponse(
 #             {"success": False, "error": f"Failed to read papers: {str(e)}"}, status=500
 #         )
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # def bibtex_recent_jobs(request):
 #     """API endpoint to get user's recent jobs with summary (visitor allowed).
-# 
+#
 #     Deduplicates by content_hash, showing only the most recent job per unique file.
 #     """
-# 
+#
 #     # Get recent jobs
 #     if request.user.is_authenticated:
 #         all_jobs = (
@@ -188,7 +189,7 @@ if __name__ == "__main__":
 #             if request.session.session_key
 #             else BibTeXEnrichmentJob.objects.none()
 #         )
-# 
+#
 #     # Deduplicate: keep only the most recent job per content_hash
 #     seen_hashes = set()
 #     jobs = []
@@ -200,7 +201,7 @@ if __name__ == "__main__":
 #             jobs.append(job)
 #             if len(jobs) >= 10:
 #                 break
-# 
+#
 #     jobs_data = []
 #     for job in jobs:
 #         jobs_data.append(
@@ -219,7 +220,7 @@ if __name__ == "__main__":
 #                 "project_name": job.project.name if job.project else None,
 #             }
 #         )
-# 
+#
 #     return JsonResponse(
 #         {
 #             "success": True,
@@ -227,8 +228,8 @@ if __name__ == "__main__":
 #             "total": len(jobs_data),
 #         }
 #     )
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

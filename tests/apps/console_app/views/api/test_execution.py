@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.views.api.execution import ...
+# from apps.workspace.console_app.views.api.execution import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,11 +29,11 @@ if __name__ == "__main__":
 # """
 # API views for SciTeX-Code Jupyter notebook integration.
 # """
-# 
+#
 # import json
 # import logging
 # import threading
-# 
+#
 # from django.contrib.auth.decorators import login_required
 # from django.http import JsonResponse
 # from django.utils.decorators import method_decorator
@@ -42,7 +43,7 @@ if __name__ == "__main__":
 # from rest_framework.permissions import IsAuthenticated
 # from rest_framework.response import Response
 # from rest_framework import status
-# 
+#
 # from ...models import Notebook, CodeExecutionJob
 # from ...services.jupyter import (
 #     NotebookManager,
@@ -51,21 +52,21 @@ if __name__ == "__main__":
 #     NotebookTemplates,
 #     NotebookValidator,
 # )
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # @method_decorator(login_required, name="dispatch")
 # class NotebookAPIView(View):
 #     """Base API view for notebook operations."""
-# 
+#
 #     def get_notebook_manager(self):
 #         return NotebookManager(self.request.user)
-# 
-# 
+#
+#
 # class NotebookExecutionAPI(NotebookAPIView):
 #     """API for notebook execution."""
-# 
+#
 #     def post(self, request, notebook_id):
 #         """Execute a notebook or specific cell."""
 #         try:
@@ -73,15 +74,15 @@ if __name__ == "__main__":
 #             cell_index = data.get("cell_index")  # If specified, execute only this cell
 #             timeout = min(int(data.get("timeout", 300)), 600)
 #             memory_limit = min(int(data.get("memory_limit", 512)), 2048)
-# 
+#
 #             manager = self.get_notebook_manager()
 #             notebook = manager.load_notebook(notebook_id)
-# 
+#
 #             if not notebook:
 #                 return JsonResponse(
 #                     {"status": "error", "message": "Notebook not found"}, status=404
 #                 )
-# 
+#
 #             # Create execution job
 #             job = CodeExecutionJob.objects.create(
 #                 user=request.user,
@@ -90,14 +91,14 @@ if __name__ == "__main__":
 #                 timeout_seconds=timeout,
 #                 max_memory_mb=memory_limit,
 #             )
-# 
+#
 #             executor = NotebookExecutor(timeout=timeout, memory_limit=memory_limit)
-# 
+#
 #             if cell_index is not None:
 #                 # Execute single cell
 #                 def execute_cell():
 #                     success, result = executor.execute_cell(notebook, cell_index)
-# 
+#
 #                     job.status = "completed" if success else "failed"
 #                     job.completed_at = timezone.now()
 #                     if success:
@@ -105,11 +106,11 @@ if __name__ == "__main__":
 #                     else:
 #                         job.error_output = result.get("error", "Unknown error")
 #                     job.save()
-# 
+#
 #                 execution_thread = threading.Thread(target=execute_cell)
 #                 execution_thread.daemon = True
 #                 execution_thread.start()
-# 
+#
 #                 return JsonResponse(
 #                     {
 #                         "status": "success",
@@ -118,16 +119,16 @@ if __name__ == "__main__":
 #                         "execution_type": "cell",
 #                     }
 #                 )
-# 
+#
 #             else:
 #                 # Execute entire notebook
 #                 def execute_notebook():
 #                     executor.execute_notebook(notebook, job)
-# 
+#
 #                 execution_thread = threading.Thread(target=execute_notebook)
 #                 execution_thread.daemon = True
 #                 execution_thread.start()
-# 
+#
 #                 return JsonResponse(
 #                     {
 #                         "status": "success",
@@ -136,7 +137,7 @@ if __name__ == "__main__":
 #                         "execution_type": "notebook",
 #                     }
 #                 )
-# 
+#
 #         except json.JSONDecodeError:
 #             return JsonResponse(
 #                 {"status": "error", "message": "Invalid JSON"}, status=400
@@ -144,8 +145,8 @@ if __name__ == "__main__":
 #         except Exception as e:
 #             logger.error(f"Error executing notebook {notebook_id}: {e}")
 #             return JsonResponse({"status": "error", "message": str(e)}, status=500)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

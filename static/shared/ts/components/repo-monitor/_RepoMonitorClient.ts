@@ -34,7 +34,6 @@ export class RepoMonitorClient {
     this.ws = new WebSocket(url);
 
     this.ws.onopen = () => {
-      console.log("[RepoMonitorClient] Connected");
       this.retryCount = 0;
       const filters = this.loadFilters();
       this.send({ type: "configure", filters });
@@ -53,7 +52,6 @@ export class RepoMonitorClient {
     };
 
     this.ws.onclose = () => {
-      console.log("[RepoMonitorClient] Connection closed");
       if (this.shouldReconnect && this.retryCount < MAX_RETRIES) {
         this.scheduleReconnect();
       }
@@ -70,9 +68,6 @@ export class RepoMonitorClient {
       MAX_RETRY_DELAY_MS,
     );
     this.retryCount++;
-    console.log(
-      `[RepoMonitorClient] Reconnecting in ${delay}ms (attempt ${this.retryCount}/${MAX_RETRIES})`,
-    );
     this.retryTimer = setTimeout(() => {
       this.openSocket();
     }, delay);

@@ -302,7 +302,7 @@ LOGGING.update(
 # ---------------------------------------
 # Chart generation dispatches 48 child tasks; use 60s to avoid queue flooding
 CELERY_BEAT_SCHEDULE["generate-status-charts"] = {
-    "task": "apps.public_app.tasks.generate_status_charts",
+    "task": "apps.infra.public_app.tasks.generate_status_charts",
     "schedule": 60.0,
     "options": {
         "expires": 55.0,
@@ -311,7 +311,7 @@ CELERY_BEAT_SCHEDULE["generate-status-charts"] = {
 
 # Re-enable metrics collection in dev (runs as Celery task, not in Daphne)
 CELERY_BEAT_SCHEDULE["collect-server-metrics"] = {
-    "task": "apps.public_app.tasks.collect_server_metrics",
+    "task": "apps.infra.public_app.tasks.collect_server_metrics",
     "schedule": 10.0,
     "options": {
         "expires": 9.0,

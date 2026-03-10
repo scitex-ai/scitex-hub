@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.repository.dataset_base import ...
+# from apps.workspace.scholar_app.views.repository.dataset_base import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,7 +28,7 @@ if __name__ == "__main__":
 # """
 # Base dataset management viewset with listing and creation.
 # """
-# 
+#
 # import logging
 # from django.shortcuts import get_object_or_404
 # from django.db import transaction
@@ -35,17 +36,17 @@ if __name__ == "__main__":
 # from rest_framework import status, viewsets
 # from rest_framework.response import Response
 # from rest_framework.permissions import IsAuthenticated
-# 
+#
 # from ...models import Dataset, RepositoryConnection
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # class DatasetBaseViewSet(viewsets.ModelViewSet):
 #     """Base ViewSet for managing datasets with list and create operations"""
-# 
+#
 #     permission_classes = [IsAuthenticated]
-# 
+#
 #     def get_queryset(self):
 #         return (
 #             Dataset.objects.filter(owner=self.request.user)
@@ -54,11 +55,11 @@ if __name__ == "__main__":
 #             )
 #             .prefetch_related("collaborators", "files")
 #         )
-# 
+#
 #     def list(self, request):
 #         """List user's datasets"""
 #         queryset = self.get_queryset()
-# 
+#
 #         # Apply filters
 #         if request.GET.get("status"):
 #             queryset = queryset.filter(status=request.GET.get("status"))
@@ -72,12 +73,12 @@ if __name__ == "__main__":
 #             )
 #         if request.GET.get("project"):
 #             queryset = queryset.filter(project_id=request.GET.get("project"))
-# 
+#
 #         # Pagination
 #         page_size = int(request.GET.get("page_size", 20))
 #         paginator = Paginator(queryset, page_size)
 #         page = paginator.get_page(request.GET.get("page", 1))
-# 
+#
 #         data = []
 #         for dataset in page:
 #             data.append(
@@ -105,7 +106,7 @@ if __name__ == "__main__":
 #                     "last_synced": dataset.last_synced,
 #                 }
 #             )
-# 
+#
 #         return Response(
 #             {
 #                 "datasets": data,
@@ -118,19 +119,19 @@ if __name__ == "__main__":
 #                 },
 #             }
 #         )
-# 
+#
 #     def create(self, request):
 #         """Create a new dataset"""
 #         try:
 #             data = request.data
-# 
+#
 #             # Get repository connection
 #             connection = get_object_or_404(
 #                 RepositoryConnection,
 #                 id=data.get("repository_connection_id"),
 #                 user=request.user,
 #             )
-# 
+#
 #             with transaction.atomic():
 #                 dataset = Dataset.objects.create(
 #                     title=data.get("title"),
@@ -146,20 +147,20 @@ if __name__ == "__main__":
 #                     if data.get("project_id")
 #                     else None,
 #                 )
-# 
+#
 #                 # Add collaborators
 #                 if "collaborator_ids" in data:
 #                     dataset.collaborators.set(data["collaborator_ids"])
-# 
+#
 #                 # Link to related papers
 #                 if "related_paper_ids" in data:
 #                     dataset.related_papers.set(data["related_paper_ids"])
-# 
+#
 #             return Response(
 #                 {"id": str(dataset.id), "message": "Dataset created successfully"},
 #                 status=status.HTTP_201_CREATED,
 #             )
-# 
+#
 #         except Exception as e:
 #             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

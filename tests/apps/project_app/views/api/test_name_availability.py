@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.views.api.name_availability import ...
+# from apps.infra.project_app.views.api.name_availability import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,53 +32,53 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # """
 # Name Availability API Views
-# 
+#
 # This module contains API endpoints for checking project name availability.
 # Enforces strict 1:1 mapping: Local ↔ Django ↔ Gitea.
 # """
-# 
+#
 # from __future__ import annotations
 # import logging
-# 
+#
 # from django.contrib.auth.decorators import login_required
 # from django.http import JsonResponse
 # from django.views.decorators.http import require_http_methods
-# 
+#
 # from ...models import Project
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # # ============================================================================
 # # Name Availability API
 # # ============================================================================
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["GET"])
 # def api_check_name_availability(request):
 #     """
 #     API endpoint to check if project name is available.
-# 
+#
 #     Enforces strict 1:1 mapping: Local ↔ Django ↔ Gitea
 #     A name is only available if it's free in BOTH Django AND Gitea.
 #     """
 #     name = request.GET.get("name", "").strip()
-# 
+#
 #     if not name:
 #         return JsonResponse({"available": False, "message": "Project name is required"})
-# 
+#
 #     # Validate name using scitex.project validator
 #     try:
 #         from scitex.project import validate_name
-# 
+#
 #         is_valid, error = validate_name(name)
 #         if not is_valid:
 #             return JsonResponse({"available": False, "message": error})
 #     except ImportError:
 #         # Fallback to basic validation if scitex.project not available
 #         pass
-# 
+#
 #     # Check 1: Django database (name must be unique per user)
 #     exists_in_django = Project.objects.filter(name=name, owner=request.user).exists()
 #     if exists_in_django:
@@ -87,18 +88,18 @@ if __name__ == "__main__":
 #                 "message": f'You already have a project named "{name}"',
 #             }
 #         )
-# 
+#
 #     # Check 2: Gitea repository (enforce 1:1 mapping)
 #     # Generate slug to check in Gitea
 #     from django.utils.text import slugify
-# 
+#
 #     slug = slugify(name)
-# 
+#
 #     try:
-#         from apps.gitea_app.api_client import GiteaClient, GiteaAPIError
-# 
+#         from apps.infra.gitea_app.api_client import GiteaClient, GiteaAPIError
+#
 #         client = GiteaClient()
-# 
+#
 #         try:
 #             existing_repo = client.get_repository(
 #                 owner=request.user.username, repo=slug
@@ -124,10 +125,10 @@ if __name__ == "__main__":
 #         # If Gitea check fails entirely, log but don't block
 #         logger.warning(f"Gitea availability check failed: {e}")
 #         pass  # Continue, assume available
-# 
+#
 #     return JsonResponse({"available": True, "message": f'"{name}" is available'})
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

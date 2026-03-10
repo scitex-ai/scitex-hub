@@ -153,4 +153,7 @@ if (typeof document !== "undefined") {
   document.addEventListener("htmx:afterSettle", () => {
     initNewResizers();
   });
+
+  // Expose for inline scripts that need to re-init after tab switches
+  (window as any).initNewResizers = initNewResizers;
 }

@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.api.base import ...
+# from apps.workspace.console_app.api.base import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,15 +32,15 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/console_app/api_views.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
-# 
+#
 # """
 # API views for SciTeX-Code Jupyter notebook integration.
 # """
-# 
+#
 # import json
 # import logging
 # import threading
@@ -52,7 +53,7 @@ if __name__ == "__main__":
 # from rest_framework.permissions import IsAuthenticated
 # from rest_framework.response import Response
 # from rest_framework import status
-# 
+#
 # from .models import Notebook
 # from .models import CodeExecutionJob
 # from .jupyter import NotebookManager
@@ -60,19 +61,19 @@ if __name__ == "__main__":
 # from .jupyter import NotebookConverter
 # from .jupyter import NotebookTemplates
 # from .jupyter import NotebookValidator
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # @method_decorator(login_required, name="dispatch")
 # class NotebookAPIView(View):
 #     """Base API view for notebook operations."""
-# 
+#
 #     def get_notebook_manager(self):
 #         return NotebookManager(self.request.user)
-# 
-# 
-# 
+#
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

@@ -5,7 +5,23 @@ import * as fs from "fs";
 import { getEntryPoints } from "./vite.entries";
 
 /**
- * Plugin to resolve /static/ absolute paths to actual file locations
+ * Resolve an app's static directory, searching infra/ and workspace/ groups.
+ * Returns the full path if found, or null.
+ */
+function findAppStaticPath(appName: string, rest: string): string | null {
+  for (const group of ["infra", "workspace", ""]) {
+    const appPath = group
+      ? `apps/${group}/${appName}/static/${appName}/${rest}`
+      : `apps/${appName}/static/${appName}/${rest}`;
+    const fullPath = resolve(__dirname, appPath);
+    if (fs.existsSync(fullPath)) return fullPath;
+  }
+  return null;
+}
+
+/**
+ * Plugin to resolve /static/ absolute paths to actual file locations.
+ * Handles apps reorganized into apps/infra/ and apps/workspace/.
  */
 function resolveStaticPaths(): Plugin {
   return {
@@ -18,17 +34,13 @@ function resolveStaticPaths(): Plugin {
       if (source.startsWith("/static/")) {
         const mappedPath = source.replace("/static/", "static/");
         const fullPath = resolve(__dirname, mappedPath);
-        if (fs.existsSync(fullPath)) {
-          return fullPath;
-        }
+        if (fs.existsSync(fullPath)) return fullPath;
+
         const match = source.match(/^\/static\/(\w+_app)\/(.*)/);
         if (match) {
           const [, appName, rest] = match;
-          const appPath = `apps/${appName}/static/${appName}/${rest}`;
-          const appFullPath = resolve(__dirname, appPath);
-          if (fs.existsSync(appFullPath)) {
-            return appFullPath;
-          }
+          const found = findAppStaticPath(appName, rest);
+          if (found) return found;
         }
       }
 
@@ -115,8 +127,8 @@ export default defineConfig({
     },
     warmup: {
       clientFiles: [
-        "apps/console_app/static/console_app/ts/workspace.ts",
-        "apps/console_app/static/console_app/ts/workspace/**/*.ts",
+        "apps/workspace/console_app/static/console_app/ts/workspace.ts",
+        "apps/workspace/console_app/static/console_app/ts/workspace/**/*.ts",
       ],
     },
   },

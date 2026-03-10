@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.views.settings_views import ...
+# from apps.infra.project_app.views.settings_views import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,32 +29,32 @@ if __name__ == "__main__":
 # Settings Views
 # Handles project settings and configuration.
 # """
-# 
+#
 # from django.shortcuts import render, redirect, get_object_or_404
 # from django.contrib.auth.decorators import login_required
 # from django.contrib import messages
 # from django.contrib.auth.models import User
-# from apps.project_app.models import Project, ProjectMembership, ProjectInvitation
+# from apps.infra.project_app.models import Project, ProjectMembership, ProjectInvitation
 # import logging
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # @login_required
 # def project_settings(request, username, slug):
 #     """GitHub-style repository settings page"""
 #     logger.info(
 #         f"[Settings VIEW] ===== ENTERED ===== Method: {request.method}, User: {request.user.username if request.user.is_authenticated else 'Visitor'}, Path: {request.path}"
 #     )
-# 
+#
 #     user = get_object_or_404(User, username=username)
 #     project = get_object_or_404(Project, slug=slug, owner=user)
-# 
+#
 #     # Only project owner can access settings
 #     if project.owner != request.user:
 #         messages.error(request, "You don't have permission to access settings.")
 #         return redirect("project_app:detail", username=username, slug=slug)
-# 
+#
 #     if request.method == "POST":
 #         action = request.POST.get("action")
 #         logger.info(f"[Settings POST] ===== POST RECEIVED =====")
@@ -67,14 +68,14 @@ if __name__ == "__main__":
 #         logger.info(
 #             f"[Settings POST] collaborator_role: {request.POST.get('collaborator_role')}"
 #         )
-# 
+#
 #         if action == "update_general":
 #             # Update basic project info
 #             project.name = request.POST.get("name", "").strip()
 #             project.description = request.POST.get("description", "").strip()
 #             project.save()
 #             messages.success(request, "General settings updated successfully")
-# 
+#
 #         elif action == "update_visibility":
 #             # Update visibility
 #             new_visibility = request.POST.get("visibility")
@@ -85,16 +86,16 @@ if __name__ == "__main__":
 #                     request,
 #                     f"Repository visibility updated to {new_visibility}",
 #                 )
-# 
+#
 #         elif action == "add_collaborator":
 #             # Send invitation to collaborator
-#             from apps.project_app.services.email_service import EmailService
-# 
+#             from apps.infra.project_app.services.email_service import EmailService
+#
 #             collaborator_username = request.POST.get(
 #                 "collaborator_username", ""
 #             ).strip()
 #             collaborator_role = request.POST.get("collaborator_role", "collaborator")
-# 
+#
 #             # Map role to permission_level
 #             role_permission_map = {
 #                 "viewer": "read",
@@ -102,11 +103,11 @@ if __name__ == "__main__":
 #                 "admin": "admin",
 #             }
 #             permission_level = role_permission_map.get(collaborator_role, "write")
-# 
+#
 #             if collaborator_username:
 #                 try:
 #                     collaborator = User.objects.get(username=collaborator_username)
-# 
+#
 #                     # Check if already a collaborator
 #                     if ProjectMembership.objects.filter(
 #                         project=project, user=collaborator
@@ -140,7 +141,7 @@ if __name__ == "__main__":
 #                             logger.info(
 #                                 f"Created invitation: {invitation.id} for {collaborator_username}"
 #                             )
-# 
+#
 #                             # Send email notification if user has email
 #                             if collaborator.email:
 #                                 try:
@@ -151,7 +152,7 @@ if __name__ == "__main__":
 #                                     decline_url = request.build_absolute_uri(
 #                                         f"/invitations/{invitation.token}/decline/"
 #                                     )
-# 
+#
 #                                     email_service.send_email(
 #                                         to_email=collaborator.email,
 #                                         subject=f"{request.user.username} invited you to collaborate on {project.name}",
@@ -195,27 +196,27 @@ if __name__ == "__main__":
 #                                 f"Failed to create invitation: {e}", exc_info=True
 #                             )
 #                             messages.error(request, f"Failed to create invitation: {e}")
-# 
+#
 #                 except User.DoesNotExist:
 #                     messages.error(request, f'User "{collaborator_username}" not found')
 #             else:
 #                 messages.error(request, "Please enter a username")
-# 
+#
 #         elif action == "delete_repository":
 #             # Delete repository
 #             project_name = project.name
 #             project.delete()
 #             messages.success(request, f'Repository "{project_name}" has been deleted')
 #             return redirect(f"/{request.user.username}/")
-# 
+#
 #         return redirect("project_app:settings", username=username, slug=slug)
-# 
+#
 #     context = {
 #         "project": project,
 #     }
 #     return render(request, "project_app/projects/settings.html", context)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

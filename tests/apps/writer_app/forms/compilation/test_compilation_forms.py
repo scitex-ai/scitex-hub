@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.forms.compilation.compilation_forms import ...
+# from apps.workspace.writer_app.forms.compilation.compilation_forms import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,8 +27,8 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # from django import forms
 # from ...models import CompilationJob
-# 
-# 
+#
+#
 # class CompilationForm(forms.Form):
 #     compilation_type = forms.ChoiceField(
 #         choices=CompilationJob.COMPILATION_TYPES,

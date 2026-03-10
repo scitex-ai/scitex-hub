@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.search.preferences import ...
+# from apps.workspace.scholar_app.views.search.preferences import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -29,11 +30,11 @@ if __name__ == "__main__":
 # # File: apps/scholar_app/views/search/preferences.py
 # """
 # Scholar App - User Preferences Module
-# 
+#
 # Views for managing user search preferences and settings.
 # Extracted from monolithic views.py for better modularity.
 # """
-# 
+#
 # from django.http import JsonResponse
 # from django.views.decorators.http import require_http_methods
 # from django.contrib.auth.decorators import login_required
@@ -41,11 +42,11 @@ if __name__ == "__main__":
 # import json
 # from scitex import logging
 # from ...models import UserPreference
-# 
+#
 # # Set up logger
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # def get_user_preferences(request):
 #     """Get user's search preferences"""
@@ -66,8 +67,8 @@ if __name__ == "__main__":
 #     except Exception as e:
 #         logger.error(f"Error getting user preferences: {e}")
 #         return JsonResponse({"status": "error", "message": str(e)}, status=500)
-# 
-# 
+#
+#
 # @login_required
 # @csrf_exempt
 # @require_http_methods(["POST"])
@@ -76,36 +77,36 @@ if __name__ == "__main__":
 #     try:
 #         data = json.loads(request.body)
 #         preferences = UserPreference.get_or_create_for_user(request.user)
-# 
+#
 #         # Update specific preference fields
 #         if "preferred_sources" in data:
 #             preferences.preferred_sources = data["preferred_sources"]
-# 
+#
 #         if "default_sort_by" in data:
 #             preferences.default_sort_by = data["default_sort_by"]
-# 
+#
 #         if "default_filters" in data:
 #             preferences.default_filters = data["default_filters"]
-# 
+#
 #         if "results_per_page" in data:
 #             preferences.results_per_page = data["results_per_page"]
-# 
+#
 #         if "show_abstracts" in data:
 #             preferences.show_abstracts = data["show_abstracts"]
-# 
+#
 #         preferences.save()
-# 
+#
 #         return JsonResponse(
 #             {"status": "success", "message": "Preferences saved successfully"}
 #         )
-# 
+#
 #     except json.JSONDecodeError:
 #         return JsonResponse({"status": "error", "message": "Invalid JSON"}, status=400)
 #     except Exception as e:
 #         logger.error(f"Error saving user preferences: {e}")
 #         return JsonResponse({"status": "error", "message": str(e)}, status=500)
-# 
-# 
+#
+#
 # @csrf_exempt
 # @require_http_methods(["POST"])
 # def save_source_preferences(request):
@@ -113,13 +114,13 @@ if __name__ == "__main__":
 #     try:
 #         data = json.loads(request.body)
 #         sources = data.get("sources", {})
-# 
+#
 #         if request.user.is_authenticated:
 #             # Save to database for logged in users
 #             preferences = UserPreference.get_or_create_for_user(request.user)
 #             preferences.preferred_sources = sources
 #             preferences.save()
-# 
+#
 #             return JsonResponse(
 #                 {
 #                     "status": "success",
@@ -136,7 +137,7 @@ if __name__ == "__main__":
 #                     "saved_to": "session",
 #                 }
 #             )
-# 
+#
 #     except json.JSONDecodeError:
 #         return JsonResponse({"status": "error", "message": "Invalid JSON"}, status=400)
 #     except Exception as e:

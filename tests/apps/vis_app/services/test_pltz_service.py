@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.vis_app.services.pltz_service import ...
+# from apps.workspace.vis_app.services.pltz_service import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -25,38 +26,38 @@ if __name__ == "__main__":
 # Start of Source Code from: apps/vis_app/services/pltz_service.py
 # --------------------------------------------------------------------------------
 # """PltzBundle Service - Thin Django wrapper around scitex.plt.Pltz."""
-# 
+#
 # import logging
 # import os
 # import sys
 # from pathlib import Path
 # from typing import Any, Dict, Optional, Union
-# 
+#
 # from django.conf import settings
 # from django.utils.text import slugify
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
+#
 # # Ensure scitex is importable
 # SCITEX_CODE_PATH = os.environ.get('SCITEX_CODE_PATH', '/home/ywatanabe/proj/scitex-code')
 # if SCITEX_CODE_PATH not in sys.path:
 #     sys.path.insert(0, f"{SCITEX_CODE_PATH}/src")
-# 
-# 
+#
+#
 # def _get_pltz_class():
 #     """Lazy import Pltz class."""
 #     from scitex.plt import Pltz
 #     return Pltz
-# 
-# 
+#
+#
 # class PltzService:
 #     """Thin service wrapper for pltz bundle operations."""
-# 
+#
 #     @staticmethod
 #     def get_bundle_base_path(user_id: int) -> Path:
 #         """Get base path for user's pltz bundles."""
 #         return Path(settings.MEDIA_ROOT) / "vis" / "bundles" / "pltz" / str(user_id)
-# 
+#
 #     @staticmethod
 #     def load_bundle(bundle_path: Union[str, Path]) -> Dict[str, Any]:
 #         """Load a pltz bundle using scitex.plt.Pltz."""
@@ -72,7 +73,7 @@ if __name__ == "__main__":
 #             "style": pltz.style,
 #             "data": pltz.data,
 #         }
-# 
+#
 #     @staticmethod
 #     def save_bundle(
 #         spec: Dict,
@@ -87,7 +88,7 @@ if __name__ == "__main__":
 #         Pltz = _get_pltz_class()
 #         import pandas as pd
 #         from io import StringIO
-# 
+#
 #         # Determine output path
 #         if output_path:
 #             path = Path(output_path)
@@ -97,7 +98,7 @@ if __name__ == "__main__":
 #             path = base_path / f"{slugify(name)}.pltz"
 #         else:
 #             raise ValueError("Either output_path or (user_id, name) required")
-# 
+#
 #         # Parse CSV data
 #         df = None
 #         if data_csv:
@@ -105,16 +106,16 @@ if __name__ == "__main__":
 #                 df = pd.read_csv(data_csv)
 #             else:
 #                 df = pd.read_csv(StringIO(data_csv))
-# 
+#
 #         # Create bundle
 #         plot_type = spec.get("plot_type", "line")
 #         pltz = Pltz.create(path, plot_type=plot_type, data=df, spec_overrides=spec)
 #         if style:
 #             pltz.style = style
 #             pltz.save()
-# 
+#
 #         return {"path": str(path), "is_zip": True, "spec": pltz.spec, "style": pltz.style}
-# 
+#
 #     @staticmethod
 #     def update_spec(bundle_path: Union[str, Path], spec: Dict) -> Dict[str, Any]:
 #         """Update spec.json in bundle."""
@@ -123,7 +124,7 @@ if __name__ == "__main__":
 #         pltz.spec = spec
 #         pltz.save()
 #         return {"path": str(bundle_path), "spec": spec}
-# 
+#
 #     @staticmethod
 #     def update_style(bundle_path: Union[str, Path], style: Dict) -> Dict[str, Any]:
 #         """Update style.json in bundle."""
@@ -132,7 +133,7 @@ if __name__ == "__main__":
 #         pltz.style = style
 #         pltz.save()
 #         return {"path": str(bundle_path), "style": style}
-# 
+#
 #     @staticmethod
 #     def get_preview_image(bundle_path: Union[str, Path], image_type: str = "png") -> Optional[bytes]:
 #         """Get preview image from bundle."""
@@ -143,7 +144,7 @@ if __name__ == "__main__":
 #         except Exception as e:
 #             logger.warning(f"Failed to get preview: {e}")
 #             return None
-# 
+#
 #     @staticmethod
 #     def get_data_csv(bundle_path: Union[str, Path]) -> Optional[str]:
 #         """Get data CSV content from bundle."""
@@ -155,7 +156,7 @@ if __name__ == "__main__":
 #         except Exception as e:
 #             logger.warning(f"Failed to get data: {e}")
 #         return None
-# 
+#
 #     @staticmethod
 #     def get_geometry(bundle_path: Union[str, Path]) -> Optional[Dict]:
 #         """Get geometry cache from bundle."""
@@ -165,7 +166,7 @@ if __name__ == "__main__":
 #                 return zb.read_json("cache/geometry_px.json")
 #         except (FileNotFoundError, Exception):
 #             return None
-# 
+#
 #     @staticmethod
 #     def delete_bundle(bundle_path: Union[str, Path]) -> bool:
 #         """Delete a pltz bundle."""
@@ -178,7 +179,7 @@ if __name__ == "__main__":
 #         else:
 #             shutil.rmtree(path)
 #         return True
-# 
+#
 #     @staticmethod
 #     def categorize_plot(spec: Dict) -> str:
 #         """Determine plot category from spec."""
@@ -196,7 +197,7 @@ if __name__ == "__main__":
 #         elif plot_type in ["heatmap", "imshow", "contour"]:
 #             return "heatmap"
 #         return "other"
-# 
+#
 #     @staticmethod
 #     def create_from_gallery(
 #         gallery_category: str,
@@ -215,7 +216,7 @@ if __name__ == "__main__":
 #             "spec": pltz.spec,
 #             "style": pltz.style,
 #         }
-# 
+#
 #     @staticmethod
 #     def create_from_plot(
 #         plot_type: str, data_csv: Optional[str] = None, data: Optional[Any] = None,
@@ -232,7 +233,7 @@ if __name__ == "__main__":
 #         if output_dir:
 #             bundle_path = Path(output_dir) / f"{bundle_name}.pltz"
 #         elif project_owner and project_slug:
-#             from apps.project_app.models import Project
+#             from apps.infra.project_app.models import Project
 #             project = Project.objects.get(owner__username=project_owner, slug=project_slug)
 #             figures_dir = project.get_local_path() / "scitex" / "vis" / "figures"
 #             figz_path = figures_dir / f"{figure_name}.figz" if figure_name else figures_dir
@@ -254,7 +255,7 @@ if __name__ == "__main__":
 #             pltz.save()
 #             result["data_updated"] = True
 #         return result
-# 
+#
 #     @staticmethod
 #     def is_pltz_bundle(path: Union[str, Path]) -> bool:
 #         """Check if path is a valid pltz bundle."""
@@ -268,7 +269,7 @@ if __name__ == "__main__":
 #             except Exception:
 #                 return False
 #         return False
-# 
+#
 #     @staticmethod
 #     def render_preview(bundle_path: Union[str, Path]) -> Dict[str, Any]:
 #         """Re-render preview and update bundle."""
@@ -276,7 +277,7 @@ if __name__ == "__main__":
 #         pltz = Pltz(bundle_path)
 #         pltz.update_preview()
 #         return {"path": str(bundle_path), "rendered": True}
-# 
+#
 #     @staticmethod
 #     def get_preview_base64(bundle_path: Union[str, Path], image_type: str = "png") -> Optional[str]:
 #         """Get preview image as base64 data URL."""

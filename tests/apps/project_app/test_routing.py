@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.routing import ...
+# from apps.infra.project_app.routing import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -29,10 +30,10 @@ if __name__ == "__main__":
 # """
 # WebSocket URL routing for Project app.
 # """
-# 
+#
 # from django.urls import re_path
 # from . import websocket_consumers
-# 
+#
 # websocket_urlpatterns = [
 #     # Port proxy WebSocket: /{username}/{project}/ws/?port={port}
 #     re_path(
@@ -40,7 +41,7 @@ if __name__ == "__main__":
 #         websocket_consumers.PortProxyWebSocketConsumer.as_asgi(),
 #     ),
 # ]
-# 
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

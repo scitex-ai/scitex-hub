@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.services.arxiv.category import ...
+# from apps.workspace.writer_app.services.arxiv.category import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,25 +27,25 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # arXiv Category Management Service
-# 
+#
 # Handles category population, filtering, and suggestion based on manuscript content.
 # """
-# 
+#
 # from typing import List
-# 
+#
 # from ...models import ArxivCategory, Manuscript
-# 
-# 
+#
+#
 # class ArxivCategoryService:
 #     """Service for managing arXiv categories and subject classification."""
-# 
+#
 #     def __init__(self):
 #         self.categories_url = "https://arxiv.org/category_taxonomy"
-# 
+#
 #     def populate_categories(self) -> int:
 #         """
 #         Populate the database with current arXiv categories.
-# 
+#
 #         Returns:
 #             int: Number of categories created/updated
 #         """
@@ -132,7 +133,7 @@ if __name__ == "__main__":
 #                 "description": "Statistical machine learning",
 #             },
 #         ]
-# 
+#
 #         created_count = 0
 #         for cat_data in categories_data:
 #             category, created = ArxivCategory.objects.get_or_create(
@@ -144,39 +145,39 @@ if __name__ == "__main__":
 #             )
 #             if created:
 #                 created_count += 1
-# 
+#
 #         return created_count
-# 
+#
 #     def get_categories_by_field(self, field: str) -> List[ArxivCategory]:
 #         """
 #         Get categories by field (e.g., 'cs', 'math', 'physics').
-# 
+#
 #         Args:
 #             field: Field prefix (e.g., 'cs', 'math')
-# 
+#
 #         Returns:
 #             List of ArxivCategory objects
 #         """
 #         return ArxivCategory.objects.filter(
 #             code__startswith=f"{field}.", is_active=True
 #         ).order_by("code")
-# 
+#
 #     def suggest_categories(
 #         self, manuscript: Manuscript, max_suggestions: int = 5
 #     ) -> List[ArxivCategory]:
 #         """
 #         Suggest categories based on manuscript content.
-# 
+#
 #         Args:
 #             manuscript: Manuscript to analyze
 #             max_suggestions: Maximum number of suggestions
-# 
+#
 #         Returns:
 #             List of suggested ArxivCategory objects
 #         """
 #         # Simple keyword-based suggestion system
 #         content = f"{manuscript.title} {manuscript.abstract}".lower()
-# 
+#
 #         category_keywords = {
 #             "cs.AI": [
 #                 "artificial intelligence",
@@ -213,7 +214,7 @@ if __name__ == "__main__":
 #             "math.ST": ["statistics", "statistical theory", "hypothesis testing"],
 #             "q-bio.GN": ["genomics", "bioinformatics", "dna", "rna", "genome"],
 #         }
-# 
+#
 #         suggestions = []
 #         for code, keywords in category_keywords.items():
 #             score = sum(1 for keyword in keywords if keyword in content)
@@ -223,7 +224,7 @@ if __name__ == "__main__":
 #                     suggestions.append((category, score))
 #                 except ArxivCategory.DoesNotExist:
 #                     continue
-# 
+#
 #         # Sort by score and return top suggestions
 #         suggestions.sort(key=lambda x: x[1], reverse=True)
 #         return [cat for cat, score in suggestions[:max_suggestions]]

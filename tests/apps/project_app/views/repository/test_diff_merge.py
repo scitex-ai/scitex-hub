@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.views.repository.diff_merge import ...
+# from apps.infra.project_app.views.repository.diff_merge import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,36 +32,36 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # """
 # Repository Diff & Merge
-# 
+#
 # General-purpose file comparison and merging tool.
 # Supports file uploads, repository file selection, and direct text input.
 # """
-# 
+#
 # from __future__ import annotations
-# 
+#
 # import difflib
 # import logging
 # import tempfile
 # from pathlib import Path
 # from typing import Optional
-# 
+#
 # from django.shortcuts import render, redirect, get_object_or_404
 # from django.contrib import messages
 # from django.contrib.auth.models import User
 # from django.http import JsonResponse, HttpResponse
 # from django.views.decorators.http import require_http_methods
-# 
-# from apps.project_app.models import Project
-# 
+#
+# from apps.infra.project_app.models import Project
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # def diff_merge_view(request, username, slug):
 #     """
 #     General-purpose diff and merge page.
-# 
+#
 #     URL: /<username>/<slug>/diff/
-# 
+#
 #     Supports:
 #     - File uploads via drag-and-drop
 #     - Repository file selection
@@ -70,14 +71,14 @@ if __name__ == "__main__":
 #     """
 #     user = get_object_or_404(User, username=username)
 #     project = get_object_or_404(Project, slug=slug, owner=user)
-# 
+#
 #     # Check access permissions
 #     has_access = (
 #         project.owner == request.user
 #         or project.collaborators.filter(id=request.user.id).exists()
 #         or getattr(project, "visibility", None) == "public"
 #     )
-# 
+#
 #     if not has_access:
 #         if not request.user.is_authenticated:
 #             from django.contrib.auth.views import redirect_to_login
@@ -85,47 +86,47 @@ if __name__ == "__main__":
 #         else:
 #             messages.error(request, "You don't have permission to access this project.")
 #             return redirect("project_app:detail", username=username, slug=slug)
-# 
+#
 #     context = {
 #         "project": project,
 #         "page_title": "Diff & Merge",
 #     }
-# 
+#
 #     return render(request, "project_app/repository/diff_merge.html", context)
-# 
-# 
+#
+#
 # @require_http_methods(["POST"])
 # def api_compute_diff(request, username, slug):
 #     """
 #     API endpoint to compute diff between two text contents.
-# 
+#
 #     POST data:
 #     - content_left: Left side content
 #     - content_right: Right side content
 #     - filename_left: Optional filename for left side
 #     - filename_right: Optional filename for right side
-# 
+#
 #     Returns JSON with diff lines and statistics.
 #     """
 #     user = get_object_or_404(User, username=username)
 #     project = get_object_or_404(Project, slug=slug, owner=user)
-# 
+#
 #     # Check access permissions
 #     has_access = (
 #         project.owner == request.user
 #         or project.collaborators.filter(id=request.user.id).exists()
 #         or getattr(project, "visibility", None) == "public"
 #     )
-# 
+#
 #     if not has_access:
 #         return JsonResponse({"error": "Permission denied"}, status=403)
-# 
+#
 #     try:
 #         content_left = request.POST.get("content_left", "")
 #         content_right = request.POST.get("content_right", "")
 #         filename_left = request.POST.get("filename_left", "left")
 #         filename_right = request.POST.get("filename_right", "right")
-# 
+#
 #         # Compute unified diff
 #         diff_lines = _compute_unified_diff(
 #             content_left,
@@ -133,11 +134,11 @@ if __name__ == "__main__":
 #             filename_left,
 #             filename_right,
 #         )
-# 
+#
 #         # Compute statistics
 #         additions = sum(1 for line in diff_lines if line["type"] == "addition")
 #         deletions = sum(1 for line in diff_lines if line["type"] == "deletion")
-# 
+#
 #         return JsonResponse(
 #             {
 #                 "success": True,
@@ -149,42 +150,42 @@ if __name__ == "__main__":
 #                 },
 #             }
 #         )
-# 
+#
 #     except Exception as e:
 #         logger.error(f"Error computing diff: {e}")
 #         return JsonResponse({"error": str(e)}, status=500)
-# 
-# 
+#
+#
 # @require_http_methods(["POST"])
 # def api_merge_contents(request, username, slug):
 #     """
 #     API endpoint to perform a merge between two contents.
-# 
+#
 #     POST data:
 #     - content_left: Left side content
 #     - content_right: Right side content
 #     - merge_strategy: "left", "right", or "manual" (default: "manual")
-# 
+#
 #     Returns merged content.
 #     """
 #     user = get_object_or_404(User, username=username)
 #     project = get_object_or_404(Project, slug=slug, owner=user)
-# 
+#
 #     # Check access permissions
 #     has_access = (
 #         project.owner == request.user
 #         or project.collaborators.filter(id=request.user.id).exists()
 #         or getattr(project, "visibility", None) == "public"
 #     )
-# 
+#
 #     if not has_access:
 #         return JsonResponse({"error": "Permission denied"}, status=403)
-# 
+#
 #     try:
 #         content_left = request.POST.get("content_left", "")
 #         content_right = request.POST.get("content_right", "")
 #         merge_strategy = request.POST.get("merge_strategy", "manual")
-# 
+#
 #         if merge_strategy == "left":
 #             merged_content = content_left
 #         elif merge_strategy == "right":
@@ -194,7 +195,7 @@ if __name__ == "__main__":
 #             merged_content = _create_merge_with_conflicts(
 #                 content_left, content_right
 #             )
-# 
+#
 #         return JsonResponse(
 #             {
 #                 "success": True,
@@ -202,51 +203,51 @@ if __name__ == "__main__":
 #                 "strategy": merge_strategy,
 #             }
 #         )
-# 
+#
 #     except Exception as e:
 #         logger.error(f"Error merging contents: {e}")
 #         return JsonResponse({"error": str(e)}, status=500)
-# 
-# 
+#
+#
 # @require_http_methods(["POST"])
 # def api_load_file_from_repo(request, username, slug):
 #     """
 #     API endpoint to load a file from the repository.
-# 
+#
 #     POST data:
 #     - file_path: Path to file in repository
-# 
+#
 #     Returns file content and metadata.
 #     """
 #     user = get_object_or_404(User, username=username)
 #     project = get_object_or_404(Project, slug=slug, owner=user)
-# 
+#
 #     # Check access permissions
 #     has_access = (
 #         project.owner == request.user
 #         or project.collaborators.filter(id=request.user.id).exists()
 #         or getattr(project, "visibility", None) == "public"
 #     )
-# 
+#
 #     if not has_access:
 #         return JsonResponse({"error": "Permission denied"}, status=403)
-# 
+#
 #     try:
 #         file_path = request.POST.get("file_path", "")
-# 
+#
 #         # Get project filesystem manager
-#         from apps.project_app.services.project_filesystem import (
+#         from apps.infra.project_app.services.project_filesystem import (
 #             get_project_filesystem_manager,
 #         )
-# 
+#
 #         manager = get_project_filesystem_manager(project.owner)
 #         project_path = manager.get_project_root_path(project)
-# 
+#
 #         if not project_path or not project_path.exists():
 #             return JsonResponse({"error": "Project directory not found"}, status=404)
-# 
+#
 #         full_path = project_path / file_path
-# 
+#
 #         # Security check: ensure file is within project directory
 #         try:
 #             full_path = full_path.resolve()
@@ -257,13 +258,13 @@ if __name__ == "__main__":
 #                 )
 #         except Exception as e:
 #             return JsonResponse({"error": f"Invalid path: {e}"}, status=400)
-# 
+#
 #         if not full_path.exists():
 #             return JsonResponse({"error": "File not found"}, status=404)
-# 
+#
 #         if not full_path.is_file():
 #             return JsonResponse({"error": "Not a file"}, status=400)
-# 
+#
 #         # Read file content
 #         try:
 #             content = full_path.read_text(encoding="utf-8")
@@ -272,7 +273,7 @@ if __name__ == "__main__":
 #                 {"error": "File is not a text file (binary content detected)"},
 #                 status=400,
 #             )
-# 
+#
 #         return JsonResponse(
 #             {
 #                 "success": True,
@@ -282,12 +283,12 @@ if __name__ == "__main__":
 #                 "size": full_path.stat().st_size,
 #             }
 #         )
-# 
+#
 #     except Exception as e:
 #         logger.error(f"Error loading file from repo: {e}")
 #         return JsonResponse({"error": str(e)}, status=500)
-# 
-# 
+#
+#
 # def _compute_unified_diff(
 #     content_left: str,
 #     content_right: str,
@@ -296,13 +297,13 @@ if __name__ == "__main__":
 # ) -> list[dict]:
 #     """
 #     Compute unified diff between two text contents.
-# 
+#
 #     Returns list of dicts with 'content' and 'type' keys.
 #     Types: 'header', 'hunk', 'addition', 'deletion', 'context'
 #     """
 #     lines_left = content_left.splitlines(keepends=True)
 #     lines_right = content_right.splitlines(keepends=True)
-# 
+#
 #     # Generate unified diff
 #     diff_generator = difflib.unified_diff(
 #         lines_left,
@@ -311,11 +312,11 @@ if __name__ == "__main__":
 #         tofile=filename_right,
 #         lineterm="",
 #     )
-# 
+#
 #     diff_lines = []
 #     for line in diff_generator:
 #         line_type = "context"
-# 
+#
 #         if line.startswith("+++") or line.startswith("---"):
 #             line_type = "header"
 #         elif line.startswith("@@"):
@@ -324,16 +325,16 @@ if __name__ == "__main__":
 #             line_type = "addition"
 #         elif line.startswith("-"):
 #             line_type = "deletion"
-# 
+#
 #         diff_lines.append({"content": line, "type": line_type})
-# 
+#
 #     return diff_lines
-# 
-# 
+#
+#
 # def _create_merge_with_conflicts(content_left: str, content_right: str) -> str:
 #     """
 #     Create a merged version with conflict markers.
-# 
+#
 #     Returns content with Git-style conflict markers:
 #     <<<<<<< LEFT
 #     left content
@@ -343,11 +344,11 @@ if __name__ == "__main__":
 #     """
 #     lines_left = content_left.splitlines()
 #     lines_right = content_right.splitlines()
-# 
+#
 #     # Use difflib to find matching blocks
 #     matcher = difflib.SequenceMatcher(None, lines_left, lines_right)
 #     merged_lines = []
-# 
+#
 #     for tag, i1, i2, j1, j2 in matcher.get_opcodes():
 #         if tag == "equal":
 #             # Both sides are the same
@@ -371,10 +372,10 @@ if __name__ == "__main__":
 #             merged_lines.append("=======")
 #             merged_lines.extend(lines_right[j1:j2])
 #             merged_lines.append(">>>>>>> RIGHT")
-# 
+#
 #     return "\n".join(merged_lines)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

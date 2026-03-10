@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.views.repository.api.branches import ...
+# from apps.infra.project_app.views.repository.api.branches import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,16 +32,16 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # """
 # Branch operations API endpoints
-# 
+#
 # This module is a placeholder for future branch-related API endpoints.
 # """
-# 
+#
 # from __future__ import annotations
 # import logging
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # # ============================================================================
 # # Branch Operations APIs
 # # ============================================================================
@@ -51,8 +52,8 @@ if __name__ == "__main__":
 # # - api_branch_merge
 # # - api_branch_switch
 # # ============================================================================
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

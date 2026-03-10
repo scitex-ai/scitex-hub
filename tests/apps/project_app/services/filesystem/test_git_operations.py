@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.services.filesystem.git_operations import ...
+# from apps.infra.project_app.services.filesystem.git_operations import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,10 +27,10 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # Git operations for project filesystem.
-# 
+#
 # This module handles Git-related operations like cloning repositories.
 # """
-# 
+#
 # import os
 # import shutil
 # import subprocess
@@ -38,20 +39,20 @@ if __name__ == "__main__":
 # from typing import Tuple, Optional
 # from ...models import Project
 # from .paths import get_project_root_path
-# 
-# 
+#
+#
 # def clone_from_git(
 #     user, project: Project, git_url: str, use_ssh: bool = True
 # ) -> Tuple[bool, Optional[str]]:
 #     """
 #     Clone a Git repository into the project directory.
-# 
+#
 #     Args:
 #         user: User instance
 #         project: Project instance
 #         git_url: Git repository URL (works with GitHub, GitLab, Bitbucket, etc.)
 #         use_ssh: If True and SSH key exists, use SSH for cloning
-# 
+#
 #     Returns:
 #         Tuple of (success, error_message)
 #     """
@@ -59,27 +60,27 @@ if __name__ == "__main__":
 #         project_path = get_project_root_path(user, project)
 #         if not project_path or not project_path.exists():
 #             return False, "Project directory not found"
-# 
+#
 #         # Get SSH environment if available
 #         env = os.environ.copy()
 #         ssh_used = False
-# 
+#
 #         if use_ssh:
 #             from ..ssh_manager import SSHKeyManager
-# 
+#
 #             ssh_manager = SSHKeyManager(user)
-# 
+#
 #             if ssh_manager.has_ssh_key():
 #                 env = ssh_manager.get_ssh_env()
 #                 ssh_used = True
-# 
+#
 #         # Strategy: Clone to a temporary directory, then move contents
 #         # This avoids the "destination path already exists and is not an empty directory" error
-# 
+#
 #         # Create a temporary directory for cloning
 #         with tempfile.TemporaryDirectory() as temp_dir:
 #             temp_clone_path = Path(temp_dir) / "repo"
-# 
+#
 #             # Clone the repository into the temporary directory
 #             result = subprocess.run(
 #                 ["git", "clone", git_url, str(temp_clone_path)],
@@ -88,18 +89,18 @@ if __name__ == "__main__":
 #                 timeout=300,  # 5 minute timeout
 #                 env=env,
 #             )
-# 
+#
 #             if result.returncode != 0:
 #                 error_msg = result.stderr or result.stdout or "Unknown error"
 #                 return False, error_msg
-# 
+#
 #             # Remove any existing files in the project directory (created during initialization)
 #             for item in project_path.iterdir():
 #                 if item.is_file():
 #                     item.unlink()
 #                 elif item.is_dir():
 #                     shutil.rmtree(item)
-# 
+#
 #             # Move all contents from temp clone to project directory
 #             for item in temp_clone_path.iterdir():
 #                 dest = project_path / item.name
@@ -107,41 +108,41 @@ if __name__ == "__main__":
 #                     shutil.copy2(item, dest)
 #                 elif item.is_dir():
 #                     shutil.copytree(item, dest)
-# 
+#
 #         # Mark SSH key as used if it was used
 #         if ssh_used:
 #             from ..ssh_manager import SSHKeyManager
-# 
+#
 #             ssh_manager = SSHKeyManager(user)
 #             ssh_manager.mark_key_used()
-# 
+#
 #         return True, None
-# 
+#
 #     except subprocess.TimeoutExpired:
 #         return False, "Git clone operation timed out (max 5 minutes)"
 #     except FileNotFoundError:
 #         return False, "Git command not found. Please ensure Git is installed."
 #     except Exception as e:
 #         return False, str(e)
-# 
-# 
+#
+#
 # def get_script_executions(
 #     user, project: Project, script_name: str = None
 # ) -> list:
 #     """Get execution history for scripts in the project."""
 #     try:
 #         import json
-# 
+#
 #         project_path = get_project_root_path(user, project)
 #         if not project_path:
 #             return []
-# 
+#
 #         scripts_path = project_path / "scripts"
 #         if not scripts_path.exists():
 #             return []
-# 
+#
 #         executions = []
-# 
+#
 #         # If specific script requested, only check that one
 #         if script_name:
 #             script_base = Path(script_name).stem
@@ -152,7 +153,7 @@ if __name__ == "__main__":
 #             )
 #         else:
 #             script_dirs = [d for d in scripts_path.iterdir() if d.is_dir()]
-# 
+#
 #         for script_dir in script_dirs:
 #             for execution_dir in script_dir.iterdir():
 #                 if execution_dir.is_dir() and execution_dir.name.startswith(
@@ -167,7 +168,7 @@ if __name__ == "__main__":
 #                         status = "error"
 #                     else:
 #                         status = "unknown"
-# 
+#
 #                     # Try to load execution summary
 #                     summary_file = execution_dir / "execution_summary.json"
 #                     if summary_file.exists():
@@ -175,7 +176,7 @@ if __name__ == "__main__":
 #                             summary = json.load(f)
 #                     else:
 #                         summary = {}
-# 
+#
 #                     executions.append(
 #                         {
 #                             "script_name": script_dir.name,
@@ -188,7 +189,7 @@ if __name__ == "__main__":
 #                             "summary": summary,
 #                         }
 #                     )
-# 
+#
 #         # Sort by timestamp (newest first)
 #         executions.sort(key=lambda x: x["timestamp"], reverse=True)
 #         return executions

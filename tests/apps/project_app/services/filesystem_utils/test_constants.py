@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.services.filesystem_utils.constants import ...
+# from apps.infra.project_app.services.filesystem_utils.constants import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,10 +27,10 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # SciTeX Cloud - Filesystem Constants
-# 
+#
 # File type definitions and ignore patterns for filesystem operations.
 # """
-# 
+#
 # # File extensions to show in UI
 # VIEWABLE_EXTENSIONS = {
 #     ".py",
@@ -49,7 +50,7 @@ if __name__ == "__main__":
 #     ".css",
 #     ".js",
 # }
-# 
+#
 # # Binary files that need special handling
 # BINARY_EXTENSIONS = {
 #     ".pdf",
@@ -67,7 +68,7 @@ if __name__ == "__main__":
 #     ".h5",
 #     ".hdf5",
 # }
-# 
+#
 # # Files to ignore
 # IGNORE_PATTERNS = {
 #     "__pycache__",
@@ -83,8 +84,8 @@ if __name__ == "__main__":
 #     "*.pyc",
 #     "*.pyo",
 # }
-# 
-# 
+#
+#
 # def format_size(size_bytes: int) -> str:
 #     """Format byte size in human-readable format"""
 #     for unit in ["B", "KB", "MB", "GB", "TB"]:
@@ -92,29 +93,29 @@ if __name__ == "__main__":
 #             return f"{size_bytes:.1f} {unit}"
 #         size_bytes /= 1024.0
 #     return f"{size_bytes:.1f} PB"
-# 
-# 
+#
+#
 # def should_ignore(path) -> bool:
 #     """
 #     Check if path should be ignored based on patterns.
-# 
+#
 #     Args:
 #         path: Path object to check
-# 
+#
 #     Returns:
 #         True if path should be ignored
 #     """
 #     name = path.name
-# 
+#
 #     # Check exact matches
 #     if name in IGNORE_PATTERNS:
 #         return True
-# 
+#
 #     # Check pattern matches (simple)
 #     for pattern in IGNORE_PATTERNS:
 #         if pattern.startswith("*") and name.endswith(pattern[1:]):
 #             return True
-# 
+#
 #     return False
 
 # --------------------------------------------------------------------------------

@@ -27,7 +27,9 @@ class TestAddPanelToFigz:
 
     def test_invalid_json_returns_400(self, request_factory, mock_user):
         """Should return 400 for invalid JSON."""
-        from apps.vis_app.views.api.bundles.path_panel import add_panel_to_figz
+        from apps.workspace.vis_app.views.api.bundles.path_panel import (
+            add_panel_to_figz,
+        )
 
         request = request_factory.post(
             "/vis/api/bundles/figz/add-panel/",
@@ -44,7 +46,9 @@ class TestAddPanelToFigz:
         """Should return 400 if gallery_category or gallery_plot_name missing."""
         import json
 
-        from apps.vis_app.views.api.bundles.path_panel import add_panel_to_figz
+        from apps.workspace.vis_app.views.api.bundles.path_panel import (
+            add_panel_to_figz,
+        )
 
         request = request_factory.post(
             "/vis/api/bundles/figz/add-panel/",
@@ -63,7 +67,9 @@ class TestGetFigzPanelPreview:
 
     def test_missing_path_returns_400(self, request_factory, mock_user):
         """Should return 400 if path parameter is missing."""
-        from apps.vis_app.views.api.bundles.path_panel import get_figz_panel_preview
+        from apps.workspace.vis_app.views.api.bundles.path_panel import (
+            get_figz_panel_preview,
+        )
 
         request = request_factory.get("/vis/api/bundles/figz/panel-preview/")
         request.user = mock_user
@@ -74,7 +80,9 @@ class TestGetFigzPanelPreview:
 
     def test_missing_panel_returns_400(self, request_factory, mock_user):
         """Should return 400 if panel parameter is missing."""
-        from apps.vis_app.views.api.bundles.path_panel import get_figz_panel_preview
+        from apps.workspace.vis_app.views.api.bundles.path_panel import (
+            get_figz_panel_preview,
+        )
 
         request = request_factory.get(
             "/vis/api/bundles/figz/panel-preview/", {"path": "/path/to/figure.figz"}
@@ -87,10 +95,12 @@ class TestGetFigzPanelPreview:
 
     def test_resolves_relative_path(self, request_factory, mock_user):
         """Should resolve relative paths using project context."""
-        from apps.vis_app.views.api.bundles.path_panel import get_figz_panel_preview
+        from apps.workspace.vis_app.views.api.bundles.path_panel import (
+            get_figz_panel_preview,
+        )
 
         with patch(
-            "apps.vis_app.views.api.bundles.path_panel.resolve_bundle_path"
+            "apps.workspace.vis_app.views.api.bundles.path_panel.resolve_bundle_path"
         ) as mock_resolve:
             mock_resolve.return_value = Path("/data/projects/owner/slug/figure.figz")
             with patch("scitex.fig.Figz") as MockFigz:

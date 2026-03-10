@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.models.editor.document import ...
+# from apps.workspace.writer_app.models.editor.document import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,21 +27,21 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # Minimal Manuscript model - Writer functionality is in scitex.writer.Writer.
-# 
+#
 # This model exists only for:
 # 1. User/project linking
 # 2. UI metadata (display name, description)
 # 3. Tracking which projects have writer enabled
 # """
-# 
+#
 # from django.db import models
 # from django.contrib.auth.models import User
 # from pathlib import Path
-# 
-# 
+#
+#
 # class Manuscript(models.Model):
 #     """Minimal manuscript model - delegates to scitex.writer.Writer."""
-# 
+#
 #     # Links to project
 #     project = models.OneToOneField(
 #         "project_app.Project",
@@ -50,49 +51,49 @@ if __name__ == "__main__":
 #         blank=True,
 #         help_text="Project this manuscript belongs to",
 #     )
-# 
+#
 #     owner = models.ForeignKey(
 #         User,
 #         on_delete=models.CASCADE,
 #         related_name="manuscripts",
 #         help_text="User who owns this manuscript",
 #     )
-# 
+#
 #     # Metadata for UI
 #     title = models.CharField(
 #         max_length=500,
 #         default="Untitled Manuscript",
 #         help_text="Display title (informational only)",
 #     )
-# 
+#
 #     description = models.TextField(
 #         blank=True, help_text="Short description of the manuscript"
 #     )
-# 
+#
 #     # Timestamps
 #     created_at = models.DateTimeField(auto_now_add=True)
 #     updated_at = models.DateTimeField(auto_now=True)
-# 
+#
 #     class Meta:
 #         ordering = ["-updated_at"]
 #         verbose_name = "Manuscript"
 #         verbose_name_plural = "Manuscripts"
-# 
+#
 #     def __str__(self):
 #         return self.title
-# 
+#
 #     def get_writer_path(self) -> Path:
 #         """Get path to writer directory for this project."""
-#         from apps.project_app.services.project_filesystem import (
+#         from apps.infra.project_app.services.project_filesystem import (
 #             get_project_filesystem_manager,
 #         )
-# 
+#
 #         manager = get_project_filesystem_manager(self.owner)
 #         project_root = manager.get_project_root_path(self.project)
 #         if project_root is None:
 #             return None
 #         return project_root / "scitex" / "writer"
-# 
+#
 #     @property
 #     def writer_initialized(self) -> bool:
 #         """Check if Writer project exists."""

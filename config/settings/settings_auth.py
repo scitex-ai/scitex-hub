@@ -62,8 +62,8 @@ GOOGLE_CLIENT_SECRET = os.getenv("SCITEX_CLOUD_GOOGLE_CLIENT_SECRET") or os.gete
     "SCITEX_GOOGLE_CLIENT_SECRET", ""
 )
 
-ACCOUNT_ADAPTER = "apps.auth_app.adapters.SciTexAccountAdapter"
-SOCIALACCOUNT_ADAPTER = "apps.auth_app.adapters.SciTexSocialAccountAdapter"
+ACCOUNT_ADAPTER = "apps.infra.auth_app.adapters.SciTexAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "apps.infra.auth_app.adapters.SciTexSocialAccountAdapter"
 
 
 # ---------------------------------------

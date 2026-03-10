@@ -1,0 +1,29 @@
+{% comment %}
+Hub "About" section — GitHub-style project metadata below the README.
+{% endcomment %}
+{% if project.description or project.topics_list or project.primary_language or project.app_license %}
+    <div class="hub-about-section">
+        <h4 class="hub-about-title">About</h4>
+        {% if project.description %}<p class="hub-about-description">{{ project.description }}</p>{% endif %}
+        {% if project.topics_list %}
+            <div class="project-topics">
+                {% for topic in project.topics_list %}<span class="topic-tag">{{ topic }}</span>{% endfor %}
+            </div>
+        {% endif %}
+        {% if project.primary_language or project.app_license %}
+            <div class="hub-about-meta">
+                {% if project.primary_language %}
+                    <span class="hub-about-meta-item">
+                        <i class="fas fa-circle" style="font-size:0.6rem;color:var(--app-accent-hub)"></i>
+                        {{ project.primary_language }}
+                    </span>
+                {% endif %}
+                {% if project.app_license %}
+                    <span class="hub-about-meta-item">
+                        <i class="fas fa-balance-scale"></i> {{ project.app_license }}
+                    </span>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+{% endif %}

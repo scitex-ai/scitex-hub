@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.trending.views import ...
+# from apps.workspace.scholar_app.views.trending.views import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,10 +29,10 @@ if __name__ == "__main__":
 # # -*- coding: utf-8 -*-
 # """
 # Trending and analytics views for Scholar App
-# 
+#
 # This module handles research trends and analytics endpoints.
 # """
-# 
+#
 # from django.shortcuts import render
 # from django.http import JsonResponse
 # from django.contrib.auth.decorators import login_required
@@ -40,7 +41,7 @@ if __name__ == "__main__":
 # from django.utils import timezone
 # from datetime import timedelta
 # import logging
-# 
+#
 # from ...models import (
 #     SearchIndex as Paper,
 #     Author,
@@ -48,18 +49,18 @@ if __name__ == "__main__":
 #     UserLibrary,
 #     Topic,
 # )
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # def research_trends(request):
 #     """Display research trends page"""
 #     context = {
 #         "page_title": "Research Trends",
 #     }
 #     return render(request, "scholar_app/research_trends.html", context)
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["GET"])
 # def api_trending_papers(request):
@@ -67,15 +68,15 @@ if __name__ == "__main__":
 #     try:
 #         days = int(request.GET.get("days", 30))
 #         limit = int(request.GET.get("limit", 10))
-# 
+#
 #         cutoff_date = timezone.now() - timedelta(days=days)
-# 
+#
 #         trending_papers = (
 #             Paper.objects.filter(created_at__gte=cutoff_date)
 #             .annotate(view_count=Count("id"), citation_count=Count("citations"))
 #             .order_by("-citation_count")[:limit]
 #         )
-# 
+#
 #         papers_data = [
 #             {
 #                 "id": str(p.id),
@@ -90,15 +91,15 @@ if __name__ == "__main__":
 #             }
 #             for p in trending_papers
 #         ]
-# 
+#
 #         return JsonResponse(
 #             {"success": True, "papers": papers_data, "count": len(papers_data)}
 #         )
 #     except Exception as e:
 #         logger.error(f"Error getting trending papers: {e}")
 #         return JsonResponse({"success": False, "error": str(e)}, status=400)
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["GET"])
 # def api_trending_topics(request):
@@ -106,28 +107,28 @@ if __name__ == "__main__":
 #     try:
 #         days = int(request.GET.get("days", 30))
 #         limit = int(request.GET.get("limit", 10))
-# 
+#
 #         cutoff_date = timezone.now() - timedelta(days=days)
-# 
+#
 #         trending_topics = (
 #             Topic.objects.filter(papers__created_at__gte=cutoff_date)
 #             .annotate(paper_count=Count("papers", distinct=True))
 #             .order_by("-paper_count")[:limit]
 #         )
-# 
+#
 #         topics_data = [
 #             {"name": t.name, "paper_count": t.paper_count, "description": t.description}
 #             for t in trending_topics
 #         ]
-# 
+#
 #         return JsonResponse(
 #             {"success": True, "topics": topics_data, "count": len(topics_data)}
 #         )
 #     except Exception as e:
 #         logger.error(f"Error getting trending topics: {e}")
 #         return JsonResponse({"success": False, "error": str(e)}, status=400)
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["GET"])
 # def api_trending_authors(request):
@@ -135,9 +136,9 @@ if __name__ == "__main__":
 #     try:
 #         days = int(request.GET.get("days", 30))
 #         limit = int(request.GET.get("limit", 10))
-# 
+#
 #         cutoff_date = timezone.now() - timedelta(days=days)
-# 
+#
 #         trending_authors = (
 #             Author.objects.filter(papers__created_at__gte=cutoff_date)
 #             .annotate(
@@ -146,7 +147,7 @@ if __name__ == "__main__":
 #             )
 #             .order_by("-paper_count")[:limit]
 #         )
-# 
+#
 #         authors_data = [
 #             {
 #                 "id": str(a.id),
@@ -157,15 +158,15 @@ if __name__ == "__main__":
 #             }
 #             for a in trending_authors
 #         ]
-# 
+#
 #         return JsonResponse(
 #             {"success": True, "authors": authors_data, "count": len(authors_data)}
 #         )
 #     except Exception as e:
 #         logger.error(f"Error getting trending authors: {e}")
 #         return JsonResponse({"success": False, "error": str(e)}, status=400)
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["GET"])
 # def api_research_analytics(request):
@@ -175,20 +176,20 @@ if __name__ == "__main__":
 #         total_papers = Paper.objects.count()
 #         total_authors = Author.objects.count()
 #         total_journals = Journal.objects.count()
-# 
+#
 #         # User-specific statistics
 #         user_papers = UserLibrary.objects.filter(user=request.user).count()
-# 
+#
 #         # Average metrics
 #         avg_citations = Paper.objects.aggregate(avg=Avg("citation_count"))["avg"] or 0
-# 
+#
 #         avg_impact_factor = (
 #             Journal.objects.aggregate(avg=Avg("impact_factor"))["avg"] or 0
 #         )
-# 
+#
 #         # Papers per year (last 10 years)
 #         from django.db.models import Count
-# 
+#
 #         papers_per_year = (
 #             Paper.objects.filter(publication_date__year__gte=timezone.now().year - 10)
 #             .extra(select={"year": "YEAR(publication_date)"})
@@ -196,7 +197,7 @@ if __name__ == "__main__":
 #             .annotate(count=Count("id"))
 #             .order_by("year")
 #         )
-# 
+#
 #         analytics = {
 #             "total_papers": total_papers,
 #             "total_authors": total_authors,
@@ -206,13 +207,13 @@ if __name__ == "__main__":
 #             "avg_impact_factor": round(avg_impact_factor, 2),
 #             "papers_per_year": list(papers_per_year),
 #         }
-# 
+#
 #         return JsonResponse({"success": True, "analytics": analytics})
 #     except Exception as e:
 #         logger.error(f"Error getting research analytics: {e}")
 #         return JsonResponse({"success": False, "error": str(e)}, status=400)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

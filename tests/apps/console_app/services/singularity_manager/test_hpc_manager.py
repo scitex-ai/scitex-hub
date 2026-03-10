@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.services.singularity_manager.hpc_manager import ...
+# from apps.workspace.console_app.services.singularity_manager.hpc_manager import ...
 
 
 class TestPlaceholder:

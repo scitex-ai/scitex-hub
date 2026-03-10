@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.consumers.broadcast import ...
+# from apps.workspace.writer_app.consumers.broadcast import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,13 +29,13 @@ if __name__ == "__main__":
 # Broadcast event handlers for WriterConsumer.
 # Handles sending events to all clients in a room.
 # """
-# 
+#
 # import json
-# 
-# 
+#
+#
 # class BroadcastMixin:
 #     """Mixin providing broadcast event handler methods for WriterConsumer."""
-# 
+#
 #     async def user_joined(self, event):
 #         """Broadcast user joined to all clients."""
 #         await self.send(
@@ -47,7 +48,7 @@ if __name__ == "__main__":
 #                 }
 #             )
 #         )
-# 
+#
 #     async def user_left(self, event):
 #         """Broadcast user left to all clients."""
 #         await self.send(
@@ -60,7 +61,7 @@ if __name__ == "__main__":
 #                 }
 #             )
 #         )
-# 
+#
 #     async def text_change(self, event):
 #         """Broadcast text change to all clients except sender."""
 #         if event.get("sender_channel") != self.channel_name:
@@ -77,7 +78,7 @@ if __name__ == "__main__":
 #                     }
 #                 )
 #             )
-# 
+#
 #     async def cursor_update(self, event):
 #         """Broadcast cursor position to all clients except sender."""
 #         if event.get("sender_channel") != self.channel_name:
@@ -92,7 +93,7 @@ if __name__ == "__main__":
 #                     }
 #                 )
 #             )
-# 
+#
 #     async def section_locked(self, event):
 #         """Broadcast section lock to all clients."""
 #         await self.send(
@@ -106,7 +107,7 @@ if __name__ == "__main__":
 #                 }
 #             )
 #         )
-# 
+#
 #     async def section_unlocked(self, event):
 #         """Broadcast section unlock to all clients."""
 #         await self.send(
@@ -120,7 +121,7 @@ if __name__ == "__main__":
 #                 }
 #             )
 #         )
-# 
+#
 #     async def user_undone(self, event):
 #         """Broadcast user undo action to all clients."""
 #         await self.send(
@@ -134,7 +135,7 @@ if __name__ == "__main__":
 #                 }
 #             )
 #         )
-# 
+#
 #     async def user_redone(self, event):
 #         """Broadcast user redo action to all clients."""
 #         await self.send(

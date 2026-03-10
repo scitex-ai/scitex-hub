@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.api.api_keys import ...
+# from apps.workspace.scholar_app.api.api_keys import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -29,10 +30,10 @@ if __name__ == "__main__":
 # # File: /home/ywatanabe/proj/scitex-cloud/apps/scholar_app/api/api_keys.py
 # """
 # API Key management endpoints for Scholar API.
-# 
+#
 # Provides RESTful endpoints for creating, listing, and managing API keys.
 # """
-# 
+#
 # import json
 # import logging
 # from datetime import timedelta
@@ -41,10 +42,10 @@ if __name__ == "__main__":
 # from django.views.decorators.csrf import csrf_exempt
 # from django.contrib.auth.decorators import login_required
 # from django.utils import timezone
-# from apps.accounts_app.models import APIKey
-# 
+# from apps.infra.accounts_app.models import APIKey
+#
 # logger = logging.getLogger(__name__)
-# 
+#
 # # Available scopes for Scholar API
 # AVAILABLE_SCOPES = {
 #     "scholar:read": "Read access to search API",
@@ -53,8 +54,8 @@ if __name__ == "__main__":
 #     "scholar:admin": "Full administrative access",
 #     "*": "Full access to all features",
 # }
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["GET"])
 # def list_api_keys(request):
@@ -69,7 +70,7 @@ if __name__ == "__main__":
 #         "expires_at",
 #         "is_active",
 #     )
-# 
+#
 #     return JsonResponse(
 #         {
 #             "success": True,
@@ -89,8 +90,8 @@ if __name__ == "__main__":
 #             "available_scopes": AVAILABLE_SCOPES,
 #         }
 #     )
-# 
-# 
+#
+#
 # @login_required
 # @csrf_exempt
 # @require_http_methods(["POST"])
@@ -103,14 +104,14 @@ if __name__ == "__main__":
 #             {"success": False, "error": "Invalid JSON"},
 #             status=400,
 #         )
-# 
+#
 #     name = data.get("name", "").strip()
 #     if not name:
 #         return JsonResponse(
 #             {"success": False, "error": "Name is required"},
 #             status=400,
 #         )
-# 
+#
 #     # Validate scopes
 #     scopes = data.get("scopes", ["scholar:read"])
 #     invalid_scopes = [s for s in scopes if s not in AVAILABLE_SCOPES]
@@ -123,7 +124,7 @@ if __name__ == "__main__":
 #             },
 #             status=400,
 #         )
-# 
+#
 #     # Parse expiration
 #     expires_in_days = data.get("expires_in_days")
 #     expires_at = None
@@ -135,7 +136,7 @@ if __name__ == "__main__":
 #                 {"success": False, "error": "Invalid expires_in_days value"},
 #                 status=400,
 #             )
-# 
+#
 #     # Create the key
 #     try:
 #         api_key, full_key = APIKey.create_key(
@@ -144,7 +145,7 @@ if __name__ == "__main__":
 #             scopes=scopes,
 #             expires_at=expires_at,
 #         )
-# 
+#
 #         return JsonResponse(
 #             {
 #                 "success": True,
@@ -167,8 +168,8 @@ if __name__ == "__main__":
 #             {"success": False, "error": "Failed to create API key"},
 #             status=500,
 #         )
-# 
-# 
+#
+#
 # @login_required
 # @csrf_exempt
 # @require_http_methods(["DELETE"])
@@ -177,7 +178,7 @@ if __name__ == "__main__":
 #     try:
 #         api_key = APIKey.objects.get(id=key_id, user=request.user)
 #         api_key.delete()
-# 
+#
 #         return JsonResponse(
 #             {
 #                 "success": True,
@@ -195,8 +196,8 @@ if __name__ == "__main__":
 #             {"success": False, "error": "Failed to delete API key"},
 #             status=500,
 #         )
-# 
-# 
+#
+#
 # @login_required
 # @csrf_exempt
 # @require_http_methods(["PATCH"])
@@ -209,7 +210,7 @@ if __name__ == "__main__":
 #             {"success": False, "error": "API key not found"},
 #             status=404,
 #         )
-# 
+#
 #     try:
 #         data = json.loads(request.body)
 #     except json.JSONDecodeError:
@@ -217,11 +218,11 @@ if __name__ == "__main__":
 #             {"success": False, "error": "Invalid JSON"},
 #             status=400,
 #         )
-# 
+#
 #     # Update fields
 #     if "name" in data:
 #         api_key.name = data["name"].strip()
-# 
+#
 #     if "scopes" in data:
 #         scopes = data["scopes"]
 #         invalid_scopes = [s for s in scopes if s not in AVAILABLE_SCOPES]
@@ -231,10 +232,10 @@ if __name__ == "__main__":
 #                 status=400,
 #             )
 #         api_key.scopes = scopes
-# 
+#
 #     if "is_active" in data:
 #         api_key.is_active = bool(data["is_active"])
-# 
+#
 #     try:
 #         api_key.save()
 #         return JsonResponse(
@@ -256,8 +257,8 @@ if __name__ == "__main__":
 #             {"success": False, "error": "Failed to update API key"},
 #             status=500,
 #         )
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # def api_key_info(request):
 #     """Get information about the current API key being used."""
@@ -270,7 +271,7 @@ if __name__ == "__main__":
 #             },
 #             status=401,
 #         )
-# 
+#
 #     api_key = request.api_key
 #     return JsonResponse(
 #         {
@@ -290,8 +291,8 @@ if __name__ == "__main__":
 #             },
 #         }
 #     )
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

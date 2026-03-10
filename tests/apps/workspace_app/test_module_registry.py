@@ -8,7 +8,7 @@ Ensures all registered modules are properly configured and functional.
 
 from django.test import TestCase
 
-from apps.workspace_app.registry import (
+from apps.infra.workspace_app.registry import (
     _import_builder,
     get_all_modules,
     get_module,
@@ -89,7 +89,7 @@ class TestModuleRegistry(TestCase):
     def test_is_workspace_path(self):
         """is_workspace_path() correctly identifies module paths."""
         self.assertTrue(is_workspace_path("/writer/"))
-        self.assertTrue(is_workspace_path("/hub/"))
+        self.assertTrue(is_workspace_path("/apps/home/"))
         self.assertTrue(is_workspace_path("/tools/"))
         self.assertFalse(is_workspace_path("/admin/"))
         self.assertFalse(is_workspace_path("/"))

@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.services.repository.doi_exceptions import ...
+# from apps.workspace.scholar_app.services.repository.doi_exceptions import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,23 +29,23 @@ if __name__ == "__main__":
 # DOI service exception classes.
 # Defines exceptions for DOI-related errors in the repository service layer.
 # """
-# 
-# 
+#
+#
 # class DOIServiceError(Exception):
 #     """Base exception for DOI service errors"""
-# 
+#
 #     pass
-# 
-# 
+#
+#
 # class DOIMetadataError(DOIServiceError):
 #     """DOI metadata related errors"""
-# 
+#
 #     pass
-# 
-# 
+#
+#
 # class DOIAssignmentError(DOIServiceError):
 #     """DOI assignment related errors"""
-# 
+#
 #     pass
 
 # --------------------------------------------------------------------------------

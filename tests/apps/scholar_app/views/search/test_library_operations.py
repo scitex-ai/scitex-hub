@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.search.library_operations import ...
+# from apps.workspace.scholar_app.views.search.library_operations import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,7 +32,7 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/scholar_app/views/search/library_operations.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
@@ -56,57 +57,57 @@ if __name__ == "__main__":
 #     CollaborationGroup, GroupMembership,
 #     AnnotationTag, UserPreference,
 # )
-# from apps.project_app.services import get_current_project
-# 
+# from apps.infra.project_app.services import get_current_project
+#
 # logger = logging.getLogger(__name__)
-# 
+#
 # # Import scitex.scholar if available
 # try:
 #     from scitex.scholar.pipelines.ScholarPipelineSearchParallel import ScholarPipelineSearchParallel
 #     SCITEX_SCHOLAR_AVAILABLE = True
 # except ImportError:
 #     SCITEX_SCHOLAR_AVAILABLE = False
-# 
-# 
+#
+#
 # # TODO: Implement library operation functionality
 # # These are placeholder stubs created to fix import errors
 # # Original implementation needs to be restored or re-implemented
-# 
+#
 # @require_http_methods(["POST"])
 # @login_required
 # def save_paper(request):
 #     """Placeholder for save_paper - TODO: implement"""
 #     return JsonResponse({"error": "Not implemented"}, status=501)
-# 
-# 
+#
+#
 # @require_http_methods(["POST"])
 # @login_required
 # def save_papers_bulk(request):
 #     """Placeholder for save_papers_bulk - TODO: implement"""
 #     return JsonResponse({"error": "Not implemented"}, status=501)
-# 
-# 
+#
+#
 # @require_http_methods(["POST"])
 # @login_required
 # def upload_file(request):
 #     """Placeholder for upload_file - TODO: implement"""
 #     return JsonResponse({"error": "Not implemented"}, status=501)
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # @login_required
 # def get_citation(request):
 #     """Placeholder for get_citation - TODO: implement"""
 #     return JsonResponse({"error": "Not implemented"}, status=501)
-# 
-# 
+#
+#
 # @require_http_methods(["POST"])
 # @login_required
 # def mock_save_paper(request):
 #     """Placeholder for mock_save_paper - TODO: implement"""
 #     return JsonResponse({"error": "Not implemented"}, status=501)
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # @login_required
 # def mock_get_citation(request):

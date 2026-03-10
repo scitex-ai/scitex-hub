@@ -14,7 +14,7 @@ from unittest.mock import patch
 
 import pytest
 
-from apps.console_app.views.terminal.dotfiles import (
+from apps.workspace.console_app.views.terminal.dotfiles import (
     create_dotfiles_repo,
     create_dotfiles_symlinks,
 )
@@ -183,7 +183,7 @@ class TestCreateDotfilesRepoGit:
         dotfiles_dir = tmp_path / "dotfiles_git_fail"
         dotfiles_dir.mkdir()
         with patch(
-            "apps.console_app.views.terminal.dotfiles.sp.run",
+            "apps.workspace.console_app.views.terminal.dotfiles.sp.run",
             side_effect=Exception("git not found"),
         ):
             # Must not raise

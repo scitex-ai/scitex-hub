@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.services.jupyter.converter import ...
+# from apps.workspace.console_app.services.jupyter.converter import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,20 +29,20 @@ if __name__ == "__main__":
 # """
 # Notebook format conversion utilities.
 # """
-# 
+#
 # import logging
-# 
+#
 # import nbformat
 # from nbconvert import HTMLExporter, MarkdownExporter, PythonExporter
-# 
+#
 # from ...models import Notebook
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # class NotebookConverter:
 #     """Converts notebooks to different formats."""
-# 
+#
 #     @staticmethod
 #     def to_html(notebook: Notebook) -> str:
 #         """Convert notebook to HTML."""
@@ -53,7 +54,7 @@ if __name__ == "__main__":
 #         except Exception as e:
 #             logger.error(f"Error converting notebook to HTML: {e}")
 #             return f"<p>Error converting notebook: {e}</p>"
-# 
+#
 #     @staticmethod
 #     def to_python(notebook: Notebook) -> str:
 #         """Convert notebook to Python script."""
@@ -65,7 +66,7 @@ if __name__ == "__main__":
 #         except Exception as e:
 #             logger.error(f"Error converting notebook to Python: {e}")
 #             return f"# Error converting notebook: {e}"
-# 
+#
 #     @staticmethod
 #     def to_markdown(notebook: Notebook) -> str:
 #         """Convert notebook to Markdown."""

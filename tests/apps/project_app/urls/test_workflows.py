@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.urls.workflows import ...
+# from apps.infra.project_app.urls.workflows import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,20 +27,20 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # Workflows Feature URLs
-# 
+#
 # Handles all CI/CD workflow and GitHub Actions related URLs.
 # GitHub-style patterns:
 # - /<username>/<slug>/actions/ - Actions/workflows list
 # - /<username>/<slug>/actions/new/ - Create new workflow
 # - /<username>/<slug>/actions/workflows/<id>/ - Workflow detail
 # - /<username>/<slug>/actions/runs/<id>/ - Workflow run detail
-# 
+#
 # Note: Currently commented out pending Workflow model implementation.
 # """
-# 
-# 
+#
+#
 # # No app_name here - namespace is provided by parent (user_projects)
-# 
+#
 # # TODO: Uncomment when Workflow models are implemented
 # # from ..views.actions_views import (
 # #     actions_list,
@@ -51,7 +52,7 @@ if __name__ == "__main__":
 # #     workflow_enable_disable,
 # #     workflow_run_detail,
 # # )
-# 
+#
 # urlpatterns = [
 #     # Placeholder - uncomment when models are ready
 #     # path('', actions_list, name='list'),

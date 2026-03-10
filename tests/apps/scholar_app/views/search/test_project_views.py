@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.search.project_views import ...
+# from apps.workspace.scholar_app.views.search.project_views import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,7 +32,7 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/scholar_app/views/search/project_views.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
@@ -56,23 +57,23 @@ if __name__ == "__main__":
 #     CollaborationGroup, GroupMembership,
 #     AnnotationTag, UserPreference,
 # )
-# from apps.project_app.services import get_current_project
-# 
+# from apps.infra.project_app.services import get_current_project
+#
 # logger = logging.getLogger(__name__)
-# 
+#
 # # Import scitex.scholar if available
 # try:
 #     from scitex.scholar.pipelines.ScholarPipelineSearchParallel import ScholarPipelineSearchParallel
 #     SCITEX_SCHOLAR_AVAILABLE = True
 # except ImportError:
 #     SCITEX_SCHOLAR_AVAILABLE = False
-# 
-# 
+#
+#
 # @login_required
 # def project_library(request, project_id):
 #     """Project-specific paper library showing only papers saved to this project."""
-#     from apps.project_app.models import Project
-# 
+#     from apps.infra.project_app.models import Project
+#
 #     try:
 #         project = Project.objects.get(pk=project_id, owner=request.user)
 #     except Project.DoesNotExist:
@@ -81,7 +82,7 @@ if __name__ == "__main__":
 #             "scholar_app/error.html",
 #             {"error": "Project not found or access denied."},
 #         )
-# 
+#
 #     # Get papers saved to this project
 #     try:
 #         # Try to get papers associated with this project
@@ -90,7 +91,7 @@ if __name__ == "__main__":
 #             .select_related("paper")
 #             .order_by("-saved_at")
 #         )
-# 
+#
 #         # If the project field is still a CharField, filter by project name
 #         if hasattr(
 #             project_papers.first().project if project_papers.exists() else None,
@@ -100,7 +101,7 @@ if __name__ == "__main__":
 #         else:
 #             # If it's a ForeignKey to project_app.Project
 #             project_papers = project_papers.filter(project=project)
-# 
+#
 #     except Exception as e:
 #         logger.warning(f"Project library query failed: {e}")
 #         # Fallback to all user papers
@@ -109,7 +110,7 @@ if __name__ == "__main__":
 #             .select_related("paper")
 #             .order_by("-saved_at")
 #         )
-# 
+#
 #     # Get user's collections for this project
 #     try:
 #         user_collections = Collection.objects.filter(user=request.user)
@@ -123,7 +124,7 @@ if __name__ == "__main__":
 #     except (AttributeError, TypeError):
 #         # Failed to filter by project, fallback to all user collections
 #         project_collections = Collection.objects.filter(user=request.user)
-# 
+#
 #     context = {
 #         "project": project,
 #         "project_mode": True,
@@ -132,10 +133,10 @@ if __name__ == "__main__":
 #         "page_title": f"Library - {project.name}",
 #         "paper_count": project_papers.count(),
 #     }
-# 
+#
 #     return render(request, "scholar_app/project_library.html", context)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

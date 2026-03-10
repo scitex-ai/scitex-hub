@@ -4,7 +4,7 @@
 
 import pytest
 
-from apps.public_app.config import (
+from apps.infra.public_app.config import (
     API_DOC_DEFAULT_SECTION,
     API_DOC_SECTION_ORDER,
     API_DOC_SECTIONS,
@@ -126,7 +126,7 @@ class TestCampaignTokens:
         """Generated token should follow standard format."""
         from datetime import datetime
 
-        from apps.public_app.config import generate_campaign_token
+        from apps.infra.public_app.config import generate_campaign_token
 
         start = datetime(2025, 2, 1)
         end = datetime(2025, 3, 31)
@@ -137,7 +137,7 @@ class TestCampaignTokens:
         """Hashtag should be sanitized (lowercase, no special chars)."""
         from datetime import datetime
 
-        from apps.public_app.config import generate_campaign_token
+        from apps.infra.public_app.config import generate_campaign_token
 
         start = datetime(2025, 1, 1)
         end = datetime(2025, 12, 31)
@@ -146,7 +146,7 @@ class TestCampaignTokens:
 
     def test_parse_campaign_token_valid(self):
         """Parsing valid token should return components."""
-        from apps.public_app.config import parse_campaign_token
+        from apps.infra.public_app.config import parse_campaign_token
 
         result = parse_campaign_token("scitex-cloud-campaign-20260101-20261231-alpha")
         assert result is not None
@@ -157,7 +157,7 @@ class TestCampaignTokens:
 
     def test_parse_campaign_token_invalid(self):
         """Parsing invalid token should return None."""
-        from apps.public_app.config import parse_campaign_token
+        from apps.infra.public_app.config import parse_campaign_token
 
         assert parse_campaign_token("invalid-token") is None
         assert parse_campaign_token("scitex-campaign-20250101-alpha") is None
@@ -165,7 +165,7 @@ class TestCampaignTokens:
 
     def test_is_valid_campaign_token(self):
         """Validation should correctly identify valid/invalid tokens."""
-        from apps.public_app.config import is_valid_campaign_token
+        from apps.infra.public_app.config import is_valid_campaign_token
 
         assert is_valid_campaign_token("scitex-cloud-campaign-20260101-20261231-alpha")
         assert is_valid_campaign_token(
@@ -176,7 +176,7 @@ class TestCampaignTokens:
 
     def test_campaign_tokens_have_required_fields(self):
         """Campaign tokens config should have required fields."""
-        from apps.public_app.config import CAMPAIGN_TOKENS
+        from apps.infra.public_app.config import CAMPAIGN_TOKENS
 
         for key, info in CAMPAIGN_TOKENS.items():
             assert "token" in info, f"Campaign {key} missing token"
@@ -185,7 +185,7 @@ class TestCampaignTokens:
 
     def test_get_active_campaign_token(self):
         """Should return active campaign token or None."""
-        from apps.public_app.config import get_active_campaign_token
+        from apps.infra.public_app.config import get_active_campaign_token
 
         # Function should return string or None
         result = get_active_campaign_token()

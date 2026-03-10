@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.dev_app.models import ...
+# from apps.workspace.dev_app.models import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os

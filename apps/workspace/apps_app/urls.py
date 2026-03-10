@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Apps URL configuration."""
+
+from django.urls import path
+
+app_name = "apps_app"
+
+from . import views
+from .views import dev_project_files
+
+urlpatterns = [
+    # Pages
+    path("", views.browse, name="browse"),
+    path("my/", views.my_modules, name="my_modules"),
+    path("review/", views.review_queue, name="review_queue"),
+    # Dev install — must come before <str:module_name> catch-all
+    path("api/dev/url/", views.api_dev_app_url, name="api_dev_app_url"),
+    path("api/dev/install/", views.api_dev_install, name="api_dev_install"),
+    path(
+        "api/dev/<str:owner>/<str:repo>/uninstall/",
+        views.api_dev_uninstall,
+        name="api_dev_uninstall",
+    ),
+    path(
+        "api/dev/<str:owner>/<str:repo>/reinstall/",
+        views.api_dev_reinstall,
+        name="api_dev_reinstall",
+    ),
+    path(
+        "api/dev/<str:owner>/<str:repo>/submit/",
+        views.api_submit_dev_app,
+        name="api_submit_dev_app",
+    ),
+    # API — must come before <str:module_name> catch-all
+    path("api/reorder/", views.api_reorder, name="api_reorder"),
+    path("api/<str:module_name>/install/", views.api_install, name="api_install"),
+    path("api/<str:module_name>/uninstall/", views.api_uninstall, name="api_uninstall"),
+    path("api/<str:module_name>/toggle/", views.api_toggle, name="api_toggle"),
+    path("api/<str:module_name>/star/", views.api_star, name="api_star"),
+    path("api/<str:module_name>/unstar/", views.api_unstar, name="api_unstar"),
+    path("api/<str:module_name>/review/", views.api_review, name="api_review"),
+    path(
+        "api/<str:module_name>/config/",
+        views.api_update_config,
+        name="api_update_config",
+    ),
+    path(
+        "api/<str:module_name>/submit/", views.api_submit_for_review, name="api_submit"
+    ),
+    path(
+        "api/submissions/<int:submission_id>/review/",
+        views.api_review_submission,
+        name="api_review_submission",
+    ),
+    path("api/<str:module_name>/fork/", views.api_fork, name="api_fork"),
+    path("api/list/", views.api_list_public, name="api_list_public"),
+    # Dev app project file CRUD — must come before catch-all
+    path(
+        "dev/<str:owner>/<str:repo>/project/<str:project_slug>/files/",
+        dev_project_files.api_dev_file_read,
+        name="dev_project_file_read",
+    ),
+    path(
+        "dev/<str:owner>/<str:repo>/project/<str:project_slug>/files/write/",
+        dev_project_files.api_dev_file_write,
+        name="dev_project_file_write",
+    ),
+    path(
+        "dev/<str:owner>/<str:repo>/project/<str:project_slug>/files/delete/",
+        dev_project_files.api_dev_file_delete,
+        name="dev_project_file_delete",
+    ),
+    path(
+        "dev/<str:owner>/<str:repo>/project/<str:project_slug>/files/list/",
+        dev_project_files.api_dev_file_list,
+        name="dev_project_file_list",
+    ),
+    # Detail — catch-all last
+    path("<str:module_name>/", views.detail, name="detail"),
+]
+
+
+# EOF

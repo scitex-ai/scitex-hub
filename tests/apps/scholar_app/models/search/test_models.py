@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.models.search.models import ...
+# from apps.workspace.scholar_app.models.search.models import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,11 +28,11 @@ if __name__ == "__main__":
 # from django.db import models
 # from django.contrib.auth.models import User
 # import uuid
-# 
-# 
+#
+#
 # class SearchQuery(models.Model):
 #     """Track user searches"""
-# 
+#
 #     SEARCH_TYPE_CHOICES = [
 #         ("simple", "Simple Search"),
 #         ("advanced", "Advanced Search"),
@@ -39,7 +40,7 @@ if __name__ == "__main__":
 #         ("citation", "Citation Search"),
 #         ("semantic", "Semantic Search"),
 #     ]
-# 
+#
 #     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 #     user = models.ForeignKey(
 #         User, on_delete=models.CASCADE, related_name="search_queries"
@@ -54,21 +55,21 @@ if __name__ == "__main__":
 #     ip_address = models.GenericIPAddressField(null=True, blank=True)
 #     user_agent = models.TextField(blank=True)
 #     created_at = models.DateTimeField(auto_now_add=True)
-# 
+#
 #     class Meta:
 #         ordering = ["-created_at"]
 #         indexes = [
 #             models.Index(fields=["-created_at"]),
 #             models.Index(fields=["user", "-created_at"]),
 #         ]
-# 
+#
 #     def __str__(self):
 #         return f"{self.user.username}: {self.query_text[:50]}"
-# 
-# 
+#
+#
 # class SearchResult(models.Model):
 #     """Store search results"""
-# 
+#
 #     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 #     search_query = models.ForeignKey(
 #         SearchQuery, on_delete=models.CASCADE, related_name="results"
@@ -80,20 +81,20 @@ if __name__ == "__main__":
 #     clicked = models.BooleanField(default=False)
 #     click_timestamp = models.DateTimeField(null=True, blank=True)
 #     created_at = models.DateTimeField(auto_now_add=True)
-# 
+#
 #     class Meta:
 #         ordering = ["search_query", "rank"]
 #         indexes = [
 #             models.Index(fields=["search_query", "rank"]),
 #         ]
-# 
+#
 #     def __str__(self):
 #         return f"Result {self.rank} for query {self.search_query.id}"
-# 
-# 
+#
+#
 # class SearchFilter(models.Model):
 #     """Advanced search filters"""
-# 
+#
 #     FILTER_TYPE_CHOICES = [
 #         ("date_range", "Date Range"),
 #         ("author", "Author"),
@@ -104,7 +105,7 @@ if __name__ == "__main__":
 #         ("open_access", "Open Access"),
 #         ("language", "Language"),
 #     ]
-# 
+#
 #     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 #     name = models.CharField(max_length=100)
 #     filter_type = models.CharField(max_length=20, choices=FILTER_TYPE_CHOICES)
@@ -113,24 +114,24 @@ if __name__ == "__main__":
 #     is_active = models.BooleanField(default=True)
 #     created_at = models.DateTimeField(auto_now_add=True)
 #     updated_at = models.DateTimeField(auto_now=True)
-# 
+#
 #     class Meta:
 #         ordering = ["filter_type", "name"]
-# 
+#
 #     def __str__(self):
 #         return f"{self.filter_type}: {self.name}"
-# 
-# 
+#
+#
 # class SavedSearch(models.Model):
 #     """User's saved searches"""
-# 
+#
 #     FREQUENCY_CHOICES = [
 #         ("daily", "Daily"),
 #         ("weekly", "Weekly"),
 #         ("monthly", "Monthly"),
 #         ("never", "Never"),
 #     ]
-# 
+#
 #     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 #     user = models.ForeignKey(
 #         User, on_delete=models.CASCADE, related_name="saved_searches"
@@ -148,11 +149,11 @@ if __name__ == "__main__":
 #     last_run = models.DateTimeField(null=True, blank=True)
 #     created_at = models.DateTimeField(auto_now_add=True)
 #     updated_at = models.DateTimeField(auto_now=True)
-# 
+#
 #     class Meta:
 #         ordering = ["-created_at"]
 #         unique_together = ["user", "name"]
-# 
+#
 #     def __str__(self):
 #         return f"{self.user.username}: {self.name}"
 

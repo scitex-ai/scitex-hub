@@ -104,7 +104,7 @@ function showMenu(x: number, y: number, moduleName: string): void {
       icon: "fa-code-branch",
       cls: "",
       action: () => {
-        window.location.href = `/hub/#browse/${moduleName}`;
+        window.location.href = `/apps/home/#browse/${moduleName}`;
       },
     },
   ];
@@ -211,21 +211,21 @@ function applyModuleColor(moduleName: string, color: string): void {
   const sel = `[data-module="${moduleName}"]`;
   document.querySelectorAll<HTMLElement>(sel).forEach((el) => {
     if (color) {
-      el.style.setProperty("--module-accent-color", color);
+      el.style.setProperty("--app-accent-color", color);
     } else {
-      el.style.removeProperty("--module-accent-color");
+      el.style.removeProperty("--app-accent-color");
     }
   });
 
-  // Apply to the module pane top accent bar (#main-content[data-module-accent])
+  // Apply to the module pane top accent bar (#main-content[data-app-accent])
   const pane = document.querySelector<HTMLElement>(
-    `#main-content[data-module-accent="${moduleName}"]`,
+    `#main-content[data-app-accent="${moduleName}"]`,
   );
   if (pane) {
     if (color) {
-      pane.style.setProperty("--module-accent-color", color);
+      pane.style.setProperty("--app-accent-color", color);
     } else {
-      pane.style.removeProperty("--module-accent-color");
+      pane.style.removeProperty("--app-accent-color");
     }
   }
 }

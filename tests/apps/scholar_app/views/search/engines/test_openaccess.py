@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.search.engines.openaccess import ...
+# from apps.workspace.scholar_app.views.search.engines.openaccess import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,7 +32,7 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/scholar_app/views/search/engines/openaccess.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
@@ -48,15 +49,15 @@ if __name__ == "__main__":
 # from ..citations import get_journal_impact_factor, get_pubmed_citations, validate_citation_count
 # from ..search_helpers import search_database_papers, get_paper_authors
 # from ..storage import store_search_result
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
+#
 # try:
 #     from scitex.scholar.pipelines.ScholarPipelineSearchParallel import ScholarPipelineSearchParallel
 #     SCITEX_SCHOLAR_AVAILABLE = True
 # except ImportError:
 #     SCITEX_SCHOLAR_AVAILABLE = False
-# 
+#
 # def search_doaj(query, max_results=50, filters=None):
 #     """Search Directory of Open Access Journals (DOAJ)."""
 #     try:
@@ -67,27 +68,27 @@ if __name__ == "__main__":
 #             "pageSize": min(max_results, 50),  # Reduced limit
 #             "sort": "score:desc",
 #         }
-# 
+#
 #         response = requests.get(base_url, params=params, timeout=15)
 #         response.raise_for_status()
 #         data = response.json()
-# 
+#
 #         results = []
 #         if "results" in data:
 #             for i, article in enumerate(data["results"][:max_results]):
 #                 bibjson = article.get("bibjson", {})
-# 
+#
 #                 # Extract authors
 #                 authors = []
 #                 if "author" in bibjson:
 #                     for author in bibjson["author"][:3]:
 #                         name = author.get("name", "Unknown Author")
 #                         authors.append(name)
-# 
+#
 #                 # Extract journal info
 #                 journal_info = bibjson.get("journal", {})
 #                 journal_name = journal_info.get("title", "DOAJ Journal")
-# 
+#
 #                 results.append(
 #                     {
 #                         "title": bibjson.get("title") or f"DOAJ Article {i + 1}",
@@ -101,35 +102,35 @@ if __name__ == "__main__":
 #                         "source": "doaj",
 #                     }
 #                 )
-# 
+#
 #         return results
 #     except Exception as e:
 #         print(f"Error searching DOAJ: {e}")
 #         return []
-# 
-# 
-# 
-# 
-# 
+#
+#
+#
+#
+#
 # def search_biorxiv(query, max_results=50, filters=None):
 #     """Search bioRxiv preprint server."""
 #     try:
 #         # bioRxiv API
 #         base_url = "https://api.biorxiv.org/details/biorxiv"
-# 
+#
 #         # Search recent papers (bioRxiv API is date-based)
 #         from datetime import datetime, timedelta
-# 
+#
 #         end_date = datetime.now()
 #         start_date = end_date - timedelta(days=365)  # Last year
-# 
+#
 #         date_str = f"{start_date.strftime('%Y-%m-%d')}/{end_date.strftime('%Y-%m-%d')}"
 #         url = f"{base_url}/{date_str}"
-# 
+#
 #         response = requests.get(url, timeout=15)
 #         response.raise_for_status()
 #         data = response.json()
-# 
+#
 #         results = []
 #         if "collection" in data:
 #             # Filter by query and take max_results
@@ -141,7 +142,7 @@ if __name__ == "__main__":
 #                     filtered_papers.append(paper)
 #                     if len(filtered_papers) >= max_results:
 #                         break
-# 
+#
 #             for i, paper in enumerate(filtered_papers):
 #                 results.append(
 #                     {
@@ -156,16 +157,16 @@ if __name__ == "__main__":
 #                         "source": "biorxiv",
 #                     }
 #                 )
-# 
+#
 #         return results
 #     except Exception as e:
 #         print(f"Error searching bioRxiv: {e}")
 #         return []
-# 
-# 
-# 
-# 
-# 
+#
+#
+#
+#
+#
 # def search_plos(query, max_results=50, filters=None):
 #     """Search PLOS journals (PLOS ONE, PLOS Biology, etc.)."""
 #     try:
@@ -178,11 +179,11 @@ if __name__ == "__main__":
 #             "sort": "score desc",
 #             "fl": "id,title,author,journal,publication_date,abstract",
 #         }
-# 
+#
 #         response = requests.get(base_url, params=params, timeout=15)
 #         response.raise_for_status()
 #         data = response.json()
-# 
+#
 #         results = []
 #         if "response" in data and "docs" in data["response"]:
 #             for i, doc in enumerate(data["response"]["docs"]):
@@ -193,11 +194,11 @@ if __name__ == "__main__":
 #                         authors = doc["author"][:3]
 #                     else:
 #                         authors = [doc["author"]]
-# 
+#
 #                 # Extract year from publication_date
 #                 pub_date = doc.get("publication_date", "2024-01-01T00:00:00Z")
 #                 year = pub_date[:4] if pub_date else "2024"
-# 
+#
 #                 # Extract title safely (can be list or string or None)
 #                 title_raw = doc.get("title")
 #                 if isinstance(title_raw, list) and title_raw:
@@ -206,7 +207,7 @@ if __name__ == "__main__":
 #                     title = title_raw
 #                 else:
 #                     title = f"PLOS Article {i + 1}"
-# 
+#
 #                 # Extract abstract safely (can be list or string or None)
 #                 abstract_raw = doc.get("abstract")
 #                 if isinstance(abstract_raw, list) and abstract_raw:
@@ -215,7 +216,7 @@ if __name__ == "__main__":
 #                     abstract = abstract_raw
 #                 else:
 #                     abstract = f"PLOS article about {query}"
-# 
+#
 #                 results.append(
 #                     {
 #                         "title": title,
@@ -229,16 +230,16 @@ if __name__ == "__main__":
 #                         "source": "plos",
 #                     }
 #                 )
-# 
+#
 #         return results
 #     except Exception as e:
 #         print(f"Error searching PLOS: {e}")
 #         return []
-# 
-# 
-# 
-# 
-# 
+#
+#
+#
+#
+#
 
 # --------------------------------------------------------------------------------
 # End of Source Code from: apps/scholar_app/views/search/engines/openaccess.py

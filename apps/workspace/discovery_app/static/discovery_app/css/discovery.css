@@ -1,0 +1,205 @@
+/**
+ * Discovery App — styled to match hub dashboard
+ */
+
+/* ── Wrapper ─────────────────────────────────────────────────────────────── */
+
+.discovery-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+
+.discovery-header {
+  padding: 0.75rem 1rem 0;
+}
+
+.discovery-header h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.15rem;
+  color: var(--workspace-text-primary);
+}
+
+.discovery-header p {
+  font-size: 0.8rem;
+  color: var(--workspace-text-muted);
+  margin: 0;
+}
+
+/* ── Tabs (hub mode-switcher style) ──────────────────────────────────────── */
+
+.discovery-tabs {
+  display: flex;
+  align-items: center;
+  height: 50px;
+  min-height: 50px;
+  padding: 0 1rem;
+  border-bottom: 1px solid var(--workspace-border-default);
+  gap: 0;
+}
+
+.discovery-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0 1rem;
+  height: 100%;
+  color: var(--workspace-text-muted);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.discovery-tab:hover {
+  color: var(--workspace-text-primary);
+  text-decoration: none;
+}
+
+.discovery-tab.active {
+  color: var(--workspace-text-primary);
+  border-bottom-color: var(--app-accent-hub);
+}
+
+/* ── Tab content area ─────────────────────────────────────────────────────── */
+
+.discovery-tab-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+/* ── Owner badge — small avatar circle with initial letter ────────────────── */
+
+.discovery-owner-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--workspace-bg-tertiary);
+  border: 1px solid var(--workspace-border-default);
+  color: var(--workspace-text-muted);
+  font-size: 0.65rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+/* ── Repo card title: owner / repo ───────────────────────────────────────── */
+
+.discovery-repo-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  flex-wrap: wrap;
+}
+
+.discovery-repo-owner-part {
+  color: var(--workspace-text-muted);
+  font-weight: 400;
+}
+
+.discovery-repo-sep {
+  color: var(--workspace-text-muted);
+  font-weight: 300;
+}
+
+.discovery-repo-name-part {
+  color: var(--app-accent-hub);
+}
+
+.discovery-repo-title a {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.discovery-repo-title a:hover .discovery-repo-name-part {
+  text-decoration: underline;
+}
+
+/* ── User card avatar ─────────────────────────────────────────────────────── */
+
+.discovery-user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--workspace-bg-tertiary);
+  border: 1px solid var(--workspace-border-default);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--workspace-text-muted);
+  font-size: 1rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.discovery-user-card-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.discovery-user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.discovery-user-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--app-accent-hub);
+  text-decoration: none;
+}
+
+.discovery-user-name:hover {
+  text-decoration: underline;
+}
+
+/* ── Avatar images (replace initial badge when photo available) ───────────── */
+
+.discovery-owner-badge-img {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--workspace-border-default);
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.discovery-user-avatar-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--workspace-border-default);
+}
+
+/* ── User card username subtitle ─────────────────────────────────────────── */
+
+.discovery-user-handle {
+  margin: 0.1rem 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--workspace-text-muted);
+}
+
+/* ── Empty state ──────────────────────────────────────────────────────────── */
+
+.discovery-empty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--workspace-text-muted);
+  font-size: 0.9rem;
+}

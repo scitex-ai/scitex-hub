@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.services.environment_manager.models import ...
+# from apps.workspace.console_app.services.environment_manager.models import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,17 +29,17 @@ if __name__ == "__main__":
 # """
 # Data Models for Environment Management
 # """
-# 
+#
 # from pathlib import Path
 # from typing import Dict, List, Optional, Any
 # from django.conf import settings
 # from django.utils import timezone
 # from django.contrib.auth.models import User
-# 
-# 
+#
+#
 # class PackageRequirement:
 #     """Represents a Python package requirement."""
-# 
+#
 #     def __init__(
 #         self,
 #         name: str,
@@ -50,7 +51,7 @@ if __name__ == "__main__":
 #         self.version = version
 #         self.source = source
 #         self.extras = extras or []
-# 
+#
 #     def __str__(self):
 #         """Return pip-compatible requirement string."""
 #         req = self.name
@@ -59,7 +60,7 @@ if __name__ == "__main__":
 #         if self.version:
 #             req += f"=={self.version}"
 #         return req
-# 
+#
 #     @classmethod
 #     def from_string(cls, req_string: str):
 #         """Parse requirement from string like 'numpy==1.21.0' or 'scipy[linalg]'."""
@@ -67,12 +68,12 @@ if __name__ == "__main__":
 #         extras = []
 #         name = req_string
 #         version = None
-# 
+#
 #         # Extract extras
 #         if "[" in req_string:
 #             name, extras_part = req_string.split("[", 1)
 #             extras = extras_part.rstrip("]").split(",")
-# 
+#
 #         # Extract version
 #         if "==" in name:
 #             name, version = name.split("==", 1)
@@ -82,13 +83,13 @@ if __name__ == "__main__":
 #         elif "<=" in name:
 #             name, version = name.split("<=", 1)
 #             version = f"<={version}"
-# 
+#
 #         return cls(name.strip(), version, extras=extras)
-# 
-# 
+#
+#
 # class Environment:
 #     """Represents a Python execution environment."""
-# 
+#
 #     def __init__(self, env_id: str, user: User, name: str = ""):
 #         self.env_id = env_id
 #         self.user = user
@@ -99,7 +100,7 @@ if __name__ == "__main__":
 #         self.python_version = "3.11"
 #         self.created_at = timezone.now()
 #         self.last_used = timezone.now()
-# 
+#
 #         # Standard scientific packages
 #         self.base_packages = [
 #             PackageRequirement("numpy", "1.24.3"),
@@ -111,18 +112,18 @@ if __name__ == "__main__":
 #             PackageRequirement("jupyter", "1.0.0"),
 #             PackageRequirement("ipykernel", "6.25.0"),
 #         ]
-# 
+#
 #     def add_requirement(self, requirement: PackageRequirement):
 #         """Add a package requirement to the environment."""
 #         # Remove existing requirement with same name
 #         self.requirements = [r for r in self.requirements if r.name != requirement.name]
 #         self.requirements.append(requirement)
-# 
+#
 #     def get_requirements_file(self) -> str:
 #         """Generate requirements.txt content."""
 #         all_reqs = self.base_packages + self.requirements
 #         return "\n".join(str(req) for req in all_reqs)
-# 
+#
 #     def to_dict(self) -> Dict[str, Any]:
 #         """Convert environment to dictionary for serialization."""
 #         return {
@@ -133,7 +134,7 @@ if __name__ == "__main__":
 #             "created_at": self.created_at.isoformat(),
 #             "last_used": self.last_used.isoformat(),
 #         }
-# 
+#
 #     @classmethod
 #     def from_dict(cls, data: Dict[str, Any], user: User):
 #         """Create environment from dictionary."""

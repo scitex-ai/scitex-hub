@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.search.config import ...
+# from apps.workspace.scholar_app.views.search.config import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -29,13 +30,13 @@ if __name__ == "__main__":
 # # File: apps/scholar_app/views/search/config.py
 # """
 # Search configuration and limits.
-# 
+#
 # Centralized configuration for search parameters across all engines.
 # These values are used both in backend search logic and displayed to users.
 # User-specific limits can override defaults via UserPreference.search_limits.
 # """
 # from __future__ import annotations
-# 
+#
 # # Default search result limits per source (can be overridden per user)
 # # These are the maximum results fetched from each source per search
 # DEFAULT_SEARCH_LIMITS = {
@@ -80,10 +81,10 @@ if __name__ == "__main__":
 #         "description": "Combined parallel search",
 #     },
 # }
-# 
+#
 # # Overall result cap
 # OVERALL_RESULT_CAP = 10000
-# 
+#
 # # Default filter ranges
 # DEFAULT_FILTER_RANGES = {
 #     "year_min": 1900,
@@ -93,49 +94,49 @@ if __name__ == "__main__":
 #     "impact_factor_min": 0,
 #     "impact_factor_max": 50.0,
 # }
-# 
-# 
+#
+#
 # def get_search_limits_for_user(user=None):
 #     """
 #     Get search limits for a user, merging defaults with user overrides.
-# 
+#
 #     Args:
 #         user: Django User object (optional). If None, returns defaults.
-# 
+#
 #     Returns:
 #         dict: Search limits with user overrides applied.
 #     """
 #     import copy
 #     limits = copy.deepcopy(DEFAULT_SEARCH_LIMITS)
-# 
+#
 #     if user and user.is_authenticated:
 #         try:
 #             from ...models import UserPreference
 #             prefs = UserPreference.get_or_create_for_user(user)
 #             user_limits = prefs.search_limits or {}
-# 
+#
 #             # Override defaults with user-specific limits
 #             for source_key, user_limit in user_limits.items():
 #                 if source_key in limits and isinstance(user_limit, int):
 #                     limits[source_key]["limit"] = user_limit
 #         except Exception:
 #             pass  # Fall back to defaults on any error
-# 
+#
 #     return limits
-# 
-# 
+#
+#
 # def get_search_limits_for_template(user=None):
 #     """
 #     Get search limits formatted for template display.
-# 
+#
 #     Args:
 #         user: Django User object (optional). If None, uses defaults.
-# 
+#
 #     Returns:
 #         list: List of dicts with source name and limit for UI display.
 #     """
 #     limits_config = get_search_limits_for_user(user)
-# 
+#
 #     # Order for display (external APIs first, then local resources)
 #     display_order = [
 #         "pubmed",
@@ -146,7 +147,7 @@ if __name__ == "__main__":
 #         "crossref_local",
 #         "database",
 #     ]
-# 
+#
 #     limits = []
 #     for key in display_order:
 #         if key in limits_config:
@@ -157,10 +158,10 @@ if __name__ == "__main__":
 #                 "limit": config["limit"],
 #                 "description": config.get("description", ""),
 #             })
-# 
+#
 #     return limits
-# 
-# 
+#
+#
 # def get_limit_for_source(source_key: str, user=None) -> int:
 #     """Get the result limit for a specific source."""
 #     limits = get_search_limits_for_user(user)

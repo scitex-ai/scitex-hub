@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.api_auth import ...
+# from apps.workspace.scholar_app.api_auth import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,39 +28,39 @@ if __name__ == "__main__":
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
 # # File: /home/ywatanabe/proj/scitex-cloud/apps/scholar_app/api_auth.py
-# 
+#
 # """
 # API Authentication utilities for Scholar app
-# 
+#
 # Provides authentication via API keys for programmatic access.
 # """
-# 
+#
 # from functools import wraps
 # from django.http import JsonResponse
 # from django.utils import timezone
-# from apps.accounts_app.models import APIKey
-# 
-# 
+# from apps.infra.accounts_app.models import APIKey
+#
+#
 # def require_api_key(scopes=None):
 #     """
 #     Decorator to require API key authentication.
-# 
+#
 #     Usage:
 #         @require_api_key(scopes=['scholar:write'])
 #         def my_view(request):
 #             # request.api_user will be available
 #             pass
-# 
+#
 #     Args:
 #         scopes: List of required scopes (optional)
 #     """
-# 
+#
 #     def decorator(view_func):
 #         @wraps(view_func)
 #         def wrapper(request, *args, **kwargs):
 #             # Check for API key in Authorization header
 #             auth_header = request.headers.get("Authorization", "")
-# 
+#
 #             if not auth_header:
 #                 return JsonResponse(
 #                     {
@@ -69,7 +70,7 @@ if __name__ == "__main__":
 #                     },
 #                     status=401,
 #                 )
-# 
+#
 #             # Extract token
 #             if not auth_header.startswith("Bearer "):
 #                 return JsonResponse(
@@ -80,9 +81,9 @@ if __name__ == "__main__":
 #                     },
 #                     status=401,
 #                 )
-# 
+#
 #             token = auth_header[7:]  # Remove "Bearer " prefix
-# 
+#
 #             # Validate token format
 #             if not token.startswith("scitex_"):
 #                 return JsonResponse(
@@ -93,7 +94,7 @@ if __name__ == "__main__":
 #                     },
 #                     status=401,
 #                 )
-# 
+#
 #             # Find and verify API key
 #             key_hash = APIKey.hash_key(token)
 #             try:
@@ -109,7 +110,7 @@ if __name__ == "__main__":
 #                     },
 #                     status=401,
 #                 )
-# 
+#
 #             # Check expiration
 #             if not api_key.is_valid():
 #                 return JsonResponse(
@@ -120,7 +121,7 @@ if __name__ == "__main__":
 #                     },
 #                     status=401,
 #                 )
-# 
+#
 #             # Check scopes if required
 #             if scopes:
 #                 for scope in scopes:
@@ -133,36 +134,36 @@ if __name__ == "__main__":
 #                             },
 #                             status=403,
 #                         )
-# 
+#
 #             # Update last used timestamp
 #             api_key.last_used_at = timezone.now()
 #             api_key.save(update_fields=["last_used_at"])
-# 
+#
 #             # Attach user to request
 #             request.api_user = api_key.user
 #             request.api_key = api_key
-# 
+#
 #             return view_func(request, *args, **kwargs)
-# 
+#
 #         return wrapper
-# 
+#
 #     return decorator
-# 
-# 
+#
+#
 # def api_key_optional(view_func):
 #     """
 #     Decorator that accepts both API key and session authentication.
 #     If API key is provided, uses that. Otherwise falls back to session auth.
 #     """
-# 
+#
 #     @wraps(view_func)
 #     def wrapper(request, *args, **kwargs):
 #         # Try API key first
 #         auth_header = request.headers.get("Authorization", "")
-# 
+#
 #         if auth_header and auth_header.startswith("Bearer "):
 #             token = auth_header[7:]
-# 
+#
 #             if token.startswith("scitex_"):
 #                 key_hash = APIKey.hash_key(token)
 #                 try:
@@ -173,20 +174,20 @@ if __name__ == "__main__":
 #                         # Update last used
 #                         api_key.last_used_at = timezone.now()
 #                         api_key.save(update_fields=["last_used_at"])
-# 
+#
 #                         # Use API key user
 #                         request.api_user = api_key.user
 #                         request.api_key = api_key
 #                 except APIKey.DoesNotExist:
 #                     pass  # Fall back to session auth
-# 
+#
 #         # If no API key or invalid, use regular authentication
 #         # (handled by view logic)
 #         return view_func(request, *args, **kwargs)
-# 
+#
 #     return wrapper
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

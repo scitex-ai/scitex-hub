@@ -50,7 +50,7 @@ def admin_user(db):
 @pytest.fixture
 def project(db, user):
     """Create a test project."""
-    from apps.project_app.models import Project
+    from apps.infra.project_app.models import Project
 
     return Project.objects.create(
         owner=user,

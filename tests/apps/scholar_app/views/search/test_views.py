@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.search.views import ...
+# from apps.workspace.scholar_app.views.search.views import ...
 
 
 class TestPlaceholder:

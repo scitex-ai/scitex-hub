@@ -9,7 +9,7 @@
  * API and saved back on change, with localStorage as fallback.
  */
 
-import { AutoResponseManager } from "../../../../../apps/console_app/static/console_app/ts/_workspace/terminal/AutoResponseManager";
+import { AutoResponseManager } from "../../../../../apps/workspace/console_app/static/console_app/ts/_workspace/terminal/AutoResponseManager";
 import { getCsrfToken } from "../../utils/csrf";
 import { API_URLS } from "../../utils/api-urls";
 

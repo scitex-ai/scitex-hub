@@ -27,12 +27,12 @@
                  data-indicator="right"
                  data-workspace-modules="{{ workspace_module_names_csv }}">
                 {% for mod in workspace_modules %}
-                    <a href="/{{ mod.name }}/"
+                    <a href="{{ mod.get_url }}"
                        class="selector-nav-item ws-apps-nav-item module-tab-btn{% if mod.is_active %} active{% endif %}"
                        data-module="{{ mod.name }}"
                        aria-label="{{ mod.label }}"
                        title="{{ mod.label }}"
-                       data-module-accent="{{ mod.name }}">
+                       data-app-accent="{{ mod.name }}">
                         {% module_icon mod.name "tab" mod.version mod.icon_fa mod.is_dev %}
                         <span class="selector-nav-label ws-apps-nav-label">{{ mod.label }}</span></a>
                 {% endfor %}

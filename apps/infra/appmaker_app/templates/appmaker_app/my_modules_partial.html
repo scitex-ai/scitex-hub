@@ -1,0 +1,203 @@
+{% load static %}
+
+<!-- My Apps grid partial -->
+<link rel="stylesheet" href="{% static 'appmaker_app/css/appmaker.css' %}" />
+<div class="appmaker-workspace">
+    <div class="appmaker-list-header">
+        <h2>
+            <i class="fas fa-puzzle-piece"></i> My Apps
+        </h2>
+        <div class="appmaker-header-actions">
+            <button class="btn btn-outline" id="import-github-btn" title="Import from GitHub">
+                <i class="fab fa-github"></i> Import from GitHub
+            </button>
+            <a href="{% url 'appmaker_app:editor_new' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> New App
+            </a>
+        </div>
+    </div>
+    <!-- GitHub Import Dialog (hidden by default) -->
+    <div id="github-import-dialog" class="appmaker-import-dialog" style="display:none;">
+        <div class="appmaker-import-form">
+            <h3>
+                <i class="fab fa-github"></i> Import App from GitHub
+            </h3>
+            <p class="appmaker-import-hint">
+                Paste the URL of a GitHub repository containing a <code>module.py</code>
+                with <code>@stx.module</code> decorator.
+            </p>
+            <div class="form-group">
+                <label for="import-repo-url">Repository URL</label>
+                <input type="url"
+                       id="import-repo-url"
+                       class="form-control"
+                       placeholder="https://github.com/user/scitex-module-example" />
+            </div>
+            <div class="form-group">
+                <label for="import-repo-ref">
+                    Branch / Tag <small>(optional, defaults to main)</small>
+                </label>
+                <input type="text" id="import-repo-ref" class="form-control" placeholder="main" />
+            </div>
+            <div class="appmaker-import-actions">
+                <button class="btn btn-primary" id="import-submit-btn">
+                    <i class="fas fa-download"></i> Import
+                </button>
+                <button class="btn btn-outline" id="import-cancel-btn">Cancel</button>
+            </div>
+            <div id="import-status" class="appmaker-import-status" style="display:none;"></div>
+        </div>
+    </div>
+    {% if modules %}
+        <div class="appmaker-grid">
+            {% for mod in modules %}
+                <div class="appmaker-grid-card">
+                    <div class="appmaker-grid-card-header">
+                        <i class="fas {{ mod.icon }}"></i>
+                        <span class="appmaker-grid-label">{{ mod.label }}</span>
+                        <span class="appmaker-badge appmaker-badge--{{ mod.visibility }}">{{ mod.visibility }}</span>
+                        {% if mod.source_repo_url %}
+                            <span class="appmaker-badge appmaker-badge--git" title="Imported from GitHub">
+                                <i class="fab fa-github"></i>
+                            </span>
+                        {% endif %}
+                    </div>
+                    {% if mod.description %}<p class="appmaker-grid-desc">{{ mod.description }}</p>{% endif %}
+                    <div class="appmaker-grid-meta">
+                        <span title="Run count">
+                            <i class="fas fa-play"></i> {{ mod.run_count }}
+                        </span>
+                        {% if mod.last_run_at %}
+                            <span title="Last run">
+                                <i class="fas fa-clock"></i> {{ mod.last_run_at|timesince }} ago
+                            </span>
+                        {% endif %}
+                        {% if mod.source_repo_url %}
+                            <a href="{{ mod.source_repo_url }}"
+                               target="_blank"
+                               rel="noopener"
+                               class="appmaker-source-link"
+                               title="View source repository">
+                                <i class="fas fa-external-link-alt"></i> Source
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="appmaker-grid-actions">
+                        <a href="{% url 'appmaker_app:editor' slug=mod.slug %}"
+                           class="btn btn-sm btn-outline"
+                           title="Edit module">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        {% if mod.source_repo_url %}
+                            <button class="btn btn-sm btn-outline appmaker-sync-btn"
+                                    data-app-slug="{{ mod.slug }}"
+                                    title="Sync from repository">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        {% endif %}
+                        <button class="btn btn-sm btn-outline btn-danger appmaker-delete-btn"
+                                data-app-slug="{{ mod.slug }}"
+                                title="Delete module">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="appmaker-empty">
+            <i class="fas fa-puzzle-piece"></i>
+            <p>
+                You have no apps yet. Click <strong>New App</strong> to create from scratch
+                or <strong>Import from GitHub</strong> to import a template.
+            </p>
+        </div>
+    {% endif %}
+</div>
+<script>
+(function() {
+    const dialog = document.getElementById('github-import-dialog');
+    const openBtn = document.getElementById('import-github-btn');
+    const cancelBtn = document.getElementById('import-cancel-btn');
+    const submitBtn = document.getElementById('import-submit-btn');
+    const statusDiv = document.getElementById('import-status');
+
+    if (openBtn) openBtn.addEventListener('click', () => dialog.style.display = 'block');
+    if (cancelBtn) cancelBtn.addEventListener('click', () => dialog.style.display = 'none');
+
+    if (submitBtn) submitBtn.addEventListener('click', async () => {
+        const repoUrl = document.getElementById('import-repo-url').value.trim();
+        const ref = document.getElementById('import-repo-ref').value.trim() || 'main';
+
+        if (!repoUrl) {
+            statusDiv.textContent = 'Please enter a repository URL.';
+            statusDiv.className = 'appmaker-import-status appmaker-import-error';
+            statusDiv.style.display = 'block';
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
+        statusDiv.style.display = 'none';
+
+        try {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value
+                           || document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+            const resp = await fetch('{% url "appmaker_app:api_import_github" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({ repo_url: repoUrl, ref: ref }),
+            });
+            const data = await resp.json();
+            if (data.success) {
+                statusDiv.textContent = data.message;
+                statusDiv.className = 'appmaker-import-status appmaker-import-success';
+                statusDiv.style.display = 'block';
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                statusDiv.textContent = data.error || 'Import failed.';
+                statusDiv.className = 'appmaker-import-status appmaker-import-error';
+                statusDiv.style.display = 'block';
+            }
+        } catch (err) {
+            statusDiv.textContent = 'Network error: ' + err.message;
+            statusDiv.className = 'appmaker-import-status appmaker-import-error';
+            statusDiv.style.display = 'block';
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-download"></i> Import';
+        }
+    });
+
+    // Sync buttons
+    document.querySelectorAll('.appmaker-sync-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const slug = btn.dataset.moduleSlug;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            try {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value
+                               || document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+                const resp = await fetch(`/appmaker/api/${slug}/sync/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken },
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'Sync failed.');
+                }
+            } catch (err) {
+                alert('Sync error: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+            }
+        });
+    });
+})();
+</script>

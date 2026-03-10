@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from apps.console_app.services.terminal_broker.allocation import (
+from apps.workspace.console_app.services.terminal_broker.allocation import (
     Allocation,
     AllocationState,
 )
@@ -217,25 +217,33 @@ class TestCheckAlive:
         alloc.job_id = "12345"
         return alloc
 
-    @patch("apps.console_app.services.terminal_broker.allocation.subprocess.run")
+    @patch(
+        "apps.workspace.console_app.services.terminal_broker.allocation.subprocess.run"
+    )
     def test_alive_when_running(self, mock_run):
         mock_run.return_value = MagicMock(stdout="RUNNING\n", returncode=0)
         alloc = self._make_alloc()
         assert alloc.check_alive() is True
 
-    @patch("apps.console_app.services.terminal_broker.allocation.subprocess.run")
+    @patch(
+        "apps.workspace.console_app.services.terminal_broker.allocation.subprocess.run"
+    )
     def test_alive_when_pending(self, mock_run):
         mock_run.return_value = MagicMock(stdout="PENDING\n", returncode=0)
         alloc = self._make_alloc()
         assert alloc.check_alive() is True
 
-    @patch("apps.console_app.services.terminal_broker.allocation.subprocess.run")
+    @patch(
+        "apps.workspace.console_app.services.terminal_broker.allocation.subprocess.run"
+    )
     def test_dead_when_completed(self, mock_run):
         mock_run.return_value = MagicMock(stdout="COMPLETED\n", returncode=0)
         alloc = self._make_alloc()
         assert alloc.check_alive() is False
 
-    @patch("apps.console_app.services.terminal_broker.allocation.subprocess.run")
+    @patch(
+        "apps.workspace.console_app.services.terminal_broker.allocation.subprocess.run"
+    )
     def test_dead_when_empty(self, mock_run):
         mock_run.return_value = MagicMock(stdout="\n", returncode=0)
         alloc = self._make_alloc()
@@ -246,7 +254,9 @@ class TestCheckAlive:
         alloc.job_id = None
         assert alloc.check_alive() is False
 
-    @patch("apps.console_app.services.terminal_broker.allocation.subprocess.run")
+    @patch(
+        "apps.workspace.console_app.services.terminal_broker.allocation.subprocess.run"
+    )
     def test_dead_on_exception(self, mock_run):
         mock_run.side_effect = Exception("squeue failed")
         alloc = self._make_alloc()
@@ -261,7 +271,9 @@ class TestCheckAlive:
 class TestAllocationStop:
     """stop() cancels job and transitions to DEAD."""
 
-    @patch("apps.console_app.services.terminal_broker.allocation.subprocess.run")
+    @patch(
+        "apps.workspace.console_app.services.terminal_broker.allocation.subprocess.run"
+    )
     def test_stop_sets_dead(self, mock_run):
         alloc = Allocation(
             username="alice",
@@ -275,7 +287,9 @@ class TestAllocationStop:
         alloc.stop()
         assert alloc.state == AllocationState.DEAD
 
-    @patch("apps.console_app.services.terminal_broker.allocation.subprocess.run")
+    @patch(
+        "apps.workspace.console_app.services.terminal_broker.allocation.subprocess.run"
+    )
     def test_stop_calls_scancel(self, mock_run):
         alloc = Allocation(
             username="alice",

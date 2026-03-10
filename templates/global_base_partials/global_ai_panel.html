@@ -2,7 +2,7 @@
 
 {% if user.is_authenticated %}
     {% if '/workspace/' not in request.path %}
-        {% if '/console/' in request.path or '/vis/' in request.path or '/writer/' in request.path or '/scholar/' in request.path or '/clew/' in request.path or '/hub/' in request.path or '/tools/' in request.path or request.path == '/' %}
+        {% if '/console/' in request.path or '/vis/' in request.path or '/writer/' in request.path or '/scholar/' in request.path or '/clew/' in request.path or '/apps/home/' in request.path or '/tools/' in request.path or request.path == '/' %}
             <!-- Floating AI button at bottom-left — always visible on workspace pages -->
             <button id="scitex-ai-fab"
                     class="scitex-ai-fab"

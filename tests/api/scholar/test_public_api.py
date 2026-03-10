@@ -26,7 +26,7 @@ def scitex_api_key():
     try:
         from django.contrib.auth import get_user_model
 
-        from apps.accounts_app.models import APIKey
+        from apps.infra.accounts_app.models import APIKey
 
         User = get_user_model()
         user = User.objects.filter(username=TEST_USER_USERNAME).first()

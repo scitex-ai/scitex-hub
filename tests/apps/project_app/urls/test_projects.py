@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.urls.projects import ...
+# from apps.infra.project_app.urls.projects import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,7 +27,7 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # Projects Feature URLs
-# 
+#
 # Handles project CRUD operations and settings.
 # Patterns:
 # - /new/ - Create new project (handled in main config/urls.py)
@@ -37,7 +38,7 @@ if __name__ == "__main__":
 # - /<username>/<slug>/settings/members/ - Member management
 # - /<username>/<slug>/settings/integrations/ - Integration settings
 # """
-# 
+#
 # from django.urls import path
 # from ..views.projects import (
 #     project_edit,
@@ -54,9 +55,9 @@ if __name__ == "__main__":
 # from ..views.integration_views import (
 #     github_integration,
 # )
-# 
+#
 # # No app_name here - namespace is provided by parent (user_projects)
-# 
+#
 # # Note: slug and username are passed via kwargs from parent URL pattern
 # urlpatterns = [
 #     # Project edit/delete

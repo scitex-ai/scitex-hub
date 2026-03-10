@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.services.project_filesystem.directory_builder import ...
+# from apps.infra.project_app.services.project_filesystem.directory_builder import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,19 +27,19 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # Directory Builder Module
-# 
+#
 # Handles creation and management of project directory structures.
 # """
-# 
+#
 # from pathlib import Path
 # import logging
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # class DirectoryBuilderManager:
 #     """Manages project directory structure creation."""
-# 
+#
 #     # Standardized scientific research project structure
 #     PROJECT_STRUCTURE = {
 #         "config": [],
@@ -48,25 +49,25 @@ if __name__ == "__main__":
 #         "results": [],
 #         "temp": [],
 #     }
-# 
+#
 #     def __init__(self, filesystem_manager):
 #         """
 #         Initialize DirectoryBuilderManager.
-# 
+#
 #         Args:
 #             filesystem_manager: Parent ProjectFilesystemManager instance
 #         """
 #         self.manager = filesystem_manager
-# 
+#
 #     def build_directory_tree(self, project_path: Path):
 #         """Build standardized project directory tree structure."""
 #         for main_dir, sub_structure in self.PROJECT_STRUCTURE.items():
 #             main_path = project_path / main_dir
 #             if not self.manager._ensure_directory(main_path):
 #                 raise RuntimeError(f"Failed to create directory: {main_path}")
-# 
+#
 #             self._build_subdirectories(main_path, sub_structure)
-# 
+#
 #     def _build_subdirectories(self, main_path: Path, sub_structure):
 #         """Build sub-level directories for a given main directory."""
 #         if isinstance(sub_structure, dict):

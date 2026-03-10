@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.urls.repository import ...
+# from apps.infra.project_app.urls.repository import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,7 +27,7 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # Repository Feature URLs
-# 
+#
 # Handles all repository browsing, file viewing, and commit history URLs.
 # GitHub-style patterns:
 # - /<username>/<slug>/ - Repository root
@@ -35,7 +36,7 @@ if __name__ == "__main__":
 # - /<username>/<slug>/commit/<hash>/ - Commit detail
 # - /<username>/<slug>/<directory-path>/ - Directory browsing
 # """
-# 
+#
 # from django.urls import path
 # from ..views.directory_views import (
 #     project_directory_dynamic,
@@ -71,7 +72,7 @@ if __name__ == "__main__":
 #     api_create_symlink,
 #     api_extract_bundle,
 # )
-# 
+#
 # # Note: slug and username are passed via kwargs from parent URL pattern
 # # No app_name here - namespace is provided by parent (user_projects)
 # urlpatterns = [

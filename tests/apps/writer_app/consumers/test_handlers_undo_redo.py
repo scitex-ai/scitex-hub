@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.consumers.handlers_undo_redo import ...
+# from apps.workspace.writer_app.consumers.handlers_undo_redo import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,25 +29,25 @@ if __name__ == "__main__":
 # Undo/redo message handlers for WriterConsumer.
 # Handles undo, redo, and undo status operations.
 # """
-# 
+#
 # import json
 # from datetime import datetime
-# 
-# 
+#
+#
 # class UndoRedoHandlerMixin:
 #     """Mixin providing undo/redo handler methods for WriterConsumer."""
-# 
+#
 #     async def handle_undo(self, data):
 #         """Handle undo request from client."""
 #         section_id = data.get("section_id")
 #         current_version = data.get("version", 0)
-# 
+#
 #         # Get undo/redo manager for this user and section
 #         manager = self.undo_redo_coordinator.get_manager(self.user.id, section_id)
-# 
+#
 #         # Perform undo
 #         undo_result = await manager.undo(current_version)
-# 
+#
 #         if undo_result:
 #             # Submit the inverse operation through OT coordinator
 #             result = await self.ot_coordinator.submit_operation(
@@ -57,7 +58,7 @@ if __name__ == "__main__":
 #                 operation=undo_result["operation"],
 #                 version=current_version,
 #             )
-# 
+#
 #             await self.send(
 #                 text_data=json.dumps(
 #                     {
@@ -68,7 +69,7 @@ if __name__ == "__main__":
 #                     }
 #                 )
 #             )
-# 
+#
 #             # Broadcast undo to other users
 #             await self.channel_layer.group_send(
 #                 self.room_group_name,
@@ -90,18 +91,18 @@ if __name__ == "__main__":
 #                     }
 #                 )
 #             )
-# 
+#
 #     async def handle_redo(self, data):
 #         """Handle redo request from client."""
 #         section_id = data.get("section_id")
 #         current_version = data.get("version", 0)
-# 
+#
 #         # Get undo/redo manager for this user and section
 #         manager = self.undo_redo_coordinator.get_manager(self.user.id, section_id)
-# 
+#
 #         # Perform redo
 #         redo_result = await manager.redo(current_version)
-# 
+#
 #         if redo_result:
 #             # Submit the operation through OT coordinator
 #             result = await self.ot_coordinator.submit_operation(
@@ -112,7 +113,7 @@ if __name__ == "__main__":
 #                 operation=redo_result["operation"],
 #                 version=current_version,
 #             )
-# 
+#
 #             await self.send(
 #                 text_data=json.dumps(
 #                     {
@@ -123,7 +124,7 @@ if __name__ == "__main__":
 #                     }
 #                 )
 #             )
-# 
+#
 #             # Broadcast redo to other users
 #             await self.channel_layer.group_send(
 #                 self.room_group_name,
@@ -145,17 +146,17 @@ if __name__ == "__main__":
 #                     }
 #                 )
 #             )
-# 
+#
 #     async def handle_undo_status(self, data):
 #         """Handle undo/redo status request from client."""
 #         section_id = data.get("section_id")
-# 
+#
 #         # Get undo/redo manager for this user and section
 #         manager = self.undo_redo_coordinator.get_manager(self.user.id, section_id)
-# 
+#
 #         # Get status
 #         status = await manager.get_status()
-# 
+#
 #         await self.send(
 #             text_data=json.dumps(
 #                 {"type": "undo_status", "section_id": section_id, **status}

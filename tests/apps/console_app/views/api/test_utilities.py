@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.views.api.utilities import ...
+# from apps.workspace.console_app.views.api.utilities import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,11 +29,11 @@ if __name__ == "__main__":
 # """
 # API views for SciTeX-Code Jupyter notebook integration.
 # """
-# 
+#
 # import json
 # import logging
 # import threading
-# 
+#
 # from django.contrib.auth.decorators import login_required
 # from django.http import JsonResponse
 # from django.utils.decorators import method_decorator
@@ -42,7 +43,7 @@ if __name__ == "__main__":
 # from rest_framework.permissions import IsAuthenticated
 # from rest_framework.response import Response
 # from rest_framework import status
-# 
+#
 # from ...models import Notebook, CodeExecutionJob
 # from ...services.jupyter import (
 #     NotebookManager,
@@ -51,23 +52,23 @@ if __name__ == "__main__":
 #     NotebookTemplates,
 #     NotebookValidator,
 # )
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # @method_decorator(login_required, name="dispatch")
 # class NotebookAPIView(View):
 #     """Base API view for notebook operations."""
-# 
+#
 #     def get_notebook_manager(self):
 #         return NotebookManager(self.request.user)
-# 
-# 
+#
+#
 # def notebook_status_api(request, job_id):
 #     """Get notebook execution status via REST API."""
 #     try:
 #         job = CodeExecutionJob.objects.get(job_id=job_id, user=request.user)
-# 
+#
 #         return Response(
 #             {
 #                 "job_id": str(job.job_id),
@@ -83,14 +84,14 @@ if __name__ == "__main__":
 #                 "error_output": job.error_output,
 #             }
 #         )
-# 
+#
 #     except CodeExecutionJob.DoesNotExist:
 #         return Response({"error": "Job not found"}, status=status.HTTP_404_NOT_FOUND)
 #     except Exception as e:
 #         logger.error(f"Error getting job status {job_id}: {e}")
 #         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-# 
-# 
+#
+#
 # @api_view(["POST"])
 # @permission_classes([IsAuthenticated])
 # def duplicate_notebook_api(request, notebook_id):
@@ -98,21 +99,21 @@ if __name__ == "__main__":
 #     try:
 #         data = request.data
 #         new_title = data.get("title", "").strip()
-# 
+#
 #         if not new_title:
 #             return Response(
 #                 {"error": "New title is required"}, status=status.HTTP_400_BAD_REQUEST
 #             )
-# 
+#
 #         manager = NotebookManager(request.user)
 #         new_notebook = manager.duplicate_notebook(notebook_id, new_title)
-# 
+#
 #         if not new_notebook:
 #             return Response(
 #                 {"error": "Notebook not found or duplication failed"},
 #                 status=status.HTTP_404_NOT_FOUND,
 #             )
-# 
+#
 #         return Response(
 #             {
 #                 "status": "success",
@@ -125,7 +126,7 @@ if __name__ == "__main__":
 #                 },
 #             }
 #         )
-# 
+#
 #     except Exception as e:
 #         logger.error(f"Error duplicating notebook {notebook_id}: {e}")
 #         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.search.engines.arxiv import ...
+# from apps.workspace.scholar_app.views.search.engines.arxiv import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,7 +32,7 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/scholar_app/views/search/engines/arxiv.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
@@ -48,26 +49,26 @@ if __name__ == "__main__":
 # from ..citations import get_journal_impact_factor, get_pubmed_citations, validate_citation_count
 # from ..search_helpers import search_database_papers, get_paper_authors
 # from ..storage import store_search_result
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
+#
 # try:
 #     from scitex.scholar.pipelines.ScholarPipelineSearchParallel import ScholarPipelineSearchParallel
 #     SCITEX_SCHOLAR_AVAILABLE = True
 # except ImportError:
 #     SCITEX_SCHOLAR_AVAILABLE = False
-# 
+#
 # def search_arxiv_real(query, max_results=15, filters=None):
 #     """Real arXiv search that parses actual paper metadata from arXiv API."""
 #     try:
 #         logger.info(f"🔍 REAL arXiv API search for: '{query}'")
-# 
+#
 #         # Build search query
 #         search_query = f"all:{query}"
 #         if filters and filters.get("authors"):
 #             for author in filters["authors"][:2]:
 #                 search_query += f' AND au:"{author}"'
-# 
+#
 #         base_url = "http://export.arxiv.org/api/query"
 #         params = {
 #             "search_query": search_query,
@@ -76,22 +77,22 @@ if __name__ == "__main__":
 #             "sortBy": "relevance",
 #             "sortOrder": "descending",
 #         }
-# 
+#
 #         logger.info(f"   Requesting: {base_url} with query: {search_query}")
 #         response = requests.get(base_url, params=params, timeout=10)
 #         response.raise_for_status()
-# 
+#
 #         # Parse XML response
 #         import xml.etree.ElementTree as ET
-# 
+#
 #         root = ET.fromstring(response.content)
-# 
+#
 #         results = []
 #         namespace = {"atom": "http://www.w3.org/2005/Atom"}
 #         entries = root.findall("atom:entry", namespace)
-# 
+#
 #         logger.info(f"   Found {len(entries)} arXiv entries")
-# 
+#
 #         for entry in entries:
 #             try:
 #                 # Extract paper metadata
@@ -100,21 +101,21 @@ if __name__ == "__main__":
 #                 published_elem = entry.find("atom:published", namespace)
 #                 summary_elem = entry.find("atom:summary", namespace)
 #                 id_elem = entry.find("atom:id", namespace)
-# 
+#
 #                 if not title_elem or not id_elem:
 #                     continue
-# 
+#
 #                 # Clean up title (remove extra whitespace/newlines)
 #                 title_text = title_elem.text if title_elem.text else ""
 #                 title = " ".join(title_text.strip().split()) if title_text else "Unknown Title"
-# 
+#
 #                 # Extract author names
 #                 author_names = []
 #                 for author in authors:
 #                     name_elem = author.find("atom:name", namespace)
 #                     if name_elem and name_elem.text:
 #                         author_names.append(name_elem.text.strip())
-# 
+#
 #                 # Extract publication year
 #                 year = "2024"
 #                 if published_elem and published_elem.text:
@@ -123,7 +124,7 @@ if __name__ == "__main__":
 #                     except (IndexError, AttributeError, TypeError):
 #                         # Failed to extract year from published element, use default
 #                         pass
-# 
+#
 #                 # Extract arXiv ID
 #                 arxiv_url = id_elem.text
 #                 arxiv_id = (
@@ -132,12 +133,12 @@ if __name__ == "__main__":
 #                     .replace("v2", "")
 #                     .replace("v3", "")
 #                 )
-# 
+#
 #                 # Clean up abstract
 #                 abstract = ""
 #                 if summary_elem and summary_elem.text:
 #                     abstract = " ".join(summary_elem.text.strip().split())[:300] + "..."
-# 
+#
 #                 result = {
 #                     "title": title,
 #                     "authors": ", ".join(author_names[:3])
@@ -154,43 +155,43 @@ if __name__ == "__main__":
 #                     "citations": 0,  # arXiv doesn't provide citation counts
 #                     "source": "arxiv",
 #                 }
-# 
+#
 #                 results.append(result)
 #                 logger.info(f"   ✓ Parsed: {title[:60]}...")
-# 
+#
 #             except Exception as e:
 #                 logger.warning(f"   Failed to parse arXiv entry: {e}")
 #                 continue
-# 
+#
 #         logger.info(f"   Returning {len(results)} real arXiv results")
 #         return results
-# 
+#
 #     except Exception as e:
 #         logger.error(f"Real arXiv search failed: {e}")
 #         return []
-# 
-# 
-# 
-# 
-# 
+#
+#
+#
+#
+#
 # def search_arxiv(query, max_results=50, filters=None):
 #     """Search arXiv for papers with advanced filtering."""
 #     try:
 #         # Build search query with filters
 #         search_query = f"all:{query}"
-# 
+#
 #         # Add author filter to arXiv query if specified
 #         if filters and filters.get("authors"):
 #             for author in filters["authors"]:
 #                 search_query += f' AND au:"{author}"'
-# 
+#
 #         # Add year filter to arXiv query if specified
 #         if filters and (filters.get("year_from") or filters.get("year_to")):
 #             if filters.get("year_from"):
 #                 search_query += f" AND submittedDate:[{filters['year_from']}0101* TO *]"
 #             if filters.get("year_to"):
 #                 search_query += f" AND submittedDate:[* TO {filters['year_to']}1231*]"
-# 
+#
 #         base_url = "http://export.arxiv.org/api/query"
 #         params = {
 #             "search_query": search_query,
@@ -199,38 +200,38 @@ if __name__ == "__main__":
 #             "sortBy": "relevance",
 #             "sortOrder": "descending",
 #         }
-# 
+#
 #         response = requests.get(base_url, params=params, timeout=10)
 #         response.raise_for_status()
-# 
+#
 #         # Parse XML response (simplified)
 #         import xml.etree.ElementTree as ET
-# 
+#
 #         root = ET.fromstring(response.content)
-# 
+#
 #         results = []
 #         namespace = {"atom": "http://www.w3.org/2005/Atom"}
-# 
+#
 #         for entry in root.findall("atom:entry", namespace):
 #             title = entry.find("atom:title", namespace)
 #             authors = entry.findall("atom:author", namespace)
 #             published = entry.find("atom:published", namespace)
 #             summary = entry.find("atom:summary", namespace)
 #             pdf_link = None
-# 
+#
 #             # Find PDF link
 #             for link in entry.findall("atom:link", namespace):
 #                 if link.get("title") == "pdf":
 #                     pdf_link = link.get("href")
 #                     break
-# 
+#
 #             if title is not None:
 #                 author_names = []
 #                 for author in authors:
 #                     name = author.find("atom:name", namespace)
 #                     if name is not None and name.text:
 #                         author_names.append(name.text)
-# 
+#
 #                 year = "2024"
 #                 if published is not None:
 #                     try:
@@ -238,10 +239,10 @@ if __name__ == "__main__":
 #                     except (IndexError, AttributeError, TypeError):
 #                         # Failed to extract year from published element, use default
 #                         pass
-# 
+#
 #                 # Safely extract title text
 #                 title_text = title.text.strip() if title.text else "Unknown Title"
-# 
+#
 #                 results.append(
 #                     {
 #                         "title": title_text,
@@ -255,17 +256,17 @@ if __name__ == "__main__":
 #                         "source": "arxiv",
 #                     }
 #                 )
-# 
+#
 #         return results
-# 
+#
 #     except Exception as e:
 #         print(f"Error searching arXiv: {e}")
 #         return []
-# 
-# 
-# 
-# 
-# 
+#
+#
+#
+#
+#
 
 # --------------------------------------------------------------------------------
 # End of Source Code from: apps/scholar_app/views/search/engines/arxiv.py

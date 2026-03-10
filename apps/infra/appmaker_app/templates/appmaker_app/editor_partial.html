@@ -1,0 +1,176 @@
+{% load static %}
+
+<!-- App code editor -->
+<link rel="stylesheet" href="{% static 'appmaker_app/css/editor.css' %}" />
+<div class="appmaker-editor-workspace">
+    <div class="appmaker-editor-header">
+        <h2>
+            <i class="fas fa-code"></i>
+            {% if module %}
+                Edit: {{ module.label }}
+            {% else %}
+                New App
+            {% endif %}
+        </h2>
+        <a href="{% url 'appmaker_app:my_modules' %}" class="btn btn-sm btn-outline">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+    <div class="appmaker-editor-validation" id="appmaker-editor-validation" style="display: none">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="appmaker-editor-validation-msg"></span>
+    </div>
+    <form class="appmaker-editor-form" id="appmaker-editor-form">
+        {% csrf_token %}
+        <!-- Metadata section -->
+        <div class="appmaker-editor-meta">
+            <div class="appmaker-editor-field">
+                <label for="mod-label">Label</label>
+                <input type="text"
+                       id="mod-label"
+                       name="label"
+                       maxlength="100"
+                       required
+                       placeholder="My Custom App"
+                       value="{{ module.label|default:'' }}" />
+            </div>
+            <div class="appmaker-editor-field appmaker-editor-field--short">
+                <label for="mod-icon">Icon</label>
+                <input type="text"
+                       id="mod-icon"
+                       name="icon"
+                       maxlength="50"
+                       placeholder="fa-puzzle-piece"
+                       value="{{ module.icon|default:'fa-puzzle-piece' }}" />
+            </div>
+            <div class="appmaker-editor-field appmaker-editor-field--short">
+                <label for="mod-category">Category</label>
+                <select id="mod-category" name="category">
+                    {% for value, display in category_choices %}
+                        <option value="{{ value }}"
+                                {% if module and module.category == value %}selected{% endif %}>{{ display }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="appmaker-editor-field appmaker-editor-field--full">
+                <label for="mod-description">Description</label>
+                <input type="text"
+                       id="mod-description"
+                       name="description"
+                       maxlength="300"
+                       placeholder="Brief description of what this app does"
+                       value="{{ module.description|default:'' }}" />
+            </div>
+        </div>
+        <!-- Source code editor -->
+        <div class="appmaker-editor-code-section">
+            <label for="mod-source">Python Source Code</label>
+            <textarea id="mod-source"
+                      name="source_code"
+                      rows="20"
+                      spellcheck="false"
+                      placeholder="# Write your app code here&#10;import numpy as np&#10;&#10;def run(project, config):&#10;    return [{'type': 'text', 'content': 'Hello from my app!'}]">{% if module %}{{ module.source_code }}{% endif %}</textarea>
+        </div>
+        <!-- Actions -->
+        <div class="appmaker-editor-actions">
+            <button type="submit" class="btn btn-primary" id="appmaker-editor-save-btn">
+                <i class="fas fa-save"></i> Save
+            </button>
+            {% if module %}
+                <button type="button"
+                        class="btn btn-outline appmaker-editor-run-btn"
+                        data-app-slug="{{ module.slug }}">
+                    <i class="fas fa-play"></i> Run
+                </button>
+            {% endif %}
+        </div>
+    </form>
+</div>
+<script>
+(function () {
+    const form = document.getElementById("appmaker-editor-form");
+    const validationEl = document.getElementById("appmaker-editor-validation");
+    const validationMsg = document.getElementById("appmaker-editor-validation-msg");
+    const isEdit = {{ module|yesno:"true,false" }};
+    const slug = "{{ module.slug|default:'' }}";
+
+    function showValidation(msg) {
+        validationMsg.textContent = msg;
+        validationEl.style.display = "flex";
+    }
+
+    function hideValidation() {
+        validationEl.style.display = "none";
+    }
+
+    function getCsrf() {
+        const input = form.querySelector("[name=csrfmiddlewaretoken]");
+        return input ? input.value : "";
+    }
+
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        hideValidation();
+
+        const label = form.querySelector("[name=label]").value.trim();
+        const source_code = form.querySelector("[name=source_code]").value.trim();
+        const icon = form.querySelector("[name=icon]").value.trim();
+        const category = form.querySelector("[name=category]").value;
+        const description = form.querySelector("[name=description]").value.trim();
+
+        if (!label) { showValidation("Label is required."); return; }
+        if (!source_code) { showValidation("Source code is required."); return; }
+
+        const url = isEdit
+            ? "{% url 'appmaker_app:api_update' slug='__SLUG__' %}".replace("__SLUG__", slug)
+            : "{% url 'appmaker_app:api_create' %}";
+
+        try {
+            const resp = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCsrf(),
+                },
+                body: JSON.stringify({ label, source_code, icon, category, description }),
+            });
+            const data = await resp.json();
+            if (data.success) {
+                if (!isEdit && data.slug) {
+                    window.location.href = "/appmaker/" + data.slug + "/edit/";
+                } else {
+                    showValidation("Saved successfully.");
+                    validationEl.classList.add("appmaker-editor-validation--success");
+                }
+            } else {
+                showValidation(data.error || "Save failed.");
+            }
+        } catch (err) {
+            showValidation("Network error: " + err.message);
+        }
+    });
+
+    const runBtn = form.querySelector(".appmaker-editor-run-btn");
+    if (runBtn) {
+        runBtn.addEventListener("click", async function () {
+            hideValidation();
+            const runUrl = "{% url 'appmaker_app:api_run' slug='__SLUG__' %}".replace("__SLUG__", slug);
+            try {
+                const resp = await fetch(runUrl, {
+                    method: "POST",
+                    headers: { "X-CSRFToken": getCsrf() },
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    showValidation(data.message || "Execution complete.");
+                    validationEl.classList.add("appmaker-editor-validation--success");
+                } else {
+                    showValidation(data.error || "Execution failed.");
+                }
+            } catch (err) {
+                showValidation("Network error: " + err.message);
+            }
+        });
+    }
+})();
+</script>

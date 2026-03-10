@@ -133,11 +133,11 @@ Set `data-indicator` on the `<nav>` element:
 | `"right"` | Accent bar on right edge of active item (in-app, pointing into content) |
 | _(none)_ | Background highlight only, no edge bar |
 
-Accent color uses `--module-accent-color` (inherited from `[data-module-accent]` on parent), falling back to `--workspace-icon-primary` (default: `#059669` emerald).
+Accent color uses `--app-accent-color` (inherited from `[data-app-accent]` on parent), falling back to `--workspace-icon-primary` (default: `#059669` emerald).
 
 ### Module Accent Line (Framework-Controlled)
 
-The top-border accent line across the module content area is **framework-controlled** — apps must not add their own accent borders. The framework uses `#main-content[data-module-accent]::before` with `z-index: 100` and `!important` to ensure a continuous, override-proof accent line. See `workspace-sidebar.css` for implementation and `docs/design/workspace-layout.md` for full architecture.
+The top-border accent line across the module content area is **framework-controlled** — apps must not add their own accent borders. The framework uses `#main-content[data-app-accent]::before` with `z-index: 100` and `!important` to ensure a continuous, override-proof accent line. See `workspace-sidebar.css` for implementation and `docs/design/workspace-layout.md` for full architecture.
 
 ### Active State Management
 

@@ -1,0 +1,31 @@
+/* Organization Profile — reuses hub-user-* and hub-mode-* layout classes */
+
+/* Org sidebar overrides */
+.org-profile-handle {
+  margin: 0.25rem 0 1rem;
+}
+
+.org-profile-bio {
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.org-profile-meta {
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Pagination */
+.org-pagination {
+  margin-top: 24px;
+}
+
+.org-pagination-controls {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.org-pagination-info {
+  padding: 8px 12px;
+}

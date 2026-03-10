@@ -1,0 +1,316 @@
+/**
+ * Hub App Styles — orchestrator
+ * Sub-files: hub/layout.css, hub/projects.css, hub/widgets.css, hub/navigation.css
+ */
+
+@import url("hub/layout.css");
+@import url("hub/projects.css");
+@import url("hub/widgets.css");
+@import url("hub/navigation.css");
+
+/* WIP Badge */
+.wip-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  border: 1px solid var(--text-muted);
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+/* WIP Banner - always visible at top of hub */
+.hub-wip-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--workspace-border-default);
+}
+
+/* New Project Button */
+.hub-repos-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.hub-new-project-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-btn-primary-text, #fff);
+  background: var(--color-btn-primary-bg, #238636);
+  border: 1px solid var(--color-btn-primary-border, rgba(240, 246, 252, 0.1));
+  border-radius: 6px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+.hub-new-project-btn:hover {
+  background: var(--color-btn-primary-hover-bg, #2ea043);
+  text-decoration: none;
+  color: var(--color-btn-primary-text, #fff);
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .hub-details {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .hub-sidebar {
+    display: none;
+  }
+
+  .hub-main {
+    padding: 0.5rem;
+  }
+
+  .hub-cards,
+  .quick-actions,
+  .projects-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Hub-hosted repo dropdowns ────────────────────────────────────────────── */
+/* toolbar.css rules duplicated here because <link> tags in AJAX partials
+   may not load reliably in the workspace module pane context. */
+
+.hub-browse-container .repo-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--color-canvas-default, var(--bg-secondary));
+  border: 1px solid var(--color-border-default, var(--border-color));
+  border-radius: 6px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  min-width: 200px;
+  z-index: 1000;
+}
+
+.hub-browse-container .repo-dropdown-menu.show {
+  display: block;
+}
+
+.hub-browse-container .repo-dropdown-menu.wide {
+  min-width: 250px;
+}
+
+.hub-browse-container .btn-group,
+.hub-browse-container .copy-btn-group {
+  position: relative;
+}
+
+.hub-browse-container .repo-dropdown-item {
+  display: block;
+  padding: 6px 12px;
+  color: var(--color-fg-default, var(--text-primary));
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.hub-browse-container .repo-dropdown-item:hover {
+  background: var(--color-canvas-subtle, var(--bg-hover));
+  text-decoration: none;
+}
+
+/* ── Repo action buttons (GitHub-style) ── */
+
+.hub-browse-container .repo-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-fg-default, var(--text-primary));
+  background: var(--color-canvas-default, var(--bg-secondary));
+  border: 1px solid var(--color-border-default, var(--border-color));
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.hub-browse-container .repo-action-btn:hover {
+  background: var(--color-canvas-subtle, var(--bg-hover));
+}
+
+.hub-browse-container .dropdown-toggle-split {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: 1px solid var(--color-border-default, var(--border-color));
+  padding: 5px 8px;
+}
+
+.hub-browse-container .repo-toolbar-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ── Me page: section labels ── */
+
+.hub-section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--workspace-text-muted, #8b949e);
+  margin: 0 0 0.5rem;
+}
+
+.hub-current-project-section {
+  margin-bottom: 1.5rem;
+}
+
+.hub-repos-section {
+  margin-top: 0;
+}
+
+/* ── Me page: project selector dropdown ── */
+
+.hub-me-project-selector {
+  position: relative;
+}
+
+.hub-me-project-selector .project-selector-btn {
+  width: 100%;
+}
+
+.hub-me-project-selector .project-selector-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 200;
+  width: 100%;
+  border: 1px solid var(--workspace-border-default);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+/* Project selector: search input */
+.hub-project-search-wrapper {
+  padding: 6px 8px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--workspace-bg-secondary, #161b22);
+  border-bottom: 1px solid var(--workspace-border-default);
+}
+
+.hub-project-search-input {
+  width: 100%;
+  padding: 4px 8px;
+  font-size: 12px;
+  background: var(--workspace-bg-tertiary, #21262d);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 4px;
+  color: var(--workspace-text-primary);
+  outline: none;
+}
+
+.hub-project-search-input:focus {
+  border-color: var(--app-accent-hub);
+  box-shadow: 0 0 0 2px rgba(106, 90, 138, 0.15);
+}
+
+/* Project items */
+.hub-me-project-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  color: var(--workspace-text-primary);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hub-me-project-item:hover {
+  background: var(--workspace-bg-tertiary, #21262d);
+}
+
+/* Fuzzy match highlight */
+.hub-me-project-item mark {
+  background: transparent;
+  color: var(--app-accent-hub);
+  font-weight: 700;
+}
+
+/* No results message */
+.hub-project-no-results {
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--workspace-text-muted);
+  text-align: center;
+}
+
+.hub-me-project-selector-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  width: 100%;
+  background: var(--workspace-bg-secondary, #161b22);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
+  color: var(--workspace-text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.hub-me-project-selector-btn:hover {
+  border-color: var(--workspace-text-muted);
+}
+
+.hub-me-project-selector-menu:not(.hub-hidden) ~ .hub-me-project-selector-btn,
+.hub-me-project-selector-btn[aria-expanded="true"] {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.hub-me-project-selector-btn-icon {
+  font-size: 11px;
+}
+
+.hub-me-project-selector-chevron {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.hub-hidden {
+  display: none;
+}
+
+/* Utilities */
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
+}

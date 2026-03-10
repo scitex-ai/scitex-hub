@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.configs.sections_config import ...
+# from apps.workspace.writer_app.configs.sections_config import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,10 +27,10 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # Section configuration for Writer app dropdowns.
-# 
+#
 # Defines hierarchical structure matching scitex.writer backend.
 # """
-# 
+#
 # # Hierarchical section structure
 # SECTION_HIERARCHY = {
 #     "shared": {
@@ -191,8 +192,8 @@ if __name__ == "__main__":
 #         ],
 #     },
 # }
-# 
-# 
+#
+#
 # def get_all_sections_flat():
 #     """Get all sections as a flat list."""
 #     sections = []
@@ -201,22 +202,22 @@ if __name__ == "__main__":
 #             section_with_category = {**section, "category": category_key}
 #             sections.append(section_with_category)
 #     return sections
-# 
-# 
+#
+#
 # def get_sections_by_category(category):
 #     """Get sections for a specific category."""
 #     if category in SECTION_HIERARCHY:
 #         return SECTION_HIERARCHY[category]["sections"]
 #     return []
-# 
-# 
+#
+#
 # def parse_section_id(section_id):
 #     """
 #     Parse a hierarchical section ID into category and name.
-# 
+#
 #     Args:
 #         section_id: e.g., "shared/title", "manuscript/abstract"
-# 
+#
 #     Returns:
 #         tuple: (category, name) e.g., ("shared", "title")
 #     """

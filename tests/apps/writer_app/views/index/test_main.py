@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.views.index.main import ...
+# from apps.workspace.writer_app.views.index.main import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,35 +32,35 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/writer_app/views/index/main.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
-# 
+#
 # """Main index view for SciTeX Writer - Simple editor/PDF viewer layout."""
-# 
+#
 # from django.shortcuts import render, redirect
 # from django.http import JsonResponse
 # from ...models import Manuscript
-# from apps.project_app.models import Project
-# from apps.project_app.services import get_current_project
+# from apps.infra.project_app.models import Project
+# from apps.infra.project_app.services import get_current_project
 # import json
 # import logging
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # def index_view(request):
 #     """SciTeX Writer main page - Simple editor with PDF viewer.
-# 
+#
 #     Layout:
 #     - Left panel: LaTeX editor with 2 dropdowns (doc_type + section)
 #     - Right panel: PDF preview
-# 
+#
 #     Uses 2-dropdown system:
 #     1. Document type selector (shared/manuscript/supplementary/revision)
 #     2. Section selector (filtered by document type)
-# 
+#
 #     For authenticated users: loads their project
 #     For visitor users: provides demo workspace
 #     If visitor pool is exhausted: redirect to visitor-pool-full page
@@ -72,48 +73,48 @@ if __name__ == "__main__":
 #             browser in user_agent
 #             for browser in ['Mozilla', 'Chrome', 'Safari', 'Firefox', 'Edge', 'Opera']
 #         )
-# 
+#
 #         if is_browser:
 #             # Browser request but not authenticated - visitor pool likely exhausted
 #             logger.info("[Writer] Browser request not authenticated - redirecting to visitor-pool-full")
 #             return redirect('public_app:visitor_pool_full')
-# 
+#
 #         # Non-browser request - return empty page
 #         return render(request, "writer_app/index.html", {
 #             "is_visitor": True,
 #             "writer_initialized": False,
 #         })
-# 
+#
 #     # Get document type from URL parameter or default to manuscript
 #     document_type = request.GET.get("doc_type", "manuscript")
-# 
+#
 #     # Validate document type
 #     valid_doc_types = ["manuscript", "shared", "supplementary", "revision"]
 #     if document_type not in valid_doc_types:
 #         document_type = "manuscript"
-# 
+#
 #     context = {
 #         "is_visitor": not request.user.is_authenticated,
 #         "writer_initialized": False,
 #         "document_type": document_type,
 #     }
-# 
+#
 #     if request.user.is_authenticated:
 #         # Mark as demo if visitor
 #         if request.user.username.startswith("visitor-"):
 #             context["is_demo"] = True
 #             context["visitor_username"] = request.user.username
-# 
+#
 #         # Get user's projects for project selector
 #         user_projects = Project.objects.filter(owner=request.user).order_by("name")
 #         context["user_projects"] = user_projects
-# 
+#
 #         # Get current project (from session/header selector)
 #         current_project = get_current_project(request, user=request.user)
 #         if current_project:
 #             context["current_project"] = current_project
 #             context["project"] = current_project
-# 
+#
 #             # Get or create manuscript record
 #             # Since project is OneToOneField, only use project for lookup
 #             manuscript, created = Manuscript.objects.get_or_create(
@@ -124,13 +125,13 @@ if __name__ == "__main__":
 #                     "description": f"Manuscript for {current_project.name}",
 #                 },
 #             )
-# 
+#
 #             # Check if writer workspace actually exists and update flag if needed
 #             if not manuscript.writer_initialized:
-#                 from apps.project_app.services.project_filesystem import (
+#                 from apps.infra.project_app.services.project_filesystem import (
 #                     get_project_filesystem_manager,
 #                 )
-# 
+#
 #                 manager = get_project_filesystem_manager(request.user)
 #                 project_root = manager.get_project_root_path(current_project)
 #                 if project_root:
@@ -141,26 +142,26 @@ if __name__ == "__main__":
 #                         logger.info(
 #                             f"Writer workspace detected for project: {current_project.slug}"
 #                         )
-# 
+#
 #             context["manuscript"] = manuscript
 #             context["manuscript_id"] = manuscript.id
 #             context["writer_initialized"] = manuscript.writer_initialized
-# 
+#
 #             # Note: Section content is now loaded dynamically via API when user
 #             # selects from hierarchical dropdown. No need to pre-load.
 #             # Sections will be fetched on-demand via /writer/api/project/{id}/section/{section_id}/
 #         else:
 #             # User authenticated but no project selected
 #             context["needs_project_creation"] = True
-# 
+#
 #     return render(request, "writer_app/index.html", context)
-# 
-# 
+#
+#
 # def initialize_workspace(request):
 #     """Initialize Writer workspace for a project.
-# 
+#
 #     Supports both authenticated users and visitor visitors.
-# 
+#
 #     POST body:
 #         {
 #             "project_id": <project_id>
@@ -168,16 +169,16 @@ if __name__ == "__main__":
 #     """
 #     if request.method != "POST":
 #         return JsonResponse({"success": False, "error": "POST required"}, status=405)
-# 
+#
 #     try:
 #         data = json.loads(request.body)
 #         project_id = data.get("project_id")
-# 
+#
 #         if not project_id:
 #             return JsonResponse(
 #                 {"success": False, "error": "project_id required"}, status=400
 #             )
-# 
+#
 #         # Get effective user (authenticated or visitor)
 #         if request.user.is_authenticated:
 #             user = request.user
@@ -202,18 +203,18 @@ if __name__ == "__main__":
 #                     },
 #                     status=403,
 #                 )
-# 
+#
 #         # Verify project access
 #         project = Project.objects.get(id=project_id, owner=user)
-# 
+#
 #         # Ensure project directory exists (required for Writer initialization)
-#         from apps.project_app.services.project_filesystem import (
+#         from apps.infra.project_app.services.project_filesystem import (
 #             get_project_filesystem_manager,
 #         )
-# 
+#
 #         manager = get_project_filesystem_manager(user)
 #         project_root = manager.get_project_root_path(project)
-# 
+#
 #         if not project_root:
 #             # Create project directory if it doesn't exist
 #             logger.info(f"Creating project directory for project {project_id}")
@@ -226,7 +227,7 @@ if __name__ == "__main__":
 #                     status=500,
 #                 )
 #             logger.info(f"Project directory created at {project_root}")
-# 
+#
 #         # Get or create manuscript
 #         # Since project is OneToOneField, only use project for lookup
 #         manuscript, created = Manuscript.objects.get_or_create(
@@ -236,7 +237,7 @@ if __name__ == "__main__":
 #                 "title": f"{project.name} Manuscript"
 #             },
 #         )
-# 
+#
 #         # Check if Writer already initialized
 #         if manuscript.writer_initialized:
 #             return JsonResponse(
@@ -246,17 +247,17 @@ if __name__ == "__main__":
 #                     "manuscript_id": manuscript.id,
 #                 }
 #             )
-# 
+#
 #         # Initialize Writer (creates directory structure using scitex.writer.Writer)
 #         from ...services import WriterService
-# 
+#
 #         try:
 #             # Create WriterService - this initializes Writer() which creates the complete structure
 #             writer_service = WriterService(project_id, user.id)
-# 
+#
 #             # Access the writer property - this triggers initialization if not done
 #             writer = writer_service.writer
-# 
+#
 #             # Verify the structure was created
 #             if writer_service.writer_dir.exists():
 #                 manuscript_dir = writer_service.writer_dir / "01_manuscript"
@@ -276,7 +277,7 @@ if __name__ == "__main__":
 #                 raise Exception(
 #                     f"Writer directory not created at {writer_service.writer_dir}"
 #                 )
-# 
+#
 #         except Exception as e:
 #             logger.error(f"Failed to initialize writer workspace: {e}", exc_info=True)
 #             return JsonResponse(
@@ -286,7 +287,7 @@ if __name__ == "__main__":
 #                 },
 #                 status=500,
 #             )
-# 
+#
 #         return JsonResponse(
 #             {
 #                 "success": True,
@@ -294,15 +295,15 @@ if __name__ == "__main__":
 #                 "manuscript_id": manuscript.id,
 #             }
 #         )
-# 
+#
 #     except Project.DoesNotExist:
 #         return JsonResponse(
 #             {"success": False, "error": "Project not found"}, status=404
 #         )
 #     except Exception as e:
 #         return JsonResponse({"success": False, "error": str(e)}, status=500)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

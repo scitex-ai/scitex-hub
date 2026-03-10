@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.default_workspace_views import ...
+# from apps.workspace.console_app.default_workspace_views import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -25,10 +26,10 @@ if __name__ == "__main__":
 # Start of Source Code from: apps/console_app/default_workspace_views.py
 # --------------------------------------------------------------------------------
 # """Default workspace views for Code app."""
-# 
+#
 # from django.shortcuts import render
-# 
-# 
+#
+#
 # def guest_session_view(request, username):
 #     """Guest session workspace for Code."""
 #     context = {
@@ -38,8 +39,8 @@ if __name__ == "__main__":
 #         "module_icon": "fa-code",
 #     }
 #     return render(request, "console_app/default_workspace.html", context)
-# 
-# 
+#
+#
 # def user_default_workspace(request):
 #     """Default workspace for logged-in users without a specific project."""
 #     context = {

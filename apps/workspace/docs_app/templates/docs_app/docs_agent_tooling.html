@@ -1,0 +1,630 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}AI Agent Tooling — SciTeX Documentation{% endblock %}
+{% block content %}
+    <div class="container py-5" style="max-width: 900px">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'docs_app:index' %}">Documentation</a>
+                </li>
+                <li class="breadcrumb-item active">AI Agent Tooling</li>
+            </ol>
+        </nav>
+        <h1 class="mb-4">
+            <i class="fas fa-tools me-2"></i>AI Agent Tooling
+        </h1>
+        <p class="lead text-muted mb-5">
+            Skills, commands, hooks, and the <code>agents</code> CLI
+            for cross-agent configuration management.
+        </p>
+        <!-- The agents CLI -->
+        <span id="agents-cli"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-sync-alt"></i> The <code>agents</code> CLI
+            </h2>
+            <p>
+                The <a href="https://github.com/amtiYo/agents" target="_blank">
+                <code>@agents-dev/cli</code></a>
+            (SciTeX fork: <a href="https://github.com/ywatanabe1989/agents" target="_blank">ywatanabe1989/agents</a>)
+            package provides one
+            <code>.agents/</code> directory as a single source of truth,
+            syncing MCP servers, skills, and instructions to every AI
+            coding tool automatically.
+        </p>
+        <p>
+            It is pre-installed in SciTeX containers and auto-runs
+            <code>agents sync --quiet</code> on every terminal login
+            via <code>.bashrc</code>.
+        </p>
+        <h4 class="mt-4">Key Commands</h4>
+        <table class="table table-bordered mt-3">
+            <thead class="table-dark">
+                <tr>
+                    <th>Command</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>agents start</code>
+                    </td>
+                    <td>Interactive setup: pick integrations, add MCP servers, sync</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>agents sync</code>
+                    </td>
+                    <td>
+                        Regenerate all tool configs from <code>.agents/agents.json</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>agents status</code>
+                    </td>
+                    <td>Show integrations, MCP servers, file states, live probes</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>agents doctor</code>
+                    </td>
+                    <td>
+                        Validate configs and suggest fixes (<code>--fix</code> to auto-fix)
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>agents mcp add &lt;name&gt;</code>
+                    </td>
+                    <td>Add an MCP server interactively</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>agents mcp list</code>
+                    </td>
+                    <td>List all configured MCP servers</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>agents mcp test</code>
+                    </td>
+                    <td>
+                        Validate server definitions (<code>--runtime</code> for live checks)
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>agents watch</code>
+                    </td>
+                    <td>
+                        Auto-sync when <code>.agents/</code> files change
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <h4 class="mt-4">Config Files</h4>
+        <div class="card mt-3">
+            <div class="card-body">
+                <pre class="bg-dark text-light p-3 rounded"><code>&lt;project&gt;/
+  .agents/
+    agents.json     # Single source of truth (schema v3, committed)
+    local.json      # Secrets &amp; overrides (gitignored)
+    skills/         # Reusable skill definitions (committed)
+  AGENTS.md         # Unified instructions for all AI tools</code></pre>
+            </div>
+        </div>
+        <p class="text-muted small mt-2">
+            On <code>agents sync</code>, the config is propagated to each
+            tool's native format: <code>.mcp.json</code> (Claude Code),
+            <code>.codex/config.toml</code> (Codex),
+            <code>.gemini/settings.json</code> (Gemini), etc.
+        </p>
+    </section>
+    <!-- Skills -->
+    <span id="skills"></span>
+    <section class="api-section">
+        <h2>
+            <i class="fas fa-graduation-cap"></i> Skills
+        </h2>
+        <p>
+            Skills are reusable knowledge files that AI agents load
+            for domain-specific guidance. SciTeX provides
+            <strong>platform skills</strong> (auto-generated) and
+            supports <strong>user/project skills</strong> (custom).
+        </p>
+        <h4 class="mt-4">Platform Skills (Auto-Generated)</h4>
+        <p>
+            SciTeX compiles a <code>SKILL.md</code> from all registered
+            app modules and deploys it to
+            <code>~/.claude/skills/scitex-cloud/SKILL.md</code>
+            on every terminal connect. This is built dynamically from
+            <code>apps/*/skill.py</code> registrations.
+        </p>
+        <table class="table table-bordered mt-3">
+            <thead class="table-dark">
+                <tr>
+                    <th>Module</th>
+                    <th>MCP Prefixes</th>
+                    <th>Capabilities</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <strong>Console</strong>
+                    </td>
+                    <td>
+                        <code>project_*</code>, <code>introspect_*</code>, <code>template_*</code>
+                    </td>
+                    <td>File management, terminal, code execution, Jupyter</td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Visualizer</strong>
+                    </td>
+                    <td>
+                        <code>plt_*</code>
+                    </td>
+                    <td>Create/edit plots, compose figures, export publication-ready</td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Scholar</strong>
+                    </td>
+                    <td>
+                        <code>crossref_*</code>, <code>scholar_*</code>, <code>openalex_*</code>
+                    </td>
+                    <td>Search papers, manage bibliography, citation graphs, PDFs</td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Writer</strong>
+                    </td>
+                    <td>
+                        <code>writer_*</code>
+                    </td>
+                    <td>LaTeX editing, compile to PDF, figures/tables/bibliography</td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Clew</strong>
+                    </td>
+                    <td>
+                        <code>clew_*</code>
+                    </td>
+                    <td>Pipeline DAGs, chain steps, run with status tracking</td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Workspace</strong>
+                    </td>
+                    <td>&mdash;</td>
+                    <td>Three-column layout, module switching</td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Hub</strong>
+                    </td>
+                    <td>&mdash;</td>
+                    <td>Project dashboard, activity feed, quick actions</td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Notebook</strong>
+                    </td>
+                    <td>&mdash;</td>
+                    <td>Experiment logger (DataStore, FileVault, JobQueue)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Apps</strong>
+                    </td>
+                    <td>&mdash;</td>
+                    <td>Browse, install, publish community apps</td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>App Maker</strong>
+                    </td>
+                    <td>&mdash;</td>
+                    <td>Create, edit, preview custom workspace apps</td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Examples</strong>
+                    </td>
+                    <td>&mdash;</td>
+                    <td>Interactive demos (plotting, stats, IO, sessions)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Tools</strong>
+                    </td>
+                    <td>&mdash;</td>
+                    <td>Shared utilities, converters, validators</td>
+                </tr>
+            </tbody>
+        </table>
+        <h4 class="mt-4">User/Project Skills</h4>
+        <p>
+            Users can create custom skills in <code>.agents/skills/</code>.
+            On <code>agents sync</code>, these are symlinked to each tool's
+            skill directory:
+        </p>
+        <div class="card mt-3">
+            <div class="card-body">
+                <pre class="bg-dark text-light p-3 rounded"><code># Create a custom skill
+mkdir -p .agents/skills/my-skill
+cat &gt; .agents/skills/my-skill/SKILL.md &lt;&lt;'EOF'
+---
+name: my-skill
+description: Custom domain knowledge for my project
+---
+
+# My Skill
+Guidelines and patterns for this project...
+EOF
+
+# Sync to all tools
+agents sync</code></pre>
+            </div>
+        </div>
+        <p class="text-muted small mt-2">
+            After sync, the skill appears in:
+            <code>.claude/skills/</code>,
+            <code>.cursor/skills/</code>,
+            <code>.gemini/skills/</code>,
+            <code>.windsurf/skills/</code>
+        </p>
+    </section>
+    <!-- Commands -->
+    <span id="commands"></span>
+    <section class="api-section">
+        <h2>
+            <i class="fas fa-terminal"></i> Commands (Slash Commands)
+        </h2>
+        <p>
+            <strong>Claude Code</strong> supports custom slash commands
+            defined as Markdown files in <code>.claude/commands/</code>.
+            Each file becomes a <code>/&lt;name&gt;</code> command.
+        </p>
+        <div class="card mt-3">
+            <div class="card-header">
+                <strong>Example: Custom <code>/review</code> Command</strong>
+            </div>
+            <div class="card-body">
+                <pre class="bg-dark text-light p-3 rounded"><code># .claude/commands/review.md
+Review the current file for:
+- Security vulnerabilities
+- Performance issues
+- Code style consistency
+Use the project's linting rules from .eslintrc</code></pre>
+                <p class="text-muted small mt-2">
+                    Usage: type <code>/review</code> in Claude Code to invoke.
+                </p>
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-header">
+                <strong>Command Variables</strong>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Variable</th>
+                            <th>Replaced With</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>$ARGUMENTS</code>
+                            </td>
+                            <td>Text typed after the command name</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>SciTeX note:</strong> SciTeX does not auto-generate
+            custom commands. Users can create their own in any project's
+            <code>.claude/commands/</code> directory. This feature is
+            currently <strong>Claude Code-specific</strong>.
+        </div>
+    </section>
+    <!-- Hooks -->
+    <span id="hooks"></span>
+    <section class="api-section">
+        <h2>
+            <i class="fas fa-link"></i> Hooks
+        </h2>
+        <p>
+            <strong>Claude Code</strong> hooks are shell scripts that
+            execute in response to lifecycle events. They are defined
+            in <code>.claude/hooks/</code> or in
+            <code>.claude/settings.json</code>.
+        </p>
+        <h4 class="mt-4">Hook Events</h4>
+        <table class="table table-bordered mt-3">
+            <thead class="table-dark">
+                <tr>
+                    <th>Event</th>
+                    <th>When It Fires</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>PreToolUse</code>
+                    </td>
+                    <td>Before a tool call executes (can block or modify)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>PostToolUse</code>
+                    </td>
+                    <td>After a tool call completes (for logging, linting)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>Notification</code>
+                    </td>
+                    <td>When Claude Code sends a notification</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>Stop</code>
+                    </td>
+                    <td>When the agent stops or completes a turn</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="card mt-3">
+            <div class="card-header">
+                <strong>Example: Post-Edit Linter Hook</strong>
+            </div>
+            <div class="card-body">
+                <pre class="bg-dark text-light p-3 rounded"><code># .claude/settings.json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "command": "eslint --fix $FILE_PATH"
+      }
+    ]
+  }
+}</code></pre>
+            </div>
+        </div>
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>SciTeX note:</strong> SciTeX does not auto-generate
+            hooks. Users can create their own for custom workflows.
+            This feature is currently <strong>Claude Code-specific</strong>.
+        </div>
+    </section>
+    <!-- Cross-Agent Support -->
+    <span id="cross-agent-support"></span>
+    <section class="api-section">
+        <h2>
+            <i class="fas fa-exchange-alt"></i> Cross-Agent Support
+        </h2>
+        <p>
+            Not all features are available across all AI coding tools.
+            The <code>agents</code> CLI unifies what it can:
+        </p>
+        <table class="table table-bordered mt-3">
+            <thead class="table-dark">
+                <tr>
+                    <th>Feature</th>
+                    <th>Claude Code</th>
+                    <th>Codex</th>
+                    <th>Gemini CLI</th>
+                    <th>Cursor</th>
+                    <th>Copilot</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <strong>MCP Servers</strong>
+                    </td>
+                    <td class="text-center text-success">
+                        <i class="fas fa-check"></i>
+                    </td>
+                    <td class="text-center text-success">
+                        <i class="fas fa-check"></i>
+                    </td>
+                    <td class="text-center text-success">
+                        <i class="fas fa-check"></i>
+                    </td>
+                    <td class="text-center text-success">
+                        <i class="fas fa-check"></i>
+                    </td>
+                    <td class="text-center text-success">
+                        <i class="fas fa-check"></i>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Skills</strong>
+                    </td>
+                    <td class="text-center text-success">
+                        <i class="fas fa-check"></i>
+                    </td>
+                    <td class="text-center text-success">
+                        <i class="fas fa-check"></i>
+                    </td>
+                    <td class="text-center text-success">
+                        <i class="fas fa-check"></i>
+                    </td>
+                    <td class="text-center text-success">
+                        <i class="fas fa-check"></i>
+                    </td>
+                    <td class="text-center text-muted">
+                        <i class="fas fa-minus"></i>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Instructions</strong> (AGENTS.md)
+                    </td>
+                    <td class="text-center text-success">
+                        <i class="fas fa-check"></i>
+                    </td>
+                    <td class="text-center text-success">
+                        <i class="fas fa-check"></i>
+                    </td>
+                    <td class="text-center text-success">
+                        <i class="fas fa-check"></i>
+                    </td>
+                    <td class="text-center text-success">
+                        <i class="fas fa-check"></i>
+                    </td>
+                    <td class="text-center text-success">
+                        <i class="fas fa-check"></i>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Commands</strong>
+                    </td>
+                    <td class="text-center text-success">
+                        <i class="fas fa-check"></i>
+                    </td>
+                    <td class="text-center text-muted">
+                        <i class="fas fa-minus"></i>
+                    </td>
+                    <td class="text-center text-muted">
+                        <i class="fas fa-minus"></i>
+                    </td>
+                    <td class="text-center text-muted">
+                        <i class="fas fa-minus"></i>
+                    </td>
+                    <td class="text-center text-muted">
+                        <i class="fas fa-minus"></i>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Hooks</strong>
+                    </td>
+                    <td class="text-center text-success">
+                        <i class="fas fa-check"></i>
+                    </td>
+                    <td class="text-center text-muted">
+                        <i class="fas fa-minus"></i>
+                    </td>
+                    <td class="text-center text-muted">
+                        <i class="fas fa-minus"></i>
+                    </td>
+                    <td class="text-center text-muted">
+                        <i class="fas fa-minus"></i>
+                    </td>
+                    <td class="text-center text-muted">
+                        <i class="fas fa-minus"></i>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="text-muted small mt-2">
+            <i class="fas fa-check text-success"></i> = synced via <code>agents sync</code> &nbsp;
+            <i class="fas fa-minus text-muted"></i> = not supported by this tool
+        </p>
+    </section>
+    <!-- App Creation Knowledge -->
+    <span id="app-creation"></span>
+    <section class="api-section">
+        <h2>
+            <i class="fas fa-puzzle-piece"></i> App Creation Knowledge
+        </h2>
+        <p>
+            AI agents in both the <a href="/docs/content/chat/">AI Chat</a> panel and the
+            <a href="/docs/content/console/">Console</a> terminal already know how to
+            create SciTeX workspace apps. The platform skill includes:
+        </p>
+        <ul>
+            <li>App architecture (registry, views, templates, URLs, skill, tests)</li>
+            <li>
+                Scaffold CLI (<code>scitex-cloud app init</code>) and web-based creation via <a href="/new/">/new/</a>
+            </li>
+            <li>Platform Services (DataStore, FileVault, JobQueue, ScitexBridge, etc.)</li>
+            <li>Manifest schema, ModuleConfig fields, CSS theming variables</li>
+            <li>Shared components, utilities, and the design system</li>
+        </ul>
+        <p>
+            Ask the AI to create an app and it will scaffold the correct file structure,
+            register the module, and wire up Platform Services. See
+            <a href="/docs/content/app-maker-creators/">App Maker: Creators</a> for the
+            full developer reference.
+        </p>
+    </section>
+    <!-- Source Code -->
+    <span id="source-code"></span>
+    <section class="api-section">
+        <h2>
+            <i class="fas fa-code"></i> Source Code
+        </h2>
+        <table class="table table-bordered mt-3">
+            <thead class="table-dark">
+                <tr>
+                    <th>File</th>
+                    <th>Purpose</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>apps/llm_app/skills/registry.py</code>
+                    </td>
+                    <td>
+                        <code>Skill</code> dataclass, <code>register()</code>,
+                        <code>build_aggregated_context()</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>apps/llm_app/skills/export.py</code>
+                    </td>
+                    <td>
+                        <code>export_claude_skill()</code> &rarr; SKILL.md,
+                        <code>export_chat_prompt()</code> &rarr; chat system prompt
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>apps/*/skill.py</code>
+                    </td>
+                    <td>Per-app skill registration (12 modules)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>apps/console_app/services/agents_config.py</code>
+                    </td>
+                    <td>
+                        Builds <code>agents.json</code>, <code>AGENTS.md</code>,
+                        <code>.mcp.json</code>, <code>SKILL.md</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>apps/console_app/views/terminal/dotfiles.py</code>
+                    </td>
+                    <td>
+                        bashrc template with <code>agents sync</code> auto-run
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+{% endblock %}

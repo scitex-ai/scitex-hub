@@ -21,6 +21,7 @@ repos:
       - id: check-merge-conflict
       - id: trailing-whitespace
       - id: end-of-file-fixer
+        exclude: migrations/
       - id: check-yaml
       - id: check-json
 
@@ -40,6 +41,7 @@ repos:
     hooks:
       - id: black
         language_version: python3.11
+        exclude: migrations/
 
   # Incremental testing (disabled: requires Docker for DB access)
   # Run inside Docker instead: make test-testmon

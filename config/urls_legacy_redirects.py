@@ -20,9 +20,15 @@ LEGACY_APP_NAMES = [
     "workspace",
     "example",
     "notebook",
-    "modulemaker",
+    "appmaker",
     "llm",
     "clew",
+    # Moved to /apps/ prefix
+    "home",
+    "hub",
+    "discovery",
+    "tools",
+    "docs",
 ]
 
 urlpatterns = [
@@ -31,6 +37,16 @@ urlpatterns = [
         RedirectView.as_view(url=f"/apps/{name}/", permanent=True, query_string=True),
     )
     for name in LEGACY_APP_NAMES
+] + [
+    # App store: old /apps/apps/ → /apps/store/ (and bare /apps/ → /apps/store/)
+    path(
+        "apps/apps/",
+        RedirectView.as_view(url="/apps/store/", permanent=True, query_string=True),
+    ),
+    path(
+        "apps/",
+        RedirectView.as_view(url="/apps/store/", permanent=True, query_string=True),
+    ),
 ]
 
 # EOF

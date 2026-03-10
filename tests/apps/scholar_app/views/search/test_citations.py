@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.search.citations import ...
+# from apps.workspace.scholar_app.views.search.citations import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -29,27 +30,27 @@ if __name__ == "__main__":
 # # File: apps/scholar_app/views/search/citations.py
 # """
 # Scholar App - Citations Module
-# 
+#
 # Functions for journal impact factors, citations, and open access checking.
 # Extracted from monolithic views.py for better modularity.
 # """
-# 
+#
 # from scitex import logging
-# 
+#
 # # Set up logger
 # logger = logging.getLogger(__name__)
-# 
+#
 # # Global impact factor instance (singleton pattern)
 # _impact_factor_instance = None
-# 
-# 
+#
+#
 # def get_impact_factor_instance():
 #     """Get or create the impact factor instance."""
 #     global _impact_factor_instance
 #     if _impact_factor_instance is None:
 #         try:
 #             from impact_factor.core import Factor
-# 
+#
 #             _impact_factor_instance = Factor()
 #         except ImportError:
 #             print(
@@ -60,21 +61,21 @@ if __name__ == "__main__":
 #             print(f"Warning: Failed to initialize impact_factor: {e}")
 #             _impact_factor_instance = False
 #     return _impact_factor_instance
-# 
-# 
+#
+#
 # def get_journal_impact_factor(journal_name):
 #     """Get impact factor using the impact_factor package with fallback."""
 #     if not journal_name:
 #         return None
-# 
+#
 #     fa = get_impact_factor_instance()
-# 
+#
 #     # Use impact_factor package if available
 #     if fa:
 #         try:
 #             # Clean journal name
 #             journal_clean = journal_name.strip()
-# 
+#
 #             # Try exact match first
 #             results = fa.search(journal_clean)
 #             if results and len(results) > 0:
@@ -83,7 +84,7 @@ if __name__ == "__main__":
 #                 )  # The field is 'factor' not 'impact_factor'
 #                 if impact_factor and impact_factor != "-" and impact_factor != 0:
 #                     return float(impact_factor)
-# 
+#
 #             # Try fuzzy match with wildcard
 #             if len(journal_clean) > 3:  # Avoid very short searches
 #                 fuzzy_results = fa.search(f"{journal_clean}%")
@@ -93,10 +94,10 @@ if __name__ == "__main__":
 #                     )  # The field is 'factor' not 'impact_factor'
 #                     if impact_factor and impact_factor != "-" and impact_factor != 0:
 #                         return float(impact_factor)
-# 
+#
 #         except Exception as e:
 #             print(f"Error getting IF for {journal_name}: {e}")
-# 
+#
 #     # Fallback to hardcoded values for most common journals
 #     fallback_if_map = {
 #         "nature": 64.8,
@@ -110,18 +111,18 @@ if __name__ == "__main__":
 #         "proceedings of the national academy of sciences": 12.8,
 #         "pnas": 12.8,
 #     }
-# 
+#
 #     journal_lower = journal_name.lower()
 #     for journal_key, if_value in fallback_if_map.items():
 #         if journal_key in journal_lower:
 #             return if_value
-# 
+#
 #     return None
-# 
-# 
+#
+#
 # def is_open_access_journal(journal_name):
 #     """Check if journal is typically open access.
-# 
+#
 #     Uses scitex.scholar.core.open_access for consistent OA detection.
 #     """
 #     try:
@@ -146,8 +147,8 @@ if __name__ == "__main__":
 #         ]
 #         journal_lower = journal_name.lower()
 #         return any(oa_journal in journal_lower for oa_journal in open_access_journals)
-# 
-# 
+#
+#
 # def get_pubmed_citations(pmid):
 #     """
 #     Try to get citation count for PubMed article.
@@ -157,8 +158,8 @@ if __name__ == "__main__":
 #     # TODO: Integrate with CrossRef, OpenCitations, or Semantic Scholar API
 #     # for accurate citation counts based on DOI/PMID
 #     return 0
-# 
-# 
+#
+#
 # def validate_citation_count(citation_count, source=None):
 #     """
 #     Validate and clean citation count data.
@@ -166,25 +167,25 @@ if __name__ == "__main__":
 #     """
 #     try:
 #         count = int(citation_count) if citation_count is not None else 0
-# 
+#
 #         # Basic validation
 #         if count < 0:
 #             return 0, False
-# 
+#
 #         # Flag potentially unreliable data
 #         is_reliable = True
-# 
+#
 #         # Very high citation counts need verification
 #         if count > 10000:
 #             logger.warning(f"Unusually high citation count: {count} from {source}")
 #             is_reliable = False
-# 
+#
 #         # Mark zero citations from certain sources as less reliable
 #         if count == 0 and source in ["pubmed", "arxiv"]:
 #             is_reliable = False
-# 
+#
 #         return count, is_reliable
-# 
+#
 #     except (ValueError, TypeError):
 #         return 0, False
 

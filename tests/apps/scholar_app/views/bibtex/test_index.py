@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.bibtex.index import ...
+# from apps.workspace.scholar_app.views.bibtex.index import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,21 +28,21 @@ if __name__ == "__main__":
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
 # # File: /home/ywatanabe/proj/scitex-cloud/apps/scholar_app/views/bibtex/index.py
-# 
+#
 # """
 # BibTeX Enrichment Index View
-# 
+#
 # Main landing page for BibTeX enrichment functionality.
 # """
-# 
+#
 # from django.shortcuts import render
-# 
-# 
+#
+#
 # def bibtex_enrichment(request):
 #     """BibTeX enrichment landing page - upload and manage enrichment jobs (visitor allowed)."""
-#     from apps.project_app.models import Project
+#     from apps.infra.project_app.models import Project
 #     from ...models import BibTeXEnrichmentJob
-# 
+#
 #     # Get user's recent enrichment jobs
 #     if request.user.is_authenticated:
 #         recent_jobs = (
@@ -49,7 +50,7 @@ if __name__ == "__main__":
 #             .select_related("project")
 #             .order_by("-created_at")[:10]
 #         )
-# 
+#
 #         # Get user's projects for project selection
 #         user_projects = Project.objects.filter(owner=request.user).order_by(
 #             "-created_at"
@@ -64,21 +65,21 @@ if __name__ == "__main__":
 #             if request.session.session_key
 #             else []
 #         )
-# 
+#
 #         # For visitor users, get their assigned project from the visitor pool
-#         from apps.project_app.services.visitor_pool import VisitorPool
-# 
+#         from apps.infra.project_app.services.visitor_pool import VisitorPool
+#
 #         visitor_project_id = request.session.get(VisitorPool.SESSION_KEY_PROJECT_ID)
 #         current_project = None
 #         user_projects = []
-# 
+#
 #         if visitor_project_id:
 #             try:
 #                 current_project = Project.objects.get(id=visitor_project_id)
 #                 user_projects = [current_project]
 #             except Project.DoesNotExist:
 #                 pass
-# 
+#
 #     context = {
 #         "recent_jobs": recent_jobs,
 #         "user_projects": user_projects,
@@ -86,10 +87,10 @@ if __name__ == "__main__":
 #         "is_visitor": not request.user.is_authenticated,
 #         "show_save_prompt": not request.user.is_authenticated,
 #     }
-# 
+#
 #     return render(request, "scholar_app/bibtex_enrichment.html", context)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

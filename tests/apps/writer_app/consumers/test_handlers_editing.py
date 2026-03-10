@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.consumers.handlers_editing import ...
+# from apps.workspace.writer_app.consumers.handlers_editing import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,20 +29,20 @@ if __name__ == "__main__":
 # Editing message handlers for WriterConsumer.
 # Handles text changes, cursor positions, and section locking.
 # """
-# 
+#
 # import json
 # from datetime import datetime
-# 
-# 
+#
+#
 # class EditingHandlerMixin:
 #     """Mixin providing editing-related handler methods for WriterConsumer."""
-# 
+#
 #     async def handle_text_change(self, data):
 #         """Handle text change from client using OT coordinator."""
 #         section_id = data.get("section_id")
 #         operation = data.get("operation")
 #         version = data.get("version", 0)
-# 
+#
 #         # Submit operation to OT coordinator
 #         result = await self.ot_coordinator.submit_operation(
 #             user_id=self.user.id,
@@ -51,7 +52,7 @@ if __name__ == "__main__":
 #             operation=operation,
 #             version=version,
 #         )
-# 
+#
 #         # Send acknowledgment to sender
 #         await self.send(
 #             text_data=json.dumps(
@@ -64,7 +65,7 @@ if __name__ == "__main__":
 #                 }
 #             )
 #         )
-# 
+#
 #         # Broadcast processed operations to all users
 #         if result.get("processed"):
 #             for processed_op in result["processed"]:
@@ -81,7 +82,7 @@ if __name__ == "__main__":
 #                         "sender_channel": self.channel_name,
 #                     },
 #                 )
-# 
+#
 #         # Handle errors
 #         if result.get("errors"):
 #             for error in result["errors"]:
@@ -94,15 +95,15 @@ if __name__ == "__main__":
 #                         }
 #                     )
 #                 )
-# 
+#
 #     async def handle_cursor_position(self, data):
 #         """Handle cursor position update from client."""
 #         section = data.get("section")
 #         position = data.get("position")
-# 
+#
 #         # Update session cursor position
 #         await self.update_cursor_position(section, position)
-# 
+#
 #         # Broadcast to all users in room
 #         await self.channel_layer.group_send(
 #             self.room_group_name,
@@ -115,11 +116,11 @@ if __name__ == "__main__":
 #                 "sender_channel": self.channel_name,
 #             },
 #         )
-# 
+#
 #     async def handle_section_lock(self, data):
 #         """Handle section lock request from client."""
 #         section = data.get("section")
-# 
+#
 #         # Check if section is already locked
 #         is_locked = await self.is_section_locked(section)
 #         if is_locked:
@@ -133,10 +134,10 @@ if __name__ == "__main__":
 #                 )
 #             )
 #             return
-# 
+#
 #         # Lock section
 #         await self.lock_section(section)
-# 
+#
 #         # Broadcast lock to all users
 #         await self.channel_layer.group_send(
 #             self.room_group_name,
@@ -148,14 +149,14 @@ if __name__ == "__main__":
 #                 "timestamp": datetime.now().isoformat(),
 #             },
 #         )
-# 
+#
 #     async def handle_section_unlock(self, data):
 #         """Handle section unlock request from client."""
 #         section = data.get("section")
-# 
+#
 #         # Unlock section
 #         await self.unlock_section(section)
-# 
+#
 #         # Broadcast unlock to all users
 #         await self.channel_layer.group_send(
 #             self.room_group_name,
@@ -167,24 +168,24 @@ if __name__ == "__main__":
 #                 "timestamp": datetime.now().isoformat(),
 #             },
 #         )
-# 
+#
 #     async def handle_operation_ack(self, data):
 #         """Handle operation acknowledgment from client."""
 #         operation_id = data.get("operation_id")
 #         section_id = data.get("section_id")
-# 
+#
 #         result = await self.ot_coordinator.acknowledge_operation(
 #             operation_id=operation_id, section_id=section_id
 #         )
-# 
+#
 #         await self.send(text_data=json.dumps({"type": "ack_received", **result}))
-# 
+#
 #     async def handle_queue_status(self, data):
 #         """Handle queue status request from client."""
 #         section_id = data.get("section_id")
-# 
+#
 #         status = await self.ot_coordinator.get_queue_status(section_id)
-# 
+#
 #         await self.send(text_data=json.dumps({"type": "queue_status", **status}))
 
 # --------------------------------------------------------------------------------

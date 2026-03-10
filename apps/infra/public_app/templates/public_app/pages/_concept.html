@@ -1,0 +1,301 @@
+{% extends "public_app/cloud_base.html" %}
+{% block title %}
+    SciTeX Ecosystem -
+    Scientific Research Platform
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.css" />
+    <style>
+  .concept-section {
+    margin-bottom: 3rem;
+  }
+  .ecosystem-diagram {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    max-width: 100%;
+    overflow: auto;
+  }
+  .component-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+  }
+  .component-card:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-5px);
+  }
+  .component-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #4a6baf;
+  }
+  .try-it-section {
+    background-color: #eef2ff;
+    border-left: 4px solid #4a6baf;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .workflow-animation {
+    margin: 2rem 0;
+    text-align: center;
+  }
+  .code-snippet {
+    background-color: #282c34;
+    color: #abb2bf;
+    padding: 1rem;
+    border-radius: 5px;
+    font-family: monospace;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+  }
+    </style>
+{% endblock %}
+{% block cloud_content %}
+    <div class="container">
+        <header class="py-5 text-center">
+            <h1 class="display-4">SciTeX Ecosystem</h1>
+            <p class="lead">An integrated platform for open scientific research</p>
+        </header>
+        <!-- Main Concept Section -->
+        <section class="concept-section">
+            <h2>What is SciTeX?</h2>
+            <p class="lead">
+                SciTeX is a comprehensive ecosystem of integrated tools designed to
+                transform scientific research workflows from data collection to
+                publication.
+            </p>
+            <p>
+                Originally derived from "Scientific LaTeX," SciTeX has evolved into a
+                platform that combines AI-assisted research automation, standardized
+                analysis, document preparation, and publication-quality visualization
+                tools under a single unified approach.
+            </p>
+            <p>
+                Our mission is to accelerate scientific discovery by removing technical
+                barriers, standardizing research practices, and enabling seamless
+                collaboration.
+            </p>
+        </section>
+        <!-- Ecosystem Diagram -->
+        <section class="concept-section">
+            <h2>The SciTeX Ecosystem</h2>
+            <div class="ecosystem-diagram">
+                <div class="mermaid">
+                    graph TD D[SciTeX-Engine] --- F[SciTeX-Search] F --- B[SciTeX-Code] B
+                    --- C[SciTeX-Doc] C --- E[SciTeX-Viz] E --- A[SciTeX-Cloud] B --- G[Data
+                    Analysis] B --- H[AI Integration] C --- I[LaTeX Compilation] C ---
+                    J[Paper Templates] D --- K[Automated Research] D --- L[Emacs
+                    Integration] E --- M[Publication Figures] E --- N[Data Visualization] F
+                    --- O[Literature Discovery] F --- P[Semantic Understanding] class A
+                    primary class B,C,D,E,F secondary classDef primary
+                    fill:#4a6baf,stroke:#333,stroke-width:2px,color:white classDef secondary
+                    fill:#90b1e2,stroke:#333,stroke-width:1px,color:#333
+                </div>
+            </div>
+        </section>
+        <!-- Component Breakdown -->
+        <section class="concept-section">
+            <h2>Components</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="component-card">
+                        <div class="component-icon">🧠</div>
+                        <h3>SciTeX-Engine</h3>
+                        <p>AI research assistant that orchestrates your workflow</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="component-card">
+                        <div class="component-icon">🔍</div>
+                        <h3>SciTeX-Search</h3>
+                        <p>
+                            Semantic literature search for knowledge discovery and research gap
+                            identification.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="component-card">
+                        <div class="component-icon">🧪</div>
+                        <h3>SciTeX-Code</h3>
+                        <p>
+                            Reproducible data analysis workflows with version control and
+                            standardization.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="component-card">
+                        <div class="component-icon">📄</div>
+                        <h3>SciTeX-Doc</h3>
+                        <p>LaTeX system enhanced with language model capabilities</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="component-card">
+                        <div class="component-icon">📊</div>
+                        <h3>SciTeX-Viz</h3>
+                        <p>Publication-quality data visualization</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="component-card">
+                        <div class="component-icon">🌐</div>
+                        <h3>SciTeX-Cloud</h3>
+                        <p>Unified web platform that integrates all SciTeX tools</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Example Workflow -->
+        <section class="concept-section">
+            <h2>Research Workflow Example</h2>
+            <div class="workflow-animation">
+                <img src="/static/shared/images/workflow-animation.gif"
+                     alt="SciTeX Research Workflow"
+                     class="img-fluid" />
+            </div>
+            <ol>
+                <li>
+                    <strong>Literature Review</strong> - SciTeX-Engine assists with finding
+                    and summarizing relevant papers
+                </li>
+                <li>
+                    <strong>Data Collection</strong> - Standardized protocols from
+                    SciTeX-Code ensure reproducibility
+                </li>
+                <li>
+                    <strong>Analysis</strong> - Automated analysis pipelines with
+                    SciTeX-Code produce consistent results
+                </li>
+                <li>
+                    <strong>Visualization</strong> - SciTeX-Viz creates publication-quality
+                    figures from results
+                </li>
+                <li>
+                    <strong>Manuscript Preparation</strong> - SciTeX-Doc integrates results
+                    into formatted papers
+                </li>
+                <li>
+                    <strong>Revision Process</strong> - Integrated reviewer feedback
+                    tracking and response generation
+                </li>
+                <li>
+                    <strong>Publication</strong> - Final preparations and submission
+                    formatting
+                </li>
+            </ol>
+        </section>
+        <!-- Code Integration Example -->
+        <section class="concept-section">
+            <h2>Integration Example</h2>
+            <p>
+                Components communicate through standardized interfaces. Here's how
+                SciTeX-Code might generate data that SciTeX-Viz visualizes:
+            </p>
+            <pre class="code-snippet">
+# SciTeX-Code analysis
+import mngs.plot as mplot
+
+# Generate data with standard analysis
+results = analyze_experiment_data(data)
+
+# Generate figure with SciTeX-Viz integration
+fig = mplot.FigWrapper(figsize=(10, 6))
+viz = fig.create_visualization(results)
+viz.export('figure_for_paper.png')
+
+# Insert into SciTeX-Doc paper
+paper.add_figure('figure_for_paper.png',
+                 caption='Results from experiment',
+                 label='fig:results')</pre>
+        </section>
+        <!-- Try It Section -->
+        <section class="concept-section try-it-section">
+            <h2>Try SciTeX</h2>
+            <p>Experience a simple demonstration of SciTeX capabilities:</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Document Generation</h4>
+                    <p>Create a simple research document with automated formatting:</p>
+                    <button class="btn btn-primary">Try Document Demo</button>
+                </div>
+                <div class="col-md-6">
+                    <h4>Data Visualization</h4>
+                    <p>Generate a publication-quality figure from sample data:</p>
+                    <button class="btn btn-primary">Try Visualization Demo</button>
+                </div>
+            </div>
+        </section>
+        <!-- Open Science Commitment -->
+        <section class="concept-section">
+            <h2>Open Science Commitment</h2>
+            <p>
+                SciTeX is committed to advancing open science principles. Our tools are
+                designed to enhance:
+            </p>
+            <ul>
+                <li>
+                    <strong>Reproducibility</strong> - Standardized workflows and
+                    environment management
+                </li>
+                <li>
+                    <strong>Transparency</strong> - Open methods and clear documentation
+                </li>
+                <li>
+                    <strong>Accessibility</strong> - Tools available to researchers globally
+                </li>
+                <li>
+                    <strong>Collaboration</strong> - Shared workspaces and real-time editing
+                </li>
+                <li>
+                    <strong>Integrity</strong> - Validation tools and best practice
+                    enforcement
+                </li>
+            </ul>
+        </section>
+        <!-- Call to Action -->
+        <section class="concept-section text-center py-5">
+            <h2>Join the SciTeX Community</h2>
+            <p class="lead">Contribute to the future of scientific research tooling</p>
+            <div class="mt-4">
+                <a href="{% url 'public_app:about' %}"
+                   class="btn btn-primary btn-lg mx-2">Explore Our Vision</a>
+                <a href="{% url 'fundraising' %}" class="btn btn-success btn-lg mx-2">Support SciTeX</a>
+                <a href="https://github.com/scitex-ai" class="btn btn-black btn-lg mx-2">View on GitHub</a>
+                <a href="https://scitexworkspace.slack.com"
+                   class="btn btn-outline-info btn-lg mx-2">Join Our Slack <i class="fas fa-slack"></i></a>
+            </div>
+            <p class="mt-3 text-muted">
+                Join our Slack workspace at <strong>scitexworkspace.slack.com</strong> for
+                discussions and collaboration | Email
+                <strong><a href="mailto:support@scitex.ai">support@scitex.ai</a></strong>
+                for direct assistance
+            </p>
+        </section>
+    </div>
+{% endblock cloud_content %}
+{% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "neutral",
+      flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: "basis",
+      },
+    });
+  });
+    </script>
+{% endblock %}

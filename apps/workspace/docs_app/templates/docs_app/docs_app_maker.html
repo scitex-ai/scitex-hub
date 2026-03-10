@@ -1,0 +1,261 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}App Maker — SciTeX Documentation{% endblock %}
+{% block meta_description %}Create, install, and manage custom workspace modules for SciTeX Cloud.{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container py-2">
+        <header class="minimal-hero">
+            <div class="api-hero-header api-hero-header-centered">
+                <h1 class="minimal-hero-title">App Maker</h1>
+                <div class="api-hero-actions">
+                    <span class="api-version-badge">WIP</span>
+                </div>
+            </div>
+        </header>
+    </div>
+    <div class="container py-2">
+        <!-- What is App Maker -->
+        <span id="what"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-puzzle-piece"></i> What is App Maker?
+            </h2>
+            <p>
+                App Maker is SciTeX Cloud's <strong>opt-in plugin system</strong>.
+                You create self-contained web apps that plug into the workspace as tabs
+                &mdash; alongside the terminal, file browser, AI chat, and every other tool.
+                Apps are <strong>installed, uninstalled, and modified</strong> without touching
+                the platform core.
+            </p>
+            <p>
+                Think of it like browser extensions, but for a scientific research environment.
+                Each app gets its own URL, templates, styles, data storage, and AI integration
+                &mdash; all wired up automatically by the scaffold.
+            </p>
+        </section>
+        <!-- Why Build on SciTeX -->
+        <span id="why"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-lightbulb"></i> Why Build on SciTeX?
+            </h2>
+            <h4>Tailored to Your Project</h4>
+            <p>
+                Every research project has unique requirements &mdash; custom data views,
+                specialized analysis tools, domain-specific workflows. Mass-market products
+                can't address these needs well. App Maker lets you build
+                <strong>exactly what your project needs</strong> as a first-class workspace tab,
+                fully integrated with your files, data, and collaborators.
+            </p>
+            <h4>Unified Environment</h4>
+            <p>
+                Your app runs inside a workspace where users already have
+                <strong>AI assistant</strong>, <strong>terminal</strong>,
+                <strong>file browser</strong>, <strong>data viewer</strong>,
+                <strong>project management</strong>, and <strong>Hub</strong>
+                (issues, pull requests, version control, user/group permissions).
+                No need to build these yourself &mdash; they are already there.
+            </p>
+            <h4>Collaboration Built In</h4>
+            <p>
+                Every app lives in a <strong>Git repository</strong> with full version control.
+                Co-authors work together through the Hub: branches, pull requests, code review,
+                and issue tracking. User and group permissions control who can see and edit what.
+                Development with collaborators is as easy as sharing a project link.
+            </p>
+            <h4>Community &amp; Plug-and-Play</h4>
+            <p>
+                Apps follow a <strong>plug-and-play plugin model</strong>: browse the
+                <a href="/apps/">Apps Catalog</a>, install what you need, uninstall what you don't.
+                Share your tools with the <strong>community</strong> by publishing to the catalog,
+                or keep them private to your group. Private install lets anyone try an app instantly.
+            </p>
+            <h4>Works Everywhere</h4>
+            <p>
+                SciTeX runs on cloud, self-hosted servers, and <strong>local deployments</strong>.
+                Apps you build work identically across all environments &mdash; develop locally,
+                deploy to your lab's server, or use SciTeX Cloud.
+            </p>
+            <h4>AI-Assisted Development</h4>
+            <p>
+                You don't need to be a web developer. The AI assistant understands the full
+                SciTeX app architecture and can scaffold, code, and debug apps for you.
+                Describe what you need in plain language &mdash; in the
+                <a href="/docs/content/chat/">AI Chat</a> panel or
+                <a href="/docs/content/console/">Console</a> terminal &mdash; and the AI
+                generates the files, wires up data storage, and handles the technical details.
+                Combined with <strong>community-shared apps</strong>, even non-technical
+                researchers can customize their workspace with powerful tools.
+            </p>
+        </section>
+        <!-- What You Can Build -->
+        <span id="examples"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-th-large"></i> What You Can Build
+            </h2>
+            <p>
+                From simple utilities to complex scientific tools &mdash; here are two real apps
+                built on the platform:
+            </p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>App</th>
+                        <th>Complexity</th>
+                        <th>What It Does</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Pomodoro Timer</strong>
+                        </td>
+                        <td>Simple (~250 lines)</td>
+                        <td>
+                            Focus timer with work/break intervals, session tracking,
+                            and audio notifications. Single inline script.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>EEG Visualizer</strong>
+                        </td>
+                        <td>Complex (~1400 lines)</td>
+                        <td>
+                            19-channel EEG waveforms, topographic scalp map, spectral analysis,
+                            feature extraction, PDF/CSV export. Multi-module architecture.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>
+                Both apps use the same scaffold, the same CSS variables, and the same
+                platform services. The only difference is how much frontend code you write.
+            </p>
+        </section>
+        <!-- How It Works -->
+        <span id="how"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-cogs"></i> How It Works
+            </h2>
+            <p>Apps progress through a simple lifecycle:</p>
+            <ol>
+                <li>
+                    <strong>Create</strong> &mdash; Scaffold via
+                    <a href="/new/">/new/</a> page, CLI (<code>scitex-cloud app init</code>),
+                    or ask the AI assistant
+                </li>
+                <li>
+                    <strong>Develop</strong> &mdash; Edit templates, views, CSS, and manifest in
+                    your project. Hot-reload gives instant feedback.
+                </li>
+                <li>
+                    <strong>Install</strong> &mdash; Install privately for personal use, or submit to
+                    the catalog for everyone
+                </li>
+                <li>
+                    <strong>Modify</strong> &mdash; Update your code, push changes, and the app
+                    updates automatically
+                </li>
+                <li>
+                    <strong>Uninstall</strong> &mdash; Remove any app cleanly, no side effects
+                </li>
+            </ol>
+            <p>The detailed how-to guides are split by audience:</p>
+        </section>
+        <!-- Documentation by Audience -->
+        <span id="audience"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-users"></i> Detailed Guides
+            </h2>
+            <div class="api-audience-grid">
+                <div class="api-audience-card">
+                    <h3>
+                        <i class="fas fa-user"></i>
+                        <a href="/docs/content/app-maker-users/">For Users</a>
+                    </h3>
+                    <p>
+                        Browse the <a href="/apps/">Apps Catalog</a>, install and uninstall apps,
+                        install privately from <a href="/apps/home/">Hub Explore</a>, reorder workspace tabs,
+                        and star/review apps.
+                    </p>
+                </div>
+                <div class="api-audience-card">
+                    <h3>
+                        <i class="fas fa-code"></i>
+                        <a href="/docs/content/app-maker-creators/">For Creators</a>
+                    </h3>
+                    <p>
+                        File structure, CLI scaffold, templates, views, CSS theming,
+                        Platform Services (DataStore, FileVault, JobQueue), AI skill registration,
+                        testing, and submission workflow.
+                    </p>
+                </div>
+                <div class="api-audience-card">
+                    <h3>
+                        <i class="fas fa-cog"></i>
+                        <a href="/docs/content/app-maker-admins/">For Administrators</a>
+                    </h3>
+                    <p>
+                        PR-based approval workflow, moderation checklist, security scanning,
+                        and the <code>scitex/apps</code> registry.
+                    </p>
+                </div>
+            </div>
+        </section>
+        <!-- Quick Start -->
+        <span id="quick-start"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-rocket"></i> Quick Start
+            </h2>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Goal</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Install an app</td>
+                        <td>
+                            <a href="/apps/">Apps Catalog</a> &rarr; click Install
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Create a new app</td>
+                        <td>
+                            <a href="/new/">/new/</a> &rarr; select App Template
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Create via CLI</td>
+                        <td>
+                            <code>scitex-cloud app init . --name my_app</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ask AI to create</td>
+                        <td>Open Console terminal and describe what you want</td>
+                    </tr>
+                    <tr>
+                        <td>Submit to catalog</td>
+                        <td>
+                            <code>scitex-cloud app submit .</code>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+{% endblock %}

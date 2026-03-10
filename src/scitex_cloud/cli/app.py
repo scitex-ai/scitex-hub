@@ -185,7 +185,7 @@ def app_list(server):
     """
     import requests
 
-    url = f"{server.rstrip('/')}/apps/api/list/"
+    url = f"{server.rstrip('/')}/apps/store/api/list/"
     try:
         resp = requests.get(url, timeout=15)
         data = resp.json()

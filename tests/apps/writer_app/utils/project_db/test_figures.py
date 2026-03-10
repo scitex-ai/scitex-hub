@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.utils.project_db.figures import ...
+# from apps.workspace.writer_app.utils.project_db.figures import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -29,31 +30,31 @@ if __name__ == "__main__":
 # """
 # Figure-related database operations for ProjectDatabase.
 # """
-# 
+#
 # import json
 # import time
 # import logging
 # from typing import List, Dict, Optional
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # class FigureOperations:
 #     """Figure-related database operations."""
-# 
+#
 #     def __init__(self, db):
 #         """
 #         Initialize with database instance.
-# 
+#
 #         Args:
 #             db: ProjectDatabase instance
 #         """
 #         self.db = db
-# 
+#
 #     def upsert(self, metadata: dict):
 #         """
 #         Insert or update figure metadata.
-# 
+#
 #         Args:
 #             metadata: Dictionary with keys:
 #                 - file_path: Relative path from project root
@@ -102,61 +103,61 @@ if __name__ == "__main__":
 #                 metadata['location'],
 #                 time.time(),
 #             ))
-# 
+#
 #             logger.debug(f"[ProjectDB] Upserted figure: {metadata['file_name']}")
-# 
+#
 #     def get_all(self, filters: Optional[Dict] = None) -> List[Dict]:
 #         """
 #         Get all figures with optional filters.
-# 
+#
 #         Args:
 #             filters: Optional dictionary with keys:
 #                 - source: Filter by source (paper, pool, data, scripts)
 #                 - is_referenced: Filter by reference status (True/False)
 #                 - file_type: Filter by file type (png, pdf, etc.)
-# 
+#
 #         Returns:
 #             List of figure dictionaries
 #         """
 #         query = 'SELECT * FROM figures WHERE 1=1'
 #         params = []
-# 
+#
 #         if filters:
 #             if filters.get('source'):
 #                 query += ' AND source = ?'
 #                 params.append(filters['source'])
-# 
+#
 #             if filters.get('is_referenced') is not None:
 #                 query += ' AND is_referenced = ?'
 #                 params.append(int(filters['is_referenced']))
-# 
+#
 #             if filters.get('file_type'):
 #                 query += ' AND file_type = ?'
 #                 params.append(filters['file_type'])
-# 
+#
 #         query += ' ORDER BY last_modified DESC'
-# 
+#
 #         with self.db.connection() as conn:
 #             cursor = conn.execute(query, params)
 #             rows = cursor.fetchall()
-# 
+#
 #             figures = []
 #             for row in rows:
 #                 fig = dict(row)
 #                 # Parse JSON tags
 #                 fig['tags'] = json.loads(fig['tags']) if fig['tags'] else []
 #                 figures.append(fig)
-# 
+#
 #             logger.debug(f"[ProjectDB] Retrieved {len(figures)} figures")
 #             return figures
-# 
+#
 #     def search(self, query: str) -> List[Dict]:
 #         """
 #         Full-text search across figures.
-# 
+#
 #         Args:
 #             query: Search query string
-# 
+#
 #         Returns:
 #             List of matching figure dictionaries
 #         """
@@ -167,32 +168,32 @@ if __name__ == "__main__":
 #                 WHERE figures_fts MATCH ?
 #                 ORDER BY rank
 #             ''', (query,))
-# 
+#
 #             rows = cursor.fetchall()
 #             figures = []
 #             for row in rows:
 #                 fig = dict(row)
 #                 fig['tags'] = json.loads(fig['tags']) if fig['tags'] else []
 #                 figures.append(fig)
-# 
+#
 #             logger.debug(f"[ProjectDB] Search '{query}' found {len(figures)} figures")
 #             return figures
-# 
+#
 #     def delete(self, file_path: str):
 #         """
 #         Delete figure from database.
-# 
+#
 #         Args:
 #             file_path: Relative file path
 #         """
 #         with self.db.connection() as conn:
 #             conn.execute('DELETE FROM figures WHERE file_path = ?', (file_path,))
 #             logger.debug(f"[ProjectDB] Deleted figure: {file_path}")
-# 
+#
 #     def get_stats(self) -> Dict:
 #         """
 #         Get statistics about figures.
-# 
+#
 #         Returns:
 #             Dictionary with stats:
 #                 - total: Total number of figures
@@ -210,15 +211,15 @@ if __name__ == "__main__":
 #                 FROM figures
 #             ''')
 #             stats = dict(cursor.fetchone())
-# 
+#
 #             # Handle NULL values
 #             stats['referenced'] = stats['referenced'] or 0
 #             stats['sources'] = stats['sources'] or 0
 #             stats['total_size'] = stats['total_size'] or 0
-# 
+#
 #             return stats
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

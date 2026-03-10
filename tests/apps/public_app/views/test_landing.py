@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.public_app.views.landing import ...
+# from apps.infra.public_app.views.landing import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,36 +32,36 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/public_app/views/landing.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
-# 
+#
 # """
 # Landing and Marketing Views
-# 
+#
 # Handles landing page and premium subscription pricing.
 # """
-# 
+#
 # from django.shortcuts import render
-# 
-# 
+#
+#
 # def index(request):
 #     """
 #     Cloud app index view - Landing page for all users.
-# 
+#
 #     Shows the landing page to all visitors, including authenticated users.
 #     Visitor auto-login is handled by VisitorAutoLoginMiddleware.
 #     """
 #     # Features are now in HTML partials at:
 #     # apps/public_app/templates/public_app/landing_partials/features/
-# 
+#
 #     return render(request, "public_app/landing.html")
-# 
-# 
+#
+#
 # def premium_subscription(request):
 #     """Premium subscription and pricing details view."""
-# 
+#
 #     # Define the comprehensive pricing structure based on the premium strategy
 #     individual_plans = [
 #         {
@@ -156,7 +157,7 @@ if __name__ == "__main__":
 #             "popular": False,
 #         },
 #     ]
-# 
+#
 #     institutional_plans = [
 #         {
 #             "name": "Lab License",
@@ -201,7 +202,7 @@ if __name__ == "__main__":
 #             ],
 #         },
 #     ]
-# 
+#
 #     japanese_specials = [
 #         {
 #             "name": "Pilot Program",
@@ -226,7 +227,7 @@ if __name__ == "__main__":
 #             ],
 #         },
 #     ]
-# 
+#
 #     add_on_services = [
 #         {
 #             "name": "Custom Prompt Development",
@@ -259,17 +260,17 @@ if __name__ == "__main__":
 #             "available_for": "Professional+",
 #         },
 #     ]
-# 
+#
 #     context = {
 #         "individual_plans": individual_plans,
 #         "institutional_plans": institutional_plans,
 #         "japanese_specials": japanese_specials,
 #         "add_on_services": add_on_services,
 #     }
-# 
+#
 #     return render(request, "public_app/premium_subscription.html", context)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

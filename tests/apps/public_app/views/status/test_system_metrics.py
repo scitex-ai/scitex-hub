@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.public_app.views.status.system_metrics import ...
+# from apps.infra.public_app.views.status.system_metrics import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,45 +32,45 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/public_app/views/status/system_metrics.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
-# 
+#
 # """
 # System Metrics Collection
-# 
+#
 # CPU, Memory, GPU, Disk I/O, and Network metrics.
 # """
-# 
+#
 # import subprocess
-# 
+#
 # import psutil
-# 
-# 
+#
+#
 # def check_system_resources(status_data):
 #     """Check system resource usage."""
 #     try:
 #         # CPU information
 #         cpu_count = psutil.cpu_count(logical=False) or psutil.cpu_count()
 #         cpu_count_logical = psutil.cpu_count(logical=True)
-# 
+#
 #         # Try to get CPU name from /proc/cpuinfo (Linux)
 #         cpu_name = get_cpu_name()
-# 
+#
 #         # GPU information
 #         gpu_info = get_gpu_info(cpu_name)
-# 
+#
 #         # Disk I/O stats
 #         disk_io = psutil.disk_io_counters()
 #         disk_read_mb = round(disk_io.read_bytes / (1024**2), 2) if disk_io else 0
 #         disk_write_mb = round(disk_io.write_bytes / (1024**2), 2) if disk_io else 0
-# 
+#
 #         # Network I/O stats
 #         net_io = psutil.net_io_counters()
 #         net_sent_mb = round(net_io.bytes_sent / (1024**2), 2) if net_io else 0
 #         net_recv_mb = round(net_io.bytes_recv / (1024**2), 2) if net_io else 0
-# 
+#
 #         status_data["system"] = {
 #             "cpu_percent": psutil.cpu_percent(interval=1),
 #             "cpu_cores": cpu_count,
@@ -86,8 +87,8 @@ if __name__ == "__main__":
 #         }
 #     except Exception as e:
 #         status_data["system"] = {"error": str(e)}
-# 
-# 
+#
+#
 # def get_cpu_name():
 #     """Get CPU name from /proc/cpuinfo (Linux)."""
 #     cpu_name = "Unknown"
@@ -100,8 +101,8 @@ if __name__ == "__main__":
 #     except:
 #         pass
 #     return cpu_name
-# 
-# 
+#
+#
 # def get_gpu_info(cpu_name):
 #     """Get GPU information from various sources."""
 #     gpu_info = "None available"
@@ -114,14 +115,14 @@ if __name__ == "__main__":
 #                 return result.stdout.strip()
 #         except:
 #             pass
-# 
+#
 #         # If no NVIDIA GPU, check CPU info for integrated graphics
 #         if cpu_name and ('Radeon Graphics' in cpu_name or 'Intel' in cpu_name):
 #             if 'Radeon Graphics' in cpu_name:
 #                 return "AMD Radeon Graphics (Integrated)"
 #             elif 'Intel' in cpu_name and 'Graphics' in cpu_name:
 #                 return "Intel Integrated Graphics"
-# 
+#
 #         # Try AMD/other GPUs via lspci
 #         try:
 #             result = subprocess.run(['lspci'], capture_output=True, text=True, timeout=2)
@@ -135,10 +136,10 @@ if __name__ == "__main__":
 #             pass
 #     except:
 #         pass
-# 
+#
 #     return gpu_info
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

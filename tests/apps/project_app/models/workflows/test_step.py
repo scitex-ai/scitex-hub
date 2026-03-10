@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.models.workflows.step import ...
+# from apps.infra.project_app.models.workflows.step import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,19 +29,19 @@ if __name__ == "__main__":
 # # -*- coding: utf-8 -*-
 # """
 # WorkflowStep model for SciTeX Projects
-# 
+#
 # Single step within a job. Steps execute sequentially within a job.
 # """
-# 
+#
 # from django.db import models
-# 
-# 
+#
+#
 # class WorkflowStep(models.Model):
 #     """
 #     Single step within a job
 #     Steps execute sequentially within a job
 #     """
-# 
+#
 #     STATUS_CHOICES = [
 #         ("queued", "Queued"),
 #         ("in_progress", "In Progress"),
@@ -48,7 +49,7 @@ if __name__ == "__main__":
 #         ("failed", "Failed"),
 #         ("skipped", "Skipped"),
 #     ]
-# 
+#
 #     job = models.ForeignKey(
 #         "project_app.WorkflowJob",
 #         on_delete=models.CASCADE,
@@ -57,7 +58,7 @@ if __name__ == "__main__":
 #     )
 #     name = models.CharField(max_length=200, help_text="Step name")
 #     step_number = models.IntegerField(help_text="Step number within job (sequential)")
-# 
+#
 #     # Step configuration
 #     command = models.TextField(
 #         help_text="Command to execute (shell command or action reference)"
@@ -68,7 +69,7 @@ if __name__ == "__main__":
 #     environment_vars = models.JSONField(
 #         default=dict, help_text="Environment variables for this step"
 #     )
-# 
+#
 #     # Status tracking
 #     status = models.CharField(
 #         max_length=20,
@@ -79,14 +80,14 @@ if __name__ == "__main__":
 #     conclusion = models.CharField(
 #         max_length=20, blank=True, help_text="Step conclusion (success, failure, etc.)"
 #     )
-# 
+#
 #     # Execution results
 #     output = models.TextField(blank=True, help_text="Step output (stdout)")
 #     error_output = models.TextField(blank=True, help_text="Step error output (stderr)")
 #     exit_code = models.IntegerField(
 #         null=True, blank=True, help_text="Process exit code"
 #     )
-# 
+#
 #     # Timing
 #     started_at = models.DateTimeField(
 #         null=True, blank=True, help_text="Step start time"
@@ -97,11 +98,11 @@ if __name__ == "__main__":
 #     duration_seconds = models.IntegerField(
 #         null=True, blank=True, help_text="Step duration in seconds"
 #     )
-# 
+#
 #     # Metadata
 #     created_at = models.DateTimeField(auto_now_add=True)
 #     updated_at = models.DateTimeField(auto_now=True)
-# 
+#
 #     # Conditional execution
 #     condition = models.CharField(
 #         max_length=200,
@@ -111,7 +112,7 @@ if __name__ == "__main__":
 #     continue_on_error = models.BooleanField(
 #         default=False, help_text="Continue job execution even if this step fails"
 #     )
-# 
+#
 #     class Meta:
 #         app_label = "project_app"
 #         unique_together = ("job", "step_number")
@@ -120,28 +121,28 @@ if __name__ == "__main__":
 #             models.Index(fields=["job", "step_number"]),
 #             models.Index(fields=["status", "created_at"]),
 #         ]
-# 
+#
 #     def __str__(self):
 #         return f"{self.job.name} - Step {self.step_number}: {self.name}"
-# 
+#
 #     def calculate_duration(self):
 #         """Calculate and update duration"""
 #         if self.started_at and self.completed_at:
 #             delta = self.completed_at - self.started_at
 #             self.duration_seconds = int(delta.total_seconds())
 #             self.save(update_fields=["duration_seconds"])
-# 
+#
 #     def append_output(self, text):
 #         """Append text to output (for streaming logs)"""
 #         self.output = (self.output or "") + text
 #         self.save(update_fields=["output"])
-# 
+#
 #     def append_error(self, text):
 #         """Append text to error output"""
 #         self.error_output = (self.error_output or "") + text
 #         self.save(update_fields=["error_output"])
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

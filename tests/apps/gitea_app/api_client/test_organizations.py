@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from apps.gitea_app.api_client.client import GiteaClient
-from apps.gitea_app.exceptions import GiteaAPIError
+from apps.infra.gitea_app.api_client.client import GiteaClient
+from apps.infra.gitea_app.exceptions import GiteaAPIError
 
 BASE_URL = "http://gitea:3000"
 TOKEN = "test-token"

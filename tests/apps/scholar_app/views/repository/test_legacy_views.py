@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.repository.legacy_views import ...
+# from apps.workspace.scholar_app.views.repository.legacy_views import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,7 +28,7 @@ if __name__ == "__main__":
 # """
 # Legacy view functions for backwards compatibility.
 # """
-# 
+#
 # import json
 # import logging
 # from django.http import JsonResponse
@@ -35,18 +36,18 @@ if __name__ == "__main__":
 # from django.views.decorators.csrf import csrf_exempt
 # from django.contrib.auth.decorators import login_required
 # from django.shortcuts import get_object_or_404
-# 
+#
 # from ...models import Repository, RepositoryConnection
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["GET"])
 # def list_repositories(request):
 #     """List available repositories"""
 #     repositories = Repository.objects.filter(status="active")
-# 
+#
 #     data = []
 #     for repo in repositories:
 #         data.append(
@@ -59,10 +60,10 @@ if __name__ == "__main__":
 #                 "is_default": repo.is_default,
 #             }
 #         )
-# 
+#
 #     return JsonResponse({"repositories": data})
-# 
-# 
+#
+#
 # @login_required
 # @csrf_exempt
 # @require_http_methods(["POST"])
@@ -71,7 +72,7 @@ if __name__ == "__main__":
 #     try:
 #         data = json.loads(request.body)
 #         repository = get_object_or_404(Repository, id=data.get("repository_id"))
-# 
+#
 #         connection = RepositoryConnection.objects.create(
 #             user=request.user,
 #             repository=repository,
@@ -81,11 +82,11 @@ if __name__ == "__main__":
 #             api_token=data.get("api_token", ""),
 #             username=data.get("username", ""),
 #         )
-# 
+#
 #         return JsonResponse(
 #             {"id": str(connection.id), "message": "Connection created successfully"}
 #         )
-# 
+#
 #     except Exception as e:
 #         return JsonResponse({"error": str(e)}, status=400)
 

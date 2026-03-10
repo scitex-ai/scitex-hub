@@ -157,7 +157,7 @@ class TestSaveCanvasAsBundle:
         self, temp_figz_dir, figz_class, pltz_class
     ):
         """Test that save_canvas_as_bundle preserves embedded panel bytes."""
-        from apps.vis_app.services.figz import save_canvas_as_bundle
+        from apps.workspace.vis_app.services.figz import save_canvas_as_bundle
 
         figz_path = temp_figz_dir / "Figure1.figz"
         pltz_path = temp_figz_dir / "temp_panel.pltz"
@@ -195,7 +195,9 @@ class TestSaveCanvasAsBundle:
         # In real usage, this uses project_owner/project_slug
         import unittest.mock as mock
 
-        with mock.patch("apps.vis_app.services.figz.get_bundle_base_path") as mock_path:
+        with mock.patch(
+            "apps.workspace.vis_app.services.figz.get_bundle_base_path"
+        ) as mock_path:
             mock_path.return_value = temp_figz_dir
 
             # Call save with mock user

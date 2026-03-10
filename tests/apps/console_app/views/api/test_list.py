@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.views.api.list import ...
+# from apps.workspace.console_app.views.api.list import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,11 +29,11 @@ if __name__ == "__main__":
 # """
 # API views for SciTeX-Code Jupyter notebook integration.
 # """
-# 
+#
 # import json
 # import logging
 # import threading
-# 
+#
 # from django.contrib.auth.decorators import login_required
 # from django.http import JsonResponse
 # from django.utils.decorators import method_decorator
@@ -42,7 +43,7 @@ if __name__ == "__main__":
 # from rest_framework.permissions import IsAuthenticated
 # from rest_framework.response import Response
 # from rest_framework import status
-# 
+#
 # from ...models import Notebook, CodeExecutionJob
 # from ...services.jupyter import (
 #     NotebookManager,
@@ -51,21 +52,21 @@ if __name__ == "__main__":
 #     NotebookTemplates,
 #     NotebookValidator,
 # )
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # @method_decorator(login_required, name="dispatch")
 # class NotebookAPIView(View):
 #     """Base API view for notebook operations."""
-# 
+#
 #     def get_notebook_manager(self):
 #         return NotebookManager(self.request.user)
-# 
-# 
+#
+#
 # class NotebookListAPI(NotebookAPIView):
 #     """API for listing and creating notebooks."""
-# 
+#
 #     def get(self, request):
 #         """List user's notebooks."""
 #         try:
@@ -74,15 +75,15 @@ if __name__ == "__main__":
 #                 .prefetch_related("shared_with")
 #                 .order_by("-updated_at")
 #             )
-# 
+#
 #             # Pagination
 #             page = int(request.GET.get("page", 1))
 #             per_page = min(int(request.GET.get("per_page", 20)), 50)
 #             start = (page - 1) * per_page
 #             end = start + per_page
-# 
+#
 #             paginated_notebooks = notebooks[start:end]
-# 
+#
 #             notebooks_data = []
 #             for notebook in paginated_notebooks:
 #                 notebooks_data.append(
@@ -102,7 +103,7 @@ if __name__ == "__main__":
 #                         "shared_with_count": notebook.shared_with.count(),
 #                     }
 #                 )
-# 
+#
 #             return JsonResponse(
 #                 {
 #                     "status": "success",
@@ -116,11 +117,11 @@ if __name__ == "__main__":
 #                     },
 #                 }
 #             )
-# 
+#
 #         except Exception as e:
 #             logger.error(f"Error listing notebooks: {e}")
 #             return JsonResponse({"status": "error", "message": str(e)}, status=500)
-# 
+#
 #     def post(self, request):
 #         """Create a new notebook."""
 #         try:
@@ -128,12 +129,12 @@ if __name__ == "__main__":
 #             title = data.get("title", "").strip()
 #             description = data.get("description", "").strip()
 #             template = data.get("template", "blank")
-# 
+#
 #             if not title:
 #                 return JsonResponse(
 #                     {"status": "error", "message": "Title is required"}, status=400
 #                 )
-# 
+#
 #             # Check for duplicate titles
 #             if Notebook.objects.filter(user=request.user, title=title).exists():
 #                 return JsonResponse(
@@ -143,9 +144,9 @@ if __name__ == "__main__":
 #                     },
 #                     status=400,
 #                 )
-# 
+#
 #             manager = self.get_notebook_manager()
-# 
+#
 #             # Create notebook with template
 #             if template == "data_analysis":
 #                 notebook_content = NotebookTemplates.get_data_analysis_template()
@@ -168,7 +169,7 @@ if __name__ == "__main__":
 #                         },
 #                     }
 #                 )
-# 
+#
 #             # Create notebook with template content
 #             notebook = Notebook.objects.create(
 #                 user=request.user,
@@ -177,7 +178,7 @@ if __name__ == "__main__":
 #                 content=notebook_content,
 #                 status="draft",
 #             )
-# 
+#
 #             return JsonResponse(
 #                 {
 #                     "status": "success",
@@ -191,7 +192,7 @@ if __name__ == "__main__":
 #                     },
 #                 }
 #             )
-# 
+#
 #         except json.JSONDecodeError:
 #             return JsonResponse(
 #                 {"status": "error", "message": "Invalid JSON"}, status=400
@@ -199,8 +200,8 @@ if __name__ == "__main__":
 #         except Exception as e:
 #             logger.error(f"Error creating notebook: {e}")
 #             return JsonResponse({"status": "error", "message": str(e)}, status=500)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

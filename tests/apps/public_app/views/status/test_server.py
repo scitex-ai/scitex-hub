@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.public_app.views.status.server import ...
+# from apps.infra.public_app.views.status.server import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,19 +32,19 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/public_app/views/status/server.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
-# 
+#
 # """
 # Server Status View
-# 
+#
 # Main view for displaying comprehensive server health status.
 # """
-# 
+#
 # from django.shortcuts import render
-# 
+#
 # from .health_checks import (
 #     check_docker_containers,
 #     check_ssh_services,
@@ -57,12 +58,12 @@ if __name__ == "__main__":
 # )
 # from .system_metrics import check_system_resources
 # from .helpers import check_visitor_pool_status
-# 
-# 
+#
+#
 # def server_status(request):
 #     """
 #     Server Status Page.
-# 
+#
 #     Shows comprehensive server health status:
 #     - Docker containers status
 #     - SSH services (workspace gateway, Gitea)
@@ -81,31 +82,31 @@ if __name__ == "__main__":
 #         "disk": {},
 #         "system": {},
 #     }
-# 
+#
 #     # Check all services
 #     check_docker_containers(status_data)
 #     check_ssh_services(status_data)
 #     check_database(status_data)
 #     check_redis(status_data)
 #     check_disk(status_data)
-# 
+#
 #     # Check compute resources
 #     check_slurm_status(status_data)
 #     check_container_runtime_status(status_data)
-# 
+#
 #     # Check system resources
 #     check_system_resources(status_data)
-# 
+#
 #     # Get visitor pool status
 #     check_visitor_pool_status(request, status_data)
-# 
+#
 #     context = {
 #         "status_data": status_data,
 #     }
-# 
+#
 #     return render(request, "public_app/server_status.html", context)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

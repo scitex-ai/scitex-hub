@@ -228,75 +228,88 @@
 /* ===========================================================================
    MODULE ACCENT BORDER
    Continuous accent line across the top of the module content area.
-   Framework-controlled via #main-content[data-module-accent].
+   Framework-controlled via #main-content[data-app-accent].
    Uses ::before pseudo-element with high z-index to prevent app overrides.
 
-   Usage: Add data-module-accent="writer" on the module container.
+   Usage: Add data-app-accent="writer" on the module container.
    =========================================================================== */
 
 /* Accent line: single continuous bar across the top of module content */
-#main-content[data-module-accent]::before {
+#main-content[data-app-accent]::before {
   content: "" !important;
   position: absolute !important;
   top: 0 !important;
   left: 0 !important;
   right: 0 !important;
   height: 4px !important;
-  background: var(--module-accent-color, transparent) !important;
+  background: var(--app-accent-color, transparent) !important;
   z-index: 100 !important;
   pointer-events: none !important;
 }
 
 /* Module panel headers still get tinted background */
 [data-pane-type="module"] {
-  background: var(--module-accent-tint, transparent);
+  background: var(--app-accent-tint, transparent);
 }
 
 /* Per-module accent color scoping (cascades to child pane headers) */
-[data-module-accent="writer"] {
-  --module-accent-color: var(--module-accent-writer);
-  --module-accent-tint: var(--module-accent-writer-tint);
+[data-app-accent="writer"] {
+  --app-accent-color: var(--app-accent-writer);
+  --app-accent-tint: var(--app-accent-writer-tint);
 }
-[data-module-accent="scholar"] {
-  --module-accent-color: var(--module-accent-scholar);
-  --module-accent-tint: var(--module-accent-scholar-tint);
+[data-app-accent="scholar"] {
+  --app-accent-color: var(--app-accent-scholar);
+  --app-accent-tint: var(--app-accent-scholar-tint);
 }
-[data-module-accent="visualizer"],
-[data-module-accent="vis"] {
-  --module-accent-color: var(--module-accent-visualizer);
-  --module-accent-tint: var(--module-accent-visualizer-tint);
+[data-app-accent="visualizer"],
+[data-app-accent="vis"] {
+  --app-accent-color: var(--app-accent-visualizer);
+  --app-accent-tint: var(--app-accent-visualizer-tint);
 }
-[data-module-accent="console"] {
-  --module-accent-color: var(--module-accent-console);
-  --module-accent-tint: var(--module-accent-console-tint);
+[data-app-accent="console"] {
+  --app-accent-color: var(--app-accent-console);
+  --app-accent-tint: var(--app-accent-console-tint);
 }
-[data-module-accent="clew"] {
-  --module-accent-color: var(--module-accent-clew);
-  --module-accent-tint: var(--module-accent-clew-tint);
+[data-app-accent="clew"] {
+  --app-accent-color: var(--app-accent-clew);
+  --app-accent-tint: var(--app-accent-clew-tint);
 }
-[data-module-accent="hub"] {
-  --module-accent-color: var(--module-accent-hub);
-  --module-accent-tint: var(--module-accent-hub-tint);
+[data-app-accent="hub"] {
+  --app-accent-color: var(--app-accent-hub);
+  --app-accent-tint: var(--app-accent-hub-tint);
 }
-[data-module-accent="example"] {
-  --module-accent-color: var(--module-accent-example);
-  --module-accent-tint: var(--module-accent-example-tint);
+[data-app-accent="example"] {
+  --app-accent-color: var(--app-accent-example);
+  --app-accent-tint: var(--app-accent-example-tint);
 }
-[data-module-accent="tools"] {
-  --module-accent-color: var(--module-accent-tools);
-  --module-accent-tint: var(--module-accent-tools-tint);
+[data-app-accent="tools"] {
+  --app-accent-color: var(--app-accent-tools);
+  --app-accent-tint: var(--app-accent-tools-tint);
 }
-[data-module-accent="apps"] {
-  --module-accent-color: var(--module-accent-apps);
-  --module-accent-tint: var(--module-accent-apps-tint);
+[data-app-accent="apps"],
+[data-app-accent="store"] {
+  --app-accent-color: var(--app-accent-store);
+  --app-accent-tint: var(--app-accent-store-tint);
 }
-[data-module-accent="modulemaker"] {
-  --module-accent-color: var(--module-accent-modulemaker);
-  --module-accent-tint: var(--module-accent-modulemaker-tint);
+[data-app-accent="appmaker"] {
+  --app-accent-color: var(--app-accent-appmaker);
+  --app-accent-tint: var(--app-accent-appmaker-tint);
 }
-[data-module-accent="docs"] {
-  --module-accent-color: var(--module-accent-docs);
-  --module-accent-tint: var(--module-accent-docs-tint);
+[data-app-accent="docs"] {
+  --app-accent-color: var(--app-accent-docs);
+  --app-accent-tint: var(--app-accent-docs-tint);
+}
+[data-app-accent="home"] {
+  --app-accent-color: var(--app-accent-home);
+  --app-accent-tint: var(--app-accent-home-tint);
+}
+[data-app-accent="discovery"] {
+  --app-accent-color: var(--app-accent-discovery);
+  --app-accent-tint: var(--app-accent-discovery-tint);
+}
+[data-app-accent="figrecipe"] {
+  --app-accent-color: var(--app-accent-figrecipe);
+  --app-accent-tint: var(--app-accent-figrecipe-tint);
 }
 
 /* No fallback needed — accent is always on #main-content::before */

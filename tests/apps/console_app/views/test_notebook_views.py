@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.views.notebook_views import ...
+# from apps.workspace.console_app.views.notebook_views import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -36,8 +37,8 @@ if __name__ == "__main__":
 # import json
 # import threading
 # from ..models import CodeExecutionJob, Notebook
-# 
-# 
+#
+#
 # @login_required
 # def notebooks(request):
 #     """List user's notebooks."""
@@ -46,42 +47,42 @@ if __name__ == "__main__":
 #         .prefetch_related("shared_with")
 #         .order_by("-updated_at")
 #     )
-# 
+#
 #     # Paginate results
 #     paginator = Paginator(notebooks_list, 20)
 #     page = request.GET.get("page", 1)
 #     notebooks = paginator.get_page(page)
-# 
+#
 #     context = {"notebooks": notebooks}
 #     return render(request, "console_app/notebooks.html", context)
-# 
-# 
+#
+#
 # @login_required
 # def notebook_detail(request, notebook_id):
 #     """View/edit a specific notebook."""
 #     notebook = get_object_or_404(Notebook, notebook_id=notebook_id, user=request.user)
-# 
+#
 #     context = {"notebook": notebook}
 #     return render(request, "console_app/notebook_detail.html", context)
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["POST"])
 # def create_notebook(request):
 #     """Create a new notebook."""
 #     try:
 #         from ..services.jupyter import NotebookManager, NotebookTemplates
-# 
+#
 #         data = json.loads(request.body)
 #         title = data.get("title", "").strip()
 #         description = data.get("description", "")
 #         template_type = data.get("template", "basic")
-# 
+#
 #         if not title:
 #             return JsonResponse({"error": "Notebook title is required"}, status=400)
-# 
+#
 #         notebook_manager = NotebookManager(request.user)
-# 
+#
 #         if template_type == "data_analysis":
 #             content = NotebookTemplates.get_data_analysis_template()
 #         elif template_type == "machine_learning":
@@ -98,7 +99,7 @@ if __name__ == "__main__":
 #                     "redirect_url": f"/console/notebooks/{notebook.notebook_id}/",
 #                 }
 #             )
-# 
+#
 #         # Create notebook with template
 #         notebook = Notebook.objects.create(
 #             user=request.user,
@@ -107,7 +108,7 @@ if __name__ == "__main__":
 #             content=content,
 #             status="draft",
 #         )
-# 
+#
 #         return JsonResponse(
 #             {
 #                 "success": True,
@@ -115,22 +116,22 @@ if __name__ == "__main__":
 #                 "redirect_url": f"/console/notebooks/{notebook.notebook_id}/",
 #             }
 #         )
-# 
+#
 #     except Exception as e:
 #         return JsonResponse({"error": str(e)}, status=500)
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["POST"])
 # def execute_notebook(request, notebook_id):
 #     """Execute a Jupyter notebook."""
 #     try:
 #         from ..services.jupyter import NotebookExecutor
-# 
+#
 #         notebook = get_object_or_404(
 #             Notebook, notebook_id=notebook_id, user=request.user
 #         )
-# 
+#
 #         # Create execution job
 #         job = CodeExecutionJob.objects.create(
 #             user=request.user,
@@ -139,26 +140,26 @@ if __name__ == "__main__":
 #             timeout_seconds=600,
 #             max_memory_mb=1024,
 #         )
-# 
+#
 #         # Execute notebook in background
 #         def run_notebook_execution():
 #             executor = NotebookExecutor(timeout=600)
 #             success, result = executor.execute_notebook(notebook, job)
-# 
+#
 #             if success:
 #                 job.status = "completed"
 #                 job.output = json.dumps(result, indent=2)
 #             else:
 #                 job.status = "failed"
 #                 job.error_output = result.get("error", "Unknown error")
-# 
+#
 #             job.completed_at = timezone.now()
 #             job.save()
-# 
+#
 #         execution_thread = threading.Thread(target=run_notebook_execution)
 #         execution_thread.daemon = True
 #         execution_thread.start()
-# 
+#
 #         return JsonResponse(
 #             {
 #                 "success": True,
@@ -166,7 +167,7 @@ if __name__ == "__main__":
 #                 "message": "Notebook execution started",
 #             }
 #         )
-# 
+#
 #     except Exception as e:
 #         return JsonResponse({"error": str(e)}, status=500)
 

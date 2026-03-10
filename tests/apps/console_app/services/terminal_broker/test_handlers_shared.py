@@ -13,16 +13,16 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from apps.console_app.services.terminal_broker._handlers_shared import (
+from apps.workspace.console_app.services.terminal_broker._handlers_shared import (
     handle_spawn_shared,
     handle_stop_allocation,
     stop_all_allocations,
 )
-from apps.console_app.services.terminal_broker.allocation import (
+from apps.workspace.console_app.services.terminal_broker.allocation import (
     AllocationState,
 )
-from apps.console_app.services.terminal_broker.session import SessionState
-from apps.console_app.services.terminal_broker.shell import Shell
+from apps.workspace.console_app.services.terminal_broker.session import SessionState
+from apps.workspace.console_app.services.terminal_broker.shell import Shell
 
 
 def _make_broker():
@@ -46,18 +46,20 @@ def _make_broker():
 class TestAllocationKeyPerUser:
     """Shared allocation uses alloc_key = (username,) — one per user."""
 
-    @patch("apps.console_app.services.terminal_broker._handlers_shared.Allocation")
-    @patch("apps.console_app.services.terminal_broker._handlers_shared.Shell")
     @patch(
-        "apps.console_app.services.terminal_broker._handlers_shared.SLURM_TIME_LIMIT_SECONDS",
+        "apps.workspace.console_app.services.terminal_broker._handlers_shared.Allocation"
+    )
+    @patch("apps.workspace.console_app.services.terminal_broker._handlers_shared.Shell")
+    @patch(
+        "apps.workspace.console_app.services.terminal_broker._handlers_shared.SLURM_TIME_LIMIT_SECONDS",
         14400,
     )
     @patch(
-        "apps.console_app.views.terminal.config.SHOW_MOTD",
+        "apps.workspace.console_app.views.terminal.config.SHOW_MOTD",
         False,
     )
     @patch(
-        "apps.console_app.services.terminal_broker._handlers_shared._alloc_fail_times",
+        "apps.workspace.console_app.services.terminal_broker._handlers_shared._alloc_fail_times",
         {},
     )
     def test_same_user_different_projects_share_allocation(
@@ -254,7 +256,7 @@ class TestAllocationCooldown:
     """After allocation failure, cooldown prevents immediate retry."""
 
     @patch(
-        "apps.console_app.services.terminal_broker._handlers_shared._alloc_fail_times"
+        "apps.workspace.console_app.services.terminal_broker._handlers_shared._alloc_fail_times"
     )
     def test_cooldown_returns_wait_message(self, mock_fail_times):
         broker = _make_broker()

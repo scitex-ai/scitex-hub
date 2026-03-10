@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from apps.gitea_app.api_client.client import GiteaClient
-from apps.gitea_app.exceptions import GiteaAPIError
+from apps.infra.gitea_app.api_client.client import GiteaClient
+from apps.infra.gitea_app.exceptions import GiteaAPIError
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -33,7 +33,7 @@ def client():
 class TestGetCurrentUser:
     """Tests for UserOperationsMixin.get_current_user."""
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_calls_get_user_endpoint(self, mock_request, client):
         mock_response = MagicMock()
         mock_response.raise_for_status = MagicMock()
@@ -57,7 +57,7 @@ class TestGetCurrentUser:
 class TestGetUser:
     """Tests for UserOperationsMixin.get_user."""
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_calls_users_endpoint_with_username(self, mock_request, client):
         mock_response = MagicMock()
         mock_response.raise_for_status = MagicMock()
@@ -80,7 +80,7 @@ class TestGetUser:
 class TestCreateUser:
     """Tests for UserOperationsMixin.create_user."""
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_posts_to_admin_users_with_correct_payload(self, mock_request, client):
         mock_response = MagicMock()
         mock_response.raise_for_status = MagicMock()
@@ -100,7 +100,7 @@ class TestCreateUser:
         }
         assert result == {"login": "newuser", "id": 99}
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_must_change_password_flag(self, mock_request, client):
         mock_response = MagicMock()
         mock_response.raise_for_status = MagicMock()
@@ -123,7 +123,7 @@ class TestCreateUser:
 class TestUserExists:
     """Tests for UserOperationsMixin.user_exists."""
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_returns_true_when_user_exists(self, mock_request, client):
         mock_response = MagicMock()
         mock_response.raise_for_status = MagicMock()
@@ -131,7 +131,7 @@ class TestUserExists:
 
         assert client.user_exists("existinguser") is True
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_returns_false_when_user_not_found(self, mock_request, client):
         import requests as req
 
@@ -143,7 +143,7 @@ class TestUserExists:
 
         assert client.user_exists("missinguser") is False
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_calls_correct_endpoint(self, mock_request, client):
         mock_response = MagicMock()
         mock_response.raise_for_status = MagicMock()
@@ -163,7 +163,7 @@ class TestUserExists:
 class TestDeleteUser:
     """Tests for UserOperationsMixin.delete_user."""
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_sends_delete_to_admin_users(self, mock_request, client):
         mock_response = MagicMock()
         mock_response.raise_for_status = MagicMock()
@@ -176,7 +176,7 @@ class TestDeleteUser:
         assert call_kwargs["url"] == "http://gitea:3000/api/v1/admin/users/olduser"
         assert result is True
 
-    @patch("apps.gitea_app.api_client.base.requests.request")
+    @patch("apps.infra.gitea_app.api_client.base.requests.request")
     def test_propagates_api_error(self, mock_request, client):
         import requests as req
 

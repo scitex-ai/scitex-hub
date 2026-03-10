@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.services.security_scanning.scanner import ...
+# from apps.infra.project_app.services.security_scanning.scanner import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,14 +28,14 @@ if __name__ == "__main__":
 # """
 # Main security scanner class combining all scanning functionality
 # """
-# 
+#
 # from .base_scanner import BaseScanner
 # from .dependency_scanner import DependencyScannerMixin
 # from .secret_scanner import SecretScannerMixin
 # from .code_scanner import CodeScannerMixin
 # from .tool_utils import ToolUtilsMixin
-# 
-# 
+#
+#
 # class SecurityScanner(
 #     BaseScanner,
 #     DependencyScannerMixin,
@@ -46,10 +47,10 @@ if __name__ == "__main__":
 #     Main security scanner class
 #     Orchestrates various security checks using mixin composition
 #     """
-# 
+#
 #     pass
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

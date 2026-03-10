@@ -104,34 +104,40 @@
 
   /* Module accent colors - top border for module-specific pane headers
      Light mode: deeper/saturated to contrast against warm white backgrounds */
-  --module-accent-color: transparent; /* Default: no accent (shared panes) */
-  --module-accent-tint: transparent; /* Default: no tint (shared panes) */
-  --module-accent-writer: #a07040; /* Deep amber - manuscripts, writing */
-  --module-accent-writer-tint: rgba(160, 112, 64, 0.07);
-  --module-accent-scholar: #3d7a5e; /* Deep sage - academic, knowledge */
-  --module-accent-scholar-tint: rgba(61, 122, 94, 0.07);
-  --module-accent-visualizer: #2e7070; /* Deep teal - data visualization */
-  --module-accent-visualizer-tint: rgba(46, 112, 112, 0.07);
-  --module-accent-console: #3e6080; /* Deep steel blue - terminal, code */
-  --module-accent-console-tint: rgba(62, 96, 128, 0.07);
-  --module-accent-clew: #8a6a4a; /* Earth brown - pipelines, workflows */
-  --module-accent-clew-tint: rgba(138, 106, 74, 0.07);
-  --module-accent-hub: #6a5a8a; /* Muted purple - dashboard, overview */
-  --module-accent-hub-tint: rgba(106, 90, 138, 0.07);
-  --module-accent-example: #8a6030; /* Warm orange-brown - demos, templates */
-  --module-accent-example-tint: rgba(138, 96, 48, 0.07);
-  --module-accent-tools: #5a7a5a; /* Sage green - utilities, helpers */
-  --module-accent-tools-tint: rgba(90, 122, 90, 0.07);
-  --module-accent-apps: #7a5a6a; /* Muted rose - store, browsing */
-  --module-accent-apps-tint: rgba(122, 90, 106, 0.07);
-  --module-accent-modulemaker: #5a6a8a; /* Slate blue - creation, building */
-  --module-accent-modulemaker-tint: rgba(90, 106, 138, 0.07);
-  --module-accent-docs: #4a6a9a; /* Deep blue - documentation, reference */
-  --module-accent-docs-tint: rgba(74, 106, 154, 0.07);
-  --module-accent-figrecipe: #7c5cbf; /* Purple - figure editing, creativity */
-  --module-accent-figrecipe-tint: rgba(124, 92, 191, 0.07);
-  --module-accent-notebook: #4a7a3a; /* Deep green - lab notebook, experiments */
-  --module-accent-notebook-tint: rgba(74, 122, 58, 0.07);
+  --app-accent-color: transparent; /* Default: no accent (shared panes) */
+  --app-accent-tint: transparent; /* Default: no tint (shared panes) */
+  --app-accent-writer: #a07040; /* Deep amber - manuscripts, writing */
+  --app-accent-writer-tint: rgba(160, 112, 64, 0.07);
+  --app-accent-scholar: #3d7a5e; /* Deep sage - academic, knowledge */
+  --app-accent-scholar-tint: rgba(61, 122, 94, 0.07);
+  --app-accent-visualizer: #2e7070; /* Deep teal - data visualization */
+  --app-accent-visualizer-tint: rgba(46, 112, 112, 0.07);
+  --app-accent-console: #3e6080; /* Deep steel blue - terminal, code */
+  --app-accent-console-tint: rgba(62, 96, 128, 0.07);
+  --app-accent-clew: #8a6a4a; /* Earth brown - pipelines, workflows */
+  --app-accent-clew-tint: rgba(138, 106, 74, 0.07);
+  --app-accent-hub: #6a5a8a; /* Muted purple - dashboard, overview */
+  --app-accent-hub-tint: rgba(106, 90, 138, 0.07);
+  --app-accent-home: #6a5a8a; /* Muted purple - home dashboard */
+  --app-accent-home-tint: rgba(106, 90, 138, 0.07);
+  --app-accent-discovery: #3a6a7a; /* Teal blue - exploration, search */
+  --app-accent-discovery-tint: rgba(58, 106, 122, 0.07);
+  --app-accent-example: #8a6030; /* Warm orange-brown - demos, templates */
+  --app-accent-example-tint: rgba(138, 96, 48, 0.07);
+  --app-accent-tools: #5a7a5a; /* Sage green - utilities, helpers */
+  --app-accent-tools-tint: rgba(90, 122, 90, 0.07);
+  --app-accent-apps: #7a5a6a; /* Muted rose - store, browsing (legacy) */
+  --app-accent-apps-tint: rgba(122, 90, 106, 0.07);
+  --app-accent-store: #7a5a6a; /* Muted rose - app store, browsing */
+  --app-accent-store-tint: rgba(122, 90, 106, 0.07);
+  --app-accent-appmaker: #5a6a8a; /* Slate blue - creation, building */
+  --app-accent-appmaker-tint: rgba(90, 106, 138, 0.07);
+  --app-accent-docs: #4a6a9a; /* Deep blue - documentation, reference */
+  --app-accent-docs-tint: rgba(74, 106, 154, 0.07);
+  --app-accent-figrecipe: #7c5cbf; /* Purple - figure editing, creativity */
+  --app-accent-figrecipe-tint: rgba(124, 92, 191, 0.07);
+  --app-accent-notebook: #4a7a3a; /* Deep green - lab notebook, experiments */
+  --app-accent-notebook-tint: rgba(74, 122, 58, 0.07);
 
   /* Workspace icon color scheme (TOGGLE: swap _icon-green ↔ _icon-white below) */
   /* Green scheme */
@@ -299,34 +305,40 @@
   ); /* Subtle active on dark bg */
 
   /* Module accent colors - dark mode */
-  --module-accent-color: transparent;
-  --module-accent-tint: transparent;
-  --module-accent-writer: #d4a87a;
-  --module-accent-writer-tint: rgba(212, 168, 122, 0.08);
-  --module-accent-scholar: #6ba89a;
-  --module-accent-scholar-tint: rgba(107, 168, 154, 0.08);
-  --module-accent-visualizer: #6ab0b0;
-  --module-accent-visualizer-tint: rgba(106, 176, 176, 0.08);
-  --module-accent-console: #7a9ab8;
-  --module-accent-console-tint: rgba(122, 154, 184, 0.08);
-  --module-accent-clew: #b89070; /* Earth brown - pipelines, workflows */
-  --module-accent-clew-tint: rgba(184, 144, 112, 0.08);
-  --module-accent-hub: #9a8ab8; /* Soft purple - dashboard, overview */
-  --module-accent-hub-tint: rgba(154, 138, 184, 0.08);
-  --module-accent-example: #c08850; /* Warm orange - demos, templates */
-  --module-accent-example-tint: rgba(192, 136, 80, 0.08);
-  --module-accent-tools: #8ab88a; /* Sage green - utilities, helpers */
-  --module-accent-tools-tint: rgba(138, 184, 138, 0.08);
-  --module-accent-apps: #b88a9a; /* Soft rose - store, browsing */
-  --module-accent-apps-tint: rgba(184, 138, 154, 0.08);
-  --module-accent-modulemaker: #8a9ab8; /* Soft slate - creation, building */
-  --module-accent-modulemaker-tint: rgba(138, 154, 184, 0.08);
-  --module-accent-docs: #7a9ac8; /* Soft blue - documentation, reference */
-  --module-accent-docs-tint: rgba(122, 154, 200, 0.08);
-  --module-accent-figrecipe: #a07ae0; /* Soft purple - figure editing, creativity */
-  --module-accent-figrecipe-tint: rgba(160, 122, 224, 0.08);
-  --module-accent-notebook: #7a9a6a; /* Soft green - lab notebook, experiments */
-  --module-accent-notebook-tint: rgba(122, 154, 106, 0.08);
+  --app-accent-color: transparent;
+  --app-accent-tint: transparent;
+  --app-accent-writer: #d4a87a;
+  --app-accent-writer-tint: rgba(212, 168, 122, 0.08);
+  --app-accent-scholar: #6ba89a;
+  --app-accent-scholar-tint: rgba(107, 168, 154, 0.08);
+  --app-accent-visualizer: #6ab0b0;
+  --app-accent-visualizer-tint: rgba(106, 176, 176, 0.08);
+  --app-accent-console: #7a9ab8;
+  --app-accent-console-tint: rgba(122, 154, 184, 0.08);
+  --app-accent-clew: #b89070; /* Earth brown - pipelines, workflows */
+  --app-accent-clew-tint: rgba(184, 144, 112, 0.08);
+  --app-accent-hub: #9a8ab8; /* Soft purple - dashboard, overview */
+  --app-accent-hub-tint: rgba(154, 138, 184, 0.08);
+  --app-accent-home: #9a8ab8; /* Soft purple - home dashboard */
+  --app-accent-home-tint: rgba(154, 138, 184, 0.08);
+  --app-accent-discovery: #5a9ab8; /* Teal blue - exploration, search */
+  --app-accent-discovery-tint: rgba(90, 154, 184, 0.08);
+  --app-accent-example: #c08850; /* Warm orange - demos, templates */
+  --app-accent-example-tint: rgba(192, 136, 80, 0.08);
+  --app-accent-tools: #8ab88a; /* Sage green - utilities, helpers */
+  --app-accent-tools-tint: rgba(138, 184, 138, 0.08);
+  --app-accent-apps: #b88a9a; /* Soft rose - store, browsing (legacy) */
+  --app-accent-apps-tint: rgba(184, 138, 154, 0.08);
+  --app-accent-store: #b88a9a; /* Soft rose - app store, browsing */
+  --app-accent-store-tint: rgba(184, 138, 154, 0.08);
+  --app-accent-appmaker: #8a9ab8; /* Soft slate - creation, building */
+  --app-accent-appmaker-tint: rgba(138, 154, 184, 0.08);
+  --app-accent-docs: #7a9ac8; /* Soft blue - documentation, reference */
+  --app-accent-docs-tint: rgba(122, 154, 200, 0.08);
+  --app-accent-figrecipe: #a07ae0; /* Soft purple - figure editing, creativity */
+  --app-accent-figrecipe-tint: rgba(160, 122, 224, 0.08);
+  --app-accent-notebook: #7a9a6a; /* Soft green - lab notebook, experiments */
+  --app-accent-notebook-tint: rgba(122, 154, 106, 0.08);
 
   /* Workspace icon color scheme (TOGGLE: swap _icon-green ↔ _icon-white below) */
   /* Green scheme (dark mode) */

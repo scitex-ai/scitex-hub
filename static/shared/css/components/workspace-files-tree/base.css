@@ -61,9 +61,13 @@
   background-color: var(--color-canvas-subtle, rgba(127, 127, 127, 0.1));
 }
 
-/* Folder styles */
+/* Folder styles — blue like Emacs dired */
 .wft-folder {
   font-weight: 500;
+}
+
+.wft-folder > .wft-name {
+  color: #6cb6ff;
 }
 
 .wft-folder.expanded > .wft-folder-toggle .wft-chevron {

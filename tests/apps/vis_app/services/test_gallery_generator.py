@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.vis_app.services.gallery_generator import ...
+# from apps.workspace.vis_app.services.gallery_generator import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,18 +27,18 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # Gallery Generator Service
-# 
+#
 # Generates example plots using scitex.plt.gallery into project workspace.
 # """
-# 
+#
 # import logging
 # import os
 # import sys
 # from pathlib import Path
 # from typing import Dict, List, Optional
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
+#
 # # Ensure scitex is importable
 # SCITEX_CODE_PATH = os.environ.get(
 #     'SCITEX_CODE_PATH',
@@ -45,19 +46,19 @@ if __name__ == "__main__":
 # )
 # if SCITEX_CODE_PATH not in sys.path:
 #     sys.path.insert(0, f"{SCITEX_CODE_PATH}/src")
-# 
-# 
+#
+#
 # def get_gallery_path(project_path: Path) -> Path:
 #     """Get the gallery directory path within a project."""
 #     return project_path / "scitex" / "vis" / "gallery"
-# 
-# 
+#
+#
 # def get_template_gallery_path() -> Path:
 #     """Get the static gallery path (centralized server-side templates)."""
 #     from django.conf import settings
 #     return Path(settings.BASE_DIR) / "static" / "shared" / "images" / "gallery"
-# 
-# 
+#
+#
 # def generate_gallery(
 #     project_path: Path,
 #     category: Optional[str] = None,
@@ -68,7 +69,7 @@ if __name__ == "__main__":
 # ) -> Dict:
 #     """
 #     Generate gallery plots into project's scitex/vis/gallery directory.
-# 
+#
 #     Args:
 #         project_path: Path to project root
 #         category: Optional category to generate (line, statistical, etc.)
@@ -76,13 +77,13 @@ if __name__ == "__main__":
 #         figsize: Figure size (width, height) in inches
 #         dpi: Resolution for PNG output
 #         force: If True, regenerate even if gallery exists
-# 
+#
 #     Returns:
 #         Dict with generation results
 #     """
 #     # Set matplotlib backend before importing scitex
 #     os.environ['MPLBACKEND'] = 'Agg'
-# 
+#
 #     try:
 #         import scitex as stx
 #     except ImportError as e:
@@ -94,9 +95,9 @@ if __name__ == "__main__":
 #             "csv": [],
 #             "json": [],
 #         }
-# 
+#
 #     gallery_path = get_gallery_path(project_path)
-# 
+#
 #     # Check if gallery already exists
 #     if gallery_path.exists() and not force:
 #         existing_pngs = list(gallery_path.rglob("*.png"))
@@ -111,12 +112,12 @@ if __name__ == "__main__":
 #                 "json": [str(p) for p in gallery_path.rglob("*.json")],
 #                 "skipped": True,
 #             }
-# 
+#
 #     # Ensure parent directories exist
 #     gallery_path.mkdir(parents=True, exist_ok=True)
-# 
+#
 #     logger.info(f"Generating gallery at {gallery_path}")
-# 
+#
 #     try:
 #         result = stx.plt.gallery.generate(
 #             output_dir=str(gallery_path),
@@ -128,10 +129,10 @@ if __name__ == "__main__":
 #             save_png=True,
 #             verbose=True,
 #         )
-# 
+#
 #         # Add JSON files to result
 #         json_files = list(gallery_path.rglob("*.json"))
-# 
+#
 #         return {
 #             "success": True,
 #             "path": str(gallery_path),
@@ -140,7 +141,7 @@ if __name__ == "__main__":
 #             "json": [str(p) for p in json_files],
 #             "errors": result.get("errors", []),
 #         }
-# 
+#
 #     except Exception as e:
 #         logger.exception(f"Failed to generate gallery: {e}")
 #         return {
@@ -150,12 +151,12 @@ if __name__ == "__main__":
 #             "csv": [],
 #             "json": [],
 #         }
-# 
-# 
+#
+#
 # def list_gallery_categories() -> Dict:
 #     """List available gallery categories and plots."""
 #     os.environ['MPLBACKEND'] = 'Agg'
-# 
+#
 #     try:
 #         import scitex as stx
 #         categories = stx.plt.gallery.list_plots()
@@ -171,22 +172,22 @@ if __name__ == "__main__":
 #             "error": str(e),
 #             "categories": {},
 #         }
-# 
-# 
+#
+#
 # def get_gallery_contents(project_path: Path, fallback_to_template: bool = True) -> Dict:
 #     """
 #     Get contents of an existing gallery.
-# 
+#
 #     Args:
 #         project_path: Path to project root
 #         fallback_to_template: If True, use template gallery when project has none
-# 
+#
 #     Returns:
 #         Dict with gallery contents organized by category
 #     """
 #     gallery_path = get_gallery_path(project_path)
 #     using_template = False
-# 
+#
 #     if not gallery_path.exists():
 #         if fallback_to_template:
 #             # Try template gallery
@@ -206,22 +207,22 @@ if __name__ == "__main__":
 #                 "exists": False,
 #                 "categories": {},
 #             }
-# 
+#
 #     categories = {}
-# 
+#
 #     # Scan gallery directory
 #     for category_dir in sorted(gallery_path.iterdir()):
 #         if not category_dir.is_dir():
 #             continue
-# 
+#
 #         category_name = category_dir.name
 #         plots = []
-# 
+#
 #         for png_file in sorted(category_dir.glob("*.png")):
 #             plot_name = png_file.stem
 #             json_file = category_dir / f"{plot_name}.json"
 #             csv_file = category_dir / f"{plot_name}.csv"
-# 
+#
 #             plots.append({
 #                 "name": plot_name,
 #                 "display_name": plot_name.replace("_", " ").replace("stx ", "").title(),
@@ -229,16 +230,16 @@ if __name__ == "__main__":
 #                 "json": str(json_file) if json_file.exists() else None,
 #                 "csv": str(csv_file) if csv_file.exists() else None,
 #             })
-# 
+#
 #         if plots:
 #             categories[category_name] = {
 #                 "name": category_name.replace("_", " ").title(),
 #                 "plots": plots,
 #                 "count": len(plots),
 #             }
-# 
+#
 #     total_plots = sum(cat["count"] for cat in categories.values())
-# 
+#
 #     return {
 #         "success": True,
 #         "exists": True,

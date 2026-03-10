@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.services.writer.compilation import ...
+# from apps.workspace.writer_app.services.writer.compilation import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -26,34 +27,34 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # """
 # LaTeX compilation operations for Writer.
-# 
+#
 # Handles preview compilation, manuscript/supplementary/revision compilation.
 # """
-# 
+#
 # from pathlib import Path
 # from typing import Optional, Callable
 # from scitex import logging
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # class CompilationMixin:
 #     """Mixin for compilation-related operations."""
-# 
+#
 #     def _apply_color_mode_to_latex(self, latex_content: str, color_mode: str) -> str:
 #         """Apply color mode to LaTeX content by injecting color commands.
-# 
+#
 #         Args:
 #             latex_content: Original LaTeX content
 #             color_mode: 'light', 'dark', 'sepia', or 'paper'
-# 
+#
 #         Returns:
 #             Modified LaTeX content with color commands
 #         """
 #         # Skip color injection for light mode (default LaTeX colors)
 #         if color_mode == "light":
 #             return latex_content
-# 
+#
 #         # Define dark mode colors - Eye-friendly warm dark background with soft text
 #         # Following modern dark mode best practices (Material Design, GitHub, VS Code)
 #         # Background: #1c2128 (rgb 0.11, 0.129, 0.157) - darker warm gray with slight blue tint
@@ -65,7 +66,7 @@ if __name__ == "__main__":
 # \\pagecolor[rgb]{0.11,0.129,0.157}
 # \\color[rgb]{0.788,0.82,0.851}
 # """
-# 
+#
 #         # Find the position to inject
 #         if "\\begin{document}" in latex_content:
 #             # Insert right before \begin{document}
@@ -75,9 +76,9 @@ if __name__ == "__main__":
 #         else:
 #             # Just prepend if no \begin{document} found
 #             latex_content = color_commands + latex_content
-# 
+#
 #         return latex_content
-# 
+#
 #     def compile_preview(
 #         self,
 #         latex_content: str,
@@ -87,16 +88,16 @@ if __name__ == "__main__":
 #         doc_type: str = "manuscript",
 #     ) -> dict:
 #         """Compile a quick preview of provided LaTeX content (not from workspace).
-# 
+#
 #         This is used for live preview of the current section being edited.
-# 
+#
 #         Args:
 #             latex_content: Complete LaTeX document content to compile
 #             timeout: Compilation timeout in seconds (default: 60 for quick preview)
 #             color_mode: PDF color mode - 'light', 'dark', 'sepia', or 'paper'
 #             section_name: Section name for output filename (e.g., 'introduction')
 #             doc_type: Document type - 'manuscript', 'supplementary', or 'revision'
-# 
+#
 #         Returns:
 #             Compilation result dict with keys:
 #                 - success: bool
@@ -107,17 +108,17 @@ if __name__ == "__main__":
 #         # Import at method start to avoid UnboundLocalError in except clauses
 #         import subprocess
 #         import shutil
-# 
+#
 #         try:
 #             # Apply color mode to LaTeX content
 #             latex_content = self._apply_color_mode_to_latex(latex_content, color_mode)
-# 
+#
 #             # Create .preview directory in scitex/writer for compiled previews
 #             # This directory stores temporary compiled PDFs for quick preview
 #             # Structure: scitex/writer/.preview/
 #             preview_dir = self.writer_dir / ".preview"
 #             preview_dir.mkdir(parents=True, exist_ok=True)
-# 
+#
 #             # Ensure bibliography is accessible for citations
 #             # Link bibliography from 00_shared/bib_files to preview directory
 #             bib_source = (
@@ -134,7 +135,7 @@ if __name__ == "__main__":
 #                     logger.warning(
 #                         f"[CompilePreview] Could not create bibliography symlink: {e}"
 #                     )
-# 
+#
 #             # Write content to temporary .tex file in .preview directory
 #             # Include theme in temp filename to avoid conflicts with parallel compilations
 #             temp_tex = preview_dir / f"preview-{section_name}-{color_mode}-temp.tex"
@@ -142,11 +143,11 @@ if __name__ == "__main__":
 #                 f"[CompilePreview] Creating preview file: {temp_tex} for section: {section_name}, theme: {color_mode}"
 #             )
 #             temp_tex.write_text(latex_content, encoding="utf-8")
-# 
+#
 #             logger.info(
 #                 f"[CompilePreview] Compiling {color_mode} preview with latexmk ({len(latex_content)} chars) timeout={timeout}s"
 #             )
-# 
+#
 #             # Use latexmk for intelligent multi-pass compilation (handles citations automatically)
 #             # This matches the behavior of full manuscript compilation
 #             result = subprocess.run(
@@ -163,17 +164,17 @@ if __name__ == "__main__":
 #                 timeout=timeout,
 #                 cwd=str(preview_dir),  # Run from preview directory for relative paths
 #             )
-# 
+#
 #             log_content = result.stdout + result.stderr
-# 
+#
 #             # Expected PDF output: .preview/preview-{section_name}-{color_mode}-temp.pdf
 #             temp_pdf = preview_dir / f"preview-{section_name}-{color_mode}-temp.pdf"
 #             # Final PDF name: .preview/preview-{section_name}-{color_mode}.pdf
 #             output_pdf = preview_dir / f"preview-{section_name}-{color_mode}.pdf"
-# 
+#
 #             # latexmk creates preview-{section_name}-{color_mode}-temp.pdf from preview-{section_name}-{color_mode}-temp.tex
 #             logger.info(f"[CompilePreview] Looking for compiled PDF: {temp_pdf}")
-# 
+#
 #             # Check if compilation succeeded by looking for the PDF file
 #             # Note: latexmk return code may be non-zero even on successful compilation
 #             # with -interaction=nonstopmode, so we check for the PDF file instead
@@ -181,7 +182,7 @@ if __name__ == "__main__":
 #                 logger.info(
 #                     f"[CompilePreview] {color_mode} PDF compiled successfully with citations at {temp_pdf}"
 #                 )
-# 
+#
 #                 # Clean up auxiliary files to keep preview directory tidy
 #                 # Keep: .pdf, .tex, bibliography.bib (symlink)
 #                 # Remove: .aux, .log, .fls, .fdb_latexmk, .bbl, .blg, .out, .toc
@@ -207,15 +208,15 @@ if __name__ == "__main__":
 #                             logger.debug(
 #                                 f"[CompilePreview] Could not remove auxiliary file {aux_file.name}: {e}"
 #                             )
-# 
+#
 #                 # Rename from temp filename to final filename
 #                 if temp_pdf != output_pdf:
 #                     shutil.move(str(temp_pdf), str(output_pdf))
-# 
+#
 #                 logger.info(
 #                     f"WriterService: Preview compilation succeeded for {section_name} ({color_mode}): {output_pdf}"
 #                 )
-# 
+#
 #                 return {
 #                     "success": True,
 #                     "output_pdf": str(output_pdf),
@@ -234,7 +235,7 @@ if __name__ == "__main__":
 #                     "log": log_content,
 #                     "error": f"PDF compilation failed - no output PDF generated",
 #                 }
-# 
+#
 #         except subprocess.TimeoutExpired:
 #             logger.error(f"WriterService: Preview compilation timeout after {timeout}s")
 #             return {
@@ -253,7 +254,7 @@ if __name__ == "__main__":
 #                 "log": str(e),
 #                 "error": str(e),
 #             }
-# 
+#
 #     def compile_manuscript(
 #         self,
 #         timeout: int = 300,
@@ -268,7 +269,7 @@ if __name__ == "__main__":
 #         **kwargs,  # Catch any unexpected arguments
 #     ) -> dict:
 #         """Compile manuscript with optional callbacks for live updates.
-# 
+#
 #         Args:
 #             timeout: Compilation timeout in seconds
 #             log_callback: Optional callback for real-time log streaming
@@ -279,7 +280,7 @@ if __name__ == "__main__":
 #             quiet: Suppress detailed logs for LaTeX compilation
 #             verbose: Show detailed logs for LaTeX compilation
 #             force: Force full recompilation, ignore cache
-# 
+#
 #         Returns:
 #             Compilation result dict with keys:
 #                 - success: bool
@@ -290,7 +291,7 @@ if __name__ == "__main__":
 #         try:
 #             # Use standalone compile function from scitex.writer._compile
 #             from scitex.writer._compile import compile_manuscript
-# 
+#
 #             result = compile_manuscript(
 #                 project_dir=self.writer_dir,
 #                 timeout=timeout,
@@ -311,7 +312,7 @@ if __name__ == "__main__":
 #                 if log_content:
 #                     log_content += "\n"
 #                 log_content += result.stderr
-# 
+#
 #             return {
 #                 "success": result.success,
 #                 "output_pdf": str(result.output_pdf) if result.output_pdf else None,
@@ -326,7 +327,7 @@ if __name__ == "__main__":
 #                 "log": str(e),
 #                 "error": str(e),
 #             }
-# 
+#
 #     def compile_supplementary(
 #         self,
 #         timeout: int = 300,
@@ -339,7 +340,7 @@ if __name__ == "__main__":
 #         **kwargs,  # Catch any unexpected arguments
 #     ) -> dict:
 #         """Compile supplementary material.
-# 
+#
 #         Args:
 #             timeout: Compilation timeout in seconds
 #             log_callback: Optional callback for real-time log streaming
@@ -352,7 +353,7 @@ if __name__ == "__main__":
 #         try:
 #             # Use standalone compile function from scitex.writer._compile
 #             from scitex.writer._compile import compile_supplementary
-# 
+#
 #             result = compile_supplementary(
 #                 project_dir=self.writer_dir,
 #                 timeout=timeout,
@@ -371,7 +372,7 @@ if __name__ == "__main__":
 #                 if log_content:
 #                     log_content += "\n"
 #                 log_content += result.stderr
-# 
+#
 #             return {
 #                 "success": result.success,
 #                 "output_pdf": str(result.output_pdf) if result.output_pdf else None,
@@ -386,7 +387,7 @@ if __name__ == "__main__":
 #                 "log": str(e),
 #                 "error": str(e),
 #             }
-# 
+#
 #     def compile_revision(
 #         self,
 #         timeout: int = 300,
@@ -396,7 +397,7 @@ if __name__ == "__main__":
 #         **kwargs,  # Catch any unexpected arguments
 #     ) -> dict:
 #         """Compile revision response document.
-# 
+#
 #         Args:
 #             timeout: Compilation timeout in seconds
 #             log_callback: Optional callback for real-time log streaming
@@ -406,7 +407,7 @@ if __name__ == "__main__":
 #         try:
 #             # Use standalone compile function from scitex.writer._compile
 #             from scitex.writer._compile import compile_revision
-# 
+#
 #             result = compile_revision(
 #                 project_dir=self.writer_dir,
 #                 timeout=timeout,
@@ -422,7 +423,7 @@ if __name__ == "__main__":
 #                 if log_content:
 #                     log_content += "\n"
 #                 log_content += result.stderr
-# 
+#
 #             return {
 #                 "success": result.success,
 #                 "output_pdf": str(result.output_pdf) if result.output_pdf else None,

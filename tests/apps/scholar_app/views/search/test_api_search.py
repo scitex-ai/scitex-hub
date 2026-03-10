@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.search.api_search import ...
+# from apps.workspace.scholar_app.views.search.api_search import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,7 +32,7 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/scholar_app/views/search/api_search.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
@@ -56,40 +57,40 @@ if __name__ == "__main__":
 #     CollaborationGroup, GroupMembership,
 #     AnnotationTag, UserPreference,
 # )
-# from apps.project_app.services import get_current_project
-# 
+# from apps.infra.project_app.services import get_current_project
+#
 # # Import from other search modules
 # from .engines import (
 #     search_arxiv, search_pubmed, search_semantic_scholar,
 #     search_pubmed_central, search_doaj, search_biorxiv, search_plos
 # )
 # from .citations import get_journal_impact_factor
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # def cached_search(request, source_name, search_func, max_results, cache_ttl=1800):
 #     """
 #     Helper for cached API searches with ignore_cache support.
-# 
+#
 #     Args:
 #         request: Django request object
 #         source_name: Name of the source (e.g., 'arxiv', 'pubmed')
 #         search_func: Function to call for search (takes query and max_results)
 #         max_results: Maximum results to return
 #         cache_ttl: Cache time-to-live in seconds (default 30 minutes)
-# 
+#
 #     Returns:
 #         JsonResponse with search results or error
 #     """
 #     from .config import get_limit_for_source
-# 
+#
 #     query = request.GET.get("q", "").strip()
 #     ignore_cache = request.GET.get("ignore_cache", "").lower() == "true"
-# 
+#
 #     if not query:
 #         return JsonResponse({"error": "Query parameter required"}, status=400)
-# 
+#
 #     # Check cache unless ignore_cache is set
 #     cache_key = f"{source_name}_search_{hashlib.md5(f'{query}_{max_results}'.encode()).hexdigest()}"
 #     if not ignore_cache:
@@ -97,12 +98,12 @@ if __name__ == "__main__":
 #         if cached:
 #             cached["cached"] = True
 #             return JsonResponse(cached)
-# 
+#
 #     try:
 #         results = search_func(query, max_results=max_results)
 #         result_count = len(results)
 #         configured_max = get_limit_for_source(source_name, request.user if request.user.is_authenticated else None)
-# 
+#
 #         # Build result guidance
 #         result_guidance = _build_result_guidance(
 #             source_name=source_name,
@@ -110,7 +111,7 @@ if __name__ == "__main__":
 #             requested=max_results,
 #             configured_max=configured_max,
 #         )
-# 
+#
 #         response_data = {
 #             "status": "success",
 #             "source": source_name,
@@ -127,19 +128,19 @@ if __name__ == "__main__":
 #         return JsonResponse(
 #             {"status": "error", "source": source_name, "error": str(e)}, status=500
 #         )
-# 
-# 
+#
+#
 # def _build_result_guidance(source_name, received, requested, configured_max, error=None):
 #     """
 #     Build result guidance dict explaining why results are limited.
-# 
+#
 #     Args:
 #         source_name: Name of the search source
 #         received: Number of results actually received
 #         requested: Number of results requested
 #         configured_max: Maximum configured for this source
 #         error: Error message if any
-# 
+#
 #     Returns:
 #         dict with guidance information
 #     """
@@ -156,7 +157,7 @@ if __name__ == "__main__":
 #         "biorxiv": "bioRxiv API: Moderate rate limits",
 #         "plos": "PLOS API: Moderate rate limits",
 #     }
-# 
+#
 #     # Build reason explanation
 #     if error:
 #         reason = f"Error: {error}"
@@ -173,7 +174,7 @@ if __name__ == "__main__":
 #         reason = " | ".join(reasons) if reasons else f"Returned {received}/{requested}"
 #     else:
 #         reason = f"Received all {received} requested results"
-# 
+#
 #     return {
 #         "source": source_name,
 #         "requested": requested,
@@ -182,75 +183,75 @@ if __name__ == "__main__":
 #         "reason": reason,
 #         "rate_limit_info": rate_limit_info.get(source_name, "Unknown"),
 #     }
-# 
-# 
+#
+#
 # # Import scitex.scholar if available
 # try:
 #     from scitex.scholar.pipelines.ScholarPipelineSearchParallel import ScholarPipelineSearchParallel
 #     SCITEX_SCHOLAR_AVAILABLE = True
 # except ImportError:
 #     SCITEX_SCHOLAR_AVAILABLE = False
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # def api_search_arxiv(request):
 #     """API endpoint for arXiv search only."""
 #     max_results = min(int(request.GET.get("max_results", 50)), 100)
 #     return cached_search(request, "arxiv", search_arxiv, max_results)
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # def api_search_pubmed(request):
 #     """API endpoint for PubMed search only."""
 #     max_results = min(int(request.GET.get("max_results", 50)), 100)
 #     return cached_search(request, "pubmed", search_pubmed, max_results)
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # def api_search_semantic(request):
 #     """API endpoint for Semantic Scholar search only."""
 #     max_results = min(int(request.GET.get("max_results", 10)), 20)
 #     return cached_search(request, "semantic_scholar", search_semantic_scholar, max_results)
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # def api_search_pmc(request):
 #     """API endpoint for PMC search only."""
 #     max_results = min(int(request.GET.get("max_results", 50)), 100)
 #     return cached_search(request, "pmc", search_pubmed_central, max_results)
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # def api_search_doaj(request):
 #     """API endpoint for DOAJ search only."""
 #     max_results = min(int(request.GET.get("max_results", 25)), 50)
 #     return cached_search(request, "doaj", search_doaj, max_results)
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # def api_search_biorxiv(request):
 #     """API endpoint for bioRxiv search only."""
 #     max_results = min(int(request.GET.get("max_results", 25)), 50)
 #     return cached_search(request, "biorxiv", search_biorxiv, max_results)
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # def api_search_plos(request):
 #     """API endpoint for PLOS search only."""
 #     max_results = min(int(request.GET.get("max_results", 25)), 50)
 #     return cached_search(request, "plos", search_plos, max_results)
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # def api_search_crossref(request):
 #     """API endpoint for CrossRef remote API search."""
 #     query = request.GET.get("q", "").strip()
 #     max_results = min(int(request.GET.get("max_results", 50)), 100)
 #     ignore_cache = request.GET.get("ignore_cache", "").lower() == "true"
-# 
+#
 #     if not query:
 #         return JsonResponse({"error": "Query parameter required"}, status=400)
-# 
+#
 #     # Check cache
 #     cache_key = f"crossref_search_{hashlib.md5(f'{query}_{max_results}'.encode()).hexdigest()}"
 #     if not ignore_cache:
@@ -258,7 +259,7 @@ if __name__ == "__main__":
 #         if cached:
 #             cached["cached"] = True
 #             return JsonResponse(cached)
-# 
+#
 #     try:
 #         # CrossRef API: https://api.crossref.org/works
 #         url = "https://api.crossref.org/works"
@@ -270,11 +271,11 @@ if __name__ == "__main__":
 #         headers = {
 #             "User-Agent": "SciTeX/1.0 (https://scitex.ai; mailto:contact@scitex.ai)"
 #         }
-# 
+#
 #         response = requests.get(url, params=params, headers=headers, timeout=30)
 #         response.raise_for_status()
 #         data = response.json()
-# 
+#
 #         results = []
 #         for item in data.get("message", {}).get("items", []):
 #             # Extract year from published date
@@ -285,26 +286,26 @@ if __name__ == "__main__":
 #                     if date_parts:
 #                         year = date_parts[0]
 #                         break
-# 
+#
 #             # Format authors
 #             authors = []
 #             for author in item.get("author", []):
 #                 name = f"{author.get('given', '')} {author.get('family', '')}".strip()
 #                 if name:
 #                     authors.append(name)
-# 
+#
 #             # Extract title safely (CrossRef returns title as list)
 #             title_list = item.get("title") or []
 #             title = title_list[0].strip() if title_list and title_list[0] else ""
-# 
+#
 #             # Skip papers without titles - they are not useful for users
 #             if not title:
 #                 continue
-# 
+#
 #             # Extract journal safely
 #             journal_list = item.get("container-title") or []
 #             journal = journal_list[0] if journal_list else ""
-# 
+#
 #             # Detect open access from license info
 #             is_open_access = False
 #             pdf_url = ""
@@ -315,7 +316,7 @@ if __name__ == "__main__":
 #                 if any(oa in lic_url for oa in ["creativecommons.org", "cc-by", "open-access", "public-domain"]):
 #                     is_open_access = True
 #                     break
-# 
+#
 #             # Also check for PDF links
 #             links = item.get("link") or []
 #             for link in links:
@@ -326,10 +327,10 @@ if __name__ == "__main__":
 #                     if pdf_url:
 #                         is_open_access = True
 #                     break
-# 
+#
 #             # Get impact factor for journal
 #             impact_factor = get_journal_impact_factor(journal) if journal else None
-# 
+#
 #             results.append({
 #                 "title": title,
 #                 "authors": ", ".join(authors),
@@ -344,11 +345,11 @@ if __name__ == "__main__":
 #                 "pdf_url": pdf_url,
 #                 "impact_factor": impact_factor,
 #             })
-# 
+#
 #         from .config import get_limit_for_source
 #         result_count = len(results)
 #         configured_max = get_limit_for_source("crossref", request.user if request.user.is_authenticated else None)
-# 
+#
 #         response_data = {
 #             "status": "success",
 #             "source": "crossref",
@@ -369,18 +370,18 @@ if __name__ == "__main__":
 #         return JsonResponse(
 #             {"status": "error", "source": "crossref", "error": str(e)}, status=500
 #         )
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # def api_search_crossref_local(request):
 #     """API endpoint for CrossRef Local (NAS SQLite database) search."""
 #     query = request.GET.get("q", "").strip()
 #     max_results = min(int(request.GET.get("max_results", 100)), 1000)
 #     ignore_cache = request.GET.get("ignore_cache", "").lower() == "true"
-# 
+#
 #     if not query:
 #         return JsonResponse({"error": "Query parameter required"}, status=400)
-# 
+#
 #     # Check cache (shorter TTL for local service)
 #     cache_key = f"crossref_local_search_{hashlib.md5(f'{query}_{max_results}'.encode()).hexdigest()}"
 #     if not ignore_cache:
@@ -388,16 +389,16 @@ if __name__ == "__main__":
 #         if cached:
 #             cached["cached"] = True
 #             return JsonResponse(cached)
-# 
+#
 #     try:
 #         from django.conf import settings
 #         import os
-# 
+#
 #         # Check if CrossRef Local is available
 #         crossref_url = getattr(settings, 'CROSSREF_INTERNAL_URL', None)
 #         if not crossref_url:
 #             crossref_url = os.environ.get('CROSSREF_INTERNAL_URL')
-# 
+#
 #         if not crossref_url:
 #             # Service not configured - return gracefully
 #             return JsonResponse(
@@ -410,25 +411,25 @@ if __name__ == "__main__":
 #                     "note": "CrossRef Local database not available in this environment",
 #                 }
 #             )
-# 
+#
 #         # Proxy to internal CrossRef service
 #         url = f"{crossref_url}/api/search/"
 #         params = {"title": query, "limit": max_results}
-# 
+#
 #         response = requests.get(url, params=params, timeout=10)
 #         response.raise_for_status()
 #         data = response.json()
-# 
+#
 #         # Convert to standard format
 #         results = []
-# 
+#
 #         # Import OA detection if available
 #         try:
 #             from scitex.scholar.core import detect_oa_from_identifiers
 #             oa_detect_available = True
 #         except ImportError:
 #             oa_detect_available = False
-# 
+#
 #         for item in data.get("results", []):
 #             title = (item.get("title") or "").strip()
 #             # Skip papers without titles
@@ -436,10 +437,10 @@ if __name__ == "__main__":
 #                 continue
 #             doi = item.get("doi") or ""
 #             journal = item.get("journal") or ""
-# 
+#
 #             # Use stored is_open_access if available from local DB
 #             is_open_access = item.get("is_open_access", False)
-# 
+#
 #             # If not set, try to detect from journal name or doi
 #             if not is_open_access and oa_detect_available:
 #                 try:
@@ -447,10 +448,10 @@ if __name__ == "__main__":
 #                     is_open_access = oa_result.is_open_access
 #                 except Exception:
 #                     pass
-# 
+#
 #             # Get impact factor for journal
 #             impact_factor = item.get("impact_factor") or (get_journal_impact_factor(journal) if journal else None)
-# 
+#
 #             results.append({
 #                 "title": title,
 #                 "authors": item.get("authors") or "",
@@ -464,11 +465,11 @@ if __name__ == "__main__":
 #                 "is_open_access": is_open_access,
 #                 "impact_factor": impact_factor,
 #             })
-# 
+#
 #         from .config import get_limit_for_source
 #         result_count = len(results)
 #         configured_max = get_limit_for_source("crossref_local", request.user if request.user.is_authenticated else None)
-# 
+#
 #         response_data = {
 #             "status": "success",
 #             "source": "crossref_local",
@@ -509,18 +510,18 @@ if __name__ == "__main__":
 #         return JsonResponse(
 #             {"status": "error", "source": "crossref_local", "error": str(e)}, status=500
 #         )
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # def api_search_openalex(request):
 #     """API endpoint for OpenAlex search."""
 #     query = request.GET.get("q", "").strip()
 #     max_results = min(int(request.GET.get("max_results", 50)), 100)
 #     ignore_cache = request.GET.get("ignore_cache", "").lower() == "true"
-# 
+#
 #     if not query:
 #         return JsonResponse({"error": "Query parameter required"}, status=400)
-# 
+#
 #     # Check cache
 #     cache_key = f"openalex_search_{hashlib.md5(f'{query}_{max_results}'.encode()).hexdigest()}"
 #     if not ignore_cache:
@@ -528,7 +529,7 @@ if __name__ == "__main__":
 #         if cached:
 #             cached["cached"] = True
 #             return JsonResponse(cached)
-# 
+#
 #     try:
 #         # OpenAlex API: https://api.openalex.org/works
 #         url = "https://api.openalex.org/works"
@@ -540,11 +541,11 @@ if __name__ == "__main__":
 #         headers = {
 #             "User-Agent": "SciTeX/1.0 (https://scitex.ai; mailto:contact@scitex.ai)"
 #         }
-# 
+#
 #         response = requests.get(url, params=params, headers=headers, timeout=30)
 #         response.raise_for_status()
 #         data = response.json()
-# 
+#
 #         results = []
 #         for item in data.get("results", []):
 #             # Format authors
@@ -554,7 +555,7 @@ if __name__ == "__main__":
 #                 name = author.get("display_name", "")
 #                 if name:
 #                     authors.append(name)
-# 
+#
 #             # Reconstruct abstract from inverted index
 #             abstract = ""
 #             abstract_idx = item.get("abstract_inverted_index")
@@ -567,26 +568,26 @@ if __name__ == "__main__":
 #                     abstract = " ".join(words)
 #                 except (ValueError, TypeError):
 #                     abstract = ""
-# 
+#
 #             # Get journal from primary location
 #             journal = ""
 #             primary_loc = item.get("primary_location") or {}
 #             if primary_loc and primary_loc.get("source"):
 #                 journal = primary_loc["source"].get("display_name", "") or ""
-# 
+#
 #             # Clean DOI
 #             doi = item.get("doi") or ""
 #             if doi.startswith("https://doi.org/"):
 #                 doi = doi.replace("https://doi.org/", "")
-# 
+#
 #             # Handle title - ensure it's never None and skip papers without titles
 #             title = (item.get("title") or "").strip()
 #             if not title:
 #                 continue
-# 
+#
 #             # Get impact factor for journal
 #             impact_factor = get_journal_impact_factor(journal) if journal else None
-# 
+#
 #             results.append({
 #                 "title": title,
 #                 "authors": ", ".join(authors[:5]) + ("..." if len(authors) > 5 else ""),
@@ -600,11 +601,11 @@ if __name__ == "__main__":
 #                 "source": "openalex",
 #                 "impact_factor": impact_factor,
 #             })
-# 
+#
 #         from .config import get_limit_for_source
 #         result_count = len(results)
 #         configured_max = get_limit_for_source("openalex", request.user if request.user.is_authenticated else None)
-# 
+#
 #         response_data = {
 #             "status": "success",
 #             "source": "openalex",
@@ -625,41 +626,41 @@ if __name__ == "__main__":
 #         return JsonResponse(
 #             {"status": "error", "source": "openalex", "error": str(e)}, status=500
 #         )
-# 
-# 
+#
+#
 # # =============================================================================
 # # Unified RESTful Search API with Command Syntax Support
 # # =============================================================================
-# 
+#
 # from concurrent.futures import ThreadPoolExecutor, as_completed
 # from .search_helpers import parse_query_operators, apply_advanced_filters
 # from ...middleware.rate_limit import rate_limit, rate_limit_status
 # from ...api_auth import api_key_optional
 # from .config import get_limit_for_source
-# 
-# 
+#
+#
 # def _explain_result_count(source_name, received, requested, error=None):
 #     """
 #     Explain why a source returned a specific number of results.
-# 
+#
 #     Args:
 #         source_name: Name of the search source
 #         received: Number of results actually received
 #         requested: Number of results requested
 #         error: Error message if any
-# 
+#
 #     Returns:
 #         String explanation for users
 #     """
 #     if error:
 #         return f"Error occurred: {error}"
-# 
+#
 #     if received == 0:
 #         return "No matching results found in this source"
-# 
+#
 #     if received < requested:
 #         reasons = []
-# 
+#
 #         # Source-specific explanations
 #         if source_name == "crossref":
 #             reasons.append("CrossRef API has strict rate limits")
@@ -677,7 +678,7 @@ if __name__ == "__main__":
 #         elif source_name == "openalex":
 #             if received == 50:
 #                 reasons.append("Default limit reached (50 results)")
-# 
+#
 #         # Generic explanations
 #         if received < 5:
 #             reasons.append("Very few matches - try broader search terms")
@@ -685,22 +686,22 @@ if __name__ == "__main__":
 #             reasons.append("API returned fewer results than requested")
 #         else:
 #             reasons.append(f"Source returned {received}/{requested} requested results")
-# 
+#
 #         return " | ".join(reasons)
-# 
+#
 #     return f"Received all {received} requested results"
-# 
+#
 # # Import scitex.scholar integration (preferred for core logic)
 # from ...integrations import scitex_scholar as scitex_integration
-# 
-# 
+#
+#
 # @api_key_optional
 # @rate_limit("api_search_unified")
 # @require_http_methods(["GET"])
 # def api_search_unified(request):
 #     """
 #     Unified RESTful API for academic literature search.
-# 
+#
 #     Supports shell-style command syntax for filtering:
 #     - `-t VALUE` or `--title VALUE`: Title filter (include)
 #     - `-t -VALUE`: Title filter (exclude)
@@ -712,18 +713,18 @@ if __name__ == "__main__":
 #     - `-cmax N` or `--citations-max`: Maximum citations
 #     - `-ifmin N` or `--if-min`: Minimum impact factor
 #     - `-ifmax N` or `--if-max`: Maximum impact factor
-# 
+#
 #     Query Parameters:
 #     - q (required): Search query with optional command syntax
 #     - sources: Comma-separated list of sources (default: all available)
 #                Options: pubmed,arxiv,semantic,crossref,openalex,pmc,doaj,biorxiv,plos
 #     - max_results: Maximum results per source (default: 20, max: 100)
 #     - format: Response format - 'full' or 'compact' (default: full)
-# 
+#
 #     Example:
 #         GET /scholar/api/search/?q=neural network -t deep learning -a Smith -ymin 2020 -cmin 50
 #         GET /scholar/api/search/?q=CRISPR&sources=pubmed,arxiv&max_results=50
-# 
+#
 #     Returns:
 #         JSON response with aggregated search results from all sources.
 #     """
@@ -742,7 +743,7 @@ if __name__ == "__main__":
 #                 "example": "neural network -t deep learning -a Smith -ymin 2020"
 #             }
 #         }, status=400)
-# 
+#
 #     # Get max results and format options
 #     try:
 #         max_results = min(int(request.GET.get("max_results", 20)), 100)
@@ -750,7 +751,7 @@ if __name__ == "__main__":
 #         max_results = 20
 #     response_format = request.GET.get("format", "full").lower()
 #     use_scitex = request.GET.get("engine", "auto").lower() != "django"
-# 
+#
 #     # Try to use scitex.scholar if available (preferred - reuses local logic)
 #     if use_scitex and scitex_integration.is_available():
 #         try:
@@ -761,20 +762,20 @@ if __name__ == "__main__":
 #                 max_results=max_results,
 #                 email=getattr(request.user, 'email', None) if request.user.is_authenticated else None,
 #             )
-# 
+#
 #             # Convert to Django-compatible format
 #             formatted_results = scitex_integration.convert_scitex_results_to_django(scitex_results)
-# 
+#
 #             # Get parsed filters from scitex
 #             parsed = scitex_integration.parse_query_scitex(query)
-# 
+#
 #             # Build result guidance from scitex metadata
 #             source_metadata = scitex_results.get("metadata", {}).get("sources", {})
 #             total_before_dedup = sum(
 #                 meta.get("result_count", 0) for meta in source_metadata.values()
 #             )
 #             deduplication_count = total_before_dedup - len(formatted_results)
-# 
+#
 #             result_guidance = {
 #                 "total_fetched": total_before_dedup,
 #                 "total_after_dedup": len(formatted_results),
@@ -802,7 +803,7 @@ if __name__ == "__main__":
 #                     "explanation": "Rate limits protect external APIs and ensure service stability"
 #                 }
 #             }
-# 
+#
 #             return JsonResponse({
 #                 "status": "success",
 #                 "engine": "scitex.scholar",
@@ -831,16 +832,16 @@ if __name__ == "__main__":
 #                 "rate_limit": rate_limit_status(request, "api_search_unified"),
 #                 "result_guidance": result_guidance,
 #             })
-# 
+#
 #         except Exception as e:
 #             logger.warning(f"scitex.scholar search failed, falling back to Django: {e}")
 #             # Fall through to Django implementation
-# 
+#
 #     # Fallback: Django-only implementation
 #     # Parse command syntax from query
 #     parsed = parse_query_operators(query)
 #     clean_query = parsed.get("query", query)
-# 
+#
 #     # Get sources to search
 #     sources_param = request.GET.get("sources", "").strip()
 #     available_sources = {
@@ -852,7 +853,7 @@ if __name__ == "__main__":
 #         "biorxiv": search_biorxiv,
 #         "plos": search_plos,
 #     }
-# 
+#
 #     if sources_param:
 #         requested_sources = [s.strip().lower() for s in sources_param.split(",")]
 #         sources_to_search = {k: v for k, v in available_sources.items() if k in requested_sources}
@@ -863,25 +864,25 @@ if __name__ == "__main__":
 #             "arxiv": search_arxiv,
 #             "semantic": search_semantic_scholar,
 #         }
-# 
+#
 #     # Search all sources in parallel
 #     all_results = []
 #     source_stats = {}
 #     errors = []
-# 
+#
 #     def search_source(name, search_func):
 #         try:
 #             results = search_func(clean_query, max_results=max_results)
 #             return name, results, None
 #         except Exception as e:
 #             return name, [], str(e)
-# 
+#
 #     with ThreadPoolExecutor(max_workers=len(sources_to_search)) as executor:
 #         futures = {
 #             executor.submit(search_source, name, func): name
 #             for name, func in sources_to_search.items()
 #         }
-# 
+#
 #         for future in as_completed(futures):
 #             source_name, results, error = future.result()
 #             if error:
@@ -890,10 +891,10 @@ if __name__ == "__main__":
 #             else:
 #                 source_stats[source_name] = {"count": len(results), "status": "success"}
 #                 all_results.extend(results)
-# 
+#
 #     # Apply filters from parsed operators
 #     filtered_results = apply_advanced_filters(all_results, None, parsed)
-# 
+#
 #     # Sort by citations (descending), then by year (descending)
 #     filtered_results.sort(
 #         key=lambda x: (
@@ -901,7 +902,7 @@ if __name__ == "__main__":
 #             -(int(x.get("year") or 0))
 #         )
 #     )
-# 
+#
 #     # Format response
 #     if response_format == "compact":
 #         # Compact format - only essential fields
@@ -919,11 +920,11 @@ if __name__ == "__main__":
 #         ]
 #     else:
 #         formatted_results = filtered_results
-# 
+#
 #     # Calculate deduplication stats
 #     total_before_dedup = sum(stats.get("count", 0) for stats in source_stats.values())
 #     deduplication_count = total_before_dedup - len(filtered_results)
-# 
+#
 #     # Build result guidance
 #     result_guidance = {
 #         "total_fetched": total_before_dedup,
@@ -947,7 +948,7 @@ if __name__ == "__main__":
 #             "explanation": "Rate limits protect external APIs and ensure service stability"
 #         }
 #     }
-# 
+#
 #     return JsonResponse({
 #         "status": "success",
 #         "engine": "django",
@@ -976,13 +977,13 @@ if __name__ == "__main__":
 #         "rate_limit": rate_limit_status(request, "api_search_unified"),
 #         "result_guidance": result_guidance,
 #     })
-# 
-# 
+#
+#
 # @require_http_methods(["GET"])
 # def api_search_syntax_help(request):
 #     """
 #     API endpoint to get search syntax documentation.
-# 
+#
 #     Returns detailed documentation on available search operators and examples.
 #     """
 #     return JsonResponse({
@@ -1075,7 +1076,7 @@ if __name__ == "__main__":
 #             "format": "'full' or 'compact' response format (default: full)",
 #         }
 #     })
-# 
+#
 
 # --------------------------------------------------------------------------------
 # End of Source Code from: apps/scholar_app/views/search/api_search.py

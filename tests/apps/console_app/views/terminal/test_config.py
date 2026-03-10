@@ -14,7 +14,7 @@ class TestDevReposParsing:
 
     def _reload_config(self):
         """Reload config module to pick up env changes."""
-        import apps.console_app.views.terminal.config as cfg
+        import apps.workspace.console_app.views.terminal.config as cfg
 
         importlib.reload(cfg)
         return cfg

@@ -1,0 +1,586 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% block title %}
+    Image Converter -
+    Browser Tool | SciTeX
+{% endblock %}
+{% block meta_description %}
+    Convert images between PNG, JPG, WEBP, and other formats. Batch conversion with quality control.
+{% endblock %}
+{% block head_extra %}
+    {% load static %}
+
+    <link rel="icon"
+          type="image/png"
+          sizes="192x192"
+          href="{% static 'images/scitex-icon/scitex-icon-navy-inverted-192x192.png' %}?v=3" />
+{% endblock %}
+{% block extra_css %}
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .tool-detail-container {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--workspace-bg-monaco);
+        }
+
+        .tool-breadcrumb {
+            padding: 8px 16px;
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+            font-size: 0.8rem;
+        }
+
+        .tool-breadcrumb a {
+            color: var(--workspace-text-link);
+            text-decoration: none;
+        }
+
+        .tool-breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .tool-header {
+            padding: 12px 16px;
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+            text-align: center;
+        }
+
+        .tool-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--workspace-text-primary);
+        }
+
+        .tool-description {
+            font-size: 0.8rem;
+            color: var(--workspace-text-secondary);
+            margin: 4px 0 0 0;
+        }
+
+        .tool-workspace {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .tool-left-panel {
+            width: 400px;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            background: var(--workspace-bg-secondary);
+            border-right: 1px solid var(--workspace-border-default);
+            overflow-y: auto;
+        }
+
+        .tool-right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--workspace-bg-monaco);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            height: 36px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            background: var(--workspace-bg-tertiary);
+            border-bottom: 1px solid var(--workspace-border-default);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--workspace-text-primary);
+            flex-shrink: 0;
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--workspace-border-default);
+            border-radius: 4px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--workspace-bg-monaco);
+            margin-bottom: 16px;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--workspace-text-link);
+            background: var(--workspace-bg-tertiary);
+        }
+
+        .upload-zone-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            color: var(--workspace-text-secondary);
+        }
+
+        .upload-zone-text {
+            font-size: 0.9rem;
+            color: var(--workspace-text-primary);
+            margin-bottom: 4px;
+        }
+
+        .upload-zone-hint {
+            font-size: 0.75rem;
+            color: var(--workspace-text-muted);
+        }
+
+        .controls-section {
+            margin-bottom: 16px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .control-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--workspace-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .control-select {
+            padding: 6px 10px;
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            font-size: 0.85rem;
+            background: var(--workspace-bg-tertiary);
+            color: var(--workspace-text-primary);
+        }
+
+        .control-select:focus {
+            outline: none;
+            border-color: var(--workspace-text-link);
+        }
+
+        .file-list {
+            margin-top: 16px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: var(--workspace-bg-tertiary);
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .file-thumbnail {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 3px;
+            background: var(--workspace-bg-monaco);
+        }
+
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--workspace-text-primary);
+            margin-bottom: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-size {
+            font-size: 0.75rem;
+            color: var(--workspace-text-muted);
+        }
+
+        .file-remove {
+            padding: 3px 10px;
+            background: transparent;
+            color: var(--workspace-text-secondary);
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.15s;
+        }
+
+        .file-remove:hover {
+            background: var(--status-error-bg);
+            border-color: var(--status-error);
+            color: var(--status-error);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--workspace-border-default);
+        }
+
+        .btn {
+            flex: 1;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--workspace-border-default);
+            transition: all 0.15s;
+            background: var(--workspace-bg-tertiary);
+            color: var(--workspace-text-primary);
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--workspace-bg-monaco);
+            border-color: var(--workspace-text-link);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: transparent;
+            border-color: var(--workspace-text-link);
+            color: var(--workspace-text-link);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--workspace-bg-tertiary);
+            border-color: var(--workspace-text-link);
+        }
+
+        .btn-danger {
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: var(--status-error-bg);
+            border-color: var(--status-error);
+            color: var(--status-error);
+        }
+
+        .status-message {
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 0.8rem;
+            border: 1px solid var(--workspace-border-default);
+        }
+
+        .status-message.success {
+            background: var(--workspace-bg-tertiary);
+            border-color: var(--status-success);
+            color: var(--status-success);
+        }
+
+        .status-message.processing {
+            background: var(--workspace-bg-tertiary);
+            border-color: var(--workspace-text-link);
+            color: var(--workspace-text-link);
+        }
+
+        .preview-panel-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            overflow: auto;
+        }
+
+        .preview-empty {
+            text-align: center;
+            color: var(--workspace-text-muted);
+            font-size: 0.9rem;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            width: 100%;
+        }
+
+        .preview-item {
+            background: var(--workspace-bg-secondary);
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .preview-image {
+            width: 100%;
+            height: 160px;
+            object-fit: contain;
+            background: var(--workspace-bg-monaco);
+            border-radius: 3px;
+        }
+
+        .preview-info {
+            font-size: 0.75rem;
+            color: var(--workspace-text-secondary);
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="tool-detail-container">
+        {% if not embed %}
+            <div class="tool-breadcrumb">
+                <a href="{% url 'tools_app:tools' %}">← Back to Tools</a>
+            </div>
+            <div class="tool-header">
+                <h1 class="tool-title">Convert Image Format</h1>
+                <p class="tool-description">Convert images between PNG, JPG, WEBP formats with quality control</p>
+            </div>
+        {% endif %}
+        <div class="tool-workspace">
+            <div class="tool-left-panel">
+                <div class="panel-header">Upload & Settings</div>
+                <div class="panel-content">
+                    <div id="uploadZone" class="upload-zone">
+                        <div class="upload-zone-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-zone-text">Drop images or click to upload</div>
+                        <div class="upload-zone-hint">PNG, JPG, WEBP</div>
+                        <input type="file" id="fileInput" accept="image/*" multiple style="display: none" />
+                    </div>
+                    <div id="statusMessage" style="display: none;"></div>
+                    <div class="controls-section">
+                        <div class="control-group">
+                            <label class="control-label">Output Format</label>
+                            <select id="formatSelect" class="control-select">
+                                <option value="png">PNG</option>
+                                <option value="jpeg">JPEG</option>
+                                <option value="webp">WebP</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Quality (JPEG/WebP)</label>
+                            <select id="qualitySelect" class="control-select">
+                                <option value="1.0">Maximum (100%)</option>
+                                <option value="0.92" selected>High (92%)</option>
+                                <option value="0.85">Medium (85%)</option>
+                                <option value="0.75">Low (75%)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="fileList" class="file-list" style="display: none;"></div>
+                    <div class="action-buttons">
+                        <button id="convertBtn" class="btn btn-primary" disabled>Convert</button>
+                        <button id="clearBtn" class="btn btn-danger" disabled>Clear</button>
+                    </div>
+                </div>
+            </div>
+            <div class="tool-right-panel">
+                <div class="panel-header">Preview</div>
+                <div class="preview-panel-content">
+                    <div id="previewArea" class="preview-empty">Upload images to preview</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+  let files = [];
+
+  const uploadZone = document.getElementById('uploadZone');
+  const fileInput = document.getElementById('fileInput');
+  const fileList = document.getElementById('fileList');
+  const formatSelect = document.getElementById('formatSelect');
+  const qualitySelect = document.getElementById('qualitySelect');
+  const convertBtn = document.getElementById('convertBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const statusMessage = document.getElementById('statusMessage');
+  const previewArea = document.getElementById('previewArea');
+
+  uploadZone.addEventListener('click', () => fileInput.click());
+
+  uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.style.borderColor = 'var(--workspace-text-link)';
+  });
+
+  uploadZone.addEventListener('dragleave', () => {
+    uploadZone.style.borderColor = 'var(--workspace-border-default)';
+  });
+
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.style.borderColor = 'var(--workspace-border-default)';
+    handleFiles(e.dataTransfer.files);
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    handleFiles(e.target.files);
+  });
+
+  function handleFiles(fileArray) {
+    files = Array.from(fileArray).filter(f => f.type.startsWith('image/'));
+    updateFileList();
+    updatePreview();
+  }
+
+  function updateFileList() {
+    if (files.length === 0) {
+      fileList.style.display = 'none';
+      convertBtn.disabled = true;
+      clearBtn.disabled = true;
+      return;
+    }
+
+    fileList.style.display = 'block';
+    convertBtn.disabled = false;
+    clearBtn.disabled = false;
+
+    fileList.innerHTML = '';
+    files.forEach((file, index) => {
+      const div = document.createElement('div');
+      div.className = 'file-item';
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        div.innerHTML = `
+          <img src="${e.target.result}" class="file-thumbnail" />
+          <div class="file-info">
+            <div class="file-name">${file.name}</div>
+            <div class="file-size">${(file.size / 1024).toFixed(1)} KB</div>
+          </div>
+          <button class="file-remove" data-index="${index}">Remove</button>
+        `;
+
+        div.querySelector('.file-remove').addEventListener('click', () => {
+          files.splice(index, 1);
+          updateFileList();
+          updatePreview();
+        });
+      };
+      reader.readAsDataURL(file);
+
+      fileList.appendChild(div);
+    });
+  }
+
+  function updatePreview() {
+    if (files.length === 0) {
+      previewArea.className = 'preview-empty';
+      previewArea.innerHTML = 'Upload images to preview';
+      return;
+    }
+
+    previewArea.className = 'preview-grid';
+    previewArea.innerHTML = '';
+
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const div = document.createElement('div');
+        div.className = 'preview-item';
+        div.innerHTML = `
+          <img src="${e.target.result}" class="preview-image" />
+          <div class="preview-info">${file.name}</div>
+        `;
+        previewArea.appendChild(div);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  convertBtn.addEventListener('click', async () => {
+    if (files.length === 0) return;
+
+    const format = formatSelect.value;
+    const quality = parseFloat(qualitySelect.value);
+    const mimeType = format === 'png' ? 'image/png' : format === 'jpeg' ? 'image/jpeg' : 'image/webp';
+
+    showStatus(`Converting ${files.length} image(s)...`, 'processing');
+    convertBtn.disabled = true;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const img = new Image();
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+
+          canvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const originalName = file.name.replace(/\.[^.]+$/, '');
+            a.href = url;
+            a.download = `${originalName}.${format}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            if (i === files.length - 1) {
+              showStatus(`Successfully converted ${files.length} image(s)!`, 'success');
+              convertBtn.disabled = false;
+            }
+          }, mimeType, quality);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  clearBtn.addEventListener('click', () => {
+    if (confirm('Clear all images?')) {
+      files = [];
+      fileInput.value = '';
+      updateFileList();
+      updatePreview();
+      statusMessage.style.display = 'none';
+    }
+  });
+
+  function showStatus(message, type = 'success') {
+    statusMessage.className = `status-message ${type}`;
+    statusMessage.textContent = message;
+    statusMessage.style.display = 'block';
+  }
+    </script>
+{% endblock %}

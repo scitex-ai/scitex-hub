@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.repository.repository_viewset import ...
+# from apps.workspace.scholar_app.views.repository.repository_viewset import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,27 +28,27 @@ if __name__ == "__main__":
 # """
 # ViewSet for managing available repositories.
 # """
-# 
+#
 # import logging
 # from rest_framework import viewsets
 # from rest_framework.response import Response
 # from rest_framework.permissions import IsAuthenticated
-# 
+#
 # from ...models import Repository
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # class RepositoryViewSet(viewsets.ReadOnlyModelViewSet):
 #     """ViewSet for listing available repositories"""
-# 
+#
 #     queryset = Repository.objects.filter(status="active")
 #     permission_classes = [IsAuthenticated]
-# 
+#
 #     def list(self, request):
 #         """List all available repositories"""
 #         repositories = self.get_queryset()
-# 
+#
 #         data = []
 #         for repo in repositories:
 #             data.append(
@@ -67,7 +68,7 @@ if __name__ == "__main__":
 #                     "supported_file_formats": repo.supported_file_formats,
 #                 }
 #             )
-# 
+#
 #         return Response(data)
 
 # --------------------------------------------------------------------------------

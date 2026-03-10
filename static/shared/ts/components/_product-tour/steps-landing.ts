@@ -55,7 +55,7 @@ export const LANDING_TOUR_STEPS: TourStep[] = [
     position: "bottom",
   },
   {
-    selector: '[href="/tools/"]',
+    selector: '[href="/apps/tools/"]',
     title: "Tools",
     description:
       "Access research utilities: bookmarklets, converters, and more.",

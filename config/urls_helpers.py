@@ -88,7 +88,7 @@ RESERVED_PATHS = get_reserved_paths()
 
 def dev_module_view(request, rest):
     """Serve dev-installed app modules via workspace shell."""
-    from apps.workspace_app.views import workspace_shell
+    from apps.infra.workspace_app.views import workspace_shell
 
     return workspace_shell(request, module=f"dev__{rest}")
 

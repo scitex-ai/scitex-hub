@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.models.pull_requests.label import ...
+# from apps.infra.project_app.models.pull_requests.label import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,15 +28,15 @@ if __name__ == "__main__":
 # """
 # Pull Request Label model - labels for categorizing PRs.
 # """
-# 
+#
 # from django.db import models
-# 
-# 
+#
+#
 # class PullRequestLabel(models.Model):
 #     """
 #     Model for PR labels (e.g., 'bug', 'enhancement', 'documentation').
 #     """
-# 
+#
 #     project = models.ForeignKey(
 #         "project_app.Project",
 #         on_delete=models.CASCADE,
@@ -50,13 +51,13 @@ if __name__ == "__main__":
 #     )
 #     description = models.TextField(blank=True, help_text="Label description")
 #     created_at = models.DateTimeField(auto_now_add=True)
-# 
+#
 #     class Meta:
 #         unique_together = ("project", "name")
 #         ordering = ["name"]
 #         verbose_name = "Pull Request Label"
 #         verbose_name_plural = "Pull Request Labels"
-# 
+#
 #     def __str__(self):
 #         return self.name
 

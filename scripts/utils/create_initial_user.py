@@ -24,7 +24,7 @@ django.setup()
 
 from django.contrib.auth.models import User
 
-from apps.workspace_app.models import UserProfile
+from apps.infra.workspace_app.models import UserProfile
 
 
 def create_initial_user():

@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.public_app.views.status.helpers import ...
+# from apps.infra.public_app.views.status.helpers import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,25 +32,25 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/public_app/views/status/helpers.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
-# 
+#
 # """
 # Status View Helper Functions
-# 
+#
 # Utility functions for GPU info, GPU utilization, and visitor pool status.
 # """
-# 
+#
 # import logging
 # import subprocess
-# 
+#
 # from django.utils import timezone
-# 
+#
 # logger = logging.getLogger("scitex")
-# 
-# 
+#
+#
 # def get_gpu_utilization():
 #     """Get GPU utilization percentage."""
 #     gpu_percent = None
@@ -64,7 +65,7 @@ if __name__ == "__main__":
 #                 gpu_percent = float(result.stdout.strip().split('\n')[0])
 #         except:
 #             pass
-# 
+#
 #         # Try AMD rocm-smi
 #         if gpu_percent is None:
 #             try:
@@ -84,18 +85,18 @@ if __name__ == "__main__":
 #                 pass
 #     except:
 #         pass
-# 
+#
 #     return gpu_percent
-# 
-# 
+#
+#
 # def check_visitor_pool_status(request, status_data):
 #     """Check visitor pool status and allocations."""
 #     try:
-#         from apps.project_app.services.visitor_pool import VisitorPool
-#         from apps.project_app.models import VisitorAllocation
-# 
+#         from apps.infra.project_app.services.visitor_pool import VisitorPool
+#         from apps.infra.project_app.models import VisitorAllocation
+#
 #         pool_status = VisitorPool.get_pool_status()
-# 
+#
 #         # Get current user's allocation
 #         user_allocation = None
 #         allocation_token = request.session.get(VisitorPool.SESSION_KEY_ALLOCATION_TOKEN)
@@ -108,19 +109,19 @@ if __name__ == "__main__":
 #                 )
 #             except VisitorAllocation.DoesNotExist:
 #                 pass
-# 
+#
 #         user_visitor_number = user_allocation.visitor_number if user_allocation else None
-# 
+#
 #         # Get all allocations
 #         allocations = []
 #         for i in range(1, VisitorPool.POOL_SIZE + 1):
 #             allocation = VisitorAllocation.objects.filter(visitor_number=i).first()
 #             is_current_user = (user_visitor_number == i)
-# 
+#
 #             if allocation and allocation.is_active and allocation.expires_at > timezone.now():
 #                 time_remaining = allocation.expires_at - timezone.now()
 #                 total_minutes = int(time_remaining.total_seconds() / 60)
-# 
+#
 #                 allocations.append({
 #                     "slot_number": i,
 #                     "status": "allocated",
@@ -138,7 +139,7 @@ if __name__ == "__main__":
 #                     "visitor_username": None,
 #                     "is_current_user": False,
 #                 })
-# 
+#
 #         status_data["visitor_pool"] = {
 #             "pool_status": pool_status,
 #             "allocations": allocations,
@@ -147,8 +148,8 @@ if __name__ == "__main__":
 #     except Exception as e:
 #         logger.warning(f"Could not get visitor pool status: {e}")
 #         status_data["visitor_pool"] = {"error": str(e)}
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

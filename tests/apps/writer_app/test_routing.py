@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.writer_app.routing import ...
+# from apps.workspace.writer_app.routing import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -27,10 +28,10 @@ if __name__ == "__main__":
 # """
 # WebSocket URL routing for Writer app.
 # """
-# 
+#
 # from django.urls import re_path
 # from . import consumers
-# 
+#
 # websocket_urlpatterns = [
 #     re_path(
 #         r"ws/writer/manuscript/(?P<manuscript_id>\d+)/$",

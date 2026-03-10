@@ -1,0 +1,31 @@
+{% extends "global_base.html" %}
+
+{% load static vite %}
+
+{% block title %}Hub{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'hub_app/css/hub.css' %}" />
+    {% include 'hub_app/partials/hub_browse_styles.html' %}
+{% endblock %}
+{% block content %}
+    <div class="hub-workspace">
+        <main class="hub-main"
+              data-username="{{ user.username }}"
+              data-initial-mode="{{ hub_initial_mode|default:'' }}">
+            {% include 'hub_app/partials/hub_mode_switcher.html' %}
+            <div id="hub-main-content">
+                {% if hub_view_mode == "profile" %}
+                    {% include 'hub_app/partials/user_profile_content.html' %}
+                {% elif current_project %}
+                    {% include 'hub_app/partials/project_workspace.html' with project=current_project %}
+                {% else %}
+                    {% include 'hub_app/partials/projects_overview.html' %}
+                {% endif %}
+            </div>
+        </main>
+    </div>
+{% endblock %}
+{% block extra_js %}
+    {% vite_hmr_client %}
+    {% vite_script 'hub_app/index' %}
+{% endblock %}

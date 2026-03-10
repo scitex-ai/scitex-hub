@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.scholar_app.views.search.storage import ...
+# from apps.workspace.scholar_app.views.search.storage import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,7 +32,7 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/scholar_app/views/search/storage.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
@@ -56,40 +57,40 @@ if __name__ == "__main__":
 #     CollaborationGroup, GroupMembership,
 #     AnnotationTag, UserPreference,
 # )
-# from apps.project_app.services import get_current_project
+# from apps.infra.project_app.services import get_current_project
 # from ...models import AuthorPaper
 # from .citations import validate_citation_count
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
+#
 # # Import scitex.scholar if available
 # try:
 #     from scitex.scholar.pipelines.ScholarPipelineSearchParallel import ScholarPipelineSearchParallel
 #     SCITEX_SCHOLAR_AVAILABLE = True
 # except ImportError:
 #     SCITEX_SCHOLAR_AVAILABLE = False
-# 
-# 
+#
+#
 # def store_search_result(result):
 #     """Store search result in database with deduplication."""
 #     try:
 #         # Check for existing paper using multiple identifiers
 #         existing_paper = None
-# 
+#
 #         # Check by DOI first (most reliable)
 #         if result.get("doi"):
 #             existing_paper = SearchIndex.objects.filter(doi=result["doi"]).first()
-# 
+#
 #         # Check by PMID
 #         if not existing_paper and result.get("pmid"):
 #             existing_paper = SearchIndex.objects.filter(pmid=result["pmid"]).first()
-# 
+#
 #         # Check by arXiv ID
 #         if not existing_paper and result.get("arxiv_id"):
 #             existing_paper = SearchIndex.objects.filter(
 #                 arxiv_id=result["arxiv_id"]
 #             ).first()
-# 
+#
 #         # Check by title similarity (exact match or very close)
 #         if not existing_paper and result.get("title"):
 #             title_lower = result["title"].lower().strip()
@@ -97,7 +98,7 @@ if __name__ == "__main__":
 #             existing_paper = SearchIndex.objects.filter(
 #                 title__iexact=title_lower
 #             ).first()
-# 
+#
 #             # Check for very similar titles (remove common words and check)
 #             if not existing_paper:
 #                 title_clean = " ".join(
@@ -113,11 +114,11 @@ if __name__ == "__main__":
 #                         if abs(len(similar_paper.title) - len(result["title"])) < 10:
 #                             existing_paper = similar_paper
 #                             break
-# 
+#
 #         # If paper exists, update it with new information
 #         if existing_paper:
 #             logger.info(f"Found existing paper, updating: {existing_paper.title}")
-# 
+#
 #             # Update source_engines list (merge sources)
 #             result_sources = result.get("source_engines", [])
 #             if isinstance(result_sources, list) and result_sources:
@@ -139,7 +140,7 @@ if __name__ == "__main__":
 #                 source = result.get("source", "unknown")
 #                 if source not in existing_sources:
 #                     existing_paper.source_engines = existing_sources + [source]
-# 
+#
 #             # Update citation count if new source provides better data
 #             new_citation_count, is_reliable = validate_citation_count(
 #                 result.get("citations", 0), result.get("source", "unknown")
@@ -148,7 +149,7 @@ if __name__ == "__main__":
 #                 existing_paper.citation_count = new_citation_count
 #                 existing_paper.citation_source = result.get("source", "unknown")
 #                 existing_paper.citation_last_updated = timezone.now()
-# 
+#
 #             # Update missing fields
 #             if not existing_paper.abstract and result.get("abstract"):
 #                 existing_paper.abstract = result["abstract"]
@@ -166,16 +167,16 @@ if __name__ == "__main__":
 #                 existing_paper.arxiv_id = (
 #                     result["arxiv_id"] or None
 #                 )  # Convert empty strings to None
-# 
+#
 #             # Update authors if existing paper has no authors
 #             if not existing_paper.authors.exists() and result.get("authors"):
 #                 _create_paper_authors(
 #                     paper=existing_paper, authors_str=result["authors"]
 #                 )
-# 
+#
 #             existing_paper.save()
 #             return existing_paper
-# 
+#
 #         # Create or get journal
 #         journal = None
 #         if result.get("journal"):
@@ -183,12 +184,12 @@ if __name__ == "__main__":
 #                 name=result["journal"],
 #                 defaults={"abbreviation": result["journal"][:10]},
 #             )
-# 
+#
 #         # Prepare source_engines list
 #         source_engines = result.get("source_engines", [])
 #         if not source_engines and result.get("source"):
 #             source_engines = [result.get("source", "web")]
-# 
+#
 #         # Create new paper
 #         paper = SearchIndex.objects.create(
 #             title=result["title"],
@@ -211,13 +212,13 @@ if __name__ == "__main__":
 #             source_engines=source_engines,
 #             relevance_score=1.0,
 #         )
-# 
+#
 #         # Create authors
 #         if result.get("authors"):
 #             _create_paper_authors(paper=paper, authors_str=result["authors"])
-# 
+#
 #         return paper
-# 
+#
 #     except Exception as e:
 #         logger.error(f"Error storing search result: {e}")
 #         # Return a minimal paper object if storage fails
@@ -234,20 +235,20 @@ if __name__ == "__main__":
 #             logger.error(f"Failed to create fallback paper: {inner_e}")
 #             # Return None and let caller handle it
 #             return None
-# 
-# 
-# 
-# 
+#
+#
+#
+#
 # def _create_paper_authors(paper, authors_str):
 #     """Helper function to create author associations for a paper.
-# 
+#
 #     Args:
 #         paper: SearchIndex paper object
 #         authors_str: String of comma-separated authors or list of author names
 #     """
 #     if not authors_str:
 #         return
-# 
+#
 #     # Handle both string and list inputs
 #     if isinstance(authors_str, str):
 #         author_names = authors_str.split(", ")
@@ -255,27 +256,27 @@ if __name__ == "__main__":
 #         author_names = authors_str
 #     else:
 #         return
-# 
+#
 #     for i, author_name in enumerate(author_names):
 #         if author_name and author_name.strip():
 #             # Simple name parsing
 #             name_parts = author_name.strip().split()
 #             first_name = name_parts[0] if name_parts else ""
 #             last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else ""
-# 
+#
 #             author, created = Author.objects.get_or_create(
 #                 first_name=first_name, last_name=last_name, defaults={"email": ""}
 #             )
-# 
+#
 #             # Link author to paper
 #             from ...models import AuthorPaper
-# 
+#
 #             AuthorPaper.objects.get_or_create(
 #                 author=author, paper=paper, defaults={"author_order": i + 1}
 #             )
-# 
-# 
-# 
+#
+#
+#
 
 # --------------------------------------------------------------------------------
 # End of Source Code from: apps/scholar_app/views/search/storage.py

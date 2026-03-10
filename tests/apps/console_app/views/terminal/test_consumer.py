@@ -32,7 +32,7 @@ def _build_consumer():
     is called inside individual tests. This keeps the test class itself
     importable even when channels/SLURM are not configured.
     """
-    from apps.console_app.views.terminal.consumer import TerminalConsumer
+    from apps.workspace.console_app.views.terminal.consumer import TerminalConsumer
 
     consumer = TerminalConsumer.__new__(TerminalConsumer)
     consumer.send = AsyncMock()

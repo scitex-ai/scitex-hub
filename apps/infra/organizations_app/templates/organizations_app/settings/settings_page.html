@@ -1,0 +1,47 @@
+{% extends 'global_base.html' %}
+
+{% comment %}
+Organization settings page — GitHub-style settings with sidebar nav.
+Loaded via /<org-slug>/settings/ or /<org-slug>/settings/<section>/
+{% endcomment %}
+{% load static vite %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'hub_app/css/hub.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
+    <link rel="stylesheet" href="{% static 'organizations_app/css/org-profile.css' %}" />
+    <link rel="stylesheet" href="{% static 'organizations_app/css/org-settings.css' %}" />
+{% endblock %}
+{% block content %}
+    <!-- Org Mode Switcher — reuses hub-mode classes for visual consistency -->
+    <div class="org-profile-page">
+        <div class="hub-mode-switcher" id="hub-mode-switcher">
+            <a href="/{{ organization.slug }}/" class="hub-mode">
+                <i class="fas fa-th-large"></i> Overview
+            </a>
+            <a href="/{{ organization.slug }}/settings/" class="hub-mode hub-mode-active">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+        </div>
+    </div>
+    <div class="settings-page" id="org-settings">
+        <div class="settings-layout">
+            <!-- Left Navigation -->
+            <aside class="settings-nav">
+                {% include 'organizations_app/settings/settings_nav.html' %}
+            </aside>
+            <!-- Right Content -->
+            <main class="settings-content" id="org-settings-content">
+                <div id="org-settings-message"></div>
+                <div id="org-settings-section-content">
+                    {% if section_template %}
+                        {% include section_template %}
+                    {% else %}
+                        {% include 'organizations_app/settings/general_section.html' %}
+                    {% endif %}
+                </div>
+            </main>
+        </div>
+    </div>
+    {% vite_script 'organizations_app/org-settings' %}
+{% endblock %}

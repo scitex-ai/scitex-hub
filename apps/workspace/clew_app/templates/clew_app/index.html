@@ -1,0 +1,106 @@
+{% extends "global_base.html" %}
+
+{% load static vite tree_preseed %}
+
+{% block title %}
+    SciTeX Clew
+    {% if current_project %}- {{ current_project.name }}{% endif %}
+{% endblock %}
+{% block extra_css %}
+    <!-- Shared workspace components -->
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-files-tree.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-files-tree/hidden-files-toggle.css' %}" />
+    <!-- Clew specific styles -->
+    <link rel="stylesheet" href="{% static 'clew_app/css/clew.css' %}" />
+{% endblock %}
+{% block content %}
+    {% if current_project %}
+        <div id="workspace-project-config"
+             data-project-id="{{ current_project.id }}"
+             data-username="{{ current_project.owner.username }}"
+             data-project-slug="{{ current_project.slug }}"
+             data-mode="clew"></div>
+    {% endif %}
+    <div class="clew-workspace"
+         data-ai-hint="Clew workspace: pipeline DAG editor, verification chain visualization, dependency tracking">
+        <!-- CENTER - DAG VISUALIZATION WORKSPACE -->
+        <main class="clew-main"
+              data-ai-hint="DAG visualization area: displays verification chain as directed acyclic graph">
+            <div class="pane-header" data-pane-type="module">
+                <nav class="clew-tabs" id="clewModeSelector">
+                    <button class="clew-tab active"
+                            data-mode="project"
+                            title="Full pipeline DAG — shows all tracked runs and their dependencies">
+                        <i class="fas fa-diagram-project"></i> Project
+                    </button>
+                    <button class="clew-tab"
+                            data-mode="file"
+                            title="File trace — drop or select a file to trace its dependency chain back to source data">
+                        <i class="fas fa-file-code"></i> File(s)
+                    </button>
+                    <button class="clew-tab"
+                            data-mode="claims"
+                            title="Claims — link manuscript assertions to the scripts that produced them">
+                        <i class="fas fa-list-check"></i> Claims
+                    </button>
+                </nav>
+                <div class="pane-header-actions"></div>
+            </div>
+            <div id="clewModeInfo" class="clew-mode-info"></div>
+            <div class="dag-visualization-area">
+                <div class="dag-placeholder">
+                    <img src="{% static 'clew_app/clew-icon.svg' %}"
+                         alt="Clew"
+                         class="dag-placeholder-icon" />
+                    <h3>DAG Visualization</h3>
+                    <p>Verification chain will appear here</p>
+                    <p class="text-muted">
+                        Uses <code>scitex.clew</code> package for dependency tracking
+                    </p>
+                </div>
+            </div>
+        </main>
+        <!-- Details resizer (auto-initialized via data attributes) -->
+        <div class="panel-resizer"
+             id="details-resizer"
+             data-panel-resizer
+             data-storage-prefix="scitex-clew-"
+             data-target=".clew-details"
+             data-direction="right"
+             data-min-width="48"
+             data-default-width="280"
+             data-storage-key="details-width"
+             data-collapse-key="clew-details-collapsed"
+             data-toggle-btn="details-toggle"></div>
+        <!-- RIGHT SIDEBAR - DETAILS -->
+        <aside class="clew-details collapsible-panel" id="clew-details">
+            <div class="details-header">
+                <button class="details-toggle panel-toggle-btn right-panel-toggle"
+                        id="details-toggle"
+                        title="Toggle details (Ctrl+Shift+D)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <span class="panel-title">
+                    <i class="fas fa-sliders-h"></i> Details
+                </span>
+            </div>
+            <div class="details-content" id="clew-details-content">
+                <div class="details-placeholder">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Select a node to view verification details</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+{% endblock %}
+{% block extra_js %}
+    {% vite_hmr_client %}
+    {% tree_preseed_script current_project %}
+    {% vite_script 'shared/workspace-tree-init' %}
+    {% vite_script 'clew_app/clew-init' %}
+{% endblock %}

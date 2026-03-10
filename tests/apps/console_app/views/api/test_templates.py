@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.views.api.templates import ...
+# from apps.workspace.console_app.views.api.templates import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,11 +29,11 @@ if __name__ == "__main__":
 # """
 # API views for SciTeX-Code Jupyter notebook integration.
 # """
-# 
+#
 # import json
 # import logging
 # import threading
-# 
+#
 # from django.contrib.auth.decorators import login_required
 # from django.http import JsonResponse
 # from django.utils.decorators import method_decorator
@@ -42,7 +43,7 @@ if __name__ == "__main__":
 # from rest_framework.permissions import IsAuthenticated
 # from rest_framework.response import Response
 # from rest_framework import status
-# 
+#
 # from ...models import Notebook, CodeExecutionJob
 # from ...services.jupyter import (
 #     NotebookManager,
@@ -51,21 +52,21 @@ if __name__ == "__main__":
 #     NotebookTemplates,
 #     NotebookValidator,
 # )
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # @method_decorator(login_required, name="dispatch")
 # class NotebookAPIView(View):
 #     """Base API view for notebook operations."""
-# 
+#
 #     def get_notebook_manager(self):
 #         return NotebookManager(self.request.user)
-# 
-# 
+#
+#
 # class NotebookTemplatesAPI(NotebookAPIView):
 #     """API for notebook templates."""
-# 
+#
 #     def get(self, request):
 #         """Get available notebook templates."""
 #         try:
@@ -95,9 +96,9 @@ if __name__ == "__main__":
 #                     "category": "visualization",
 #                 },
 #             ]
-# 
+#
 #             return JsonResponse({"status": "success", "templates": templates})
-# 
+#
 #         except Exception as e:
 #             logger.error(f"Error getting templates: {e}")
 #             return JsonResponse({"status": "error", "message": str(e)}, status=500)

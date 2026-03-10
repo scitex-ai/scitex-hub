@@ -183,11 +183,13 @@ class AppNavigationHistory {
     if (isWorkspaceShell) {
       return `/apps/workspace/${state.module}/`;
     }
-    return `/${state.module}/`;
+    return `/apps/${state.module}/`;
   }
 
   private detectModule(): string {
-    const match = location.pathname.match(/^\/(?:workspace\/)?([a-z]+)\//);
+    const match = location.pathname.match(
+      /^\/(?:apps\/|workspace\/)?([a-z][a-z0-9_-]+)\//,
+    );
     return match ? match[1] : "writer";
   }
 

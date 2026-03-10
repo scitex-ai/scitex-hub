@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.console_app.views.service_api_list import ...
+# from apps.workspace.console_app.views.service_api_list import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -28,7 +29,7 @@ if __name__ == "__main__":
 # """
 # API views for Project Service listing and metadata.
 # """
-# 
+#
 # import logging
 # from django.contrib.auth.decorators import login_required
 # from django.http import JsonResponse
@@ -38,29 +39,29 @@ if __name__ == "__main__":
 # from rest_framework.decorators import api_view, permission_classes
 # from rest_framework.permissions import IsAuthenticated
 # from rest_framework.response import Response
-# 
-# from apps.project_app.models.repository.project import Project
-# from apps.console_app.models import ProjectService
-# from apps.console_app.services.project_service_manager import ProjectServiceManager
-# 
+#
+# from apps.infra.project_app.models.repository.project import Project
+# from apps.workspace.console_app.models import ProjectService
+# from apps.workspace.console_app.services.project_service_manager import ProjectServiceManager
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # @method_decorator(login_required, name="dispatch")
 # class ProjectServiceAPIView(View):
 #     """Base API view for project service operations."""
-# 
+#
 #     def get_service_manager(self):
 #         return ProjectServiceManager()
-# 
-# 
+#
+#
 # class ServiceListAPI(ProjectServiceAPIView):
 #     """API for listing services."""
-# 
+#
 #     def get(self, request, username, project_slug):
 #         """
 #         List active services for a project.
-# 
+#
 #         Returns:
 #             {
 #                 "success": true,
@@ -84,7 +85,7 @@ if __name__ == "__main__":
 #                 owner__username=username,
 #                 slug=project_slug
 #             )
-# 
+#
 #             # Check access
 #             manager = self.get_service_manager()
 #             if not manager._has_project_access(request.user, project):
@@ -92,13 +93,13 @@ if __name__ == "__main__":
 #                     {"success": False, "error": "Access denied"},
 #                     status=403
 #                 )
-# 
+#
 #             # Get active services
 #             services = ProjectService.objects.filter(
 #                 project=project,
 #                 status__in=["starting", "running"]
 #             )
-# 
+#
 #             service_data = []
 #             for service in services:
 #                 service_data.append({
@@ -110,26 +111,26 @@ if __name__ == "__main__":
 #                     "started_at": service.started_at.isoformat(),
 #                     "uptime": service.uptime
 #                 })
-# 
+#
 #             return JsonResponse({
 #                 "success": True,
 #                 "services": service_data
 #             })
-# 
+#
 #         except Exception as e:
 #             logger.error(f"Failed to list services: {e}", exc_info=True)
 #             return JsonResponse(
 #                 {"success": False, "error": "Internal server error"},
 #                 status=500
 #             )
-# 
-# 
+#
+#
 # @api_view(["GET"])
 # @permission_classes([IsAuthenticated])
 # def service_types_api(request):
 #     """
 #     Get available service types.
-# 
+#
 #     Returns:
 #         {
 #             "success": true,
@@ -165,7 +166,7 @@ if __name__ == "__main__":
 #             "description": "Data app framework"
 #         },
 #     ]
-# 
+#
 #     return Response({
 #         "success": True,
 #         "service_types": service_types

@@ -4,7 +4,7 @@
 
 import pytest
 
-# from apps.project_app.views.repository.file_edit import ...
+# from apps.infra.project_app.views.repository.file_edit import ...
 
 
 class TestPlaceholder:
@@ -13,6 +13,7 @@ class TestPlaceholder:
     def test_placeholder(self):
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
+
 
 if __name__ == "__main__":
     import os
@@ -31,53 +32,53 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # """
 # Repository File Edit
-# 
+#
 # Handles file editing functionality.
 # """
-# 
+#
 # from __future__ import annotations
-# 
+#
 # import logging
-# 
+#
 # from django.shortcuts import render, redirect, get_object_or_404
 # from django.contrib.auth.decorators import login_required
 # from django.contrib import messages
 # from django.contrib.auth.models import User
-# 
-# from apps.project_app.models import Project
-# 
+#
+# from apps.infra.project_app.models import Project
+#
 # logger = logging.getLogger(__name__)
-# 
-# 
+#
+#
 # @login_required
 # def project_file_edit(request, username, slug, file_path):
 #     """
 #     Edit file content.
-# 
+#
 #     This view is separated from file_view to keep files under 200 lines.
 #     """
 #     user = get_object_or_404(User, username=username)
 #     project = get_object_or_404(Project, slug=slug, owner=user)
-# 
+#
 #     # Only project owner can edit files
 #     if not (project.owner == request.user):
 #         messages.error(request, "Only project owner can edit files.")
 #         return redirect("project_app:detail", username=username, slug=slug)
-# 
+#
 #     # Get file path
-#     from apps.project_app.services.project_filesystem import (
+#     from apps.infra.project_app.services.project_filesystem import (
 #         get_project_filesystem_manager,
 #     )
-# 
+#
 #     manager = get_project_filesystem_manager(project.owner)
 #     project_path = manager.get_project_root_path(project)
-# 
+#
 #     if not project_path or not project_path.exists():
 #         messages.error(request, "Project directory not found.")
 #         return redirect("project_app:detail", username=username, slug=slug)
-# 
+#
 #     full_file_path = project_path / file_path
-# 
+#
 #     # Security check
 #     try:
 #         full_file_path = full_file_path.resolve()
@@ -87,12 +88,12 @@ if __name__ == "__main__":
 #     except Exception:
 #         messages.error(request, "Invalid file path.")
 #         return redirect("project_app:detail", username=username, slug=slug)
-# 
+#
 #     # Check if file exists and is a file
 #     if not full_file_path.exists() or not full_file_path.is_file():
 #         messages.error(request, "File not found.")
 #         return redirect("project_app:detail", username=username, slug=slug)
-# 
+#
 #     if request.method == "POST":
 #         # Save edited content
 #         new_content = request.POST.get("content", "")
@@ -110,7 +111,7 @@ if __name__ == "__main__":
 #             )
 #         except Exception as e:
 #             messages.error(request, f"Error saving file: {e}")
-# 
+#
 #     # Read current content for editing
 #     try:
 #         with open(full_file_path, "r", encoding="utf-8", errors="ignore") as f:
@@ -118,7 +119,7 @@ if __name__ == "__main__":
 #     except Exception as e:
 #         messages.error(request, f"Error reading file: {e}")
 #         return redirect("project_app:detail", username=username, slug=slug)
-# 
+#
 #     # Build breadcrumb
 #     breadcrumbs = [{"name": project.name, "url": f"/{username}/{slug}/"}]
 #     path_parts = file_path.split("/")
@@ -132,7 +133,7 @@ if __name__ == "__main__":
 #             )
 #         else:
 #             breadcrumbs.append({"name": part, "url": None})
-# 
+#
 #     context = {
 #         "project": project,
 #         "file_name": full_file_path.name,
@@ -142,8 +143,8 @@ if __name__ == "__main__":
 #         "mode": "edit",
 #     }
 #     return render(request, "project_app/repository/file_edit.html", context)
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

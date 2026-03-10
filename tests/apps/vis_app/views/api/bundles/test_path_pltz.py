@@ -27,7 +27,9 @@ class TestGetPltzPreviewByPath:
 
     def test_missing_path_returns_400(self, request_factory, mock_user):
         """Should return 400 if path parameter is missing."""
-        from apps.vis_app.views.api.bundles.path_pltz import get_pltz_preview_by_path
+        from apps.workspace.vis_app.views.api.bundles.path_pltz import (
+            get_pltz_preview_by_path,
+        )
 
         request = request_factory.get("/vis/api/bundles/pltz/preview/")
         request.user = mock_user
@@ -40,15 +42,17 @@ class TestGetPltzPreviewByPath:
         self, request_factory, mock_user
     ):
         """Should resolve relative paths using project context."""
-        from apps.vis_app.views.api.bundles.path_pltz import get_pltz_preview_by_path
+        from apps.workspace.vis_app.views.api.bundles.path_pltz import (
+            get_pltz_preview_by_path,
+        )
 
         mock_project = Mock()
         mock_project.get_local_path.return_value = Path("/data/projects/owner/slug")
 
-        with patch("apps.project_app.models.Project") as MockProject:
+        with patch("apps.infra.project_app.models.Project") as MockProject:
             MockProject.objects.get.return_value = mock_project
             with patch(
-                "apps.vis_app.services.pltz_service.PltzService.get_preview_image"
+                "apps.workspace.vis_app.services.pltz_service.PltzService.get_preview_image"
             ) as mock_preview:
                 mock_preview.return_value = b"PNG_DATA"
 
@@ -72,14 +76,16 @@ class TestGetPltzPreviewByPath:
 
     def test_returns_png_content_type(self, request_factory, mock_user):
         """Should return correct content type for PNG."""
-        from apps.vis_app.views.api.bundles.path_pltz import get_pltz_preview_by_path
+        from apps.workspace.vis_app.views.api.bundles.path_pltz import (
+            get_pltz_preview_by_path,
+        )
 
         with patch(
-            "apps.vis_app.views.api.bundles._path_helpers.resolve_bundle_path"
+            "apps.workspace.vis_app.views.api.bundles._path_helpers.resolve_bundle_path"
         ) as mock_resolve:
             mock_resolve.return_value = Path("/absolute/path/figure.pltz")
             with patch(
-                "apps.vis_app.services.pltz_service.PltzService.get_preview_image"
+                "apps.workspace.vis_app.services.pltz_service.PltzService.get_preview_image"
             ) as mock_preview:
                 mock_preview.return_value = b"PNG_DATA"
 
@@ -100,7 +106,7 @@ class TestLoadPltzByPath:
 
     def test_missing_path_returns_400(self, request_factory, mock_user):
         """Should return 400 if path parameter is missing."""
-        from apps.vis_app.views.api.bundles.path_pltz import load_pltz_by_path
+        from apps.workspace.vis_app.views.api.bundles.path_pltz import load_pltz_by_path
 
         request = request_factory.get("/vis/api/bundles/pltz/load/")
         request.user = mock_user
@@ -117,7 +123,9 @@ class TestCreatePltzFromPlot:
         """Should return 400 if plot_type is missing."""
         import json
 
-        from apps.vis_app.views.api.bundles.path_pltz import create_pltz_from_plot
+        from apps.workspace.vis_app.views.api.bundles.path_pltz import (
+            create_pltz_from_plot,
+        )
 
         request = request_factory.post(
             "/vis/api/bundles/pltz/create/",

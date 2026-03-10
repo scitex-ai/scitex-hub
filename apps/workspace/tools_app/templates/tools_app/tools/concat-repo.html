@@ -1,0 +1,461 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% block title %}GitHub Repository Concatenator - Browser Tool | SciTeX{% endblock %}
+{% block meta_description %}
+    Concatenate repository files into a single AI-ready document. Perfect for code review with AI assistants.
+{% endblock %}
+{% block head_extra %}
+    {% load static %}
+
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+{% endblock %}
+{% block extra_css %}
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .tool-detail-container {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--workspace-bg-monaco);
+        }
+
+        .tool-breadcrumb {
+            padding: 8px 16px;
+            font-size: 12px;
+            color: var(--workspace-text-secondary);
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+        }
+
+        .tool-breadcrumb a {
+            color: var(--workspace-text-link);
+            text-decoration: none;
+        }
+
+        .tool-breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .tool-header {
+            padding: 20px 16px;
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+            text-align: center;
+        }
+
+        .tool-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--workspace-text-primary);
+        }
+
+        .tool-subtitle {
+            font-size: 12px;
+            color: var(--workspace-text-secondary);
+        }
+
+        .tool-panels {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--workspace-border-default);
+        }
+
+        .panel:last-child {
+            border-right: none;
+        }
+
+        .panel-header {
+            height: 36px;
+            padding: 0 12px;
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--workspace-text-primary);
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            background: var(--workspace-bg-monaco);
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--workspace-border-default);
+            border-radius: 6px;
+            padding: 48px 20px;
+            text-align: center;
+            cursor: pointer;
+            background: var(--workspace-bg-monaco);
+            transition: border-color 0.2s;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--workspace-text-link);
+        }
+
+        .upload-zone-title {
+            font-size: 14px;
+            color: var(--workspace-text-primary);
+            margin-bottom: 4px;
+        }
+
+        .upload-zone-hint {
+            font-size: 11px;
+            color: var(--workspace-text-secondary);
+        }
+
+        .control-group {
+            margin-bottom: 16px;
+        }
+
+        .control-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--workspace-text-secondary);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .control-input {
+            width: 100%;
+            padding: 6px 8px;
+            background: var(--workspace-bg-tertiary);
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            color: var(--workspace-text-primary);
+            font-size: 12px;
+        }
+
+        .extension-chips {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .chip {
+            padding: 4px 8px;
+            background: var(--workspace-bg-tertiary);
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 3px;
+            font-size: 11px;
+            cursor: pointer;
+            color: var(--workspace-text-secondary);
+            transition: all 0.2s;
+        }
+
+        .chip.active {
+            background: var(--workspace-text-link);
+            color: var(--workspace-bg-monaco);
+            border-color: var(--workspace-text-link);
+        }
+
+        .btn {
+            padding: 3px 10px;
+            background: transparent;
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            color: var(--workspace-text-primary);
+            transition: all 0.2s;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--workspace-bg-tertiary);
+            border-color: var(--workspace-text-link);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .preview {
+            background: var(--workspace-bg-monaco);
+            padding: 12px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 11px;
+            color: var(--workspace-text-primary);
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.5;
+        }
+
+        .stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--workspace-text-link);
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: var(--workspace-text-secondary);
+            margin-top: 2px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="tool-detail-container">
+        {% if not embed %}
+            <div class="tool-breadcrumb">
+                <a href="{% url 'tools_app:tools' %}">← Back to Tools</a>
+            </div>
+            <div class="tool-header">
+                <h1 class="tool-title">Concat Repo</h1>
+                <p class="tool-subtitle">Concatenate code files into AI-ready format</p>
+            </div>
+        {% endif %}
+        <div class="tool-panels">
+            <!-- Left Panel: Input -->
+            <div class="panel">
+                <div class="panel-header">Input</div>
+                <div class="panel-content">
+                    <div id="uploadZone" class="upload-zone">
+                        <div style="font-size: 2rem;
+                                    margin-bottom: 8px;
+                                    color: var(--workspace-text-secondary)">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-zone-title">Drop repository .zip file</div>
+                        <div class="upload-zone-hint">Or download from GitHub: Code → Download ZIP</div>
+                        <input type="file" id="fileInput" accept=".zip" style="display: none" />
+                    </div>
+                    <div id="controls" style="display: none; margin-top: 16px;">
+                        <div class="control-group">
+                            <label class="control-label">Max Lines per File</label>
+                            <input type="number"
+                                   id="maxLines"
+                                   class="control-input"
+                                   value="100"
+                                   min="10"
+                                   max="1000" />
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Max Depth</label>
+                            <input type="number" id="maxDepth" class="control-input" value="5" min="1" max="10" />
+                        </div>
+                        <div id="extensionSection" style="display: none;">
+                            <label class="control-label">File Extensions</label>
+                            <div class="extension-chips" id="extensionChips"></div>
+                        </div>
+                        <div style="margin-top: 16px;">
+                            <button id="generateBtn" class="btn" disabled>Generate</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Right Panel: Output -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span>Output</span>
+                    <div class="button-group">
+                        <button id="downloadBtn" class="btn" style="display: none;">Download</button>
+                        <button id="copyBtn" class="btn" style="display: none;">Copy</button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div id="stats" class="stats" style="display: none;">
+                        <div class="stat">
+                            <div class="stat-value" id="fileCount">0</div>
+                            <div class="stat-label">Files</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="lineCount">0</div>
+                            <div class="stat-label">Lines</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="charCount">0</div>
+                            <div class="stat-label">Characters</div>
+                        </div>
+                    </div>
+                    <div id="preview" class="preview" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+  let zipData = null;
+  let concatenatedContent = '';
+  const commonExtensions = ['.py', '.js', '.ts', '.md', '.txt', '.json', '.yaml', '.yml', '.sh', '.html', '.css'];
+  let selectedExtensions = new Set(commonExtensions);
+
+  document.getElementById('uploadZone').addEventListener('click', () => document.getElementById('fileInput').click());
+
+  document.getElementById('fileInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    zipData = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(zipData);
+
+    // Detect file extensions
+    const extensions = new Set();
+    zip.forEach((path, file) => {
+      if (!file.dir) {
+        const ext = path.substring(path.lastIndexOf('.')).toLowerCase();
+        if (ext) extensions.add(ext);
+      }
+    });
+
+    // Show extension selector
+    const chips = document.getElementById('extensionChips');
+    chips.innerHTML = '';
+    Array.from(extensions).sort().forEach(ext => {
+      const chip = document.createElement('div');
+      chip.className = `chip ${selectedExtensions.has(ext) ? 'active' : ''}`;
+      chip.textContent = ext;
+      chip.addEventListener('click', () => {
+        if (selectedExtensions.has(ext)) {
+          selectedExtensions.delete(ext);
+          chip.classList.remove('active');
+        } else {
+          selectedExtensions.add(ext);
+          chip.classList.add('active');
+        }
+      });
+      chips.appendChild(chip);
+    });
+
+    document.getElementById('controls').style.display = 'block';
+    document.getElementById('extensionSection').style.display = 'block';
+    document.getElementById('generateBtn').disabled = false;
+  });
+
+  document.getElementById('generateBtn').addEventListener('click', async () => {
+    if (!zipData) return;
+
+    const maxLines = parseInt(document.getElementById('maxLines').value);
+    const maxDepth = parseInt(document.getElementById('maxDepth').value);
+
+    const zip = await JSZip.loadAsync(zipData);
+    let output = '# Repository Contents\n\n';
+    let fileCount = 0, lineCount = 0, charCount = 0;
+
+    // Generate tree structure
+    output += '## Directory Structure\n```\n';
+    const tree = [];
+    zip.forEach((path, file) => {
+      const depth = path.split('/').length - 1;
+      if (depth <= maxDepth && !shouldIgnore(path)) {
+        tree.push(path);
+      }
+    });
+    tree.sort().forEach(path => {
+      const depth = path.split('/').length - 1;
+      const indent = '  '.repeat(depth);
+      const name = path.split('/').pop() || path;
+      output += `${indent}${name}\n`;
+    });
+    output += '```\n\n';
+
+    // Concatenate files
+    output += '## File Contents\n\n';
+
+    for (const [path, file] of Object.entries(zip.files)) {
+      if (file.dir) continue;
+
+      const ext = path.substring(path.lastIndexOf('.')).toLowerCase();
+      if (!selectedExtensions.has(ext)) continue;
+      if (shouldIgnore(path)) continue;
+
+      const depth = path.split('/').length - 1;
+      if (depth > maxDepth) continue;
+
+      try {
+        let content = await file.async('string');
+        const lines = content.split('\n');
+
+        output += `### ${path}\n\`\`\`${ext.slice(1)}\n`;
+
+        if (lines.length <= maxLines) {
+          output += content;
+        } else {
+          output += lines.slice(0, maxLines).join('\n');
+          output += `\n... [${lines.length - maxLines} lines truncated]`;
+        }
+
+        output += '\n\`\`\`\n\n';
+
+        fileCount++;
+        lineCount += Math.min(lines.length, maxLines);
+        charCount += content.length;
+      } catch (e) {
+        console.error(`Error reading ${path}:`, e);
+      }
+    }
+
+    concatenatedContent = output;
+
+    document.getElementById('fileCount').textContent = fileCount;
+    document.getElementById('lineCount').textContent = lineCount.toLocaleString();
+    document.getElementById('charCount').textContent = charCount.toLocaleString();
+    document.getElementById('stats').style.display = 'flex';
+    document.getElementById('preview').textContent = output.substring(0, 5000) + (output.length > 5000 ? '\n\n... [Preview truncated]' : '');
+    document.getElementById('preview').style.display = 'block';
+    document.getElementById('downloadBtn').style.display = 'inline-block';
+    document.getElementById('copyBtn').style.display = 'inline-block';
+  });
+
+  document.getElementById('downloadBtn').addEventListener('click', () => {
+    const blob = new Blob([concatenatedContent], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `repo-concatenated-${Date.now()}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    navigator.clipboard.writeText(concatenatedContent);
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+
+  function shouldIgnore(path) {
+    const ignorePatterns = ['node_modules', '__pycache__', '.git', 'dist', 'build', '.egg-info', 'htmlcov'];
+    return ignorePatterns.some(pattern => path.includes(pattern));
+  }
+    </script>
+{% endblock %}

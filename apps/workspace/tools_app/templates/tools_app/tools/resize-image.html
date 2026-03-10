@@ -1,0 +1,476 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% block title %}Image Resizer - Browser Tool | SciTeX{% endblock %}
+{% block meta_description %}
+    Resize and crop images for journal submissions. Preset dimensions for common formats.
+{% endblock %}
+{% block extra_css %}
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .tool-detail-container {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tool-breadcrumb {
+            padding: 8px 16px;
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+            font-size: 12px;
+        }
+
+        .tool-breadcrumb a {
+            color: var(--workspace-text-link);
+            text-decoration: none;
+        }
+
+        .tool-breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .tool-header {
+            padding: 16px;
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+            text-align: center;
+        }
+
+        .tool-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+            color: var(--workspace-text-primary);
+        }
+
+        .tool-description {
+            font-size: 13px;
+            color: var(--workspace-text-secondary);
+            margin: 0;
+        }
+
+        .tool-app-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            background: var(--workspace-bg-monaco);
+            border-radius: 0 0 6px 6px;
+        }
+
+        .left-panel {
+            width: 360px;
+            display: flex;
+            flex-direction: column;
+            background: var(--workspace-bg-tertiary);
+            border-right: 1px solid var(--workspace-border-default);
+            overflow: hidden;
+        }
+
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            height: 36px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--workspace-text-primary);
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow: auto;
+            padding: 16px;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--workspace-border-default);
+            border-radius: 6px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            background: var(--workspace-bg-monaco);
+            color: var(--workspace-text-muted);
+            transition: all 0.2s;
+            margin-bottom: 16px;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--workspace-text-link);
+            background: rgba(88, 166, 255, 0.05);
+        }
+
+        .upload-zone.dragover {
+            border-color: var(--workspace-text-link);
+            background: rgba(88, 166, 255, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            color: var(--workspace-text-secondary);
+        }
+
+        .upload-text {
+            font-size: 13px;
+            color: var(--workspace-text-secondary);
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--workspace-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .control-input,
+        .control-select {
+            background: var(--workspace-bg-tertiary);
+            border: 1px solid var(--workspace-border-default);
+            color: var(--workspace-text-primary);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .control-input:focus,
+        .control-select:focus {
+            outline: none;
+            border-color: var(--workspace-text-link);
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .checkbox-container label {
+            font-size: 12px;
+            color: var(--workspace-text-primary);
+            cursor: pointer;
+        }
+
+        .preview-canvas {
+            max-width: 100%;
+            max-height: calc(100% - 20px);
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .preview-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--workspace-text-muted);
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .btn {
+            padding: 3px 10px;
+            background: transparent;
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            font-size: 11px;
+            color: var(--workspace-text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: rgba(88, 166, 255, 0.1);
+            border-color: var(--workspace-text-link);
+            color: var(--workspace-text-link);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: transparent;
+            border-color: var(--workspace-text-link);
+            color: var(--workspace-text-link);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--workspace-bg-tertiary);
+            border-color: var(--workspace-text-link);
+            color: var(--workspace-text-link);
+        }
+
+        .status-message {
+            font-size: 11px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            margin-top: 12px;
+        }
+
+        .status-success {
+            background: var(--status-success-bg);
+            color: var(--status-success);
+            border: 1px solid var(--status-success-border);
+        }
+
+        .status-info {
+            background: var(--status-info-bg);
+            color: var(--status-info);
+            border: 1px solid var(--status-info-border);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="tool-detail-container">
+        {% if not embed %}
+            <div class="tool-breadcrumb">
+                <a href="{% url 'tools_app:tools' %}">← Back to Tools</a>
+            </div>
+            <div class="tool-header">
+                <h1 class="tool-title">Resize Image</h1>
+                <p class="tool-description">Resize images for journal submissions</p>
+            </div>
+        {% endif %}
+        <div class="tool-app-container">
+            <div class="left-panel">
+                <div class="panel-header">Upload & Settings</div>
+                <div class="panel-content">
+                    <div id="uploadZone" class="upload-zone">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-text">Drop image or click to upload</div>
+                        <input type="file" id="fileInput" accept="image/*" style="display: none" />
+                    </div>
+                    <div class="controls" id="controls" style="display: none;">
+                        <div class="control-group">
+                            <label class="control-label">Preset Dimensions</label>
+                            <select id="presetSelect" class="control-select">
+                                <option value="custom">Custom</option>
+                                <option value="1920x1080">Full HD (1920×1080)</option>
+                                <option value="1280x720">HD (1280×720)</option>
+                                <option value="800x600">Journal Fig (800×600)</option>
+                                <option value="512x512">Square 512</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Width (px)</label>
+                            <input type="number" id="widthInput" class="control-input" value="800" min="1" />
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Height (px)</label>
+                            <input type="number" id="heightInput" class="control-input" value="600" min="1" />
+                        </div>
+                        <div class="control-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="aspectCheck" checked />
+                                <label for="aspectCheck">Maintain Aspect Ratio</label>
+                            </div>
+                        </div>
+                        <div class="button-group" style="margin-top: 8px;">
+                            <button id="downloadBtn" class="btn btn-primary" disabled>Download</button>
+                            <button id="resetBtn" class="btn">Reset</button>
+                        </div>
+                        <div id="statusMessage"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="right-panel">
+                <div class="panel-header">Preview</div>
+                <div class="panel-content">
+                    <div id="previewPlaceholder" class="preview-placeholder">Upload an image to see preview</div>
+                    <canvas id="canvas" class="preview-canvas" style="display: none;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+  let originalImage = null;
+  let originalFileName = 'image.png';
+
+  const uploadZone = document.getElementById('uploadZone');
+  const fileInput = document.getElementById('fileInput');
+  const controls = document.getElementById('controls');
+  const canvas = document.getElementById('canvas');
+  const previewPlaceholder = document.getElementById('previewPlaceholder');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const statusMessage = document.getElementById('statusMessage');
+
+  // Upload zone interactions
+  uploadZone.addEventListener('click', () => fileInput.click());
+
+  uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+  });
+
+  uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('dragover');
+  });
+
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      loadImage(file);
+    }
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      loadImage(file);
+    }
+  });
+
+  function loadImage(file) {
+    originalFileName = file.name;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        originalImage = img;
+        document.getElementById('widthInput').value = img.width;
+        document.getElementById('heightInput').value = img.height;
+        controls.style.display = 'flex';
+        updatePreview();
+        showStatus(`Loaded: ${file.name} (${img.width}×${img.height})`, 'success');
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Preset selection
+  document.getElementById('presetSelect').addEventListener('change', (e) => {
+    if (e.target.value !== 'custom') {
+      const [w, h] = e.target.value.split('x');
+      document.getElementById('widthInput').value = w;
+      document.getElementById('heightInput').value = h;
+      document.getElementById('aspectCheck').checked = false;
+      updatePreview();
+    }
+  });
+
+  // Width input with aspect ratio lock
+  document.getElementById('widthInput').addEventListener('input', () => {
+    if (document.getElementById('aspectCheck').checked && originalImage) {
+      const ratio = originalImage.height / originalImage.width;
+      document.getElementById('heightInput').value = Math.round(document.getElementById('widthInput').value * ratio);
+    }
+    updatePreview();
+  });
+
+  // Height input with aspect ratio lock
+  document.getElementById('heightInput').addEventListener('input', () => {
+    if (document.getElementById('aspectCheck').checked && originalImage) {
+      const ratio = originalImage.width / originalImage.height;
+      document.getElementById('widthInput').value = Math.round(document.getElementById('heightInput').value * ratio);
+    }
+    updatePreview();
+  });
+
+  function updatePreview() {
+    if (!originalImage) return;
+
+    const width = parseInt(document.getElementById('widthInput').value);
+    const height = parseInt(document.getElementById('heightInput').value);
+
+    if (width <= 0 || height <= 0) return;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(originalImage, 0, 0, width, height);
+
+    previewPlaceholder.style.display = 'none';
+    canvas.style.display = 'block';
+    downloadBtn.disabled = false;
+
+    showStatus(`Preview: ${width}×${height}px`, 'info');
+  }
+
+  // Download resized image
+  downloadBtn.addEventListener('click', () => {
+    canvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const baseName = originalFileName.replace(/\.[^/.]+$/, '');
+      const width = canvas.width;
+      const height = canvas.height;
+      a.download = `${baseName}-${width}x${height}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showStatus(`Downloaded: ${a.download}`, 'success');
+    });
+  });
+
+  // Reset
+  resetBtn.addEventListener('click', () => {
+    originalImage = null;
+    fileInput.value = '';
+    controls.style.display = 'none';
+    canvas.style.display = 'none';
+    previewPlaceholder.style.display = 'flex';
+    downloadBtn.disabled = true;
+    statusMessage.innerHTML = '';
+  });
+
+  function showStatus(message, type) {
+    statusMessage.className = `status-message status-${type}`;
+    statusMessage.textContent = message;
+  }
+    </script>
+{% endblock %}

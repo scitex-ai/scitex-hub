@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from apps.console_app.services.terminal_broker.session import (
+from apps.workspace.console_app.services.terminal_broker.session import (
     BasePTY,
     SessionState,
     TerminalSession,
@@ -54,7 +54,7 @@ class TestBasePTYInitialState:
 class TestBasePTYSpawn:
     """BasePTY.spawn forks a PTY and transitions to RUNNING."""
 
-    @patch("apps.console_app.services.terminal_broker.session.pty.fork")
+    @patch("apps.workspace.console_app.services.terminal_broker.session.pty.fork")
     def test_spawn_sets_running(self, mock_fork):
         mock_fork.return_value = (1234, 5)  # parent: pid=1234, fd=5
         pty = BasePTY(pty_id="test-id", username="alice")
@@ -66,7 +66,7 @@ class TestBasePTYSpawn:
         assert pty.pid == 1234
         assert pty.fd == 5
 
-    @patch("apps.console_app.services.terminal_broker.session.pty.fork")
+    @patch("apps.workspace.console_app.services.terminal_broker.session.pty.fork")
     def test_spawn_increments_count(self, mock_fork):
         mock_fork.return_value = (1234, 5)
         pty = BasePTY(pty_id="test-id", username="alice")
@@ -75,7 +75,7 @@ class TestBasePTYSpawn:
         pty.spawn()
         assert pty.spawn_count == 1
 
-    @patch("apps.console_app.services.terminal_broker.session.pty.fork")
+    @patch("apps.workspace.console_app.services.terminal_broker.session.pty.fork")
     def test_spawn_failure_sets_dead(self, mock_fork):
         mock_fork.side_effect = OSError("fork failed")
         pty = BasePTY(pty_id="test-id", username="alice")
@@ -84,7 +84,7 @@ class TestBasePTYSpawn:
         assert result is False
         assert pty.state == SessionState.DEAD
 
-    @patch("apps.console_app.services.terminal_broker.session.pty.fork")
+    @patch("apps.workspace.console_app.services.terminal_broker.session.pty.fork")
     def test_running_property_true_when_spawned(self, mock_fork):
         mock_fork.return_value = (1234, 5)
         pty = BasePTY(pty_id="test-id", username="alice")
@@ -96,14 +96,14 @@ class TestBasePTYSpawn:
 class TestBasePTYWrite:
     """BasePTY.write sends data to the PTY fd."""
 
-    @patch("apps.console_app.services.terminal_broker.session.os.write")
+    @patch("apps.workspace.console_app.services.terminal_broker.session.os.write")
     def test_write_calls_os_write(self, mock_write):
         pty = BasePTY(pty_id="test-id", username="alice")
         pty.fd = 5
         pty.write(b"hello")
         mock_write.assert_called_once_with(5, b"hello")
 
-    @patch("apps.console_app.services.terminal_broker.session.os.write")
+    @patch("apps.workspace.console_app.services.terminal_broker.session.os.write")
     def test_write_noop_when_no_fd(self, mock_write):
         pty = BasePTY(pty_id="test-id", username="alice")
         pty.fd = None
@@ -114,14 +114,18 @@ class TestBasePTYWrite:
 class TestBasePTYResize:
     """BasePTY.resize changes the PTY window size."""
 
-    @patch("apps.console_app.services.terminal_broker.session.termios.tcsetwinsize")
+    @patch(
+        "apps.workspace.console_app.services.terminal_broker.session.termios.tcsetwinsize"
+    )
     def test_resize_calls_tcsetwinsize(self, mock_resize):
         pty = BasePTY(pty_id="test-id", username="alice")
         pty.fd = 5
         pty.resize(24, 80)
         mock_resize.assert_called_once_with(5, (24, 80))
 
-    @patch("apps.console_app.services.terminal_broker.session.termios.tcsetwinsize")
+    @patch(
+        "apps.workspace.console_app.services.terminal_broker.session.termios.tcsetwinsize"
+    )
     def test_resize_noop_when_no_fd(self, mock_resize):
         pty = BasePTY(pty_id="test-id", username="alice")
         pty.fd = None
@@ -132,9 +136,9 @@ class TestBasePTYResize:
 class TestBasePTYClose:
     """BasePTY.close cleans up fd and transitions to DEAD."""
 
-    @patch("apps.console_app.services.terminal_broker.session.os.close")
-    @patch("apps.console_app.services.terminal_broker.session.os.waitpid")
-    @patch("apps.console_app.services.terminal_broker.session.os.kill")
+    @patch("apps.workspace.console_app.services.terminal_broker.session.os.close")
+    @patch("apps.workspace.console_app.services.terminal_broker.session.os.waitpid")
+    @patch("apps.workspace.console_app.services.terminal_broker.session.os.kill")
     def test_close_sets_dead(self, mock_kill, mock_waitpid, mock_close):
         pty = BasePTY(pty_id="test-id", username="alice")
         pty.pid = 1234
@@ -145,9 +149,9 @@ class TestBasePTYClose:
         assert pty.pid is None
         assert pty.fd is None
 
-    @patch("apps.console_app.services.terminal_broker.session.os.close")
-    @patch("apps.console_app.services.terminal_broker.session.os.waitpid")
-    @patch("apps.console_app.services.terminal_broker.session.os.kill")
+    @patch("apps.workspace.console_app.services.terminal_broker.session.os.close")
+    @patch("apps.workspace.console_app.services.terminal_broker.session.os.waitpid")
+    @patch("apps.workspace.console_app.services.terminal_broker.session.os.kill")
     def test_close_sends_sigterm(self, mock_kill, mock_waitpid, mock_close):
         import signal
 
@@ -179,10 +183,10 @@ class TestBasePTYScrollback:
 class TestBasePTYRespawn:
     """BasePTY.respawn cleans up old PTY and spawns new one."""
 
-    @patch("apps.console_app.services.terminal_broker.session.pty.fork")
-    @patch("apps.console_app.services.terminal_broker.session.os.close")
-    @patch("apps.console_app.services.terminal_broker.session.os.waitpid")
-    @patch("apps.console_app.services.terminal_broker.session.os.kill")
+    @patch("apps.workspace.console_app.services.terminal_broker.session.pty.fork")
+    @patch("apps.workspace.console_app.services.terminal_broker.session.os.close")
+    @patch("apps.workspace.console_app.services.terminal_broker.session.os.waitpid")
+    @patch("apps.workspace.console_app.services.terminal_broker.session.os.kill")
     def test_respawn_cleans_up_and_spawns(
         self, mock_kill, mock_waitpid, mock_close, mock_fork
     ):
@@ -200,7 +204,7 @@ class TestBasePTYRespawn:
 class TestBasePTYPrepareChildEnv:
     """BasePTY._prepare_child_env sets HOME, USER, TERM etc."""
 
-    @patch("apps.console_app.services.terminal_broker.session.os.chdir")
+    @patch("apps.workspace.console_app.services.terminal_broker.session.os.chdir")
     def test_env_contains_username(self, mock_chdir):
         pty = BasePTY(pty_id="test-id", username="alice")
         env = pty._prepare_child_env()
