@@ -76,7 +76,13 @@ class TerminalBroker:
         self.running = True
 
         if SHARED_ALLOCATION:
+            from .allocation import Allocation
             from .allocation_monitor import AllocationMonitor
+
+            # Clean up stale SLURM jobs from previous broker runs
+            cancelled = Allocation.cleanup_stale_jobs()
+            if cancelled:
+                logger.info(f"Cleaned up {cancelled} stale SLURM job(s) on startup")
 
             self._monitor = AllocationMonitor(self)
             self._monitor.start()

@@ -62,7 +62,7 @@ class Allocation:
 
     # Job name format: matches build_sbatch_command() in scitex_container
     # Pattern: scitex_{username}_{project_slug}
-    JOB_NAME_PREFIX = "scitex"
+    JOB_NAME_PREFIX = "scitex-cloud-terminal"
 
     def __init__(
         self,
@@ -88,25 +88,65 @@ class Allocation:
         self.started_at: Optional[float] = None
 
     @staticmethod
+    def cleanup_stale_jobs() -> int:
+        """Cancel ALL stale scitex terminal jobs in the SLURM queue.
+
+        Called on broker startup to ensure clean state. Returns count cancelled.
+        """
+        prefix = Allocation.JOB_NAME_PREFIX
+        try:
+            result = subprocess.run(
+                ["squeue", "--noheader", "--format=%i %j %T"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            cancelled = 0
+            for line in result.stdout.strip().split("\n"):
+                if not line.strip():
+                    continue
+                parts = line.split()
+                if len(parts) >= 2 and parts[1].startswith(prefix):
+                    jid = parts[0]
+                    try:
+                        subprocess.run(["scancel", jid], capture_output=True, timeout=5)
+                        cancelled += 1
+                        logger.info(f"Cleaned up stale SLURM job {jid} ({parts[1]})")
+                    except Exception:
+                        pass
+            # Also cancel junk jobs named "true" (broken sbatch artifacts)
+            for line in result.stdout.strip().split("\n"):
+                if not line.strip():
+                    continue
+                parts = line.split()
+                if len(parts) >= 2 and parts[1] == "true":
+                    try:
+                        subprocess.run(
+                            ["scancel", parts[0]], capture_output=True, timeout=5
+                        )
+                        cancelled += 1
+                        logger.info(f"Cleaned up junk SLURM job {parts[0]} (name=true)")
+                    except Exception:
+                        pass
+            return cancelled
+        except Exception as e:
+            logger.error(f"Failed to cleanup stale jobs: {e}")
+            return 0
+
+    @staticmethod
     def find_existing_jobs(username: str) -> list[str]:
         """Query squeue for existing terminal jobs for this user.
 
         Returns list of SLURM job IDs (RUNNING or PENDING).
 
-        Job name pattern from build_sbatch_command: scitex_{username}_{project_slug}
-        We search for all jobs matching scitex_{username}_* pattern.
+        Job name pattern: scitex-cloud-terminal-{username}
+        Searches ALL users (sbatch runs as root inside Docker, not 'scitex').
         """
-        job_prefix = f"{Allocation.JOB_NAME_PREFIX}_{username}_"
+        job_name_for_user = f"{Allocation.JOB_NAME_PREFIX}-{username}"
         try:
-            # Get all jobs for scitex user and filter by name prefix
+            # Search all jobs (no -u filter) — Docker submits as root
             result = subprocess.run(
-                [
-                    "squeue",
-                    "-u",
-                    "scitex",
-                    "--noheader",
-                    "--format=%i %j",
-                ],
+                ["squeue", "--noheader", "--format=%i %j"],
                 capture_output=True,
                 text=True,
                 timeout=5,
@@ -115,14 +155,14 @@ class Allocation:
             for line in result.stdout.strip().split("\n"):
                 if not line.strip():
                     continue
-                parts = line.split()
+                parts = line.split(None, 1)
                 if len(parts) >= 2:
                     jid, jname = parts[0], parts[1]
-                    if jname.startswith(job_prefix):
+                    if jname == job_name_for_user:
                         job_ids.append(jid)
             return job_ids
         except Exception as e:
-            logger.error(f"Failed to query squeue for {job_prefix}*: {e}")
+            logger.error(f"Failed to query squeue for {job_name_for_user}: {e}")
             return []
 
     def attach_to_existing(self, job_id: str) -> bool:
