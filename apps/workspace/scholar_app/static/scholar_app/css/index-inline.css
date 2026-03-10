@@ -5,28 +5,144 @@
 
 /* Vertical tab container */
 .vertical-tab-container {
-    width: 100%;
+  width: 100%;
 }
 
 /* Vertical tabs styling */
 .scitex-tabs {
-    padding: 0 2rem;
+  padding: 0 2rem;
 }
 
 /* Tab content container */
 .vertical-tab-content-container {
-    width: 100%;
-    overflow-x: auto;
-    overflow-y: visible;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 /* Tab content panels */
 .vertical-tab-content {
-    width: 100%;
-    overflow: visible;
+  width: 100%;
+  overflow: visible;
 }
 
 /* Hidden configuration data element */
 #scholar-config-data {
-    display: none;
+  display: none;
+}
+
+/* ===============================================
+   LANDING PAGE FEATURE CARDS
+   (moved from index_landing.html <style> block)
+   =============================================== */
+
+.feature-card {
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  transition: all 0.3s ease;
+  background: var(--color-canvas-default);
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+  color: inherit;
+  position: relative;
+}
+
+a.feature-card {
+  text-decoration: none;
+  color: inherit;
+}
+
+.feature-card:hover {
+  border-color: var(--scitex-color-03);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+  text-decoration: none;
+  color: inherit;
+}
+
+.feature-card:active {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.feature-icon {
+  font-size: 3rem;
+  color: var(--scitex-color-02);
+  margin-bottom: 1rem;
+}
+
+.feature-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.feature-description {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.feature-arrow {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  font-size: 1.5rem;
+  color: var(--scitex-color-03);
+  transition: transform 0.3s ease;
+}
+
+.feature-card:hover .feature-arrow {
+  transform: translateX(5px);
+  color: var(--scitex-color-02);
+}
+
+.feature-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.feature-badge {
+  display: inline-block;
+  background: var(--success-color);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .feature-badge {
+  background: var(--success-color);
+  color: white;
+}
+
+.page-hero {
+  text-align: center;
+  padding: 3rem 0;
+  margin-bottom: 3rem;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.page-hero h1 {
+  font-size: 2.5rem;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.page-hero p {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
 }

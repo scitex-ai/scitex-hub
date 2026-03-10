@@ -207,3 +207,27 @@
   margin: 0;
   max-width: 100%;
 }
+
+/* ===============================================
+   SCHOLAR TAB CONTENT VISIBILITY
+   (moved from scholar_partial.html inline <style>)
+   =============================================== */
+
+.scholar-tab-content {
+  display: none !important;
+}
+
+.scholar-tab-content.active {
+  display: flex !important;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.scholar-details-content {
+  display: none;
+}
+
+.scholar-details-content.active {
+  display: block;
+}
