@@ -19,23 +19,7 @@
     <script defer
             src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
     <!-- Plotly.js (~3.5MB) lazy-loaded on demand by swarm-plots when search results arrive -->
-    <script>
-        window.loadPlotly = function() {
-            return new Promise(function(resolve, reject) {
-                if (typeof Plotly !== 'undefined') { resolve(Plotly); return; }
-                if (window._plotlyLoading) { window._plotlyLoading.then(resolve, reject); return; }
-                window._plotlyLoading = new Promise(function(res, rej) {
-                    var s = document.createElement('script');
-                    s.src = 'https://cdn.plot.ly/plotly-2.27.0.min.js';
-                    s.charset = 'utf-8';
-                    s.onload = function() { res(Plotly); };
-                    s.onerror = function() { rej(new Error('Failed to load Plotly.js')); };
-                    document.head.appendChild(s);
-                });
-                window._plotlyLoading.then(resolve, reject);
-            });
-        };
-    </script>
+    {% vite_script 'scholar_app/init/plotly-lazy' %}
     <!-- BibTeX Scripts loaded dynamically in bibtex_partials/enrich.html -->
     <!-- Search Scripts -->
     {% vite_script 'scholar_app/search/nouislider-init' %}

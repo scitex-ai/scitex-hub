@@ -29,20 +29,6 @@
 {% endfor %}
 ]' {% endif %}></div>
 {% vite_script 'scholar_app/scholar-config' %}
-<script>
-    // Initialize SCHOLAR_SEARCH_RESULTS from data attribute
-    (function() {
-        const configEl = document.getElementById('scholar-config-data');
-        if (configEl && configEl.dataset.searchResults) {
-            try {
-                window.SCHOLAR_SEARCH_RESULTS = JSON.parse(configEl.dataset.searchResults);
-                console.log('[Scholar Config] Loaded', window.SCHOLAR_SEARCH_RESULTS.length, 'search results');
-            } catch (e) {
-                console.warn('[Scholar Config] Failed to parse search results:', e);
-            }
-        }
-    })();
-</script>
 {% endblock %}
 {% block details_content %}
     {% include "scholar_app/search_partials/search_controls.html" %}
@@ -53,17 +39,7 @@
     {% vite_script 'scholar_app/common/project-selector' %}
     <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
-    <script>
-    (function() {
-        var _d = window.define, _r = window.require;
-        window.define = undefined; window.require = undefined;
-        var s = document.createElement("script");
-        s.src = "https://cdn.plot.ly/plotly-2.27.0.min.js";
-        s.charset = "utf-8";
-        s.onload = function() { window.define = _d; window.require = _r; };
-        document.head.appendChild(s);
-    })();
-    </script>
+    {% vite_script 'scholar_app/init/plotly-init' %}
     <!-- Search Scripts -->
     {% vite_script 'scholar_app/search/nouislider-init' %}
     {% vite_script 'scholar_app/search/panel-toggle' %}

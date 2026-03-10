@@ -1,5 +1,7 @@
 {% extends "scholar_app/scholar_base.html" %}
+
 {% load static vite %}
+
 {% block title %}SciTeX Scholar - BibTeX Tools{% endblock %}
 {% block extra_css %}
     {{ block.super }}
@@ -7,38 +9,27 @@
     <link rel="stylesheet" href="{% static 'scholar_app/css/index.css' %}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/terminal-log.css' %}" />
 {% endblock %}
-
-{% block pane_header_actions %}
-{% endblock %}
-
+{% block pane_header_actions %}{% endblock %}
 {% block search_content %}
     {% include "scholar_app/bibtex_partials/enrich.html" %}
     <!-- AI2 Prompt Modal -->
     {% if current_project %}
         {% include "writer_app/compilation_view_partials/ai2_modal.html" %}
     {% endif %}
-    <!-- Configuration for JavaScript -->
-    <script>
-  // Django template variables for JavaScript
-  window.SCHOLAR_CONFIG = {
-    urls: {
-      bibtexUpload: '{% url "scholar_app:bibtex_upload" %}',
-      resourceStatus: '{% url "scholar_app:bibtex_resource_status" %}',
-      scitexSearch: '{% url "scholar_app:api_scitex_search" %}',
-      scitexCapabilities: '{% url "scholar_app:api_scitex_capabilities" %}'
-    },
-    user: {
-      isAuthenticated: {% if user.is_authenticated %}true{% else %}false{% endif %}
-    }{% if current_project %},
-    projectId: {{ current_project.id }}{% endif %}
-  };
-    </script>
+    <!-- Configuration for JavaScript (read by scholar-config.ts) -->
+    <div id="scholar-global-config"
+         class="hidden"
+         data-url-bibtex-upload="{% url 'scholar_app:bibtex_upload' %}"
+         data-url-resource-status="{% url 'scholar_app:bibtex_resource_status' %}"
+         data-url-scitex-search="{% url 'scholar_app:api_scitex_search' %}"
+         data-url-scitex-capabilities="{% url 'scholar_app:api_scitex_capabilities' %}"
+         data-user-is-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
+         {% if current_project %}data-project-id="{{ current_project.id }}"{% endif %}></div>
+    {% vite_script 'scholar_app/scholar-config' %}
 {% endblock %}
-
 {% block details_content %}
     {% include "scholar_app/bibtex_partials/status_tiles.html" %}
 {% endblock %}
-
 {% block extra_js %}
     {{ block.super }}
     <!-- Common Scripts -->
