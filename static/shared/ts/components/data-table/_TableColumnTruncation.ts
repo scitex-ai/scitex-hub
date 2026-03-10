@@ -55,6 +55,13 @@ export function applyColumnTruncation(dataContainer: HTMLElement): void {
 
   // Get actual visible width (accounting for scrollbar)
   const containerWidth = dataContainer.clientWidth;
+
+  // Container not yet laid out — defer until browser has computed dimensions
+  if (containerWidth === 0) {
+    requestAnimationFrame(() => applyColumnTruncation(dataContainer));
+    return;
+  }
+
   const rowNumberWidth = 45; // Row number column width
   const scrollbarWidth = dataContainer.offsetWidth - dataContainer.clientWidth;
   const cellPadding = 16; // 8px padding on each side

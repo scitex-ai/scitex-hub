@@ -115,6 +115,27 @@ PAGE_GROUPS = OrderedDict(
                 "/apps/docs/",
                 "/apps/docs/python/",
                 "/apps/docs/api/",
+                "/apps/docs/content/python-packages/",
+                "/apps/docs/content/mcp-tools-local/",
+                "/apps/docs/content/mcp-tools-https/",
+                "/apps/docs/content/ssh-access/",
+                "/apps/docs/content/console/",
+                "/apps/docs/content/chat/",
+                "/apps/docs/content/agent/",
+                "/apps/docs/content/agent-tooling/",
+                "/apps/docs/content/auto-response/",
+                "/apps/docs/content/app-maker/",
+                "/apps/docs/content/app-maker-users/",
+                "/apps/docs/content/app-maker-creators/",
+                "/apps/docs/content/app-maker-admins/",
+                "/apps/docs/content/web-api/",
+                "/apps/docs/content/design-rules/",
+                "/apps/docs/content/shared-ts-components/",
+                "/apps/docs/content/shared-ts-utilities/",
+                "/apps/docs/content/shared-css-system/",
+                "/apps/docs/content/visitor-lifecycle/",
+                "/apps/docs/content/self-hosting/",
+                "/apps/docs/content/agpl-v3/",
             ],
         ),
         (
@@ -123,6 +144,7 @@ PAGE_GROUPS = OrderedDict(
                 "/",
                 "/about/",
                 "/server-status/",
+                "/demos/",
             ],
         ),
     ]
@@ -150,16 +172,34 @@ def build_pages(groups: str = "repo,modules", zen: bool = True):
     Build page list and slow-page set from selected groups.
 
     Args:
-        groups: Comma-separated group names, or "all"
+        groups: Comma-separated group names, or "all".
+                Prefix a group with "-" to exclude it.
+                Examples:
+                  "all,-tools"          → everything except tools
+                  "all,-tools,-docs"    → everything except tools and docs
+                  "modules,repo"        → only modules and repo
+                  "all,-basic"          → all except basic
         zen: Include zen mode for applicable groups
 
     Returns:
         Tuple of (pages_list, slow_pages_set)
     """
-    if groups == "all":
-        selected = VALID_GROUPS
+    tokens = [g.strip() for g in groups.split(",")]
+
+    includes = [t for t in tokens if not t.startswith("-")]
+    excludes = {t.lstrip("-") for t in tokens if t.startswith("-")}
+
+    if not includes or includes == ["all"]:
+        selected = list(VALID_GROUPS)
     else:
-        selected = [g.strip() for g in groups.split(",")]
+        selected = includes
+
+    selected = [g for g in selected if g not in excludes]
+
+    # Validate
+    for g in selected + list(excludes):
+        if g not in VALID_GROUPS:
+            logger.warning(f"Unknown page group: '{g}' (valid: {VALID_GROUPS})")
 
     pages = []
     slow_pages = set()

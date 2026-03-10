@@ -68,6 +68,11 @@ async function switchModule(name: string): Promise<void> {
     const html = await resp.text();
     pane.innerHTML = html;
     reExecScripts(pane);
+    document.dispatchEvent(
+      new CustomEvent("workspace:module-injected", {
+        detail: { module: name },
+      }),
+    );
     window._appNav?.push({ module: name });
     updateActiveTab(name);
   } catch (err) {

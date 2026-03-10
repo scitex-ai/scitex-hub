@@ -1,5 +1,7 @@
 from django.urls import path
 
+from apps.infra.organizations_app import views as org_views
+
 from . import views
 
 app_name = "project_app"
@@ -21,6 +23,40 @@ urlpatterns = [
         "settings/repositories/",
         views.repository_maintenance,
         name="repository_maintenance",
+    ),
+    # Organization settings (must be before <slug:slug>/ catch-all)
+    # API endpoints first (before <str:section>/ catch)
+    path(
+        "settings/api/general/",
+        org_views.api_update_general,
+        name="org_api_general",
+    ),
+    path(
+        "settings/api/members/add/",
+        org_views.api_add_member,
+        name="org_api_add_member",
+    ),
+    path(
+        "settings/api/members/role/",
+        org_views.api_update_member_role,
+        name="org_api_update_member_role",
+    ),
+    path(
+        "settings/api/members/remove/",
+        org_views.api_remove_member,
+        name="org_api_remove_member",
+    ),
+    path(
+        "settings/api/delete/",
+        org_views.api_delete_org,
+        name="org_api_delete",
+    ),
+    # Section pages
+    path("settings/", org_views.org_settings, name="org_settings"),
+    path(
+        "settings/<str:section>/",
+        org_views.org_settings_section,
+        name="org_settings_section",
     ),
     # Backward compatibility redirects
     path(

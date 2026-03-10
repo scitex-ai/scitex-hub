@@ -84,13 +84,12 @@ def main(
     """
     logger.info("Starting SciTeX demo screenshot capture")
 
-    # Validate groups
-    if groups != "all":
-        for g in groups.split(","):
-            g = g.strip()
-            if g not in VALID_GROUPS:
-                logger.error(f"Unknown group '{g}'. Valid: {VALID_GROUPS}")
-                return 1
+    # Validate groups (allow "all", named groups, and "-group" exclusions)
+    for token in groups.split(","):
+        token = token.strip().lstrip("-")
+        if token and token != "all" and token not in VALID_GROUPS:
+            logger.error(f"Unknown group '{token}'. Valid: {VALID_GROUPS}")
+            return 1
 
     # Build page list
     pages, slow_pages = build_pages(groups=groups, zen=zen)

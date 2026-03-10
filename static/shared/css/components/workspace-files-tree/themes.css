@@ -9,6 +9,11 @@
   color: var(--color-fg-default, #1f2328);
 }
 
+[data-theme="light"] .wft-folder > .wft-name,
+.light .wft-folder > .wft-name {
+  color: #0550ae;
+}
+
 [data-theme="light"] .wft-chevron,
 .light .wft-chevron {
   color: var(--color-fg-muted, #656d76);
