@@ -196,3 +196,122 @@ body.scholar-page .scholar-main .pane-content {
   .properties-content {
   background: #ffffff !important;
 }
+
+/* ===============================================
+   SCHOLAR PAGE BODY + WORKSPACE BACKGROUNDS
+   (moved from scholar_base.html inline <style>)
+   =============================================== */
+
+body.scholar-page,
+body.workspace-page.scholar-page,
+.scholar-page {
+  background: var(
+    --workspace-bg-primary,
+    var(--color-canvas-default)
+  ) !important;
+}
+
+body.scholar-page #main-content,
+body.scholar-page .scholar-workspace {
+  background: var(
+    --workspace-bg-primary,
+    var(--color-canvas-default)
+  ) !important;
+}
+
+.scholar-sidebar,
+.scholar-main,
+.scholar-properties {
+  background: var(
+    --workspace-bg-primary,
+    var(--color-canvas-default)
+  ) !important;
+}
+
+.scholar-sidebar .sidebar-header,
+.scholar-main .pane-header,
+.scholar-properties .properties-header {
+  background: var(
+    --workspace-bg-secondary,
+    var(--color-canvas-subtle)
+  ) !important;
+  border-color: var(--color-border-default) !important;
+}
+
+.scholar-sidebar .sidebar-content,
+.scholar-main .pane-content,
+.scholar-properties .properties-content {
+  background: var(
+    --workspace-bg-primary,
+    var(--color-canvas-default)
+  ) !important;
+}
+
+.bibtex-card,
+.bibtex-tile {
+  background: var(
+    --workspace-bg-secondary,
+    var(--color-canvas-subtle)
+  ) !important;
+  border-color: var(--color-border-default) !important;
+  border-radius: 0 !important;
+}
+
+.bibtex-card__header,
+.bibtex-tile__header {
+  background: var(
+    --workspace-bg-tertiary,
+    var(--color-canvas-inset)
+  ) !important;
+  border-color: var(--color-border-default) !important;
+}
+
+.bibtex-dropzone {
+  background: var(--workspace-bg-monaco, #1e1e1e) !important;
+  border-color: var(--color-border-default) !important;
+  border-radius: 0 !important;
+}
+
+.bibtex-dropzone:hover {
+  background: var(--workspace-bg-tertiary, #2a2a2a) !important;
+  border-color: var(--workspace-icon-hover, #7eb8aa) !important;
+}
+
+[data-theme="light"] .bibtex-dropzone {
+  background: #f6f8fa !important;
+  border-color: #2ea043 !important;
+}
+
+[data-theme="light"] .bibtex-dropzone:hover {
+  background: #e6ebf0 !important;
+  border-color: #238636 !important;
+}
+
+.bibtex-tile__title i,
+.bibtex-card__title i,
+.pane-header h5 i,
+.properties-header h5 i,
+.sidebar-header h5 i {
+  color: var(--scitex-color-03, var(--workspace-icon-primary)) !important;
+}
+
+.bibtex-status-item {
+  background: var(
+    --workspace-bg-primary,
+    var(--color-canvas-default)
+  ) !important;
+  border-radius: 0 !important;
+}
+
+.terminal-log {
+  background: var(
+    --workspace-bg-primary,
+    var(--color-canvas-default)
+  ) !important;
+  border-radius: 0 !important;
+}
+
+/* Hide footer on scholar workspace */
+body.scholar-page footer {
+  display: none !important;
+}

@@ -1,13 +1,13 @@
 {% load static vite %}
+
 <!-- Alternative implementation using SciTeX Seekbar component instead of noUiSlider -->
 <!-- To use this version, replace the filters section in search.html with this partial -->
 <!-- Include SciTeX Seekbar Component -->
-<link rel="stylesheet"
-      href="{% static 'shared/css/components/seekbar.css' %}" />
+<link rel="stylesheet" href="{% static 'shared/css/components/seekbar.css' %}" />
 {% vite_script 'shared/components/seekbar' %}
 {% vite_script 'scholar_app/search/seekbar-integration' %}
 <!-- Mark this page to use SciTeX Seekbar -->
-<div data-use-scitex-seekbar="true" style="display: none"></div>
+<div data-use-scitex-seekbar="true" class="hidden"></div>
 <!-- Row 2: Filters (Collapsed by default) -->
 <div class="accordion-row mb-3">
     <div class="accordion-row-header collapsed"
@@ -129,33 +129,4 @@
         </div>
     </div>
 </div>
-<style>
-  /* Additional styles for SciTeX Seekbar integration */
-  .range-filter-container .slider-container {
-    margin: 20px 0;
-    padding: 10px 0;
-  }
-
-  /* Ensure proper spacing */
-  .scitex-seekbar-container {
-    padding: 5px 0;
-  }
-
-  /* Dark mode compatibility */
-  [data-theme="dark"] #yearMinDisplay,
-  [data-theme="dark"] #yearMaxDisplay,
-  [data-theme="dark"] #citationsMinDisplay,
-  [data-theme="dark"] #citationsMaxDisplay,
-  [data-theme="dark"] #impactFactorMinDisplay,
-  [data-theme="dark"] #impactFactorMaxDisplay {
-    background-color: var(--scitex-color-03) !important;
-    color: var(--scitex-color-06) !important;
-  }
-</style>
-<!-- Debug Info (remove in production) -->
-<script>
-  console.log("[SciTeX Seekbar] Alternative filter template loaded");
-  console.log(
-    "[SciTeX Seekbar] Using SciTeX Seekbar component instead of noUiSlider",
-  );
-</script>
+<!-- SciTeX Seekbar styles moved to search-main/base.css -->

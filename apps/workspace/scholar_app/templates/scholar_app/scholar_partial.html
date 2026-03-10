@@ -37,26 +37,6 @@
       href="{% static 'scholar_app/css/library/library-detail-panel.css' %}" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css"
       rel="stylesheet" />
-<style>
-    .scholar-tab-content {
-        display: none !important;
-    }
-
-    .scholar-tab-content.active {
-        display: flex !important;
-        flex-direction: column;
-        flex: 1;
-        min-height: 0;
-    }
-
-    .scholar-details-content {
-        display: none;
-    }
-
-    .scholar-details-content.active {
-        display: block;
-    }
-</style>
 <!-- Scholar main content (no sidebar/right-panel: unified workspace provides those) -->
 <!-- Note: #workspace-project-config is already present in the unified workspace shell -->
 <section class="scholar-main">
@@ -268,17 +248,7 @@
      data-url-refresh-graph="/apps/scholar/api/graph/saved/__ID__/refresh/"></div>
 <!-- External libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
-<script>
-(function() {
-    var _d = window.define, _r = window.require;
-    window.define = undefined; window.require = undefined;
-    var s = document.createElement("script");
-    s.src = "https://cdn.plot.ly/plotly-2.27.0.min.js";
-    s.charset = "utf-8";
-    s.onload = function() { window.define = _d; window.require = _r; };
-    document.head.appendChild(s);
-})();
-</script>
+{% vite_script 'scholar_app/init/plotly-init' %}
 <!-- Scholar scripts -->
 {% vite_script 'scholar_app/search/source-health-check' %}
 {% vite_script 'scholar_app/scholar-config' %}
@@ -300,74 +270,4 @@
 {% endif %}
 {% vite_script 'scholar_app/library/library-init' %}
 {% vite_script 'scholar_app/graph/citation-graph' %}
-<!-- Graph input mode switching (inline for SPA reliability) -->
-<script>
-    (function() {
-        function initGraphInputTabs() {
-            var tabs = document.querySelectorAll('.graph-input-tab');
-            if (!tabs.length) return;
-            tabs.forEach(function(tab) {
-                tab.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    var mode = this.getAttribute('data-input-mode');
-                    if (!mode) return;
-                    tabs.forEach(function(t) { t.classList.remove('active'); });
-                    tab.classList.add('active');
-                    document.querySelectorAll('.graph-input-panel').forEach(function(p) {
-                        p.classList.add('hidden');
-                    });
-                    var panelId = 'graphInput' + mode.charAt(0).toUpperCase() + mode.slice(1);
-                    var panel = document.getElementById(panelId);
-                    if (panel) panel.classList.remove('hidden');
-                });
-            });
-        }
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initGraphInputTabs);
-        } else {
-            initGraphInputTabs();
-        }
-    })();
-</script>
-<!-- Tab switching (readyState pattern for AJAX injection) -->
-<script>
-    (function() {
-        const TAB_ORDER = ['library', 'search', 'bibtex', 'graph'];
-        const DEFAULT_TAB = 'library';
-        const inUnified = !!document.getElementById('unified-center');
-
-        function getActiveTab() {
-            if (!inUnified) {
-                const hash = window.location.hash.slice(1);
-                return TAB_ORDER.includes(hash) ? hash : DEFAULT_TAB;
-            }
-            return DEFAULT_TAB;
-        }
-
-        function switchScholarTab(tabName) {
-            document.querySelectorAll('.scholar-tab').forEach(function(tab) {
-                tab.classList.toggle('active', tab.dataset.tab === tabName);
-            });
-            document.querySelectorAll('.scholar-tab-content').forEach(function(content) {
-                content.classList.toggle('active', content.dataset.tab === tabName);
-            });
-            window.dispatchEvent(new Event('resize'));
-        }
-
-        function init() {
-            document.querySelectorAll('.scholar-tab').forEach(function(tab) {
-                tab.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    switchScholarTab(this.dataset.tab);
-                });
-            });
-            switchScholarTab(getActiveTab());
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
-        } else {
-            init();
-        }
-    })();
-</script>
+{% vite_script 'scholar_app/scholar-tab-switcher' %}

@@ -1,0 +1,405 @@
+/* Job Detail Page Styles */
+
+/* Page container */
+.job-detail-container {
+  max-width: 1000px;
+  margin: 3rem auto;
+  padding: 2rem;
+}
+
+/* Back link header */
+.job-detail-header {
+  margin-bottom: 2rem;
+}
+
+.job-detail-back-link {
+  color: var(--color-accent-fg);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.job-detail-title {
+  color: var(--color-fg-default);
+  font-size: 2rem;
+  margin-top: 1rem;
+}
+
+/* Status card */
+.job-detail-card {
+  background: var(--color-canvas-default);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--color-border-default);
+  margin-bottom: 2rem;
+}
+
+.job-detail-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.job-detail-card-title {
+  color: var(--color-fg-default);
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.status-pending {
+  background: var(--color-canvas-subtle);
+  color: var(--color-fg-muted);
+}
+
+.status-processing {
+  background: rgba(var(--info-color-rgb, 107, 143, 179), 0.15);
+  color: var(--info-color);
+}
+
+.status-completed {
+  background: rgba(var(--success-color-rgb, 74, 155, 126), 0.15);
+  color: var(--success-color);
+}
+
+.status-failed {
+  background: rgba(var(--error-color-rgb, 166, 115, 115), 0.15);
+  color: var(--error-color);
+}
+
+/* Progress bar section */
+.job-progress-section {
+  margin-bottom: 1.5rem;
+}
+
+.job-progress-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.job-progress-label {
+  font-weight: 600;
+  color: var(--color-fg-default);
+}
+
+.job-progress-value {
+  color: var(--color-fg-muted);
+}
+
+.job-progress-track {
+  background: var(--color-border-default);
+  border-radius: 8px;
+  height: 12px;
+  overflow: hidden;
+}
+
+.job-progress-fill {
+  background: var(--scitex-color-03);
+  height: 100%;
+  transition: width 0.3s;
+}
+
+.job-progress-summary {
+  margin-top: 0.5rem;
+  color: var(--color-fg-muted);
+  font-size: 0.9rem;
+}
+
+/* Job details grid */
+.job-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.job-detail-field-label {
+  color: var(--color-fg-muted);
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+}
+
+.job-detail-field-value {
+  color: var(--color-fg-default);
+  font-weight: 600;
+}
+
+.job-detail-field-sub {
+  color: var(--color-fg-subtle);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* Config badge (API-only) */
+.job-config-badge {
+  color: var(--success-color);
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+}
+
+/* Project link */
+.job-project-link {
+  color: var(--scitex-color-03);
+  font-weight: 600;
+}
+
+/* Error message block */
+.job-error-block {
+  background: var(--color-danger-subtle);
+  border-left: 4px solid var(--error-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.job-error-title {
+  color: var(--color-danger-emphasis);
+  margin-bottom: 0.5rem;
+}
+
+.job-error-message {
+  color: var(--color-danger-fg);
+  margin: 0;
+}
+
+/* Processing log card */
+.job-log-card {
+  background: var(--color-canvas-default);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--color-border-default);
+  margin-bottom: 2rem;
+}
+
+.job-log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.job-log-title {
+  color: var(--color-fg-default);
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.job-log-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.job-log-copy-btn {
+  background: var(--color-btn-bg);
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  color: var(--color-fg-default);
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.job-log-toggle-btn {
+  background: none;
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: var(--color-fg-muted);
+}
+
+.job-log-pre {
+  background: var(--terminal-bg, var(--workspace-bg-primary, #0a0f1a));
+  color: var(--terminal-green, var(--scitex-color-03, #6ba89a));
+  padding: 1.5rem;
+  border-radius: 8px;
+  overflow-y: auto;
+  max-height: 400px;
+  font-size: 0.875rem;
+  line-height: 1.3;
+  margin: 0;
+  font-family: "Courier New", monospace;
+  white-space: pre-wrap;
+}
+
+/* Gitea integration block */
+.job-gitea-block {
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.job-gitea-block--success {
+  background: var(--color-success-subtle);
+  border-left: 4px solid var(--success-color);
+}
+
+.job-gitea-block--warning {
+  background: rgba(var(--warning-color-rgb, 184, 149, 106), 0.15);
+  border-left: 4px solid var(--warning-color);
+}
+
+.job-gitea-title--success {
+  color: var(--color-success-emphasis);
+  margin-bottom: 0.5rem;
+}
+
+.job-gitea-title--warning {
+  color: var(--warning-color);
+  margin-bottom: 0.5rem;
+}
+
+.job-gitea-success-text {
+  color: var(--color-success-fg);
+  margin: 0 0 0.5rem 0;
+}
+
+.job-gitea-warning-text {
+  color: var(--warning-color);
+  margin: 0;
+}
+
+.job-gitea-info-box {
+  background: var(--color-canvas-subtle);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.job-gitea-info-line {
+  color: var(--color-success-fg);
+  font-size: 0.9rem;
+}
+
+.job-gitea-info-line + .job-gitea-info-line {
+  margin-top: 0.5rem;
+}
+
+.job-gitea-info-code {
+  color: var(--color-success-emphasis);
+}
+
+.job-gitea-repo-link {
+  margin-top: 0.75rem;
+}
+
+.job-gitea-repo-link a {
+  color: var(--color-accent-fg);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.job-gitea-error-box {
+  background: var(--color-canvas-subtle);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.job-gitea-error-text {
+  color: var(--warning-color);
+  font-size: 0.85rem;
+}
+
+/* Download section */
+.job-download-section {
+  text-align: center;
+}
+
+/* Empty output warning box */
+.job-empty-output-box {
+  background: rgba(var(--warning-color-rgb, 184, 149, 106), 0.15);
+  border: 2px solid var(--warning-color);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.job-empty-output-icon {
+  font-size: 2rem;
+  color: var(--warning-color);
+  margin-bottom: 1rem;
+}
+
+.job-empty-output-title {
+  color: var(--warning-color);
+  margin-bottom: 0.75rem;
+  font-size: 1.25rem;
+}
+
+.job-empty-output-text {
+  color: var(--color-fg-default);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.job-empty-output-debug {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--warning-color);
+}
+
+.job-empty-output-debug-text {
+  color: var(--color-fg-muted);
+  font-size: 0.9rem;
+}
+
+/* Log copy button feedback states */
+.job-log-copy-btn--success {
+  background: var(--success-color) !important;
+  color: var(--white) !important;
+}
+
+.job-log-copy-btn--error {
+  background: var(--error-color) !important;
+  color: var(--white) !important;
+}
+
+/* Log expanded state */
+.job-log-pre--expanded {
+  max-height: 800px !important;
+}
+
+/* Download button */
+.job-download-btn {
+  display: inline-block;
+  padding: 1rem 2rem;
+  background: var(--success-color);
+  color: var(--white);
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition:
+    transform 0.2s,
+    background-color 0.2s;
+}
+
+.job-download-btn:hover {
+  background: var(--color-success-emphasis);
+  transform: translateY(-2px);
+}
+
+.job-download-btn:not(:hover) {
+  transform: translateY(0);
+}
+
+.job-download-info {
+  color: var(--color-fg-muted);
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
