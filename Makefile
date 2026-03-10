@@ -384,6 +384,7 @@ help-all:
 	@echo -e "  slurm-stop                   Stop SLURM services"
 	@echo -e "  slurm-status                 Check SLURM status"
 	@echo -e "  slurm-fix                    Fix SLURM issues"
+	@echo -e "  slurm-cleanup                Cancel stale terminal jobs"
 	@echo -e ""
 	@echo -e "$(CYAN)🏊 Visitor Pool:$(NC)"
 	@echo -e "  ENV=<env> visitor-status     Show pool status"
@@ -1519,6 +1520,16 @@ slurm-reset:
 	@echo -e "$(RED)⚠️  This will clear ALL SLURM jobs and reset state!$(NC)"
 	@read -p "Are you sure? (y/N) " confirm && [ "$$confirm" = "y" ] || exit 1
 	@sudo ./deployment/slurm/scripts/08_reset_slurm_state.sh
+	@$(MAKE) slurm-status
+
+slurm-cleanup:
+	@echo -e "$(CYAN)🧹 Cancelling stale terminal SLURM jobs...$(NC)"
+	@count=0; \
+	for jid in $$(squeue --noheader --format="%i %j" 2>/dev/null | awk '$$2 ~ /^scitex-cloud-terminal/ || $$2 == "true" {print $$1}'); do \
+		sudo scancel $$jid 2>/dev/null && echo -e "  Cancelled job $$jid" && count=$$((count+1)); \
+	done; \
+	if [ $$count -eq 0 ]; then echo -e "  $(GREEN)No stale jobs found$(NC)"; \
+	else echo -e "  $(GREEN)Cancelled $$count job(s)$(NC)"; fi
 	@$(MAKE) slurm-status
 
 # ============================================
