@@ -135,7 +135,7 @@ export class SectionManagement {
     try {
       const docType = this.state.currentDocType || "manuscript";
       const response = await fetch(
-        `/writer/api/project/${this.config.projectId}/section/create/`,
+        `/apps/writer/api/project/${this.config.projectId}/section/create/`,
         {
           method: "POST",
           headers: {
@@ -253,7 +253,7 @@ export class SectionManagement {
 
     try {
       const response = await fetch(
-        `/writer/api/project/${this.config.projectId}/section/${encodeURIComponent(currentSection)}/delete/`,
+        `/apps/writer/api/project/${this.config.projectId}/section/${encodeURIComponent(currentSection)}/delete/`,
         {
           method: "DELETE",
           headers: {
@@ -322,7 +322,7 @@ export class SectionManagement {
 
     try {
       const response = await fetch(
-        `/writer/api/project/${this.config.projectId}/section/${encodeURIComponent(currentSection)}/toggle-exclude/`,
+        `/apps/writer/api/project/${this.config.projectId}/section/${encodeURIComponent(currentSection)}/toggle-exclude/`,
         {
           method: "POST",
           headers: {
@@ -376,7 +376,7 @@ export class SectionManagement {
 
     try {
       const response = await fetch(
-        `/writer/api/project/${this.config.projectId}/section/${encodeURIComponent(currentSection)}/move-up/`,
+        `/apps/writer/api/project/${this.config.projectId}/section/${encodeURIComponent(currentSection)}/move-up/`,
         {
           method: "POST",
           headers: {
@@ -423,7 +423,7 @@ export class SectionManagement {
 
     try {
       const response = await fetch(
-        `/writer/api/project/${this.config.projectId}/section/${encodeURIComponent(currentSection)}/move-down/`,
+        `/apps/writer/api/project/${this.config.projectId}/section/${encodeURIComponent(currentSection)}/move-down/`,
         {
           method: "POST",
           headers: {

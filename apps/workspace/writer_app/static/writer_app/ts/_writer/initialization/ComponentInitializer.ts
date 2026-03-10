@@ -240,7 +240,7 @@ export class ComponentInitializer {
     if (!this.config.projectId) return;
 
     const colorMode = localStorage.getItem("pdf-color-mode") || "light";
-    const pdfUrl = `/writer/api/project/${this.config.projectId}/pdf/preview-abstract-${colorMode}.pdf`;
+    const pdfUrl = `/apps/writer/api/project/${this.config.projectId}/pdf/preview-abstract-${colorMode}.pdf`;
 
     console.log(
       "[ComponentInitializer] Auto-start: Checking for existing PDF...",

@@ -183,7 +183,7 @@ export function handleDownloadSectionPDF(
   if (sectionName === "compiled_pdf") {
     // Full manuscript PDF - use doc_type query parameter
     const docType = parts[0]; // manuscript, supplementary, or revision
-    pdfUrl = `/writer/api/project/${config.projectId}/pdf/?doc_type=${docType}`;
+    pdfUrl = `/apps/writer/api/project/${config.projectId}/pdf/?doc_type=${docType}`;
     filename = `${config.projectName || "manuscript"}_${docType}.pdf`;
 
     // Check if PDF exists before downloading
@@ -226,8 +226,8 @@ export function handleDownloadSectionPDF(
     // Section preview PDF - try to find themed version first, fall back to any available
     const currentTheme =
       (window as any).pdfScrollZoomHandler?.getColorMode() || "light";
-    const themedPdfUrl = `/writer/api/project/${config.projectId}/pdf/preview-${sectionName}-${currentTheme}.pdf`;
-    const fallbackPdfUrl = `/writer/api/project/${config.projectId}/pdf/preview-${sectionName}-light.pdf`;
+    const themedPdfUrl = `/apps/writer/api/project/${config.projectId}/pdf/preview-${sectionName}-${currentTheme}.pdf`;
+    const fallbackPdfUrl = `/apps/writer/api/project/${config.projectId}/pdf/preview-${sectionName}-light.pdf`;
     filename = `${config.projectName || "manuscript"}_${sectionName}.pdf`;
 
     // Try themed PDF first
