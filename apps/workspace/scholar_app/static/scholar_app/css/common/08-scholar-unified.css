@@ -427,3 +427,76 @@ body.scholar-page #main-content {
 [data-theme="light"] .scholar-tab-content .search-input {
   background: var(--workspace-bg-primary) !important;
 }
+
+/* ===============================================
+   INLINE SIDE PANEL DIMENSIONS
+   Replaces inline style= attributes on side panels
+   =============================================== */
+
+.scholar-search-container,
+.bibtex-main-content,
+.citation-graph-container {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.search-controls-inline,
+.bibtex-controls-inline,
+.graph-controls-inline {
+  width: 280px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  border-left: 1px solid var(--workspace-border-default, #30363d);
+  padding: 8px;
+}
+
+/* ===============================================
+   SCHOLAR INIT MESSAGE
+   (moved from scholar_unified.html inline style on project-config)
+   =============================================== */
+
+.scholar-project-config {
+  display: none;
+}
+
+/* ===============================================
+   TAB BADGE STYLES
+   (moved from scholar_unified.html <style> block)
+   =============================================== */
+
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-left: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.tab-badge--soon {
+  background: rgba(251, 191, 36, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+[data-theme="light"] .tab-badge--soon {
+  background: rgba(251, 191, 36, 0.2);
+  color: #d97706;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+}
+
+.tab-badge--experimental {
+  background: rgba(139, 92, 246, 0.15);
+  color: #a78bfa;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+[data-theme="light"] .tab-badge--experimental {
+  background: rgba(139, 92, 246, 0.2);
+  color: #7c3aed;
+  border: 1px solid rgba(139, 92, 246, 0.4);
+}

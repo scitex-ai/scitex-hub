@@ -40,13 +40,11 @@ async function copyLogToClipboard(
     // Visual feedback - success
     const originalHTML = button.innerHTML;
     button.innerHTML = '<i class="fas fa-check"></i> Copied!';
-    button.style.background = "var(--success-color)";
-    button.style.color = "var(--white)";
+    button.classList.add("job-log-copy-btn--success");
 
     setTimeout(() => {
       button.innerHTML = originalHTML;
-      button.style.background = "var(--color-btn-bg)";
-      button.style.color = "var(--color-fg-default)";
+      button.classList.remove("job-log-copy-btn--success");
     }, 2000);
   } catch (err) {
     console.error("[Job Detail UI] Failed to copy log:", err);
@@ -63,13 +61,11 @@ async function copyLogToClipboard(
     // Show error feedback
     button.innerHTML =
       '<i class="fas fa-exclamation-triangle"></i> Select text manually';
-    button.style.background = "var(--error-color)";
-    button.style.color = "var(--white)";
+    button.classList.add("job-log-copy-btn--error");
 
     setTimeout(() => {
       button.innerHTML = '<i class="fas fa-copy"></i> Copy Log';
-      button.style.background = "var(--color-btn-bg)";
-      button.style.color = "var(--color-fg-default)";
+      button.classList.remove("job-log-copy-btn--error");
     }, 3000);
   }
 }
@@ -95,10 +91,10 @@ function toggleLogSize(
   const newExpanded = !expanded;
 
   if (newExpanded) {
-    logElement.style.maxHeight = "800px";
+    logElement.classList.add("job-log-pre--expanded");
     button.innerHTML = '<i class="fas fa-compress-alt"></i>';
   } else {
-    logElement.style.maxHeight = "400px";
+    logElement.classList.remove("job-log-pre--expanded");
     button.innerHTML = '<i class="fas fa-expand-alt"></i>';
   }
 
@@ -216,7 +212,7 @@ function pollJobStatus(
 
       // Update progress
       const progressBar = document.querySelector(
-        '[style*="background: var(--scitex-color-03)"]',
+        ".job-progress-fill",
       ) as HTMLElement;
       if (progressBar && data.progress_percentage !== undefined) {
         progressBar.style.width = `${data.progress_percentage}%`;
@@ -224,9 +220,7 @@ function pollJobStatus(
       }
 
       // Update paper counts
-      const paperCount = document.querySelector(
-        '[style*="color: var(--color-fg-muted)"]',
-      );
+      const paperCount = document.querySelector(".job-progress-summary");
       if (paperCount && data.total_papers !== undefined) {
         let text = `${data.processed_papers} / ${data.total_papers} papers processed`;
         if (data.failed_papers > 0) {
@@ -319,6 +313,15 @@ function initJobDetailUI(): void {
     copyLogBtn: document.getElementById("copy-log-btn") as HTMLButtonElement,
     elapsedTimeEl: document.getElementById("elapsed-time") as HTMLSpanElement,
   };
+
+  // Initialize progress bar width from data attribute
+  const progressFill = document.querySelector(
+    ".job-progress-fill",
+  ) as HTMLElement;
+  if (progressFill) {
+    const progressVal = progressFill.getAttribute("data-progress") || "0";
+    progressFill.style.width = `${progressVal}%`;
+  }
 
   let logExpanded = false;
 

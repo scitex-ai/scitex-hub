@@ -107,18 +107,14 @@
                     onclick="document.getElementById('graphError').classList.add('hidden')">Dismiss</button>
         </div>
     </div>
-    <!-- Configuration for JavaScript -->
-    <script>
-window.CITATION_GRAPH_CONFIG = {
-    urls: {
-        buildNetwork: '{% url "scholar_app:citation_graph_network" %}',
-        buildNetworkMulti: '{% url "scholar_app:citation_graph_network_multi" %}',
-        relatedPapers: '{% url "scholar_app:citation_graph_related" %}',
-        paperSummary: '{% url "scholar_app:citation_graph_paper" %}',
-        health: '{% url "scholar_app:citation_graph_health" %}'
-    }
-};
-    </script>
+    <!-- Configuration for JavaScript (read by scholar-config.ts) -->
+    <div id="citation-graph-config"
+         class="hidden"
+         data-url-build-network="{% url 'scholar_app:citation_graph_network' %}"
+         data-url-build-network-multi="{% url 'scholar_app:citation_graph_network_multi' %}"
+         data-url-related-papers="{% url 'scholar_app:citation_graph_related' %}"
+         data-url-paper-summary="{% url 'scholar_app:citation_graph_paper' %}"
+         data-url-health="{% url 'scholar_app:citation_graph_health' %}"></div>
 {% endblock %}
 {% block details_content %}
     <div class="graph-sidebar">
@@ -206,6 +202,7 @@ window.CITATION_GRAPH_CONFIG = {
 {% endblock %}
 {% block extra_js %}
     {{ block.super }}
+    {% vite_script 'scholar_app/scholar-config' %}
     {% vite_script 'scholar_app/common/project-selector' %}
     {% vite_script 'scholar_app/graph/citation-graph' %}
 {% endblock %}

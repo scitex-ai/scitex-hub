@@ -94,3 +94,23 @@
   background: var(--workspace-bg-tertiary);
   color: var(--text-primary);
 }
+
+/* ── SciTeX Seekbar Integration ── */
+.range-filter-container .slider-container {
+  margin: 20px 0;
+  padding: 10px 0;
+}
+
+.scitex-seekbar-container {
+  padding: 5px 0;
+}
+
+[data-theme="dark"] #yearMinDisplay,
+[data-theme="dark"] #yearMaxDisplay,
+[data-theme="dark"] #citationsMinDisplay,
+[data-theme="dark"] #citationsMaxDisplay,
+[data-theme="dark"] #impactFactorMinDisplay,
+[data-theme="dark"] #impactFactorMaxDisplay {
+  background-color: var(--scitex-color-03) !important;
+  color: var(--scitex-color-06) !important;
+}

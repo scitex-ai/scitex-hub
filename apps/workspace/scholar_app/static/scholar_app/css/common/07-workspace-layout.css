@@ -207,3 +207,105 @@
   margin: 0;
   max-width: 100%;
 }
+
+/* ===============================================
+   SCHOLAR TAB CONTENT VISIBILITY
+   (moved from scholar_partial.html inline <style>)
+   =============================================== */
+
+.scholar-tab-content {
+  display: none !important;
+}
+
+.scholar-tab-content.active {
+  display: flex !important;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.scholar-details-content {
+  display: none;
+}
+
+.scholar-details-content.active {
+  display: block;
+}
+
+/* ===============================================
+   TWO-COLUMN SPLIT LAYOUT FOR ALL TABS
+   Each tab has: left-panel | resizer | right-panel
+   =============================================== */
+
+/* All tabs with resizers use row layout */
+#tab-search,
+#tab-bibtex,
+#tab-graph {
+  flex-direction: row !important;
+  overflow: hidden;
+}
+
+/* Shared resizer style for in-tab splits */
+.scholar-tab-resizer {
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.scholar-tab-resizer:hover {
+  background: var(--icon-primary, var(--workspace-icon-primary, #388bfd));
+}
+
+/* Search tab: left (search results) | right (controls) */
+#tab-search .scholar-search-container {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+#tab-search .search-controls-inline {
+  width: 320px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  border-left: 1px solid
+    var(--border-color, var(--workspace-border-default, #30363d));
+  background: var(--bg-primary, var(--workspace-bg-primary, #0d1117));
+}
+
+/* BibTeX tab: left (enrich editor) | right (status tiles) */
+#tab-bibtex .bibtex-main-content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#tab-bibtex .bibtex-controls-inline {
+  width: 320px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  border-left: 1px solid
+    var(--border-color, var(--workspace-border-default, #30363d));
+  background: var(--bg-primary, var(--workspace-bg-primary, #0d1117));
+}
+
+/* Graph tab: left (graph viz) | right (sidebar info) */
+#tab-graph .citation-graph-container {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#tab-graph .graph-controls-inline {
+  width: 320px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  border-left: 1px solid
+    var(--border-color, var(--workspace-border-default, #30363d));
+  background: var(--bg-primary, var(--workspace-bg-primary, #0d1117));
+}

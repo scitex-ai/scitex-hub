@@ -1,75 +1,60 @@
 /**
  * Scholar Tab Switcher
- * Handles tab navigation and content switching for the Scholar unified page
+ * Handles tab navigation and content switching for the Scholar unified page.
+ * Works in both standalone mode and AJAX-injected unified workspace.
  */
 
 const TAB_ORDER = ["library", "search", "bibtex", "graph"];
 const DEFAULT_TAB = "library";
 
+function isInUnifiedWorkspace(): boolean {
+  return !!document.getElementById("unified-center");
+}
+
 function getActiveTab(): string {
+  if (isInUnifiedWorkspace()) return DEFAULT_TAB;
   const hash = window.location.hash.slice(1);
   return TAB_ORDER.includes(hash) ? hash : DEFAULT_TAB;
 }
 
 function switchTab(tabName: string): void {
-  // Update tab navigation
   document.querySelectorAll(".scholar-tab").forEach((tab) => {
-    const tabElement = tab as HTMLElement;
-    if (tabElement.dataset.tab === tabName) {
-      tab.classList.add("active");
-    } else {
-      tab.classList.remove("active");
-    }
+    (tab as HTMLElement).classList.toggle(
+      "active",
+      (tab as HTMLElement).dataset.tab === tabName,
+    );
   });
-
-  // Update main content
   document.querySelectorAll(".scholar-tab-content").forEach((content) => {
-    const contentElement = content as HTMLElement;
-    if (contentElement.dataset.tab === tabName) {
-      content.classList.add("active");
-    } else {
-      content.classList.remove("active");
-    }
+    (content as HTMLElement).classList.toggle(
+      "active",
+      (content as HTMLElement).dataset.tab === tabName,
+    );
   });
-
-  // Update details panel
   document.querySelectorAll(".scholar-details-content").forEach((content) => {
-    const contentElement = content as HTMLElement;
-    if (contentElement.dataset.tab === tabName) {
-      content.classList.add("active");
-    } else {
-      content.classList.remove("active");
-    }
+    (content as HTMLElement).classList.toggle(
+      "active",
+      (content as HTMLElement).dataset.tab === tabName,
+    );
   });
-
-  // Trigger resize for components that need it (like graphs)
   window.dispatchEvent(new Event("resize"));
 }
 
 function initTabSwitcher(): void {
-  // Handle tab clicks
   document.querySelectorAll(".scholar-tab").forEach((tab) => {
     tab.addEventListener("click", function (this: HTMLElement, e: Event) {
       e.preventDefault();
       const tabName = this.dataset.tab;
-      if (tabName) {
-        window.location.hash = tabName;
-        switchTab(tabName);
-      }
+      if (!tabName) return;
+      if (!isInUnifiedWorkspace()) window.location.hash = tabName;
+      switchTab(tabName);
     });
   });
 
-  // Handle hash changes (back/forward navigation)
-  window.addEventListener("hashchange", function () {
-    switchTab(getActiveTab());
-  });
-
-  // Initial tab activation
-  const activeTab = getActiveTab();
-  if (!window.location.hash) {
-    window.location.hash = DEFAULT_TAB;
+  if (!isInUnifiedWorkspace()) {
+    window.addEventListener("hashchange", () => switchTab(getActiveTab()));
   }
-  switchTab(activeTab);
+
+  switchTab(getActiveTab());
 }
 
 // Initialize when DOM is ready
@@ -78,5 +63,12 @@ if (document.readyState === "loading") {
 } else {
   initTabSwitcher();
 }
+
+// Re-initialize after AJAX partial injection into unified workspace
+document.addEventListener("workspace:module-injected", (e) => {
+  if ((e as CustomEvent).detail?.module === "scholar") {
+    initTabSwitcher();
+  }
+});
 
 export { switchTab, getActiveTab, TAB_ORDER, DEFAULT_TAB };
