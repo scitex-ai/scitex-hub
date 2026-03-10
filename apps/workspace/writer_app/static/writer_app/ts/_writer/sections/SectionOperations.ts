@@ -79,7 +79,7 @@ export async function loadSectionContent(
     );
 
     const response = await fetch(
-      `/writer/api/project/${config.projectId}/section/${sectionName}/?doc_type=${docType}`,
+      `/apps/writer/api/project/${config.projectId}/section/${sectionName}/?doc_type=${docType}`,
     );
 
     if (!response.ok) {
@@ -250,7 +250,7 @@ export function loadCompiledPDF(sectionId: string): void {
   const docType = parts[0];
 
   // Use API endpoint for PDF with doc_type query parameter
-  const pdfUrl = `/writer/api/project/${config.projectId}/pdf/?doc_type=${docType}`;
+  const pdfUrl = `/apps/writer/api/project/${config.projectId}/pdf/?doc_type=${docType}`;
 
   console.log(
     "[SectionOperations] Loading compiled PDF for section:",

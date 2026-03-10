@@ -24,7 +24,7 @@ export async function loadTexFile(
 
   try {
     const response = await fetch(
-      `/writer/api/project/${config.projectId}/read-tex-file/?path=${encodeURIComponent(filePath)}`,
+      `/apps/writer/api/project/${config.projectId}/read-tex-file/?path=${encodeURIComponent(filePath)}`,
     );
 
     console.log("[FileLoader] File API response status:", response.status);
