@@ -64,7 +64,19 @@
             <div class="scholar-search-container">
                 {% include "scholar_app/search_partials/search.html" with show_results=True %}
             </div>
-            <div id="scholar-config-data" data-bibtex-upload-url="{% url 'scholar_app:bibtex_upload' %}" data-resource-status-url="{% url 'scholar_app:bibtex_resource_status' %}" data-scitex-search-url="{% url 'scholar_app:api_scitex_search' %}" data-scitex-capabilities-url="{% url 'scholar_app:api_scitex_capabilities' %}" data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-user-projects='[{% for project in user_projects %}{"id": {{ project.id }}, "name": "{{ project.name|escapejs }}"}
+            <div class="h-resizer scholar-tab-resizer"
+                 id="search-resizer"
+                 data-h-resizer
+                 data-in-app
+                 data-left=".scholar-search-container"
+                 data-right="#search-controls-panel"
+                 data-threshold="120"
+                 data-storage-key="scholar-search-split"></div>
+            <div class="search-controls-inline" id="search-controls-panel">
+                {% include "scholar_app/search_partials/search_controls.html" %}
+            </div>
+            <!-- Configuration for JavaScript (hidden, not a flex child) -->
+            <div id="scholar-config-data" class="hidden" data-bibtex-upload-url="{% url 'scholar_app:bibtex_upload' %}" data-resource-status-url="{% url 'scholar_app:bibtex_resource_status' %}" data-scitex-search-url="{% url 'scholar_app:api_scitex_search' %}" data-scitex-capabilities-url="{% url 'scholar_app:api_scitex_capabilities' %}" data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-user-projects='[{% for project in user_projects %}{"id": {{ project.id }}, "name": "{{ project.name|escapejs }}"}
                 {% if not forloop.last %},{% endif %}
             {% endfor %}
             ]' data-current-project='{% if current_project %}{"id": {{ current_project.id }}, "name": "{{ current_project.name|escapejs }}"}
@@ -75,10 +87,23 @@
 </div>
 <!-- BibTeX Tab -->
 <div id="tab-bibtex" class="scholar-tab-content" data-tab="bibtex">
-    {% include "scholar_app/bibtex_partials/enrich.html" %}
-    {% if current_project %}
-        {% include "writer_app/compilation_view_partials/ai2_modal.html" %}
-    {% endif %}
+    <div class="bibtex-main-content">
+        {% include "scholar_app/bibtex_partials/enrich.html" %}
+        {% if current_project %}
+            {% include "writer_app/compilation_view_partials/ai2_modal.html" %}
+        {% endif %}
+    </div>
+    <div class="h-resizer scholar-tab-resizer"
+         id="bibtex-resizer"
+         data-h-resizer
+         data-in-app
+         data-left=".bibtex-main-content"
+         data-right="#bibtex-controls-panel"
+         data-threshold="120"
+         data-storage-key="scholar-bibtex-split"></div>
+    <div class="bibtex-controls-inline" id="bibtex-controls-panel">
+        {% include "scholar_app/bibtex_partials/status_tiles.html" %}
+    </div>
 </div>
 <!-- Graph Tab -->
 <div id="tab-graph" class="scholar-tab-content" data-tab="graph">
@@ -202,6 +227,98 @@
             <p id="graphErrorMessage"></p>
             <button class="btn-retry"
                     onclick="document.getElementById('graphError').classList.add('hidden')">Dismiss</button>
+        </div>
+    </div>
+    <div class="h-resizer scholar-tab-resizer"
+         id="graph-resizer"
+         data-h-resizer
+         data-in-app
+         data-left=".citation-graph-container"
+         data-right="#graph-controls-panel"
+         data-threshold="120"
+         data-storage-key="scholar-graph-split"></div>
+    <div class="graph-controls-inline" id="graph-controls-panel">
+        <div class="graph-sidebar">
+            <div class="sidebar-section collapsed" data-panel-id="graph-service-status">
+                <div class="sidebar-section__header"
+                     onclick="window._toggleInlinePanel && window._toggleInlinePanel(this)">
+                    <h5 class="sidebar-section__title">
+                        <i class="fas fa-heartbeat"></i> Service Status
+                    </h5>
+                    <i class="fas fa-chevron-down sidebar-section__toggle"></i>
+                </div>
+                <div class="sidebar-section__content">
+                    <div id="serviceStatus">
+                        <div class="status-indicator status-checking">
+                            <i class="fas fa-circle-notch fa-spin"></i>
+                            <span>Checking...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-section collapsed" data-panel-id="graph-how-it-works">
+                <div class="sidebar-section__header"
+                     onclick="window._toggleInlinePanel && window._toggleInlinePanel(this)">
+                    <h5 class="sidebar-section__title">
+                        <i class="fas fa-info-circle"></i> How It Works
+                    </h5>
+                    <i class="fas fa-chevron-down sidebar-section__toggle"></i>
+                </div>
+                <div class="sidebar-section__content">
+                    <div class="info-list">
+                        <div class="info-item">
+                            <i class="fas fa-link"></i>
+                            <div>
+                                <strong>Bibliographic Coupling</strong>
+                                <p>Papers sharing common references</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-quote-right"></i>
+                            <div>
+                                <strong>Co-citation</strong>
+                                <p>Papers frequently cited together</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-arrow-right"></i>
+                            <div>
+                                <strong>Direct Citations</strong>
+                                <p>Papers citing or cited by seed</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-section collapsed" data-panel-id="graph-controls">
+                <div class="sidebar-section__header"
+                     onclick="window._toggleInlinePanel && window._toggleInlinePanel(this)">
+                    <h5 class="sidebar-section__title">
+                        <i class="fas fa-keyboard"></i> Controls
+                    </h5>
+                    <i class="fas fa-chevron-down sidebar-section__toggle"></i>
+                </div>
+                <div class="sidebar-section__content">
+                    <div class="controls-list">
+                        <div class="control-item">
+                            <kbd>Scroll</kbd>
+                            <span>Zoom in/out</span>
+                        </div>
+                        <div class="control-item">
+                            <kbd>Drag</kbd>
+                            <span>Pan view</span>
+                        </div>
+                        <div class="control-item">
+                            <kbd>Drag Node</kbd>
+                            <span>Move node</span>
+                        </div>
+                        <div class="control-item">
+                            <kbd>Click Node</kbd>
+                            <span>View details</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
