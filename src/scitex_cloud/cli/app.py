@@ -356,4 +356,107 @@ def prefs_list():
     console.print(json.dumps(all_prefs, indent=2))
 
 
+@app.command("check-deps")
+@click.argument("app_dir", default=".", type=click.Path(exists=True))
+def app_check_deps(app_dir):
+    """Check app dependencies from manifest.json.
+
+    \b
+    Examples:
+        scitex-cloud app check-deps .
+        scitex-cloud app check-deps /path/to/my_app
+    """
+    from scitex_cloud.appmaker import check_deps_from_manifest, format_missing_report
+
+    manifest = Path(app_dir) / "manifest.json"
+    if not manifest.is_file():
+        console.print("[red]No manifest.json found[/red]")
+        raise SystemExit(1)
+
+    missing = check_deps_from_manifest(manifest)
+    report = format_missing_report(missing)
+    if missing:
+        console.print(f"[yellow]{report}[/yellow]")
+        raise SystemExit(1)
+    else:
+        console.print(f"[green]{report}[/green]")
+
+
+@app.command("install-deps")
+@click.argument("app_dir", default=".", type=click.Path(exists=True))
+@click.option(
+    "--type",
+    "-t",
+    "dep_type",
+    type=click.Choice(["python", "system", "node", "r"]),
+    required=True,
+    help="Dependency type to install",
+)
+def app_install_deps(app_dir, dep_type):
+    """Install app dependencies of a specific type.
+
+    \b
+    Examples:
+        scitex-cloud app install-deps . --type python
+        scitex-cloud app install-deps . -t system
+    """
+    import json
+
+    from scitex_cloud.appmaker import install_deps
+
+    manifest_path = Path(app_dir) / "manifest.json"
+    if not manifest_path.is_file():
+        console.print("[red]No manifest.json found[/red]")
+        raise SystemExit(1)
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    console.print(f"[cyan]Installing {dep_type} dependencies...[/cyan]")
+
+    result = install_deps(manifest, dep_type)
+
+    if result["success"]:
+        installed = result.get("installed", [])
+        if installed:
+            console.print(f"[green]Installed:[/green] {', '.join(installed)}")
+        else:
+            console.print("[green]No dependencies to install.[/green]")
+    else:
+        console.print(f"[red]Failed:[/red] {result['error']}")
+        raise SystemExit(1)
+
+
+@app.command("build-container")
+@click.argument("app_dir", default=".", type=click.Path(exists=True))
+@click.option(
+    "--output",
+    "-o",
+    "output_dir",
+    default=None,
+    type=click.Path(),
+    help="Output directory for .sif file",
+)
+def app_build_container(app_dir, output_dir):
+    """Build an Apptainer container from an app's .def file.
+
+    Reads the ``container`` field from manifest.json and builds a .sif image.
+
+    \b
+    Examples:
+        scitex-cloud app build-container .
+        scitex-cloud app build-container /path/to/my_app -o /data/containers/
+    """
+    from scitex_cloud.appmaker import build_container
+
+    out = Path(output_dir) if output_dir else None
+    console.print(f"[cyan]Building container from:[/cyan] {Path(app_dir).resolve()}")
+
+    result = build_container(Path(app_dir).resolve(), output_dir=out)
+
+    if result["success"]:
+        console.print(f"[green]Built:[/green] {result['sif_path']}")
+    else:
+        console.print(f"[red]Failed:[/red] {result['error']}")
+        raise SystemExit(1)
+
+
 # EOF

@@ -56,6 +56,7 @@ def run_dev_context(
     from apps.workspace.console_app.services.apptainer_runner import (
         _instance_name,
         build_apptainer_exec_cmd,
+        get_container_for_user,
     )
     from apps.workspace.console_app.services.terminal_broker.allocation import (
         Allocation,

@@ -8,6 +8,13 @@ from ._components import (
     get_css_imports,
     get_ts_imports,
 )
+from ._deps import (
+    build_container,
+    check_deps,
+    check_deps_from_manifest,
+    format_missing_report,
+    install_deps,
+)
 from ._launcher import dev_server
 from ._license import generate_license_text
 from ._prefs import delete_prefs, get_prefs, list_prefs, set_prefs
@@ -31,6 +38,12 @@ __all__ = [
     "list_all",
     "get_info",
     "install_app",
+    # dependencies
+    "check_deps",
+    "check_deps_from_manifest",
+    "install_deps",
+    "format_missing_report",
+    "build_container",
     # preferences
     "get_prefs",
     "set_prefs",
