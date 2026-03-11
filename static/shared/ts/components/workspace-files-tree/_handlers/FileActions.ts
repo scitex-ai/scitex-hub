@@ -5,6 +5,7 @@
 
 import type { TreeItem, TreeConfig } from "../types";
 import type { TreeStateManager } from "../_TreeState";
+import { attachInlineInput } from "./_InlineInputHelper";
 
 export class FileActions {
   constructor(
@@ -232,16 +233,22 @@ export class FileActions {
     folderPath: string,
     type: "file" | "directory",
   ): void {
-    // Handle root (empty path) - insert after root item in .wft-tree
+    const onSubmit = async (name: string): Promise<void> => {
+      await this.performCreate(folderPath, name, type);
+    };
+
+    // Handle root (empty path) — insert after root item in .wft-tree
     if (folderPath === "") {
-      const treeEl = document.querySelector(".wft-tree");
-      const rootItem = treeEl?.querySelector(".wft-root");
+      const treeEl = document.querySelector(".wft-tree") as HTMLElement | null;
+      const rootItem = treeEl?.querySelector(".wft-root") as HTMLElement | null;
       if (treeEl && rootItem) {
-        this.createInlineInputElementForRoot(
-          treeEl as HTMLElement,
-          rootItem as HTMLElement,
+        attachInlineInput({
+          container: treeEl,
+          insertMode: "after-sibling",
+          sibling: rootItem,
           type,
-        );
+          onSubmit,
+        });
       }
       return;
     }
@@ -257,11 +264,16 @@ export class FileActions {
       !childrenContainer ||
       !childrenContainer.classList.contains("wft-children")
     ) {
-      // Folder has no children container, create one
+      // Folder has no children container — create one
       const newContainer = document.createElement("div");
       newContainer.className = "wft-children expanded";
       folderEl.after(newContainer);
-      this.createInlineInputElement(newContainer, folderPath, type);
+      attachInlineInput({
+        container: newContainer,
+        insertMode: "prepend",
+        type,
+        onSubmit,
+      });
       return;
     }
 
@@ -269,141 +281,11 @@ export class FileActions {
     childrenContainer.style.display = "";
     childrenContainer.classList.add("expanded");
 
-    this.createInlineInputElement(childrenContainer, folderPath, type);
-  }
-
-  /** Create inline input for root level (after root item) */
-  private createInlineInputElementForRoot(
-    treeEl: HTMLElement,
-    rootItem: HTMLElement,
-    type: "file" | "directory",
-  ): void {
-    // Create inline input row
-    const inputRow = document.createElement("div");
-    inputRow.className = `wft-item wft-${type} wft-inline-create`;
-    inputRow.style.paddingLeft = "8px";
-
-    const icon =
-      type === "file"
-        ? '<i class="fas fa-file" style="color: var(--color-fg-muted);"></i>'
-        : '<i class="fas fa-folder" style="color: var(--workspace-icon-primary);"></i>';
-
-    inputRow.innerHTML = `
-      <span class="wft-spacer"></span>
-      <span class="wft-icon">${icon}</span>
-      <input type="text" class="wft-inline-input" placeholder="${type === "file" ? "filename.ext" : "folder name"}" />
-    `;
-
-    // Insert after root item
-    rootItem.after(inputRow);
-
-    const input = inputRow.querySelector(
-      ".wft-inline-input",
-    ) as HTMLInputElement;
-    if (!input) return;
-
-    input.focus();
-
-    let submitted = false;
-    const cleanup = () => {
-      inputRow.remove();
-    };
-
-    const submit = async () => {
-      if (submitted) return;
-      submitted = true;
-
-      const name = input.value.trim();
-      if (!name) {
-        cleanup();
-        return;
-      }
-
-      await this.performCreate("", name, type); // Empty path = root
-      cleanup();
-    };
-
-    input.addEventListener("blur", () => {
-      setTimeout(() => submit(), 100);
-    });
-
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        input.blur();
-      } else if (e.key === "Escape") {
-        e.preventDefault();
-        cleanup();
-      }
-    });
-  }
-
-  private createInlineInputElement(
-    container: HTMLElement,
-    folderPath: string,
-    type: "file" | "directory",
-  ): void {
-    // Create inline input row - match sibling indentation
-    const inputRow = document.createElement("div");
-    inputRow.className = `wft-item wft-${type} wft-inline-create`;
-
-    // Match sibling padding - wft-children already provides the indentation via margin-left
-    // so we just need the standard item padding
-    inputRow.style.paddingLeft = "8px";
-
-    const icon =
-      type === "file"
-        ? '<i class="fas fa-file" style="color: var(--color-fg-muted);"></i>'
-        : '<i class="fas fa-folder" style="color: var(--workspace-icon-primary);"></i>';
-
-    inputRow.innerHTML = `
-      <span class="wft-spacer"></span>
-      <span class="wft-icon">${icon}</span>
-      <input type="text" class="wft-inline-input" placeholder="${type === "file" ? "filename.ext" : "folder name"}" />
-    `;
-
-    // Insert at the beginning of children
-    container.insertBefore(inputRow, container.firstChild);
-
-    const input = inputRow.querySelector(
-      ".wft-inline-input",
-    ) as HTMLInputElement;
-    if (!input) return;
-
-    input.focus();
-
-    let submitted = false;
-    const cleanup = () => {
-      inputRow.remove();
-    };
-
-    const submit = async () => {
-      if (submitted) return;
-      submitted = true;
-
-      const name = input.value.trim();
-      if (!name) {
-        cleanup();
-        return;
-      }
-
-      await this.performCreate(folderPath, name, type);
-      cleanup();
-    };
-
-    input.addEventListener("blur", () => {
-      // Small delay to allow click events to fire first
-      setTimeout(() => submit(), 100);
-    });
-
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        input.blur();
-      } else if (e.key === "Escape") {
-        e.preventDefault();
-        cleanup();
-      }
+    attachInlineInput({
+      container: childrenContainer,
+      insertMode: "prepend",
+      type,
+      onSubmit,
     });
   }
 

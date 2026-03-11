@@ -88,6 +88,15 @@
   background: var(--workspace-bg-secondary);
 }
 
+/* Icon colors for inline create rows */
+.wft-inline-create-icon-file {
+  color: var(--color-fg-muted);
+}
+
+.wft-inline-create-icon-folder {
+  color: var(--workspace-icon-primary);
+}
+
 /* Inline rename input (same style as inline create) */
 .wft-inline-rename {
   display: flex;

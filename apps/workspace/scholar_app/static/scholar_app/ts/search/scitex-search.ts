@@ -9,17 +9,13 @@
 
 import { searchHistory } from "./_SearchHistoryManager";
 import { searchLog } from "./_SearchLogManager";
-import { SearchResult, SourceConfig } from "./types";
-import { addResultToProgressive, toggleSelectAll } from "./_result-card";
+import { SourceConfig } from "./types";
+import { toggleSelectAll } from "./_result-card";
 import { setupToolbarHandlers } from "./_toolbar-handlers";
-import { updateLimitInfo } from "./_limit-info-display";
 import { showNoResultsMessage } from "./_no-results";
 import { showSearchLoading } from "./_search-loading";
-import {
-  resetPagination,
-  addResultsToPagination,
-  renderInitialBatch,
-} from "./_pagination";
+import { resetPagination } from "./_pagination";
+import { handleSearchResults } from "./_search-result-handler";
 import {
   showToolbarStatus,
   hideToolbarStatus,
@@ -193,117 +189,8 @@ function searchSource(source: SourceConfig, query: string): void {
     })
     .then((data: any) => {
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-
-      if (data.status === "success") {
-        const count = data.count || (data.results ? data.results.length : 0);
-        totalResults += count;
-        const cachedNote = data.cached ? " [cached]" : "";
-
-        searchLog.updateSourceStatus(source.name, "success", count);
-
-        let logMessage = `✓ ${source.name}: ${count.toLocaleString()} results (${elapsed}s)${cachedNote}`;
-
-        // Log limit_info_chain - always show limit reasons from each stage
-        if (data.limit_info_chain && Array.isArray(data.limit_info_chain)) {
-          data.limit_info_chain.forEach((li: any) => {
-            // Show capped warning if capped, otherwise show limit info
-            if (li.capped && li.capped_reason) {
-              logMessage += `\n  ⚠️  ${li.capped_reason}`;
-            } else if (li.limit_reason) {
-              logMessage += `\n  📊 ${li.limit_reason}`;
-            } else if (li.stage && li.returned !== undefined) {
-              // Fallback: construct message from available fields
-              const availableText = li.total_available
-                ? ` of ${li.total_available} available`
-                : "";
-              const limitText = li.configured_limit
-                ? ` (limit=${li.configured_limit})`
-                : "";
-              logMessage += `\n  📊 ${li.stage}: ${li.returned}${availableText}${limitText}`;
-            }
-          });
-        }
-
-        // Legacy result_guidance support
-        const guidance =
-          data.result_guidance?.per_source_limits?.[source.name] ||
-          data.result_guidance;
-        if (guidance?.reason) {
-          const reason = guidance.reason;
-          const requested = guidance.requested;
-          const configuredMax = guidance.configured_max;
-
-          if (reason && (count < requested || count < configuredMax)) {
-            logMessage += `\n  ℹ️  ${reason}`;
-          }
-
-          if (configuredMax && configuredMax !== requested) {
-            logMessage += `\n  📊 Config: max=${configuredMax}, requested=${requested}`;
-          }
-
-          if (
-            guidance.rate_limit_info &&
-            guidance.rate_limit_info !== "Unknown"
-          ) {
-            logMessage += `\n  🛡️  ${guidance.rate_limit_info}`;
-          }
-        }
-
-        searchLog.log(logMessage);
-
-        // Update visible limit info in header
-        if (data.limit_info_chain && Array.isArray(data.limit_info_chain)) {
-          updateLimitInfo(
-            source.name,
-            data.limit_info_chain,
-            data.total_available,
-            count,
-          );
-        }
-
-        if (data.results && Array.isArray(data.results)) {
-          // Store results for pagination and render initial batch
-          addResultsToPagination(data.results);
-          const rendered = renderInitialBatch(data.results);
-          const remaining = data.results.length - rendered;
-
-          if (remaining > 0) {
-            searchLog.log(
-              `  📊 Showing first ${rendered.toLocaleString()} of ${data.results.length.toLocaleString()} (${remaining.toLocaleString()} more via "Load More")`,
-            );
-          }
-        }
-
-        // Log deduplication info
-        if (activeSearches === 1 && data.result_guidance?.deduplication) {
-          const dedup = data.result_guidance.deduplication;
-          if (dedup.removed > 0) {
-            setTimeout(() => {
-              searchLog.log(
-                `\n📌 Deduplication: ${dedup.removed} duplicate(s) removed`,
-              );
-              searchLog.log(`   ${dedup.explanation}`);
-            }, 100);
-          }
-        }
-
-        // Log rate limiting info
-        if (activeSearches === 1 && data.result_guidance?.rate_limiting) {
-          const rateLimitInfo = data.result_guidance.rate_limiting;
-          setTimeout(() => {
-            searchLog.log(`\n🛡️  Rate Limiting: ${rateLimitInfo.explanation}`);
-            if (rateLimitInfo.details) {
-              searchLog.log(
-                `   Remaining: ${rateLimitInfo.details.remaining}/${rateLimitInfo.details.limit} requests`,
-              );
-            }
-          }, 200);
-        }
-      } else {
-        searchLog.updateSourceStatus(source.name, "error");
-        searchLog.log(`✗ ${source.name}: ${data.error || "Unknown error"}`);
-      }
-
+      const count = handleSearchResults(source, data, elapsed, activeSearches);
+      totalResults += count;
       checkSearchCompletion();
     })
     .catch((error: Error) => {
