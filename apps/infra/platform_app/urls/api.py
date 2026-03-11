@@ -1,5 +1,6 @@
 from django.urls import path
 
+from apps.infra.platform_app.views.api import context as context_views
 from apps.infra.platform_app.views.api import datastore as datastore_views
 from apps.infra.platform_app.views.api import external_api as external_api_views
 from apps.infra.platform_app.views.api import filevault as filevault_views
@@ -9,6 +10,8 @@ from apps.infra.platform_app.views.api import scitex_bridge as scitex_bridge_vie
 app_name = "platform_api"
 
 urlpatterns = [
+    # Context (unified bootstrap)
+    path("context/", context_views.context, name="context"),
     # DataStore
     path(
         "data/<str:app>/<str:schema>/",
