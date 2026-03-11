@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import subprocess
 import time
 from pathlib import Path
@@ -96,11 +97,20 @@ def run_dev_context(
         return {}
 
     module_name = dev_install.module_name
-    app_env = {"SCITEX_CURRENT_APP": module_name}
+    api_token = _generate_api_token(username)
+    api_url = os.environ.get("SCITEX_API_URL", "http://127.0.0.1:8000")
+
+    app_env = {
+        "SCITEX_CURRENT_APP": module_name,
+        "SCITEX_API_TOKEN": api_token,
+        "SCITEX_API_URL": api_url,
+    }
 
     inner_cmd = [
         "env",
         f"SCITEX_CURRENT_APP={module_name}",
+        f"SCITEX_API_TOKEN={api_token}",
+        f"SCITEX_API_URL={api_url}",
         "python",
         runner_in_container,
     ]
@@ -191,6 +201,20 @@ def run_dev_context(
             runner_dest.unlink(missing_ok=True)
         except OSError:
             pass
+
+
+def _generate_api_token(username: str) -> str:
+    """Generate a short-lived JWT for SDK access from Apptainer."""
+    try:
+        from django.contrib.auth import get_user_model
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        User = get_user_model()
+        user = User.objects.get(username=username)
+        return str(RefreshToken.for_user(user).access_token)
+    except Exception as exc:
+        logger.warning("[DevAppRunner] failed to generate API token: %s", exc)
+        return ""
 
 
 def _infer_function_name(dev_install) -> str:

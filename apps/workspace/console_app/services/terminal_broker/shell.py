@@ -34,6 +34,7 @@ class Shell(BasePTY):
         self.command = command
         self.client_socket: Optional[socket.socket] = None
         self.last_project_slug: str = ""
+        self._api_token = self._generate_api_token()
 
     def _prepare_child_env(self) -> dict:
         """Prepare env for srun --overlap shell.
@@ -46,7 +47,24 @@ class Shell(BasePTY):
         env = super()._prepare_child_env()
         env["HOME"] = original_home
         env["SCITEX_CURRENT_APP"] = "console"
+        if self._api_token:
+            env["SCITEX_API_TOKEN"] = self._api_token
+        env["SCITEX_API_URL"] = os.environ.get(
+            "SCITEX_API_URL", "http://127.0.0.1:8000"
+        )
         return env
+
+    def _generate_api_token(self) -> str:
+        """Generate a short-lived JWT for SDK access from Apptainer."""
+        try:
+            from django.contrib.auth import get_user_model
+            from rest_framework_simplejwt.tokens import RefreshToken
+
+            User = get_user_model()
+            user = User.objects.get(username=self.username)
+            return str(RefreshToken.for_user(user).access_token)
+        except Exception:
+            return ""
 
     def _exec_in_child(self):
         """Execute the provided command in child process."""

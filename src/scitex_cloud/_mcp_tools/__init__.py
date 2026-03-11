@@ -9,6 +9,7 @@ from .api import register_api_tools
 from .app import register_app_tools
 from .gitea import register_gitea_tools
 from .on_site import register_on_site_tools
+from .sdk import register_sdk_tools
 
 __all__ = ["register_all_tools"]
 
@@ -19,6 +20,7 @@ def register_all_tools(mcp) -> None:
     register_api_tools(mcp)
     register_on_site_tools(mcp)
     register_app_tools(mcp)
+    register_sdk_tools(mcp)
 
 
 # EOF
