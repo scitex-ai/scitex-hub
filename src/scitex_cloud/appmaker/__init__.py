@@ -1,5 +1,6 @@
-"""SciTeX App Tools — scaffold, validate, develop, and publish app plugins."""
+"""SciTeX App Tools — init, validate, develop, publish, and manage app plugins."""
 
+from ._api import get_current, get_info, install_app, list_all, switch_to
 from ._components import (
     SHARED_COMPONENTS,
     get_all_components,
@@ -9,8 +10,9 @@ from ._components import (
 )
 from ._launcher import dev_server
 from ._license import generate_license_text
+from ._prefs import delete_prefs, get_prefs, list_prefs, set_prefs
 from ._publish import publish
-from ._scaffold import scaffold
+from ._scaffold import init_app
 from ._validate import (
     validate,
     validate_css,
@@ -21,8 +23,19 @@ from ._validate import (
 )
 
 __all__ = [
-    # scaffold
-    "scaffold",
+    # init
+    "init_app",
+    # app management
+    "get_current",
+    "switch_to",
+    "list_all",
+    "get_info",
+    "install_app",
+    # preferences
+    "get_prefs",
+    "set_prefs",
+    "delete_prefs",
+    "list_prefs",
     # validate
     "validate",
     "validate_structure",

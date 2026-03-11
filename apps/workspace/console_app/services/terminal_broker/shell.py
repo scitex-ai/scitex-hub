@@ -45,6 +45,7 @@ class Shell(BasePTY):
         original_home = os.environ.get("HOME", "/root")
         env = super()._prepare_child_env()
         env["HOME"] = original_home
+        env["SCITEX_CURRENT_APP"] = "console"
         return env
 
     def _exec_in_child(self):

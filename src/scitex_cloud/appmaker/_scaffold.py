@@ -1,4 +1,4 @@
-"""App scaffold — generate complete boilerplate for a SciTeX app plugin."""
+"""App initializer — generate complete boilerplate for a SciTeX app plugin."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ from ._scaffold_react import build_react_files
 logger = logging.getLogger(__name__)
 
 
-def scaffold(
+def init_app(
     target_dir: str | Path,
     name: str,
     *,
@@ -182,6 +182,8 @@ def _build_all_files(
             "*.egg-info/",
             "",
             "# Environment",
+            ".env",
+            ".env.*",
             ".venv/",
             "venv/",
             "node_modules/",

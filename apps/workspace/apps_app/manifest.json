@@ -1,0 +1,30 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "1.0.0",
+  "name": "store",
+  "label": "Store",
+  "app_name": "apps_app",
+  "icon": "fas fa-store",
+  "description": "Browse, install, and publish community modules.",
+  "version": "0.14.0",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "M",
+  "order": 90,
+  "accent_color": "store",
+  "body_class": "store-page",
+  "partial_template": "apps_app/browse_partial.html",
+  "context_builder": "apps.workspace.apps_app.views.build_apps_context",
+  "url": "/apps/store/",
+  "ai_hint": "Browse, install, and publish community modules.",
+  "allowed_extensions": [],
+  "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+  "builtin": true,
+  "dependencies": {
+    "python": [],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}

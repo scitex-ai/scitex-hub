@@ -94,7 +94,15 @@ def run_dev_context(
         logger.error("[DevAppRunner] failed to write runner script: %s", exc)
         return {}
 
-    inner_cmd = ["python", runner_in_container]
+    module_name = dev_install.module_name
+    app_env = {"SCITEX_CURRENT_APP": module_name}
+
+    inner_cmd = [
+        "env",
+        f"SCITEX_CURRENT_APP={module_name}",
+        "python",
+        runner_in_container,
+    ]
 
     try:
         job_ids = Allocation.find_existing_jobs(username)
@@ -128,7 +136,7 @@ def run_dev_context(
                 dev_install, "apptainer_container_path", ""
             ) or get_container_for_user(username)
             cmd = build_apptainer_exec_cmd(
-                inner_cmd, project_dir, container_path=container
+                inner_cmd, project_dir, env_vars=app_env, container_path=container
             )
 
         logger.debug("[DevAppRunner] cmd: %s", " ".join(cmd))

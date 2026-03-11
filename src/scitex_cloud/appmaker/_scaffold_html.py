@@ -163,9 +163,12 @@ def _manifest_json(name, label, icon, description, extra_manifest, license_id):
     slug = name.replace("_", "-")
     desc = description or "A SciTeX Cloud app."
     manifest = {
+        "$schema": "scitex-app-manifest",
+        "$schema_version": "1.0.0",
         "name": name,
         "slug": slug,
         "label": label,
+        "app_name": name,
         "version": "0.1.0",
         "icon": icon,
         "subtitle": desc[:80],
@@ -173,9 +176,25 @@ def _manifest_json(name, label, icon, description, extra_manifest, license_id):
         "description": desc,
         "author": "",
         "license": license_id,
+        "keyboard_shortcut": "",
+        "order": 50,
+        "accent_color": "",
+        "body_class": f"{slug}-page",
+        "partial_template": f"{name}/index_partial.html",
+        "context_builder": "",
+        "ai_hint": desc,
         "capabilities": [],
         "allowed_extensions": [],
+        "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
         "wip": True,
+        "dependencies": {
+            "python": [],
+            "system": [],
+            "node": [],
+            "r": [],
+            "other": [],
+        },
+        "container": None,
     }
     if extra_manifest:
         manifest.update(extra_manifest)

@@ -4,6 +4,7 @@
 Workspace Module Registry — single source of truth for all workspace modules.
 
 Every workspace module (Writer, Scholar, Hub, etc.) registers here.
+Module configuration is loaded from manifest.json files in each app directory.
 Templates, views, TypeScript, and validation all reference this registry
 instead of maintaining separate hardcoded lists.
 
@@ -13,8 +14,10 @@ Usage:
 
 from __future__ import annotations
 
+import json
 import logging
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Callable, Optional
 
 logger = logging.getLogger(__name__)
@@ -112,7 +115,7 @@ def _import_builder(dotted_path: str) -> Optional[Callable]:
 
 
 # ---------------------------------------------------------------------------
-# Clew SVG icons (custom — not FontAwesome)
+# Clew SVG icons (custom — not in JSON, defined here)
 # ---------------------------------------------------------------------------
 _CLEW_SVG_NAV = (
     '<svg class="nav-icon-svg" viewBox="0 0 100 100" fill="none" '
@@ -140,188 +143,91 @@ _CLEW_SVG_TAB = (
     "</svg>"
 )
 
+# Per-module overrides that cannot be expressed in JSON (e.g. SVG icons)
+_MANIFEST_OVERRIDES: dict[str, dict] = {
+    "clew": {"icon_svg_tab": _CLEW_SVG_TAB, "icon_svg_nav": _CLEW_SVG_NAV},
+}
+
 
 # ---------------------------------------------------------------------------
-# Module Registry — all workspace modules declared here
+# Manifest loading — build ModuleConfig from manifest.json files
 # ---------------------------------------------------------------------------
-_BUILTIN_MODULES: list[ModuleConfig] = [
-    ModuleConfig(
-        name="writer",
-        label="Writer",
-        app_name="writer_app",
-        icon_fa="fas fa-pen",
-        partial_template="writer_app/writer_partial.html",
-        context_builder="apps.workspace.writer_app.views.index.main.build_writer_context",
-        body_class="writer-page",
-        keyboard_shortcut="W",
-        order=20,
-        ai_hint="Scientific manuscript editor: LaTeX editing with live preview, figure/table management, bibliography, PDF compilation.",
-        accent_color="writer",
-        allowed_extensions=[
-            ".tex",
-            ".bib",
-            ".pdf",
-            ".png",
-            ".jpg",
-            ".jpeg",
-            ".svg",
-            ".eps",
-        ],
-        hidden_patterns=[
-            "__pycache__",
-            "node_modules",
-            ".git",
-            ".venv",
-            "build",
-            ".aux",
-            ".log",
-            ".out",
-        ],
-    ),
-    ModuleConfig(
-        name="scholar",
-        label="Scholar",
-        app_name="scholar_app",
-        icon_fa="fas fa-graduation-cap",
-        partial_template="scholar_app/scholar_partial.html",
-        body_class="scholar-page",
-        keyboard_shortcut="S",
-        order=30,
-        ai_hint="Literature management: search papers (CrossRef/OpenAlex/Semantic Scholar), manage bibliography, explore citation graphs, download PDFs.",
-        accent_color="scholar",
-        allowed_extensions=[".bib"],
-        hidden_patterns=["__pycache__", "node_modules", ".git", ".venv", "build"],
-    ),
-    ModuleConfig(
-        name="vis",
-        label="Vis",
-        app_name="vis_app",
-        icon_fa="fas fa-chart-line",
-        partial_template="vis_app/vis_partial.html",
-        body_class="vis-workspace",
-        keyboard_shortcut="V",
-        order=40,
-        ai_hint="Data visualization and figure management: view plots, manage figure recipes, export publication-ready figures.",
-        accent_color="visualizer",
-        allowed_extensions=[
-            ".png",
-            ".jpg",
-            ".jpeg",
-            ".svg",
-            ".pdf",
-            ".csv",
-            ".json",
-            ".xlsx",
-            ".tsv",
-        ],
-        hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
-    ),
-    ModuleConfig(
-        name="clew",
-        label="Clew",
-        app_name="clew_app",
-        icon_svg_tab=_CLEW_SVG_TAB,
-        icon_svg_nav=_CLEW_SVG_NAV,
-        partial_template="clew_app/index_partial.html",
-        body_class="clew-page",
-        keyboard_shortcut="R",
-        order=50,  # hidden (default_enabled=False)
-        default_enabled=False,
-        ai_hint="Verification system: trace manuscript claims (statistics, figures, tables) back through computational chains to source data.",
-        docs_slug="clew",
-        accent_color="clew",
-        hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
-    ),
-    ModuleConfig(
-        name="home",
-        label="Home",
-        app_name="hub_app",
-        icon_fa="fas fa-home",
-        partial_template="hub_app/index_partial.html",
-        context_builder="apps.workspace.hub_app.views.index.build_hub_context",
-        body_class="home-page",
-        keyboard_shortcut="H",
-        order=10,
-        url="/apps/home/",
-        ai_hint="User dashboard: profile, projects, and current project workspace.",
-        accent_color="home",
-        hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
-    ),
-    ModuleConfig(
-        name="tools",
-        label="Tools",
-        app_name="public_app",
-        icon_fa="fas fa-tools",
-        partial_template="public_app/pages/tools_partial.html",
-        context_builder="apps.infra.public_app.views.tools_views.build_tools_context",
-        body_class="tools-page",
-        keyboard_shortcut="T",
-        order=60,
-        url="/apps/tools/",
-        ai_hint="Shared utilities and tools for project management.",
-        hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
-    ),
-    ModuleConfig(
-        name="store",
-        label="Store",
-        app_name="apps_app",
-        icon_fa="fas fa-store",
-        partial_template="apps_app/browse_partial.html",
-        context_builder="apps.workspace.apps_app.views.build_apps_context",
-        body_class="store-page",
-        keyboard_shortcut="M",
-        order=90,
-        url="/apps/store/",
-        accent_color="store",
-        ai_hint="Browse, install, and publish community modules.",
-        hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
-    ),
-    ModuleConfig(
-        name="docs",
-        label="Docs",
-        app_name="docs_app",
-        icon_fa="fas fa-book",
-        partial_template="docs_app/docs_partial.html",
-        context_builder="apps.workspace.docs_app.views.build_docs_context",
-        body_class="docs-page",
-        keyboard_shortcut="D",
-        order=80,
-        url="/apps/docs/",
-        ai_hint="Documentation: Python packages, MCP tools, SSH access, API reference, self-hosting guide, licensing.",
-        accent_color="docs",
-        hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
-    ),
-    ModuleConfig(
-        name="figrecipe",
-        label="Figrecipe",
-        app_name="figrecipe_editor",
-        icon_fa="fas fa-palette",
-        partial_template="vis_app/vis_partial.html",
-        body_class="figrecipe-page",
-        keyboard_shortcut="F",
-        order=45,
-        ai_hint="Interactive figure editor: create and edit publication-ready matplotlib plots with drag-and-drop layout, statistical annotations, and multi-panel composition.",
-        accent_color="figrecipe",
-        license="AGPL-3.0",
-        allowed_extensions=[".py", ".csv", ".json", ".yaml", ".figz", ".pltz"],
-        hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
-    ),
-    ModuleConfig(
-        name="discovery",
-        label="Discovery",
-        app_name="discovery_app",
-        icon_fa="fas fa-compass",
-        partial_template="discovery_app/discovery_partial.html",
-        context_builder="apps.workspace.discovery_app.views.build_discovery_context",
-        body_class="discovery-page",
-        keyboard_shortcut="X",
-        order=70,
-        url="/apps/discovery/",
-        ai_hint="Discover public repositories, researchers, and organizations.",
-        accent_color="discovery",
-        hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
-    ),
+_APPS_ROOT = Path(__file__).resolve().parent.parent.parent  # project root / apps/
+
+# (manifest_path_relative_to_apps_root, )
+_BUILTIN_MANIFEST_PATHS: list[str] = [
+    "workspace/hub_app/manifest.json",
+    "workspace/writer_app/manifest.json",
+    "workspace/scholar_app/manifest.json",
+    "workspace/vis_app/manifest.json",
+    "workspace/vis_app/figrecipe.manifest.json",
+    "workspace/clew_app/manifest.json",
+    "infra/public_app/manifest.json",
+    "workspace/discovery_app/manifest.json",
+    "workspace/docs_app/manifest.json",
+    "workspace/apps_app/manifest.json",
 ]
+
+
+def _load_manifest(manifest_path: Path) -> dict:
+    """Load and validate a manifest.json file."""
+    data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    schema_ver = data.get("$schema_version", "1.0.0")
+    if schema_ver != "1.0.0":
+        raise ValueError(
+            f"Unsupported manifest schema version: {schema_ver} in {manifest_path}"
+        )
+    return data
+
+
+def _manifest_to_module_config(data: dict) -> ModuleConfig:
+    """Convert a manifest dict to a ModuleConfig dataclass."""
+    name = data["name"]
+    overrides = _MANIFEST_OVERRIDES.get(name, {})
+
+    return ModuleConfig(
+        name=name,
+        label=data["label"],
+        app_name=data["app_name"],
+        icon_fa=data.get("icon", ""),
+        icon_svg_tab=overrides.get("icon_svg_tab", ""),
+        icon_svg_nav=overrides.get("icon_svg_nav", ""),
+        partial_template=data.get("partial_template", ""),
+        context_builder=data.get("context_builder", ""),
+        body_class=data.get("body_class", ""),
+        keyboard_shortcut=data.get("keyboard_shortcut", ""),
+        order=data.get("order", 50),
+        default_enabled=data.get("default_enabled", True),
+        ai_hint=data.get("ai_hint", ""),
+        accent_color=data.get("accent_color", ""),
+        docs_slug=data.get("docs_slug", ""),
+        license=data.get("license", "AGPL-3.0"),
+        url=data.get("url", ""),
+        allowed_extensions=data.get("allowed_extensions", []),
+        hidden_patterns=data.get(
+            "hidden_patterns",
+            ["__pycache__", "node_modules", ".git", ".venv"],
+        ),
+    )
+
+
+def _build_builtin_modules() -> list[ModuleConfig]:
+    """Build the builtin modules list from manifest.json files."""
+    modules = []
+    for rel_path in _BUILTIN_MANIFEST_PATHS:
+        manifest_path = _APPS_ROOT / rel_path
+        try:
+            data = _load_manifest(manifest_path)
+            modules.append(_manifest_to_module_config(data))
+        except Exception as e:
+            logger.error("[registry] Failed to load manifest %s: %s", manifest_path, e)
+    return modules
+
+
+# ---------------------------------------------------------------------------
+# Module Registry — loaded from manifest.json files
+# ---------------------------------------------------------------------------
+_BUILTIN_MODULES: list[ModuleConfig] = _build_builtin_modules()
 
 # Mutable list: built-ins + external modules added at startup
 _registry: list[ModuleConfig] = list(_BUILTIN_MODULES)
