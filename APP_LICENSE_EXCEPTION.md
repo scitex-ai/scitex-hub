@@ -1,4 +1,4 @@
-# SciTeX App Maker License Exception
+# SciTeX App License Exception
 
 Version 1.0, March 2026
 
@@ -6,13 +6,13 @@ Version 1.0, March 2026
 
 SciTeX Cloud is licensed under the GNU Affero General Public License
 version 3 (AGPL-3.0). This exception clarifies the licensing status of
-third-party apps ("apps") that use the SciTeX App Maker SDK.
+third-party apps ("apps") that use the SciTeX App SDK.
 
 ## Exception Statement
 
 As a special exception, the copyright holders of SciTeX Cloud grant you
 permission to create apps (workspace modules) that communicate with
-SciTeX Cloud solely through the App Maker SDK interfaces listed below,
+SciTeX Cloud solely through the App SDK interfaces listed below,
 **without those apps being considered derivative works** of SciTeX Cloud
 under the AGPL-3.0.
 
