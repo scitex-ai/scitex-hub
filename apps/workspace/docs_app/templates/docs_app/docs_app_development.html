@@ -1,0 +1,629 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}App Development — SciTeX Documentation{% endblock %}
+{% block content %}
+    <div class="container py-5">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'docs_app:index' %}">Documentation</a>
+                </li>
+                <li class="breadcrumb-item active">App Development</li>
+            </ol>
+        </nav>
+        <h1 class="mb-4">
+            <i class="fas fa-puzzle-piece me-2"></i>App Development
+        </h1>
+        <p class="lead text-muted mb-5">
+            Create, develop, and publish SciTeX workspace apps.
+            Apps are workspace tabs with full access to project files,
+            AI tools, and the SciTeX ecosystem.
+        </p>
+        <!-- Table of Contents -->
+        <div class="card mb-5">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Contents</h5>
+                <ol class="mb-0">
+                    <li>
+                        <a href="#create">Create an App</a>
+                    </li>
+                    <li>
+                        <a href="#manifest">manifest.json Schema</a>
+                    </li>
+                    <li>
+                        <a href="#develop">Develop on Web</a>
+                    </li>
+                    <li>
+                        <a href="#local-dev">Local Development</a>
+                    </li>
+                    <li>
+                        <a href="#storage">Storage Options</a>
+                    </li>
+                    <li>
+                        <a href="#environment">Environment Variables</a>
+                    </li>
+                    <li>
+                        <a href="#dependencies">Dependencies</a>
+                    </li>
+                    <li>
+                        <a href="#containers">Per-App Containers</a>
+                    </li>
+                    <li>
+                        <a href="#preferences">User Preferences API</a>
+                    </li>
+                    <li>
+                        <a href="#cli-mcp">CLI &amp; MCP Tools</a>
+                    </li>
+                    <li>
+                        <a href="#ui-automation">UI Automation</a>
+                    </li>
+                    <li>
+                        <a href="#publish">Validate &amp; Publish</a>
+                    </li>
+                </ol>
+            </div>
+        </div>
+        <!-- 1. Create -->
+        <span id="create"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-plus-circle"></i> Create an App
+            </h2>
+            <p>Three ways to create a SciTeX app:</p>
+            <h4>
+                Web (<code>/new/</code>)
+            </h4>
+            <p>
+                Navigate to <a href="/new/">/new/</a> and select <strong>App Template</strong>.
+                The platform scaffolds the full boilerplate, creates a Gitea repo, and
+                sets up the project in one step.
+            </p>
+            <h4>CLI</h4>
+            <div class="card mt-2 mb-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded mb-0"><code>scitex-cloud app init .
+scitex-cloud app init /path/to/my_app --name demo_app -l "Demo" -i "fas fa-flask"
+scitex-cloud app init . --frontend react  # React+Vite+Zustand</code></pre>
+                </div>
+            </div>
+            <h4>AI-Assisted</h4>
+            <p>
+                Ask the AI in the Console or Chat panel:
+                <em>"Create a new workspace app called sample_tracker_app"</em>
+            </p>
+            <h4>Generated Files</h4>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>File</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>manifest.json</code>
+                        </td>
+                        <td>App metadata, dependencies, schema</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>apps.py</code>
+                        </td>
+                        <td>Django AppConfig</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>views.py</code>
+                        </td>
+                        <td>Context builder function</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>urls.py</code>
+                        </td>
+                        <td>URL patterns</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>skill.py</code>
+                        </td>
+                        <td>AI skill registration</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>templates/</code>
+                        </td>
+                        <td>HTML templates (partial + full page)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>static/css/</code>
+                        </td>
+                        <td>App-scoped CSS</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>tests.py</code>
+                        </td>
+                        <td>Test stubs</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>.agents/</code>
+                        </td>
+                        <td>LLM agent config</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>README.md</code>
+                        </td>
+                        <td>Documentation</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>LICENSE</code>
+                        </td>
+                        <td>License file (AGPL-3.0 default)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- 2. Manifest -->
+        <span id="manifest"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-file-code"></i> manifest.json Schema
+            </h2>
+            <p>
+                Every app has a <code>manifest.json</code> &mdash; the single source of truth for
+                metadata, dependencies, and configuration.
+                Schema: <code>scitex-app-manifest</code> v1.0.0.
+            </p>
+            <div class="card mt-2 mb-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded mb-0"><code>{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "1.0.0",
+  "name": "my_app",
+  "label": "My App",
+  "icon": "fas fa-puzzle-piece",
+  "description": "What the app does",
+  "version": "0.1.0",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "",
+  "order": 50,
+  "accent_color": "",
+  "ai_hint": "One-line description for AI agents",
+  "allowed_extensions": [".csv", ".json"],
+  "builtin": false,
+  "dependencies": {
+    "python": ["pandas>=2.0"],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}</code></pre>
+                </div>
+            </div>
+            <p>
+                All 10 builtin apps use this same schema.
+                Registry loads from <code>manifest.json</code> files at startup.
+            </p>
+        </section>
+        <!-- 3. Web Development -->
+        <span id="develop"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-globe"></i> Develop on Web
+            </h2>
+            <p>The primary development workflow is web-first. After creating your app:</p>
+            <ol>
+                <li>Your app appears as a sidebar tab in the workspace</li>
+                <li>Edit code in the workspace file viewer or Console terminal</li>
+                <li>Changes are live &mdash; templates reload on each request</li>
+                <li>
+                    Context builders run inside Apptainer via <code>dev_app_runner.py</code>
+                </li>
+            </ol>
+            <div class="api-callout api-callout-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    Your project directory is mounted to <code>/workspace</code> inside the container
+                    with read-write access. You have full filesystem access via <code>stx.io</code>.
+                </div>
+            </div>
+        </section>
+        <!-- 4. Local Development -->
+        <span id="local-dev"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-laptop-code"></i> Local Development
+            </h2>
+            <p>For power users who prefer local development:</p>
+            <div class="card mt-2 mb-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded mb-0"><code># Install the CLI
+pip install scitex-cloud
+
+# Show dev instructions for an app
+scitex-cloud app dev .
+
+# Validate before submitting
+scitex-cloud app validate .</code></pre>
+                </div>
+            </div>
+        </section>
+        <!-- 5. Storage -->
+        <span id="storage"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-database"></i> Storage Options
+            </h2>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Best For</th>
+                        <th>Access</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>stx.io</code>
+                        </td>
+                        <td>Project files (CSV, JSON, images)</td>
+                        <td>
+                            Read/write at <code>/workspace</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>SQLite</td>
+                        <td>Single-user structured data</td>
+                        <td>
+                            <code>/workspace/data.db</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>PostgreSQL</td>
+                        <td>Multi-user, concurrent access</td>
+                        <td>
+                            Via <code>.env</code> credentials
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>
+                Configuration lives in the project root (<code>.env</code>, <code>.bashrc</code>),
+                user-managed. No restrictions on storage choice.
+            </p>
+        </section>
+        <!-- 6. Environment -->
+        <span id="environment"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-cog"></i> Environment Variables
+            </h2>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Variable</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>SCITEX_CURRENT_APP</code>
+                        </td>
+                        <td>Name of the currently active app (set automatically)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>SCITEX_CLOUD_URL</code>
+                        </td>
+                        <td>Server URL for API calls</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>
+                Use in <code>.bashrc</code> for app-specific setup:
+            </p>
+            <div class="card mt-2 mb-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded mb-0"><code>if [ "$SCITEX_CURRENT_APP" = "writer" ]; then
+    export TEXINPUTS=".:./tex//:"
+fi</code></pre>
+                </div>
+            </div>
+        </section>
+        <!-- 7. Dependencies -->
+        <span id="dependencies"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-box-open"></i> Dependencies
+            </h2>
+            <p>
+                Declare dependencies in <code>manifest.json</code> under
+                <code>dependencies</code>. Supports five categories:
+            </p>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Tool</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>python</code>
+                        </td>
+                        <td>pip</td>
+                        <td>
+                            <code>["numpy>=1.24", "scipy"]</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>system</code>
+                        </td>
+                        <td>apt</td>
+                        <td>
+                            <code>["texlive-full", "ghostscript"]</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>node</code>
+                        </td>
+                        <td>npm</td>
+                        <td>
+                            <code>["react>=18"]</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>r</code>
+                        </td>
+                        <td>CRAN</td>
+                        <td>
+                            <code>["ggplot2", "dplyr"]</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>other</code>
+                        </td>
+                        <td>Manual</td>
+                        <td>
+                            <code>["CUDA 12.0"]</code>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="card mt-2 mb-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded mb-0"><code># Check dependencies
+scitex-cloud app check-deps .
+
+# Install Python dependencies
+scitex-cloud app install-deps . --type python</code></pre>
+                </div>
+            </div>
+        </section>
+        <!-- 8. Containers -->
+        <span id="containers"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-box"></i> Per-App Containers
+            </h2>
+            <p>
+                Apps run in the shared Apptainer container by default.
+                For apps with special requirements, set <code>"container"</code>
+                in manifest.json to a <code>.def</code> or <code>.sif</code> file:
+            </p>
+            <div class="card mt-2 mb-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded mb-0"><code>{
+  "container": "my_app.def"
+}
+
+# Build the container
+scitex-cloud app build-container .</code></pre>
+                </div>
+            </div>
+            <p>
+                The <code>.sif</code> image overrides the user's default container
+                for this app only.
+            </p>
+        </section>
+        <!-- 9. Preferences -->
+        <span id="preferences"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-sliders-h"></i> User Preferences API
+            </h2>
+            <p>
+                Per-user persistent preferences stored at
+                <code>~/.scitex/cloud/apps/prefs.json</code>.
+                No database required.
+            </p>
+            <h4>Python API</h4>
+            <div class="card mt-2 mb-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded mb-0"><code>from scitex_cloud.appmaker import get_prefs, set_prefs
+# Read preferences
+prefs = get_prefs("writer")  # {"theme": "dark", "font_size": 14}
+
+# Save preferences (merges with existing)
+set_prefs("writer", {"theme": "dark", "font_size": 14})</code></pre>
+                </div>
+            </div>
+            <h4>CLI</h4>
+            <div class="card mt-2 mb-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded mb-0"><code>scitex-cloud app prefs get writer
+scitex-cloud app prefs set writer theme=dark font_size=14
+scitex-cloud app prefs list
+scitex-cloud app prefs delete writer</code></pre>
+                </div>
+            </div>
+        </section>
+        <!-- 10. CLI & MCP -->
+        <span id="cli-mcp"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-terminal"></i> CLI &amp; MCP Tools
+            </h2>
+            <h4>CLI Commands</h4>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>app init .</code>
+                        </td>
+                        <td>Scaffold a new app</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>app validate .</code>
+                        </td>
+                        <td>Check submission readiness</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>app dev .</code>
+                        </td>
+                        <td>Local dev instructions</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>app submit .</code>
+                        </td>
+                        <td>Submit for review</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>app list</code>
+                        </td>
+                        <td>List available apps</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>app current</code>
+                        </td>
+                        <td>Show active app</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>app switch &lt;name&gt;</code>
+                        </td>
+                        <td>Switch active app</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>app info &lt;name&gt;</code>
+                        </td>
+                        <td>Show app details</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>app check-deps .</code>
+                        </td>
+                        <td>Check dependencies</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>app install-deps . -t python</code>
+                        </td>
+                        <td>Install deps by type</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>app build-container .</code>
+                        </td>
+                        <td>Build Apptainer image</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h4 class="mt-4">MCP Tools</h4>
+            <p>
+                All app management operations are available as MCP tools for AI agents:
+                <code>app_get_current</code>, <code>app_switch_to</code>,
+                <code>app_list_all</code>, <code>app_get_info</code>,
+                <code>app_check_deps</code>, <code>app_get_prefs</code>,
+                <code>app_set_prefs</code>.
+            </p>
+        </section>
+        <!-- 11. UI Automation -->
+        <span id="ui-automation"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-magic"></i> UI Automation
+            </h2>
+            <p>Programmatic browser control for demos and AI-driven navigation:</p>
+            <div class="card mt-2 mb-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded mb-0"><code>from scitex_cloud.appmaker import ui
+# Build step sequences
+steps = ui.chain(
+    ui.navigate_to("/apps/writer/"),
+    ui.highlight("#editor", message="Edit here"),
+    ui.click_element("#compile-btn"),
+)
+
+# Convert to ui_action tool format
+action = ui.to_ui_action(steps, delay_ms=500)</code></pre>
+                </div>
+            </div>
+            <p>
+                Supported actions: <code>navigate</code>, <code>click</code>,
+                <code>highlight</code>, <code>scroll</code>, <code>fill</code>,
+                <code>clear</code>.
+            </p>
+        </section>
+        <!-- 12. Publish -->
+        <span id="publish"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-rocket"></i> Validate &amp; Publish
+            </h2>
+            <ol>
+                <li>
+                    <strong>Validate</strong> &mdash; <code>scitex-cloud app validate .</code>
+                    checks structure, security, manifest, templates, CSS, and dependencies
+                </li>
+                <li>
+                    <strong>Submit</strong> &mdash; <code>scitex-cloud app submit .</code>
+                    opens a PR on the <code>scitex-apps</code> registry
+                </li>
+                <li>
+                    <strong>Review</strong> &mdash; Staff reviews the PR (approve/reject/request changes)
+                </li>
+                <li>
+                    <strong>Publish</strong> &mdash; Merge = the app appears in the App Store for all users
+                </li>
+            </ol>
+            <div class="api-callout api-callout-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    You can also right-click your app's sidebar tab and select
+                    <strong>Submit to App Store</strong> to submit directly from the workspace.
+                </div>
+            </div>
+        </section>
+    </div>
+{% endblock %}

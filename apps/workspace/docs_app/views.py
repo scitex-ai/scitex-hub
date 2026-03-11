@@ -81,6 +81,13 @@ DOCS_PAGES = [
     },
     # ── Developer Reference ─────────────────────────────────────────
     {
+        "slug": "app-development",
+        "label": "App Development",
+        "icon": "fas fa-puzzle-piece",
+        "template": "docs_app/docs_app_development.html",
+        "badges": ["dev"],
+    },
+    {
         "slug": "web-api",
         "label": "Web API",
         "icon": "fas fa-plug",
