@@ -13,7 +13,7 @@ def register_sdk_tools(mcp) -> None:
     # ── DataStore ──────────────────────────────────────────────────────
 
     @mcp.tool()
-    async def platform_data_list(app: str, schema: str, project_id: str = "") -> str:
+    async def cloud_sdk_data_list(app: str, schema: str, project_id: str = "") -> str:
         """List DataStore records for an app/schema.
 
         Args:
@@ -30,7 +30,7 @@ def register_sdk_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def platform_data_create(app: str, schema: str, json_data: str) -> str:
+    async def cloud_sdk_data_create(app: str, schema: str, json_data: str) -> str:
         """Create a DataStore record.
 
         Args:
@@ -47,7 +47,7 @@ def register_sdk_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def platform_data_get(app: str, schema: str, record_id: str) -> str:
+    async def cloud_sdk_data_get(app: str, schema: str, record_id: str) -> str:
         """Get a single DataStore record by ID.
 
         Args:
@@ -61,7 +61,7 @@ def register_sdk_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def platform_data_update(
+    async def cloud_sdk_data_update(
         app: str, schema: str, record_id: str, json_data: str
     ) -> str:
         """Update a DataStore record.
@@ -81,7 +81,7 @@ def register_sdk_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def platform_data_delete(app: str, schema: str, record_id: str) -> str:
+    async def cloud_sdk_data_delete(app: str, schema: str, record_id: str) -> str:
         """Delete a DataStore record.
 
         Args:
@@ -95,7 +95,7 @@ def register_sdk_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def platform_data_search(app: str, schema: str, query: str) -> str:
+    async def cloud_sdk_data_search(app: str, schema: str, query: str) -> str:
         """Search DataStore records.
 
         Args:
@@ -111,7 +111,7 @@ def register_sdk_tools(mcp) -> None:
     # ── FileVault ──────────────────────────────────────────────────────
 
     @mcp.tool()
-    async def platform_files_list(app: str, path: str = "", project: str = "") -> str:
+    async def cloud_sdk_files_list(app: str, path: str = "", project: str = "") -> str:
         """List files in an app's FileVault.
 
         Args:
@@ -128,7 +128,7 @@ def register_sdk_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def platform_files_upload(
+    async def cloud_sdk_files_upload(
         app: str, remote_path: str, content: str, project: str = ""
     ) -> str:
         """Upload text content to FileVault.
@@ -148,7 +148,7 @@ def register_sdk_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def platform_files_download(
+    async def cloud_sdk_files_download(
         app: str, remote_path: str, project: str = ""
     ) -> str:
         """Download a file from FileVault.
@@ -167,7 +167,7 @@ def register_sdk_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def platform_files_delete(
+    async def cloud_sdk_files_delete(
         app: str, remote_path: str, project: str = ""
     ) -> str:
         """Delete a file from FileVault.
@@ -188,7 +188,7 @@ def register_sdk_tools(mcp) -> None:
     # ── JobQueue ───────────────────────────────────────────────────────
 
     @mcp.tool()
-    async def platform_jobs_submit(
+    async def cloud_sdk_jobs_submit(
         app: str, job_name: str, params_json: str = "{}", project_id: str = ""
     ) -> str:
         """Submit a background job to JobQueue.
@@ -211,7 +211,7 @@ def register_sdk_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def platform_jobs_status(app: str, job_id: str) -> str:
+    async def cloud_sdk_jobs_status(app: str, job_id: str) -> str:
         """Get job status and result.
 
         Args:
@@ -224,7 +224,7 @@ def register_sdk_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def platform_jobs_cancel(app: str, job_id: str) -> str:
+    async def cloud_sdk_jobs_cancel(app: str, job_id: str) -> str:
         """Cancel a running job.
 
         Args:
@@ -237,7 +237,7 @@ def register_sdk_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def platform_jobs_list(app: str) -> str:
+    async def cloud_sdk_jobs_list(app: str) -> str:
         """List all jobs for an app.
 
         Args:
