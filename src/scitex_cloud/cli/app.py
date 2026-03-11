@@ -46,7 +46,7 @@ def app_init(target_dir, name, label, icon, description, frontend, overwrite):
         scitex-cloud app init /path/to/my_app --name my_awesome_app
         scitex-cloud app init . -n demo_app -l "Demo" -i "fas fa-flask"
     """
-    from scitex_cloud.app_tools import scaffold
+    from scitex_cloud.appmaker import scaffold
 
     target = Path(target_dir).resolve()
     app_name = name or target.name
@@ -93,7 +93,7 @@ def app_validate(app_dir):
         scitex-cloud app validate .
         scitex-cloud app validate /path/to/my_app
     """
-    from scitex_cloud.app_tools import validate
+    from scitex_cloud.appmaker import validate
 
     errors = validate(app_dir)
 
@@ -117,7 +117,7 @@ def app_dev(app_dir, port):
         scitex-cloud app dev .
         scitex-cloud app dev /path/to/my_app --port 8001
     """
-    from scitex_cloud.app_tools import dev_server
+    from scitex_cloud.appmaker import dev_server
 
     dev_server(app_dir, port=port)
 
@@ -144,7 +144,7 @@ def app_submit(app_dir, server):
         scitex-cloud app submit .
         scitex cloud app submit /path/to/my_app --server https://scitex.example.com
     """
-    from scitex_cloud.app_tools import publish
+    from scitex_cloud.appmaker import publish
     from scitex_cloud.cli._workspace_auth import get_jwt_token, get_server_url
 
     server_url = get_server_url(server)
