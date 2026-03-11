@@ -44,6 +44,9 @@
                     <a href="#storage">Storage Options</a>
                 </li>
                 <li>
+                    <a href="#platform-sdk">Platform SDK</a>
+                </li>
+                <li>
                     <a href="#environment">Environment Variables</a>
                 </li>
                 <li>
@@ -309,6 +312,66 @@ scitex-cloud app validate .</code></pre>
                 user-managed. No restrictions on storage choice.
             </p>
         </section>
+        <!-- Platform SDK -->
+        <span id="platform-sdk"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-plug"></i> Platform SDK
+            </h2>
+            <p>
+                The <code>scitex_cloud.sdk</code> Python library wraps Platform
+                REST APIs into a clean interface. Works from Apptainer containers,
+                CLI, and local dev. Auth is automatic via env vars.
+            </p>
+            <h3>DataStore — Structured Data</h3>
+            <p>Store and query JSON data without Django models or migrations:</p>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code>from scitex_cloud.sdk import data
+data.create("my-app", "Experiment", {"title": "Test", "status": "running"})
+data.list_records("my-app", "Experiment", filters={"status": "running"})
+data.get("my-app", "Experiment", record_id)
+data.update("my-app", "Experiment", record_id, {"status": "completed"})
+data.delete("my-app", "Experiment", record_id)
+data.search("my-app", "Experiment", query="neural")</code></pre>
+                </div>
+            </div>
+            <h3>FileVault — File Storage</h3>
+            <p>Per-app namespaced file storage:</p>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code>from scitex_cloud.sdk import files
+files.upload("my-app", "exports/data.csv", csv_content)
+files.download("my-app", "exports/data.csv")
+files.list_files("my-app", path="exports/")
+files.delete("my-app", "exports/data.csv")</code></pre>
+                </div>
+            </div>
+            <h3>JobQueue — Background Tasks</h3>
+            <p>Submit and monitor background jobs:</p>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code>from scitex_cloud.sdk import jobs
+jobs.submit("my-app", "export_csv", params={"format": "xlsx"})
+jobs.status("my-app", job_id)
+jobs.list_jobs("my-app")</code></pre>
+                </div>
+            </div>
+            <h3>CLI Equivalents</h3>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded"><code>scitex-cloud sdk data list my-app Experiment
+scitex-cloud sdk files upload my-app local.csv exports/data.csv
+scitex-cloud sdk jobs submit my-app export_csv --params '{"format":"xlsx"}'</code></pre>
+                </div>
+            </div>
+            <h3>Unified Context</h3>
+            <p>
+                Bootstrap your app with a single call to
+                <code>GET /platform/api/context/?project_id=...</code> —
+                returns user profile, project metadata, and file tree.
+            </p>
+        </section>
         <!-- 6. Environment -->
         <span id="environment"></span>
         <section class="api-section">
@@ -334,6 +397,20 @@ scitex-cloud app validate .</code></pre>
                             <code>SCITEX_CLOUD_URL</code>
                         </td>
                         <td>Server URL for API calls</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>SCITEX_API_TOKEN</code>
+                        </td>
+                        <td>JWT token for Platform SDK authentication (auto-injected)</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>SCITEX_API_URL</code>
+                        </td>
+                        <td>
+                            Platform API base URL (default: <code>http://127.0.0.1:8000</code>)
+                        </td>
                     </tr>
                 </tbody>
             </table>
