@@ -1,0 +1,30 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "1.0.0",
+  "name": "tools",
+  "label": "Tools",
+  "app_name": "public_app",
+  "icon": "fas fa-tools",
+  "description": "Shared utilities and tools for project management.",
+  "version": "0.14.0",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "T",
+  "order": 60,
+  "accent_color": "",
+  "body_class": "tools-page",
+  "partial_template": "public_app/pages/tools_partial.html",
+  "context_builder": "apps.infra.public_app.views.tools_views.build_tools_context",
+  "url": "/apps/tools/",
+  "ai_hint": "Shared utilities and tools for project management.",
+  "allowed_extensions": [],
+  "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+  "builtin": true,
+  "dependencies": {
+    "python": [],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}

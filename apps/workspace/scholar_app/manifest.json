@@ -1,0 +1,29 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "1.0.0",
+  "name": "scholar",
+  "label": "Scholar",
+  "app_name": "scholar_app",
+  "icon": "fas fa-graduation-cap",
+  "description": "Literature management: search papers (CrossRef/OpenAlex/Semantic Scholar), manage bibliography, explore citation graphs, download PDFs.",
+  "version": "0.14.0",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "S",
+  "order": 30,
+  "accent_color": "scholar",
+  "body_class": "scholar-page",
+  "partial_template": "scholar_app/scholar_partial.html",
+  "context_builder": "",
+  "ai_hint": "Literature management: search papers (CrossRef/OpenAlex/Semantic Scholar), manage bibliography, explore citation graphs, download PDFs.",
+  "allowed_extensions": [".bib"],
+  "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv", "build"],
+  "builtin": true,
+  "dependencies": {
+    "python": [],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}

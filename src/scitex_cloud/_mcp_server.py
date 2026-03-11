@@ -59,6 +59,15 @@ SciTeX Cloud: Git and Cloud API Operations (https://scitex.ai)
 - api_project_commit: Commit changes to project
 - api_enrich_bibtex: Enrich BibTeX with metadata
 
+## App Management Tools:
+- app_get_current: Get currently active app
+- app_switch_to: Switch active app
+- app_list_all: List all available apps
+- app_get_info: Get app details from manifest
+- app_check_deps: Check app dependencies
+- app_get_prefs: Get user app preferences
+- app_set_prefs: Set user app preferences
+
 ## Configuration:
 - SCITEX_CLOUD_API_KEY: API key for authenticated endpoints
 - SCITEX_CLOUD_URL: Cloud server URL (default: https://scitex.cloud)

@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 # Module prefix -> (display name, FontAwesome icon)
 _MODULE_META: dict[str, tuple[str, str]] = {
+    "app": ("App Management", "fa-th-large"),
     "audio": ("Audio", "fa-volume-up"),
     "capture": ("Capture", "fa-camera"),
     "clew": ("CLEW Pipelines", "fa-project-diagram"),

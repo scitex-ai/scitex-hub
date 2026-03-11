@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 from .api import register_api_tools
+from .app import register_app_tools
 from .gitea import register_gitea_tools
 from .on_site import register_on_site_tools
 
@@ -17,6 +18,7 @@ def register_all_tools(mcp) -> None:
     register_gitea_tools(mcp)
     register_api_tools(mcp)
     register_on_site_tools(mcp)
+    register_app_tools(mcp)
 
 
 # EOF

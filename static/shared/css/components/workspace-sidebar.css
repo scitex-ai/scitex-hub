@@ -291,10 +291,6 @@
   --app-accent-color: var(--app-accent-store);
   --app-accent-tint: var(--app-accent-store-tint);
 }
-[data-app-accent="appmaker"] {
-  --app-accent-color: var(--app-accent-appmaker);
-  --app-accent-tint: var(--app-accent-appmaker-tint);
-}
 [data-app-accent="docs"] {
   --app-accent-color: var(--app-accent-docs);
   --app-accent-tint: var(--app-accent-docs-tint);

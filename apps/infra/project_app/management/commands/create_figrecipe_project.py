@@ -2,7 +2,7 @@
 Management command to create figrecipe as a living example app project.
 
 Creates a project owned by ywatanabe at /ywatanabe/figrecipe/ that
-serves as a real, working demonstration of the app maker framework.
+serves as a real, working demonstration of the SciTeX app framework.
 
 Usage:
     python manage.py create_figrecipe_project
@@ -56,7 +56,7 @@ class Command(BaseCommand):
                 "name": "Figrecipe",
                 "description": (
                     "Interactive figure editor for publication-ready matplotlib "
-                    "plots. A living example of the SciTeX app maker framework."
+                    "plots. A living example of the SciTeX app framework."
                 ),
                 "status": "active",
                 "project_type": "local",

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""CLI commands for SciTeX app scaffold, validation, and development."""
+"""CLI commands for SciTeX app init, validation, and development."""
 
 from __future__ import annotations
 
@@ -46,7 +46,6 @@ def app_init(target_dir, name, label, icon, description, frontend, overwrite):
         scitex-cloud app init /path/to/my_app --name my_awesome_app
         scitex-cloud app init . -n demo_app -l "Demo" -i "fas fa-flask"
     """
-    from scitex_cloud.app_tools import scaffold
 
     target = Path(target_dir).resolve()
     app_name = name or target.name
@@ -62,7 +61,7 @@ def app_init(target_dir, name, label, icon, description, frontend, overwrite):
 
     console.print(f"[cyan]Scaffolding app:[/cyan] {app_name} in {target}")
 
-    created = scaffold(
+    created = init_app(
         target_dir=target,
         name=app_name,
         label=label or "",
@@ -93,7 +92,7 @@ def app_validate(app_dir):
         scitex-cloud app validate .
         scitex-cloud app validate /path/to/my_app
     """
-    from scitex_cloud.app_tools import validate
+    from scitex_cloud.appmaker import validate
 
     errors = validate(app_dir)
 
@@ -117,7 +116,7 @@ def app_dev(app_dir, port):
         scitex-cloud app dev .
         scitex-cloud app dev /path/to/my_app --port 8001
     """
-    from scitex_cloud.app_tools import dev_server
+    from scitex_cloud.appmaker import dev_server
 
     dev_server(app_dir, port=port)
 
@@ -144,7 +143,7 @@ def app_submit(app_dir, server):
         scitex-cloud app submit .
         scitex cloud app submit /path/to/my_app --server https://scitex.example.com
     """
-    from scitex_cloud.app_tools import publish
+    from scitex_cloud.appmaker import publish
     from scitex_cloud.cli._workspace_auth import get_jwt_token, get_server_url
 
     server_url = get_server_url(server)
@@ -176,49 +175,288 @@ def app_submit(app_dir, server):
     help="SciTeX Cloud server URL",
 )
 def app_list(server):
-    """List public apps available on the server.
+    """List available apps.
 
     \b
     Examples:
         scitex-cloud app list
         scitex-cloud app list --server https://scitex.example.com
     """
-    import requests
+    from scitex_cloud.appmaker import list_all
 
-    url = f"{server.rstrip('/')}/apps/store/api/list/"
-    try:
-        resp = requests.get(url, timeout=15)
-        data = resp.json()
-    except Exception as exc:
-        console.print(f"[red]Error:[/red] {exc}")
-        raise SystemExit(1)
-
-    apps = data.get("apps", [])
+    apps = list_all(server_url=server)
     if not apps:
-        console.print("[yellow]No public apps found.[/yellow]")
+        console.print("[yellow]No apps found.[/yellow]")
         return
 
     from rich.table import Table
 
-    table = Table(title="Public Apps")
+    table = Table(title="Apps")
     table.add_column("Name", style="cyan")
-    table.add_column("Category")
-    table.add_column("Stars", justify="right")
-    table.add_column("Installs", justify="right")
-    table.add_column("Status")
+    table.add_column("Label")
+    table.add_column("Order", justify="right")
     table.add_column("Description")
 
     for a in apps:
         table.add_row(
-            a["module_name"],
-            a["category"],
-            str(a["star_count"]),
-            str(a["install_count"]),
-            a["status"],
-            a.get("short_description", "")[:50],
+            a.get("name") or a.get("module_name", ""),
+            a.get("label", ""),
+            str(a.get("order", "")),
+            (a.get("ai_hint") or a.get("short_description", ""))[:60],
         )
 
     console.print(table)
+
+
+@app.command("current")
+def app_current():
+    """Show the currently active app.
+
+    \b
+    Examples:
+        scitex-cloud app current
+    """
+    from scitex_cloud.appmaker import get_current
+
+    name = get_current()
+    if name:
+        console.print(f"[cyan]{name}[/cyan]")
+    else:
+        console.print("[yellow]No active app (SCITEX_CURRENT_APP not set)[/yellow]")
+
+
+@app.command("switch")
+@click.argument("app_name")
+def app_switch(app_name):
+    """Switch the active app.
+
+    \b
+    Examples:
+        scitex-cloud app switch scholar
+        scitex-cloud app switch writer
+    """
+    from scitex_cloud.appmaker import switch_to
+
+    switch_to(app_name)
+    console.print(f"[green]Switched to:[/green] {app_name}")
+
+
+@app.command("info")
+@click.argument("app_name")
+def app_info(app_name):
+    """Show detailed info for an app.
+
+    \b
+    Examples:
+        scitex-cloud app info writer
+        scitex-cloud app info scholar
+    """
+    from scitex_cloud.appmaker import get_info
+
+    info = get_info(app_name)
+    if not info:
+        console.print(f"[red]App not found:[/red] {app_name}")
+        raise SystemExit(1)
+
+    for key, val in info.items():
+        console.print(f"  [cyan]{key}:[/cyan] {val}")
+
+
+@app.group("prefs")
+def app_prefs():
+    """Manage per-user app preferences."""
+
+
+@app_prefs.command("get")
+@click.argument("app_name")
+def prefs_get(app_name):
+    """Show preferences for an app.
+
+    \b
+    Examples:
+        scitex-cloud app prefs get writer
+    """
+    from scitex_cloud.appmaker import get_prefs
+
+    prefs = get_prefs(app_name)
+    if not prefs:
+        console.print(f"[yellow]No preferences saved for {app_name}[/yellow]")
+        return
+
+    import json
+
+    console.print(json.dumps(prefs, indent=2))
+
+
+@app_prefs.command("set")
+@click.argument("app_name")
+@click.argument("key_values", nargs=-1)
+def prefs_set(app_name, key_values):
+    """Set preferences for an app as key=value pairs.
+
+    \b
+    Examples:
+        scitex-cloud app prefs set writer theme=dark font_size=14
+        scitex-cloud app prefs set scholar engine=crossref
+    """
+    from scitex_cloud.appmaker import set_prefs
+
+    prefs = {}
+    for kv in key_values:
+        if "=" not in kv:
+            console.print(f"[red]Invalid format:[/red] {kv} (expected key=value)")
+            raise SystemExit(1)
+        key, val = kv.split("=", 1)
+        # Try to parse as JSON for numeric/bool values
+        try:
+            import json
+
+            prefs[key] = json.loads(val)
+        except (json.JSONDecodeError, ValueError):
+            prefs[key] = val
+
+    set_prefs(app_name, prefs)
+    console.print(f"[green]Saved preferences for {app_name}[/green]")
+
+
+@app_prefs.command("delete")
+@click.argument("app_name")
+def prefs_delete(app_name):
+    """Delete all preferences for an app.
+
+    \b
+    Examples:
+        scitex-cloud app prefs delete writer
+    """
+    from scitex_cloud.appmaker import delete_prefs
+
+    if delete_prefs(app_name):
+        console.print(f"[green]Deleted preferences for {app_name}[/green]")
+    else:
+        console.print(f"[yellow]No preferences found for {app_name}[/yellow]")
+
+
+@app_prefs.command("list")
+def prefs_list():
+    """List all saved app preferences.
+
+    \b
+    Examples:
+        scitex-cloud app prefs list
+    """
+    import json
+
+    from scitex_cloud.appmaker import list_prefs
+
+    all_prefs = list_prefs()
+    if not all_prefs:
+        console.print("[yellow]No preferences saved[/yellow]")
+        return
+
+    console.print(json.dumps(all_prefs, indent=2))
+
+
+@app.command("check-deps")
+@click.argument("app_dir", default=".", type=click.Path(exists=True))
+def app_check_deps(app_dir):
+    """Check app dependencies from manifest.json.
+
+    \b
+    Examples:
+        scitex-cloud app check-deps .
+        scitex-cloud app check-deps /path/to/my_app
+    """
+    from scitex_cloud.appmaker import check_deps_from_manifest, format_missing_report
+
+    manifest = Path(app_dir) / "manifest.json"
+    if not manifest.is_file():
+        console.print("[red]No manifest.json found[/red]")
+        raise SystemExit(1)
+
+    missing = check_deps_from_manifest(manifest)
+    report = format_missing_report(missing)
+    if missing:
+        console.print(f"[yellow]{report}[/yellow]")
+        raise SystemExit(1)
+    else:
+        console.print(f"[green]{report}[/green]")
+
+
+@app.command("install-deps")
+@click.argument("app_dir", default=".", type=click.Path(exists=True))
+@click.option(
+    "--type",
+    "-t",
+    "dep_type",
+    type=click.Choice(["python", "system", "node", "r"]),
+    required=True,
+    help="Dependency type to install",
+)
+def app_install_deps(app_dir, dep_type):
+    """Install app dependencies of a specific type.
+
+    \b
+    Examples:
+        scitex-cloud app install-deps . --type python
+        scitex-cloud app install-deps . -t system
+    """
+    import json
+
+    from scitex_cloud.appmaker import install_deps
+
+    manifest_path = Path(app_dir) / "manifest.json"
+    if not manifest_path.is_file():
+        console.print("[red]No manifest.json found[/red]")
+        raise SystemExit(1)
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    console.print(f"[cyan]Installing {dep_type} dependencies...[/cyan]")
+
+    result = install_deps(manifest, dep_type)
+
+    if result["success"]:
+        installed = result.get("installed", [])
+        if installed:
+            console.print(f"[green]Installed:[/green] {', '.join(installed)}")
+        else:
+            console.print("[green]No dependencies to install.[/green]")
+    else:
+        console.print(f"[red]Failed:[/red] {result['error']}")
+        raise SystemExit(1)
+
+
+@app.command("build-container")
+@click.argument("app_dir", default=".", type=click.Path(exists=True))
+@click.option(
+    "--output",
+    "-o",
+    "output_dir",
+    default=None,
+    type=click.Path(),
+    help="Output directory for .sif file",
+)
+def app_build_container(app_dir, output_dir):
+    """Build an Apptainer container from an app's .def file.
+
+    Reads the ``container`` field from manifest.json and builds a .sif image.
+
+    \b
+    Examples:
+        scitex-cloud app build-container .
+        scitex-cloud app build-container /path/to/my_app -o /data/containers/
+    """
+    from scitex_cloud.appmaker import build_container
+
+    out = Path(output_dir) if output_dir else None
+    console.print(f"[cyan]Building container from:[/cyan] {Path(app_dir).resolve()}")
+
+    result = build_container(Path(app_dir).resolve(), output_dir=out)
+
+    if result["success"]:
+        console.print(f"[green]Built:[/green] {result['sif_path']}")
+    else:
+        console.print(f"[red]Failed:[/red] {result['error']}")
+        raise SystemExit(1)
 
 
 # EOF

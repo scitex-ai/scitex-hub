@@ -20,7 +20,6 @@ LEGACY_APP_NAMES = [
     "workspace",
     "example",
     "notebook",
-    "appmaker",
     "llm",
     "clew",
     # Moved to /apps/ prefix

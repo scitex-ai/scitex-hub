@@ -1,0 +1,32 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "1.0.0",
+  "name": "clew",
+  "label": "Clew",
+  "app_name": "clew_app",
+  "icon": "",
+  "icon_svg": true,
+  "description": "Verification system: trace manuscript claims (statistics, figures, tables) back through computational chains to source data.",
+  "version": "0.14.0",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "R",
+  "order": 50,
+  "default_enabled": false,
+  "accent_color": "clew",
+  "body_class": "clew-page",
+  "partial_template": "clew_app/index_partial.html",
+  "context_builder": "",
+  "docs_slug": "clew",
+  "ai_hint": "Verification system: trace manuscript claims (statistics, figures, tables) back through computational chains to source data.",
+  "allowed_extensions": [],
+  "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+  "builtin": true,
+  "dependencies": {
+    "python": [],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}

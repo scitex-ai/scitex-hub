@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """App Validator — check repo structure before apps submission.
 
-Prefers local filesystem validation via scitex_cloud.app_tools.
+Prefers local filesystem validation via scitex_cloud.appmaker.
 Falls back to Gitea API for remote-only repos.
 """
 
@@ -56,7 +56,7 @@ def validate_app(project) -> list[str]:
     """Combined validation: prefer local, fallback to Gitea."""
     local_path = _get_local_path(project)
     if local_path:
-        from scitex_cloud.app_tools import validate
+        from scitex_cloud.appmaker import validate
 
         return validate(str(local_path))
 
@@ -70,7 +70,7 @@ def validate_app_structure(project) -> list[str]:
     """Check structure — prefer local, fallback to Gitea."""
     local_path = _get_local_path(project)
     if local_path:
-        from scitex_cloud.app_tools import validate_structure
+        from scitex_cloud.appmaker import validate_structure
 
         return validate_structure(str(local_path))
     return _validate_structure_gitea(project)
@@ -80,7 +80,7 @@ def validate_app_security(project) -> list[str]:
     """Check security — prefer local, fallback to Gitea."""
     local_path = _get_local_path(project)
     if local_path:
-        from scitex_cloud.app_tools import validate_security
+        from scitex_cloud.appmaker import validate_security
 
         return validate_security(str(local_path))
     return _validate_security_gitea(project)

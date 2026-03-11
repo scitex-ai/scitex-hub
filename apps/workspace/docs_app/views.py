@@ -79,36 +79,14 @@ DOCS_PAGES = [
         "template": "docs_app/docs_auto_response.html",
         "badges": ["user"],
     },
-    # ── App Maker (User → Dev → Admin) ──────────────────────────────
+    # ── Developer Reference ─────────────────────────────────────────
     {
-        "slug": "app-maker",
-        "label": "App Maker: Overview",
+        "slug": "app-development",
+        "label": "App Development",
         "icon": "fas fa-puzzle-piece",
-        "template": "docs_app/docs_app_maker.html",
-        "badges": ["user"],
-    },
-    {
-        "slug": "app-maker-users",
-        "label": "App Maker: Users",
-        "icon": "fas fa-user",
-        "template": "docs_app/docs_app_maker_users.html",
-        "badges": ["user"],
-    },
-    {
-        "slug": "app-maker-creators",
-        "label": "App Maker: Creators",
-        "icon": "fas fa-code",
-        "template": "docs_app/docs_app_maker_creators.html",
+        "template": "docs_app/docs_app_development.html",
         "badges": ["dev"],
     },
-    {
-        "slug": "app-maker-admins",
-        "label": "App Maker: Admins",
-        "icon": "fas fa-cog",
-        "template": "docs_app/docs_app_maker_admins.html",
-        "badges": ["admin"],
-    },
-    # ── Developer Reference ─────────────────────────────────────────
     {
         "slug": "web-api",
         "label": "Web API",

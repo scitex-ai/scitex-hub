@@ -158,7 +158,6 @@ def handle_empty_creation(request, project, manager):
 
 def handle_app_template_creation(request, project, manager):
     """Handle SciTeX App template creation with full boilerplate."""
-    from scitex_cloud.app_tools import scaffold
 
     # Create project directory first
     success, path = manager.create_project_directory(project, use_template=False)
@@ -187,13 +186,15 @@ def handle_app_template_creation(request, project, manager):
         "ai_hint": request.POST.get("app_about", "").strip(),
     }
 
-    # Scaffold complete app boilerplate via app_tools
+    # Scaffold complete app boilerplate via appmaker
     app_name = project.slug.replace("-", "_")
     if not (app_name.endswith("_app") or app_name.endswith("-app")):
         app_name = f"{app_name}_app"
 
+    from scitex_cloud.appmaker import init_app
+
     try:
-        created = scaffold(
+        created = init_app(
             target_dir=str(project_dir),
             name=app_name,
             icon=request.POST.get("app_icon", "fas fa-puzzle-piece").strip(),

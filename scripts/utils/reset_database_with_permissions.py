@@ -47,7 +47,6 @@ def reset_database():
         "apps/infra/public_app/migrations",
         "apps/infra/accounts_app/migrations",
         "apps/infra/gitea_app/migrations",
-        "apps/infra/appmaker_app/migrations",
     ]
 
     for migration_dir in apps_to_reset:

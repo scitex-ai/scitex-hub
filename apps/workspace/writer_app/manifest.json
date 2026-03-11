@@ -1,0 +1,29 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "1.0.0",
+  "name": "writer",
+  "label": "Writer",
+  "app_name": "writer_app",
+  "icon": "fas fa-pen",
+  "description": "Scientific manuscript editor: LaTeX editing with live preview, figure/table management, bibliography, PDF compilation.",
+  "version": "0.14.0",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "W",
+  "order": 20,
+  "accent_color": "writer",
+  "body_class": "writer-page",
+  "partial_template": "writer_app/writer_partial.html",
+  "context_builder": "apps.workspace.writer_app.views.index.main.build_writer_context",
+  "ai_hint": "Scientific manuscript editor: LaTeX editing with live preview, figure/table management, bibliography, PDF compilation.",
+  "allowed_extensions": [".tex", ".bib", ".pdf", ".png", ".jpg", ".jpeg", ".svg", ".eps"],
+  "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv", "build", ".aux", ".log", ".out"],
+  "builtin": true,
+  "dependencies": {
+    "python": [],
+    "system": ["texlive-full"],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}

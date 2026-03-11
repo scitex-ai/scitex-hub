@@ -130,8 +130,6 @@
   --app-accent-apps-tint: rgba(122, 90, 106, 0.07);
   --app-accent-store: #7a5a6a; /* Muted rose - app store, browsing */
   --app-accent-store-tint: rgba(122, 90, 106, 0.07);
-  --app-accent-appmaker: #5a6a8a; /* Slate blue - creation, building */
-  --app-accent-appmaker-tint: rgba(90, 106, 138, 0.07);
   --app-accent-docs: #4a6a9a; /* Deep blue - documentation, reference */
   --app-accent-docs-tint: rgba(74, 106, 154, 0.07);
   --app-accent-figrecipe: #7c5cbf; /* Purple - figure editing, creativity */
@@ -331,8 +329,6 @@
   --app-accent-apps-tint: rgba(184, 138, 154, 0.08);
   --app-accent-store: #b88a9a; /* Soft rose - app store, browsing */
   --app-accent-store-tint: rgba(184, 138, 154, 0.08);
-  --app-accent-appmaker: #8a9ab8; /* Soft slate - creation, building */
-  --app-accent-appmaker-tint: rgba(138, 154, 184, 0.08);
   --app-accent-docs: #7a9ac8; /* Soft blue - documentation, reference */
   --app-accent-docs-tint: rgba(122, 154, 200, 0.08);
   --app-accent-figrecipe: #a07ae0; /* Soft purple - figure editing, creativity */
