@@ -56,6 +56,7 @@ def validate(app_dir: str | Path) -> list[str]:
     errors.extend(validate_manifest(app_dir))
     errors.extend(validate_templates(app_dir))
     errors.extend(validate_css(app_dir))
+    errors.extend(validate_dependencies(app_dir))
     return errors
 
 
@@ -206,6 +207,41 @@ def validate_css(app_dir: str | Path) -> list[str]:
         # Check for footer hiding
         if re.search(r"footer\s*\{[^}]*display\s*:\s*none", content, re.DOTALL):
             errors.append(f"{relpath}: must not hide the footer")
+
+    return errors
+
+
+def validate_dependencies(app_dir: str | Path) -> list[str]:
+    """Check that manifest.json dependencies field is well-formed."""
+    errors = []
+    root = Path(app_dir)
+    manifest_path = root / "manifest.json"
+
+    if not manifest_path.exists():
+        return errors
+
+    try:
+        data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return errors
+
+    deps = data.get("dependencies")
+    if deps is None:
+        errors.append("manifest.json missing 'dependencies' field")
+        return errors
+
+    if not isinstance(deps, dict):
+        errors.append("manifest.json 'dependencies' must be a JSON object")
+        return errors
+
+    valid_types = {"python", "system", "node", "r", "other"}
+    for key, val in deps.items():
+        if key not in valid_types:
+            errors.append(f"manifest.json unknown dependency type: '{key}'")
+        if not isinstance(val, list):
+            errors.append(f"manifest.json dependencies.{key} must be a list")
+        elif not all(isinstance(item, str) for item in val):
+            errors.append(f"manifest.json dependencies.{key} items must be strings")
 
     return errors
 

@@ -1,5 +1,6 @@
 """SciTeX App Tools — init, validate, develop, publish, and manage app plugins."""
 
+from . import _ui as ui
 from ._api import get_current, get_info, install_app, list_all, switch_to
 from ._components import (
     SHARED_COMPONENTS,
@@ -23,6 +24,7 @@ from ._scaffold import init_app
 from ._validate import (
     validate,
     validate_css,
+    validate_dependencies,
     validate_manifest,
     validate_security,
     validate_structure,
@@ -56,11 +58,14 @@ __all__ = [
     "validate_manifest",
     "validate_templates",
     "validate_css",
+    "validate_dependencies",
     # license
     "generate_license_text",
     # dev
     "dev_server",
     "publish",
+    # UI automation
+    "ui",
     # components catalog
     "SHARED_COMPONENTS",
     "get_component",
