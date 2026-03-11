@@ -144,7 +144,7 @@ def app_submit(app_dir, server):
         scitex cloud app submit /path/to/my_app --server https://scitex.example.com
     """
     from scitex_cloud.appmaker import publish
-    from scitex_cloud.cli._workspace_auth import get_jwt_token, get_server_url
+    from scitex_cloud._cli._workspace_auth import get_jwt_token, get_server_url
 
     server_url = get_server_url(server)
     token = get_jwt_token(server_url)

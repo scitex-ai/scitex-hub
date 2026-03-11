@@ -308,7 +308,7 @@ class TestSDKCLI:
     def test_sdk_group_exists(self):
         from click.testing import CliRunner
 
-        from scitex_cloud.cli.sdk import sdk
+        from scitex_cloud._cli.sdk import sdk
 
         runner = CliRunner()
         result = runner.invoke(sdk, ["--help"])
@@ -320,7 +320,7 @@ class TestSDKCLI:
     def test_data_subcommands(self):
         from click.testing import CliRunner
 
-        from scitex_cloud.cli.sdk import data
+        from scitex_cloud._cli.sdk import data
 
         runner = CliRunner()
         result = runner.invoke(data, ["--help"])
@@ -331,7 +331,7 @@ class TestSDKCLI:
     def test_files_subcommands(self):
         from click.testing import CliRunner
 
-        from scitex_cloud.cli.sdk import files
+        from scitex_cloud._cli.sdk import files
 
         runner = CliRunner()
         result = runner.invoke(files, ["--help"])
@@ -342,7 +342,7 @@ class TestSDKCLI:
     def test_jobs_subcommands(self):
         from click.testing import CliRunner
 
-        from scitex_cloud.cli.sdk import jobs
+        from scitex_cloud._cli.sdk import jobs
 
         runner = CliRunner()
         result = runner.invoke(jobs, ["--help"])

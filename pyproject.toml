@@ -111,7 +111,7 @@ all = [
 ]
 
 [project.scripts]
-scitex-cloud = "scitex_cloud.cli.main:main"
+scitex-cloud = "scitex_cloud._cli.main:main"
 scitex-cloud-mcp = "scitex_cloud.mcp_server:main"
 
 [build-system]
