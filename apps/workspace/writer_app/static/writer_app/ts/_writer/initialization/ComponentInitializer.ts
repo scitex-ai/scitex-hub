@@ -330,7 +330,7 @@ export class ComponentInitializer {
         right: ".preview-panel",
         icon: "",
         title: "Split",
-        isMostLeft: false,
+        isMostLeft: true,
         isMostRight: false,
         thresholdPx: 40,
         isInApp: true,
@@ -358,7 +358,7 @@ export class ComponentInitializer {
 
   /**
    * Initialize preview-side resizer (right edge of mode-selector)
-   * Shares the same panel pair and storage key as the editor resizer.
+   * Mirrors editor resizer but collapses preview panel (right side).
    */
   private initializePreviewResizer(): HorizontalResizer | null {
     const resizerEl = document.getElementById("writer-preview-resizer");
@@ -371,7 +371,7 @@ export class ComponentInitializer {
         icon: "",
         title: "Split",
         isMostLeft: false,
-        isMostRight: false,
+        isMostRight: true,
         thresholdPx: 40,
         isInApp: true,
         storageKey: "scitex-writer-preview-split",

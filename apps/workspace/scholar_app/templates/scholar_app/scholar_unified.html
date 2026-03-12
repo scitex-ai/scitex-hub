@@ -106,9 +106,10 @@
                          id="search-resizer"
                          data-h-resizer
                          data-in-app
+                         data-most-right
                          data-left=".scholar-search-container"
                          data-right="#search-controls-panel"
-                         data-threshold="120"
+                         data-threshold="40"
                          data-storage-key="scholar-search-split"></div>
                     <div class="search-controls-inline" id="search-controls-panel">
                         {% include "scholar_app/search_partials/search_controls.html" %}
@@ -139,9 +140,10 @@
              id="bibtex-resizer"
              data-h-resizer
              data-in-app
+             data-most-right
              data-left=".bibtex-main-content"
              data-right="#bibtex-controls-panel"
-             data-threshold="120"
+             data-threshold="40"
              data-storage-key="scholar-bibtex-split"></div>
         <div class="bibtex-controls-inline" id="bibtex-controls-panel">
             {% include "scholar_app/bibtex_partials/status_tiles.html" %}
@@ -275,9 +277,10 @@
              id="graph-resizer"
              data-h-resizer
              data-in-app
+             data-most-right
              data-left=".citation-graph-container"
              data-right="#graph-controls-panel"
-             data-threshold="120"
+             data-threshold="40"
              data-storage-key="scholar-graph-split"></div>
         <div class="graph-controls-inline" id="graph-controls-panel">
             <div class="graph-sidebar">
@@ -371,13 +374,23 @@
              id="library-resizer"
              data-h-resizer
              data-in-app
+             data-most-right
              data-left=".library-tab-inner"
              data-right="#library-details-panel"
-             data-threshold="120"
+             data-threshold="40"
              data-storage-key="scholar-library-split"></div>
         <div class="library-details-panel" id="library-details-panel">
             {% include "scholar_app/library_partials/library_details.html" %}
         </div>
+        <div class="h-resizer scholar-tab-resizer"
+             id="library-integrations-resizer"
+             data-h-resizer
+             data-in-app
+             data-most-right
+             data-left="#library-details-panel"
+             data-right="#library-integrations-panel"
+             data-threshold="40"
+             data-storage-key="scholar-library-integrations-split"></div>
         <div class="library-integrations-panel" id="library-integrations-panel">
             {% include "scholar_app/library_partials/library_import_export.html" %}
         </div>

@@ -20,15 +20,24 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
   border-left: 1px solid
     var(--border-color, var(--workspace-border-default, #30363d));
   background: var(--bg-primary, var(--workspace-bg-primary, #0d1117));
 }
 
+.library-details-panel.collapsed {
+  width: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden;
+  border-left: none;
+  padding: 0;
+}
+
 .library-resizer {
   width: 4px;
   cursor: col-resize;
-  background: transparent;
+  background: var(--workspace-border-default, #30363d);
   flex-shrink: 0;
   transition: background 0.15s;
 }
@@ -43,10 +52,19 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
   border-left: 1px solid
     var(--border-color, var(--workspace-border-default, #30363d));
   background: var(--bg-primary, var(--workspace-bg-primary, #0d1117));
   padding: 8px;
+}
+
+.library-integrations-panel.collapsed {
+  width: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden;
+  border-left: none;
+  padding: 0;
 }
 
 /* Tab Badge */
