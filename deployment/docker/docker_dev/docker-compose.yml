@@ -29,6 +29,9 @@ services:
 
       # SciTeX ecosystem packages (editable mode) - must exist in ~/proj/
       - ../../../../scitex-python:/scitex-python:cached
+      - ../../../../scitex-io:/scitex-io:cached
+      - ../../../../scitex-stats:/scitex-stats:cached
+      - ../../../../scitex-clew:/scitex-clew:cached
       - ../../../../scitex-tunnel:/scitex-tunnel:cached
       # scitex-container (host-mounted into site-packages, not on PyPI)
       - ../../../../scitex-container/src/scitex_container:/usr/local/lib/python3.11/site-packages/scitex_container:cached
@@ -227,6 +230,9 @@ services:
     volumes:
       - ../../..:/app:cached
       - ../../../../scitex-python:/scitex-python:cached
+      - ../../../../scitex-io:/scitex-io:cached
+      - ../../../../scitex-stats:/scitex-stats:cached
+      - ../../../../scitex-clew:/scitex-clew:cached
       - ../../../../scitex-tunnel:/scitex-tunnel:cached
       # scitex-container (host-mounted into site-packages, not on PyPI)
       - ../../../../scitex-container/src/scitex_container:/usr/local/lib/python3.11/site-packages/scitex_container:cached
@@ -289,6 +295,9 @@ services:
     volumes:
       - ../../..:/app:cached
       - ../../../../scitex-python:/scitex-python:cached
+      - ../../../../scitex-io:/scitex-io:cached
+      - ../../../../scitex-stats:/scitex-stats:cached
+      - ../../../../scitex-clew:/scitex-clew:cached
       - ../../../../scitex-tunnel:/scitex-tunnel:cached
       # scitex-container (host-mounted into site-packages, not on PyPI)
       - ../../../../scitex-container/src/scitex_container:/usr/local/lib/python3.11/site-packages/scitex_container:cached
