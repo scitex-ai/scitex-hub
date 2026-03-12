@@ -98,6 +98,8 @@ def _get_packages_context() -> dict:
         ),
     }
 
+    from .views import check_docs_available
+
     core_packages = []
     standalone_packages = []
     for pip_name, (module, desc, repo, is_core) in _PKG_META.items():
@@ -110,6 +112,7 @@ def _get_packages_context() -> dict:
             or remote.get("pypi")
             or ""
         )
+        has_sphinx = check_docs_available(repo)
         pkg = {
             "pip_name": pip_name,
             "module": module,
@@ -117,6 +120,8 @@ def _get_packages_context() -> dict:
             "description": desc,
             "github_url": f"https://github.com/ywatanabe1989/{repo}",
             "docs_url": f"https://{repo}.readthedocs.io",
+            "sphinx_url": f"/apps/docs/sphinx/{repo}/index.html" if has_sphinx else "",
+            "has_sphinx": has_sphinx,
             "pypi_version": remote.get("pypi", ""),
             "status": info.get("status", ""),
         }

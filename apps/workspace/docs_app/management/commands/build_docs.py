@@ -1,115 +1,140 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: /home/ywatanabe/proj/scitex-cloud/apps/docs_app/management/commands/build_docs.py
+"""Build Sphinx documentation for all SciTeX Python packages."""
 
-from django.core.management.base import BaseCommand
-from django.conf import settings
-from pathlib import Path
+from __future__ import annotations
+
 import subprocess
+from pathlib import Path
+
+from django.conf import settings
+from django.core.management.base import BaseCommand
+
+# Map package name → relative path from BASE_DIR to Sphinx source dir
+_SPHINX_SOURCES = {
+    "scitex-python": "../scitex-python/docs/sphinx",
+    "scitex-cloud": "docs/sphinx",
+    "figrecipe": "../figrecipe/docs/sphinx",
+    "scitex-writer": "../scitex-writer/docs/sphinx",
+    "scitex-io": "../scitex-io/docs/sphinx",
+    "scitex-stats": "../scitex-stats/docs/sphinx",
+    "scitex-clew": "../scitex-clew/docs/sphinx",
+    "scitex-dataset": "../scitex-dataset/docs/sphinx",
+    "scitex-linter": "../scitex-linter/docs/sphinx",
+    "scitex-container": "../scitex-container/docs/sphinx",
+}
 
 
 class Command(BaseCommand):
-    help = "Build Sphinx documentation for SciTeX modules"
+    help = "Build Sphinx documentation for SciTeX Python packages"
 
     def add_arguments(self, parser):
         parser.add_argument(
             "--module",
             type=str,
-            choices=["scholar", "code", "viz", "writer", "all"],
             default="all",
-            help="Which module documentation to build (default: all)",
+            help="Package name to build (default: all). Use --list to see available.",
         )
         parser.add_argument(
             "--clean",
             action="store_true",
             help="Clean build directory before building",
         )
+        parser.add_argument(
+            "--list",
+            action="store_true",
+            help="List available packages and their build status",
+        )
 
     def handle(self, *args, **options):
+        if options["list"]:
+            return self._list_status()
+
         module = options["module"]
         clean = options["clean"]
 
-        modules_to_build = {
-            "scholar": "externals/SciTeX-Scholar/docs",
-            "code": "externals/SciTeX-Code/docs",
-            "viz": "externals/SciTeX-Viz/docs",
-            "writer": "externals/SciTeX-Writer/docs",
-        }
-
         if module == "all":
-            modules = modules_to_build
+            modules = dict(_SPHINX_SOURCES)
+        elif module in _SPHINX_SOURCES:
+            modules = {module: _SPHINX_SOURCES[module]}
         else:
-            modules = {module: modules_to_build[module]}
+            self.stderr.write(
+                self.style.ERROR(
+                    f"Unknown module: {module}. Use --list to see available."
+                )
+            )
+            return
+
+        self.stdout.write(f"Building docs for: {', '.join(modules.keys())}")
+        built, failed = 0, 0
+        for name, src_path in modules.items():
+            ok = self._build_one(name, src_path, clean)
+            if ok:
+                built += 1
+            else:
+                failed += 1
 
         self.stdout.write(
-            self.style.SUCCESS(
-                f"Building documentation for: {', '.join(modules.keys())}"
-            )
+            self.style.SUCCESS(f"\nDone: {built} built, {failed} skipped/failed")
         )
 
-        for module_name, doc_path in modules.items():
-            self._build_module_docs(module_name, doc_path, clean)
+    def _list_status(self):
+        """List all packages and their Sphinx build status."""
+        base = Path(settings.BASE_DIR)
+        for name, src_path in _SPHINX_SOURCES.items():
+            src = base / src_path
+            build = src / "_build" / "html" / "index.html"
+            has_conf = (src / "conf.py").exists()
+            has_build = build.exists()
+            status = "BUILT" if has_build else ("READY" if has_conf else "NO CONF")
+            icon = {
+                "BUILT": self.style.SUCCESS("[BUILT]"),
+                "READY": self.style.WARNING("[READY]"),
+                "NO CONF": self.style.ERROR("[NO CONF]"),
+            }[status]
+            self.stdout.write(f"  {icon} {name:<20s} {src}")
 
-    def _build_module_docs(self, module_name, doc_path, clean):
-        """Build documentation for a specific module."""
-        full_path = Path(settings.BASE_DIR) / doc_path
+    def _build_one(self, name: str, src_path: str, clean: bool) -> bool:
+        """Build Sphinx docs for a single package. Returns True on success."""
+        base = Path(settings.BASE_DIR)
+        src_dir = base / src_path
+        conf_py = src_dir / "conf.py"
 
-        if not full_path.exists():
+        if not src_dir.exists():
             self.stdout.write(
-                self.style.WARNING(
-                    f"Documentation directory not found for {module_name}: {full_path}"
-                )
+                self.style.WARNING(f"  SKIP {name}: source dir not found")
             )
-            return
-
-        # Check for conf.py or sphinx configuration
-        conf_py = full_path / "conf.py"
-        sphinx_dir = full_path / "sphinx"
-
-        if not conf_py.exists() and sphinx_dir.exists():
-            # Some projects have sphinx/ subdirectory
-            full_path = sphinx_dir
-            conf_py = full_path / "conf.py"
-
+            return False
         if not conf_py.exists():
-            self.stdout.write(
-                self.style.WARNING(
-                    f"No Sphinx configuration found for {module_name} at {full_path}"
-                )
-            )
-            return
+            self.stdout.write(self.style.WARNING(f"  SKIP {name}: no conf.py"))
+            return False
 
-        # Build directory
-        build_dir = full_path / "_build" / "html"
+        build_dir = src_dir / "_build" / "html"
 
-        # Clean if requested
         if clean and build_dir.exists():
-            self.stdout.write(f"Cleaning {build_dir}")
             subprocess.run(["rm", "-rf", str(build_dir)], check=True)
 
-        # Build documentation
-        self.stdout.write(f"Building {module_name} documentation...")
+        self.stdout.write(f"  Building {name}...")
         try:
             result = subprocess.run(
-                ["sphinx-build", "-b", "html", str(full_path), str(build_dir)],
+                ["sphinx-build", "-b", "html", "-q", str(src_dir), str(build_dir)],
                 capture_output=True,
                 text=True,
-                check=True,
+                timeout=120,
             )
-
-            self.stdout.write(
-                self.style.SUCCESS(f"✓ Successfully built {module_name} documentation")
-            )
-            self.stdout.write(f"  Output: {build_dir}")
-
-        except subprocess.CalledProcessError as e:
-            self.stdout.write(
-                self.style.ERROR(f"✗ Failed to build {module_name} documentation")
-            )
-            self.stdout.write(self.style.ERROR(f"Error: {e.stderr}"))
+            if result.returncode == 0:
+                self.stdout.write(self.style.SUCCESS(f"  OK {name} -> {build_dir}"))
+                return True
+            else:
+                self.stdout.write(
+                    self.style.ERROR(f"  FAIL {name}: {result.stderr[:200]}")
+                )
+                return False
         except FileNotFoundError:
             self.stdout.write(
-                self.style.ERROR(
-                    "sphinx-build not found. Please install Sphinx: pip install sphinx"
-                )
+                self.style.ERROR("sphinx-build not found. Install: pip install sphinx")
             )
+            return False
+        except subprocess.TimeoutExpired:
+            self.stdout.write(self.style.ERROR(f"  TIMEOUT {name} (120s)"))
+            return False
