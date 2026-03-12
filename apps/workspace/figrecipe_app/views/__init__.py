@@ -9,10 +9,11 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
+from figrecipe.presets import get_journals
 
 from apps.infra.project_app.services.project_utils import get_current_project
 
-from ..models import JournalPreset, ScientificFigure
+from ..models import ScientificFigure
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ def figure_editor(request, figrecipe_embedded=False):
             {
                 "is_visitor": True,
                 "figures": [],
-                "journal_presets": JournalPreset.objects.filter(is_active=True),
+                "journal_presets": get_journals(),
                 "figrecipe_embedded": figrecipe_embedded,
             },
         )
@@ -81,7 +82,7 @@ def figure_editor(request, figrecipe_embedded=False):
     else:
         context["needs_project_creation"] = True
 
-    context["journal_presets"] = JournalPreset.objects.filter(is_active=True)
+    context["journal_presets"] = get_journals()
     context["figrecipe_embedded"] = figrecipe_embedded
 
     # Ensure workspace layout renders (AI pane, Files pane, Editor pane)
@@ -101,7 +102,7 @@ def figure_editor_legacy(request):
 
     context = {
         "figures": figures,
-        "journal_presets": JournalPreset.objects.filter(is_active=True),
+        "journal_presets": get_journals(),
     }
 
     return render(request, "figrecipe_app/legacy/editor.html", context)
@@ -135,7 +136,7 @@ def figure_detail(request, figure_id):
         "figures": ScientificFigure.objects.filter(owner=request.user).order_by(
             "-updated_at"
         ),
-        "journal_presets": JournalPreset.objects.filter(is_active=True),
+        "journal_presets": get_journals(),
         "current_project": current_project,
     }
 
