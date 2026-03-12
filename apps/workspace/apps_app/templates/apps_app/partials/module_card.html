@@ -22,10 +22,19 @@
         </div>
         <div class="ap-card-info">
             <div class="ap-card-title-row">
-                <h3 class="ap-card-title">{{ mod_item.app.module_name }}</h3>
+                <h3 class="ap-card-title">
+                    {% if mod_item.reg %}
+                        {{ mod_item.reg.label }}
+                    {% else %}
+                        {{ mod_item.app.module_name }}
+                    {% endif %}
+                </h3>
                 <span class="ap-card-version">v{{ mod_item.app.latest_version|default:"0.1.0" }}</span>
                 <div class="ap-card-badges">
                     <span class="ap-category-badge ap-category-{{ mod_item.app.category }}">{{ mod_item.app.get_category_display }}</span>
+                    {% if mod_item.app.is_builtin %}
+                        <span class="ap-badge ap-badge-builtin" title="Built-in app">built-in</span>
+                    {% endif %}
                     {% if mod_item.app.visibility == "private" %}
                         <span class="ap-badge ap-badge-private" title="Private app">
                             <i class="fas fa-lock" aria-hidden="true"></i> Private
