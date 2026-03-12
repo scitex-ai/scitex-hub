@@ -1,23 +1,25 @@
-"""SciTeX SDK — community app development kit for SciTeX Cloud.
+"""SciTeX SDK — backward-compatible re-export from scitex-app.
 
-Wraps Platform REST APIs (DataStore, FileVault, JobQueue, SciTeX Bridge, External API)
-into a clean Python interface. Works from anywhere: Apptainer containers, CLI, local dev.
+All SDK code now lives in the standalone scitex-app package.
+This module re-exports for backward compatibility.
 
-Auth via SCITEX_API_TOKEN + SCITEX_API_URL env vars.
+Usage (preferred):
+    >>> from scitex_app.sdk import data, files, jobs, scitex, external
 
-Usage:
+Usage (legacy, still works):
     >>> from scitex_cloud.sdk import data, files, jobs, scitex, external
-    >>> data.create("my-app", "Experiment", {"title": "Test"})
-    >>> files.upload("my-app", "out.csv", csv_content)
-    >>> jobs.submit("my-app", "export_csv", params={"fmt": "xlsx"})
 """
 
-from . import _data as data
-from . import _external as external
-from . import _files as files
-from . import _jobs as jobs
-from . import _scitex as scitex
-from ._client import PlatformClient, get_client, reset_client
+from scitex_app.sdk import _cloud_data as data  # noqa: F401
+from scitex_app.sdk import _cloud_external as external  # noqa: F401
+from scitex_app.sdk import _cloud_files as files  # noqa: F401
+from scitex_app.sdk import _cloud_jobs as jobs  # noqa: F401
+from scitex_app.sdk import _cloud_scitex as scitex  # noqa: F401
+from scitex_app.sdk._client import (
+    PlatformClient,  # noqa: F401
+    get_client,  # noqa: F401
+    reset_client,  # noqa: F401
+)
 
 __all__ = [
     "data",
