@@ -1018,6 +1018,12 @@ logs-db: validate
 logs-gitea: validate
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) logs -f gitea 2>/dev/null || echo "$(YELLOW)Gitea not available in $(ENV)$(NC)"
 
+logs-error: validate
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) logs -f 2>&1 | grep -i --color=always -E 'error|exception|traceback|fatal'
+
+logs-warning: validate
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) logs -f 2>&1 | grep -i --color=always -E 'error|exception|traceback|fatal|warn'
+
 ps: validate
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) ps
 
