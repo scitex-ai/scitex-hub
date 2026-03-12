@@ -1,6 +1,6 @@
 /**
  * Type definitions for shared DataTable component
- * Used across vis_app and console_app
+ * Used across figrecipe_app and console_app
  */
 
 export interface Dataset {

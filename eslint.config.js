@@ -81,11 +81,11 @@ export default [
         'error',
         {
           selector: 'Literal[value=/style\\s*=/]',
-          message: '❌ INLINE STYLES FORBIDDEN: Use CSS classes instead. See GITIGNORED/RULES/00_DJANGO_ORGANIZATION_FULLSTACK.md:34. For dynamic styles, use <style> tags with generated CSS rules (see apps/vis_app/static/vis_app/ts/vis/DataTableManager.ts:424-436 for pattern).',
+          message: '❌ INLINE STYLES FORBIDDEN: Use CSS classes instead. See GITIGNORED/RULES/00_DJANGO_ORGANIZATION_FULLSTACK.md:34. For dynamic styles, use <style> tags with generated CSS rules (see apps/figrecipe_app/static/figrecipe_app/ts/vis/DataTableManager.ts:424-436 for pattern).',
         },
         {
           selector: 'TemplateLiteral[quasis.*.value.raw=/style\\s*=/]',
-          message: '❌ INLINE STYLES FORBIDDEN: Use CSS classes instead. See GITIGNORED/RULES/00_DJANGO_ORGANIZATION_FULLSTACK.md:34. For dynamic styles, use <style> tags with generated CSS rules (see apps/vis_app/static/vis_app/ts/vis/DataTableManager.ts:424-436 for pattern).',
+          message: '❌ INLINE STYLES FORBIDDEN: Use CSS classes instead. See GITIGNORED/RULES/00_DJANGO_ORGANIZATION_FULLSTACK.md:34. For dynamic styles, use <style> tags with generated CSS rules (see apps/figrecipe_app/static/figrecipe_app/ts/vis/DataTableManager.ts:424-436 for pattern).',
         },
       ],
     },
@@ -130,12 +130,12 @@ export default [
         {
           // Detect style=" in string literals
           selector: 'Literal[value=/style\\s*=/]',
-          message: '❌ INLINE STYLES FORBIDDEN: Use CSS classes instead. See GITIGNORED/RULES/00_DJANGO_ORGANIZATION_FULLSTACK.md:34. For dynamic styles, use <style> tags with generated CSS rules (see apps/vis_app/static/vis_app/ts/vis/DataTableManager.ts:424-436 for pattern).',
+          message: '❌ INLINE STYLES FORBIDDEN: Use CSS classes instead. See GITIGNORED/RULES/00_DJANGO_ORGANIZATION_FULLSTACK.md:34. For dynamic styles, use <style> tags with generated CSS rules (see apps/figrecipe_app/static/figrecipe_app/ts/vis/DataTableManager.ts:424-436 for pattern).',
         },
         {
           // Detect style=" in template literals
           selector: 'TemplateLiteral[quasis.*.value.raw=/style\\s*=/]',
-          message: '❌ INLINE STYLES FORBIDDEN: Use CSS classes instead. See GITIGNORED/RULES/00_DJANGO_ORGANIZATION_FULLSTACK.md:34. For dynamic styles, use <style> tags with generated CSS rules (see apps/vis_app/static/vis_app/ts/vis/DataTableManager.ts:424-436 for pattern).',
+          message: '❌ INLINE STYLES FORBIDDEN: Use CSS classes instead. See GITIGNORED/RULES/00_DJANGO_ORGANIZATION_FULLSTACK.md:34. For dynamic styles, use <style> tags with generated CSS rules (see apps/figrecipe_app/static/figrecipe_app/ts/vis/DataTableManager.ts:424-436 for pattern).',
         },
       ],
     },

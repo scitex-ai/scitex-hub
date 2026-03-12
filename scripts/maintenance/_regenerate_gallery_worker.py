@@ -143,7 +143,7 @@ def add_element_bboxes_to_json(json_path, png_path, csv_path=None):
                 print(f"  Warning: Could not re-render {method}: {e}")
 
         # Extract element bboxes - use underlying matplotlib axes for consistency
-        from apps.workspace.vis_app.services.plot_renderer.element_bboxes import (
+        from apps.workspace.figrecipe_app.services.plot_renderer.element_bboxes import (
             extract_element_bboxes,
         )
 

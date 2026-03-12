@@ -2,7 +2,7 @@
 
 ## Summary
 
-The data-table component has been copied from vis_app to create a shared module at:
+The data-table component has been copied from figrecipe_app to create a shared module at:
 - TypeScript: `/static/shared/ts/components/data-table/`
 - CSS: `/static/shared/css/components/data-table/`
 
@@ -10,7 +10,7 @@ The data-table component has been copied from vis_app to create a shared module 
 
 ### 1. TypeScript Module Structure
 
-All TypeScript files have been copied from `apps/vis_app/static/vis_app/ts/vis/data-table/` to the shared location:
+All TypeScript files have been copied from `apps/figrecipe_app/static/figrecipe_app/ts/vis/data-table/` to the shared location:
 
 - `DataTableManager.ts` - Main orchestrator class
 - `TableData.ts` - Data management, CSV import
@@ -65,9 +65,9 @@ The module uses these CSS variables (apps should define them):
 
 ## Next Steps (NOT DONE YET)
 
-### Step 1: Update vis_app to use shared module
+### Step 1: Update figrecipe_app to use shared module
 
-Modify `apps/vis_app/static/vis_app/ts/` to import from the shared location:
+Modify `apps/figrecipe_app/static/figrecipe_app/ts/` to import from the shared location:
 
 ```typescript
 // OLD
@@ -77,12 +77,12 @@ import { DataTableManager } from './vis/DataTableManager.ts';
 import { DataTableManager } from '/static/shared/js/components/data-table/DataTableManager.ts';
 ```
 
-### Step 2: Update CSS imports in vis_app
+### Step 2: Update CSS imports in figrecipe_app
 
 ```html
 <!-- OLD -->
-<link rel="stylesheet" href="/static/vis_app/css/vis/data-table.css">
-<link rel="stylesheet" href="/static/vis_app/css/vis/editable-table.css">
+<link rel="stylesheet" href="/static/figrecipe_app/css/vis/data-table.css">
+<link rel="stylesheet" href="/static/figrecipe_app/css/vis/editable-table.css">
 
 <!-- NEW -->
 <link rel="stylesheet" href="/static/shared/css/components/data-table/data-table.css">
@@ -96,9 +96,9 @@ The shared module needs to be compiled:
 make env=dev compile-ts
 ```
 
-### Step 4: Test vis_app
+### Step 4: Test figrecipe_app
 
-Ensure vis_app still works with the shared module.
+Ensure figrecipe_app still works with the shared module.
 
 ### Step 5: Migrate console_app
 
@@ -106,7 +106,7 @@ Update console_app to use the shared module instead of its own implementation.
 
 ### Step 6: Clean up old files
 
-After successful migration and testing, remove the old vis_app-specific data-table files.
+After successful migration and testing, remove the old figrecipe_app-specific data-table files.
 
 ## Files Created
 
@@ -131,7 +131,7 @@ After successful migration and testing, remove the old vis_app-specific data-tab
 
 ## Notes
 
-- The vis_app files have NOT been modified yet
+- The figrecipe_app files have NOT been modified yet
 - The shared module is self-contained and ready to use
 - CSS uses `--vis-bg-*` variables which should map to app-specific variables
 - All imports use `.ts` extensions for proper ES module support

@@ -18,7 +18,7 @@
     <div class="container py-2">
         <p class="lead text-muted">
             The SciTeX ecosystem of Python packages for scientific research automation.
-            Each package has full documentation on ReadTheDocs.
+            Click <strong>Docs</strong> to view built-in documentation.
         </p>
         <!-- Core Packages -->
         <span id="core"></span><span id="packages"></span>
@@ -35,8 +35,15 @@
                     </div>
                     <p class="pkg-desc">{{ pkg.description }}</p>
                     <div class="pkg-links">
-                        <a href="{{ pkg.docs_url }}" target="_blank" class="pkg-link pkg-link-docs">
-                            <i class="fas fa-book"></i> ReadTheDocs
+                        {% if pkg.has_sphinx %}
+                            <a href="{{ pkg.sphinx_url }}"
+                               class="pkg-link pkg-link-docs"
+                               data-sphinx-url="{{ pkg.sphinx_url }}">
+                                <i class="fas fa-book"></i> Docs
+                            </a>
+                        {% endif %}
+                        <a href="{{ pkg.docs_url }}" target="_blank" class="pkg-link">
+                            <i class="fas fa-external-link-alt"></i> RTD
                         </a>
                         <a href="{{ pkg.github_url }}" target="_blank" class="pkg-link">
                             <i class="fab fa-github"></i> GitHub
@@ -71,8 +78,15 @@
                     </div>
                     <p class="pkg-desc">{{ pkg.description }}</p>
                     <div class="pkg-links">
-                        <a href="{{ pkg.docs_url }}" target="_blank" class="pkg-link pkg-link-docs">
-                            <i class="fas fa-book"></i> ReadTheDocs
+                        {% if pkg.has_sphinx %}
+                            <a href="{{ pkg.sphinx_url }}"
+                               class="pkg-link pkg-link-docs"
+                               data-sphinx-url="{{ pkg.sphinx_url }}">
+                                <i class="fas fa-book"></i> Docs
+                            </a>
+                        {% endif %}
+                        <a href="{{ pkg.docs_url }}" target="_blank" class="pkg-link">
+                            <i class="fas fa-external-link-alt"></i> RTD
                         </a>
                         <a href="{{ pkg.github_url }}" target="_blank" class="pkg-link">
                             <i class="fab fa-github"></i> GitHub
@@ -136,7 +150,7 @@ def main(
             </div>
         </section>
     </div>
-    <!-- Embedded RTD viewer — outside .container so it can fill remaining pane height -->
+    <!-- Embedded docs viewer — outside .container so it can fill remaining pane height -->
     <div id="rtd-embed-container" class="rtd-embed-container hidden">
         <div class="rtd-embed-toolbar">
             <span id="rtd-embed-title" class="rtd-embed-title"></span>
@@ -146,14 +160,18 @@ def main(
                    target="_blank"
                    class="pkg-link"
                    title="Open in new tab">
-                    <i class="fas fa-external-link-alt"></i> Open in new tab
+                    <i class="fas fa-external-link-alt"></i> New tab
                 </a>
                 <button id="rtd-embed-close" class="pkg-link" title="Close">
                     <i class="fas fa-times"></i> Close
                 </button>
             </div>
         </div>
-        <iframe id="rtd-embed-iframe" class="rtd-embed-iframe" src="" frameborder="0"></iframe>
+        <iframe id="rtd-embed-iframe"
+                class="rtd-embed-iframe"
+                src=""
+                frameborder="0"
+                sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
     </div>
     {% vite_script 'docs_app/rtd-embed' %}
 {% endblock %}

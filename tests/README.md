@@ -14,7 +14,7 @@ tests/
 │       ├── scholar_app/
 │       │   ├── utils/
 │       │   └── services/
-│       ├── vis_app/
+│       ├── figrecipe_app/
 │       ├── writer_app/
 │       ├── console_app/
 │       └── ...
@@ -39,7 +39,7 @@ tests/
 │       ├── scholar_app/
 │       │   ├── test_search_api.py
 │       │   └── test_bibtex_api.py
-│       ├── vis_app/
+│       ├── figrecipe_app/
 │       │   ├── test_gallery_api.py
 │       │   └── test_bundle_api.py
 │       └── ...
@@ -102,7 +102,7 @@ tests/
 │   │   └── collaboration/
 │   │
 │   └── apps/                     # Per-app TypeScript tests
-│       ├── vis_app/
+│       ├── figrecipe_app/
 │       │   ├── vis/
 │       │   │   ├── CanvasManager.test.ts
 │       │   │   ├── PropertiesManager.test.ts
@@ -207,7 +207,7 @@ make test-all                 # Everything (Python + TypeScript)
 ```bash
 # By directory
 pytest tests/unit/apps/scholar_app/ -v
-pytest tests/api/apps/vis_app/ -v
+pytest tests/api/apps/figrecipe_app/ -v
 pytest tests/ui/apps/writer/ -v
 
 # By file
@@ -221,7 +221,7 @@ pytest -m "slow" -v           # Only slow tests
 pytest -m "not slow" -v       # Skip slow tests
 
 # TypeScript specific
-npm run test:run -- tests/ts/vis_app/
+npm run test:run -- tests/ts/figrecipe_app/
 ```
 
 ### Parallel Execution
@@ -397,10 +397,10 @@ class TestCreatePlot:
 ### TypeScript Unit Test
 
 ```typescript
-// tests/ts/vis_app/vis/CanvasManager.test.ts
+// tests/ts/figrecipe_app/vis/CanvasManager.test.ts
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { CanvasManager } from '@vis_app/vis/CanvasManager';
+import { CanvasManager } from '@figrecipe_app/vis/CanvasManager';
 
 describe('CanvasManager', () => {
     let manager: CanvasManager;
@@ -551,7 +551,7 @@ def logged_in_page(page, base_url, test_credentials):
 
 Path aliases configured:
 ```typescript
-'@vis_app'     → 'apps/vis_app/static/vis_app/ts'
+'@figrecipe_app'     → 'apps/figrecipe_app/static/figrecipe_app/ts'
 '@scholar_app' → 'apps/scholar_app/static/scholar_app/ts'
 '@writer_app'  → 'apps/writer_app/static/writer_app/ts'
 '@console_app'    → 'apps/console_app/static/console_app/ts'

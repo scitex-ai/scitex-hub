@@ -526,7 +526,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **App-Separated Logging**: Dedicated log files for each major app
-  - `vis_app.log`, `writer_app.log`, `scholar_app.log`, `console_app.log`, `project_app.log`
+  - `figrecipe_app.log`, `writer_app.log`, `scholar_app.log`, `console_app.log`, `project_app.log`
   - All use RotatingFileHandler (5MB, 3 backups) for automatic rotation
   - Improves debugging by isolating app-specific logs
   - Usage: `logger = logging.getLogger(__name__)` auto-routes to correct log
@@ -861,7 +861,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enhanced global base templates
 
 ### Bug Fixes
-- **vis_app DataTableManager**: Critical performance fix
+- **figrecipe_app DataTableManager**: Critical performance fix
   - Before: 17KB HTML for 10x10 table with inline styles
   - After: ~850B HTML with CSS classes
   - 95% reduction in HTML size

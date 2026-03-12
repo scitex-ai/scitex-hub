@@ -36,7 +36,7 @@ class FileVault:
         <project_root>/apps/<app_name>/files/<path>
 
     Args:
-        app_name: Identifier for the calling app (e.g. "vis_app").
+        app_name: Identifier for the calling app (e.g. "figrecipe_app").
         project:  The Project instance that owns the files.
         user:     The user performing the operation (used for access
                   control and path resolution).

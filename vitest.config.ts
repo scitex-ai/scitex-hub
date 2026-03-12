@@ -16,7 +16,7 @@ export default defineConfig({
   resolve: {
     alias: {
       // App aliases for imports
-      "@vis_app": path.resolve(__dirname, "apps/workspace/vis_app/static/vis_app/ts"),
+      "@figrecipe_app": path.resolve(__dirname, "apps/workspace/figrecipe_app/static/figrecipe_app/ts"),
       "@console_app": path.resolve(
         __dirname,
         "apps/workspace/console_app/static/console_app/ts",

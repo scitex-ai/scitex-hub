@@ -29,7 +29,7 @@
 .ws-ai-pane {
   flex-shrink: 0;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
 }
 
 /* Override any global fixed positioning applied by global-ai-chat.css
@@ -49,7 +49,7 @@
 .ws-worktree-pane {
   flex-shrink: 0;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
 }
 
 #ws-worktree-sidebar {
@@ -58,7 +58,7 @@
   width: 240px;
   background: var(--bg-secondary, #161b22);
   /* border-right removed — resizer (2px) handles visual separation */
-  overflow: visible;
+  overflow: hidden;
   transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -162,7 +162,7 @@
 .ws-apps-pane {
   flex-shrink: 0;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
 }
 
 #ws-apps-sidebar {

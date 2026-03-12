@@ -30,22 +30,48 @@ const _initializedIds = new Set<string>();
 /** Auto-initialize all horizontal resizers on the page */
 function initHorizontalResizers(): number {
   let count = 0;
-  document.querySelectorAll("[data-h-resizer]").forEach((el) => {
+  const elements = document.querySelectorAll("[data-h-resizer]");
+  console.log(`[Resizer] Found ${elements.length} [data-h-resizer] elements`);
+  elements.forEach((el) => {
     const resizerEl = el as HTMLElement;
     if (!resizerEl.id) {
       resizerEl.id = `h-resizer-${count}`;
     }
+    console.log(
+      `[Resizer] Processing #${resizerEl.id} (already init: ${_initializedIds.has(resizerEl.id)})`,
+    );
     if (_initializedIds.has(resizerEl.id)) return;
 
     const config = HorizontalResizer.configFromElement(resizerEl);
-    if (!config) return;
+    if (!config) {
+      console.warn(
+        `[Resizer] #${resizerEl.id}: configFromElement returned null`,
+      );
+      return;
+    }
+    console.log(`[Resizer] #${resizerEl.id}: config=`, {
+      left: config.left,
+      right: config.right,
+      isMostLeft: config.isMostLeft,
+      isMostRight: config.isMostRight,
+      thresholdPx: config.thresholdPx,
+      isInApp: config.isInApp,
+      storageKey: config.storageKey,
+    });
+
+    const leftEl = document.querySelector(config.left);
+    const rightEl = document.querySelector(config.right);
+    console.log(
+      `[Resizer] #${resizerEl.id}: leftEl=${!!leftEl} (${config.left}), rightEl=${!!rightEl} (${config.right})`,
+    );
 
     try {
       new HorizontalResizer(resizerEl, config);
       _initializedIds.add(resizerEl.id);
       count++;
+      console.log(`[Resizer] #${resizerEl.id}: OK`);
     } catch (e) {
-      console.warn("[Resizer] Failed to init horizontal:", e);
+      console.warn(`[Resizer] #${resizerEl.id}: Failed to init horizontal:`, e);
     }
   });
   return count;

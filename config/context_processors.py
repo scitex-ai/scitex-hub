@@ -34,17 +34,26 @@ def cache_buster(request):
             try:
                 # Check modification time of key JS and CSS directories
                 static_dirs = [
-                    Path(settings.BASE_DIR) / "apps/workspace/console_app/static/console_app/js",
-                    Path(settings.BASE_DIR) / "apps/workspace/vis_app/static/vis_app/js",
-                    Path(settings.BASE_DIR) / "apps/workspace/writer_app/static/writer_app/js",
+                    Path(settings.BASE_DIR)
+                    / "apps/workspace/console_app/static/console_app/js",
+                    Path(settings.BASE_DIR)
+                    / "apps/workspace/figrecipe_app/static/figrecipe_app/js",
+                    Path(settings.BASE_DIR)
+                    / "apps/workspace/writer_app/static/writer_app/js",
                     Path(settings.BASE_DIR) / "static/shared/js",
                     Path(settings.BASE_DIR) / "static/shared/css",
-                    Path(settings.BASE_DIR) / "apps/workspace/writer_app/static/writer_app/css",
-                    Path(settings.BASE_DIR) / "apps/workspace/scholar_app/static/scholar_app/css",
-                    Path(settings.BASE_DIR) / "apps/workspace/console_app/static/console_app/css",
-                    Path(settings.BASE_DIR) / "apps/workspace/vis_app/static/vis_app/css",
-                    Path(settings.BASE_DIR) / "apps/infra/public_app/static/public_app/css",
-                    Path(settings.BASE_DIR) / "apps/workspace/docs_app/static/docs_app/css",
+                    Path(settings.BASE_DIR)
+                    / "apps/workspace/writer_app/static/writer_app/css",
+                    Path(settings.BASE_DIR)
+                    / "apps/workspace/scholar_app/static/scholar_app/css",
+                    Path(settings.BASE_DIR)
+                    / "apps/workspace/console_app/static/console_app/css",
+                    Path(settings.BASE_DIR)
+                    / "apps/workspace/figrecipe_app/static/figrecipe_app/css",
+                    Path(settings.BASE_DIR)
+                    / "apps/infra/public_app/static/public_app/css",
+                    Path(settings.BASE_DIR)
+                    / "apps/workspace/docs_app/static/docs_app/css",
                 ]
                 max_mtime = 0
                 for static_dir in static_dirs:

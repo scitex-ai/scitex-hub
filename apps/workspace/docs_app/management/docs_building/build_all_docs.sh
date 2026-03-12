@@ -1,70 +1,57 @@
 #!/bin/bash
-# Build Sphinx documentation for all SciTeX modules
-# Each module has its own .env that auto-activates on cd
+# Build Sphinx documentation for all SciTeX Python packages
+# Usage: ./build_all_docs.sh [--clean]
 
 set -e
 
+CLEAN="${1:-}"
+PROJ_ROOT="$HOME/proj"
+
+# Package name → Sphinx source directory
+declare -A PACKAGES=(
+    ["scitex-python"]="$PROJ_ROOT/scitex-python/docs/sphinx"
+    ["figrecipe"]="$PROJ_ROOT/figrecipe/docs/sphinx"
+    ["scitex-writer"]="$PROJ_ROOT/scitex-writer/docs/sphinx"
+    ["scitex-io"]="$PROJ_ROOT/scitex-io/docs/sphinx"
+    ["scitex-stats"]="$PROJ_ROOT/scitex-stats/docs/sphinx"
+    ["scitex-clew"]="$PROJ_ROOT/scitex-clew/docs/sphinx"
+    ["scitex-dataset"]="$PROJ_ROOT/scitex-dataset/docs/sphinx"
+    ["scitex-linter"]="$PROJ_ROOT/scitex-linter/docs/sphinx"
+    ["scitex-container"]="$PROJ_ROOT/scitex-container/docs/sphinx"
+)
+
 echo "========================================"
-echo "Building SciTeX Documentation"
+echo "Building SciTeX Python Package Docs"
 echo "========================================"
 
-# Code module (includes Scholar)
-echo ""
-echo "📚 Building Code documentation..."
-cd "$HOME/proj/scitex_repo/"
-if [ -f "docs/conf.py" ]; then
-    sphinx-build -b html docs docs/_build/html 2>&1 | grep -E "build succeeded|warning|error" | tail -5
-    if [ -f "docs/_build/html/index.html" ]; then
-        echo "  ✓ Code docs built successfully"
-    else
-        echo "  ✗ Code docs build failed"
+BUILT=0
+FAILED=0
+
+for pkg in "${!PACKAGES[@]}"; do
+    src="${PACKAGES[$pkg]}"
+    build="$src/_build/html"
+
+    if [ ! -f "$src/conf.py" ]; then
+        echo "  SKIP  $pkg (no conf.py at $src)"
+        ((FAILED++))
+        continue
     fi
-else
-    echo "  ! No Sphinx config found at docs/conf.py"
-fi
 
-# Writer module
-echo ""
-echo "📝 Building Writer documentation..."
-cd "$HOME/proj/neurovista/paper"
-if [ -f "docs/conf.py" ]; then
-    sphinx-build -b html docs docs/_build/html 2>&1 | grep -E "build succeeded|warning|error" | tail -5
-    if [ -f "docs/_build/html/index.html" ]; then
-        echo "  ✓ Writer docs built successfully"
-    else
-        echo "  ✗ Writer docs build failed"
+    if [ "$CLEAN" = "--clean" ] && [ -d "$build" ]; then
+        rm -rf "$build"
     fi
-else
-    echo "  ! No Sphinx config found"
-fi
 
-# Viz module
-echo ""
-echo "📊 Building Viz documentation..."
-cd "$HOME/proj/SciTeX-Viz"
-if [ -f "docs/conf.py" ]; then
-    sphinx-build -b html docs docs/_build/html 2>&1 | grep -E "build succeeded|warning|error" | tail -5
-    if [ -f "docs/_build/html/index.html" ]; then
-        echo "  ✓ Viz docs built successfully"
+    echo -n "  BUILD $pkg ... "
+    if sphinx-build -b html -q "$src" "$build" 2>/dev/null; then
+        echo "OK"
+        ((BUILT++))
     else
-        echo "  ✗ Viz docs build failed"
+        echo "FAIL"
+        ((FAILED++))
     fi
-else
-    echo "  ! No Sphinx config found - using README.md as docs"
-fi
-
-# Return to cloud project
-cd "$HOME/proj/scitex-cloud"
+done
 
 echo ""
 echo "========================================"
-echo "Documentation Build Summary"
-echo "========================================"
-echo "Access documentation at:"
-echo "  - Code:   http://scitex.ai/docs/code/"
-echo "  - Scholar: http://scitex.ai/docs/scholar/"
-echo "  - Writer: http://scitex.ai/docs/writer/"
-echo "  - Viz:    http://scitex.ai/docs/viz/"
-echo ""
-echo "If docs not built, buttons fallback to GitHub READMEs"
+echo "Done: $BUILT built, $FAILED skipped/failed"
 echo "========================================"

@@ -25,14 +25,16 @@ Personal context: shows "My | Settings | project-slug" tabs.
     </div>
 {% else %}
     <div class="hub-mode-switcher" id="hub-mode-switcher">
-        <a href="#"
-           class="hub-mode {% if hub_initial_mode != 'projects' %}hub-mode-active{% endif %}"
-           data-hub-mode="me">
-            <i class="fas fa-user"></i> My
-        </a>
-        <a href="#" class="hub-mode" data-hub-mode="settings">
-            <i class="fas fa-cog"></i> Settings
-        </a>
+        {% if user.is_authenticated %}
+            <a href="#"
+               class="hub-mode {% if hub_initial_mode != 'projects' %}hub-mode-active{% endif %}"
+               data-hub-mode="me">
+                <i class="fas fa-user"></i> My
+            </a>
+            <a href="#" class="hub-mode" data-hub-mode="settings">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+        {% endif %}
         <a href="#"
            class="hub-mode {% if hub_initial_mode == 'projects' %}hub-mode-active{% endif %}"
            data-hub-mode="projects"

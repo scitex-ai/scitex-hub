@@ -36,10 +36,10 @@
   flex: 3;
 }
 
-/* Collapsed panel - 40px strip with vertical text */
+/* Collapsed panel - narrow strip with icon + label */
 .split-view .latex-panel.collapsed,
 .split-view .preview-panel.collapsed {
-  flex: 0 0 40px;
+  flex: 0 0 var(--ui-collapsed-pane-width, 48px);
   overflow: hidden;
 }
 
@@ -116,6 +116,11 @@
 }
 
 /* Hide module accent decoration on collapsed panels */
+.split-view .latex-panel.collapsed,
+.split-view .preview-panel.collapsed {
+  background: var(--workspace-bg-primary);
+}
+
 .split-view .latex-panel.collapsed > .panel-header[data-pane-type="module"],
 .split-view .preview-panel.collapsed > .panel-header[data-pane-type="module"] {
   border-top: none;

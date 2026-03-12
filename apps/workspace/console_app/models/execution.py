@@ -107,7 +107,9 @@ class CodeExecutionJob(models.Model):
     def _sync_to_viz_module(self):
         """Sync completed job to Viz module."""
         try:
-            from apps.workspace.vis_app.code_integration import auto_sync_code_completion
+            from apps.workspace.figrecipe_app.code_integration import (
+                auto_sync_code_completion,
+            )
 
             result = auto_sync_code_completion(self)
 

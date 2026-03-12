@@ -42,7 +42,10 @@ try_editable_install() {
     fi
 }
 
-# Install scitex-tunnel BEFORE scitex[all] (scitex[all] depends on it)
+# Install scitex core dependencies BEFORE scitex[all] (scitex depends on these)
+try_editable_install "/scitex-clew" "scitex-clew"
+try_editable_install "/scitex-io" "scitex-io" "[all]"
+try_editable_install "/scitex-stats" "scitex-stats" "[all]"
 try_editable_install "/scitex-tunnel" "scitex-tunnel"
 
 # Install scitex[all] from local mount

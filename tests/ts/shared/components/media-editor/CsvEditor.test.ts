@@ -31,7 +31,7 @@ describe('CsvEditor', () => {
 //  *
 //  * Features:
 //  * - Full CSV/TSV editing with DataTableManager
-//  * - Plot integration via vis_app API
+//  * - Plot integration via figrecipe_app API
 //  * - Basic statistics panel
 //  * - LaTeX table export
 //  */
@@ -40,7 +40,7 @@ describe('CsvEditor', () => {
 // import { DataTableManager } from '../data-table/index';
 // import type { Dataset, DataRow } from '../data-table/types';
 //
-// /** Plot configuration for vis_app integration */
+// /** Plot configuration for figrecipe_app integration */
 // interface PlotSpec {
 //   figure: {
 //     width_mm: number;
@@ -569,7 +569,7 @@ describe('CsvEditor', () => {
 //   }
 //
 //   /**
-//    * Generate plot using vis_app API
+//    * Generate plot using figrecipe_app API
 //    */
 //   private async generatePlot(panel: HTMLElement): Promise<void> {
 //     const data = this.dataTableManager?.getCurrentData();
@@ -612,7 +612,7 @@ describe('CsvEditor', () => {
 //         }
 //       };
 //
-//       // Call vis_app API
+//       // Call figrecipe_app API
 //       const response = await fetch('/api/vis/plot/', {
 //         method: 'POST',
 //         headers: {

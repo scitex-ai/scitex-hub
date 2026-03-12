@@ -36,7 +36,7 @@ def reset_database():
 
     # 2. Remove migration files (keep __init__.py)
     apps_to_reset = [
-        "apps/workspace/vis_app/migrations",
+        "apps/workspace/figrecipe_app/migrations",
         "apps/workspace/console_app/migrations",
         "apps/workspace/writer_app/migrations",
         "apps/workspace/scholar_app/migrations",

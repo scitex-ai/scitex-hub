@@ -5,9 +5,9 @@
 
 // Directory renames
 export const DIR_RENAMES: [string, string, string][] = [
-  // vis_app
-  ["apps/vis_app/static/vis_app/ts", "vis", "_vis"],
-  ["apps/vis_app/static/vis_app/ts", "vis-editor", "_vis-editor"],
+  // figrecipe_app
+  ["apps/figrecipe_app/static/figrecipe_app/ts", "vis", "_vis"],
+  ["apps/figrecipe_app/static/figrecipe_app/ts", "vis-editor", "_vis-editor"],
   // console_app
   ["apps/console_app/static/console_app/ts", "workspace", "_workspace"],
   // writer_app: module subdirs
@@ -338,7 +338,7 @@ export const TS_SEARCH_DIRS = [
   "static/shared/ts",
   "static/workspace_app/ts",
   "apps/console_app/static/console_app/ts",
-  "apps/vis_app/static/vis_app/ts",
+  "apps/figrecipe_app/static/figrecipe_app/ts",
   "apps/writer_app/static/writer_app/ts",
   "apps/project_app/static/project_app/ts",
   "apps/scholar_app/static/scholar_app/ts",

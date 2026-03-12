@@ -238,16 +238,24 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
     if (!isResizing) return;
 
     // Curtain handle: fixed-width panel propagates to the resizeDirection side.
-    // Drag delta sign naturally handles shrink vs grow — no direction flip needed.
+    // Determine actual drag intent from delta sign to avoid un-collapsing
+    // panels that should stay collapsed (prevents content flash).
     if (config.fixedWidth && !propagationTarget) {
       const delta = e.clientX - startX;
       if (Math.abs(delta) < 3) return; // dead zone
+
+      // Is the user shrinking (pushing panels closed) or growing (pulling open)?
+      const isShrinking =
+        config.resizeDirection === "left" ? delta < 0 : delta > 0;
       const curtainDir: "shrink-left" | "shrink-right" =
         config.resizeDirection === "left" ? "shrink-left" : "shrink-right";
-      const adjacent = findAdjacentPanel(config, curtainDir, true);
+
+      // When shrinking: skip collapsed panels (curtain=false) — nothing to shrink.
+      // When growing: include collapsed panels (curtain=true) — un-collapse them.
+      const adjacent = findAdjacentPanel(config, curtainDir, !isShrinking);
       if (adjacent) {
-        // Un-collapse panel if needed (curtain pulls it open)
-        if (adjacent.panel.classList.contains("collapsed")) {
+        // Only un-collapse when growing (dragging to expand panels)
+        if (!isShrinking && adjacent.panel.classList.contains("collapsed")) {
           adjacent.panel.classList.remove("collapsed");
           adjacent.panel.style.width = `${adjacent.config.minWidth}px`;
           adjacent.panel.style.flexShrink = "0";

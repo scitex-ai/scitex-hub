@@ -350,7 +350,7 @@ def _make_html2text():
 
 def docs_python(request):
     """Serve SciTeX Python package documentation (Sphinx)."""
-    return _serve_sphinx_docs(request, "python", "index.html")
+    return _serve_sphinx_docs(request, "scitex-python", "index.html")
 
 
 def docs_api(request):
@@ -379,16 +379,68 @@ def _get_project_version() -> str:
 
 
 DOC_PATHS = {
-    "python": "../scitex-code/docs/sphinx/build/html",
+    "scitex-python": "../scitex-python/docs/sphinx/_build/html",
+    "scitex-cloud": "docs/sphinx/_build/html",
+    "figrecipe": "../figrecipe/docs/sphinx/_build/html",
+    "scitex-writer": "../scitex-writer/docs/sphinx/_build/html",
+    "scitex-io": "../scitex-io/docs/sphinx/_build/html",
+    "scitex-stats": "../scitex-stats/docs/sphinx/_build/html",
+    "scitex-clew": "../scitex-clew/docs/sphinx/_build/html",
+    "scitex-dataset": "../scitex-dataset/docs/sphinx/_build/html",
+    "scitex-linter": "../scitex-linter/docs/sphinx/_build/html",
+    "scitex-container": "../scitex-container/docs/sphinx/_build/html",
 }
 
 
-def _check_docs_available(module):
+def check_docs_available(module):
     """Check if Sphinx documentation is built for a module."""
     if module not in DOC_PATHS:
         return False
     doc_path = Path(settings.BASE_DIR) / DOC_PATHS[module]
     return doc_path.exists() and (doc_path / "index.html").exists()
+
+
+def sphinx_raw(request, module, page="index.html"):
+    """Serve raw Sphinx HTML for iframe embedding (no Django template wrapping)."""
+    if module not in DOC_PATHS:
+        raise Http404("Module documentation not found")
+
+    doc_base = Path(settings.BASE_DIR) / DOC_PATHS[module]
+    doc_file = doc_base / page
+
+    # Security: ensure path stays within documentation directory
+    try:
+        doc_file = doc_file.resolve()
+        doc_base_resolved = doc_base.resolve()
+        if not str(doc_file).startswith(str(doc_base_resolved)):
+            raise Http404("Invalid documentation path")
+    except (ValueError, OSError):
+        raise Http404("Invalid documentation path")
+
+    if not doc_file.exists():
+        raise Http404(f"Documentation page not found: {page}")
+
+    if doc_file.suffix == ".html":
+        content = doc_file.read_text(encoding="utf-8")
+        return HttpResponse(content, content_type="text/html; charset=utf-8")
+
+    content_types = {
+        ".css": "text/css",
+        ".js": "application/javascript",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".gif": "image/gif",
+        ".svg": "image/svg+xml",
+        ".woff": "font/woff",
+        ".woff2": "font/woff2",
+        ".ttf": "font/ttf",
+        ".eot": "application/vnd.ms-fontobject",
+        ".ico": "image/x-icon",
+        ".json": "application/json",
+    }
+    ct = content_types.get(doc_file.suffix, "application/octet-stream")
+    return HttpResponse(doc_file.read_bytes(), content_type=ct)
 
 
 def _serve_sphinx_docs(request, module, page="index.html"):
@@ -400,10 +452,8 @@ def _serve_sphinx_docs(request, module, page="index.html"):
     doc_file = doc_base / page
 
     if not doc_base.exists() or not doc_file.exists():
-        github_urls = {
-            "python": "https://github.com/ywatanabe1989/SciTeX-Code#readme",
-        }
-        return redirect(github_urls.get(module, "https://github.com/SciTeX-AI"))
+        # Fallback to RTD if local build not available
+        return redirect(f"https://{module}.readthedocs.io")
 
     # Security: ensure path stays within documentation directory
     try:

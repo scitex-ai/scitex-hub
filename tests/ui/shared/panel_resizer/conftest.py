@@ -270,7 +270,7 @@ def console_app():
 
 
 @pytest.fixture
-def vis_app():
+def figrecipe_app():
     return WORKSPACE_APPS[2]
 
 

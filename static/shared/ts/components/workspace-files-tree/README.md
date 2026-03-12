@@ -772,7 +772,7 @@ static/shared/
 
 ### 🔗 Related Documentation
 
-- **App Integration**: See individual app READMEs (scholar_app, vis_app, writer_app, console_app)
+- **App Integration**: See individual app READMEs (scholar_app, figrecipe_app, writer_app, console_app)
 - **CSS Styling**: See `workspace-files-tree.css` for styling details
 - **TypeScript Types**: See `types.ts` for type definitions
 

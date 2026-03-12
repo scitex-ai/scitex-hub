@@ -249,7 +249,7 @@
 .scholar-tab-resizer {
   width: 4px;
   cursor: col-resize;
-  background: transparent;
+  background: var(--workspace-border-default, #30363d);
   flex-shrink: 0;
   transition: background 0.15s;
 }
@@ -269,9 +269,18 @@
   width: 320px;
   flex-shrink: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   border-left: 1px solid
     var(--border-color, var(--workspace-border-default, #30363d));
   background: var(--bg-primary, var(--workspace-bg-primary, #0d1117));
+}
+
+#tab-search .search-controls-inline.collapsed {
+  width: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden;
+  border-left: none;
+  padding: 0;
 }
 
 /* BibTeX tab: left (enrich editor) | right (status tiles) */
@@ -287,9 +296,18 @@
   width: 320px;
   flex-shrink: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   border-left: 1px solid
     var(--border-color, var(--workspace-border-default, #30363d));
   background: var(--bg-primary, var(--workspace-bg-primary, #0d1117));
+}
+
+#tab-bibtex .bibtex-controls-inline.collapsed {
+  width: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden;
+  border-left: none;
+  padding: 0;
 }
 
 /* Graph tab: left (graph viz) | right (sidebar info) */
@@ -305,7 +323,16 @@
   width: 320px;
   flex-shrink: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   border-left: 1px solid
     var(--border-color, var(--workspace-border-default, #30363d));
   background: var(--bg-primary, var(--workspace-bg-primary, #0d1117));
+}
+
+#tab-graph .graph-controls-inline.collapsed {
+  width: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden;
+  border-left: none;
+  padding: 0;
 }

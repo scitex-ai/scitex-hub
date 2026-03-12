@@ -20,6 +20,9 @@ urlpatterns = [
     path("python/", views.docs_python, name="python"),
     # REST API documentation
     path("api/", views.docs_api, name="api"),
+    # Raw Sphinx HTML for iframe embedding (no Django template wrapping)
+    path("sphinx/<str:module>/", views.sphinx_raw, name="sphinx_raw"),
+    path("sphinx/<str:module>/<path:page>", views.sphinx_raw, name="sphinx_raw_page"),
     # Serve specific documentation pages (for Sphinx assets)
     path("<str:module>/<path:page>", views.docs_page, name="page"),
 ]

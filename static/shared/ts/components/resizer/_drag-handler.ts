@@ -25,6 +25,10 @@ function onMouseDown(r: BaseResizer, e: MouseEvent): void {
 
   e.preventDefault();
   r.startDrag(e);
+  const [sf, ss] = r.getStartSizes();
+  console.log(
+    `[Resizer:drag] mousedown on ${r.getStorageKey()} — firstSize=${sf}, secondSize=${ss}, firstCan=${r.getFirstCanCollapse()}, secondCan=${r.getSecondCanCollapse()}, threshold=${r.getThresholdPx()}, isInApp=${r.getIsInApp()}`,
+  );
 
   document.body.style.cursor = r.getCursorPublic();
   document.body.style.userSelect = "none";
@@ -84,6 +88,9 @@ function handleMouseUp(
 
   document.removeEventListener("mousemove", onMove);
   document.removeEventListener("mouseup", onUp);
+  console.log(
+    `[Resizer:drag] mouseup on ${r.getStorageKey()} — first.collapsed=${r.getFirstPanel().classList.contains("collapsed")}, second.collapsed=${r.getSecondPanel().classList.contains("collapsed")}, firstSize=${r.getSizePublic(r.getFirstPanel())}, secondSize=${r.getSizePublic(r.getSecondPanel())}`,
+  );
 
   // Save propagation target state
   const prop = r.getPropagate();
@@ -142,13 +149,21 @@ function applyResize(r: BaseResizer, delta: number, e: MouseEvent): void {
     const totalSize = startFirst + startSecond;
     const maxSize = totalSize - threshold; // protect first panel
     const newSize = Math.min(snap(r, startSecond - delta, snaps), maxSize);
+    if (Math.abs(delta) % 50 < 2)
+      console.log(
+        `[Resizer:drag] ${key} mode=onlySecondCan delta=${delta.toFixed(0)} newSecondSize=${newSize.toFixed(0)} threshold=${threshold}`,
+      );
     if (newSize < threshold) {
+      console.log(
+        `[Resizer:drag] ${key} COLLAPSE second (newSize=${newSize.toFixed(0)} < threshold=${threshold})`,
+      );
       r.markPrimaryCollapsed();
       r.collapsePanelPublic("second");
       tryStartCascade(r, second, e);
       return;
     }
     if (second.classList.contains("collapsed")) {
+      console.log(`[Resizer:drag] ${key} UN-COLLAPSE second`);
       second.classList.remove("collapsed");
       saveCollapsed(key + "-second", false);
     }
@@ -159,13 +174,21 @@ function applyResize(r: BaseResizer, delta: number, e: MouseEvent): void {
     const totalSize = startFirst + startSecond;
     const maxSize = totalSize - threshold; // protect second panel
     const newSize = Math.min(snap(r, startFirst + delta, snaps), maxSize);
+    if (Math.abs(delta) % 50 < 2)
+      console.log(
+        `[Resizer:drag] ${key} mode=onlyFirstCan delta=${delta.toFixed(0)} newFirstSize=${newSize.toFixed(0)} threshold=${threshold}`,
+      );
     if (newSize < threshold) {
+      console.log(
+        `[Resizer:drag] ${key} COLLAPSE first (newSize=${newSize.toFixed(0)} < threshold=${threshold})`,
+      );
       r.markPrimaryCollapsed();
       r.collapsePanelPublic("first");
       tryStartCascade(r, first, e);
       return;
     }
     if (first.classList.contains("collapsed")) {
+      console.log(`[Resizer:drag] ${key} UN-COLLAPSE first`);
       first.classList.remove("collapsed");
       saveCollapsed(key + "-first", false);
     }

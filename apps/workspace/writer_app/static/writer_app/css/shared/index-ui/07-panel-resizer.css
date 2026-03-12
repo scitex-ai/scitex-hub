@@ -2,14 +2,14 @@
    PANEL RESIZER (Writer overrides)
    ========================================= */
 
-/* Writer horizontal resizers — override shared resizer.css defaults.
-   Uses 4px visible width with transparent bg and accent on hover. */
+/* Writer horizontal resizers — visible border line matching workspace panel resizers.
+   2px default gray line, accent green on hover. */
 .writer-workspace .h-resizer {
-  width: 4px;
-  min-width: 4px;
-  max-width: 4px;
-  flex: 0 0 4px !important;
-  background: transparent;
+  width: 2px;
+  min-width: 2px;
+  max-width: 2px;
+  flex: 0 0 2px !important;
+  background: var(--workspace-border-default, #30363d);
   cursor: col-resize;
   flex-shrink: 0;
   transition: background 0.15s ease;

@@ -16,14 +16,13 @@ from apps.workspace.apps_app.models import AppsModule, ModuleVersion
 _CATEGORY_MAP = {
     "writer": "writing",
     "scholar": "reference",
-    "vis": "visualization",
+    "figrecipe": "visualization",
     "console": "utility",
     "clew": "reference",
     "home": "utility",
     "tools": "utility",
     "store": "utility",
     "discovery": "social",
-    "figrecipe": "visualization",
     "docs": "reference",
 }
 
@@ -31,19 +30,18 @@ _CATEGORY_MAP = {
 _DESCRIPTIONS = {
     "writer": "LaTeX manuscript editor with live preview, bibliography management, and figure insertion.",
     "scholar": "Literature search, BibTeX management, and citation enrichment powered by scitex.scholar.",
-    "vis": "Data visualization workspace for creating publication-ready figures.",
+    "figrecipe": "Interactive figure editor: create and edit publication-ready matplotlib plots with drag-and-drop layout, statistical annotations, and multi-panel composition.",
     "console": "Python console with file browser for running scripts and managing project files.",
     "clew": "Verification system — trace manuscript claims (statistics, figures, tables) back through computational chains to source data.",
     "home": "Home workspace — project overview with recent activity, file browser, and quick actions.",
     "tools": "Collection of standalone research utilities — converters, calculators, and helpers.",
     "store": "Browse, install, and manage workspace modules.",
     "discovery": "Discover public repositories, researchers, and organizations across the SciTeX community.",
-    "figrecipe": "Declarative figure editor — define publication-ready figures as structured recipes.",
     "docs": "Documentation hub — Python packages, MCP tools, API reference, and self-hosting guide.",
 }
 
 # Modules under active development
-_WIP_MODULES = {"vis"}
+_WIP_MODULES: set[str] = set()
 
 
 def ensure_builtin_modules(author_username="ywatanabe"):

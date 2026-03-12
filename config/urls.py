@@ -53,9 +53,9 @@ urlpatterns = [
     path("apps/console/", include(("apps.workspace.console_app.urls", "console_app"))),
     path(
         "apps/vis-react/",
-        include(("apps.workspace.vis_app.urls.vis_react", "vis_react")),
+        include(("apps.workspace.figrecipe_app.urls.vis_react", "vis_react")),
     ),
-    path("apps/vis/", include(("apps.workspace.vis_app.urls", "vis_app"))),
+    path("apps/vis/", include(("apps.workspace.figrecipe_app.urls", "figrecipe_app"))),
     path("apps/writer/", include(("apps.workspace.writer_app.urls", "writer_app"))),
     path(
         "apps/workspace/", include(("apps.infra.workspace_app.urls", "workspace_app"))
