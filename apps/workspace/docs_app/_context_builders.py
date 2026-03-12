@@ -12,7 +12,7 @@ def build_page_context(slug: str) -> dict:
         "slug": slug,
         "base_template": "docs_app/docs_fragment_base.html",
     }
-    if slug in ("mcp-tools-local", "mcp-tools-https"):
+    if slug in ("mcp-tools-local", "mcp-tools-https", "api-mcp"):
         context.update(_get_mcp_context())
     elif slug == "python-packages":
         context.update(_get_packages_context())

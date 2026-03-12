@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: src/scitex_cloud/_mcp_tools/on_site.py
+# File: src/scitex_cloud/_mcp_tools/onsite.py
 """On-site agent tools for workspace interaction (page capture, context, browser control)."""
 
 from __future__ import annotations
@@ -10,11 +10,11 @@ import time
 from .api import _json, _make_request
 
 
-def register_on_site_tools(mcp) -> None:
+def register_onsite_tools(mcp) -> None:
     """Register on-site agent interaction tools with FastMCP server."""
 
     @mcp.tool()
-    async def on_site_capture_page(
+    async def onsite_capture_page(
         project_id: str,
         message: str = "",
     ) -> str:
@@ -94,7 +94,7 @@ def register_on_site_tools(mcp) -> None:
         )
 
     @mcp.tool()
-    async def on_site_check_permission(
+    async def onsite_check_permission(
         project_id: str,
     ) -> str:
         """Check if page capture is allowed for a project.
@@ -109,7 +109,7 @@ def register_on_site_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def on_site_get_context(page: str = "") -> str:
+    async def onsite_get_context(page: str = "") -> str:
         """Get web app context: username, page, skills, available actions.
 
         Returns the current user, active skill for the page, all registered
@@ -123,7 +123,7 @@ def register_on_site_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def on_site_eval_js(code: str, timeout: int = 10) -> str:
+    async def onsite_eval_js(code: str, timeout: int = 10) -> str:
         """Evaluate JavaScript in user's browser and return result.
 
         Sends JS code to the user's browser via WebSocket relay,
@@ -138,11 +138,11 @@ def register_on_site_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def on_site_get_dev_app_url(project_id: str) -> str:
+    async def onsite_get_dev_app_url(project_id: str) -> str:
         """Get the workspace URL for a dev-installed app.
 
         Given a project slug, returns the URL path for the dev app page.
-        Use this before on_site_ui_action navigate or on_site_capture_page.
+        Use this before onsite_ui_action navigate or onsite_capture_page.
 
         Args:
             project_id: Project slug (e.g. "pomodoro-app").
@@ -155,7 +155,7 @@ def register_on_site_tools(mcp) -> None:
         return _json(result)
 
     @mcp.tool()
-    async def on_site_ui_action(steps: list, delay_ms: int = 900) -> str:
+    async def onsite_ui_action(steps: list, delay_ms: int = 900) -> str:
         """Drive browser UI: navigate, highlight, click, fill, scroll.
 
         Steps is a list of action dicts, e.g.:

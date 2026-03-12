@@ -8,7 +8,7 @@ import pytest
 from click.testing import CliRunner
 
 from scitex_cloud import __version__
-from scitex_cloud.cli.main import main
+from scitex_cloud._cli.main import main
 
 
 @pytest.fixture

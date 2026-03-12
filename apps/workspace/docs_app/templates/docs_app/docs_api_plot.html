@@ -1,0 +1,16 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block title %}API: Plot — SciTeX Documentation{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container py-4">
+        <h1 class="mb-4">
+            <i class="fas fa-chart-bar me-2"></i>API: Plot
+        </h1>
+        {% include "public_app/pages/api-docs-partials/plot-api.html" %}
+    </div>
+{% endblock %}

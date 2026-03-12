@@ -15,6 +15,7 @@ from .deploy import deploy
 from .docker import docker
 from .gitea import gitea
 from .mcp import mcp
+from .sdk import sdk  # noqa: F401
 from .setup import setup
 from .status import logs, status
 from .workspace import workspace  # noqa: F401
@@ -89,6 +90,7 @@ main.add_command(status)
 main.add_command(logs)
 main.add_command(completion)
 main.add_command(workspace)
+main.add_command(sdk)
 
 
 @main.command("list-python-apis", context_settings=CONTEXT_SETTINGS)

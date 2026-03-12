@@ -6,7 +6,7 @@ readme = "README.md"
 license = "AGPL-3.0-only"
 requires-python = ">=3.11"
 authors = [
-    {name = "SciTeX Team", email = "contact@scitex.ai"},
+    {name = "Yusuke Watanabe", email = "ywatanabe@scitex.ai"},
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -111,8 +111,8 @@ all = [
 ]
 
 [project.scripts]
-scitex-cloud = "scitex_cloud.cli.main:main"
-scitex-cloud-mcp = "scitex_cloud.mcp_server:main"
+scitex-cloud = "scitex_cloud._cli.main:main"
+scitex-cloud-mcp = "scitex_cloud._mcp_server:main"
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
@@ -206,6 +206,21 @@ filterwarnings = [
 log_cli = true
 log_cli_level = "INFO"
 
+[tool.coverage.run]
+source = ["src/scitex_cloud"]
+omit = [
+    "*/tests/*",
+    "*/__main__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
 
 [tool.scitex-linter]
 # Django project: standard library `logging` is used throughout.

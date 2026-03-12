@@ -70,6 +70,60 @@ Virtual indexed columns are created automatically — no Django migrations neede
 
 ---
 
+## Python SDK (`scitex_cloud.sdk`)
+
+Instead of constructing raw HTTP requests, use the Python SDK from your
+context builder or any backend code running inside Apptainer:
+
+```python
+from scitex_cloud.sdk import data, files, jobs
+
+# DataStore — CRUD
+data.create("{name}", "Sample", {{"name": "Test", "condition": "A"}})
+data.list_records("{name}", "Sample", filters={{"condition": "A"}})
+data.get("{name}", "Sample", record_id)
+data.update("{name}", "Sample", record_id, {{"condition": "B"}})
+data.delete("{name}", "Sample", record_id)
+data.search("{name}", "Sample", query="neural")
+
+# FileVault — file storage
+files.upload("{name}", "exports/data.csv", csv_content)
+files.download("{name}", "exports/data.csv")
+files.list_files("{name}", path="exports/")
+files.delete("{name}", "exports/data.csv")
+
+# JobQueue — background tasks
+jobs.submit("{name}", "export_csv", params={{"format": "xlsx"}})
+jobs.status("{name}", job_id)
+jobs.list_jobs("{name}")
+```
+
+Auth is automatic via `SCITEX_API_TOKEN` env var (injected into Apptainer).
+
+**CLI equivalent:**
+```bash
+scitex-cloud sdk data list {name} Sample
+scitex-cloud sdk files upload {name} local.csv exports/data.csv
+scitex-cloud sdk jobs submit {name} export_csv --params '{{"format":"xlsx"}}'
+```
+
+---
+
+## Unified Context (`GET /platform/api/context/`)
+
+Bootstrap your app with one call — returns user profile, project metadata,
+and file tree:
+
+```python
+from scitex_cloud.sdk._client import get_client
+result = get_client().request("GET", "/platform/api/context/", params={{"project_id": pid}})
+# result["context"]["user"]     -> {{"id": ..., "username": ..., "email": ...}}
+# result["context"]["project"]  -> {{"id": ..., "name": ..., "slug": ...}}
+# result["context"]["file_tree"] -> [{{"path": "...", "is_dir": true/false}}, ...]
+```
+
+---
+
 ## Manifest
 
 A `manifest.yaml` declares your app's data schemas, jobs, and service
