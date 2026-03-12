@@ -2,8 +2,8 @@
 {% if "/scholar/" in request.path %}
     Scholar
     {% if current_project %}- {{ current_project.slug }}{% endif %}
-{% elif "/vis/" in request.path %}
-    Visualizer
+{% elif "/figrecipe/" in request.path %}
+    FigRecipe
     {% if current_project %}- {{ current_project.slug }}{% endif %}
 {% elif "/writer/" in request.path %}
     Writer
