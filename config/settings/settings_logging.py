@@ -96,9 +96,9 @@ LOGGING = {
             "level": "ERROR",
         },
         # App-specific logs
-        "vis_app_file": {
+        "figrecipe_app_file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "vis_app.log"),
+            "filename": str(BASE_DIR / "logs" / "figrecipe_app.log"),
             "maxBytes": 5242880,
             "backupCount": 3,
             "formatter": "standard",
@@ -190,8 +190,8 @@ LOGGING = {
             "propagate": False,
         },
         # App-specific loggers
-        "apps.workspace.vis_app": {
-            "handlers": ["vis_app_file", "console"],
+        "apps.workspace.figrecipe_app": {
+            "handlers": ["figrecipe_app_file", "console"],
             "level": "DEBUG",
             "propagate": False,
         },

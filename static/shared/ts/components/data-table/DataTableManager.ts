@@ -10,7 +10,7 @@
  * - TableFillHandle: Fill handle drag functionality
  * - TableColumnRow: Column/row operations & resizing
  *
- * This shared component can be used across multiple apps (vis_app, console_app).
+ * This shared component can be used across multiple apps (figrecipe_app, console_app).
  */
 
 import { Dataset, DataTableConfig } from './types';
@@ -48,12 +48,12 @@ export class DataTableManager {
         // Handle legacy constructor signatures:
         // 1. No args or undefined config: use default container
         // 2. String: container selector
-        // 3. Function: statusBarCallback (vis_app legacy pattern)
+        // 3. Function: statusBarCallback (figrecipe_app legacy pattern)
         // 4. DataTableConfig object: full config
         if (config === undefined) {
             this.containerSelector = '.data-table-container';
         } else if (typeof config === 'function') {
-            // Legacy vis_app pattern: (statusBarCallback, updateColumnDropdownsCallback, updateRulersAreaTransformCallback)
+            // Legacy figrecipe_app pattern: (statusBarCallback, updateColumnDropdownsCallback, updateRulersAreaTransformCallback)
             this.containerSelector = '.data-table-container';
             this.statusBarCallback = config;
             // Note: statusBarCallback, updateColumnDropdownsCallback, updateRulersAreaTransformCallback

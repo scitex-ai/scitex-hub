@@ -47,7 +47,7 @@ The data-table component uses the following CSS variables that should be defined
 --status-warning: /* Warning color */
 ```
 
-Example mapping in vis_app:
+Example mapping in figrecipe_app:
 
 ```css
 :root {
@@ -184,5 +184,5 @@ const TABLE_CONSTANTS = {
 
 - The module uses `.ts` extensions in imports for proper ES module support
 - Virtual scrolling is enabled by default for performance with large datasets
-- The component is self-contained and doesn't depend on vis_app-specific code
+- The component is self-contained and doesn't depend on figrecipe_app-specific code
 - CSS variables allow apps to customize colors while maintaining the structure

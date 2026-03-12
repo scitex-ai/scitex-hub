@@ -222,7 +222,7 @@ Compliant: content scoped inside `.writer-main`. Uses `extra_css` for Monaco edi
 ### Vis
 
 ```
-apps/vis_app/templates/vis_app/editor.html
+apps/figrecipe_app/templates/figrecipe_app/editor.html
 ```
 
 ```html

@@ -196,7 +196,7 @@ scitex-cloud/
 │   ├── scholar_app/        # Literature discovery
 │   ├── writer_app/         # Scientific writing
 │   ├── console_app/        # Terminal & code execution
-│   ├── vis_app/            # Data visualization
+│   ├── figrecipe_app/            # Data visualization
 │   ├── hub_app/            # Project hub & file browser
 │   ├── project_app/        # Project management
 │   ├── clew_app/           # Verification pipeline

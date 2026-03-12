@@ -29,7 +29,7 @@ register = template.Library()
 _PLATFORM_APPS = frozenset(
     {
         "console_app",
-        "vis_app",
+        "figrecipe_app",
         "writer_app",
         "project_app",
         "scholar_app",

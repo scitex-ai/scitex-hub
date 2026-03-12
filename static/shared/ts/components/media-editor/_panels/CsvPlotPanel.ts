@@ -1,13 +1,13 @@
 /**
  * CsvPlotPanel - Plot configuration and generation panel for CSV data
  *
- * Handles plot type selection, column mapping, and plot generation via vis_app API.
+ * Handles plot type selection, column mapping, and plot generation via figrecipe_app API.
  * Extracted from CsvEditor.ts for single responsibility.
  */
 
 import type { Dataset, DataRow } from '../../data-table/types';
 
-/** Plot configuration for vis_app integration */
+/** Plot configuration for figrecipe_app integration */
 export interface PlotSpec {
   figure: {
     width_mm: number;
@@ -93,7 +93,7 @@ export class CsvPlotPanel {
   }
 
   /**
-   * Generate plot using vis_app API
+   * Generate plot using figrecipe_app API
    */
   public async generatePlot(panel: HTMLElement, data: Dataset): Promise<void> {
     const plotType = (panel.querySelector(".plot-type-select") as HTMLSelectElement)?.value || 'line';
@@ -132,7 +132,7 @@ export class CsvPlotPanel {
         }
       };
 
-      // Call vis_app API
+      // Call figrecipe_app API
       const response = await fetch('/api/vis/plot/', {
         method: 'POST',
         headers: {

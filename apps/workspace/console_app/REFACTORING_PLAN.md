@@ -427,7 +427,7 @@ If issues arise:
 2. Document public APIs in each manager
 3. Update console_app documentation
 4. Consider similar refactoring for other large files:
-   - `vis_app/ts/editor.ts` (7,630 lines!)
+   - `figrecipe_app/ts/editor.ts` (7,630 lines!)
    - `writer_app/ts/index.ts` (4,599 lines)
 
 ---

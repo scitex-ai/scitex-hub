@@ -3,7 +3,7 @@
  *
  * Features:
  * - Full CSV/TSV editing with DataTableManager
- * - Plot integration via vis_app API (delegated to CsvPlotPanel)
+ * - Plot integration via figrecipe_app API (delegated to CsvPlotPanel)
  * - Basic statistics panel (delegated to CsvStatsPanel)
  * - LaTeX table export (delegated to CsvLatexPanel)
  *

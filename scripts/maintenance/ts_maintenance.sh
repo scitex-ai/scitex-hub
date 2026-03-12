@@ -105,7 +105,7 @@ done
 # Note: With Docker-only .jsbuild output, these paths are for cleaning up legacy files on host
 # New builds go to .jsbuild/ (Docker-internal only)
 APP_DIRS=(
-    "apps/workspace/vis_app/static/vis_app/ts:apps/workspace/vis_app/static/vis_app/js"
+    "apps/workspace/figrecipe_app/static/figrecipe_app/ts:apps/workspace/figrecipe_app/static/figrecipe_app/js"
     "apps/workspace/writer_app/static/writer_app/ts:apps/workspace/writer_app/static/writer_app/js"
     "apps/workspace/console_app/static/console_app/ts:apps/workspace/console_app/static/console_app/js"
     "apps/workspace/scholar_app/static/scholar_app/ts:apps/workspace/scholar_app/static/scholar_app/js"
@@ -116,7 +116,7 @@ APP_DIRS=(
 
 # Legacy js directories on host (for cleanup only)
 LEGACY_JS_DIRS=(
-    "apps/workspace/vis_app/static/vis_app/js"
+    "apps/workspace/figrecipe_app/static/figrecipe_app/js"
     "apps/workspace/writer_app/static/writer_app/js"
     "apps/workspace/console_app/static/console_app/js"
     "apps/workspace/scholar_app/static/scholar_app/js"

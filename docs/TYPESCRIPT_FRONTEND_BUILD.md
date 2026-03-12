@@ -75,7 +75,7 @@ This document describes the relationships between TypeScript, JavaScript, Vite, 
 | App | Entry |
 |-----|-------|
 | console_app | workspace |
-| vis_app | vis-editor, editor-inline |
+| figrecipe_app | vis-editor, editor-inline |
 | writer_app | index, collaboration-panel |
 | project_app | clone_button, create_project_type, init-git-gutter, projects/settings |
 | scholar_app | scholar-config, bibtex/status-tiles |
@@ -271,7 +271,7 @@ No more network calls on every template render. Zero latency overhead.
 ```python
 js_dirs = [
     Path(settings.BASE_DIR) / 'apps/console_app/static/console_app/js',
-    Path(settings.BASE_DIR) / 'apps/vis_app/static/vis_app/js',
+    Path(settings.BASE_DIR) / 'apps/figrecipe_app/static/figrecipe_app/js',
     Path(settings.BASE_DIR) / 'apps/writer_app/static/writer_app/js',
     Path(settings.BASE_DIR) / 'static/shared/js',
 ]
