@@ -19,7 +19,7 @@ import type {
 } from "./types";
 
 // API endpoints
-const API_BASE = "/apps/vis/api/bundles/pltz";
+const API_BASE = "/apps/figrecipe/api/bundles/pltz";
 
 export interface CreatePltzBundleParams {
   name: string;

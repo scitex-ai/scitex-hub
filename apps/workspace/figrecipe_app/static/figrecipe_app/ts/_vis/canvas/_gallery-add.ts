@@ -34,7 +34,7 @@ async function loadEmbeddedPanel(
   }
 
   // Use the new figz panel preview endpoint for embedded panels (include project context for path resolution)
-  const previewUrl = `/apps/vis/api/bundles/figz/panel-preview/?path=${encodeURIComponent(figzPath)}&panel=${encodeURIComponent(panelLabel)}&project_owner=${encodeURIComponent(state.projectOwner)}&project_slug=${encodeURIComponent(state.projectSlug)}&t=${Date.now()}`;
+  const previewUrl = `/apps/figrecipe/api/bundles/figz/panel-preview/?path=${encodeURIComponent(figzPath)}&panel=${encodeURIComponent(panelLabel)}&project_owner=${encodeURIComponent(state.projectOwner)}&project_slug=${encodeURIComponent(state.projectSlug)}&t=${Date.now()}`;
 
   const mmToPx = state.bundleRenderDpi / 25.4;
   const x = position.x_mm * mmToPx;
@@ -58,7 +58,7 @@ async function loadEmbeddedPanel(
     const scaleX = w / img.width;
     const scaleY = h / img.height;
 
-    const hitmapUrl = `/apps/vis/api/bundles/figz/panel-preview/?path=${encodeURIComponent(figzPath)}&panel=${encodeURIComponent(panelLabel)}&project_owner=${encodeURIComponent(state.projectOwner)}&project_slug=${encodeURIComponent(state.projectSlug)}&type=hitmap`;
+    const hitmapUrl = `/apps/figrecipe/api/bundles/figz/panel-preview/?path=${encodeURIComponent(figzPath)}&panel=${encodeURIComponent(panelLabel)}&project_owner=${encodeURIComponent(state.projectOwner)}&project_slug=${encodeURIComponent(state.projectSlug)}&type=hitmap`;
 
     img.set({
       left: x,
@@ -150,7 +150,7 @@ export async function addPanelFromGallery(
     }
 
     // Use the new add-panel endpoint that embeds pltz inside figz
-    const response = await fetch("/apps/vis/api/bundles/figz/add-panel/", {
+    const response = await fetch("/apps/figrecipe/api/bundles/figz/add-panel/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

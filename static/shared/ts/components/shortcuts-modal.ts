@@ -217,7 +217,7 @@ function detectContext(): AppContext {
   // User profile pages are at /<username>/ — detected via data attribute
   if (document.body.dataset.trackModule === "files") return "files";
   if (path.startsWith("/apps/scholar/")) return "scholar";
-  if (path.startsWith("/apps/vis/")) return "vis";
+  if (path.startsWith("/apps/figrecipe/")) return "vis";
   if (path.startsWith("/apps/writer/")) return "writer";
   return "global";
 }

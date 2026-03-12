@@ -290,7 +290,7 @@ export class PropertiesManager {
 
     try {
       const response = await fetch(
-        `/apps/vis/api/bundles/pltz/load/?path=${encodeURIComponent(pltzPath)}`,
+        `/apps/figrecipe/api/bundles/pltz/load/?path=${encodeURIComponent(pltzPath)}`,
       );
       if (!response.ok) throw new Error("Failed to load pltz bundle");
 
@@ -422,7 +422,7 @@ export class PropertiesManager {
     try {
       // Use new fine-grained property update endpoint
       const response = await fetch(
-        "/apps/vis/api/bundles/pltz/update-property/",
+        "/apps/figrecipe/api/bundles/pltz/update-property/",
         {
           method: "POST",
           headers: {

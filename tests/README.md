@@ -350,7 +350,7 @@ class TestProjectAPI:
 ### Python UI Test
 
 ```python
-# tests/ui/apps/vis/test_create_plot.py
+# tests/ui/apps/figrecipe/test_create_plot.py
 
 import pytest
 from playwright.sync_api import Page

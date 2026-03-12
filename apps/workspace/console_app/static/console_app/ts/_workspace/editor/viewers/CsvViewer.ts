@@ -183,7 +183,7 @@ export class CsvViewer {
     const plotBtn = document.getElementById("csv-plot-btn");
     plotBtn?.addEventListener("click", () => {
       console.log("[CsvViewer] Plot panel - coming soon");
-      alert("Plot feature coming soon! Will integrate with /apps/vis/ app.");
+      alert("Plot feature coming soon! Will integrate with /apps/figrecipe/ app.");
     });
 
     // Stats button

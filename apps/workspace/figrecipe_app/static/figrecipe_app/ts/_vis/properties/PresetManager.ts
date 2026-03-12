@@ -83,7 +83,7 @@ export class PresetManager {
     try {
       await this.loadPresets();
 
-      const response = await fetch("/apps/vis/api/style-presets/active/");
+      const response = await fetch("/apps/figrecipe/api/style-presets/active/");
       const data = await response.json();
 
       if (data.style) {
@@ -106,7 +106,7 @@ export class PresetManager {
 
   private async loadPresets(): Promise<void> {
     try {
-      const response = await fetch("/apps/vis/api/style-presets/");
+      const response = await fetch("/apps/figrecipe/api/style-presets/");
       const data = await response.json();
 
       this.presets = data.presets || [];
@@ -133,17 +133,17 @@ export class PresetManager {
   private async switchPreset(presetId: string): Promise<void> {
     try {
       if (!presetId) {
-        const response = await fetch("/apps/vis/api/editor/style/");
+        const response = await fetch("/apps/figrecipe/api/editor/style/");
         const data = await response.json();
         this.currentDefaults = data.defaults;
         this.currentPresetId = null;
       } else {
-        const response = await fetch(`/apps/vis/api/style-presets/${presetId}/`);
+        const response = await fetch(`/apps/figrecipe/api/style-presets/${presetId}/`);
         const data = await response.json();
         this.currentDefaults = data.merged_style;
         this.currentPresetId = presetId;
 
-        await fetch(`/apps/vis/api/style-presets/${presetId}/activate/`, {
+        await fetch(`/apps/figrecipe/api/style-presets/${presetId}/activate/`, {
           method: "POST",
           headers: { "X-CSRFToken": this.csrfToken },
         });
@@ -296,7 +296,7 @@ export class PresetManager {
     if (!name) return;
 
     try {
-      const response = await fetch("/apps/vis/api/style-presets/create/", {
+      const response = await fetch("/apps/figrecipe/api/style-presets/create/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -335,7 +335,7 @@ export class PresetManager {
       formData.append("file", input.files[0]);
 
       try {
-        const response = await fetch("/apps/vis/api/style-presets/import/", {
+        const response = await fetch("/apps/figrecipe/api/style-presets/import/", {
           method: "POST",
           headers: { "X-CSRFToken": this.csrfToken },
           body: formData,
@@ -366,7 +366,7 @@ export class PresetManager {
 
     try {
       const response = await fetch(
-        `/apps/vis/api/style-presets/${this.currentPresetId}/export/`,
+        `/apps/figrecipe/api/style-presets/${this.currentPresetId}/export/`,
         {
           method: "POST",
           headers: { "X-CSRFToken": this.csrfToken },

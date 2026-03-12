@@ -152,7 +152,7 @@ async function handleCsvSelection(
 ): Promise<void> {
   console.log("[InteractionHandlers] Loading CSV file:", fullPath);
   try {
-    const url = `/apps/vis/api/bundles/project-file/?path=${encodeURIComponent(fullPath)}`;
+    const url = `/apps/figrecipe/api/bundles/project-file/?path=${encodeURIComponent(fullPath)}`;
     const response = await fetch(url);
     if (!response.ok) {
       const errText = await response.text();

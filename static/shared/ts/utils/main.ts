@@ -117,7 +117,7 @@ function initMobileMenu(): void {
 function initModuleSwitcher(): void {
   const moduleRoutes: Record<string, string> = {
     s: "/apps/scholar/",
-    v: "/apps/vis/",
+    v: "/apps/figrecipe/",
     w: "/apps/writer/",
   };
 

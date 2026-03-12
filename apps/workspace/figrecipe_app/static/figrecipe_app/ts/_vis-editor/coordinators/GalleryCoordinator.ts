@@ -278,7 +278,7 @@ export class GalleryCoordinator {
     this.deps.updateStatusBar("Loading all plot types...");
 
     try {
-      const response = await fetch("/apps/vis/api/gallery/available/");
+      const response = await fetch("/apps/figrecipe/api/gallery/available/");
       if (!response.ok) throw new Error(`API error: ${response.status}`);
 
       const data = await response.json();
@@ -298,9 +298,9 @@ export class GalleryCoordinator {
           allPlots.push({
             name: plotName,
             category: catId,
-            png: `/apps/vis/api/gallery/project/${catId}/${plotName}/image/?format=binary`,
-            svg: `/apps/vis/api/gallery/project/${catId}/${plotName}/image/?format=svg`,
-            csv: `/apps/vis/api/gallery/project/${catId}/${plotName}/csv/`,
+            png: `/apps/figrecipe/api/gallery/project/${catId}/${plotName}/image/?format=binary`,
+            svg: `/apps/figrecipe/api/gallery/project/${catId}/${plotName}/image/?format=svg`,
+            csv: `/apps/figrecipe/api/gallery/project/${catId}/${plotName}/csv/`,
           });
         }
       }
@@ -331,7 +331,7 @@ export class GalleryCoordinator {
             // No CSV available
           }
 
-          const metaUrl = `/apps/vis/api/gallery/metadata/${plot.category}/${plot.name}/`;
+          const metaUrl = `/apps/figrecipe/api/gallery/metadata/${plot.category}/${plot.name}/`;
           let axisMetadata: any = undefined;
           try {
             const metaResponse = await fetch(metaUrl);

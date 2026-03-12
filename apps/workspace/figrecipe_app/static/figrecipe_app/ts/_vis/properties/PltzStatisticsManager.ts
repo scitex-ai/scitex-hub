@@ -14,7 +14,7 @@ export class PltzStatisticsManager {
 
     try {
       const response = await fetch(
-        `/apps/vis/api/bundles/pltz/stats/?path=${encodeURIComponent(pltzPath)}`,
+        `/apps/figrecipe/api/bundles/pltz/stats/?path=${encodeURIComponent(pltzPath)}`,
       );
 
       if (!response.ok) {

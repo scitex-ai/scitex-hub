@@ -60,7 +60,7 @@ export class PlotGallery {
     this.isLoading = true;
 
     try {
-      const response = await fetch("/apps/vis/api/gallery/");
+      const response = await fetch("/apps/figrecipe/api/gallery/");
       if (!response.ok) {
         throw new Error("Failed to load galleries");
       }
@@ -188,7 +188,7 @@ export class PlotGallery {
                  data-gallery-id="${gallery?.id || ""}"
                  title="${plot.name}">
                 <div class="gallery-thumbnail">
-                    <img src="/apps/vis/api/gallery/${gallery?.id || "matplotlib"}/${plot.id.split("_").slice(1).join("_")}/thumbnail/?format=binary"
+                    <img src="/apps/figrecipe/api/gallery/${gallery?.id || "matplotlib"}/${plot.id.split("_").slice(1).join("_")}/thumbnail/?format=binary"
                          alt="${plot.name}"
                          loading="lazy"
                          onerror="this.style.display='none'">
@@ -324,7 +324,7 @@ export class PlotGallery {
   public async loadTemplate(plotId: string, galleryId: string): Promise<any> {
     try {
       const response = await fetch(
-        `/apps/vis/api/gallery/${galleryId}/${plotId}/template/`,
+        `/apps/figrecipe/api/gallery/${galleryId}/${plotId}/template/`,
       );
       if (!response.ok) {
         throw new Error("Failed to load template");

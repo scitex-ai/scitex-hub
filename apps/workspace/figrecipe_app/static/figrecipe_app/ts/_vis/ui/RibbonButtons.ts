@@ -18,17 +18,17 @@
 
 // Map plot types to gallery preview images (using new transparent gallery)
 const PLOT_PREVIEW_IMAGES: Record<string, string> = {
-  scatter: "/apps/vis/api/gallery/project/scatter/scatter/image/?format=binary",
-  line: "/apps/vis/api/gallery/project/line/plot/image/?format=binary",
-  bar: "/apps/vis/api/gallery/project/categorical/bar/image/?format=binary",
+  scatter: "/apps/figrecipe/api/gallery/project/scatter/scatter/image/?format=binary",
+  line: "/apps/figrecipe/api/gallery/project/line/plot/image/?format=binary",
+  bar: "/apps/figrecipe/api/gallery/project/categorical/bar/image/?format=binary",
   histogram:
-    "/apps/vis/api/gallery/project/distribution/hist/image/?format=binary",
-  box: "/apps/vis/api/gallery/project/categorical/boxplot/image/?format=binary",
+    "/apps/figrecipe/api/gallery/project/distribution/hist/image/?format=binary",
+  box: "/apps/figrecipe/api/gallery/project/categorical/boxplot/image/?format=binary",
   violin:
-    "/apps/vis/api/gallery/project/categorical/violinplot/image/?format=binary",
+    "/apps/figrecipe/api/gallery/project/categorical/violinplot/image/?format=binary",
   heatmap:
-    "/apps/vis/api/gallery/project/grid/stx_heatmap/image/?format=binary",
-  contour: "/apps/vis/api/gallery/project/contour/contour/image/?format=binary",
+    "/apps/figrecipe/api/gallery/project/grid/stx_heatmap/image/?format=binary",
+  contour: "/apps/figrecipe/api/gallery/project/contour/contour/image/?format=binary",
 };
 
 export class RibbonButtons {

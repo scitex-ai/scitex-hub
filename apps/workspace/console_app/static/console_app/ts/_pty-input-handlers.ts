@@ -37,7 +37,7 @@ export function attachKeyboardHandler(
       const key = event.key.toLowerCase();
       const navigationRoutes: Record<string, string> = {
         s: "/apps/scholar/",
-        v: "/apps/vis/",
+        v: "/apps/figrecipe/",
         w: "/apps/writer/",
       };
 
