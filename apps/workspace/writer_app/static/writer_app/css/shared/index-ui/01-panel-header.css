@@ -16,6 +16,11 @@
   overflow: hidden;
 }
 
+/* Preview panel: left-align all controls instead of stretching */
+.preview-panel > .panel-header .header-left {
+  flex: none;
+}
+
 .panel-header .header-right {
   flex-shrink: 1;
   min-width: 0;

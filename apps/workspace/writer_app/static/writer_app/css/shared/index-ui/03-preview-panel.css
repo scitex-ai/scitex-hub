@@ -112,6 +112,8 @@
 
 .preview-panel .panel-header {
   margin-bottom: 0;
+  justify-content: flex-start;
+  gap: 8px;
 }
 
 .text-preview {
