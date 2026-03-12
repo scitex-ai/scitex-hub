@@ -17,6 +17,9 @@
   position: fixed;
   bottom: 0;
   right: 16px;
+  transform: translateY(
+    50%
+  ); /* Straddle the boundary line (like header toggle) */
   z-index: 1002;
   transition:
     bottom 0.3s ease,
@@ -38,9 +41,9 @@
   align-items: center;
   justify-content: center;
 
-  /* Hidden by default — revealed on hover near boundary */
-  opacity: 0;
-  pointer-events: none;
+  /* Semi-visible by default so user can find it */
+  opacity: 0.4;
+  pointer-events: auto;
 }
 
 .footer-collapse-toggle i {
@@ -122,9 +125,8 @@ body:has(.site-footer:hover) .footer-collapse-toggle,
    ========================= */
 
 body.footer-collapsed .footer-collapse-toggle {
-  bottom: 0;
-  /* Semi-visible when collapsed — user needs to find it to expand */
-  opacity: 0.4;
+  bottom: 6px; /* Match collapsed footer height */
+  opacity: 0.5;
   pointer-events: auto;
 }
 

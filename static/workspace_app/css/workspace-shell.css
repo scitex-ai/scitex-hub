@@ -15,7 +15,7 @@
 .ws-ai-pane {
   flex-shrink: 0;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
 }
 
 /* Override fixed-position from global-ai-chat.css */
