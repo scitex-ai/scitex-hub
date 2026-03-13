@@ -17,12 +17,18 @@
   justify-content: center;
   z-index: 10000;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
   padding: 20px;
 }
 
 .modal-overlay.active {
   opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 /* Modal dialog (center box) */
