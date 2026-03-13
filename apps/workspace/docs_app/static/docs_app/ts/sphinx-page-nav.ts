@@ -24,28 +24,32 @@ function initSphinxPageNav(): void {
       return;
     }
 
-    // Handle internal Sphinx toctree links (.reference.internal)
-    const internalLink = target.closest<HTMLAnchorElement>(
-      ".sphinx-inline-content a.reference.internal",
+    // Handle ALL .html links within sphinx docs (TOC, content, toctree)
+    const link = target.closest<HTMLAnchorElement>(
+      ".sphinx-pkg-wrapper a[href]",
     );
-    if (internalLink) {
-      const href = internalLink.getAttribute("href");
-      if (href && href.endsWith(".html") && !href.startsWith("http")) {
-        e.preventDefault();
-        // Find the current pkg slug from the wrapper
-        const wrapper = contentArea.querySelector("[data-pkg-slug]");
-        const slug =
-          wrapper?.getAttribute("data-pkg-slug") || getCurrentPkgSlug();
-        if (slug) {
-          loadSphinxPage(slug, href, contentArea);
-        }
-      }
+    if (!link) return;
+
+    const href = link.getAttribute("href");
+    if (!href || href.startsWith("http") || href.startsWith("#")) return;
+    if (!href.endsWith(".html") && !href.includes(".html#")) return;
+
+    e.preventDefault();
+
+    // Extract page filename and optional anchor
+    const pagePart = href.split("#")[0];
+    const anchor = href.includes("#") ? href.split("#")[1] : null;
+
+    // Find the current pkg slug from the wrapper
+    const wrapper = contentArea.querySelector("[data-pkg-slug]");
+    const slug = wrapper?.getAttribute("data-pkg-slug") || getCurrentPkgSlug();
+    if (slug) {
+      loadSphinxPage(slug, pagePart, contentArea, anchor);
     }
   });
 }
 
 function getCurrentPkgSlug(): string {
-  // Extract from the active sidebar item
   const active = document.querySelector<HTMLAnchorElement>(
     ".docs-nav-item.active",
   );
@@ -56,6 +60,7 @@ function loadSphinxPage(
   slug: string,
   sphinxPage: string,
   contentArea: HTMLElement,
+  anchor?: string | null,
 ): void {
   contentArea.style.opacity = "0.5";
 
@@ -72,7 +77,6 @@ function loadSphinxPage(
     .then((html) => {
       contentArea.innerHTML = html;
       contentArea.style.opacity = "1";
-      contentArea.scrollTop = 0;
 
       // Move <link> tags to <head>
       contentArea
@@ -87,6 +91,16 @@ function loadSphinxPage(
           }
           link.remove();
         });
+
+      // Scroll to anchor if specified, otherwise scroll to top
+      if (anchor) {
+        const el = contentArea.querySelector("#" + anchor);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
+      }
+      contentArea.scrollTop = 0;
     })
     .catch((err: Error) => {
       contentArea.innerHTML =

@@ -1,7 +1,7 @@
 {% extends base_template|default:"global_base.html" %}
 
 {% block content %}
-    <div class="sphinx-pkg-wrapper">
+    <div class="sphinx-pkg-wrapper" data-pkg-slug="{{ slug }}">
         <header class="sphinx-pkg-header">
             <h1 class="sphinx-pkg-title">
                 <i class="fas fa-book"></i> {{ package_name }}
