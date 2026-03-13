@@ -35,12 +35,16 @@ Provides Scholar, Writer, Vis, Console, and Hub modules as a Django web applicat
 
 ## Four Freedoms for Research
 
-0. The freedom to **run** your research anywhere — your machine, your terms.
-1. The freedom to **study** how every step works — from raw data to final manuscript.
-2. The freedom to **redistribute** your workflows, not just your papers.
-3. The freedom to **modify** any module and share improvements with the community.
+The SciTeX system follows the Four Freedoms for Research below, inspired by [the Free Software Definition](https://www.gnu.org/philosophy/free-sw.en.html):
 
-AGPL-3.0 — because research infrastructure deserves the same freedoms as the software it runs on.
+>Four Freedoms for Research
+>
+>0. The freedom to **run** your research anywhere — your machine, your terms.
+>1. The freedom to **study** how every step works — from raw data to final manuscript.
+>2. The freedom to **redistribute** your workflows, not just your papers.
+>3. The freedom to **modify** any module and share improvements with the community.
+>
+>AGPL-3.0 — because we believe research infrastructure deserves the same freedoms as the software it runs on.
 
 ## Installation
 
