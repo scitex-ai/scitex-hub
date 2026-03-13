@@ -169,7 +169,7 @@ def register_sphinx_packages(docs_pages, pages_by_slug):
         pages_by_slug[cloud_slug] = page
 
 
-def extract_sphinx_body(html: str) -> str:
+def extract_sphinx_body(html: str, pip_name: str = "") -> str:
     """Extract the main content body from a Sphinx HTML page.
 
     Looks for <div role="main"> ... </div> and returns just the inner content,
@@ -190,6 +190,7 @@ def extract_sphinx_body(html: str) -> str:
     # Find the closing tags — count div nesting
     depth = 1 if "articleBody" not in match.group() else 2
     pos = start
+    body = ""
     while pos < len(html) and depth > 0:
         next_open = html.find("<div", pos)
         next_close = html.find("</div>", pos)
@@ -201,10 +202,27 @@ def extract_sphinx_body(html: str) -> str:
         else:
             depth -= 1
             if depth == 0:
-                return html[start:next_close].strip()
+                body = html[start:next_close].strip()
+                break
             pos = next_close + 6
 
-    return html[start:].strip()
+    if not body:
+        body = html[start:].strip()
+
+    # Rewrite image paths to go through Django's Sphinx static serving
+    if pip_name:
+        body = re.sub(
+            r'(src|href)="(_images/[^"]+)"',
+            rf'\1="/apps/docs/sphinx/{pip_name}/\2"',
+            body,
+        )
+        body = re.sub(
+            r'(src|href)="(_static/[^"]+)"',
+            rf'\1="/apps/docs/sphinx/{pip_name}/\2"',
+            body,
+        )
+
+    return body
 
 
 def extract_sphinx_toc(html: str) -> str:
@@ -221,6 +239,8 @@ def extract_sphinx_toc(html: str) -> str:
 
 def list_sphinx_pages(module: str) -> list:
     """List available HTML pages for a Sphinx-documented package."""
+    import html as html_mod
+
     doc_base = resolve_sphinx_path(module)
     if doc_base is None:
         return []
@@ -237,8 +257,9 @@ def list_sphinx_pages(module: str) -> list:
             title = (
                 title_match.group(1) if title_match else name.replace("_", " ").title()
             )
-            # Strip " — PackageName vX.Y.Z" suffix from title
-            title = re.sub(r"\s*[—–-]\s+\S+\s+v[\d.]+.*$", "", title)
+            # Decode HTML entities (e.g. &mdash; → —) then strip suffix
+            title = html_mod.unescape(title)
+            title = re.sub(r"\s*[—–]\s+.*$", "", title)
         except Exception:
             title = name.replace("_", " ").title()
 

@@ -136,7 +136,7 @@ def _get_sphinx_package_context(slug: str, sphinx_page: str = None) -> dict:
         return {"doc_content": "<p>Documentation not built yet.</p>"}
 
     html = target_path.read_text(encoding="utf-8")
-    body = extract_sphinx_body(html)
+    body = extract_sphinx_body(html, pip_name=pip_name)
     toc = extract_sphinx_toc(html)
     pages = list_sphinx_pages(pip_name)
 

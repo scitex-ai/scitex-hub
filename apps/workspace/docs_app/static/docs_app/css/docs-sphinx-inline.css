@@ -1,68 +1,78 @@
-/* Inline Sphinx documentation — dark theme styling
- * Scopes all overrides inside .sphinx-inline-content to avoid leaking
- * into the rest of the platform.
+/* Inline Sphinx documentation — RTD-style two-column layout
+ * Left: sticky TOC sidebar | Right: main content
+ * Scoped to .sphinx-pkg-wrapper to avoid leaking into the platform.
  */
 
-/* ── Header ─────────────────────────────────────────────────────── */
+/* ── Wrapper ───────────────────────────────────────────────────── */
 .sphinx-pkg-wrapper {
-  padding: 1.5rem 2rem;
-  max-width: 960px;
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  container-type: inline-size;
+  container-name: sphinx-docs;
 }
 
+/* ── Header ────────────────────────────────────────────────────── */
 .sphinx-pkg-header {
-  margin-bottom: 1.5rem;
+  padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--border-color, #333);
-  padding-bottom: 1rem;
+  flex-shrink: 0;
 }
 
 .sphinx-pkg-title {
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: var(--text-primary, #e0e0e0);
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin: 0;
 }
 
 .sphinx-pkg-title i {
   color: var(--accent-color, #4fc3f7);
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 
 .sphinx-pkg-version {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 400;
   background: var(--badge-bg, #2a3a4a);
   color: var(--accent-color, #4fc3f7);
-  padding: 0.15rem 0.5rem;
+  padding: 0.1rem 0.45rem;
   border-radius: 4px;
   vertical-align: middle;
 }
 
 .sphinx-pkg-desc {
   color: var(--text-secondary, #999);
-  font-size: 0.9rem;
-  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  margin: 0.3rem 0 0;
 }
 
-/* ── Page Navigation (tabs) ─────────────────────────────────────── */
+/* ── Page Navigation (tabs in header) ──────────────────────────── */
 .sphinx-pkg-pages {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border-color, #333);
-  padding-bottom: 0.5rem;
+  gap: 0.2rem;
+  margin-top: 0.75rem;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color, #333) transparent;
+  padding-bottom: 0.25rem;
 }
 
 .sphinx-page-link {
-  padding: 0.35rem 0.75rem;
-  font-size: 0.8rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.75rem;
   color: var(--text-secondary, #999);
   text-decoration: none;
-  border-radius: 4px 4px 0 0;
+  border-radius: 4px;
   border: 1px solid transparent;
   cursor: pointer;
+  flex-shrink: 0;
   transition:
     color 0.15s,
     background 0.15s;
@@ -75,71 +85,84 @@
 
 .sphinx-page-link.active {
   color: var(--accent-color, #4fc3f7);
+  background: var(--bg-secondary, rgba(255, 255, 255, 0.06));
   border-color: var(--border-color, #333);
-  border-bottom-color: var(--bg-primary, #1a1a2e);
-  background: var(--bg-primary, #1a1a2e);
 }
 
-/* ── TOC (collapsible) ──────────────────────────────────────────── */
+/* ── Two-Column Body ───────────────────────────────────────────── */
+.sphinx-pkg-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── TOC Sidebar (left column) ─────────────────────────────────── */
 .sphinx-pkg-toc {
-  margin-bottom: 1.5rem;
-}
-
-.sphinx-pkg-toc details {
-  border: 1px solid var(--border-color, #333);
-  border-radius: 6px;
-  padding: 0.5rem 1rem;
-  background: var(--bg-secondary, rgba(255, 255, 255, 0.02));
-}
-
-.sphinx-pkg-toc summary {
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.85rem;
-  color: var(--text-secondary, #999);
-  user-select: none;
+  width: 200px;
+  min-width: 160px;
+  border-right: 1px solid var(--border-color, #333);
+  overflow-y: auto;
+  padding: 0.75rem 0;
+  background: var(--bg-secondary, rgba(255, 255, 255, 0.01));
+  flex-shrink: 0;
 }
 
 .sphinx-pkg-toc ul {
   list-style: none;
-  padding-left: 1rem;
-  margin: 0.5rem 0 0;
+  padding: 0;
+  margin: 0;
+}
+
+.sphinx-pkg-toc ul ul {
+  padding-left: 0.75rem;
 }
 
 .sphinx-pkg-toc li {
-  margin: 0.2rem 0;
+  margin: 0;
 }
 
 .sphinx-pkg-toc a {
+  display: block;
   color: var(--text-secondary, #aaa);
   text-decoration: none;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  padding: 0.25rem 1rem;
+  line-height: 1.4;
+  transition:
+    color 0.15s,
+    background 0.15s;
 }
 
 .sphinx-pkg-toc a:hover {
   color: var(--accent-color, #4fc3f7);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .sphinx-pkg-toc .caption-text {
   font-weight: 600;
   color: var(--text-primary, #e0e0e0);
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   display: block;
-  margin-top: 0.75rem;
+  padding: 0.75rem 1rem 0.25rem;
 }
 
-/* ── Main Content ───────────────────────────────────────────────── */
+/* ── Main Content (right column) ───────────────────────────────── */
 .sphinx-inline-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
   color: var(--text-primary, #e0e0e0);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   line-height: 1.7;
+  min-width: 0;
 }
 
 /* Headings */
 .sphinx-inline-content h1 {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: var(--text-primary, #e0e0e0);
   border-bottom: 1px solid var(--border-color, #333);
@@ -148,14 +171,14 @@
 }
 
 .sphinx-inline-content h2 {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 600;
   color: var(--text-primary, #e0e0e0);
   margin: 1.5rem 0 0.75rem;
 }
 
 .sphinx-inline-content h3 {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: var(--text-primary, #e0e0e0);
   margin: 1.25rem 0 0.5rem;
@@ -164,7 +187,7 @@
 .sphinx-inline-content h4,
 .sphinx-inline-content h5,
 .sphinx-inline-content h6 {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-secondary, #ccc);
   margin: 1rem 0 0.5rem;
@@ -237,13 +260,13 @@
   width: 100%;
   border-collapse: collapse;
   margin: 1rem 0;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
 }
 
 .sphinx-inline-content th,
 .sphinx-inline-content td {
   border: 1px solid var(--border-color, #333);
-  padding: 0.5rem 0.75rem;
+  padding: 0.45rem 0.65rem;
   text-align: left;
 }
 
@@ -284,7 +307,7 @@
   color: #ff9800;
 }
 
-/* Sphinx toctree */
+/* Sphinx toctree in content */
 .sphinx-inline-content .toctree-wrapper ul {
   list-style: none;
   padding-left: 0;
@@ -354,4 +377,30 @@
   border: none;
   border-top: 1px solid var(--border-color, #333);
   margin: 1.5rem 0;
+}
+
+/* ── Responsive: use container query for narrow docs area ───────── */
+@container sphinx-docs (max-width: 500px) {
+  .sphinx-pkg-body {
+    flex-direction: column;
+  }
+
+  .sphinx-pkg-toc {
+    width: 100%;
+    min-width: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color, #333);
+    max-height: 180px;
+    padding: 0.5rem 0;
+  }
+
+  .sphinx-inline-content {
+    padding: 0.75rem 1rem;
+  }
+}
+
+@container sphinx-docs (max-width: 350px) {
+  .sphinx-pkg-toc {
+    display: none;
+  }
 }
