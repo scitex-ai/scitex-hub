@@ -176,6 +176,7 @@ function loadDocPage(
   contentArea: HTMLElement,
   sidebar: Element,
   navItems: NodeListOf<HTMLAnchorElement>,
+  sphinxPage?: string,
 ): void {
   if (!slug) return;
   currentSlug = slug;
@@ -193,7 +194,10 @@ function loadDocPage(
   // Show loading
   contentArea.style.opacity = "0.5";
 
-  fetch("/apps/docs/content/" + slug + "/", {
+  let url = "/apps/docs/content/" + slug + "/";
+  if (sphinxPage) url += "?page=" + encodeURIComponent(sphinxPage);
+
+  fetch(url, {
     headers: { "X-Requested-With": "XMLHttpRequest" },
   })
     .then((response) => {

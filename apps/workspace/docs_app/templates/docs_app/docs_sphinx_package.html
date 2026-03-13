@@ -1,0 +1,36 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load static %}
+
+{% block content %}
+    <link rel="stylesheet"
+          href="{% static 'docs_app/css/docs-sphinx-inline.css' %}?v={{ build_id }}" />
+    <div class="sphinx-pkg-wrapper">
+        <header class="sphinx-pkg-header">
+            <h1 class="sphinx-pkg-title">
+                <i class="fas fa-book"></i> {{ package_name }}
+                {% if package_version %}<span class="sphinx-pkg-version">v{{ package_version }}</span>{% endif %}
+            </h1>
+            {% if package_description %}<p class="sphinx-pkg-desc">{{ package_description }}</p>{% endif %}
+        </header>
+        {% if sphinx_toc %}
+            <nav class="sphinx-pkg-toc">
+                <details open>
+                    <summary>Contents</summary>
+                    {{ sphinx_toc|safe }}
+                </details>
+            </nav>
+        {% endif %}
+        {% if sphinx_pages %}
+            <nav class="sphinx-pkg-pages">
+                {% for pg in sphinx_pages %}
+                    <a href="#"
+                       class="sphinx-page-link{% if pg.active %} active{% endif %}"
+                       data-pkg-slug="{{ slug }}"
+                       data-sphinx-page="{{ pg.filename }}">{{ pg.title }}</a>
+                {% endfor %}
+            </nav>
+        {% endif %}
+        <div class="sphinx-inline-content">{{ doc_content|safe }}</div>
+    </div>
+{% endblock %}

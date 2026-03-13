@@ -1,0 +1,357 @@
+/* Inline Sphinx documentation — dark theme styling
+ * Scopes all overrides inside .sphinx-inline-content to avoid leaking
+ * into the rest of the platform.
+ */
+
+/* ── Header ─────────────────────────────────────────────────────── */
+.sphinx-pkg-wrapper {
+  padding: 1.5rem 2rem;
+  max-width: 960px;
+}
+
+.sphinx-pkg-header {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color, #333);
+  padding-bottom: 1rem;
+}
+
+.sphinx-pkg-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--text-primary, #e0e0e0);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sphinx-pkg-title i {
+  color: var(--accent-color, #4fc3f7);
+  font-size: 1.2rem;
+}
+
+.sphinx-pkg-version {
+  font-size: 0.75rem;
+  font-weight: 400;
+  background: var(--badge-bg, #2a3a4a);
+  color: var(--accent-color, #4fc3f7);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+.sphinx-pkg-desc {
+  color: var(--text-secondary, #999);
+  font-size: 0.9rem;
+  margin-top: 0.4rem;
+}
+
+/* ── Page Navigation (tabs) ─────────────────────────────────────── */
+.sphinx-pkg-pages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color, #333);
+  padding-bottom: 0.5rem;
+}
+
+.sphinx-page-link {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #999);
+  text-decoration: none;
+  border-radius: 4px 4px 0 0;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+
+.sphinx-page-link:hover {
+  color: var(--text-primary, #e0e0e0);
+  background: var(--hover-bg, rgba(255, 255, 255, 0.05));
+}
+
+.sphinx-page-link.active {
+  color: var(--accent-color, #4fc3f7);
+  border-color: var(--border-color, #333);
+  border-bottom-color: var(--bg-primary, #1a1a2e);
+  background: var(--bg-primary, #1a1a2e);
+}
+
+/* ── TOC (collapsible) ──────────────────────────────────────────── */
+.sphinx-pkg-toc {
+  margin-bottom: 1.5rem;
+}
+
+.sphinx-pkg-toc details {
+  border: 1px solid var(--border-color, #333);
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  background: var(--bg-secondary, rgba(255, 255, 255, 0.02));
+}
+
+.sphinx-pkg-toc summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-secondary, #999);
+  user-select: none;
+}
+
+.sphinx-pkg-toc ul {
+  list-style: none;
+  padding-left: 1rem;
+  margin: 0.5rem 0 0;
+}
+
+.sphinx-pkg-toc li {
+  margin: 0.2rem 0;
+}
+
+.sphinx-pkg-toc a {
+  color: var(--text-secondary, #aaa);
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.sphinx-pkg-toc a:hover {
+  color: var(--accent-color, #4fc3f7);
+}
+
+.sphinx-pkg-toc .caption-text {
+  font-weight: 600;
+  color: var(--text-primary, #e0e0e0);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-top: 0.75rem;
+}
+
+/* ── Main Content ───────────────────────────────────────────────── */
+.sphinx-inline-content {
+  color: var(--text-primary, #e0e0e0);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+/* Headings */
+.sphinx-inline-content h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary, #e0e0e0);
+  border-bottom: 1px solid var(--border-color, #333);
+  padding-bottom: 0.5rem;
+  margin: 1.5rem 0 1rem;
+}
+
+.sphinx-inline-content h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary, #e0e0e0);
+  margin: 1.5rem 0 0.75rem;
+}
+
+.sphinx-inline-content h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary, #e0e0e0);
+  margin: 1.25rem 0 0.5rem;
+}
+
+.sphinx-inline-content h4,
+.sphinx-inline-content h5,
+.sphinx-inline-content h6 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary, #ccc);
+  margin: 1rem 0 0.5rem;
+}
+
+/* Hide headerlink permalink anchors from Sphinx */
+.sphinx-inline-content .headerlink {
+  display: none;
+}
+
+/* Links */
+.sphinx-inline-content a {
+  color: var(--accent-color, #4fc3f7);
+  text-decoration: none;
+}
+
+.sphinx-inline-content a:hover {
+  text-decoration: underline;
+}
+
+/* Paragraphs */
+.sphinx-inline-content p {
+  margin: 0.5rem 0;
+}
+
+/* Lists */
+.sphinx-inline-content ul,
+.sphinx-inline-content ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.sphinx-inline-content li {
+  margin: 0.25rem 0;
+}
+
+/* Code — inline */
+.sphinx-inline-content code,
+.sphinx-inline-content .pre {
+  background: var(--code-bg, rgba(255, 255, 255, 0.06));
+  color: var(--code-color, #e8e8e8);
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  font-size: 0.85em;
+  font-family: "Fira Code", "Consolas", monospace;
+}
+
+/* Code — blocks */
+.sphinx-inline-content pre {
+  background: var(--code-bg, #1e1e2e);
+  color: var(--code-color, #e0e0e0);
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  border: 1px solid var(--border-color, #333);
+  margin: 0.75rem 0;
+}
+
+.sphinx-inline-content pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* Tables */
+.sphinx-inline-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.85rem;
+}
+
+.sphinx-inline-content th,
+.sphinx-inline-content td {
+  border: 1px solid var(--border-color, #333);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.sphinx-inline-content th {
+  background: var(--bg-secondary, rgba(255, 255, 255, 0.04));
+  font-weight: 600;
+  color: var(--text-primary, #e0e0e0);
+}
+
+.sphinx-inline-content td {
+  color: var(--text-secondary, #ccc);
+}
+
+/* Admonitions (note, warning, etc.) */
+.sphinx-inline-content .admonition,
+.sphinx-inline-content .note,
+.sphinx-inline-content .warning,
+.sphinx-inline-content .tip,
+.sphinx-inline-content .important {
+  border-left: 4px solid var(--accent-color, #4fc3f7);
+  background: var(--bg-secondary, rgba(255, 255, 255, 0.03));
+  padding: 0.75rem 1rem;
+  border-radius: 0 6px 6px 0;
+  margin: 1rem 0;
+}
+
+.sphinx-inline-content .admonition-title {
+  font-weight: 600;
+  color: var(--accent-color, #4fc3f7);
+  margin-bottom: 0.25rem;
+}
+
+.sphinx-inline-content .warning {
+  border-left-color: #ff9800;
+}
+
+.sphinx-inline-content .warning .admonition-title {
+  color: #ff9800;
+}
+
+/* Sphinx toctree */
+.sphinx-inline-content .toctree-wrapper ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.sphinx-inline-content .toctree-wrapper li {
+  margin: 0.3rem 0;
+}
+
+.sphinx-inline-content .toctree-wrapper a {
+  display: inline-block;
+  padding: 0.2rem 0;
+}
+
+/* Images */
+.sphinx-inline-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+/* Definition lists (API docs) */
+.sphinx-inline-content dl {
+  margin: 0.75rem 0;
+}
+
+.sphinx-inline-content dt {
+  font-weight: 600;
+  color: var(--text-primary, #e0e0e0);
+  margin-top: 0.75rem;
+  padding: 0.3rem 0.5rem;
+  background: var(--bg-secondary, rgba(255, 255, 255, 0.03));
+  border-radius: 4px;
+  font-family: "Fira Code", "Consolas", monospace;
+  font-size: 0.85rem;
+}
+
+.sphinx-inline-content dd {
+  margin-left: 1.5rem;
+  margin-top: 0.25rem;
+  color: var(--text-secondary, #ccc);
+}
+
+/* Sphinx class/method signatures */
+.sphinx-inline-content .sig {
+  font-family: "Fira Code", "Consolas", monospace;
+  font-size: 0.85rem;
+}
+
+.sphinx-inline-content .sig-name {
+  font-weight: 600;
+  color: var(--accent-color, #4fc3f7);
+}
+
+.sphinx-inline-content .sig-param {
+  color: var(--text-secondary, #ccc);
+}
+
+/* Footnotes */
+.sphinx-inline-content .footnote {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #999);
+}
+
+/* Horizontal rule */
+.sphinx-inline-content hr {
+  border: none;
+  border-top: 1px solid var(--border-color, #333);
+  margin: 1.5rem 0;
+}

@@ -6,7 +6,7 @@ Extracted from views.py to keep it under the file size limit.
 """
 
 
-def build_page_context(slug: str) -> dict:
+def build_page_context(slug: str, sphinx_page: str = None) -> dict:
     """Build template context for a documentation page."""
     context = {
         "slug": slug,
@@ -16,6 +16,8 @@ def build_page_context(slug: str) -> dict:
         context.update(_get_mcp_context())
     elif slug == "python-packages":
         context.update(_get_packages_context())
+    elif slug.startswith("pkg-"):
+        context.update(_get_sphinx_package_context(slug, sphinx_page))
     return context
 
 
@@ -108,6 +110,62 @@ def _add_scitex_cloud(core_packages: list) -> None:
             "status": "",
         }
     )
+
+
+def _get_sphinx_package_context(slug: str, sphinx_page: str = None) -> dict:
+    """Build context for an inline Sphinx package documentation page."""
+    from ._sphinx import (
+        extract_sphinx_body,
+        extract_sphinx_toc,
+        list_sphinx_pages,
+        resolve_sphinx_path,
+    )
+
+    pip_name = slug.removeprefix("pkg-")
+    doc_base = resolve_sphinx_path(pip_name)
+    if doc_base is None:
+        return {"doc_content": "<p>Documentation not available.</p>"}
+
+    # Determine which page to show
+    page_file = sphinx_page or "index.html"
+    target_path = doc_base / page_file
+    if not target_path.exists():
+        target_path = doc_base / "index.html"
+        page_file = "index.html"
+    if not target_path.exists():
+        return {"doc_content": "<p>Documentation not built yet.</p>"}
+
+    html = target_path.read_text(encoding="utf-8")
+    body = extract_sphinx_body(html)
+    toc = extract_sphinx_toc(html)
+    pages = list_sphinx_pages(pip_name)
+
+    # Mark current page as active
+    for pg in pages:
+        if pg["filename"] == page_file:
+            pg["active"] = True
+
+    # Get package metadata
+    version = ""
+    description = ""
+    try:
+        from scitex_dev._discovery import get_package_metadata
+
+        meta = get_package_metadata(pip_name)
+        if meta:
+            version = meta["version"]
+            description = meta["description"]
+    except ImportError:
+        pass
+
+    return {
+        "doc_content": body,
+        "sphinx_toc": toc,
+        "sphinx_pages": pages,
+        "package_name": pip_name,
+        "package_version": version,
+        "package_description": description,
+    }
 
 
 def _get_mcp_context() -> dict:
