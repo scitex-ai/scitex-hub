@@ -374,18 +374,19 @@ COPY --chown=scitex:scitex . .
 RUN uv pip install --system --no-cache ".[django,test]"
 
 # --- Layer C: Latest versions of fast-moving packages ---
-# Heavy deps (PyTorch, scipy) are already cached from python-builder.
-# This layer re-installs all SciTeX ecosystem packages to their latest
-# versions. Only the lightweight scitex packages are downloaded (~10s);
-# heavy transitive deps (PyTorch, scipy) are already satisfied.
+# Layer C: Upgrade lightweight SciTeX ecosystem packages to latest.
+# scitex[all] is NOT included here — it pulls heavy deps (tensorflow,
+# PyTorch) which are already cached from python-builder.
+# Only pure-Python packages that change frequently belong here.
 RUN uv pip install --system --no-cache --upgrade \
-    "scitex[all]" \
     "figrecipe" \
     "scitex-io" \
     "scitex-stats" \
     "scitex-plt" \
     "scitex-writer" \
-    "scitex-linter"
+    "scitex-linter" \
+    "openalex-local" \
+    "crossref-local"
 
 # Note: Vite build runs at runtime (not here) because Docker volume mounts
 # for static_volume would shadow build-time output. npm deps are cached
