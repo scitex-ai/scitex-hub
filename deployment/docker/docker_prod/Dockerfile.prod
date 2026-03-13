@@ -176,6 +176,9 @@ RUN uv pip install --system --no-cache "scitex[all]==2.19.4"
 # No --no-cache here: we want uv to recognize existing packages.
 RUN uv pip install --system "scitex[all]==2.19.5"
 
+# Ensure figrecipe has presets module (required by figrecipe_app views)
+RUN uv pip install --system --no-cache "figrecipe>=0.26.4"
+
 # Playwright browsers (cached separately via BuildKit cache mount)
 RUN --mount=type=cache,target=/root/.cache/ms-playwright \
     python -m playwright install chromium && \
