@@ -33,8 +33,10 @@ services:
       - ../../../../scitex-stats:/scitex-stats:cached
       - ../../../../scitex-clew:/scitex-clew:cached
       - ../../../../scitex-tunnel:/scitex-tunnel:cached
-      # scitex-container (host-mounted into site-packages, not on PyPI)
-      - ../../../../scitex-container/src/scitex_container:/usr/local/lib/python3.11/site-packages/scitex_container:cached
+      - ../../../../scitex-container:/scitex-container:cached
+      - ../../../../scitex-dataset:/scitex-dataset:cached
+      - ../../../../scitex-linter:/scitex-linter:cached
+      - ../../../../scitex-scholar:/scitex-scholar:cached
       - ../../../../figrecipe:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
       - ../../../../crossref-local:/crossref-local:cached
@@ -234,11 +236,14 @@ services:
       - ../../../../scitex-stats:/scitex-stats:cached
       - ../../../../scitex-clew:/scitex-clew:cached
       - ../../../../scitex-tunnel:/scitex-tunnel:cached
-      # scitex-container (host-mounted into site-packages, not on PyPI)
-      - ../../../../scitex-container/src/scitex_container:/usr/local/lib/python3.11/site-packages/scitex_container:cached
+      - ../../../../scitex-container:/scitex-container:cached
+      - ../../../../scitex-dataset:/scitex-dataset:cached
+      - ../../../../scitex-linter:/scitex-linter:cached
+      - ../../../../scitex-scholar:/scitex-scholar:cached
       - ../../../../figrecipe:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
       - ../../../../crossref-local:/crossref-local:cached
+      - ../../../../openalex-local:/openalex-local:cached
       - ../../../../socialia:/socialia:cached
       - ../../../logs:/app/logs
 
@@ -299,11 +304,14 @@ services:
       - ../../../../scitex-stats:/scitex-stats:cached
       - ../../../../scitex-clew:/scitex-clew:cached
       - ../../../../scitex-tunnel:/scitex-tunnel:cached
-      # scitex-container (host-mounted into site-packages, not on PyPI)
-      - ../../../../scitex-container/src/scitex_container:/usr/local/lib/python3.11/site-packages/scitex_container:cached
+      - ../../../../scitex-container:/scitex-container:cached
+      - ../../../../scitex-dataset:/scitex-dataset:cached
+      - ../../../../scitex-linter:/scitex-linter:cached
+      - ../../../../scitex-scholar:/scitex-scholar:cached
       - ../../../../figrecipe:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
       - ../../../../crossref-local:/crossref-local:cached
+      - ../../../../openalex-local:/openalex-local:cached
       - ../../../../socialia:/socialia:cached
       - ../../../logs:/app/logs
 
