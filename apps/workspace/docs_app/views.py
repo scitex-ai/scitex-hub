@@ -6,9 +6,14 @@ from pathlib import Path
 
 from django.conf import settings
 from django.http import Http404, HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 
 from ._context_builders import build_page_context
+from ._sphinx import (  # noqa: F401 — sphinx_raw used by urls.py
+    check_docs_available,
+    serve_sphinx_docs,
+    sphinx_raw,
+)
 
 # ---------------------------------------------------------------------------
 # Documentation page registry — single source of truth for sidebar + content
@@ -200,12 +205,7 @@ _PAGES_BY_SLUG = {p["slug"]: p for p in DOCS_PAGES}
 
 
 def register_module_docs():
-    """Auto-register docs pages for workspace modules that have docs_slug set.
-
-    Scans all registered modules. For each module with a non-empty docs_slug,
-    checks if a template exists at ``{app_name}/docs/{docs_slug}.html``.
-    If found, appends it to DOCS_PAGES so it appears in the Docs sidebar.
-    """
+    """Auto-register docs pages for workspace modules that have docs_slug set."""
     from django.template.loader import get_template
 
     from apps.infra.workspace_app.registry import get_all_modules
@@ -214,12 +214,12 @@ def register_module_docs():
         if not mod.docs_slug:
             continue
         if mod.docs_slug in _PAGES_BY_SLUG:
-            continue  # Already registered
+            continue
         template_path = f"{mod.app_name}/docs/{mod.docs_slug}.html"
         try:
             get_template(template_path)
         except Exception:
-            continue  # Template doesn't exist, skip
+            continue
 
         icon = mod.icon_fa if mod.icon_fa else "fas fa-puzzle-piece"
         page = {
@@ -259,7 +259,8 @@ def docs_content(request, slug):
     page = _PAGES_BY_SLUG.get(slug)
     if not page:
         raise Http404(f"Documentation page '{slug}' not found")
-    context = build_page_context(slug)
+    sphinx_page = request.GET.get("page")
+    context = build_page_context(slug, sphinx_page=sphinx_page)
     return render(request, page["template"], context)
 
 
@@ -314,6 +315,36 @@ def docs_export_batch(request):
     return resp
 
 
+def docs_python(request):
+    """Serve SciTeX Python package documentation (Sphinx)."""
+    return serve_sphinx_docs(request, "scitex-python", "index.html")
+
+
+def docs_api(request):
+    """Serve REST API documentation page."""
+    return render(request, "public_app/pages/api_docs.html")
+
+
+def docs_page(request, module, page):
+    """Serve a specific Sphinx documentation page."""
+    return serve_sphinx_docs(request, module, page)
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+def _get_project_version() -> str:
+    """Read version from pyproject.toml (single source of truth)."""
+    try:
+        toml_path = Path(settings.BASE_DIR) / "pyproject.toml"
+        for line in toml_path.read_text().splitlines():
+            if line.startswith("version"):
+                return line.split("=")[1].strip().strip('"')
+    except Exception:
+        pass
+    return "unknown"
+
+
 def _export_single_page(request, page) -> str:
     """Render a single doc page to Markdown."""
     converter = _make_html2text()
@@ -346,147 +377,3 @@ def _make_html2text():
     converter.protect_links = True
     converter.wrap_links = False
     return converter
-
-
-def docs_python(request):
-    """Serve SciTeX Python package documentation (Sphinx)."""
-    return _serve_sphinx_docs(request, "scitex-python", "index.html")
-
-
-def docs_api(request):
-    """Serve REST API documentation page."""
-    return render(request, "public_app/pages/api_docs.html")
-
-
-def docs_page(request, module, page):
-    """Serve a specific Sphinx documentation page."""
-    return _serve_sphinx_docs(request, module, page)
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-def _get_project_version() -> str:
-    """Read version from pyproject.toml (single source of truth)."""
-    try:
-        toml_path = Path(settings.BASE_DIR) / "pyproject.toml"
-        for line in toml_path.read_text().splitlines():
-            if line.startswith("version"):
-                return line.split("=")[1].strip().strip('"')
-    except Exception:
-        pass
-    return "unknown"
-
-
-DOC_PATHS = {
-    "scitex-python": "../scitex-python/docs/sphinx/_build/html",
-    "scitex-cloud": "docs/sphinx/_build/html",
-    "figrecipe": "../figrecipe/docs/sphinx/_build/html",
-    "scitex-writer": "../scitex-writer/docs/sphinx/_build/html",
-    "scitex-io": "../scitex-io/docs/sphinx/_build/html",
-    "scitex-stats": "../scitex-stats/docs/sphinx/_build/html",
-    "scitex-clew": "../scitex-clew/docs/sphinx/_build/html",
-    "scitex-dataset": "../scitex-dataset/docs/sphinx/_build/html",
-    "scitex-linter": "../scitex-linter/docs/sphinx/_build/html",
-    "scitex-container": "../scitex-container/docs/sphinx/_build/html",
-}
-
-
-def check_docs_available(module):
-    """Check if Sphinx documentation is built for a module."""
-    if module not in DOC_PATHS:
-        return False
-    doc_path = Path(settings.BASE_DIR) / DOC_PATHS[module]
-    return doc_path.exists() and (doc_path / "index.html").exists()
-
-
-def sphinx_raw(request, module, page="index.html"):
-    """Serve raw Sphinx HTML for iframe embedding (no Django template wrapping)."""
-    if module not in DOC_PATHS:
-        raise Http404("Module documentation not found")
-
-    doc_base = Path(settings.BASE_DIR) / DOC_PATHS[module]
-    doc_file = doc_base / page
-
-    # Security: ensure path stays within documentation directory
-    try:
-        doc_file = doc_file.resolve()
-        doc_base_resolved = doc_base.resolve()
-        if not str(doc_file).startswith(str(doc_base_resolved)):
-            raise Http404("Invalid documentation path")
-    except (ValueError, OSError):
-        raise Http404("Invalid documentation path")
-
-    if not doc_file.exists():
-        raise Http404(f"Documentation page not found: {page}")
-
-    if doc_file.suffix == ".html":
-        content = doc_file.read_text(encoding="utf-8")
-        return HttpResponse(content, content_type="text/html; charset=utf-8")
-
-    content_types = {
-        ".css": "text/css",
-        ".js": "application/javascript",
-        ".png": "image/png",
-        ".jpg": "image/jpeg",
-        ".jpeg": "image/jpeg",
-        ".gif": "image/gif",
-        ".svg": "image/svg+xml",
-        ".woff": "font/woff",
-        ".woff2": "font/woff2",
-        ".ttf": "font/ttf",
-        ".eot": "application/vnd.ms-fontobject",
-        ".ico": "image/x-icon",
-        ".json": "application/json",
-    }
-    ct = content_types.get(doc_file.suffix, "application/octet-stream")
-    return HttpResponse(doc_file.read_bytes(), content_type=ct)
-
-
-def _serve_sphinx_docs(request, module, page="index.html"):
-    """Serve Sphinx-built documentation files."""
-    if module not in DOC_PATHS:
-        raise Http404("Module documentation not found")
-
-    doc_base = Path(settings.BASE_DIR) / DOC_PATHS[module]
-    doc_file = doc_base / page
-
-    if not doc_base.exists() or not doc_file.exists():
-        # Fallback to RTD if local build not available
-        return redirect(f"https://{module}.readthedocs.io")
-
-    # Security: ensure path stays within documentation directory
-    try:
-        doc_file = doc_file.resolve()
-        doc_base = doc_base.resolve()
-        if not str(doc_file).startswith(str(doc_base)):
-            raise Http404("Invalid documentation path")
-    except (ValueError, OSError):
-        raise Http404("Invalid documentation path")
-
-    if doc_file.suffix == ".html":
-        with open(doc_file, "r", encoding="utf-8") as f:
-            content = f.read()
-        context = {
-            "module": module,
-            "module_name": module.capitalize(),
-            "doc_content": content,
-            "page": page,
-        }
-        return render(request, "docs_app/docs_page.html", context)
-    else:
-        content_types = {
-            ".css": "text/css",
-            ".js": "application/javascript",
-            ".png": "image/png",
-            ".jpg": "image/jpeg",
-            ".jpeg": "image/jpeg",
-            ".gif": "image/gif",
-            ".svg": "image/svg+xml",
-            ".woff": "font/woff",
-            ".woff2": "font/woff2",
-            ".ttf": "font/ttf",
-        }
-        content_type = content_types.get(doc_file.suffix, "application/octet-stream")
-        with open(doc_file, "rb") as f:
-            return HttpResponse(f.read(), content_type=content_type)

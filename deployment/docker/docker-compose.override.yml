@@ -35,6 +35,18 @@ services:
       - ../../../scitex-writer:/scitex-writer:cached
       - ../../../crossref-local:/crossref-local:cached
       - ../../../socialia:/socialia:cached
+      - ../../../scitex-io:/scitex-io:cached
+      - ../../../scitex-stats:/scitex-stats:cached
+      - ../../../scitex-app:/scitex-app:cached
+      - ../../../scitex-dev:/scitex-dev:cached
+      - ../../../scitex-dataset:/scitex-dataset:cached
+      - ../../../scitex-linter:/scitex-linter:cached
+      - ../../../openalex-local:/openalex-local:cached
+      - ../../../scitex-scholar:/scitex-scholar:cached
+      - ../../../scitex-container:/scitex-container:cached
+      - ../../../scitex-clew:/scitex-clew:cached
+      - ../../../scitex-plt:/scitex-plt:cached
+      - ../../../scitex-audio:/scitex-audio:cached
       # Logs
       - ../../logs:/app/logs
       # Persistent data
@@ -82,6 +94,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    entrypoint: ["/app/deployment/docker/common/scripts/entrypoint-dev.sh"]
     command: ["python", "manage.py", "runserver", "0.0.0.0:8000", "from_docker"]
     privileged: true
     extra_hosts:
@@ -138,6 +151,18 @@ services:
       - ../../../scitex-writer:/scitex-writer:cached
       - ../../../crossref-local:/crossref-local:cached
       - ../../../socialia:/socialia:cached
+      - ../../../scitex-io:/scitex-io:cached
+      - ../../../scitex-stats:/scitex-stats:cached
+      - ../../../scitex-app:/scitex-app:cached
+      - ../../../scitex-dev:/scitex-dev:cached
+      - ../../../scitex-dataset:/scitex-dataset:cached
+      - ../../../scitex-linter:/scitex-linter:cached
+      - ../../../openalex-local:/openalex-local:cached
+      - ../../../scitex-scholar:/scitex-scholar:cached
+      - ../../../scitex-container:/scitex-container:cached
+      - ../../../scitex-clew:/scitex-clew:cached
+      - ../../../scitex-plt:/scitex-plt:cached
+      - ../../../scitex-audio:/scitex-audio:cached
       - ../../logs:/app/logs
     env_file:
       - ./envs/.env.dev
@@ -150,6 +175,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    entrypoint: ["/app/deployment/docker/common/scripts/entrypoint-dev.sh"]
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
       --loglevel=info
@@ -184,6 +210,18 @@ services:
       - ../../../scitex-writer:/scitex-writer:cached
       - ../../../crossref-local:/crossref-local:cached
       - ../../../socialia:/socialia:cached
+      - ../../../scitex-io:/scitex-io:cached
+      - ../../../scitex-stats:/scitex-stats:cached
+      - ../../../scitex-app:/scitex-app:cached
+      - ../../../scitex-dev:/scitex-dev:cached
+      - ../../../scitex-dataset:/scitex-dataset:cached
+      - ../../../scitex-linter:/scitex-linter:cached
+      - ../../../openalex-local:/openalex-local:cached
+      - ../../../scitex-scholar:/scitex-scholar:cached
+      - ../../../scitex-container:/scitex-container:cached
+      - ../../../scitex-clew:/scitex-clew:cached
+      - ../../../scitex-plt:/scitex-plt:cached
+      - ../../../scitex-audio:/scitex-audio:cached
       - ../../logs:/app/logs
     env_file:
       - ./envs/.env.dev
@@ -196,6 +234,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    entrypoint: ["/app/deployment/docker/common/scripts/entrypoint-dev.sh"]
     command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
     restart: unless-stopped
     healthcheck:

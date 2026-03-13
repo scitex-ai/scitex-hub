@@ -373,6 +373,21 @@ COPY --chown=scitex:scitex . .
 #   (c) pre-build the wheel in python-builder and copy it over.
 RUN uv pip install --system --no-cache ".[django,test]"
 
+# --- Layer C: Latest versions of fast-moving packages ---
+# Layer C: Upgrade lightweight SciTeX ecosystem packages to latest.
+# scitex[all] is NOT included here — it pulls heavy deps (tensorflow,
+# PyTorch) which are already cached from python-builder.
+# Only pure-Python packages that change frequently belong here.
+RUN uv pip install --system --no-cache --upgrade \
+    "figrecipe" \
+    "scitex-io" \
+    "scitex-stats" \
+    "scitex-plt" \
+    "scitex-writer" \
+    "scitex-linter" \
+    "openalex-local" \
+    "crossref-local"
+
 # Note: Vite build runs at runtime (not here) because Docker volume mounts
 # for static_volume would shadow build-time output. npm deps are cached
 # above, so `vite build` at startup is fast (~10s).

@@ -47,6 +47,7 @@ try_editable_install "/scitex-clew" "scitex-clew"
 try_editable_install "/scitex-io" "scitex-io" "[all]"
 try_editable_install "/scitex-stats" "scitex-stats" "[all]"
 try_editable_install "/scitex-tunnel" "scitex-tunnel"
+try_editable_install "/scitex-audio" "scitex-audio" "[all]"
 
 # Install scitex[all] from local mount
 if [ -d "/scitex-python" ]; then
@@ -80,6 +81,13 @@ install_ecosystem_packages() {
     try_editable_install "/crossref-local" "crossref-local" "[all]"
     try_editable_install "/openalex-local" "openalex-local" "[all]"
     try_editable_install "/socialia" "socialia" "[all]"
+    try_editable_install "/scitex-app" "scitex-app"
+    try_editable_install "/scitex-dev" "scitex-dev" "[all]"
+    try_editable_install "/scitex-dataset" "scitex-dataset" "[all]"
+    try_editable_install "/scitex-linter" "scitex-linter"
+    try_editable_install "/scitex-scholar" "scitex-scholar" "[all]"
+    try_editable_install "/scitex-container" "scitex-container"
+    try_editable_install "/scitex-plt" "scitex-plt" "[all]"
 
     # Ensure pygments is available
     if ! python -c "import pygments" 2>/dev/null; then

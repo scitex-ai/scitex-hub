@@ -107,8 +107,8 @@ export function unwireVisEditorBridge(): void {
  * Run a stat test via scitex.stats and render the bracket on figrecipe.
  *
  * End-to-end flow:
- *   1. POST /apps/vis/api/stats/run/ → {result, annotation}
- *   2. POST /apps/vis/api/figrecipe/stats/add_bracket → render bracket
+ *   1. POST /apps/figrecipe/api/stats/run/ → {result, annotation}
+ *   2. POST /apps/figrecipe/api/figrecipe/stats/add_bracket → render bracket
  */
 export async function runStatAndRenderBracket(
   testName: string,

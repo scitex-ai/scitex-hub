@@ -55,7 +55,7 @@ export class PreviewManager {
       const sampleData = this.createSampleCSV();
       const currentDefaults = this.callbacks?.getCurrentDefaults() || {};
 
-      const response = await fetch("/apps/vis/api/editor/preview/", {
+      const response = await fetch("/apps/figrecipe/api/editor/preview/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

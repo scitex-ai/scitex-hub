@@ -36,7 +36,7 @@ export async function ensureFigzBundleExists(
   }
 
   try {
-    const response = await fetch("/apps/vis/api/bundles/figz/create-empty/", {
+    const response = await fetch("/apps/figrecipe/api/bundles/figz/create-empty/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -109,7 +109,7 @@ export async function triggerFigzAutoSave(
   };
 
   try {
-    const response = await fetch("/apps/vis/api/bundles/figz/save-canvas/", {
+    const response = await fetch("/apps/figrecipe/api/bundles/figz/save-canvas/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

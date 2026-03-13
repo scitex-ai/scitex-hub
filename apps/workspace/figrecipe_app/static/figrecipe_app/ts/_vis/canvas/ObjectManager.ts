@@ -71,7 +71,7 @@ export class ObjectManager {
       let axisMetadata = options.axisMetadata;
       if (!axisMetadata && src.startsWith("data:image/png")) {
         try {
-          const response = await fetch("/apps/vis/api/plot/metadata/", {
+          const response = await fetch("/apps/figrecipe/api/plot/metadata/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ image: src }),

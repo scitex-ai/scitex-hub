@@ -115,9 +115,9 @@ export function addGlobalNavigationKeybindings(editor: any, monaco: any): void {
 
   // Alt+V: Vis
   editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyV, () => {
-    if (!window.location.pathname.startsWith("/apps/vis/")) {
+    if (!window.location.pathname.startsWith("/apps/figrecipe/")) {
       console.log("[Monaco] Alt+V - Navigate to Vis");
-      window.location.href = "/apps/vis/";
+      window.location.href = "/apps/figrecipe/";
     }
   });
 

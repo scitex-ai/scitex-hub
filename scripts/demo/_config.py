@@ -58,7 +58,7 @@ MODULE_PAGES = [
     "/apps/scholar/#bibtex",
     "/apps/scholar/#graph",
     # Other workspace modules
-    "/apps/vis/",
+    "/apps/figrecipe/",
     "/apps/console/",
     "/apps/clew/",
     "/apps/home/",

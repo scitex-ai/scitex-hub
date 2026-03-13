@@ -112,7 +112,7 @@
                 <div class="code-header">
                     <span>Shell</span>
                 </div>
-                <pre><code>pip install scitex[all]     # Full installation (recommended)
+                <pre><code class="language-bash">pip install scitex[all]     # Full installation (recommended)
 pip install scitex[plt,stats,scholar]  # Typical research setup
 pip install scitex          # Core only (minimal)</code></pre>
             </div>
@@ -121,7 +121,7 @@ pip install scitex          # Core only (minimal)</code></pre>
                 <div class="code-header">
                     <span>Shell</span>
                 </div>
-                <pre><code>{% for pkg in standalone_packages %}pip install {{ pkg.pip_name }}
+                <pre><code class="language-bash">{% for pkg in standalone_packages %}pip install {{ pkg.pip_name }}
 {% endfor %}</code></pre>
             </div>
         </section>
@@ -135,7 +135,7 @@ pip install scitex          # Core only (minimal)</code></pre>
                 <div class="code-header">
                     <span>Python</span>
                 </div>
-                <pre><code>import scitex as stx
+                <pre><code class="language-python">import scitex as stx
 @stx.session
 def main(
     param1="default",      # Auto-CLI: --param1

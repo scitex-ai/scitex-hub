@@ -36,7 +36,7 @@ export function getPageConfig(): PageTourConfig | null {
   if (path.includes("/apps/console/") || path.includes("/apps/workspace/")) {
     return { steps: CONSOLE_TOUR_STEPS, storageKey: STORAGE_KEYS.console };
   }
-  if (path.includes("/apps/vis/")) {
+  if (path.includes("/apps/figrecipe/")) {
     return { steps: VISUALIZER_TOUR_STEPS, storageKey: STORAGE_KEYS.vis };
   }
   if (path.includes("/apps/writer/")) {

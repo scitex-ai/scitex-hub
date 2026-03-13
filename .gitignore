@@ -3,6 +3,7 @@
 TODOS/90_COMPARISON_TABLE.md
 slurm_logs
 .playwright-mcp/
+.playwright-cli/
 references.bib
 
 # SciTeX user data directory (should be in home dir, not project root)

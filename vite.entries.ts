@@ -124,6 +124,17 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       "static/workspace_app/ts/workspace-shell.ts",
     ),
 
+    // figrecipe bridge (starts with '_', so auto-discovery skips it)
+    // Only included when ../figrecipe exists (the alias resolves conditionally)
+    ...(fs.existsSync(resolve(rootDir, "../figrecipe"))
+      ? {
+          "figrecipe_app/figrecipe-bridge-init": r(
+            rootDir,
+            "apps/workspace/figrecipe_app/static/figrecipe_app/ts/_figrecipe-bridge-init.ts",
+          ),
+        }
+      : {}),
+
     // Dev app scripts (standalone utilities — in scripts/ subdir, not ts/)
     "dev_app/scripts/design": r(
       rootDir,

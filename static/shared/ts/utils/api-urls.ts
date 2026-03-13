@@ -63,20 +63,20 @@ export const API_URLS = {
   },
   // --- Vis ---
   vis: {
-    editorPreview: "/apps/vis/api/editor/preview/",
-    editorLoad: "/apps/vis/api/editor/load/",
-    editorSave: "/apps/vis/api/editor/save/",
-    editorExport: "/apps/vis/api/editor/export/",
-    galleryAvailable: "/apps/vis/api/gallery/available/",
-    galleryProject: "/apps/vis/api/gallery/project/",
-    galleryAdd: "/apps/vis/api/gallery/add/",
-    plotMetadata: "/apps/vis/api/plot/metadata/",
-    bundlesPltz: "/apps/vis/api/bundles/pltz/",
-    bundlesFigz: "/apps/vis/api/bundles/figz/",
-    bundleCreate: "/apps/vis/api/bundles/create/",
-    bundleSave: "/apps/vis/api/bundles/save/",
-    canvasTab: "/apps/vis/api/canvas/tab/",
-    presets: "/apps/vis/api/presets/",
+    editorPreview: "/apps/figrecipe/api/editor/preview/",
+    editorLoad: "/apps/figrecipe/api/editor/load/",
+    editorSave: "/apps/figrecipe/api/editor/save/",
+    editorExport: "/apps/figrecipe/api/editor/export/",
+    galleryAvailable: "/apps/figrecipe/api/gallery/available/",
+    galleryProject: "/apps/figrecipe/api/gallery/project/",
+    galleryAdd: "/apps/figrecipe/api/gallery/add/",
+    plotMetadata: "/apps/figrecipe/api/plot/metadata/",
+    bundlesPltz: "/apps/figrecipe/api/bundles/pltz/",
+    bundlesFigz: "/apps/figrecipe/api/bundles/figz/",
+    bundleCreate: "/apps/figrecipe/api/bundles/create/",
+    bundleSave: "/apps/figrecipe/api/bundles/save/",
+    canvasTab: "/apps/figrecipe/api/canvas/tab/",
+    presets: "/apps/figrecipe/api/presets/",
   },
   // --- Stats (public tools) ---
   stats: {
@@ -112,7 +112,7 @@ export const NAV_URLS = {
     workspace: "/apps/console/workspace/",
   },
   vis: {
-    index: "/apps/vis/",
+    index: "/apps/figrecipe/",
   },
   writer: {
     index: "/apps/writer/",

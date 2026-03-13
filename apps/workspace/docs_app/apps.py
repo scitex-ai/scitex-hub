@@ -11,6 +11,12 @@ class DocsAppConfig(AppConfig):
     verbose_name = "Docs"
 
     def ready(self):
-        from apps.workspace.docs_app.views import register_module_docs
+        from apps.workspace.docs_app._sphinx import register_sphinx_packages
+        from apps.workspace.docs_app.views import (
+            _PAGES_BY_SLUG,
+            DOCS_PAGES,
+            register_module_docs,
+        )
 
         register_module_docs()
+        register_sphinx_packages(DOCS_PAGES, _PAGES_BY_SLUG)

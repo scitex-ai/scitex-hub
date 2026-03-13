@@ -3,7 +3,7 @@
 {% load static vite tree_preseed %}
 
 {% block title %}
-    SciTeX Visualizer
+    FigRecipe
     {% if current_project %}- {{ current_project.name }}{% endif %}
 {% endblock %}
 {% block extra_css %}
@@ -17,7 +17,8 @@
     <link rel="stylesheet" href="{% static 'figrecipe_app/css/vis/ribbon.css' %}" />
     <link rel="stylesheet" href="{% static 'figrecipe_app/css/vis/sidebar.css' %}" />
     <link rel="stylesheet" href="{% static 'figrecipe_app/css/vis/workspace.css' %}" />
-    <link rel="stylesheet" href="{% static 'figrecipe_app/css/vis/properties-panel.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'figrecipe_app/css/vis/properties-panel.css' %}" />
     <link rel="stylesheet" href="{% static 'figrecipe_app/css/vis/status-bar.css' %}" />
     <link rel="stylesheet" href="{% static 'figrecipe_app/css/vis/theme.css' %}" />
     <link rel="stylesheet" href="{% static 'figrecipe_app/css/vis/split-view.css' %}" />
@@ -32,7 +33,8 @@
     <link rel="stylesheet" href="{% static 'figrecipe_app/css/vis/tree.css' %}" />
     <link rel="stylesheet" href="{% static 'figrecipe_app/css/vis/scrollbars.css' %}" />
     <link rel="stylesheet" href="{% static 'figrecipe_app/css/editor-inline.css' %}" />
-    <link rel="stylesheet" href="{% static 'figrecipe_app/css/vis/gallery-categories.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'figrecipe_app/css/vis/gallery-categories.css' %}" />
     <link rel="stylesheet" href="{% static 'figrecipe_app/css/vis/stats.css' %}" />
     <link rel="stylesheet" href="{% static 'figrecipe_app/css/vis/bundle-gallery.css' %}" />
 {% endblock %}
@@ -488,5 +490,7 @@
     {% vite_script 'figrecipe_app/editor-inline' %}
     {% vite_script 'figrecipe_app/vis-editor' %}
     <!-- figrecipe React bridge (dev only - requires figrecipe mount) -->
-    {% if debug %}{% vite_script 'figrecipe_app/figrecipe-bridge-init' %}{% endif %}
+    {% if debug %}
+        {% vite_script 'figrecipe_app/figrecipe-bridge-init' %}
+    {% endif %}
 {% endblock %}

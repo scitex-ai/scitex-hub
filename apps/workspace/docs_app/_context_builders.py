@@ -6,7 +6,7 @@ Extracted from views.py to keep it under the file size limit.
 """
 
 
-def build_page_context(slug: str) -> dict:
+def build_page_context(slug: str, sphinx_page: str = None) -> dict:
     """Build template context for a documentation page."""
     context = {
         "slug": slug,
@@ -16,123 +16,155 @@ def build_page_context(slug: str) -> dict:
         context.update(_get_mcp_context())
     elif slug == "python-packages":
         context.update(_get_packages_context())
+    elif slug.startswith("pkg-"):
+        context.update(_get_sphinx_package_context(slug, sphinx_page))
     return context
 
 
 def _get_packages_context() -> dict:
-    """Build Python packages context from scitex ecosystem versions."""
-    try:
-        from scitex._dev._versions._list import list_versions
-
-        raw = list_versions()
-    except Exception:
-        raw = {}
-
-    # Package metadata: (module_path, description, github_repo, is_core)
-    _PKG_META = {
-        "scitex": (
-            "scitex",
-            "Main Python package with unified API for scientific research",
-            "scitex-python",
-            True,
-        ),
-        "scitex-cloud": (
-            "scitex.cloud",
-            "Django web application (this site)",
-            "scitex-cloud",
-            True,
-        ),
-        "figrecipe": (
-            "scitex.plt",
-            "Publication-ready matplotlib figures with auto CSV export",
-            "figrecipe",
-            False,
-        ),
-        "scitex-writer": (
-            "scitex.writer",
-            "LaTeX manuscript compilation with journal templates",
-            "scitex-writer",
-            False,
-        ),
-        "scitex-dataset": (
-            "scitex.dataset",
-            "Scientific dataset search across OpenNeuro, DANDI, PhysioNet",
-            "scitex-dataset",
-            False,
-        ),
-        "scitex-linter": (
-            "scitex.linter",
-            "SciTeX coding style linter for Python scripts",
-            "scitex-linter",
-            False,
-        ),
-        "crossref-local": (
-            "scitex.scholar.crossref_scitex",
-            "Local CrossRef database (167M+ papers)",
-            "crossref-local",
-            False,
-        ),
-        "openalex-local": (
-            "scitex.scholar.openalex_scitex",
-            "Local OpenAlex database (250M+ papers)",
-            "openalex-local",
-            False,
-        ),
-        "socialia": (
-            "socialia",
-            "Social media posting (Twitter/X, Bluesky)",
-            "socialia",
-            False,
-        ),
-        "scitex-container": (
-            "scitex_container",
-            "Apptainer/Singularity container definitions for SciTeX",
-            "scitex-container",
-            False,
-        ),
-        "scitex-tunnel": (
-            "scitex_tunnel",
-            "Secure SSH tunnel management for remote SciTeX services",
-            "scitex-tunnel",
-            False,
-        ),
-    }
-
+    """Build Python packages context dynamically from scitex_dev.docs entry points."""
     from .views import check_docs_available
+
+    try:
+        from scitex_dev._discovery import discover_packages, get_package_metadata
+    except ImportError:
+        return {"core_packages": [], "standalone_packages": []}
+
+    discovered = discover_packages()
 
     core_packages = []
     standalone_packages = []
-    for pip_name, (module, desc, repo, is_core) in _PKG_META.items():
-        info = raw.get(pip_name, {})
-        local = info.get("local", {})
-        remote = info.get("remote", {})
-        version = (
-            local.get("pyproject_toml")
-            or local.get("installed")
-            or remote.get("pypi")
-            or ""
-        )
-        has_sphinx = check_docs_available(repo)
+
+    for pip_name in sorted(discovered):
+        meta = get_package_metadata(pip_name)
+        if meta is None:
+            continue
+
+        repo = meta["github_repo"]
+        # Use pip_name for internal routing (sphinx_url, check_docs_available)
+        # since _resolve_sphinx_path maps via _REPO_TO_PIP
+        has_sphinx = check_docs_available(pip_name)
+
         pkg = {
             "pip_name": pip_name,
-            "module": module,
-            "version": version,
-            "description": desc,
-            "github_url": f"https://github.com/ywatanabe1989/{repo}",
-            "docs_url": f"https://{repo}.readthedocs.io",
-            "sphinx_url": f"/apps/docs/sphinx/{repo}/index.html" if has_sphinx else "",
+            "module": meta["module_name"],
+            "version": meta["version"],
+            "description": meta["description"],
+            "github_url": meta["github_url"]
+            or f"https://github.com/ywatanabe1989/{repo}",
+            "docs_url": f"/apps/docs/#pkg-{pip_name}",
+            "sphinx_url": (
+                f"/apps/docs/sphinx/{pip_name}/index.html" if has_sphinx else ""
+            ),
             "has_sphinx": has_sphinx,
-            "pypi_version": remote.get("pypi", ""),
-            "status": info.get("status", ""),
+            "pypi_version": meta["version"],
+            "status": "",
         }
-        if is_core:
+
+        if meta["is_core"]:
             core_packages.append(pkg)
         else:
             standalone_packages.append(pkg)
 
+    # scitex-cloud is the Django project itself, not a pip package
+    _add_scitex_cloud(core_packages)
+
     return {
         "core_packages": core_packages,
         "standalone_packages": standalone_packages,
+    }
+
+
+def _add_scitex_cloud(core_packages: list) -> None:
+    """Add scitex-cloud entry (not a pip package, requires special handling)."""
+    from .views import check_docs_available
+
+    has_sphinx = check_docs_available("scitex-cloud")
+    try:
+        from pathlib import Path
+
+        from django.conf import settings
+
+        toml_path = Path(settings.BASE_DIR) / "pyproject.toml"
+        version = ""
+        for line in toml_path.read_text().splitlines():
+            if line.startswith("version"):
+                version = line.split("=")[1].strip().strip('"')
+                break
+    except Exception:
+        version = ""
+
+    core_packages.append(
+        {
+            "pip_name": "scitex-cloud",
+            "module": "scitex.cloud",
+            "version": version,
+            "description": "Django web application (this site)",
+            "github_url": "https://github.com/ywatanabe1989/scitex-cloud",
+            "docs_url": "/apps/docs/#pkg-scitex-cloud",
+            "sphinx_url": (
+                "/apps/docs/sphinx/scitex-cloud/index.html" if has_sphinx else ""
+            ),
+            "has_sphinx": has_sphinx,
+            "pypi_version": "",
+            "status": "",
+        }
+    )
+
+
+def _get_sphinx_package_context(slug: str, sphinx_page: str = None) -> dict:
+    """Build context for an inline Sphinx package documentation page."""
+    from ._sphinx import (
+        extract_sphinx_body,
+        extract_sphinx_toc,
+        list_sphinx_pages,
+        resolve_sphinx_path,
+    )
+
+    pip_name = slug.removeprefix("pkg-")
+    doc_base = resolve_sphinx_path(pip_name)
+    if doc_base is None:
+        return {"doc_content": "<p>Documentation not available.</p>"}
+
+    # Determine which page to show
+    page_file = sphinx_page or "index.html"
+    target_path = doc_base / page_file
+    if not target_path.exists():
+        target_path = doc_base / "index.html"
+        page_file = "index.html"
+    if not target_path.exists():
+        return {"doc_content": "<p>Documentation not built yet.</p>"}
+
+    html = target_path.read_text(encoding="utf-8")
+    body = extract_sphinx_body(html, pip_name=pip_name)
+    toc = extract_sphinx_toc(html)
+    pages = list_sphinx_pages(pip_name)
+
+    # Mark current page as active
+    for pg in pages:
+        if pg["filename"] == page_file:
+            pg["active"] = True
+
+    # Get package metadata
+    version = ""
+    description = ""
+    try:
+        from scitex_dev._discovery import get_package_metadata
+
+        meta = get_package_metadata(pip_name)
+        if meta:
+            version = meta["version"]
+            description = meta["description"]
+    except ImportError:
+        pass
+
+    return {
+        "doc_content": body,
+        "sphinx_toc": toc,
+        "sphinx_pages": pages,
+        "package_name": pip_name,
+        "package_version": version,
+        "package_description": description,
     }
 
 
