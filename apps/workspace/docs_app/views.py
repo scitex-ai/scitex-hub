@@ -378,34 +378,51 @@ def _get_project_version() -> str:
     return "unknown"
 
 
-DOC_PATHS = {
-    "scitex-python": "../scitex-python/docs/sphinx/_build/html",
-    "scitex-cloud": "docs/sphinx/_build/html",
-    "figrecipe": "../figrecipe/docs/sphinx/_build/html",
-    "scitex-writer": "../scitex-writer/docs/sphinx/_build/html",
-    "scitex-io": "../scitex-io/docs/sphinx/_build/html",
-    "scitex-stats": "../scitex-stats/docs/sphinx/_build/html",
-    "scitex-clew": "../scitex-clew/docs/sphinx/_build/html",
-    "scitex-dataset": "../scitex-dataset/docs/sphinx/_build/html",
-    "scitex-linter": "../scitex-linter/docs/sphinx/_build/html",
-    "scitex-container": "../scitex-container/docs/sphinx/_build/html",
+# Repo-name → pip-name mapping for packages where they differ.
+# Most packages have identical repo and pip names; only list exceptions.
+_REPO_TO_PIP = {
+    "scitex-python": "scitex",
 }
 
 
-def check_docs_available(module):
+def _resolve_sphinx_path(module: str) -> "Path | None":
+    """Resolve the Sphinx HTML directory for a module (repo name).
+
+    Uses scitex_dev.docs.get_docs() for dynamic resolution, with a
+    local-project fallback for scitex-cloud (not a pip package).
+    """
+    # scitex-cloud is the Django project itself, not a pip package
+    if module == "scitex-cloud":
+        doc_path = Path(settings.BASE_DIR) / "docs" / "sphinx" / "_build" / "html"
+        return doc_path if doc_path.exists() else None
+
+    pip_name = _REPO_TO_PIP.get(module, module)
+    try:
+        from scitex_dev.docs import get_docs
+
+        result = get_docs(package=pip_name, format="html")
+        if isinstance(result, Path) and result.exists():
+            return result
+    except (LookupError, ImportError):
+        pass
+
+    return None
+
+
+def check_docs_available(module: str) -> bool:
     """Check if Sphinx documentation is built for a module."""
-    if module not in DOC_PATHS:
+    doc_path = _resolve_sphinx_path(module)
+    if doc_path is None:
         return False
-    doc_path = Path(settings.BASE_DIR) / DOC_PATHS[module]
-    return doc_path.exists() and (doc_path / "index.html").exists()
+    return (doc_path / "index.html").exists()
 
 
 def sphinx_raw(request, module, page="index.html"):
     """Serve raw Sphinx HTML for iframe embedding (no Django template wrapping)."""
-    if module not in DOC_PATHS:
+    doc_base = _resolve_sphinx_path(module)
+    if doc_base is None:
         raise Http404("Module documentation not found")
 
-    doc_base = Path(settings.BASE_DIR) / DOC_PATHS[module]
     doc_file = doc_base / page
 
     # Security: ensure path stays within documentation directory
@@ -445,13 +462,13 @@ def sphinx_raw(request, module, page="index.html"):
 
 def _serve_sphinx_docs(request, module, page="index.html"):
     """Serve Sphinx-built documentation files."""
-    if module not in DOC_PATHS:
-        raise Http404("Module documentation not found")
+    doc_base = _resolve_sphinx_path(module)
+    if doc_base is None:
+        return redirect(f"https://{module}.readthedocs.io")
 
-    doc_base = Path(settings.BASE_DIR) / DOC_PATHS[module]
     doc_file = doc_base / page
 
-    if not doc_base.exists() or not doc_file.exists():
+    if not doc_file.exists():
         # Fallback to RTD if local build not available
         return redirect(f"https://{module}.readthedocs.io")
 
