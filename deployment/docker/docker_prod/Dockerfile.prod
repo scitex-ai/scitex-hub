@@ -176,9 +176,6 @@ RUN uv pip install --system --no-cache "scitex[all]==2.19.4"
 # No --no-cache here: we want uv to recognize existing packages.
 RUN uv pip install --system "scitex[all]==2.19.5"
 
-# Ensure figrecipe has presets module (required by figrecipe_app views)
-RUN uv pip install --system --no-cache "figrecipe>=0.26.4"
-
 # Playwright browsers (cached separately via BuildKit cache mount)
 RUN --mount=type=cache,target=/root/.cache/ms-playwright \
     python -m playwright install chromium && \
@@ -375,6 +372,12 @@ COPY --chown=scitex:scitex . .
 #   (b) add build-essential to runtime apt-get (increases image size), or
 #   (c) pre-build the wheel in python-builder and copy it over.
 RUN uv pip install --system --no-cache ".[django,test]"
+
+# --- Layer C: Latest versions of fast-moving packages ---
+# Heavy deps (PyTorch, scipy) are already cached from python-builder.
+# This layer only downloads lightweight packages that change frequently.
+# Busts cache on every deploy (after COPY . .) — fast (~10s).
+RUN uv pip install --system --no-cache "figrecipe>=0.26.4" "scitex[all]>=2.19.5"
 
 # Note: Vite build runs at runtime (not here) because Docker volume mounts
 # for static_volume would shadow build-time output. npm deps are cached
