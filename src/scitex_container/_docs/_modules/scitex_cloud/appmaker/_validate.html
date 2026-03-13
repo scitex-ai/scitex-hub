@@ -1,0 +1,436 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scitex_cloud.appmaker._validate &mdash; SciTeX Cloud v0.9.1a0</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=1a5dcacc"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            SciTeX Cloud
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../installation.html#install-from-pypi">Install from PyPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../installation.html#install-from-source">Install from Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../installation.html#verify-installation">Verify Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">Setup Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#what-you-get">What You Get</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#quick-start-development">Quick Start (Development)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#step-by-step-development-setup">Step-by-Step Development Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#production-setup">Production Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#cli-only-install">CLI-Only Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#configuration-reference">Configuration Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#common-commands">Common Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#basic-usage">Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#environments">Environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#docker-management">Docker Management</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/scitex_cloud.html">scitex_cloud Package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/scitex_cloud.html#main-package">Main Package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/index.html#package-overview">Package Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.html">scitex_cloud</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.html#scitex_cloud.get_version"><code class="docutils literal notranslate"><span class="pre">get_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.html#scitex_cloud.health_check"><code class="docutils literal notranslate"><span class="pre">health_check()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.html#scitex_cloud.CloudClient"><code class="docutils literal notranslate"><span class="pre">CloudClient</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.html#scitex_cloud.Environment"><code class="docutils literal notranslate"><span class="pre">Environment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.html#scitex_cloud.get_environment"><code class="docutils literal notranslate"><span class="pre">get_environment()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.html#scitex_cloud.DockerManager"><code class="docutils literal notranslate"><span class="pre">DockerManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.html#scitex_cloud._get_version"><code class="docutils literal notranslate"><span class="pre">_get_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.appmaker.html">scitex_cloud.appmaker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.module.html">scitex_cloud.module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.sdk.html">scitex_cloud.sdk</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">SciTeX Cloud</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../../scitex_cloud.html">scitex_cloud</a></li>
+      <li class="breadcrumb-item active">scitex_cloud.appmaker._validate</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for scitex_cloud.appmaker._validate</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;App validator — check structure, security, manifest, templates, and CSS.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">REQUIRED_FILES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;apps.py&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;views.py&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;urls.py&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;LICENSE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;README.md&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;manifest.json&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">FORBIDDEN_PATTERNS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\bsubprocess\b&quot;</span><span class="p">,</span> <span class="s2">&quot;subprocess&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\bos\.system\b&quot;</span><span class="p">,</span> <span class="s2">&quot;os.system&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\beval\s*\(&quot;</span><span class="p">,</span> <span class="s2">&quot;eval()&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\bexec\s*\(&quot;</span><span class="p">,</span> <span class="s2">&quot;exec()&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\b__import__\b&quot;</span><span class="p">,</span> <span class="s2">&quot;__import__&quot;</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="n">MANIFEST_REQUIRED_KEYS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;slug&quot;</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">,</span> <span class="s2">&quot;icon&quot;</span><span class="p">,</span> <span class="s2">&quot;license&quot;</span><span class="p">]</span>
+
+<span class="c1"># Frame selectors that app CSS must not style</span>
+<span class="n">PROTECTED_SELECTORS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;.workspace-sidebar&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;.sidebar-title&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;.panel-resizer&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;footer&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1"># Forbidden frame block overrides</span>
+<span class="n">FORBIDDEN_BLOCK_OVERRIDES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;workspace_worktree_pane&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;workspace_ai_pane&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;workspace_viewer_pane&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;workspace_apps_pane&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="validate">
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_cloud.appmaker.html#scitex_cloud.appmaker.validate">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="n">app_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run all validations on a local app directory.</span>
+
+<span class="sd">    Returns list of error strings (empty = valid).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_structure</span><span class="p">(</span><span class="n">app_dir</span><span class="p">))</span>
+    <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_security</span><span class="p">(</span><span class="n">app_dir</span><span class="p">))</span>
+    <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_manifest</span><span class="p">(</span><span class="n">app_dir</span><span class="p">))</span>
+    <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_templates</span><span class="p">(</span><span class="n">app_dir</span><span class="p">))</span>
+    <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_css</span><span class="p">(</span><span class="n">app_dir</span><span class="p">))</span>
+    <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_dependencies</span><span class="p">(</span><span class="n">app_dir</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">errors</span></div>
+
+
+
+<div class="viewcode-block" id="validate_structure">
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_cloud.appmaker.html#scitex_cloud.appmaker.validate_structure">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_structure</span><span class="p">(</span><span class="n">app_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check that required files exist.&quot;&quot;&quot;</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">app_dir</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">root</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;App directory does not exist: </span><span class="si">{</span><span class="n">root</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">required</span> <span class="ow">in</span> <span class="n">REQUIRED_FILES</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">required</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing required file: </span><span class="si">{</span><span class="n">required</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check template pattern (derive app_name from directory or manifest)</span>
+    <span class="n">app_name</span> <span class="o">=</span> <span class="n">_get_app_name</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">app_name</span><span class="p">:</span>
+        <span class="n">partial</span> <span class="o">=</span> <span class="n">root</span> <span class="o">/</span> <span class="s2">&quot;templates&quot;</span> <span class="o">/</span> <span class="n">app_name</span> <span class="o">/</span> <span class="s2">&quot;index_partial.html&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">partial</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing template: templates/</span><span class="si">{</span><span class="n">app_name</span><span class="si">}</span><span class="s2">/index_partial.html&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check agents config</span>
+    <span class="n">agents_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">root</span> <span class="o">/</span> <span class="s2">&quot;.agents&quot;</span> <span class="o">/</span> <span class="s2">&quot;agents.json&quot;</span><span class="p">,</span> <span class="n">root</span> <span class="o">/</span> <span class="s2">&quot;.agents&quot;</span> <span class="o">/</span> <span class="s2">&quot;README.md&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">agents_paths</span><span class="p">):</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Missing agents config: .agents/agents.json or .agents/README.md&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">errors</span></div>
+
+
+
+<div class="viewcode-block" id="validate_security">
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_cloud.appmaker.html#scitex_cloud.appmaker.validate_security">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_security</span><span class="p">(</span><span class="n">app_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scan Python files for forbidden patterns.&quot;&quot;&quot;</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">app_dir</span><span class="p">)</span>
+
+    <span class="n">excluded_dirs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;__pycache__&quot;</span><span class="p">,</span> <span class="s2">&quot;.git&quot;</span><span class="p">,</span> <span class="s2">&quot;scitex&quot;</span><span class="p">,</span> <span class="s2">&quot;node_modules&quot;</span><span class="p">,</span> <span class="s2">&quot;.venv&quot;</span><span class="p">,</span> <span class="s2">&quot;venv&quot;</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">py_file</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s2">&quot;*.py&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">excluded_dirs</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">py_file</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">root</span><span class="p">)</span><span class="o">.</span><span class="n">parts</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="n">py_file</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;replace&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">relpath</span> <span class="o">=</span> <span class="n">py_file</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">FORBIDDEN_PATTERNS</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">content</span><span class="p">):</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Forbidden pattern &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; found in </span><span class="si">{</span><span class="n">relpath</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">errors</span></div>
+
+
+
+<div class="viewcode-block" id="validate_manifest">
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_cloud.appmaker.html#scitex_cloud.appmaker.validate_manifest">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_manifest</span><span class="p">(</span><span class="n">app_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check manifest.json schema and content.&quot;&quot;&quot;</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">app_dir</span><span class="p">)</span>
+    <span class="n">manifest_path</span> <span class="o">=</span> <span class="n">root</span> <span class="o">/</span> <span class="s2">&quot;manifest.json&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">manifest_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;manifest.json not found&quot;</span><span class="p">]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">manifest_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;manifest.json is not valid JSON: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;manifest.json must be a JSON object&quot;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">MANIFEST_REQUIRED_KEYS</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;manifest.json missing required key: &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Validate name matches directory convention</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_app&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;-app&quot;</span><span class="p">)):</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;manifest.json &#39;name&#39; should end with &#39;_app&#39; or &#39;-app&#39; (got: &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;)&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Validate version format</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;version&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">version</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^\d+\.\d+\.\d+&quot;</span><span class="p">,</span> <span class="n">version</span><span class="p">):</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;manifest.json &#39;version&#39; should be semver (got: &#39;</span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2">&#39;)&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">errors</span></div>
+
+
+
+<div class="viewcode-block" id="validate_templates">
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_cloud.appmaker.html#scitex_cloud.appmaker.validate_templates">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_templates</span><span class="p">(</span><span class="n">app_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check template compliance with workspace frame rules.&quot;&quot;&quot;</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">app_dir</span><span class="p">)</span>
+    <span class="n">app_name</span> <span class="o">=</span> <span class="n">_get_app_name</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">app_name</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">errors</span>
+
+    <span class="n">index_html</span> <span class="o">=</span> <span class="n">root</span> <span class="o">/</span> <span class="s2">&quot;templates&quot;</span> <span class="o">/</span> <span class="n">app_name</span> <span class="o">/</span> <span class="s2">&quot;index.html&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">index_html</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">errors</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">index_html</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;replace&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">errors</span>
+
+    <span class="c1"># Must extend global_base.html</span>
+    <span class="k">if</span> <span class="s2">&quot;global_base.html&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;index.html must extend &#39;global_base.html&#39;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Must have {% block content %}</span>
+    <span class="k">if</span> <span class="s2">&quot;block content&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;index.html must define {% block content %}&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Must NOT override frame blocks</span>
+    <span class="k">for</span> <span class="n">block_name</span> <span class="ow">in</span> <span class="n">FORBIDDEN_BLOCK_OVERRIDES</span><span class="p">:</span>
+        <span class="k">if</span> <span class="sa">f</span><span class="s2">&quot;block </span><span class="si">{</span><span class="n">block_name</span><span class="si">}</span><span class="s2">&quot;</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;index.html must not override &#39;</span><span class="se">{{</span><span class="s2">% block </span><span class="si">{</span><span class="n">block_name</span><span class="si">}</span><span class="s2"> %</span><span class="se">}}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">errors</span></div>
+
+
+
+<div class="viewcode-block" id="validate_css">
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_cloud.appmaker.html#scitex_cloud.appmaker.validate_css">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_css</span><span class="p">(</span><span class="n">app_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check CSS compliance with workspace frame rules.&quot;&quot;&quot;</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">app_dir</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">css_file</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s2">&quot;*.css&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">&quot;.git&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">css_file</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="n">css_file</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;replace&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">relpath</span> <span class="o">=</span> <span class="n">css_file</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+
+        <span class="c1"># Warn about deprecated --color-* variables</span>
+        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;var\(--color-&quot;</span><span class="p">,</span> <span class="n">content</span><span class="p">):</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">relpath</span><span class="si">}</span><span class="s2">: use --workspace-* or --text-* CSS variables &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;instead of --color-* (see workspace template spec)&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Check for !important on protected selectors</span>
+        <span class="k">for</span> <span class="n">selector</span> <span class="ow">in</span> <span class="n">PROTECTED_SELECTORS</span><span class="p">:</span>
+            <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">selector</span><span class="p">)</span> <span class="o">+</span> <span class="sa">r</span><span class="s2">&quot;[^{]*\{[^}]*!important&quot;</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">):</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">relpath</span><span class="si">}</span><span class="s2">: must not use !important on &#39;</span><span class="si">{</span><span class="n">selector</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check for footer hiding</span>
+        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;footer\s*\{[^}]*display\s*:\s*none&quot;</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">):</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">relpath</span><span class="si">}</span><span class="s2">: must not hide the footer&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">errors</span></div>
+
+
+
+<div class="viewcode-block" id="validate_dependencies">
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_cloud.appmaker.html#scitex_cloud.appmaker.validate_dependencies">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_dependencies</span><span class="p">(</span><span class="n">app_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check that manifest.json dependencies field is well-formed.&quot;&quot;&quot;</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">app_dir</span><span class="p">)</span>
+    <span class="n">manifest_path</span> <span class="o">=</span> <span class="n">root</span> <span class="o">/</span> <span class="s2">&quot;manifest.json&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">manifest_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">errors</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">manifest_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">errors</span>
+
+    <span class="n">deps</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dependencies&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">deps</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;manifest.json missing &#39;dependencies&#39; field&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">errors</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">deps</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;manifest.json &#39;dependencies&#39; must be a JSON object&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">errors</span>
+
+    <span class="n">valid_types</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;python&quot;</span><span class="p">,</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;node&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;other&quot;</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">deps</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_types</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;manifest.json unknown dependency type: &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;manifest.json dependencies.</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> must be a list&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">val</span><span class="p">):</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;manifest.json dependencies.</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> items must be strings&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">errors</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_app_name</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Derive app name from manifest or directory name.&quot;&quot;&quot;</span>
+    <span class="n">manifest_path</span> <span class="o">=</span> <span class="n">root</span> <span class="o">/</span> <span class="s2">&quot;manifest.json&quot;</span>
+    <span class="k">if</span> <span class="n">manifest_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">manifest_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>
+            <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">root</span><span class="o">.</span><span class="n">name</span>
+
+
+<span class="c1"># EOF</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, SciTeX Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
