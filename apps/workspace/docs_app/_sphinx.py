@@ -10,7 +10,7 @@ from pathlib import Path
 
 from django.conf import settings
 from django.http import Http404, HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 
 # Repo-name → pip-name mapping for packages where they differ.
 _REPO_TO_PIP = {
@@ -97,12 +97,12 @@ def serve_sphinx_docs(request, module, page="index.html"):
     """Serve Sphinx-built documentation files wrapped in Django template."""
     doc_base = resolve_sphinx_path(module)
     if doc_base is None:
-        return redirect(f"https://{module}.readthedocs.io")
+        raise Http404(f"Documentation not found for module '{module}'")
 
     doc_file = doc_base / page
 
     if not doc_file.exists():
-        return redirect(f"https://{module}.readthedocs.io")
+        raise Http404(f"Documentation page not found: {module}/{page}")
 
     try:
         doc_file = doc_file.resolve()

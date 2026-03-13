@@ -52,7 +52,7 @@ def _get_packages_context() -> dict:
             "description": meta["description"],
             "github_url": meta["github_url"]
             or f"https://github.com/ywatanabe1989/{repo}",
-            "docs_url": f"https://{pip_name}.readthedocs.io",
+            "docs_url": f"/apps/docs/#pkg-{pip_name}",
             "sphinx_url": (
                 f"/apps/docs/sphinx/{pip_name}/index.html" if has_sphinx else ""
             ),
@@ -101,7 +101,7 @@ def _add_scitex_cloud(core_packages: list) -> None:
             "version": version,
             "description": "Django web application (this site)",
             "github_url": "https://github.com/ywatanabe1989/scitex-cloud",
-            "docs_url": "https://scitex-cloud.readthedocs.io",
+            "docs_url": "/apps/docs/#pkg-scitex-cloud",
             "sphinx_url": (
                 "/apps/docs/sphinx/scitex-cloud/index.html" if has_sphinx else ""
             ),

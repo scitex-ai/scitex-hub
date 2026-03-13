@@ -35,6 +35,17 @@ services:
       - ../../../scitex-writer:/scitex-writer:cached
       - ../../../crossref-local:/crossref-local:cached
       - ../../../socialia:/socialia:cached
+      - ../../../scitex-io:/scitex-io:cached
+      - ../../../scitex-stats:/scitex-stats:cached
+      - ../../../scitex-app:/scitex-app:cached
+      - ../../../scitex-dev:/scitex-dev:cached
+      - ../../../scitex-dataset:/scitex-dataset:cached
+      - ../../../scitex-linter:/scitex-linter:cached
+      - ../../../openalex-local:/openalex-local:cached
+      - ../../../scitex-scholar:/scitex-scholar:cached
+      - ../../../scitex-container:/scitex-container:cached
+      - ../../../scitex-clew:/scitex-clew:cached
+      - ../../../scitex-plt:/scitex-plt:cached
       # Logs
       - ../../logs:/app/logs
       # Persistent data
@@ -138,6 +149,17 @@ services:
       - ../../../scitex-writer:/scitex-writer:cached
       - ../../../crossref-local:/crossref-local:cached
       - ../../../socialia:/socialia:cached
+      - ../../../scitex-io:/scitex-io:cached
+      - ../../../scitex-stats:/scitex-stats:cached
+      - ../../../scitex-app:/scitex-app:cached
+      - ../../../scitex-dev:/scitex-dev:cached
+      - ../../../scitex-dataset:/scitex-dataset:cached
+      - ../../../scitex-linter:/scitex-linter:cached
+      - ../../../openalex-local:/openalex-local:cached
+      - ../../../scitex-scholar:/scitex-scholar:cached
+      - ../../../scitex-container:/scitex-container:cached
+      - ../../../scitex-clew:/scitex-clew:cached
+      - ../../../scitex-plt:/scitex-plt:cached
       - ../../logs:/app/logs
     env_file:
       - ./envs/.env.dev
@@ -184,6 +206,17 @@ services:
       - ../../../scitex-writer:/scitex-writer:cached
       - ../../../crossref-local:/crossref-local:cached
       - ../../../socialia:/socialia:cached
+      - ../../../scitex-io:/scitex-io:cached
+      - ../../../scitex-stats:/scitex-stats:cached
+      - ../../../scitex-app:/scitex-app:cached
+      - ../../../scitex-dev:/scitex-dev:cached
+      - ../../../scitex-dataset:/scitex-dataset:cached
+      - ../../../scitex-linter:/scitex-linter:cached
+      - ../../../openalex-local:/openalex-local:cached
+      - ../../../scitex-scholar:/scitex-scholar:cached
+      - ../../../scitex-container:/scitex-container:cached
+      - ../../../scitex-clew:/scitex-clew:cached
+      - ../../../scitex-plt:/scitex-plt:cached
       - ../../logs:/app/logs
     env_file:
       - ./envs/.env.dev
