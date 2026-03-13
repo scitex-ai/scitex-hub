@@ -307,7 +307,12 @@
   color: #ff9800;
 }
 
-/* Sphinx toctree in content */
+/* Sphinx toctree in content — hide when sidebar TOC is present (avoids redundancy) */
+.sphinx-pkg-toc ~ .sphinx-inline-content .toctree-wrapper {
+  display: none;
+}
+
+/* Fallback: show toctree in content when no sidebar (narrow screens) */
 .sphinx-inline-content .toctree-wrapper ul {
   list-style: none;
   padding-left: 0;
