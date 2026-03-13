@@ -47,6 +47,7 @@ try_editable_install "/scitex-clew" "scitex-clew"
 try_editable_install "/scitex-io" "scitex-io" "[all]"
 try_editable_install "/scitex-stats" "scitex-stats" "[all]"
 try_editable_install "/scitex-tunnel" "scitex-tunnel"
+try_editable_install "/scitex-audio" "scitex-audio" "[all]"
 
 # Install scitex[all] from local mount
 if [ -d "/scitex-python" ]; then
