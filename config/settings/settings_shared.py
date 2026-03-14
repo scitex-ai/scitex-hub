@@ -140,8 +140,15 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.orcid",
-    "scitex_ui",
 ]
+
+# Optional: scitex_ui (not yet on PyPI, installed locally)
+try:
+    import scitex_ui  # noqa: F401
+
+    THIRD_PARTY_APPS.append("scitex_ui")
+except ImportError:
+    pass
 
 LOCAL_APPS = discover_local_apps()
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
