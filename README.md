@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-03-15 01:17:54
+!-- Timestamp: 2026-03-15 01:32:25
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/scitex-cloud/README.md
 !-- --- -->
@@ -42,6 +42,7 @@ Scientific research faces several infrastructure challenges:
 4. **Broken provenance** — papers, code, and execution environments are rarely tied together, making it difficult to replicate results or build on existing work — slowing the cumulative progress of science.
 5. **No research community platform** — no GitHub-like infrastructure exists for research-project-centric, fully traceable, parallel-working collaboration.
 6. **No control** — researchers have no ownership over their infrastructure: vendor lock-in, opaque algorithms, unilateral pricing changes, and data policies they cannot influence.
+7. **Lost knowledge on handoff** — when researchers graduate or leave a project, successors inherit scattered files with little context, making it difficult to understand where to pick up and continue the work.
 
 As a result, research workflows will never scale.
 
@@ -50,11 +51,12 @@ As a result, research workflows will never scale.
 SciTeX Cloud addresses each of these directly:
 
 1. **Unified platform** — Scholar, Writer, FigRecipe, Console, Hub, and Clew in a single Django web application, deployable anywhere with Docker. All apps share the same project filesystem and integrate through the `scitex` Python package.
-2. **App Maker and Store** — researchers create, publish, and install custom research tools without web development experience.
-3. **Built-in AI co-pilot** — platform-aware skills via MCP (Model Context Protocol) and CLI span the full research lifecycle: literature search, statistical analysis, figure generation, manuscript writing, and provenance verification.
+2. **App Maker and Store** — researchers create, publish, and install custom research tools on top of shared components — user/group permissions, AI infrastructure, containerized computation, and file operations are handled consistently by the platform, letting researchers focus on what they need.
+3. **Built-in AI co-pilot** — platform-aware context, skills, and tools such as MCP (Model Context Protocol) and CLI span the full research lifecycle, providing an optimized AI assistant that understands the entire project from natural language.
 4. **Verifiable provenance** — Clew links papers, code, data, and execution environments into a hash-verified DAG (Directed Acyclic Graph), ensuring every result is traceable and reproducible.
-5. **GitHub-style project hub** — repository hosting, pull requests, and community discovery purpose-built for research.
+5. **GitHub-style project hub** — repository hosting and ticket-based development with co-authors and the community enable efficient research advancement and peer review of both code and logic.
 6. **Self-hosted, open-source, runnable from anywhere** — deploy on your laptop, lab server, or cloud. AGPL-3.0 licensed — inspect every line of code, customize freely, no vendor lock-in, no data surrender.
+7. **Seamless project handoff** — the full project state — code, data, provenance graph, manuscript drafts, and execution environment — lives in one place, so successors can understand and continue work immediately.
 
 > **Status**: Alpha (data may be lost between releases)
 
