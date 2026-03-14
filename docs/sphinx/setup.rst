@@ -10,7 +10,7 @@ SciTeX Cloud is a self-hostable research platform. One ``make start`` gives you:
 
 - **Scholar** — Literature search across CrossRef, PubMed, arXiv, and OpenAlex. BibTeX management and citation tracking.
 - **Writer** — LaTeX manuscript editor with BibTeX integration, figure/table management, and IMRAD templates.
-- **Vis** — Data visualization and interactive figure editing.
+- **FigRecipe** — Publication-ready data visualization and composable figure editing.
 - **Console** — Web-based terminal for running Python and Bash in isolated containers.
 - **Hub** — Project file browser with GitHub-style ``/username/project/`` URLs.
 - **Research Tools** — Statistics, PDF manipulation, citation scraping, and more.
