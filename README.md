@@ -40,6 +40,7 @@ Scientific research faces several infrastructure challenges:
 2. **Broken provenance** — papers, code, and execution environments are rarely tied together, making it difficult to replicate results or build on existing work — slowing the cumulative progress of science.
 3. **No custom tooling** — every research group needs custom tools (experiment dashboards, data annotation GUIs), yet building and sharing them requires web development skills most researchers lack.
 4. **No research community platform** — no GitHub-like infrastructure exists purpose-built for scientific collaboration.
+5. **No control** — researchers have no ownership over their infrastructure: vendor lock-in, opaque algorithms, unilateral pricing changes, and data policies they cannot influence.
 
 ## Solution
 
@@ -49,6 +50,7 @@ SciTeX Cloud addresses each of these directly:
 2. **Verifiable provenance** — Clew links papers, code, data, and execution environments into a hash-verified DAG (Directed Acyclic Graph), ensuring every result is traceable and reproducible.
 3. **App Maker and Store** — researchers create, publish, and install custom research tools without web development experience.
 4. **GitHub-style project hub** — repository hosting, pull requests, and community discovery purpose-built for research.
+5. **Self-hosted, open-source, runnable from anywhere** — deploy on your laptop, lab server, or cloud. AGPL-3.0 licensed — inspect every line of code, customize freely, no vendor lock-in, no data surrender.
 
 **Built-in AI** with platform-aware skills via MCP (Model Context Protocol) and CLI assists across all modules as a research co-pilot.
 
