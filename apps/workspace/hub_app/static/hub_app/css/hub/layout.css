@@ -8,7 +8,7 @@
   overflow: hidden;
 }
 
-/* Hub sidebar: uses shared .workspace-sidebar for base layout */
+/* Hub sidebar: uses shared .stx-shell-sidebar for base layout */
 
 .hub-main {
   flex: 1;
@@ -31,7 +31,7 @@
   flex-shrink: 0;
 }
 
-/* Sidebar content: base layout from shared workspace-sidebar.css */
+/* Sidebar content: base layout from shared stx-shell-sidebar.css */
 
 /* Collapsed width handled by shared collapsible-panel.css */
 

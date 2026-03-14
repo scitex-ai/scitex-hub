@@ -19,7 +19,7 @@
 }
 
 /* Override fixed-position from global-ai-chat.css */
-.workspace-shell .scitex-ai-panel.workspace-sidebar {
+.workspace-shell .scitex-ai-panel.stx-shell-sidebar {
   position: relative !important;
   top: auto !important;
   left: auto !important;

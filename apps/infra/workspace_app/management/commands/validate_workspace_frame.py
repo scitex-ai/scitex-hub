@@ -15,7 +15,7 @@ from pathlib import Path
 from django.core.management.base import BaseCommand
 
 BASE_DIR = Path(__file__).resolve().parents[4]
-PROTECTED_SELECTORS = [".workspace-sidebar", ".sidebar-header", ".panel-resizer"]
+PROTECTED_SELECTORS = [".stx-shell-sidebar", ".sidebar-header", ".panel-resizer"]
 REQUIRED_IDS = [
     "workspace-three-col",
     "ws-ai-pane",

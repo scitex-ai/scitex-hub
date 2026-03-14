@@ -118,7 +118,7 @@ function updateActiveTab(name: string): void {
     const isActive = (btn as HTMLElement).dataset.module === name;
     btn.classList.toggle("active", isActive);
   });
-  // Set module accent on the pane — workspace-sidebar.css [data-app-accent] selectors
+  // Set module accent on the pane — stx-shell-sidebar.css [data-app-accent] selectors
   // resolve --app-accent-color which drives both tab highlight and pane top border.
   const pane = document.getElementById("main-content");
   if (pane) {

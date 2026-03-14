@@ -6,7 +6,7 @@
   overflow: hidden;
 }
 
-/* Clew sidebar: uses shared .workspace-sidebar for base layout */
+/* Clew sidebar: uses shared .stx-shell-sidebar for base layout */
 
 .sidebar-empty-state {
   text-align: center;

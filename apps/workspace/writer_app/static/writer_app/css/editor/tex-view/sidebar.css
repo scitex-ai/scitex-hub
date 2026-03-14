@@ -1,5 +1,5 @@
 /* Writer sidebar - content-specific styles only
-   Base layout from shared workspace-sidebar.css (50px header, 250px width, etc.) */
+   Base layout from shared stx-shell-sidebar.css (50px header, 250px width, etc.) */
 
 .writer-sidebar .sidebar-header-content {
   display: flex;

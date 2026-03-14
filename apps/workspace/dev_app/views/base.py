@@ -182,10 +182,10 @@ DESIGN_SECTIONS = {
         "description": "Draggable panel resizer with expanded hit area.",
         "partial": "dev_app/design_partial/resizer.html",
     },
-    "workspace-layout": {
+    "stx-shell-layout": {
         "title": "Workspace Layout",
         "description": "Workspace pane structure, resizers, highlighters, and sizing rules.",
-        "partial": "dev_app/design_partial/workspace-layout.html",
+        "partial": "dev_app/design_partial/stx-shell-layout.html",
     },
     "visitor-system": {
         "title": "Visitor System",

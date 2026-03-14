@@ -7,7 +7,7 @@
     <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree.css' %}" />
     <link rel="stylesheet"
-          href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
+          href="{% static 'shared/css/components/stx-shell-sidebar.css' %}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
 {% endblock %}
 {% block content %}
@@ -17,7 +17,7 @@
         <!-- Left: AI Agent pane (persistent — never re-rendered on tab switch) -->
         <div class="ws-ai-pane" id="ws-ai-pane">
             <div id="scitex-ai-panel"
-                 class="scitex-ai-panel workspace-sidebar collapsed"
+                 class="scitex-ai-panel stx-shell-sidebar collapsed"
                  aria-hidden="true">
                 <div id="scitex-ai-resizer"
                      class="panel-resizer"
@@ -75,7 +75,7 @@
         </div>
         <!-- Middle: Worktree pane (persistent — never re-rendered on tab switch) -->
         <div class="ws-worktree-pane" id="ws-worktree-pane">
-            <div class="workspace-sidebar" id="ws-worktree-sidebar">
+            <div class="stx-shell-sidebar" id="ws-worktree-sidebar">
                 <div id="ws-worktree-resizer"
                      class="panel-resizer"
                      data-panel-resizer

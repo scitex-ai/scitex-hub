@@ -40,7 +40,7 @@ ZenMode (F11/Alt+Z), AJAX tab switching, footer toggle, and theme variables.
 |---|------|
 | 1 | Override `{% block workspace_worktree_pane %}` or any other frame block |
 | 2 | Hide the footer (`footer { display: none }`) |
-| 3 | Style frame elements (`.workspace-sidebar`, `.sidebar-title`, `.panel-resizer`) |
+| 3 | Style frame elements (`.stx-shell-sidebar`, `.sidebar-title`, `.panel-resizer`) |
 | 4 | Use `!important` on any frame element |
 | 5 | Create sidebar duplicates (`<aside>` for Files/Viewer/Console) |
 

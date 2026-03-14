@@ -1,10 +1,10 @@
 /* ============================================================
-   AI Panel: override workspace-sidebar for fixed left-side positioning.
-   workspace-sidebar.css provides: collapsed state, toggle btn visibility,
+   AI Panel: override stx-shell-sidebar for fixed left-side positioning.
+   stx-shell-sidebar.css provides: collapsed state, toggle btn visibility,
    sidebar-title vertical text, foldable green highlight (single source of truth).
    ============================================================ */
 
-.scitex-ai-panel.workspace-sidebar {
+.scitex-ai-panel.stx-shell-sidebar {
   position: fixed;
   top: 64px; /* global-header height */
   left: 0;
@@ -25,14 +25,14 @@
   max-width: 100%;
 }
 
-/* Collapsed: 40px strip (workspace-sidebar sets min-width: 40px already) */
-.scitex-ai-panel.workspace-sidebar.collapsed {
+/* Collapsed: 40px strip (stx-shell-sidebar sets min-width: 40px already) */
+.scitex-ai-panel.stx-shell-sidebar.collapsed {
   width: 40px;
   overflow: hidden; /* prevent content from bleeding outside the 40px strip */
 }
 
 /* Expanded: 380px */
-.scitex-ai-panel.workspace-sidebar:not(.collapsed) {
+.scitex-ai-panel.stx-shell-sidebar:not(.collapsed) {
   width: 380px;
 }
 

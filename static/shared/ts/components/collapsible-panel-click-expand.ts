@@ -2,17 +2,17 @@
  * Collapsible Panel Interactions
  * - Click anywhere on a collapsed panel to expand
  * - Double-click empty header space to collapse an expanded panel
- * Handles .collapsible-panel, .workspace-sidebar, and right-side panels.
+ * Handles .collapsible-panel, .stx-shell-sidebar, and right-side panels.
  * Delegates to existing toggle button click handlers.
  */
 
 /* Any panel that can be collapsed and has a toggle button */
 const COLLAPSED_SELECTORS = [
   ".collapsible-panel.collapsed",
-  ".workspace-sidebar.collapsed",
+  ".stx-shell-sidebar.collapsed",
 ].join(", ");
 
-const PANEL_SELECTORS = [".collapsible-panel", ".workspace-sidebar"].join(", ");
+const PANEL_SELECTORS = [".collapsible-panel", ".stx-shell-sidebar"].join(", ");
 
 const TOGGLE_SELECTORS =
   ".panel-toggle-btn, .sidebar-toggle, .sidebar-toggle-btn, .details-toggle, .properties-toggle, .properties-toggle-btn";

@@ -1,7 +1,7 @@
 {% if user.is_authenticated %}
     <!-- Monaco CSS bundled locally via Vite (imported by monaco-init.ts) -->
     <div class="ws-viewer-pane" id="ws-viewer-pane">
-        <div class="workspace-sidebar collapsed"
+        <div class="stx-shell-sidebar collapsed"
              id="ws-viewer-sidebar"
              data-ai-hint="General Editor Pane: shared file viewer across all modules (Writer, Scholar, Console, etc.). Supports text (.py .js .ts .html .css .json .md .yaml .sh .tex .bib .txt), images (.png .jpg .gif .webp .svg), PDF (.pdf), tables (.csv .tsv), diagrams (.mmd .mermaid), audio (.mp3 .wav .ogg .flac), video (.mp4 .webm .avi .mov). Open files via ui_action(steps=[{action:'open-file', path:'relative/path'}]). The currently open file path is tracked in data-ai-viewer-active on this element."
              data-ai-viewer-active="">

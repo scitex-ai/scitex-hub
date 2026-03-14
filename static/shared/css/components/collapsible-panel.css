@@ -118,7 +118,7 @@
 .collapsible-panel:not(.collapsed) .sidebar-header.foldable,
 .collapsible-panel:not(.collapsed) .tools-nav-header.foldable,
 .collapsible-panel:not(.collapsed) .terminal-panel-top.foldable,
-.workspace-sidebar:not(.collapsed) .sidebar-header.foldable {
+.stx-shell-sidebar:not(.collapsed) .sidebar-header.foldable {
   background: rgba(5, 150, 105, 0.15) !important;
 }
 [data-theme="light"] .collapsible-panel:not(.collapsed) .panel-header.foldable,
@@ -139,7 +139,7 @@
   .collapsible-panel:not(.collapsed)
   .terminal-panel-top.foldable,
 [data-theme="light"]
-  .workspace-sidebar:not(.collapsed)
+  .stx-shell-sidebar:not(.collapsed)
   .sidebar-header.foldable {
   background: rgba(5, 150, 105, 0.12) !important;
 }
@@ -422,7 +422,7 @@
 }
 
 /* Sidebar title: icon on top, label below when collapsed — scoped to collapsible-panel.
-   workspace-sidebar has its own collapsed rules in workspace-sidebar.css */
+   stx-shell-sidebar has its own collapsed rules in stx-shell-sidebar.css */
 .collapsible-panel.collapsed .sidebar-header .sidebar-title {
   display: flex;
   flex-direction: column;

@@ -10,9 +10,9 @@
                     aria-label="Open AI Chat">
                 <i class="fas fa-robot"></i>
             </button>
-            <!-- Global AI Agent Panel: uses workspace-sidebar for consistent fold/expand behavior -->
+            <!-- Global AI Agent Panel: uses stx-shell-sidebar for consistent fold/expand behavior -->
             <div id="scitex-ai-panel"
-                 class="scitex-ai-panel workspace-sidebar collapsed"
+                 class="scitex-ai-panel stx-shell-sidebar collapsed"
                  aria-hidden="true">
                 <!-- WorkspacePanelResizer: handles collapse state restore and drag resize -->
                 <div id="scitex-ai-resizer"
@@ -30,11 +30,11 @@
                             bottom:0;
                             z-index:1"></div>
                 <div class="sidebar-header scitex-ai-panel-header" id="scitex-ai-panel-header">
-                    <!-- Toggle button: shown when collapsed, hidden when expanded (workspace-sidebar.css) -->
+                    <!-- Toggle button: shown when collapsed, hidden when expanded (stx-shell-sidebar.css) -->
                     <button class="panel-toggle-btn" id="scitex-ai-toggle" title="AI Chat (Alt+A)">
                         <i class="fas fa-chevron-right"></i>
                     </button>
-                    <!-- Vertical label: shown when collapsed (workspace-sidebar.css) -->
+                    <!-- Vertical label: shown when collapsed (stx-shell-sidebar.css) -->
                     <span class="sidebar-title" id="scitex-ai-collapsed-title">Chat & Console</span>
                     <div class="scitex-ai-mode-toggle">
                         <button class="scitex-ai-mode-btn active" data-mode="console" title="Terminal & Jobs">
@@ -52,7 +52,7 @@
                         </button>
                     </div>
                 </div>
-                <!-- Content area: hidden when collapsed by workspace-sidebar.css -->
+                <!-- Content area: hidden when collapsed by stx-shell-sidebar.css -->
                 <div class="sidebar-content scitex-ai-body">
                     <!-- Chat mode -->
                     <div id="scitex-ai-chat-view" class="scitex-ai-view">

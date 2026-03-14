@@ -34,7 +34,7 @@
 
 /* Override any global fixed positioning applied by global-ai-chat.css
    so the panel flows inside the three-col layout instead */
-.workspace-three-col .scitex-ai-panel.workspace-sidebar {
+.workspace-three-col .scitex-ai-panel.stx-shell-sidebar {
   position: relative !important;
   top: auto !important;
   left: auto !important;
@@ -232,11 +232,11 @@ body.scitex-ai-open #workspace-three-col #main-content {
 }
 
 /* Sidebar header double-click hint */
-.workspace-three-col .workspace-sidebar .sidebar-header {
+.workspace-three-col .stx-shell-sidebar .sidebar-header {
   cursor: default;
 }
 
-.workspace-three-col .workspace-sidebar.collapsed .sidebar-header {
+.workspace-three-col .stx-shell-sidebar.collapsed .sidebar-header {
   cursor: pointer; /* dblclick to expand */
 }
 

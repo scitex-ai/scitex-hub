@@ -30,7 +30,7 @@ MANIFEST_REQUIRED_KEYS = ["name", "slug", "label", "version", "icon", "license"]
 
 # Frame selectors that app CSS must not style
 PROTECTED_SELECTORS = [
-    ".workspace-sidebar",
+    ".stx-shell-sidebar",
     ".sidebar-title",
     ".panel-resizer",
     "footer",
