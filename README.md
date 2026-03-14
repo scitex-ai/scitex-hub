@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-03-15 01:32:25
+!-- Timestamp: 2026-03-15 01:33:54
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/scitex-cloud/README.md
 !-- --- -->
@@ -40,9 +40,9 @@ Scientific research faces several infrastructure challenges:
 2. **No custom tooling** — every research group needs custom tools for their specific needs (e.g., clinical trial dashboards in medical research, spike-sorting interfaces in neuroscience, compound screening pipelines in pharmaceutical sciences, sequence annotation tools in biology), yet building and sharing them requires deep computational knowledge and creating potentially shareable components from scratch.
 3. **AI tools not research-aware** — existing tools often lack AI assistant capabilities and domain-specific skills for scientific work, unable to operate across the full research lifecycle (literature review, analysis, writing, verification).
 4. **Broken provenance** — papers, code, and execution environments are rarely tied together, making it difficult to replicate results or build on existing work — slowing the cumulative progress of science.
-5. **No research community platform** — no GitHub-like infrastructure exists for research-project-centric, fully traceable, parallel-working collaboration.
-6. **No control** — researchers have no ownership over their infrastructure: vendor lock-in, opaque algorithms, unilateral pricing changes, and data policies they cannot influence.
-7. **Lost knowledge on handoff** — when researchers graduate or leave a project, successors inherit scattered files with little context, making it difficult to understand where to pick up and continue the work.
+5. **Lost knowledge on handoff** — when researchers graduate or leave a project, successors inherit scattered files with little context, making it difficult to understand where to pick up and continue the work.
+6. **No research community platform** — no GitHub-like infrastructure exists for research-project-centric, fully traceable, parallel-working collaboration.
+7. **No control** — researchers have no ownership over their infrastructure: vendor lock-in, opaque algorithms, unilateral pricing changes, and data policies they cannot influence.
 
 As a result, research workflows will never scale.
 
@@ -54,9 +54,9 @@ SciTeX Cloud addresses each of these directly:
 2. **App Maker and Store** — researchers create, publish, and install custom research tools on top of shared components — user/group permissions, AI infrastructure, containerized computation, and file operations are handled consistently by the platform, letting researchers focus on what they need.
 3. **Built-in AI co-pilot** — platform-aware context, skills, and tools such as MCP (Model Context Protocol) and CLI span the full research lifecycle, providing an optimized AI assistant that understands the entire project from natural language.
 4. **Verifiable provenance** — Clew links papers, code, data, and execution environments into a hash-verified DAG (Directed Acyclic Graph), ensuring every result is traceable and reproducible.
-5. **GitHub-style project hub** — repository hosting and ticket-based development with co-authors and the community enable efficient research advancement and peer review of both code and logic.
-6. **Self-hosted, open-source, runnable from anywhere** — deploy on your laptop, lab server, or cloud. AGPL-3.0 licensed — inspect every line of code, customize freely, no vendor lock-in, no data surrender.
-7. **Seamless project handoff** — the full project state — code, data, provenance graph, manuscript drafts, and execution environment — lives in one place, so successors can understand and continue work immediately.
+5. **Seamless project handoff** — the full project state — code, data, provenance graph, manuscript drafts, and execution environment — lives in one place, so successors can understand and continue work immediately.
+6. **GitHub-style project hub** — repository hosting and ticket-based development with co-authors and the community enable efficient research advancement and peer review of both code and logic.
+7. **Self-hosted, open-source, runnable from anywhere** — deploy on your laptop, lab server, or cloud. AGPL-3.0 licensed — inspect every line of code, customize freely, no vendor lock-in, no data surrender.
 
 > **Status**: Alpha (data may be lost between releases)
 
