@@ -37,11 +37,11 @@
 Scientific research faces several infrastructure challenges:
 
 1. **Fragmented tools** — literature discovery, manuscript writing, data analysis, and visualization each require separate applications, most of which are proprietary, cloud-locked, or require surrendering data to third-party services. This fragmentation forces researchers to switch context constantly and makes it difficult to build sufficient context for AI agents to assist meaningfully across the research workflow.
-2. **Broken provenance** — papers, code, and execution environments are rarely tied together, making it difficult to replicate results or build on existing work — slowing the cumulative progress of science.
-3. **No custom tooling** — every research group needs custom tools for their specific needs (e.g., clinical trial dashboards in medical research, spike-sorting interfaces in neuroscience, compound screening pipelines in pharmaceutical sciences, sequence annotation tools in biology), yet building and sharing them requires deep computational knowledge and creating potentially shareable components from scratch.
-4. **No research community platform** — no GitHub-like infrastructure exists for research-project-centric, fully traceable, parallel-working collaboration.
-5. **No control** — researchers have no ownership over their infrastructure: vendor lock-in, opaque algorithms, unilateral pricing changes, and data policies they cannot influence.
-6. **AI tools not research-aware** — existing tools often lack AI assistant capabilities and domain-specific skills for scientific work, unable to operate across the full research lifecycle (literature review, analysis, writing, verification).
+2. **No custom tooling** — every research group needs custom tools for their specific needs (e.g., clinical trial dashboards in medical research, spike-sorting interfaces in neuroscience, compound screening pipelines in pharmaceutical sciences, sequence annotation tools in biology), yet building and sharing them requires deep computational knowledge and creating potentially shareable components from scratch.
+3. **AI tools not research-aware** — existing tools often lack AI assistant capabilities and domain-specific skills for scientific work, unable to operate across the full research lifecycle (literature review, analysis, writing, verification).
+4. **Broken provenance** — papers, code, and execution environments are rarely tied together, making it difficult to replicate results or build on existing work — slowing the cumulative progress of science.
+5. **No research community platform** — no GitHub-like infrastructure exists for research-project-centric, fully traceable, parallel-working collaboration.
+6. **No control** — researchers have no ownership over their infrastructure: vendor lock-in, opaque algorithms, unilateral pricing changes, and data policies they cannot influence.
 
 As a result, research workflows will never scale.
 
@@ -50,11 +50,11 @@ As a result, research workflows will never scale.
 SciTeX Cloud addresses each of these directly:
 
 1. **Unified platform** — Scholar, Writer, FigRecipe, Console, Hub, and Clew in a single Django web application, deployable anywhere with Docker. All apps share the same project filesystem and integrate through the `scitex` Python package.
-2. **Verifiable provenance** — Clew links papers, code, data, and execution environments into a hash-verified DAG (Directed Acyclic Graph), ensuring every result is traceable and reproducible.
-3. **App Maker and Store** — researchers create, publish, and install custom research tools without web development experience.
-4. **GitHub-style project hub** — repository hosting, pull requests, and community discovery purpose-built for research.
-5. **Self-hosted, open-source, runnable from anywhere** — deploy on your laptop, lab server, or cloud. AGPL-3.0 licensed — inspect every line of code, customize freely, no vendor lock-in, no data surrender.
-6. **Built-in AI co-pilot** — platform-aware skills via MCP (Model Context Protocol) and CLI span the full research lifecycle: literature search, statistical analysis, figure generation, manuscript writing, and provenance verification.
+2. **App Maker and Store** — researchers create, publish, and install custom research tools without web development experience.
+3. **Built-in AI co-pilot** — platform-aware skills via MCP (Model Context Protocol) and CLI span the full research lifecycle: literature search, statistical analysis, figure generation, manuscript writing, and provenance verification.
+4. **Verifiable provenance** — Clew links papers, code, data, and execution environments into a hash-verified DAG (Directed Acyclic Graph), ensuring every result is traceable and reproducible.
+5. **GitHub-style project hub** — repository hosting, pull requests, and community discovery purpose-built for research.
+6. **Self-hosted, open-source, runnable from anywhere** — deploy on your laptop, lab server, or cloud. AGPL-3.0 licensed — inspect every line of code, customize freely, no vendor lock-in, no data surrender.
 
 > **Status**: Alpha (data may be lost between releases)
 
