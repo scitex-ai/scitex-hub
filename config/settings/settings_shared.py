@@ -150,6 +150,14 @@ try:
 except ImportError:
     pass
 
+# Optional: figrecipe editor (static assets served via AppDirectoriesFinder)
+try:
+    import figrecipe  # noqa: F401
+
+    THIRD_PARTY_APPS.append("figrecipe._django")
+except ImportError:
+    pass
+
 LOCAL_APPS = discover_local_apps()
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
