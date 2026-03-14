@@ -44,43 +44,43 @@
 </tr>
 <tr valign="top">
   <td align="center">1</td>
-  <td><b>Fragmented tools</b><br><br>Literature, writing, analysis, and visualization require separate, often proprietary applications, forcing constant context-switching and making it difficult for AI agents to build sufficient context across the research workflow.</td>
-  <td><b>Unified platform</b><br><br>Scholar, Writer, FigRecipe, Console, Hub, and Clew in a single Django web application, deployable anywhere with Docker. All apps share the same project filesystem and integrate through the <code>scitex</code> Python package.</td>
+  <td><h4>Fragmented tools</h4>Literature, writing, analysis, and visualization require separate, often proprietary applications, forcing constant context-switching and making it difficult for AI agents to build sufficient context across the research workflow.</td>
+  <td><h4>Unified platform</h4>Scholar, Writer, FigRecipe, Console, Hub, and Clew in a single Django web application, deployable anywhere with Docker. All apps share the same project filesystem and integrate through the <code>scitex</code> Python package.</td>
 </tr>
 <tr valign="top">
   <td align="center">2</td>
-  <td><b>No custom tooling</b><br><br>Every research group needs domain-specific tools (e.g., clinical trial dashboards, spike-sorting interfaces, compound screening pipelines), yet building and sharing them requires deep computational knowledge and creating components from scratch.</td>
-  <td><b>App Maker and Store</b><br><br>Researchers create, publish, and install custom research tools on top of shared components — user/group permissions, AI infrastructure, containerized computation, and file operations are handled by the platform.</td>
+  <td><h4>No custom tooling</h4>Every research group needs domain-specific tools (e.g., clinical trial dashboards, spike-sorting interfaces, compound screening pipelines), yet building and sharing them requires deep computational knowledge and creating components from scratch.</td>
+  <td><h4>App Maker and Store</h4>Researchers create, publish, and install custom research tools on top of shared components — user/group permissions, AI infrastructure, containerized computation, and file operations are handled by the platform.</td>
 </tr>
 <tr valign="top">
   <td align="center">3</td>
-  <td><b>AI tools not research-aware</b><br><br>Existing tools often lack AI assistant capabilities and domain-specific skills for scientific work, unable to operate across the full research lifecycle (literature review, analysis, writing, verification).</td>
-  <td><b>Built-in AI co-pilot</b><br><br>Platform-aware context, skills, and tools such as MCP (Model Context Protocol) and CLI span the full research lifecycle, providing an AI assistant that understands the entire project from natural language.</td>
+  <td><h4>AI tools not research-aware</h4>Existing tools often lack AI assistant capabilities and domain-specific skills for scientific work, unable to operate across the full research lifecycle (literature review, analysis, writing, verification).</td>
+  <td><h4>Built-in AI co-pilot</h4>Platform-aware context, skills, and tools such as MCP (Model Context Protocol) and CLI span the full research lifecycle, providing an AI assistant that understands the entire project from natural language.</td>
 </tr>
 <tr valign="top">
   <td align="center">4</td>
-  <td><b>Review crisis</b><br><br>The growing volume and heterogeneity of published papers overwhelms a limited, volunteer-based peer review process that cannot scale.</td>
-  <td><b>Open review via Issues and PRs</b><br><br>GitHub-style issue tracking and pull requests bring transparent, structured, and scalable peer review to research projects — anyone can inspect, comment, and propose changes.</td>
+  <td><h4>Review crisis</h4>The growing volume and heterogeneity of published papers overwhelms a limited, volunteer-based peer review process that cannot scale.</td>
+  <td><h4>Open review via Issues and PRs</h4>GitHub-style issue tracking and pull requests bring transparent, structured, and scalable peer review to research projects — anyone can inspect, comment, and propose changes.</td>
 </tr>
 <tr valign="top">
   <td align="center">5</td>
-  <td><b>Broken provenance</b><br><br>Papers, code, and execution environments are rarely tied together, making it difficult for reviewers to verify claims and for other researchers to replicate results — slowing cumulative scientific progress.</td>
-  <td><b>Verifiable provenance</b><br><br>Clew links papers, code, data, and execution environments into a hash-verified DAG (Directed Acyclic Graph) with visualization that serves as a compressed view of the research workflow and logic — reducing the decision points reviewers must check.</td>
+  <td><h4>Broken provenance</h4>Papers, code, and execution environments are rarely tied together, making it difficult for reviewers to verify claims and for other researchers to replicate results — slowing cumulative scientific progress.</td>
+  <td><h4>Verifiable provenance</h4>Clew links papers, code, data, and execution environments into a hash-verified DAG (Directed Acyclic Graph) with visualization that serves as a compressed view of the research workflow and logic — reducing the decision points reviewers must check.</td>
 </tr>
 <tr valign="top">
   <td align="center">6</td>
-  <td><b>Lost knowledge on handoff</b><br><br>When researchers graduate or leave a project, successors inherit scattered files with little context, making it difficult to understand where to pick up and continue the work.</td>
-  <td><b>Seamless project handoff</b><br><br>The full project state — code, data, provenance graph, manuscript drafts, and execution environment — lives in one place, so successors can understand and continue work immediately.</td>
+  <td><h4>Lost knowledge on handoff</h4>When researchers graduate or leave a project, successors inherit scattered files with little context, making it difficult to understand where to pick up and continue the work.</td>
+  <td><h4>Seamless project handoff</h4>The full project state — code, data, provenance graph, manuscript drafts, and execution environment — lives in one place, so successors can understand and continue work immediately.</td>
 </tr>
 <tr valign="top">
   <td align="center">7</td>
-  <td><b>No research community platform</b><br><br>No GitHub-like infrastructure exists for research-project-centric, fully traceable, parallel-working collaboration.</td>
-  <td><b>GitHub-style project hub</b><br><br>Repository hosting and ticket-based development with co-authors and the community enable efficient research advancement and collaboration.</td>
+  <td><h4>No research community platform</h4>No GitHub-like infrastructure exists for research-project-centric, fully traceable, parallel-working collaboration.</td>
+  <td><h4>GitHub-style project hub</h4>Repository hosting and ticket-based development with co-authors and the community enable efficient research advancement and collaboration.</td>
 </tr>
 <tr valign="top">
   <td align="center">8</td>
-  <td><b>No control</b><br><br>Researchers have no ownership over their infrastructure: vendor lock-in, opaque algorithms, unilateral pricing changes, and data policies they cannot influence.</td>
-  <td><b>Self-hosted, open-source, runnable from anywhere</b><br><br>Deploy on your laptop, lab server, or cloud. AGPL-3.0 licensed — inspect every line, customize freely, no vendor lock-in, no data surrender.</td>
+  <td><h4>No control</h4>Researchers have no ownership over their infrastructure: vendor lock-in, opaque algorithms, unilateral pricing changes, and data policies they cannot influence.</td>
+  <td><h4>Self-hosted, open-source, runnable from anywhere</h4>Deploy on your laptop, lab server, or cloud. AGPL-3.0 licensed — inspect every line, customize freely, no vendor lock-in, no data surrender.</td>
 </tr>
 </table>
 
