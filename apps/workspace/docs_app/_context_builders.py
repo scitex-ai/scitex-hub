@@ -23,10 +23,12 @@ def build_page_context(slug: str, sphinx_page: str = None) -> dict:
 
 def _get_packages_context() -> dict:
     """Build Python packages context dynamically from scitex_dev.docs entry points."""
+    import importlib.metadata
+
     from .views import check_docs_available
 
     try:
-        from scitex_dev._discovery import discover_packages, get_package_metadata
+        from scitex_dev._discovery import discover_packages
     except ImportError:
         return {"core_packages": [], "standalone_packages": []}
 
@@ -35,33 +37,44 @@ def _get_packages_context() -> dict:
     core_packages = []
     standalone_packages = []
 
-    for pip_name in sorted(discovered):
-        meta = get_package_metadata(pip_name)
-        if meta is None:
+    # Core packages are scitex-* prefixed (the ecosystem)
+    _CORE_PREFIXES = ("scitex-", "scitex")
+
+    for pip_name, module_name in sorted(discovered.items()):
+        try:
+            meta = importlib.metadata.metadata(pip_name)
+        except importlib.metadata.PackageNotFoundError:
             continue
 
-        repo = meta["github_repo"]
-        # Use pip_name for internal routing (sphinx_url, check_docs_available)
-        # since _resolve_sphinx_path maps via _REPO_TO_PIP
+        version = meta["Version"] or ""
+        description = meta.get("Summary", "")
+        github_url = ""
+        for url_entry in meta.get_all("Project-URL") or []:
+            label, _, url = url_entry.partition(",")
+            url = url.strip()
+            if label.strip().lower() in ("homepage", "repository"):
+                github_url = url
+                break
+
         has_sphinx = check_docs_available(pip_name)
 
         pkg = {
             "pip_name": pip_name,
-            "module": meta["module_name"],
-            "version": meta["version"],
-            "description": meta["description"],
-            "github_url": meta["github_url"]
-            or f"https://github.com/ywatanabe1989/{repo}",
+            "module": module_name,
+            "version": version,
+            "description": description,
+            "github_url": github_url or f"https://github.com/ywatanabe1989/{pip_name}",
             "docs_url": f"/apps/docs/#pkg-{pip_name}",
             "sphinx_url": (
                 f"/apps/docs/sphinx/{pip_name}/index.html" if has_sphinx else ""
             ),
             "has_sphinx": has_sphinx,
-            "pypi_version": meta["version"],
+            "pypi_version": version,
             "status": "",
         }
 
-        if meta["is_core"]:
+        is_core = pip_name == "scitex" or pip_name.startswith("scitex-")
+        if is_core:
             core_packages.append(pkg)
         else:
             standalone_packages.append(pkg)
@@ -149,13 +162,12 @@ def _get_sphinx_package_context(slug: str, sphinx_page: str = None) -> dict:
     version = ""
     description = ""
     try:
-        from scitex_dev._discovery import get_package_metadata
+        import importlib.metadata
 
-        meta = get_package_metadata(pip_name)
-        if meta:
-            version = meta["version"]
-            description = meta["description"]
-    except ImportError:
+        meta = importlib.metadata.metadata(pip_name)
+        version = meta["Version"] or ""
+        description = meta.get("Summary", "")
+    except Exception:
         pass
 
     return {

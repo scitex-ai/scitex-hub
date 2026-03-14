@@ -129,7 +129,7 @@ def serve_sphinx_docs(request, module, page="index.html"):
 def register_sphinx_packages(docs_pages, pages_by_slug):
     """Auto-register sidebar entries for packages with Sphinx docs."""
     try:
-        from scitex_dev._discovery import discover_packages, get_package_metadata
+        from scitex_dev._discovery import discover_packages
     except ImportError:
         return
 
@@ -139,9 +139,6 @@ def register_sphinx_packages(docs_pages, pages_by_slug):
         if slug in pages_by_slug:
             continue
         if not check_docs_available(pip_name):
-            continue
-        meta = get_package_metadata(pip_name)
-        if meta is None:
             continue
         page = {
             "slug": slug,

@@ -47,6 +47,7 @@ services:
       - ../../../scitex-clew:/scitex-clew:cached
       - ../../../scitex-plt:/scitex-plt:cached
       - ../../../scitex-audio:/scitex-audio:cached
+      - ../../../scitex-ui:/scitex-ui:cached
       # Logs
       - ../../logs:/app/logs
       # Persistent data
@@ -163,6 +164,7 @@ services:
       - ../../../scitex-clew:/scitex-clew:cached
       - ../../../scitex-plt:/scitex-plt:cached
       - ../../../scitex-audio:/scitex-audio:cached
+      - ../../../scitex-ui:/scitex-ui:cached
       - ../../logs:/app/logs
     env_file:
       - ./envs/.env.dev
@@ -222,6 +224,7 @@ services:
       - ../../../scitex-clew:/scitex-clew:cached
       - ../../../scitex-plt:/scitex-plt:cached
       - ../../../scitex-audio:/scitex-audio:cached
+      - ../../../scitex-ui:/scitex-ui:cached
       - ../../logs:/app/logs
     env_file:
       - ./envs/.env.dev

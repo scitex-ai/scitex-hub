@@ -140,6 +140,7 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.orcid",
+    "scitex_ui",
 ]
 
 LOCAL_APPS = discover_local_apps()

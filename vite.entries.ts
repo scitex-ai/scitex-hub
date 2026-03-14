@@ -79,6 +79,36 @@ function discoverAppEntries(rootDir: string): Record<string, string> {
   return entries;
 }
 
+/**
+ * Discover TS entry points from pip-installed SciTeX packages.
+ * Looks for static/<pkg_name>/ts/ in known package locations.
+ */
+const PIP_PACKAGES_WITH_STATIC = ["scitex_ui"];
+
+function discoverPipEntries(rootDir: string): Record<string, string> {
+  const entries: Record<string, string> = {};
+  const { execSync } = require("child_process");
+
+  for (const pkgName of PIP_PACKAGES_WITH_STATIC) {
+    try {
+      const pkgDir = execSync(
+        `python3 -c "import ${pkgName}; import os; print(os.path.dirname(${pkgName}.__file__))"`,
+        { encoding: "utf-8" },
+      ).trim();
+      const tsDir = resolve(pkgDir, "static", pkgName, "ts");
+      if (fs.existsSync(tsDir)) {
+        Object.assign(
+          entries,
+          generateEntriesRecursive(pkgDir, `static/${pkgName}/ts`, pkgName),
+        );
+      }
+    } catch {
+      // Package not installed — skip silently
+    }
+  }
+  return entries;
+}
+
 export function getEntryPoints(rootDir: string): Record<string, string> {
   return {
     // ── Auto-discovered entries ─────────────────────────────────
@@ -87,6 +117,9 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
 
     // App-specific entries: auto-discovered from apps/infra/ and apps/workspace/
     ...discoverAppEntries(rootDir),
+
+    // Pip-installed SciTeX packages with static assets
+    ...discoverPipEntries(rootDir),
 
     // ── Explicit overrides ──────────────────────────────────────
     // These entries have template names that differ from convention.
