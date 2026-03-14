@@ -1,4 +1,10 @@
 <!-- ---
+!-- Timestamp: 2026-03-15 01:00:06
+!-- Author: ywatanabe
+!-- File: /home/ywatanabe/proj/scitex-cloud/README.md
+!-- --- -->
+
+<!-- ---
 !-- Timestamp: 2026-03-15
 !-- File: /home/ywatanabe/proj/scitex-cloud/README.md
 !-- --- -->
@@ -28,11 +34,11 @@
 
 ## Problem
 
-Scientific research relies on a fragmented set of tools — separate applications for literature discovery, manuscript writing, data analysis, and visualization — most of which are proprietary, cloud-locked, or require surrendering your data to third-party services. Every research group also needs custom tools (experiment dashboards, data annotation GUIs), yet building and sharing them requires web development skills most researchers lack. Meanwhile, no GitHub-like community infrastructure exists purpose-built for scientific work.
+Scientific research relies on a fragmented set of tools — separate applications for literature discovery, manuscript writing, data analysis, and visualization — most of which are proprietary, cloud-locked, or require surrendering your data to third-party services. Papers, code, and execution environments are rarely tied together, making it difficult for other researchers to replicate results or build on existing work — slowing the cumulative progress of science. Every research group also needs custom tools (experiment dashboards, data annotation GUIs), yet building and sharing them requires web development skills most researchers lack. Meanwhile, no GitHub-like community infrastructure exists purpose-built for scientific work.
 
 ## Solution
 
-SciTeX Cloud combines Scholar, Writer, FigRecipe, Console, and Hub into a single Django web platform deployable anywhere with Docker. A built-in **App Maker and Store** lets researchers create, publish, and install custom research tools without web development experience. A **GitHub-style project hub** enables repository hosting, pull requests, and community discovery. **Built-in AI** with platform-aware skills (via MCP — Model Context Protocol) assists across all modules. All modules share the same project filesystem and integrate through the `scitex` Python package.
+SciTeX Cloud provides basic infrastructure such as **User/Group Maintenance, Scholar, Writer, FigRecipe, Console, Hub, Clew** into a single Django web platform deployable anywhere with Docker. A built-in **App Maker and Store** lets researchers create, publish, and install custom research tools without web development experience. A **GitHub-style project hub** enables repository hosting, pull requests, and community discovery. **Built-in AI** with platform-aware skills (via MCP (Model Context Protocol) and CLI command assists across all modules as research co-assistant. All apps share the same project filesystem and integrate through the `scitex` Python package.
 
 > **Status**: Alpha (data may be lost between releases)
 
