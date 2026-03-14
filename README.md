@@ -90,11 +90,13 @@ SciTeX Cloud is an AI-native infrastructure so that researchers can focus on sci
 
 ## Screenshots
 
-| Writer | Scholar | Apps |
-|:---:|:---:|:---:|
-| ![Writer](docs/images/screenshot-writer.png) | ![Scholar](docs/images/screenshot-scholar.png) | ![Apps](docs/images/screenshot-apps.png) |
+<p align="center"><b>Writer</b><br><img src="docs/images/screenshot-writer.png" alt="Writer" width="100%"></p>
 
-<p align="center"><sub><b>Figure 1.</b> Core application modules. Writer (left) provides a LaTeX manuscript environment with live compilation. Scholar (center) offers literature discovery, BibTeX enrichment, and PDF management. The Apps panel (right) shows the project-centric hub linking all modules.</sub></p>
+<p align="center"><b>Scholar</b><br><img src="docs/images/screenshot-scholar.png" alt="Scholar" width="100%"></p>
+
+<p align="center"><b>Apps</b><br><img src="docs/images/screenshot-apps.png" alt="Apps" width="100%"></p>
+
+<p align="center"><sub><b>Figure 1.</b> Core application modules. Writer provides a LaTeX manuscript environment with live compilation. Scholar offers literature discovery, BibTeX enrichment, and PDF management. The Apps panel shows the project-centric hub linking all modules.</sub></p>
 
 ## Installation
 
