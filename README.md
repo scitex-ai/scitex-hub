@@ -36,7 +36,7 @@
 
 Scientific research faces several infrastructure challenges:
 
-1. **Fragmented tools** — literature discovery, manuscript writing, data analysis, and visualization each require separate applications, most of which are proprietary, cloud-locked, or require surrendering data to third-party services.
+1. **Fragmented tools** — literature discovery, manuscript writing, data analysis, and visualization each require separate applications, most of which are proprietary, cloud-locked, or require surrendering data to third-party services. This fragmentation also makes it difficult to build sufficient context for AI agents to assist meaningfully across the research workflow.
 2. **Broken provenance** — papers, code, and execution environments are rarely tied together, making it difficult to replicate results or build on existing work — slowing the cumulative progress of science.
 3. **No custom tooling** — every research group needs custom tools (experiment dashboards, data annotation GUIs), yet building and sharing them requires web development skills most researchers lack.
 4. **No research community platform** — no GitHub-like infrastructure exists purpose-built for scientific collaboration.
