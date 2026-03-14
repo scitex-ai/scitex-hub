@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-03-15 01:40:24
+!-- Timestamp: 2026-03-15 01:53:30
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/scitex-cloud/README.md
 !-- --- -->
@@ -62,7 +62,7 @@ SciTeX Cloud addresses each of these directly:
 7. **GitHub-style project hub** — repository hosting and ticket-based development with co-authors and the community enable efficient research advancement and collaboration.
 8. **Self-hosted, open-source, runnable from anywhere** — deploy on your laptop, lab server, or cloud. AGPL-3.0 licensed — inspect every line of code, customize freely, no vendor lock-in, no data surrender.
 
-SciTeX Cloud is the AI-native infrastructure so that researchers can focus on science, not on tooling.
+SciTeX Cloud is an AI-native infrastructure so that researchers can focus on science, not on tooling.
 
 ## Screenshots
 
@@ -253,20 +253,13 @@ scitex-cloud/
 
 ## Part of SciTeX
 
-SciTeX Cloud is part of [**SciTeX**](https://scitex.ai). When used with the `scitex` Python package, modules like Scholar, Writer, and FigRecipe share sessions and data automatically:
+SciTeX Cloud is part of [**SciTeX**](https://scitex.ai). When modules work together, each output feeds naturally into the next:
 
-```python
-import scitex
-
-@scitex.session
-def main(CONFIG=scitex.INJECTED):
-    data = scitex.io.load("input.csv")     # auto-tracked as input
-    result = process(data)
-    scitex.io.save(result, "output.csv")   # auto-tracked as output
-    return 0
-```
-
-All file I/O through `scitex.io` is recorded and linked across Cloud modules — Scholar references feed directly into Writer bibliographies, and FigRecipe outputs appear in the project Hub.
+| From | Produces | To | Outcome |
+|------|----------|----|---------|
+| **Scholar** | Citations as cards | **Writer** | Convenient, evidence-based referencing |
+| **FigRecipe** | Style-editable, composable figures | **Writer** | Publication-ready figures in context |
+| **Clew** | Verification and DAG visualization | **Writer** | Proven reproducibility for every claim |
 
 The SciTeX system follows the Four Freedoms for Research below, inspired by [the Free Software Definition](https://www.gnu.org/philosophy/free-sw.en.html):
 
