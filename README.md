@@ -41,6 +41,7 @@ Scientific research faces several infrastructure challenges:
 3. **No custom tooling** — every research group needs custom tools (experiment dashboards, data annotation GUIs), yet building and sharing them requires web development skills most researchers lack.
 4. **No research community platform** — no GitHub-like infrastructure exists purpose-built for scientific collaboration.
 5. **No control** — researchers have no ownership over their infrastructure: vendor lock-in, opaque algorithms, unilateral pricing changes, and data policies they cannot influence.
+6. **AI tools not research-aware** — existing AI assistants lack domain-specific skills for scientific work and cannot operate across the full research lifecycle (literature review, analysis, writing, verification).
 
 ## Solution
 
@@ -51,8 +52,7 @@ SciTeX Cloud addresses each of these directly:
 3. **App Maker and Store** — researchers create, publish, and install custom research tools without web development experience.
 4. **GitHub-style project hub** — repository hosting, pull requests, and community discovery purpose-built for research.
 5. **Self-hosted, open-source, runnable from anywhere** — deploy on your laptop, lab server, or cloud. AGPL-3.0 licensed — inspect every line of code, customize freely, no vendor lock-in, no data surrender.
-
-**Built-in AI** with platform-aware skills via MCP (Model Context Protocol) and CLI assists across all modules as a research co-pilot.
+6. **Built-in AI co-pilot** — platform-aware skills via MCP (Model Context Protocol) and CLI span the full research lifecycle: literature search, statistical analysis, figure generation, manuscript writing, and provenance verification.
 
 > **Status**: Alpha (data may be lost between releases)
 
