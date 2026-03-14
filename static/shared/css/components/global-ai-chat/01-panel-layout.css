@@ -1,7 +1,7 @@
 /* ============================================================
    AI Panel: override stx-shell-sidebar for fixed left-side positioning.
    stx-shell-sidebar.css provides: collapsed state, toggle btn visibility,
-   sidebar-title vertical text, foldable green highlight (single source of truth).
+   stx-shell-sidebar__title vertical text, foldable green highlight (single source of truth).
    ============================================================ */
 
 .scitex-ai-panel.stx-shell-sidebar {
@@ -19,8 +19,8 @@
 }
 
 /* Keep inner content contained so overflow:visible on panel doesn't leak */
-.scitex-ai-panel .sidebar-header,
-.scitex-ai-panel .sidebar-content {
+.scitex-ai-panel .stx-shell-sidebar__header,
+.scitex-ai-panel .stx-shell-sidebar__content {
   overflow: hidden;
   max-width: 100%;
 }
@@ -36,8 +36,8 @@
   width: 380px;
 }
 
-/* sidebar-content: flex column for messages + input (only when expanded) */
-.scitex-ai-panel:not(.collapsed) .sidebar-content {
+/* stx-shell-sidebar__content: flex column for messages + input (only when expanded) */
+.scitex-ai-panel:not(.collapsed) .stx-shell-sidebar__content {
   background: var(--bg-secondary, #161b22) !important;
   padding: 0 !important;
   display: flex !important;

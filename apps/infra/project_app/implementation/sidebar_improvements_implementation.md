@@ -104,12 +104,12 @@ All transitions use CSS animations:
 - `.repo-sidebar.expanded` - Expanded sidebar state
 
 ### Component Classes
-- `.sidebar-toggle-btn` - Toggle button styles
-- `.sidebar-toggle-icon` - Toggle button icon with rotation
+- `.stx-shell-sidebar__toggle-btn` - Toggle button styles
+- `.stx-shell-sidebar__toggle-icon` - Toggle button icon with rotation
 - `.sidebar-section.collapsible` - Clickable section headers
 - `.sidebar-section.section-collapsed` - Individual collapsed sections
 - `.sidebar-section-chevron` - Section collapse indicator
-- `.sidebar-content` - Wrapper for collapsible content
+- `.stx-shell-sidebar__content` - Wrapper for collapsible content
 
 ## JavaScript Functions Added
 

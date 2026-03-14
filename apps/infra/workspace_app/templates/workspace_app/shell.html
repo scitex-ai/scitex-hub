@@ -33,11 +33,11 @@
                             top:0;
                             bottom:0;
                             z-index:1"></div>
-                <div class="sidebar-header scitex-ai-panel-header" id="scitex-ai-panel-header">
+                <div class="stx-shell-sidebar__header scitex-ai-panel-header" id="scitex-ai-panel-header">
                     <button class="panel-toggle-btn" id="scitex-ai-toggle" title="AI Chat (Alt+A)">
                         <i class="fas fa-chevron-right"></i>
                     </button>
-                    <span class="sidebar-title" id="scitex-ai-collapsed-title">Chat & Console</span>
+                    <span class="stx-shell-sidebar__title" id="scitex-ai-collapsed-title">Chat & Console</span>
                     <span class="scitex-ai-panel-title">
                         <span id="scitex-ai-model-badge" class="scitex-ai-model-badge"></span>
                     </span>
@@ -50,7 +50,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="sidebar-content scitex-ai-body">
+                <div class="stx-shell-sidebar__content scitex-ai-body">
                     <div id="scitex-ai-messages" class="scitex-ai-messages">
                         <div class="scitex-ai-empty">
                             <i class="fas fa-robot"></i>
@@ -90,18 +90,18 @@
                             top:0;
                             bottom:0;
                             z-index:1"></div>
-                <div class="sidebar-header">
+                <div class="stx-shell-sidebar__header">
                     <button class="panel-toggle-btn" id="ws-worktree-toggle" title="Toggle file tree">
                         <i class="fas fa-chevron-right"></i>
                     </button>
-                    <span class="sidebar-title">
+                    <span class="stx-shell-sidebar__title">
                         {% if current_project %}
                             {{ current_project.owner.username }}/{{ current_project.slug }}
                         {% else %}
                             Files
                         {% endif %}
                     </span>
-                    <span class="sidebar-title-expanded">
+                    <span class="stx-shell-sidebar__title-expanded">
                         <i class="fas fa-folder-open"></i>
                         {% if current_project %}
                             {{ current_project.owner.username }}/{{ current_project.slug }}
@@ -110,7 +110,7 @@
                         {% endif %}
                     </span>
                 </div>
-                <div class="sidebar-content">
+                <div class="stx-shell-sidebar__content">
                     <div data-workspace-tree
                          {% if current_project %}data-project-slug="{{ current_project.slug }}" data-username="{{ current_project.owner.username }}"{% endif %}>
                     </div>

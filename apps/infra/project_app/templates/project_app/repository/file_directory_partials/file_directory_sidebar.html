@@ -1,21 +1,21 @@
 <!-- Sidebar (LEFT side like GitHub) - File Tree Navigation -->
 <aside class="repo-sidebar collapsed" id="repo-sidebar">
     <!-- Sidebar Toggle Button -->
-    <button class="sidebar-toggle"
-            id="sidebar-toggle"
+    <button class="stx-shell-sidebar__toggle"
+            id="stx-shell-sidebar__toggle"
             aria-label="Toggle sidebar"
             title="Expand sidebar"
             onclick="toggleSidebar()">
         <svg xmlns="http://www.w3.org/2000/svg"
              viewBox="0 0 16 16"
-             class="sidebar-toggle-icon">
+             class="stx-shell-sidebar__toggle-icon">
             <path fill="currentColor" d="M1.75 2h12.5c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 14H1.75A1.75 1.75 0 0 1 0 12.25v-8.5C0 2.784.784 2 1.75 2ZM1.5 8V12.25c0 .138.112.25.25.25h3.5V8H1.5ZM5.25 6.5V3.5h-3.5a.25.25 0 0 0-.25.25V6.5h3.75ZM6.75 3.5V14h7.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25h-7.5Z" />
         </svg>
     </button>
     <!-- File Tree -->
     <div class="sidebar-section">
         <!-- Static tree root - shows project path -->
-        <div class="sidebar-title" style="margin-bottom: 12px; padding: 6px 8px">
+        <div class="stx-shell-sidebar__title" style="margin-bottom: 12px; padding: 6px 8px">
             <a href="/{{ project.owner.username }}/{{ project.slug }}/"
                style="display: inline-flex;
                       align-items: center;

@@ -15,11 +15,11 @@ const COLLAPSED_SELECTORS = [
 const PANEL_SELECTORS = [".collapsible-panel", ".stx-shell-sidebar"].join(", ");
 
 const TOGGLE_SELECTORS =
-  ".panel-toggle-btn, .sidebar-toggle, .sidebar-toggle-btn, .details-toggle, .properties-toggle, .properties-toggle-btn";
+  ".panel-toggle-btn, .stx-shell-sidebar__toggle, .stx-shell-sidebar__toggle-btn, .details-toggle, .properties-toggle, .properties-toggle-btn";
 
 const HEADER_SELECTORS = [
   ".panel-header",
-  ".sidebar-header",
+  ".stx-shell-sidebar__header",
   ".tools-nav-header",
   ".details-header",
   ".properties-header",

@@ -15,7 +15,7 @@ from pathlib import Path
 from django.core.management.base import BaseCommand
 
 BASE_DIR = Path(__file__).resolve().parents[4]
-PROTECTED_SELECTORS = [".stx-shell-sidebar", ".sidebar-header", ".panel-resizer"]
+PROTECTED_SELECTORS = [".stx-shell-sidebar", ".stx-shell-sidebar__header", ".panel-resizer"]
 REQUIRED_IDS = [
     "workspace-three-col",
     "ws-ai-pane",
@@ -186,8 +186,8 @@ class Command(BaseCommand):
                 text = css_file.read_text(errors="replace")
             except OSError:
                 continue
-            if re.search(r"sidebar-title[^{]*\{[^}]*font-size", text, re.S):
-                issues.append(f"CSS contains sidebar-title font-size in {fname}")
+            if re.search(r"stx-shell-sidebar__title[^{]*\{[^}]*font-size", text, re.S):
+                issues.append(f"CSS contains stx-shell-sidebar__title font-size in {fname}")
             if re.search(r"footer[^{]*\{[^}]*display\s*:\s*none", text, re.S):
                 issues.append(f"CSS contains footer {{ display: none }} in {fname}")
             for sel in PROTECTED_SELECTORS:
@@ -235,9 +235,9 @@ class Command(BaseCommand):
             record(f'id="{elem_id}"' in html, f"#{elem_id} present in HTML")
 
         no_zero = not re.search(
-            r'class="[^"]*sidebar-title[^"]*"[^>]*style="[^"]*font-size\s*:\s*0', html
+            r'class="[^"]*stx-shell-sidebar__title[^"]*"[^>]*style="[^"]*font-size\s*:\s*0', html
         )
-        record(no_zero, "no font-size:0 on .sidebar-title inline style")
+        record(no_zero, "no font-size:0 on .stx-shell-sidebar__title inline style")
 
         return passed, failed
 

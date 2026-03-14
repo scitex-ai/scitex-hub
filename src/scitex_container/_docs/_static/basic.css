@@ -314,7 +314,7 @@ aside.sidebar {
     overflow-x: auto;
 }
 
-p.sidebar-title {
+p.stx-shell-sidebar__title {
     font-weight: bold;
 }
 

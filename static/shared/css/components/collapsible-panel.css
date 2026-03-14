@@ -30,7 +30,7 @@
 
 /* Hide content when collapsed */
 .collapsible-panel.collapsed .panel-content,
-.collapsible-panel.collapsed .sidebar-content,
+.collapsible-panel.collapsed .stx-shell-sidebar__content,
 .collapsible-panel.collapsed .properties-content,
 .collapsible-panel.collapsed .panel-body,
 .collapsible-panel.collapsed .panel-footer {
@@ -115,10 +115,10 @@
 .collapsible-panel:not(.collapsed) .pane-header.foldable,
 .collapsible-panel:not(.collapsed) .details-header.foldable,
 .collapsible-panel:not(.collapsed) .properties-header.foldable,
-.collapsible-panel:not(.collapsed) .sidebar-header.foldable,
+.collapsible-panel:not(.collapsed) .stx-shell-sidebar__header.foldable,
 .collapsible-panel:not(.collapsed) .tools-nav-header.foldable,
 .collapsible-panel:not(.collapsed) .terminal-panel-top.foldable,
-.stx-shell-sidebar:not(.collapsed) .sidebar-header.foldable {
+.stx-shell-sidebar:not(.collapsed) .stx-shell-sidebar__header.foldable {
   background: rgba(5, 150, 105, 0.15) !important;
 }
 [data-theme="light"] .collapsible-panel:not(.collapsed) .panel-header.foldable,
@@ -131,7 +131,7 @@
   .properties-header.foldable,
 [data-theme="light"]
   .collapsible-panel:not(.collapsed)
-  .sidebar-header.foldable,
+  .stx-shell-sidebar__header.foldable,
 [data-theme="light"]
   .collapsible-panel:not(.collapsed)
   .tools-nav-header.foldable,
@@ -140,7 +140,7 @@
   .terminal-panel-top.foldable,
 [data-theme="light"]
   .stx-shell-sidebar:not(.collapsed)
-  .sidebar-header.foldable {
+  .stx-shell-sidebar__header.foldable {
   background: rgba(5, 150, 105, 0.12) !important;
 }
 
@@ -394,11 +394,11 @@
 /* ===========================================================================
    SHARED SIDEBAR HEADER COLLAPSED STATE
    When a sidebar is collapsed, hide everything in the header except
-   the toggle button (.panel-toggle-btn / .sidebar-toggle / .sidebar-toggle-btn).
+   the toggle button (.panel-toggle-btn / .stx-shell-sidebar__toggle / .stx-shell-sidebar__toggle-btn).
    Works for console, writer, scholar, vis modules.
    =========================================================================== */
 
-.collapsed .sidebar-header {
+.collapsed .stx-shell-sidebar__header {
   padding: 8px 0 0;
   justify-content: flex-start;
   flex-direction: column;
@@ -406,16 +406,16 @@
 }
 
 .collapsed
-  .sidebar-header
-  > *:not(.panel-toggle-btn):not(.sidebar-toggle):not(.sidebar-toggle-btn):not(
-    .sidebar-title
+  .stx-shell-sidebar__header
+  > *:not(.panel-toggle-btn):not(.stx-shell-sidebar__toggle):not(.stx-shell-sidebar__toggle-btn):not(
+    .stx-shell-sidebar__title
   ) {
   display: none;
 }
 
-.collapsed .sidebar-header .panel-toggle-btn,
-.collapsed .sidebar-header .sidebar-toggle,
-.collapsed .sidebar-header .sidebar-toggle-btn {
+.collapsed .stx-shell-sidebar__header .panel-toggle-btn,
+.collapsed .stx-shell-sidebar__header .stx-shell-sidebar__toggle,
+.collapsed .stx-shell-sidebar__header .stx-shell-sidebar__toggle-btn {
   border: none;
   margin: 4px 0;
   padding: 4px;
@@ -423,7 +423,7 @@
 
 /* Sidebar title: icon on top, label below when collapsed — scoped to collapsible-panel.
    stx-shell-sidebar has its own collapsed rules in stx-shell-sidebar.css */
-.collapsible-panel.collapsed .sidebar-header .sidebar-title {
+.collapsible-panel.collapsed .stx-shell-sidebar__header .stx-shell-sidebar__title {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -436,7 +436,7 @@
   line-height: 1;
 }
 
-.collapsible-panel.collapsed .sidebar-header .sidebar-title i {
+.collapsible-panel.collapsed .stx-shell-sidebar__header .stx-shell-sidebar__title i {
   display: block;
   font-size: var(--ui-nav-icon-size, 20px);
   color: var(--workspace-icon-primary, #059669);

@@ -126,7 +126,7 @@ export class WorkspaceKeyboardHandler {
       e.stopPropagation();
 
       const sidebar = this.container.closest(
-        ".stx-shell-sidebar, .sidebar-content",
+        ".stx-shell-sidebar, .stx-shell-sidebar__content",
       );
       const focusInSidebar =
         sidebar &&
@@ -158,7 +158,7 @@ export class WorkspaceKeyboardHandler {
 
     // For all other shortcuts, require focus inside the tree/sidebar
     const sidebar = this.container.closest(
-      ".stx-shell-sidebar, .sidebar-content",
+      ".stx-shell-sidebar, .stx-shell-sidebar__content",
     );
     const isOurTree =
       this.container.contains(e.target as Node) ||

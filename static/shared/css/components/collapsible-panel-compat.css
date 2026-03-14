@@ -5,8 +5,8 @@
    =========================================================================== */
 
 /* Sidebar toggle aliases */
-.sidebar-toggle,
-.sidebar-toggle-btn {
+.stx-shell-sidebar__toggle,
+.stx-shell-sidebar__toggle-btn {
   background: none;
   border: none;
   padding: 4px 8px;
@@ -16,8 +16,8 @@
   transition: all 0.15s ease;
 }
 
-.sidebar-toggle:hover,
-.sidebar-toggle-btn:hover {
+.stx-shell-sidebar__toggle:hover,
+.stx-shell-sidebar__toggle-btn:hover {
   background: var(--workspace-bg-tertiary);
   color: var(--workspace-icon-primary);
 }
@@ -41,8 +41,8 @@
 }
 
 /* Collapsed state for aliased toggle buttons */
-.collapsed .sidebar-toggle,
-.collapsed .sidebar-toggle-btn,
+.collapsed .stx-shell-sidebar__toggle,
+.collapsed .stx-shell-sidebar__toggle-btn,
 .collapsed .properties-toggle,
 .collapsed .properties-toggle-btn {
   display: flex;

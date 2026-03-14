@@ -34,7 +34,7 @@ Following GitHub's design:
 <!-- BEFORE -->
 <!-- About Section -->
 <div class="sidebar-section">
-    <div class="sidebar-title">About</div>
+    <div class="stx-shell-sidebar__title">About</div>
     {% if project.description %}
     <p style="font-size: 12px; color: var(--color-fg-default); margin-bottom: 12px;">
         {{ project.description }}

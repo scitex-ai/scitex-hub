@@ -22,7 +22,7 @@
       "repo-layout",
     ) as HTMLElement | null;
     const toggleBtn = document.getElementById(
-      "sidebar-toggle",
+      "stx-shell-sidebar__toggle",
     ) as HTMLElement | null;
     const savedState = localStorage.getItem(SIDEBAR_STATE_KEY);
 
@@ -70,7 +70,7 @@
       "repo-layout",
     ) as HTMLElement | null;
     const toggleBtn = document.getElementById(
-      "sidebar-toggle",
+      "stx-shell-sidebar__toggle",
     ) as HTMLElement | null;
 
     if (!sidebar || !repoLayout || !toggleBtn) {

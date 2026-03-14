@@ -68,15 +68,15 @@
 }
 
 /* Short label shown when collapsed; full label shown when expanded */
-#ws-worktree-sidebar .sidebar-title-full {
+#ws-worktree-sidebar .stx-shell-sidebar__title-full {
   display: none;
 }
 
-#ws-worktree-sidebar:not(.collapsed) .sidebar-title-full {
+#ws-worktree-sidebar:not(.collapsed) .stx-shell-sidebar__title-full {
   display: inline;
 }
 
-#ws-worktree-sidebar:not(.collapsed) .sidebar-title {
+#ws-worktree-sidebar:not(.collapsed) .stx-shell-sidebar__title {
   display: none;
 }
 
@@ -129,10 +129,10 @@
 }
 
 /* Vertical split: tree area + monitor panel.
-   The element carries both .sidebar-content and .ws-worktree-split.
-   Override the default sidebar-content overflow-y: auto so the flex
+   The element carries both .stx-shell-sidebar__content and .ws-worktree-split.
+   Override the default stx-shell-sidebar__content overflow-y: auto so the flex
    split constrains children instead of growing to fit content. */
-.sidebar-content.ws-worktree-split {
+.stx-shell-sidebar__content.ws-worktree-split {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -180,7 +180,7 @@
 
 /* Vertical nav items — inherits from selector-nav.css via shared classes.
    Only override what's specific to the apps pane layout here.
-   padding-top: 8px matches sidebar-header padding-top for vertical alignment. */
+   padding-top: 8px matches stx-shell-sidebar__header padding-top for vertical alignment. */
 .ws-apps-nav {
   display: flex;
   flex-direction: column;
@@ -191,7 +191,7 @@
   flex: 1;
 }
 
-/* First item: 4px top matches sidebar-title margin-top for icon alignment */
+/* First item: 4px top matches stx-shell-sidebar__title margin-top for icon alignment */
 .ws-apps-nav .selector-nav-item:first-child {
   padding-top: 4px;
 }
@@ -232,11 +232,11 @@ body.scitex-ai-open #workspace-three-col #main-content {
 }
 
 /* Sidebar header double-click hint */
-.workspace-three-col .stx-shell-sidebar .sidebar-header {
+.workspace-three-col .stx-shell-sidebar .stx-shell-sidebar__header {
   cursor: default;
 }
 
-.workspace-three-col .stx-shell-sidebar.collapsed .sidebar-header {
+.workspace-three-col .stx-shell-sidebar.collapsed .stx-shell-sidebar__header {
   cursor: pointer; /* dblclick to expand */
 }
 

@@ -2,13 +2,13 @@
    Only console-specific overrides here */
 
 /* Console sidebar header adds top border and box-shadow */
-.code-sidebar .sidebar-header {
+.code-sidebar .stx-shell-sidebar__header {
   border-top: 1px solid var(--workspace-border-default);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 /* Sidebar header actions container */
-.code-sidebar .sidebar-header-actions {
+.code-sidebar .stx-shell-sidebar__header-actions {
   display: flex;
   align-items: center;
   gap: 8px;

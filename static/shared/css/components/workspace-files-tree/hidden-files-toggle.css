@@ -1,7 +1,7 @@
 /**
  * Hidden Files Toggle Button
  * Shared across all workspace modules
- * Matches sidebar-toggle-btn style (borderless ghost button)
+ * Matches stx-shell-sidebar__toggle-btn style (borderless ghost button)
  */
 
 .hidden-files-toggle {
@@ -29,7 +29,7 @@
   color: var(--workspace-icon-primary);
 }
 
-.sidebar-header-actions {
+.stx-shell-sidebar__header-actions {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -95,7 +95,7 @@
 }
 
 /* Divider before collapse button */
-.sidebar-header-divider {
+.stx-shell-sidebar__header-divider {
   width: 1px;
   height: 20px;
   background: var(--workspace-border-default, rgba(110, 118, 129, 0.3));

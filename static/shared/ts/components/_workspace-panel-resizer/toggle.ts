@@ -57,7 +57,7 @@ export function initToggleClickHandler(
 
   // Double-click on the sidebar header also toggles the panel
   const sidebarHeader =
-    targetPanel.querySelector<HTMLElement>(".sidebar-header");
+    targetPanel.querySelector<HTMLElement>(".stx-shell-sidebar__header");
   if (sidebarHeader) {
     sidebarHeader.addEventListener("dblclick", () => {
       toggleBtn.click();

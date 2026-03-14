@@ -46,7 +46,7 @@
    SIDEBAR HEADER - 50px standardized
    =========================================================================== */
 
-.stx-shell-sidebar .sidebar-header {
+.stx-shell-sidebar .stx-shell-sidebar__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -63,12 +63,12 @@
 }
 
 /* Sidebar title: hidden when expanded, vertical text when collapsed */
-.stx-shell-sidebar .sidebar-title {
+.stx-shell-sidebar .stx-shell-sidebar__title {
   display: none;
 }
 
-.stx-shell-sidebar .sidebar-header h4,
-.stx-shell-sidebar .sidebar-header h5 {
+.stx-shell-sidebar .stx-shell-sidebar__header h4,
+.stx-shell-sidebar .stx-shell-sidebar__header h5 {
   margin: 0;
   padding: 0;
   font-size: 14px;
@@ -84,7 +84,7 @@
   min-width: 0;
 }
 
-.stx-shell-sidebar .sidebar-header h5 i {
+.stx-shell-sidebar .stx-shell-sidebar__header h5 i {
   color: var(--workspace-icon-primary, #059669);
 }
 
@@ -92,7 +92,7 @@
    SIDEBAR CONTENT
    =========================================================================== */
 
-.stx-shell-sidebar .sidebar-content {
+.stx-shell-sidebar .stx-shell-sidebar__content {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
@@ -106,8 +106,8 @@
    SIDEBAR TOGGLE BUTTON
    =========================================================================== */
 
-.stx-shell-sidebar .sidebar-toggle,
-.stx-shell-sidebar .sidebar-toggle-btn {
+.stx-shell-sidebar .stx-shell-sidebar__toggle,
+.stx-shell-sidebar .stx-shell-sidebar__toggle-btn {
   background: none;
   border: none;
   padding: 4px 8px;
@@ -117,8 +117,8 @@
   transition: all 0.15s ease;
 }
 
-.stx-shell-sidebar .sidebar-toggle:hover,
-.stx-shell-sidebar .sidebar-toggle-btn:hover {
+.stx-shell-sidebar .stx-shell-sidebar__toggle:hover,
+.stx-shell-sidebar .stx-shell-sidebar__toggle-btn:hover {
   background: var(--workspace-bg-tertiary, #1a1a1a);
   color: var(--workspace-icon-primary, #059669);
 }
@@ -134,11 +134,11 @@
   cursor: pointer;
 }
 
-.stx-shell-sidebar.collapsed .sidebar-content {
+.stx-shell-sidebar.collapsed .stx-shell-sidebar__content {
   display: none;
 }
 
-.stx-shell-sidebar.collapsed .sidebar-header {
+.stx-shell-sidebar.collapsed .stx-shell-sidebar__header {
   padding: 8px 0 0;
   justify-content: flex-start;
   align-items: center;
@@ -149,15 +149,15 @@
 
 /* Hide everything in header except the toggle button and sidebar title */
 .stx-shell-sidebar.collapsed
-  .sidebar-header
-  > *:not(.sidebar-toggle):not(.sidebar-toggle-btn):not(.panel-toggle-btn):not(
-    .sidebar-title
+  .stx-shell-sidebar__header
+  > *:not(.stx-shell-sidebar__toggle):not(.stx-shell-sidebar__toggle-btn):not(.panel-toggle-btn):not(
+    .stx-shell-sidebar__title
   ) {
   display: none;
 }
 
 /* Show sidebar title with icon + label when collapsed, stacked vertically. */
-.stx-shell-sidebar.collapsed .sidebar-title {
+.stx-shell-sidebar.collapsed .stx-shell-sidebar__title {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -171,14 +171,14 @@
 }
 
 /* Icon visible, top-aligned */
-.stx-shell-sidebar.collapsed .sidebar-title i {
+.stx-shell-sidebar.collapsed .stx-shell-sidebar__title i {
   display: block;
   font-size: var(--ui-nav-icon-size, 20px);
   color: var(--text-secondary, #8ba7b8);
 }
 
-.stx-shell-sidebar.collapsed .sidebar-toggle,
-.stx-shell-sidebar.collapsed .sidebar-toggle-btn,
+.stx-shell-sidebar.collapsed .stx-shell-sidebar__toggle,
+.stx-shell-sidebar.collapsed .stx-shell-sidebar__toggle-btn,
 .stx-shell-sidebar.collapsed .panel-toggle-btn {
   border: none;
   margin: 4px 0;
@@ -190,14 +190,14 @@
 
 /* Subtle green-tinted background + edge glow on hover */
 .stx-shell-sidebar.collapsed:hover,
-.stx-shell-sidebar.collapsed:hover .sidebar-header {
+.stx-shell-sidebar.collapsed:hover .stx-shell-sidebar__header {
   background: rgba(5, 150, 105, 0.08) !important;
 }
 .stx-shell-sidebar.collapsed:hover {
   box-shadow: inset -3px 0 10px -4px var(--workspace-icon-primary);
 }
 [data-theme="light"] .stx-shell-sidebar.collapsed:hover,
-[data-theme="light"] .stx-shell-sidebar.collapsed:hover .sidebar-header {
+[data-theme="light"] .stx-shell-sidebar.collapsed:hover .stx-shell-sidebar__header {
   background: rgba(5, 150, 105, 0.06) !important;
 }
 
@@ -220,7 +220,7 @@
   background: var(--workspace-bg-primary);
 }
 
-[data-theme="light"] .stx-shell-sidebar .sidebar-header {
+[data-theme="light"] .stx-shell-sidebar .stx-shell-sidebar__header {
   background: var(--workspace-bg-secondary);
   border-bottom-color: var(--workspace-border-default);
 }

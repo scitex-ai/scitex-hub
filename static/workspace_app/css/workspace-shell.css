@@ -71,13 +71,13 @@
 }
 
 /* Worktree sidebar header (expanded/collapsed labels) */
-.workspace-shell #ws-worktree-sidebar .sidebar-title-expanded {
+.workspace-shell #ws-worktree-sidebar .stx-shell-sidebar__title-expanded {
   display: none;
 }
-.workspace-shell #ws-worktree-sidebar:not(.collapsed) .sidebar-title-expanded {
+.workspace-shell #ws-worktree-sidebar:not(.collapsed) .stx-shell-sidebar__title-expanded {
   display: inline;
 }
-.workspace-shell #ws-worktree-sidebar:not(.collapsed) .sidebar-title {
+.workspace-shell #ws-worktree-sidebar:not(.collapsed) .stx-shell-sidebar__title {
   display: none;
 }
 
