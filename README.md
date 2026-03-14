@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-03-15 01:33:54
+!-- Timestamp: 2026-03-15 01:35:12
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/scitex-cloud/README.md
 !-- --- -->
@@ -30,6 +30,8 @@
   <a href="https://scitex-cloud.readthedocs.io/">Full Documentation</a> · <code>pip install scitex-cloud</code>
 </p>
 
+> **Status**: Alpha (data may be lost between releases)
+
 ---
 
 ## Problem
@@ -57,6 +59,8 @@ SciTeX Cloud addresses each of these directly:
 5. **Seamless project handoff** — the full project state — code, data, provenance graph, manuscript drafts, and execution environment — lives in one place, so successors can understand and continue work immediately.
 6. **GitHub-style project hub** — repository hosting and ticket-based development with co-authors and the community enable efficient research advancement and peer review of both code and logic.
 7. **Self-hosted, open-source, runnable from anywhere** — deploy on your laptop, lab server, or cloud. AGPL-3.0 licensed — inspect every line of code, customize freely, no vendor lock-in, no data surrender.
+
+SciTeX Cloud is the infrastructure so that researchers can focus on science, not on tooling.
 
 > **Status**: Alpha (data may be lost between releases)
 
