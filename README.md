@@ -28,11 +28,11 @@
 
 ## Problem
 
-Every research group needs custom tools — from experiment dashboards to data annotation GUIs — yet building and sharing them requires web development skills most researchers lack. Meanwhile, existing platforms offer no way to connect researchers around shared projects: there is no GitHub-like community infrastructure purpose-built for scientific work.
+Scientific research relies on a fragmented set of tools — separate applications for literature discovery, manuscript writing, data analysis, and visualization — most of which are proprietary, cloud-locked, or require surrendering your data to third-party services. Every research group also needs custom tools (experiment dashboards, data annotation GUIs), yet building and sharing them requires web development skills most researchers lack. Meanwhile, no GitHub-like community infrastructure exists purpose-built for scientific work.
 
 ## Solution
 
-SciTeX Cloud is a self-hosted research platform with a built-in **App Maker and Store** for creating, publishing, and installing custom research tools — no web development experience required. A **GitHub-style project hub** lets researchers host repositories, collaborate through pull requests, and discover each other's work. **Built-in AI** with platform-aware skills (via MCP — Model Context Protocol) assists across all modules: Scholar, Writer, FigRecipe, Console, and Hub. Deploy anywhere with Docker; all modules share the same project filesystem and integrate through the `scitex` Python package.
+SciTeX Cloud combines Scholar, Writer, FigRecipe, Console, and Hub into a single Django web platform deployable anywhere with Docker. A built-in **App Maker and Store** lets researchers create, publish, and install custom research tools without web development experience. A **GitHub-style project hub** enables repository hosting, pull requests, and community discovery. **Built-in AI** with platform-aware skills (via MCP — Model Context Protocol) assists across all modules. All modules share the same project filesystem and integrate through the `scitex` Python package.
 
 > **Status**: Alpha (data may be lost between releases)
 
