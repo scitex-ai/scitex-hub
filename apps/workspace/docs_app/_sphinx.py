@@ -127,18 +127,34 @@ def serve_sphinx_docs(request, module, page="index.html"):
 
 
 def register_sphinx_packages(docs_pages, pages_by_slug):
-    """Auto-register sidebar entries for packages with Sphinx docs."""
+    """Auto-register sidebar entries for ECOSYSTEM packages with Sphinx docs."""
+    import logging
+
+    logger = logging.getLogger(__name__)
+
     try:
-        from scitex_dev._discovery import discover_packages
+        from scitex_dev.ecosystem import ECOSYSTEM
     except ImportError:
+        logger.warning("scitex_dev.ecosystem not available — cannot register packages")
         return
 
-    discovered = discover_packages()
-    for pip_name in sorted(discovered):
+    # Packages to skip (aliases, templates without docs)
+    _SKIP = {
+        "scitex-plt",
+        "automated-research-demo",
+        "scitex-research-template",
+        "pip-project-template",
+        "singularity-template",
+    }
+
+    for pip_name in ECOSYSTEM:
+        if pip_name in _SKIP:
+            continue
         slug = f"pkg-{pip_name}"
         if slug in pages_by_slug:
             continue
         if not check_docs_available(pip_name):
+            logger.warning("Package '%s' has no Sphinx docs available", pip_name)
             continue
         page = {
             "slug": slug,
@@ -150,20 +166,6 @@ def register_sphinx_packages(docs_pages, pages_by_slug):
         }
         docs_pages.append(page)
         pages_by_slug[slug] = page
-
-    # Also register scitex-cloud if it has docs
-    cloud_slug = "pkg-scitex-cloud"
-    if cloud_slug not in pages_by_slug and check_docs_available("scitex-cloud"):
-        page = {
-            "slug": cloud_slug,
-            "label": "scitex-cloud",
-            "icon": "fas fa-book",
-            "template": "docs_app/docs_sphinx_package.html",
-            "badges": ["pkg"],
-            "group": "packages",
-        }
-        docs_pages.append(page)
-        pages_by_slug[cloud_slug] = page
 
 
 def extract_sphinx_body(html: str, pip_name: str = "") -> str:

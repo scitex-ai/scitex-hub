@@ -22,39 +22,61 @@ def build_page_context(slug: str, sphinx_page: str = None) -> dict:
 
 
 def _get_packages_context() -> dict:
-    """Build Python packages context dynamically from scitex_dev.docs entry points."""
+    """Build Python packages context from ECOSYSTEM (source of truth)."""
     import importlib.metadata
+    import logging
 
     from .views import check_docs_available
 
+    logger = logging.getLogger(__name__)
+
     try:
-        from scitex_dev._discovery import discover_packages
+        from scitex_dev.ecosystem import ECOSYSTEM
     except ImportError:
+        logger.warning("scitex_dev.ecosystem not available — cannot list packages")
         return {"core_packages": [], "standalone_packages": []}
 
-    discovered = discover_packages()
+    # Packages to skip from docs listing (aliases, templates without docs)
+    _SKIP_PACKAGES = {
+        "scitex-plt",  # alias for figrecipe
+        "automated-research-demo",  # template, no docs
+        "scitex-research-template",  # template, no docs
+        "pip-project-template",  # template, no docs
+        "singularity-template",  # template, no docs
+    }
 
     core_packages = []
     standalone_packages = []
 
-    # Core packages are scitex-* prefixed (the ecosystem)
-    _CORE_PREFIXES = ("scitex-", "scitex")
-
-    for pip_name, module_name in sorted(discovered.items()):
-        try:
-            meta = importlib.metadata.metadata(pip_name)
-        except importlib.metadata.PackageNotFoundError:
+    for pip_name, info in ECOSYSTEM.items():
+        if pip_name in _SKIP_PACKAGES:
             continue
 
-        version = meta["Version"] or ""
-        description = meta.get("Summary", "")
-        github_url = ""
-        for url_entry in meta.get_all("Project-URL") or []:
-            label, _, url = url_entry.partition(",")
-            url = url.strip()
-            if label.strip().lower() in ("homepage", "repository"):
-                github_url = url
-                break
+        module_name = info.get("import_name", pip_name.replace("-", "_"))
+
+        try:
+            meta = importlib.metadata.metadata(pip_name)
+            version = meta["Version"] or ""
+            description = meta.get("Summary", "")
+            github_url = ""
+            for url_entry in meta.get_all("Project-URL") or []:
+                label, _, url = url_entry.partition(",")
+                url = url.strip()
+                if label.strip().lower() in ("homepage", "repository"):
+                    github_url = url
+                    break
+        except importlib.metadata.PackageNotFoundError:
+            logger.warning(
+                "Package '%s' from ECOSYSTEM not installed — showing with limited info",
+                pip_name,
+            )
+            version = ""
+            description = ""
+            github_url = ""
+
+        github_repo = info.get("github_repo", "")
+        if not github_url and github_repo:
+            github_url = f"https://github.com/{github_repo}"
 
         has_sphinx = check_docs_available(pip_name)
 
@@ -79,50 +101,10 @@ def _get_packages_context() -> dict:
         else:
             standalone_packages.append(pkg)
 
-    # scitex-cloud is the Django project itself, not a pip package
-    _add_scitex_cloud(core_packages)
-
     return {
         "core_packages": core_packages,
         "standalone_packages": standalone_packages,
     }
-
-
-def _add_scitex_cloud(core_packages: list) -> None:
-    """Add scitex-cloud entry (not a pip package, requires special handling)."""
-    from .views import check_docs_available
-
-    has_sphinx = check_docs_available("scitex-cloud")
-    try:
-        from pathlib import Path
-
-        from django.conf import settings
-
-        toml_path = Path(settings.BASE_DIR) / "pyproject.toml"
-        version = ""
-        for line in toml_path.read_text().splitlines():
-            if line.startswith("version"):
-                version = line.split("=")[1].strip().strip('"')
-                break
-    except Exception:
-        version = ""
-
-    core_packages.append(
-        {
-            "pip_name": "scitex-cloud",
-            "module": "scitex.cloud",
-            "version": version,
-            "description": "Django web application (this site)",
-            "github_url": "https://github.com/ywatanabe1989/scitex-cloud",
-            "docs_url": "/apps/docs/#pkg-scitex-cloud",
-            "sphinx_url": (
-                "/apps/docs/sphinx/scitex-cloud/index.html" if has_sphinx else ""
-            ),
-            "has_sphinx": has_sphinx,
-            "pypi_version": "",
-            "status": "",
-        }
-    )
 
 
 def _get_sphinx_package_context(slug: str, sphinx_page: str = None) -> dict:
