@@ -5,6 +5,7 @@
  * Explicit overrides below handle entries where the template-referenced
  * name differs from the convention-based path.
  */
+import { execSync } from "child_process";
 import { resolve } from "path";
 import * as fs from "fs";
 
@@ -87,7 +88,6 @@ const PIP_PACKAGES_WITH_STATIC = ["scitex_ui"];
 
 function discoverPipEntries(rootDir: string): Record<string, string> {
   const entries: Record<string, string> = {};
-  const { execSync } = require("child_process");
 
   for (const pkgName of PIP_PACKAGES_WITH_STATIC) {
     try {
