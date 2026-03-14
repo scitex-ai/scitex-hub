@@ -1,0 +1,366 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scitex_cloud.appmaker._scaffold &mdash; SciTeX Cloud v0.9.1a0</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=1a5dcacc"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            SciTeX Cloud
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../installation.html#install-from-pypi">Install from PyPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../installation.html#install-from-source">Install from Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../installation.html#verify-installation">Verify Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">Setup Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#what-you-get">What You Get</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#quick-start-development">Quick Start (Development)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#step-by-step-development-setup">Step-by-Step Development Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#production-setup">Production Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#cli-only-install">CLI-Only Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#configuration-reference">Configuration Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#common-commands">Common Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#basic-usage">Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#environments">Environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#docker-management">Docker Management</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/scitex_cloud.html">scitex_cloud Package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/scitex_cloud.html#main-package">Main Package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/index.html#package-overview">Package Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.html">scitex_cloud</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.html#scitex_cloud.get_version"><code class="docutils literal notranslate"><span class="pre">get_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.html#scitex_cloud.health_check"><code class="docutils literal notranslate"><span class="pre">health_check()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.html#scitex_cloud.CloudClient"><code class="docutils literal notranslate"><span class="pre">CloudClient</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.html#scitex_cloud.Environment"><code class="docutils literal notranslate"><span class="pre">Environment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.html#scitex_cloud.get_environment"><code class="docutils literal notranslate"><span class="pre">get_environment()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.html#scitex_cloud.DockerManager"><code class="docutils literal notranslate"><span class="pre">DockerManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.html#scitex_cloud._get_version"><code class="docutils literal notranslate"><span class="pre">_get_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.appmaker.html">scitex_cloud.appmaker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.module.html">scitex_cloud.module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_cloud.sdk.html">scitex_cloud.sdk</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">SciTeX Cloud</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../../scitex_cloud.html">scitex_cloud</a></li>
+      <li class="breadcrumb-item active">scitex_cloud.appmaker._scaffold</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for scitex_cloud.appmaker._scaffold</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;App initializer — generate complete boilerplate for a SciTeX app plugin.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">._license</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_license_text</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._scaffold_agent_context</span><span class="w"> </span><span class="kn">import</span> <span class="n">_agents_md</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._scaffold_html</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_agents_json</span><span class="p">,</span>
+    <span class="n">_app_css</span><span class="p">,</span>
+    <span class="n">_apps_py</span><span class="p">,</span>
+    <span class="n">_index_html</span><span class="p">,</span>
+    <span class="n">_index_partial_html</span><span class="p">,</span>
+    <span class="n">_manifest_json</span><span class="p">,</span>
+    <span class="n">_readme_md</span><span class="p">,</span>
+    <span class="n">_skill_py</span><span class="p">,</span>
+    <span class="n">_tests_py</span><span class="p">,</span>
+    <span class="n">_urls_py</span><span class="p">,</span>
+    <span class="n">_views_py</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._scaffold_react</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_react_files</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="init_app">
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_cloud.appmaker.html#scitex_cloud.appmaker.init_app">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_app</span><span class="p">(</span>
+    <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">icon</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;fas fa-puzzle-piece&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">manifest</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">license_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;AGPL-3.0&quot;</span><span class="p">,</span>
+    <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">frontend_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;html&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate complete app boilerplate in target_dir.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    target_dir : path</span>
+<span class="sd">        Project directory (e.g. data/users/alice/proj/my_app/).</span>
+<span class="sd">    name : str</span>
+<span class="sd">        Python module name (must end with _app, e.g. &#39;my_awesome_app&#39;).</span>
+<span class="sd">    label : str</span>
+<span class="sd">        Human-readable label (default: derived from name).</span>
+<span class="sd">    icon : str</span>
+<span class="sd">        Font Awesome icon class (default: &#39;fas fa-puzzle-piece&#39;).</span>
+<span class="sd">    description : str</span>
+<span class="sd">        Short description for the app.</span>
+<span class="sd">    manifest : dict, optional</span>
+<span class="sd">        Extra manifest fields to merge.</span>
+<span class="sd">    license_id : str</span>
+<span class="sd">        SPDX license identifier (default: &#39;AGPL-3.0&#39;).</span>
+<span class="sd">    overwrite : bool</span>
+<span class="sd">        If True, overwrite existing files (default: False).</span>
+<span class="sd">    frontend_type : str</span>
+<span class="sd">        Frontend type: &#39;html&#39; (default) or &#39;react&#39; for React+Vite+Zustand.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list[str]</span>
+<span class="sd">        Relative paths of created files.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">target_dir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">target</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">target</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">label</span><span class="p">:</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">()</span><span class="o">.</span><span class="n">removesuffix</span><span class="p">(</span><span class="s2">&quot; App&quot;</span><span class="p">)</span>
+
+    <span class="n">class_name</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;App&quot;</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="n">_build_all_files</span><span class="p">(</span>
+        <span class="n">name</span><span class="p">,</span>
+        <span class="n">label</span><span class="p">,</span>
+        <span class="n">class_name</span><span class="p">,</span>
+        <span class="n">icon</span><span class="p">,</span>
+        <span class="n">description</span><span class="p">,</span>
+        <span class="n">manifest</span><span class="p">,</span>
+        <span class="n">license_id</span><span class="p">,</span>
+        <span class="n">frontend_type</span><span class="o">=</span><span class="n">frontend_type</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">created</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">relpath</span><span class="p">,</span> <span class="n">content</span> <span class="ow">in</span> <span class="n">files</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">target</span> <span class="o">/</span> <span class="n">relpath</span>
+        <span class="k">if</span> <span class="n">filepath</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Skipping existing file: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">relpath</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">filepath</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">filepath</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+        <span class="n">created</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">relpath</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Created: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">relpath</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scaffolded </span><span class="si">%d</span><span class="s2">/</span><span class="si">%d</span><span class="s2"> files in </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">created</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">),</span> <span class="n">target</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">created</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_build_all_files</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">,</span>
+    <span class="n">label</span><span class="p">,</span>
+    <span class="n">class_name</span><span class="p">,</span>
+    <span class="n">icon</span><span class="p">,</span>
+    <span class="n">description</span><span class="p">,</span>
+    <span class="n">manifest</span><span class="p">,</span>
+    <span class="n">license_id</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">frontend_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;html&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build dict of relpath -&gt; content for all scaffold files.&quot;&quot;&quot;</span>
+    <span class="n">use_react</span> <span class="o">=</span> <span class="n">frontend_type</span> <span class="o">==</span> <span class="s2">&quot;react&quot;</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># __init__.py</span>
+    <span class="n">files</span><span class="p">[</span><span class="s2">&quot;__init__.py&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;&quot;&quot;&quot;SciTeX Cloud App: </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s1">.&quot;&quot;&quot;</span><span class="se">\n</span><span class="s1">&#39;</span>
+
+    <span class="c1"># apps.py</span>
+    <span class="n">files</span><span class="p">[</span><span class="s2">&quot;apps.py&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_apps_py</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">class_name</span><span class="p">)</span>
+
+    <span class="c1"># views.py</span>
+    <span class="n">files</span><span class="p">[</span><span class="s2">&quot;views.py&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_views_py</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span>
+
+    <span class="c1"># urls.py</span>
+    <span class="n">files</span><span class="p">[</span><span class="s2">&quot;urls.py&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_urls_py</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="c1"># tests.py</span>
+    <span class="n">files</span><span class="p">[</span><span class="s2">&quot;tests.py&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_tests_py</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+
+    <span class="c1"># skill.py</span>
+    <span class="n">files</span><span class="p">[</span><span class="s2">&quot;skill.py&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_skill_py</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span>
+
+    <span class="c1"># manifest.json</span>
+    <span class="n">files</span><span class="p">[</span><span class="s2">&quot;manifest.json&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_manifest_json</span><span class="p">(</span>
+        <span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">icon</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">manifest</span><span class="p">,</span> <span class="n">license_id</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Templates</span>
+    <span class="n">files</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;templates/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">/index.html&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_index_html</span><span class="p">(</span>
+        <span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">include_js_bundle</span><span class="o">=</span><span class="n">use_react</span>
+    <span class="p">)</span>
+    <span class="n">files</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;templates/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">/index_partial.html&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_index_partial_html</span><span class="p">(</span>
+        <span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">icon</span><span class="p">,</span> <span class="n">react_mount</span><span class="o">=</span><span class="n">use_react</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Static CSS</span>
+    <span class="n">files</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;static/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">/css/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.css&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_app_css</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+
+    <span class="c1"># Agents config</span>
+    <span class="n">files</span><span class="p">[</span><span class="s2">&quot;.agents/agents.json&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_agents_json</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+    <span class="n">files</span><span class="p">[</span><span class="s2">&quot;AGENTS.md&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_agents_md</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">icon</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span>
+
+    <span class="c1"># Platform docs for agents</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">._scaffold_docs</span><span class="w"> </span><span class="kn">import</span> <span class="n">_platform_docs_md</span>
+
+    <span class="n">files</span><span class="p">[</span><span class="s2">&quot;docs/PLATFORM.md&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_platform_docs_md</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="c1"># README</span>
+    <span class="n">files</span><span class="p">[</span><span class="s2">&quot;README.md&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_readme_md</span><span class="p">(</span>
+        <span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">license_id</span><span class="p">,</span> <span class="n">frontend_type</span><span class="o">=</span><span class="n">frontend_type</span>
+    <span class="p">)</span>
+
+    <span class="c1"># LICENSE</span>
+    <span class="n">license_text</span> <span class="o">=</span> <span class="n">generate_license_text</span><span class="p">(</span><span class="n">license_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">license_text</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">license_text</span> <span class="o">=</span> <span class="n">generate_license_text</span><span class="p">(</span><span class="s2">&quot;AGPL-3.0&quot;</span><span class="p">)</span>
+    <span class="n">files</span><span class="p">[</span><span class="s2">&quot;LICENSE&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">license_text</span>
+
+    <span class="c1"># .gitignore</span>
+    <span class="n">files</span><span class="p">[</span><span class="s2">&quot;.gitignore&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="s2">&quot;# Runtime data (created by platform, not app source)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;scitex/&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;# Python&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;__pycache__/&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;*.pyc&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;*.pyo&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;*.egg-info/&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;# Environment&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;.env&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;.env.*&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;.venv/&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;venv/&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;node_modules/&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;# IDE&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;.vscode/&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;.idea/&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;# OS&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;.DS_Store&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Thumbs.db&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="c1"># React frontend files</span>
+    <span class="k">if</span> <span class="n">use_react</span><span class="p">:</span>
+        <span class="n">files</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">build_react_files</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">icon</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">files</span>
+
+
+<span class="c1"># EOF</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, SciTeX Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

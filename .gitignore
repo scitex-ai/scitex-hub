@@ -884,3 +884,9 @@ static/figrecipe/
 /refactor-urls
 # Claude worktree symlink
 /refactor-rename
+
+# Audit fixes (2026-03-14)
+docs/from_agents/
+.aws_download_config*
+example_plot_data/
+singularity/
