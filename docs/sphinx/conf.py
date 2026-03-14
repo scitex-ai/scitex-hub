@@ -13,9 +13,19 @@ sys.path.insert(0, os.path.abspath("../../src"))
 # -- Project information -----------------------------------------------------
 
 project = "SciTeX Cloud"
-copyright = "2025, SciTeX Team"
+copyright = "2025-2026, SciTeX Team"
 author = "SciTeX Team"
-release = "0.9.1a0"
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+
+_pyproject = os.path.join(os.path.dirname(__file__), "..", "..", "pyproject.toml")
+if os.path.exists(_pyproject):
+    with open(_pyproject, "rb") as _f:
+        release = tomllib.load(_f).get("project", {}).get("version", "unknown")
+else:
+    release = "unknown"
 
 # -- General configuration ---------------------------------------------------
 

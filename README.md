@@ -1,7 +1,9 @@
 <!-- ---
-!-- Timestamp: 2026-02-13
+!-- Timestamp: 2026-03-15
 !-- File: /home/ywatanabe/proj/scitex-cloud/README.md
 !-- --- -->
+
+# SciTeX Cloud (<code>scitex-cloud</code>)
 
 <p align="center">
   <a href="https://scitex.ai">
@@ -9,23 +11,30 @@
   </a>
 </p>
 
+<p align="center"><b>Open-source scientific research platform — web interface for the SciTeX ecosystem</b></p>
+
 <p align="center">
   <a href="https://pypi.org/project/scitex-cloud/"><img src="https://badge.fury.io/py/scitex-cloud.svg" alt="PyPI version"></a>
-  <a href="https://pypi.org/project/scitex-cloud/"><img src="https://img.shields.io/pypi/pyversions/scitex-cloud.svg" alt="Python Versions"></a>
-  <a href="https://github.com/ywatanabe1989/scitex-cloud/blob/main/LICENSE"><img src="https://img.shields.io/github/license/ywatanabe1989/scitex-cloud" alt="License"></a>
+  <a href="https://scitex-cloud.readthedocs.io/"><img src="https://readthedocs.org/projects/scitex-cloud/badge/?version=latest" alt="Documentation"></a>
+  <a href="https://github.com/ywatanabe1989/scitex-cloud/actions/workflows/tests.yml"><img src="https://github.com/ywatanabe1989/scitex-cloud/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
+  <a href="https://github.com/ywatanabe1989/scitex-cloud/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg" alt="License: AGPL-3.0"></a>
 </p>
 
 <p align="center">
-  <a href="https://scitex.ai">scitex.ai</a> · <code>pip install scitex-cloud</code>
+  <a href="https://scitex-cloud.readthedocs.io/">Full Documentation</a> · <code>pip install scitex-cloud</code>
 </p>
 
 ---
 
-**Open-source scientific research platform — web interface for the [scitex](https://github.com/ywatanabe1989/scitex-python) ecosystem.**
+## Problem
 
-Provides Scholar, Writer, Vis, Console, and Hub modules as a Django web application with Docker deployment, plus a pip-installable CLI and MCP server for AI integration.
+Scientific research relies on a fragmented set of tools: separate applications for literature discovery, manuscript writing, data analysis, and visualization — most of which are proprietary, cloud-locked, or require surrendering your data to third-party services. Researchers who want full control over their infrastructure have no unified, self-hosted alternative.
 
-> **Status**: Alpha (data may be lost)
+## Solution
+
+SciTeX Cloud combines Scholar, Writer, FigRecipe, Console, and Hub into a single Django web platform deployable anywhere with Docker. All modules share the same project filesystem and integrate through the `scitex` Python package. A pip-installable CLI and an MCP (Model Context Protocol) server enable AI agent integration without requiring the full web stack.
+
+> **Status**: Alpha (data may be lost between releases)
 
 ## Screenshots
 
@@ -33,18 +42,7 @@ Provides Scholar, Writer, Vis, Console, and Hub modules as a Django web applicat
 |:---:|:---:|:---:|
 | ![Writer](docs/images/screenshot-writer.png) | ![Scholar](docs/images/screenshot-scholar.png) | ![Apps](docs/images/screenshot-apps.png) |
 
-## Four Freedoms for Research
-
-The SciTeX system follows the Four Freedoms for Research below, inspired by [the Free Software Definition](https://www.gnu.org/philosophy/free-sw.en.html):
-
->Four Freedoms for Research
->
->0. The freedom to **run** your research anywhere — your machine, your terms.
->1. The freedom to **study** how every step works — from raw data to final manuscript.
->2. The freedom to **redistribute** your workflows, not just your papers.
->3. The freedom to **modify** any module and share improvements with the community.
->
->AGPL-3.0 — because we believe research infrastructure deserves the same freedoms as the software it runs on.
+<p align="center"><sub><b>Figure 1.</b> Core application modules. Writer (left) provides a LaTeX manuscript environment with live compilation. Scholar (center) offers literature discovery, BibTeX enrichment, and PDF management. The Apps panel (right) shows the project-centric hub linking all modules.</sub></p>
 
 ## Installation
 
@@ -52,6 +50,18 @@ The SciTeX system follows the Four Freedoms for Research below, inspired by [the
 pip install scitex-cloud              # CLI only
 pip install scitex-cloud[mcp]         # CLI + MCP server
 pip install scitex-cloud[all]         # Everything
+```
+
+## Quick Start
+
+```bash
+git clone https://github.com/ywatanabe1989/scitex-cloud.git
+cd scitex-cloud
+make start                    # Start development environment
+
+# Access at: http://localhost:8000
+# Gitea: http://localhost:3000
+# Test user: test-user / Password123!
 ```
 
 ## Three Interfaces
@@ -65,10 +75,12 @@ pip install scitex-cloud[all]         # Everything
 import scitex_cloud
 
 # Version and health
-scitex_cloud.__version__        # "0.8.0-alpha"
+scitex_cloud.__version__        # "0.15.0"
 scitex_cloud.get_version()      # Version string
 scitex_cloud.health_check()     # Service health status
 ```
+
+> **[Full API reference](https://scitex-cloud.readthedocs.io/)**
 
 </details>
 
@@ -105,17 +117,23 @@ scitex-cloud completion                # Shell completion setup
 scitex-cloud list-python-apis          # List all Python APIs
 ```
 
+> **[Full CLI reference](https://scitex-cloud.readthedocs.io/)**
+
 </details>
 
 <details>
-<summary><strong>MCP Tools — 23 tools for AI Agents</strong></summary>
+<summary><strong>MCP Server — for AI Agents</strong></summary>
 
 <br>
+
+AI agents can interact with the SciTeX Cloud platform autonomously via MCP (Model Context Protocol) tools.
 
 | Category | Tools | Description |
 |----------|-------|-------------|
 | cloud | 14 | Git operations (clone, push, pull, PR, issues) |
 | api | 9 | Scholar search, CrossRef, BibTeX enrichment |
+
+<sub><b>Table 1.</b> MCP tool categories. All tools accept JSON parameters and return JSON results. Use <code>scitex-cloud mcp list-tools</code> for the full list.</sub>
 
 **Claude Desktop** (`~/.config/claude/claude_desktop_config.json`):
 
@@ -130,26 +148,11 @@ scitex-cloud list-python-apis          # List all Python APIs
 }
 ```
 
+> **[Full MCP specification](https://scitex-cloud.readthedocs.io/)**
+
 </details>
 
 ## Web Platform
-
-<details>
-<summary><strong>Quick Start (Docker)</strong></summary>
-
-<br>
-
-```bash
-git clone https://github.com/ywatanabe1989/scitex-cloud.git
-cd scitex-cloud
-make start                    # Development environment
-
-# Access at: http://localhost:8000
-# Gitea: http://localhost:3000
-# Test user: test-user / Password123!
-```
-
-</details>
 
 <details>
 <summary><strong>Deployment</strong></summary>
@@ -200,7 +203,7 @@ scitex-cloud/
 │   ├── scholar_app/        # Literature discovery
 │   ├── writer_app/         # Scientific writing
 │   ├── console_app/        # Terminal & code execution
-│   ├── figrecipe_app/            # Data visualization
+│   ├── figrecipe_app/      # Data visualization
 │   ├── hub_app/            # Project hub & file browser
 │   ├── project_app/        # Project management
 │   ├── clew_app/           # Verification pipeline
@@ -220,6 +223,34 @@ scitex-cloud/
 
 </details>
 
+## Part of SciTeX
+
+SciTeX Cloud is part of [**SciTeX**](https://scitex.ai). When used with the `scitex` Python package, modules like Scholar, Writer, and FigRecipe share sessions and data automatically:
+
+```python
+import scitex
+
+@scitex.session
+def main(CONFIG=scitex.INJECTED):
+    data = scitex.io.load("input.csv")     # auto-tracked as input
+    result = process(data)
+    scitex.io.save(result, "output.csv")   # auto-tracked as output
+    return 0
+```
+
+All file I/O through `scitex.io` is recorded and linked across Cloud modules — Scholar references feed directly into Writer bibliographies, and FigRecipe outputs appear in the project Hub.
+
+The SciTeX system follows the Four Freedoms for Research below, inspired by [the Free Software Definition](https://www.gnu.org/philosophy/free-sw.en.html):
+
+>Four Freedoms for Research
+>
+>0. The freedom to **run** your research anywhere — your machine, your terms.
+>1. The freedom to **study** how every step works — from raw data to final manuscript.
+>2. The freedom to **redistribute** your workflows, not just your papers.
+>3. The freedom to **modify** any module and share improvements with the community.
+>
+>AGPL-3.0 — because we believe research infrastructure deserves the same freedoms as the software it runs on.
+
 ## Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -228,8 +259,6 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 <p align="center">
   <a href="https://scitex.ai" target="_blank"><img src="static/shared/images/scitex_logos/scitex-icons/scitex-icon-navy-inverted.png" alt="SciTeX" width="40"/></a>
-  <br>
-  AGPL-3.0
 </p>
 
 <!-- EOF -->
