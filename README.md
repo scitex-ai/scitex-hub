@@ -17,7 +17,9 @@
   </a>
 </p>
 
-<p align="center"><b>Open-source scientific research platform — web interface for the SciTeX ecosystem</b></p>
+<p align="center"><b>GitHub for research — verifiable, AI-native, self-hosted infrastructure for scientists</b></p>
+
+<p align="center"><sub>For researchers and lab teams who want a unified, open-source platform<br>to manage the full research lifecycle — from literature to manuscript — under their own control.</sub></p>
 
 <p align="center">
   <a href="https://pypi.org/project/scitex-cloud/"><img src="https://badge.fury.io/py/scitex-cloud.svg" alt="PyPI version"></a>
@@ -29,8 +31,6 @@
 <p align="center">
   <a href="https://scitex-cloud.readthedocs.io/">Full Documentation</a> · <code>pip install scitex-cloud</code>
 </p>
-
-> **Status**: Alpha (data may be lost between releases)
 
 ---
 
@@ -47,7 +47,7 @@ Scientific research faces several infrastructure challenges:
 7. **No research community platform** — no GitHub-like infrastructure exists for research-project-centric, fully traceable, parallel-working collaboration.
 8. **No control** — researchers have no ownership over their infrastructure: vendor lock-in, opaque algorithms, unilateral pricing changes, and data policies they cannot influence.
 
-As a result, research workflows will never scale.
+These gaps fuel the reproducibility crisis, limit what AI can do for research, and leave knowledge stranded when people move on.
 
 ## Solution
 
@@ -278,6 +278,10 @@ The SciTeX system follows the Four Freedoms for Research below, inspired by [the
 >3. The freedom to **modify** any module and share improvements with the community.
 >
 >AGPL-3.0 — because we believe research infrastructure deserves the same freedoms as the software it runs on.
+
+## Status
+
+SciTeX Cloud is in **alpha**. Core functionality is working and under active development. Data formats may change between releases — back up important work.
 
 ## Contributing
 
