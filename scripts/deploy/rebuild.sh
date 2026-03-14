@@ -6,11 +6,12 @@
 #   env: dev, staging, or prod
 #
 # REBUILD_STEPS (single source of truth - used by 'make help-commands'):
-#   1. down          - Stop services (docker compose down)
-#   2. build         - Build Docker images (code COPIED into image)
-#   3. clear-vite    - Clear vite timestamp (forces TypeScript rebuild)
-#   4. up            - Start services (docker compose up -d)
-#   5. cache-purge   - Purge Cloudflare cache
+#   1. slurm-clean   - Cancel SLURM jobs and reset node state
+#   2. down          - Stop services (docker compose down)
+#   3. build         - Build Docker images (code COPIED into image)
+#   4. clear-vite    - Clear vite timestamp (forces TypeScript rebuild)
+#   5. up            - Start services (docker compose up -d)
+#   6. cache-purge   - Purge Cloudflare cache
 #
 # No manual steps needed after running this script.
 # ==============================================================================
@@ -93,30 +94,50 @@ fi
 echo ""
 echo -e "${CYAN}🔄 Rebuilding ${ENV} environment...${NC}"
 
-# Step 1: Stop and remove services
-echo -e "${CYAN}  1. Stopping ${ENV}...${NC}"
+# Step 1: Clean SLURM state (before stopping containers)
+echo -e "${CYAN}  1. Cleaning SLURM state...${NC}"
 cd "$DOCKER_DIR"
+DJANGO_CONTAINER="scitex-cloud-${ENV}-django-1"
+if docker ps --format '{{.Names}}' | grep -q "^${DJANGO_CONTAINER}$"; then
+    docker exec "$DJANGO_CONTAINER" bash -c '
+        if command -v scancel &>/dev/null; then
+            scancel --state=COMPLETING 2>/dev/null || true
+            scancel -u root 2>/dev/null || true
+            for node in $(sinfo -h -o"%N" 2>/dev/null); do
+                scontrol update NodeName="$node" State=resume 2>/dev/null || true
+            done
+            echo "SLURM state cleaned"
+        else
+            echo "SLURM not available, skipping"
+        fi
+    ' 2>/dev/null || echo -e "${YELLOW}   SLURM cleanup skipped (container not accessible)${NC}"
+else
+    echo -e "${YELLOW}   Django container not running — SLURM cleanup skipped${NC}"
+fi
+
+# Step 2: Stop and remove services
+echo -e "${CYAN}  2. Stopping ${ENV}...${NC}"
 $COMPOSE_CMD down --remove-orphans --volumes=false 2>/dev/null || true
 
 # Remove any leftover containers (handles edge cases like "Created" state)
-echo -e "${CYAN}  1b. Cleaning up leftover containers...${NC}"
+echo -e "${CYAN}  2b. Cleaning up leftover containers...${NC}"
 docker ps -a --format '{{.Names}}' | grep "^scitex-cloud-${ENV}-" | xargs -r docker rm -f 2>/dev/null || true
 
-# Step 2: Build images
-echo -e "${CYAN}  2. Building Docker images...${NC}"
+# Step 3: Build images
+echo -e "${CYAN}  3. Building Docker images...${NC}"
 $COMPOSE_CMD build
 
-# Step 3: Clear vite timestamp (forces TypeScript rebuild)
-echo -e "${CYAN}  3. Clearing vite timestamp (forces TypeScript rebuild)...${NC}"
+# Step 4: Clear vite timestamp (forces TypeScript rebuild)
+echo -e "${CYAN}  4. Clearing vite timestamp (forces TypeScript rebuild)...${NC}"
 docker run --rm -v "scitex-cloud-${ENV}_static_volume:/staticfiles" alpine \
     rm -f /staticfiles/vite/.build-timestamp 2>/dev/null || true
 
-# Step 4: Start services
-echo -e "${CYAN}  4. Starting services...${NC}"
+# Step 5: Start services
+echo -e "${CYAN}  5. Starting services...${NC}"
 $COMPOSE_CMD up -d
 
-# Step 5: Purge Cloudflare cache
-echo -e "${CYAN}  5. Purging Cloudflare cache...${NC}"
+# Step 6: Purge Cloudflare cache
+echo -e "${CYAN}  6. Purging Cloudflare cache...${NC}"
 CACHE_PURGE_SCRIPT="$PROJECT_ROOT/deployment/docker/common/scripts/cloudflare_cache_purge.sh"
 if [ -x "$CACHE_PURGE_SCRIPT" ]; then
     "$CACHE_PURGE_SCRIPT" all 2>/dev/null || echo -e "${YELLOW}   ⚠️ Cache purge skipped (no API credentials)${NC}"

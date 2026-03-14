@@ -47,6 +47,18 @@ fi
 sync_slurm_uid || echo_warning "SLURM UID sync skipped - terminal may have issues"
 
 # ============================================
+# Clean SLURM State (Prevent Stuck Nodes)
+# ============================================
+# Cancel stuck COMPLETING jobs and reset node state from previous runs
+if command -v scancel &>/dev/null; then
+    scancel --state=COMPLETING 2>/dev/null || true
+    for node in $(sinfo -h -o"%N" 2>/dev/null); do
+        scontrol update NodeName="$node" State=resume 2>/dev/null || true
+    done
+    echo_success "SLURM state cleaned"
+fi
+
+# ============================================
 # Install SciTeX + Ecosystem Packages (Editable Mode)
 # ============================================
 source "$(dirname "$0")/install_ecosystem.sh"
