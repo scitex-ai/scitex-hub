@@ -91,6 +91,7 @@ django = [
 ]
 test = [
     "pytest>=8.4",
+    "pytest-django>=4.5",
     "pytest-playwright>=0.7",
     "pytest-base-url>=2.1",
     "pytest-asyncio>=1.2",
