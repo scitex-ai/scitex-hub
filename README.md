@@ -19,7 +19,7 @@
 
 <p align="center"><b>GitHub for research — verifiable, AI-native, self-hosted infrastructure for scientists</b></p>
 
-<p align="center"><sub>For researchers and lab teams who want a unified, open-source platform<br>to manage the full research lifecycle — from literature to manuscript — under their own control.</sub></p>
+<p align="center"><sub>For researchers and lab teams who want a unified, open-source platform<br>to manage the full research lifecycle — from literature to manuscript — under their own control.<br><a href="https://scitex.ai">scitex.ai</a> is powered by this project.</sub></p>
 
 <p align="center">
   <a href="https://pypi.org/project/scitex-cloud/"><img src="https://badge.fury.io/py/scitex-cloud.svg" alt="PyPI version"></a>
