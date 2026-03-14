@@ -47,7 +47,7 @@ describe('PanelControls', () => {
 //      * Initialize sidebar toggle button and event listeners
 //      */
 //     public initSidebarToggle(): void {
-//         const toggleBtn = document.getElementById('sidebar-toggle');
+//         const toggleBtn = document.getElementById('stx-shell-sidebar__toggle');
 //         const main = document.querySelector('.vis-main');
 //         const icon = toggleBtn?.querySelector('i');
 //
@@ -109,7 +109,7 @@ describe('PanelControls', () => {
 //     public setSidebarCollapsed(collapsed: boolean): void {
 //         this.isSidebarCollapsed = collapsed;
 //         const main = document.querySelector('.vis-main');
-//         const toggleBtn = document.getElementById('sidebar-toggle');
+//         const toggleBtn = document.getElementById('stx-shell-sidebar__toggle');
 //         const icon = toggleBtn?.querySelector('i');
 //
 //         main?.classList.toggle('sidebar-collapsed', collapsed);

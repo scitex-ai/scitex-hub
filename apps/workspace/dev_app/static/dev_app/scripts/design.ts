@@ -2,7 +2,7 @@
 function toggleSidebarSection(sectionId) {
   const submenu = document.getElementById("submenu-" + sectionId);
   const button = event.currentTarget;
-  const icon = button.querySelector(".sidebar-toggle-icon");
+  const icon = button.querySelector(".stx-shell-sidebar__toggle-icon");
 
   if (submenu.style.display === "none" || submenu.style.display === "") {
     submenu.style.display = "block";
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
             submenu.style.display = "block";
             const button = submenu.previousElementSibling;
             if (button) {
-              const icon = button.querySelector(".sidebar-toggle-icon");
+              const icon = button.querySelector(".stx-shell-sidebar__toggle-icon");
               if (icon) icon.style.transform = "rotate(180deg)";
             }
           }

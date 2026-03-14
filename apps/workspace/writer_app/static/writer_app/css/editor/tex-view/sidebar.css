@@ -1,7 +1,7 @@
 /* Writer sidebar - content-specific styles only
-   Base layout from shared workspace-sidebar.css (50px header, 250px width, etc.) */
+   Base layout from shared stx-shell-sidebar.css (50px header, 250px width, etc.) */
 
-.writer-sidebar .sidebar-header-content {
+.writer-sidebar .stx-shell-sidebar__header-content {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -9,13 +9,13 @@
 }
 
 /* Compact layout - single horizontal row */
-.writer-sidebar .sidebar-header-content.sidebar-header-compact {
+.writer-sidebar .stx-shell-sidebar__header-content.stx-shell-sidebar__header-compact {
   flex-direction: row;
   align-items: center;
   gap: 0.25rem;
 }
 
-.writer-sidebar .sidebar-header-hint {
+.writer-sidebar .stx-shell-sidebar__header-hint {
   font-size: 0.7rem;
   color: var(--text-muted);
   display: flex;
@@ -26,7 +26,7 @@
   opacity: 0.8;
 }
 
-.writer-sidebar .sidebar-header-hint i {
+.writer-sidebar .stx-shell-sidebar__header-hint i {
   font-size: var(--icon-xs); /* 12px - standardized minimum */
   opacity: 0.7;
 }

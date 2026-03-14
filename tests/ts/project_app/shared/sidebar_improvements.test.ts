@@ -48,7 +48,7 @@ describe('sidebar_improvements', () => {
 //   }
 // 
 //   private setupCollapsible(): void {
-//     const toggleButtons = document.querySelectorAll(".sidebar-toggle");
+//     const toggleButtons = document.querySelectorAll(".stx-shell-sidebar__toggle");
 //     toggleButtons.forEach((button) => {
 //       button.addEventListener("click", () => {
 //         this.sidebar?.classList.toggle("collapsed");

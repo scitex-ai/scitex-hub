@@ -103,7 +103,7 @@ export class HorizontalResizer extends BaseResizer {
         "[data-h-resizer], [data-panel-resizer]",
       ) as HTMLElement;
       const sibPanel = sibling.querySelector(
-        ".workspace-sidebar",
+        ".stx-shell-sidebar",
       ) as HTMLElement;
 
       if (!sibResizer || !sibPanel) {

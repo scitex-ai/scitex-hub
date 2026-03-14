@@ -47,15 +47,15 @@
 }
 
 /* Short label shown when collapsed; full label shown when expanded */
-#ws-viewer-sidebar .sidebar-title-full {
+#ws-viewer-sidebar .stx-shell-sidebar__title-full {
   display: none;
 }
 
-#ws-viewer-sidebar:not(.collapsed) .sidebar-title-full {
+#ws-viewer-sidebar:not(.collapsed) .stx-shell-sidebar__title-full {
   display: inline;
 }
 
-#ws-viewer-sidebar:not(.collapsed) .sidebar-title {
+#ws-viewer-sidebar:not(.collapsed) .stx-shell-sidebar__title {
   display: none;
 }
 
@@ -78,7 +78,7 @@
    Viewer header — left-aligned tabs
    ============================================================ */
 
-#ws-viewer-sidebar:not(.collapsed) .sidebar-header {
+#ws-viewer-sidebar:not(.collapsed) .stx-shell-sidebar__header {
   justify-content: flex-start;
   gap: 0;
 }

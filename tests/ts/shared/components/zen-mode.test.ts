@@ -43,7 +43,7 @@ describe('zen-mode', () => {
 //  *   headerSelector: '.global-header',
 //  *   sidebarSelector: '.writer-sidebar',
 //  *   detailsSelector: '.writer-details',
-//  *   sidebarToggleId: 'sidebar-toggle',
+//  *   sidebarToggleId: 'stx-shell-sidebar__toggle',
 //  *   detailsToggleId: 'details-toggle',
 //  * });
 //  * zenMode.init();

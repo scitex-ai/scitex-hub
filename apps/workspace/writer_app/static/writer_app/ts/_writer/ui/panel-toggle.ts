@@ -157,8 +157,8 @@ function updateToggleButtonIcons(): void {
 
   // Update sidebar toggle button (try both IDs for compatibility)
   const sidebarToggle =
-    document.getElementById("sidebar-toggle-btn") ||
-    document.getElementById("sidebar-toggle");
+    document.getElementById("stx-shell-sidebar__toggle-btn") ||
+    document.getElementById("stx-shell-sidebar__toggle");
   if (sidebarToggle && sidebar) {
     const icon = sidebarToggle.querySelector("i");
     if (icon) {

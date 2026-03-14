@@ -2,9 +2,9 @@
 
 /* Compact sidebar header layout - icon + actions in single horizontal line */
 /* Override flex-direction: column from tex-view/sidebar.css */
-.sidebar-header-compact,
-.sidebar-header-content.sidebar-header-compact,
-.writer-sidebar .sidebar-header-content.sidebar-header-compact {
+.stx-shell-sidebar__header-compact,
+.stx-shell-sidebar__header-content.stx-shell-sidebar__header-compact,
+.writer-sidebar .stx-shell-sidebar__header-content.stx-shell-sidebar__header-compact {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
@@ -14,15 +14,15 @@
   width: 100%;
 }
 
-.sidebar-header-compact .sidebar-icon {
+.stx-shell-sidebar__header-compact .sidebar-icon {
   color: var(--workspace-icon-primary);
   font-size: 0.85rem;
   flex-shrink: 0;
 }
 
 /* Direct select styling in compact header - dark workspace colors */
-.sidebar-header-compact .sidebar-select,
-.sidebar-header-compact .section-selector-btn {
+.stx-shell-sidebar__header-compact .sidebar-select,
+.stx-shell-sidebar__header-compact .section-selector-btn {
   font-size: 0.7rem;
   background: var(--workspace-bg-primary, #1a1d24) !important;
   border: 1px solid var(--workspace-border-default, #2d3139) !important;
@@ -37,7 +37,7 @@
   padding: 0 0.35rem;
 }
 
-.sidebar-header-compact .custom-section-selector {
+.stx-shell-sidebar__header-compact .custom-section-selector {
   flex: 0 1 auto;
   min-width: 0;
   position: relative;
@@ -52,7 +52,7 @@
   position: relative;
 }
 
-.sidebar-header-compact .section-selector-btn {
+.stx-shell-sidebar__header-compact .section-selector-btn {
   width: auto;
   display: flex;
   align-items: center;
@@ -60,13 +60,13 @@
   cursor: pointer;
 }
 
-.sidebar-header-compact .sidebar-select:hover,
-.sidebar-header-compact .section-selector-btn:hover {
+.stx-shell-sidebar__header-compact .sidebar-select:hover,
+.stx-shell-sidebar__header-compact .section-selector-btn:hover {
   border-color: var(--workspace-border-hover) !important;
 }
 
-.sidebar-header-compact .sidebar-select:focus,
-.sidebar-header-compact .section-selector-btn:focus {
+.stx-shell-sidebar__header-compact .sidebar-select:focus,
+.stx-shell-sidebar__header-compact .section-selector-btn:focus {
   outline: none;
   border-color: var(--scitex-color-04) !important;
 }
@@ -167,7 +167,7 @@
 }
 
 /* Sidebar Header Hint */
-.sidebar-header-hint {
+.stx-shell-sidebar__header-hint {
   margin-top: 0.5rem;
 }
 

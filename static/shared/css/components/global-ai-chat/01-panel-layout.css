@@ -1,10 +1,10 @@
 /* ============================================================
-   AI Panel: override workspace-sidebar for fixed left-side positioning.
-   workspace-sidebar.css provides: collapsed state, toggle btn visibility,
-   sidebar-title vertical text, foldable green highlight (single source of truth).
+   AI Panel: override stx-shell-sidebar for fixed left-side positioning.
+   stx-shell-sidebar.css provides: collapsed state, toggle btn visibility,
+   stx-shell-sidebar__title vertical text, foldable green highlight (single source of truth).
    ============================================================ */
 
-.scitex-ai-panel.workspace-sidebar {
+.scitex-ai-panel.stx-shell-sidebar {
   position: fixed;
   top: 64px; /* global-header height */
   left: 0;
@@ -19,25 +19,25 @@
 }
 
 /* Keep inner content contained so overflow:visible on panel doesn't leak */
-.scitex-ai-panel .sidebar-header,
-.scitex-ai-panel .sidebar-content {
+.scitex-ai-panel .stx-shell-sidebar__header,
+.scitex-ai-panel .stx-shell-sidebar__content {
   overflow: hidden;
   max-width: 100%;
 }
 
-/* Collapsed: 40px strip (workspace-sidebar sets min-width: 40px already) */
-.scitex-ai-panel.workspace-sidebar.collapsed {
+/* Collapsed: 40px strip (stx-shell-sidebar sets min-width: 40px already) */
+.scitex-ai-panel.stx-shell-sidebar.collapsed {
   width: 40px;
   overflow: hidden; /* prevent content from bleeding outside the 40px strip */
 }
 
 /* Expanded: 380px */
-.scitex-ai-panel.workspace-sidebar:not(.collapsed) {
+.scitex-ai-panel.stx-shell-sidebar:not(.collapsed) {
   width: 380px;
 }
 
-/* sidebar-content: flex column for messages + input (only when expanded) */
-.scitex-ai-panel:not(.collapsed) .sidebar-content {
+/* stx-shell-sidebar__content: flex column for messages + input (only when expanded) */
+.scitex-ai-panel:not(.collapsed) .stx-shell-sidebar__content {
   background: var(--bg-secondary, #161b22) !important;
   padding: 0 !important;
   display: flex !important;

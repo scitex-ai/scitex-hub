@@ -51,7 +51,7 @@
 
 /* Sidebar/File tree area - dark tint-black (#0d1117) via --workspace-bg-monaco */
 [data-theme="dark"] .writer-sidebar,
-[data-theme="dark"] .sidebar-content,
+[data-theme="dark"] .stx-shell-sidebar__content,
 [data-theme="dark"] #writer-file-tree,
 [data-theme="dark"] .workspace-files-tree {
   background-color: var(--workspace-bg-monaco, #0d1117) !important;

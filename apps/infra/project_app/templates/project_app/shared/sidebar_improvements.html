@@ -5,23 +5,23 @@
 <!-- Sidebar (LEFT side like GitHub) - File Tree Navigation -->
 <aside class="repo-sidebar collapsed" id="repo-sidebar">
     <!-- Toggle Button - UPDATED icon and title -->
-    <button class="sidebar-toggle-btn"
-            id="sidebar-toggle"
+    <button class="stx-shell-sidebar__toggle-btn"
+            id="stx-shell-sidebar__toggle"
             onclick="toggleSidebar()"
             title="Expand sidebar">
-        <span class="sidebar-toggle-icon">▶</span>
+        <span class="stx-shell-sidebar__toggle-icon">▶</span>
         <!-- Changed from ◀ -->
     </button>
     <!-- File Tree - UPDATED font size -->
     <div class="sidebar-section" id="file-tree-section">
-        <div class="sidebar-title"
+        <div class="stx-shell-sidebar__title"
              onclick="toggleSidebarSection('file-tree-section')">
             <a href="/{{ project.owner.username }}/{{ project.slug }}/"
                style="color: var(--color-fg-default);
                       text-decoration: none">{{ project.name }}</a>
             <span class="sidebar-section-chevron">▼</span>
         </div>
-        <div class="sidebar-content">
+        <div class="stx-shell-sidebar__content">
             <div id="file-tree" style="font-size: 13px">
                 <!-- Changed from 12px -->
                 <!-- File tree will be loaded here -->
@@ -35,11 +35,11 @@
     </div>
     <!-- About Section - ENHANCED with stats -->
     <div class="sidebar-section collapsible" id="about-section">
-        <!-- <div class="sidebar-title" onclick="toggleSidebarSection('about-section')">
+        <!-- <div class="stx-shell-sidebar__title" onclick="toggleSidebarSection('about-section')">
          !--     <span>About</span>
          !--     <span class="sidebar-section-chevron">▼</span>
          !-- </div> -->
-        <div class="sidebar-content">
+        <div class="stx-shell-sidebar__content">
             {% if project.description %}
                 <p style="font-size: 13px;
                           color: var(--color-fg-default);

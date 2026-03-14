@@ -48,9 +48,9 @@ export function initContextMenu(
     }
   });
 
-  // Right-click on toolbar (sidebar-header) → show root context menu
-  const sidebar = container.closest(".workspace-sidebar");
-  const toolbar = sidebar?.querySelector(":scope > .sidebar-header");
+  // Right-click on toolbar (stx-shell-sidebar__header) → show root context menu
+  const sidebar = container.closest(".stx-shell-sidebar");
+  const toolbar = sidebar?.querySelector(":scope > .stx-shell-sidebar__header");
   if (toolbar) {
     toolbar.addEventListener("contextmenu", (e) => {
       e.preventDefault();

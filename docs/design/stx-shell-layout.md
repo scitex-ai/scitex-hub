@@ -1,6 +1,6 @@
 # Workspace Layout Rules
 
-> Also available at: http://127.0.0.1:8000/dev/design/workspace-layout/
+> Also available at: http://127.0.0.1:8000/dev/design/stx-shell-layout/
 
 ## Display Rule
 
@@ -34,7 +34,7 @@ Both global header and footer are minimizable via:
 
 ### Architecture Principles
 
-1. **Framework-controlled** — accent line is rendered by `workspace-sidebar.css` via `#main-content[data-app-accent]::before`, not by individual apps
+1. **Framework-controlled** — accent line is rendered by `stx-shell-sidebar.css` via `#main-content[data-app-accent]::before`, not by individual apps
 2. **Override-proof** — uses `!important` and `z-index: 100` to prevent app-side CSS from hiding or overriding the accent
 3. **No inline styles** — color resolution happens purely through CSS attribute selectors (`[data-app-accent="writer"]`), not inline `style` attributes
 4. **Continuous line** — single `::before` pseudo-element spans the entire module content area with no gaps at sub-panel boundaries
@@ -54,7 +54,7 @@ Both global header and footer are minimizable via:
 [data-app-accent="writer"]  { --app-accent-color: var(--app-accent-writer); }
 [data-app-accent="scholar"] { --app-accent-color: var(--app-accent-scholar); }
 
-/* 3. Framework renders the accent line (workspace-sidebar.css) */
+/* 3. Framework renders the accent line (stx-shell-sidebar.css) */
 #main-content[data-app-accent]::before {
   content: "" !important;
   position: absolute !important;

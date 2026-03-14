@@ -458,8 +458,8 @@ This document provides a comprehensive guide to using CSS components in the proj
 
 ```html
 <div class="repo-sidebar">
-  <button class="sidebar-toggle">
-    <i class="sidebar-toggle-icon fas fa-chevron-right"></i>
+  <button class="stx-shell-sidebar__toggle">
+    <i class="stx-shell-sidebar__toggle-icon fas fa-chevron-right"></i>
   </button>
 
   <div class="sidebar-section">

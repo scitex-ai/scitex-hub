@@ -40,7 +40,7 @@ ZenMode (F11/Alt+Z), AJAX tab switching, footer toggle, and theme variables.
 |---|------|
 | 1 | Override `{% block workspace_worktree_pane %}` or any other frame block |
 | 2 | Hide the footer (`footer { display: none }`) |
-| 3 | Style frame elements (`.workspace-sidebar`, `.sidebar-title`, `.panel-resizer`) |
+| 3 | Style frame elements (`.stx-shell-sidebar`, `.stx-shell-sidebar__title`, `.panel-resizer`) |
 | 4 | Use `!important` on any frame element |
 | 5 | Create sidebar duplicates (`<aside>` for Files/Viewer/Console) |
 
@@ -366,11 +366,11 @@ Checks performed:
 - Template extends `global_base.html` (walks `{% extends %}` chain)
 - No `{% block workspace_worktree_pane %}` override
 - Has `{% block content %}`
-- CSS does not override `.sidebar-title` font-size
+- CSS does not override `.stx-shell-sidebar__title` font-size
 - CSS does not hide footer with `display: none`
 - CSS does not use `!important` on protected frame selectors
 - (Live) All 6 frame element IDs present in rendered HTML
-- (Live) No `font-size: 0` on `.sidebar-title` inline styles
+- (Live) No `font-size: 0` on `.stx-shell-sidebar__title` inline styles
 
 
 ### Necessary Assets

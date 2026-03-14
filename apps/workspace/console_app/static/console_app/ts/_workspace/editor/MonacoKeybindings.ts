@@ -93,7 +93,7 @@ export function addGlobalNavigationKeybindings(editor: any, monaco: any): void {
   // Alt+F: Toggle sidebar (Files panel)
   editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyF, () => {
     console.log("[Monaco] Alt+F - Toggle sidebar");
-    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebarToggle = document.getElementById("stx-shell-sidebar__toggle");
     if (sidebarToggle) sidebarToggle.click();
   });
 

@@ -20,9 +20,9 @@
     border-top-color: var(--workspace-border-default);
 }
 
-.status-left,
-.status-center,
-.status-right {
+.stx-shell-status-bar__left,
+.stx-shell-status-bar__center,
+.stx-shell-status-bar__right {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -39,7 +39,7 @@
 }
 
 /* Status bar button */
-.status-btn {
+.stx-shell-status-bar__btn {
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -53,28 +53,28 @@
     transition: all 0.15s ease;
 }
 
-.status-btn:hover {
+.stx-shell-status-bar__btn:hover {
     background: var(--vis-accent, #4a9b7e);
     color: white;
     border-color: var(--vis-accent, #4a9b7e);
 }
 
-.status-btn:active {
+.stx-shell-status-bar__btn:active {
     transform: scale(0.97);
 }
 
-.status-btn i {
+.stx-shell-status-bar__btn i {
     font-size: 10px;
 }
 
 /* Dark mode */
-[data-theme="dark"] .status-btn {
+[data-theme="dark"] .stx-shell-status-bar__btn {
     background: var(--workspace-bg-tertiary, #2d2d2d);
     border-color: var(--workspace-border-default);
     color: var(--workspace-text-muted);
 }
 
-[data-theme="dark"] .status-btn:hover {
+[data-theme="dark"] .stx-shell-status-bar__btn:hover {
     background: var(--vis-accent, #4a9b7e);
     color: white;
 }

@@ -83,7 +83,7 @@
  * ============================================================================ */
 
 /* Visitor sidebar title with signup link */
-.sidebar-title-visitor {
+.stx-shell-sidebar__title-visitor {
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
@@ -96,7 +96,7 @@
 }
 
 /* Authenticated user sidebar link */
-.sidebar-title-auth {
+.stx-shell-sidebar__title-auth {
   display: inline-flex;
 }
 

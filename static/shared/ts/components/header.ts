@@ -240,7 +240,7 @@ function initializeHeader(): void {
   const serverStatusIndicator = document.getElementById(
     "server-status-indicator",
   ) as HTMLElement;
-  const serverStatusBtn = document.getElementById("server-status-btn");
+  const serverStatusBtn = document.getElementById("server-stx-shell-status-bar__btn");
 
   if (serverStatusIndicator && serverStatusBtn) {
     let lastStatus = "healthy";

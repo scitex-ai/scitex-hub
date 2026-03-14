@@ -163,7 +163,7 @@ urlpatterns = [
         name="design_icons",
     ),
     path(
-        "design/workspace-layout/",
+        "design/stx-shell-layout/",
         views.DesignWorkspaceLayoutView.as_view(),
         name="design_workspace_layout",
     ),

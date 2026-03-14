@@ -2,7 +2,7 @@
 
 {% if user.is_authenticated %}
     <div class="ws-worktree-pane" id="ws-worktree-pane">
-        <div class="workspace-sidebar" id="ws-worktree-sidebar">
+        <div class="stx-shell-sidebar" id="ws-worktree-sidebar">
             <div id="ws-worktree-resizer"
                  class="panel-resizer"
                  data-panel-resizer
@@ -18,12 +18,12 @@
                         top:0;
                         bottom:0;
                         z-index:1"></div>
-            <div class="sidebar-header">
+            <div class="stx-shell-sidebar__header">
                 <button class="panel-toggle-btn" id="ws-worktree-toggle" title="Toggle file tree">
                     <i class="fas fa-chevron-right"></i>
                 </button>
-                <span class="sidebar-title" title="Files"><i class="fas fa-folder"></i> Files</span>
-                <span class="sidebar-title-full">
+                <span class="stx-shell-sidebar__title" title="Files"><i class="fas fa-folder"></i> Files</span>
+                <span class="stx-shell-sidebar__title-full">
                     <i class="fas fa-folder-open"></i>
                     {% if current_project %}
                         {{ current_project.owner.username }}/{{ current_project.slug }}
@@ -31,7 +31,7 @@
                         Files
                     {% endif %}
                 </span>
-                <div class="sidebar-header-actions ws-worktree-actions">
+                <div class="stx-shell-sidebar__header-actions ws-worktree-actions">
                     <button class="scitex-ai-action-btn"
                             title="Keyboard Shortcuts"
                             onclick="window.showShortcutsModal()">
@@ -39,7 +39,7 @@
                     </button>
                 </div>
             </div>
-            <div class="sidebar-content ws-worktree-split">
+            <div class="stx-shell-sidebar__content ws-worktree-split">
                 <div class="ws-worktree-tree-area">
                     {% if current_project %}
                         {% tree_preseed_script current_project %}

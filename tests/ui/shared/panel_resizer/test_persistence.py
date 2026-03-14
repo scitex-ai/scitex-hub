@@ -29,9 +29,9 @@ class TestLocalStoragePersistence:
 
         is_collapsed = sidebar.evaluate("el => el.classList.contains('collapsed')")
         if is_collapsed:
-            toggle_btn = page.locator("#sidebar-toggle")
+            toggle_btn = page.locator("#stx-shell-sidebar__toggle")
             if toggle_btn.count() > 0:
-                visual_click(page, "#sidebar-toggle")
+                visual_click(page, "#stx-shell-sidebar__toggle")
                 page.wait_for_timeout(300)
 
         resizer_box = resizer.bounding_box()
@@ -64,7 +64,7 @@ class TestLocalStoragePersistence:
             pytest.skip(f"{workspace_app['name']} workspace not available")
 
         sidebar = page.locator(workspace_app["sidebar"])
-        toggle_btn = page.locator("#sidebar-toggle")
+        toggle_btn = page.locator("#stx-shell-sidebar__toggle")
 
         if toggle_btn.count() == 0:
             pytest.skip("No toggle button found")
@@ -74,7 +74,7 @@ class TestLocalStoragePersistence:
         is_collapsed = sidebar.evaluate("el => el.classList.contains('collapsed')")
         if not is_collapsed:
             show_step(page, 2, 4, "Collapsing panel...", "info")
-            visual_click(page, "#sidebar-toggle")
+            visual_click(page, "#stx-shell-sidebar__toggle")
             page.wait_for_timeout(300)
 
         collapsed_before = sidebar.evaluate("el => el.classList.contains('collapsed')")
