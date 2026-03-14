@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-03-15 01:53:30
+!-- Timestamp: 2026-03-15 01:57:12
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/scitex-cloud/README.md
 !-- --- -->
@@ -34,33 +34,20 @@
 
 ---
 
-## Problem
+## Problem and Solution
 
-Scientific research faces several infrastructure challenges:
+| # | Problem | Solution |
+|:-:|---------|----------|
+| 1 | **Fragmented tools** — literature, writing, analysis, and visualization require separate, often proprietary applications, forcing constant context-switching and making it difficult for AI agents to build sufficient context across the research workflow. | **Unified platform** — Scholar, Writer, FigRecipe, Console, Hub, and Clew in a single Django web application, deployable anywhere with Docker. All apps share the same project filesystem and integrate through the `scitex` Python package. |
+| 2 | **No custom tooling** — every research group needs domain-specific tools (e.g., clinical trial dashboards, spike-sorting interfaces, compound screening pipelines), yet building and sharing them requires deep computational knowledge and creating components from scratch. | **App Maker and Store** — researchers create, publish, and install custom research tools on top of shared components — user/group permissions, AI infrastructure, containerized computation, and file operations are handled by the platform. |
+| 3 | **AI tools not research-aware** — existing tools often lack AI assistant capabilities and domain-specific skills for scientific work, unable to operate across the full research lifecycle (literature review, analysis, writing, verification). | **Built-in AI co-pilot** — platform-aware context, skills, and tools such as MCP (Model Context Protocol) and CLI span the full research lifecycle, providing an AI assistant that understands the entire project from natural language. |
+| 4 | **Review crisis** — the growing volume and heterogeneity of published papers overwhelms a limited, volunteer-based peer review process that cannot scale. | **Open review via Issues and PRs** — GitHub-style issue tracking and pull requests bring transparent, structured, and scalable peer review to research projects — anyone can inspect, comment, and propose changes. |
+| 5 | **Broken provenance** — papers, code, and execution environments are rarely tied together, making it difficult for reviewers to verify claims and for other researchers to replicate results — slowing cumulative scientific progress. | **Verifiable provenance** — Clew links papers, code, data, and execution environments into a hash-verified DAG (Directed Acyclic Graph) with visualization that serves as a compressed view of the research workflow and logic — reducing the decision points reviewers must check. |
+| 6 | **Lost knowledge on handoff** — when researchers graduate or leave a project, successors inherit scattered files with little context, making it difficult to understand where to pick up and continue the work. | **Seamless project handoff** — the full project state — code, data, provenance graph, manuscript drafts, and execution environment — lives in one place, so successors can understand and continue work immediately. |
+| 7 | **No research community platform** — no GitHub-like infrastructure exists for research-project-centric, fully traceable, parallel-working collaboration. | **GitHub-style project hub** — repository hosting and ticket-based development with co-authors and the community enable efficient research advancement and collaboration. |
+| 8 | **No control** — researchers have no ownership over their infrastructure: vendor lock-in, opaque algorithms, unilateral pricing changes, and data policies they cannot influence. | **Self-hosted, open-source, runnable from anywhere** — deploy on your laptop, lab server, or cloud. AGPL-3.0 licensed — inspect every line, customize freely, no vendor lock-in, no data surrender. |
 
-1. **Fragmented tools** — literature discovery, manuscript writing, data analysis, and visualization each require separate applications, most of which are proprietary, cloud-locked, or require surrendering data to third-party services. This fragmentation forces researchers to switch context constantly and makes it difficult to build sufficient context for AI agents to assist meaningfully across the research workflow.
-2. **No custom tooling** — every research group needs custom tools for their specific needs (e.g., clinical trial dashboards in medical research, spike-sorting interfaces in neuroscience, compound screening pipelines in pharmaceutical sciences, sequence annotation tools in biology), yet building and sharing them requires deep computational knowledge and creating potentially shareable components from scratch.
-3. **AI tools not research-aware** — existing tools often lack AI assistant capabilities and domain-specific skills for scientific work, unable to operate across the full research lifecycle (literature review, analysis, writing, verification).
-4. **Review crisis** — the growing volume and heterogeneity of published papers overwhelms a limited, volunteer-based peer review process that cannot scale.
-5. **Broken provenance** — papers, code, and execution environments are rarely tied together, making it difficult for reviewers to verify claims and for other researchers to replicate results or build on existing work — slowing the cumulative progress of science.
-6. **Lost knowledge on handoff** — when researchers graduate or leave a project, successors inherit scattered files with little context, making it difficult to understand where to pick up and continue the work.
-7. **No research community platform** — no GitHub-like infrastructure exists for research-project-centric, fully traceable, parallel-working collaboration.
-8. **No control** — researchers have no ownership over their infrastructure: vendor lock-in, opaque algorithms, unilateral pricing changes, and data policies they cannot influence.
-
-These gaps fuel the reproducibility crisis, limit what AI can do for research, and leave knowledge stranded when people move on.
-
-## Solution
-
-SciTeX Cloud addresses each of these directly:
-
-1. **Unified platform** — Scholar, Writer, FigRecipe, Console, Hub, and Clew in a single Django web application, deployable anywhere with Docker. All apps share the same project filesystem and integrate through the `scitex` Python package.
-2. **App Maker and Store** — researchers create, publish, and install custom research tools on top of shared components — user/group permissions, AI infrastructure, containerized computation, and file operations are handled consistently by the platform, letting researchers focus on what they need.
-3. **Built-in AI co-pilot** — platform-aware context, skills, and tools such as MCP (Model Context Protocol) and CLI span the full research lifecycle, providing an optimized AI assistant that understands the entire project from natural language.
-4. **Open review via Issues and PRs** — GitHub-style issue tracking and pull requests bring transparent, structured, and scalable peer review to research projects — anyone can inspect, comment, and propose changes.
-5. **Verifiable provenance** — Clew links papers, code, data, and execution environments into a hash-verified DAG (Directed Acyclic Graph) with visualization that serves as a compressed view of the research workflow and logic — reducing the number of decision points reviewers must check and ensuring every result is traceable and reproducible.
-6. **Seamless project handoff** — the full project state — code, data, provenance graph, manuscript drafts, and execution environment — lives in one place, so successors can understand and continue work immediately.
-7. **GitHub-style project hub** — repository hosting and ticket-based development with co-authors and the community enable efficient research advancement and collaboration.
-8. **Self-hosted, open-source, runnable from anywhere** — deploy on your laptop, lab server, or cloud. AGPL-3.0 licensed — inspect every line of code, customize freely, no vendor lock-in, no data surrender.
+<p align="center"><sub><b>Table 1.</b> Eight infrastructure challenges in scientific research and how SciTeX Cloud addresses each. These gaps fuel the reproducibility crisis, limit what AI can do for research, and leave knowledge stranded when people move on.</sub></p>
 
 SciTeX Cloud is an AI-native infrastructure so that researchers can focus on science, not on tooling.
 
@@ -161,7 +148,7 @@ AI agents can interact with the SciTeX Cloud platform autonomously via MCP (Mode
 | cloud | 14 | Git operations (clone, push, pull, PR, issues) |
 | api | 9 | Scholar search, CrossRef, BibTeX enrichment |
 
-<sub><b>Table 1.</b> MCP tool categories. All tools accept JSON parameters and return JSON results. Use <code>scitex-cloud mcp list-tools</code> for the full list.</sub>
+<sub><b>Table 2.</b> MCP tool categories. All tools accept JSON parameters and return JSON results. Use <code>scitex-cloud mcp list-tools</code> for the full list.</sub>
 
 **Claude Desktop** (`~/.config/claude/claude_desktop_config.json`):
 
@@ -258,6 +245,7 @@ SciTeX Cloud is part of [**SciTeX**](https://scitex.ai). When modules work toget
 | From | Produces | To | Outcome |
 |------|----------|----|---------|
 | **Scholar** | Citations as cards | **Writer** | Convenient, evidence-based referencing |
+| **SciTeX-followed Analysis** | Artifacts | **Writer** | AI writes a manuscript based on actual results |
 | **FigRecipe** | Style-editable, composable figures | **Writer** | Publication-ready figures in context |
 | **Clew** | Verification and DAG visualization | **Writer** | Proven reproducibility for every claim |
 
