@@ -1,6 +1,0 @@
-[default]
-s3 =
-    max_bandwidth = 5MB/s
-    max_concurrent_requests = 1
-    multipart_threshold = 100MB
-    multipart_chunksize = 50MB

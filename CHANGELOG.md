@@ -5,6 +5,37 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.0] - 2026-03-14
+
+### Added
+- **scitex_container source**: Added scitex_container package as a tracked source
+- **Sphinx docs inline**: Render Sphinx documentation inline per package in the sidebar with dark mode support
+- **Audio mount**: Add scitex-audio volume mount with corrected entrypoint path in Docker configuration
+
+### Changed
+- **Docs ecosystem**: Remove RTD redirects; mount all ecosystem packages for inline docs rendering
+- **Four Freedoms block**: Standardize with FSF attribution across documentation
+
+### Fixed
+- **Docs toctree**: Hide redundant toctree in body when sidebar TOC is already present
+- **RTD links**: Replace remaining ReadTheDocs links with internal documentation URLs throughout templates
+- **Docs app navigation**: Intercept all Sphinx `.html` links to prevent 404 navigation errors
+- **Docs layout**: RTD-style two-column layout with responsive container queries in docs app
+- **Docs CSS**: Move Sphinx CSS link from AJAX fragment to parent template to fix styling
+- **Modal overlay**: Prevent modal overlay from darkening terminal when inactive
+- **Hub unauthenticated**: Hide My and Settings tabs for unauthenticated visitors
+- **Writer resizers**: Enable bidirectional collapse on both editor resizers
+- **Scholar panel**: Improve scholar panel collapse and resizer visibility
+- **CI figrecipe-bridge**: Skip figrecipe-bridge entry when figrecipe is not available
+
+### Refactored
+- **Docs app `_PKG_META`**: Replace hardcoded metadata with dynamic entry-point discovery
+- **Docs app `DOC_PATHS`**: Replace hardcoded paths with `scitex_dev.docs` delegation
+- **SDK**: Delegate to scitex-app package for backward compatibility
+- **FigRecipe journal presets**: Migrate from ORM to figrecipe package
+- **FigRecipe URL prefix**: Rename `/apps/vis/` to `/apps/figrecipe/` for clarity
+- **Deploy layers**: Add Layer C for latest scitex/figrecipe in runtime stage; exclude scitex[all] from Layer C to avoid heavy deps; add figrecipe>=0.26.4 to prod Dockerfile
+
 ## [0.14.0] - 2026-03-10
 
 ### Fixed
