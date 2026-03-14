@@ -43,6 +43,8 @@ Scientific research faces several infrastructure challenges:
 5. **No control** — researchers have no ownership over their infrastructure: vendor lock-in, opaque algorithms, unilateral pricing changes, and data policies they cannot influence.
 6. **AI tools not research-aware** — existing tools often lack AI assistant capabilities and domain-specific skills for scientific work, unable to operate across the full research lifecycle (literature review, analysis, writing, verification).
 
+Without solid infrastructure, fragmented research workflows will never scale.
+
 ## Solution
 
 SciTeX Cloud addresses each of these directly:
