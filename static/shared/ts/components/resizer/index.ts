@@ -11,18 +11,21 @@
  * Re-initializes on htmx:afterSettle for dynamically loaded content.
  */
 
+// Core classes re-exported from scitex-ui (canonical implementation)
 export type {
   HorizontalConfig,
   VerticalConfig,
   BaseOpts,
   PropagationTarget,
-} from "./types";
-export { HorizontalResizer } from "./_horizontal";
-export { VerticalResizer } from "./_vertical";
-export { BaseResizer } from "./_base";
+} from "scitex-ui/ts/app/resizer";
+export {
+  HorizontalResizer,
+  VerticalResizer,
+  BaseResizer,
+} from "scitex-ui/ts/app/resizer";
 
-import { HorizontalResizer } from "./_horizontal";
-import { VerticalResizer } from "./_vertical";
+import { HorizontalResizer } from "scitex-ui/ts/app/resizer";
+import { VerticalResizer } from "scitex-ui/ts/app/resizer";
 
 let _autoInitDone = false;
 const _initializedIds = new Set<string>();
