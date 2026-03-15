@@ -5,6 +5,20 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.3] - 2026-03-15
+
+### Fixed
+- **Docs**: All 15 ecosystem packages now show in docs sidebar (was 7)
+- **Docs**: ECOSYSTEM dict as source of truth for package listing
+- **Tests**: Terminal broker `_alloc_fail_info` rename in test mocks
+- **Tests**: Scholar citation `generate_citation_key` rename in test imports
+- **Tests**: Remove module-level `django.setup()` from db conftest (mock leakage)
+- **Tests**: Resolve 4 stale vite_script entries with explicit overrides
+- **Tests**: Exclude user data directories from vite template scanning
+
+### Changed
+- **Vite**: Add explicit entry overrides for non-conventional TS paths
+
 ## [0.15.2] - 2026-03-15
 
 ### Changed
