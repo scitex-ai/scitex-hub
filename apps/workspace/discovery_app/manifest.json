@@ -1,6 +1,6 @@
 {
   "$schema": "scitex-app-manifest",
-  "$schema_version": "1.0.0",
+  "$schema_version": "2.0.0",
   "name": "discovery",
   "label": "Discovery",
   "app_name": "discovery_app",
@@ -18,6 +18,9 @@
   "ai_hint": "Discover public repositories, researchers, and organizations.",
   "allowed_extensions": [],
   "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+  "privileges": [
+    {"type": "network", "scope": "api.dandi.org,api.openneuro.org,physionet.org", "reason": "Search and fetch public dataset metadata"}
+  ],
   "builtin": true,
   "dependencies": {
     "python": [],
