@@ -164,7 +164,7 @@ def _manifest_json(name, label, icon, description, extra_manifest, license_id):
     desc = description or "A SciTeX Cloud app."
     manifest = {
         "$schema": "scitex-app-manifest",
-        "$schema_version": "1.0.0",
+        "$schema_version": "2.0.0",
         "name": name,
         "slug": slug,
         "label": label,
@@ -186,6 +186,7 @@ def _manifest_json(name, label, icon, description, extra_manifest, license_id):
         "capabilities": [],
         "allowed_extensions": [],
         "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+        "privileges": [],
         "wip": True,
         "dependencies": {
             "python": [],
