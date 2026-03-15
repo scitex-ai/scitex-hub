@@ -159,7 +159,9 @@ def _derive_capabilities(label, description):
     return caps[:3]
 
 
-def _manifest_json(name, label, icon, description, extra_manifest, license_id):
+def _manifest_json(
+    name, label, icon, description, extra_manifest, license_id, frontend_type="html"
+):
     slug = name.replace("_", "-")
     desc = description or "A SciTeX Cloud app."
     manifest = {
@@ -188,6 +190,10 @@ def _manifest_json(name, label, icon, description, extra_manifest, license_id):
         "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
         "privileges": [],
         "wip": True,
+        "standalone": True,
+        "standalone_command": f"{slug} gui",
+        "standalone_port": 8050,
+        "frontend_type": frontend_type,
         "dependencies": {
             "python": [],
             "system": [],

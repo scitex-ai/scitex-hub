@@ -135,7 +135,7 @@ def _build_all_files(
 
     # manifest.json
     files["manifest.json"] = _manifest_json(
-        name, label, icon, description, manifest, license_id
+        name, label, icon, description, manifest, license_id, frontend_type
     )
 
     # Templates
@@ -199,11 +199,38 @@ def _build_all_files(
         ]
     )
 
+    # pyproject.toml for dual-mode (standalone + extension)
+    files["pyproject.toml"] = _pyproject_toml(name, label, description, license_id)
+
     # React frontend files
     if use_react:
         files.update(build_react_files(name, label, icon))
 
     return files
+
+
+def _pyproject_toml(name, label, description, license_id):
+    """Generate pyproject.toml for dual-mode app (standalone + scitex-cloud extension)."""
+    slug = name.replace("_", "-")
+    desc = description or f"{label} — a SciTeX Cloud app."
+    return f"""[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "{slug}"
+version = "0.1.0"
+description = "{desc}"
+requires-python = ">=3.10"
+license = "{license_id}"
+
+[project.optional-dependencies]
+scitex = ["scitex-app>=0.1.0", "scitex-ui>=0.1.0"]
+dev = ["pytest>=7.0.0"]
+
+[project.entry-points."scitex_modules"]
+{name} = "{name}:get_module_config"
+"""
 
 
 # EOF
