@@ -28,6 +28,7 @@
   "dependencies": {
     "@hpcc-js/wasm-graphviz": "^1.21.0",
     "fabric": "^5.3.0",
+    "@scitex/ui": "file:../scitex-ui",
     "figrecipe-editor": "file:../figrecipe/src/figrecipe/_django/frontend",
     "mermaid": "^11.12.2",
     "monaco-editor": "^0.45.0",

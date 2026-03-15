@@ -1,6 +1,6 @@
 {
   "$schema": "scitex-app-manifest",
-  "$schema_version": "1.0.0",
+  "$schema_version": "2.0.0",
   "name": "store",
   "label": "Store",
   "app_name": "apps_app",
@@ -18,6 +18,9 @@
   "ai_hint": "Browse, install, and publish community modules.",
   "allowed_extensions": [],
   "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+  "privileges": [
+    {"type": "system", "scope": "pip-install", "reason": "Install community app packages"}
+  ],
   "builtin": true,
   "dependencies": {
     "python": [],

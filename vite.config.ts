@@ -2,7 +2,28 @@ import react from "@vitejs/plugin-react";
 import { defineConfig, Plugin } from "vite";
 import { resolve } from "path";
 import * as fs from "fs";
+import { execSync } from "child_process";
 import { getEntryPoints } from "./vite.entries";
+
+/**
+ * Discover scitex-ui static directory from the Python environment.
+ * Same pattern as figrecipe/vite.config.ts — works for pip and editable installs.
+ */
+function discoverScitexUiStatic(): string | null {
+  if (process.env.SCITEX_UI_STATIC) {
+    return process.env.SCITEX_UI_STATIC;
+  }
+  try {
+    return execSync(
+      'python3 -c "import scitex_ui; print(scitex_ui.get_static_dir())"',
+      { encoding: "utf-8", timeout: 5000 },
+    ).trim();
+  } catch {
+    return null;
+  }
+}
+
+const SCITEX_UI_STATIC = discoverScitexUiStatic();
 
 /**
  * Resolve an app's static directory, searching infra/ and workspace/ groups.
@@ -67,6 +88,8 @@ export default defineConfig({
       "@": resolve(__dirname, "static/shared/ts"),
       "@types": resolve(__dirname, "static/shared/ts/types"),
       "@utils": resolve(__dirname, "static/shared/ts/utils"),
+      // scitex-ui: shared component library (auto-discovered from pip)
+      ...(SCITEX_UI_STATIC ? { "scitex-ui": SCITEX_UI_STATIC } : {}),
       // Only include figrecipe alias if figrecipe directory exists (dev only)
       ...(fs.existsSync(resolve(__dirname, "../figrecipe"))
         ? {
@@ -123,7 +146,11 @@ export default defineConfig({
       ],
     },
     fs: {
-      allow: [".", resolve(__dirname, "../figrecipe")],
+      allow: [
+        ".",
+        resolve(__dirname, "../figrecipe"),
+        ...(SCITEX_UI_STATIC ? [SCITEX_UI_STATIC] : []),
+      ],
     },
     warmup: {
       clientFiles: [

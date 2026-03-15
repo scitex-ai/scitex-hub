@@ -1,6 +1,6 @@
 {
   "$schema": "scitex-app-manifest",
-  "$schema_version": "1.0.0",
+  "$schema_version": "2.0.0",
   "name": "figrecipe",
   "label": "FigRecipe",
   "app_name": "figrecipe_app",
@@ -17,6 +17,9 @@
   "ai_hint": "Interactive figure editor: create and edit publication-ready matplotlib plots with drag-and-drop layout, statistical annotations, and multi-panel composition.",
   "allowed_extensions": [".py", ".csv", ".json", ".yaml", ".figz", ".pltz"],
   "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+  "privileges": [
+    {"type": "filesystem", "scope": "project", "reason": "Read/write figure recipes and data files"}
+  ],
   "builtin": true,
   "dependencies": {
     "python": ["matplotlib", "figrecipe"],
