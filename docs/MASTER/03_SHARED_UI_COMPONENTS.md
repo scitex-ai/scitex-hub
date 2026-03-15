@@ -137,7 +137,7 @@ Accent color uses `--app-accent-color` (inherited from `[data-app-accent]` on pa
 
 ### Module Accent Line (Framework-Controlled)
 
-The top-border accent line across the module content area is **framework-controlled** — apps must not add their own accent borders. The framework uses `#main-content[data-app-accent]::before` with `z-index: 100` and `!important` to ensure a continuous, override-proof accent line. See `workspace-sidebar.css` for implementation and `docs/design/workspace-layout.md` for full architecture.
+The top-border accent line across the module content area is **framework-controlled** — apps must not add their own accent borders. The framework uses `#main-content[data-app-accent]::before` with `z-index: 100` and `!important` to ensure a continuous, override-proof accent line. See `stx-shell-sidebar.css` for implementation and `docs/design/stx-shell-layout.md` for full architecture.
 
 ### Active State Management
 

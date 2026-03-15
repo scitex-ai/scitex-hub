@@ -9,7 +9,7 @@
 }
 
 /* Removed duplicate rule - workspace colors already set above at line 220-224 */
-/* [data-theme="dark"] .sidebar-header {
+/* [data-theme="dark"] .stx-shell-sidebar__header {
   border-top-color: var(--border-default);
   border-bottom-color: var(--border-default);
 } */

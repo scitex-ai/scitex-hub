@@ -3,7 +3,7 @@
    (regular pages keep left-side positioning in 01-panel-layout.css)
    ============================================================ */
 
-body.unified-workspace .scitex-ai-panel.workspace-sidebar {
+body.unified-workspace .scitex-ai-panel.stx-shell-sidebar {
   left: auto;
   right: 0;
   box-shadow: -4px 0 16px rgba(0, 0, 0, 0.25);

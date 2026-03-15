@@ -224,6 +224,13 @@ def _entry_to_ts_path(entry_name: str) -> str:
         "shared/collapsible-panel-click-expand": "static/shared/ts/components/collapsible-panel-click-expand.ts",
         "shared/resizer": "static/shared/ts/components/resizer/index.ts",
         "shared/repo-monitor": "static/shared/ts/components/repo-monitor/index.ts",
+        # dev_app: scripts in scripts/ subdir instead of ts/
+        "dev_app/scripts/design": "apps/workspace/dev_app/static/dev_app/scripts/design.ts",
+        "dev_app/scripts/scitex-icon-generator": "apps/workspace/dev_app/static/dev_app/scripts/scitex-icon-generator.ts",
+        # figrecipe bridge: prefixed with _ (auto-discovery skips it)
+        "figrecipe_app/figrecipe-bridge-init": "apps/workspace/figrecipe_app/static/figrecipe_app/ts/_figrecipe-bridge-init.ts",
+        # public_app: index.ts in subdir
+        "public_app/tools/run-stats": "apps/infra/public_app/static/public_app/ts/tools/run-stats/index.ts",
     }
 
     if entry_name in _non_conventional:

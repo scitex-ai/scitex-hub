@@ -47,7 +47,7 @@
 }
 
 /* Sidebar toggle button */
-.sidebar-toggle-btn {
+.stx-shell-sidebar__toggle-btn {
   /* Layout preserved */
   position: absolute;
   top: 12px;
@@ -67,7 +67,7 @@
   transition: all 0.2s ease;
 }
 
-.sidebar-toggle-btn:hover {
+.stx-shell-sidebar__toggle-btn:hover {
   transform: scale(1.05);
   /* Styling moved to central CSS - see static/css/components/buttons.css */
   background: var(--color-neutral-muted);
@@ -75,17 +75,17 @@
   border-color: var(--color-accent-fg);
 }
 
-.sidebar-toggle-btn:active {
+.stx-shell-sidebar__toggle-btn:active {
   transform: scale(0.95);
 }
 
-.sidebar-toggle-icon {
+.stx-shell-sidebar__toggle-icon {
   /* Styling moved to central CSS - see static/css/components/icons.css */
   transition: transform 0.3s ease;
   font-size: 14px;
 }
 
-.repo-sidebar.collapsed .sidebar-toggle-icon {
+.repo-sidebar.collapsed .stx-shell-sidebar__toggle-icon {
   transform: rotate(180deg);
 }
 
@@ -97,13 +97,13 @@
   background: transparent;
 }
 
-.sidebar-section.section-collapsed .sidebar-content {
+.sidebar-section.section-collapsed .stx-shell-sidebar__content {
   display: none;
 }
 
-/* .sidebar-title visual styling in sidebar.css */
+/* .stx-shell-sidebar__title visual styling in sidebar.css */
 
-.repo-sidebar.collapsed .sidebar-title {
+.repo-sidebar.collapsed .stx-shell-sidebar__title {
   /* Layout preserved */
   writing-mode: vertical-rl;
   text-orientation: mixed;
@@ -133,12 +133,12 @@
   display: none;
 }
 
-.sidebar-content {
+.stx-shell-sidebar__content {
   /* Styling moved to central CSS - see static/css/components/sidebar.css */
   transition: opacity 0.3s ease;
 }
 
-.repo-sidebar.collapsed .sidebar-content {
+.repo-sidebar.collapsed .stx-shell-sidebar__content {
   /* Layout preserved */
   display: none;
   /* Styling moved to central CSS - see static/css/components/sidebar.css */

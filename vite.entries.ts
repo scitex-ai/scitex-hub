@@ -5,6 +5,7 @@
  * Explicit overrides below handle entries where the template-referenced
  * name differs from the convention-based path.
  */
+import { execSync } from "child_process";
 import { resolve } from "path";
 import * as fs from "fs";
 
@@ -79,6 +80,35 @@ function discoverAppEntries(rootDir: string): Record<string, string> {
   return entries;
 }
 
+/**
+ * Discover TS entry points from pip-installed SciTeX packages.
+ * Looks for static/<pkg_name>/ts/ in known package locations.
+ */
+const PIP_PACKAGES_WITH_STATIC = ["scitex_ui"];
+
+function discoverPipEntries(rootDir: string): Record<string, string> {
+  const entries: Record<string, string> = {};
+
+  for (const pkgName of PIP_PACKAGES_WITH_STATIC) {
+    try {
+      const pkgDir = execSync(
+        `python3 -c "import ${pkgName}; import os; print(os.path.dirname(${pkgName}.__file__))"`,
+        { encoding: "utf-8" },
+      ).trim();
+      const tsDir = resolve(pkgDir, "static", pkgName, "ts");
+      if (fs.existsSync(tsDir)) {
+        Object.assign(
+          entries,
+          generateEntriesRecursive(pkgDir, `static/${pkgName}/ts`, pkgName),
+        );
+      }
+    } catch {
+      // Package not installed — skip silently
+    }
+  }
+  return entries;
+}
+
 export function getEntryPoints(rootDir: string): Record<string, string> {
   return {
     // ── Auto-discovered entries ─────────────────────────────────
@@ -87,6 +117,9 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
 
     // App-specific entries: auto-discovered from apps/infra/ and apps/workspace/
     ...discoverAppEntries(rootDir),
+
+    // Pip-installed SciTeX packages with static assets
+    ...discoverPipEntries(rootDir),
 
     // ── Explicit overrides ──────────────────────────────────────
     // These entries have template names that differ from convention.
@@ -143,6 +176,12 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
     "dev_app/scripts/scitex-icon-generator": r(
       rootDir,
       "apps/workspace/dev_app/static/dev_app/scripts/scitex-icon-generator.ts",
+    ),
+
+    // Run-stats tool (index.ts in subdir, template uses short name)
+    "public_app/tools/run-stats": r(
+      rootDir,
+      "apps/infra/public_app/static/public_app/ts/tools/run-stats/index.ts",
     ),
   };
 }

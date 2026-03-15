@@ -38,7 +38,7 @@
 }
 
 /* Sidebar Title */
-.sidebar-title {
+.stx-shell-sidebar__title {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -340,13 +340,13 @@
 }
 
 /* Sidebar title header with padding */
-.sidebar-title-header {
+.stx-shell-sidebar__title-header {
   margin-bottom: 12px;
   padding: 6px 12px; /* Increased left/right padding to prevent icon overlap */
 }
 
 /* Sidebar title link */
-.sidebar-title-link {
+.stx-shell-sidebar__title-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -356,13 +356,13 @@
   font-size: 14px;
 }
 
-.sidebar-title-link:hover {
+.stx-shell-sidebar__title-link:hover {
   color: var(--color-accent-fg);
   text-decoration: none;
 }
 
 /* Sidebar title icon */
-.sidebar-title-icon {
+.stx-shell-sidebar__title-icon {
   fill: var(--color-accent-fg);
 }
 

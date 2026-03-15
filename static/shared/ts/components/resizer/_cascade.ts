@@ -69,7 +69,7 @@ export function findAdjacentPanel(
       "[data-h-resizer]",
     ) as HTMLElement;
     const siblingPanel = sibling.querySelector(
-      ".workspace-sidebar",
+      ".stx-shell-sidebar",
     ) as HTMLElement;
 
     if (!siblingResizer || !siblingPanel) {

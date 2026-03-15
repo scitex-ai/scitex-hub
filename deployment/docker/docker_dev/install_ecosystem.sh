@@ -63,6 +63,12 @@ else
     echo -e "⚠️  WARNING: /scitex-python not mounted!"
 fi
 
+# Install scitex-ui (required: in INSTALLED_APPS, must be available before Django starts)
+try_editable_install "/scitex-ui" "scitex-ui"
+
+# Install scitex-container (required: terminal broker needs scitex_container.apptainer)
+try_editable_install "/scitex-container" "scitex-container"
+
 # Install scitex-cloud itself in editable mode
 if [ -f "/app/pyproject.toml" ]; then
     echo_info "Installing scitex-cloud (editable)..."

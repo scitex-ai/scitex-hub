@@ -12,16 +12,16 @@
 - [x] `.repo-layout.sidebar-expanded` (380px grid)
 - [x] `.repo-sidebar.collapsed` styles
 - [x] `.repo-sidebar.expanded` styles
-- [x] `.sidebar-toggle-btn` with hover/active states
-- [x] `.sidebar-toggle-icon` with rotation
+- [x] `.stx-shell-sidebar__toggle-btn` with hover/active states
+- [x] `.stx-shell-sidebar__toggle-icon` with rotation
 - [x] `.sidebar-section` transitions
 - [x] `.sidebar-section.collapsible` hover effects
 - [x] `.sidebar-section.section-collapsed`
 - [x] `.sidebar-section-chevron` animation
-- [x] `.sidebar-title` hover effects
+- [x] `.stx-shell-sidebar__title` hover effects
 - [x] `.sidebar-item` hover effects
 - [x] `.sidebar-link` hover effects
-- [x] `.sidebar-content` transitions
+- [x] `.stx-shell-sidebar__content` transitions
 - [x] `.file-tree-item` hover improvements
 - [x] `.file-tree-folder` hover effects
 - [x] `.file-tree-file` hover effects
@@ -35,7 +35,7 @@
 - [x] Added About section with ID
 - [x] Added section title onclick handlers
 - [x] Added chevron indicators (▼)
-- [x] Wrapped content in `.sidebar-content` divs
+- [x] Wrapped content in `.stx-shell-sidebar__content` divs
 
 ### JavaScript Functions
 - [x] `SIDEBAR_STATE_KEY` constant defined

@@ -82,7 +82,7 @@ function findAdjacentPanel(
       "[data-panel-resizer]",
     ) as HTMLElement;
     const siblingPanel = sibling.querySelector(
-      ".workspace-sidebar",
+      ".stx-shell-sidebar",
     ) as HTMLElement;
 
     // Skip panes without resizer or panel (e.g., module pane)
@@ -170,7 +170,7 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
   /** Disable CSS transitions on all workspace sidebars during drag */
   const disableTransitions = () => {
     document
-      .querySelectorAll<HTMLElement>(".workspace-sidebar")
+      .querySelectorAll<HTMLElement>(".stx-shell-sidebar")
       .forEach((el) => {
         el.style.transition = "none";
       });
@@ -179,7 +179,7 @@ export function initResizer(storagePrefix: string, config: PanelConfig): void {
   /** Re-enable CSS transitions after drag ends */
   const enableTransitions = () => {
     document
-      .querySelectorAll<HTMLElement>(".workspace-sidebar")
+      .querySelectorAll<HTMLElement>(".stx-shell-sidebar")
       .forEach((el) => {
         el.style.transition = "";
       });

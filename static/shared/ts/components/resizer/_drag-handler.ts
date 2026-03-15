@@ -39,7 +39,7 @@ function onMouseDown(r: BaseResizer, e: MouseEvent): void {
   r.getSecondPanel().style.transition = "none";
   if (!r.getIsInApp()) {
     document
-      .querySelectorAll<HTMLElement>(".workspace-sidebar")
+      .querySelectorAll<HTMLElement>(".stx-shell-sidebar")
       .forEach((el) => (el.style.transition = "none"));
   }
 
@@ -82,7 +82,7 @@ function handleMouseUp(
   r.getSecondPanel().style.transition = "";
   if (!r.getIsInApp()) {
     document
-      .querySelectorAll<HTMLElement>(".workspace-sidebar")
+      .querySelectorAll<HTMLElement>(".stx-shell-sidebar")
       .forEach((el) => (el.style.transition = ""));
   }
 

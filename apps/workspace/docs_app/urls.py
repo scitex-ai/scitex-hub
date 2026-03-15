@@ -18,6 +18,8 @@ urlpatterns = [
     path("export-batch/", views.docs_export_batch, name="export_batch"),
     # Python package documentation (scitex PyPI)
     path("python/", views.docs_python, name="python"),
+    # JSON API — public package metadata for sidebar components
+    path("api/packages/", views.api_packages, name="api_packages"),
     # REST API documentation
     path("api/", views.docs_api, name="api"),
     # Raw Sphinx HTML for iframe embedding (no Django template wrapping)

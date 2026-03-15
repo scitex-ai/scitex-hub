@@ -53,7 +53,7 @@ export function attachKeyboardHandler(
       }
 
       if (key === "f") {
-        const sidebarToggle = document.getElementById("sidebar-toggle");
+        const sidebarToggle = document.getElementById("stx-shell-sidebar__toggle");
         if (sidebarToggle) sidebarToggle.click();
         return false;
       }

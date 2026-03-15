@@ -26,7 +26,8 @@ logger = logging.getLogger(__name__)
 
 # Cooldown: don't retry allocation for this many seconds after a failure
 _ALLOC_FAIL_COOLDOWN = 30  # seconds
-_alloc_fail_times: dict[tuple, float] = {}  # alloc_key -> last failure timestamp
+# alloc_key -> (timestamp, reason)
+_alloc_fail_info: dict[tuple, tuple[float, str]] = {}
 
 
 def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
@@ -77,14 +78,16 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
 
     if not alloc or alloc.state == AllocationState.DEAD:
         # Cooldown: don't flood SLURM with retries after a failure
-        last_fail = _alloc_fail_times.get(alloc_key, 0)
-        elapsed = time.time() - last_fail
-        if elapsed < _ALLOC_FAIL_COOLDOWN:
-            wait = int(_ALLOC_FAIL_COOLDOWN - elapsed)
-            return {
-                "status": "error",
-                "error": f"Setting up environment, please wait {wait}s",
-            }
+        last_info = _alloc_fail_info.get(alloc_key)
+        if last_info:
+            last_fail, last_reason = last_info
+            elapsed = time.time() - last_fail
+            if elapsed < _ALLOC_FAIL_COOLDOWN:
+                wait = int(_ALLOC_FAIL_COOLDOWN - elapsed)
+                return {
+                    "status": "error",
+                    "error": f"{last_reason} (retrying in {wait}s)",
+                }
 
         alloc = Allocation(
             username=username,
@@ -118,19 +121,18 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
                 f"Found existing SLURM job {existing_jobs[0]} for {username}, attaching"
             )
             if not alloc.attach_to_existing(existing_jobs[0]):
-                _alloc_fail_times[alloc_key] = time.time()
-                return {
-                    "status": "error",
-                    "error": "Failed to attach to existing environment",
-                }
+                reason = alloc.last_error or "Failed to attach to existing environment"
+                _alloc_fail_info[alloc_key] = (time.time(), reason)
+                return {"status": "error", "error": reason}
         elif not alloc.start():
-            _alloc_fail_times[alloc_key] = time.time()
-            return {"status": "error", "error": "Failed to start computing environment"}
+            reason = alloc.last_error or "Failed to start computing environment"
+            _alloc_fail_info[alloc_key] = (time.time(), reason)
+            return {"status": "error", "error": reason}
 
         with broker.lock:
             broker.allocations[alloc.allocation_id] = alloc
             broker.alloc_index[alloc_key] = alloc.allocation_id
-            _alloc_fail_times.pop(alloc_key, None)  # clear cooldown on success
+            _alloc_fail_info.pop(alloc_key, None)  # clear cooldown on success
 
     elif alloc.state == AllocationState.STARTING:
         # Another tab is already starting this allocation — wait
@@ -294,8 +296,8 @@ def _auto_recover_allocation(
     alloc_key = (shell.username,)
 
     # Check cooldown
-    last_fail = _alloc_fail_times.get(alloc_key, 0)
-    if time.time() - last_fail < _ALLOC_FAIL_COOLDOWN:
+    last_info = _alloc_fail_info.get(alloc_key)
+    if last_info and time.time() - last_info[0] < _ALLOC_FAIL_COOLDOWN:
         send_state(
             broker,
             client,
@@ -324,20 +326,21 @@ def _auto_recover_allocation(
         started = new_alloc.start()
 
     if not started:
-        _alloc_fail_times[alloc_key] = time.time()
+        reason = new_alloc.last_error or "Could not restart environment"
+        _alloc_fail_info[alloc_key] = (time.time(), reason)
         send_state(
             broker,
             client,
             pty_id,
             "dead",
-            extra={"reason": "Could not restart environment. Please try again."},
+            extra={"reason": reason},
         )
         return
 
     with broker.lock:
         broker.allocations[new_alloc.allocation_id] = new_alloc
         broker.alloc_index[alloc_key] = new_alloc.allocation_id
-        _alloc_fail_times.pop(alloc_key, None)
+        _alloc_fail_info.pop(alloc_key, None)
         shell.allocation_id = new_alloc.allocation_id
         shell.command = new_alloc.get_shell_command(project_slug=old_alloc.project_slug)
         shell.spawn_count = 0

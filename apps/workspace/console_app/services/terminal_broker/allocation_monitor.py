@@ -46,6 +46,9 @@ class AllocationMonitor:
             self._stop.wait(CHECK_INTERVAL)
 
     def _check_all(self):
+        # Periodic SLURM node health check
+        self._check_node_health()
+
         with self.broker.lock:
             allocs = list(self.broker.allocations.items())
             shells = list(self.broker.shells.values())
@@ -63,6 +66,14 @@ class AllocationMonitor:
                     warned.add(threshold)
                     self._notify_shells(alloc_id, shells, remaining)
                     break
+
+    def _check_node_health(self):
+        """Check SLURM node state and auto-recover if stuck."""
+        from .slurm_health import ensure_node_ready
+
+        ready, err = ensure_node_ready()
+        if not ready:
+            logger.warning(f"SLURM node unhealthy: {err}")
 
     def _notify_shells(self, alloc_id: str, shells: list, remaining: int):
         """Send expiry warning to all shells attached to this allocation."""

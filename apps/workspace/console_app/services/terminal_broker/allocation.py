@@ -86,84 +86,21 @@ class Allocation:
         self.shell_count: int = 0
         self._script_path: Optional[str] = None
         self.started_at: Optional[float] = None
+        self.last_error: str = ""
 
     @staticmethod
     def cleanup_stale_jobs() -> int:
-        """Cancel ALL stale scitex terminal jobs in the SLURM queue.
+        """Cancel stale jobs and recover stuck nodes. Delegates to slurm_health."""
+        from .slurm_health import cleanup_stale_jobs
 
-        Called on broker startup to ensure clean state. Returns count cancelled.
-        """
-        prefix = Allocation.JOB_NAME_PREFIX
-        try:
-            result = subprocess.run(
-                ["squeue", "--noheader", "--format=%i %j %T"],
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
-            cancelled = 0
-            for line in result.stdout.strip().split("\n"):
-                if not line.strip():
-                    continue
-                parts = line.split()
-                if len(parts) >= 2 and parts[1].startswith(prefix):
-                    jid = parts[0]
-                    try:
-                        subprocess.run(["scancel", jid], capture_output=True, timeout=5)
-                        cancelled += 1
-                        logger.info(f"Cleaned up stale SLURM job {jid} ({parts[1]})")
-                    except Exception:
-                        pass
-            # Also cancel junk jobs named "true" (broken sbatch artifacts)
-            for line in result.stdout.strip().split("\n"):
-                if not line.strip():
-                    continue
-                parts = line.split()
-                if len(parts) >= 2 and parts[1] == "true":
-                    try:
-                        subprocess.run(
-                            ["scancel", parts[0]], capture_output=True, timeout=5
-                        )
-                        cancelled += 1
-                        logger.info(f"Cleaned up junk SLURM job {parts[0]} (name=true)")
-                    except Exception:
-                        pass
-            return cancelled
-        except Exception as e:
-            logger.error(f"Failed to cleanup stale jobs: {e}")
-            return 0
+        return cleanup_stale_jobs()
 
     @staticmethod
     def find_existing_jobs(username: str) -> list[str]:
-        """Query squeue for existing terminal jobs for this user.
+        """Query squeue for existing terminal jobs for this user."""
+        from .slurm_health import find_existing_jobs
 
-        Returns list of SLURM job IDs (RUNNING or PENDING).
-
-        Job name pattern: scitex-cloud-terminal-{username}
-        Searches ALL users (sbatch runs as root inside Docker, not 'scitex').
-        """
-        job_name_for_user = f"{Allocation.JOB_NAME_PREFIX}-{username}"
-        try:
-            # Search all jobs (no -u filter) — Docker submits as root
-            result = subprocess.run(
-                ["squeue", "--noheader", "--format=%i %j"],
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
-            job_ids = []
-            for line in result.stdout.strip().split("\n"):
-                if not line.strip():
-                    continue
-                parts = line.split(None, 1)
-                if len(parts) >= 2:
-                    jid, jname = parts[0], parts[1]
-                    if jname == job_name_for_user:
-                        job_ids.append(jid)
-            return job_ids
-        except Exception as e:
-            logger.error(f"Failed to query squeue for {job_name_for_user}: {e}")
-            return []
+        return find_existing_jobs(username)
 
     def attach_to_existing(self, job_id: str) -> bool:
         """Attach to an existing SLURM job instead of submitting new sbatch.
@@ -187,30 +124,31 @@ class Allocation:
             )
             state = result.stdout.strip()
             if state == "PENDING":
-                # Wait for it to start
                 if not self._wait_for_running():
+                    self.last_error = (
+                        f"Existing job {job_id} did not become RUNNING "
+                        f"within {SBATCH_STARTUP_TIMEOUT}s"
+                    )
                     self.state = AllocationState.DEAD
                     return False
             elif state != "RUNNING":
-                logger.error(
-                    f"Allocation {self.allocation_id[:8]}: "
-                    f"job {job_id} in unexpected state: {state}"
-                )
+                self.last_error = f"Existing job {job_id} in unexpected state: {state}"
+                logger.error(f"Allocation {self.allocation_id[:8]}: {self.last_error}")
                 self.state = AllocationState.DEAD
                 return False
         except Exception as e:
-            logger.error(
-                f"Allocation {self.allocation_id[:8]}: squeue check failed: {e}"
-            )
+            self.last_error = f"Failed to check job status: {e}"
+            logger.error(f"Allocation {self.allocation_id[:8]}: {self.last_error}")
             self.state = AllocationState.DEAD
             return False
 
         # Verify apptainer instance is ready
         if not self._wait_for_instance():
-            logger.error(
-                f"Allocation {self.allocation_id[:8]}: "
-                f"instance {self.instance_name} not ready in existing job {job_id}"
+            self.last_error = (
+                f"Container not ready in existing job {job_id} "
+                f"within {INSTANCE_VERIFY_TIMEOUT}s"
             )
+            logger.error(f"Allocation {self.allocation_id[:8]}: {self.last_error}")
             self.state = AllocationState.DEAD
             return False
 
@@ -229,6 +167,16 @@ class Allocation:
         """
         self.state = AllocationState.STARTING
         try:
+            # 0. Pre-flight: ensure SLURM node is ready
+            from .slurm_health import ensure_node_ready
+
+            ready, node_err = ensure_node_ready()
+            if not ready:
+                self.last_error = node_err
+                logger.error(f"Allocation {self.allocation_id[:8]}: {self.last_error}")
+                self.state = AllocationState.DEAD
+                return False
+
             # 1. Generate instance start script
             from apps.workspace.console_app.views.terminal._command_builder import (
                 build_instance_start_script_cmd,
@@ -273,12 +221,11 @@ class Allocation:
                 timeout=10,
             )
             if result.returncode != 0 or not result.stdout.strip():
-                logger.error(
-                    f"Allocation {self.allocation_id[:8]}: sbatch failed: "
-                    f"rc={result.returncode} "
-                    f"stdout={result.stdout.strip()!r} "
-                    f"stderr={result.stderr.strip()!r}"
+                self.last_error = (
+                    f"sbatch failed (rc={result.returncode}): "
+                    f"{result.stderr.strip() or result.stdout.strip()}"
                 )
+                logger.error(f"Allocation {self.allocation_id[:8]}: {self.last_error}")
                 self.state = AllocationState.DEAD
                 return False
 
@@ -290,20 +237,22 @@ class Allocation:
 
             # 4. Poll squeue until RUNNING
             if not self._wait_for_running():
-                logger.error(
-                    f"Allocation {self.allocation_id[:8]}: "
-                    f"job {self.job_id} did not start within timeout"
+                self.last_error = (
+                    f"SLURM job {self.job_id} did not start within "
+                    f"{SBATCH_STARTUP_TIMEOUT}s (resources may be unavailable)"
                 )
+                logger.error(f"Allocation {self.allocation_id[:8]}: {self.last_error}")
                 self._cancel_job()
                 self.state = AllocationState.DEAD
                 return False
 
             # 5. Verify apptainer instance is ready via srun --overlap
             if not self._wait_for_instance():
-                logger.error(
-                    f"Allocation {self.allocation_id[:8]}: "
-                    f"instance {self.instance_name} not ready within timeout"
+                self.last_error = (
+                    f"Container not ready within {INSTANCE_VERIFY_TIMEOUT}s "
+                    f"after job {self.job_id} started"
                 )
+                logger.error(f"Allocation {self.allocation_id[:8]}: {self.last_error}")
                 self._cancel_job()
                 self.state = AllocationState.DEAD
                 return False
@@ -317,8 +266,9 @@ class Allocation:
             return True
 
         except Exception as e:
+            self.last_error = f"Startup error: {e}"
             logger.error(
-                f"Allocation {self.allocation_id[:8]}: start failed: {e}",
+                f"Allocation {self.allocation_id[:8]}: {self.last_error}",
                 exc_info=True,
             )
             self.state = AllocationState.DEAD

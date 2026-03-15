@@ -5,12 +5,13 @@
 from pathlib import Path
 
 from django.conf import settings
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render
 
 from ._context_builders import build_page_context
 from ._sphinx import (  # noqa: F401 — sphinx_raw used by urls.py
     check_docs_available,
+    register_sphinx_packages,
     serve_sphinx_docs,
     sphinx_raw,
 )
@@ -20,13 +21,6 @@ from ._sphinx import (  # noqa: F401 — sphinx_raw used by urls.py
 # ---------------------------------------------------------------------------
 DOCS_PAGES = [
     # ── Getting Started ─────────────────────────────────────────────
-    {
-        "slug": "python-packages",
-        "label": "Python Packages",
-        "icon": "fas fa-cube",
-        "template": "docs_app/docs_python_packages.html",
-        "badges": ["user"],
-    },
     {
         "slug": "mcp-tools-local",
         "label": "MCP Tools (Local)",
@@ -203,6 +197,11 @@ DOCS_PAGES = [
 
 _PAGES_BY_SLUG = {p["slug"]: p for p in DOCS_PAGES}
 
+try:
+    register_sphinx_packages(DOCS_PAGES, _PAGES_BY_SLUG)
+except Exception:
+    pass  # Discovery unavailable at import time (e.g., Django not configured)
+
 
 def register_module_docs():
     """Auto-register docs pages for workspace modules that have docs_slug set."""
@@ -328,6 +327,50 @@ def docs_api(request):
 def docs_page(request, module, page):
     """Serve a specific Sphinx documentation page."""
     return serve_sphinx_docs(request, module, page)
+
+
+def api_packages(request):
+    """Return JSON listing all discovered Python packages (public, no auth).
+
+    Response shape: { groups: [{ label, key, packages: [...] }] }
+    """
+    from ._context_builders import _get_packages_context
+
+    ctx = _get_packages_context()
+
+    def _serialize(pkg_list):
+        return [
+            {
+                "pip_name": p["pip_name"],
+                "module": p["module"],
+                "version": p["version"],
+                "description": p["description"],
+                "github_url": p.get("github_url", ""),
+                "has_sphinx": p.get("has_sphinx", False),
+                "sphinx_url": p.get("sphinx_url", ""),
+                "sphinx_content_url": f"/apps/docs/content/pkg-{p['pip_name']}/",
+                "pypi_url": f"https://pypi.org/project/{p['pip_name']}/",
+            }
+            for p in pkg_list
+        ]
+
+    return JsonResponse(
+        {
+            "version": _get_project_version(),
+            "groups": [
+                {
+                    "label": "Core Packages",
+                    "key": "core",
+                    "packages": _serialize(ctx.get("core_packages", [])),
+                },
+                {
+                    "label": "Standalone Packages",
+                    "key": "standalone",
+                    "packages": _serialize(ctx.get("standalone_packages", [])),
+                },
+            ],
+        }
+    )
 
 
 # ---------------------------------------------------------------------------

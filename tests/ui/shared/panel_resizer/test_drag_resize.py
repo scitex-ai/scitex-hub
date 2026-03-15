@@ -29,7 +29,7 @@ class TestDragResize:
 
         is_collapsed = sidebar.evaluate("el => el.classList.contains('collapsed')")
         if is_collapsed:
-            toggle_btn = page.locator("#sidebar-toggle")
+            toggle_btn = page.locator("#stx-shell-sidebar__toggle")
             if toggle_btn.count() > 0:
                 show_step(page, 2, 5, "Expanding collapsed panel first...", "info")
                 toggle_btn.click()
@@ -75,7 +75,7 @@ class TestDragResize:
 
         is_collapsed = sidebar.evaluate("el => el.classList.contains('collapsed')")
         if is_collapsed:
-            toggle_btn = page.locator("#sidebar-toggle")
+            toggle_btn = page.locator("#stx-shell-sidebar__toggle")
             if toggle_btn.count() > 0:
                 toggle_btn.click()
                 page.wait_for_timeout(500)
@@ -111,7 +111,7 @@ class TestDragResize:
 
         sidebar = page.locator(workspace_app["sidebar"])
         resizer = page.locator(workspace_app["resizer"])
-        toggle_btn = page.locator("#sidebar-toggle")
+        toggle_btn = page.locator("#stx-shell-sidebar__toggle")
 
         show_step(page, 1, 6, "Testing drag on collapsed panel...", "info")
 

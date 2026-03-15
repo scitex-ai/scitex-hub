@@ -12,7 +12,7 @@
  *      data-default-width="250"
  *      data-storage-key="sidebar-width"
  *      data-collapse-key="sidebar-collapsed"
- *      data-toggle-btn="sidebar-toggle">
+ *      data-toggle-btn="stx-shell-sidebar__toggle">
  * </div>
  * ```
  */

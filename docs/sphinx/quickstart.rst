@@ -1,64 +1,54 @@
 Quick Start
 ===========
 
-This guide helps you get started with SciTeX Cloud CLI.
+Get SciTeX Cloud running in three commands.
 
-Basic Usage
------------
-
-Check the status of your SciTeX deployment:
+Deployment
+----------
 
 .. code-block:: bash
 
-   scitex-cloud status
+   git clone https://github.com/ywatanabe1989/scitex-cloud.git
+   cd scitex-cloud
+   make start
 
-Start services in development mode:
+This pulls Docker images, builds containers, runs migrations, and creates a test user.
 
-.. code-block:: bash
+Access at:
 
-   scitex-cloud start --env dev
+- **Django**: http://localhost:8000
+- **Gitea**: http://localhost:3000
+- **Test user**: ``test-user`` / ``Password123!``
 
-Stop all services:
+CLI-Only Install
+----------------
 
-.. code-block:: bash
-
-   scitex-cloud stop
-
-Environments
-------------
-
-SciTeX Cloud supports multiple deployment environments:
-
-- ``dev``: Local development (127.0.0.1:8000)
-- ``prod``: Production deployment (home NAS)
-
-Switch between environments using the ``--env`` flag:
+Use the CLI and MCP server without Docker:
 
 .. code-block:: bash
 
-   scitex-cloud start --env dev   # Development
-   scitex-cloud start --env prod   # Production
+   pip install scitex-cloud           # CLI only
+   pip install scitex-cloud[mcp]      # CLI + MCP server
+   pip install scitex-cloud[all]      # Everything
 
-Configuration
--------------
+Verify:
 
-Environment-specific configuration files are located in:
+.. code-block:: bash
 
-- ``SECRET/.env.dev`` - Development environment variables
-- ``SECRET/.env.prod`` - Production environment variables
+   scitex-cloud --version
+   scitex-cloud --help
 
-Docker Management
+Common Operations
 -----------------
 
-Manage Docker containers:
-
 .. code-block:: bash
 
-   # View running containers
-   scitex-cloud docker ps
+   make start                    # Start development environment
+   make stop                     # Stop all services
+   make restart                  # Restart services
+   make status                   # Health check
+   make logs                     # View logs
+   make help                     # All available commands
 
-   # View logs
-   scitex-cloud docker logs
-
-   # Restart services
-   scitex-cloud docker restart
+For full CLI reference, see :doc:`cli`.
+For MCP server setup, see :doc:`mcp`.

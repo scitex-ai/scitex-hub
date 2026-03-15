@@ -193,7 +193,7 @@ export async function autoInitWorktreePanes(): Promise<void> {
       // Update sidebar title (worktree pane)
       const worktreePane =
         pane.closest(".ws-worktree-pane") || pane.parentElement?.parentElement;
-      const titleSelectors = [".sidebar-title-expanded", ".sidebar-title-full"];
+      const titleSelectors = [".stx-shell-sidebar__title-expanded", ".stx-shell-sidebar__title-full"];
       for (const sel of titleSelectors) {
         const titleEl = worktreePane?.querySelector(sel) as HTMLElement;
         if (titleEl) {
@@ -202,7 +202,7 @@ export async function autoInitWorktreePanes(): Promise<void> {
       }
       // Also update collapsed title
       const collapsedTitle = worktreePane?.querySelector(
-        ".sidebar-title",
+        ".stx-shell-sidebar__title",
       ) as HTMLElement;
       if (collapsedTitle) {
         collapsedTitle.textContent = `${newOwnerUsername}/${newProjectSlug}`;

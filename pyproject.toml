@@ -24,6 +24,9 @@ Documentation = "https://scitex-cloud.readthedocs.io"
 Issues = "https://github.com/ywatanabe1989/scitex-cloud/issues"
 Changelog = "https://github.com/ywatanabe1989/scitex-cloud/blob/main/CHANGELOG.md"
 
+[project.entry-points."scitex_dev.docs"]
+scitex-cloud = "scitex_cloud"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0",
@@ -91,6 +94,7 @@ django = [
 ]
 test = [
     "pytest>=8.4",
+    "pytest-django>=4.5",
     "pytest-playwright>=0.7",
     "pytest-base-url>=2.1",
     "pytest-asyncio>=1.2",

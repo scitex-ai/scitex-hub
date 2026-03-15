@@ -1,7 +1,7 @@
 {% if user.is_authenticated %}
     <!-- Monaco CSS bundled locally via Vite (imported by monaco-init.ts) -->
     <div class="ws-viewer-pane" id="ws-viewer-pane">
-        <div class="workspace-sidebar collapsed"
+        <div class="stx-shell-sidebar collapsed"
              id="ws-viewer-sidebar"
              data-ai-hint="General Editor Pane: shared file viewer across all modules (Writer, Scholar, Console, etc.). Supports text (.py .js .ts .html .css .json .md .yaml .sh .tex .bib .txt), images (.png .jpg .gif .webp .svg), PDF (.pdf), tables (.csv .tsv), diagrams (.mmd .mermaid), audio (.mp3 .wav .ogg .flac), video (.mp4 .webm .avi .mov). Open files via ui_action(steps=[{action:'open-file', path:'relative/path'}]). The currently open file path is tracked in data-ai-viewer-active on this element."
              data-ai-viewer-active="">
@@ -15,15 +15,15 @@
                  data-storage-key="ws-viewer-width"
                  data-collapse-key="ws-viewer-collapsed"
                  data-toggle-btn="ws-viewer-toggle"></div>
-            <div class="sidebar-header">
+            <div class="stx-shell-sidebar__header">
                 <button class="panel-toggle-btn" id="ws-viewer-toggle" title="Toggle viewer">
                     <i class="fas fa-chevron-right"></i>
                 </button>
-                <span id="ws-viewer-title-short" class="sidebar-title" title="Viewer"><i class="fas fa-eye"></i> Viewer</span>
+                <span id="ws-viewer-title-short" class="stx-shell-sidebar__title" title="Viewer"><i class="fas fa-eye"></i> Viewer</span>
                 <span id="ws-viewer-mode-toggle"
-                      class="sidebar-title-full ws-viewer-mode-toggle-title"
+                      class="stx-shell-sidebar__title-full ws-viewer-mode-toggle-title"
                       title="Switch to Editor"><i class="fas fa-eye"></i> Viewer</span>
-                <div class="sidebar-header-actions ws-viewer-header-actions">
+                <div class="stx-shell-sidebar__header-actions ws-viewer-header-actions">
                     <div id="ws-viewer-tabs" class="ws-viewer-tabs"></div>
                     <button class="ws-viewer-formats-info-btn"
                             data-tooltip="Supported formats:&#10;Text: .py .js .ts .html .css .json .md .yaml .sh .tex .bib .txt&#10;Image: .png .jpg .jpeg .gif .webp .svg .bmp .ico&#10;PDF: .pdf&#10;Table: .csv .tsv&#10;Diagram: .mmd .mermaid .dot .gv&#10;Audio: .mp3 .wav .ogg .flac .m4a .aac .wma&#10;Video: .mp4 .webm .avi .mov .mkv .ogv"
@@ -37,7 +37,7 @@
                     </button>
                 </div>
             </div>
-            <div class="sidebar-content ws-viewer-body">
+            <div class="stx-shell-sidebar__content ws-viewer-body">
                 <div id="ws-viewer-content" class="ws-viewer-content">
                     <div id="ws-viewer-monaco" class="ws-viewer-monaco"></div>
                     <div id="ws-viewer-preview" class="ws-viewer-preview"></div>

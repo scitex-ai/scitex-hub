@@ -65,12 +65,11 @@ jobs:
         env:
           SCITEX_CLOUD_DJANGO_SECRET_KEY: ci-test-key  # pragma: allowlist secret
           SCITEX_CLOUD_GITEA_SSH_PORT_DEV: "2222"
-          DJANGO_SETTINGS_MODULE: config.settings
         run: |
           python -m pytest \
             tests/apps/console_app/views/terminal/ \
             tests/apps/console_app/services/terminal_broker/ \
-            -v --tb=short -o "addopts=" -p no:django
+            -v --tb=short -p no:playwright -o "addopts="
 
   test-summary:
     name: Test Summary

@@ -7,7 +7,7 @@
   flex-shrink: 0;
 }
 
-/* Editor panel unified top bar - matches terminal-panel-top and sidebar-header */
+/* Editor panel unified top bar - matches terminal-panel-top and stx-shell-sidebar__header */
 .editor-panel-top {
   display: flex;
   align-items: center;

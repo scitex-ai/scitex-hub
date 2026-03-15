@@ -59,7 +59,7 @@ class TestAllocationKeyPerUser:
         False,
     )
     @patch(
-        "apps.workspace.console_app.services.terminal_broker._handlers_shared._alloc_fail_times",
+        "apps.workspace.console_app.services.terminal_broker._handlers_shared._alloc_fail_info",
         {},
     )
     def test_same_user_different_projects_share_allocation(
@@ -256,14 +256,17 @@ class TestAllocationCooldown:
     """After allocation failure, cooldown prevents immediate retry."""
 
     @patch(
-        "apps.workspace.console_app.services.terminal_broker._handlers_shared._alloc_fail_times"
+        "apps.workspace.console_app.services.terminal_broker._handlers_shared._alloc_fail_info"
     )
-    def test_cooldown_returns_wait_message(self, mock_fail_times):
+    def test_cooldown_returns_wait_message(self, mock_fail_info):
         broker = _make_broker()
         client = MagicMock()
 
-        # Simulate recent failure
-        mock_fail_times.get.return_value = time.time() - 5  # 5s ago
+        # Simulate recent failure — _alloc_fail_info stores (timestamp, reason) tuples
+        mock_fail_info.get.return_value = (
+            time.time() - 5,
+            "SLURM allocation failed",
+        )  # 5s ago
 
         msg = {
             "username": "alice",
@@ -276,7 +279,7 @@ class TestAllocationCooldown:
 
         result = handle_spawn_shared(broker, msg, client)
         assert result["status"] == "error"
-        assert "wait" in result["error"].lower()
+        assert "retrying in" in result["error"].lower()
 
 
 if __name__ == "__main__":

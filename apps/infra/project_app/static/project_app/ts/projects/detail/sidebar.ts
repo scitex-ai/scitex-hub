@@ -9,7 +9,7 @@ const SIDEBAR_SECTIONS_KEY = "scitex-sidebar-sections";
 export function initializeSidebar(): void {
   const sidebar = document.getElementById("repo-sidebar");
   const repoLayout = document.getElementById("repo-layout");
-  const toggleBtn = document.getElementById("sidebar-toggle");
+  const toggleBtn = document.getElementById("stx-shell-sidebar__toggle");
   const savedState = localStorage.getItem(SIDEBAR_STATE_KEY);
 
   console.log("Initializing sidebar. Saved state:", savedState);
@@ -62,7 +62,7 @@ export function initializeSidebar(): void {
 export function toggleSidebar(): void {
   const sidebar = document.getElementById("repo-sidebar");
   const repoLayout = document.getElementById("repo-layout");
-  const toggleBtn = document.getElementById("sidebar-toggle");
+  const toggleBtn = document.getElementById("stx-shell-sidebar__toggle");
 
   if (!sidebar) return;
 

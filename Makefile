@@ -1511,7 +1511,7 @@ slurm-status:
 
 slurm-fix:
 	@echo -e "$(CYAN)🔧 Fixing SLURM (requires sudo)...$(NC)"
-	@sudo ./deployment/slurm/scripts/07_fix_munge_auth.sh
+	@sudo ./deployment/slurm/fix.sh
 	@$(MAKE) slurm-status
 
 slurm-resume:

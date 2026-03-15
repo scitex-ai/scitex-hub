@@ -31,9 +31,16 @@ def setup_django():
 
 def collect_vite_script_entries() -> list[str]:
     """Scan all templates for {% vite_script 'entry' %} calls."""
+    # Directories that contain user data or external clones — not project templates
+    _EXCLUDE_DIRS = {"data", "node_modules", ".git", "__pycache__", "GITIGNORED"}
+
     entries = []
     pattern = re.compile(r"""{%\s*vite_script\s+['"]([^'"]+)['"]\s*%}""")
-    templates_roots = list(PROJECT_ROOT.rglob("templates"))
+    templates_roots = [
+        d
+        for d in PROJECT_ROOT.rglob("templates")
+        if not any(part in _EXCLUDE_DIRS for part in d.relative_to(PROJECT_ROOT).parts)
+    ]
     for templates_root in templates_roots:
         for html in templates_root.rglob("*.html"):
             text = html.read_text(errors="replace")

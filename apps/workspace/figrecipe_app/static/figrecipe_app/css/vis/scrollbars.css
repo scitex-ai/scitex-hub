@@ -3,7 +3,7 @@
    ======================================================================== */
 
 /* Scrollbar styling for WebKit browsers (Chrome, Safari, Edge) */
-.sidebar-content::-webkit-scrollbar,
+.stx-shell-sidebar__content::-webkit-scrollbar,
 .data-table-container::-webkit-scrollbar,
 .properties-content::-webkit-scrollbar,
 .pane-content::-webkit-scrollbar {
@@ -11,7 +11,7 @@
   height: 18px;
 }
 
-.sidebar-content::-webkit-scrollbar-track,
+.stx-shell-sidebar__content::-webkit-scrollbar-track,
 .data-table-container::-webkit-scrollbar-track,
 .properties-content::-webkit-scrollbar-track,
 .pane-content::-webkit-scrollbar-track {
@@ -20,7 +20,7 @@
   margin: 2px;
 }
 
-.sidebar-content::-webkit-scrollbar-thumb,
+.stx-shell-sidebar__content::-webkit-scrollbar-thumb,
 .data-table-container::-webkit-scrollbar-thumb,
 .properties-content::-webkit-scrollbar-thumb,
 .pane-content::-webkit-scrollbar-thumb {
@@ -31,7 +31,7 @@
   min-width: 50px; /* For horizontal scrollbars */
 }
 
-.sidebar-content::-webkit-scrollbar-thumb:hover,
+.stx-shell-sidebar__content::-webkit-scrollbar-thumb:hover,
 .data-table-container::-webkit-scrollbar-thumb:hover,
 .properties-content::-webkit-scrollbar-thumb:hover,
 .pane-content::-webkit-scrollbar-thumb:hover {
@@ -39,7 +39,7 @@
   border-width: 1px; /* Even thinner border on hover = more grabbable area */
 }
 
-.sidebar-content::-webkit-scrollbar-thumb:active,
+.stx-shell-sidebar__content::-webkit-scrollbar-thumb:active,
 .data-table-container::-webkit-scrollbar-thumb:active,
 .properties-content::-webkit-scrollbar-thumb:active,
 .pane-content::-webkit-scrollbar-thumb:active {
@@ -48,7 +48,7 @@
 }
 
 /* Firefox scrollbar styling */
-.sidebar-content,
+.stx-shell-sidebar__content,
 .data-table-container,
 .properties-content,
 .pane-content {
@@ -57,7 +57,7 @@
 }
 
 /* Corner where vertical and horizontal scrollbars meet */
-.sidebar-content::-webkit-scrollbar-corner,
+.stx-shell-sidebar__content::-webkit-scrollbar-corner,
 .data-table-container::-webkit-scrollbar-corner,
 .properties-content::-webkit-scrollbar-corner,
 .pane-content::-webkit-scrollbar-corner {

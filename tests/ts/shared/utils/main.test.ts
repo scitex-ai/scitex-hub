@@ -238,10 +238,10 @@ describe('main', () => {
 //   ];
 // 
 //   const toggleIds: Record<string, { sidebar?: string; details?: string }> = {
-//     '.writer-sidebar': { sidebar: 'sidebar-toggle', details: 'details-toggle' },
-//     '.code-sidebar': { sidebar: 'sidebar-toggle', details: 'terminal-toggle' },
-//     '.scholar-sidebar': { sidebar: 'sidebar-toggle', details: 'properties-toggle' },
-//     '.vis-sidebar': { sidebar: 'sidebar-toggle', details: 'properties-toggle' },
+//     '.writer-sidebar': { sidebar: 'stx-shell-sidebar__toggle', details: 'details-toggle' },
+//     '.code-sidebar': { sidebar: 'stx-shell-sidebar__toggle', details: 'terminal-toggle' },
+//     '.scholar-sidebar': { sidebar: 'stx-shell-sidebar__toggle', details: 'properties-toggle' },
+//     '.vis-sidebar': { sidebar: 'stx-shell-sidebar__toggle', details: 'properties-toggle' },
 //   };
 // 
 //   // Find which selectors exist on the current page

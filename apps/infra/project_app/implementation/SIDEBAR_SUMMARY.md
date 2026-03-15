@@ -123,15 +123,15 @@ Open browser console (F12) to see:
 - `.repo-layout.sidebar-expanded`
 - `.repo-sidebar.collapsed`
 - `.repo-sidebar.expanded`
-- `.sidebar-toggle-btn` + hover/active states
-- `.sidebar-toggle-icon`
+- `.stx-shell-sidebar__toggle-btn` + hover/active states
+- `.stx-shell-sidebar__toggle-icon`
 - `.sidebar-section.collapsible` + hover
 - `.sidebar-section.section-collapsed`
 - `.sidebar-section-chevron`
-- `.sidebar-title` hover effects
+- `.stx-shell-sidebar__title` hover effects
 - `.sidebar-item` hover effects
 - `.sidebar-link` hover effects
-- `.sidebar-content` transitions
+- `.stx-shell-sidebar__content` transitions
 - `.file-tree-*` hover effects
 - Responsive media queries
 
@@ -141,7 +141,7 @@ Open browser console (F12) to see:
 - Added toggle button with onclick handler
 - Added chevrons to section titles
 - Added onclick handlers to section titles
-- Wrapped section content in `.sidebar-content` divs
+- Wrapped section content in `.stx-shell-sidebar__content` divs
 - Added IDs to sections for targeting
 
 ### JavaScript Added (lines ~795-881):
