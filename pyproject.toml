@@ -15,6 +15,7 @@ classifiers = [
 ]
 dependencies = [
     "click>=8.0",
+    "scitex-app>=0.1.0",
 ]
 
 [project.urls]
