@@ -177,5 +177,11 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       rootDir,
       "apps/workspace/dev_app/static/dev_app/scripts/scitex-icon-generator.ts",
     ),
+
+    // Run-stats tool (index.ts in subdir, template uses short name)
+    "public_app/tools/run-stats": r(
+      rootDir,
+      "apps/infra/public_app/static/public_app/ts/tools/run-stats/index.ts",
+    ),
   };
 }
