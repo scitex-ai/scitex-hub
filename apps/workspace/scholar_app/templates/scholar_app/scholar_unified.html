@@ -400,8 +400,7 @@
 {% endblock %}
 {% block extra_js %}
     {{ block.super }}
-    <!-- Panel resizer (auto-initializes from data attributes) -->
-    {% vite_script 'shared/workspace-panel-resizer' %}
+    <!-- Resizer auto-initialized via shared/resizer in global_body_scripts -->
     {% if current_project %}
         <!-- Standardized project config for shared tree init -->
         <div id="workspace-project-config"

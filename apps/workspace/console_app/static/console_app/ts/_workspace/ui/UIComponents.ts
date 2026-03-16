@@ -1,7 +1,7 @@
 /**
  * UI Components Manager
  * Handles modals, context menus, and other UI interactions
- * Note: Resizers are handled by shared WorkspacePanelResizer component
+ * Note: Resizers are handled by shared unified resizer component
  */
 
 import type { EditorConfig } from "../core/types";
@@ -20,7 +20,7 @@ export class UIComponents {
 
   initializeAll(): void {
     this.initContextMenu();
-    // Resizers are now handled by shared WorkspacePanelResizer component via data attributes
+    // Resizers are now handled by shared unified resizer component via data attributes
   }
 
   private initContextMenu(): void {

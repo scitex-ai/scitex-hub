@@ -7,13 +7,12 @@
  * - ESC: exit to previous state
  * - Session-only: zen mode resets on page reload (all panes visible by default)
  * - URL hash support: #zen, #fullscreen, #default for testing/screenshots
- * - Works with existing WorkspacePanelResizer component
+ * - Works with the unified resizer system (data-h-resizer)
  *
  * Refactored: ZenPanelManager handles panel state capture/restore.
  */
 
 import { ZenPanelManager, SavedPanelStates } from "./ZenPanelManager";
-
 
 export interface ZenModeConfig {
   /** CSS selector for header element */
@@ -167,7 +166,6 @@ export class ZenMode {
     this.showNotification(
       "Zen mode – Press <kbd>F11</kbd> for fullscreen, <kbd>Esc</kbd> to exit",
     );
-
   }
 
   /**
@@ -189,7 +187,6 @@ export class ZenMode {
 
     this.currentState = "fullscreen";
     document.body.classList.add("zen-fullscreen");
-
   }
 
   /**
@@ -219,7 +216,6 @@ export class ZenMode {
 
     // Dispatch event for other components to react
     this.dispatchZenModeEvent("exit");
-
 
     // Reset flag after a short delay to allow fullscreenchange event to process
     setTimeout(() => {

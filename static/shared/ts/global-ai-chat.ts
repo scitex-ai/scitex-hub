@@ -217,7 +217,7 @@ class GlobalAIChat {
     if (slug) this.context.project_slug = slug;
     this.chatMode?.restoreConversation();
 
-    // Sync isOpen with WorkspacePanelResizer-restored panel state
+    // Sync isOpen with resizer-restored panel state
     this.isOpen = !this.panel?.classList.contains("collapsed");
     if (this.isOpen) {
       this.panel?.removeAttribute("aria-hidden");

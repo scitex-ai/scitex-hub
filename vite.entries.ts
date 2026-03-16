@@ -134,10 +134,6 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       rootDir,
       "static/shared/ts/components/workspace-viewer/init.ts",
     ),
-    "shared/workspace-panel-resizer": r(
-      rootDir,
-      "static/shared/ts/components/workspace-panel-resizer.ts",
-    ),
     "shared/collapsible-panel-click-expand": r(
       rootDir,
       "static/shared/ts/components/collapsible-panel-click-expand.ts",

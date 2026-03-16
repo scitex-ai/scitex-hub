@@ -3,13 +3,12 @@
  *
  * Ensures only one of data/canvas panes can be collapsed at a time.
  * When one is collapsed and the other gets collapsed, the first one opens.
- * Uses capture-phase event listeners to intercept before WorkspacePanelResizer.
+ * Uses capture-phase event listeners to intercept before HorizontalResizer.
  */
-
 
 /**
  * Clear inline width/flex styles so CSS classes take effect.
- * WorkspacePanelResizer sets inline styles that override CSS rules.
+ * HorizontalResizer sets inline styles that override CSS rules.
  */
 function clearInlineStyles(panel: HTMLElement): void {
   panel.style.width = "";
@@ -155,7 +154,7 @@ function init(): void {
   const dataToggle = document.getElementById("data-pane-toggle");
   const canvasToggle = document.getElementById("canvas-pane-toggle");
 
-  // Use capture phase to intercept before WorkspacePanelResizer's bubble handler
+  // Use capture phase to intercept before HorizontalResizer's bubble handler
   dataToggle?.addEventListener(
     "click",
     (e) => {
@@ -176,7 +175,7 @@ function init(): void {
     true,
   );
 
-  // Restore state (may override WorkspacePanelResizer's independent restore)
+  // Restore state (may override HorizontalResizer's independent restore)
   restoreState();
 
   console.log(
