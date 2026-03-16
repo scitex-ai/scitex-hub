@@ -12,12 +12,9 @@ import { bootstrapContextZoom, registerZoomZone } from "./context-zoom";
 
 // ── Standard zones (handled by bootstrapContextZoom) ────────────────
 
-const FONT_ZOOM_ZONES = [
-  // AI panel (whole sidebar)
-  // NOTE: xterm.js terminals register their own zones in console-mode.ts
-  { selector: "#scitex-ai-panel", storageKey: "scitex-ai-panel-zoom" },
-  // Module (center) pane
-  { selector: "#main-content", storageKey: "scitex-module-zoom" },
+const FONT_ZOOM_ZONES: import("./context-zoom").FontZoomDef[] = [
+  // Note: AI panel and module pane use custom registration below
+  // to exclude title bars from zoom
 ];
 
 const FONT_SIZE_ZOOM_ZONES = [
@@ -32,6 +29,46 @@ const FONT_SIZE_ZOOM_ZONES = [
 ];
 
 // ── Custom zones (registered after bootstrap) ───────────────────────
+
+/** Register zones where mouse-tracking covers the full panel but zoom
+ *  applies only to the content area (excluding title/header bars). */
+function registerContentOnlyZoomZones(): void {
+  // AI panel: track #scitex-ai-panel, zoom .scitex-ai-body only
+  const aiPanel = document.getElementById("scitex-ai-panel");
+  const aiBody = aiPanel?.querySelector<HTMLElement>(".scitex-ai-body");
+  if (aiPanel && aiBody) {
+    registerZoomZone({
+      el: aiPanel,
+      getSize: () => parseFloat(aiBody.style.zoom || "1"),
+      setSize: (val) => {
+        aiBody.style.zoom = String(val);
+      },
+      min: 0.6,
+      max: 2.0,
+      default: 1.0,
+      step: 0.05,
+      storageKey: "scitex-ai-panel-zoom",
+    });
+  }
+
+  // Module pane: track #main-content, zoom .pane-content only
+  const mainContent = document.getElementById("main-content");
+  const paneContent = mainContent?.querySelector<HTMLElement>(".pane-content");
+  if (mainContent && paneContent) {
+    registerZoomZone({
+      el: mainContent,
+      getSize: () => parseFloat(paneContent.style.zoom || "1"),
+      setSize: (val) => {
+        paneContent.style.zoom = String(val);
+      },
+      min: 0.6,
+      max: 2.0,
+      default: 1.0,
+      step: 0.05,
+      storageKey: "scitex-module-zoom",
+    });
+  }
+}
 
 function registerCustomZones(): void {
   // Viewer pane: Monaco font-size zoom via scale factor
@@ -88,6 +125,12 @@ function registerCustomZones(): void {
 // ── Legacy cleanup ──────────────────────────────────────────────────
 
 function cleanupLegacyZoomState(): void {
+  // Clean stale zoom from panels (zoom now targets content only, not whole panel)
+  const aiPanel = document.getElementById("scitex-ai-panel");
+  if (aiPanel?.style.zoom) aiPanel.style.zoom = "";
+  const mainContent = document.getElementById("main-content");
+  if (mainContent?.style.zoom) mainContent.style.zoom = "";
+
   const wsSidebar = document.getElementById("ws-worktree-sidebar");
   if (wsSidebar?.style.zoom) {
     wsSidebar.style.zoom = "";
@@ -113,8 +156,11 @@ function cleanupLegacyZoomState(): void {
 function init(): void {
   cleanupLegacyZoomState();
   bootstrapContextZoom(FONT_ZOOM_ZONES, FONT_SIZE_ZOOM_ZONES);
+  // Content-only zoom zones (title bars excluded)
+  registerContentOnlyZoomZones();
   // Custom zones need MutationObserver too (Monaco/PDF load lazily)
   const observer = new MutationObserver(() => {
+    registerContentOnlyZoomZones();
     registerCustomZones();
   });
   observer.observe(document.body, { childList: true, subtree: true });

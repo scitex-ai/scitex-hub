@@ -26,7 +26,11 @@ class TestServiceHealth:
         resp = api_client.get("/healthz/")
         assert resp.status_code == 200
         # Optional: check response content
-        data = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
+        data = (
+            resp.json()
+            if resp.headers.get("content-type", "").startswith("application/json")
+            else {}
+        )
         if data:
             assert data.get("status") in ["ok", "healthy", True]
 
@@ -40,15 +44,22 @@ class TestServiceHealth:
 
     def test_static_files_served(self, api_client):
         """Static files are being served."""
-        # Test favicon - this is commonly accessible
-        resp = api_client.get("/favicon.ico", allow_redirects=True)
-        # 200 or 301/302 redirect are acceptable, 404 means static serving might be different
-        assert resp.status_code in [200, 301, 302, 404], f"Static files error: {resp.status_code}"
-        # If 404, try another static path
-        if resp.status_code == 404:
-            resp = api_client.get("/static/", allow_redirects=True)
-            # Just check it doesn't 500
-            assert resp.status_code != 500, "Static files serving error"
+        # Test favicon without following redirects (dev server may redirect)
+        resp = api_client.get("/favicon.ico", allow_redirects=False)
+        assert resp.status_code in [
+            200,
+            301,
+            302,
+            404,
+        ], f"Static files error: {resp.status_code}"
+        # Also check a known static path
+        resp = api_client.get("/static/shared/css/common.css", allow_redirects=False)
+        assert resp.status_code in [
+            200,
+            301,
+            302,
+            404,
+        ], f"CSS static file error: {resp.status_code}"
 
     def test_login_page_accessible(self, api_client):
         """Login page is accessible."""
@@ -80,8 +91,12 @@ class TestGiteaConnection:
             # Check gitea_api first (more reliable indicator)
             gitea_api_status = services.get("gitea_api", "")
             if isinstance(gitea_api_status, str):
-                assert gitea_api_status.lower() in ["healthy", "ok", "running", "unknown"], \
-                    f"Gitea API unhealthy: {gitea_api_status}"
+                assert gitea_api_status.lower() in [
+                    "healthy",
+                    "ok",
+                    "running",
+                    "unknown",
+                ], f"Gitea API unhealthy: {gitea_api_status}"
 
             # gitea container status may show "unknown" even when working
             gitea_status = services.get("gitea", "")
