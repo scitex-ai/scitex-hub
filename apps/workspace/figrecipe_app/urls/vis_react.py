@@ -8,10 +8,10 @@ from __future__ import annotations
 
 from django.http import HttpResponse
 from django.urls import path
-from figrecipe._django.views import api_dispatch
 from figrecipe._django.views import editor_page as _figrecipe_spa_page
 
 from ..views import figure_editor
+from .figrecipe import api_dispatch_with_context
 
 _FETCH_OVERRIDE = """<script>
 (function(){var _f=window.fetch,B='/apps/figrecipe-react/figrecipe';
@@ -36,7 +36,7 @@ app_name = "vis_react"
 urlpatterns = [
     path("", figure_editor, name="editor", kwargs={"figrecipe_embedded": True}),
     path("figrecipe/", _figrecipe_embedded_page, name="figrecipe_editor"),
-    path("figrecipe/<path:endpoint>", api_dispatch, name="figrecipe_api"),
+    path("figrecipe/<path:endpoint>", api_dispatch_with_context, name="figrecipe_api"),
 ]
 
 
