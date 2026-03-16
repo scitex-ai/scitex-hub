@@ -1,8 +1,10 @@
 /* ============================================================================
- * Standard Panel Resizer Component
+ * Legacy Panel Resizer / Toggle Button Styles
  * ============================================================================
- * Clean grayish resizer for workspace panels (Code, Writer, Vis)
- * Easy to grab with subtle visual feedback
+ * NOTE: The panel-resizer/split-resizer classes are LEGACY — new code uses
+ * .h-resizer / .v-resizer from resizer.css (auto-initialized via data-h-resizer).
+ * These styles are kept for: docs design pages, figrecipe split-resizer elements,
+ * and the .panel-toggle-btn / no-transition guard used by the unified system.
  * ========================================================================== */
 
 .panel-resizer,
@@ -162,7 +164,7 @@
 /* ============================================================================
  * No-Transition Guard
  * ============================================================================
- * Applied by WorkspacePanelResizer.autoInitPanels() during page load to
+ * Applied by resizer autoInit() during page load to
  * suppress all CSS transitions (including !important ones) while panel sizes
  * are being restored from localStorage. Prevents the "panes animating on
  * every page load" jitter that drains user attention.
