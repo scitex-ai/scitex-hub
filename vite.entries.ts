@@ -161,6 +161,10 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
     // Only included when ../figrecipe exists (the alias resolves conditionally)
     ...(fs.existsSync(resolve(rootDir, "../figrecipe"))
       ? {
+          "figrecipe_app/react-preamble": r(
+            rootDir,
+            "apps/workspace/figrecipe_app/static/figrecipe_app/ts/_react-preamble.ts",
+          ),
           "figrecipe_app/figrecipe-bridge-init": r(
             rootDir,
             "apps/workspace/figrecipe_app/static/figrecipe_app/ts/_figrecipe-bridge-init.ts",

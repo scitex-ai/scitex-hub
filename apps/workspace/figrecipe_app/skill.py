@@ -2,8 +2,8 @@ from apps.infra.llm_app.skills import Skill, register
 
 register(
     Skill(
-        app_name="vis",
-        display_name="Vis - Data Visualization",
+        app_name="figrecipe",
+        display_name="FigRecipe - Data Visualization",
         description=(
             "Data visualization and figure management. View plots, manage "
             "figure recipes, and export publication-ready figures."
@@ -15,8 +15,8 @@ register(
             "Export publication-ready figures",
             "Manage figure recipes (pltz/figz formats)",
         ],
-        page_patterns=["/vis/"],
-        url_prefix="/vis/",
+        page_patterns=["/apps/figrecipe/"],
+        url_prefix="/apps/figrecipe/",
         module_description=(
             "Data visualization and figure management: view plots, "
             "manage figure recipes, export publication-ready figures."

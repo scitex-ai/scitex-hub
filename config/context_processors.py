@@ -37,7 +37,7 @@ def cache_buster(request):
                     Path(settings.BASE_DIR)
                     / "apps/workspace/console_app/static/console_app/js",
                     Path(settings.BASE_DIR)
-                    / "apps/workspace/figrecipe_app/static/figrecipe_app/js",
+                    / "apps/workspace/figrecipe_app/static/figrecipe_app/ts",
                     Path(settings.BASE_DIR)
                     / "apps/workspace/writer_app/static/writer_app/js",
                     Path(settings.BASE_DIR) / "static/shared/js",
@@ -48,8 +48,6 @@ def cache_buster(request):
                     / "apps/workspace/scholar_app/static/scholar_app/css",
                     Path(settings.BASE_DIR)
                     / "apps/workspace/console_app/static/console_app/css",
-                    Path(settings.BASE_DIR)
-                    / "apps/workspace/figrecipe_app/static/figrecipe_app/css",
                     Path(settings.BASE_DIR)
                     / "apps/infra/public_app/static/public_app/css",
                     Path(settings.BASE_DIR)
