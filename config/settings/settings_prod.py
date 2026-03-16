@@ -211,17 +211,17 @@ LOGGING.update(
         "loggers": {
             # Update existing loggers
             "django": {
-                "handlers": ["file_django", "mail_admins"],
+                "handlers": ["file_django"],
                 "level": "INFO",
                 "propagate": False,
             },
             "django.request": {
-                "handlers": ["file_error", "mail_admins"],
+                "handlers": ["file_error"],
                 "level": "ERROR",
                 "propagate": False,
             },
             "django.security": {
-                "handlers": ["file_security", "mail_admins"],
+                "handlers": ["file_security"],
                 "level": "INFO",
                 "propagate": False,
             },
