@@ -42,6 +42,11 @@ services:
       - ../../../../crossref-local:/crossref-local:cached
       - ../../../../openalex-local:/openalex-local:cached
       - ../../../../socialia:/socialia:cached
+      - ../../../../scitex-ui:/scitex-ui:cached
+      - ../../../../scitex-app:/scitex-app:cached
+      - ../../../../scitex-plt:/scitex-plt:cached
+      - ../../../../scitex-audio:/scitex-audio:cached
+      - ../../../../scitex-dev:/scitex-dev:cached
 
       # Centralized logging - all container logs go here
       - ../../../logs:/app/logs
@@ -101,6 +106,8 @@ services:
       - WATCHFILES_FORCE_POLLING=true  # For NFS/network filesystems
       # scitex.writer specific
       - SCITEX_WRITER_CACHE_DIR=/app/.cache
+      # scitex-ui static dir for Vite alias resolution (avoids python3 discovery)
+      - SCITEX_UI_STATIC=/scitex-ui/src/scitex_ui/static/scitex_ui
 
     # Service dependencies
     depends_on:
@@ -245,6 +252,11 @@ services:
       - ../../../../crossref-local:/crossref-local:cached
       - ../../../../openalex-local:/openalex-local:cached
       - ../../../../socialia:/socialia:cached
+      - ../../../../scitex-ui:/scitex-ui:cached
+      - ../../../../scitex-app:/scitex-app:cached
+      - ../../../../scitex-plt:/scitex-plt:cached
+      - ../../../../scitex-audio:/scitex-audio:cached
+      - ../../../../scitex-dev:/scitex-dev:cached
       - ../../../logs:/app/logs
 
     env_file:
@@ -313,6 +325,11 @@ services:
       - ../../../../crossref-local:/crossref-local:cached
       - ../../../../openalex-local:/openalex-local:cached
       - ../../../../socialia:/socialia:cached
+      - ../../../../scitex-ui:/scitex-ui:cached
+      - ../../../../scitex-app:/scitex-app:cached
+      - ../../../../scitex-plt:/scitex-plt:cached
+      - ../../../../scitex-audio:/scitex-audio:cached
+      - ../../../../scitex-dev:/scitex-dev:cached
       - ../../../logs:/app/logs
 
     env_file:
