@@ -276,12 +276,16 @@ services:
     entrypoint: ["/app/deployment/docker/docker_dev/entrypoint.sh"]
 
     # Run Celery worker with all queues
+    # --max-tasks-per-child: auto-restart worker after N tasks (prevents memory leaks)
+    # --max-memory-per-child: auto-restart if worker exceeds 500MB (KB units)
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
       --loglevel=info
       --queues=celery,ai_queue,search_queue,compute_queue,vis_queue
       --concurrency=4
       --prefetch-multiplier=1
+      --max-tasks-per-child=100
+      --max-memory-per-child=500000
 
     restart: unless-stopped
 
