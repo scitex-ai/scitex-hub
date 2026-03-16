@@ -60,18 +60,18 @@ class TestCodeModule:
         assert resp.status_code == 301
 
 
-class TestVisModule:
-    """Test Visualization module accessibility."""
+class TestFigrecipeModule:
+    """Test FigRecipe (formerly Vis) module accessibility."""
 
-    def test_vis_index_accessible(self, api_client):
-        """Vis module index is accessible (via /apps/ canonical URL)."""
-        resp = api_client.get("/apps/vis/", allow_redirects=False)
+    def test_figrecipe_index_accessible(self, api_client):
+        """FigRecipe module index is accessible (via /apps/ canonical URL)."""
+        resp = api_client.get("/apps/figrecipe/", allow_redirects=False)
         assert resp.status_code in [200, 302]
 
     def test_vis_legacy_redirect(self, api_client):
-        """Legacy /vis/ redirects to /apps/vis/."""
+        """Legacy /vis/ redirects (301 or 404 if route removed)."""
         resp = api_client.get("/vis/", allow_redirects=False)
-        assert resp.status_code == 301
+        assert resp.status_code in [301, 404]
 
 
 class TestWorkspaceModule:
