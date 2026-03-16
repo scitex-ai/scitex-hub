@@ -9,19 +9,13 @@
     <div class="ws-apps-pane" id="ws-apps-pane">
         <div id="ws-apps-sidebar">
             <div id="ws-apps-resizer"
-                 class="panel-resizer"
-                 data-panel-resizer
-                 data-target="#ws-apps-sidebar"
-                 data-direction="left"
-                 data-min-width="56"
-                 data-default-width="56"
-                 data-fixed-width
-                 data-storage-key="ws-apps-width"
-                 style="position:absolute;
-                        right:0;
-                        top:0;
-                        bottom:0;
-                        z-index:1"></div>
+                 class="h-resizer h-resizer--shell"
+                 data-h-resizer
+                 data-left="#ws-apps-sidebar"
+                 data-right="#scitex-ai-panel"
+                 data-most-right
+                 data-threshold="56"
+                 data-storage-key="ws-apps-width"></div>
             <nav class="stx-shell-sidebar__content selector-nav ws-apps-nav"
                  id="ws-app-selector"
                  data-indicator="right"

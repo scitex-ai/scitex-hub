@@ -6,15 +6,14 @@
              data-ai-hint="General Editor Pane: shared file viewer across all modules (Writer, Scholar, Console, etc.). Supports text (.py .js .ts .html .css .json .md .yaml .sh .tex .bib .txt), images (.png .jpg .gif .webp .svg), PDF (.pdf), tables (.csv .tsv), diagrams (.mmd .mermaid), audio (.mp3 .wav .ogg .flac), video (.mp4 .webm .avi .mov). Open files via ui_action(steps=[{action:'open-file', path:'relative/path'}]). The currently open file path is tracked in data-ai-viewer-active on this element."
              data-ai-viewer-active="">
             <div id="ws-viewer-resizer"
-                 class="panel-resizer"
-                 data-panel-resizer
-                 data-target="#ws-viewer-sidebar"
-                 data-direction="left"
-                 data-min-width="48"
-                 data-default-width="480"
+                 class="h-resizer"
+                 data-h-resizer
+                 data-left=".ws-module-pane"
+                 data-right="#ws-viewer-sidebar"
+                 data-most-right
+                 data-threshold="48"
                  data-storage-key="ws-viewer-width"
-                 data-collapse-key="ws-viewer-collapsed"
-                 data-toggle-btn="ws-viewer-toggle"></div>
+                 data-external-toggle="ws-viewer-toggle"></div>
             <div class="stx-shell-sidebar__header">
                 <button class="panel-toggle-btn" id="ws-viewer-toggle" title="Toggle viewer">
                     <i class="fas fa-chevron-right"></i>

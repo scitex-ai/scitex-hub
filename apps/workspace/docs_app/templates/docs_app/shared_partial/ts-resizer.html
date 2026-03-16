@@ -257,11 +257,9 @@ const resizer = new HorizontalResizer(resizerEl, {
         captures mouse events and breaks drag.
     </li>
     <li>
-        <strong>Two resizer systems</strong>: The <em>new</em> system (<code>data-h-resizer</code> /
-        <code>data-v-resizer</code>) in <code>shared/ts/components/resizer/</code> and the
-        <em>legacy</em> system (<code>data-panel-resizer</code>) in
-        <code>shared/ts/components/_workspace-panel-resizer/</code> coexist.
-        New apps should use the new system exclusively.
+        <strong>Unified resizer system</strong>: All resizers now use <code>data-h-resizer</code> /
+        <code>data-v-resizer</code> in <code>shared/ts/components/resizer/</code>
+        (re-exported from scitex-ui). The legacy <code>data-panel-resizer</code> system has been retired.
     </li>
 </ul>
 <div class="api-callout api-callout-info">

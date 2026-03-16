@@ -87,17 +87,16 @@
                 </div>
             </div>
             {# Resizer: Tests ↔ Data #}
-            <div class="panel-resizer stats-test-resizer"
+            <div class="h-resizer stats-test-resizer"
                  id="stats-test-resizer"
-                 data-panel-resizer
-                 data-storage-prefix="scitex-stats-"
-                 data-target=".stats-test-panel"
-                 data-direction="left"
-                 data-min-width="40"
-                 data-default-width="340"
-                 data-storage-key="test-panel-width"
-                 data-toggle-btn="test-panel-toggle"
-                 data-collapse-key="scitex-stats-test-collapsed"></div>
+                 data-h-resizer
+                 data-in-app
+                 data-left=".stats-test-panel"
+                 data-right=".stats-data-panel"
+                 data-most-left
+                 data-threshold="40"
+                 data-storage-key="stats-test-split"
+                 data-external-toggle="test-panel-toggle"></div>
             {# Center Column: Data Table #}
             <div class="stats-data-panel collapsible-panel" data-hide-title-expanded>
                 <div class="panel-header">
@@ -114,17 +113,16 @@
                 </div>
             </div>
             {# Resizer: Data ↔ Results #}
-            <div class="panel-resizer stats-results-resizer"
+            <div class="h-resizer stats-results-resizer"
                  id="stats-results-resizer"
-                 data-panel-resizer
-                 data-storage-prefix="scitex-stats-"
-                 data-target=".stats-results-panel"
-                 data-direction="right"
-                 data-min-width="40"
-                 data-default-width="380"
-                 data-storage-key="results-panel-width"
-                 data-toggle-btn="results-panel-toggle"
-                 data-collapse-key="scitex-stats-results-collapsed"></div>
+                 data-h-resizer
+                 data-in-app
+                 data-left=".stats-data-panel"
+                 data-right=".stats-results-panel"
+                 data-most-right
+                 data-threshold="40"
+                 data-storage-key="stats-results-split"
+                 data-external-toggle="results-panel-toggle"></div>
             {# Right Column: Results #}
             <div class="stats-results-panel collapsible-panel">
                 <div class="panel-header">

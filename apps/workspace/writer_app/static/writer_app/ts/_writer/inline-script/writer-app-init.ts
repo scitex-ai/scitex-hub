@@ -363,8 +363,8 @@ export const initWriterApp = async (): Promise<void> => {
   // Initialize right panel header
   initRightPanelHeader();
 
-  // Note: Sidebar and details resizers are auto-initialized by shared/workspace-panel-resizer.ts
-  // via data-panel-resizer attributes on the resizer elements
+  // Note: Sidebar and details resizers are auto-initialized by shared/resizer
+  // via data-h-resizer attributes on the resizer elements
 
   console.log("[Writer] Writer application initialized");
 };

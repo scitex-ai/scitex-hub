@@ -66,17 +66,16 @@
             </div>
         </main>
         <!-- Details resizer (auto-initialized via data attributes) -->
-        <div class="panel-resizer"
+        <div class="h-resizer"
              id="details-resizer"
-             data-panel-resizer
-             data-storage-prefix="scitex-clew-"
-             data-target=".clew-details"
-             data-direction="right"
-             data-min-width="48"
-             data-default-width="280"
-             data-storage-key="details-width"
-             data-collapse-key="clew-details-collapsed"
-             data-toggle-btn="details-toggle"></div>
+             data-h-resizer
+             data-in-app
+             data-left=".clew-main"
+             data-right=".clew-details"
+             data-most-right
+             data-threshold="48"
+             data-storage-key="clew-details-split"
+             data-external-toggle="details-toggle"></div>
         <!-- RIGHT SIDEBAR - DETAILS -->
         <aside class="clew-details collapsible-panel" id="clew-details">
             <div class="details-header">

@@ -79,17 +79,16 @@
             </div>
         </div>
         <!-- Nav-to-content resizer -->
-        <div class="panel-resizer"
+        <div class="h-resizer"
              id="tools-nav-resizer"
-             data-panel-resizer
-             data-storage-prefix="scitex-workspace-"
-             data-target=".tools-nav-panel"
-             data-direction="left"
-             data-min-width="40"
-             data-default-width="260"
-             data-storage-key="tools-nav-width"
-             data-toggle-btn="tools-nav-toggle"
-             data-collapse-key="scitex-workspace-tools-nav-collapsed"></div>
+             data-h-resizer
+             data-in-app
+             data-left=".tools-nav-panel"
+             data-right=".tools-content-panel"
+             data-most-left
+             data-threshold="40"
+             data-storage-key="tools-nav-split"
+             data-external-toggle="tools-nav-toggle"></div>
         <!-- Column 3: Tool content (always visible) -->
         <main class="tools-content-panel" id="tools-content-panel">
             <!-- Iframe header removed for cleaner look - tools fill full space -->

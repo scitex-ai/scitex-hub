@@ -108,17 +108,16 @@
             </div>
         </section>
         <!-- Properties resizer (auto-initialized via data attributes) -->
-        <div class="panel-resizer"
+        <div class="h-resizer"
              id="main-resizer"
-             data-panel-resizer
-             data-storage-prefix="scitex-scholar-"
-             data-target=".scholar-properties"
-             data-direction="right"
-             data-min-width="48"
-             data-default-width="320"
-             data-storage-key="properties-width"
-             data-collapse-key="scholar-properties-collapsed"
-             data-toggle-btn="properties-toggle"></div>
+             data-h-resizer
+             data-in-app
+             data-left=".scholar-main"
+             data-right=".scholar-properties"
+             data-most-right
+             data-threshold="48"
+             data-storage-key="scholar-properties-split"
+             data-external-toggle="properties-toggle"></div>
         <!-- Right details panel -->
         <aside class="scholar-properties" id="scholar-properties">
             <div class="properties-header">

@@ -20,20 +20,15 @@
                  class="scitex-ai-panel stx-shell-sidebar collapsed"
                  aria-hidden="true">
                 <div id="scitex-ai-resizer"
-                     class="panel-resizer"
-                     data-panel-resizer
-                     data-target="#scitex-ai-panel"
-                     data-direction="left"
-                     data-min-width="40"
-                     data-default-width="300"
-                     data-storage-key="ws-ai-panel-width"
-                     data-collapse-key="ws-ai-panel-collapsed"
-                     style="position:absolute;
-                            right:0;
-                            top:0;
-                            bottom:0;
-                            z-index:1"></div>
-                <div class="stx-shell-sidebar__header scitex-ai-panel-header" id="scitex-ai-panel-header">
+                     class="h-resizer h-resizer--shell"
+                     data-h-resizer
+                     data-left="#scitex-ai-panel"
+                     data-right="#ws-worktree-sidebar"
+                     data-most-left
+                     data-threshold="40"
+                     data-storage-key="ws-ai-panel-width"></div>
+                <div class="stx-shell-sidebar__header scitex-ai-panel-header"
+                     id="scitex-ai-panel-header">
                     <button class="panel-toggle-btn" id="scitex-ai-toggle" title="AI Chat (Alt+A)">
                         <i class="fas fa-chevron-right"></i>
                     </button>
@@ -77,19 +72,13 @@
         <div class="ws-worktree-pane" id="ws-worktree-pane">
             <div class="stx-shell-sidebar" id="ws-worktree-sidebar">
                 <div id="ws-worktree-resizer"
-                     class="panel-resizer"
-                     data-panel-resizer
-                     data-target="#ws-worktree-sidebar"
-                     data-direction="left"
-                     data-min-width="40"
-                     data-default-width="250"
-                     data-storage-key="ws-worktree-width"
-                     data-collapse-key="ws-worktree-collapsed"
-                     style="position:absolute;
-                            right:0;
-                            top:0;
-                            bottom:0;
-                            z-index:1"></div>
+                     class="h-resizer h-resizer--shell"
+                     data-h-resizer
+                     data-left="#ws-worktree-sidebar"
+                     data-right=".ws-module-pane"
+                     data-most-left
+                     data-threshold="40"
+                     data-storage-key="ws-worktree-width"></div>
                 <div class="stx-shell-sidebar__header">
                     <button class="panel-toggle-btn" id="ws-worktree-toggle" title="Toggle file tree">
                         <i class="fas fa-chevron-right"></i>

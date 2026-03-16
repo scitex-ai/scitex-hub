@@ -226,17 +226,16 @@
                 </div>
             </div>
             <!-- Resizer between editor and terminal (auto-initialized via data attributes) -->
-            <div class="panel-resizer"
+            <div class="h-resizer"
                  id="editor-resizer"
-                 data-panel-resizer
-                 data-storage-prefix="scitex-code-"
-                 data-target=".code-terminal-panel"
-                 data-direction="right"
-                 data-min-width="48"
-                 data-default-width="400"
-                 data-storage-key="terminal-width"
-                 data-collapse-key="code-terminal-collapsed"
-                 data-toggle-btn="terminal-toggle"></div>
+                 data-h-resizer
+                 data-in-app
+                 data-left=".code-editor-area"
+                 data-right=".code-terminal-panel"
+                 data-most-right
+                 data-threshold="48"
+                 data-storage-key="console-terminal-split"
+                 data-external-toggle="terminal-toggle"></div>
             <!-- Right: Terminal Panel (Terminal / Jobs) -->
             <div id="code-terminal-panel"
                  class="code-terminal-panel collapsible-panel"

@@ -46,17 +46,24 @@ function getOrderedPanes(): PaneInfo[] {
     });
   }
 
-  // Workspace sidebar panels (right side) — detected via data-panel-resizer
+  // Workspace sidebar panels — detected via data-h-resizer
   const resizers = document.querySelectorAll<HTMLElement>(
-    "[data-panel-resizer]:not(#scitex-ai-resizer)",
+    "[data-h-resizer]:not(#scitex-ai-resizer)",
   );
   for (const r of resizers) {
-    const target = r.dataset.target;
+    // New system: data-left/data-right + data-most-left/data-most-right
+    const leftSel = r.dataset.left;
+    const rightSel = r.dataset.right;
+    const hasLeft = r.hasAttribute("data-most-left");
+    const hasRight = r.hasAttribute("data-most-right");
+
+    // The collapsible panel is the one with data-most-left or data-most-right
+    const target = hasLeft ? leftSel : hasRight ? rightSel : null;
     if (!target) continue;
     const panel = document.querySelector<HTMLElement>(target);
     if (!panel || panel === aiPanel) continue;
 
-    const toggleId = r.dataset.toggleBtn;
+    const toggleId = r.dataset.externalToggle;
     const toggleBtn = toggleId ? document.getElementById(toggleId) : null;
     panes.push({
       el: panel,

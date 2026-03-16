@@ -9,21 +9,16 @@
              aria-hidden="false">
             <!-- WorkspacePanelResizer: handles collapse state restore and drag resize -->
             <div id="scitex-ai-resizer"
-                 class="panel-resizer"
-                 data-panel-resizer
-                 data-target="#scitex-ai-panel"
-                 data-direction="left"
-                 data-min-width="48"
-                 data-default-width="300"
+                 class="h-resizer h-resizer--shell"
+                 data-h-resizer
+                 data-left="#scitex-ai-panel"
+                 data-right="#ws-worktree-sidebar"
+                 data-most-left
+                 data-threshold="48"
                  data-storage-key="ws-ai-panel-width"
-                 data-collapse-key="scitex-ai-panel-collapsed"
-                 data-toggle-btn="scitex-ai-toggle"
-                 style="position:absolute;
-                        right:0;
-                        top:0;
-                        bottom:0;
-                        z-index:1"></div>
-            <div class="stx-shell-sidebar__header scitex-ai-panel-header" id="scitex-ai-panel-header">
+                 data-external-toggle="scitex-ai-toggle"></div>
+            <div class="stx-shell-sidebar__header scitex-ai-panel-header"
+                 id="scitex-ai-panel-header">
                 <button class="panel-toggle-btn" id="scitex-ai-toggle" title="AI Chat (Alt+A)">
                     <i class="fas fa-chevron-right"></i>
                 </button>

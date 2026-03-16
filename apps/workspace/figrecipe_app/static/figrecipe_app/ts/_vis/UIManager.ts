@@ -169,8 +169,8 @@ export class UIManager {
   // ========================================
 
   public initializeEventListeners(): void {
-    // NOTE: Sidebar and properties toggle are now handled by shared/workspace-panel-resizer.ts
-    // via data-panel-resizer attributes. Disabled legacy PanelControls to prevent conflicts.
+    // NOTE: Sidebar and properties toggle are now handled by shared/resizer
+    // via data-h-resizer attributes. Disabled legacy PanelControls to prevent conflicts.
     // this.panelControls.initSidebarToggle();
     // this.panelControls.initPropertiesToggle();
     this.ribbonButtons.initRibbonButtons();

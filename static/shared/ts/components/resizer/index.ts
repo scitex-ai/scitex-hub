@@ -5,8 +5,8 @@
  *   [data-h-resizer] → HorizontalResizer
  *   [data-v-resizer] → VerticalResizer
  *
- * The old [data-panel-resizer] system remains active in workspace-panel-resizer/
- * for backward compat during migration. This module only handles new attributes.
+ * All templates now use [data-h-resizer] / [data-v-resizer].
+ * The legacy [data-panel-resizer] system in _workspace-panel-resizer/ is retired.
  *
  * Re-initializes on htmx:afterSettle for dynamically loaded content.
  */

@@ -2,8 +2,8 @@
  * Panel Toggle Functionality for Writer
  * Handles the editor/preview panel expand/collapse behavior
  *
- * NOTE: Sidebar and Details panel toggle is now handled by shared/workspace-panel-resizer.ts
- * via data-panel-resizer attributes. This module only handles the editor/preview split
+ * NOTE: Sidebar and Details panel toggle is now handled by shared/resizer
+ * via data-h-resizer attributes. This module only handles the editor/preview split
  * which uses binary collapse/expand with shared accordion behavior.
  */
 
