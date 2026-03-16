@@ -2,13 +2,11 @@
  * VisEditorBridge — connects figrecipe bridge events to existing TS managers.
  *
  * Listens for CustomEvents emitted by the React bridge and calls
- * the appropriate VisEditor / manager methods.
+ * the appropriate workspace manager methods.
  */
 
 import { onBridgeEvent } from "./BridgeEventBus";
 import { switchRecipeFile } from "./FigrecipeMountPoint";
-import { runTest, forwardStatToFigrecipe } from "../_vis/StatsApiClient";
-import type { GroupData } from "../_vis/StatsTypes";
 
 /** Cleanup functions for event subscriptions. */
 const cleanups: Array<() => void> = [];
@@ -104,15 +102,12 @@ export function unwireVisEditorBridge(): void {
 }
 
 /**
- * Run a stat test via scitex.stats and render the bracket on figrecipe.
- *
- * End-to-end flow:
- *   1. POST /apps/figrecipe/api/stats/run/ → {result, annotation}
- *   2. POST /apps/figrecipe/api/figrecipe/stats/add_bracket → render bracket
+ * Run a stat test via figrecipe's API and render the bracket.
+ * Delegates to figrecipe._django handlers.
  */
 export async function runStatAndRenderBracket(
   testName: string,
-  groups: GroupData[],
+  groups: Array<{ label: string; values: number[] }>,
   axIndex: number = 0,
   groupPositions?: { x1: number; x2: number },
 ): Promise<{
@@ -121,12 +116,28 @@ export async function runStatAndRenderBracket(
   bracket_id: string;
   preview: string;
 }> {
-  const { result, annotation } = await runTest(testName, groups);
-  const { bracket_id, preview } = await forwardStatToFigrecipe(
-    annotation,
-    axIndex,
-    groupPositions,
+  // Run stat test via figrecipe API
+  const statResp = await fetch("/apps/figrecipe/figrecipe/stats/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ test_name: testName, groups }),
+  });
+  const { result, annotation } = await statResp.json();
+
+  // Forward stat bracket to figrecipe renderer
+  const bracketResp = await fetch(
+    "/apps/figrecipe/figrecipe/stats/add_bracket",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        annotation,
+        ax_index: axIndex,
+        group_positions: groupPositions,
+      }),
+    },
   );
+  const { bracket_id, preview } = await bracketResp.json();
 
   console.log(
     `[Bridge] Stat → bracket: ${testName} → ${annotation.stars} (${bracket_id})`,

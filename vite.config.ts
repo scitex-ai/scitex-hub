@@ -75,7 +75,7 @@ export default defineConfig({
     react({
       // Exclude external figrecipe source from Fast Refresh (avoids preamble error).
       // esbuild still handles JSX via tsconfig "jsx": "react-jsx".
-      exclude: [/figrecipe\/_django\/frontend/],
+      exclude: [/figrecipe/, /figrecipe_app/, /scitex.ui/],
     }),
     resolveStaticPaths(),
   ],
@@ -171,6 +171,10 @@ export default defineConfig({
         assetFileNames: "assets/[name]-[hash][extname]",
       },
     },
+  },
+
+  esbuild: {
+    jsx: "automatic",
   },
 
   optimizeDeps: {

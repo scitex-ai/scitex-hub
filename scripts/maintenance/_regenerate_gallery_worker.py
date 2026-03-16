@@ -22,6 +22,7 @@ warnings.filterwarnings("ignore")
 import json
 import os
 from pathlib import Path
+
 import scitex as stx
 
 # Output paths - use static directory as single source of truth
@@ -30,8 +31,8 @@ OUTPUT_DIR = "/app/static/shared/images/gallery"
 
 def add_element_bboxes_to_json(json_path, png_path, csv_path=None):
     """Re-render plot from recipe and extract element bboxes."""
-    from PIL import Image
     import pandas as pd
+    from PIL import Image
 
     try:
         # Load existing metadata
@@ -143,7 +144,7 @@ def add_element_bboxes_to_json(json_path, png_path, csv_path=None):
                 print(f"  Warning: Could not re-render {method}: {e}")
 
         # Extract element bboxes - use underlying matplotlib axes for consistency
-        from apps.workspace.figrecipe_app.services.plot_renderer.element_bboxes import (
+        from figrecipe.renderer.element_bboxes import (
             extract_element_bboxes,
         )
 
