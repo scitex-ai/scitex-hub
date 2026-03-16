@@ -5,6 +5,19 @@
  * Auto-discovers mount point and project context from DOM data attributes.
  */
 
+// Import figrecipe editor CSS (main.tsx imports these for standalone mode;
+// in embedded mode we must import them explicitly)
+import "figrecipe-editor/styles/app-variables.css";
+import "figrecipe-editor/styles/layout.css";
+import "figrecipe-editor/styles/context-menu.css";
+import "figrecipe-editor/styles/canvas.css";
+import "figrecipe-editor/styles/panels.css";
+import "figrecipe-editor/styles/gallery.css";
+import "figrecipe-editor/styles/export-dialog.css";
+import "figrecipe-editor/styles/feedback.css";
+import "figrecipe-editor/styles/ribbon.css";
+import "figrecipe-editor/styles/panel-resizer.css";
+
 import {
   mountFigrecipeEditor,
   wireVisEditorBridge,
