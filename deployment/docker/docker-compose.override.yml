@@ -90,6 +90,7 @@ services:
       PYTHONDONTWRITEBYTECODE: 1
       WATCHFILES_FORCE_POLLING: "true"
       SCITEX_WRITER_CACHE_DIR: /app/.cache
+      SCITEX_UI_STATIC: /scitex-ui/src/scitex_ui/static/scitex_ui
     depends_on:
       postgres:
         condition: service_healthy

@@ -7,9 +7,12 @@
 
 export {
   type ZoomZone,
+  type FontZoomDef,
+  type FontSizeZoomDef,
   getActiveZone,
   registerZoomZone,
   initContextZoom,
   registerFontZoom,
   registerFontSizeZoom,
+  bootstrapContextZoom,
 } from "scitex-ui/ts/utils/context-zoom";
