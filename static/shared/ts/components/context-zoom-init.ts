@@ -153,20 +153,44 @@ function cleanupLegacyZoomState(): void {
 
 // ── Initialize ──────────────────────────────────────────────────────
 
+/** Track which zones have been registered to avoid duplicate registration. */
+const registeredZones = new Set<string>();
+
+function registerOnce(fn: () => void, ...keys: string[]): void {
+  const unregistered = keys.filter((k) => !registeredZones.has(k));
+  if (unregistered.length === 0) return;
+  fn();
+  for (const k of keys) registeredZones.add(k);
+}
+
 function init(): void {
   cleanupLegacyZoomState();
   bootstrapContextZoom(FONT_ZOOM_ZONES, FONT_SIZE_ZOOM_ZONES);
   // Content-only zoom zones (title bars excluded)
   registerContentOnlyZoomZones();
+  registeredZones.add("scitex-ai-panel-zoom");
+  registeredZones.add("scitex-module-zoom");
   // Custom zones need MutationObserver too (Monaco/PDF load lazily)
+  registerCustomZones();
+
   const observer = new MutationObserver(() => {
-    registerContentOnlyZoomZones();
-    registerCustomZones();
+    registerOnce(
+      registerContentOnlyZoomZones,
+      "scitex-ai-panel-zoom",
+      "scitex-module-zoom",
+    );
+    registerOnce(
+      registerCustomZones,
+      "scitex-viewer-font-zoom",
+      "scitex-pdf-passthrough",
+    );
+    // Disconnect once all zones are registered
+    if (registeredZones.size >= 4) {
+      observer.disconnect();
+    }
   });
   observer.observe(document.body, { childList: true, subtree: true });
   setTimeout(() => observer.disconnect(), 30_000);
-  // Try immediately too
-  registerCustomZones();
 }
 
 if (document.readyState === "loading") {
