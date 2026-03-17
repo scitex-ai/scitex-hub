@@ -5,8 +5,11 @@
  * Auto-discovers mount point and project context from DOM data attributes.
  */
 
-// Import figrecipe editor CSS (main.tsx imports these for standalone mode;
-// in embedded mode we must import them explicitly)
+// scitex-ui app-level CSS (selector-nav, data-table, etc.)
+// Shell CSS is already loaded by scitex-cloud Django templates — only load app styles.
+import "scitex-ui/src/scitex_ui/static/scitex_ui/css/app.css";
+
+// figrecipe-specific styles (canvas, panels, gallery, etc.)
 import "figrecipe-editor/styles/app-variables.css";
 import "figrecipe-editor/styles/layout.css";
 import "figrecipe-editor/styles/context-menu.css";
