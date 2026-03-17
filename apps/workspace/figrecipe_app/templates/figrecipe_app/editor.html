@@ -17,7 +17,7 @@
     <!-- figrecipe React editor mount point -->
     <div id="figrecipe-mount"
          data-embedded="true"
-         {% if current_project %} data-project-owner="{{ current_project.owner.username }}" data-project-slug="{{ current_project.slug }}" data-working-dir="/{{ current_project.owner.username }}/{{ current_project.slug }}" {% endif %}>
+         {% if current_project %} data-project-owner="{{ current_project.owner.username }}" data-project-slug="{{ current_project.slug }}" {% endif %}>
     </div>
 {% endblock %}
 {% block extra_js %}
