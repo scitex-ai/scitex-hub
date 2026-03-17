@@ -22,7 +22,6 @@
 {% endblock %}
 {% block extra_js %}
     {% vite_hmr_client %}
-    {% vite_script 'figrecipe_app/react-preamble' %}
     {% tree_preseed_script current_project %}
     {% vite_script 'figrecipe_app/figrecipe-bridge-init' %}
 {% endblock %}
