@@ -23,7 +23,6 @@ CELERY_TASK_ROUTES = {
     "apps.workspace.writer_app.tasks.*": {"queue": "ai_queue"},
     "apps.workspace.scholar_app.tasks.*": {"queue": "search_queue"},
     "apps.workspace.console_app.tasks.*": {"queue": "compute_queue"},
-    "apps.workspace.figrecipe_app.tasks.*": {"queue": "vis_queue"},
 }
 
 # Fair scheduling: Rate limits per task
