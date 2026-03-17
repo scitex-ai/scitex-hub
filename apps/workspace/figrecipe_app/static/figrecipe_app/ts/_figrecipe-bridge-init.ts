@@ -7,7 +7,8 @@
 
 // scitex-ui app-level CSS (selector-nav, data-table, etc.)
 // Shell CSS is already loaded by scitex-cloud Django templates — only load app styles.
-import "scitex-ui/src/scitex_ui/static/scitex_ui/css/app.css";
+// Alias "scitex-ui" resolves to scitex_ui/static/scitex_ui/ via vite.config.ts
+import "scitex-ui/css/app.css";
 
 // figrecipe-specific styles (canvas, panels, gallery, etc.)
 import "figrecipe-editor/styles/app-variables.css";
