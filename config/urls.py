@@ -52,10 +52,6 @@ urlpatterns = [
     path("apps/scholar/", include(("apps.workspace.scholar_app.urls", "scholar_app"))),
     path("apps/console/", include(("apps.workspace.console_app.urls", "console_app"))),
     path(
-        "apps/figrecipe-react/",
-        include(("apps.workspace.figrecipe_app.urls.vis_react", "vis_react")),
-    ),
-    path(
         "apps/figrecipe/",
         include(("apps.workspace.figrecipe_app.urls", "figrecipe_app")),
     ),
