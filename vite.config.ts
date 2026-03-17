@@ -1,6 +1,7 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig, Plugin } from "vite";
 import { resolve } from "path";
+import * as path from "path";
 import * as fs from "fs";
 import { execSync } from "child_process";
 import { getEntryPoints } from "./vite.entries";
@@ -24,6 +25,83 @@ function discoverScitexUiStatic(): string | null {
 }
 
 const SCITEX_UI_STATIC = discoverScitexUiStatic();
+
+/** Discovered app bridge configuration. */
+interface AppBridgeInfo {
+  slug: string;
+  appName: string;
+  repoDir: string;
+  frontendSrc: string;
+}
+
+/**
+ * Auto-discover app bridges from sibling repositories.
+ *
+ * Scans sibling directories for manifest.json files with a "bridge" key.
+ * Returns Vite aliases, fs.allow entries, and exclude patterns.
+ */
+function discoverAppBridges(rootDir: string): {
+  aliases: Record<string, string>;
+  fsAllow: string[];
+  excludePatterns: RegExp[];
+  bridges: AppBridgeInfo[];
+} {
+  const aliases: Record<string, string> = {};
+  const fsAllow: string[] = [];
+  const excludePatterns: RegExp[] = [];
+  const bridges: AppBridgeInfo[] = [];
+  const parentDir = resolve(rootDir, "..");
+
+  if (!fs.existsSync(parentDir))
+    return { aliases, fsAllow, excludePatterns, bridges };
+
+  for (const entry of fs.readdirSync(parentDir)) {
+    if (entry.startsWith(".") || entry === path.basename(rootDir)) continue;
+    const repoDir = resolve(parentDir, entry);
+    try {
+      if (!fs.statSync(repoDir).isDirectory()) continue;
+    } catch {
+      continue;
+    }
+
+    // Derive Python package name from repo name (e.g. "figrecipe" → "figrecipe")
+    const pkgName = entry.replace(/-/g, "_");
+
+    // Look for manifest.json in _django/ subdirectory
+    const manifestPaths = [
+      resolve(repoDir, `src/${pkgName}/_django/manifest.json`),
+      resolve(repoDir, "manifest.json"),
+    ];
+
+    for (const mp of manifestPaths) {
+      if (!fs.existsSync(mp)) continue;
+      try {
+        const manifest = JSON.parse(fs.readFileSync(mp, "utf-8"));
+        if (!manifest.bridge?.entry) continue;
+
+        const slug = manifest.slug || pkgName;
+        const appName = manifest.name || `${pkgName}_app`;
+        const djangoDir = path.dirname(mp);
+        const frontendSrc = resolve(djangoDir, "frontend", "src");
+
+        if (!fs.existsSync(frontendSrc)) continue;
+
+        // Add Vite alias: "{slug}-editor" → frontend source
+        aliases[`${slug}-editor`] = frontendSrc;
+        fsAllow.push(repoDir);
+        excludePatterns.push(new RegExp(slug));
+        bridges.push({ slug, appName, repoDir, frontendSrc });
+        break;
+      } catch {
+        /* skip invalid manifests */
+      }
+    }
+  }
+
+  return { aliases, fsAllow, excludePatterns, bridges };
+}
+
+const APP_BRIDGES = discoverAppBridges(__dirname);
 
 /**
  * Resolve an app's static directory, searching infra/ and workspace/ groups.
@@ -73,9 +151,9 @@ function resolveStaticPaths(): Plugin {
 export default defineConfig({
   plugins: [
     react({
-      // Exclude external figrecipe source from Fast Refresh (avoids preamble error).
+      // Exclude external app sources from Fast Refresh (avoids preamble error).
       // esbuild still handles JSX via tsconfig "jsx": "react-jsx".
-      exclude: [/figrecipe/, /figrecipe_app/, /scitex.ui/],
+      exclude: [/scitex.ui/, ...APP_BRIDGES.excludePatterns],
     }),
     resolveStaticPaths(),
   ],
@@ -90,15 +168,8 @@ export default defineConfig({
       "@utils": resolve(__dirname, "static/shared/ts/utils"),
       // scitex-ui: shared component library (auto-discovered from pip)
       ...(SCITEX_UI_STATIC ? { "scitex-ui": SCITEX_UI_STATIC } : {}),
-      // Only include figrecipe alias if figrecipe directory exists (dev only)
-      ...(fs.existsSync(resolve(__dirname, "../figrecipe"))
-        ? {
-            "figrecipe-editor": resolve(
-              __dirname,
-              "../figrecipe/src/figrecipe/_django/frontend/src",
-            ),
-          }
-        : {}),
+      // Auto-discovered app bridges (e.g. "figrecipe-editor" → sibling repo)
+      ...APP_BRIDGES.aliases,
     },
     extensions: [".ts", ".js", ".tsx", ".jsx", ".json"],
   },
@@ -148,8 +219,9 @@ export default defineConfig({
     fs: {
       allow: [
         ".",
-        resolve(__dirname, "../figrecipe"),
         ...(SCITEX_UI_STATIC ? [SCITEX_UI_STATIC] : []),
+        // Auto-discovered app repos
+        ...APP_BRIDGES.fsAllow,
       ],
     },
     warmup: {
@@ -179,6 +251,7 @@ export default defineConfig({
 
   optimizeDeps: {
     include: ["fabric", "react", "react-dom"],
-    exclude: ["figrecipe-editor"],
+    // Exclude auto-discovered app editor aliases from pre-bundling
+    exclude: Object.keys(APP_BRIDGES.aliases),
   },
 });

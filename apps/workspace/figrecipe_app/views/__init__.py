@@ -34,6 +34,11 @@ def figure_editor(request, figrecipe_embedded=False):
         "module_icon": "fa-chart-line",
         "is_workspace_page": True,
         "figrecipe_embedded": figrecipe_embedded,
+        # Generic app editor context (used by shared/app_editor.html)
+        "app_slug": "figrecipe",
+        "app_label": "FigRecipe",
+        "app_mount_css": "figrecipe_app/css/figrecipe-mount.css",
+        "bridge_entry_name": "figrecipe_app/figrecipe-bridge-init",
     }
 
     if request.user.username.startswith("visitor-"):

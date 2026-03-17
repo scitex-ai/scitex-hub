@@ -1,5 +1,5 @@
-/* figrecipe React editor mount — fills the module pane */
-#figrecipe-mount {
+/* App mount point — fills the module pane */
+#app-mount {
   width: 100%;
   height: 100%;
   position: relative;
