@@ -163,6 +163,14 @@ def project_detail(request, username, slug):
         gitea_ssh_url = f"ssh://git@{gitea_ssh_domain}:{gitea_ssh_port}/{project.owner.username}/{project.slug}.git"
         download_zip_url = f"{gitea_url}/{project.owner.username}/{project.slug}/archive/{current_branch}.zip"
 
+    # Get TRIP config for TRIP projects
+    trip_config = None
+    if project.project_type == "trip":
+        try:
+            trip_config = project.trip_config
+        except Exception:
+            pass
+
     context = {
         "project": project,
         "user": request.user,
@@ -181,6 +189,7 @@ def project_detail(request, username, slug):
         "gitea_https_url": gitea_https_url,
         "gitea_ssh_url": gitea_ssh_url,
         "download_zip_url": download_zip_url,
+        "trip_config": trip_config,
     }
 
     # Check dev-install status for app repos
