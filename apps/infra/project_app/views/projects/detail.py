@@ -117,8 +117,11 @@ def project_detail(request, username, slug):
 
     project_path = _get_project_path(project)
 
-    # Get directory contents and README (skip git info for remote/trip)
-    if project_path and project_path.exists():
+    # Get directory contents and README
+    if project.project_type == "trip":
+        # TRIP: fetch files from remote via SFTP
+        files, dirs, readme_content, readme_html = _get_trip_contents(project)
+    elif project_path and project_path.exists():
         files, dirs = get_directory_contents(project_path, skip_git=is_remote_type)
         readme_content, readme_html = get_readme_content(project_path)
     else:
@@ -220,6 +223,51 @@ def project_tree_or_blob(request, username, slug, branch=None, path=None):
         return render(request, "hub_app/index.html", context)
     # Unauthenticated: fall through to standalone project detail
     return project_detail(request, username, slug)
+
+
+def _get_trip_contents(project):
+    """Fetch remote file listing for TRIP projects via SFTP.
+
+    Returns (files, dirs, readme_content, readme_html) matching the format
+    expected by browse templates — just like local projects but over SSH.
+    """
+    files, dirs = [], []
+    readme_content, readme_html = None, None
+
+    try:
+        from ..services.trip_backend import get_trip_backend
+
+        backend = get_trip_backend(project)
+        items = backend.list_dir("")
+
+        for item in items:
+            entry = {
+                "name": item["name"],
+                "path": item["path"],
+            }
+            if item["type"] == "directory":
+                dirs.append(entry)
+            else:
+                files.append(entry)
+
+        # Try to read README
+        for readme_name in ["README.md", "readme.md", "README", "README.rst"]:
+            try:
+                content = backend.read_file(readme_name)
+                readme_content = content
+                import markdown
+
+                readme_html = markdown.markdown(
+                    content, extensions=["fenced_code", "tables"]
+                )
+                break
+            except Exception:
+                continue
+
+    except Exception as exc:
+        logger.warning(f"TRIP file listing failed: {exc}")
+
+    return files, dirs, readme_content, readme_html
 
 
 def _get_project_path(project):

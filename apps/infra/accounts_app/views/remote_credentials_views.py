@@ -294,6 +294,69 @@ def handle_test_remote_credential(request):
         return False
 
 
+def handle_ssh_copy_id(request):
+    """Install public key on remote system via ssh-copy-id."""
+    credential_id = request.POST.get("credential_id")
+    ssh_password = request.POST.get("ssh_password", "")
+
+    if not ssh_password:
+        messages.error(request, "Password is required for ssh-copy-id")
+        return False
+
+    try:
+        credential = RemoteCredential.objects.get(id=credential_id, user=request.user)
+        pub_key_path = credential.private_key_path + ".pub"
+
+        if not Path(pub_key_path).exists():
+            messages.error(request, f"Public key not found: {pub_key_path}")
+            return False
+
+        # Use sshpass + ssh-copy-id to install the key
+        cmd = [
+            "sshpass",
+            "-p",
+            ssh_password,
+            "ssh-copy-id",
+            "-i",
+            pub_key_path,
+            "-p",
+            str(credential.ssh_port),
+            "-o",
+            "StrictHostKeyChecking=accept-new",
+            f"{credential.ssh_username}@{credential.ssh_host}",
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+
+        if result.returncode == 0:
+            messages.success(
+                request,
+                f"Public key installed on {credential.name}! "
+                "You can now test the connection.",
+            )
+        else:
+            error = result.stderr.strip()
+            messages.error(
+                request,
+                f"ssh-copy-id failed: {error}",
+            )
+
+        return True
+
+    except RemoteCredential.DoesNotExist:
+        messages.error(request, "Credential not found")
+        return False
+    except subprocess.TimeoutExpired:
+        messages.error(request, "ssh-copy-id timed out")
+        return False
+    except FileNotFoundError:
+        messages.error(
+            request,
+            "sshpass not installed. Please install it or copy the public key manually.",
+        )
+        return False
+
+
 @login_required
 def remote_credentials(request):
     """Remote credentials management page."""
@@ -310,6 +373,8 @@ def remote_credentials(request):
             handle_delete_remote_credential(request)
         elif action == "test":
             handle_test_remote_credential(request)
+        elif action == "ssh_copy_id":
+            handle_ssh_copy_id(request)
 
         return redirect("accounts_app:remote_credentials")
 
