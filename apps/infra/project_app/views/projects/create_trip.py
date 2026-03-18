@@ -112,16 +112,23 @@ def _test_trip_connection(request, credential, remote_path):
     except paramiko.AuthenticationException:
         messages.error(
             request,
-            "SSH authentication failed. Check your SSH key and passphrase.",
+            f"SSH authentication failed to "
+            f"{credential.ssh_username}@{credential.ssh_host} "
+            f"using key: {credential.private_key_path}. "
+            f"Ensure the public key is in the remote ~/.ssh/authorized_keys.",
         )
         return False
     except paramiko.SSHException as e:
-        messages.error(request, f"SSH connection error: {e}")
+        messages.error(
+            request,
+            f"SSH error connecting to {credential.ssh_host}: {e}",
+        )
         return False
     except TimeoutError:
         messages.error(
             request,
-            "SSH connection timeout. Check your network and remote host.",
+            f"SSH connection timeout to {credential.ssh_host}:{credential.ssh_port}. "
+            f"Check your network and remote host.",
         )
         return False
     except Exception as e:
