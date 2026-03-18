@@ -11,6 +11,7 @@ Enforces strict 1:1 mapping: Local ↔ Django ↔ Gitea.
 """
 
 from __future__ import annotations
+
 import logging
 
 from django.contrib.auth.decorators import login_required
@@ -37,6 +38,7 @@ def api_check_name_availability(request):
     A name is only available if it's free in BOTH Django AND Gitea.
     """
     name = request.GET.get("name", "").strip()
+    project_type = request.GET.get("project_type", "local").strip()
 
     if not name:
         return JsonResponse({"available": False, "message": "Project name is required"})
@@ -63,41 +65,37 @@ def api_check_name_availability(request):
         )
 
     # Check 2: Gitea repository (enforce 1:1 mapping)
-    # Generate slug to check in Gitea
-    from django.utils.text import slugify
+    # Skip for remote/trip projects — they don't use Gitea
+    if project_type not in ("remote", "trip"):
+        from django.utils.text import slugify
 
-    slug = slugify(name)
-
-    try:
-        from apps.infra.gitea_app.api_client import GiteaClient, GiteaAPIError
-
-        client = GiteaClient()
+        slug = slugify(name)
 
         try:
-            existing_repo = client.get_repository(
-                owner=request.user.username, repo=slug
-            )
-            if existing_repo:
-                # Gitea repo exists - check if it's orphaned (no Django project)
-                # This is the problem: orphaned Gitea repo blocks creation
-                return JsonResponse(
-                    {
-                        "available": False,
-                        "message": f'Repository "{name}" already exists in Gitea. If this is an old project, please contact support to clean it up.',
-                    }
+            from apps.infra.gitea_app.api_client import GiteaAPIError, GiteaClient
+
+            client = GiteaClient()
+
+            try:
+                existing_repo = client.get_repository(
+                    owner=request.user.username, repo=slug
                 )
-        except GiteaAPIError as e:
-            # 404 means repository doesn't exist in Gitea - that's good
-            if "404" in str(e) or "not found" in str(e).lower():
-                pass  # Continue, name is available
-            else:
-                # Some other Gitea error - log it but don't block
-                logger.warning(f"Gitea check failed for {name}: {e}")
-                pass  # Continue, assume available
-    except Exception as e:
-        # If Gitea check fails entirely, log but don't block
-        logger.warning(f"Gitea availability check failed: {e}")
-        pass  # Continue, assume available
+                if existing_repo:
+                    return JsonResponse(
+                        {
+                            "available": False,
+                            "message": f'Repository "{name}" already exists in Gitea. If this is an old project, please contact support to clean it up.',
+                        }
+                    )
+            except GiteaAPIError as e:
+                if "404" in str(e) or "not found" in str(e).lower():
+                    pass  # Continue, name is available
+                else:
+                    logger.warning(f"Gitea check failed for {name}: {e}")
+                    pass  # Continue, assume available
+        except Exception as e:
+            logger.warning(f"Gitea availability check failed: {e}")
+            pass  # Continue, assume available
 
     return JsonResponse({"available": True, "message": f'"{name}" is available'})
 

@@ -11,6 +11,32 @@ from django.shortcuts import redirect, render
 from apps.infra.project_app.models import RemoteCredential
 
 
+def _get_user_ssh_dir(username):
+    """Get the .ssh directory inside user's workspace."""
+    from django.conf import settings
+
+    user_data_root = Path(getattr(settings, "USER_DATA_ROOT", "/app/data/users"))
+    return user_data_root / username / ".ssh"
+
+
+def _save_private_key(username, key_name, key_content):
+    """Save private key to user's workspace .ssh directory.
+
+    Returns the absolute path inside the container.
+    """
+    ssh_dir = _get_user_ssh_dir(username)
+    ssh_dir.mkdir(parents=True, exist_ok=True)
+
+    # Sanitize key name for filename
+    safe_name = key_name.lower().replace(" ", "_").replace("/", "_")
+    key_path = ssh_dir / f"id_{safe_name}"
+
+    key_path.write_text(key_content)
+    key_path.chmod(0o600)
+
+    return str(key_path)
+
+
 def generate_ssh_key_fingerprint(ssh_public_key):
     """Generate SSH key fingerprint from public key."""
     try:
@@ -29,12 +55,15 @@ def generate_ssh_key_fingerprint(ssh_public_key):
         return fingerprint
 
     except Exception as e:
-        raise ValueError(f"Invalid SSH public key: {str(e)}")
+        raise ValueError(f"Invalid SSH public key: {str(e)}") from e
 
 
 def test_remote_credential_connection(credential):
     """Test SSH connection to remote credential."""
     ssh_key_path = credential.private_key_path
+
+    if not Path(ssh_key_path).exists():
+        return False, f"Private key not found: {ssh_key_path}"
 
     cmd = [
         "ssh",
@@ -62,10 +91,15 @@ def handle_add_remote_credential(request):
     ssh_port = request.POST.get("ssh_port", "22").strip()
     ssh_username = request.POST.get("ssh_username", "").strip()
     ssh_public_key = request.POST.get("ssh_public_key", "").strip()
+    private_key_content = request.POST.get("private_key_content", "").strip()
+
+    # Handle file upload
+    if not private_key_content and "private_key_file" in request.FILES:
+        private_key_content = request.FILES["private_key_file"].read().decode("utf-8")
 
     # Validate inputs
-    if not all([name, ssh_host, ssh_username, ssh_public_key]):
-        messages.error(request, "All fields are required")
+    if not all([name, ssh_host, ssh_username, private_key_content]):
+        messages.error(request, "Name, host, username, and private key are required")
         return False
 
     try:
@@ -74,15 +108,23 @@ def handle_add_remote_credential(request):
         messages.error(request, "Invalid SSH port number")
         return False
 
-    # Generate SSH key fingerprint
+    # Save private key to user's workspace .ssh directory
     try:
-        fingerprint = generate_ssh_key_fingerprint(ssh_public_key)
-    except ValueError as e:
-        messages.error(request, str(e))
+        private_key_path = _save_private_key(
+            request.user.username, name, private_key_content
+        )
+    except Exception as e:
+        messages.error(request, f"Failed to save private key: {e}")
         return False
 
-    # Generate private key path
-    private_key_path = f"/home/{request.user.username}/.ssh/scitex_remote_{name.lower().replace(' ', '_')}"
+    # Generate fingerprint from public key if provided
+    fingerprint = ""
+    if ssh_public_key:
+        try:
+            fingerprint = generate_ssh_key_fingerprint(ssh_public_key)
+        except ValueError as e:
+            messages.error(request, str(e))
+            return False
 
     # Create credential
     try:
@@ -100,8 +142,7 @@ def handle_add_remote_credential(request):
 
         messages.success(
             request,
-            f"Remote credential '{name}' added successfully! "
-            f"Please ensure your private key is at: {private_key_path}",
+            f"Remote credential '{name}' added. Key saved to: {private_key_path}",
         )
         return True
 
@@ -117,6 +158,12 @@ def handle_delete_remote_credential(request):
     try:
         credential = RemoteCredential.objects.get(id=credential_id, user=request.user)
         credential_name = credential.name
+
+        # Remove private key file
+        key_path = Path(credential.private_key_path)
+        if key_path.exists():
+            key_path.unlink()
+
         credential.delete()
         messages.success(request, f"Remote credential '{credential_name}' deleted")
         return True

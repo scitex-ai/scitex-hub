@@ -84,7 +84,9 @@ urlpatterns = [
     # --- Legacy: /project/api/check-name/ → now at /api/project/check-name/ ---
     path(
         "project/api/check-name/",
-        RedirectView.as_view(url="/api/project/check-name/", permanent=True),
+        RedirectView.as_view(
+            url="/api/project/check-name/", permanent=True, query_string=True
+        ),
     ),
     # --- Favicon ---
     path(
