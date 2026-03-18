@@ -367,6 +367,19 @@ AGPL-licensed core. You are free to license your app however you wish.
 - No inline styles — use CSS classes
 - No hardcoded colors — use CSS variables
 - No silent fallbacks — show errors explicitly
+
+---
+
+## Per-Package Deep Dives
+
+Each SciTeX package maintains its own `APP_DEVELOPER_GUIDE.md`:
+
+| Package | Install | Guide Covers |
+|---------|---------|-------------|
+| **scitex-ui** | `pip install scitex-ui` | React components, bridge contract, CSS theme, usePanelResize |
+| **scitex-app** | `pip install scitex-app` | FilesBackend SDK, ScitexAppConfig, manifest schema, validation |
+
+Reference implementation: **figrecipe** (github.com/ywatanabe1989/figrecipe)
 """
 
 
