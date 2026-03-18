@@ -286,13 +286,13 @@ def _app_css(name, label):
 .{name}-header h2 {{
     font-size: 1.5rem;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--workspace-text-primary);
     margin: 0 0 0.5rem;
 }}
 
 .{name}-subtitle {{
     font-size: 0.875rem;
-    color: var(--text-secondary);
+    color: var(--workspace-text-secondary);
     margin: 0;
 }}
 
@@ -309,13 +309,13 @@ def _app_css(name, label):
 
 .{name}-getting-started h3 {{
     font-size: 1.125rem;
-    color: var(--text-primary);
+    color: var(--workspace-text-primary);
     margin: 0 0 1rem;
 }}
 
 .{name}-steps {{
     padding-left: 1.25rem;
-    color: var(--text-secondary);
+    color: var(--workspace-text-secondary);
     line-height: 1.8;
 }}
 
@@ -337,7 +337,7 @@ def _app_css(name, label):
 .{name}-placeholder {{
     text-align: center;
     padding: 3rem 1rem;
-    color: var(--text-muted);
+    color: var(--workspace-text-secondary);
 }}
 
 .{name}-placeholder p {{
@@ -442,11 +442,19 @@ npm run build  # production build
 
 ## Testing in Workspace
 
-To test your app in the SciTeX workspace:
+To test your app in the SciTeX workspace, use **Dev Install**:
 
-1. Register in `apps/workspace_app/registry.py` as an external module
-2. Restart Django: `make env=dev restart`
-3. Your app appears in the workspace sidebar
+1. Push your app to a Gitea repository
+2. Go to Hub → Explore → click "Dev Install" on your repo
+3. Your app appears as a workspace tab immediately
+
+Alternatively, from the CLI:
+```bash
+scitex-cloud app dev .
+```
+
+Note: Dev Install is the standard path for external apps. Do NOT edit
+`registry.py` or `INSTALLED_APPS` — those are for platform-builtin modules only.
 
 ## Submission
 

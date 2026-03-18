@@ -67,7 +67,7 @@ It is NOT a full HTML page — no `<html>`, `<head>`, or `<body>` tags.
   - `--workspace-bg-tertiary` — nested element background
   - `--workspace-border-default` — borders
   - `--workspace-text-primary` — main text
-  - `--workspace-text-secondary` — muted text
+  - `--workspace-text-secondary` — secondary/muted text (use for subtitles, placeholders, captions)
   - `--color-accent-emphasis` — accent/highlight color
 - Keep CSS under 512 lines
 

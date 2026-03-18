@@ -23,7 +23,7 @@ Every workspace module consists of 6 layers:
 
 | Layer | File | Purpose |
 |-------|------|---------|
-| 1. Registry | `workspace_app/registry.py` | ModuleConfig entry — single source of truth |
+| 1. Registry | `manifest.json` | App metadata — auto-discovered via Dev Install |
 | 2. Views | `your_app/views.py` | Full page view + context builder function |
 | 3. Templates | `your_app/templates/` | `index.html` (full page) + `index_partial.html` (AJAX) |
 | 4. URLs | `config/urls.py` | URL pattern registration |
