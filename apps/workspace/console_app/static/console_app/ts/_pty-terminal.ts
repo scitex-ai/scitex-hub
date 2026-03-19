@@ -388,7 +388,12 @@ export class PTYTerminal {
       case 4002:
         return { message: "Project not found", reconnect: false };
       case 4003:
-        return { message: "SLURM unavailable", reconnect: false };
+        return { message: "Terminal unavailable", reconnect: false };
+      case 4010:
+        return {
+          message: "Computing resources temporarily busy",
+          reconnect: true,
+        };
       default:
         return {
           message: event.reason || `Connection closed (${event.code})`,

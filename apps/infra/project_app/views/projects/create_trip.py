@@ -15,7 +15,7 @@ from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
-from ...models import Project, RemoteCredential, TripProjectConfig
+from ...models import Project, RemoteCredential
 
 logger = logging.getLogger(__name__)
 
@@ -139,19 +139,25 @@ def _test_trip_connection(request, credential, remote_path):
 def _create_trip_project_db(request, name, description, credential, remote_path, slug):
     """Create TRIP project in database."""
     try:
+        from ...models import RemoteProjectConfig
+
         project = Project.objects.create(
             name=name,
             slug=slug,
             description=description,
             owner=request.user,
-            project_type="trip",
+            project_type="remote",
             visibility="private",
         )
 
-        TripProjectConfig.objects.create(
+        RemoteProjectConfig.objects.create(
             project=project,
+            ssh_host=credential.ssh_host,
+            ssh_port=credential.ssh_port,
+            ssh_username=credential.ssh_username,
             remote_credential=credential,
             remote_path=remote_path,
+            connection_mode="trip",
         )
 
         # Update credential last used timestamp

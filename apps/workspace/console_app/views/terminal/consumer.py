@@ -186,16 +186,19 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
         else:
             self.capture_group = None
 
-        # TRIP / Remote: SSH directly into remote machine
-        if self.project.project_type == "trip":
-            from .trip_spawn import spawn_trip_ssh
-
-            await spawn_trip_ssh(self)
-            return
+        # Remote: dispatch based on connection_mode
         if self.project.project_type == "remote":
-            from .remote_spawn import spawn_remote_ssh
+            if (
+                hasattr(self.project, "remote_config")
+                and self.project.remote_config.connection_mode == "trip"
+            ):
+                from .trip_spawn import spawn_trip_ssh
 
-            await spawn_remote_ssh(self)
+                await spawn_trip_ssh(self)
+            else:
+                from .remote_spawn import spawn_remote_ssh
+
+                await spawn_remote_ssh(self)
             return
 
         # Try broker first, fall back to direct mode
@@ -252,7 +255,8 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
             await self.send(
                 text_data="\x1b[1;31m❌ Computing resources temporarily unavailable. Please try again shortly.\x1b[0m\r\n"
             )
-            await self.close(code=4003)
+            # 4010 = transient, auto-retry; 4003 = permanent
+            await self.close(code=4010)
             return
 
         try:
@@ -306,7 +310,9 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
             await self.send(
                 text_data=f"\x1b[1;31m❌ Failed to start terminal: {e}\x1b[0m\r\n"
             )
-            await self.close(code=4003)
+            # Use 4010 (transient/retry) for most spawn failures;
+            # 4003 only for permanent issues (container not found, auth)
+            await self.close(code=4010)
 
     async def _spawn_direct(self):
         """Spawn PTY directly via pty.fork() (fallback, deprecated)."""

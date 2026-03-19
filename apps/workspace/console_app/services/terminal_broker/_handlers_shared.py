@@ -24,10 +24,38 @@ from .shell import Shell
 
 logger = logging.getLogger(__name__)
 
-# Cooldown: don't retry allocation for this many seconds after a failure
-_ALLOC_FAIL_COOLDOWN = 30  # seconds
+# Cooldown: don't retry allocation after hard failures (node DOWN, not installed)
+_HARD_FAIL_COOLDOWN = 30  # seconds
 # alloc_key -> (timestamp, reason)
-_alloc_fail_info: dict[tuple, tuple[float, str]] = {}
+_hard_fail_info: dict[tuple, tuple[float, str]] = {}
+
+
+def _wait_for_node_or_fail(broker, client, alloc_key) -> tuple[bool, str]:
+    """Wait for node to be ready, using daemon if available.
+
+    Returns (ready, error). For transient issues (RECOVERING), waits up to 60s.
+    For hard failures (DOWN, not installed), returns immediately.
+    """
+    from .slurm_health import ensure_node_ready, get_daemon
+
+    ready, err = ensure_node_ready()
+    if ready:
+        return True, ""
+
+    if err == "recovering":
+        # Node is being recovered by daemon — wait for it
+        send_state(broker, client, "", "allocation_starting")
+        daemon = get_daemon()
+        if daemon:
+            logger.info("Node recovering — waiting for daemon to fix it")
+            ready, err = daemon.wait_for_ready(timeout=60.0)
+            if ready:
+                return True, ""
+        return False, err or "Computing environment did not become ready in time"
+
+    # Hard failure — apply cooldown
+    _hard_fail_info[alloc_key] = (time.time(), err)
+    return False, err
 
 
 def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
@@ -77,17 +105,26 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
         alloc = broker.allocations.get(alloc_id) if alloc_id else None
 
     if not alloc or alloc.state == AllocationState.DEAD:
-        # Cooldown: don't flood SLURM with retries after a failure
-        last_info = _alloc_fail_info.get(alloc_key)
+        # Cooldown: only for hard failures (node DOWN, SLURM not installed)
+        last_info = _hard_fail_info.get(alloc_key)
         if last_info:
             last_fail, last_reason = last_info
             elapsed = time.time() - last_fail
-            if elapsed < _ALLOC_FAIL_COOLDOWN:
-                wait = int(_ALLOC_FAIL_COOLDOWN - elapsed)
+            if elapsed < _HARD_FAIL_COOLDOWN:
+                wait = int(_HARD_FAIL_COOLDOWN - elapsed)
                 return {
                     "status": "error",
                     "error": f"{last_reason} (retrying in {wait}s)",
                 }
+
+        # Wait for node to be ready (waits for daemon recovery if needed)
+        node_ready, node_err = _wait_for_node_or_fail(broker, client, alloc_key)
+        if not node_ready:
+            return {
+                "status": "error",
+                "error": node_err,
+                "transient": True,
+            }
 
         alloc = Allocation(
             username=username,
@@ -122,17 +159,17 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
             )
             if not alloc.attach_to_existing(existing_jobs[0]):
                 reason = alloc.last_error or "Failed to attach to existing environment"
-                _alloc_fail_info[alloc_key] = (time.time(), reason)
+                _hard_fail_info[alloc_key] = (time.time(), reason)
                 return {"status": "error", "error": reason}
         elif not alloc.start():
             reason = alloc.last_error or "Failed to start computing environment"
-            _alloc_fail_info[alloc_key] = (time.time(), reason)
+            _hard_fail_info[alloc_key] = (time.time(), reason)
             return {"status": "error", "error": reason}
 
         with broker.lock:
             broker.allocations[alloc.allocation_id] = alloc
             broker.alloc_index[alloc_key] = alloc.allocation_id
-            _alloc_fail_info.pop(alloc_key, None)  # clear cooldown on success
+            _hard_fail_info.pop(alloc_key, None)  # clear cooldown on success
 
     elif alloc.state == AllocationState.STARTING:
         # Another tab is already starting this allocation — wait
@@ -295,9 +332,9 @@ def _auto_recover_allocation(
     """Attempt to start a new allocation and respawn the shell inside it."""
     alloc_key = (shell.username,)
 
-    # Check cooldown
-    last_info = _alloc_fail_info.get(alloc_key)
-    if last_info and time.time() - last_info[0] < _ALLOC_FAIL_COOLDOWN:
+    # Check cooldown (hard failures only)
+    last_info = _hard_fail_info.get(alloc_key)
+    if last_info and time.time() - last_info[0] < _HARD_FAIL_COOLDOWN:
         send_state(
             broker,
             client,
@@ -327,7 +364,7 @@ def _auto_recover_allocation(
 
     if not started:
         reason = new_alloc.last_error or "Could not restart environment"
-        _alloc_fail_info[alloc_key] = (time.time(), reason)
+        _hard_fail_info[alloc_key] = (time.time(), reason)
         send_state(
             broker,
             client,
@@ -340,7 +377,7 @@ def _auto_recover_allocation(
     with broker.lock:
         broker.allocations[new_alloc.allocation_id] = new_alloc
         broker.alloc_index[alloc_key] = new_alloc.allocation_id
-        _alloc_fail_info.pop(alloc_key, None)
+        _hard_fail_info.pop(alloc_key, None)
         shell.allocation_id = new_alloc.allocation_id
         shell.command = new_alloc.get_shell_command(project_slug=old_alloc.project_slug)
         shell.spawn_count = 0

@@ -65,8 +65,8 @@ def api_check_name_availability(request):
         )
 
     # Check 2: Gitea repository (enforce 1:1 mapping)
-    # Skip for remote/trip projects — they don't use Gitea
-    if project_type not in ("remote", "trip"):
+    # Skip for remote projects — they don't use Gitea
+    if project_type != "remote":
         from django.utils.text import slugify
 
         slug = slugify(name)

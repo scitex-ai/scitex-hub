@@ -25,11 +25,11 @@ async def spawn_trip_ssh(consumer):
         consumer: TerminalConsumer instance (has self.project, self.send, etc.)
     """
     try:
-        trip_config = await asyncio.to_thread(lambda: consumer.project.trip_config)
-        credential = await asyncio.to_thread(lambda: trip_config.remote_credential)
+        remote_config = await asyncio.to_thread(lambda: consumer.project.remote_config)
+        credential = await asyncio.to_thread(lambda: remote_config.remote_credential)
     except Exception:
         await consumer.send(
-            text_data="\x1b[1;31m❌ TRIP configuration not found\x1b[0m\r\n"
+            text_data="\x1b[1;31mRemote configuration not found\x1b[0m\r\n"
         )
         await consumer.close(code=4003)
         return
@@ -38,7 +38,7 @@ async def spawn_trip_ssh(consumer):
     ssh_user = credential.ssh_username
     ssh_host = credential.ssh_host
     ssh_port = str(credential.ssh_port)
-    remote_path = trip_config.remote_path
+    remote_path = remote_config.remote_path
 
     logger.info(
         f"TRIP SSH: {ssh_user}@{ssh_host}:{remote_path} "

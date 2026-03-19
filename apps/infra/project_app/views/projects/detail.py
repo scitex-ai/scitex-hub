@@ -113,12 +113,12 @@ def project_detail(request, username, slug):
 
     # Default mode: overview - GitHub-style file browser with README
     # Get project directory and file list
-    is_remote_type = project.project_type in ("remote", "trip")
+    is_remote_type = project.project_type == "remote"
 
     project_path = _get_project_path(project)
 
     # Get directory contents and README
-    if project.project_type == "trip":
+    if project.project_type == "remote" and _is_trip_mode(project):
         # TRIP: fetch files from remote via SFTP
         files, dirs, readme_content, readme_html = _get_trip_contents(project)
     elif project_path and project_path.exists():
@@ -166,11 +166,13 @@ def project_detail(request, username, slug):
         gitea_ssh_url = f"ssh://git@{gitea_ssh_domain}:{gitea_ssh_port}/{project.owner.username}/{project.slug}.git"
         download_zip_url = f"{gitea_url}/{project.owner.username}/{project.slug}/archive/{current_branch}.zip"
 
-    # Get TRIP config for TRIP projects
+    # Get remote config for remote projects (includes connection_mode)
     trip_config = None
-    if project.project_type == "trip":
+    if project.project_type == "remote":
         try:
-            trip_config = project.trip_config
+            remote_cfg = project.remote_config
+            if remote_cfg.connection_mode == "trip":
+                trip_config = remote_cfg
         except Exception:
             pass
 
@@ -270,10 +272,18 @@ def _get_trip_contents(project):
     return files, dirs, readme_content, readme_html
 
 
+def _is_trip_mode(project):
+    """Return True if the remote project uses connection_mode='trip'."""
+    try:
+        return project.remote_config.connection_mode == "trip"
+    except Exception:
+        return False
+
+
 def _get_project_path(project):
     """Get filesystem path for any project type via ProjectServiceManager."""
-    if project.project_type == "trip":
-        # TRIP has no local path — return None
+    if project.project_type == "remote" and _is_trip_mode(project):
+        # TRIP mode has no local path — return None
         return None
     try:
         from apps.infra.project_app.services.project_service_manager import (

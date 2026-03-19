@@ -54,16 +54,21 @@ def file_tree_view(request, project_id=None):
         if not has_access:
             return JsonResponse({"success": False, "error": "Permission denied"})
 
-        # TRIP projects: build tree via paramiko SFTP
-        if project.project_type == "trip":
-            from apps.infra.project_app.services.trip_backend import get_trip_backend
-
-            backend = get_trip_backend(project)
-            tree = backend.build_tree(max_depth=5)
-            return JsonResponse({"success": True, "tree": tree})
-
-        # Remote SSHFS projects: mount and use standard Path ops
+        # Remote projects: check connection_mode to dispatch TRIP vs SSHFS
         if project.project_type == "remote":
+            if (
+                hasattr(project, "remote_config")
+                and project.remote_config.connection_mode == "trip"
+            ):
+                # TRIP: build tree via paramiko SFTP
+                from apps.infra.project_app.services.trip_backend import (
+                    get_trip_backend,
+                )
+
+                backend = get_trip_backend(project)
+                tree = backend.build_tree(max_depth=5)
+                return JsonResponse({"success": True, "tree": tree})
+            # SSHFS: mount and use standard Path ops
             return _build_remote_tree_response(project)
 
         # Get project directory
