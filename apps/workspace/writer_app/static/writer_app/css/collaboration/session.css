@@ -17,7 +17,7 @@ body {
 }
 
 .writer-container {
-  min-height: 100vh;
+  min-height: 100%; /* Use 100% not 100vh — respects workspace pane height cap */
   background-color: var(--scitex-color-07);
   padding-top: 20px; /* Space for collaboration presence */
 }

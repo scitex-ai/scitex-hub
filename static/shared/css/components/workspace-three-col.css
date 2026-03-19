@@ -14,6 +14,9 @@
   flex-direction: row;
   /* Fill viewport minus header (~64px). Tab bar is now vertical (Apps pane). */
   height: calc(100vh - 65px);
+  max-height: calc(
+    100vh - 65px
+  ); /* Hard cap — prevent any child from pushing beyond viewport */
   overflow: hidden;
   background: var(--bg-primary, #0d1117);
 }
@@ -22,6 +25,7 @@
    Footer-specific overrides are in footer-collapse.css. */
 .global-header.collapsed ~ .workspace-three-col {
   height: calc(100vh - 6px);
+  max-height: calc(100vh - 6px);
 }
 
 /* --- AI Agent pane (leftmost) --- */
@@ -414,11 +418,38 @@ body.scitex-ai-open #workspace-three-col #main-content {
   transition: opacity 0.15s ease;
 }
 
+/* --- Viewport height cap: all panes must stay within container --- */
+
+/* All direct children of the three-col layout inherit the container height.
+   Explicit height: 100% + max-height: 100% prevents any pane from growing
+   beyond the viewport-capped container, even if inner content is tall. */
+.workspace-three-col > .ws-ai-pane,
+.workspace-three-col > .ws-worktree-pane,
+.workspace-three-col > .ws-viewer-pane,
+.workspace-three-col > .ws-apps-pane,
+.workspace-three-col > .ws-module-pane {
+  height: 100%;
+  max-height: 100%;
+}
+
+/* Module content that uses min-height: 100vh is designed for standalone pages.
+   Inside the workspace three-col layout, these rules push content beyond the
+   viewport cap. Override them to respect the flex container height instead. */
+.ws-module-pane .writer-container,
+.ws-module-pane .version-control-container,
+.ws-module-pane .arxiv-index,
+.ws-module-pane .writer-fullscreen-message,
+.ws-module-pane .writer-collaboration-session,
+.ws-module-pane .docs-container {
+  min-height: 0;
+}
+
 /* --- Responsive: collapse panes on narrow viewports --- */
 
 @media (max-width: 768px) {
   .workspace-three-col {
     height: calc(100vh - 56px);
+    max-height: calc(100vh - 56px);
   }
 
   .ws-ai-pane,
