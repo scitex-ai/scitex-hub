@@ -120,6 +120,14 @@ def list_python_apis(verbose, max_depth, as_json):
         click.echo("Or use: scitex introspect api scitex_cloud")
 
 
+try:
+    from scitex_dev.cli import skills_click_group
+
+    main.add_command(skills_click_group(package="scitex-cloud"))
+except ImportError:
+    pass
+
+
 if __name__ == "__main__":
     main()
 

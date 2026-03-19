@@ -28,6 +28,9 @@ Changelog = "https://github.com/ywatanabe1989/scitex-cloud/blob/main/CHANGELOG.m
 [project.entry-points."scitex_dev.docs"]
 scitex-cloud = "scitex_cloud"
 
+[project.entry-points."scitex_dev.skills"]
+scitex-cloud = "scitex_cloud"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0",
@@ -125,6 +128,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+scitex_cloud = ["skills/*.md", "skills/references/*.md"]
 
 [tool.setuptools.package-dir]
 "" = "src"
