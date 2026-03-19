@@ -224,6 +224,9 @@ description = "{desc}"
 requires-python = ">=3.10"
 license = "{license_id}"
 
+[project.scripts]
+{slug} = "{name}._cli:main"
+
 [project.optional-dependencies]
 scitex = ["scitex-app>=0.1.0", "scitex-ui>=0.1.0"]
 dev = ["pytest>=7.0.0"]
