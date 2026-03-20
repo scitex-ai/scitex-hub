@@ -22,6 +22,10 @@ import { initKeyboardShortcuts } from "./components/keyboard-shortcuts";
 import { AIPanelConfigMode } from "./components/_global-ai-chat/config-mode";
 import { populateChatLimits } from "./components/_global-ai-chat/chat-config-limits";
 
+// Shell CSS — canonical source from scitex-ui (see shell-css-imports.ts)
+import "./components/_global-ai-chat/shell-css-imports";
+// Shell layout CSS — sidebar, three-col, viewer, files-tree (see shell-css-imports.ts)
+import "./shell-css-imports";
 const PANEL_OPEN_KEY = "scitex_ai_open";
 
 interface AiContext {

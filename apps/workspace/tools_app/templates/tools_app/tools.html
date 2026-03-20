@@ -9,15 +9,7 @@
     Works on any website, no installation required.
 {% endblock %}
 {% block extra_css %}
-    <!-- Workspace files tree CSS -->
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/stx-shell-sidebar.css' %}" />
-    <!-- Panel resizer CSS -->
-    <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/workspace-files-tree/hidden-files-toggle.css' %}" />
+    <!-- Shell CSS: now loaded globally via scitex-ui Vite imports -->
     <!-- Tools page CSS -->
     <link rel="stylesheet" href="{% static 'public_app/css/tools/tools.css' %}" />
 {% endblock %}

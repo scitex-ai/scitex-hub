@@ -1,11 +1,7 @@
 {% load static %}
 
 <!-- Writer CSS — shared between index.html and writer_partial.html -->
-<link rel="stylesheet"
-      href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
-<link rel="stylesheet"
-      href="{% static 'shared/css/components/stx-shell-sidebar.css' %}" />
-<link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
+<!-- Shell CSS: now loaded globally via scitex-ui Vite imports -->
 <link rel="stylesheet"
       href="{% static 'shared/css/components/file-tabs.css' %}?v={{ build_id }}" />
 <link rel="stylesheet"

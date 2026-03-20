@@ -50,9 +50,7 @@
               href="{% static 'shared/css/components/collapsible-panel.css' %}?v={{ build_id }}" />
         <link rel="stylesheet"
               href="{% static 'shared/css/components/collapsible-panel-compat.css' %}?v={{ build_id }}" />
-        <!-- Panel Resizer (no-transition guard for workspace panels) -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/panel-resizer.css' %}?v={{ build_id }}" />
+        <!-- Panel Resizer — now loaded from scitex-ui via Vite -->
         <!-- Zen Mode Styles (F11 for distraction-free writing) -->
         <link rel="stylesheet"
               href="{% static 'shared/css/components/zen-mode.css' %}?v={{ build_id }}" />
@@ -71,20 +69,9 @@
         <!-- Module Tab Bar — workspace navigation across module pages -->
         <link rel="stylesheet"
               href="{% static 'shared/css/components/module-tab-bar.css' %}?v={{ build_id }}" />
-        <!-- Workspace sidebar (collapsed/expanded behavior — needed by three-col panes) -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/stx-shell-sidebar.css' %}?v={{ build_id }}" />
-        <!-- Panel resizer (drag-resize handles) -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/panel-resizer.css' %}?v={{ build_id }}" />
-        <!-- Workspace Three-Column Layout (AI | Worktree | Module) -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/workspace-three-col.css' %}?v={{ build_id }}" />
-        <!-- Workspace Viewer Pane (collapsible file viewer/editor) -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/workspace-viewer.css' %}?v={{ build_id }}" />
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/workspace-viewer-preview.css' %}?v={{ build_id }}" />
+        <!-- Shell CSS: stx-shell-sidebar, panel-resizer, workspace-three-col,
+             workspace-viewer, workspace-viewer-preview — now loaded from
+             scitex-ui via Vite (see static/shared/ts/shell-css-imports.ts) -->
         <!-- Footer Collapse (collapsible footer on workspace pages) -->
         <link rel="stylesheet"
               href="{% static 'shared/css/components/footer-collapse.css' %}?v={{ build_id }}" />
@@ -94,9 +81,7 @@
         <!-- Media viewer styles (shared across console and workspace viewer) -->
         <link rel="stylesheet"
               href="{% static 'shared/css/components/media-viewer.css' %}?v={{ build_id }}" />
-        <!-- Workspace Files Tree (file browser in worktree pane) -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/workspace-files-tree.css' %}?v={{ build_id }}" />
+        <!-- Workspace Files Tree — now loaded from scitex-ui via Vite -->
         <!-- Context-zoom indicator (per-pane Ctrl+Wheel zoom badge) -->
         <link rel="stylesheet"
               href="{% static 'shared/css/components/context-zoom-indicator.css' %}?v={{ build_id }}" />
