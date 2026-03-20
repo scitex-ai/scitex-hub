@@ -15,6 +15,10 @@ import pty
 import select
 import signal
 
+from apps.workspace.console_app.services.terminal_broker._pipeline_status import (
+    PipelineStatus,
+)
+
 from .config import USER_DATA_ROOT
 from .execution import (
     check_slurm_status,
@@ -24,6 +28,13 @@ from .execution import (
 from .workspace import ensure_workspace
 
 logger = logging.getLogger(__name__)
+
+
+async def _send_pipeline_failure(consumer, pipeline: PipelineStatus) -> None:
+    """Send pipeline diagnostic flowchart to the user's terminal."""
+    rendered = pipeline.render()
+    await consumer.send(text_data=rendered)
+    logger.error(f"Pipeline failure: {pipeline.render_plain()}")
 
 
 async def _wait_for_slurm_ready(consumer) -> bool:
@@ -77,17 +88,18 @@ async def spawn_via_broker(consumer):
     """
     from .config import SLURM_CONTAINER_PATH, SLURM_USER_DATA_ROOT
 
+    pipeline = PipelineStatus()
+    pipeline.pass_stage("websocket")  # Already connected if we're here
+
     username = consumer.project.owner.username
     project_slug = consumer.project.slug
     user_data_dir = USER_DATA_ROOT / username
     project_dir = user_data_dir / "proj" / project_slug
-    # SLURM jobs run on the host, not inside Docker — use host paths
     slurm_user_dir = SLURM_USER_DATA_ROOT / username
     slurm_project_dir = slurm_user_dir / "proj" / project_slug
 
     await ensure_workspace(user_data_dir, username, project_slug)
 
-    # Auto-generate AI tool configs (user-home defaults + project-level)
     await asyncio.to_thread(
         consumer._setup_ai_configs,
         user_data_dir,
@@ -104,7 +116,8 @@ async def spawn_via_broker(consumer):
         from .execution import ContainerNotFoundError
 
         if isinstance(e, ContainerNotFoundError):
-            await consumer.send(text_data=f"\x1b[1;31m❌ {e}\x1b[0m\r\n")
+            pipeline.fail_stage("apptainer", str(e))
+            await _send_pipeline_failure(consumer, pipeline)
             await consumer.close(code=4003)
             return
         raise
@@ -113,7 +126,12 @@ async def spawn_via_broker(consumer):
     slurm_available, slurm_status = await asyncio.to_thread(check_slurm_status)
     if not slurm_available:
         if not await _wait_for_slurm_ready(consumer):
+            pipeline.pass_stage("broker")
+            pipeline.fail_stage("slurm", slurm_status)
+            await _send_pipeline_failure(consumer, pipeline)
             return
+
+    pipeline.pass_stage("slurm")
 
     try:
         from apps.workspace.console_app.services.terminal_client import (
@@ -122,7 +140,11 @@ async def spawn_via_broker(consumer):
 
         consumer.broker_client = TerminalBrokerClient()
         if not await consumer.broker_client.connect():
+            pipeline.fail_stage("broker", "Failed to connect to broker")
+            await _send_pipeline_failure(consumer, pipeline)
             raise Exception("Failed to connect to broker")
+
+        pipeline.pass_stage("broker")
 
         # Set output callback to forward to WebSocket
         def on_output(data: bytes):
@@ -132,8 +154,6 @@ async def spawn_via_broker(consumer):
 
         consumer.broker_client.set_output_callback(on_output)
 
-        # Set session state callback to forward as JSON control messages
-        # Use custom OSC escape so client can distinguish from terminal output
         def on_session_state(msg: dict):
             import json
 
@@ -142,7 +162,6 @@ async def spawn_via_broker(consumer):
 
         consumer.broker_client.set_session_state_callback(on_session_state)
 
-        # Pass host paths for SLURM jobs (not Docker-internal paths)
         session_id = await consumer.broker_client.spawn(
             username=username,
             user_data_dir=slurm_user_dir,
@@ -157,15 +176,19 @@ async def spawn_via_broker(consumer):
                 getattr(consumer.broker_client, "_last_spawn_error", None)
                 or "Failed to spawn terminal session"
             )
+            pipeline.fail_stage("shell", broker_error)
+            await _send_pipeline_failure(consumer, pipeline)
             raise Exception(broker_error)
 
+        pipeline.pass_stage("apptainer")
+        pipeline.pass_stage("shell")
         logger.info(f"Terminal session started via broker: {session_id}")
 
     except Exception as e:
         logger.error(f"Broker spawn failed: {e}")
-        await consumer.send(
-            text_data=f"\x1b[1;31m❌ Failed to start terminal: {e}\x1b[0m\r\n"
-        )
+        if not pipeline.failed_stage:
+            pipeline.fail_stage("shell", str(e))
+            await _send_pipeline_failure(consumer, pipeline)
         # Use 4010 (transient/retry) for most spawn failures;
         # 4003 only for permanent issues (container not found, auth)
         await consumer.close(code=4010)
