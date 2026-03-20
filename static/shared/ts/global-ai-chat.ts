@@ -22,21 +22,8 @@ import { initKeyboardShortcuts } from "./components/keyboard-shortcuts";
 import { AIPanelConfigMode } from "./components/_global-ai-chat/config-mode";
 import { populateChatLimits } from "./components/_global-ai-chat/chat-config-limits";
 
-// Shell CSS — canonical source from scitex-ui (bundled by Vite)
-// @ts-ignore
-import "scitex-ui/css/shell/ai-panel/02-mode-toggle.css";
-// @ts-ignore
-import "scitex-ui/css/shell/ai-panel/03-chat-messages.css";
-// @ts-ignore
-import "scitex-ui/css/shell/ai-panel/04-chat-input.css";
-// @ts-ignore
-import "scitex-ui/css/shell/ai-panel/05-console-mode.css";
-// @ts-ignore
-import "scitex-ui/css/shell/ai-panel/06-console-tabs.css";
-// @ts-ignore
-import "scitex-ui/css/shell/ai-panel/07-sessions.css";
-// @ts-ignore
-import "scitex-ui/css/shell/ai-panel/08-config-mode.css";
+// Shell CSS — canonical source from scitex-ui (see shell-css-imports.ts)
+import "./components/_global-ai-chat/shell-css-imports";
 
 const PANEL_OPEN_KEY = "scitex_ai_open";
 
