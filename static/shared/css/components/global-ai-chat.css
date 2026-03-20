@@ -4,7 +4,7 @@
    ============================================================ */
 
 @import url("global-ai-chat/00-header-toggle.css");
-@import url("global-ai-chat/01-panel-layout.css");
+/* 01-panel-layout.css — now imported from scitex-ui via Vite */
 @import url("global-ai-chat/02-panel-header.css");
 /* 03-mode-toggle.css — now imported from scitex-ui via Vite */
 /* 04-chat-messages.css — now imported from scitex-ui via Vite */
@@ -15,9 +15,9 @@
 /* 08-media.css — now imported from scitex-ui via Vite */
 @import url("global-ai-chat/09-terminal-media.css");
 @import url("global-ai-chat/10-jobs-mode.css");
-@import url("global-ai-chat/11-markdown.css");
+/* 11-markdown.css — now imported from scitex-ui via Vite */
 /* 12-sessions.css — now imported from scitex-ui via Vite */
 /* 13-print.css — now imported from scitex-ui via Vite */
 /* 14-config-mode.css — now imported from scitex-ui via Vite (global-ai-chat.ts) */
-@import url("global-ai-chat/15-sketch-canvas.css");
-@import url("global-ai-chat/16-tab-config.css");
+/* 15-sketch-canvas.css — now imported from scitex-ui via Vite */
+/* 16-tab-config.css — now imported from scitex-ui via Vite (merged into 08-config-mode.css) */

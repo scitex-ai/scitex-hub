@@ -8,6 +8,8 @@
  */
 
 // @ts-ignore
+import "scitex-ui/css/shell/ai-panel/01-panel-layout.css";
+// @ts-ignore
 import "scitex-ui/css/shell/ai-panel/02-mode-toggle.css";
 // @ts-ignore
 import "scitex-ui/css/shell/ai-panel/03-chat-messages.css";
@@ -25,3 +27,7 @@ import "scitex-ui/css/shell/ai-panel/08-config-mode.css";
 import "scitex-ui/css/shell/ai-panel/09-media.css";
 // @ts-ignore
 import "scitex-ui/css/shell/ai-panel/10-print.css";
+// @ts-ignore
+import "scitex-ui/css/shell/ai-panel/11-markdown.css";
+// @ts-ignore
+import "scitex-ui/css/shell/ai-panel/12-sketch-canvas.css";
