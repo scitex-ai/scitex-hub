@@ -121,7 +121,8 @@ SHELL := /bin/bash
 	apptainer-sandbox-list \
 	apptainer-sandbox-rollback \
 	apptainer-sandbox-cleanup \
-	apptainer-purge-sifs
+	apptainer-purge-sifs \
+	install-completion
 
 .DEFAULT_GOAL := help
 
@@ -1062,16 +1063,27 @@ list-envs: validate
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django env | sort
 
 # ============================================
+# Shell Completion
+# ============================================
+install-completion:
+	@BASHRC="$$HOME/.bashrc"; \
+	COMPLETION_LINE="source $(CURDIR)/deployment/host-setup/scripts/make-completion.bash"; \
+	if grep -qF "make-completion.bash" "$$BASHRC" 2>/dev/null; then \
+		echo -e "$(GREEN)✅ Completion already installed in $$BASHRC$(NC)"; \
+	else \
+		echo "" >> "$$BASHRC"; \
+		echo "# SciTeX Cloud Makefile tab completion" >> "$$BASHRC"; \
+		echo "$$COMPLETION_LINE" >> "$$BASHRC"; \
+		echo -e "$(GREEN)✅ Completion installed in $$BASHRC$(NC)"; \
+		echo -e "$(CYAN)   Run: source $$BASHRC$(NC)"; \
+	fi
+
+# ============================================
 # Dev-Only Commands
 # ============================================
 gitea-token:
-ifeq ($(ENV),dev)
-	@echo -e "$(CYAN)🔑 Setting up Gitea token (dev)...$(NC)"
-	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py setup_gitea_token
-else
-	@echo -e "$(YELLOW)❌ gitea-token only available in dev environment$(NC)"
-	@exit 1
-endif
+	@echo -e "$(CYAN)🔑 Regenerating Gitea API token ($(ENV))...$(NC)"
+	@bash deployment/host-setup/scripts/regenerate-gitea-token.sh $(ENV)
 
 recreate-testuser:
 ifeq ($(ENV),dev)

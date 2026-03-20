@@ -95,6 +95,8 @@ django = [
     # PDF generation
     "weasyprint>=60.0",
     "pydantic<2.12",
+    # UI components
+    "scitex-ui>=0.2.0",
 ]
 test = [
     "pytest>=8.4",

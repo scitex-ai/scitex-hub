@@ -142,13 +142,8 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount.providers.orcid",
 ]
 
-# Optional: scitex_ui (not yet on PyPI, installed locally)
-try:
-    import scitex_ui  # noqa: F401
-
-    THIRD_PARTY_APPS.append("scitex_ui")
-except ImportError:
-    pass
+# Required: scitex_ui (available on PyPI as scitex-ui)
+THIRD_PARTY_APPS.append("scitex_ui")
 
 # Optional: figrecipe editor (static assets served via AppDirectoriesFinder)
 try:

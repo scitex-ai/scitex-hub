@@ -60,28 +60,22 @@ else
     echo -e "  ${YELLOW}[WARN] Gitea: not responding (may still be starting)${NC}"
 fi
 
-# CrossRef Local check (direct module detection)
-CROSSREF_OK=$(docker exec "$CONTAINER" python -c "
-from scitex.scholar.local_dbs import crossref_scitex
-assert hasattr(crossref_scitex, 'search')
-print('ok')
-" 2>/dev/null | tail -1 || echo "")
-if [ "$CROSSREF_OK" = "ok" ]; then
-    echo -e "  [OK] CrossRef Local: ready"
+# CrossRef Local check (via CLI --json)
+CROSSREF_STATUS=$(crossref-local status --json 2>/dev/null | python -c "import sys,json; d=json.load(sys.stdin); print(d.get('status',''))" 2>/dev/null || echo "")
+if [ "$CROSSREF_STATUS" = "ok" ]; then
+    CROSSREF_WORKS=$(crossref-local status --json 2>/dev/null | python -c "import sys,json; d=json.load(sys.stdin); print(f'{d.get(\"works\",0):,}')" 2>/dev/null || echo "?")
+    echo -e "  [OK] CrossRef Local: ready (${CROSSREF_WORKS} works)"
 else
     echo -e "  ${YELLOW}[WARN] CrossRef Local: not available${NC}"
 fi
 
-# OpenAlex Local check (direct module detection - sibling of CrossRef)
-OPENALEX_OK=$(docker exec "$CONTAINER" python -c "
-from scitex.scholar.local_dbs import openalex_scitex
-assert hasattr(openalex_scitex, 'search')
-print('ok')
-" 2>/dev/null | tail -1 || echo "")
-if [ "$OPENALEX_OK" = "ok" ]; then
-    echo -e "  [OK] OpenAlex Local: ready"
+# OpenAlex Local check (verify DB file exists on host)
+OPENALEX_DB="${OPENALEX_LOCAL_DB:-/home/ywatanabe/proj/openalex-local/data/openalex.db}"
+if [ -f "$OPENALEX_DB" ]; then
+    OPENALEX_SIZE=$(du -h "$OPENALEX_DB" 2>/dev/null | cut -f1)
+    echo -e "  [OK] OpenAlex Local: ready (DB: ${OPENALEX_SIZE})"
 else
-    echo -e "  ${YELLOW}[WARN] OpenAlex Local: not available${NC}"
+    echo -e "  ${YELLOW}[WARN] OpenAlex Local: DB not found at ${OPENALEX_DB}${NC}"
 fi
 
 # scitex-container module check (host-mounted, required for terminal)
