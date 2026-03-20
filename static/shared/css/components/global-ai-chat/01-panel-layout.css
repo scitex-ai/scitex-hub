@@ -4,7 +4,7 @@
    stx-shell-sidebar__title vertical text, foldable green highlight (single source of truth).
    ============================================================ */
 
-.scitex-ai-panel.stx-shell-sidebar {
+.stx-shell-ai-panel.stx-shell-sidebar {
   position: fixed;
   top: 64px; /* global-header height */
   left: 0;
@@ -19,25 +19,25 @@
 }
 
 /* Keep inner content contained so overflow:visible on panel doesn't leak */
-.scitex-ai-panel .stx-shell-sidebar__header,
-.scitex-ai-panel .stx-shell-sidebar__content {
+.stx-shell-ai-panel .stx-shell-sidebar__header,
+.stx-shell-ai-panel .stx-shell-sidebar__content {
   overflow: hidden;
   max-width: 100%;
 }
 
 /* Collapsed: 40px strip (stx-shell-sidebar sets min-width: 40px already) */
-.scitex-ai-panel.stx-shell-sidebar.collapsed {
+.stx-shell-ai-panel.stx-shell-sidebar.collapsed {
   width: 40px;
   overflow: hidden; /* prevent content from bleeding outside the 40px strip */
 }
 
 /* Expanded: 380px */
-.scitex-ai-panel.stx-shell-sidebar:not(.collapsed) {
+.stx-shell-ai-panel.stx-shell-sidebar:not(.collapsed) {
   width: 380px;
 }
 
 /* stx-shell-sidebar__content: flex column for messages + input (only when expanded) */
-.scitex-ai-panel:not(.collapsed) .stx-shell-sidebar__content {
+.stx-shell-ai-panel:not(.collapsed) .stx-shell-sidebar__content {
   background: var(--bg-secondary, #161b22) !important;
   padding: 0 !important;
   display: flex !important;
@@ -50,7 +50,7 @@
 }
 
 /* Config view: fill available space, scrollable */
-.scitex-ai-panel .scitex-ai-config-content {
+.stx-shell-ai-panel .stx-shell-ai-config-content {
   padding: 0.75rem;
   display: flex;
   flex-direction: column;
@@ -60,21 +60,21 @@
 }
 
 /* Expanded header: space-between layout for title + actions */
-.scitex-ai-panel:not(.collapsed) .scitex-ai-panel-header {
+.stx-shell-ai-panel:not(.collapsed) .stx-shell-ai-panel-header {
   justify-content: space-between;
 }
 
 /* Green highlight on expanded header empty space (foldable state) */
-.scitex-ai-panel:not(.collapsed) .scitex-ai-panel-header.foldable {
+.stx-shell-ai-panel:not(.collapsed) .stx-shell-ai-panel-header.foldable {
   background: rgba(5, 150, 105, 0.08) !important;
 }
 
 /* Push #main-content when AI panel is present */
-body.scitex-ai-present #main-content {
+body.stx-shell-ai-present #main-content {
   transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   margin-left: 40px;
 }
 
-body.scitex-ai-open #main-content {
+body.stx-shell-ai-open #main-content {
   margin-left: 388px; /* 380px panel + 8px breathing room */
 }

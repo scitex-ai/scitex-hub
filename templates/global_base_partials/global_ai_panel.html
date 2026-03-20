@@ -4,48 +4,48 @@
     {% if '/workspace/' not in request.path %}
         {% if '/console/' in request.path or '/vis/' in request.path or '/writer/' in request.path or '/scholar/' in request.path or '/clew/' in request.path or '/apps/home/' in request.path or '/tools/' in request.path or request.path == '/' %}
             <!-- Floating AI button at bottom-left — always visible on workspace pages -->
-            <button id="scitex-ai-fab"
-                    class="scitex-ai-fab"
+            <button id="stx-shell-ai-fab"
+                    class="stx-shell-ai-fab"
                     title="AI Chat (Alt+A)"
                     aria-label="Open AI Chat">
                 <i class="fas fa-robot"></i>
             </button>
             <!-- Global AI Agent Panel: uses stx-shell-sidebar for consistent fold/expand behavior -->
-            <div id="scitex-ai-panel"
-                 class="scitex-ai-panel stx-shell-sidebar collapsed"
+            <div id="stx-shell-ai-panel"
+                 class="stx-shell-ai-panel stx-shell-sidebar collapsed"
                  aria-hidden="true">
                 <!-- WorkspacePanelResizer: handles collapse state restore and drag resize -->
-                <div id="scitex-ai-resizer"
+                <div id="stx-shell-ai-resizer"
                      class="panel-resizer"
                      data-panel-resizer
-                     data-target="#scitex-ai-panel"
+                     data-target="#stx-shell-ai-panel"
                      data-direction="left"
                      data-min-width="48"
                      data-default-width="380"
                      data-storage-key="ai-panel-width"
-                     data-collapse-key="scitex-ai-panel-collapsed"
+                     data-collapse-key="stx-shell-ai-panel-collapsed"
                      style="position:absolute;
                             right:0;
                             top:0;
                             bottom:0;
                             z-index:1"></div>
-                <div class="stx-shell-sidebar__header scitex-ai-panel-header" id="scitex-ai-panel-header">
+                <div class="stx-shell-sidebar__header stx-shell-ai-panel-header" id="stx-shell-ai-panel-header">
                     <!-- Toggle button: shown when collapsed, hidden when expanded (stx-shell-sidebar.css) -->
-                    <button class="panel-toggle-btn" id="scitex-ai-toggle" title="AI Chat (Alt+A)">
+                    <button class="panel-toggle-btn" id="stx-shell-ai-toggle" title="AI Chat (Alt+A)">
                         <i class="fas fa-chevron-right"></i>
                     </button>
                     <!-- Vertical label: shown when collapsed (stx-shell-sidebar.css) -->
-                    <span class="stx-shell-sidebar__title" id="scitex-ai-collapsed-title">Chat & Console</span>
-                    <div class="scitex-ai-mode-toggle">
-                        <button class="scitex-ai-mode-btn active" data-mode="console" title="Terminal & Jobs">
+                    <span class="stx-shell-sidebar__title" id="stx-shell-ai-collapsed-title">Chat & Console</span>
+                    <div class="stx-shell-ai-mode-toggle">
+                        <button class="stx-shell-ai-mode-btn active" data-mode="console" title="Terminal & Jobs">
                             <i class="fas fa-terminal"></i> Console
                         </button>
-                        <button class="scitex-ai-mode-btn" data-mode="chat" title="AI Chat">
+                        <button class="stx-shell-ai-mode-btn" data-mode="chat" title="AI Chat">
                             <i class="fas fa-robot"></i> Chat
                         </button>
                     </div>
-                    <div class="scitex-ai-panel-actions">
-                        <button class="scitex-ai-action-btn"
+                    <div class="stx-shell-ai-panel-actions">
+                        <button class="stx-shell-ai-action-btn"
                                 title="Keyboard Shortcuts"
                                 onclick="window.showShortcutsModal()">
                             <i class="fas fa-keyboard"></i>
@@ -53,99 +53,99 @@
                     </div>
                 </div>
                 <!-- Content area: hidden when collapsed by stx-shell-sidebar.css -->
-                <div class="stx-shell-sidebar__content scitex-ai-body">
+                <div class="stx-shell-sidebar__content stx-shell-ai-body">
                     <!-- Chat mode -->
-                    <div id="scitex-ai-chat-view" class="scitex-ai-view">
-                        <div class="scitex-ai-sessions-bar">
-                            <button class="scitex-ai-new-chat" title="New chat">
+                    <div id="stx-shell-ai-chat-view" class="stx-shell-ai-view">
+                        <div class="stx-shell-ai-sessions-bar">
+                            <button class="stx-shell-ai-new-chat" title="New chat">
                                 <i class="fas fa-plus"></i>
                             </button>
-                            <div id="scitex-ai-sessions-list" class="scitex-ai-sessions-list"></div>
-                            <div class="scitex-ai-panel-actions">
-                                <button class="scitex-ai-action-btn" id="scitex-ai-copy-chat" title="Copy chat">
+                            <div id="stx-shell-ai-sessions-list" class="stx-shell-ai-sessions-list"></div>
+                            <div class="stx-shell-ai-panel-actions">
+                                <button class="stx-shell-ai-action-btn" id="stx-shell-ai-copy-chat" title="Copy chat">
                                     <i class="fas fa-copy"></i>
                                 </button>
-                                <button class="scitex-ai-action-btn" id="scitex-ai-print-chat" title="Print chat">
+                                <button class="stx-shell-ai-action-btn" id="stx-shell-ai-print-chat" title="Print chat">
                                     <i class="fas fa-print"></i>
                                 </button>
-                                <button class="scitex-ai-action-btn" id="scitex-ai-clear-chat" title="Clear chat">
+                                <button class="stx-shell-ai-action-btn" id="stx-shell-ai-clear-chat" title="Clear chat">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </div>
-                            <button class="scitex-ai-share-btn" title="Share conversation">
+                            <button class="stx-shell-ai-share-btn" title="Share conversation">
                                 <i class="fas fa-share-alt"></i>
                             </button>
                         </div>
-                        <div id="scitex-ai-messages" class="scitex-ai-messages">
-                            <div class="scitex-ai-empty">
+                        <div id="stx-shell-ai-messages" class="stx-shell-ai-messages">
+                            <div class="stx-shell-ai-empty">
                                 <i class="fas fa-robot"></i>
                                 <span>Ask anything about SciTeX.</span>
                                 <span>I can take actions: stats, plots, literature, and your current work.</span>
                             </div>
                         </div>
-                        <div class="scitex-ai-input-area" style="position:relative">
-                            <span id="scitex-ai-model-badge" class="scitex-ai-model-badge"></span>
-                            <div id="scitex-ai-image-previews" class="scitex-ai-image-previews"></div>
-                            <div class="scitex-ai-input-wrap">
-                                <textarea id="scitex-ai-input"
-                                          class="scitex-ai-input"
+                        <div class="stx-shell-ai-input-area" style="position:relative">
+                            <span id="stx-shell-ai-model-badge" class="stx-shell-ai-model-badge"></span>
+                            <div id="stx-shell-ai-image-previews" class="stx-shell-ai-image-previews"></div>
+                            <div class="stx-shell-ai-input-wrap">
+                                <textarea id="stx-shell-ai-input"
+                                          class="stx-shell-ai-input"
                                           rows="1"
                                           placeholder="Ask anything"
                                           autocomplete="off"></textarea>
-                                <button id="scitex-ai-camera" class="scitex-ai-input-btn" title="Attach image">
+                                <button id="stx-shell-ai-camera" class="stx-shell-ai-input-btn" title="Attach image">
                                     <i class="fas fa-camera"></i>
                                 </button>
-                                <button id="scitex-ai-sketch" class="scitex-ai-input-btn" title="Draw sketch">
+                                <button id="stx-shell-ai-sketch" class="stx-shell-ai-input-btn" title="Draw sketch">
                                     <i class="fas fa-pen"></i>
                                 </button>
-                                <input type="file" id="scitex-ai-image-file" accept="image/*" multiple hidden />
-                                <button id="scitex-ai-mic" class="scitex-ai-mic" title="Voice input">
+                                <input type="file" id="stx-shell-ai-image-file" accept="image/*" multiple hidden />
+                                <button id="stx-shell-ai-mic" class="stx-shell-ai-mic" title="Voice input">
                                     <i class="fas fa-microphone"></i>
                                 </button>
                                 <!-- Chat config gear -->
-                                <button id="scitex-ai-chat-gear"
-                                        class="scitex-ai-input-btn scitex-ai-gear-btn"
+                                <button id="stx-shell-ai-chat-gear"
+                                        class="stx-shell-ai-input-btn stx-shell-ai-gear-btn"
                                         title="Chat settings">
                                     <i class="fas fa-cog"></i>
                                 </button>
                             </div>
                             <!-- Volume visualizer (hidden until recording) -->
-                            <div class="scitex-ai-vol">
-                                <span class="scitex-ai-vol-bar" hidden></span>
-                                <span class="scitex-ai-vol-bar" hidden></span>
-                                <span class="scitex-ai-vol-bar" hidden></span>
-                                <span class="scitex-ai-vol-bar" hidden></span>
-                                <span class="scitex-ai-vol-bar" hidden></span>
+                            <div class="stx-shell-ai-vol">
+                                <span class="stx-shell-ai-vol-bar" hidden></span>
+                                <span class="stx-shell-ai-vol-bar" hidden></span>
+                                <span class="stx-shell-ai-vol-bar" hidden></span>
+                                <span class="stx-shell-ai-vol-bar" hidden></span>
+                                <span class="stx-shell-ai-vol-bar" hidden></span>
                             </div>
-                            <select id="scitex-ai-stt-model"
-                                    class="scitex-ai-stt-model"
+                            <select id="stx-shell-ai-stt-model"
+                                    class="stx-shell-ai-stt-model"
                                     title="STT model"
                                     style="display:none"></select>
-                            <button id="scitex-ai-send" class="scitex-ai-send" hidden></button>
+                            <button id="stx-shell-ai-send" class="stx-shell-ai-send" hidden></button>
                             <!-- Chat config popover (inside input-area for positioning) -->
-                            <div id="scitex-ai-chat-config"
-                                 class="scitex-ai-config-popover"
+                            <div id="stx-shell-ai-chat-config"
+                                 class="stx-shell-ai-config-popover"
                                  style="display:none">
                                 <div class="ai-settings-row">
-                                    <label class="scitex-ai-settings-label">
+                                    <label class="stx-shell-ai-settings-label">
                                         <i class="fas fa-brain"></i> LLM Model
-                                        <span id="scitex-ai-config-model-badge" class="scitex-ai-model-badge"></span>
+                                        <span id="stx-shell-ai-config-model-badge" class="stx-shell-ai-model-badge"></span>
                                     </label>
-                                    <select id="scitex-ai-llm-model" class="ai-settings-select" title="LLM model for chat"></select>
+                                    <select id="stx-shell-ai-llm-model" class="ai-settings-select" title="LLM model for chat"></select>
                                 </div>
                                 <div class="ai-settings-row">
-                                    <label class="scitex-ai-settings-label">
+                                    <label class="stx-shell-ai-settings-label">
                                         <i class="fas fa-microphone"></i> STT Model
                                     </label>
-                                    <select id="scitex-ai-stt-model-config"
-                                            class="ai-settings-select scitex-ai-stt-model"
+                                    <select id="stx-shell-ai-stt-model-config"
+                                            class="ai-settings-select stx-shell-ai-stt-model"
                                             title="STT model"></select>
                                 </div>
                                 <div class="ai-settings-row ai-settings-mcp">
-                                    <label class="scitex-ai-settings-label">
+                                    <label class="stx-shell-ai-settings-label">
                                         <i class="fas fa-plug"></i> MCP Tools
                                     </label>
-                                    <span id="scitex-ai-mcp-badge" class="ai-mcp-badge" title="MCP tools status">
+                                    <span id="stx-shell-ai-mcp-badge" class="ai-mcp-badge" title="MCP tools status">
                                         <i class="fas fa-circle ai-mcp-dot"></i>
                                         <span class="ai-mcp-count">--</span>
                                     </span>
@@ -168,54 +168,54 @@
                         </div>
                     </div>
                     <!-- Console/Terminal mode -->
-                    <div id="scitex-ai-console-view" class="scitex-ai-view active">
-                        <div class="scitex-ai-console-tabs-bar">
-                            <button class="scitex-ai-console-new-tab" title="New terminal">
+                    <div id="stx-shell-ai-console-view" class="stx-shell-ai-view active">
+                        <div class="stx-shell-ai-console-tabs-bar">
+                            <button class="stx-shell-ai-console-new-tab" title="New terminal">
                                 <i class="fas fa-plus"></i>
                             </button>
-                            <div id="scitex-ai-console-tabs-list" class="scitex-ai-console-tabs-list"></div>
+                            <div id="stx-shell-ai-console-tabs-list" class="stx-shell-ai-console-tabs-list"></div>
                         </div>
-                        <div id="scitex-ai-console-terminal" class="scitex-ai-console-terminal"></div>
-                        <div class="scitex-ai-console-toolbar" style="position:relative">
-                            <span id="scitex-ai-console-status" class="scitex-ai-console-status"></span>
-                            <div class="scitex-ai-console-toolbar-btns">
+                        <div id="stx-shell-ai-console-terminal" class="stx-shell-ai-console-terminal"></div>
+                        <div class="stx-shell-ai-console-toolbar" style="position:relative">
+                            <span id="stx-shell-ai-console-status" class="stx-shell-ai-console-status"></span>
+                            <div class="stx-shell-ai-console-toolbar-btns">
                                 <!-- Auto-accept toggle -->
-                                <button id="scitex-ai-auto-accept"
-                                        class="scitex-ai-input-btn scitex-ai-auto-accept-btn"
+                                <button id="stx-shell-ai-auto-accept"
+                                        class="stx-shell-ai-input-btn stx-shell-ai-auto-accept-btn"
                                         title="Claude Code Auto-Accept: automatically accepts permission prompts at the configured interval and safety level">
                                     <i class="fas fa-robot"></i>
-                                    <span id="scitex-ai-auto-accept-state" class="scitex-ai-auto-accept-state"></span>
+                                    <span id="stx-shell-ai-auto-accept-state" class="stx-shell-ai-auto-accept-state"></span>
                                 </button>
-                                <button id="scitex-ai-console-camera"
-                                        class="scitex-ai-input-btn"
+                                <button id="stx-shell-ai-console-camera"
+                                        class="stx-shell-ai-input-btn"
                                         title="Webcam capture">
                                     <i class="fas fa-camera"></i>
                                 </button>
-                                <button id="scitex-ai-console-sketch" class="scitex-ai-input-btn" title="Draw sketch">
+                                <button id="stx-shell-ai-console-sketch" class="stx-shell-ai-input-btn" title="Draw sketch">
                                     <i class="fas fa-pen"></i>
                                 </button>
-                                <button id="scitex-ai-console-mic" class="scitex-ai-input-btn" title="Voice input">
+                                <button id="stx-shell-ai-console-mic" class="stx-shell-ai-input-btn" title="Voice input">
                                     <i class="fas fa-microphone"></i>
                                 </button>
-                                <input type="file" id="scitex-ai-console-image-file" accept="image/*" multiple hidden />
+                                <input type="file" id="stx-shell-ai-console-image-file" accept="image/*" multiple hidden />
                                 <!-- Console config gear -->
-                                <button id="scitex-ai-console-gear"
-                                        class="scitex-ai-input-btn scitex-ai-gear-btn"
+                                <button id="stx-shell-ai-console-gear"
+                                        class="stx-shell-ai-input-btn stx-shell-ai-gear-btn"
                                         title="Console settings">
                                     <i class="fas fa-cog"></i>
                                 </button>
                             </div>
                             <!-- Console config popover (inside toolbar for positioning) -->
-                            <div id="scitex-ai-console-config"
-                                 class="scitex-ai-config-popover"
+                            <div id="stx-shell-ai-console-config"
+                                 class="stx-shell-ai-config-popover"
                                  style="display:none">
                                 <div class="ai-settings-section" id="ai-auto-accept-config">
-                                    <label class="scitex-ai-settings-label"
+                                    <label class="stx-shell-ai-settings-label"
                                            title="When enabled, automatically accepts Claude Code permission prompts at the configured interval. Conservative: safe commands only. Normal: most commands. Aggressive: all commands.">
                                         <i class="fas fa-robot"></i> Claude Code Auto-Accept Mode
                                     </label>
                                     <div class="ai-settings-row">
-                                        <label class="scitex-ai-settings-label"
+                                        <label class="stx-shell-ai-settings-label"
                                                title="How often to check for and accept permission prompts">
                                             Interval
                                         </label>
@@ -229,7 +229,7 @@
                                         </select>
                                     </div>
                                     <div class="ai-settings-row">
-                                        <label class="scitex-ai-settings-label"
+                                        <label class="stx-shell-ai-settings-label"
                                                title="Controls which commands are auto-accepted">Safety</label>
                                         <select id="ai-auto-accept-safety"
                                                 class="ai-settings-select"
@@ -251,12 +251,12 @@
                                     </div>
                                 </div>
                                 <div class="ai-settings-section" id="ai-auto-response-config">
-                                    <label class="scitex-ai-settings-label"
+                                    <label class="stx-shell-ai-settings-label"
                                            title="Commands sent automatically for each Claude state">
                                         <i class="fas fa-reply"></i> Auto-Response Commands
                                     </label>
                                     <div class="ai-settings-row">
-                                        <label class="scitex-ai-settings-label"
+                                        <label class="stx-shell-ai-settings-label"
                                                title="Command sent when Claude is thinking or idle">Waiting</label>
                                         <input id="ai-auto-response-waiting"
                                                class="ai-settings-input"
@@ -265,7 +265,7 @@
                                                title="Command sent when Claude is thinking or idle" />
                                     </div>
                                     <div class="ai-settings-row">
-                                        <label class="scitex-ai-settings-label" title="Response for Y/N permission prompts">Y/N</label>
+                                        <label class="stx-shell-ai-settings-label" title="Response for Y/N permission prompts">Y/N</label>
                                         <select id="ai-auto-response-yn"
                                                 class="ai-settings-select"
                                                 title="Response for Y/N permission prompts">
@@ -274,7 +274,7 @@
                                         </select>
                                     </div>
                                     <div class="ai-settings-row">
-                                        <label class="scitex-ai-settings-label" title="Response for Y/Y/N permission prompts">Y/Y/N</label>
+                                        <label class="stx-shell-ai-settings-label" title="Response for Y/Y/N permission prompts">Y/Y/N</label>
                                         <select id="ai-auto-response-yyn"
                                                 class="ai-settings-select"
                                                 title="Response for Y/Y/N permission prompts">
@@ -285,7 +285,7 @@
                                     </div>
                                 </div>
                                 <div class="ai-settings-section" id="ai-agent-sources">
-                                    <label class="scitex-ai-settings-label">
+                                    <label class="stx-shell-ai-settings-label">
                                         <i class="fas fa-sitemap"></i> Agent Sources
                                     </label>
                                     <div id="ai-agent-sources-content" class="ai-agent-sources">
@@ -295,16 +295,16 @@
                             </div>
                         </div>
                         <!-- Jobs section (collapsible, inside console view) -->
-                        <details id="scitex-ai-jobs-section" class="scitex-ai-jobs-section">
-                            <summary class="scitex-ai-jobs-section-summary">
+                        <details id="stx-shell-ai-jobs-section" class="stx-shell-ai-jobs-section">
+                            <summary class="stx-shell-ai-jobs-section-summary">
                                 <i class="fas fa-tasks"></i>
                                 <span>Jobs</span>
-                                <span id="scitex-ai-jobs-summary" class="scitex-ai-jobs-summary"></span>
-                                <button class="scitex-ai-action-btn" id="scitex-ai-jobs-refresh" title="Refresh">
+                                <span id="stx-shell-ai-jobs-summary" class="stx-shell-ai-jobs-summary"></span>
+                                <button class="stx-shell-ai-action-btn" id="stx-shell-ai-jobs-refresh" title="Refresh">
                                     <i class="fas fa-sync-alt"></i>
                                 </button>
                             </summary>
-                            <div id="scitex-ai-jobs-list" class="scitex-ai-jobs-list"></div>
+                            <div id="stx-shell-ai-jobs-list" class="stx-shell-ai-jobs-list"></div>
                         </details>
                     </div>
                 </div>

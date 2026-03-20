@@ -43,7 +43,7 @@ export function fetchAndPopulateLlmModels(
       }
 
       const configBadge = document.getElementById(
-        "scitex-ai-config-model-badge",
+        "stx-shell-ai-config-model-badge",
       );
       const updateBadges = () => {
         const val = select.value;

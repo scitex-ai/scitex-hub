@@ -3,7 +3,7 @@
    (stx-shell-sidebar.css handles base)
    ============================================================ */
 
-.scitex-ai-panel-header {
+.stx-shell-ai-panel-header {
   cursor: default;
   user-select: none;
   border-bottom: 1px solid var(--border-default, #30363d) !important;
@@ -11,7 +11,7 @@
   min-height: 50px !important;
 }
 
-.scitex-ai-panel-title {
+.stx-shell-ai-panel-title {
   font-weight: 600;
   font-size: 0.9rem;
   color: var(--text-primary);
@@ -23,12 +23,12 @@
   flex: 1 1 0;
 }
 
-.scitex-ai-panel-actions {
+.stx-shell-ai-panel-actions {
   display: flex;
   gap: 0.25rem;
 }
 
-.scitex-ai-action-btn {
+.stx-shell-ai-action-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -41,17 +41,17 @@
     background 0.15s;
 }
 
-.scitex-ai-action-btn:hover {
+.stx-shell-ai-action-btn:hover {
   color: var(--text-primary);
   background: var(--bg-hover, rgba(255, 255, 255, 0.08));
 }
 
-.scitex-ai-action-btn.active {
+.stx-shell-ai-action-btn.active {
   color: #5a9a7e; /* success green — indicates feature is on */
 }
 
 /* Model badge — inline in the settings panel LLM label */
-.scitex-ai-model-badge {
+.stx-shell-ai-model-badge {
   font-size: 0.6rem;
   font-family: monospace;
   font-weight: 400;
@@ -60,12 +60,12 @@
   margin-left: 0.25rem;
 }
 
-.scitex-ai-model-badge:empty {
+.stx-shell-ai-model-badge:empty {
   display: none;
 }
 
 /* Context chip shown in panel header */
-.scitex-ai-context-chip {
+.stx-shell-ai-context-chip {
   font-size: 0.65rem;
   padding: 0.1rem 0.4rem;
   border-radius: 3px;

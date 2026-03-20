@@ -10,12 +10,12 @@
   }
 
   /* Show only the active AI view and its contents */
-  body.scitex-print-ai .scitex-ai-view.active,
-  body.scitex-print-ai .scitex-ai-view.active * {
+  body.scitex-print-ai .stx-shell-ai-view.active,
+  body.scitex-print-ai .stx-shell-ai-view.active * {
     visibility: visible;
   }
 
-  body.scitex-print-ai .scitex-ai-view.active {
+  body.scitex-print-ai .stx-shell-ai-view.active {
     position: absolute;
     top: 0;
     left: 0;
@@ -30,7 +30,7 @@
 
   /* ── Chat messages ─────────────────────────── */
 
-  body.scitex-print-ai .scitex-ai-msg {
+  body.scitex-print-ai .stx-shell-ai-msg {
     background: none !important;
     border: none !important;
     box-shadow: none !important;
@@ -40,17 +40,17 @@
     page-break-inside: avoid;
   }
 
-  body.scitex-print-ai .scitex-ai-msg.user {
+  body.scitex-print-ai .stx-shell-ai-msg.user {
     font-weight: 600;
   }
 
-  body.scitex-print-ai .scitex-ai-msg.user::before {
+  body.scitex-print-ai .stx-shell-ai-msg.user::before {
     content: "You: ";
     font-weight: 700;
     color: #333;
   }
 
-  body.scitex-print-ai .scitex-ai-msg.assistant::before {
+  body.scitex-print-ai .stx-shell-ai-msg.assistant::before {
     content: "AI: ";
     font-weight: 700;
     color: #333;
@@ -104,9 +104,9 @@
 
   /* ── Hide UI elements ──────────────────────── */
 
-  body.scitex-print-ai .scitex-ai-tool-tag,
-  body.scitex-print-ai .scitex-ai-empty,
-  body.scitex-print-ai .scitex-ai-typing,
+  body.scitex-print-ai .stx-shell-ai-tool-tag,
+  body.scitex-print-ai .stx-shell-ai-empty,
+  body.scitex-print-ai .stx-shell-ai-typing,
   body.scitex-print-ai .ai-config-toggle,
   body.scitex-print-ai .ai-context-download-btn,
   body.scitex-print-ai .ai-config-module-chevron,

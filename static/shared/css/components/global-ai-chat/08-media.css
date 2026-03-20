@@ -1,6 +1,6 @@
 /* Media rendering in AI chat messages */
 
-.scitex-ai-media {
+.stx-shell-ai-media {
   margin: 0.5rem 0 0.25rem;
   border-radius: 4px;
   overflow: hidden;
@@ -9,19 +9,19 @@
 }
 
 /* Image */
-.scitex-ai-media-image img {
+.stx-shell-ai-media-image img {
   max-width: 100%;
   height: auto;
   display: block;
   cursor: pointer;
   transition: opacity 0.15s;
 }
-.scitex-ai-media-image img:hover {
+.stx-shell-ai-media-image img:hover {
   opacity: 0.85;
 }
 
 /* Caption (filename under image) */
-.scitex-ai-media-caption {
+.stx-shell-ai-media-caption {
   display: block;
   font-size: 0.6875rem;
   color: var(--text-muted, #8b949e);
@@ -34,31 +34,31 @@
 }
 
 /* CSV table preview */
-.scitex-ai-media-table {
+.stx-shell-ai-media-table {
   overflow-x: auto;
   max-height: 200px;
   overflow-y: auto;
 }
-.scitex-ai-media-table table {
+.stx-shell-ai-media-table table {
   width: 100%;
   font-size: 0.7rem;
   border-collapse: collapse;
   font-family: monospace;
 }
-.scitex-ai-media-table th,
-.scitex-ai-media-table td {
+.stx-shell-ai-media-table th,
+.stx-shell-ai-media-table td {
   padding: 0.15rem 0.4rem;
   border: 1px solid var(--border-default, #30363d);
   white-space: nowrap;
   text-align: left;
 }
-.scitex-ai-media-table th {
+.stx-shell-ai-media-table th {
   background: rgba(255, 255, 255, 0.05);
   font-weight: 600;
 }
 
 /* PDF / file link */
-.scitex-ai-media-file {
+.stx-shell-ai-media-file {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -69,16 +69,16 @@
   color: var(--color-accent-fg, #58a6ff);
   transition: background 0.15s;
 }
-.scitex-ai-media-file:hover {
+.stx-shell-ai-media-file:hover {
   background: rgba(255, 255, 255, 0.08);
 }
-.scitex-ai-media-file i {
+.stx-shell-ai-media-file i {
   font-size: 1rem;
   opacity: 0.7;
 }
 
 /* File operation badges */
-.scitex-ai-file-op {
+.stx-shell-ai-file-op {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
@@ -90,35 +90,35 @@
   animation: file-op-flash 1.5s ease-out;
 }
 
-.scitex-ai-file-op--created {
+.stx-shell-ai-file-op--created {
   background: var(--status-success-bg);
   color: var(--status-success, #5a9a7e);
   border: 1px solid var(--status-success-border);
 }
 
-.scitex-ai-file-op--modified {
+.stx-shell-ai-file-op--modified {
   background: var(--status-warning-bg);
   color: var(--status-warning, #b8956a);
   border: 1px solid var(--status-warning-border);
 }
 
-.scitex-ai-file-op--moved {
+.stx-shell-ai-file-op--moved {
   background: var(--status-info-bg);
   color: var(--status-info, #6b6b6b);
   border: 1px solid var(--status-info-border);
 }
 
-.scitex-ai-file-op--deleted {
+.stx-shell-ai-file-op--deleted {
   background: var(--status-error-bg);
   color: var(--status-error, #a67373);
   border: 1px solid var(--status-error-border);
 }
 
-.scitex-ai-file-op i {
+.stx-shell-ai-file-op i {
   font-size: 0.625rem;
 }
 
-.scitex-ai-file-op-dir {
+.stx-shell-ai-file-op-dir {
   opacity: 0.5;
 }
 

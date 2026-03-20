@@ -33,9 +33,9 @@ const FONT_SIZE_ZOOM_ZONES = [
 /** Register zones where mouse-tracking covers the full panel but zoom
  *  applies only to the content area (excluding title/header bars). */
 function registerContentOnlyZoomZones(): void {
-  // AI panel: track #scitex-ai-panel, zoom .scitex-ai-body only
-  const aiPanel = document.getElementById("scitex-ai-panel");
-  const aiBody = aiPanel?.querySelector<HTMLElement>(".scitex-ai-body");
+  // AI panel: track #stx-shell-ai-panel, zoom .stx-shell-ai-body only
+  const aiPanel = document.getElementById("stx-shell-ai-panel");
+  const aiBody = aiPanel?.querySelector<HTMLElement>(".stx-shell-ai-body");
   if (aiPanel && aiBody) {
     registerZoomZone({
       el: aiPanel,
@@ -47,7 +47,7 @@ function registerContentOnlyZoomZones(): void {
       max: 2.0,
       default: 1.0,
       step: 0.05,
-      storageKey: "scitex-ai-panel-zoom",
+      storageKey: "stx-shell-ai-panel-zoom",
     });
   }
 
@@ -126,7 +126,7 @@ function registerCustomZones(): void {
 
 function cleanupLegacyZoomState(): void {
   // Clean stale zoom from panels (zoom now targets content only, not whole panel)
-  const aiPanel = document.getElementById("scitex-ai-panel");
+  const aiPanel = document.getElementById("stx-shell-ai-panel");
   if (aiPanel?.style.zoom) aiPanel.style.zoom = "";
   const mainContent = document.getElementById("main-content");
   if (mainContent?.style.zoom) mainContent.style.zoom = "";
@@ -168,7 +168,7 @@ function init(): void {
   bootstrapContextZoom(FONT_ZOOM_ZONES, FONT_SIZE_ZOOM_ZONES);
   // Content-only zoom zones (title bars excluded)
   registerContentOnlyZoomZones();
-  registeredZones.add("scitex-ai-panel-zoom");
+  registeredZones.add("stx-shell-ai-panel-zoom");
   registeredZones.add("scitex-module-zoom");
   // Custom zones need MutationObserver too (Monaco/PDF load lazily)
   registerCustomZones();
@@ -176,7 +176,7 @@ function init(): void {
   const observer = new MutationObserver(() => {
     registerOnce(
       registerContentOnlyZoomZones,
-      "scitex-ai-panel-zoom",
+      "stx-shell-ai-panel-zoom",
       "scitex-module-zoom",
     );
     registerOnce(

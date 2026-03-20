@@ -38,7 +38,7 @@
 
 /* Override any global fixed positioning applied by global-ai-chat.css
    so the panel flows inside the three-col layout instead */
-.workspace-three-col .scitex-ai-panel.stx-shell-sidebar {
+.workspace-three-col .stx-shell-ai-panel.stx-shell-sidebar {
   position: relative !important;
   top: auto !important;
   left: auto !important;
@@ -224,8 +224,8 @@ body.workspace-page #main-content.ws-module-pane {
 /* Suppress body-level margin-left/right rules that the fixed AI panel sets.
    Inside the three-col layout the panel is inline (position: relative),
    so no margin compensation is needed on #main-content. */
-body.scitex-ai-present #workspace-three-col #main-content,
-body.scitex-ai-open #workspace-three-col #main-content {
+body.stx-shell-ai-present #workspace-three-col #main-content,
+body.stx-shell-ai-open #workspace-three-col #main-content {
   margin-left: 0 !important;
   margin-right: 0 !important;
 }
@@ -250,7 +250,7 @@ body.scitex-ai-open #workspace-three-col #main-content {
 }
 
 /* Config view — fills sidebar body like Chat/Console/Jobs */
-.scitex-ai-config-content {
+.stx-shell-ai-config-content {
   padding: 0.75rem;
   display: flex;
   flex-direction: column;
@@ -266,7 +266,7 @@ body.scitex-ai-open #workspace-three-col #main-content {
   gap: 0.5rem;
 }
 
-.scitex-ai-settings-label {
+.stx-shell-ai-settings-label {
   font-size: 0.7rem;
   color: var(--text-muted, #8b949e);
   white-space: nowrap;
@@ -275,7 +275,7 @@ body.scitex-ai-open #workspace-three-col #main-content {
   gap: 0.25rem;
 }
 
-.scitex-ai-settings-label i {
+.stx-shell-ai-settings-label i {
   width: 12px;
   text-align: center;
   font-size: 0.65rem;

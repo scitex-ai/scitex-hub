@@ -41,7 +41,7 @@ export class AIPanelJobsMode {
   init(listEl: HTMLElement, summaryEl: HTMLElement): void {
     this.listEl = listEl;
     this.summaryEl = summaryEl;
-    this.refreshBtn = document.getElementById("scitex-ai-jobs-refresh");
+    this.refreshBtn = document.getElementById("stx-shell-ai-jobs-refresh");
 
     if (this.initialized) return;
     this.initialized = true;
@@ -76,7 +76,7 @@ export class AIPanelJobsMode {
       if (!data.slurm_available) {
         this.summaryEl.textContent = "SLURM not available";
         this.listEl.innerHTML = `
-          <div class="scitex-ai-jobs-empty">
+          <div class="stx-shell-ai-jobs-empty">
             <i class="fas fa-server"></i>
             <span>SLURM scheduler is not available on this system.</span>
           </div>`;
@@ -100,7 +100,7 @@ export class AIPanelJobsMode {
       // Render job list
       if (data.jobs.length === 0) {
         this.listEl.innerHTML = `
-          <div class="scitex-ai-jobs-empty">
+          <div class="stx-shell-ai-jobs-empty">
             <i class="fas fa-check-circle"></i>
             <span>No active SLURM jobs.</span>
           </div>`;
@@ -145,19 +145,19 @@ export class AIPanelJobsMode {
     const timeStr = job.time_used || job.reason || "";
 
     return `
-      <div class="scitex-ai-job-card ${stateClass}">
-        <div class="scitex-ai-job-row">
-          <span class="scitex-ai-job-state ${stateClass}">${job.state}</span>
-          <i class="fas ${this.jobIcon(job)} scitex-ai-job-icon"></i>
-          <span class="scitex-ai-job-name" title="${job.name || ""}">${this.friendlyName(job)}</span>
+      <div class="stx-shell-ai-job-card ${stateClass}">
+        <div class="stx-shell-ai-job-row">
+          <span class="stx-shell-ai-job-state ${stateClass}">${job.state}</span>
+          <i class="fas ${this.jobIcon(job)} stx-shell-ai-job-icon"></i>
+          <span class="stx-shell-ai-job-name" title="${job.name || ""}">${this.friendlyName(job)}</span>
         </div>
-        <div class="scitex-ai-job-row scitex-ai-job-meta">
+        <div class="stx-shell-ai-job-row stx-shell-ai-job-meta">
           <span>ID: ${job.job_id}</span>
           ${job.partition ? `<span>${job.partition}</span>` : ""}
           ${timeStr ? `<span>${timeStr}</span>` : ""}
           ${
             canCancel
-              ? `<button class="scitex-ai-job-cancel" data-cancel-job="${job.job_id}" title="Cancel job">
+              ? `<button class="stx-shell-ai-job-cancel" data-cancel-job="${job.job_id}" title="Cancel job">
                    <i class="fas fa-times"></i>
                  </button>`
               : ""

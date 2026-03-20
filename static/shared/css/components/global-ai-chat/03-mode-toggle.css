@@ -2,7 +2,7 @@
    Mode Toggle — Tab bar (Chat / Console / Jobs)
    ============================================================ */
 
-.scitex-ai-mode-toggle {
+.stx-shell-ai-mode-toggle {
   display: flex;
   gap: 0;
   margin-left: 0;
@@ -11,7 +11,7 @@
   border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
 }
 
-.scitex-ai-mode-btn {
+.stx-shell-ai-mode-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -31,15 +31,15 @@
   white-space: nowrap;
 }
 
-.scitex-ai-mode-btn i {
+.stx-shell-ai-mode-btn i {
   font-size: 14px;
 }
 
-.scitex-ai-mode-btn:hover {
+.stx-shell-ai-mode-btn:hover {
   color: var(--text-primary);
 }
 
-.scitex-ai-mode-btn.active {
+.stx-shell-ai-mode-btn.active {
   color: var(--text-primary);
   background: none;
   border-bottom-color: var(--workspace-icon-primary, #5a9a7e);
@@ -66,7 +66,7 @@
    View Switching (Chat / Console views)
    ============================================================ */
 
-.scitex-ai-view {
+.stx-shell-ai-view {
   display: none;
   flex-direction: column;
   flex: 1;
@@ -75,7 +75,7 @@
   min-height: 0;
 }
 
-.scitex-ai-view.active {
+.stx-shell-ai-view.active {
   display: flex;
 }
 
@@ -83,18 +83,18 @@
    Console/Terminal container — fill available height
    ============================================================ */
 
-.scitex-ai-console-terminal {
+.stx-shell-ai-console-terminal {
   flex: 1;
   min-height: 0;
   overflow: hidden;
 }
 
-.scitex-ai-console-terminal.drop-target {
+.stx-shell-ai-console-terminal.drop-target {
   outline: 2px solid var(--accent-primary, #3b82f6);
   outline-offset: -2px;
 }
 
-.scitex-ai-console-status {
+.stx-shell-ai-console-status {
   flex-shrink: 0;
   padding: 4px 8px;
   font-size: 11px;
@@ -104,6 +104,6 @@
   gap: 4px;
 }
 
-.scitex-ai-console-status.connected {
+.stx-shell-ai-console-status.connected {
   color: var(--workspace-icon-primary, #5a9a7e);
 }

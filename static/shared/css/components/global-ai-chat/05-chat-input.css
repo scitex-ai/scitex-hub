@@ -2,7 +2,7 @@
    Chat Input area — GPT-style pill with mic inside
    ============================================================ */
 
-.scitex-ai-input-area {
+.stx-shell-ai-input-area {
   position: relative;
   flex-shrink: 0;
   display: flex;
@@ -14,7 +14,7 @@
 }
 
 /* Model badge above the input row — clickable to switch models */
-.scitex-ai-input-area > .scitex-ai-model-badge {
+.stx-shell-ai-input-area > .stx-shell-ai-model-badge {
   width: 100%;
   margin: 0;
   font-size: 0.7rem;
@@ -23,7 +23,7 @@
   position: relative;
 }
 
-.scitex-ai-input-area > .scitex-ai-model-badge:hover {
+.stx-shell-ai-input-area > .stx-shell-ai-model-badge:hover {
   color: var(--color-accent-fg, #58a6ff);
 }
 
@@ -83,7 +83,7 @@
 }
 
 /* Input wrapper: textarea + mic inside */
-.scitex-ai-input-wrap {
+.stx-shell-ai-input-wrap {
   display: flex;
   align-items: center;
   width: 100%;
@@ -94,16 +94,16 @@
   transition: border-color 0.15s;
 }
 
-.scitex-ai-input-wrap:focus-within {
+.stx-shell-ai-input-wrap:focus-within {
   border-color: var(--color-accent-fg, #0969da);
 }
 
-.scitex-ai-input-wrap.drop-target {
+.stx-shell-ai-input-wrap.drop-target {
   border-color: var(--accent-primary, #3b82f6);
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
 }
 
-.scitex-ai-input {
+.stx-shell-ai-input {
   flex: 1;
   padding: 0.5rem 0;
   border: none;
@@ -118,17 +118,17 @@
   line-height: 1.4;
 }
 
-.scitex-ai-input::placeholder {
+.stx-shell-ai-input::placeholder {
   color: var(--text-muted, #8b949e);
 }
 
 /* Hidden send button (kept for JS .click() calls) */
-.scitex-ai-send {
+.stx-shell-ai-send {
   display: none;
 }
 
 /* Volume visualizer (shown during recording) */
-.scitex-ai-vol {
+.stx-shell-ai-vol {
   display: flex;
   align-items: flex-end;
   gap: 2px;
@@ -137,7 +137,7 @@
   flex-shrink: 0;
 }
 
-.scitex-ai-vol-bar {
+.stx-shell-ai-vol-bar {
   display: inline-block;
   width: 3px;
   height: 20px;
@@ -149,7 +149,7 @@
 }
 
 /* STT model select (hidden by default, shown via JS) */
-.scitex-ai-stt-model {
+.stx-shell-ai-stt-model {
   flex-shrink: 0;
   max-width: 7rem;
   padding: 0.25rem 0.375rem;
@@ -163,13 +163,13 @@
   text-overflow: ellipsis;
 }
 
-.scitex-ai-stt-model:focus {
+.stx-shell-ai-stt-model:focus {
   outline: none;
   border-color: var(--accent-primary, #58a6ff);
 }
 
 /* Mic button — inside the input box */
-.scitex-ai-mic {
+.stx-shell-ai-mic {
   flex-shrink: 0;
   align-self: center;
   padding: 0.5rem;
@@ -189,12 +189,12 @@
     color 0.15s;
 }
 
-.scitex-ai-mic:hover {
+.stx-shell-ai-mic:hover {
   background: rgba(255, 255, 255, 0.08);
   color: var(--text-primary);
 }
 
-.scitex-ai-mic.recording {
+.stx-shell-ai-mic.recording {
   color: #cf222e;
   background: rgba(207, 34, 46, 0.1);
   animation: mic-pulse 0.8s ease-in-out infinite;
@@ -210,8 +210,8 @@
   }
 }
 
-.scitex-ai-mic.transcribing,
-.scitex-ai-input-btn.transcribing {
+.stx-shell-ai-mic.transcribing,
+.stx-shell-ai-input-btn.transcribing {
   color: var(--color-accent-fg, #58a6ff);
   background: rgba(88, 166, 255, 0.1);
   animation: mic-spin 1s linear infinite;
@@ -232,7 +232,7 @@
 
 /* ── Camera / Sketch input buttons (same style as mic) ───── */
 
-.scitex-ai-input-btn {
+.stx-shell-ai-input-btn {
   flex-shrink: 0;
   align-self: center;
   padding: 0.5rem;
@@ -252,25 +252,25 @@
     color 0.15s;
 }
 
-.scitex-ai-input-btn:hover {
+.stx-shell-ai-input-btn:hover {
   background: rgba(255, 255, 255, 0.08);
   color: var(--text-primary);
 }
 
 /* ── Image preview strip above textarea ──────────────────── */
 
-.scitex-ai-image-previews {
+.stx-shell-ai-image-previews {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
   padding: 0 0.75rem;
 }
 
-.scitex-ai-image-previews:empty {
+.stx-shell-ai-image-previews:empty {
   display: none;
 }
 
-.scitex-ai-image-thumb {
+.stx-shell-ai-image-thumb {
   position: relative;
   width: 60px;
   height: 60px;
@@ -280,13 +280,13 @@
   flex-shrink: 0;
 }
 
-.scitex-ai-image-thumb img {
+.stx-shell-ai-image-thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.scitex-ai-image-thumb-remove {
+.stx-shell-ai-image-thumb-remove {
   position: absolute;
   top: 2px;
   right: 2px;
@@ -305,18 +305,18 @@
   padding: 0;
 }
 
-.scitex-ai-image-thumb-remove:hover {
+.stx-shell-ai-image-thumb-remove:hover {
   background: rgba(207, 34, 46, 0.8);
 }
 
 /* Inline thumbnails inside sent message bubbles */
-.scitex-ai-msg-thumbs {
+.stx-shell-ai-msg-thumbs {
   display: flex;
   gap: 0.375rem;
   margin-top: 0.375rem;
 }
 
-.scitex-ai-msg-thumb {
+.stx-shell-ai-msg-thumb {
   width: 48px;
   height: 48px;
   border-radius: 4px;

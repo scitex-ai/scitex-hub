@@ -2,16 +2,16 @@
    Per-Tab Config Popovers (gear icon dropdowns)
    ============================================================ */
 
-.scitex-ai-gear-btn {
+.stx-shell-ai-gear-btn {
   opacity: 0.6;
   transition: opacity 0.15s;
 }
 
-.scitex-ai-gear-btn:hover {
+.stx-shell-ai-gear-btn:hover {
   opacity: 1;
 }
 
-.scitex-ai-config-popover {
+.stx-shell-ai-config-popover {
   position: absolute;
   bottom: 100%;
   right: 0;
@@ -29,7 +29,7 @@
 }
 
 /* Settings rows inside popovers */
-.scitex-ai-config-popover .ai-settings-row {
+.stx-shell-ai-config-popover .ai-settings-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -37,11 +37,11 @@
   border-bottom: 1px solid var(--border-default, rgba(255, 255, 255, 0.06));
 }
 
-.scitex-ai-config-popover .ai-settings-row:last-child {
+.stx-shell-ai-config-popover .ai-settings-row:last-child {
   border-bottom: none;
 }
 
-.scitex-ai-config-popover .scitex-ai-settings-label {
+.stx-shell-ai-config-popover .stx-shell-ai-settings-label {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -50,15 +50,15 @@
   white-space: nowrap;
 }
 
-.scitex-ai-config-popover .scitex-ai-settings-label i {
+.stx-shell-ai-config-popover .stx-shell-ai-settings-label i {
   width: 14px;
   text-align: center;
   font-size: 12px;
   color: var(--text-muted, #6e7681);
 }
 
-.scitex-ai-config-popover .ai-settings-select,
-.scitex-ai-config-popover .ai-settings-input {
+.stx-shell-ai-config-popover .ai-settings-select,
+.stx-shell-ai-config-popover .ai-settings-input {
   flex: 1;
   max-width: 160px;
   padding: 3px 6px;
@@ -69,13 +69,13 @@
   border-radius: 4px;
 }
 
-.scitex-ai-config-popover .ai-settings-links {
+.stx-shell-ai-config-popover .ai-settings-links {
   display: flex;
   gap: 12px;
   padding: 6px 4px 2px;
 }
 
-.scitex-ai-config-popover .ai-settings-links a {
+.stx-shell-ai-config-popover .ai-settings-links a {
   font-size: 10px;
   color: var(--text-muted, #8b949e);
   text-decoration: none;
@@ -84,28 +84,28 @@
   gap: 4px;
 }
 
-.scitex-ai-config-popover .ai-settings-links a:hover {
+.stx-shell-ai-config-popover .ai-settings-links a:hover {
   color: var(--color-accent-fg, #58a6ff);
 }
 
 /* ── Auto-Accept Toggle ─────────────────────── */
 
-.scitex-ai-auto-accept-btn {
+.stx-shell-ai-auto-accept-btn {
   position: relative;
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.scitex-ai-auto-accept-btn.active {
+.stx-shell-ai-auto-accept-btn.active {
   color: var(--success-color, #3fb950);
 }
 
-.scitex-ai-auto-accept-btn.active i {
+.stx-shell-ai-auto-accept-btn.active i {
   color: var(--success-color, #3fb950);
 }
 
-.scitex-ai-auto-accept-state {
+.stx-shell-ai-auto-accept-state {
   font-size: 8px;
   font-weight: 600;
   text-transform: uppercase;
@@ -118,7 +118,7 @@
 
 /* ── Jobs Section (collapsible inside console) ── */
 
-.scitex-ai-jobs-section {
+.stx-shell-ai-jobs-section {
   flex-shrink: 0;
   border-top: 1px solid var(--border-default, #30363d);
   background: var(--bg-tertiary, #0d1117);
@@ -126,7 +126,7 @@
   overflow-y: auto;
 }
 
-.scitex-ai-jobs-section-summary {
+.stx-shell-ai-jobs-section-summary {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -138,35 +138,35 @@
   list-style: none;
 }
 
-.scitex-ai-jobs-section-summary::-webkit-details-marker {
+.stx-shell-ai-jobs-section-summary::-webkit-details-marker {
   display: none;
 }
 
-.scitex-ai-jobs-section-summary::before {
+.stx-shell-ai-jobs-section-summary::before {
   content: "\25B8";
   font-size: 10px;
   transition: transform 0.15s;
 }
 
-.scitex-ai-jobs-section[open] .scitex-ai-jobs-section-summary::before {
+.stx-shell-ai-jobs-section[open] .stx-shell-ai-jobs-section-summary::before {
   transform: rotate(90deg);
 }
 
-.scitex-ai-jobs-section-summary i.fa-tasks {
+.stx-shell-ai-jobs-section-summary i.fa-tasks {
   font-size: 10px;
 }
 
-.scitex-ai-jobs-section-summary .scitex-ai-jobs-summary {
+.stx-shell-ai-jobs-section-summary .stx-shell-ai-jobs-summary {
   flex: 1;
   font-size: 10px;
   color: var(--text-muted);
 }
 
-.scitex-ai-jobs-section-summary .scitex-ai-action-btn {
+.stx-shell-ai-jobs-section-summary .stx-shell-ai-action-btn {
   font-size: 10px;
   padding: 2px 4px;
 }
 
-.scitex-ai-jobs-section .scitex-ai-jobs-list {
+.stx-shell-ai-jobs-section .stx-shell-ai-jobs-list {
   padding: 2px 8px 6px;
 }
