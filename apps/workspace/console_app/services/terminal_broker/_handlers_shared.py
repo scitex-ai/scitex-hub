@@ -25,9 +25,16 @@ from .shell import Shell
 logger = logging.getLogger(__name__)
 
 # Cooldown: don't retry allocation after hard failures (node DOWN, not installed)
-_HARD_FAIL_COOLDOWN = 30  # seconds
-# alloc_key -> (timestamp, reason)
-_hard_fail_info: dict[tuple, tuple[float, str]] = {}
+# Escalates: 30s -> 60s -> 120s -> 240s (capped at 4 min)
+_HARD_FAIL_COOLDOWN_BASE = 30  # seconds
+_HARD_FAIL_COOLDOWN_MAX = 240  # seconds
+# alloc_key -> (timestamp, reason, fail_count)
+_hard_fail_info: dict[tuple, tuple[float, str, int]] = {}
+
+
+def _get_cooldown(fail_count: int) -> int:
+    """Return escalating cooldown in seconds based on consecutive failure count."""
+    return min(_HARD_FAIL_COOLDOWN_BASE * (2**fail_count), _HARD_FAIL_COOLDOWN_MAX)
 
 
 def _wait_for_node_or_fail(broker, client, alloc_key) -> tuple[bool, str]:
@@ -53,8 +60,10 @@ def _wait_for_node_or_fail(broker, client, alloc_key) -> tuple[bool, str]:
                 return True, ""
         return False, err or "Computing environment did not become ready in time"
 
-    # Hard failure — apply cooldown
-    _hard_fail_info[alloc_key] = (time.time(), err)
+    # Hard failure — apply escalating cooldown
+    existing = _hard_fail_info.get(alloc_key)
+    fail_count = (existing[2] + 1) if existing else 0
+    _hard_fail_info[alloc_key] = (time.time(), err, fail_count)
     return False, err
 
 
@@ -93,8 +102,10 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
             existing_shell.start_reader(broker._make_output_callback(client))
             # cd to project dir if project changed
             if existing_shell.last_project_slug != project_slug:
-                container_dir = f"/home/{username}/proj/{project_slug}"
-                existing_shell.write(f"cd {container_dir}\n".encode())
+                from scitex_cloud._utils._project_nav import build_switch_command
+
+                cd_cmd = build_switch_command(username, project_slug)
+                existing_shell.write(f"{cd_cmd}\n".encode())
                 existing_shell.last_project_slug = project_slug
             logger.info(f"Shell {existing_shell_id[:8]}: reattaching")
             return {"status": "ok", "session_id": existing_shell_id}
@@ -108,10 +119,11 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
         # Cooldown: only for hard failures (node DOWN, SLURM not installed)
         last_info = _hard_fail_info.get(alloc_key)
         if last_info:
-            last_fail, last_reason = last_info
+            last_fail, last_reason, fail_count = last_info
+            cooldown = _get_cooldown(fail_count)
             elapsed = time.time() - last_fail
-            if elapsed < _HARD_FAIL_COOLDOWN:
-                wait = int(_HARD_FAIL_COOLDOWN - elapsed)
+            if elapsed < cooldown:
+                wait = int(cooldown - elapsed)
                 return {
                     "status": "error",
                     "error": f"{last_reason} (retrying in {wait}s)",
@@ -159,11 +171,15 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
             )
             if not alloc.attach_to_existing(existing_jobs[0]):
                 reason = alloc.last_error or "Failed to attach to existing environment"
-                _hard_fail_info[alloc_key] = (time.time(), reason)
+                existing = _hard_fail_info.get(alloc_key)
+                fail_count = (existing[2] + 1) if existing else 0
+                _hard_fail_info[alloc_key] = (time.time(), reason, fail_count)
                 return {"status": "error", "error": reason}
         elif not alloc.start():
             reason = alloc.last_error or "Failed to start computing environment"
-            _hard_fail_info[alloc_key] = (time.time(), reason)
+            existing = _hard_fail_info.get(alloc_key)
+            fail_count = (existing[2] + 1) if existing else 0
+            _hard_fail_info[alloc_key] = (time.time(), reason, fail_count)
             return {"status": "error", "error": reason}
 
         with broker.lock:
@@ -193,7 +209,14 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
     )
 
     if not shell.spawn():
-        return {"status": "error", "error": "Failed to open terminal"}
+        detail = getattr(shell, "last_error", "")
+        error_msg = (
+            f"Failed to open terminal: {detail}"
+            if detail
+            else "Failed to open terminal"
+        )
+        logger.error(f"Shell {shell_id[:8]}: spawn failed — {detail!r}")
+        return {"status": "error", "error": error_msg}
 
     shell.client_socket = client
     shell.last_project_slug = project_slug
@@ -208,7 +231,9 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
 
     def _inject_init():
         time.sleep(0.5)
-        shell.write(f"cd {container_dir} && clear\n".encode())
+        # cd is handled by _build_shell_command via SCITEX_PROJECT env var;
+        # only clear the screen here for clean initial appearance
+        shell.write(b"clear\n")
         if not SHOW_MOTD:
             return
         time.sleep(0.8)
@@ -334,7 +359,7 @@ def _auto_recover_allocation(
 
     # Check cooldown (hard failures only)
     last_info = _hard_fail_info.get(alloc_key)
-    if last_info and time.time() - last_info[0] < _HARD_FAIL_COOLDOWN:
+    if last_info and time.time() - last_info[0] < _get_cooldown(last_info[2]):
         send_state(
             broker,
             client,
@@ -364,7 +389,9 @@ def _auto_recover_allocation(
 
     if not started:
         reason = new_alloc.last_error or "Could not restart environment"
-        _hard_fail_info[alloc_key] = (time.time(), reason)
+        existing = _hard_fail_info.get(alloc_key)
+        fail_count = (existing[2] + 1) if existing else 0
+        _hard_fail_info[alloc_key] = (time.time(), reason, fail_count)
         send_state(
             broker,
             client,
