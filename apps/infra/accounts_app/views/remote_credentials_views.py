@@ -11,6 +11,94 @@ from django.shortcuts import redirect, render
 from apps.infra.project_app.models import RemoteCredential
 
 
+def _get_user_ssh_dir(username):
+    """Get the .ssh directory inside user's workspace."""
+    from django.conf import settings
+
+    user_data_root = Path(getattr(settings, "USER_DATA_ROOT", "/app/data/users"))
+    return user_data_root / username / ".ssh"
+
+
+def _sanitize_key_name(name):
+    """Sanitize credential name for use as filename."""
+    return name.lower().replace(" ", "_").replace("/", "_")
+
+
+def _save_private_key(username, key_name, key_content):
+    """Save private key to user's workspace .ssh directory.
+
+    Returns the absolute path inside the container.
+    """
+    ssh_dir = _get_user_ssh_dir(username)
+    ssh_dir.mkdir(parents=True, exist_ok=True)
+
+    key_path = ssh_dir / f"id_{_sanitize_key_name(key_name)}"
+
+    key_path.write_text(key_content)
+    key_path.chmod(0o600)
+
+    return str(key_path)
+
+
+def _generate_key_pair(username, key_name):
+    """Generate ed25519 SSH key pair in user's workspace.
+
+    Returns (private_key_path, public_key_content, fingerprint).
+    """
+    ssh_dir = _get_user_ssh_dir(username)
+    ssh_dir.mkdir(parents=True, exist_ok=True)
+
+    safe_name = _sanitize_key_name(key_name)
+    key_path = ssh_dir / f"id_{safe_name}"
+    pub_path = ssh_dir / f"id_{safe_name}.pub"
+
+    # Remove existing key if present
+    if key_path.exists():
+        key_path.unlink()
+    if pub_path.exists():
+        pub_path.unlink()
+
+    # Generate ed25519 key pair
+    result = subprocess.run(
+        [
+            "ssh-keygen",
+            "-t",
+            "ed25519",
+            "-f",
+            str(key_path),
+            "-N",
+            "",  # no passphrase
+            "-C",
+            f"scitex-{username}-{safe_name}",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+
+    if result.returncode != 0:
+        raise RuntimeError(f"ssh-keygen failed: {result.stderr}")
+
+    # Read public key and fingerprint
+    public_key = pub_path.read_text().strip()
+
+    fingerprint_result = subprocess.run(
+        ["ssh-keygen", "-lf", str(pub_path)],
+        capture_output=True,
+        text=True,
+    )
+    fingerprint = (
+        fingerprint_result.stdout.split()[1]
+        if fingerprint_result.returncode == 0
+        else "Unknown"
+    )
+
+    # Ensure private key permissions
+    key_path.chmod(0o600)
+
+    return str(key_path), public_key, fingerprint
+
+
 def generate_ssh_key_fingerprint(ssh_public_key):
     """Generate SSH key fingerprint from public key."""
     try:
@@ -29,12 +117,15 @@ def generate_ssh_key_fingerprint(ssh_public_key):
         return fingerprint
 
     except Exception as e:
-        raise ValueError(f"Invalid SSH public key: {str(e)}")
+        raise ValueError(f"Invalid SSH public key: {str(e)}") from e
 
 
 def test_remote_credential_connection(credential):
     """Test SSH connection to remote credential."""
     ssh_key_path = credential.private_key_path
+
+    if not Path(ssh_key_path).exists():
+        return False, f"Private key not found: {ssh_key_path}"
 
     cmd = [
         "ssh",
@@ -56,16 +147,21 @@ def test_remote_credential_connection(credential):
 
 
 def handle_add_remote_credential(request):
-    """Handle adding a new remote credential."""
+    """Handle adding a new remote credential.
+
+    Supports two modes:
+    - "generate": Generate new ed25519 key pair (recommended)
+    - "upload": Paste or upload existing private key
+    """
     name = request.POST.get("name", "").strip()
     ssh_host = request.POST.get("ssh_host", "").strip()
     ssh_port = request.POST.get("ssh_port", "22").strip()
     ssh_username = request.POST.get("ssh_username", "").strip()
-    ssh_public_key = request.POST.get("ssh_public_key", "").strip()
+    key_mode = request.POST.get("key_mode", "generate").strip()
 
-    # Validate inputs
-    if not all([name, ssh_host, ssh_username, ssh_public_key]):
-        messages.error(request, "All fields are required")
+    # Validate common inputs
+    if not all([name, ssh_host, ssh_username]):
+        messages.error(request, "Name, host, and username are required")
         return False
 
     try:
@@ -74,35 +170,72 @@ def handle_add_remote_credential(request):
         messages.error(request, "Invalid SSH port number")
         return False
 
-    # Generate SSH key fingerprint
-    try:
-        fingerprint = generate_ssh_key_fingerprint(ssh_public_key)
-    except ValueError as e:
-        messages.error(request, str(e))
-        return False
+    # Handle key based on mode
+    if key_mode == "generate":
+        try:
+            private_key_path, public_key, fingerprint = _generate_key_pair(
+                request.user.username, name
+            )
+        except Exception as e:
+            messages.error(request, f"Failed to generate key pair: {e}")
+            return False
+    else:
+        # Upload mode: paste or file
+        private_key_content = request.POST.get("private_key_content", "").strip()
+        if not private_key_content and "private_key_file" in request.FILES:
+            private_key_content = (
+                request.FILES["private_key_file"].read().decode("utf-8")
+            )
 
-    # Generate private key path
-    private_key_path = f"/home/{request.user.username}/.ssh/scitex_remote_{name.lower().replace(' ', '_')}"
+        if not private_key_content:
+            messages.error(request, "Private key content is required")
+            return False
+
+        try:
+            private_key_path = _save_private_key(
+                request.user.username, name, private_key_content
+            )
+        except Exception as e:
+            messages.error(request, f"Failed to save private key: {e}")
+            return False
+
+        public_key = request.POST.get("ssh_public_key", "").strip()
+        fingerprint = ""
+        if public_key:
+            try:
+                fingerprint = generate_ssh_key_fingerprint(public_key)
+            except ValueError as e:
+                messages.error(request, str(e))
+                return False
 
     # Create credential
     try:
-        RemoteCredential.objects.create(
+        credential = RemoteCredential.objects.create(
             user=request.user,
             name=name,
             ssh_host=ssh_host,
             ssh_port=ssh_port,
             ssh_username=ssh_username,
-            ssh_public_key=ssh_public_key,
+            ssh_public_key=public_key,
             ssh_key_fingerprint=fingerprint,
             private_key_path=private_key_path,
             is_active=True,
         )
 
-        messages.success(
-            request,
-            f"Remote credential '{name}' added successfully! "
-            f"Please ensure your private key is at: {private_key_path}",
-        )
+        if key_mode == "generate":
+            # Store credential ID so template can show public key
+            request.session["new_credential_id"] = credential.id
+            messages.success(
+                request,
+                f"Key pair generated for '{name}'. "
+                "Copy the public key below to your remote system's "
+                "~/.ssh/authorized_keys.",
+            )
+        else:
+            messages.success(
+                request,
+                f"Remote credential '{name}' added. Key saved to: {private_key_path}",
+            )
         return True
 
     except Exception as e:
@@ -117,6 +250,12 @@ def handle_delete_remote_credential(request):
     try:
         credential = RemoteCredential.objects.get(id=credential_id, user=request.user)
         credential_name = credential.name
+
+        # Remove private key file
+        key_path = Path(credential.private_key_path)
+        if key_path.exists():
+            key_path.unlink()
+
         credential.delete()
         messages.success(request, f"Remote credential '{credential_name}' deleted")
         return True
@@ -155,6 +294,69 @@ def handle_test_remote_credential(request):
         return False
 
 
+def handle_ssh_copy_id(request):
+    """Install public key on remote system via ssh-copy-id."""
+    credential_id = request.POST.get("credential_id")
+    ssh_password = request.POST.get("ssh_password", "")
+
+    if not ssh_password:
+        messages.error(request, "Password is required for ssh-copy-id")
+        return False
+
+    try:
+        credential = RemoteCredential.objects.get(id=credential_id, user=request.user)
+        pub_key_path = credential.private_key_path + ".pub"
+
+        if not Path(pub_key_path).exists():
+            messages.error(request, f"Public key not found: {pub_key_path}")
+            return False
+
+        # Use sshpass + ssh-copy-id to install the key
+        cmd = [
+            "sshpass",
+            "-p",
+            ssh_password,
+            "ssh-copy-id",
+            "-i",
+            pub_key_path,
+            "-p",
+            str(credential.ssh_port),
+            "-o",
+            "StrictHostKeyChecking=accept-new",
+            f"{credential.ssh_username}@{credential.ssh_host}",
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+
+        if result.returncode == 0:
+            messages.success(
+                request,
+                f"Public key installed on {credential.name}! "
+                "You can now test the connection.",
+            )
+        else:
+            error = result.stderr.strip()
+            messages.error(
+                request,
+                f"ssh-copy-id failed: {error}",
+            )
+
+        return True
+
+    except RemoteCredential.DoesNotExist:
+        messages.error(request, "Credential not found")
+        return False
+    except subprocess.TimeoutExpired:
+        messages.error(request, "ssh-copy-id timed out")
+        return False
+    except FileNotFoundError:
+        messages.error(
+            request,
+            "sshpass not installed. Please install it or copy the public key manually.",
+        )
+        return False
+
+
 @login_required
 def remote_credentials(request):
     """Remote credentials management page."""
@@ -171,11 +373,20 @@ def remote_credentials(request):
             handle_delete_remote_credential(request)
         elif action == "test":
             handle_test_remote_credential(request)
+        elif action == "ssh_copy_id":
+            handle_ssh_copy_id(request)
 
         return redirect("accounts_app:remote_credentials")
 
+    # Check if we just generated a new key pair — show public key
+    new_credential_id = request.session.pop("new_credential_id", None)
+    new_credential = None
+    if new_credential_id:
+        new_credential = credentials.filter(id=new_credential_id).first()
+
     context = {
         "credentials": credentials,
+        "new_credential": new_credential,
     }
 
     return render(request, "accounts_app/remote_credentials.html", context)

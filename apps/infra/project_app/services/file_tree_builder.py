@@ -22,12 +22,15 @@ def build_project_file_tree(project) -> Optional[dict]:
     matching the format expected by TreeDataLoader's sessionStorage cache,
     or None if the project directory doesn't exist.
     """
-    # TRIP projects: build tree via paramiko SFTP
-    if project.project_type == "trip":
-        return _build_trip_file_tree(project)
-
-    # Remote SSHFS projects: mount and use standard Path ops (no git)
+    # Remote projects: check connection_mode to dispatch TRIP vs SSHFS
     if project.project_type == "remote":
+        if (
+            hasattr(project, "remote_config")
+            and project.remote_config.connection_mode == "trip"
+        ):
+            # TRIP: build tree via paramiko SFTP
+            return _build_trip_file_tree(project)
+        # SSHFS: mount and use standard Path ops (no git)
         return _build_remote_file_tree(project)
 
     from apps.infra.project_app.services.project_filesystem import (

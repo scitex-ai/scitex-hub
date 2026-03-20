@@ -66,6 +66,9 @@ fi
 # Install scitex-ui (required: in INSTALLED_APPS, must be available before Django starts)
 try_editable_install "/scitex-ui" "scitex-ui"
 
+# Install scitex-app (required: core SDK for app paths, preferences, cloud integration)
+try_editable_install "/scitex-app" "scitex-app"
+
 # Install scitex-container (required: terminal broker needs scitex_container.apptainer)
 try_editable_install "/scitex-container" "scitex-container"
 
@@ -87,7 +90,6 @@ install_ecosystem_packages() {
     try_editable_install "/crossref-local" "crossref-local" "[all]"
     try_editable_install "/openalex-local" "openalex-local" "[all]"
     try_editable_install "/socialia" "socialia" "[all]"
-    try_editable_install "/scitex-app" "scitex-app"
     try_editable_install "/scitex-dev" "scitex-dev" "[all]"
     try_editable_install "/scitex-dataset" "scitex-dataset" "[all]"
     try_editable_install "/scitex-linter" "scitex-linter"

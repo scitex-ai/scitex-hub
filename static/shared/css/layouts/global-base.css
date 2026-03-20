@@ -118,10 +118,13 @@ body.workspace-page #main-content {
 body.workspace-page #main-content .code-workspace,
 body.workspace-page #main-content .writer-workspace,
 body.workspace-page #main-content .scholar-main,
+body.workspace-page #main-content .scholar-workspace,
 body.workspace-page #main-content .vis-workspace,
 body.workspace-page #main-content .hub-workspace,
 body.workspace-page #main-content .clew-workspace,
 body.workspace-page #main-content .tools-workspace,
+body.workspace-page #main-content .tool-workspace,
+body.workspace-page #main-content .docs-workspace,
 body.workspace-page #main-content .vis-editor-container,
 body.workspace-page #main-content .editor-container,
 body.workspace-page #main-content .unified-workspace-outer {

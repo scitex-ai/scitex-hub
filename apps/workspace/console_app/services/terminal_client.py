@@ -103,8 +103,8 @@ class TerminalBrokerClient:
             # Start reader task to handle responses
             self._reader_task = asyncio.create_task(self._read_loop())
 
-            # Wait for spawn response (allocation startup can take 60-90s)
-            response = await self._wait_for_response(timeout=90.0)
+            # Wait for spawn response (allocation 60s + instance init 30s + buffer)
+            response = await self._wait_for_response(timeout=120.0)
             if response and response.get("status") == "ok":
                 self.session_id = response.get("session_id")
                 logger.info(f"Spawned terminal session: {self.session_id}")
@@ -113,7 +113,7 @@ class TerminalBrokerClient:
                 error = (
                     response.get("error", "Unknown error")
                     if response
-                    else "No response from broker (timeout after 90s)"
+                    else "No response from broker (timeout after 120s)"
                 )
                 logger.error(f"Spawn failed: {error}")
                 self._last_spawn_error = error
@@ -310,13 +310,30 @@ class TerminalBrokerClient:
 
 # Fallback check - can we connect to broker?
 async def is_broker_available() -> bool:
-    """Check if the terminal broker is running."""
-    try:
-        reader, writer = await asyncio.wait_for(
-            asyncio.open_unix_connection(SOCKET_PATH), timeout=1.0
-        )
-        writer.close()
-        await writer.wait_closed()
-        return True
-    except:
-        return False
+    """Check if the terminal broker is running.
+
+    Attempts up to 3 connection checks with exponential backoff (1s, 2s)
+    before declaring the broker unavailable.
+    """
+    for attempt in range(3):
+        try:
+            reader, writer = await asyncio.wait_for(
+                asyncio.open_unix_connection(SOCKET_PATH), timeout=1.0
+            )
+            writer.close()
+            await writer.wait_closed()
+            return True
+        except Exception as e:
+            if attempt < 2:
+                delay = 1 * (2**attempt)  # 1s, 2s
+                logger.debug(
+                    f"Broker check attempt {attempt + 1}/3 failed: {e}. "
+                    f"Retrying in {delay}s..."
+                )
+                await asyncio.sleep(delay)
+            else:
+                logger.debug(
+                    f"Broker check attempt 3/3 failed: {e}. "
+                    f"Broker unavailable after all retries."
+                )
+    return False

@@ -37,8 +37,8 @@ export interface AutoAcceptDeps {
  * Returns the manager instance for external control.
  */
 export function setupAutoAccept(deps: AutoAcceptDeps): AutoResponseManager {
-  const btn = document.getElementById("scitex-ai-auto-accept");
-  const stateEl = document.getElementById("scitex-ai-auto-accept-state");
+  const btn = document.getElementById("stx-shell-ai-auto-accept");
+  const stateEl = document.getElementById("stx-shell-ai-auto-accept-state");
 
   const manager = new AutoResponseManager(
     (text: string) => {

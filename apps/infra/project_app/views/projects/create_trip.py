@@ -15,7 +15,7 @@ from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
-from ...models import Project, RemoteCredential, TripProjectConfig
+from ...models import Project, RemoteCredential
 
 logger = logging.getLogger(__name__)
 
@@ -112,16 +112,23 @@ def _test_trip_connection(request, credential, remote_path):
     except paramiko.AuthenticationException:
         messages.error(
             request,
-            "SSH authentication failed. Check your SSH key and passphrase.",
+            f"SSH authentication failed to "
+            f"{credential.ssh_username}@{credential.ssh_host} "
+            f"using key: {credential.private_key_path}. "
+            f"Ensure the public key is in the remote ~/.ssh/authorized_keys.",
         )
         return False
     except paramiko.SSHException as e:
-        messages.error(request, f"SSH connection error: {e}")
+        messages.error(
+            request,
+            f"SSH error connecting to {credential.ssh_host}: {e}",
+        )
         return False
     except TimeoutError:
         messages.error(
             request,
-            "SSH connection timeout. Check your network and remote host.",
+            f"SSH connection timeout to {credential.ssh_host}:{credential.ssh_port}. "
+            f"Check your network and remote host.",
         )
         return False
     except Exception as e:
@@ -132,19 +139,25 @@ def _test_trip_connection(request, credential, remote_path):
 def _create_trip_project_db(request, name, description, credential, remote_path, slug):
     """Create TRIP project in database."""
     try:
+        from ...models import RemoteProjectConfig
+
         project = Project.objects.create(
             name=name,
             slug=slug,
             description=description,
             owner=request.user,
-            project_type="trip",
+            project_type="remote",
             visibility="private",
         )
 
-        TripProjectConfig.objects.create(
+        RemoteProjectConfig.objects.create(
             project=project,
+            ssh_host=credential.ssh_host,
+            ssh_port=credential.ssh_port,
+            ssh_username=credential.ssh_username,
             remote_credential=credential,
             remote_path=remote_path,
+            connection_mode="trip",
         )
 
         # Update credential last used timestamp

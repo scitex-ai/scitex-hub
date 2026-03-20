@@ -96,14 +96,6 @@ LOGGING = {
             "level": "ERROR",
         },
         # App-specific logs
-        "figrecipe_app_file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "figrecipe_app.log"),
-            "maxBytes": 5242880,
-            "backupCount": 3,
-            "formatter": "standard",
-            "level": "DEBUG",
-        },
         "writer_app_file": {
             "class": "logging.handlers.RotatingFileHandler",
             "filename": str(BASE_DIR / "logs" / "writer_app.log"),
@@ -190,11 +182,6 @@ LOGGING = {
             "propagate": False,
         },
         # App-specific loggers
-        "apps.workspace.figrecipe_app": {
-            "handlers": ["figrecipe_app_file", "console"],
-            "level": "DEBUG",
-            "propagate": False,
-        },
         "apps.workspace.writer_app": {
             "handlers": ["writer_app_file", "console"],
             "level": "DEBUG",

@@ -183,8 +183,12 @@
     // Debounce: wait 500ms after user stops typing
     nameCheckTimeout = window.setTimeout(async () => {
       try {
+        const projectTypeEl = document.getElementById(
+          "hidden-project-type",
+        ) as HTMLInputElement | null;
+        const projectType = projectTypeEl?.value || "local";
         const response = await fetch(
-          `/project/api/check-name/?name=${encodeURIComponent(name)}`,
+          `/api/project/check-name/?name=${encodeURIComponent(name)}&project_type=${encodeURIComponent(projectType)}`,
         );
         const data = await response.json();
 

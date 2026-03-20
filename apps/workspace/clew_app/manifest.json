@@ -1,6 +1,6 @@
 {
   "$schema": "scitex-app-manifest",
-  "$schema_version": "1.0.0",
+  "$schema_version": "2.0.0",
   "name": "clew",
   "label": "Clew",
   "app_name": "clew_app",
@@ -20,6 +20,10 @@
   "ai_hint": "Verification system: trace manuscript claims (statistics, figures, tables) back through computational chains to source data.",
   "allowed_extensions": [],
   "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+  "privileges": [
+    {"type": "filesystem", "scope": "project", "reason": "Read project files to trace claims to source data"},
+    {"type": "compute", "scope": "celery", "reason": "Re-run computational chains for verification"}
+  ],
   "builtin": true,
   "dependencies": {
     "python": [],

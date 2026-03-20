@@ -148,7 +148,7 @@ export async function processStream(
         if (ops?.length) {
           for (const op of ops) {
             const badge = document.createElement("span");
-            badge.className = `scitex-ai-file-op scitex-ai-file-op--${op.op}`;
+            badge.className = `stx-shell-ai-file-op stx-shell-ai-file-op--${op.op}`;
             const icon =
               op.op === "created"
                 ? "fa-plus-circle"
@@ -161,7 +161,7 @@ export async function processStream(
             const fname = parts.pop() || op.path;
             const dir = parts.length > 0 ? parts.join("/") + "/" : "";
             badge.innerHTML = dir
-              ? `<i class="fas ${icon}"></i> <span class="scitex-ai-file-op-dir">${dir}</span>${fname}`
+              ? `<i class="fas ${icon}"></i> <span class="stx-shell-ai-file-op-dir">${dir}</span>${fname}`
               : `<i class="fas ${icon}"></i> ${fname}`;
             msgEl.appendChild(badge);
           }
@@ -184,7 +184,7 @@ export async function processStream(
         finalizeTextSegment();
         msgEl.remove();
         const errEl = document.createElement("div");
-        errEl.className = "scitex-ai-msg error";
+        errEl.className = "stx-shell-ai-msg error";
         ctx.messagesEl.appendChild(errEl);
         errEl.textContent = `AI request failed: ${event.error as string}`;
         saveMessage({ role: "error", text: errEl.textContent });

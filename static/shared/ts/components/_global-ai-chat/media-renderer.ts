@@ -66,7 +66,7 @@ function renderImage(
   slug: string,
 ): HTMLElement {
   const wrapper = document.createElement("div");
-  wrapper.className = "scitex-ai-media scitex-ai-media-image";
+  wrapper.className = "stx-shell-ai-media stx-shell-ai-media-image";
 
   const img = document.createElement("img");
   img.src = blobUrl(username, slug, ref.path);
@@ -78,7 +78,7 @@ function renderImage(
   wrapper.appendChild(img);
 
   const caption = document.createElement("span");
-  caption.className = "scitex-ai-media-caption";
+  caption.className = "stx-shell-ai-media-caption";
   caption.textContent = filename(ref.path);
   wrapper.appendChild(caption);
 
@@ -87,7 +87,7 @@ function renderImage(
 
 function renderCsv(ref: MediaRef, username: string, slug: string): HTMLElement {
   const wrapper = document.createElement("div");
-  wrapper.className = "scitex-ai-media scitex-ai-media-table";
+  wrapper.className = "stx-shell-ai-media stx-shell-ai-media-table";
   wrapper.textContent = "Loading...";
 
   // Fetch CSV and render table (first 10 rows)
@@ -115,7 +115,7 @@ function renderCsv(ref: MediaRef, username: string, slug: string): HTMLElement {
 
       // Add caption with filename
       const caption = document.createElement("span");
-      caption.className = "scitex-ai-media-caption";
+      caption.className = "stx-shell-ai-media-caption";
       caption.textContent = filename(ref.path);
       wrapper.appendChild(caption);
     })
@@ -132,7 +132,7 @@ function renderAudio(
   slug: string,
 ): HTMLElement {
   const wrapper = document.createElement("div");
-  wrapper.className = "scitex-ai-media scitex-ai-media-audio";
+  wrapper.className = "stx-shell-ai-media stx-shell-ai-media-audio";
 
   const audio = document.createElement("audio");
   audio.controls = true;
@@ -141,7 +141,7 @@ function renderAudio(
   wrapper.appendChild(audio);
 
   const caption = document.createElement("span");
-  caption.className = "scitex-ai-media-caption";
+  caption.className = "stx-shell-ai-media-caption";
   caption.textContent = filename(ref.path);
   wrapper.appendChild(caption);
 
@@ -154,7 +154,7 @@ function renderVideo(
   slug: string,
 ): HTMLElement {
   const wrapper = document.createElement("div");
-  wrapper.className = "scitex-ai-media scitex-ai-media-video";
+  wrapper.className = "stx-shell-ai-media stx-shell-ai-media-video";
 
   const video = document.createElement("video");
   video.controls = true;
@@ -165,7 +165,7 @@ function renderVideo(
   wrapper.appendChild(video);
 
   const caption = document.createElement("span");
-  caption.className = "scitex-ai-media-caption";
+  caption.className = "stx-shell-ai-media-caption";
   caption.textContent = filename(ref.path);
   wrapper.appendChild(caption);
 
@@ -178,7 +178,7 @@ function renderMermaid(
   slug: string,
 ): HTMLElement {
   const wrapper = document.createElement("div");
-  wrapper.className = "scitex-ai-media scitex-ai-mermaid-diagram";
+  wrapper.className = "stx-shell-ai-media stx-shell-ai-mermaid-diagram";
   wrapper.textContent = "Loading diagram...";
 
   fetch(blobUrl(username, slug, ref.path))
@@ -207,12 +207,12 @@ function renderMermaid(
       wrapper.innerHTML = `<div class="mermaid" id="${id}">${code}</div>`;
       await mermaid.run({ nodes: [wrapper.querySelector(".mermaid")!] });
       const caption = document.createElement("span");
-      caption.className = "scitex-ai-media-caption";
+      caption.className = "stx-shell-ai-media-caption";
       caption.textContent = filename(ref.path);
       wrapper.appendChild(caption);
     })
     .catch(() => {
-      wrapper.innerHTML = `<a class="scitex-ai-media-file" href="${viewUrl(username, slug, ref.path)}" target="_blank"><i class="fas fa-project-diagram"></i>${filename(ref.path)}</a>`;
+      wrapper.innerHTML = `<a class="stx-shell-ai-media-file" href="${viewUrl(username, slug, ref.path)}" target="_blank"><i class="fas fa-project-diagram"></i>${filename(ref.path)}</a>`;
     });
 
   return wrapper;
@@ -224,7 +224,7 @@ function renderGraphviz(
   slug: string,
 ): HTMLElement {
   const wrapper = document.createElement("div");
-  wrapper.className = "scitex-ai-media scitex-ai-mermaid-diagram";
+  wrapper.className = "stx-shell-ai-media stx-shell-ai-mermaid-diagram";
   wrapper.textContent = "Loading diagram...";
 
   fetch(blobUrl(username, slug, ref.path))
@@ -245,12 +245,12 @@ function renderGraphviz(
       const svg = graphviz.dot(code);
       wrapper.innerHTML = svg;
       const caption = document.createElement("span");
-      caption.className = "scitex-ai-media-caption";
+      caption.className = "stx-shell-ai-media-caption";
       caption.textContent = filename(ref.path);
       wrapper.appendChild(caption);
     })
     .catch(() => {
-      wrapper.innerHTML = `<a class="scitex-ai-media-file" href="${viewUrl(username, slug, ref.path)}" target="_blank"><i class="fas fa-project-diagram"></i>${filename(ref.path)}</a>`;
+      wrapper.innerHTML = `<a class="stx-shell-ai-media-file" href="${viewUrl(username, slug, ref.path)}" target="_blank"><i class="fas fa-project-diagram"></i>${filename(ref.path)}</a>`;
     });
 
   return wrapper;
@@ -263,10 +263,10 @@ function renderFileLink(
   iconClass: string,
 ): HTMLElement {
   const wrapper = document.createElement("div");
-  wrapper.className = "scitex-ai-media";
+  wrapper.className = "stx-shell-ai-media";
 
   const link = document.createElement("a");
-  link.className = "scitex-ai-media-file";
+  link.className = "stx-shell-ai-media-file";
   link.href = viewUrl(username, slug, ref.path);
   link.target = "_blank";
   link.innerHTML = `<i class="fas ${iconClass}"></i>`;

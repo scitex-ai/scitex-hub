@@ -245,21 +245,22 @@ class TripFileBackend:
 
 
 def get_trip_backend(project) -> TripFileBackend:
-    """Get TripFileBackend for a project.
+    """Get TripFileBackend for a remote project with TRIP connection mode.
 
     Args:
-        project: Project instance with project_type="trip"
+        project: Project instance with project_type="remote" and
+                 remote_config.connection_mode="trip"
 
     Returns:
         TripFileBackend instance
 
     Raises:
-        ValueError: If project is not a TRIP project
+        ValueError: If project is not a remote/TRIP project
     """
-    if project.project_type != "trip":
-        raise ValueError(f"Not a TRIP project: {project.project_type}")
-    config = project.trip_config
-    return TripFileBackend(config)
+    if project.project_type == "remote":
+        config = project.remote_config
+        return TripFileBackend(config)
+    raise ValueError(f"Not a remote project: {project.project_type}")
 
 
 # EOF

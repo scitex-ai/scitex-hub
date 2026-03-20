@@ -1,6 +1,6 @@
 {
   "$schema": "scitex-app-manifest",
-  "$schema_version": "1.0.0",
+  "$schema_version": "2.0.0",
   "name": "scholar",
   "label": "Scholar",
   "app_name": "scholar_app",
@@ -17,6 +17,11 @@
   "ai_hint": "Literature management: search papers (CrossRef/OpenAlex/Semantic Scholar), manage bibliography, explore citation graphs, download PDFs.",
   "allowed_extensions": [".bib"],
   "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv", "build"],
+  "privileges": [
+    {"type": "filesystem", "scope": "project", "reason": "Read/write bibliography files (.bib)"},
+    {"type": "network", "scope": "api.crossref.org,api.openalex.org,api.semanticscholar.org", "reason": "Search and fetch paper metadata"},
+    {"type": "network", "scope": "pdf-download", "reason": "Download paper PDFs from publishers"}
+  ],
   "builtin": true,
   "dependencies": {
     "python": [],

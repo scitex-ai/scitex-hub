@@ -45,7 +45,11 @@ def api_get_file_content(request, file_path):
 
     try:
         # TRIP projects: on-demand SSH file access
-        if project.project_type == "trip":
+        if (
+            project.project_type == "remote"
+            and hasattr(project, "remote_config")
+            and project.remote_config.connection_mode == "trip"
+        ):
             from django.http import HttpResponse
 
             from apps.infra.project_app.services.trip_backend import get_trip_backend

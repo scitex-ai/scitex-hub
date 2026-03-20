@@ -67,7 +67,7 @@ It is NOT a full HTML page — no `<html>`, `<head>`, or `<body>` tags.
   - `--workspace-bg-tertiary` — nested element background
   - `--workspace-border-default` — borders
   - `--workspace-text-primary` — main text
-  - `--workspace-text-secondary` — muted text
+  - `--workspace-text-secondary` — secondary/muted text (use for subtitles, placeholders, captions)
   - `--color-accent-emphasis` — accent/highlight color
 - Keep CSS under 512 lines
 
@@ -96,10 +96,30 @@ in `static/{name}/ts/` and include it via `<script type="module">`.
 - No silent fallbacks — show errors explicitly
 - This app runs inside the SciTeX workspace (dark theme)
 
-## Deep Reference
+## Deep Reference — Per-Package Guides
 
-For comprehensive platform documentation (services, APIs, submission workflow,
-licensing, ModuleConfig fields, testing):
+Each SciTeX package owns its own AI agent documentation. Read these for full API details:
+
+| Package | Guide | What It Covers |
+|---------|-------|----------------|
+| **scitex-ui** | `pip show scitex-ui` → docs/APP_DEVELOPER_GUIDE.md | React components (DataTable, FileBrowser), bridge contract, theme CSS, usePanelResize |
+| **scitex-app** | `pip show scitex-app` → docs/APP_DEVELOPER_GUIDE.md | FilesBackend SDK, ScitexAppConfig, manifest schema, AppValidator |
+| **scitex-cloud** | Platform docs/APP_DEVELOPER_GUIDE.md | Platform services (DataStore, FileVault, JobQueue), dev install, workspace integration |
+
+### Reference Implementation
+
+**FigRecipe** (github.com/ywatanabe1989/figrecipe) is a complete working app.
+
+Key files to study:
+- `src/figrecipe/_django/manifest.json` — app manifest
+- `src/figrecipe/_django/views.py` — Django views (editor_page + api_dispatch)
+- `src/figrecipe/_django/handlers/` — thin API handlers delegating to Python core
+- `src/figrecipe/_django/frontend/src/bridge/bridge-init.ts` — bridge entry point
+- `src/figrecipe/_django/frontend/src/InnerEditor.tsx` — React editor layout
+
+### Platform Docs
+
+For platform services, workspace APIs, and submission workflow:
 
 Read `docs/PLATFORM.md`
 """

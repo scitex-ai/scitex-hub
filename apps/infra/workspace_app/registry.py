@@ -68,6 +68,9 @@ class ModuleConfig:
     # Documentation
     docs_slug: str = ""  # Slug for auto-registering docs page (e.g. "clew")
 
+    # Privileges — declared capabilities with reasons (security, resources)
+    privileges: list = field(default_factory=list)
+
     # Legal
     license: str = "AGPL-3.0"  # SPDX identifier, default matches SciTeX project license
 
@@ -168,11 +171,14 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
 ]
 
 
+_SUPPORTED_SCHEMA_VERSIONS = {"1.0.0", "2.0.0"}
+
+
 def _load_manifest(manifest_path: Path) -> dict:
     """Load and validate a manifest.json file."""
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
     schema_ver = data.get("$schema_version", "1.0.0")
-    if schema_ver != "1.0.0":
+    if schema_ver not in _SUPPORTED_SCHEMA_VERSIONS:
         raise ValueError(
             f"Unsupported manifest schema version: {schema_ver} in {manifest_path}"
         )
@@ -202,6 +208,7 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         docs_slug=data.get("docs_slug", ""),
         license=data.get("license", "AGPL-3.0"),
         url=data.get("url", ""),
+        privileges=data.get("privileges", []),
         allowed_extensions=data.get("allowed_extensions", []),
         hidden_patterns=data.get(
             "hidden_patterns",

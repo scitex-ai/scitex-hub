@@ -256,16 +256,10 @@ def mcp_list_tools(verbose: int, as_json: bool):
         click.echo("Install with: pip install scitex-cloud[mcp]")
         raise SystemExit(1)
 
-    # Get tools
-    # FastMCP 2.x/3.x compat: _tool_manager removed in 3.x
-    tm = getattr(mcp_server, "_tool_manager", None)
-    if tm is not None and hasattr(tm, "_tools"):
-        tools_dict = dict(tm._tools)
-    else:
-        import asyncio
+    # Get tools (FastMCP 2.x/3.x compat via shared layer)
+    from scitex_dev import get_tools_sync
 
-        tools_list = asyncio.run(mcp_server.list_tools())
-        tools_dict = {t.name: t for t in tools_list}
+    tools_dict = get_tools_sync(mcp_server)
     modules = {}
     for name in sorted(tools_dict.keys()):
         prefix = name.split("_")[0]

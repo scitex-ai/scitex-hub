@@ -1,0 +1,103 @@
+/* TRIP project info panel */
+
+.trip-info-panel {
+  padding: 2rem;
+}
+
+.trip-info-title {
+  color: var(--color-fg-default);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.trip-icon {
+  display: inline-block;
+  vertical-align: text-bottom;
+}
+
+.trip-info-subtitle {
+  color: var(--color-fg-muted);
+  margin-bottom: 1.5rem;
+  font-size: 14px;
+}
+
+.trip-details {
+  margin: 0;
+  padding: 0;
+}
+
+.trip-detail-row {
+  display: flex;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.trip-detail-row:last-child {
+  border-bottom: none;
+}
+
+.trip-detail-row dt {
+  min-width: 120px;
+  color: var(--color-fg-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.trip-detail-row dd {
+  margin: 0;
+  color: var(--color-fg-default);
+  font-size: 13px;
+}
+
+.trip-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.trip-action-form {
+  display: inline;
+}
+
+/* Empty project state (non-TRIP) */
+
+.empty-project-state {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.empty-project-title {
+  color: var(--color-fg-default);
+  margin-bottom: 1rem;
+}
+
+.empty-project-icon {
+  display: inline-block;
+  vertical-align: text-bottom;
+  margin-right: 8px;
+}
+
+.empty-project-desc {
+  color: var(--color-fg-muted);
+  margin-bottom: 2rem;
+}
+
+.empty-project-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.empty-project-form {
+  display: inline;
+}
+
+.empty-project-help {
+  color: var(--color-fg-muted);
+  margin-top: 2rem;
+  font-size: 0.875rem;
+}

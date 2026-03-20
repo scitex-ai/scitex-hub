@@ -12,7 +12,7 @@ from typing import Optional
 
 from .session import BasePTY
 
-MAX_RESPAWNS = 5
+MAX_RESPAWNS = 15
 
 
 class Shell(BasePTY):

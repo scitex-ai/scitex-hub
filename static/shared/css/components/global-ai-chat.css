@@ -4,20 +4,20 @@
    ============================================================ */
 
 @import url("global-ai-chat/00-header-toggle.css");
-@import url("global-ai-chat/01-panel-layout.css");
-@import url("global-ai-chat/02-panel-header.css");
-@import url("global-ai-chat/03-mode-toggle.css");
-@import url("global-ai-chat/04-chat-messages.css");
-@import url("global-ai-chat/05-chat-input.css");
-@import url("global-ai-chat/06-console-mode.css");
-@import url("global-ai-chat/06b-console-tabs.css");
+/* 01-panel-layout.css — now imported from scitex-ui via Vite */
+/* 02-panel-header.css — styles merged into scitex-ui 01-panel-layout.css */
+/* 03-mode-toggle.css — now imported from scitex-ui via Vite */
+/* 04-chat-messages.css — now imported from scitex-ui via Vite */
+/* 05-chat-input.css — now imported from scitex-ui via Vite */
+/* 06-console-mode.css — now imported from scitex-ui via Vite */
+/* 06b-console-tabs.css — now imported from scitex-ui via Vite */
 @import url("global-ai-chat/07-workspace-overrides.css");
-@import url("global-ai-chat/08-media.css");
-@import url("global-ai-chat/09-terminal-media.css");
+/* 08-media.css — now imported from scitex-ui via Vite */
+/* 09-terminal-media.css — now imported from scitex-ui via Vite */
 @import url("global-ai-chat/10-jobs-mode.css");
-@import url("global-ai-chat/11-markdown.css");
-@import url("global-ai-chat/12-sessions.css");
-@import url("global-ai-chat/13-print.css");
-@import url("global-ai-chat/14-config-mode.css");
-@import url("global-ai-chat/15-sketch-canvas.css");
-@import url("global-ai-chat/16-tab-config.css");
+/* 11-markdown.css — now imported from scitex-ui via Vite */
+/* 12-sessions.css — now imported from scitex-ui via Vite */
+/* 13-print.css — now imported from scitex-ui via Vite */
+/* 14-config-mode.css — now imported from scitex-ui via Vite (global-ai-chat.ts) */
+/* 15-sketch-canvas.css — now imported from scitex-ui via Vite */
+/* 16-tab-config.css — now imported from scitex-ui via Vite (merged into 08-config-mode.css) */

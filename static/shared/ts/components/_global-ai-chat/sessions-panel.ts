@@ -59,7 +59,7 @@ export class SessionsPanel {
 
     // New chat button
     const newBtn = document.querySelector<HTMLButtonElement>(
-      ".scitex-ai-new-chat",
+      ".stx-shell-ai-new-chat",
     );
     newBtn?.addEventListener("click", () => this.newChat());
 
@@ -216,7 +216,7 @@ export class SessionsPanel {
 
   private updateShareButton(): void {
     const btn = document.querySelector<HTMLButtonElement>(
-      ".scitex-ai-share-btn",
+      ".stx-shell-ai-share-btn",
     );
     if (!btn) return;
     const s = this.getCurrentSession();
@@ -233,7 +233,7 @@ export class SessionsPanel {
 
     for (const s of sessions) {
       const chip = document.createElement("div");
-      chip.className = "scitex-ai-session-item";
+      chip.className = "stx-shell-ai-session-item";
       if (s.id === this.currentSessionId) chip.classList.add("active");
       if (s.is_shared) chip.classList.add("shared");
       chip.dataset.sessionId = String(s.id);
@@ -242,7 +242,7 @@ export class SessionsPanel {
       chip.title = s.share_token;
 
       const title = document.createElement("span");
-      title.className = "scitex-ai-session-title";
+      title.className = "stx-shell-ai-session-title";
       title.textContent = s.title;
       title.addEventListener("dblclick", (e) => {
         e.stopPropagation();
@@ -250,7 +250,7 @@ export class SessionsPanel {
       });
 
       const del = document.createElement("button");
-      del.className = "scitex-ai-session-del";
+      del.className = "stx-shell-ai-session-del";
       del.innerHTML = '<i class="fas fa-times"></i>';
       del.title = "Delete";
       del.addEventListener("click", (e) => {
@@ -279,7 +279,7 @@ export class SessionsPanel {
     this.dismissContextMenu();
 
     const menu = document.createElement("div");
-    menu.className = "scitex-ai-context-menu";
+    menu.className = "stx-shell-ai-context-menu";
     menu.style.left = `${e.clientX}px`;
     menu.style.top = `${e.clientY}px`;
 
@@ -308,7 +308,7 @@ export class SessionsPanel {
 
     for (const item of items) {
       const el = document.createElement("div");
-      el.className = "scitex-ai-context-menu-item";
+      el.className = "stx-shell-ai-context-menu-item";
       el.innerHTML = `<i class="${item.icon}"></i> ${item.label}`;
       el.addEventListener("click", (ev) => {
         ev.stopPropagation();
@@ -331,18 +331,18 @@ export class SessionsPanel {
 
   private highlightActive(): void {
     if (!this.listEl) return;
-    for (const el of this.listEl.querySelectorAll(".scitex-ai-session-item")) {
+    for (const el of this.listEl.querySelectorAll(".stx-shell-ai-session-item")) {
       const id = parseInt((el as HTMLElement).dataset.sessionId || "0", 10);
       el.classList.toggle("active", id === this.currentSessionId);
     }
   }
 
   private startRename(chip: HTMLElement, id: number, current: string): void {
-    const titleEl = chip.querySelector(".scitex-ai-session-title");
+    const titleEl = chip.querySelector(".stx-shell-ai-session-title");
     if (!titleEl) return;
 
     const input = document.createElement("input");
-    input.className = "scitex-ai-session-rename";
+    input.className = "stx-shell-ai-session-rename";
     input.value = current;
     titleEl.replaceWith(input);
     input.focus();

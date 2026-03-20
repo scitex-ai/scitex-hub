@@ -1,54 +1,23 @@
 /**
- * Shared DataTable Component
- *
- * A full-featured spreadsheet-like table component with:
- * - Cell selection and range selection
- * - Keyboard navigation (Arrow keys, Tab, Enter)
- * - Cell editing (double-click or F2)
- * - Copy/paste (Excel-compatible)
- * - Fill handle (drag to fill)
- * - Column resizing
- * - Virtual scrolling for large datasets
- * - CSV/TSV import and export
- *
- * Usage:
- * ```typescript
- * import { DataTableManager, Dataset } from '@shared/components/data-table';
- *
- * // Basic usage
- * const table = new DataTableManager({
- *   container: '#my-table-container',
- *   onDataChange: (data) => console.log('Data changed:', data),
- *   onStatusUpdate: (msg) => showStatus(msg),
- * });
- *
- * // Initialize with blank table
- * table.initializeBlankTable();
- *
- * // Or load CSV data
- * table.loadFromCSVContent(csvString, 'data.csv');
- *
- * // Render the table
- * table.renderEditableDataTable();
- * table.setupColumnResizing();
- * ```
+ * Re-export from scitex-ui — the canonical implementation.
+ * scitex-cloud consumers should import from "@/components/data-table".
  */
 
-export { DataTableManager } from './DataTableManager';
-export { TableData } from './_TableData';
-export { TableRendering } from './_TableRendering';
-export { TableSelection } from './_TableSelection';
-export { TableEditing } from './_TableEditing';
-export { TableClipboard } from './_TableClipboard';
-export { TableFillHandle } from './_TableFillHandle';
-export { TableColumnRow } from './_TableColumnRow';
+export { DataTableManager } from "scitex-ui/ts/app/data-table/DataTableManager";
+export { TableData } from "scitex-ui/ts/app/data-table/_TableData";
+export { TableRendering } from "scitex-ui/ts/app/data-table/_TableRendering";
+export { TableSelection } from "scitex-ui/ts/app/data-table/_TableSelection";
+export { TableEditing } from "scitex-ui/ts/app/data-table/_TableEditing";
+export { TableClipboard } from "scitex-ui/ts/app/data-table/_TableClipboard";
+export { TableFillHandle } from "scitex-ui/ts/app/data-table/_TableFillHandle";
+export { TableColumnRow } from "scitex-ui/ts/app/data-table/_TableColumnRow";
 
 export type {
-    Dataset,
-    DataRow,
-    CellPosition,
-    SelectionState,
-    DataTableConfig,
-} from './types';
+  Dataset,
+  DataRow,
+  CellPosition,
+  SelectionState,
+  DataTableConfig,
+} from "scitex-ui/ts/app/data-table/types";
 
-export { TABLE_CONSTANTS } from './types';
+export { TABLE_CONSTANTS } from "scitex-ui/ts/app/data-table/types";

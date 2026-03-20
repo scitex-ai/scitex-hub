@@ -47,7 +47,8 @@ def publish(app_dir: str | Path, server_url: str, token: str) -> dict:
     project_name = manifest.get("name", app_path.name)
 
     # Submit via JWT-authenticated endpoint
-    url = f"{server_url.rstrip('/')}/api/apps/submit/"
+    # Route: apps/store/api/<module_name>/submit/
+    url = f"{server_url.rstrip('/')}/apps/store/api/{project_name}/submit/"
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",

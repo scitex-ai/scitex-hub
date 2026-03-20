@@ -89,7 +89,19 @@ class RemoteProjectConfig(models.Model):
         help_text="Absolute path on remote system (e.g., /home/username/project)",
     )
 
-    # Mount State
+    # Connection mode: trip (on-demand SFTP) or sshfs (persistent mount)
+    CONNECTION_MODES = [
+        ("trip", "TRIP (on-demand SSH)"),
+        ("sshfs", "SSHFS (persistent mount)"),
+    ]
+    connection_mode = models.CharField(
+        max_length=10,
+        choices=CONNECTION_MODES,
+        default="trip",
+        help_text="trip = on-demand SSH/SFTP (like TRAMP), sshfs = persistent fuse mount",
+    )
+
+    # Mount State (only used when connection_mode = "sshfs")
     is_mounted = models.BooleanField(default=False)
     mount_point = models.CharField(
         max_length=500,

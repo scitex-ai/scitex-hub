@@ -191,7 +191,9 @@ html.writer-page {
 
 /* Main container - sleek dark theme */
 .mvp-container {
-  height: calc(100vh - 80px);
+  height: calc(
+    100% - 80px
+  ); /* Use 100% not 100vh — respects workspace pane height cap */
   display: flex;
   background-color: var(--writer-bg);
   overflow: hidden;

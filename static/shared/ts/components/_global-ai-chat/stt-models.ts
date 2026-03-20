@@ -37,7 +37,7 @@ export function fetchAndPopulateSttModels(
       });
       // Also populate the config popover select and sync
       const configSelect = document.getElementById(
-        "scitex-ai-stt-model-config",
+        "stx-shell-ai-stt-model-config",
       ) as HTMLSelectElement | null;
       if (configSelect) {
         populateSelect(configSelect, data.models, saved ?? data.default);

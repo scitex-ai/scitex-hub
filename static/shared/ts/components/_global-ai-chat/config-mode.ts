@@ -90,10 +90,10 @@ export class AIPanelConfigMode {
       const skills: Record<string, SkillInfo> = skillsResp.skills || {};
       const currentPage = window.location.pathname;
       const skillPrefs = this.loadLocalPrefs(
-        AIPanelConfigMode.prefsKey("scitex-ai-skill-prefs"),
+        AIPanelConfigMode.prefsKey("stx-shell-ai-skill-prefs"),
       );
       const hintPrefs = this.loadLocalPrefs(
-        AIPanelConfigMode.prefsKey("scitex-ai-hint-prefs"),
+        AIPanelConfigMode.prefsKey("stx-shell-ai-hint-prefs"),
       );
 
       let html = "";
@@ -361,7 +361,7 @@ export class AIPanelConfigMode {
         if (name && cb) prefs[name] = cb.checked;
       });
     this.saveLocalPrefs(
-      AIPanelConfigMode.prefsKey("scitex-ai-skill-prefs"),
+      AIPanelConfigMode.prefsKey("stx-shell-ai-skill-prefs"),
       prefs,
     );
   }
@@ -378,7 +378,7 @@ export class AIPanelConfigMode {
         if (key && cb) prefs[key] = cb.checked;
       });
     this.saveLocalPrefs(
-      AIPanelConfigMode.prefsKey("scitex-ai-hint-prefs"),
+      AIPanelConfigMode.prefsKey("stx-shell-ai-hint-prefs"),
       prefs,
     );
   }

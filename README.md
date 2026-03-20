@@ -254,14 +254,18 @@ SCITEX_CLOUD_GITEA_TOKEN=your-token
 ```
 scitex-cloud/
 ├── apps/                    # Django applications
-│   ├── scholar_app/        # Literature discovery
-│   ├── writer_app/         # Scientific writing
-│   ├── console_app/        # Terminal & code execution
-│   ├── figrecipe_app/      # Data visualization
-│   ├── hub_app/            # Project hub & file browser
-│   ├── project_app/        # Project management
-│   ├── clew_app/           # Verification pipeline
-│   └── public_app/         # Landing page & tools
+│   ├── workspace/          # Workspace modules
+│   │   ├── apps_app/      # App marketplace & dev install
+│   │   ├── scholar_app/   # Literature discovery
+│   │   ├── writer_app/    # Scientific writing
+│   │   ├── console_app/   # Terminal & code execution
+│   │   ├── hub_app/       # Project hub & file browser
+│   │   └── clew_app/      # Verification pipeline
+│   ├── infra/             # Platform infrastructure
+│   │   ├── workspace_app/ # Module registry & workspace shell
+│   │   ├── platform_app/  # DataStore, FileVault, JobQueue APIs
+│   │   └── project_app/   # Project management
+│   └── public_app/        # Landing page & public tools
 │
 ├── deployment/docker/
 │   ├── docker_dev/         # Development compose
@@ -270,10 +274,13 @@ scitex-cloud/
 │
 ├── config/                  # Django settings
 ├── static/                  # Shared frontend assets
-├── src/scitex_cloud/        # pip package (CLI + MCP)
+├── src/scitex_cloud/        # pip package (platform CLI + MCP)
 ├── tests/                   # Test suite
 └── Makefile                 # Thin dispatcher
 ```
+
+> **For app developers:** Use `pip install scitex-app[cli]` and the `scitex-app app` CLI.
+> scitex-cloud is the platform server — app developers don't need to install it.
 
 </details>
 

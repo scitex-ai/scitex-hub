@@ -9,8 +9,6 @@ TRIP/Remote:        Django WS → pty.fork() → ssh → remote bash
 import asyncio
 import logging
 import os
-import pty
-import select
 import signal
 import termios
 
@@ -20,12 +18,6 @@ from apps.infra.project_app.models import Project
 
 from .config import USER_DATA_ROOT
 from .consumer_events import ChannelEventsMixin
-from .execution import (
-    check_slurm_status,
-    exec_slurm_shell,
-    select_container,
-)
-from .workspace import ensure_workspace
 
 logger = logging.getLogger(__name__)
 
@@ -186,220 +178,36 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
         else:
             self.capture_group = None
 
-        # TRIP / Remote: SSH directly into remote machine
-        if self.project.project_type == "trip":
-            from .trip_spawn import spawn_trip_ssh
-
-            await spawn_trip_ssh(self)
-            return
+        # Remote: dispatch based on connection_mode
         if self.project.project_type == "remote":
-            from .remote_spawn import spawn_remote_ssh
+            if (
+                hasattr(self.project, "remote_config")
+                and self.project.remote_config.connection_mode == "trip"
+            ):
+                from .trip_spawn import spawn_trip_ssh
 
-            await spawn_remote_ssh(self)
+                await spawn_trip_ssh(self)
+            else:
+                from .remote_spawn import spawn_remote_ssh
+
+                await spawn_remote_ssh(self)
             return
 
         # Try broker first, fall back to direct mode
         if await _check_broker():
             logger.info("Using terminal broker for PTY")
             self.use_broker = True
-            await self._spawn_via_broker()
+            from .broker_spawn import spawn_via_broker
+
+            await spawn_via_broker(self)
         else:
             logger.warning(
                 "Terminal broker unavailable, using direct pty.fork() (deprecated)"
             )
             self.use_broker = False
-            await self._spawn_direct()
+            from .broker_spawn import spawn_direct
 
-    async def _spawn_via_broker(self):
-        """Spawn PTY via Terminal Broker (preferred method)."""
-        from .config import SLURM_CONTAINER_PATH, SLURM_USER_DATA_ROOT
-
-        username = self.project.owner.username
-        project_slug = self.project.slug
-        user_data_dir = USER_DATA_ROOT / username
-        project_dir = user_data_dir / "proj" / project_slug
-        # SLURM jobs run on the host, not inside Docker — use host paths
-        slurm_user_dir = SLURM_USER_DATA_ROOT / username
-        slurm_project_dir = slurm_user_dir / "proj" / project_slug
-
-        await ensure_workspace(user_data_dir, username, project_slug)
-
-        # Auto-generate AI tool configs (user-home defaults + project-level)
-        await asyncio.to_thread(
-            self._setup_ai_configs,
-            user_data_dir,
-            project_dir,
-            self.project.name,
-            username,
-        )
-
-        try:
-            container_path = await asyncio.to_thread(
-                select_container, user_data_dir, project_dir
-            )
-        except Exception as e:
-            from .execution import ContainerNotFoundError
-
-            if isinstance(e, ContainerNotFoundError):
-                await self.send(text_data=f"\x1b[1;31m❌ {e}\x1b[0m\r\n")
-                await self.close(code=4003)
-                return
-            raise
-
-        slurm_available, slurm_status = await asyncio.to_thread(check_slurm_status)
-        if not slurm_available:
-            logger.error(f"SLURM unavailable ({slurm_status})")
-            await self.send(
-                text_data="\x1b[1;31m❌ Computing resources temporarily unavailable. Please try again shortly.\x1b[0m\r\n"
-            )
-            await self.close(code=4003)
-            return
-
-        try:
-            from apps.workspace.console_app.services.terminal_client import (
-                TerminalBrokerClient,
-            )
-
-            self.broker_client = TerminalBrokerClient()
-            if not await self.broker_client.connect():
-                raise Exception("Failed to connect to broker")
-
-            # Set output callback to forward to WebSocket
-            def on_output(data: bytes):
-                asyncio.create_task(
-                    self.send(text_data=data.decode("utf-8", errors="replace"))
-                )
-
-            self.broker_client.set_output_callback(on_output)
-
-            # Set session state callback to forward as JSON control messages
-            # Use custom OSC escape so client can distinguish from terminal output
-            def on_session_state(msg: dict):
-                import json
-
-                payload = json.dumps(msg)
-                asyncio.create_task(self.send(text_data=f"\x1b]9997;{payload}\x07"))
-
-            self.broker_client.set_session_state_callback(on_session_state)
-
-            # Pass host paths for SLURM jobs (not Docker-internal paths)
-            session_id = await self.broker_client.spawn(
-                username=username,
-                user_data_dir=slurm_user_dir,
-                project_dir=slurm_project_dir,
-                container_path=SLURM_CONTAINER_PATH,
-                project_slug=project_slug,
-                tmux_session=self.screen_session,
-            )
-
-            if not session_id:
-                broker_error = (
-                    getattr(self.broker_client, "_last_spawn_error", None)
-                    or "Failed to spawn terminal session"
-                )
-                raise Exception(broker_error)
-
-            logger.info(f"Terminal session started via broker: {session_id}")
-
-        except Exception as e:
-            logger.error(f"Broker spawn failed: {e}")
-            await self.send(
-                text_data=f"\x1b[1;31m❌ Failed to start terminal: {e}\x1b[0m\r\n"
-            )
-            await self.close(code=4003)
-
-    async def _spawn_direct(self):
-        """Spawn PTY directly via pty.fork() (fallback, deprecated)."""
-        username = self.project.owner.username
-        project_slug = self.project.slug
-        user_data_dir = USER_DATA_ROOT / username
-        project_dir = user_data_dir / "proj" / project_slug
-
-        await ensure_workspace(user_data_dir, username, project_slug)
-
-        # Auto-generate AI tool configs (user-home defaults + project-level)
-        await asyncio.to_thread(
-            self._setup_ai_configs,
-            user_data_dir,
-            project_dir,
-            self.project.name,
-            username,
-        )
-
-        try:
-            container_path = await asyncio.to_thread(
-                select_container, user_data_dir, project_dir
-            )
-        except Exception as e:
-            from .execution import ContainerNotFoundError
-
-            if isinstance(e, ContainerNotFoundError):
-                await self.send(text_data=f"\x1b[1;31m❌ {e}\x1b[0m\r\n")
-                await self.close(code=4003)
-                return
-            raise
-
-        slurm_available, slurm_status = await asyncio.to_thread(check_slurm_status)
-        if not slurm_available:
-            logger.error(f"SLURM unavailable ({slurm_status})")
-            await self.close(code=4003)
-            return
-
-        # Block signals during PTY fork to prevent "Interrupted system call"
-        old_mask = signal.pthread_sigmask(
-            signal.SIG_BLOCK,
-            {signal.SIGCHLD, signal.SIGWINCH, signal.SIGINT, signal.SIGTERM},
-        )
-
-        try:
-            self.pid, self.fd = pty.fork()
-
-            if self.pid == 0:
-                signal.pthread_sigmask(signal.SIG_SETMASK, old_mask)
-                try:
-                    exec_slurm_shell(
-                        username,
-                        user_data_dir,
-                        project_dir,
-                        container_path,
-                        project_slug,
-                        screen_session=self.screen_session,
-                    )
-                except Exception as e:
-                    import sys
-
-                    sys.stderr.write(
-                        f"\x1b[1;31m❌ Failed to start terminal: {e}\x1b[0m\r\n"
-                    )
-                    sys.stderr.flush()
-                os._exit(1)
-        finally:
-            if self.pid != 0:
-                signal.pthread_sigmask(signal.SIG_SETMASK, old_mask)
-
-        if self.pid != 0:
-            self.reader_task = asyncio.create_task(self._read_pty_direct())
-
-    async def _read_pty_direct(self):
-        """Read from PTY and send to WebSocket (direct mode)."""
-        try:
-            while True:
-                r, _, _ = await asyncio.to_thread(select.select, [self.fd], [], [], 0.1)
-                if r:
-                    try:
-                        data = await asyncio.to_thread(os.read, self.fd, 4096)
-                        if data:
-                            await self.send(
-                                text_data=data.decode("utf-8", errors="replace")
-                            )
-                        else:
-                            break
-                    except OSError:
-                        break
-        except Exception as e:
-            logger.error(f"PTY read error: {e}")
-        finally:
-            await self.close()
+            await spawn_direct(self)
 
     async def receive(self, text_data):
         """Receive data from WebSocket and write to PTY."""

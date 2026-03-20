@@ -144,7 +144,32 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+function switchKeyMode(mode: string): void {
+  const generatePanel = document.getElementById("keyModeGenerate");
+  const uploadPanel = document.getElementById("keyModeUpload");
+  const modeInput = document.getElementById(
+    "key_mode",
+  ) as HTMLInputElement | null;
+
+  if (modeInput) modeInput.value = mode;
+
+  // Toggle panels
+  if (generatePanel) {
+    generatePanel.classList.toggle("key-mode-hidden", mode !== "generate");
+  }
+  if (uploadPanel) {
+    uploadPanel.classList.toggle("key-mode-hidden", mode !== "upload");
+  }
+
+  // Toggle tab active state
+  document.querySelectorAll(".key-mode-tab").forEach((tab) => {
+    const el = tab as HTMLElement;
+    el.classList.toggle("active", el.dataset.mode === mode);
+  });
+}
+
 // Export for inline onclick handlers
 (window as any).toggleAddForm = toggleAddForm;
 (window as any).toggleSSHImport = toggleSSHImport;
 (window as any).parseAndFillSSHConfig = parseAndFillSSHConfig;
+(window as any).switchKeyMode = switchKeyMode;

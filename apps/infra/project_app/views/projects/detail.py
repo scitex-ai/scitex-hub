@@ -113,12 +113,15 @@ def project_detail(request, username, slug):
 
     # Default mode: overview - GitHub-style file browser with README
     # Get project directory and file list
-    is_remote_type = project.project_type in ("remote", "trip")
+    is_remote_type = project.project_type == "remote"
 
     project_path = _get_project_path(project)
 
-    # Get directory contents and README (skip git info for remote/trip)
-    if project_path and project_path.exists():
+    # Get directory contents and README
+    if project.project_type == "remote" and _is_trip_mode(project):
+        # TRIP: fetch files from remote via SFTP
+        files, dirs, readme_content, readme_html = _get_trip_contents(project)
+    elif project_path and project_path.exists():
         files, dirs = get_directory_contents(project_path, skip_git=is_remote_type)
         readme_content, readme_html = get_readme_content(project_path)
     else:
@@ -163,6 +166,16 @@ def project_detail(request, username, slug):
         gitea_ssh_url = f"ssh://git@{gitea_ssh_domain}:{gitea_ssh_port}/{project.owner.username}/{project.slug}.git"
         download_zip_url = f"{gitea_url}/{project.owner.username}/{project.slug}/archive/{current_branch}.zip"
 
+    # Get remote config for remote projects (includes connection_mode)
+    trip_config = None
+    if project.project_type == "remote":
+        try:
+            remote_cfg = project.remote_config
+            if remote_cfg.connection_mode == "trip":
+                trip_config = remote_cfg
+        except Exception:
+            pass
+
     context = {
         "project": project,
         "user": request.user,
@@ -181,6 +194,7 @@ def project_detail(request, username, slug):
         "gitea_https_url": gitea_https_url,
         "gitea_ssh_url": gitea_ssh_url,
         "download_zip_url": download_zip_url,
+        "trip_config": trip_config,
     }
 
     # Check dev-install status for app repos
@@ -213,10 +227,63 @@ def project_tree_or_blob(request, username, slug, branch=None, path=None):
     return project_detail(request, username, slug)
 
 
+def _get_trip_contents(project):
+    """Fetch remote file listing for TRIP projects via SFTP.
+
+    Returns (files, dirs, readme_content, readme_html) matching the format
+    expected by browse templates — just like local projects but over SSH.
+    """
+    files, dirs = [], []
+    readme_content, readme_html = None, None
+
+    try:
+        from ..services.trip_backend import get_trip_backend
+
+        backend = get_trip_backend(project)
+        items = backend.list_dir("")
+
+        for item in items:
+            entry = {
+                "name": item["name"],
+                "path": item["path"],
+            }
+            if item["type"] == "directory":
+                dirs.append(entry)
+            else:
+                files.append(entry)
+
+        # Try to read README
+        for readme_name in ["README.md", "readme.md", "README", "README.rst"]:
+            try:
+                content = backend.read_file(readme_name)
+                readme_content = content
+                import markdown
+
+                readme_html = markdown.markdown(
+                    content, extensions=["fenced_code", "tables"]
+                )
+                break
+            except Exception:
+                continue
+
+    except Exception as exc:
+        logger.warning(f"TRIP file listing failed: {exc}")
+
+    return files, dirs, readme_content, readme_html
+
+
+def _is_trip_mode(project):
+    """Return True if the remote project uses connection_mode='trip'."""
+    try:
+        return project.remote_config.connection_mode == "trip"
+    except Exception:
+        return False
+
+
 def _get_project_path(project):
     """Get filesystem path for any project type via ProjectServiceManager."""
-    if project.project_type == "trip":
-        # TRIP has no local path — return None
+    if project.project_type == "remote" and _is_trip_mode(project):
+        # TRIP mode has no local path — return None
         return None
     try:
         from apps.infra.project_app.services.project_service_manager import (

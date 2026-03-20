@@ -73,11 +73,11 @@ export class ImageInputManager {
   renderInlineThumbsInto(container: HTMLElement): void {
     if (this.attachments.length === 0) return;
     const strip = document.createElement("div");
-    strip.className = "scitex-ai-msg-thumbs";
+    strip.className = "stx-shell-ai-msg-thumbs";
     for (const a of this.attachments) {
       const img = document.createElement("img");
       img.src = a.dataUrl;
-      img.className = "scitex-ai-msg-thumb";
+      img.className = "stx-shell-ai-msg-thumb";
       strip.appendChild(img);
     }
     container.appendChild(strip);
@@ -106,14 +106,14 @@ export class ImageInputManager {
 
   private addAttachment(file: File, dataUrl: string, mime: string): void {
     const thumb = document.createElement("div");
-    thumb.className = "scitex-ai-image-thumb";
+    thumb.className = "stx-shell-ai-image-thumb";
 
     const img = document.createElement("img");
     img.src = dataUrl;
     thumb.appendChild(img);
 
     const removeBtn = document.createElement("button");
-    removeBtn.className = "scitex-ai-image-thumb-remove";
+    removeBtn.className = "stx-shell-ai-image-thumb-remove";
     removeBtn.innerHTML = "&times;";
     removeBtn.addEventListener("click", () => this.removeAttachment(att));
     thumb.appendChild(removeBtn);

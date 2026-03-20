@@ -125,10 +125,11 @@ class Allocation:
             state = result.stdout.strip()
             if state == "PENDING":
                 if not self._wait_for_running():
-                    self.last_error = (
-                        f"Existing job {job_id} did not become RUNNING "
-                        f"within {SBATCH_STARTUP_TIMEOUT}s"
-                    )
+                    if not self.last_error:
+                        self.last_error = (
+                            f"Existing job {job_id} did not become RUNNING "
+                            f"within {SBATCH_STARTUP_TIMEOUT}s"
+                        )
                     self.state = AllocationState.DEAD
                     return False
             elif state != "RUNNING":
@@ -144,10 +145,11 @@ class Allocation:
 
         # Verify apptainer instance is ready
         if not self._wait_for_instance():
-            self.last_error = (
-                f"Container not ready in existing job {job_id} "
-                f"within {INSTANCE_VERIFY_TIMEOUT}s"
-            )
+            if not self.last_error:
+                self.last_error = (
+                    f"Container not ready in existing job {job_id} "
+                    f"within {INSTANCE_VERIFY_TIMEOUT}s"
+                )
             logger.error(f"Allocation {self.allocation_id[:8]}: {self.last_error}")
             self.state = AllocationState.DEAD
             return False
@@ -237,10 +239,11 @@ class Allocation:
 
             # 4. Poll squeue until RUNNING
             if not self._wait_for_running():
-                self.last_error = (
-                    f"SLURM job {self.job_id} did not start within "
-                    f"{SBATCH_STARTUP_TIMEOUT}s (resources may be unavailable)"
-                )
+                if not self.last_error:
+                    self.last_error = (
+                        f"SLURM job {self.job_id} did not start within "
+                        f"{SBATCH_STARTUP_TIMEOUT}s (resources may be unavailable)"
+                    )
                 logger.error(f"Allocation {self.allocation_id[:8]}: {self.last_error}")
                 self._cancel_job()
                 self.state = AllocationState.DEAD
@@ -248,10 +251,11 @@ class Allocation:
 
             # 5. Verify apptainer instance is ready via srun --overlap
             if not self._wait_for_instance():
-                self.last_error = (
-                    f"Container not ready within {INSTANCE_VERIFY_TIMEOUT}s "
-                    f"after job {self.job_id} started"
-                )
+                if not self.last_error:
+                    self.last_error = (
+                        f"Container not ready within {INSTANCE_VERIFY_TIMEOUT}s "
+                        f"after job {self.job_id} started"
+                    )
                 logger.error(f"Allocation {self.allocation_id[:8]}: {self.last_error}")
                 self._cancel_job()
                 self.state = AllocationState.DEAD
@@ -375,11 +379,14 @@ class Allocation:
 
     def _wait_for_instance(self) -> bool:
         """Poll via srun --overlap until the apptainer instance is ready."""
+        from ._diagnostics import collect_instance_timeout_diagnostics
+
         deadline = time.time() + INSTANCE_VERIFY_TIMEOUT
         logger.info(
             f"Allocation {self.allocation_id[:8]}: "
             f"verifying instance {self.instance_name} (timeout={INSTANCE_VERIFY_TIMEOUT}s)"
         )
+        last_srun_stderr = ""
         while time.time() < deadline:
             try:
                 result = subprocess.run(
@@ -395,6 +402,8 @@ class Allocation:
                     text=True,
                     timeout=10,
                 )
+                if result.stderr.strip():
+                    last_srun_stderr = result.stderr.strip()
                 if self.instance_name in result.stdout:
                     logger.info(
                         f"Allocation {self.allocation_id[:8]}: "
@@ -406,11 +415,24 @@ class Allocation:
             if not self.check_alive():
                 return False
             time.sleep(INSTANCE_VERIFY_INTERVAL)
+
+        # Timed out — collect diagnostics to explain why
+        reason = collect_instance_timeout_diagnostics(
+            job_id=self.job_id,
+            last_srun_stderr=last_srun_stderr,
+            alloc_id_prefix=self.allocation_id[:8],
+        )
+        self.last_error = (
+            f"Container not ready within {INSTANCE_VERIFY_TIMEOUT}s: {reason}"
+        )
         return False
 
     def _wait_for_running(self) -> bool:
         """Poll squeue until job state is RUNNING."""
+        from ._diagnostics import collect_pending_reason
+
         deadline = time.time() + SBATCH_STARTUP_TIMEOUT
+        last_state = ""
         while time.time() < deadline:
             try:
                 result = subprocess.run(
@@ -426,6 +448,8 @@ class Allocation:
                     timeout=5,
                 )
                 state = result.stdout.strip()
+                if state:
+                    last_state = state
                 if state == "RUNNING":
                     return True
                 if not state or state in ("FAILED", "CANCELLED", "TIMEOUT"):
@@ -433,6 +457,16 @@ class Allocation:
             except Exception:
                 pass
             time.sleep(SQUEUE_POLL_INTERVAL)
+
+        # Timed out in PENDING — get the reason from squeue
+        pending_reason = collect_pending_reason(
+            job_id=self.job_id,
+            alloc_id_prefix=self.allocation_id[:8],
+        )
+        self.last_error = (
+            f"SLURM job {self.job_id} still {last_state or 'PENDING'} "
+            f"after {SBATCH_STARTUP_TIMEOUT}s: {pending_reason}"
+        )
         return False
 
     def _cancel_job(self):

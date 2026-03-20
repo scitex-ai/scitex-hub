@@ -22,7 +22,7 @@ from typing import Callable, Optional
 
 logger = logging.getLogger(__name__)
 
-MAX_RESPAWNS = 5
+MAX_RESPAWNS = 15
 
 
 class SessionState(enum.Enum):
@@ -55,13 +55,64 @@ class BasePTY:
         return self.state in (SessionState.RUNNING, SessionState.RESPAWNING)
 
     def spawn(self) -> bool:
-        """Fork a PTY and exec in the child."""
+        """Fork a PTY and exec in the child.
+
+        After forking, waits briefly to detect immediate child failure.
+        If the child exits within ~1s, captures any output as ``last_error``
+        and returns False so callers can surface a useful diagnostic message.
+        """
         self.state = SessionState.SPAWNING
+        self.last_error: str = ""
         try:
             self.pid, self.fd = pty.fork()
             if self.pid == 0:
                 self._exec_in_child()
                 os._exit(1)
+
+            # Brief early-exit detection: poll the fd for up to 1s.
+            # If the child dies immediately (e.g. execvpe fails), read its
+            # terminal output and store it so the caller can show diagnostics.
+            deadline = time.time() + 1.0
+            output_chunks: list[bytes] = []
+            while time.time() < deadline:
+                try:
+                    r, _, _ = select.select([self.fd], [], [], 0.1)
+                    if r:
+                        chunk = os.read(self.fd, 4096)
+                        if chunk:
+                            output_chunks.append(chunk)
+                        else:
+                            break  # EOF — child exited
+                except (OSError, ValueError):
+                    break  # fd gone — child exited
+
+                # Check if child already gone (non-blocking waitpid)
+                try:
+                    waited_pid, status = os.waitpid(self.pid, os.WNOHANG)
+                except ChildProcessError:
+                    waited_pid = self.pid  # already reaped
+                    status = 0
+                if waited_pid == self.pid:
+                    # Child exited — treat as spawn failure
+                    captured = b"".join(output_chunks).decode("utf-8", errors="replace")
+                    # Strip ANSI escape codes for cleaner log/error messages
+                    import re as _re
+
+                    clean = _re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", captured).strip()
+                    self.last_error = clean or f"Process exited with status {status}"
+                    logger.error(
+                        f"PTY {self.pty_id[:8]}: child exited immediately — "
+                        f"{self.last_error!r}"
+                    )
+                    try:
+                        os.close(self.fd)
+                    except OSError:
+                        pass
+                    self.fd = None
+                    self.pid = None
+                    self.state = SessionState.DEAD
+                    return False
+
             self.state = SessionState.RUNNING
             self.spawn_count += 1
             self.last_spawn_time = time.time()
