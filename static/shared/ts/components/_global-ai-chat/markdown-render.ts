@@ -149,7 +149,7 @@ async function renderMermaidBlock(block: HTMLElement): Promise<void> {
     });
     const id = `mmd-chat-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     const wrapper = document.createElement("div");
-    wrapper.className = "scitex-ai-mermaid-diagram";
+    wrapper.className = "stx-shell-ai-mermaid-diagram";
     wrapper.innerHTML = `<div class="mermaid" id="${id}">${code}</div>`;
     pre.replaceWith(wrapper);
     await mermaid.run({ nodes: [wrapper.querySelector(".mermaid")!] });
@@ -169,7 +169,7 @@ async function renderGraphvizBlock(block: HTMLElement): Promise<void> {
     const graphviz = await Graphviz.load();
     const svg = graphviz.dot(code);
     const wrapper = document.createElement("div");
-    wrapper.className = "scitex-ai-mermaid-diagram";
+    wrapper.className = "stx-shell-ai-mermaid-diagram";
     wrapper.innerHTML = svg;
     pre.replaceWith(wrapper);
   } catch (err) {

@@ -20,6 +20,7 @@ def _package_json(name, label):
             "react": "^18.3.0",
             "react-dom": "^18.3.0",
             "zustand": "^4.5.0",
+            "@scitex/ui": "file:../../scitex-ui",
         },
         "devDependencies": {
             "@types/react": "^18.3.0",
@@ -34,12 +35,36 @@ def _package_json(name, label):
 
 def _vite_config_ts(name):
     static_out = f"../static/{name}/js"
-    return f"""import {{ defineConfig }} from "vite";
+    return f"""import {{ execSync }} from "child_process";
+import {{ defineConfig }} from "vite";
 import react from "@vitejs/plugin-react";
+
+/**
+ * Discover scitex-ui static directory from the Python environment.
+ * Works for both pip-installed packages and editable (dev) installs.
+ */
+function discoverScitexUiStatic(): string | null {{
+  if (process.env.SCITEX_UI_STATIC) return process.env.SCITEX_UI_STATIC;
+  try {{
+    return execSync(
+      'python3 -c "import scitex_ui; print(scitex_ui.get_static_dir())"',
+      {{ encoding: "utf-8", timeout: 5000 }},
+    ).trim();
+  }} catch {{
+    return null;
+  }}
+}}
+
+const SCITEX_UI_STATIC = discoverScitexUiStatic();
 
 // https://vitejs.dev/config/
 export default defineConfig({{
   plugins: [react()],
+  resolve: {{
+    alias: {{
+      ...(SCITEX_UI_STATIC ? {{ "scitex-ui": SCITEX_UI_STATIC }} : {{}}),
+    }},
+  }},
   build: {{
     outDir: "{static_out}",
     emptyOutDir: true,
@@ -50,6 +75,11 @@ export default defineConfig({{
         chunkFileNames: "[name].js",
         assetFileNames: "[name][extname]",
       }},
+    }},
+  }},
+  server: {{
+    fs: {{
+      allow: [".", ...(SCITEX_UI_STATIC ? [SCITEX_UI_STATIC] : [])],
     }},
   }},
 }});

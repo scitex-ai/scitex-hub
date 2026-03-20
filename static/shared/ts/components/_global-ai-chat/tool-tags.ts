@@ -3,15 +3,15 @@
  */
 
 export function appendToolTags(msgEl: HTMLElement, tools: string[]): void {
-  let toolsDiv = msgEl.querySelector<HTMLElement>(".scitex-ai-tools");
+  let toolsDiv = msgEl.querySelector<HTMLElement>(".stx-shell-ai-tools");
   if (!toolsDiv) {
     toolsDiv = document.createElement("div");
-    toolsDiv.className = "scitex-ai-tools";
+    toolsDiv.className = "stx-shell-ai-tools";
     msgEl.appendChild(toolsDiv);
   }
   for (const name of tools) {
     const tag = document.createElement("span");
-    tag.className = "scitex-ai-tool-tag";
+    tag.className = "stx-shell-ai-tool-tag";
     tag.textContent = name;
     toolsDiv.appendChild(tag);
   }

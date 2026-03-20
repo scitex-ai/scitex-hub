@@ -14,6 +14,9 @@
   flex-direction: row;
   /* Fill viewport minus header (~64px). Tab bar is now vertical (Apps pane). */
   height: calc(100vh - 65px);
+  max-height: calc(
+    100vh - 65px
+  ); /* Hard cap — prevent any child from pushing beyond viewport */
   overflow: hidden;
   background: var(--bg-primary, #0d1117);
 }
@@ -22,6 +25,7 @@
    Footer-specific overrides are in footer-collapse.css. */
 .global-header.collapsed ~ .workspace-three-col {
   height: calc(100vh - 6px);
+  max-height: calc(100vh - 6px);
 }
 
 /* --- AI Agent pane (leftmost) --- */
@@ -34,7 +38,7 @@
 
 /* Override any global fixed positioning applied by global-ai-chat.css
    so the panel flows inside the three-col layout instead */
-.workspace-three-col .scitex-ai-panel.stx-shell-sidebar {
+.workspace-three-col .stx-shell-ai-panel.stx-shell-sidebar {
   position: relative !important;
   top: auto !important;
   left: auto !important;
@@ -220,8 +224,8 @@ body.workspace-page #main-content.ws-module-pane {
 /* Suppress body-level margin-left/right rules that the fixed AI panel sets.
    Inside the three-col layout the panel is inline (position: relative),
    so no margin compensation is needed on #main-content. */
-body.scitex-ai-present #workspace-three-col #main-content,
-body.scitex-ai-open #workspace-three-col #main-content {
+body.stx-shell-ai-present #workspace-three-col #main-content,
+body.stx-shell-ai-open #workspace-three-col #main-content {
   margin-left: 0 !important;
   margin-right: 0 !important;
 }
@@ -246,7 +250,7 @@ body.scitex-ai-open #workspace-three-col #main-content {
 }
 
 /* Config view — fills sidebar body like Chat/Console/Jobs */
-.scitex-ai-config-content {
+.stx-shell-ai-config-content {
   padding: 0.75rem;
   display: flex;
   flex-direction: column;
@@ -262,7 +266,7 @@ body.scitex-ai-open #workspace-three-col #main-content {
   gap: 0.5rem;
 }
 
-.scitex-ai-settings-label {
+.stx-shell-ai-settings-label {
   font-size: 0.7rem;
   color: var(--text-muted, #8b949e);
   white-space: nowrap;
@@ -271,7 +275,7 @@ body.scitex-ai-open #workspace-three-col #main-content {
   gap: 0.25rem;
 }
 
-.scitex-ai-settings-label i {
+.stx-shell-ai-settings-label i {
   width: 12px;
   text-align: center;
   font-size: 0.65rem;
@@ -414,11 +418,38 @@ body.scitex-ai-open #workspace-three-col #main-content {
   transition: opacity 0.15s ease;
 }
 
+/* --- Viewport height cap: all panes must stay within container --- */
+
+/* All direct children of the three-col layout inherit the container height.
+   Explicit height: 100% + max-height: 100% prevents any pane from growing
+   beyond the viewport-capped container, even if inner content is tall. */
+.workspace-three-col > .ws-ai-pane,
+.workspace-three-col > .ws-worktree-pane,
+.workspace-three-col > .ws-viewer-pane,
+.workspace-three-col > .ws-apps-pane,
+.workspace-three-col > .ws-module-pane {
+  height: 100%;
+  max-height: 100%;
+}
+
+/* Module content that uses min-height: 100vh is designed for standalone pages.
+   Inside the workspace three-col layout, these rules push content beyond the
+   viewport cap. Override them to respect the flex container height instead. */
+.ws-module-pane .writer-container,
+.ws-module-pane .version-control-container,
+.ws-module-pane .arxiv-index,
+.ws-module-pane .writer-fullscreen-message,
+.ws-module-pane .writer-collaboration-session,
+.ws-module-pane .docs-container {
+  min-height: 0;
+}
+
 /* --- Responsive: collapse panes on narrow viewports --- */
 
 @media (max-width: 768px) {
   .workspace-three-col {
     height: calc(100vh - 56px);
+    max-height: calc(100vh - 56px);
   }
 
   .ws-ai-pane,

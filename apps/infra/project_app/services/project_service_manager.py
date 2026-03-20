@@ -71,7 +71,17 @@ class ProjectServiceManager:
             return dir_mgr.get_project_root_path(self.project)
 
         elif self.project.project_type == "remote":
-            # Return SSHFS mount point (auto-mount if needed)
+            # Check connection mode: trip uses on-demand SFTP (no local path)
+            if (
+                hasattr(self.project, "remote_config")
+                and self.project.remote_config.connection_mode == "trip"
+            ):
+                raise ValueError(
+                    "TRIP projects have no local path. "
+                    "Use TripFileBackend for file operations."
+                )
+
+            # SSHFS: Return mount point (auto-mount if needed)
             from apps.infra.project_app.services.remote_project_manager import (
                 RemoteProjectManager,
             )
@@ -85,12 +95,6 @@ class ProjectServiceManager:
 
             # Return mount point
             return remote_mgr.mount_point
-
-        elif self.project.project_type == "trip":
-            raise ValueError(
-                "TRIP projects have no local path. "
-                "Use TripFileBackend for file operations."
-            )
 
         else:
             raise ValueError(f"Unknown project type: {self.project.project_type}")
@@ -118,9 +122,16 @@ class ProjectServiceManager:
         if self.project.project_type == "local":
             return self._initialize_local()
         elif self.project.project_type == "remote":
+            if (
+                hasattr(self.project, "remote_config")
+                and self.project.remote_config.connection_mode == "trip"
+            ):
+                return (
+                    False,
+                    {},
+                    "SciTeX initialization not supported for TRIP projects",
+                )
             return self._initialize_remote()
-        elif self.project.project_type == "trip":
-            return False, {}, "SciTeX initialization not supported for TRIP projects"
         else:
             return False, {}, f"Unknown project type: {self.project.project_type}"
 

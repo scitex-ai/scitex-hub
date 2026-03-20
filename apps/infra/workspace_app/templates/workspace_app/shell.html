@@ -16,13 +16,13 @@
          data-active-module="{{ active_module }}">
         <!-- Left: AI Agent pane (persistent — never re-rendered on tab switch) -->
         <div class="ws-ai-pane" id="ws-ai-pane">
-            <div id="scitex-ai-panel"
-                 class="scitex-ai-panel stx-shell-sidebar collapsed"
+            <div id="stx-shell-ai-panel"
+                 class="stx-shell-ai-panel stx-shell-sidebar collapsed"
                  aria-hidden="true">
-                <div id="scitex-ai-resizer"
+                <div id="stx-shell-ai-resizer"
                      class="panel-resizer"
                      data-panel-resizer
-                     data-target="#scitex-ai-panel"
+                     data-target="#stx-shell-ai-panel"
                      data-direction="left"
                      data-min-width="40"
                      data-default-width="300"
@@ -33,40 +33,40 @@
                             top:0;
                             bottom:0;
                             z-index:1"></div>
-                <div class="stx-shell-sidebar__header scitex-ai-panel-header" id="scitex-ai-panel-header">
-                    <button class="panel-toggle-btn" id="scitex-ai-toggle" title="AI Chat (Alt+A)">
+                <div class="stx-shell-sidebar__header stx-shell-ai-panel-header" id="stx-shell-ai-panel-header">
+                    <button class="panel-toggle-btn" id="stx-shell-ai-toggle" title="AI Chat (Alt+A)">
                         <i class="fas fa-chevron-right"></i>
                     </button>
-                    <span class="stx-shell-sidebar__title" id="scitex-ai-collapsed-title">Chat & Console</span>
-                    <span class="scitex-ai-panel-title">
-                        <span id="scitex-ai-model-badge" class="scitex-ai-model-badge"></span>
+                    <span class="stx-shell-sidebar__title" id="stx-shell-ai-collapsed-title">Chat & Console</span>
+                    <span class="stx-shell-ai-panel-title">
+                        <span id="stx-shell-ai-model-badge" class="stx-shell-ai-model-badge"></span>
                     </span>
-                    <div class="scitex-ai-panel-actions">
-                        <button id="scitex-ai-speak" class="scitex-ai-action-btn" title="Toggle auto-speak">
+                    <div class="stx-shell-ai-panel-actions">
+                        <button id="stx-shell-ai-speak" class="stx-shell-ai-action-btn" title="Toggle auto-speak">
                             <i class="fas fa-volume-up"></i>
                         </button>
-                        <button id="scitex-ai-clear" class="scitex-ai-action-btn" title="Clear conversation">
+                        <button id="stx-shell-ai-clear" class="stx-shell-ai-action-btn" title="Clear conversation">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
                 </div>
-                <div class="stx-shell-sidebar__content scitex-ai-body">
-                    <div id="scitex-ai-messages" class="scitex-ai-messages">
-                        <div class="scitex-ai-empty">
+                <div class="stx-shell-sidebar__content stx-shell-ai-body">
+                    <div id="stx-shell-ai-messages" class="stx-shell-ai-messages">
+                        <div class="stx-shell-ai-empty">
                             <i class="fas fa-robot"></i>
                             <span>Ask anything about SciTeX.</span>
                         </div>
                     </div>
-                    <div class="scitex-ai-input-area">
-                        <textarea id="scitex-ai-input"
-                                  class="scitex-ai-input"
+                    <div class="stx-shell-ai-input-area">
+                        <textarea id="stx-shell-ai-input"
+                                  class="stx-shell-ai-input"
                                   rows="3"
                                   placeholder="Ask AI agent... (Enter to send)"
                                   autocomplete="off"></textarea>
-                        <button id="scitex-ai-mic" class="scitex-ai-mic" title="Voice input">
+                        <button id="stx-shell-ai-mic" class="stx-shell-ai-mic" title="Voice input">
                             <i class="fas fa-microphone"></i>
                         </button>
-                        <button id="scitex-ai-send" class="scitex-ai-send" title="Send (Enter)">
+                        <button id="stx-shell-ai-send" class="stx-shell-ai-send" title="Send (Enter)">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>

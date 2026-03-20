@@ -34,7 +34,7 @@ export function initFileDrop(
   document.addEventListener("dragover", (e) => e.preventDefault());
   document.addEventListener("drop", (e) => e.preventDefault());
 
-  const wrap = inputEl.closest(".scitex-ai-input-wrap") ?? inputEl;
+  const wrap = inputEl.closest(".stx-shell-ai-input-wrap") ?? inputEl;
 
   dropZone.addEventListener("dragover", (e) => {
     e.preventDefault();

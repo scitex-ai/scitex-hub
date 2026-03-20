@@ -1,6 +1,6 @@
 {
   "$schema": "scitex-app-manifest",
-  "$schema_version": "1.0.0",
+  "$schema_version": "2.0.0",
   "name": "home",
   "label": "Home",
   "app_name": "hub_app",
@@ -18,6 +18,9 @@
   "ai_hint": "User dashboard: profile, projects, and current project workspace.",
   "allowed_extensions": [],
   "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+  "privileges": [
+    {"type": "filesystem", "scope": "projects", "reason": "List and manage user projects"}
+  ],
   "builtin": true,
   "dependencies": {
     "python": [],

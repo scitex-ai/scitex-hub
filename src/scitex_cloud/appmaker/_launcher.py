@@ -72,19 +72,18 @@ def dev_server(app_dir: str | Path, port: int = 8000) -> None:
     # Print remaining steps
     print("  Next steps:")
     print()
-    print("  1. Register in workspace registry:")
-    print(f"     Add ModuleConfig(name='{app_name}', ...) to")
-    print("     apps/workspace_app/registry.py")
+    print("  1. Push your app to a Gitea repository")
     print()
-    print("  2. Add to INSTALLED_APPS in settings:")
-    print(f"     'apps.{app_name}',")
+    print("  2. Dev Install from the workspace:")
+    print("     Hub → Explore → click 'Dev Install' on your repo")
+    print("     Your app appears as a workspace tab immediately.")
     print()
-    print("  3. Restart the dev server:")
-    print("     make env=dev restart")
+    print(f"  3. Open http://127.0.0.1:{port} and switch to your app tab")
     print()
-    print(f"  4. Open http://127.0.0.1:{port} and switch to your app tab")
+    print("  Tip: Run 'scitex-cloud app validate .' to check your app.")
     print()
-    print("  Tip: Run 'scitex-cloud app validate .' to re-check your app.")
+    print("  Note: Do NOT edit registry.py or INSTALLED_APPS —")
+    print("  those are for platform-builtin modules only.")
 
 
 def _find_project_root() -> Path | None:

@@ -202,7 +202,7 @@ export class AIPanelChatMode {
   /** Copy all chat messages as plain text to clipboard */
   async copyChat(): Promise<void> {
     if (!this.messagesEl) return;
-    const msgs = this.messagesEl.querySelectorAll(".scitex-ai-msg");
+    const msgs = this.messagesEl.querySelectorAll(".stx-shell-ai-msg");
     const lines: string[] = [];
     msgs.forEach((el) => {
       const role = el.classList.contains("user") ? "You" : "AI";
@@ -230,7 +230,7 @@ export class AIPanelChatMode {
     clearMessages();
     if (this.messagesEl) {
       this.messagesEl.innerHTML = `
-        <div class="scitex-ai-empty">
+        <div class="stx-shell-ai-empty">
           <i class="fas fa-robot"></i>
           <span>Ask anything about SciTeX.</span>
           <span>I can take actions: stats, plots, literature, and your current work.</span>
@@ -273,7 +273,7 @@ export class AIPanelChatMode {
 
   createMsgEl(role: "user" | "assistant" | "error"): HTMLElement {
     const el = document.createElement("div");
-    el.className = `scitex-ai-msg ${role}`;
+    el.className = `stx-shell-ai-msg ${role}`;
     this.messagesEl?.appendChild(el);
     this.scrollToBottomIfNeeded();
     return el;
@@ -336,7 +336,7 @@ export class AIPanelChatMode {
 
     this.currentAudio?.pause();
     this.currentAudio = null;
-    this.messagesEl.querySelector(".scitex-ai-empty")?.remove();
+    this.messagesEl.querySelector(".stx-shell-ai-empty")?.remove();
     // User is actively chatting — always scroll to bottom
     this._userAtBottom = true;
     const userEl = this.createMsgEl("user");
@@ -363,7 +363,7 @@ export class AIPanelChatMode {
     void this.sessionsPanel?.saveMessage("user", prompt);
 
     const typing = document.createElement("div");
-    typing.className = "scitex-ai-typing";
+    typing.className = "stx-shell-ai-typing";
     typing.textContent = "Thinking";
     this.messagesEl.appendChild(typing);
     this.busy = true;
@@ -443,7 +443,7 @@ export class AIPanelChatMode {
 
   async execBash(command: string): Promise<void> {
     if (!this.messagesEl) return;
-    this.messagesEl.querySelector(".scitex-ai-empty")?.remove();
+    this.messagesEl.querySelector(".stx-shell-ai-empty")?.remove();
     const userEl = this.createMsgEl("user");
     userEl.textContent = `! ${command}`;
     saveMessage({ role: "user", text: `! ${command}` });

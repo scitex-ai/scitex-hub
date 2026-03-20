@@ -34,7 +34,11 @@ def api_create_file(request):
             return JsonResponse({"error": "Unauthorized"}, status=403)
 
         # TRIP projects: on-demand SSH file access
-        if project.project_type == "trip":
+        if (
+            project.project_type == "remote"
+            and hasattr(project, "remote_config")
+            and project.remote_config.connection_mode == "trip"
+        ):
             from apps.infra.project_app.services.trip_backend import get_trip_backend
 
             backend = get_trip_backend(project)
@@ -111,7 +115,11 @@ def api_delete_file(request):
             return JsonResponse({"error": "Unauthorized"}, status=403)
 
         # TRIP projects: on-demand SSH file access
-        if project.project_type == "trip":
+        if (
+            project.project_type == "remote"
+            and hasattr(project, "remote_config")
+            and project.remote_config.connection_mode == "trip"
+        ):
             from apps.infra.project_app.services.trip_backend import get_trip_backend
 
             backend = get_trip_backend(project)

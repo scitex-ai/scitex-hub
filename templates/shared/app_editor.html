@@ -1,0 +1,30 @@
+{% extends "global_base.html" %}
+
+{% load static vite tree_preseed %}
+
+{% block title %}
+    {{ app_label }}
+    {% if current_project %}- {{ current_project.name }}{% endif %}
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/stx-shell-sidebar.css' %}" />
+    {% if app_mount_css %}
+        <link rel="stylesheet" href="{% static app_mount_css %}" />
+    {% endif %}
+{% endblock %}
+{% block content %}
+    <!-- App mount point (generic for all workspace apps) -->
+    <div id="app-mount"
+         data-app-slug="{{ app_slug }}"
+         data-embedded="true"
+         {% if current_project %} data-project-owner="{{ current_project.owner.username }}" data-project-slug="{{ current_project.slug }}" {% endif %}>
+    </div>
+{% endblock %}
+{% block extra_js %}
+    {% vite_hmr_client %}
+    {% tree_preseed_script current_project %}
+    {% vite_script bridge_entry_name %}
+{% endblock %}

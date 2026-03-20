@@ -1,6 +1,6 @@
 {
   "$schema": "scitex-app-manifest",
-  "$schema_version": "1.0.0",
+  "$schema_version": "2.0.0",
   "name": "writer",
   "label": "Writer",
   "app_name": "writer_app",
@@ -17,6 +17,11 @@
   "ai_hint": "Scientific manuscript editor: LaTeX editing with live preview, figure/table management, bibliography, PDF compilation.",
   "allowed_extensions": [".tex", ".bib", ".pdf", ".png", ".jpg", ".jpeg", ".svg", ".eps"],
   "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv", "build", ".aux", ".log", ".out"],
+  "privileges": [
+    {"type": "filesystem", "scope": "project", "reason": "Read/write manuscript files (.tex, .bib, figures)"},
+    {"type": "compute", "scope": "celery", "reason": "LaTeX PDF compilation"},
+    {"type": "ai", "scope": "chat", "reason": "AI-assisted writing suggestions"}
+  ],
   "builtin": true,
   "dependencies": {
     "python": [],

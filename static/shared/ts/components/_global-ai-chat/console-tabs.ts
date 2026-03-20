@@ -53,8 +53,8 @@ export class ConsoleTabManager {
 
     // New tab button
     const newBtn = this.listEl
-      ?.closest(".scitex-ai-console-tabs-bar")
-      ?.querySelector<HTMLButtonElement>(".scitex-ai-console-new-tab");
+      ?.closest(".stx-shell-ai-console-tabs-bar")
+      ?.querySelector<HTMLButtonElement>(".stx-shell-ai-console-new-tab");
     newBtn?.addEventListener("click", () => this.createTab());
   }
 
@@ -67,7 +67,7 @@ export class ConsoleTabManager {
 
     // Create a container div for this tab's terminal
     const containerEl = document.createElement("div");
-    containerEl.className = "scitex-ai-console-terminal-instance";
+    containerEl.className = "stx-shell-ai-console-terminal-instance";
     containerEl.dataset.tabId = id;
     containerEl.style.width = "100%";
     containerEl.style.height = "100%";
@@ -151,13 +151,13 @@ export class ConsoleTabManager {
 
     for (const tab of this.tabs.values()) {
       const chip = document.createElement("div");
-      chip.className = "scitex-ai-console-tab-item";
+      chip.className = "stx-shell-ai-console-tab-item";
       if (tab.id === this.activeTabId) chip.classList.add("active");
       chip.dataset.tabId = tab.id;
       chip.title = tab.sessionName;
 
       const title = document.createElement("span");
-      title.className = "scitex-ai-console-tab-title";
+      title.className = "stx-shell-ai-console-tab-title";
       title.textContent = tab.name;
       title.addEventListener("dblclick", (e) => {
         e.stopPropagation();
@@ -169,7 +169,7 @@ export class ConsoleTabManager {
       // Close button (only if more than 1 tab)
       if (this.tabs.size > 1) {
         const closeBtn = document.createElement("button");
-        closeBtn.className = "scitex-ai-console-tab-close";
+        closeBtn.className = "stx-shell-ai-console-tab-close";
         closeBtn.innerHTML = '<i class="fas fa-times"></i>';
         closeBtn.title = "Close";
         closeBtn.addEventListener("click", (e) => {
@@ -185,8 +185,8 @@ export class ConsoleTabManager {
 
     // Disable new-tab button if at limit
     const newBtn = this.listEl
-      ?.closest(".scitex-ai-console-tabs-bar")
-      ?.querySelector<HTMLButtonElement>(".scitex-ai-console-new-tab");
+      ?.closest(".stx-shell-ai-console-tabs-bar")
+      ?.querySelector<HTMLButtonElement>(".stx-shell-ai-console-new-tab");
     if (newBtn) {
       newBtn.disabled = this.tabs.size >= MAX_TABS;
       newBtn.style.opacity = this.tabs.size >= MAX_TABS ? "0.4" : "";
@@ -194,11 +194,11 @@ export class ConsoleTabManager {
   }
 
   private startRename(chip: HTMLElement, tab: ConsoleTab): void {
-    const titleEl = chip.querySelector(".scitex-ai-console-tab-title");
+    const titleEl = chip.querySelector(".stx-shell-ai-console-tab-title");
     if (!titleEl) return;
 
     const input = document.createElement("input");
-    input.className = "scitex-ai-console-tab-rename";
+    input.className = "stx-shell-ai-console-tab-rename";
     input.value = tab.name;
     titleEl.replaceWith(input);
     input.focus();

@@ -14,8 +14,6 @@ from django.views.generic import RedirectView
 LEGACY_APP_NAMES = [
     "scholar",
     "console",
-    "vis",
-    "vis-react",
     "writer",
     "workspace",
     "example",

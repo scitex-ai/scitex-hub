@@ -22,6 +22,9 @@ import { initKeyboardShortcuts } from "./components/keyboard-shortcuts";
 import { AIPanelConfigMode } from "./components/_global-ai-chat/config-mode";
 import { populateChatLimits } from "./components/_global-ai-chat/chat-config-limits";
 
+// Shell CSS — canonical source from scitex-ui (see shell-css-imports.ts)
+import "./components/_global-ai-chat/shell-css-imports";
+
 const PANEL_OPEN_KEY = "scitex_ai_open";
 
 interface AiContext {
@@ -69,29 +72,31 @@ class GlobalAIChat {
   private sessionsPanel: SessionsPanel | null = null;
 
   init(): void {
-    this.fab = document.getElementById("scitex-ai-fab");
-    this.panel = document.getElementById("scitex-ai-panel");
-    this.messagesEl = document.getElementById("scitex-ai-messages");
+    this.fab = document.getElementById("stx-shell-ai-fab");
+    this.panel = document.getElementById("stx-shell-ai-panel");
+    this.messagesEl = document.getElementById("stx-shell-ai-messages");
     this.inputEl = document.getElementById(
-      "scitex-ai-input",
+      "stx-shell-ai-input",
     ) as HTMLTextAreaElement;
     this.sendBtn = document.getElementById(
-      "scitex-ai-send",
+      "stx-shell-ai-send",
     ) as HTMLButtonElement;
-    this.micBtn = document.getElementById("scitex-ai-mic") as HTMLButtonElement;
+    this.micBtn = document.getElementById(
+      "stx-shell-ai-mic",
+    ) as HTMLButtonElement;
     this.sttModelSelect = document.getElementById(
-      "scitex-ai-stt-model",
+      "stx-shell-ai-stt-model",
     ) as HTMLSelectElement;
     this.llmModelSelect = document.getElementById(
-      "scitex-ai-llm-model",
+      "stx-shell-ai-llm-model",
     ) as HTMLSelectElement;
-    this.mcpBadge = document.getElementById("scitex-ai-mcp-badge");
-    this.modelBadge = document.getElementById("scitex-ai-model-badge");
+    this.mcpBadge = document.getElementById("stx-shell-ai-mcp-badge");
+    this.modelBadge = document.getElementById("stx-shell-ai-model-badge");
 
     if (!this.panel) return;
 
     // File drop support — attach to entire chat view for a bigger drop target
-    const chatView = document.getElementById("scitex-ai-chat-view");
+    const chatView = document.getElementById("stx-shell-ai-chat-view");
     if (chatView && this.inputEl) initFileDrop(chatView, this.inputEl);
 
     // Initialise chat mode (encapsulates messaging logic)
@@ -106,15 +111,15 @@ class GlobalAIChat {
         sttModelSelect: this.sttModelSelect,
         modelBadge: this.modelBadge,
         volBars: [],
-        imagePreviewEl: document.getElementById("scitex-ai-image-previews"),
+        imagePreviewEl: document.getElementById("stx-shell-ai-image-previews"),
         imageFileInput: document.getElementById(
-          "scitex-ai-image-file",
+          "stx-shell-ai-image-file",
         ) as HTMLInputElement,
         cameraBtn: document.getElementById(
-          "scitex-ai-camera",
+          "stx-shell-ai-camera",
         ) as HTMLButtonElement,
         sketchBtn: document.getElementById(
-          "scitex-ai-sketch",
+          "stx-shell-ai-sketch",
         ) as HTMLButtonElement,
       },
       this.context,
@@ -128,12 +133,12 @@ class GlobalAIChat {
     fetchMcpStatus(this.mcpBadge);
     this.setupModelBadgeSwitcher();
 
-    document.body.classList.add("scitex-ai-present");
+    document.body.classList.add("stx-shell-ai-present");
 
     // In workspace three-col layout, WPR owns the AI panel toggle; skip here
     if (!this.panel?.closest(".workspace-three-col")) {
       document
-        .getElementById("scitex-ai-toggle")
+        .getElementById("stx-shell-ai-toggle")
         ?.addEventListener("click", () => this.toggle());
     }
 
@@ -171,7 +176,9 @@ class GlobalAIChat {
     });
 
     // Sessions panel
-    const sessionsListEl = document.getElementById("scitex-ai-sessions-list");
+    const sessionsListEl = document.getElementById(
+      "stx-shell-ai-sessions-list",
+    );
     if (sessionsListEl && this.chatMode) {
       this.sessionsPanel = new SessionsPanel();
       this.sessionsPanel.init(
@@ -183,7 +190,7 @@ class GlobalAIChat {
       );
       this.chatMode.setSessionsPanel(this.sessionsPanel);
       document
-        .querySelector(".scitex-ai-share-btn")
+        .querySelector(".stx-shell-ai-share-btn")
         ?.addEventListener(
           "click",
           () => void this.sessionsPanel?.toggleShare(),
@@ -192,17 +199,17 @@ class GlobalAIChat {
 
     // Copy & clear chat buttons
     document
-      .getElementById("scitex-ai-copy-chat")
+      .getElementById("stx-shell-ai-copy-chat")
       ?.addEventListener("click", () => {
         void this.chatMode?.copyChat();
       });
     document
-      .getElementById("scitex-ai-print-chat")
+      .getElementById("stx-shell-ai-print-chat")
       ?.addEventListener("click", () => {
         this.printActiveView();
       });
     document
-      .getElementById("scitex-ai-clear-chat")
+      .getElementById("stx-shell-ai-clear-chat")
       ?.addEventListener("click", () => {
         this.chatMode?.clearChat();
       });
@@ -221,7 +228,7 @@ class GlobalAIChat {
     this.isOpen = !this.panel?.classList.contains("collapsed");
     if (this.isOpen) {
       this.panel?.removeAttribute("aria-hidden");
-      document.body.classList.add("scitex-ai-open");
+      document.body.classList.add("stx-shell-ai-open");
       // Panel already expanded — scroll after layout settles
       setTimeout(() => this.chatMode?.scrollToBottom(), 100);
     }
@@ -269,7 +276,7 @@ class GlobalAIChat {
   /* ── Header Double-Click → Toggle Chat / Console ────────── */
 
   private setupHeaderDblClick(): void {
-    const header = document.getElementById("scitex-ai-panel-header");
+    const header = document.getElementById("stx-shell-ai-panel-header");
     if (!header) return;
     header.addEventListener("dblclick", (e: MouseEvent) => {
       // Ignore clicks on buttons inside the header
@@ -323,8 +330,11 @@ class GlobalAIChat {
   /* ── Gear Buttons → Config Popovers ────────────────────── */
 
   private setupGearButtons(): void {
-    this.setupGearToggle("scitex-ai-chat-gear", "scitex-ai-chat-config");
-    this.setupGearToggle("scitex-ai-console-gear", "scitex-ai-console-config");
+    this.setupGearToggle("stx-shell-ai-chat-gear", "stx-shell-ai-chat-config");
+    this.setupGearToggle(
+      "stx-shell-ai-console-gear",
+      "stx-shell-ai-console-config",
+    );
   }
 
   private setupGearToggle(btnId: string, popoverId: string): void {
@@ -336,15 +346,15 @@ class GlobalAIChat {
       e.stopPropagation();
       const isVisible = popover.style.display !== "none";
       document
-        .querySelectorAll<HTMLElement>(".scitex-ai-config-popover")
+        .querySelectorAll<HTMLElement>(".stx-shell-ai-config-popover")
         .forEach((p) => (p.style.display = "none"));
       if (!isVisible) {
         popover.style.display = "block";
-        if (popoverId === "scitex-ai-chat-config") {
+        if (popoverId === "stx-shell-ai-chat-config") {
           void populateChatLimits();
           void this.populateAgentSources("ai-chat-agent-sources-content");
         }
-        if (popoverId === "scitex-ai-console-config")
+        if (popoverId === "stx-shell-ai-console-config")
           void this.populateAgentSources("ai-agent-sources-content");
       }
     });
@@ -387,14 +397,14 @@ class GlobalAIChat {
 
   private setupModeToggle(): void {
     document
-      .querySelectorAll<HTMLButtonElement>(".scitex-ai-mode-btn")
+      .querySelectorAll<HTMLButtonElement>(".stx-shell-ai-mode-btn")
       .forEach((btn) => {
         btn.addEventListener("click", () => {
           const m = btn.dataset.mode as "chat" | "console";
           if (m && m !== this.mode) this.switchMode(m);
         });
       });
-    const saved = localStorage.getItem("scitex-ai-mode");
+    const saved = localStorage.getItem("stx-shell-ai-mode");
     // Default to console; only switch to chat if explicitly saved
     if (saved === "chat") this.switchMode("chat");
     else this.switchMode("console");
@@ -402,22 +412,22 @@ class GlobalAIChat {
 
   private switchMode(mode: "chat" | "console"): void {
     this.mode = mode;
-    localStorage.setItem("scitex-ai-mode", mode);
+    localStorage.setItem("stx-shell-ai-mode", mode);
     // Update navigation state (replace, not push — AI mode is not a navigational step)
     window._appNav?.replace({ aiMode: mode });
     document
-      .querySelectorAll<HTMLButtonElement>(".scitex-ai-mode-btn")
+      .querySelectorAll<HTMLButtonElement>(".stx-shell-ai-mode-btn")
       .forEach((b) => {
         b.classList.toggle("active", b.dataset.mode === mode);
       });
     for (const v of ["chat", "console"]) {
       document
-        .getElementById(`scitex-ai-${v}-view`)
+        .getElementById(`stx-shell-ai-${v}-view`)
         ?.classList.toggle("active", v === mode);
     }
     // Close any open config popovers on mode switch
     document
-      .querySelectorAll<HTMLElement>(".scitex-ai-config-popover")
+      .querySelectorAll<HTMLElement>(".stx-shell-ai-config-popover")
       .forEach((p) => (p.style.display = "none"));
 
     if (mode === "console") {
@@ -427,31 +437,35 @@ class GlobalAIChat {
   }
 
   private initConsoleMode(): void {
-    const containerEl = document.getElementById("scitex-ai-console-terminal");
-    const statusEl = document.getElementById("scitex-ai-console-status");
-    const tabsListEl = document.getElementById("scitex-ai-console-tabs-list");
+    const containerEl = document.getElementById(
+      "stx-shell-ai-console-terminal",
+    );
+    const statusEl = document.getElementById("stx-shell-ai-console-status");
+    const tabsListEl = document.getElementById(
+      "stx-shell-ai-console-tabs-list",
+    );
     if (!containerEl) return;
     if (!this.consoleMode) this.consoleMode = new AIPanelConsoleMode();
     const toolbar = {
       cameraBtn: document.getElementById(
-        "scitex-ai-console-camera",
+        "stx-shell-ai-console-camera",
       ) as HTMLButtonElement | null,
       sketchBtn: document.getElementById(
-        "scitex-ai-console-sketch",
+        "stx-shell-ai-console-sketch",
       ) as HTMLButtonElement | null,
       micBtn: document.getElementById(
-        "scitex-ai-console-mic",
+        "stx-shell-ai-console-mic",
       ) as HTMLButtonElement | null,
       fileInput: document.getElementById(
-        "scitex-ai-console-image-file",
+        "stx-shell-ai-console-image-file",
       ) as HTMLInputElement | null,
     };
     void this.consoleMode.init(containerEl, statusEl, toolbar, tabsListEl);
   }
 
   private initJobsMode(): void {
-    const listEl = document.getElementById("scitex-ai-jobs-list");
-    const summaryEl = document.getElementById("scitex-ai-jobs-summary");
+    const listEl = document.getElementById("stx-shell-ai-jobs-list");
+    const summaryEl = document.getElementById("stx-shell-ai-jobs-summary");
     if (!listEl || !summaryEl) return;
     if (!this.jobsMode) this.jobsMode = new AIPanelJobsMode();
     this.jobsMode.init(listEl, summaryEl);
@@ -468,9 +482,9 @@ class GlobalAIChat {
     this.panel?.classList.remove("collapsed");
     this.fab?.classList.add("panel-open");
     this.panel?.removeAttribute("aria-hidden");
-    document.body.classList.add("scitex-ai-open");
+    document.body.classList.add("stx-shell-ai-open");
     sessionStorage.setItem(PANEL_OPEN_KEY, "1");
-    localStorage.setItem("scitex-ai-panel-collapsed", "false");
+    localStorage.setItem("stx-shell-ai-panel-collapsed", "false");
     setTimeout(() => {
       this.inputEl?.focus();
       this.chatMode?.scrollToBottom();
@@ -482,9 +496,9 @@ class GlobalAIChat {
     this.panel?.classList.add("collapsed");
     this.fab?.classList.remove("panel-open");
     this.panel?.setAttribute("aria-hidden", "true");
-    document.body.classList.remove("scitex-ai-open");
+    document.body.classList.remove("stx-shell-ai-open");
     sessionStorage.removeItem(PANEL_OPEN_KEY);
-    localStorage.setItem("scitex-ai-panel-collapsed", "true");
+    localStorage.setItem("stx-shell-ai-panel-collapsed", "true");
   }
 }
 

@@ -22,11 +22,11 @@ function getOrderedPanes(): PaneInfo[] {
   const panes: PaneInfo[] = [];
 
   // AI panel (leftmost)
-  const aiPanel = document.getElementById("scitex-ai-panel");
+  const aiPanel = document.getElementById("stx-shell-ai-panel");
   if (aiPanel) {
     const aiToggle =
-      document.getElementById("scitex-ai-toggle") ??
-      document.getElementById("scitex-ai-fab");
+      document.getElementById("stx-shell-ai-toggle") ??
+      document.getElementById("stx-shell-ai-fab");
     panes.push({
       el: aiPanel,
       toggleBtn: aiToggle,
@@ -48,7 +48,7 @@ function getOrderedPanes(): PaneInfo[] {
 
   // Workspace sidebar panels (right side) — detected via data-panel-resizer
   const resizers = document.querySelectorAll<HTMLElement>(
-    "[data-panel-resizer]:not(#scitex-ai-resizer)",
+    "[data-panel-resizer]:not(#stx-shell-ai-resizer)",
   );
   for (const r of resizers) {
     const target = r.dataset.target;
@@ -123,19 +123,19 @@ function curtainCollapse(direction: "left" | "right"): void {
 }
 
 function toggleAIPanel(): void {
-  const fab = document.getElementById("scitex-ai-fab");
-  const toggle = document.getElementById("scitex-ai-toggle");
-  const panel = document.getElementById("scitex-ai-panel");
+  const fab = document.getElementById("stx-shell-ai-fab");
+  const toggle = document.getElementById("stx-shell-ai-toggle");
+  const panel = document.getElementById("stx-shell-ai-panel");
   const input = document.getElementById(
-    "scitex-ai-input",
+    "stx-shell-ai-input",
   ) as HTMLTextAreaElement | null;
-  const terminal = document.getElementById("scitex-ai-console-terminal");
+  const terminal = document.getElementById("stx-shell-ai-console-terminal");
 
   if (panel?.classList.contains("collapsed")) {
     // Expand panel and focus the active mode (chat input or console)
     (fab ?? toggle)?.click();
     setTimeout(() => {
-      const isConsole = terminal?.closest(".scitex-ai-view.active");
+      const isConsole = terminal?.closest(".stx-shell-ai-view.active");
       if (isConsole && (window as any).aiPanelConsole) {
         (window as any).aiPanelConsole.focus();
       } else {
@@ -150,7 +150,7 @@ function toggleAIPanel(): void {
       (fab ?? toggle)?.click();
     } else {
       // Focus is elsewhere → bring focus to panel
-      const isConsole = terminal?.closest(".scitex-ai-view.active");
+      const isConsole = terminal?.closest(".stx-shell-ai-view.active");
       if (isConsole && (window as any).aiPanelConsole) {
         (window as any).aiPanelConsole.focus();
       } else {
@@ -191,7 +191,7 @@ function triggerFileUpload(): void {
 
       // Insert paths into chat input
       const chatInput = document.getElementById(
-        "scitex-ai-input",
+        "stx-shell-ai-input",
       ) as HTMLTextAreaElement | null;
       if (chatInput && data.paths.length > 0) {
         const label =

@@ -74,8 +74,7 @@ class Project(
 
     PROJECT_TYPES = [
         ("local", "Local Repository"),  # Git-enabled, Gitea
-        ("remote", "Remote Filesystem"),  # SSHFS mount, no Git
-        ("trip", "Remote TRIP"),  # On-demand SSH, no local copy
+        ("remote", "Remote (HPC / Server)"),  # SSH access, mode: trip or sshfs
     ]
 
     SOURCE_CHOICES = [

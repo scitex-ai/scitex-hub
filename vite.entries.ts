@@ -7,6 +7,7 @@
  */
 import { execSync } from "child_process";
 import { resolve } from "path";
+import * as path from "path";
 import * as fs from "fs";
 
 /** Directories to skip during auto-discovery */
@@ -109,6 +110,61 @@ function discoverPipEntries(rootDir: string): Record<string, string> {
   return entries;
 }
 
+/**
+ * Auto-discover bridge entry points from sibling app repositories.
+ *
+ * Scans sibling directories for manifest.json with a "bridge" key.
+ * Entry name follows convention: "{app_name}/{slug}-bridge-init".
+ */
+function discoverBridgeEntries(rootDir: string): Record<string, string> {
+  const entries: Record<string, string> = {};
+  const parentDir = resolve(rootDir, "..");
+
+  if (!fs.existsSync(parentDir)) return entries;
+
+  for (const entry of fs.readdirSync(parentDir)) {
+    if (entry.startsWith(".") || entry === path.basename(rootDir)) continue;
+    const repoDir = resolve(parentDir, entry);
+    try {
+      if (!fs.statSync(repoDir).isDirectory()) continue;
+    } catch {
+      continue;
+    }
+
+    const pkgName = entry.replace(/-/g, "_");
+    const manifestPaths = [
+      resolve(repoDir, `src/${pkgName}/_django/manifest.json`),
+      resolve(repoDir, "manifest.json"),
+    ];
+
+    for (const mp of manifestPaths) {
+      if (!fs.existsSync(mp)) continue;
+      try {
+        const manifest = JSON.parse(fs.readFileSync(mp, "utf-8"));
+        if (!manifest.bridge?.entry) continue;
+
+        const slug = manifest.slug || pkgName;
+        const appName = manifest.name || `${pkgName}_app`;
+        const djangoDir = path.dirname(mp);
+        const bridgeEntry = resolve(
+          djangoDir,
+          "frontend",
+          manifest.bridge.entry,
+        );
+
+        if (fs.existsSync(bridgeEntry)) {
+          entries[`${appName}/${slug}-bridge-init`] = bridgeEntry;
+        }
+        break;
+      } catch {
+        /* skip invalid manifests */
+      }
+    }
+  }
+
+  return entries;
+}
+
 export function getEntryPoints(rootDir: string): Record<string, string> {
   return {
     // ── Auto-discovered entries ─────────────────────────────────
@@ -157,16 +213,9 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       "static/workspace_app/ts/workspace-shell.ts",
     ),
 
-    // figrecipe bridge (starts with '_', so auto-discovery skips it)
-    // Only included when ../figrecipe exists (the alias resolves conditionally)
-    ...(fs.existsSync(resolve(rootDir, "../figrecipe"))
-      ? {
-          "figrecipe_app/figrecipe-bridge-init": r(
-            rootDir,
-            "apps/workspace/figrecipe_app/static/figrecipe_app/ts/_figrecipe-bridge-init.ts",
-          ),
-        }
-      : {}),
+    // Auto-discovered app bridge entries from sibling repositories.
+    // Each app declares its bridge entry in manifest.json.
+    ...discoverBridgeEntries(rootDir),
 
     // Dev app scripts (standalone utilities — in scripts/ subdir, not ts/)
     "dev_app/scripts/design": r(

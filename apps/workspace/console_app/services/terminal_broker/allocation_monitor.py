@@ -1,4 +1,4 @@
-"""Allocation health monitor — warns before expiry."""
+"""Allocation health monitor — warns before expiry + node health daemon."""
 
 import logging
 import threading
@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from .broker import TerminalBroker
 
 from ._handler_utils import send_state
+from .slurm_health import NodeHealthDaemon, set_daemon
 
 logger = logging.getLogger(__name__)
 
@@ -16,25 +17,37 @@ CHECK_INTERVAL = 30  # seconds between health checks
 
 
 class AllocationMonitor:
-    """Background thread that warns clients before their allocation expires."""
+    """Background thread that warns clients before their allocation expires.
+
+    Also starts and manages the NodeHealthDaemon for proactive node recovery.
+    """
 
     def __init__(self, broker: "TerminalBroker"):
         self.broker = broker
         self._stop = threading.Event()
         self._thread = None
         self._warned: dict[str, set] = {}  # alloc_id -> set of thresholds warned
+        self._node_daemon = NodeHealthDaemon()
 
     def start(self):
-        """Start the monitor thread."""
+        """Start the monitor thread and node health daemon."""
+        # Start node health daemon first (spawn path depends on it)
+        self._node_daemon.start()
+        set_daemon(self._node_daemon)
+
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
         logger.info("AllocationMonitor started")
 
     def stop(self):
-        """Stop the monitor thread."""
+        """Stop the monitor thread and node health daemon."""
         self._stop.set()
         if self._thread:
             self._thread.join(timeout=5)
+
+        self._node_daemon.stop()
+        set_daemon(None)
+
         logger.info("AllocationMonitor stopped")
 
     def _run(self):
@@ -46,9 +59,6 @@ class AllocationMonitor:
             self._stop.wait(CHECK_INTERVAL)
 
     def _check_all(self):
-        # Periodic SLURM node health check
-        self._check_node_health()
-
         with self.broker.lock:
             allocs = list(self.broker.allocations.items())
             shells = list(self.broker.shells.values())
@@ -66,14 +76,6 @@ class AllocationMonitor:
                     warned.add(threshold)
                     self._notify_shells(alloc_id, shells, remaining)
                     break
-
-    def _check_node_health(self):
-        """Check SLURM node state and auto-recover if stuck."""
-        from .slurm_health import ensure_node_ready
-
-        ready, err = ensure_node_ready()
-        if not ready:
-            logger.warning(f"SLURM node unhealthy: {err}")
 
     def _notify_shells(self, alloc_id: str, shells: list, remaining: int):
         """Send expiry warning to all shells attached to this allocation."""

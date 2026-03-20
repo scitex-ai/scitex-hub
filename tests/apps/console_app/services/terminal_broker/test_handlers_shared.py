@@ -59,11 +59,15 @@ class TestAllocationKeyPerUser:
         False,
     )
     @patch(
-        "apps.workspace.console_app.services.terminal_broker._handlers_shared._alloc_fail_info",
+        "apps.workspace.console_app.services.terminal_broker._handlers_shared._hard_fail_info",
         {},
     )
+    @patch(
+        "apps.workspace.console_app.services.terminal_broker._handlers_shared._wait_for_node_or_fail",
+        return_value=(True, ""),
+    )
     def test_same_user_different_projects_share_allocation(
-        self, MockShell, MockAllocation
+        self, mock_node_check, MockShell, MockAllocation
     ):
         """Two spawns for same user but different projects should reuse allocation."""
         broker = _make_broker()
@@ -256,13 +260,13 @@ class TestAllocationCooldown:
     """After allocation failure, cooldown prevents immediate retry."""
 
     @patch(
-        "apps.workspace.console_app.services.terminal_broker._handlers_shared._alloc_fail_info"
+        "apps.workspace.console_app.services.terminal_broker._handlers_shared._hard_fail_info"
     )
     def test_cooldown_returns_wait_message(self, mock_fail_info):
         broker = _make_broker()
         client = MagicMock()
 
-        # Simulate recent failure — _alloc_fail_info stores (timestamp, reason) tuples
+        # Simulate recent failure — _hard_fail_info stores (timestamp, reason) tuples
         mock_fail_info.get.return_value = (
             time.time() - 5,
             "SLURM allocation failed",

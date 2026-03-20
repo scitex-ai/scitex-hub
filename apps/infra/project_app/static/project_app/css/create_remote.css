@@ -1,0 +1,28 @@
+/* Remote project creation form styles */
+
+.tab-fields-hidden {
+  display: none;
+}
+
+.form-control-mono {
+  font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+}
+
+.create-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.create-radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted, #8b949e);
+  cursor: pointer;
+}
+
+.create-radio-label input[type="radio"] {
+  margin: 0;
+}

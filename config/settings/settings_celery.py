@@ -23,7 +23,6 @@ CELERY_TASK_ROUTES = {
     "apps.workspace.writer_app.tasks.*": {"queue": "ai_queue"},
     "apps.workspace.scholar_app.tasks.*": {"queue": "search_queue"},
     "apps.workspace.console_app.tasks.*": {"queue": "compute_queue"},
-    "apps.workspace.figrecipe_app.tasks.*": {"queue": "vis_queue"},
 }
 
 # Fair scheduling: Rate limits per task
@@ -37,6 +36,12 @@ CELERY_TASK_ANNOTATIONS = {
 # Worker configuration for fairness
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1  # One task at a time for fair scheduling
 CELERY_WORKER_CONCURRENCY = 4  # Parallel workers
+CELERY_WORKER_MAX_TASKS_PER_CHILD = (
+    100  # Auto-restart after 100 tasks (prevents memory leaks)
+)
+CELERY_WORKER_MAX_MEMORY_PER_CHILD = (
+    500_000  # Auto-restart if worker exceeds 500MB (KB units)
+)
 
 # Beat scheduler for periodic tasks
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"

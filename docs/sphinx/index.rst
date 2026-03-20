@@ -16,6 +16,7 @@ lifecycle — from literature to manuscript — under your own control.
    quickstart
    cli
    mcp
+   app_platform
    api/index
 
 Indices and tables

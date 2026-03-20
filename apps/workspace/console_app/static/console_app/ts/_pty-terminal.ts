@@ -10,6 +10,7 @@ import {
   attachRightClickHandler,
 } from "./_pty-input-handlers";
 import { handleCaptureRequest } from "./_on-site-capture";
+import { classifyCloseCode } from "./_close-codes";
 
 export class PTYTerminal {
   private term: any;
@@ -22,6 +23,8 @@ export class PTYTerminal {
   private readyResolve!: () => void;
   private spinnerTimer: ReturnType<typeof setInterval> | null = null;
   private sessionState: string = "unknown";
+  private _reconnectAttempt: number = 0;
+  private readonly _maxReconnectAttempts: number = 20;
 
   constructor(
     containerEl: HTMLElement,
@@ -280,6 +283,27 @@ export class PTYTerminal {
     this.containerEl.querySelector(".terminal-restart-overlay")?.remove();
   }
 
+  private showReconnectPrompt(reason: string): void {
+    this.hideRestartOverlay();
+    const overlay = document.createElement("div");
+    overlay.className = "terminal-restart-overlay";
+    overlay.innerHTML =
+      `<div class="terminal-restart-content">` +
+      `<i class="fas fa-plug"></i>` +
+      `<p>${reason}</p>` +
+      `<button class="terminal-reconnect-btn">` +
+      `<i class="fas fa-wifi"></i> Click to Reconnect</button></div>`;
+    overlay
+      .querySelector(".terminal-reconnect-btn")
+      ?.addEventListener("click", () => {
+        this._reconnectAttempt = 0;
+        this.hideRestartOverlay();
+        this.connect();
+      });
+    this.containerEl.style.position = "relative";
+    this.containerEl.appendChild(overlay);
+  }
+
   /** Send browser notification for background tab awareness */
   private notifyUser(message: string): void {
     if (
@@ -303,6 +327,7 @@ export class PTYTerminal {
     this.ws.onopen = () => {
       this.stopSpinner();
       console.log("[PTY] WebSocket connected");
+      this._reconnectAttempt = 0;
       this.sendResize();
     };
 
@@ -343,58 +368,31 @@ export class PTYTerminal {
       this.stopSpinner();
       console.log("[PTY] WebSocket closed:", event.code, event.reason);
 
-      const { message, reconnect } = this.classifyCloseCode(event);
+      const { message, reconnect } = classifyCloseCode(event);
       this.term.write(`\r\n\x1b[1;33m Disconnected: ${message}\x1b[0m\r\n`);
 
       if (reconnect) {
-        this.term.write("\x1b[0;36m   Reconnecting in 3s...\x1b[0m\r\n");
-        setTimeout(() => this.connect(), 3000);
+        if (this._reconnectAttempt >= this._maxReconnectAttempts) {
+          this.term.write(
+            "\x1b[0;33m   Auto-reconnect limit reached.\x1b[0m\r\n",
+          );
+          this.showReconnectPrompt(`Disconnected: ${message}`);
+        } else {
+          const delay = Math.min(
+            3000 * Math.pow(2, this._reconnectAttempt),
+            60000,
+          );
+          const delaySec = Math.round(delay / 1000);
+          this.term.write(
+            `\x1b[0;36m   Reconnecting in ${delaySec}s (attempt ${this._reconnectAttempt + 1}/${this._maxReconnectAttempts})...\x1b[0m\r\n`,
+          );
+          this._reconnectAttempt++;
+          setTimeout(() => this.connect(), delay);
+        }
       } else {
         this.showRestartOverlay(`Disconnected: ${message}`);
       }
     };
-  }
-
-  private classifyCloseCode(event: CloseEvent): {
-    message: string;
-    reconnect: boolean;
-  } {
-    switch (event.code) {
-      case 1000:
-        return {
-          message: "Connection closed, reconnecting...",
-          reconnect: true,
-        };
-      case 1001:
-        return {
-          message: "Server going away (maintenance or restart)",
-          reconnect: true,
-        };
-      case 1006:
-        return { message: "Connection lost (network issue)", reconnect: true };
-      case 1011:
-        return { message: "Server error", reconnect: true };
-      case 1012:
-        return { message: "Server restarting", reconnect: true };
-      case 1013:
-        return {
-          message: "Server overloaded, try again later",
-          reconnect: true,
-        };
-      case 4000:
-        return { message: "Authentication required", reconnect: false };
-      case 4001:
-        return { message: "Access denied", reconnect: false };
-      case 4002:
-        return { message: "Project not found", reconnect: false };
-      case 4003:
-        return { message: "SLURM unavailable", reconnect: false };
-      default:
-        return {
-          message: event.reason || `Connection closed (${event.code})`,
-          reconnect: true,
-        };
-    }
   }
 
   public restart(): void {
