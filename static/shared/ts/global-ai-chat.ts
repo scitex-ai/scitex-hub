@@ -22,7 +22,19 @@ import { initKeyboardShortcuts } from "./components/keyboard-shortcuts";
 import { AIPanelConfigMode } from "./components/_global-ai-chat/config-mode";
 import { populateChatLimits } from "./components/_global-ai-chat/chat-config-limits";
 
-// Config mode CSS — canonical source from scitex-ui (bundled by Vite)
+// Shell CSS — canonical source from scitex-ui (bundled by Vite)
+// @ts-ignore
+import "scitex-ui/css/shell/ai-panel/02-mode-toggle.css";
+// @ts-ignore
+import "scitex-ui/css/shell/ai-panel/03-chat-messages.css";
+// @ts-ignore
+import "scitex-ui/css/shell/ai-panel/04-chat-input.css";
+// @ts-ignore
+import "scitex-ui/css/shell/ai-panel/05-console-mode.css";
+// @ts-ignore
+import "scitex-ui/css/shell/ai-panel/06-console-tabs.css";
+// @ts-ignore
+import "scitex-ui/css/shell/ai-panel/07-sessions.css";
 // @ts-ignore
 import "scitex-ui/css/shell/ai-panel/08-config-mode.css";
 
@@ -82,7 +94,9 @@ class GlobalAIChat {
     this.sendBtn = document.getElementById(
       "stx-shell-ai-send",
     ) as HTMLButtonElement;
-    this.micBtn = document.getElementById("stx-shell-ai-mic") as HTMLButtonElement;
+    this.micBtn = document.getElementById(
+      "stx-shell-ai-mic",
+    ) as HTMLButtonElement;
     this.sttModelSelect = document.getElementById(
       "stx-shell-ai-stt-model",
     ) as HTMLSelectElement;
@@ -175,7 +189,9 @@ class GlobalAIChat {
     });
 
     // Sessions panel
-    const sessionsListEl = document.getElementById("stx-shell-ai-sessions-list");
+    const sessionsListEl = document.getElementById(
+      "stx-shell-ai-sessions-list",
+    );
     if (sessionsListEl && this.chatMode) {
       this.sessionsPanel = new SessionsPanel();
       this.sessionsPanel.init(
@@ -328,7 +344,10 @@ class GlobalAIChat {
 
   private setupGearButtons(): void {
     this.setupGearToggle("stx-shell-ai-chat-gear", "stx-shell-ai-chat-config");
-    this.setupGearToggle("stx-shell-ai-console-gear", "stx-shell-ai-console-config");
+    this.setupGearToggle(
+      "stx-shell-ai-console-gear",
+      "stx-shell-ai-console-config",
+    );
   }
 
   private setupGearToggle(btnId: string, popoverId: string): void {
@@ -431,9 +450,13 @@ class GlobalAIChat {
   }
 
   private initConsoleMode(): void {
-    const containerEl = document.getElementById("stx-shell-ai-console-terminal");
+    const containerEl = document.getElementById(
+      "stx-shell-ai-console-terminal",
+    );
     const statusEl = document.getElementById("stx-shell-ai-console-status");
-    const tabsListEl = document.getElementById("stx-shell-ai-console-tabs-list");
+    const tabsListEl = document.getElementById(
+      "stx-shell-ai-console-tabs-list",
+    );
     if (!containerEl) return;
     if (!this.consoleMode) this.consoleMode = new AIPanelConsoleMode();
     const toolbar = {
