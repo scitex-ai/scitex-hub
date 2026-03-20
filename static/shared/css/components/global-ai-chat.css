@@ -18,6 +18,6 @@
 @import url("global-ai-chat/11-markdown.css");
 @import url("global-ai-chat/12-sessions.css");
 @import url("global-ai-chat/13-print.css");
-@import url("global-ai-chat/14-config-mode.css");
+/* 14-config-mode.css — now imported from scitex-ui via Vite (global-ai-chat.ts) */
 @import url("global-ai-chat/15-sketch-canvas.css");
 @import url("global-ai-chat/16-tab-config.css");
