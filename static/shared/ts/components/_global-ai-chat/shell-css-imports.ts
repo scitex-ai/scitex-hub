@@ -31,3 +31,5 @@ import "scitex-ui/css/shell/ai-panel/10-print.css";
 import "scitex-ui/css/shell/ai-panel/11-markdown.css";
 // @ts-ignore
 import "scitex-ui/css/shell/ai-panel/12-sketch-canvas.css";
+// @ts-ignore
+import "scitex-ui/css/shell/ai-panel/13-terminal-media.css";
