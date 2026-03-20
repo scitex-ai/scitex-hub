@@ -4,11 +4,7 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'workspace_app/css/workspace-shell.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/workspace-files-tree.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/stx-shell-sidebar.css' %}" />
-    <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
+    <!-- Shell CSS: now loaded globally via scitex-ui Vite imports -->
 {% endblock %}
 {% block content %}
     <div class="workspace-shell"
@@ -33,7 +29,8 @@
                             top:0;
                             bottom:0;
                             z-index:1"></div>
-                <div class="stx-shell-sidebar__header stx-shell-ai-panel-header" id="stx-shell-ai-panel-header">
+                <div class="stx-shell-sidebar__header stx-shell-ai-panel-header"
+                     id="stx-shell-ai-panel-header">
                     <button class="panel-toggle-btn" id="stx-shell-ai-toggle" title="AI Chat (Alt+A)">
                         <i class="fas fa-chevron-right"></i>
                     </button>
@@ -42,10 +39,14 @@
                         <span id="stx-shell-ai-model-badge" class="stx-shell-ai-model-badge"></span>
                     </span>
                     <div class="stx-shell-ai-panel-actions">
-                        <button id="stx-shell-ai-speak" class="stx-shell-ai-action-btn" title="Toggle auto-speak">
+                        <button id="stx-shell-ai-speak"
+                                class="stx-shell-ai-action-btn"
+                                title="Toggle auto-speak">
                             <i class="fas fa-volume-up"></i>
                         </button>
-                        <button id="stx-shell-ai-clear" class="stx-shell-ai-action-btn" title="Clear conversation">
+                        <button id="stx-shell-ai-clear"
+                                class="stx-shell-ai-action-btn"
+                                title="Clear conversation">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>

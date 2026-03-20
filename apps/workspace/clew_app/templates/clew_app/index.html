@@ -7,14 +7,7 @@
     {% if current_project %}- {{ current_project.name }}{% endif %}
 {% endblock %}
 {% block extra_css %}
-    <!-- Shared workspace components -->
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/workspace-files-tree.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/stx-shell-sidebar.css' %}" />
-    <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/workspace-files-tree/hidden-files-toggle.css' %}" />
+    <!-- Shell CSS: now loaded globally via scitex-ui Vite imports -->
     <!-- Clew specific styles -->
     <link rel="stylesheet" href="{% static 'clew_app/css/clew.css' %}" />
 {% endblock %}
