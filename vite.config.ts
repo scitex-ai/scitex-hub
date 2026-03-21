@@ -14,6 +14,17 @@ function discoverScitexUiStatic(): string | null {
   if (process.env.SCITEX_UI_STATIC) {
     return process.env.SCITEX_UI_STATIC;
   }
+
+  // Prefer .apps/scitex-ui (has node_modules for npm deps like mermaid)
+  // then sibling ../scitex-ui, then pip-installed location
+  const candidates = [
+    resolve(__dirname, ".apps/scitex-ui/src/scitex_ui/static/scitex_ui"),
+    resolve(__dirname, "../scitex-ui/src/scitex_ui/static/scitex_ui"),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
+
   try {
     return execSync(
       'python3 -c "import scitex_ui; print(scitex_ui.get_static_dir())"',
