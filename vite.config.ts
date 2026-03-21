@@ -50,53 +50,59 @@ function discoverAppBridges(rootDir: string): {
   const fsAllow: string[] = [];
   const excludePatterns: RegExp[] = [];
   const bridges: AppBridgeInfo[] = [];
-  const parentDir = resolve(rootDir, "..");
 
-  if (!fs.existsSync(parentDir))
+  // Scan both sibling directories (local dev) and .apps/ (Docker/CI fallback)
+  const searchDirs = [resolve(rootDir, ".."), resolve(rootDir, ".apps")].filter(
+    (d) => fs.existsSync(d),
+  );
+
+  if (searchDirs.length === 0)
     return { aliases, fsAllow, excludePatterns, bridges };
 
-  for (const entry of fs.readdirSync(parentDir)) {
-    if (entry.startsWith(".") || entry === path.basename(rootDir)) continue;
-    const repoDir = resolve(parentDir, entry);
-    try {
-      if (!fs.statSync(repoDir).isDirectory()) continue;
-    } catch {
-      continue;
-    }
-
-    // Derive Python package name from repo name (e.g. "figrecipe" → "figrecipe")
-    const pkgName = entry.replace(/-/g, "_");
-
-    // Look for manifest.json in _django/ subdirectory
-    const manifestPaths = [
-      resolve(repoDir, `src/${pkgName}/_django/manifest.json`),
-      resolve(repoDir, "manifest.json"),
-    ];
-
-    for (const mp of manifestPaths) {
-      if (!fs.existsSync(mp)) continue;
+  for (const parentDir of searchDirs) {
+    for (const entry of fs.readdirSync(parentDir)) {
+      if (entry.startsWith(".") || entry === path.basename(rootDir)) continue;
+      const repoDir = resolve(parentDir, entry);
       try {
-        const manifest = JSON.parse(fs.readFileSync(mp, "utf-8"));
-        if (!manifest.bridge?.entry) continue;
-
-        const slug = manifest.slug || pkgName;
-        const appName = manifest.name || `${pkgName}_app`;
-        const djangoDir = path.dirname(mp);
-        const frontendSrc = resolve(djangoDir, "frontend", "src");
-
-        if (!fs.existsSync(frontendSrc)) continue;
-
-        // Add Vite alias: "{slug}-editor" → frontend source
-        aliases[`${slug}-editor`] = frontendSrc;
-        fsAllow.push(repoDir);
-        excludePatterns.push(new RegExp(slug));
-        bridges.push({ slug, appName, repoDir, frontendSrc });
-        break;
+        if (!fs.statSync(repoDir).isDirectory()) continue;
       } catch {
-        /* skip invalid manifests */
+        continue;
+      }
+
+      // Derive Python package name from repo name (e.g. "figrecipe" → "figrecipe")
+      const pkgName = entry.replace(/-/g, "_");
+
+      // Look for manifest.json in _django/ subdirectory
+      const manifestPaths = [
+        resolve(repoDir, `src/${pkgName}/_django/manifest.json`),
+        resolve(repoDir, "manifest.json"),
+      ];
+
+      for (const mp of manifestPaths) {
+        if (!fs.existsSync(mp)) continue;
+        try {
+          const manifest = JSON.parse(fs.readFileSync(mp, "utf-8"));
+          if (!manifest.bridge?.entry) continue;
+
+          const slug = manifest.slug || pkgName;
+          const appName = manifest.name || `${pkgName}_app`;
+          const djangoDir = path.dirname(mp);
+          const frontendSrc = resolve(djangoDir, "frontend", "src");
+
+          if (!fs.existsSync(frontendSrc)) continue;
+
+          // Add Vite alias: "{slug}-editor" → frontend source
+          aliases[`${slug}-editor`] = frontendSrc;
+          fsAllow.push(repoDir);
+          excludePatterns.push(new RegExp(slug));
+          bridges.push({ slug, appName, repoDir, frontendSrc });
+          break;
+        } catch {
+          /* skip invalid manifests */
+        }
       }
     }
-  }
+  } // end searchDirs loop
 
   return { aliases, fsAllow, excludePatterns, bridges };
 }

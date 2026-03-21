@@ -118,46 +118,50 @@ function discoverPipEntries(rootDir: string): Record<string, string> {
  */
 function discoverBridgeEntries(rootDir: string): Record<string, string> {
   const entries: Record<string, string> = {};
-  const parentDir = resolve(rootDir, "..");
 
-  if (!fs.existsSync(parentDir)) return entries;
+  // Scan both sibling directories (local dev) and .apps/ (Docker/CI fallback)
+  const searchDirs = [resolve(rootDir, ".."), resolve(rootDir, ".apps")].filter(
+    (d) => fs.existsSync(d),
+  );
 
-  for (const entry of fs.readdirSync(parentDir)) {
-    if (entry.startsWith(".") || entry === path.basename(rootDir)) continue;
-    const repoDir = resolve(parentDir, entry);
-    try {
-      if (!fs.statSync(repoDir).isDirectory()) continue;
-    } catch {
-      continue;
-    }
-
-    const pkgName = entry.replace(/-/g, "_");
-    const manifestPaths = [
-      resolve(repoDir, `src/${pkgName}/_django/manifest.json`),
-      resolve(repoDir, "manifest.json"),
-    ];
-
-    for (const mp of manifestPaths) {
-      if (!fs.existsSync(mp)) continue;
+  for (const parentDir of searchDirs) {
+    for (const entry of fs.readdirSync(parentDir)) {
+      if (entry.startsWith(".") || entry === path.basename(rootDir)) continue;
+      const repoDir = resolve(parentDir, entry);
       try {
-        const manifest = JSON.parse(fs.readFileSync(mp, "utf-8"));
-        if (!manifest.bridge?.entry) continue;
-
-        const slug = manifest.slug || pkgName;
-        const appName = manifest.name || `${pkgName}_app`;
-        const djangoDir = path.dirname(mp);
-        const bridgeEntry = resolve(
-          djangoDir,
-          "frontend",
-          manifest.bridge.entry,
-        );
-
-        if (fs.existsSync(bridgeEntry)) {
-          entries[`${appName}/${slug}-bridge-init`] = bridgeEntry;
-        }
-        break;
+        if (!fs.statSync(repoDir).isDirectory()) continue;
       } catch {
-        /* skip invalid manifests */
+        continue;
+      }
+
+      const pkgName = entry.replace(/-/g, "_");
+      const manifestPaths = [
+        resolve(repoDir, `src/${pkgName}/_django/manifest.json`),
+        resolve(repoDir, "manifest.json"),
+      ];
+
+      for (const mp of manifestPaths) {
+        if (!fs.existsSync(mp)) continue;
+        try {
+          const manifest = JSON.parse(fs.readFileSync(mp, "utf-8"));
+          if (!manifest.bridge?.entry) continue;
+
+          const slug = manifest.slug || pkgName;
+          const appName = manifest.name || `${pkgName}_app`;
+          const djangoDir = path.dirname(mp);
+          const bridgeEntry = resolve(
+            djangoDir,
+            "frontend",
+            manifest.bridge.entry,
+          );
+
+          if (fs.existsSync(bridgeEntry)) {
+            entries[`${appName}/${slug}-bridge-init`] = bridgeEntry;
+          }
+          break;
+        } catch {
+          /* skip invalid manifests */
+        }
       }
     }
   }

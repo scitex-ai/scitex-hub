@@ -15,6 +15,12 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 PARENT_DIR="$(cd "$PROJECT_ROOT/.." && pwd)"
 REGISTRY="$PROJECT_ROOT/.scitex-apps.json"
 
+# In Docker, PARENT_DIR is / (not writable). Fall back to .apps/ inside project.
+if [[ "$PARENT_DIR" == "/" ]] || [[ ! -w "$PARENT_DIR" ]]; then
+    PARENT_DIR="$PROJECT_ROOT/.apps"
+    mkdir -p "$PARENT_DIR"
+fi
+
 FORCE_CLONE=false
 if [[ "${1:-}" == "--clone" ]]; then
     FORCE_CLONE=true
