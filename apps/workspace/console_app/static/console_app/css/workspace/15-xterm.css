@@ -1,7 +1,11 @@
-/* XTerm.js terminal container - add margin around terminal output */
-.terminal-body .terminal.xterm {
-  padding: 16px; /* Add padding to create margins around terminal content */
-  margin: 0;
+/* XTerm.js terminal container — use margin, not padding.
+   padding on .xterm breaks cursor click-to-position calculations
+   because xterm.js measures character cells without accounting for CSS padding.
+   line-height must be normal so xterm-char-measure-element computes correct cell height. */
+.terminal.xterm {
+  padding: 0;
+  margin: 8px; /* Visual spacing around terminal without breaking cursor math */
+  line-height: normal; /* Prevent inherited line-height from breaking character cell metrics */
 }
 
 /* XTerm.js viewport - the actual terminal rendering area */

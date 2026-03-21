@@ -51,6 +51,9 @@ _PLATFORM_APPS = frozenset(
 # Cache manifest in production
 _manifest_cache = None
 
+# Cache name→entry reverse index for manifest lookups
+_manifest_name_index: dict | None = None
+
 # Cache app group lookups (workspace/ vs infra/)
 _app_group_cache: dict = {}
 
@@ -96,6 +99,24 @@ def get_manifest() -> dict:
         _manifest_cache = {}
 
     return _manifest_cache
+
+
+def _get_manifest_by_name(name: str) -> dict | None:
+    """Look up a manifest entry by its 'name' field.
+
+    Vite manifest keys are source file paths (e.g. '../figrecipe/src/...').
+    For external packages, _entry_to_ts_path won't match the key.
+    This uses the 'name' field that Vite sets from rollupOptions.output.entryFileNames.
+    """
+    global _manifest_name_index
+    manifest = get_manifest()
+    if _manifest_name_index is None:
+        _manifest_name_index = {}
+        for _key, entry in manifest.items():
+            entry_name = entry.get("name")
+            if entry_name:
+                _manifest_name_index[entry_name] = entry
+    return _manifest_name_index.get(name)
 
 
 @register.simple_tag
@@ -167,8 +188,11 @@ def vite_script(entry_name: str):
         manifest = get_manifest()
         ts_path = _entry_to_ts_path(entry_name)
 
-        if ts_path in manifest:
-            entry = manifest[ts_path]
+        # Look up by ts_path key first, then fall back to name-based index
+        # (external packages like figrecipe have non-standard manifest keys)
+        entry = manifest.get(ts_path) or _get_manifest_by_name(entry_name)
+
+        if entry:
             js_file = entry["file"]
             tags = ""
             # Collect CSS from this entry AND all its imports (transitive)
@@ -188,7 +212,7 @@ def vite_script(entry_name: str):
             import logging
 
             logging.getLogger(__name__).error(
-                f"Vite entry '{entry_name}' not found in manifest"
+                f"Vite entry '{entry_name}' not found in manifest (tried ts_path='{ts_path}' and name='{entry_name}')"
             )
             return ""
 

@@ -32,7 +32,7 @@
   font-size: 13px;
   padding: 0; /* Remove padding from container, add to xterm instead */
   overflow-y: auto;
-  line-height: 1.5;
+  line-height: normal; /* xterm.js computes its own line-height; overriding breaks cursor alignment */
   cursor: text;
   user-select: text; /* Allow text selection */
   min-height: 0; /* Allow proper flex sizing */

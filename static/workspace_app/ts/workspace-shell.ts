@@ -6,15 +6,25 @@
 
 const STORAGE_KEY = "ws-active-module";
 const DEFAULT_MODULE = "writer";
-const KNOWN_MODULES = [
-  "writer",
-  "scholar",
-  "vis",
-  "console",
-  "clew",
-  "hub",
-  "tools",
-];
+const CONTENT_BASE = "/apps/workspace/content/";
+
+/** Read module names from the DOM data attribute set by the registry context processor. */
+function getKnownModules(): string[] {
+  const nav = document.querySelector("[data-workspace-modules]");
+  if (nav) {
+    const csv = (nav as HTMLElement).dataset.workspaceModules ?? "";
+    if (csv) return csv.split(",");
+  }
+  // Fallback: use data-module attributes on tab buttons
+  const names: string[] = [];
+  document.querySelectorAll(".module-tab-btn").forEach((btn) => {
+    const mod = (btn as HTMLElement).dataset.module;
+    if (mod) names.push(mod);
+  });
+  return names;
+}
+
+let KNOWN_MODULES: string[] = [];
 
 async function switchModule(name: string): Promise<void> {
   const pane = document.getElementById("ws-module-pane");
@@ -26,7 +36,7 @@ async function switchModule(name: string): Promise<void> {
   pane.style.opacity = "0.5";
 
   try {
-    const resp = await fetch(`/workspace/content/${name}/`, {
+    const resp = await fetch(`${CONTENT_BASE}${name}/`, {
       headers: { "X-Workspace-Shell": "1" },
       credentials: "same-origin",
     });
@@ -97,7 +107,7 @@ function initTabBar(): void {
     btn.addEventListener("click", (e) => {
       const href = (btn as HTMLAnchorElement).href ?? "";
       // Detect module name from href pattern /<module>/
-      const match = href.match(/\/([a-z]+)\/?$/);
+      const match = href.match(/\/([a-z0-9_-]+)\/?(?:\?.*)?$/i);
       if (!match) return;
       const module = match[1];
       if (KNOWN_MODULES.includes(module)) {
@@ -109,8 +119,8 @@ function initTabBar(): void {
 }
 
 function getInitialModule(): string {
-  // 1. From URL path: /workspace/<module>/
-  const pathMatch = location.pathname.match(/\/workspace\/([a-z]+)\/?$/);
+  // 1. From URL path: /apps/workspace/<module>/ or /workspace/<module>/
+  const pathMatch = location.pathname.match(/\/workspace\/([a-z0-9_-]+)\/?$/i);
   if (pathMatch) return pathMatch[1];
   // 2. From localStorage
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -120,6 +130,7 @@ function getInitialModule(): string {
 }
 
 function init(): void {
+  KNOWN_MODULES = getKnownModules();
   initTabBar();
   const module = getInitialModule();
   void switchModule(module);
