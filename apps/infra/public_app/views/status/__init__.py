@@ -24,6 +24,7 @@ from .api import (
     visitor_resources_api,
 )
 from .charts import render_metric_chart
+from .public_status import public_status_api, public_status_view
 from .server import server_status
 from .visitor import (
     visitor_expired,
@@ -37,6 +38,8 @@ from .visitor import (
 )
 
 __all__ = [
+    "public_status_view",
+    "public_status_api",
     "server_status",
     "server_status_api",
     "healthz",

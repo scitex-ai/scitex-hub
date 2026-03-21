@@ -1,0 +1,267 @@
+/* Public Status Page — clean, minimal, dark theme */
+
+:root {
+  --ps-bg: #0d1117;
+  --ps-surface: #161b22;
+  --ps-border: #30363d;
+  --ps-text: #e6edf3;
+  --ps-text-muted: #8b949e;
+  --ps-green: #3fb950;
+  --ps-yellow: #d29922;
+  --ps-red: #f85149;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.hidden {
+  display: none;
+}
+
+body {
+  background: var(--ps-bg);
+  color: var(--ps-text);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.status-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* Header */
+.status-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.status-logo-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--ps-text);
+}
+
+.status-logo {
+  height: 32px;
+  width: auto;
+}
+
+.status-logo-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ps-text);
+}
+
+.status-title {
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: var(--ps-text-muted);
+}
+
+/* Overall Banner */
+.status-banner {
+  padding: 1.25rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.status-banner--operational {
+  background: rgba(63, 185, 80, 0.12);
+  border: 1px solid rgba(63, 185, 80, 0.3);
+  color: var(--ps-green);
+}
+
+.status-banner--degraded {
+  background: rgba(210, 153, 34, 0.12);
+  border: 1px solid rgba(210, 153, 34, 0.3);
+  color: var(--ps-yellow);
+}
+
+.status-banner--down {
+  background: rgba(248, 81, 73, 0.12);
+  border: 1px solid rgba(248, 81, 73, 0.3);
+  color: var(--ps-red);
+}
+
+.status-banner-icon {
+  font-size: 1.3rem;
+}
+
+/* Services */
+.status-services {
+  background: var(--ps-surface);
+  border: 1px solid var(--ps-border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.status-service-row {
+  display: flex;
+  align-items: center;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid var(--ps-border);
+}
+
+.status-service-row:last-child {
+  border-bottom: none;
+}
+
+.status-service-name {
+  flex: 1;
+  font-size: 0.95rem;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+.status-dot--operational {
+  background: var(--ps-green);
+  box-shadow: 0 0 6px rgba(63, 185, 80, 0.4);
+}
+
+.status-dot--degraded {
+  background: var(--ps-yellow);
+  box-shadow: 0 0 6px rgba(210, 153, 34, 0.4);
+}
+
+.status-dot--down {
+  background: var(--ps-red);
+  box-shadow: 0 0 6px rgba(248, 81, 73, 0.4);
+}
+
+.status-service-label {
+  font-size: 0.85rem;
+  min-width: 80px;
+  text-align: right;
+}
+
+.status-service-label--operational {
+  color: var(--ps-green);
+}
+
+.status-service-label--degraded {
+  color: var(--ps-yellow);
+}
+
+.status-service-label--down {
+  color: var(--ps-red);
+}
+
+/* Section Titles */
+.status-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--ps-text);
+}
+
+/* Uptime */
+.status-uptime {
+  margin-bottom: 2rem;
+}
+
+.status-uptime-bar {
+  display: flex;
+  gap: 2px;
+  height: 32px;
+  margin-bottom: 0.25rem;
+}
+
+.status-uptime-day {
+  flex: 1;
+  border-radius: 3px;
+  min-width: 4px;
+}
+
+.status-uptime-day--operational {
+  background: var(--ps-green);
+}
+
+.status-uptime-day--degraded {
+  background: var(--ps-yellow);
+}
+
+.status-uptime-day--down {
+  background: var(--ps-red);
+}
+
+.status-uptime-labels {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 0.8rem;
+  color: var(--ps-text-muted);
+}
+
+/* Incidents */
+.status-incidents {
+  margin-bottom: 2rem;
+}
+
+.status-incidents-empty {
+  color: var(--ps-text-muted);
+  font-size: 0.9rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--ps-border);
+}
+
+/* Footer */
+.status-footer {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ps-border);
+  font-size: 0.85rem;
+  color: var(--ps-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.status-footer a {
+  color: var(--ps-text-muted);
+  text-decoration: underline;
+}
+
+.status-footer a:hover {
+  color: var(--ps-text);
+}
+
+.status-footer-sep {
+  color: var(--ps-border);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .status-container {
+    padding: 1rem;
+  }
+
+  .status-banner {
+    font-size: 1rem;
+    padding: 1rem;
+  }
+
+  .status-service-row {
+    padding: 0.75rem 1rem;
+  }
+}

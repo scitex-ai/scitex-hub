@@ -65,6 +65,7 @@ urlpatterns = [
         name="api_docs_section_legacy",
     ),
     # Status pages
+    path("status/", views.public_status_view, name="public-status"),
     path("server-status/", views.server_status, name="server_status"),
     path("healthz/", views.healthz, name="healthz"),
     path("visitor-status/", views.visitor_status, name="visitor_status"),
