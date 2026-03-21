@@ -132,11 +132,12 @@ def vite_hmr_client():
     scripts = ""
 
     if settings.DEBUG:
+        vite_host = getattr(settings, "VITE_HOST_IP", "127.0.0.1")
         host_port = getattr(settings, "VITE_HOST_PORT", 5173)
-        scripts += f'<script type="module" src="http://127.0.0.1:{host_port}/@vite/client"></script>\n'
+        scripts += f'<script type="module" src="http://{vite_host}:{host_port}/@vite/client"></script>\n'
         # Dev app Vite HMR — direct access in dev
         dev_port = getattr(settings, "VITE_DEV_APP_PORT", 5174)
-        scripts += f'<script type="module" src="http://127.0.0.1:{dev_port}/@vite/client" onerror=""></script>'
+        scripts += f'<script type="module" src="http://{vite_host}:{dev_port}/@vite/client" onerror=""></script>'
     else:
         # Production: dev app Vite HMR through nginx proxy
         scripts += '<script type="module" src="/_vite_dev_app/@vite/client" onerror=""></script>'
@@ -164,11 +165,12 @@ def vite_script(entry_name: str):
         entry_name: Entry name like 'console_app/workspace'
     """
     # Dev app entries use container Vite — works in dev and prod
+    vite_host = getattr(settings, "VITE_HOST_IP", "127.0.0.1")
     if _is_dev_app_entry(entry_name):
         if settings.DEBUG:
             port = getattr(settings, "VITE_DEV_APP_PORT", 5174)
             return mark_safe(
-                f'<script type="module" src="http://127.0.0.1:{port}/{entry_name}.ts"></script>'
+                f'<script type="module" src="http://{vite_host}:{port}/{entry_name}.ts"></script>'
             )
         else:
             # Production: through nginx proxy
@@ -182,7 +184,7 @@ def vite_script(entry_name: str):
         ts_path = _entry_to_ts_path(entry_name)
         port = getattr(settings, "VITE_HOST_PORT", 5173)
         return mark_safe(
-            f'<script type="module" src="http://127.0.0.1:{port}/{ts_path}"></script>'
+            f'<script type="module" src="http://{vite_host}:{port}/{ts_path}"></script>'
         )
     else:
         # Production: Load from Vite manifest

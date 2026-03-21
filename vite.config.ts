@@ -206,7 +206,8 @@ export default defineConfig({
     strictPort: true,
     hmr: {
       port: 5173,
-      host: "127.0.0.1",
+      // No host specified — Vite auto-detects from the page URL.
+      // This allows LAN access (iPhone dev testing via Windows IP).
     },
     cors: true,
     watch: {
