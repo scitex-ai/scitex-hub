@@ -45,6 +45,7 @@ _PLATFORM_APPS = frozenset(
         "organizations_app",
         "discovery_app",
         "shared",
+        "scitex_ui",
     }
 )
 
@@ -283,6 +284,18 @@ def _entry_to_ts_path(entry_name: str) -> str:
         # Shared: "shared/{path}" -> "static/shared/ts/{path}.ts"
         if app_name == "shared":
             return f"static/shared/ts/{rest}.ts"
+
+        # Pip-installed packages: resolve via importlib to find static/ts path
+        try:
+            import importlib
+
+            mod = importlib.import_module(app_name)
+            pkg_dir = Path(mod.__file__).parent
+            ts_path = pkg_dir / "static" / app_name / "ts" / f"{rest}.ts"
+            if ts_path.exists():
+                return str(ts_path.relative_to(Path(settings.BASE_DIR).parent))
+        except (ImportError, ValueError, TypeError):
+            pass
 
     # Last resort
     return f"{entry_name}.ts"
