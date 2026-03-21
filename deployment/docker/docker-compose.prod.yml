@@ -53,6 +53,7 @@ services:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
       - scitex_config_volume:/app/.scitex
+      - apps_volume:/app/.apps
       # scitex-code for citation_graph module (until published to PyPI)
       - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
       # scitex-container (host-mounted, not on PyPI)
@@ -147,6 +148,7 @@ services:
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
+      - apps_volume:/app/.apps
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
       - ../../deployment/singularity:/app/singularity:ro
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
@@ -191,6 +193,7 @@ services:
     entrypoint: ["/entrypoint.sh"]
     command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
     volumes:
+      - apps_volume:/app/.apps
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
     env_file:
       - ./envs/.env.prod
@@ -331,4 +334,6 @@ services:
 # ============================================
 volumes:
   scitex_config_volume:
+    driver: local
+  apps_volume:
     driver: local
