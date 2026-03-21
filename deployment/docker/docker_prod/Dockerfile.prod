@@ -385,6 +385,7 @@ RUN uv pip install --system --no-cache --upgrade \
     "scitex-plt" \
     "scitex-writer" \
     "scitex-linter" \
+    "scitex-ui" \
     "openalex-local" \
     "crossref-local"
 

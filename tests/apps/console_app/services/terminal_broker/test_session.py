@@ -54,8 +54,12 @@ class TestBasePTYInitialState:
 class TestBasePTYSpawn:
     """BasePTY.spawn forks a PTY and transitions to RUNNING."""
 
+    @patch(
+        "apps.workspace.console_app.services.terminal_broker.session.select.select",
+        side_effect=OSError("mocked fd"),
+    )
     @patch("apps.workspace.console_app.services.terminal_broker.session.pty.fork")
-    def test_spawn_sets_running(self, mock_fork):
+    def test_spawn_sets_running(self, mock_fork, mock_select):
         mock_fork.return_value = (1234, 5)  # parent: pid=1234, fd=5
         pty = BasePTY(pty_id="test-id", username="alice")
         # Provide _exec_in_child so it doesn't raise
@@ -66,8 +70,12 @@ class TestBasePTYSpawn:
         assert pty.pid == 1234
         assert pty.fd == 5
 
+    @patch(
+        "apps.workspace.console_app.services.terminal_broker.session.select.select",
+        side_effect=OSError("mocked fd"),
+    )
     @patch("apps.workspace.console_app.services.terminal_broker.session.pty.fork")
-    def test_spawn_increments_count(self, mock_fork):
+    def test_spawn_increments_count(self, mock_fork, mock_select):
         mock_fork.return_value = (1234, 5)
         pty = BasePTY(pty_id="test-id", username="alice")
         pty._exec_in_child = MagicMock()
@@ -84,8 +92,12 @@ class TestBasePTYSpawn:
         assert result is False
         assert pty.state == SessionState.DEAD
 
+    @patch(
+        "apps.workspace.console_app.services.terminal_broker.session.select.select",
+        side_effect=OSError("mocked fd"),
+    )
     @patch("apps.workspace.console_app.services.terminal_broker.session.pty.fork")
-    def test_running_property_true_when_spawned(self, mock_fork):
+    def test_running_property_true_when_spawned(self, mock_fork, mock_select):
         mock_fork.return_value = (1234, 5)
         pty = BasePTY(pty_id="test-id", username="alice")
         pty._exec_in_child = MagicMock()
@@ -183,12 +195,16 @@ class TestBasePTYScrollback:
 class TestBasePTYRespawn:
     """BasePTY.respawn cleans up old PTY and spawns new one."""
 
+    @patch(
+        "apps.workspace.console_app.services.terminal_broker.session.select.select",
+        side_effect=OSError("mocked fd"),
+    )
     @patch("apps.workspace.console_app.services.terminal_broker.session.pty.fork")
     @patch("apps.workspace.console_app.services.terminal_broker.session.os.close")
     @patch("apps.workspace.console_app.services.terminal_broker.session.os.waitpid")
     @patch("apps.workspace.console_app.services.terminal_broker.session.os.kill")
     def test_respawn_cleans_up_and_spawns(
-        self, mock_kill, mock_waitpid, mock_close, mock_fork
+        self, mock_kill, mock_waitpid, mock_close, mock_fork, mock_select
     ):
         mock_fork.return_value = (5678, 9)
         pty = BasePTY(pty_id="test-id", username="alice")

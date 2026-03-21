@@ -185,7 +185,7 @@ class TestShellReattachment:
         # Should write cd command for project change
         existing_shell.write.assert_called()
         cd_call = existing_shell.write.call_args[0][0]
-        assert b"cd /home/alice/proj/new-proj" in cd_call
+        assert b"/home/alice/proj/new-proj" in cd_call
 
 
 # ---------------------------------------------------------------------------
@@ -266,10 +266,11 @@ class TestAllocationCooldown:
         broker = _make_broker()
         client = MagicMock()
 
-        # Simulate recent failure — _hard_fail_info stores (timestamp, reason) tuples
+        # Simulate recent failure — _hard_fail_info stores (timestamp, reason, fail_count) tuples
         mock_fail_info.get.return_value = (
             time.time() - 5,
             "SLURM allocation failed",
+            1,
         )  # 5s ago
 
         msg = {
