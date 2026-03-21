@@ -11,65 +11,62 @@
               href="{% static 'public_app/images/favicon.ico' %}"
               type="image/x-icon" />
     </head>
-    <body>
+    <body data-status-api-url="{% url 'public_app:public-status-api' %}">
         <div class="status-container">
             <!-- Header -->
             <header class="status-header">
-                <a href="/" class="status-logo-link">
-                    <img src="{% static 'public_app/images/scitex-logo-white.svg' %}"
-                         alt="SciTeX"
-                         class="status-logo"
-                         onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" />
-                    <span class="status-logo-text hidden">SciTeX</span>
-                </a>
-                <h1 class="status-title">Status</h1>
+                <div class="status-header-left">
+                    <a href="/" class="status-logo-link">
+                        <span class="status-logo-text">SciTeX</span>
+                    </a>
+                    <h1 class="status-title">Status</h1>
+                </div>
             </header>
             <!-- Overall Status Banner -->
             <div class="status-banner status-banner--{{ status.overall }}" id="overall-banner">
                 {% if status.overall == "operational" %}
-                    <span class="status-banner-icon">&#10003;</span>
                     All Systems Operational
                 {% elif status.overall == "degraded" %}
-                    <span class="status-banner-icon">&#9888;</span>
                     Partial System Outage
                 {% else %}
-                    <span class="status-banner-icon">&#10007;</span>
                     Major System Outage
                 {% endif %}
             </div>
-            <!-- Services List -->
-            <section class="status-services">
+            <!-- Uptime header -->
+            <div class="status-uptime-header">Uptime over the past 90 days.</div>
+            <!-- Services with 90-day uptime bars -->
+            <section class="status-services" id="services-section">
                 {% for svc in status.services %}
                     <div class="status-service-row">
-                        <span class="status-service-name">{{ svc.name }}</span>
-                        <span class="status-dot status-dot--{{ svc.status }}"
-                              title="{{ svc.status }}{% if svc.detail %}: {{ svc.detail }}{% endif %}"></span>
-                        <span class="status-service-label status-service-label--{{ svc.status }}">
-                            {% if svc.status == "operational" %}
-                                Operational
-                            {% elif svc.status == "degraded" %}
-                                Degraded
-                            {% else %}
-                                Down
-                            {% endif %}
-                        </span>
+                        <div class="status-service-header">
+                            <span class="status-service-name">{{ svc.name }}</span>
+                            <span class="status-service-label status-service-label--{{ svc.status }}">
+                                {% if svc.status == "operational" %}
+                                    Operational
+                                {% elif svc.status == "degraded" %}
+                                    Degraded
+                                {% else %}
+                                    Down
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="status-uptime-bar">
+                            {% for day in svc.uptime_days %}
+                                <div class="status-uptime-day status-uptime-day--{{ day }}"
+                                     title="Day {{ forloop.counter }}"></div>
+                            {% endfor %}
+                        </div>
+                        <div class="status-uptime-labels">
+                            <span>90 days ago</span>
+                            <span>{{ svc.uptime_pct }}% uptime</span>
+                            <span>Today</span>
+                        </div>
                     </div>
                 {% endfor %}
             </section>
-            <!-- Uptime placeholder -->
-            <section class="status-uptime">
-                <h2 class="status-section-title">Uptime</h2>
-                <div class="status-uptime-bar">
-                    <div class="status-uptime-day status-uptime-day--{{ status.overall }}"
-                         title="Today: {{ status.overall }}"></div>
-                </div>
-                <div class="status-uptime-labels">
-                    <span>Today</span>
-                </div>
-            </section>
-            <!-- Recent Incidents -->
+            <!-- Past Incidents -->
             <section class="status-incidents">
-                <h2 class="status-section-title">Recent Incidents</h2>
+                <h2 class="status-section-title">Past Incidents</h2>
                 <p class="status-incidents-empty">No incidents reported.</p>
             </section>
             <!-- Footer -->
@@ -79,46 +76,6 @@
                 <a href="/server-status/">Detailed Status</a>
             </footer>
         </div>
-        <script>
-    (function() {
-        var REFRESH_MS = 60000;
-        function refresh() {
-            fetch("{% url 'public_app:public-status-api' %}")
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    var banner = document.getElementById("overall-banner");
-                    banner.className = "status-banner status-banner--" + data.overall;
-                    if (data.overall === "operational") {
-                        banner.innerHTML = '<span class="status-banner-icon">&#10003;</span> All Systems Operational';
-                    } else if (data.overall === "degraded") {
-                        banner.innerHTML = '<span class="status-banner-icon">&#9888;</span> Partial System Outage';
-                    } else {
-                        banner.innerHTML = '<span class="status-banner-icon">&#10007;</span> Major System Outage';
-                    }
-
-                    var section = document.querySelector(".status-services");
-                    var html = "";
-                    data.services.forEach(function(svc) {
-                        var label = svc.status === "operational" ? "Operational"
-                                  : svc.status === "degraded" ? "Degraded" : "Down";
-                        var title = svc.status;
-                        if (svc.detail) title += ": " + svc.detail;
-                        html += '<div class="status-service-row">'
-                             +  '<span class="status-service-name">' + svc.name + '</span>'
-                             +  '<span class="status-dot status-dot--' + svc.status + '" title="' + title + '"></span>'
-                             +  '<span class="status-service-label status-service-label--' + svc.status + '">' + label + '</span>'
-                             +  '</div>';
-                    });
-                    section.innerHTML = html;
-
-                    document.getElementById("checked-at").textContent = data.checked_at;
-                })
-                .catch(function(err) {
-                    console.error("Status refresh failed:", err);
-                });
-        }
-        setInterval(refresh, REFRESH_MS);
-    })();
-        </script>
+        <script src="{% static 'public_app/js/public-status.js' %}"></script>
     </body>
 </html>
