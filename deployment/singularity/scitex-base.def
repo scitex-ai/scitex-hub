@@ -22,6 +22,9 @@ From: python:3.11-slim
     echo "Building SciTeX Base Container (Stage 1)"
     echo "============================================"
 
+    # Force IPv4 for apt (IPv6 unreachable on some networks)
+    echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+
     # Update package lists
     apt-get update
 
