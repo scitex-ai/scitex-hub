@@ -24,3 +24,7 @@ import "scitex-ui/css/shell/workspace-viewer-preview.css";
 // Workspace files tree
 // @ts-ignore
 import "scitex-ui/css/shell/workspace-files-tree.css";
+
+// Mobile workspace layout (swipe navigation, bottom tab bar)
+// @ts-ignore
+import "scitex-ui/css/shell/mobile.css";
