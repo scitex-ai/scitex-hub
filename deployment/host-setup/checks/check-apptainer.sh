@@ -74,9 +74,15 @@ if [ -L "$CONTAINER_PATH" ] && [ -d "$CONTAINER_PATH" ]; then
 
     # Prod: check scitex user can read it
     if echo "$RUNNING" | grep -q "prod"; then
-        if ! sudo -u scitex test -r "$CONTAINER_PATH" 2>/dev/null; then
-            echo -e "  ${RED}[FAIL] Sandbox not readable by scitex${NC}"
-            CONTAINER_OK=false
+        if ! sudo -n -u scitex test -r "$CONTAINER_PATH" 2>/dev/null; then
+            # Check if it was a sudo auth failure vs actual permission issue
+            if ! sudo -n true 2>/dev/null; then
+                echo -e "  ${YELLOW}[WARN] Cannot check scitex read permission (sudo not cached)${NC}"
+                echo -e "    Run: sudo -v && make ENV=prod status"
+            else
+                echo -e "  ${RED}[FAIL] Sandbox not readable by scitex${NC}"
+                CONTAINER_OK=false
+            fi
         fi
     fi
 elif [ -d "$CONTAINER_PATH" ]; then
