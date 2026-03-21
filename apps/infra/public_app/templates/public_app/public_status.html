@@ -1,0 +1,81 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>SciTeX Status</title>
+        <link rel="stylesheet" href="{% static 'public_app/css/public-status.css' %}" />
+        <link rel="icon"
+              href="{% static 'public_app/images/favicon.ico' %}"
+              type="image/x-icon" />
+    </head>
+    <body data-status-api-url="{% url 'public_app:public-status-api' %}">
+        <div class="status-container">
+            <!-- Header -->
+            <header class="status-header">
+                <div class="status-header-left">
+                    <a href="/" class="status-logo-link">
+                        <span class="status-logo-text">SciTeX</span>
+                    </a>
+                    <h1 class="status-title">Status</h1>
+                </div>
+            </header>
+            <!-- Overall Status Banner -->
+            <div class="status-banner status-banner--{{ status.overall }}" id="overall-banner">
+                {% if status.overall == "operational" %}
+                    All Systems Operational
+                {% elif status.overall == "degraded" %}
+                    Partial System Outage
+                {% else %}
+                    Major System Outage
+                {% endif %}
+            </div>
+            <!-- Uptime header -->
+            <div class="status-uptime-header">Uptime over the past 90 days.</div>
+            <!-- Services with 90-day uptime bars -->
+            <section class="status-services" id="services-section">
+                {% for svc in status.services %}
+                    <div class="status-service-row">
+                        <div class="status-service-header">
+                            <span class="status-service-name">{{ svc.name }}</span>
+                            <span class="status-service-label status-service-label--{{ svc.status }}">
+                                {% if svc.status == "operational" %}
+                                    Operational
+                                {% elif svc.status == "degraded" %}
+                                    Degraded
+                                {% else %}
+                                    Down
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="status-uptime-bar">
+                            {% for day in svc.uptime_days %}
+                                <div class="status-uptime-day status-uptime-day--{{ day }}"
+                                     title="Day {{ forloop.counter }}"></div>
+                            {% endfor %}
+                        </div>
+                        <div class="status-uptime-labels">
+                            <span>90 days ago</span>
+                            <span>{{ svc.uptime_pct }}% uptime</span>
+                            <span>Today</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </section>
+            <!-- Past Incidents -->
+            <section class="status-incidents">
+                <h2 class="status-section-title">Past Incidents</h2>
+                <p class="status-incidents-empty">No incidents reported.</p>
+            </section>
+            <!-- Footer -->
+            <footer class="status-footer">
+                <span>Last checked: <time id="checked-at">{{ status.checked_at }}</time></span>
+                <span class="status-footer-sep">&middot;</span>
+                <a href="/server-status/">Detailed Status</a>
+            </footer>
+        </div>
+        <script src="{% static 'public_app/js/public-status.js' %}"></script>
+    </body>
+</html>

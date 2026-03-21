@@ -114,6 +114,9 @@ STATICFILES_DIRS = [
 # Container Vite (port 5174): developmentally-installed app files — runs in container on-demand
 VITE_HOST_PORT = 5173
 VITE_DEV_APP_PORT = 5174
+# Set to your Windows LAN IP for iPhone dev testing (e.g. "192.168.0.67")
+# Default "127.0.0.1" works for localhost-only dev
+VITE_HOST_IP = os.environ.get("VITE_HOST_IP", "127.0.0.1")
 
 
 # django-browser-reload configuration

@@ -18,6 +18,7 @@ from .. import api_views, views
 
 urlpatterns = [
     # Status API endpoints
+    path("api/public-status/", views.public_status_api, name="public-status-api"),
     path("api/server-status/", views.server_status_api, name="server_status_api"),
     path(
         "api/server-health/",

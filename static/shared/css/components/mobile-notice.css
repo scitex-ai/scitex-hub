@@ -52,10 +52,15 @@
   opacity: 1;
 }
 
-/* Show only on small screens */
+/* Show only on small screens — but NOT on workspace pages (mobile layout works) */
 @media (max-width: 768px) {
   .mobile-notice-banner {
     display: block;
+  }
+
+  /* Hide on workspace pages where mobile layout is fully functional */
+  body.workspace-page .mobile-notice-banner {
+    display: none;
   }
 
   /* Offset body content when banner is visible */

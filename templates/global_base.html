@@ -66,6 +66,33 @@
                 {% block content %}{% endblock %}
             </main>
         </div>
+        <!-- Mobile Bottom Tab Bar (hidden on desktop, visible on mobile workspace) -->
+        {% if workspace_has_panes and user.is_authenticated %}
+            <nav id="mobile-tab-bar" class="mobile-tab-bar" aria-label="Mobile pane navigation">
+                <button class="mobile-tab-bar__item" data-mobile-tab="console" aria-label="Console">
+                    <i class="fas fa-terminal"></i>
+                    <span>Console</span>
+                </button>
+                <button class="mobile-tab-bar__item" data-mobile-tab="files" aria-label="Files">
+                    <i class="fas fa-folder"></i>
+                    <span>Files</span>
+                </button>
+                <button class="mobile-tab-bar__item" data-mobile-tab="viewer" aria-label="Viewer">
+                    <i class="fas fa-eye"></i>
+                    <span>Viewer</span>
+                </button>
+                <button class="mobile-tab-bar__item" data-mobile-tab="apps" aria-label="Apps">
+                    <i class="fas fa-th"></i>
+                    <span>Apps</span>
+                </button>
+                <button class="mobile-tab-bar__item active"
+                        data-mobile-tab="content"
+                        aria-label="Content">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Content</span>
+                </button>
+            </nav>
+        {% endif %}
         <!-- Footer Collapse Toggle (OUTSIDE footer for body-class-based CSS) -->
         <button id="footer-collapse-toggle"
                 class="footer-collapse-toggle"
