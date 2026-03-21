@@ -71,7 +71,7 @@
 @import url("components/code-blocks.css");
 @import url("components/terminal-log.css");
 @import url("components/theme-cards.css");
-@import url("components/panel-resizer.css");
+/* panel-resizer.css moved to scitex-ui, loaded via Vite shell-css-imports.ts */
 @import url("components/resizer.css");
 @import url("components/selector-nav.css");
 @import url("components/collapsible-panel.css");
