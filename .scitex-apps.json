@@ -1,0 +1,12 @@
+{
+  "$schema_version": "1.0.0",
+  "apps": [
+    {
+      "name": "figrecipe",
+      "source": "sibling",
+      "git_url": "https://github.com/ywatanabe1989/figrecipe.git",
+      "git_ref": "develop",
+      "pip_package": "figrecipe"
+    }
+  ]
+}

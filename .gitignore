@@ -890,3 +890,6 @@ docs/from_agents/
 .aws_download_config*
 example_plot_data/
 singularity/
+
+# App installation (cloned siblings for CI)
+.apps/
