@@ -22,8 +22,10 @@ From: python:3.11-slim
     echo "Building SciTeX Base Container (Stage 1)"
     echo "============================================"
 
-    # Force IPv4 for apt (IPv6 unreachable on some networks)
+    # Force IPv4 and limit retries (prevent infinite retry loops on network issues)
     echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+    echo 'Acquire::Retries "3";' >> /etc/apt/apt.conf.d/99force-ipv4
+    echo 'Acquire::http::Timeout "30";' >> /etc/apt/apt.conf.d/99force-ipv4
 
     # Update package lists
     apt-get update
