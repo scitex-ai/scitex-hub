@@ -359,8 +359,8 @@ services:
     networks:
       - scitex-network
     healthcheck:
-      # Check nginx is running (accepts 502/503 while Django starts)
-      test: ["CMD", "sh", "-c", "curl -s -o /dev/null -w '%{http_code}' http://localhost:80/ | grep -qE '^(200|502|503)$'"]
+      # Check nginx is running (accepts 200/301/302/502/503 — redirects are normal in prod)
+      test: ["CMD", "sh", "-c", "curl -s -o /dev/null -w '%{http_code}' http://localhost:80/ | grep -qE '^(200|301|302|502|503)$'"]
       interval: 10s
       timeout: 3s
       retries: 3
