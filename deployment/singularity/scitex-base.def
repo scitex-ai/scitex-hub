@@ -61,7 +61,12 @@ From: python:3.11-slim
         sed -i 's/main$/main contrib/' /etc/apt/sources.list
     apt-get update
     echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ttf-mscorefonts-installer
+    # Font install may fail if SourceForge mirrors are down — don't block the build
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ttf-mscorefonts-installer || {
+        echo "WARNING: Microsoft core fonts installation failed (SourceForge mirrors may be down)"
+        echo "Continuing without Microsoft fonts — fallback to Liberation/DejaVu fonts"
+        apt-get install -y --no-install-recommends fonts-liberation fonts-dejavu-core 2>/dev/null || true
+    }
     fc-cache -fv
     rm -rf /var/lib/apt/lists/*
 
