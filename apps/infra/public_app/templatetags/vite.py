@@ -171,9 +171,17 @@ def vite_script(entry_name: str):
             entry = manifest[ts_path]
             js_file = entry["file"]
             tags = ""
-            # Output CSS links for this entry (Vite bundles CSS with JS entries)
-            for css_file in entry.get("css", []):
-                tags += f'<link rel="stylesheet" href="{settings.STATIC_URL}vite/{css_file}" />\n'
+            # Collect CSS from this entry AND all its imports (transitive)
+            css_files = list(entry.get("css", []))
+            for imp in entry.get("imports", []):
+                if imp in manifest:
+                    css_files.extend(manifest[imp].get("css", []))
+            # Deduplicate while preserving order
+            seen = set()
+            for css_file in css_files:
+                if css_file not in seen:
+                    seen.add(css_file)
+                    tags += f'<link rel="stylesheet" href="{settings.STATIC_URL}vite/{css_file}" />\n'
             tags += f'<script type="module" src="{settings.STATIC_URL}vite/{js_file}"></script>'
             return mark_safe(tags)
         else:
