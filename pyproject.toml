@@ -1,6 +1,6 @@
 [project]
 name = "scitex-cloud"
-version = "0.16.0"
+version = "0.16.1"
 description = "SciTeX Cloud - Deployment and management CLI for SciTeX"
 readme = "README.md"
 license = "AGPL-3.0-only"

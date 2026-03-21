@@ -1,0 +1,19 @@
+{
+  "$schema_version": "1.0.0",
+  "apps": [
+    {
+      "name": "scitex-ui",
+      "source": "sibling",
+      "git_url": "https://github.com/ywatanabe1989/scitex-ui.git",
+      "git_ref": "develop",
+      "pip_package": "scitex-ui"
+    },
+    {
+      "name": "figrecipe",
+      "source": "sibling",
+      "git_url": "https://github.com/ywatanabe1989/figrecipe.git",
+      "git_ref": "develop",
+      "pip_package": "figrecipe"
+    }
+  ]
+}

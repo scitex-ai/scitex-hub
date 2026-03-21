@@ -373,11 +373,23 @@ COPY --chown=scitex:scitex . .
 #   (c) pre-build the wheel in python-builder and copy it over.
 RUN uv pip install --system --no-cache ".[django,test]"
 
-# --- Layer C: Latest versions of fast-moving packages ---
-# Layer C: Upgrade lightweight SciTeX ecosystem packages to latest.
-# scitex[all] is NOT included here — it pulls heavy deps (tensorflow,
-# PyTorch) which are already cached from python-builder.
-# Only pure-Python packages that change frequently belong here.
+# --- Layer C0: Anchor — cache ecosystem packages (bump rarely) ---
+# Pinned versions to cache the dependency tree. Only update when
+# you want to reset the cache baseline.
+RUN uv pip install --system --no-cache \
+    "figrecipe==0.27.0" \
+    "scitex-io==0.2.3" \
+    "scitex-stats==0.2.6" \
+    "scitex-plt==0.24.0" \
+    "scitex-writer==2.10.1" \
+    "scitex-linter==0.3.1" \
+    "scitex-ui==0.2.0" \
+    "openalex-local==0.6.0" \
+    "crossref-local==0.6.4"
+
+# --- Layer C1: Latest versions (bump freely) ---
+# Overwrites C0 packages to latest. C0 deps are already satisfied,
+# so this only downloads the delta. (~10s)
 RUN uv pip install --system --no-cache --upgrade \
     "figrecipe" \
     "scitex-io" \

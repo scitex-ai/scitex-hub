@@ -14,6 +14,17 @@ function discoverScitexUiStatic(): string | null {
   if (process.env.SCITEX_UI_STATIC) {
     return process.env.SCITEX_UI_STATIC;
   }
+
+  // Prefer .apps/scitex-ui (has node_modules for npm deps like mermaid)
+  // then sibling ../scitex-ui, then pip-installed location
+  const candidates = [
+    resolve(__dirname, ".apps/scitex-ui/src/scitex_ui/static/scitex_ui"),
+    resolve(__dirname, "../scitex-ui/src/scitex_ui/static/scitex_ui"),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
+
   try {
     return execSync(
       'python3 -c "import scitex_ui; print(scitex_ui.get_static_dir())"',
@@ -50,53 +61,59 @@ function discoverAppBridges(rootDir: string): {
   const fsAllow: string[] = [];
   const excludePatterns: RegExp[] = [];
   const bridges: AppBridgeInfo[] = [];
-  const parentDir = resolve(rootDir, "..");
 
-  if (!fs.existsSync(parentDir))
+  // Scan both sibling directories (local dev) and .apps/ (Docker/CI fallback)
+  const searchDirs = [resolve(rootDir, ".."), resolve(rootDir, ".apps")].filter(
+    (d) => fs.existsSync(d),
+  );
+
+  if (searchDirs.length === 0)
     return { aliases, fsAllow, excludePatterns, bridges };
 
-  for (const entry of fs.readdirSync(parentDir)) {
-    if (entry.startsWith(".") || entry === path.basename(rootDir)) continue;
-    const repoDir = resolve(parentDir, entry);
-    try {
-      if (!fs.statSync(repoDir).isDirectory()) continue;
-    } catch {
-      continue;
-    }
-
-    // Derive Python package name from repo name (e.g. "figrecipe" → "figrecipe")
-    const pkgName = entry.replace(/-/g, "_");
-
-    // Look for manifest.json in _django/ subdirectory
-    const manifestPaths = [
-      resolve(repoDir, `src/${pkgName}/_django/manifest.json`),
-      resolve(repoDir, "manifest.json"),
-    ];
-
-    for (const mp of manifestPaths) {
-      if (!fs.existsSync(mp)) continue;
+  for (const parentDir of searchDirs) {
+    for (const entry of fs.readdirSync(parentDir)) {
+      if (entry.startsWith(".") || entry === path.basename(rootDir)) continue;
+      const repoDir = resolve(parentDir, entry);
       try {
-        const manifest = JSON.parse(fs.readFileSync(mp, "utf-8"));
-        if (!manifest.bridge?.entry) continue;
-
-        const slug = manifest.slug || pkgName;
-        const appName = manifest.name || `${pkgName}_app`;
-        const djangoDir = path.dirname(mp);
-        const frontendSrc = resolve(djangoDir, "frontend", "src");
-
-        if (!fs.existsSync(frontendSrc)) continue;
-
-        // Add Vite alias: "{slug}-editor" → frontend source
-        aliases[`${slug}-editor`] = frontendSrc;
-        fsAllow.push(repoDir);
-        excludePatterns.push(new RegExp(slug));
-        bridges.push({ slug, appName, repoDir, frontendSrc });
-        break;
+        if (!fs.statSync(repoDir).isDirectory()) continue;
       } catch {
-        /* skip invalid manifests */
+        continue;
+      }
+
+      // Derive Python package name from repo name (e.g. "figrecipe" → "figrecipe")
+      const pkgName = entry.replace(/-/g, "_");
+
+      // Look for manifest.json in _django/ subdirectory
+      const manifestPaths = [
+        resolve(repoDir, `src/${pkgName}/_django/manifest.json`),
+        resolve(repoDir, "manifest.json"),
+      ];
+
+      for (const mp of manifestPaths) {
+        if (!fs.existsSync(mp)) continue;
+        try {
+          const manifest = JSON.parse(fs.readFileSync(mp, "utf-8"));
+          if (!manifest.bridge?.entry) continue;
+
+          const slug = manifest.slug || pkgName;
+          const appName = manifest.name || `${pkgName}_app`;
+          const djangoDir = path.dirname(mp);
+          const frontendSrc = resolve(djangoDir, "frontend", "src");
+
+          if (!fs.existsSync(frontendSrc)) continue;
+
+          // Add Vite alias: "{slug}-editor" → frontend source
+          aliases[`${slug}-editor`] = frontendSrc;
+          fsAllow.push(repoDir);
+          excludePatterns.push(new RegExp(slug));
+          bridges.push({ slug, appName, repoDir, frontendSrc });
+          break;
+        } catch {
+          /* skip invalid manifests */
+        }
       }
     }
-  }
+  } // end searchDirs loop
 
   return { aliases, fsAllow, excludePatterns, bridges };
 }
@@ -166,8 +183,15 @@ export default defineConfig({
       "@": resolve(__dirname, "static/shared/ts"),
       "@types": resolve(__dirname, "static/shared/ts/types"),
       "@utils": resolve(__dirname, "static/shared/ts/utils"),
-      // scitex-ui: shared component library (auto-discovered from pip)
-      ...(SCITEX_UI_STATIC ? { "scitex-ui": SCITEX_UI_STATIC } : {}),
+      // scitex-ui: shared component library (auto-discovered)
+      ...(SCITEX_UI_STATIC
+        ? {
+            "scitex-ui": SCITEX_UI_STATIC,
+            // @scitex/ui is the npm package name used by figrecipe's frontend
+            // imports like @scitex/ui/src/scitex_ui/static/... resolve from repo root
+            "@scitex/ui": resolve(SCITEX_UI_STATIC, "../../../.."),
+          }
+        : {}),
       // Auto-discovered app bridges (e.g. "figrecipe-editor" → sibling repo)
       ...APP_BRIDGES.aliases,
     },

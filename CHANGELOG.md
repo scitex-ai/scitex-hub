@@ -5,6 +5,23 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.1] - 2026-03-22
+
+### Fixed
+- **Workspace**: Client-side app switching — FigRecipe and Scholar now switch without full page reload
+- **Workspace**: workspace-shell.ts dynamic module list from DOM (was hardcoded, missing figrecipe)
+- **Workspace**: Content URL corrected to `/apps/workspace/content/`
+- **Vite**: Name-based manifest reverse index for external packages (figrecipe bridge)
+- **Terminal**: xterm cursor precision — remove padding on .xterm, normalize line-height
+- **Visitor Pool**: Non-blocking init in prod entrypoint
+
+### Added
+- **Apptainer**: Nightly resource-limited build script with cgroup limits
+- **Apptainer**: Post-boot systemd service for NAS recovery
+- **Apps**: Installation infrastructure for CI/Docker (figrecipe, scitex-ui)
+- **Shell**: Tab completion for scitex-cloud CLI
+- **Vite**: CSS collection from transitive imports, @scitex/ui alias
+
 ## [0.15.3] - 2026-03-15
 
 ### Fixed

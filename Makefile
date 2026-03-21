@@ -625,6 +625,9 @@ apptainer-sandbox-rollback: ## Roll back to previous sandbox version
 apptainer-sandbox-cleanup: ## Remove old sandboxes (keep 5)
 	@scitex-container sandbox cleanup --keep 5 -d deployment/singularity
 
+apptainer-nightly-build: ## Resource-limited build (for cron / dev phase)
+	@deployment/singularity/build-scripts/nightly_build.sh $(if $(FORCE),--force,)
+
 apptainer-purge-sifs: ## Remove all SIF files (sandbox is the runtime format)
 	@scitex-container sandbox purge-sifs -d deployment/singularity
 

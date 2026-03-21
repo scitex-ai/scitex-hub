@@ -46,6 +46,12 @@ python manage.py create_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" |
 echo_success "Visitor pool ready"
 
 # ============================================
+# Install Workspace Apps (bridge resolution)
+# ============================================
+echo_info "Installing workspace apps for Vite bridge resolution..."
+bash /app/scripts/apps/install_apps.sh 2>&1 || echo_warning "App installation had issues — Vite build may fail"
+
+# ============================================
 # Conditional NPM Install & TypeScript Build
 # ============================================
 if [ ! -d "node_modules" ] || [ "package.json" -nt "node_modules/.install-timestamp" ]; then
