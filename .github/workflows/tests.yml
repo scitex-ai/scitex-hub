@@ -20,8 +20,8 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install scitex-ui
-        run: pip install "scitex-ui>=0.2.0"
+      - name: Install Python deps for Vite build
+        run: pip install "scitex-ui>=0.2.0" "figrecipe>=0.27.0"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
