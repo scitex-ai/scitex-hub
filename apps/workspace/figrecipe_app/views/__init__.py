@@ -53,3 +53,16 @@ def figure_editor(request, figrecipe_embedded=False):
         context["needs_project_creation"] = True
 
     return render(request, "figrecipe_app/editor.html", context)
+
+
+def build_figrecipe_context(request, current_project=None):
+    """Context builder for workspace content endpoint (partial rendering)."""
+    context = {
+        "app_slug": "figrecipe",
+        "app_label": "FigRecipe",
+        "app_mount_css": "figrecipe_app/css/figrecipe-mount.css",
+        "current_project": current_project,
+    }
+    if not current_project:
+        context["needs_project_creation"] = True
+    return context

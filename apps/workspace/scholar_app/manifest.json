@@ -13,7 +13,7 @@
   "accent_color": "scholar",
   "body_class": "scholar-page",
   "partial_template": "scholar_app/scholar_partial.html",
-  "context_builder": "",
+  "context_builder": "apps.workspace.scholar_app.views.build_scholar_context",
   "ai_hint": "Literature management: search papers (CrossRef/OpenAlex/Semantic Scholar), manage bibliography, explore citation graphs, download PDFs.",
   "allowed_extensions": [".bib"],
   "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv", "build"],

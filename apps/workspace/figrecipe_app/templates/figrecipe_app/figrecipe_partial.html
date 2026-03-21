@@ -1,0 +1,36 @@
+{% load static vite tree_preseed %}
+
+{% if app_mount_css %}
+    <link rel="stylesheet" href="{% static app_mount_css %}?v={{ build_id }}" />
+{% endif %}
+{% if needs_project_creation %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center p-5">
+                        <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                        <h3 class="mb-3">No Project Found</h3>
+                        <p class="text-muted mb-4">
+                            FigRecipe works with projects. Please create or select a project to start creating figures.
+                        </p>
+                        <a href="{% url 'core:index' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus me-2"></i>Create a Project
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <!-- FigRecipe app mount point -->
+    <div id="app-mount"
+         class="figrecipe-workspace"
+         data-app-slug="figrecipe"
+         data-embedded="true"
+         {% if current_project %} data-project-owner="{{ current_project.owner.username }}" data-project-slug="{{ current_project.slug }}" {% endif %}>
+    </div>
+    {% vite_hmr_client %}
+    {% tree_preseed_script current_project %}
+    {% vite_script 'figrecipe_app/figrecipe-bridge-init' %}
+{% endif %}
