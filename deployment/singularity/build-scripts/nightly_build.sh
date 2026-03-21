@@ -78,9 +78,19 @@ done
 # Resource limiting wrapper
 # ============================================
 limited() {
-    # Run command at lowest CPU + I/O priority, capped threads
-    OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 \
-        nice -n 19 ionice -c 3 "$@"
+    # Run command with hard resource caps + lowest priority.
+    # systemd-run --scope enforces cgroup limits (CPU 80%, memory 80%)
+    # so system services (sshd, kill) always have headroom.
+    # Falls back to nice/ionice if systemd-run is unavailable.
+    local cmd=(nice -n 19 ionice -c 3 env OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 "$@")
+    if command -v systemd-run &>/dev/null; then
+        systemd-run --scope --quiet \
+            -p CPUQuota=80% \
+            -p MemoryMax=80% \
+            "${cmd[@]}"
+    else
+        "${cmd[@]}"
+    fi
 }
 
 # ============================================
