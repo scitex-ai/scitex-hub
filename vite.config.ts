@@ -183,8 +183,15 @@ export default defineConfig({
       "@": resolve(__dirname, "static/shared/ts"),
       "@types": resolve(__dirname, "static/shared/ts/types"),
       "@utils": resolve(__dirname, "static/shared/ts/utils"),
-      // scitex-ui: shared component library (auto-discovered from pip)
-      ...(SCITEX_UI_STATIC ? { "scitex-ui": SCITEX_UI_STATIC } : {}),
+      // scitex-ui: shared component library (auto-discovered)
+      ...(SCITEX_UI_STATIC
+        ? {
+            "scitex-ui": SCITEX_UI_STATIC,
+            // @scitex/ui is the npm package name used by figrecipe's frontend
+            // imports like @scitex/ui/src/scitex_ui/static/... resolve from repo root
+            "@scitex/ui": resolve(SCITEX_UI_STATIC, "../../../.."),
+          }
+        : {}),
       // Auto-discovered app bridges (e.g. "figrecipe-editor" → sibling repo)
       ...APP_BRIDGES.aliases,
     },
