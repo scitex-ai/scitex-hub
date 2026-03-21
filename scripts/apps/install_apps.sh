@@ -82,11 +82,12 @@ for i in $(seq 0 $((APP_COUNT - 1))); do
         pip install -e "$SIBLING_DIR" -q
     fi
 
-    # Run npm install if the app has its own package.json with dependencies
-    if [[ -f "$SIBLING_DIR/package.json" ]]; then
-        echo "Running: npm install in $SIBLING_DIR"
-        (cd "$SIBLING_DIR" && npm install --silent 2>/dev/null) || true
-    fi
+    # Run npm install for any package.json found (root or nested frontend dirs)
+    while IFS= read -r pkg_json; do
+        pkg_dir="$(dirname "$pkg_json")"
+        echo "Running: npm install in $pkg_dir"
+        (cd "$pkg_dir" && npm install --silent 2>/dev/null) || true
+    done < <(find "$SIBLING_DIR" -maxdepth 5 -name "package.json" -not -path "*/node_modules/*" 2>/dev/null)
 
     echo "$NAME: OK"
 done
