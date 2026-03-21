@@ -61,11 +61,20 @@ rm -rf /home/scitex/.scitex/templates/ 2>/dev/null || true
 echo_success "Template cache cleared"
 
 # ============================================
-# Initialize Visitor Pool
+# Initialize Visitor Pool (Background - non-blocking)
 # ============================================
-echo_info "Initializing visitor pool..."
-python manage.py create_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" || true
-echo_success "Visitor pool ready"
+# Pool fills gradually after gunicorn starts.
+# Visitors get "initializing" message until their container is ready.
+if [[ ! "$*" =~ "celery" ]]; then
+    echo_info "Visitor pool will initialize in background after server starts..."
+    _init_visitor_pool() {
+        sleep 5 # Let gunicorn bind first
+        echo_info "Background: initializing visitor pool..."
+        python manage.py create_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" || true
+        echo_success "Background: visitor pool ready"
+    }
+    _init_visitor_pool &
+fi
 
 # ============================================
 # Conditional NPM Install & TypeScript Build
