@@ -48,6 +48,8 @@ from .seo import robots_txt
 # Status pages
 from .status import (
     healthz,
+    public_status_api,
+    public_status_view,
     render_metric_chart,
     server_health_status_api,
     server_metrics_export_csv,
