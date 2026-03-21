@@ -168,10 +168,14 @@ def vite_script(entry_name: str):
         ts_path = _entry_to_ts_path(entry_name)
 
         if ts_path in manifest:
-            js_file = manifest[ts_path]["file"]
-            return mark_safe(
-                f'<script type="module" src="{settings.STATIC_URL}vite/{js_file}"></script>'
-            )
+            entry = manifest[ts_path]
+            js_file = entry["file"]
+            tags = ""
+            # Output CSS links for this entry (Vite bundles CSS with JS entries)
+            for css_file in entry.get("css", []):
+                tags += f'<link rel="stylesheet" href="{settings.STATIC_URL}vite/{css_file}" />\n'
+            tags += f'<script type="module" src="{settings.STATIC_URL}vite/{js_file}"></script>'
+            return mark_safe(tags)
         else:
             import logging
 
