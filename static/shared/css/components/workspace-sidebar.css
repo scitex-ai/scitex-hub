@@ -134,6 +134,11 @@
   font-size: 8px;
 }
 
+/* Hide logo icon in header toggle (brand text is sufficient) */
+.sidebar-header-toggle .sidebar-logo {
+  display: none;
+}
+
 /* Collapsed: hide text */
 .workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-logo-text,
 .workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-selector {
@@ -336,8 +341,9 @@
   color: var(--ws-sidebar-text);
 }
 
+/* Collapsed: mirror the sidebar panel icon horizontally */
 .workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-toggle-btn {
-  transform: rotate(180deg);
+  transform: scaleX(-1);
 }
 
 .workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-footer {
