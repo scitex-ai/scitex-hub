@@ -59,15 +59,16 @@
                     <div class="workspace-pane" id="pane-console" data-pane="console">
                         {% include 'global_base_partials/workspace_ai_pane.html' %}
                     </div>
-                    <!-- Files pane -->
-                    <div class="workspace-pane" id="pane-files" data-pane="files">
-                        {% block workspace_worktree_pane %}
-                            {% include 'global_base_partials/workspace_worktree_pane.html' %}
-                        {% endblock %}
-                    </div>
-                    <!-- Editor pane -->
+                    <!-- Editor pane (file tree left + viewer/editor right) -->
                     <div class="workspace-pane" id="pane-editor" data-pane="editor">
-                        {% include 'global_base_partials/workspace_viewer_pane.html' %}
+                        <div class="editor-split-layout">
+                            <div class="editor-split-left">
+                                {% block workspace_worktree_pane %}
+                                    {% include 'global_base_partials/workspace_worktree_pane.html' %}
+                                {% endblock %}
+                            </div>
+                            <div class="editor-split-right">{% include 'global_base_partials/workspace_viewer_pane.html' %}</div>
+                        </div>
                     </div>
                     <!-- Module pane (active module content) -->
                     <div class="workspace-pane active" id="pane-module" data-pane="module">

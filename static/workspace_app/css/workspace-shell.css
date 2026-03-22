@@ -122,6 +122,58 @@
   overflow: auto;
 }
 
+/* ── Console pane: hide mode toggle, show terminal directly ── */
+#pane-console .stx-shell-ai-mode-toggle {
+  display: none !important;
+}
+
+#pane-console .stx-shell-sidebar__title {
+  display: inline !important;
+}
+
+#pane-console .stx-shell-ai-panel-header {
+  border-bottom: 1px solid var(--border-default, #30363d);
+}
+
+/* ── Editor split layout (file tree left + viewer right) ───── */
+.editor-split-layout {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.editor-split-left {
+  width: 280px;
+  min-width: 200px;
+  max-width: 400px;
+  flex-shrink: 0;
+  height: 100%;
+  border-right: 1px solid var(--border-default, #30363d);
+  overflow: hidden;
+}
+
+.editor-split-right {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Inner panels in editor split fill their container */
+.editor-split-left .ws-worktree-pane,
+.editor-split-left #ws-worktree-sidebar {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.editor-split-right .ws-viewer-pane,
+.editor-split-right #ws-viewer-sidebar {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 /* ── Prevent body margin-left from global AI panel rules ──── */
 body.scitex-ai-present #main-content {
   margin-left: 0 !important;

@@ -72,7 +72,7 @@ class WorkspaceSidebar {
   }
 
   private isCorePaneId(id: string): id is PaneId {
-    return ["chat", "console", "files", "editor", "module"].includes(id);
+    return ["chat", "console", "editor", "module"].includes(id);
   }
 
   /* ── Event binding ──────────────────────────────────────── */
@@ -316,9 +316,6 @@ class WorkspaceSidebar {
         break;
       case "t":
         pane = "console";
-        break;
-      case "f":
-        pane = "files";
         break;
       case "e":
         pane = "editor";
