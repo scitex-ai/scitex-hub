@@ -733,10 +733,21 @@
                 <span>Settings</span>
             </a>
             <div class="mobile-menu-divider"></div>
-            <a href="/accounts/logout/" class="mobile-menu-item">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Sign Out</span>
-            </a>
+            {% if user.username|slice:":8" == "visitor-" %}
+                <a href="/auth/signin/" class="mobile-menu-item">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Sign In</span>
+                </a>
+                <a href="/auth/signup/" class="mobile-menu-item">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Sign Up</span>
+                </a>
+            {% else %}
+                <a href="/accounts/logout/" class="mobile-menu-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sign Out</span>
+                </a>
+            {% endif %}
         {% else %}
             <a href="/auth/signin/" class="mobile-menu-item">
                 <i class="fas fa-sign-in-alt"></i>
