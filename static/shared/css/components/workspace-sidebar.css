@@ -140,13 +140,13 @@
 .workspace-sidebar .sidebar-action-btn {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
+  gap: 12px;
+  padding: 10px 12px;
   background: none;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   color: var(--ws-sidebar-text-muted);
-  font-size: 13px;
+  font-size: 15px;
   cursor: pointer;
   white-space: nowrap;
   text-align: left;
@@ -159,10 +159,10 @@
 }
 
 .workspace-sidebar .sidebar-action-btn i {
-  width: 18px;
+  width: 20px;
   text-align: center;
   flex-shrink: 0;
-  font-size: 14px;
+  font-size: 18px;
 }
 
 /* ── Divider ───────────────────────────────────────────────── */
@@ -192,13 +192,13 @@
 .workspace-sidebar .sidebar-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
+  gap: 12px;
+  padding: 10px 12px;
   background: none;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   color: var(--ws-sidebar-text-muted);
-  font-size: 13px;
+  font-size: 15px;
   cursor: pointer;
   white-space: nowrap;
   text-decoration: none;
@@ -224,10 +224,10 @@
 .workspace-sidebar .sidebar-item .nav-icon-svg,
 .workspace-sidebar .sidebar-item .tab-icon-svg,
 .workspace-sidebar .sidebar-item .module-icon-wrap {
-  width: 18px;
+  width: 20px;
   text-align: center;
   flex-shrink: 0;
-  font-size: 14px;
+  font-size: 18px;
 }
 
 /* ── Labels (hidden when collapsed) ────────────────────────── */
