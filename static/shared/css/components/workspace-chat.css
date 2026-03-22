@@ -36,8 +36,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 120px;
-  height: 120px;
+  width: 160px;
+  height: 160px;
   border-radius: 50%;
   background: radial-gradient(
     circle,
@@ -59,8 +59,8 @@
 }
 
 .chat-welcome-logo {
-  width: 72px;
-  height: 72px;
+  width: 96px;
+  height: 96px;
 }
 
 .chat-welcome-tagline {

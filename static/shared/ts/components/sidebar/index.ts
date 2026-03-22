@@ -140,6 +140,15 @@ class WorkspaceSidebar {
         newChatBtn?.click();
       });
 
+    // Search button — open shortcuts modal or browser search
+    document.getElementById("sidebar-search")?.addEventListener("click", () => {
+      // Try shortcuts modal first, fallback to Ctrl+K behavior
+      const modal = document.getElementById("shortcuts-modal");
+      if (modal) {
+        modal.classList.toggle("show");
+      }
+    });
+
     // Project selector dropdown toggle
     this.initProjectDropdown();
   }
