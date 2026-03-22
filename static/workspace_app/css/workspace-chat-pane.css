@@ -329,12 +329,13 @@
   animation: avatar-breathe 3s ease-in-out infinite;
 }
 
-/* ── Input area: centered, clean ── */
+/* ── Input area: centered, clean, matches welcome input ── */
 #pane-chat .stx-shell-ai-input-area {
   width: 100% !important;
   max-width: 720px;
   margin: 0 auto;
   padding: 12px 24px 24px;
+  background: transparent !important;
 }
 
 /* Model badge: subtle */
@@ -363,11 +364,7 @@
   min-height: 24px;
 }
 
-/* Hide camera and sketch in chat (keep mic and gear) */
-#pane-chat #stx-shell-ai-camera,
-#pane-chat #stx-shell-ai-sketch {
-  display: none !important;
-}
+/* Keep all input buttons visible (camera, sketch, mic, gear) */
 
 /* Input buttons: subtle */
 #pane-chat .stx-shell-ai-input-btn,
