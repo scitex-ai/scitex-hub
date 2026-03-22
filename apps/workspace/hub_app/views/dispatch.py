@@ -9,13 +9,19 @@ from django.shortcuts import redirect
 from .index import index_view
 
 
-def root_dispatch(request):
+def root_dispatch(request, pane=None):
     """Route / to hub workspace (auth) or landing page (anon).
 
     Authenticated users (including all visitor types) → workspace.
     Anonymous → landing page.
+
+    Args:
+        pane: Optional initial pane hint ('chat', 'console', 'editor').
+              Used by /chat/, /console/, /files/ URL routes.
     """
     if request.user.is_authenticated:
+        if pane:
+            request.initial_pane = pane
         return index_view(request)
     return redirect("public_app:landing")
 

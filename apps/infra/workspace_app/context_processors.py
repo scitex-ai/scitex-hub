@@ -32,6 +32,11 @@ def workspace_context(request):
     if path.rstrip("/") == "/new" and request.user.is_authenticated:
         is_ws = True
 
+    # Core pane paths (/chat/, /console/, /files/) → workspace with panes
+    _CORE_PANE_PATHS = {"/chat/", "/console/", "/files/"}
+    if path in _CORE_PANE_PATHS and request.user.is_authenticated:
+        is_ws = True
+
     active_name = extract_module_from_path(path) if is_ws else None
     # Pages with a real module match get workspace sidebars (AI, worktree, viewer).
     # User profile pages (/<username>/) also get panes — they render inside Hub.
@@ -42,7 +47,9 @@ def workspace_context(request):
         # Org profiles → Discovery context; user profiles → Home context
         active_name = "discovery" if _is_org_profile_path(path) else "home"
         if request.user.is_authenticated and (
-            _is_user_profile_path(path) or path.rstrip("/") == "/new"
+            _is_user_profile_path(path)
+            or path.rstrip("/") == "/new"
+            or path in _CORE_PANE_PATHS
         ):
             has_panes = True
 

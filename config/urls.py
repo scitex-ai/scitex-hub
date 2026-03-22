@@ -30,8 +30,11 @@ from config.urls_helpers import RESERVED_PATHS, dev_module_view  # noqa: F401
 urlpatterns = [
     # --- Health ---
     path("healthz/", healthz, name="healthz"),
-    # --- Root ---
+    # --- Root + Core Panes ---
     path("", root_dispatch, name="root"),
+    path("chat/", root_dispatch, name="pane-chat", kwargs={"pane": "chat"}),
+    path("console/", root_dispatch, name="pane-console", kwargs={"pane": "console"}),
+    path("files/", root_dispatch, name="pane-files", kwargs={"pane": "editor"}),
     path("", include("apps.infra.public_app.urls")),
     path("apps/", include(("apps.workspace.tools_app.urls", "tools_app"))),
     # --- Admin ---

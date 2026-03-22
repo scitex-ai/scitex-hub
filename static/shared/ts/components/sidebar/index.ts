@@ -55,10 +55,17 @@ class WorkspaceSidebar {
   }
 
   private activateInitialPane(): void {
-    // Check URL hash first (#chat, #console, #files)
+    // Check data-initial-pane (set by /chat/, /console/, /files/ routes)
+    const initialPane = document.body.getAttribute("data-initial-pane");
+    if (initialPane && this.isCorePaneId(initialPane)) {
+      this.switchPane(initialPane as PaneId, false);
+      return;
+    }
+
+    // Check URL hash (#chat, #console, #files)
     const hash = window.location.hash.replace("#", "");
     if (hash && this.isCorePaneId(hash)) {
-      this.switchPane(hash as PaneId, true);
+      this.switchPane(hash as PaneId, false);
       return;
     }
 
@@ -189,13 +196,14 @@ class WorkspaceSidebar {
     // Persist core pane selection and update URL
     if (persist && paneId !== "module") {
       localStorage.setItem(STORAGE_KEY_PANE, paneId);
-      // Use pushState with root path so URL shows /#chat, not /apps/writer/#chat
-      const targetUrl = `/${window.location.search}#${paneId}`;
-      if (window.location.pathname !== "/") {
-        history.pushState({ pane: paneId }, "", targetUrl);
-      } else {
-        history.replaceState({ pane: paneId }, "", `#${paneId}`);
-      }
+      // Map pane IDs to URL paths
+      const paneUrls: Record<string, string> = {
+        chat: "/chat/",
+        console: "/console/",
+        editor: "/files/",
+      };
+      const targetUrl = paneUrls[paneId] || `/#${paneId}`;
+      history.pushState({ pane: paneId }, "", targetUrl);
     }
 
     // Dispatch event for other components to react

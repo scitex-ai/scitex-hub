@@ -259,7 +259,7 @@ def get_module_names() -> set[str]:
 
 
 # Non-module paths that should still render inside the workspace layout.
-_WORKSPACE_EXTRA_PREFIXES = ("/accounts/",)
+_WORKSPACE_EXTRA_PREFIXES = ("/accounts/", "/chat/", "/console/", "/files/")
 
 
 def is_workspace_path(path: str) -> bool:
