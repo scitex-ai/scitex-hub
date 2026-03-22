@@ -21,6 +21,13 @@
           {% if user.is_authenticated %}data-current-username="{{ user.username }}"{% endif %}
           data-track-module="{% if active_module %}{{ active_module.get_track_module }}{% elif '/server-status' in request.path %}server_status{% elif '/explore/' in request.path %}explore{% elif '/workspace/' in request.path %}files{% endif %}"
           class="{% if request.path == '/' or request.path == '/landing/' %}workspace-page{% if user.is_authenticated %} no-transition{% else %} landing-page{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
+        <!-- Loading screen — hides FOUC until CSS/JS adds body.app-ready -->
+        <div id="app-loading-screen">
+            <div class="stx-loading-content">
+                <div class="stx-loading-spinner"></div>
+                <div class="stx-loading-text">Loading...</div>
+            </div>
+        </div>
         <!-- Hidden CSRF token for JavaScript API calls -->
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
         {% include 'global_base_partials/global_header.html' %}

@@ -27,6 +27,9 @@
         integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" {# pragma: allowlist secret #}
         crossorigin="visitor" />
         <!-- Design Tokens - Load colors first for CSS variables -->
+        <!-- Loading screen spinner (loaded first to prevent FOUC) -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/components/loading-screen.css' %}?v={{ build_id }}" />
         <link rel="stylesheet"
               href="{% static 'shared/css/primitives/colors.css' %}?v={{ build_id }}" />
         <!-- Icon Size Utilities -->
