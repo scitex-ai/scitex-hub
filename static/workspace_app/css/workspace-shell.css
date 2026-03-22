@@ -202,10 +202,15 @@
     display: none !important;
   }
 
-  /* All sidebars full width on mobile */
-  .workspace-three-col .stx-shell-sidebar {
+  /* All sidebars full width on mobile — ID selectors beat Vite's .collapsed !important */
+  .workspace-three-col .stx-shell-sidebar,
+  #stx-shell-ai-panel,
+  #ws-worktree-sidebar,
+  #ws-viewer-sidebar,
+  #ws-apps-sidebar {
     width: 100% !important;
     min-width: 100% !important;
+    max-width: 100% !important;
   }
 
   /* Hide desktop panel resizer drag handles */
