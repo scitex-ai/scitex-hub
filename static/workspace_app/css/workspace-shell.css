@@ -155,6 +155,63 @@
   .ws-apps-nav .selector-nav-item {
     flex-shrink: 0 !important;
   }
+
+  /* Override desktop collapsed sidebar styles for mobile */
+  /* Desktop: 48px wide vertical icon strip → Mobile: full-width horizontal bar */
+  .workspace-three-col .stx-shell-sidebar.collapsed {
+    width: 100% !important;
+    min-width: 100% !important;
+    height: auto !important;
+  }
+
+  .workspace-three-col .stx-shell-sidebar.collapsed .stx-shell-sidebar__header {
+    flex-direction: row !important;
+    height: auto !important;
+    min-height: 44px !important;
+    padding: 0 12px !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    border-bottom: 1px solid var(--border-default, #30363d) !important;
+  }
+
+  /* Show title inline horizontally in collapsed header */
+  .workspace-three-col .stx-shell-sidebar.collapsed .stx-shell-sidebar__title {
+    flex-direction: row !important;
+    font-size: 0.85rem !important;
+    gap: 6px !important;
+    margin: 0 !important;
+  }
+
+  .workspace-three-col
+    .stx-shell-sidebar.collapsed
+    .stx-shell-sidebar__title
+    i {
+    font-size: 1rem !important;
+  }
+
+  /* Show collapsed sidebar content as none (header only) */
+  .workspace-three-col
+    .stx-shell-sidebar.collapsed
+    .stx-shell-sidebar__content {
+    display: none !important;
+  }
+
+  /* Hide panel toggle chevron in collapsed mobile header */
+  .workspace-three-col .stx-shell-sidebar.collapsed .panel-toggle-btn {
+    display: none !important;
+  }
+
+  /* All sidebars full width on mobile */
+  .workspace-three-col .stx-shell-sidebar {
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+
+  /* Hide desktop panel resizer drag handles */
+  .workspace-three-col .panel-resizer {
+    display: none !important;
+  }
 }
 
 /* Prevent body margin-left from global AI panel fixed-position rules */
