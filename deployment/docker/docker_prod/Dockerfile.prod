@@ -383,7 +383,7 @@ RUN uv pip install --system --no-cache \
     "scitex-plt==0.24.0" \
     "scitex-writer==2.10.1" \
     "scitex-linter==0.3.1" \
-    "scitex-ui==0.3.0" \
+    "scitex-ui==0.3.1" \
     "openalex-local==0.6.0" \
     "crossref-local==0.6.4"
 
