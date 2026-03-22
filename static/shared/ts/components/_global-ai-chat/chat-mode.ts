@@ -232,7 +232,7 @@ export class AIPanelChatMode {
       this.messagesEl.innerHTML = `
         <div class="stx-shell-ai-empty">
           <i class="fas fa-robot"></i>
-          <span>Ask anything about SciTeX.</span>
+          <span>Ask anything about Scientific Research.</span>
           <span>I can take actions: stats, plots, literature, and your current work.</span>
         </div>`;
     }

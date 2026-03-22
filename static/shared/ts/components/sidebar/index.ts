@@ -148,13 +148,10 @@ class WorkspaceSidebar {
     const moduleName = item.getAttribute("data-module");
 
     if (paneId === "module" && moduleName) {
-      // Module items: switch to module pane + load content via AJAX
-      e.preventDefault();
-      this.switchPane("module", true);
-      this.highlightModuleItem(moduleName);
-      this.loadModuleContent(moduleName, item);
+      // Module items: navigate normally (follow <a> href)
+      // Each module has its own CSS/JS so full page load is needed
       this.closeDrawer();
-      return;
+      return; // Let the <a> href navigate naturally
     }
 
     // Core panes: prevent default and switch client-side

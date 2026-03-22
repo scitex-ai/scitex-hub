@@ -5,7 +5,7 @@
 /* ── Variables ─────────────────────────────────────────────── */
 :root {
   --ws-sidebar-width-expanded: 240px;
-  --ws-sidebar-width-collapsed: 48px;
+  --ws-sidebar-width-collapsed: 56px;
   --ws-sidebar-bg: var(--bg-secondary, #161b22);
   --ws-sidebar-border: var(--border-default, #30363d);
   --ws-sidebar-text: var(--text-secondary, #c9d1d9);
@@ -183,10 +183,10 @@
 }
 
 .workspace-sidebar .sidebar-action-btn i {
-  width: 20px;
+  width: 24px;
   text-align: center;
   flex-shrink: 0;
-  font-size: 18px;
+  font-size: 20px;
 }
 
 /* ── Divider ───────────────────────────────────────────────── */
@@ -248,10 +248,21 @@
 .workspace-sidebar .sidebar-item .nav-icon-svg,
 .workspace-sidebar .sidebar-item .tab-icon-svg,
 .workspace-sidebar .sidebar-item .module-icon-wrap {
-  width: 20px;
+  width: 24px;
   text-align: center;
   flex-shrink: 0;
-  font-size: 18px;
+  font-size: 20px;
+}
+
+/* Collapsed: larger icons for icon-only rail */
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-item i,
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-item .nav-icon-svg,
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-item .tab-icon-svg,
+.workspace-sidebar[data-sidebar-state="collapsed"]
+  .sidebar-item
+  .module-icon-wrap {
+  font-size: 22px;
+  width: 28px;
 }
 
 /* ── Labels (hidden when collapsed) ────────────────────────── */
