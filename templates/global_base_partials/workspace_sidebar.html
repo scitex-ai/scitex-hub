@@ -31,7 +31,7 @@
                 <div class="sidebar-project-selector" id="sidebar-project-selector">
                     <button class="sidebar-project-btn" title="Switch project">
                         <i class="fas fa-chevron-down sidebar-project-chevron"></i>
-                        <span class="sidebar-label sidebar-project-name">{{ current_project.slug }}</span>
+                        <span class="sidebar-label sidebar-project-name">{{ current_project.owner.username }}/{{ current_project.slug }}</span>
                     </button>
                 </div>
             {% endif %}
