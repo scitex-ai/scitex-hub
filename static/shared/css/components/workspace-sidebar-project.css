@@ -32,7 +32,9 @@
 
 .sidebar-project-icon {
   flex-shrink: 0;
-  font-size: 14px;
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
 }
 
 .sidebar-project-name {
@@ -167,13 +169,14 @@
 
 /* ── Collapsed state ── */
 
-/* Collapsed: pop out to the right */
+/* Collapsed: pop out to the right with proper width */
 .workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-dropdown {
-  left: 100%;
+  left: calc(var(--ws-sidebar-width-collapsed) + 4px);
   right: auto;
   top: 0;
   margin-top: 0;
-  margin-left: 4px;
+  width: 260px;
+  min-width: 260px;
 }
 
 /* Collapsed: hide owner/slug, show slug-only */
