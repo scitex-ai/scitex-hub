@@ -176,11 +176,12 @@
   height: 100% !important;
 }
 
-/* ── Module pane: center content (My tab, Settings, etc.) ──── */
+/* ── Module pane: full width for app content ──── */
 #pane-module #main-content {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 24px 32px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
 }
 
 /* ── Prevent body margin-left from global AI panel rules ──── */
