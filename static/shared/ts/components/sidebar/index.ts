@@ -134,12 +134,34 @@ class WorkspaceSidebar {
       .getElementById("sidebar-new-chat")
       ?.addEventListener("click", () => {
         this.switchPane("chat", true);
-        // Trigger new chat in the chat pane
         const newChatBtn = document.querySelector<HTMLElement>(
           ".stx-shell-ai-new-chat",
         );
         newChatBtn?.click();
       });
+
+    // Project selector dropdown toggle
+    this.initProjectDropdown();
+  }
+
+  private initProjectDropdown(): void {
+    const toggle = document.getElementById("sidebar-project-toggle");
+    const dropdown = document.getElementById("sidebar-project-dropdown");
+    if (!toggle || !dropdown) return;
+
+    toggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle("open");
+    });
+
+    // Close on outside click
+    document.addEventListener("click", () => {
+      dropdown.classList.remove("open");
+    });
+
+    dropdown.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
   }
 
   /* ── Pane switching ─────────────────────────────────────── */
