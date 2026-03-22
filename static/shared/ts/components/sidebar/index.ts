@@ -189,8 +189,13 @@ class WorkspaceSidebar {
     // Persist core pane selection and update URL
     if (persist && paneId !== "module") {
       localStorage.setItem(STORAGE_KEY_PANE, paneId);
-      // Always use root URL with hash for core panes
-      history.replaceState(null, "", `/#${paneId}`);
+      // Use pushState with root path so URL shows /#chat, not /apps/writer/#chat
+      const targetUrl = `/${window.location.search}#${paneId}`;
+      if (window.location.pathname !== "/") {
+        history.pushState({ pane: paneId }, "", targetUrl);
+      } else {
+        history.replaceState({ pane: paneId }, "", `#${paneId}`);
+      }
     }
 
     // Dispatch event for other components to react
