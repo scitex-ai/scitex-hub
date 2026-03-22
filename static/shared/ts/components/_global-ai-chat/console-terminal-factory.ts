@@ -93,7 +93,7 @@ export function createTerminalInstance(
     fontSize: 13,
     fontFamily: "'JetBrains Mono', 'Monaco', 'Menlo', monospace",
     theme: getTerminalTheme(),
-    scrollback: 10000,
+    scrollback: 100000,
   });
 
   terminal.open(container);
@@ -161,10 +161,22 @@ export function connectInstance(
     sendResizeForInstance(inst);
   };
 
+  // Write batching — accumulate WebSocket data and flush via rAF to reduce flicker
+  let writeBuf = "";
+  let writeRaf = 0;
   inst.ws.onmessage = (ev) => {
     const data: string = ev.data;
     const processed = handleOscEscapes(data, inst);
-    if (processed) inst.terminal.write(processed);
+    if (processed) {
+      writeBuf += processed;
+      if (!writeRaf) {
+        writeRaf = requestAnimationFrame(() => {
+          if (writeBuf) inst.terminal.write(writeBuf);
+          writeBuf = "";
+          writeRaf = 0;
+        });
+      }
+    }
   };
 
   inst.ws.onerror = () => onStatusChange?.("error");
@@ -179,14 +191,7 @@ export function connectInstance(
     );
   };
 
-  // Listen for project switches — cd into new project instead of killing terminal
-  window.addEventListener("scitex:project-switched", ((
-    e: CustomEvent<{ projectSlug: string }>,
-  ) => {
-    if (inst.ws?.readyState === WebSocket.OPEN) {
-      inst.ws.send(`cd ~/proj/${e.detail.projectSlug}\n`);
-    }
-  }) as EventListener);
+  // Project switch handled by console-mode.ts via setupProjectSwitchHandler
 }
 
 export function fitInstance(inst: TerminalInstance): void {

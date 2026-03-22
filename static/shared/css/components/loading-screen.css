@@ -1,0 +1,57 @@
+/* Loading screen — prevents FOUC (Flash of Unstyled Content).
+ * Shows a spinner overlay until body.app-ready is set by JS.
+ */
+
+#app-loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  /* Hardcoded fallback — CSS vars may not be loaded yet since this is the first stylesheet */
+  background: #0d1117;
+  background: var(--workspace-bg-primary, #0d1117);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease;
+}
+
+.stx-loading-content {
+  text-align: center;
+  color: #8b949e;
+  color: var(--text-muted, #8b949e);
+}
+
+@keyframes stx-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.stx-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: stx-loading-spin 1s linear infinite;
+  margin: 0 auto 12px;
+}
+
+.stx-loading-text {
+  font-size: 13px;
+  font-family: system-ui, sans-serif;
+}
+
+/* Hide loading screen when app is ready */
+body.app-ready #app-loading-screen {
+  opacity: 0;
+  pointer-events: none;
+  /* Remove from layout after fade-out completes */
+  animation: stx-loading-remove 0s 0.3s forwards;
+}
+
+@keyframes stx-loading-remove {
+  to {
+    display: none;
+  }
+}

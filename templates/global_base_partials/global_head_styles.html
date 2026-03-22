@@ -1,5 +1,52 @@
 {% load static %}
 
+<!-- hook-bypass: inline-style -->
+<!-- Critical CSS inlined: FOUC spinner must render before ANY external CSS loads.
+     This is Google's recommended critical CSS strategy, not a hack.
+     The external loading-screen.css remains as the canonical source. -->
+<style>
+    #app-loading-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        background: #0d1117;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity .3s ease
+    }
+
+    .stx-loading-content {
+        text-align: center;
+        color: #8b949e
+    }
+
+    @keyframes stx-loading-spin {
+        to {
+            transform: rotate(360deg)
+        }
+    }
+
+    .stx-loading-spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid currentColor;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: stx-loading-spin 1s linear infinite;
+        margin: 0 auto 12px
+    }
+
+    .stx-loading-text {
+        font-size: 13px;
+        font-family: system-ui, sans-serif
+    }
+
+    body.app-ready #app-loading-screen {
+        opacity: 0;
+        pointer-events: none
+    }
+</style>
 <!-- Favicon alternate icon (conditional based on DEBUG) -->
 {% if DEBUG %}
     <link rel="alternate icon"

@@ -386,13 +386,11 @@ function initializeHeaderCollapse(): void {
 
   if (!header || !toggleBtn) return;
 
-  // Restore saved state (landing page and mobile always show header expanded)
+  // Restore saved state (landing page always shows header expanded)
   const isLanding = document.body.classList.contains("landing-page");
-  const isMobile = window.matchMedia("(max-width: 768px)").matches;
-  const isCollapsed =
-    isLanding || isMobile
-      ? false
-      : localStorage.getItem(HEADER_COLLAPSE_STORAGE_KEY) === "true";
+  const isCollapsed = isLanding
+    ? false
+    : localStorage.getItem(HEADER_COLLAPSE_STORAGE_KEY) === "true";
   if (isCollapsed) {
     header.classList.add("collapsed");
   }
@@ -427,21 +425,11 @@ function initializeHeaderCollapse(): void {
     if (header.classList.contains("collapsed")) doToggle();
   });
 
-  // Double-click on expanded header → collapse (desktop only)
+  // Double-click on expanded header → collapse (works on both desktop and mobile)
   header.addEventListener("dblclick", (e: MouseEvent) => {
-    // Skip on mobile — collapsing header corrupts mobile pane layout
-    if (window.matchMedia("(max-width: 768px)").matches) return;
     if (!header.classList.contains("collapsed")) {
       e.preventDefault();
       doToggle();
-    }
-  });
-
-  // Auto-uncollapse when entering mobile viewport
-  const mql = window.matchMedia("(max-width: 768px)");
-  mql.addEventListener("change", (e) => {
-    if (e.matches && header.classList.contains("collapsed")) {
-      header.classList.remove("collapsed");
     }
   });
 }
