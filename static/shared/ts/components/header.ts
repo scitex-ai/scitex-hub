@@ -8,7 +8,47 @@ import { API_URLS, NAV_URLS } from "../utils/api-urls";
 // Storage key for header collapse state
 const HEADER_COLLAPSE_STORAGE_KEY = "scitex-header-collapsed";
 
+/** Mobile hamburger menu toggle */
+function initializeMobileHamburger(): void {
+  const btn = document.getElementById("mobile-hamburger-btn");
+  const menu = document.getElementById("mobile-header-menu");
+  if (!btn || !menu) return;
+
+  btn.addEventListener("click", () => {
+    const isOpen = menu.classList.toggle("open");
+    const icon = btn.querySelector("i");
+    if (icon) {
+      icon.className = isOpen ? "fas fa-times" : "fas fa-bars";
+    }
+  });
+
+  // Theme toggle inside mobile menu
+  const themeBtn = document.getElementById("mobile-theme-toggle-btn");
+  if (themeBtn) {
+    themeBtn.addEventListener("click", () => {
+      const desktopToggle = document.getElementById(
+        "theme-toggle",
+      ) as HTMLElement;
+      if (desktopToggle) desktopToggle.click();
+      menu.classList.remove("open");
+      const icon = btn.querySelector("i");
+      if (icon) icon.className = "fas fa-bars";
+    });
+  }
+
+  // Close menu when clicking a link
+  menu.querySelectorAll("a.mobile-menu-item").forEach((link) => {
+    link.addEventListener("click", () => {
+      menu.classList.remove("open");
+      const icon = btn.querySelector("i");
+      if (icon) icon.className = "fas fa-bars";
+    });
+  });
+}
+
 function initializeHeader(): void {
+  // Initialize mobile hamburger menu
+  initializeMobileHamburger();
   // Initialize header collapse toggle
   initializeHeaderCollapse();
 
@@ -240,7 +280,9 @@ function initializeHeader(): void {
   const serverStatusIndicator = document.getElementById(
     "server-status-indicator",
   ) as HTMLElement;
-  const serverStatusBtn = document.getElementById("server-stx-shell-status-bar__btn");
+  const serverStatusBtn = document.getElementById(
+    "server-stx-shell-status-bar__btn",
+  );
 
   if (serverStatusIndicator && serverStatusBtn) {
     let lastStatus = "healthy";
@@ -344,11 +386,13 @@ function initializeHeaderCollapse(): void {
 
   if (!header || !toggleBtn) return;
 
-  // Restore saved state (landing page always shows header expanded)
+  // Restore saved state (landing page and mobile always show header expanded)
   const isLanding = document.body.classList.contains("landing-page");
-  const isCollapsed = isLanding
-    ? false
-    : localStorage.getItem(HEADER_COLLAPSE_STORAGE_KEY) === "true";
+  const isMobile = window.matchMedia("(max-width: 768px)").matches;
+  const isCollapsed =
+    isLanding || isMobile
+      ? false
+      : localStorage.getItem(HEADER_COLLAPSE_STORAGE_KEY) === "true";
   if (isCollapsed) {
     header.classList.add("collapsed");
   }
@@ -383,11 +427,21 @@ function initializeHeaderCollapse(): void {
     if (header.classList.contains("collapsed")) doToggle();
   });
 
-  // Double-click on expanded header → collapse
+  // Double-click on expanded header → collapse (desktop only)
   header.addEventListener("dblclick", (e: MouseEvent) => {
+    // Skip on mobile — collapsing header corrupts mobile pane layout
+    if (window.matchMedia("(max-width: 768px)").matches) return;
     if (!header.classList.contains("collapsed")) {
       e.preventDefault();
       doToggle();
+    }
+  });
+
+  // Auto-uncollapse when entering mobile viewport
+  const mql = window.matchMedia("(max-width: 768px)");
+  mql.addEventListener("change", (e) => {
+    if (e.matches && header.classList.contains("collapsed")) {
+      header.classList.remove("collapsed");
     }
   });
 }
