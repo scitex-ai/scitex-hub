@@ -21,12 +21,42 @@
   }
 }
 
+/* --- Hamburger button + mobile menu: hidden on desktop --- */
+.mobile-hamburger {
+  display: none;
+}
+
+.mobile-header-menu {
+  display: none;
+}
+
 @media (max-width: 768px) {
+  /* Force-uncollapse header on mobile (localStorage may have collapsed=true from desktop) */
+  .global-header.collapsed {
+    height: auto;
+    min-height: auto;
+  }
+
+  .global-header.collapsed .global-header-inner {
+    height: 44px;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Compact header: logo + project + hamburger only */
   .global-header-inner {
     gap: 8px;
+    height: 44px;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 12px;
   }
 
   .header-center {
+    display: none;
+  }
+
+  .header-right {
     display: none;
   }
 
@@ -34,8 +64,13 @@
     gap: 8px;
   }
 
+  /* Hide AI toggle in compact header (accessible via tab bar Console pane) */
+  .header-ai-toggle {
+    display: none;
+  }
+
   .header-nav {
-    display: none; /* Hide main nav on mobile, show in hamburger menu */
+    display: none;
   }
 
   .header-project-selector {
@@ -44,8 +79,8 @@
   }
 
   .project-selector-btn {
-    min-width: 120px;
-    max-width: 160px;
+    min-width: 100px;
+    max-width: 140px;
     font-size: 12px;
     padding: 4px 6px;
   }
@@ -53,6 +88,91 @@
   .project-files-btn {
     width: 28px;
     height: 28px;
+  }
+
+  /* --- Hamburger button: visible on mobile --- */
+  .mobile-hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    padding: 0;
+    margin-left: auto;
+    z-index: 1;
+  }
+
+  .mobile-hamburger i {
+    font-size: 1.2rem;
+  }
+
+  /* --- Mobile menu overlay --- */
+  .mobile-header-menu {
+    display: none;
+    position: fixed;
+    top: 44px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-page, #0d1117);
+    z-index: 999;
+    flex-direction: column;
+    padding: 16px;
+    gap: 8px;
+    overflow-y: auto;
+    border-top: 1px solid var(--border-default, #30363d);
+  }
+
+  .mobile-header-menu.open {
+    display: flex;
+  }
+
+  .mobile-header-menu .mobile-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: var(--text-primary);
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    min-height: 44px;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .mobile-header-menu .mobile-menu-item:active {
+    background: var(--workspace-bg-tertiary, #21262d);
+  }
+
+  .mobile-header-menu .mobile-menu-item i {
+    width: 20px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+
+  .mobile-header-menu .mobile-menu-divider {
+    height: 1px;
+    background: var(--border-default, #30363d);
+    margin: 8px 0;
+  }
+
+  .mobile-header-menu .mobile-menu-item--muted {
+    cursor: default;
+    color: var(--text-muted);
+  }
+
+  /* Hide header collapse toggle on mobile */
+  .header-collapse-toggle {
+    display: none !important;
   }
 }
 
@@ -65,4 +185,3 @@
     display: none;
   }
 }
-

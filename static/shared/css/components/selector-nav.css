@@ -128,10 +128,7 @@
   bottom: 20%;
   width: 4px;
   border-radius: 0 2px 2px 0;
-  background: var(
-    --app-accent-color,
-    var(--workspace-icon-primary, #059669)
-  );
+  background: var(--app-accent-color, var(--workspace-icon-primary, #059669));
   z-index: 2; /* Above adjacent panel-resizer (z-index:1) */
 }
 
@@ -144,10 +141,7 @@
   bottom: 20%;
   width: 4px;
   border-radius: 2px 0 0 2px;
-  background: var(
-    --app-accent-color,
-    var(--workspace-icon-primary, #059669)
-  );
+  background: var(--app-accent-color, var(--workspace-icon-primary, #059669));
   z-index: 2; /* Above adjacent panel-resizer (z-index:1) */
 }
 
@@ -250,3 +244,5 @@
   color: #fff;
   pointer-events: none;
 }
+
+/* Mobile: selector-nav rotation handled in scitex-ui/css/shell/mobile.css (single source of truth) */

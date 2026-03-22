@@ -74,12 +74,48 @@
 .workspace-shell #ws-worktree-sidebar .stx-shell-sidebar__title-expanded {
   display: none;
 }
-.workspace-shell #ws-worktree-sidebar:not(.collapsed) .stx-shell-sidebar__title-expanded {
+.workspace-shell
+  #ws-worktree-sidebar:not(.collapsed)
+  .stx-shell-sidebar__title-expanded {
   display: inline;
 }
-.workspace-shell #ws-worktree-sidebar:not(.collapsed) .stx-shell-sidebar__title {
+.workspace-shell
+  #ws-worktree-sidebar:not(.collapsed)
+  .stx-shell-sidebar__title {
   display: none;
 }
+
+/* ── Empty state for viewer pane ─────────────────────────── */
+.ws-viewer-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted, #8b949e);
+  gap: 8px;
+  padding: 2rem;
+}
+
+.ws-viewer-empty i {
+  font-size: 2.5rem;
+  opacity: 0.4;
+}
+
+.ws-viewer-empty__title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-secondary, #c9d1d9);
+}
+
+.ws-viewer-empty__hint {
+  font-size: 0.85rem;
+  color: var(--text-muted, #8b949e);
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Mobile layout: single source of truth in scitex-ui/css/shell/mobile.css */
 
 /* Prevent body margin-left from global AI panel fixed-position rules */
 body.scitex-ai-present #main-content:has(.workspace-shell) {
