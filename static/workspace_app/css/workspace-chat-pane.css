@@ -211,6 +211,31 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
+/* Last assistant message (streaming) — breathing avatar */
+#pane-chat .stx-shell-ai-msg.assistant:last-of-type::before {
+  animation: avatar-breathe 3s ease-in-out infinite;
+}
+
+@keyframes avatar-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 4px 2px rgba(56, 139, 253, 0.1);
+    background:
+      url("/static/shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg")
+        center / 20px 20px no-repeat,
+      linear-gradient(135deg, #2d333b, #1c2128);
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 16px 6px rgba(56, 139, 253, 0.25);
+    background:
+      url("/static/shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg")
+        center / 20px 20px no-repeat,
+      linear-gradient(135deg, #1a3a5c, #0d2240);
+  }
+}
+
 /* Typing/loading avatar — gentle pulse glow animation */
 #pane-chat .stx-shell-ai-typing::before {
   content: "";
@@ -301,16 +326,7 @@
       center / 20px 20px no-repeat,
     linear-gradient(135deg, #2d333b, #1c2128);
   border-radius: 50%;
-  animation: logo-spin 2s linear infinite;
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  animation: avatar-breathe 3s ease-in-out infinite;
 }
 
 /* ── Input area: centered, clean ── */
