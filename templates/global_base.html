@@ -51,12 +51,14 @@
             <div id="workspace-layout" class="workspace-layout">
                 {% include 'global_base_partials/workspace_sidebar.html' %}
                 <div id="workspace-content" class="workspace-content">
-                    <!-- Chat pane (AI chat — uses chat view of AI panel) -->
+                    <!-- Chat pane (clean welcome screen, Claude.ai-inspired) -->
                     <div class="workspace-pane" id="pane-chat" data-pane="chat">
+                        {% include 'global_base_partials/workspace_chat_pane.html' %}
+                    </div>
+                    <!-- Console pane (terminal + AI panel) -->
+                    <div class="workspace-pane" id="pane-console" data-pane="console">
                         {% include 'global_base_partials/workspace_ai_pane.html' %}
                     </div>
-                    <!-- Console: sidebar TS switches AI panel to console mode
-                         and activates the chat pane (no separate DOM needed) -->
                     <!-- Files pane -->
                     <div class="workspace-pane" id="pane-files" data-pane="files">
                         {% block workspace_worktree_pane %}

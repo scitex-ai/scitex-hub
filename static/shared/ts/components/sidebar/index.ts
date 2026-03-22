@@ -146,22 +146,19 @@ class WorkspaceSidebar {
 
     this.currentPane = paneId;
 
-    // Chat and Console both use the AI panel — show "chat" pane for both
-    const effectivePaneId = paneId === "console" ? "chat" : paneId;
-
     // Hide all panes, show selected
     this.panes.forEach((pane) => {
       const id = pane.getAttribute("data-pane");
-      pane.classList.toggle("active", id === effectivePaneId);
+      pane.classList.toggle("active", id === paneId);
     });
 
-    // Switch AI panel mode for chat/console
-    if (paneId === "chat" || paneId === "console") {
-      this.switchAiPanelMode(paneId === "chat" ? "chat" : "console");
+    // Console pane: switch AI panel to console mode
+    if (paneId === "console") {
+      this.switchAiPanelMode("console");
     }
 
     // Force-uncollapse any inner panels (clear old localStorage collapsed state)
-    this.forceExpandPanels(effectivePaneId);
+    this.forceExpandPanels(paneId);
 
     // Update sidebar active state for core panes
     this.items?.forEach((item) => {
