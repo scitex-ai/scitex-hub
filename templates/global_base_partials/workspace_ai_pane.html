@@ -174,8 +174,17 @@
                         <div id="stx-shell-ai-console-tabs-list" class="stx-shell-ai-console-tabs-list"></div>
                     </div>
                     <div id="stx-shell-ai-console-terminal" class="stx-shell-ai-console-terminal"></div>
-                    <div class="stx-shell-ai-console-toolbar" style="position:relative">
+                    <div class="stx-shell-ai-console-toolbar">
                         <span id="stx-shell-ai-console-status" class="stx-shell-ai-console-status"></span>
+                        <span id="stx-shell-ai-jobs-inline" class="stx-shell-ai-jobs-inline">
+                            <i class="fas fa-tasks"></i>
+                            <span id="stx-shell-ai-jobs-summary" class="stx-shell-ai-jobs-summary">No jobs</span>
+                            <button class="stx-shell-ai-action-btn"
+                                    id="stx-shell-ai-jobs-refresh"
+                                    title="Refresh jobs">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </span>
                         <div class="stx-shell-ai-console-toolbar-btns">
                             <!-- Auto-accept toggle -->
                             <button id="stx-shell-ai-auto-accept"
@@ -301,17 +310,8 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Jobs section (collapsible, inside console view) -->
-                    <details id="stx-shell-ai-jobs-section" class="stx-shell-ai-jobs-section">
-                        <summary class="stx-shell-ai-jobs-section-summary">
-                            <i class="fas fa-tasks"></i>
-                            <span id="stx-shell-ai-jobs-summary" class="stx-shell-ai-jobs-summary">No jobs</span>
-                            <button class="stx-shell-ai-action-btn" id="stx-shell-ai-jobs-refresh" title="Refresh">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
-                        </summary>
-                        <div id="stx-shell-ai-jobs-list" class="stx-shell-ai-jobs-list"></div>
-                    </details>
+                    <!-- Jobs list (toggled by clicking jobs-inline in toolbar) -->
+                    <div id="stx-shell-ai-jobs-list" class="stx-shell-ai-jobs-list"></div>
                 </div>
             </div>
         </div>
