@@ -6,6 +6,8 @@
  * 2. Transfers the message to the AI chat input
  * 3. Triggers send
  * 4. Also switches AI panel to chat mode
+ *
+ * Auto-hides welcome when the session already has messages.
  */
 
 function initChatWelcome(): void {
@@ -17,6 +19,12 @@ function initChatWelcome(): void {
     document.querySelectorAll<HTMLElement>(".chat-shortcut-btn");
 
   if (!welcomeInput || !welcomePane) return;
+
+  // Check if messages already exist (session was restored)
+  checkForExistingMessages(welcomePane);
+
+  // Watch for new messages being added (MutationObserver)
+  observeMessages(welcomePane);
 
   // Enter to send
   welcomeInput.addEventListener("keydown", (e: KeyboardEvent) => {
@@ -61,10 +69,7 @@ function sendToAiChat(message: string): void {
 
   if (aiInput) {
     aiInput.value = message;
-    // Trigger input event so the chat system detects the value
     aiInput.dispatchEvent(new Event("input", { bubbles: true }));
-
-    // Small delay to let the input event process, then send
     setTimeout(() => {
       if (aiSend) {
         aiSend.click();
@@ -75,6 +80,41 @@ function sendToAiChat(message: string): void {
 
 function hideWelcome(welcomePane: HTMLElement): void {
   welcomePane.classList.add("has-messages");
+}
+
+function showWelcome(welcomePane: HTMLElement): void {
+  welcomePane.classList.remove("has-messages");
+  // Reset welcome input
+  const input = document.getElementById(
+    "chat-welcome-input",
+  ) as HTMLTextAreaElement | null;
+  if (input) input.value = "";
+}
+
+function checkForExistingMessages(welcomePane: HTMLElement): void {
+  const messages = document.querySelectorAll(".stx-shell-ai-msg");
+  if (messages.length > 0) {
+    hideWelcome(welcomePane);
+  }
+}
+
+/** Watch for messages being added/removed to auto-show/hide welcome */
+function observeMessages(welcomePane: HTMLElement): void {
+  const messagesContainer = document.getElementById("stx-shell-ai-messages");
+  if (!messagesContainer) return;
+
+  const observer = new MutationObserver(() => {
+    const msgs = messagesContainer.querySelectorAll(".stx-shell-ai-msg");
+    const emptyState = messagesContainer.querySelector(".stx-shell-ai-empty");
+    if (msgs.length > 0) {
+      hideWelcome(welcomePane);
+    } else if (emptyState) {
+      // Empty state is shown = new session, show welcome
+      showWelcome(welcomePane);
+    }
+  });
+
+  observer.observe(messagesContainer, { childList: true, subtree: true });
 }
 
 // Auto-init

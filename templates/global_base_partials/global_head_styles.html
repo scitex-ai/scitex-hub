@@ -128,6 +128,12 @@
         <!-- Workspace Shell — pane layout overrides (split, AI panel, console) -->
         <link rel="stylesheet"
               href="{% static 'workspace_app/css/workspace-shell.css' %}?v={{ build_id }}" />
+        <!-- Workspace Chat Pane — Claude.ai-inspired message styling -->
+        <link rel="stylesheet"
+              href="{% static 'workspace_app/css/workspace-chat-pane.css' %}?v={{ build_id }}" />
+        <!-- Workspace Console Pane — terminal full-pane styling -->
+        <link rel="stylesheet"
+              href="{% static 'workspace_app/css/workspace-console-pane.css' %}?v={{ build_id }}" />
         <!-- Shell CSS: stx-shell-sidebar, panel-resizer, workspace-three-col,
              workspace-viewer, workspace-viewer-preview — now loaded from
              scitex-ui via Vite (see static/shared/ts/shell-css-imports.ts) -->

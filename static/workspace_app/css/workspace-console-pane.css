@@ -1,0 +1,66 @@
+/* ============================================================
+   Workspace Console Pane — Terminal styling for full-pane layout
+   ============================================================ */
+
+/* Console pane: hide entire old header, show terminal directly */
+#pane-console .stx-shell-ai-panel-header {
+  display: none !important;
+}
+
+/* Console tabs bar: larger for full-pane layout */
+#pane-console .stx-shell-ai-console-tabs-bar {
+  padding: 8px 16px !important;
+  gap: 8px !important;
+}
+
+/* Terminal tab items (T1, T2, ...) */
+#pane-console .stx-shell-ai-console-tab-item {
+  font-size: 14px !important;
+  padding: 6px 14px !important;
+  border-radius: 6px !important;
+  gap: 6px !important;
+}
+
+/* New terminal (+) button */
+#pane-console .stx-shell-ai-console-new-tab {
+  font-size: 16px !important;
+  padding: 6px 10px !important;
+  width: 32px !important;
+  height: 32px !important;
+}
+
+/* Tab close button */
+#pane-console .stx-shell-ai-console-tab-close {
+  font-size: 12px !important;
+}
+
+/* Console terminal: breathing room around xterm */
+#pane-console .stx-shell-ai-console-terminal {
+  padding: 8px 12px;
+}
+
+/* Console toolbar: larger for full-pane layout */
+#pane-console .stx-shell-ai-console-toolbar {
+  padding: 6px 16px !important;
+  font-size: 14px !important;
+  gap: 8px;
+  border-top: 1px solid var(--border-default, #30363d);
+}
+
+#pane-console .stx-shell-ai-console-toolbar .stx-shell-ai-input-btn,
+#pane-console .stx-shell-ai-console-toolbar .stx-shell-ai-auto-accept-btn,
+#pane-console .stx-shell-ai-console-toolbar .stx-shell-ai-gear-btn {
+  width: 36px !important;
+  height: 36px !important;
+  font-size: 16px !important;
+}
+
+#pane-console .stx-shell-ai-console-toolbar-btns {
+  gap: 4px;
+  display: flex;
+  align-items: center;
+}
+
+#pane-console .stx-shell-ai-console-status {
+  font-size: 13px !important;
+}

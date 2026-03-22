@@ -1,5 +1,6 @@
 /* ============================================================
    Workspace Shell — Single-pane layout (Claude.ai-inspired)
+   Base pane layout, panel overrides, editor split
    ============================================================ */
 
 /* ── Full-pane AI panel ────────────────────────────────────── */
@@ -130,67 +131,6 @@
   min-height: 0;
 }
 
-/* Chat pane: welcome overlay covers entire pane, hides old AI panel */
-#pane-chat {
-  position: relative;
-  overflow: hidden;
-}
-
-#pane-chat .ws-chat-pane {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  pointer-events: auto;
-  background: var(--bg-primary, #0d1117);
-}
-
-/* When chat has messages, hide welcome and show AI panel */
-#pane-chat .ws-chat-pane.has-messages {
-  display: none;
-}
-
-/* Chat pane: hide ALL old AI panel chrome */
-#pane-chat .stx-shell-ai-panel-header {
-  display: none !important;
-}
-
-#pane-chat .stx-shell-ai-console-view {
-  display: none !important;
-}
-
-#pane-chat .stx-shell-ai-chat-view {
-  display: flex !important;
-  flex-direction: column;
-  height: 100%;
-}
-
-/* Hide sessions bar in chat (clean look) */
-#pane-chat .stx-shell-ai-sessions-bar {
-  display: none !important;
-}
-
-/* ── Console pane: hide entire old header, show terminal directly ── */
-#pane-console .stx-shell-ai-panel-header {
-  display: none !important;
-}
-
-/* Console tabs: larger, with margin */
-#pane-console .stx-shell-ai-console-tabs-bar {
-  padding: 8px 12px;
-  gap: 4px;
-}
-
-#pane-console .stx-shell-ai-console-tabs-list button,
-#pane-console .stx-shell-ai-console-new-tab {
-  font-size: 14px;
-  padding: 6px 12px;
-}
-
-/* Console terminal: add breathing room around xterm */
-#pane-console .stx-shell-ai-console-terminal {
-  padding: 8px 12px;
-}
-
 /* ── Editor/Files pane: override column direction for split ─── */
 #pane-editor.workspace-pane {
   flex-direction: row !important;
@@ -236,27 +176,11 @@
   height: 100% !important;
 }
 
-/* ── Chat pane: modern message styling (Claude.ai-inspired) ── */
-#pane-chat .stx-shell-ai-messages {
-  max-width: 720px;
+/* ── Module pane: center content (My tab, Settings, etc.) ──── */
+#pane-module #main-content {
+  max-width: 1080px;
   margin: 0 auto;
-  padding: 24px;
-}
-
-#pane-chat .stx-shell-ai-input-area {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 16px 24px 24px;
-}
-
-/* Center the chat empty state */
-#pane-chat .stx-shell-ai-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  gap: 8px;
+  padding: 24px 32px;
 }
 
 /* ── Prevent body margin-left from global AI panel rules ──── */
