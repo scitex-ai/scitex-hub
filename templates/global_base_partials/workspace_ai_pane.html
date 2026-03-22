@@ -23,13 +23,18 @@
                         top:0;
                         bottom:0;
                         z-index:1"></div>
-            <div class="stx-shell-sidebar__header stx-shell-ai-panel-header" id="stx-shell-ai-panel-header">
+            <div class="stx-shell-sidebar__header stx-shell-ai-panel-header"
+                 id="stx-shell-ai-panel-header">
                 <button class="panel-toggle-btn" id="stx-shell-ai-toggle" title="AI Chat (Alt+A)">
                     <i class="fas fa-chevron-right"></i>
                 </button>
-                <span class="stx-shell-sidebar__title" id="stx-shell-ai-collapsed-title" title="Console"><i class="fas fa-terminal"></i> Console</span>
+                <span class="stx-shell-sidebar__title"
+                      id="stx-shell-ai-collapsed-title"
+                      title="Console"><i class="fas fa-terminal"></i> Console</span>
                 <div class="stx-shell-ai-mode-toggle">
-                    <button class="stx-shell-ai-mode-btn active" data-mode="console" title="Terminal & Jobs">
+                    <button class="stx-shell-ai-mode-btn active"
+                            data-mode="console"
+                            title="Terminal & Jobs">
                         <i class="fas fa-terminal"></i> Console
                     </button>
                     <button class="stx-shell-ai-mode-btn" data-mode="chat" title="AI Chat">
@@ -122,7 +127,9 @@
                                     <i class="fas fa-brain"></i> LLM Model
                                     <span id="stx-shell-ai-config-model-badge" class="stx-shell-ai-model-badge"></span>
                                 </label>
-                                <select id="stx-shell-ai-llm-model" class="ai-settings-select" title="LLM model for chat"></select>
+                                <select id="stx-shell-ai-llm-model"
+                                        class="ai-settings-select"
+                                        title="LLM model for chat"></select>
                             </div>
                             <div class="ai-settings-row">
                                 <label class="stx-shell-ai-settings-label">
@@ -182,13 +189,21 @@
                                     title="Webcam capture">
                                 <i class="fas fa-camera"></i>
                             </button>
-                            <button id="stx-shell-ai-console-sketch" class="stx-shell-ai-input-btn" title="Draw sketch">
+                            <button id="stx-shell-ai-console-sketch"
+                                    class="stx-shell-ai-input-btn"
+                                    title="Draw sketch">
                                 <i class="fas fa-pen"></i>
                             </button>
-                            <button id="stx-shell-ai-console-mic" class="stx-shell-ai-input-btn" title="Voice input">
+                            <button id="stx-shell-ai-console-mic"
+                                    class="stx-shell-ai-input-btn"
+                                    title="Voice input">
                                 <i class="fas fa-microphone"></i>
                             </button>
-                            <input type="file" id="stx-shell-ai-console-image-file" accept="image/*" multiple hidden />
+                            <input type="file"
+                                   id="stx-shell-ai-console-image-file"
+                                   accept="image/*"
+                                   multiple
+                                   hidden />
                             <!-- Console config gear -->
                             <button id="stx-shell-ai-console-gear"
                                     class="stx-shell-ai-input-btn stx-shell-ai-gear-btn"
@@ -265,7 +280,8 @@
                                     </select>
                                 </div>
                                 <div class="ai-settings-row">
-                                    <label class="stx-shell-ai-settings-label" title="Response for Y/Y/N permission prompts">Y/Y/N</label>
+                                    <label class="stx-shell-ai-settings-label"
+                                           title="Response for Y/Y/N permission prompts">Y/Y/N</label>
                                     <select id="ai-auto-response-yyn"
                                             class="ai-settings-select"
                                             title="Response for Y/Y/N permission prompts">
@@ -289,8 +305,7 @@
                     <details id="stx-shell-ai-jobs-section" class="stx-shell-ai-jobs-section">
                         <summary class="stx-shell-ai-jobs-section-summary">
                             <i class="fas fa-tasks"></i>
-                            <span>Jobs</span>
-                            <span id="stx-shell-ai-jobs-summary" class="stx-shell-ai-jobs-summary"></span>
+                            <span id="stx-shell-ai-jobs-summary" class="stx-shell-ai-jobs-summary">No jobs</span>
                             <button class="stx-shell-ai-action-btn" id="stx-shell-ai-jobs-refresh" title="Refresh">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
