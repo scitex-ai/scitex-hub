@@ -386,13 +386,11 @@ function initializeHeaderCollapse(): void {
 
   if (!header || !toggleBtn) return;
 
-  // Restore saved state (landing page and mobile always show header expanded)
+  // Restore saved state (landing page always shows header expanded)
   const isLanding = document.body.classList.contains("landing-page");
-  const isMobile = window.matchMedia("(max-width: 768px)").matches;
-  const isCollapsed =
-    isLanding || isMobile
-      ? false
-      : localStorage.getItem(HEADER_COLLAPSE_STORAGE_KEY) === "true";
+  const isCollapsed = isLanding
+    ? false
+    : localStorage.getItem(HEADER_COLLAPSE_STORAGE_KEY) === "true";
   if (isCollapsed) {
     header.classList.add("collapsed");
   }

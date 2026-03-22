@@ -10,6 +10,7 @@ import { setupAutoAccept } from "./console-auto-accept";
 import { handleOscEscapes } from "./console-osc-handler";
 import { ConsoleTabManager, type ConsoleTab } from "./console-tabs";
 import { setupFileDrop, setupRightClick } from "./console-event-handlers";
+import { setupProjectSwitchHandler } from "./console-project-switch";
 import {
   showAllocationSpinner,
   hideAllocationSpinner,
@@ -149,15 +150,11 @@ export class AIPanelConsoleMode {
       getTerminal: () => this.getActiveTerminal(),
     });
 
-    // Listen for project switches — cd into new project instead of killing terminal
-    window.addEventListener("scitex:project-switched", ((
-      e: CustomEvent<{ projectSlug: string }>,
-    ) => {
-      const ws = this.getActiveWs();
-      if (ws?.readyState === WebSocket.OPEN) {
-        ws.send(`cd ~/proj/${e.detail.projectSlug}\n`);
-      }
-    }) as EventListener);
+    // Project switch: cd if idle, toast if busy (see console-project-switch.ts)
+    setupProjectSwitchHandler(
+      () => this.getActiveWs(),
+      () => this.getActiveTerminal(),
+    );
   }
 
   // --- Tab callbacks ---

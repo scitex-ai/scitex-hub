@@ -55,6 +55,15 @@ export class AIPanelJobsMode {
       });
     });
 
+    // Click on unified status → toggle jobs list
+    const statusEl = document.getElementById("stx-shell-ai-console-status");
+    if (statusEl && listEl) {
+      statusEl.style.cursor = "pointer";
+      statusEl.addEventListener("click", () => {
+        listEl.classList.toggle("open");
+      });
+    }
+
     void this.refresh();
   }
 
@@ -74,12 +83,8 @@ export class AIPanelJobsMode {
       const data: JobsResponse = await resp.json();
 
       if (!data.slurm_available) {
-        this.summaryEl.textContent = "SLURM not available";
-        this.listEl.innerHTML = `
-          <div class="stx-shell-ai-jobs-empty">
-            <i class="fas fa-server"></i>
-            <span>SLURM scheduler is not available on this system.</span>
-          </div>`;
+        this.summaryEl.textContent = "";
+        this.listEl.innerHTML = "";
         this.stopPolling();
         return;
       }
@@ -89,7 +94,7 @@ export class AIPanelJobsMode {
       if (data.running > 0) parts.push(`${data.running} running`);
       if (data.pending > 0) parts.push(`${data.pending} pending`);
       if (data.total === 0) {
-        this.summaryEl.textContent = "No jobs";
+        this.summaryEl.textContent = "";
       } else {
         this.summaryEl.textContent =
           parts.length > 0
@@ -97,13 +102,12 @@ export class AIPanelJobsMode {
             : `${data.total} job${data.total === 1 ? "" : "s"}`;
       }
 
-      // Render job list
+      // Update unified status element: "Connected (N Jobs)"
+      this.updateUnifiedStatus(data.total, parts.join(", "));
+
+      // Render job list (empty when no jobs — no "No active" message)
       if (data.jobs.length === 0) {
-        this.listEl.innerHTML = `
-          <div class="stx-shell-ai-jobs-empty">
-            <i class="fas fa-check-circle"></i>
-            <span>No active SLURM jobs.</span>
-          </div>`;
+        this.listEl.innerHTML = "";
       } else {
         this.listEl.innerHTML = data.jobs
           .map((j) => this.renderJob(j))
@@ -128,6 +132,17 @@ export class AIPanelJobsMode {
       this.summaryEl.textContent = "Network error";
       this.stopPolling();
     }
+  }
+
+  /** Update the unified status element to show "Connected (N Jobs)" */
+  private updateUnifiedStatus(total: number, detail: string): void {
+    const statusEl = document.getElementById("stx-shell-ai-console-status");
+    if (!statusEl) return;
+    const textNode = statusEl.lastChild;
+    if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return;
+    const base = statusEl.classList.contains("connected") ? "Connected" : "";
+    if (!base) return; // Don't override non-connected states
+    textNode.textContent = total > 0 ? ` ${base} (${detail})` : ` ${base}`;
   }
 
   private friendlyName(job: SlurmJob): string {
