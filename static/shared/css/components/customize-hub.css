@@ -1,0 +1,97 @@
+/* ============================================================
+   Customize Hub — AI Agent Configuration Dispatcher
+   ============================================================ */
+
+.customize-hub {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.customize-header {
+  margin-bottom: 32px;
+}
+
+.customize-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary, #f0f6fc);
+  margin: 0 0 8px;
+}
+
+.customize-subtitle {
+  font-size: 15px;
+  color: var(--text-muted, #8b949e);
+  margin: 0;
+}
+
+/* ── Card grid ── */
+.customize-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.customize-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--bg-secondary, #161b22);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 12px;
+  color: var(--text-primary, #f0f6fc);
+  text-decoration: none;
+  transition: all 150ms ease;
+  cursor: pointer;
+}
+
+.customize-card:hover {
+  background: rgba(177, 186, 196, 0.08);
+  border-color: var(--text-link, #58a6ff);
+  text-decoration: none;
+  color: var(--text-primary, #f0f6fc);
+}
+
+.customize-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(56, 139, 253, 0.1);
+  color: var(--text-link, #58a6ff);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.customize-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.customize-card-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary, #f0f6fc);
+  margin: 0 0 2px;
+}
+
+.customize-card-desc {
+  font-size: 13px;
+  color: var(--text-muted, #8b949e);
+  margin: 0;
+}
+
+.customize-card-arrow {
+  color: var(--text-muted, #8b949e);
+  font-size: 12px;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.customize-card:hover .customize-card-arrow {
+  opacity: 1;
+  color: var(--text-link, #58a6ff);
+}

@@ -39,6 +39,8 @@ urlpatterns = [
     path("apps/", include(("apps.workspace.tools_app.urls", "tools_app"))),
     # --- Admin ---
     path("admin/", admin.site.urls),
+    # --- Customize (AI agent configuration hub) ---
+    path("customize/", include("apps.infra.accounts_app.urls_customize")),
     # --- Auth ---
     path("accounts/", include(("apps.infra.accounts_app.urls", "accounts_app"))),
     path("auth/", include(("apps.infra.auth_app.urls", "auth_app"))),
