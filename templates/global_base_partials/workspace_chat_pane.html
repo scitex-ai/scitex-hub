@@ -4,11 +4,13 @@
     <div class="ws-chat-pane" id="ws-chat-pane">
         <!-- Welcome screen (shown when no conversation active) -->
         <div class="chat-welcome" id="chat-welcome">
-            <div class="chat-welcome-greeting">
-                <img src="{% static 'shared/images/scitex_logos/scitex-icons/scitex-icon-navy-inverted.svg' %}"
-                     alt="SciTeX"
-                     class="chat-welcome-logo" />
-                <h1 class="chat-welcome-title">Welcome, {{ user.username }}</h1>
+            <div class="chat-welcome-hero">
+                <div class="chat-welcome-logo-glow">
+                    <img src="{% static 'shared/images/scitex_logos/scitex-icons/scitex-icon-navy-inverted.svg' %}"
+                         alt="SciTeX"
+                         class="chat-welcome-logo" />
+                </div>
+                <p class="chat-welcome-tagline">Ask anything about SciTeX...</p>
             </div>
             <div class="chat-welcome-input-area">
                 <div class="chat-welcome-input-box">

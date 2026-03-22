@@ -24,24 +24,51 @@
   width: 100%;
 }
 
-.chat-welcome-greeting {
+/* ── Hero: glowing logo + tagline ───────────────────────────── */
+.chat-welcome-hero {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 24px;
+}
+
+.chat-welcome-logo-glow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(56, 139, 253, 0.15) 0%,
+    transparent 70%
+  );
+  box-shadow: 0 0 60px 20px rgba(56, 139, 253, 0.08);
+  animation: chat-logo-pulse 4s ease-in-out infinite;
+}
+
+@keyframes chat-logo-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 60px 20px rgba(56, 139, 253, 0.08);
+  }
+  50% {
+    box-shadow: 0 0 80px 30px rgba(56, 139, 253, 0.15);
+  }
 }
 
 .chat-welcome-logo {
-  width: 48px;
-  height: 48px;
+  width: 72px;
+  height: 72px;
 }
 
-.chat-welcome-title {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--text-primary, #f0f6fc);
+.chat-welcome-tagline {
+  font-size: 16px;
+  color: var(--text-muted, #8b949e);
   margin: 0;
   text-align: center;
+  font-weight: 400;
 }
 
 /* ── Welcome input box ─────────────────────────────────────── */
