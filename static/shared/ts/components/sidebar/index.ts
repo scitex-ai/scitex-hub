@@ -70,8 +70,11 @@ class WorkspaceSidebar {
     }
 
     // If we're on a module page, activate "module" pane
-    const body = document.body;
-    const trackModule = body.getAttribute("data-track-module");
+    // Detect module from URL path as primary source (more reliable)
+    const path = window.location.pathname;
+    const urlModule = path.match(/^\/apps\/([^/]+)\//)?.[1] || null;
+    const trackModule =
+      urlModule || document.body.getAttribute("data-track-module");
 
     if (trackModule && trackModule !== "files") {
       this.switchPane("module", false);
