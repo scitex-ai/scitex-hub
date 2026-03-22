@@ -427,21 +427,11 @@ function initializeHeaderCollapse(): void {
     if (header.classList.contains("collapsed")) doToggle();
   });
 
-  // Double-click on expanded header → collapse (desktop only)
+  // Double-click on expanded header → collapse (works on both desktop and mobile)
   header.addEventListener("dblclick", (e: MouseEvent) => {
-    // Skip on mobile — collapsing header corrupts mobile pane layout
-    if (window.matchMedia("(max-width: 768px)").matches) return;
     if (!header.classList.contains("collapsed")) {
       e.preventDefault();
       doToggle();
-    }
-  });
-
-  // Auto-uncollapse when entering mobile viewport
-  const mql = window.matchMedia("(max-width: 768px)");
-  mql.addEventListener("change", (e) => {
-    if (e.matches && header.classList.contains("collapsed")) {
-      header.classList.remove("collapsed");
     }
   });
 }
