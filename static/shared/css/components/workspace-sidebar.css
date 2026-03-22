@@ -112,25 +112,26 @@
   flex-shrink: 0;
 }
 
+/* ── Project selector (expanded: dropdown row, collapsed: icon+slug) ── */
 .sidebar-project-selector {
-  padding: 0 12px 4px;
+  padding: 0 8px 4px;
   flex-shrink: 0;
 }
 
 .sidebar-project-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 12px;
+  padding: 10px 12px;
   width: 100%;
-  background: var(--ws-sidebar-hover-bg);
-  border: 1px solid var(--ws-sidebar-border);
+  background: none;
+  border: none;
   border-radius: 8px;
-  color: var(--text-primary, #f0f6fc);
-  font-size: 14px;
-  font-weight: 500;
+  color: var(--ws-sidebar-text-muted);
+  font-size: 15px;
   cursor: pointer;
   white-space: nowrap;
+  text-align: left;
 }
 
 .sidebar-project-btn:hover {
@@ -138,8 +139,43 @@
   color: var(--ws-sidebar-text);
 }
 
+.sidebar-project-icon {
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.sidebar-project-name {
+  flex: 1;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  text-align: left;
+}
+
 .sidebar-project-chevron {
-  font-size: 8px;
+  font-size: 10px;
+  margin-left: auto;
+  opacity: 0.5;
+}
+
+/* Collapsed: icon + truncated slug stacked vertically */
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-selector {
+  padding: 0 4px 4px;
+}
+
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-btn {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  gap: 2px;
+  border: none;
+  background: none;
+}
+
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-name {
+  font-size: 10px;
+  text-align: center;
+  max-width: 100%;
 }
 
 /* Hide logo icon in header toggle (brand text is sufficient) */
@@ -150,24 +186,6 @@
 /* Collapsed: hide text */
 .workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-logo-text {
   display: none;
-}
-
-/* Project selector rocket icon */
-.sidebar-project-icon {
-  flex-shrink: 0;
-  font-size: 16px;
-}
-
-/* Collapsed: project selector shows rocket icon only */
-.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-selector {
-  padding: 0 4px 4px;
-}
-
-.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-btn {
-  justify-content: center;
-  padding: 8px;
-  border: none;
-  background: none;
 }
 
 /* ── Actions ───────────────────────────────────────────────── */
@@ -275,7 +293,7 @@
   width: 24px;
   text-align: center;
   flex-shrink: 0;
-  font-size: 20px;
+  font-size: 22px;
 }
 
 /* Collapsed: larger icons for icon-only rail */

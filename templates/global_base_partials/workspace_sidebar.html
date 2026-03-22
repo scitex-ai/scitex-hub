@@ -40,7 +40,8 @@
             </div>
             {% if current_project %}
                 <div class="sidebar-project-selector" id="sidebar-project-selector">
-                    <button class="sidebar-project-btn" title="Switch project">
+                    <button class="sidebar-project-btn"
+                            title="{{ current_project.owner.username }}/{{ current_project.slug }}">
                         <i class="fas fa-rocket sidebar-project-icon"></i>
                         <span class="sidebar-label sidebar-project-name">{{ current_project.owner.username }}/{{ current_project.slug }}</span>
                         <i class="fas fa-chevron-down sidebar-project-chevron sidebar-label"></i>
@@ -53,7 +54,7 @@
                     <i class="fas fa-search"></i>
                     <span class="sidebar-label">Search</span>
                 </button>
-                <a href="/auth/settings/mcp-tools/"
+                <a href="/accounts/settings/mcp-tools/"
                    class="sidebar-action-btn"
                    title="Customize AI">
                     <i class="fas fa-sliders"></i>
