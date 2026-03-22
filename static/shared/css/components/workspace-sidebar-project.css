@@ -169,11 +169,12 @@
 
 /* ── Collapsed state ── */
 
-/* Collapsed: pop out to the right with proper width */
+/* Collapsed: pop out as fixed overlay to avoid overflow clip */
 .workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-dropdown {
+  position: fixed;
   left: calc(var(--ws-sidebar-width-collapsed) + 4px);
   right: auto;
-  top: 0;
+  top: 56px;
   margin-top: 0;
   width: 260px;
   min-width: 260px;
