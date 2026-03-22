@@ -245,40 +245,4 @@
   pointer-events: none;
 }
 
-/* ===========================================================================
-   MOBILE: Rotate 90° — vertical strip → horizontal scrollable bar
-   =========================================================================== */
-
-@media (max-width: 768px) {
-  .selector-nav {
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    -webkit-overflow-scrolling: touch;
-    height: 56px !important;
-    width: 100% !important;
-    padding: 0 4px !important;
-    gap: 0 !important;
-  }
-
-  .selector-nav-item {
-    flex-direction: column !important;
-    flex-shrink: 0 !important;
-    padding: 4px 10px !important;
-    min-width: 56px !important;
-    height: 100% !important;
-  }
-
-  /* Active indicator: bottom bar instead of right bar */
-  .selector-nav-item.active::after {
-    right: auto !important;
-    left: 20% !important;
-    right: 20% !important;
-    top: auto !important;
-    bottom: 0 !important;
-    width: auto !important;
-    height: 3px !important;
-    border-radius: 2px 2px 0 0 !important;
-  }
-}
+/* Mobile: selector-nav rotation handled in scitex-ui/css/shell/mobile.css (single source of truth) */
