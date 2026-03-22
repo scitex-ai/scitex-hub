@@ -159,19 +159,19 @@
 
 /* ── Messages: Claude.ai-inspired styling ── */
 
-/* Messages container: centered, spacious, full width */
+/* Messages container: centered, compact gaps */
 #pane-chat .stx-shell-ai-messages {
   width: 100% !important;
   max-width: 720px;
   margin: 0 auto;
-  padding: 32px 24px 16px;
-  gap: 24px;
+  padding: 24px 24px 12px;
+  gap: 16px;
 }
 
-/* Base message styles */
+/* Base message styles — tighter line spacing for LLM output */
 #pane-chat .stx-shell-ai-msg {
   font-size: 15px;
-  line-height: 1.7;
+  line-height: 1.5;
   border: none !important;
 }
 
@@ -211,18 +211,52 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
-/* Assistant message content formatting */
+/* Typing/loading avatar — gentle pulse glow animation */
+#pane-chat .stx-shell-ai-typing::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 28px;
+  height: 28px;
+  background:
+    url("/static/shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg")
+      center / 20px 20px no-repeat,
+    linear-gradient(135deg, #2d333b, #1c2128);
+  border-radius: 50%;
+  animation: avatar-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes avatar-loading {
+  0%,
+  100% {
+    box-shadow: 0 0 4px 2px rgba(56, 139, 253, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 16px 6px rgba(56, 139, 253, 0.35);
+  }
+}
+
+/* Assistant message content formatting — compact for LLM output */
+#pane-chat .stx-shell-ai-msg.assistant p {
+  margin: 0.3em 0;
+}
+
 #pane-chat .stx-shell-ai-msg.assistant h1,
 #pane-chat .stx-shell-ai-msg.assistant h2,
 #pane-chat .stx-shell-ai-msg.assistant h3 {
-  margin-top: 1.2em;
-  margin-bottom: 0.4em;
+  margin-top: 0.8em;
+  margin-bottom: 0.2em;
 }
 
 #pane-chat .stx-shell-ai-msg.assistant ul,
 #pane-chat .stx-shell-ai-msg.assistant ol {
   padding-left: 1.5em;
-  margin: 0.5em 0;
+  margin: 0.3em 0;
+}
+
+#pane-chat .stx-shell-ai-msg.assistant li {
+  margin-bottom: 0.15em;
 }
 
 #pane-chat .stx-shell-ai-msg.assistant code {
