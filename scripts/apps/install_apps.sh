@@ -57,7 +57,17 @@ for i in $(seq 0 $((APP_COUNT - 1))); do
             echo "Sibling exists but --clone forced; skipping clone, using existing"
         else
             echo "Cloning $GIT_URL (ref: $GIT_REF) -> $SIBLING_DIR"
-            git clone --depth 1 --branch "$GIT_REF" "$GIT_URL" "$SIBLING_DIR"
+            if ! git clone --depth 1 --branch "$GIT_REF" "$GIT_URL" "$SIBLING_DIR" 2>&1; then
+                echo "WARNING: Clone failed for $NAME — checking pip-installed package..."
+                # Fall back to pip-installed package location
+                PIP_STATIC=$(python3 -c "import importlib.util; spec = importlib.util.find_spec('${PKG_NAME:-${NAME//-/_}}'); print(spec.submodule_search_locations[0] if spec else '')" 2>/dev/null || echo "")
+                if [[ -n "$PIP_STATIC" ]] && [[ -d "$PIP_STATIC" ]]; then
+                    echo "Found pip-installed $NAME at $PIP_STATIC — symlinking"
+                    ln -sf "$(dirname "$(dirname "$PIP_STATIC")")" "$SIBLING_DIR"
+                else
+                    echo "WARNING: $NAME not available via git or pip — Vite bridge will be incomplete"
+                fi
+            fi
         fi
     else
         echo "Using existing sibling: $SIBLING_DIR"
