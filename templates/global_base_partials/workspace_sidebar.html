@@ -41,8 +41,9 @@
             {% if current_project %}
                 <div class="sidebar-project-selector" id="sidebar-project-selector">
                     <button class="sidebar-project-btn" title="Switch project">
-                        <i class="fas fa-chevron-down sidebar-project-chevron"></i>
+                        <i class="fas fa-rocket sidebar-project-icon"></i>
                         <span class="sidebar-label sidebar-project-name">{{ current_project.owner.username }}/{{ current_project.slug }}</span>
+                        <i class="fas fa-chevron-down sidebar-project-chevron sidebar-label"></i>
                     </button>
                 </div>
             {% endif %}

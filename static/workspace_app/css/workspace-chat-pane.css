@@ -2,11 +2,11 @@
    Workspace Chat Pane — Claude.ai-inspired message styling
    ============================================================ */
 
-/* Chat pane: flex column — tab bar on top, content below */
-#pane-chat {
+/* Chat pane: flex column — tab bar on top, content below
+   NOTE: do NOT set display here; .workspace-pane / .active controls visibility */
+#pane-chat.workspace-pane {
   position: relative;
   overflow: hidden;
-  display: flex;
   flex-direction: column;
 }
 
@@ -53,6 +53,7 @@
 #pane-chat .stx-shell-ai-chat-view {
   display: flex !important;
   flex-direction: column;
+  width: 100% !important;
   height: 100%;
 }
 
@@ -158,8 +159,9 @@
 
 /* ── Messages: Claude.ai-inspired styling ── */
 
-/* Messages container: centered, spacious */
+/* Messages container: centered, spacious, full width */
 #pane-chat .stx-shell-ai-messages {
+  width: 100% !important;
   max-width: 720px;
   margin: 0 auto;
   padding: 32px 24px 16px;
@@ -254,10 +256,10 @@
 
 /* ── Input area: centered, clean ── */
 #pane-chat .stx-shell-ai-input-area {
+  width: 100% !important;
   max-width: 720px;
   margin: 0 auto;
   padding: 12px 24px 24px;
-  width: 100%;
 }
 
 /* Model badge: subtle */
