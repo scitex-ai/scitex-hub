@@ -49,18 +49,33 @@
                         <i class="fas fa-chevron-down sidebar-project-chevron sidebar-label"></i>
                     </button>
                     <div class="sidebar-project-dropdown" id="sidebar-project-dropdown">
-                        {% if user.is_authenticated and user.profile.get_user_projects %}
-                            {% for project in user.profile.get_user_projects %}
-                                <a href="/apps/home/?project={{ project.id }}"
-                                   class="sidebar-project-item"
-                                   data-project-id="{{ project.id }}">
-                                    <span>{{ project.owner.username }}/{{ project.slug }}</span>
-                                    {% if user.profile.last_active_repository and user.profile.last_active_repository.id == project.id %}
-                                        <i class="fas fa-check sidebar-project-check"></i>
-                                    {% endif %}
-                                </a>
-                            {% endfor %}
-                        {% endif %}
+                        <div class="sidebar-project-filter">
+                            <i class="fas fa-search sidebar-project-filter-icon"></i>
+                            <input type="text"
+                                   id="sidebar-project-filter-input"
+                                   class="sidebar-project-filter-input"
+                                   placeholder="Find project..."
+                                   autocomplete="off" />
+                        </div>
+                        <div class="sidebar-project-list" id="sidebar-project-list">
+                            {% if user.is_authenticated and user.profile.get_user_projects %}
+                                {% for project in user.profile.get_user_projects %}
+                                    <a href="/apps/home/?project={{ project.id }}"
+                                       class="sidebar-project-item"
+                                       data-project-id="{{ project.id }}"
+                                       data-project-search="{{ project.owner.username }}/{{ project.slug }} {{ project.name }}">
+                                        <span>{{ project.owner.username }}/{{ project.slug }}</span>
+                                        {% if user.profile.last_active_repository and user.profile.last_active_repository.id == project.id %}
+                                            <i class="fas fa-check sidebar-project-check"></i>
+                                        {% endif %}
+                                    </a>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        <a href="/new/" class="sidebar-project-new">
+                            <i class="fas fa-plus"></i>
+                            <span>New project</span>
+                        </a>
                     </div>
                 </div>
             {% endif %}

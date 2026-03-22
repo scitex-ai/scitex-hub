@@ -147,11 +147,19 @@ class WorkspaceSidebar {
   private initProjectDropdown(): void {
     const toggle = document.getElementById("sidebar-project-toggle");
     const dropdown = document.getElementById("sidebar-project-dropdown");
+    const filterInput = document.getElementById(
+      "sidebar-project-filter-input",
+    ) as HTMLInputElement | null;
     if (!toggle || !dropdown) return;
 
     toggle.addEventListener("click", (e) => {
       e.stopPropagation();
-      dropdown.classList.toggle("open");
+      const isOpen = dropdown.classList.toggle("open");
+      if (isOpen && filterInput) {
+        filterInput.value = "";
+        this.filterProjects("");
+        setTimeout(() => filterInput.focus(), 50);
+      }
     });
 
     // Close on outside click
@@ -161,6 +169,36 @@ class WorkspaceSidebar {
 
     dropdown.addEventListener("click", (e) => {
       e.stopPropagation();
+    });
+
+    // Fuzzy filter
+    filterInput?.addEventListener("input", () => {
+      this.filterProjects(filterInput.value);
+    });
+  }
+
+  private filterProjects(query: string): void {
+    const items = document.querySelectorAll<HTMLElement>(
+      ".sidebar-project-item",
+    );
+    const q = query.toLowerCase().trim();
+
+    items.forEach((item) => {
+      if (!q) {
+        item.classList.remove("hidden");
+        return;
+      }
+      const searchText = (
+        item.getAttribute("data-project-search") ||
+        item.textContent ||
+        ""
+      ).toLowerCase();
+      // Fuzzy match: all query chars appear in order in search text
+      let qi = 0;
+      for (let si = 0; si < searchText.length && qi < q.length; si++) {
+        if (searchText[si] === q[qi]) qi++;
+      }
+      item.classList.toggle("hidden", qi < q.length);
     });
   }
 
