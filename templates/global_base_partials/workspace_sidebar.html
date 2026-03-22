@@ -43,7 +43,8 @@
                     <button class="sidebar-project-btn"
                             title="{{ current_project.owner.username }}/{{ current_project.slug }}">
                         <i class="fas fa-rocket sidebar-project-icon"></i>
-                        <span class="sidebar-label sidebar-project-name">{{ current_project.owner.username }}/{{ current_project.slug }}</span>
+                        <span class="sidebar-project-name sidebar-project-full sidebar-label">{{ current_project.owner.username }}/{{ current_project.slug }}</span>
+                        <span class="sidebar-project-name sidebar-project-short">{{ current_project.slug }}</span>
                         <i class="fas fa-chevron-down sidebar-project-chevron sidebar-label"></i>
                     </button>
                 </div>
