@@ -186,10 +186,11 @@ class WorkspaceSidebar {
       }
     });
 
-    // Persist core pane selection and update URL hash
+    // Persist core pane selection and update URL
     if (persist && paneId !== "module") {
       localStorage.setItem(STORAGE_KEY_PANE, paneId);
-      history.replaceState(null, "", `#${paneId}`);
+      // Always use root URL with hash for core panes
+      history.replaceState(null, "", `/#${paneId}`);
     }
 
     // Dispatch event for other components to react
