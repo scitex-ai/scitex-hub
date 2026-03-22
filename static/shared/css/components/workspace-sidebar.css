@@ -152,8 +152,24 @@
 }
 
 /* Expanded: show owner/slug, hide slug-only */
+/* Expanded: hide slug-only label */
 .sidebar-project-short {
   display: none;
+}
+
+/* Sidebar project dropdown: positioned below button */
+.sidebar-project-selector .sidebar-project-dropdown {
+  display: none;
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 100%;
+  z-index: 50;
+  margin-top: 4px;
+}
+
+.sidebar-project-selector {
+  position: relative;
 }
 
 /* Collapsed: hide owner/slug, show slug-only */

@@ -39,14 +39,37 @@
                 </button>
             </div>
             {% if current_project %}
-                <div class="sidebar-project-selector" id="sidebar-project-selector">
-                    <button class="sidebar-project-btn"
-                            title="{{ current_project.owner.username }}/{{ current_project.slug }}">
+                <div class="sidebar-project-selector header-project-selector"
+                     id="sidebar-project-selector">
+                    <button class="sidebar-project-btn project-selector-btn"
+                            title="{{ current_project.owner.username }}/{{ current_project.slug }}"
+                            {% if user.is_authenticated %}data-active-project-id="{% with active=user.profile.get_active_project %}{{ active.id|default:'' }}{% endwith %}"{% endif %}>
                         <i class="fas fa-rocket sidebar-project-icon"></i>
-                        <span class="sidebar-project-name sidebar-project-full sidebar-label">{{ current_project.owner.username }}/{{ current_project.slug }}</span>
+                        <span class="sidebar-project-name sidebar-project-full project-selector-text sidebar-label">{{ current_project.owner.username }}/{{ current_project.slug }}</span>
                         <span class="sidebar-project-name sidebar-project-short">{{ current_project.slug }}</span>
                         <i class="fas fa-chevron-down sidebar-project-chevron sidebar-label"></i>
                     </button>
+                    <div class="project-selector-dropdown sidebar-project-dropdown">
+                        {% if user.is_authenticated %}
+                            {% if user.profile.get_user_projects %}
+                                <div class="dropdown-section">
+                                    {% for project in user.profile.get_user_projects %}
+                                        <button type="button"
+                                                class="dropdown-project-item"
+                                                data-project-id="{{ project.id }}"
+                                                data-project-name="{{ project.name }}"
+                                                data-project-slug="{{ project.slug }}"
+                                                data-project-owner="{{ project.owner.username }}">
+                                            <span class="project-item-name">{{ project.name }}</span>
+                                            <span class="project-item-check {% if user.profile.last_active_repository and user.profile.last_active_repository.id == project.id %}visible{% endif %}">
+                                                <i class="fas fa-check"></i>
+                                            </span>
+                                        </button>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
                 </div>
             {% endif %}
             <!-- Actions -->
