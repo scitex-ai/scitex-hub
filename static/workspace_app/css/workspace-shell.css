@@ -186,6 +186,11 @@
   padding: 6px 12px;
 }
 
+/* Console terminal: add breathing room around xterm */
+#pane-console .stx-shell-ai-console-terminal {
+  padding: 8px 12px;
+}
+
 /* ── Editor/Files pane: override column direction for split ─── */
 #pane-editor.workspace-pane {
   flex-direction: row !important;

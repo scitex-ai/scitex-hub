@@ -55,6 +55,13 @@ class WorkspaceSidebar {
   }
 
   private activateInitialPane(): void {
+    // Check URL hash first (#chat, #console, #files)
+    const hash = window.location.hash.replace("#", "");
+    if (hash && this.isCorePaneId(hash)) {
+      this.switchPane(hash as PaneId, true);
+      return;
+    }
+
     // If we're on a module page, activate "module" pane
     const body = document.body;
     const trackModule = body.getAttribute("data-track-module");
@@ -103,6 +110,14 @@ class WorkspaceSidebar {
 
     // Keyboard shortcuts (Alt+key)
     document.addEventListener("keydown", (e) => this.onKeyDown(e));
+
+    // Hash change (browser back/forward)
+    window.addEventListener("hashchange", () => {
+      const hash = window.location.hash.replace("#", "");
+      if (hash && this.isCorePaneId(hash) && hash !== this.currentPane) {
+        this.switchPane(hash as PaneId, false);
+      }
+    });
 
     // New chat button
     document
@@ -171,9 +186,10 @@ class WorkspaceSidebar {
       }
     });
 
-    // Persist core pane selection
+    // Persist core pane selection and update URL hash
     if (persist && paneId !== "module") {
       localStorage.setItem(STORAGE_KEY_PANE, paneId);
+      history.replaceState(null, "", `#${paneId}`);
     }
 
     // Dispatch event for other components to react
