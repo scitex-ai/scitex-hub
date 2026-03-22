@@ -1,0 +1,126 @@
+/* ============================================================
+   Workspace Layout — single-pane architecture
+   Replaces the old workspace-three-col multi-column layout.
+   ============================================================ */
+
+/* ── Layout container ──────────────────────────────────────── */
+.workspace-layout {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-primary, #0d1117);
+}
+
+/* ── Content area ──────────────────────────────────────────── */
+.workspace-content {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Pane show/hide ────────────────────────────────────────── */
+.workspace-pane {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}
+
+.workspace-pane.active {
+  display: flex;
+}
+
+/* Module pane inherits overflow for each module's own scroll */
+.workspace-pane[data-pane="module"] {
+  overflow: auto;
+}
+
+/* Full-height panes for core tools */
+.workspace-pane[data-pane="chat"],
+.workspace-pane[data-pane="console"],
+.workspace-pane[data-pane="files"],
+.workspace-pane[data-pane="editor"] {
+  overflow: hidden;
+}
+
+/* ── Pane content stretching ───────────────────────────────── */
+/* Ensure inner panels fill the pane */
+.workspace-pane > .ws-ai-pane,
+.workspace-pane > .ws-worktree-pane,
+.workspace-pane > .ws-viewer-pane {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+}
+
+/* Inner sidebars should fill their pane */
+.workspace-pane .stx-shell-sidebar {
+  width: 100% !important;
+  height: 100% !important;
+  position: relative;
+}
+
+/* Remove collapsed state — panes are always full width */
+.workspace-pane .stx-shell-sidebar.collapsed {
+  width: 100% !important;
+}
+
+/* ── Main content (module pane) ────────────────────────────── */
+.workspace-pane #main-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* ── Mobile ────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .workspace-layout {
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  .workspace-content {
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+/* ── Hide header on workspace pages (not landing) ──────────── */
+body.workspace-page:not(.landing-page) .global-header {
+  display: none;
+}
+
+/* ── Landing page: hide workspace layout, show normal flow ─── */
+body.landing-page .workspace-layout {
+  display: none;
+}
+body.landing-page .workspace-sidebar {
+  display: none;
+}
+body.landing-page .mobile-top-bar {
+  display: none;
+}
+
+/* ── Hide footer globally; show only on landing page ───────── */
+.global-footer,
+.site-footer {
+  display: none !important;
+}
+body.landing-page .global-footer,
+body.landing-page .site-footer {
+  display: block !important;
+}
+
+/* ── Hide old layout remnants ──────────────────────────────── */
+body.workspace-page .module-tab-bar {
+  display: none;
+}
+
+body.workspace-page .header-collapse-toggle,
+body.workspace-page .footer-collapse-toggle {
+  display: none;
+}

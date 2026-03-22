@@ -1,88 +1,52 @@
 /* ============================================================
-   Workspace Shell — Three-column SPA layout
+   Workspace Shell — Single-pane layout (Claude.ai-inspired)
    ============================================================ */
 
-/* Shell container: full height below header + tab bar */
-.workspace-shell {
-  display: flex;
-  flex-direction: row;
-  height: calc(100vh - 65px - 44px); /* header + tab bar heights */
-  overflow: hidden;
-  background: var(--bg-primary, #0d1117);
-}
-
-/* ── AI pane (left) ───────────────────────────────────────── */
+/* ── Full-pane AI panel ────────────────────────────────────── */
 .ws-ai-pane {
-  flex-shrink: 0;
+  width: 100%;
+  height: 100%;
   position: relative;
   overflow: hidden;
 }
 
-/* Override fixed-position from global-ai-chat.css */
-.workspace-shell .scitex-ai-panel.stx-shell-sidebar {
+.ws-ai-pane .stx-shell-ai-panel.stx-shell-sidebar {
   position: relative !important;
   top: auto !important;
   left: auto !important;
+  width: 100% !important;
   height: 100% !important;
   box-shadow: none !important;
-  border-right: 1px solid var(--border-default, #30363d) !important;
+  border-right: none !important;
 }
 
-/* ── Worktree pane (middle) ────────────────────────────────── */
+/* ── Full-pane worktree ────────────────────────────────────── */
 .ws-worktree-pane {
-  flex-shrink: 0;
-  position: relative;
-  overflow: visible;
-}
-
-.workspace-shell #ws-worktree-sidebar {
-  position: relative;
+  width: 100%;
   height: 100%;
-  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  width: 250px;
-  background: var(--bg-secondary, #161b22);
-  border-right: 1px solid var(--border-default, #30363d);
+  position: relative;
   overflow: visible;
 }
 
-.workspace-shell #ws-worktree-sidebar.collapsed {
-  width: 40px;
+.ws-worktree-pane #ws-worktree-sidebar {
+  position: relative;
+  width: 100% !important;
+  height: 100%;
+  background: var(--bg-secondary, #161b22);
+  overflow: visible;
+}
+
+/* ── Full-pane viewer ──────────────────────────────────────── */
+.ws-viewer-pane {
+  width: 100%;
+  height: 100%;
+  position: relative;
   overflow: hidden;
 }
 
-/* ── Module pane (right, flex-grow) ────────────────────────── */
-.ws-module-pane {
-  flex: 1;
-  min-width: 0;
-  height: 100%; /* Cap at workspace-shell height — prevents app content from exceeding viewport */
-  overflow: auto;
-  position: relative;
-}
-
-/* Loading indicator */
-.ws-module-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  gap: 0.5rem;
-  color: var(--text-muted, #8b949e);
-  font-size: 0.9rem;
-}
-
-/* Worktree sidebar header (expanded/collapsed labels) */
-.workspace-shell #ws-worktree-sidebar .stx-shell-sidebar__title-expanded {
-  display: none;
-}
-.workspace-shell
-  #ws-worktree-sidebar:not(.collapsed)
-  .stx-shell-sidebar__title-expanded {
-  display: inline;
-}
-.workspace-shell
-  #ws-worktree-sidebar:not(.collapsed)
-  .stx-shell-sidebar__title {
-  display: none;
+.ws-viewer-pane #ws-viewer-sidebar {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* ── Empty state for viewer pane ─────────────────────────── */
@@ -115,12 +79,53 @@
   line-height: 1.4;
 }
 
-/* Mobile layout: single source of truth in scitex-ui/css/shell/mobile.css */
+/* ── Loading indicator ─────────────────────────────────────── */
+.ws-module-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 0.5rem;
+  color: var(--text-muted, #8b949e);
+  font-size: 0.9rem;
+}
 
-/* Prevent body margin-left from global AI panel fixed-position rules */
-body.scitex-ai-present #main-content:has(.workspace-shell) {
+/* ── Force panels visible (override scitex-ui collapsed states) ── */
+.workspace-pane .stx-shell-sidebar[aria-hidden="true"] {
+  display: flex !important;
+  width: 100% !important;
+}
+
+.workspace-pane .stx-shell-sidebar.collapsed {
+  width: 100% !important;
+  overflow: visible !important;
+}
+
+/* Hide old panel toggle buttons (no collapse in single-pane layout) */
+.workspace-pane .panel-toggle-btn {
+  display: none !important;
+}
+
+/* Hide old collapsed title (show full content always) */
+.workspace-pane .stx-shell-sidebar__title {
+  display: none !important;
+}
+
+.workspace-pane .stx-shell-sidebar__title-full {
+  display: inline !important;
+}
+
+/* Ensure sidebar content fills height */
+.workspace-pane .stx-shell-sidebar__content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* ── Prevent body margin-left from global AI panel rules ──── */
+body.scitex-ai-present #main-content {
   margin-left: 0 !important;
 }
-body.scitex-ai-open #main-content:has(.workspace-shell) {
+body.scitex-ai-open #main-content {
   margin-left: 0 !important;
 }

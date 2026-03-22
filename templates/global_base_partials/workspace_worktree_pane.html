@@ -3,21 +3,7 @@
 {% if user.is_authenticated %}
     <div class="ws-worktree-pane" id="ws-worktree-pane">
         <div class="stx-shell-sidebar" id="ws-worktree-sidebar">
-            <div id="ws-worktree-resizer"
-                 class="panel-resizer"
-                 data-panel-resizer
-                 data-target="#ws-worktree-sidebar"
-                 data-direction="left"
-                 data-min-width="48"
-                 data-default-width="240"
-                 data-storage-key="ws-worktree-width"
-                 data-collapse-key="ws-worktree-collapsed"
-                 data-toggle-btn="ws-worktree-toggle"
-                 style="position:absolute;
-                        right:0;
-                        top:0;
-                        bottom:0;
-                        z-index:1"></div>
+            <!-- Resizer removed: full-pane layout -->
             <div class="stx-shell-sidebar__header">
                 <button class="panel-toggle-btn" id="ws-worktree-toggle" title="Toggle file tree">
                     <i class="fas fa-chevron-right"></i>

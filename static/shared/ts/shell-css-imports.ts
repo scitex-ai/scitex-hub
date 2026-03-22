@@ -12,8 +12,7 @@
 import "scitex-ui/css/shell/stx-shell-sidebar.css";
 // @ts-ignore
 import "scitex-ui/css/shell/panel-resizer.css";
-// @ts-ignore
-import "scitex-ui/css/shell/workspace-three-col.css";
+// workspace-three-col.css removed — replaced by workspace-layout.css + workspace-sidebar.css
 
 // Workspace viewer pane
 // @ts-ignore
@@ -25,6 +24,6 @@ import "scitex-ui/css/shell/workspace-viewer-preview.css";
 // @ts-ignore
 import "scitex-ui/css/shell/workspace-files-tree.css";
 
-// Mobile workspace layout (swipe navigation, bottom tab bar)
+// Mobile layout — bottom tab bar removed, sidebar drawer replaces it
 // @ts-ignore
 import "scitex-ui/css/shell/mobile.css";

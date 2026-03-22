@@ -1,0 +1,107 @@
+{% load static module_icons %}
+
+{% if user.is_authenticated %}
+    <aside id="workspace-sidebar" class="workspace-sidebar" data-sidebar-state="expanded">
+        <!-- Mobile backdrop -->
+        <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+        <nav class="sidebar-inner" id="sidebar-inner">
+            <!-- Sidebar toggle (top, like Claude.ai) -->
+            <div class="sidebar-header-toggle">
+                <button class="sidebar-toggle-btn" id="sidebar-toggle" title="Toggle sidebar">
+                    <i class="fas fa-table-columns"></i>
+                </button>
+            </div>
+            <!-- Header: Logo + Project Selector -->
+            <div class="sidebar-header">
+                <a href="/" class="sidebar-logo" title="Home">
+                    {% if DEBUG %}
+                        <img src="{% static 'shared/images/favicons/favicon-dev.svg' %}"
+                             alt="SciTeX"
+                             class="sidebar-logo-icon" />
+                    {% elif IS_STAGING %}
+                        <img src="{% static 'shared/images/favicons/favicon-staging.svg' %}"
+                             alt="SciTeX"
+                             class="sidebar-logo-icon" />
+                    {% else %}
+                        <img src="{% static 'shared/images/scitex_logos/scitex-icons/scitex-icon-navy-inverted.svg' %}"
+                             alt="SciTeX"
+                             class="sidebar-logo-icon" />
+                    {% endif %}
+                    <span class="sidebar-logo-text">SciTeX</span>
+                </a>
+                {% if current_project %}
+                    <div class="sidebar-project-selector" id="sidebar-project-selector">
+                        <button class="sidebar-project-btn" title="Switch project">
+                            <span class="sidebar-project-name">{{ current_project.slug }}</span>
+                            <i class="fas fa-chevron-down sidebar-project-chevron"></i>
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+            <!-- Actions -->
+            <div class="sidebar-actions">
+                <button class="sidebar-action-btn" id="sidebar-new-chat" title="New chat">
+                    <i class="fas fa-plus"></i>
+                    <span class="sidebar-label">New chat</span>
+                </button>
+                <button class="sidebar-action-btn" id="sidebar-search" title="Search">
+                    <i class="fas fa-search"></i>
+                    <span class="sidebar-label">Search</span>
+                </button>
+            </div>
+            <hr class="sidebar-divider" />
+            <!-- Group 1: Core Tools -->
+            <div class="sidebar-group">
+                <button class="sidebar-item active" data-pane="chat" title="Chat">
+                    <i class="fas fa-comment"></i>
+                    <span class="sidebar-label">Chat</span>
+                </button>
+                <button class="sidebar-item" data-pane="console" title="Console">
+                    <i class="fas fa-terminal"></i>
+                    <span class="sidebar-label">Console</span>
+                </button>
+                <button class="sidebar-item" data-pane="files" title="Files">
+                    <i class="fas fa-folder"></i>
+                    <span class="sidebar-label">Files</span>
+                </button>
+                <button class="sidebar-item" data-pane="editor" title="Editor">
+                    <i class="fas fa-code"></i>
+                    <span class="sidebar-label">Editor</span>
+                </button>
+            </div>
+            <hr class="sidebar-divider" />
+            <!-- Group 2: SciTeX Modules (from registry) -->
+            <div class="sidebar-group">
+                {% for mod in workspace_modules %}
+                    <a href="{{ mod.get_url }}"
+                       class="sidebar-item{% if mod.is_active %} active{% endif %}"
+                       data-pane="module"
+                       data-module="{{ mod.name }}"
+                       data-app-accent="{{ mod.name }}"
+                       title="{{ mod.label }}">
+                        {% module_icon mod.name "nav" mod.version mod.icon_fa mod.is_dev %}
+                        <span class="sidebar-label">{{ mod.label }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+            <hr class="sidebar-divider" />
+            <!-- Footer: User -->
+            <div class="sidebar-footer">
+                <a href="/auth/settings/" class="sidebar-user" title="{{ user.username }}">
+                    <span class="sidebar-user-avatar">
+                        <i class="fas fa-user"></i>
+                    </span>
+                    <span class="sidebar-label sidebar-username">{{ user.username }}</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+    <!-- Mobile top bar (visible < 768px only) -->
+    <div id="mobile-top-bar" class="mobile-top-bar">
+        <button id="mobile-hamburger" class="mobile-hamburger" aria-label="Open menu">
+            <i class="fas fa-bars"></i>
+        </button>
+        <span class="mobile-top-title">SciTeX</span>
+        {% if current_project %}<span class="mobile-top-project">{{ current_project.slug }}</span>{% endif %}
+    </div>
+{% endif %}
