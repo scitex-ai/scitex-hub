@@ -61,6 +61,21 @@
 .chat-welcome-logo {
   width: 96px;
   height: 96px;
+  transition: transform 300ms ease;
+}
+
+/* Spin the logo when AI is thinking */
+.chat-welcome-logo-glow.loading .chat-welcome-logo {
+  animation: logo-spin 2s linear infinite;
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .chat-welcome-tagline {

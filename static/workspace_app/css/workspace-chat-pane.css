@@ -280,12 +280,37 @@
   max-width: 85%;
 }
 
-/* Typing indicator */
+/* Typing indicator — with spinning avatar */
 #pane-chat .stx-shell-ai-typing {
   font-size: 14px;
   padding: 8px 0 8px 44px;
   background: transparent !important;
   border: none !important;
+  position: relative;
+}
+
+#pane-chat .stx-shell-ai-typing::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 28px;
+  height: 28px;
+  background:
+    url("/static/shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg")
+      center / 20px 20px no-repeat,
+    linear-gradient(135deg, #2d333b, #1c2128);
+  border-radius: 50%;
+  animation: logo-spin 2s linear infinite;
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Input area: centered, clean ── */
