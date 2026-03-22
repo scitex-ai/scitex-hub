@@ -141,19 +141,12 @@
     overflow: hidden !important;
   }
 
-  /* Apps nav: horizontal scrollable row */
-  .ws-apps-nav {
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    -webkit-overflow-scrolling: touch;
-    padding: 4px 8px !important;
-    gap: 8px !important;
-  }
-
-  .ws-apps-nav .selector-nav-item {
-    flex-shrink: 0 !important;
+  /* Apps pane: fixed height strip (rotated from desktop's fixed width) */
+  .workspace-three-col > .ws-apps-pane {
+    flex: 0 0 56px !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
   }
 
   /* Override desktop collapsed sidebar styles for mobile */

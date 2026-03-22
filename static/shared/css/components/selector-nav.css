@@ -128,10 +128,7 @@
   bottom: 20%;
   width: 4px;
   border-radius: 0 2px 2px 0;
-  background: var(
-    --app-accent-color,
-    var(--workspace-icon-primary, #059669)
-  );
+  background: var(--app-accent-color, var(--workspace-icon-primary, #059669));
   z-index: 2; /* Above adjacent panel-resizer (z-index:1) */
 }
 
@@ -144,10 +141,7 @@
   bottom: 20%;
   width: 4px;
   border-radius: 2px 0 0 2px;
-  background: var(
-    --app-accent-color,
-    var(--workspace-icon-primary, #059669)
-  );
+  background: var(--app-accent-color, var(--workspace-icon-primary, #059669));
   z-index: 2; /* Above adjacent panel-resizer (z-index:1) */
 }
 
@@ -249,4 +243,42 @@
   background: #a07040;
   color: #fff;
   pointer-events: none;
+}
+
+/* ===========================================================================
+   MOBILE: Rotate 90° — vertical strip → horizontal scrollable bar
+   =========================================================================== */
+
+@media (max-width: 768px) {
+  .selector-nav {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    height: 56px !important;
+    width: 100% !important;
+    padding: 0 4px !important;
+    gap: 0 !important;
+  }
+
+  .selector-nav-item {
+    flex-direction: column !important;
+    flex-shrink: 0 !important;
+    padding: 4px 10px !important;
+    min-width: 56px !important;
+    height: 100% !important;
+  }
+
+  /* Active indicator: bottom bar instead of right bar */
+  .selector-nav-item.active::after {
+    right: auto !important;
+    left: 20% !important;
+    right: 20% !important;
+    top: auto !important;
+    bottom: 0 !important;
+    width: auto !important;
+    height: 3px !important;
+    border-radius: 2px 2px 0 0 !important;
+  }
 }
