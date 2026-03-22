@@ -339,17 +339,15 @@
   opacity: 1;
 }
 
-/* Center the chat empty state */
+/* Hide old empty state (replaced by our welcome overlay) */
 #pane-chat .stx-shell-ai-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  gap: 12px;
-  font-size: 15px;
+  display: none !important;
 }
 
-#pane-chat .stx-shell-ai-empty i {
-  font-size: 3rem;
+/* Hide unnecessary elements in chat bottom */
+#pane-chat .stx-shell-ai-image-previews:empty,
+#pane-chat .stx-shell-ai-vol,
+#pane-chat .stx-shell-ai-stt-model,
+#pane-chat #stx-shell-ai-send {
+  display: none !important;
 }

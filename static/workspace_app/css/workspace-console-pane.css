@@ -7,26 +7,52 @@
   display: none !important;
 }
 
-/* Console tabs bar: larger for full-pane layout */
+/* Console tabs bar: match chat session bar */
 #pane-console .stx-shell-ai-console-tabs-bar {
+  display: flex !important;
+  align-items: center;
   padding: 8px 16px !important;
   gap: 8px !important;
+  border-bottom: 1px solid var(--border-default, #30363d);
+  background: var(--bg-tertiary, #1c2128);
+  flex-shrink: 0;
 }
 
-/* Terminal tab items (T1, T2, ...) */
+/* Terminal tab items — same style as chat session tabs */
 #pane-console .stx-shell-ai-console-tab-item {
   font-size: 14px !important;
   padding: 6px 14px !important;
   border-radius: 6px !important;
   gap: 6px !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  color: var(--text-muted, #8b949e) !important;
 }
 
-/* New terminal (+) button */
+#pane-console .stx-shell-ai-console-tab-item.active {
+  background: rgba(56, 139, 253, 0.12) !important;
+  border-color: rgba(56, 139, 253, 0.4) !important;
+  color: var(--text-primary, #f0f6fc) !important;
+}
+
+/* New terminal (+) button — match chat new-chat */
 #pane-console .stx-shell-ai-console-new-tab {
   font-size: 16px !important;
   padding: 6px 10px !important;
   width: 32px !important;
   height: 32px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: none !important;
+  border: none !important;
+  color: var(--text-muted, #8b949e) !important;
+}
+
+#pane-console .stx-shell-ai-console-new-tab:hover {
+  background: rgba(177, 186, 196, 0.08) !important;
+  color: var(--text-primary, #f0f6fc) !important;
 }
 
 /* Tab close button */
