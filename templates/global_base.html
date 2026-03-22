@@ -51,15 +51,13 @@
             <div id="workspace-layout" class="workspace-layout">
                 {% include 'global_base_partials/workspace_sidebar.html' %}
                 <div id="workspace-content" class="workspace-content">
-                    <!-- Chat + Console share the AI panel (one instance) -->
-                    <!-- Chat pane: shows AI panel in chat mode with welcome overlay -->
+                    <!-- Chat pane: welcome overlay + AI panel (chat mode) -->
                     <div class="workspace-pane" id="pane-chat" data-pane="chat">
                         {% include 'global_base_partials/workspace_chat_pane.html' %}
+                        <div id="ai-panel-container">{% include 'global_base_partials/workspace_ai_pane.html' %}</div>
                     </div>
-                    <!-- Console pane: placeholder, sidebar TS moves AI panel here -->
+                    <!-- Console pane: JS moves AI panel here in console mode -->
                     <div class="workspace-pane" id="pane-console" data-pane="console"></div>
-                    <!-- AI Panel (shared between Chat and Console, moved by JS) -->
-                    <div id="ai-panel-container">{% include 'global_base_partials/workspace_ai_pane.html' %}</div>
                     <!-- Editor pane (file tree left + viewer/editor right) -->
                     <div class="workspace-pane" id="pane-editor" data-pane="editor">
                         <div class="editor-split-layout">
