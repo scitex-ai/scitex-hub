@@ -99,24 +99,24 @@
 }
 
 .sidebar-logo-icon {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
 }
 
 .sidebar-project-selector {
-  margin-left: auto;
+  padding: 0 12px 4px;
   flex-shrink: 0;
 }
 
 .sidebar-project-btn {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
+  gap: 6px;
+  padding: 6px 12px;
   background: none;
   border: 1px solid var(--ws-sidebar-border);
-  border-radius: 6px;
+  border-radius: 8px;
   color: var(--ws-sidebar-text-muted);
   font-size: 12px;
   cursor: pointer;

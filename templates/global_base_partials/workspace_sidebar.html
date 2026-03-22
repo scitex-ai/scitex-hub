@@ -5,15 +5,8 @@
         <!-- Mobile backdrop -->
         <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
         <nav class="sidebar-inner" id="sidebar-inner">
-            <!-- Top bar: brand + toggle -->
+            <!-- Top bar: logo + brand + toggle -->
             <div class="sidebar-header-toggle">
-                <span class="sidebar-brand sidebar-label">SciTeX</span>
-                <button class="sidebar-toggle-btn" id="sidebar-toggle" title="Toggle sidebar">
-                    <i class="fas fa-table-columns"></i>
-                </button>
-            </div>
-            <!-- Header: Logo + Project Selector -->
-            <div class="sidebar-header">
                 <a href="/" class="sidebar-logo" title="Home">
                     {% if DEBUG %}
                         <img src="{% static 'shared/images/favicons/favicon-dev.svg' %}"
@@ -28,17 +21,20 @@
                              alt="SciTeX"
                              class="sidebar-logo-icon" />
                     {% endif %}
-                    <span class="sidebar-logo-text">SciTeX</span>
                 </a>
-                {% if current_project %}
-                    <div class="sidebar-project-selector" id="sidebar-project-selector">
-                        <button class="sidebar-project-btn" title="Switch project">
-                            <span class="sidebar-project-name">{{ current_project.slug }}</span>
-                            <i class="fas fa-chevron-down sidebar-project-chevron"></i>
-                        </button>
-                    </div>
-                {% endif %}
+                <span class="sidebar-brand sidebar-label">SciTeX</span>
+                <button class="sidebar-toggle-btn" id="sidebar-toggle" title="Toggle sidebar">
+                    <i class="fas fa-table-columns"></i>
+                </button>
             </div>
+            {% if current_project %}
+                <div class="sidebar-project-selector" id="sidebar-project-selector">
+                    <button class="sidebar-project-btn" title="Switch project">
+                        <i class="fas fa-chevron-down sidebar-project-chevron"></i>
+                        <span class="sidebar-label sidebar-project-name">{{ current_project.slug }}</span>
+                    </button>
+                </div>
+            {% endif %}
             <!-- Actions -->
             <div class="sidebar-actions">
                 <button class="sidebar-action-btn" id="sidebar-new-chat" title="New chat">
