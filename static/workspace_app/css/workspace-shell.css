@@ -122,17 +122,61 @@
   overflow: auto;
 }
 
-/* ── Console pane: hide mode toggle, show terminal directly ── */
-#pane-console .stx-shell-ai-mode-toggle {
+/* ── AI panel container (shared between Chat and Console) ───── */
+#ai-panel-container {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Chat pane: position welcome overlay above AI panel */
+#pane-chat {
+  position: relative;
+}
+
+#pane-chat .ws-chat-pane {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+/* When chat has messages, hide welcome screen */
+#pane-chat .ws-chat-pane.has-messages {
+  display: none;
+}
+
+/* Chat pane: hide old header, show only chat view */
+#pane-chat .stx-shell-ai-panel-header {
   display: none !important;
 }
 
-#pane-console .stx-shell-sidebar__title {
-  display: inline !important;
+#pane-chat .stx-shell-ai-console-view {
+  display: none !important;
 }
 
+#pane-chat .stx-shell-ai-chat-view {
+  display: flex !important;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* ── Console pane: hide entire old header, show terminal directly ── */
 #pane-console .stx-shell-ai-panel-header {
-  border-bottom: 1px solid var(--border-default, #30363d);
+  display: none !important;
+}
+
+/* Console tabs: larger, with margin */
+#pane-console .stx-shell-ai-console-tabs-bar {
+  padding: 8px 12px;
+  gap: 4px;
+}
+
+#pane-console .stx-shell-ai-console-tabs-list button,
+#pane-console .stx-shell-ai-console-new-tab {
+  font-size: 14px;
+  padding: 6px 12px;
 }
 
 /* ── Editor split layout (file tree left + viewer right) ───── */

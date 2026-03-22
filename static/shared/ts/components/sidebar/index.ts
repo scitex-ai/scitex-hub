@@ -152,9 +152,10 @@ class WorkspaceSidebar {
       pane.classList.toggle("active", id === paneId);
     });
 
-    // Console pane: switch AI panel to console mode
-    if (paneId === "console") {
-      this.switchAiPanelMode("console");
+    // Move AI panel to the active Chat/Console pane
+    if (paneId === "chat" || paneId === "console") {
+      this.moveAiPanel(paneId);
+      this.switchAiPanelMode(paneId === "chat" ? "chat" : "console");
     }
 
     // Force-uncollapse any inner panels (clear old localStorage collapsed state)
@@ -266,6 +267,17 @@ class WorkspaceSidebar {
       el.classList.remove("collapsed");
       el.removeAttribute("aria-hidden");
     });
+  }
+
+  /* ── AI panel DOM movement ───────────────────────────────── */
+
+  private moveAiPanel(targetPane: "chat" | "console"): void {
+    const aiContainer = document.getElementById("ai-panel-container");
+    const targetEl = document.getElementById(`pane-${targetPane}`);
+    if (!aiContainer || !targetEl) return;
+
+    // Move the AI panel into the target pane
+    targetEl.appendChild(aiContainer);
   }
 
   /* ── AI panel mode switching ──────────────────────────────── */
