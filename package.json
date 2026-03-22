@@ -30,7 +30,7 @@
     "fabric": "^5.3.0",
     "@scitex/ui": "file:../scitex-ui",
     "figrecipe-editor": "file:../figrecipe/src/figrecipe/_django/frontend",
-    "mermaid": "^11.12.2",
+    "mermaid": "11.4.1",
     "monaco-editor": "^0.45.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
