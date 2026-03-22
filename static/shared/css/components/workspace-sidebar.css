@@ -66,11 +66,11 @@
 }
 
 .sidebar-brand {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 600;
   color: var(--text-primary, #f0f6fc);
   flex: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-header-toggle {
