@@ -175,10 +175,20 @@
   border-radius: 8px;
   padding: 4px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  min-width: 200px;
 }
 
 .sidebar-project-dropdown.open {
   display: block;
+}
+
+/* Collapsed: pop out to the right of the sidebar */
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-dropdown {
+  left: 100%;
+  right: auto;
+  top: 0;
+  margin-top: 0;
+  margin-left: 4px;
 }
 
 .sidebar-project-item {
