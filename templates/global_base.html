@@ -22,7 +22,7 @@
           data-track-module="{% if active_module %}{{ active_module.get_track_module }}{% elif '/server-status' in request.path %}server_status{% elif '/explore/' in request.path %}explore{% elif '/workspace/' in request.path %}files{% endif %}"
           {% if request.initial_pane %}data-initial-pane="{{ request.initial_pane }}"{% endif %}
           {% if request.chat_session_token %}data-chat-session-token="{{ request.chat_session_token }}"{% endif %}
-          class="{% if request.path == '/' or request.path == '/landing/' %}workspace-page{% if user.is_authenticated %} no-transition{% else %} landing-page{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
+          class="{% if request.path == '/' or request.path == '/landing/' %}workspace-page landing-page{% if user.is_authenticated %} no-transition{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
         <!-- Loading screen — hides FOUC until CSS/JS adds body.app-ready -->
         <div id="app-loading-screen">
             <div class="stx-loading-content">
