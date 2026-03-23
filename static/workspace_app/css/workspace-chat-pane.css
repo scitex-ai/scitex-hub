@@ -330,29 +330,55 @@
   animation: avatar-breathe 3s ease-in-out infinite;
 }
 
-/* ── Input area: centered, prominent (Claude.ai-sized) ── */
+/* ── Input area: flex column, model badge below input ── */
 #pane-chat .stx-shell-ai-input-area {
   width: 100% !important;
   max-width: 760px;
   margin: 0 auto;
   padding: 8px 24px 20px;
   background: transparent !important;
+  display: flex !important;
+  flex-direction: column;
 }
 
-/* Model badge: styled as dropdown button (Claude.ai style) */
+/* Input wrap: large rounded box — contains textarea + action buttons */
+#pane-chat .stx-shell-ai-input-wrap {
+  background: var(--bg-secondary, #161b22) !important;
+  border: 1px solid var(--border-default, #30363d) !important;
+  border-radius: 20px !important;
+  padding: 16px 20px 12px !important;
+  flex-wrap: wrap;
+  gap: 8px;
+  order: 1;
+}
+
+#pane-chat .stx-shell-ai-input-wrap:focus-within {
+  border-color: var(--text-link, #58a6ff) !important;
+}
+
+/* Textarea: two rows minimum height */
+#pane-chat .stx-shell-ai-input {
+  min-height: 52px !important;
+  font-size: 15px !important;
+  line-height: 1.5;
+}
+
+/* Model badge: pill button below input (Claude.ai style) */
 #pane-chat .stx-shell-ai-model-badge {
+  order: 2;
   display: inline-flex !important;
   align-items: center;
   gap: 4px;
   font-size: 13px !important;
   font-weight: 500;
   color: var(--text-secondary, #c9d1d9) !important;
-  opacity: 1;
-  padding: 4px 10px;
+  padding: 6px 12px;
   border: 1px solid var(--border-default, #30363d);
   border-radius: 16px;
   cursor: pointer;
   white-space: nowrap;
+  margin-top: 8px;
+  align-self: flex-end;
 }
 
 #pane-chat .stx-shell-ai-model-badge::after {
@@ -366,32 +392,9 @@
   border-color: var(--text-secondary, #c9d1d9);
 }
 
-/* Input wrap: larger rounded box */
-#pane-chat .stx-shell-ai-input-wrap {
-  background: var(--bg-secondary, #161b22) !important;
-  border: 1px solid var(--border-default, #30363d) !important;
-  border-radius: 20px !important;
-  padding: 16px 20px !important;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-/* Textarea: taller minimum height */
-#pane-chat .stx-shell-ai-input {
-  min-height: 36px !important;
-  font-size: 15px !important;
-  line-height: 1.5;
-}
-
-#pane-chat .stx-shell-ai-input-wrap:focus-within {
-  border-color: var(--text-link, #58a6ff) !important;
-}
-
-/* Input textarea */
-#pane-chat .stx-shell-ai-input {
-  font-size: 15px;
-  line-height: 1.5;
-  min-height: 24px;
+/* Image previews container */
+#pane-chat .stx-shell-ai-image-previews {
+  order: 0;
 }
 
 /* Keep all input buttons visible (camera, sketch, mic, gear) */
