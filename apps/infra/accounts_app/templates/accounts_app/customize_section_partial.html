@@ -1,64 +1,27 @@
 <div class="customize-section customize-section--scrollable">
-    <div class="customize-section-header">
-        <a href="/customize/"
-           class="customize-back"
-           data-ajax-load="/customize/"
-           title="Back to Customize">
-            <i class="fas fa-arrow-left"></i>
-        </a>
-        <div class="customize-section-icon">
-            <i class="{{ section_icon }}"></i>
-        </div>
-        <div>
-            <h1 class="customize-section-title">{{ section_title }}</h1>
-            <p class="customize-section-subtitle">{{ items|length }} item{{ items|length|pluralize }}</p>
-        </div>
-    </div>
-    {% if section == "mcp-servers" %}
-        <p class="customize-section-info">
-            Enable or disable MCP tool groups. Each group provides specialized capabilities to AI agents.
-            <a href="/apps/docs/#mcp-tools-local" class="customize-docs-link">
-                <i class="fas fa-book"></i> View full documentation
-            </a>
-        </p>
-    {% endif %}
     <div class="customize-section-content">
         {% if items %}
             {% for item in items %}
-                {% if item.has_toggle %}
-                    <a href="{{ item.url|default:'#' }}"
-                       class="customize-section-item stx-app-toggle-card"
-                       {% if item.url %}data-ajax-load="{{ item.url }}"{% endif %}>
-                        <div class="customize-card-icon">
-                            <i class="{{ item.icon }}"></i>
-                        </div>
-                        <div class="customize-card-body">
-                            <h3 class="customize-card-name">{{ item.name }}</h3>
-                            <p class="customize-card-desc">
-                                {{ item.description }}
-                                {% if item.count %}· {{ item.count }} tools{% endif %}
-                            </p>
-                        </div>
-                        <label class="stx-app-toggle"
-                               onclick="event.preventDefault(); event.stopPropagation();">
-                            <input type="checkbox"
-                                   class="stx-app-toggle-input"
-                                   data-group="{{ item.group_key }}"
-                                   {% if item.enabled %}checked{% endif %} />
-                            <span class="stx-app-toggle-slider"></span>
-                        </label>
-                    </a>
-                {% else %}
-                    <div class="customize-section-item">
-                        <div class="customize-card-icon">
-                            <i class="{{ item.icon }}"></i>
-                        </div>
-                        <div class="customize-card-body">
-                            <h3 class="customize-card-name">{{ item.name }}</h3>
-                            <p class="customize-card-desc">{{ item.description }}</p>
-                        </div>
+                <div class="customize-section-item">
+                    <div class="customize-card-icon">
+                        <i class="{{ item.icon }}"></i>
                     </div>
-                {% endif %}
+                    <div class="customize-card-body">
+                        <h3 class="customize-card-name">{{ item.name }}</h3>
+                        <p class="customize-card-desc">
+                            {{ item.description }}
+                            {% if item.count %}· {{ item.count }} tools{% endif %}
+                        </p>
+                    </div>
+                    <label class="stx-app-toggle" onclick="event.stopPropagation();">
+                        <input type="checkbox"
+                               class="stx-app-toggle__input"
+                               data-group="{{ item.group_key|default:item.name }}"
+                               {% if item.enabled %}checked{% endif %}
+                               checked />
+                        <span class="stx-app-toggle__slider"></span>
+                    </label>
+                </div>
             {% endfor %}
         {% else %}
             <div class="customize-empty">
