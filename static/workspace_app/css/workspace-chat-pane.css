@@ -124,13 +124,13 @@
   color: var(--text-primary, #f0f6fc) !important;
 }
 
-/* SciTeX agent avatar — above the message text (like Claude.ai) */
-#pane-chat .stx-shell-ai-msg.assistant::before {
+/* SciTeX agent avatar — below the message text (like Claude.ai) */
+#pane-chat .stx-shell-ai-msg.assistant::after {
   content: "";
   display: block;
   width: 28px;
   height: 28px;
-  margin-bottom: 8px;
+  margin-top: 12px;
   background:
     url("/static/shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg")
       center / 20px 20px no-repeat,
@@ -139,9 +139,13 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
-/* Streaming state: breathing avatar on last assistant message.
-   Only animates when .ai-streaming class is on pane (set by JS) */
-#pane-chat.ai-streaming .stx-shell-ai-msg.assistant:last-of-type::before {
+/* Remove old ::before (no avatar above) */
+#pane-chat .stx-shell-ai-msg.assistant::before {
+  display: none;
+}
+
+/* Streaming: avatar grows and pulses during processing */
+#pane-chat.ai-streaming .stx-shell-ai-msg.assistant:last-of-type::after {
   animation: avatar-breathe 2s ease-in-out infinite;
 }
 
@@ -165,19 +169,9 @@
   }
 }
 
-/* Typing/loading avatar — gentle pulse glow animation */
-#pane-chat .stx-shell-ai-typing::before {
-  content: "";
-  display: block;
-  width: 28px;
-  height: 28px;
-  margin-bottom: 8px;
-  background:
-    url("/static/shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg")
-      center / 20px 20px no-repeat,
-    linear-gradient(135deg, #2d333b, #1c2128);
-  border-radius: 50%;
-  animation: avatar-loading 1.5s ease-in-out infinite;
+/* Typing/loading — no separate avatar (streaming avatar handles it) */
+#pane-chat .stx-shell-ai-typing {
+  padding-left: 0;
 }
 
 @keyframes avatar-loading {
