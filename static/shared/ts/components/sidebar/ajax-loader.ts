@@ -18,17 +18,29 @@ export function initAjaxLinks(): void {
     const url = link.getAttribute("data-ajax-load");
     if (!url) return;
 
+    // Highlight active nav item
+    const nav = link.closest(".customize-nav");
+    if (nav) {
+      nav
+        .querySelectorAll(".customize-nav-item")
+        .forEach((el) => el.classList.remove("active"));
+      link.classList.add("active");
+    }
+
     void loadPageContent(url);
   });
 }
 
 /** Fetch a page via AJAX and inject its content */
 export async function loadPageContent(url: string): Promise<void> {
-  // Prefer customize-content container on /customize/ pages
   const pane =
     document.getElementById("customize-content") ||
     document.getElementById("main-content");
   if (!pane) return;
+
+  // Show loading spinner
+  pane.innerHTML =
+    '<div class="customize-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
 
   try {
     const resp = await fetch(url, {
