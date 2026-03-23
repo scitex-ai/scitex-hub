@@ -168,11 +168,17 @@
   gap: 16px;
 }
 
-/* Base message styles — tighter line spacing for LLM output */
+/* Base message styles — compact for LLM output */
 #pane-chat .stx-shell-ai-msg {
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.45;
   border: none !important;
+}
+
+/* Markdown segments inside messages — tighter spacing */
+#pane-chat .ai-md-segment {
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 /* User messages: subtle bubble, right-aligned */

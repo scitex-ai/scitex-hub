@@ -7,7 +7,7 @@
     </div>
     <div class="customize-grid">
         {% for cat in categories %}
-            <a href="{{ cat.url }}" class="customize-card">
+            <a href="{{ cat.url }}" class="customize-card" data-ajax-load="{{ cat.url }}">
                 <div class="customize-card-icon">
                     <i class="{{ cat.icon }}"></i>
                 </div>

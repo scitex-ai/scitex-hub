@@ -8,6 +8,8 @@
  * - Mobile drawer with backdrop + swipe-to-close
  */
 
+import { initAjaxLinks } from "./ajax-loader";
+
 const STORAGE_KEY_SIDEBAR = "ws-sidebar-state";
 const STORAGE_KEY_PANE = "ws-active-pane";
 
@@ -156,6 +158,9 @@ class WorkspaceSidebar {
 
     // Project selector dropdown toggle
     this.initProjectDropdown();
+
+    // AJAX page loading for [data-ajax-load] links
+    initAjaxLinks();
   }
 
   private initProjectDropdown(): void {
