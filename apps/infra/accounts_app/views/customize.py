@@ -50,8 +50,10 @@ def customize_hub(request):
         },
     ]
 
-    return render(
-        request,
-        "accounts_app/customize_hub.html",
-        {"categories": categories},
-    )
+    # AJAX request (from sidebar) returns partial without base layout
+    if request.headers.get("X-Workspace-Shell") == "1":
+        template = "accounts_app/customize_hub_partial.html"
+    else:
+        template = "accounts_app/customize_hub.html"
+
+    return render(request, template, {"categories": categories})

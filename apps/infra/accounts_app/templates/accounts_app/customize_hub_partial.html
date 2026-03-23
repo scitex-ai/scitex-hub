@@ -1,0 +1,22 @@
+{% load static %}
+
+<div class="customize-hub">
+    <div class="customize-header">
+        <h1 class="customize-title">Customize</h1>
+        <p class="customize-subtitle">Configure how SciTeX AI agents work for you</p>
+    </div>
+    <div class="customize-grid">
+        {% for cat in categories %}
+            <a href="{{ cat.url }}" class="customize-card">
+                <div class="customize-card-icon">
+                    <i class="{{ cat.icon }}"></i>
+                </div>
+                <div class="customize-card-body">
+                    <h3 class="customize-card-name">{{ cat.name }}</h3>
+                    <p class="customize-card-desc">{{ cat.description }}</p>
+                </div>
+                <i class="fas fa-chevron-right customize-card-arrow"></i>
+            </a>
+        {% endfor %}
+    </div>
+</div>

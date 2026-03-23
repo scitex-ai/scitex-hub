@@ -145,6 +145,15 @@ class WorkspaceSidebar {
       window.location.href = "/search/";
     });
 
+    // Customize button — load customize hub into module pane
+    document
+      .getElementById("sidebar-customize")
+      ?.addEventListener("click", () => {
+        this.switchPane("module", true);
+        this.loadCustomizeContent();
+        this.closeDrawer();
+      });
+
     // Project selector dropdown toggle
     this.initProjectDropdown();
   }
@@ -351,6 +360,33 @@ class WorkspaceSidebar {
       location.href = href;
     } finally {
       pane.classList.remove("switching");
+    }
+  }
+
+  /* ── AJAX customize page loading ────────────────────────── */
+
+  private async loadCustomizeContent(): Promise<void> {
+    const pane = document.getElementById("main-content");
+    if (!pane) return;
+
+    // Deselect all module items
+    this.items?.forEach((item) => item.classList.remove("active"));
+
+    try {
+      const resp = await fetch("/customize/", {
+        headers: { "X-Workspace-Shell": "1" },
+        credentials: "same-origin",
+      });
+
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+      const html = await resp.text();
+      pane.innerHTML = html;
+      pane.setAttribute("data-app-accent", "customize");
+      history.pushState({ customize: true }, "", "/customize/");
+    } catch (err) {
+      console.error("[sidebar] Failed to load customize:", err);
+      location.href = "/customize/";
     }
   }
 
