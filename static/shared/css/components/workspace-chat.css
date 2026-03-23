@@ -156,7 +156,8 @@
   color: var(--text-muted, #8b949e);
 }
 
-.chat-welcome-mic {
+/* Welcome input action buttons (camera, sketch, mic) */
+.chat-welcome-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -167,10 +168,12 @@
   color: var(--text-muted, #8b949e);
   cursor: pointer;
   font-size: 16px;
+  border-radius: 8px;
 }
 
-.chat-welcome-mic:hover {
+.chat-welcome-btn:hover {
   color: var(--text-primary, #f0f6fc);
+  background: rgba(177, 186, 196, 0.08);
 }
 
 /* ── Quick action shortcuts ────────────────────────────────── */

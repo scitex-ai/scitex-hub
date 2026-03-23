@@ -20,6 +20,20 @@ function initChatWelcome(): void {
 
   if (!welcomeInput || !welcomePane) return;
 
+  // Auto-focus welcome input on load
+  setTimeout(() => welcomeInput.focus(), 200);
+
+  // Auto-focus when switching to chat pane
+  document.addEventListener("workspace-pane-changed", (e: Event) => {
+    const detail = (e as CustomEvent).detail;
+    if (
+      detail?.pane === "chat" &&
+      !welcomePane.classList.contains("has-messages")
+    ) {
+      setTimeout(() => welcomeInput.focus(), 100);
+    }
+  });
+
   // Check if messages already exist (session was restored)
   checkForExistingMessages(welcomePane);
 
@@ -48,6 +62,22 @@ function initChatWelcome(): void {
       }
     });
   });
+
+  // Camera button — proxy to AI panel camera
+  document
+    .getElementById("chat-welcome-camera")
+    ?.addEventListener("click", () => {
+      const aiCamera = document.getElementById("stx-shell-ai-camera");
+      if (aiCamera) aiCamera.click();
+    });
+
+  // Sketch button — proxy to AI panel sketch
+  document
+    .getElementById("chat-welcome-sketch")
+    ?.addEventListener("click", () => {
+      const aiSketch = document.getElementById("stx-shell-ai-sketch");
+      if (aiSketch) aiSketch.click();
+    });
 }
 
 function sendToAiChat(message: string): void {
