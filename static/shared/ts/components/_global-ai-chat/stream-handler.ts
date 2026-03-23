@@ -60,7 +60,7 @@ export async function processStream(
   let previewEl: HTMLElement | null = null;
   let renderTimer: ReturnType<typeof setTimeout> | null = null;
 
-  /** Debounced live preview of accumulated text */
+  /** Debounced live preview — show filtered rendered output only */
   function schedulePreview(): void {
     if (renderTimer) clearTimeout(renderTimer);
     renderTimer = setTimeout(() => {
@@ -70,9 +70,13 @@ export async function processStream(
         previewEl.className = "ai-md-segment ai-md-streaming";
         msgEl.appendChild(previewEl);
       }
-      // Collapse 3+ consecutive newlines to max 2 (single paragraph break)
+      // Collapse excessive newlines and render as markdown
       const compacted = textBuf.replace(/\n{3,}/g, "\n\n");
-      previewEl.innerHTML = renderMarkdown(compacted);
+      const html = renderMarkdown(compacted);
+      // Strip empty <p></p> tags that create blank lines
+      previewEl.innerHTML = html
+        .replace(/<p>\s*<\/p>/g, "")
+        .replace(/<br\s*\/?>\s*<br\s*\/?>/g, "");
       if (ctx.scrollIfNeeded) ctx.scrollIfNeeded();
       else
         requestAnimationFrame(() => {
