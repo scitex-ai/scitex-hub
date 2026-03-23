@@ -1,76 +1,49 @@
 /**
- * AJAX Page Loader — loads pages into the module pane without full reload.
+ * AJAX Page Loader — re-exports from scitex-ui (single source of truth).
  *
- * Used by:
- * - Customize hub cards ([data-ajax-load] attribute)
- * - Settings pages navigated from within the workspace
+ * Wraps AjaxLoader from scitex-ui with SciTeX Cloud-specific defaults:
+ * - Targets #customize-content or #main-content
+ * - Uses [data-ajax-load] attribute for link detection
  */
+
+import { AjaxLoader } from "scitex-ui/ts/app/ajax-loader";
+
+let _loader: AjaxLoader | null = null;
 
 /** Initialize delegated click handler for [data-ajax-load] links */
 export function initAjaxLinks(): void {
-  document.addEventListener("click", (e) => {
-    const link = (e.target as HTMLElement).closest<HTMLElement>(
-      "[data-ajax-load]",
-    );
-    if (!link) return;
-
-    e.preventDefault();
-    const url = link.getAttribute("data-ajax-load");
-    if (!url) return;
-
-    loadPageContent(url);
+  _loader = new AjaxLoader({
+    containerSelector: "#main-content",
+    linkSelector: "[data-ajax-load]",
+    onLoad: (url, container) => {
+      // Also try customize-content if it exists
+      const customizeContent = document.getElementById("customize-content");
+      if (customizeContent && url.startsWith("/customize/")) {
+        customizeContent.innerHTML = container.innerHTML;
+      }
+    },
   });
+  _loader.init();
 }
 
-/** Fetch a page via AJAX and inject content into the right container */
+/** Fetch a page via AJAX and inject its content */
 export async function loadPageContent(url: string): Promise<void> {
-  // Prefer customize-content container if on /customize/ pages
-  const pane =
-    document.getElementById("customize-content") ||
-    document.getElementById("main-content");
-  if (!pane) return;
-
-  try {
-    const resp = await fetch(url, {
-      headers: { "X-Workspace-Shell": "1" },
-      credentials: "same-origin",
+  if (!_loader) {
+    _loader = new AjaxLoader({
+      containerSelector: "#main-content",
+      linkSelector: "[data-ajax-load]",
     });
-
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-
-    const html = await resp.text();
-
-    // If response is a partial (no <html> tag), use directly
-    if (!html.includes("<!DOCTYPE") && !html.includes("<html")) {
-      pane.innerHTML = html;
-    } else {
-      // Extract content from full page
-      const doc = new DOMParser().parseFromString(html, "text/html");
-      const content =
-        doc.getElementById("main-content") ||
-        doc.querySelector(".settings-content") ||
-        doc.querySelector("main") ||
-        doc.body;
-      pane.innerHTML = content?.innerHTML || html;
-    }
-
-    // Re-execute inline scripts
-    pane.querySelectorAll("script").forEach((old) => {
-      if (old.type === "importmap") {
-        old.remove();
-        return;
-      }
-      const replacement = document.createElement("script");
-      Array.from(old.attributes).forEach((attr) =>
-        replacement.setAttribute(attr.name, attr.value),
-      );
-      replacement.textContent = old.textContent;
-      old.replaceWith(replacement);
-    });
-
-    history.pushState({ page: url }, "", url);
-  } catch (err) {
-    console.error("[ajax-loader] Failed to load page:", url, err);
-    location.href = url;
   }
+
+  // For customize pages, target the right container
+  const customizeContent = document.getElementById("customize-content");
+  if (customizeContent && url.startsWith("/customize/")) {
+    const loader = new AjaxLoader({
+      containerSelector: "#customize-content",
+      linkSelector: "[data-ajax-load]",
+    });
+    return loader.load(url);
+  }
+
+  return _loader.load(url);
 }
