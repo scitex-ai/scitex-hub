@@ -37,8 +37,10 @@ setTimeout(function() {
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.content) {
-            var escaped = data.content.replace(/&/g, '&amp;').replace(/\x3c/g, '&lt;').replace(/\x3e/g, '&gt;');
-            detail.innerHTML = '\x3cpre class="stx-app-miller__detail-content">' + escaped + '\x3c/pre>';
+            var html = (typeof marked !== 'undefined' && marked.parse)
+              ? marked.parse(data.content)
+              : '\x3cpre>' + data.content.replace(/&/g, '&amp;').replace(/\x3c/g, '&lt;').replace(/\x3e/g, '&gt;') + '\x3c/pre>';
+            detail.innerHTML = '\x3cdiv class="stx-app-miller__detail-content">' + html + '\x3c/div>';
           } else {
             detail.innerHTML = '\x3cdiv class="stx-app-miller__detail-empty">No detail for ' + name + '\x3c/div>';
           }
