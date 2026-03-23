@@ -170,11 +170,31 @@ function observeMessages(welcomePane: HTMLElement): void {
 function observeStreamingState(): void {
   const chatPane = document.getElementById("pane-chat");
   const messagesContainer = document.getElementById("stx-shell-ai-messages");
-  if (!chatPane || !messagesContainer) return;
+  if (!chatPane || !messagesContainer) {
+    console.warn("[streaming] Cannot observe:", {
+      chatPane: !!chatPane,
+      messagesContainer: !!messagesContainer,
+    });
+    return;
+  }
+
+  console.log("[streaming] Observer attached to", messagesContainer.id);
 
   const observer = new MutationObserver(() => {
     const typing = messagesContainer.querySelector(".stx-shell-ai-typing");
-    chatPane.classList.toggle("ai-streaming", !!typing);
+    const wasStreaming = chatPane.classList.contains("ai-streaming");
+    const isStreaming = !!typing;
+
+    if (wasStreaming !== isStreaming) {
+      console.log(
+        "[streaming]",
+        isStreaming ? "STARTED" : "STOPPED",
+        "typing element:",
+        typing,
+      );
+    }
+
+    chatPane.classList.toggle("ai-streaming", isStreaming);
   });
 
   observer.observe(messagesContainer, { childList: true, subtree: true });
