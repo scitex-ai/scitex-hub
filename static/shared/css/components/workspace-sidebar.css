@@ -282,6 +282,19 @@
   align-items: center;
 }
 
+/* ── Drag-and-drop reorder for module items ──────────── */
+.sidebar-item.sidebar-dragging {
+  opacity: 0.4;
+}
+
+.sidebar-item.sidebar-drag-before {
+  border-top: 2px solid var(--ws-sidebar-active-text) !important;
+}
+
+.sidebar-item.sidebar-drag-after {
+  border-bottom: 2px solid var(--ws-sidebar-active-text) !important;
+}
+
 /* ── Footer ────────────────────────────────────────────────── */
 .workspace-sidebar .sidebar-footer {
   display: flex;
