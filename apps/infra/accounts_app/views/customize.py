@@ -146,24 +146,30 @@ def _get_section_items(section, user=None):
 
 def _get_skills():
     """Get skills from scitex skills list CLI."""
+    import logging
     import re
     import subprocess
 
+    logger = logging.getLogger(__name__)
     try:
         result = subprocess.run(
             ["python", "-m", "scitex", "skills", "list"],
             capture_output=True,
             text=True,
-            timeout=15,
+            timeout=60,
         )
+        if result.returncode != 0:
+            logger.warning("scitex skills list failed: %s", result.stderr[:200])
         items = []
         current_pkg = ""
+        skill_name = "SKILL"
         for line in result.stdout.splitlines():
             if line.startswith("WARN:") or not line.strip():
                 continue
             # Package header (no leading whitespace, ends with ':')
             if not line.startswith(" ") and line.endswith(":"):
                 current_pkg = line.rstrip(":")
+                skill_name = "SKILL"
                 continue
             # Skill entry (2-space indent, name on its own line)
             m = re.match(r"^  (\S+)$", line)
@@ -173,13 +179,14 @@ def _get_skills():
             # Description (4-space indent)
             m = re.match(r"^    (.+)$", line)
             if m and current_pkg:
+                name = (
+                    current_pkg
+                    if skill_name == "SKILL"
+                    else f"{current_pkg}:{skill_name}"
+                )
                 items.append(
                     {
-                        "name": (
-                            f"{current_pkg}:{skill_name}"
-                            if skill_name != "SKILL"
-                            else current_pkg
-                        ),
+                        "name": name,
                         "description": m.group(1)[:120],
                         "icon": "fas fa-graduation-cap",
                     }
