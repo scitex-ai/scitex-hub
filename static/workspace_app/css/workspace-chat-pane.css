@@ -211,9 +211,10 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
-/* Last assistant message (streaming) — breathing avatar */
-#pane-chat .stx-shell-ai-msg.assistant:last-of-type::before {
-  animation: avatar-breathe 3s ease-in-out infinite;
+/* Streaming state: breathing avatar on last assistant message.
+   Only animates when .ai-streaming class is on pane (set by JS) */
+#pane-chat.ai-streaming .stx-shell-ai-msg.assistant:last-of-type::before {
+  animation: avatar-breathe 2s ease-in-out infinite;
 }
 
 @keyframes avatar-breathe {

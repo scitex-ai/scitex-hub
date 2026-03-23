@@ -26,11 +26,18 @@ function initChatWelcome(): void {
   // Auto-focus when switching to chat pane
   document.addEventListener("workspace-pane-changed", (e: Event) => {
     const detail = (e as CustomEvent).detail;
-    if (
-      detail?.pane === "chat" &&
-      !welcomePane.classList.contains("has-messages")
-    ) {
-      setTimeout(() => welcomeInput.focus(), 100);
+    if (detail?.pane === "chat") {
+      setTimeout(() => {
+        if (!welcomePane.classList.contains("has-messages")) {
+          welcomeInput.focus();
+        } else {
+          // Focus the AI chat input when session has messages
+          const aiInput = document.getElementById(
+            "stx-shell-ai-input",
+          ) as HTMLTextAreaElement | null;
+          aiInput?.focus();
+        }
+      }, 100);
     }
   });
 
@@ -147,11 +154,30 @@ function observeMessages(welcomePane: HTMLElement): void {
   observer.observe(messagesContainer, { childList: true, subtree: true });
 }
 
+/** Toggle .ai-streaming on #pane-chat when typing indicator is visible */
+function observeStreamingState(): void {
+  const chatPane = document.getElementById("pane-chat");
+  const messagesContainer = document.getElementById("stx-shell-ai-messages");
+  if (!chatPane || !messagesContainer) return;
+
+  const observer = new MutationObserver(() => {
+    const typing = messagesContainer.querySelector(".stx-shell-ai-typing");
+    chatPane.classList.toggle("ai-streaming", !!typing);
+  });
+
+  observer.observe(messagesContainer, { childList: true, subtree: true });
+}
+
 // Auto-init
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initChatWelcome);
-} else {
+function initAll(): void {
   initChatWelcome();
+  observeStreamingState();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initAll);
+} else {
+  initAll();
 }
 
 export { initChatWelcome };
