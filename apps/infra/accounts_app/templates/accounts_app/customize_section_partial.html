@@ -20,7 +20,7 @@
     <div class="stx-app-miller__detail-empty">No {{ section_title|lower }} available.</div>
 {% endif %}
 <script>
-(function() {
+setTimeout(function() {
   var items = document.querySelectorAll('#customize-content .stx-app-miller__item');
   var detail = document.getElementById('customize-detail-col');
   if (!detail || !items.length) return;
@@ -45,5 +45,5 @@
         .catch(function() { detail.innerHTML = '<div class="stx-app-miller__detail-empty">Failed</div>'; });
     });
   });
-})();
+}, 0);
 </script>
