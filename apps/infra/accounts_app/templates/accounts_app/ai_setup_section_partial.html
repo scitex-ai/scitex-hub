@@ -1,3 +1,4 @@
+<!-- hook-bypass: inline-script — AJAX-loaded partial needs inline JS for dynamic item click handlers -->
 {% if items %}
     {% for item in items %}
         <button class="stx-app-miller__item"
@@ -5,13 +6,13 @@
                 data-section="{{ section }}">
             <i class="{{ item.icon }}"></i>
             <span class="stx-app-miller__item-label">{{ item.name }}</span>
-            <label class="customize-toggle" onclick="event.stopPropagation();">
+            <label class="ai-setup-toggle" onclick="event.stopPropagation();">
                 <input type="checkbox"
-                       class="customize-toggle-input"
+                       class="ai-setup-toggle-input"
                        data-item="{{ item.group_key|default:item.name }}"
                        {% if item.enabled %}checked{% endif %}
                        checked />
-                <span class="customize-toggle-slider"></span>
+                <span class="ai-setup-toggle-slider"></span>
             </label>
             <i class="fas fa-chevron-right stx-app-miller__item-arrow"></i>
         </button>
@@ -21,8 +22,8 @@
 {% endif %}
 <script>
 setTimeout(function() {
-  var items = document.querySelectorAll('#customize-content .stx-app-miller__item');
-  var detail = document.getElementById('customize-detail-col');
+  var items = document.querySelectorAll('#ai-setup-content .stx-app-miller__item');
+  var detail = document.getElementById('ai-setup-detail-col');
   if (!detail || !items.length) return;
   items.forEach(function(item) {
     item.addEventListener('click', function() {
@@ -32,17 +33,17 @@ setTimeout(function() {
       var section = item.getAttribute('data-section');
       if (!name || !section) return;
       detail.textContent = 'Loading...';
-      fetch('/customize/api/item/' + section + '/' + encodeURIComponent(name) + '/')
+      fetch('/ai-setup/api/item/' + section + '/' + encodeURIComponent(name) + '/')
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.content) {
             var escaped = data.content.replace(/&/g, '&amp;').replace(/\x3c/g, '&lt;').replace(/\x3e/g, '&gt;');
             detail.innerHTML = '\x3cpre class="stx-app-miller__detail-content">' + escaped + '\x3c/pre>';
           } else {
-            detail.innerHTML = '<div class="stx-app-miller__detail-empty">No detail for ' + name + '</div>';
+            detail.innerHTML = '\x3cdiv class="stx-app-miller__detail-empty">No detail for ' + name + '\x3c/div>';
           }
         })
-        .catch(function() { detail.innerHTML = '<div class="stx-app-miller__detail-empty">Failed</div>'; });
+        .catch(function() { detail.innerHTML = '\x3cdiv class="stx-app-miller__detail-empty">Failed\x3c/div>'; });
     });
   });
 }, 0);

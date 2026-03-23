@@ -45,8 +45,8 @@ urlpatterns = [
     path("apps/", include(("apps.workspace.tools_app.urls", "tools_app"))),
     # --- Admin ---
     path("admin/", admin.site.urls),
-    # --- Customize (AI agent configuration hub) ---
-    path("customize/", include("apps.infra.accounts_app.urls_customize")),
+    # --- AI Setup (AI agent configuration hub) ---
+    path("ai-setup/", include("apps.infra.accounts_app.urls_ai_setup")),
     # --- Auth ---
     path("accounts/", include(("apps.infra.accounts_app.urls", "accounts_app"))),
     path("auth/", include(("apps.infra.auth_app.urls", "auth_app"))),
@@ -73,6 +73,8 @@ urlpatterns = [
     path("apps/llm/", include(("apps.infra.llm_app.urls", "llm_app"))),
     path("apps/clew/", include(("apps.workspace.clew_app.urls", "clew_app"))),
     path("apps/store/", include(("apps.workspace.apps_app.urls", "apps_app"))),
+    # --- Dev-installed app modules (/apps/dev__<owner>__<repo>/) ---
+    path("apps/dev__<str:rest>/", dev_module_view, name="dev_module_shell_apps"),
     # --- Legacy redirects (/<app>/ → /apps/<app>/) ---
     path("", include("config.urls_legacy_redirects")),
     # --- Other apps ---

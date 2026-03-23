@@ -151,13 +151,13 @@ class WorkspaceSidebar {
       this.closeDrawer();
     });
 
-    // Customize button — load customize hub into module pane
+    // AI Setup button — load AI Setup hub into module pane
     document
-      .getElementById("sidebar-customize")
+      .getElementById("sidebar-ai-setup")
       ?.addEventListener("click", () => {
         this.switchPane("module", true);
         this.items?.forEach((i) => i.classList.remove("active"));
-        loadPageContent("/customize/");
+        loadPageContent("/ai-setup/");
         this.closeDrawer();
       });
 

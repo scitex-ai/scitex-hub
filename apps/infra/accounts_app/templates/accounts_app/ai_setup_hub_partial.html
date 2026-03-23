@@ -1,0 +1,22 @@
+{% load static %}
+
+<div class="ai-setup-hub">
+    <div class="ai-setup-header">
+        <h1 class="ai-setup-title">AI Setup</h1>
+        <p class="ai-setup-subtitle">Configure how SciTeX AI agents work for you</p>
+    </div>
+    <div class="ai-setup-grid">
+        {% for cat in categories %}
+            <a href="{{ cat.url }}" class="ai-setup-card" data-ajax-load="{{ cat.url }}">
+                <div class="ai-setup-card-icon">
+                    <i class="{{ cat.icon }}"></i>
+                </div>
+                <div class="ai-setup-card-body">
+                    <h3 class="ai-setup-card-name">{{ cat.name }}</h3>
+                    <p class="ai-setup-card-desc">{{ cat.description }}</p>
+                </div>
+                <i class="fas fa-chevron-right ai-setup-card-arrow"></i>
+            </a>
+        {% endfor %}
+    </div>
+</div>

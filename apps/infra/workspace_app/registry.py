@@ -264,8 +264,9 @@ _WORKSPACE_EXTRA_PREFIXES = (
     "/chat/",
     "/console/",
     "/files/",
-    "/customize/",
+    "/ai-setup/",
     "/search/",
+    "/apps/dev__",
 )
 
 
@@ -289,6 +290,12 @@ def extract_module_from_path(path: str) -> Optional[str]:
     for mod in sorted(_registry, key=lambda m: len(m.url or ""), reverse=True):
         if mod.url and path.startswith(mod.url):
             return mod.name
+    # Dev-installed apps: /apps/dev__<owner>__<repo>/
+    if path.startswith("/apps/dev__"):
+        # Extract module name: /apps/dev__owner__repo/ → dev__owner__repo
+        segment = path.split("/")[2] if len(path.split("/")) > 2 else ""
+        if segment.startswith("dev__"):
+            return segment
     return None
 
 

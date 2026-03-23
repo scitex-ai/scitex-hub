@@ -9,21 +9,21 @@
 /** Init collapsible category headers in loaded content */
 function initCategoryToggles(container: HTMLElement): void {
   container
-    .querySelectorAll<HTMLElement>(".customize-category__header")
+    .querySelectorAll<HTMLElement>(".ai-setup-category__header")
     .forEach((header) => {
       header.addEventListener("click", () => {
         header.parentElement?.classList.toggle("open");
       });
     });
   // Auto-open first category
-  const first = container.querySelector(".customize-category");
+  const first = container.querySelector(".ai-setup-category");
   first?.classList.add("open");
 }
 
 /** Initialize delegated click handler for [data-ajax-load] links */
 export function initAjaxLinks(): void {
   // Init any categories already in the DOM
-  const existing = document.getElementById("customize-content");
+  const existing = document.getElementById("ai-setup-content");
   if (existing) initCategoryToggles(existing);
   document.addEventListener("click", (e) => {
     const link = (e.target as HTMLElement).closest<HTMLElement>(
@@ -35,13 +35,13 @@ export function initAjaxLinks(): void {
     const url = link.getAttribute("data-ajax-load");
     if (!url) return;
 
-    // Highlight active nav item
-    const nav = link.closest(".customize-nav");
-    if (nav) {
-      nav
-        .querySelectorAll(".customize-nav-item")
-        .forEach((el) => el.classList.remove("active"));
-      link.classList.add("active");
+    // Highlight active nav item in Miller columns col 1
+    const col = link.closest(".stx-app-miller__col");
+    if (col) {
+      col
+        .querySelectorAll(".stx-app-miller__item")
+        .forEach((el) => el.classList.remove("stx-app-miller__item--active"));
+      link.classList.add("stx-app-miller__item--active");
     }
 
     void loadPageContent(url);
@@ -51,13 +51,20 @@ export function initAjaxLinks(): void {
 /** Fetch a page via AJAX and inject its content */
 export async function loadPageContent(url: string): Promise<void> {
   const pane =
-    document.getElementById("customize-content") ||
+    document.getElementById("ai-setup-content") ||
     document.getElementById("main-content");
   if (!pane) return;
 
+  // Clear detail column (col 3) when loading new section content
+  const detailCol = document.getElementById("ai-setup-detail-col");
+  if (detailCol) {
+    detailCol.innerHTML =
+      '<div class="stx-app-miller__detail-empty">Select an item to view details</div>';
+  }
+
   // Show loading spinner
   pane.innerHTML =
-    '<div class="customize-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+    '<div class="ai-setup-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
 
   try {
     const resp = await fetch(url, {

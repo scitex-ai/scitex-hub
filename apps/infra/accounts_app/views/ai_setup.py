@@ -31,50 +31,50 @@ def _cached(key: str, fetcher, ttl: int = _CACHE_TTL) -> list:
         return []
 
 
-def customize_hub(request):
+def ai_setup_hub(request):
     """AI Setup hub — redirects to first section (no welcome screen)."""
     from django.shortcuts import redirect
 
     # AJAX request: load skills directly
     if request.headers.get("X-Workspace-Shell") == "1":
-        return customize_section(request, "skills")
+        return ai_setup_section(request, "skills")
 
     # Full page: redirect to skills
-    return redirect("/customize/skills/")
+    return redirect("/ai-setup/skills/")
 
 
 def _get_categories():
-    """Get the customize section categories."""
+    """Get the AI Setup section categories."""
     categories = [
         {
             "name": "Skills",
             "description": "Specialized capabilities that guide AI behavior",
             "icon": "fas fa-graduation-cap",
-            "url": "/customize/skills/",
+            "url": "/ai-setup/skills/",
         },
         {
             "name": "Commands",
             "description": "Slash commands that trigger predefined workflows",
             "icon": "fas fa-terminal",
-            "url": "/customize/commands/",
+            "url": "/ai-setup/commands/",
         },
         {
             "name": "Hooks",
             "description": "Automated actions triggered by events",
             "icon": "fas fa-bolt",
-            "url": "/customize/hooks/",
+            "url": "/ai-setup/hooks/",
         },
         {
             "name": "MCP Servers",
             "description": "Model Context Protocol servers and tools",
             "icon": "fas fa-plug",
-            "url": "/customize/mcp-servers/",
+            "url": "/ai-setup/mcp-servers/",
         },
         {
             "name": "CLI Commands",
             "description": "Command-line tools in the terminal environment",
             "icon": "fas fa-code",
-            "url": "/customize/cli-commands/",
+            "url": "/ai-setup/cli-commands/",
         },
         {
             "name": "AI Providers",
@@ -96,7 +96,7 @@ _SECTIONS = {
 }
 
 
-def customize_item_detail(request, section, name):
+def ai_setup_item_detail(request, section, name):
     """Return markdown content for a specific item (AJAX API)."""
     import subprocess
 
@@ -153,13 +153,13 @@ def customize_item_detail(request, section, name):
     return JsonResponse({"content": content, "name": name})
 
 
-def customize_section(request, section):
-    """Render a customize sub-section (skills, commands, etc.)."""
+def ai_setup_section(request, section):
+    """Render an AI Setup sub-section (skills, commands, etc.)."""
     from django.http import Http404
 
     info = _SECTIONS.get(section)
     if not info:
-        raise Http404(f"Unknown customize section: {section}")
+        raise Http404(f"Unknown AI Setup section: {section}")
 
     items = _get_section_items(section, user=request.user)
     # Group items by package (for skills: part before ':')
@@ -175,9 +175,9 @@ def customize_section(request, section):
     }
 
     if request.headers.get("X-Workspace-Shell") == "1":
-        template = "accounts_app/customize_section_partial.html"
+        template = "accounts_app/ai_setup_section_partial.html"
     else:
-        template = "accounts_app/customize_section.html"
+        template = "accounts_app/ai_setup_section.html"
 
     return render(request, template, ctx)
 
@@ -200,7 +200,7 @@ def _group_items(items: list) -> list:
     ]
 
 
-def customize_mcp_server(request, server):
+def ai_setup_mcp_server(request, server):
     """Show individual MCP server tools with per-tool toggle."""
     from apps.infra.accounts_app.views.mcp_settings_views import (
         MCP_GROUP_INFO,
@@ -233,19 +233,19 @@ def customize_mcp_server(request, server):
             }
             for name in tools
         ],
-        "back_url": "/customize/mcp-servers/",
+        "back_url": "/ai-setup/mcp-servers/",
     }
 
     if request.headers.get("X-Workspace-Shell") == "1":
-        template = "accounts_app/customize_section_partial.html"
+        template = "accounts_app/ai_setup_section_partial.html"
     else:
-        template = "accounts_app/customize_section.html"
+        template = "accounts_app/ai_setup_section.html"
 
     return render(request, template, ctx)
 
 
 def _get_section_items(section, user=None):
-    """Fetch items for a customize section (with caching for slow calls)."""
+    """Fetch items for an AI Setup section (with caching for slow calls)."""
     if section == "skills":
         return _cached("skills", _get_skills)
     if section == "mcp-servers":
@@ -342,7 +342,7 @@ def _get_mcp_servers(user=None):
                     "icon": f"fas {info['icon']}",
                     "count": count,
                     "enabled": enabled,
-                    "url": f"/customize/mcp-servers/{key.lower()}/",
+                    "url": f"/ai-setup/mcp-servers/{key.lower()}/",
                     "has_toggle": True,
                 }
             )
