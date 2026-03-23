@@ -79,11 +79,22 @@ export class SessionsPanel {
     // Dismiss context menu on click-outside
     document.addEventListener("click", () => this.dismissContextMenu());
 
-    // Delete key closes selected tabs
+    // Keyboard shortcuts for tabs
     document.addEventListener("keydown", (e) => {
+      // Delete closes selected tabs
       if (e.key === "Delete" && this.selectedIds.size > 0) {
         e.preventDefault();
         void this.deleteSelected();
+        return;
+      }
+      // Ctrl+Shift+Arrow navigates between tabs
+      if (
+        e.ctrlKey &&
+        e.shiftKey &&
+        (e.key === "ArrowLeft" || e.key === "ArrowRight")
+      ) {
+        e.preventDefault();
+        this.navigateTab(e.key === "ArrowRight" ? 1 : -1);
       }
     });
 
@@ -278,6 +289,16 @@ export class SessionsPanel {
     this.listEl
       ?.querySelectorAll(".selected")
       .forEach((el) => el.classList.remove("selected"));
+  }
+
+  /** Navigate to next/previous tab (Ctrl+Shift+Arrow) */
+  private navigateTab(direction: 1 | -1): void {
+    if (this.sessions.length === 0) return;
+    const idx = this.sessions.findIndex((s) => s.id === this.currentSessionId);
+    const next = idx + direction;
+    if (next >= 0 && next < this.sessions.length) {
+      void this.switchSession(this.sessions[next].id);
+    }
   }
 
   /** Delete all selected sessions */
