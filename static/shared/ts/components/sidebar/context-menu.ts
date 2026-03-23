@@ -47,25 +47,6 @@ function showContextMenu(
 
   const actions = [
     {
-      icon: "fas fa-external-link-alt",
-      label: `Open ${moduleLabel}`,
-      action: () => {
-        const href = item.getAttribute("href") || `/apps/${moduleName}/`;
-        window.location.href = href;
-      },
-    },
-    {
-      icon: "fas fa-arrow-up",
-      label: "Move up",
-      action: () => moveModule(item, "up"),
-    },
-    {
-      icon: "fas fa-arrow-down",
-      label: "Move down",
-      action: () => moveModule(item, "down"),
-    },
-    { divider: true },
-    {
       icon: "fas fa-cog",
       label: "App settings",
       action: () => {
