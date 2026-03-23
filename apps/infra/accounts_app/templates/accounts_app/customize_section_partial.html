@@ -1,6 +1,9 @@
 <div class="customize-section">
     <div class="customize-section-header">
-        <a href="/customize/" class="customize-back" title="Back to Customize">
+        <a href="/customize/"
+           class="customize-back"
+           data-ajax-load="/customize/"
+           title="Back to Customize">
             <i class="fas fa-arrow-left"></i>
         </a>
         <div class="customize-section-icon">
@@ -8,14 +11,27 @@
         </div>
         <div>
             <h1 class="customize-section-title">{{ section_title }}</h1>
-            <p class="customize-section-subtitle">Coming soon</p>
+            <p class="customize-section-subtitle">{{ items|length }} item{{ items|length|pluralize }}</p>
         </div>
     </div>
     <div class="customize-section-content">
-        <div class="customize-empty">
-            <i class="{{ section_icon }}"></i>
-            <p>{{ section_title }} configuration will be available here.</p>
-            <p class="customize-empty-hint">This feature is under development.</p>
-        </div>
+        {% if items %}
+            {% for item in items %}
+                <div class="customize-section-item">
+                    <div class="customize-card-icon">
+                        <i class="{{ item.icon }}"></i>
+                    </div>
+                    <div class="customize-card-body">
+                        <h3 class="customize-card-name">{{ item.name }}</h3>
+                        <p class="customize-card-desc">{{ item.description }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="customize-empty">
+                <i class="{{ section_icon }}"></i>
+                <p>No {{ section_title|lower }} configured yet.</p>
+            </div>
+        {% endif %}
     </div>
 </div>

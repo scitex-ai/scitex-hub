@@ -74,6 +74,7 @@ def customize_section(request, section):
         "section": section,
         "section_title": info["title"],
         "section_icon": info["icon"],
+        "items": _get_section_items(section),
     }
 
     if request.headers.get("X-Workspace-Shell") == "1":
@@ -82,3 +83,52 @@ def customize_section(request, section):
         template = "accounts_app/customize_section.html"
 
     return render(request, template, ctx)
+
+
+def _get_section_items(section):
+    """Fetch items for a customize section."""
+    if section == "skills":
+        return _get_skills()
+    if section == "mcp-servers":
+        return _get_mcp_servers()
+    # Placeholder for other sections
+    return []
+
+
+def _get_skills():
+    """Get registered skills."""
+    try:
+        from apps.infra.llm_app.skills import get_all_skills
+
+        skills = get_all_skills()
+        return [
+            {
+                "name": s.display_name or name,
+                "key": name,
+                "description": s.description or "",
+                "icon": "fas fa-graduation-cap",
+            }
+            for name, s in skills.items()
+        ]
+    except Exception:
+        return []
+
+
+def _get_mcp_servers():
+    """Get MCP server tools from preferences."""
+    try:
+        from apps.infra.accounts_app.views.mcp_settings_views import (
+            MCP_TOOL_GROUPS,
+        )
+
+        return [
+            {
+                "name": g["label"],
+                "key": g["key"],
+                "description": f"{g['count']} tools",
+                "icon": "fas fa-plug",
+            }
+            for g in MCP_TOOL_GROUPS
+        ]
+    except Exception:
+        return []
