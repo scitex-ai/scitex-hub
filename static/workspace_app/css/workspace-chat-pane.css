@@ -271,24 +271,35 @@
 
 /* Assistant message content formatting — compact for LLM output */
 #pane-chat .stx-shell-ai-msg.assistant p {
-  margin: 0.3em 0;
+  margin: 0.2em 0;
 }
 
 #pane-chat .stx-shell-ai-msg.assistant h1,
 #pane-chat .stx-shell-ai-msg.assistant h2,
 #pane-chat .stx-shell-ai-msg.assistant h3 {
-  margin-top: 0.8em;
-  margin-bottom: 0.2em;
+  font-size: 14px;
+  margin-top: 0.6em;
+  margin-bottom: 0.15em;
+}
+
+#pane-chat .stx-shell-ai-msg.assistant strong {
+  font-weight: 600;
 }
 
 #pane-chat .stx-shell-ai-msg.assistant ul,
 #pane-chat .stx-shell-ai-msg.assistant ol {
-  padding-left: 1.5em;
-  margin: 0.3em 0;
+  padding-left: 1.2em;
+  margin: 0.15em 0;
 }
 
 #pane-chat .stx-shell-ai-msg.assistant li {
-  margin-bottom: 0.15em;
+  margin-bottom: 0.1em;
+}
+
+/* Markdown segment spacing */
+#pane-chat .ai-md-segment p,
+#pane-chat .ai-md-segment li {
+  margin: 0.15em 0;
 }
 
 #pane-chat .stx-shell-ai-msg.assistant code {
