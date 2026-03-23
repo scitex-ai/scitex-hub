@@ -1,4 +1,4 @@
-"""Customize hub — AI agent configuration dispatcher."""
+"""AI Setup hub — AI agent configuration dispatcher."""
 
 import logging
 import time
