@@ -63,8 +63,14 @@ export class SessionsPanel {
     );
     newBtn?.addEventListener("click", () => this.newChat());
 
-    // Restore last session
-    const saved = sessionStorage.getItem("scitex_ai_session_id");
+    // Restore session: URL > data attribute > sessionStorage
+    const urlSessionId = document.body.getAttribute("data-chat-session-id");
+    const urlPathMatch = window.location.pathname.match(/^\/chat\/(\d+)\//);
+    const pathSessionId = urlPathMatch ? urlPathMatch[1] : null;
+    const saved =
+      pathSessionId ||
+      urlSessionId ||
+      sessionStorage.getItem("scitex_ai_session_id");
     if (saved) this.currentSessionId = parseInt(saved, 10);
 
     // Dismiss context menu on click-outside
@@ -103,6 +109,7 @@ export class SessionsPanel {
       const session = (await resp.json()) as Session;
       this.currentSessionId = session.id;
       sessionStorage.setItem("scitex_ai_session_id", String(session.id));
+      this.updateChatUrl(session.id);
       void this.loadSessions();
       return session.id;
     } catch {
@@ -121,6 +128,7 @@ export class SessionsPanel {
       };
       this.currentSessionId = id;
       sessionStorage.setItem("scitex_ai_session_id", String(id));
+      this.updateChatUrl(id);
       this.onSwitch?.(data.messages, id);
       this.highlightActive();
       this.updateShareButton();
@@ -211,6 +219,15 @@ export class SessionsPanel {
       void this.loadSessions();
     } catch {
       /* silent */
+    }
+  }
+
+  /** Update browser URL to reflect current chat session */
+  private updateChatUrl(sessionId: number): void {
+    if (!window.location.pathname.startsWith("/chat")) return;
+    const newUrl = `/chat/${sessionId}/`;
+    if (window.location.pathname !== newUrl) {
+      history.replaceState({ chatSession: sessionId }, "", newUrl);
     }
   }
 
@@ -331,7 +348,9 @@ export class SessionsPanel {
 
   private highlightActive(): void {
     if (!this.listEl) return;
-    for (const el of this.listEl.querySelectorAll(".stx-shell-ai-session-item")) {
+    for (const el of this.listEl.querySelectorAll(
+      ".stx-shell-ai-session-item",
+    )) {
       const id = parseInt((el as HTMLElement).dataset.sessionId || "0", 10);
       el.classList.toggle("active", id === this.currentSessionId);
     }

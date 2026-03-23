@@ -33,6 +33,12 @@ urlpatterns = [
     # --- Root + Core Panes ---
     path("", root_dispatch, name="root"),
     path("chat/", root_dispatch, name="pane-chat", kwargs={"pane": "chat"}),
+    path(
+        "chat/<int:session_id>/",
+        root_dispatch,
+        name="pane-chat-session",
+        kwargs={"pane": "chat"},
+    ),
     path("console/", root_dispatch, name="pane-console", kwargs={"pane": "console"}),
     path("files/", root_dispatch, name="pane-files", kwargs={"pane": "editor"}),
     path("", include("apps.infra.public_app.urls")),
