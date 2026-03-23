@@ -17,9 +17,7 @@
         </button>
     {% endfor %}
 {% else %}
-    <div class="stx-app-miller__detail-empty">
-        No {{ section_title|lower }} available.
-    </div>
+    <div class="stx-app-miller__detail-empty">No {{ section_title|lower }} available.</div>
 {% endif %}
 <script>
 (function() {
@@ -33,12 +31,13 @@
       var name = item.getAttribute('data-item-name');
       var section = item.getAttribute('data-section');
       if (!name || !section) return;
-      detail.innerHTML = '<div class="stx-app-miller__detail-empty"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+      detail.textContent = 'Loading...';
       fetch('/customize/api/item/' + section + '/' + encodeURIComponent(name) + '/')
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.content) {
-            detail.innerHTML = '<pre class="stx-app-miller__detail-content">' + data.content.replace(/</g, '\&lt;').replace(/>/g, '\&gt;') + '</pre>';
+            var escaped = data.content.replace(/&/g, '&amp;').replace(/\x3c/g, '&lt;').replace(/\x3e/g, '&gt;');
+            detail.innerHTML = '\x3cpre class="stx-app-miller__detail-content">' + escaped + '\x3c/pre>';
           } else {
             detail.innerHTML = '<div class="stx-app-miller__detail-empty">No detail for ' + name + '</div>';
           }
