@@ -128,6 +128,25 @@ def customize_item_detail(request, section, name):
                 f = pathlib.Path.home() / ".claude" / "hooks" / parts[0] / parts[1]
                 if f.exists():
                     content = f.read_text()
+        elif section == "mcp-servers":
+            from apps.infra.accounts_app.views.mcp_settings_views import (
+                MCP_GROUP_INFO,
+                _get_tool_info,
+            )
+
+            group_key = name.upper()
+            _, tool_names = _get_tool_info()
+            tools = tool_names.get(group_key, [])
+            info = MCP_GROUP_INFO.get(group_key, {})
+            lines = [
+                f"# {info.get('display', name)} — {info.get('desc', '')}",
+                "",
+                f"**{len(tools)} tools available:**",
+                "",
+            ]
+            for t in tools:
+                lines.append(f"- `{t}`")
+            content = "\n".join(lines)
     except Exception:
         content = ""
 
