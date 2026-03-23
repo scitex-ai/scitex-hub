@@ -4,24 +4,39 @@
 
 {% block title %}Customize — SciTeX{% endblock %}
 {% block content %}
-    <div class="customize-hub">
-        <div class="customize-header">
-            <h1 class="customize-title">Customize</h1>
-            <p class="customize-subtitle">Configure how SciTeX AI agents work for you</p>
-        </div>
-        <div class="customize-grid">
-            {% for cat in categories %}
-                <a href="{{ cat.url }}" class="customize-card" data-ajax-load="{{ cat.url }}">
-                    <div class="customize-card-icon">
+    <div class="customize-workspace">
+        <aside class="customize-sidebar">
+            <nav class="customize-nav">
+                {% for cat in categories %}
+                    <a href="{{ cat.url }}"
+                       class="customize-nav-item"
+                       data-ajax-load="{{ cat.url }}"
+                       data-section="{{ cat.name|slugify }}">
                         <i class="{{ cat.icon }}"></i>
-                    </div>
-                    <div class="customize-card-body">
-                        <h3 class="customize-card-name">{{ cat.name }}</h3>
-                        <p class="customize-card-desc">{{ cat.description }}</p>
-                    </div>
-                    <i class="fas fa-chevron-right customize-card-arrow"></i>
-                </a>
-            {% endfor %}
+                        <span>{{ cat.name }}</span>
+                    </a>
+                {% endfor %}
+            </nav>
+        </aside>
+        <div class="customize-content" id="customize-content">
+            <div class="customize-welcome">
+                <h1 class="customize-title">Customize</h1>
+                <p class="customize-subtitle">Configure how SciTeX AI agents work for you</p>
+                <div class="customize-grid">
+                    {% for cat in categories %}
+                        <a href="{{ cat.url }}" class="customize-card" data-ajax-load="{{ cat.url }}">
+                            <div class="customize-card-icon">
+                                <i class="{{ cat.icon }}"></i>
+                            </div>
+                            <div class="customize-card-body">
+                                <h3 class="customize-card-name">{{ cat.name }}</h3>
+                                <p class="customize-card-desc">{{ cat.description }}</p>
+                            </div>
+                            <i class="fas fa-chevron-right customize-card-arrow"></i>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}

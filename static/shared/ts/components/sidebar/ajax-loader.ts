@@ -22,9 +22,12 @@ export function initAjaxLinks(): void {
   });
 }
 
-/** Fetch a page via AJAX and inject its content into #main-content */
+/** Fetch a page via AJAX and inject content into the right container */
 export async function loadPageContent(url: string): Promise<void> {
-  const pane = document.getElementById("main-content");
+  // Prefer customize-content container if on /customize/ pages
+  const pane =
+    document.getElementById("customize-content") ||
+    document.getElementById("main-content");
   if (!pane) return;
 
   try {
