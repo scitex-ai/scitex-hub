@@ -267,6 +267,90 @@
         .search-input-field::placeholder {
             color: var(--color-fg-muted, #8b949e);
         }
+
+        /* Autocomplete dropdown */
+        .search-input-form {
+            position: relative;
+        }
+
+        .search-ac-dropdown {
+            display: none;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 100%;
+            max-width: 640px;
+            margin-top: 4px;
+            background: var(--bg-secondary, #161b22);
+            border: 1px solid var(--border-default, #30363d);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .search-ac-dropdown.open {
+            display: block;
+        }
+
+        .search-ac-category {
+            padding: 8px 16px 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-fg-muted, #8b949e);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .search-ac-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            color: var(--color-fg-default, #f0f6fc);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .search-ac-item:hover {
+            background: rgba(177, 186, 196, 0.08);
+            text-decoration: none;
+            color: var(--color-fg-default, #f0f6fc);
+        }
+
+        .search-ac-icon {
+            width: 20px;
+            text-align: center;
+            color: var(--color-fg-muted, #8b949e);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .search-ac-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .search-ac-title {
+            font-size: 14px;
+        }
+
+        .search-ac-subtitle {
+            font-size: 12px;
+            color: var(--color-fg-muted, #8b949e);
+        }
+
+        .search-ac-jump {
+            font-size: 12px;
+            color: var(--color-fg-muted, #8b949e);
+            flex-shrink: 0;
+        }
+
+        .search-ac-divider {
+            height: 1px;
+            background: var(--border-default, #30363d);
+            margin: 4px 0;
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -282,17 +366,20 @@
             </h1>
             {% if query %}<p class="search-meta">{{ total_results }} result{{ total_results|pluralize }} found</p>{% endif %}
         </div>
-        <!-- Search Input -->
+        <!-- Search Input with Live Autocomplete -->
         <form action="/search/" method="get" class="search-input-form">
             <div class="search-input-wrap">
                 <i class="fas fa-search search-input-icon"></i>
                 <input type="text"
                        name="q"
+                       id="search-page-input"
                        value="{{ query|default:'' }}"
                        class="search-input-field"
                        placeholder="Search for users, repositories, papers..."
+                       autocomplete="off"
                        autofocus />
             </div>
+            <div id="search-autocomplete-dropdown" class="search-ac-dropdown"></div>
         </form>
         {% if query %}
             <!-- Filter Tabs -->
@@ -380,4 +467,66 @@
             </div>
         {% endif %}
     </div>
+    <script>
+    (function() {
+      const input = document.getElementById('search-page-input');
+      const dropdown = document.getElementById('search-autocomplete-dropdown');
+      if (!input || !dropdown) return;
+
+      let timer;
+      input.addEventListener('input', function() {
+        clearTimeout(timer);
+        const q = this.value.trim();
+        if (q.length < 2) { dropdown.classList.remove('open'); return; }
+        timer = setTimeout(() => fetchResults(q), 200);
+      });
+
+      input.addEventListener('focus', function() {
+        if (this.value.trim().length >= 2) fetchResults(this.value.trim());
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-input-form')) dropdown.classList.remove('open');
+      });
+
+      async function fetchResults(q) {
+        try {
+          const r = await fetch('/search/api/autocomplete/?q=' + encodeURIComponent(q));
+          const data = await r.json();
+          renderDropdown(data.suggestions);
+        } catch(e) { console.error('[search]', e); }
+      }
+
+      function renderDropdown(suggestions) {
+        if (!suggestions.length) { dropdown.classList.remove('open'); return; }
+
+        const groups = {};
+        suggestions.forEach(s => {
+          const cat = s.type === 'user' ? 'Users' : 'Repositories';
+          if (!groups[cat]) groups[cat] = [];
+          groups[cat].push(s);
+        });
+
+        let html = '';
+        Object.entries(groups).forEach(([cat, items], i) => {
+          if (i > 0) html += '<div class="search-ac-divider"></div>';
+          html += '<div class="search-ac-category">' + cat + '</div>';
+          items.forEach(item => {
+            const icon = item.type === 'user' ? 'fas fa-user' : 'fas fa-book';
+            html += '<a href="' + item.url + '" class="search-ac-item">'
+              + '<i class="search-ac-icon ' + icon + '"></i>'
+              + '<div class="search-ac-text">'
+              + '<div class="search-ac-title">' + item.title + '</div>'
+              + '<div class="search-ac-subtitle">' + item.subtitle + '</div>'
+              + '</div>'
+              + '<span class="search-ac-jump">Jump to</span>'
+              + '</a>';
+          });
+        });
+
+        dropdown.innerHTML = html;
+        dropdown.classList.add('open');
+      }
+    })();
+    </script>
 {% endblock %}
