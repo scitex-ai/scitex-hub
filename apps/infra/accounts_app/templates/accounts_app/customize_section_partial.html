@@ -39,8 +39,19 @@
                     </div>
                     <div class="customize-card-body">
                         <h3 class="customize-card-name">{{ item.name }}</h3>
-                        <p class="customize-card-desc">{{ item.description }}</p>
+                        <p class="customize-card-desc">
+                            {{ item.description }}
+                            {% if item.count %}· {{ item.count }} tools{% endif %}
+                        </p>
                     </div>
+                    <label class="customize-toggle" onclick="event.stopPropagation();">
+                        <input type="checkbox"
+                               class="customize-toggle-input"
+                               data-item="{{ item.group_key|default:item.name }}"
+                               {% if item.enabled %}checked{% endif %}
+                               checked />
+                        <span class="customize-toggle-slider"></span>
+                    </label>
                 </div>
             {% endfor %}
         {% else %}
