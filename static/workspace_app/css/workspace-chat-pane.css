@@ -90,10 +90,12 @@
 }
 
 /* Base message styles — compact for LLM output */
+/* Override scitex-ui's white-space:pre-line which doubles every newline */
 #pane-chat .stx-shell-ai-msg {
   font-size: 14px;
   line-height: 1.45;
   border: none !important;
+  white-space: normal !important;
 }
 
 /* Markdown segments inside messages — tighter spacing */
