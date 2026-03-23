@@ -893,3 +893,4 @@ singularity/
 
 # App installation (cloned siblings for CI)
 .apps/
+deployment/docker/docker_prod/bin/
