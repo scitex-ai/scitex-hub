@@ -33,7 +33,8 @@
             {% endfor %}
         {% elif items %}
             {% for item in items %}
-                <div class="customize-section-item">
+                <div class="customize-section-item{% if item.url %} customize-section-item--clickable{% endif %}"
+                     {% if item.url %}data-ajax-load="{{ item.url }}"{% endif %}>
                     <div class="customize-card-icon">
                         <i class="{{ item.icon }}"></i>
                     </div>
@@ -52,6 +53,7 @@
                                checked />
                         <span class="customize-toggle-slider"></span>
                     </label>
+                    {% if item.url %}<i class="fas fa-chevron-right customize-card-arrow"></i>{% endif %}
                 </div>
             {% endfor %}
         {% else %}
