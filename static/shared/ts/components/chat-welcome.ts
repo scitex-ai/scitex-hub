@@ -168,7 +168,7 @@ function observeStreamingState(): void {
   observer.observe(messagesContainer, { childList: true, subtree: true });
 }
 
-/** Share button — copy chat URL to clipboard */
+/** Share button — enable sharing and copy public URL to clipboard */
 function initShareButton(): void {
   const shareBtn = document.querySelector<HTMLElement>(
     ".stx-shell-ai-share-btn",
@@ -176,22 +176,57 @@ function initShareButton(): void {
   if (!shareBtn) return;
 
   shareBtn.addEventListener("click", async () => {
-    const url = window.location.href;
+    // Get active session ID from the active tab
+    const activeTab = document.querySelector<HTMLElement>(
+      ".stx-shell-ai-session-item.active",
+    );
+    const sessionId = activeTab?.getAttribute("data-session-id");
+    if (!sessionId) {
+      console.error("[share] No active session found");
+      return;
+    }
+
     try {
-      await navigator.clipboard.writeText(url);
-      // Brief visual feedback
+      // Enable sharing via API
+      const csrf =
+        document.querySelector<HTMLInputElement>("[name=csrfmiddlewaretoken]")
+          ?.value ||
+        document.cookie
+          .split(";")
+          .find((c) => c.trim().startsWith("csrftoken="))
+          ?.split("=")[1] ||
+        "";
+
+      const resp = await fetch(`/apps/llm/api/sessions/${sessionId}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrf,
+        },
+        credentials: "same-origin",
+        body: JSON.stringify({ is_shared: true }),
+      });
+
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+      const data = await resp.json();
+      const shareToken = data.share_token;
+      const shareUrl = `${window.location.origin}/apps/llm/shared/${shareToken}/`;
+
+      await navigator.clipboard.writeText(shareUrl);
+
+      // Visual feedback
       const icon = shareBtn.querySelector("i");
       if (icon) {
         icon.className = "fas fa-check";
-        shareBtn.title = "Link copied!";
+        shareBtn.title = "Share link copied!";
         setTimeout(() => {
           icon.className = "fas fa-share-alt";
           shareBtn.title = "Share conversation";
         }, 2000);
       }
-    } catch {
-      // Clipboard API may fail — fallback to prompt
-      prompt("Copy this link:", url);
+    } catch (err) {
+      console.error("[share] Failed:", err);
     }
   });
 }
