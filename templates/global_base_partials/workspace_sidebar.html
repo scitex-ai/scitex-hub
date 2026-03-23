@@ -79,21 +79,6 @@
                     </div>
                 </div>
             {% endif %}
-            <!-- Actions -->
-            <div class="sidebar-actions">
-                <button class="sidebar-action-btn" id="sidebar-search" title="Search">
-                    <i class="fas fa-search"></i>
-                    <span class="sidebar-label">Search</span>
-                </button>
-                <a href="/ai-setup/"
-                   class="sidebar-action-btn"
-                   id="sidebar-ai-setup"
-                   title="AI Setup">
-                    <i class="fas fa-sliders"></i>
-                    <span class="sidebar-label">AI Setup</span>
-                </a>
-            </div>
-            <hr class="sidebar-divider" />
             <!-- Group 1: Core Tools -->
             <div class="sidebar-group">
                 <button class="sidebar-item active" data-pane="chat" title="Chat">
@@ -110,8 +95,8 @@
                 </button>
             </div>
             <hr class="sidebar-divider" />
-            <!-- Group 2: SciTeX Modules (from registry) -->
-            <div class="sidebar-group">
+            <!-- Group 2: SciTeX Modules (scrollable) -->
+            <div class="sidebar-group sidebar-modules-scroll">
                 {% for mod in workspace_modules %}
                     <a href="{{ mod.get_url }}"
                        class="sidebar-item{% if mod.is_active %} active{% endif %}"
@@ -124,18 +109,34 @@
                     </a>
                 {% endfor %}
             </div>
-            <hr class="sidebar-divider" />
-            <!-- Footer: User -->
-            <div class="sidebar-footer">
-                <a href="{% if user.username|slice:':8' == 'visitor-' or user.username == 'readonly-visitor' %}/auth/signin/{% else %}/accounts/settings/{% endif %}"
-                   class="sidebar-user"
-                   title="{{ user.username }}">
-                    <span class="sidebar-user-avatar">
-                        <i class="fas fa-user"></i>
-                    </span>
-                    <span class="sidebar-label sidebar-username">{{ user.username }}</span>
-                </a>
+            <!-- Bottom section: Search + AI Setup + User -->
+            <div class="sidebar-bottom">
+                <hr class="sidebar-divider" />
+                <div class="sidebar-actions">
+                    <button class="sidebar-action-btn" id="sidebar-search" title="Search">
+                        <i class="fas fa-search"></i>
+                        <span class="sidebar-label">Search</span>
+                    </button>
+                    <a href="/ai-setup/"
+                       class="sidebar-action-btn"
+                       id="sidebar-ai-setup"
+                       title="AI Setup">
+                        <i class="fas fa-sliders"></i>
+                        <span class="sidebar-label">AI Setup</span>
+                    </a>
+                </div>
+                <div class="sidebar-footer">
+                    <a href="{% if user.username|slice:':8' == 'visitor-' or user.username == 'readonly-visitor' %}/auth/signin/{% else %}/accounts/settings/{% endif %}"
+                       class="sidebar-user"
+                       title="{{ user.username }}">
+                        <span class="sidebar-user-avatar">
+                            <i class="fas fa-user"></i>
+                        </span>
+                        <span class="sidebar-label sidebar-username">{{ user.username }}</span>
+                    </a>
+                </div>
             </div>
+            <!-- /sidebar-bottom -->
         </nav>
     </aside>
     <!-- Mobile top bar (visible < 768px only) -->

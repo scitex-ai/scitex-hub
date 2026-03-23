@@ -39,8 +39,7 @@
   height: 100%;
   background: var(--ws-sidebar-bg);
   border-right: 1px solid var(--ws-sidebar-border);
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
   transition: width var(--ws-sidebar-transition);
 }
 
@@ -192,6 +191,23 @@
   gap: 2px;
   padding: 4px 8px;
   flex: 0 0 auto;
+}
+
+/* Scrollable modules section — takes remaining space */
+.workspace-sidebar .sidebar-modules-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.workspace-sidebar .sidebar-modules-scroll::-webkit-scrollbar {
+  width: 0;
+}
+
+/* Pinned bottom: Search + AI Setup + User */
+.workspace-sidebar .sidebar-bottom {
+  flex: 0 0 auto;
+  margin-top: auto;
 }
 
 /* ── Sidebar item (button or anchor) ──────────────────────── */

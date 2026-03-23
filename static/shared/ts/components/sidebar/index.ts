@@ -79,9 +79,13 @@ class WorkspaceSidebar {
     const trackModule =
       urlModule || document.body.getAttribute("data-track-module");
 
-    if (trackModule && trackModule !== "files") {
+    if (
+      trackModule &&
+      trackModule !== "files" &&
+      trackModule !== "home" &&
+      path !== "/"
+    ) {
       this.switchPane("module", false);
-      // Highlight the active module in sidebar
       this.highlightModuleItem(trackModule);
     } else if (path.startsWith("/ai-setup/")) {
       this.switchPane("module", false);
@@ -89,10 +93,11 @@ class WorkspaceSidebar {
     } else if (path.startsWith("/search/")) {
       this.switchPane("module", false);
     } else {
-      // Restore last active core pane, default to chat
       const saved = localStorage.getItem(STORAGE_KEY_PANE) as PaneId | null;
-      const paneId = saved && this.isCorePaneId(saved) ? saved : "chat";
-      this.switchPane(paneId, false);
+      this.switchPane(
+        saved && this.isCorePaneId(saved) ? saved : "chat",
+        false,
+      );
     }
   }
 
@@ -292,10 +297,8 @@ class WorkspaceSidebar {
       }
     });
 
-    // Persist core pane selection and update URL
     if (persist && paneId !== "module") {
       localStorage.setItem(STORAGE_KEY_PANE, paneId);
-      // Map pane IDs to URL paths
       const paneUrls: Record<string, string> = {
         chat: "/chat/",
         console: "/console/",
@@ -305,14 +308,12 @@ class WorkspaceSidebar {
       history.pushState({ pane: paneId }, "", targetUrl);
     }
 
-    // Dispatch event for other components to react
     document.dispatchEvent(
       new CustomEvent("workspace-pane-changed", { detail: { pane: paneId } }),
     );
   }
 
   private highlightActionBtn(btnId: string): void {
-    // Remove active from all action buttons, then add to target
     this.sidebar
       ?.querySelectorAll<HTMLElement>(".sidebar-action-btn")
       .forEach((btn) => btn.classList.remove("active"));
