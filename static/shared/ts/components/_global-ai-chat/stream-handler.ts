@@ -30,9 +30,11 @@ function flushTextBuffer(
   msgEl: HTMLElement,
 ): HTMLElement | null {
   if (!textBuf.trim()) return null;
+  // Collapse 3+ consecutive newlines to max 2 (single paragraph break)
+  const compacted = textBuf.replace(/\n{3,}/g, "\n\n");
   const wrapper = document.createElement("div");
   wrapper.className = "ai-md-segment";
-  wrapper.innerHTML = renderMarkdown(textBuf);
+  wrapper.innerHTML = renderMarkdown(compacted);
   highlightCodeBlocks(wrapper);
   fixExternalLinks(wrapper);
   msgEl.appendChild(wrapper);
@@ -68,7 +70,9 @@ export async function processStream(
         previewEl.className = "ai-md-segment ai-md-streaming";
         msgEl.appendChild(previewEl);
       }
-      previewEl.innerHTML = renderMarkdown(textBuf);
+      // Collapse 3+ consecutive newlines to max 2 (single paragraph break)
+      const compacted = textBuf.replace(/\n{3,}/g, "\n\n");
+      previewEl.innerHTML = renderMarkdown(compacted);
       if (ctx.scrollIfNeeded) ctx.scrollIfNeeded();
       else
         requestAnimationFrame(() => {
