@@ -146,6 +146,13 @@ export class SessionsPanel {
       this.onSwitch?.(data.messages, id);
       this.highlightActive();
       this.updateShareButton();
+      // Auto-focus input after tab switch
+      setTimeout(() => {
+        const input = document.getElementById(
+          "stx-shell-ai-input",
+        ) as HTMLTextAreaElement | null;
+        input?.focus();
+      }, 100);
     } catch {
       /* silent */
     }
