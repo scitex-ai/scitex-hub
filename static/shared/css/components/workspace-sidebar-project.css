@@ -209,6 +209,12 @@
   background: none;
 }
 
+/* Collapsed: larger rocket icon to match other collapsed icons */
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-icon {
+  font-size: 22px;
+  width: 28px;
+}
+
 .workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-name {
   font-size: 10px;
   text-align: center;
