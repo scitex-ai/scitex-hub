@@ -190,13 +190,11 @@
   }
 }
 
-/* Assistant message content formatting — tight like Claude.ai */
+/* Assistant message content — zero-gap paragraphs like Claude.ai */
 #pane-chat .stx-shell-ai-msg.assistant p {
-  margin: 0 0 0.4em 0 !important;
-}
-
-#pane-chat .stx-shell-ai-msg.assistant p:last-child {
-  margin-bottom: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.5;
 }
 
 #pane-chat .stx-shell-ai-msg.assistant h1,
@@ -204,7 +202,8 @@
 #pane-chat .stx-shell-ai-msg.assistant h3 {
   font-size: 15px;
   font-weight: 600;
-  margin: 0.8em 0 0.2em 0;
+  margin: 0.6em 0 0.1em 0 !important;
+  line-height: 1.3;
 }
 
 #pane-chat .stx-shell-ai-msg.assistant strong {
@@ -243,13 +242,12 @@
   display: none;
 }
 
-/* Streaming preview: same tight spacing */
-#pane-chat .ai-md-streaming p {
-  margin: 0 0 0.4em 0 !important;
-}
-
-#pane-chat .ai-md-streaming p:last-child {
-  margin-bottom: 0 !important;
+/* Streaming preview + segments: zero-gap paragraphs */
+#pane-chat .ai-md-streaming p,
+#pane-chat .ai-md-segment p {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.5;
 }
 
 #pane-chat .stx-shell-ai-msg.assistant code {
