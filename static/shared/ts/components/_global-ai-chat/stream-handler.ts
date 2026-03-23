@@ -72,10 +72,7 @@ export async function processStream(
       }
       // Collapse 3+ consecutive newlines to max 2 (single paragraph break)
       const compacted = textBuf.replace(/\n{3,}/g, "\n\n");
-      console.log("[stream] raw text:", JSON.stringify(textBuf.slice(-200)));
-      console.log("[stream] compacted:", JSON.stringify(compacted.slice(-200)));
       previewEl.innerHTML = renderMarkdown(compacted);
-      console.log("[stream] HTML:", previewEl.innerHTML.slice(-300));
       if (ctx.scrollIfNeeded) ctx.scrollIfNeeded();
       else
         requestAnimationFrame(() => {
