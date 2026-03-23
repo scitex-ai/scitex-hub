@@ -43,6 +43,7 @@ def build_module_config(dev_install) -> ModuleConfig:
         is_dev=True,
         status="wip",
         ai_hint=dev_install.description or "",
+        url=f"/apps/{dev_install.module_name}/",
     )
 
 

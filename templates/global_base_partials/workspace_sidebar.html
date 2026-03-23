@@ -127,7 +127,7 @@
             <hr class="sidebar-divider" />
             <!-- Footer: User -->
             <div class="sidebar-footer">
-                <a href="{% if user.username|slice:':8' == 'visitor-' or user.username == 'readonly-visitor' %}/auth/signin/{% else %}/auth/settings/{% endif %}"
+                <a href="{% if user.username|slice:':8' == 'visitor-' or user.username == 'readonly-visitor' %}/auth/signin/{% else %}/accounts/settings/{% endif %}"
                    class="sidebar-user"
                    title="{{ user.username }}">
                     <span class="sidebar-user-avatar">

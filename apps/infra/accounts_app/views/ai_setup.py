@@ -98,20 +98,19 @@ _SECTIONS = {
 
 def ai_setup_item_detail(request, section, name):
     """Return markdown content for a specific item (AJAX API)."""
-    import subprocess
-
     from django.http import JsonResponse
 
     content = ""
     try:
         if section == "skills":
-            result = subprocess.run(
-                ["python", "-m", "scitex", "skills", "get", name],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            content = result.stdout if result.returncode == 0 else ""
+            from scitex_dev.skills import get_skill
+
+            # name format: "package" or "package:ref-name"
+            if ":" in name:
+                pkg, ref = name.split(":", 1)
+                content = get_skill(package=pkg, name=ref) or ""
+            else:
+                content = get_skill(package=name) or ""
         elif section == "commands":
             import pathlib
 

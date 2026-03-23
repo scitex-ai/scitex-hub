@@ -54,6 +54,7 @@ def workspace_context(request):
             _is_user_profile_path(path)
             or path.rstrip("/") == "/new"
             or path in _CORE_PANE_PATHS
+            or path.startswith("/accounts/")
         ):
             has_panes = True
 
