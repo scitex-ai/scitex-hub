@@ -1,9 +1,4 @@
-/**
- * AI Panel Chat Mode
- * Encapsulates chat messaging logic: send, stream, bash exec,
- * message creation, conversation restore/clear, history navigation,
- * speak, mic recording.
- */
+/** AI Panel Chat Mode — send, stream, bash exec, sessions, voice. */
 
 import { readActiveProjectSlug } from "./context";
 import { VoiceRecorder } from "./recorder";
@@ -416,6 +411,7 @@ export class AIPanelChatMode {
 
       typing.remove();
       const msgEl = this.createMsgEl("assistant");
+      document.getElementById("pane-chat")?.classList.add("ai-streaming");
       await processStream(resp, msgEl, {
         messagesEl: this.messagesEl,
         modelBadge: this.modelBadge,
@@ -423,13 +419,13 @@ export class AIPanelChatMode {
         autoSpeak: this.autoSpeak,
         scrollIfNeeded: () => this.scrollToBottomIfNeeded(),
       });
-      // Save assistant response to session
-      const assistantText = msgEl.textContent ?? "";
-      void this.sessionsPanel?.saveMessage("assistant", assistantText);
-      // Ensure scroll to bottom after response completes (with delay for layout)
+      document.getElementById("pane-chat")?.classList.remove("ai-streaming");
+      void this.sessionsPanel?.saveMessage(
+        "assistant",
+        msgEl.textContent ?? "",
+      );
       this.scrollToBottom();
-      setTimeout(() => this.scrollToBottom(), 200);
-      setTimeout(() => this.scrollToBottom(), 500);
+      setTimeout(() => this.scrollToBottom(), 300);
     } catch (err) {
       typing.remove();
       const errEl = this.createMsgEl("error");
