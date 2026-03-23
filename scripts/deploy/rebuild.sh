@@ -136,13 +136,10 @@ docker ps -a --format '{{.Names}}' | grep "^scitex-cloud-${ENV}-" | xargs -r doc
 
 # Step 3: Build images (with resource limits to keep SSH responsive)
 echo -e "${CYAN}  3. Building Docker images (CPU-limited to keep SSH alive)...${NC}"
-# Reserve 2 CPUs for system/SSH — use remaining for build
-TOTAL_CPUS=$(nproc 2>/dev/null || echo 4)
-BUILD_CPUS=$((TOTAL_CPUS > 4 ? TOTAL_CPUS - 2 : TOTAL_CPUS > 2 ? TOTAL_CPUS - 1 : TOTAL_CPUS))
 export DOCKER_BUILDKIT=1
-# nice -10: lower priority so SSH/system processes win CPU contention
+# nice -n 10: lower priority so SSH/system processes win CPU contention
 # shellcheck disable=SC2086  # COMPOSE_CMD intentionally word-splits (e.g. "docker compose")
-nice -n 10 $COMPOSE_CMD build --build-arg BUILDKIT_CPU_LIMIT="${BUILD_CPUS}"
+nice -n 10 $COMPOSE_CMD build
 
 # Step 4: Clear vite timestamp (forces TypeScript rebuild)
 echo -e "${CYAN}  4. Clearing vite timestamp (forces TypeScript rebuild)...${NC}"

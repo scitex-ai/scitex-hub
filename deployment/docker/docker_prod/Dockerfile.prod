@@ -58,7 +58,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && cd /tmp && tar xjf slurm-${SLURM_VERSION}.tar.bz2 \
     && cd slurm-${SLURM_VERSION} \
     && ./configure --prefix=/usr --sysconfdir=/etc/slurm \
-    && make -j$(nproc) \
+    && make -j$(($(nproc) > 4 ? $(nproc) - 2 : $(nproc))) \
     && make install \
     && cd / && rm -rf /tmp/slurm-*
 
