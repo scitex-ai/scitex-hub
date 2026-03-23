@@ -111,25 +111,24 @@
   color: var(--text-primary, #f0f6fc) !important;
 }
 
-/* Assistant messages: no bubble, flowing text */
+/* Assistant messages: no bubble, flowing text, avatar above */
 #pane-chat .stx-shell-ai-msg.assistant {
   max-width: 100%;
   background: transparent !important;
   border: none !important;
   border-radius: 0;
   position: relative;
-  padding: 4px 0 4px 44px;
+  padding: 0;
   color: var(--text-primary, #f0f6fc) !important;
 }
 
-/* SciTeX agent avatar — small circle with icon */
+/* SciTeX agent avatar — above the message text (like Claude.ai) */
 #pane-chat .stx-shell-ai-msg.assistant::before {
   content: "";
-  position: absolute;
-  left: 0;
-  top: 4px;
+  display: block;
   width: 28px;
   height: 28px;
+  margin-bottom: 8px;
   background:
     url("/static/shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg")
       center / 20px 20px no-repeat,
@@ -167,11 +166,10 @@
 /* Typing/loading avatar — gentle pulse glow animation */
 #pane-chat .stx-shell-ai-typing::before {
   content: "";
-  position: absolute;
-  left: 0;
-  top: 4px;
+  display: block;
   width: 28px;
   height: 28px;
+  margin-bottom: 8px;
   background:
     url("/static/shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg")
       center / 20px 20px no-repeat,
