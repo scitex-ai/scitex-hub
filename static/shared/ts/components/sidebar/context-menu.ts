@@ -59,9 +59,16 @@ function showContextMenu(
     },
     { divider: true },
     {
-      icon: "fas fa-eye-slash",
-      label: "Hide from sidebar",
-      action: () => hideModule(moduleName, item),
+      icon: "fas fa-cog",
+      label: "App settings",
+      action: () => {
+        window.location.href = `/apps/store/#${moduleName}`;
+      },
+    },
+    {
+      icon: "fas fa-trash-alt",
+      label: "Uninstall",
+      action: () => uninstallModule(moduleName, moduleLabel, item),
       danger: true,
     },
   ];
@@ -134,8 +141,37 @@ function moveModule(item: HTMLElement, direction: "up" | "down"): void {
   }
 }
 
-function hideModule(moduleName: string, item: HTMLElement): void {
-  item.style.display = "none";
-  // Could call API to disable module, but for now just visual hide
-  console.log(`[context-menu] Hidden module: ${moduleName}`);
+async function uninstallModule(
+  moduleName: string,
+  moduleLabel: string,
+  item: HTMLElement,
+): Promise<void> {
+  const confirmed = confirm(`Uninstall "${moduleLabel}"?`);
+  if (!confirmed) return;
+
+  try {
+    const csrf =
+      document.cookie
+        .split(";")
+        .find((c) => c.trim().startsWith("csrftoken="))
+        ?.split("=")[1] || "";
+
+    const resp = await fetch(`/apps/store/api/${moduleName}/uninstall/`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrf,
+        "Content-Type": "application/json",
+      },
+      credentials: "same-origin",
+    });
+
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+    // Remove from sidebar
+    item.remove();
+    console.log(`[context-menu] Uninstalled: ${moduleName}`);
+  } catch (err) {
+    console.error(`[context-menu] Uninstall failed:`, err);
+    alert(`Failed to uninstall ${moduleLabel}`);
+  }
 }
