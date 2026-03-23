@@ -52,6 +52,12 @@ export class PTYTerminal {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
+    // Wait for web fonts (JetBrains Mono) to load before opening terminal.
+    // xterm.js calculates character cell grid on open() — if the font isn't
+    // loaded yet, the grid uses fallback font metrics causing text selection
+    // offset and arrow key misbehavior.
+    await document.fonts.ready;
+
     const Terminal = (window as any).Terminal;
     const FitAddon = (window as any).FitAddon?.FitAddon;
     const ImageAddon = (window as any).ImageAddon?.ImageAddon;
@@ -71,6 +77,12 @@ export class PTYTerminal {
       const fitAddon = new FitAddon();
       this.term.loadAddon(fitAddon);
       fitAddon.fit();
+
+      // Safety re-fit: if fonts load late despite await above, recalculate grid
+      document.fonts.ready.then(() => {
+        fitAddon.fit();
+        this.sendResize();
+      });
 
       window.addEventListener("resize", () => {
         fitAddon.fit();
