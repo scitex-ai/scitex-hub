@@ -6,8 +6,25 @@
  * This file provides scitex-cloud-specific initialization.
  */
 
+/** Init collapsible category headers in loaded content */
+function initCategoryToggles(container: HTMLElement): void {
+  container
+    .querySelectorAll<HTMLElement>(".customize-category__header")
+    .forEach((header) => {
+      header.addEventListener("click", () => {
+        header.parentElement?.classList.toggle("open");
+      });
+    });
+  // Auto-open first category
+  const first = container.querySelector(".customize-category");
+  first?.classList.add("open");
+}
+
 /** Initialize delegated click handler for [data-ajax-load] links */
 export function initAjaxLinks(): void {
+  // Init any categories already in the DOM
+  const existing = document.getElementById("customize-content");
+  if (existing) initCategoryToggles(existing);
   document.addEventListener("click", (e) => {
     const link = (e.target as HTMLElement).closest<HTMLElement>(
       "[data-ajax-load]",
@@ -80,6 +97,9 @@ export async function loadPageContent(url: string): Promise<void> {
     });
 
     history.pushState({ page: url }, "", url);
+
+    // Init collapsible categories (click header to toggle)
+    initCategoryToggles(pane);
   } catch (err) {
     console.error("[ajax-loader] Failed to load:", url, err);
     location.href = url;

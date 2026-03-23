@@ -1,6 +1,37 @@
 <div class="customize-section customize-section--scrollable">
     <div class="customize-section-content">
-        {% if items %}
+        {% if grouped_items %}
+            {% for group in grouped_items %}
+                <div class="customize-category" data-cat="{{ group.name }}">
+                    <div class="customize-category__header">
+                        <i class="fas fa-chevron-right customize-category__chevron"></i>
+                        <span class="customize-category__name">{{ group.name }}</span>
+                        <span class="customize-category__count">{{ group.count }} item{{ group.count|pluralize }}</span>
+                    </div>
+                    <div class="customize-category__items">
+                        {% for item in group.items %}
+                            <div class="customize-section-item">
+                                <div class="customize-card-icon">
+                                    <i class="{{ item.icon }}"></i>
+                                </div>
+                                <div class="customize-card-body">
+                                    <h3 class="customize-card-name">{{ item.name }}</h3>
+                                    <p class="customize-card-desc">{{ item.description }}</p>
+                                </div>
+                                <label class="customize-toggle" onclick="event.stopPropagation();">
+                                    <input type="checkbox"
+                                           class="customize-toggle-input"
+                                           data-item="{{ item.name }}"
+                                           {% if item.enabled %}checked{% endif %}
+                                           checked />
+                                    <span class="customize-toggle-slider"></span>
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% elif items %}
             {% for item in items %}
                 <div class="customize-section-item">
                     <div class="customize-card-icon">
@@ -8,19 +39,8 @@
                     </div>
                     <div class="customize-card-body">
                         <h3 class="customize-card-name">{{ item.name }}</h3>
-                        <p class="customize-card-desc">
-                            {{ item.description }}
-                            {% if item.count %}· {{ item.count }} tools{% endif %}
-                        </p>
+                        <p class="customize-card-desc">{{ item.description }}</p>
                     </div>
-                    <label class="stx-app-toggle" onclick="event.stopPropagation();">
-                        <input type="checkbox"
-                               class="stx-app-toggle__input"
-                               data-group="{{ item.group_key|default:item.name }}"
-                               {% if item.enabled %}checked{% endif %}
-                               checked />
-                        <span class="stx-app-toggle__slider"></span>
-                    </label>
                 </div>
             {% endfor %}
         {% else %}

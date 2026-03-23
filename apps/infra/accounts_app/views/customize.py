@@ -104,11 +104,16 @@ def customize_section(request, section):
     if not info:
         raise Http404(f"Unknown customize section: {section}")
 
+    items = _get_section_items(section, user=request.user)
+    # Group items by package (for skills: part before ':')
+    grouped = _group_items(items)
+
     ctx = {
         "section": section,
         "section_title": info["title"],
         "section_icon": info["icon"],
-        "items": _get_section_items(section, user=request.user),
+        "items": items,
+        "grouped_items": grouped,
         "categories": _get_categories(),
     }
 
@@ -118,6 +123,24 @@ def customize_section(request, section):
         template = "accounts_app/customize_section.html"
 
     return render(request, template, ctx)
+
+
+def _group_items(items: list) -> list:
+    """Group items by package (part before ':' in name)."""
+    from collections import OrderedDict
+
+    groups: OrderedDict[str, list] = OrderedDict()
+    for item in items:
+        name = item.get("name", "")
+        pkg = name.split(":")[0] if ":" in name else name
+        if pkg not in groups:
+            groups[pkg] = []
+        groups[pkg].append(item)
+
+    return [
+        {"name": pkg, "items": group_items, "count": len(group_items)}
+        for pkg, group_items in groups.items()
+    ]
 
 
 def customize_mcp_server(request, server):
