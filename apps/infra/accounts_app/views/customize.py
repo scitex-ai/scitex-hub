@@ -1,6 +1,34 @@
 """Customize hub — AI agent configuration dispatcher."""
 
+import logging
+import time
+
 from django.shortcuts import render
+
+logger = logging.getLogger(__name__)
+
+# Simple in-memory cache: {key: (timestamp, data)}
+_cache: dict[str, tuple[float, list]] = {}
+_CACHE_TTL = 300  # 5 minutes
+
+
+def _cached(key: str, fetcher, ttl: int = _CACHE_TTL) -> list:
+    """Cache wrapper for slow data fetchers."""
+    now = time.time()
+    if key in _cache:
+        ts, data = _cache[key]
+        if now - ts < ttl:
+            return data
+    try:
+        data = fetcher()
+        _cache[key] = (now, data)
+        return data
+    except Exception as e:
+        logger.warning("Cache fetch failed for %s: %s", key, e)
+        # Return stale data if available
+        if key in _cache:
+            return _cache[key][1]
+        return []
 
 
 def customize_hub(request):
@@ -130,17 +158,17 @@ def customize_mcp_server(request, server):
 
 
 def _get_section_items(section, user=None):
-    """Fetch items for a customize section."""
+    """Fetch items for a customize section (with caching for slow calls)."""
     if section == "skills":
-        return _get_skills()
+        return _cached("skills", _get_skills)
     if section == "mcp-servers":
         return _get_mcp_servers(user=user)
     if section == "cli-commands":
-        return _get_cli_commands()
+        return _cached("cli-commands", _get_cli_commands)
     if section == "commands":
-        return _get_commands()
+        return _cached("commands", _get_commands)
     if section == "hooks":
-        return _get_hooks()
+        return _cached("hooks", _get_hooks)
     return []
 
 
