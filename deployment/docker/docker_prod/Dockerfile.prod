@@ -90,14 +90,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # ============================================
 # Stage 3: System Tools (yq, etc.)
 # ============================================
-# Tiny stage — downloads static binaries. Effectively never invalidated.
+# Pre-downloaded on host to avoid Docker DNS resolution issues on NAS.
+# Host downloads: deployment/docker/docker_prod/bin/yq_linux_amd64
 
 FROM alpine:latest AS tool-builder
 
-RUN YQ_VERSION=v4.44.3 && \
-    wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64 \
-        -O /usr/local/bin/yq && \
-    chmod +x /usr/local/bin/yq
+COPY bin/yq_linux_amd64 /usr/local/bin/yq
+RUN chmod +x /usr/local/bin/yq
 
 # ============================================
 # Stage 4: Node.js Tools
