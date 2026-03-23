@@ -95,7 +95,7 @@ export function renderMarkdown(text: string): string {
 
   try {
     if (!_markedConfigured) {
-      marked.use({ gfm: true, breaks: true });
+      marked.use({ gfm: true, breaks: false });
       _markedConfigured = true;
     }
     const raw = marked.parse(text);
