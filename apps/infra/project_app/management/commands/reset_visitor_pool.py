@@ -8,6 +8,7 @@ Usage:
 """
 
 from django.core.management.base import BaseCommand
+
 from apps.infra.project_app.services.visitor_pool import VisitorPool
 
 
@@ -60,8 +61,10 @@ class Command(BaseCommand):
             )
             return
 
-        # Reset all visitor workspaces - hard reset at 23:59 daily
-        self.stdout.write(self.style.WARNING("Resetting ALL visitor allocations..."))
+        # Reset all visitor workspaces - hard reset on restart/rebuild/daily
+        self.stdout.write(
+            self.style.WARNING("Resetting ALL visitor allocations and workspaces...")
+        )
 
         # Deactivate all allocations
         from apps.infra.project_app.models import VisitorAllocation
@@ -70,9 +73,28 @@ class Command(BaseCommand):
             is_active=False
         )
 
+        # Reset all workspaces to clean template state (security: prevent
+        # data leakage from previous visitor sessions after restart)
+        from django.contrib.auth.models import User
+
+        from apps.infra.project_app.services.visitor_pool.workspace_manager import (
+            WorkspaceManager,
+        )
+
+        reset_count = 0
+        for user in User.objects.filter(username__startswith="visitor-"):
+            try:
+                WorkspaceManager.reset_visitor_workspace(user)
+                reset_count += 1
+            except Exception as e:
+                self.stdout.write(
+                    self.style.ERROR(f"  Failed to reset {user.username}: {e}")
+                )
+
         self.stdout.write(
             self.style.SUCCESS(
-                f"✓ Reset complete: {deactivated_count} allocations freed"
+                f"✓ Reset complete: {deactivated_count} allocations freed, "
+                f"{reset_count} workspaces cleaned"
             )
         )
 
