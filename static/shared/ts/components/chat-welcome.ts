@@ -166,39 +166,8 @@ function observeMessages(welcomePane: HTMLElement): void {
   observer.observe(messagesContainer, { childList: true, subtree: true });
 }
 
-/** Toggle .ai-streaming on #pane-chat when typing indicator is visible */
-function observeStreamingState(): void {
-  const chatPane = document.getElementById("pane-chat");
-  const messagesContainer = document.getElementById("stx-shell-ai-messages");
-  if (!chatPane || !messagesContainer) {
-    console.warn("[streaming] Cannot observe:", {
-      chatPane: !!chatPane,
-      messagesContainer: !!messagesContainer,
-    });
-    return;
-  }
-
-  console.log("[streaming] Observer attached to", messagesContainer.id);
-
-  const observer = new MutationObserver(() => {
-    const typing = messagesContainer.querySelector(".stx-shell-ai-typing");
-    const wasStreaming = chatPane.classList.contains("ai-streaming");
-    const isStreaming = !!typing;
-
-    if (wasStreaming !== isStreaming) {
-      console.log(
-        "[streaming]",
-        isStreaming ? "STARTED" : "STOPPED",
-        "typing element:",
-        typing,
-      );
-    }
-
-    chatPane.classList.toggle("ai-streaming", isStreaming);
-  });
-
-  observer.observe(messagesContainer, { childList: true, subtree: true });
-}
+/* Streaming state (.ai-streaming on #pane-chat) is managed by
+   scitex-ui chat-mode.ts — no separate observer needed here. */
 
 /** Share button — enable sharing and copy public URL to clipboard */
 function initShareButton(): void {
@@ -266,7 +235,7 @@ function initShareButton(): void {
 // Auto-init
 function initAll(): void {
   initChatWelcome();
-  observeStreamingState();
+  // Streaming state managed by scitex-ui chat-mode.ts (adds .ai-streaming)
   initShareButton();
 }
 
