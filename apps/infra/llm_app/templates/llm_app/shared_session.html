@@ -1,5 +1,6 @@
 {% extends "global_base.html" %}
 
+{# Shared sessions should not show workspace chat pane behind content #}
 {% load static %}
 
 {% block title %}{{ session.title }} — Shared Chat{% endblock %}
@@ -20,7 +21,7 @@
             </span>
         </div>
         <div class="shared-chat-messages">
-            {% for msg in messages %}
+            {% for msg in chat_messages %}
                 <div class="shared-chat-msg shared-chat-msg--{{ msg.role }}">
                     <div class="shared-chat-msg__role">
                         {% if msg.role == "user" %}

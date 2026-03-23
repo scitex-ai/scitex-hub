@@ -191,6 +191,6 @@ def shared_session_page(request, token):
         "llm_app/shared_session.html",
         {
             "session": session,
-            "messages": messages,
+            "chat_messages": messages,
         },
     )
