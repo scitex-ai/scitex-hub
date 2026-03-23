@@ -434,6 +434,20 @@ class WorkspaceSidebar {
   /* ── Keyboard shortcuts ─────────────────────────────────── */
 
   private onKeyDown(e: KeyboardEvent): void {
+    // "/" shortcut to focus search (like GitHub/old SciTeX)
+    if (
+      e.key === "/" &&
+      !e.altKey &&
+      !e.ctrlKey &&
+      !e.metaKey &&
+      !(e.target instanceof HTMLInputElement) &&
+      !(e.target instanceof HTMLTextAreaElement)
+    ) {
+      e.preventDefault();
+      window.location.href = "/search/";
+      return;
+    }
+
     if (!e.altKey || e.ctrlKey || e.metaKey) return;
 
     const key = e.key.toLowerCase();
