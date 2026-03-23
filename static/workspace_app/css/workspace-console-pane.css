@@ -35,12 +35,12 @@
   color: var(--text-primary, #f0f6fc) !important;
 }
 
-/* New terminal (+) button — match chat new-chat */
+/* New terminal (+) button — match chat new-chat (36px) */
 #pane-console .stx-shell-ai-console-new-tab {
   font-size: 16px !important;
   padding: 6px 10px !important;
-  width: 32px !important;
-  height: 32px !important;
+  width: 36px !important;
+  height: 36px !important;
   display: flex;
   align-items: center;
   justify-content: center;
