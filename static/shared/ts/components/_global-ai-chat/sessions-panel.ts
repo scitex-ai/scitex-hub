@@ -59,10 +59,12 @@ export class SessionsPanel {
     this.onClear = onClear;
     this.onShareChange = onShareChange || null;
 
-    // New chat button
-    const newBtn = document.querySelector<HTMLButtonElement>(
-      ".stx-shell-ai-new-chat",
-    );
+    // New chat button — scope to the same parent as the sessions list
+    // to avoid grabbing a duplicate button from a different template
+    const newBtn =
+      listEl.parentElement?.querySelector<HTMLButtonElement>(
+        ".stx-shell-ai-new-chat",
+      ) ?? document.querySelector<HTMLButtonElement>(".stx-shell-ai-new-chat");
     newBtn?.addEventListener("click", () => this.newChat());
 
     // Restore session: URL UUID > data attribute > sessionStorage
