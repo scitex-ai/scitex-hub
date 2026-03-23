@@ -32,7 +32,19 @@ def _cached(key: str, fetcher, ttl: int = _CACHE_TTL) -> list:
 
 
 def customize_hub(request):
-    """Hub page showing cards for AI agent configuration categories."""
+    """AI Setup hub — redirects to first section (no welcome screen)."""
+    from django.shortcuts import redirect
+
+    # AJAX request: load skills directly
+    if request.headers.get("X-Workspace-Shell") == "1":
+        return customize_section(request, "skills")
+
+    # Full page: redirect to skills
+    return redirect("/customize/skills/")
+
+
+def _get_categories():
+    """Get the customize section categories."""
     categories = [
         {
             "name": "Skills",
@@ -71,13 +83,7 @@ def customize_hub(request):
             "url": "/accounts/settings/ai-providers/",
         },
     ]
-
-    if request.headers.get("X-Workspace-Shell") == "1":
-        template = "accounts_app/customize_hub_partial.html"
-    else:
-        template = "accounts_app/customize_hub.html"
-
-    return render(request, template, {"categories": categories})
+    return categories
 
 
 # Valid section names and their display info
@@ -103,6 +109,7 @@ def customize_section(request, section):
         "section_title": info["title"],
         "section_icon": info["icon"],
         "items": _get_section_items(section, user=request.user),
+        "categories": _get_categories(),
     }
 
     if request.headers.get("X-Workspace-Shell") == "1":
