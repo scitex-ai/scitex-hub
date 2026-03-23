@@ -1,0 +1,68 @@
+/* ============================================================
+   Shared Chat Page — matches chat pane styling
+   ============================================================ */
+
+.shared-chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.shared-chat-msg {
+  word-wrap: break-word;
+  white-space: normal;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.shared-chat-msg p {
+  margin: 0.15em 0;
+}
+.shared-chat-msg li {
+  margin: 0;
+  padding: 0;
+}
+.shared-chat-msg li p {
+  margin: 0;
+}
+.shared-chat-msg ul,
+.shared-chat-msg ol {
+  padding-left: 1.2em;
+  margin: 0.1em 0;
+}
+
+.shared-chat-msg--user {
+  align-self: flex-end;
+  max-width: 80%;
+  padding: 12px 18px;
+  border-radius: 18px 18px 4px 18px;
+  background: rgba(56, 139, 253, 0.08);
+}
+
+.shared-chat-msg--assistant {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+}
+
+.shared-chat-msg--error {
+  align-self: center;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: rgba(207, 34, 46, 0.1);
+  border: 1px solid rgba(207, 34, 46, 0.3);
+  color: var(--color-danger-fg, #cf222e);
+}
+
+.shared-chat-msg__role {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  opacity: 0.6;
+}
+
+.shared-chat-msg--user .shared-chat-msg__role {
+  display: none;
+}

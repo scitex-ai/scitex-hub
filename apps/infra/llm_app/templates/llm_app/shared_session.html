@@ -4,6 +4,9 @@
 {% load static %}
 
 {% block title %}{{ session.title }} — Shared Chat{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/shared-chat.css' %}" />
+{% endblock %}
 {% block content %}
     <div class="container py-4" style="max-width: 800px">
         <div class="d-flex align-items-center justify-content-between mb-3">
@@ -47,51 +50,5 @@
             </small>
         </div>
     </div>
-    <style>
-        .shared-chat-messages {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .shared-chat-msg {
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            max-width: 90%;
-            word-wrap: break-word;
-            white-space: pre-line;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-
-        .shared-chat-msg--user {
-            align-self: flex-end;
-            background: var(--color-accent-subtle, rgba(9, 105, 218, 0.15));
-            border: 1px solid var(--color-accent-muted, rgba(9, 105, 218, 0.3));
-        }
-
-        .shared-chat-msg--assistant {
-            align-self: flex-start;
-            background: var(--bg-tertiary, #161b22);
-            border: 1px solid var(--border-default, #30363d);
-        }
-
-        .shared-chat-msg--error {
-            align-self: center;
-            background: rgba(207, 34, 46, 0.1);
-            border: 1px solid rgba(207, 34, 46, 0.3);
-            color: var(--color-danger-fg, #cf222e);
-        }
-
-        .shared-chat-msg__role {
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-            opacity: 0.7;
-        }
-
-        .shared-chat-msg__text {
-            font-size: 0.85rem;
-        }
-    </style>
+    <!-- Styles in static/shared/css/components/shared-chat.css -->
 {% endblock %}
