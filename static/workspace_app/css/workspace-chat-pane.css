@@ -190,17 +190,21 @@
   }
 }
 
-/* Assistant message content formatting — compact for LLM output */
+/* Assistant message content formatting — tight like Claude.ai */
 #pane-chat .stx-shell-ai-msg.assistant p {
-  margin: 0.2em 0;
+  margin: 0 0 0.4em 0 !important;
+}
+
+#pane-chat .stx-shell-ai-msg.assistant p:last-child {
+  margin-bottom: 0 !important;
 }
 
 #pane-chat .stx-shell-ai-msg.assistant h1,
 #pane-chat .stx-shell-ai-msg.assistant h2,
 #pane-chat .stx-shell-ai-msg.assistant h3 {
-  font-size: 14px;
-  margin-top: 0.6em;
-  margin-bottom: 0.15em;
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0.8em 0 0.2em 0;
 }
 
 #pane-chat .stx-shell-ai-msg.assistant strong {
@@ -234,9 +238,18 @@
   margin: 0 !important;
 }
 
-/* Kill all BR-based spacing in messages */
+/* Kill all BR-based spacing and streaming preview gaps */
 #pane-chat .stx-shell-ai-msg br + br {
   display: none;
+}
+
+/* Streaming preview: same tight spacing */
+#pane-chat .ai-md-streaming p {
+  margin: 0 0 0.4em 0 !important;
+}
+
+#pane-chat .ai-md-streaming p:last-child {
+  margin-bottom: 0 !important;
 }
 
 #pane-chat .stx-shell-ai-msg.assistant code {
