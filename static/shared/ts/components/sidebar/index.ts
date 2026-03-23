@@ -143,9 +143,12 @@ class WorkspaceSidebar {
         newChatBtn?.click();
       });
 
-    // Search button — navigate to search page
+    // Search button — load search page via AJAX
     document.getElementById("sidebar-search")?.addEventListener("click", () => {
-      window.location.href = "/search/";
+      this.switchPane("module", true);
+      this.items?.forEach((i) => i.classList.remove("active"));
+      loadPageContent("/search/");
+      this.closeDrawer();
     });
 
     // Customize button — load customize hub into module pane

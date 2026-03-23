@@ -19,10 +19,18 @@ def unified_search(request):
     query = request.GET.get("q", "").strip()
     search_type = request.GET.get("type", "all")
 
+    # AJAX request returns content-only partial
+    is_ajax = request.headers.get("X-Workspace-Shell") == "1"
+
     if not query:
+        template = (
+            "search_app/search_results_partial.html"
+            if is_ajax
+            else "search_app/search_results.html"
+        )
         return render(
             request,
-            "search_app/search_results.html",
+            template,
             {
                 "query": "",
                 "search_type": search_type,
@@ -66,7 +74,12 @@ def unified_search(request):
         "total_results": total_results,
     }
 
-    return render(request, "search_app/search_results.html", context)
+    template = (
+        "search_app/search_results_partial.html"
+        if is_ajax
+        else "search_app/search_results.html"
+    )
+    return render(request, template, context)
 
 
 def search_users(query, current_user=None, limit=20):
