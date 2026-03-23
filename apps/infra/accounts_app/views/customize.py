@@ -96,6 +96,44 @@ _SECTIONS = {
 }
 
 
+def customize_item_detail(request, section, name):
+    """Return markdown content for a specific item (AJAX API)."""
+    import subprocess
+
+    from django.http import JsonResponse
+
+    content = ""
+    try:
+        if section == "skills":
+            result = subprocess.run(
+                ["python", "-m", "scitex", "skills", "get", name],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            content = result.stdout if result.returncode == 0 else ""
+        elif section == "commands":
+            import pathlib
+
+            for d in [pathlib.Path.home() / ".claude" / "commands"]:
+                f = d / f"{name.lstrip('/')}.md"
+                if f.exists():
+                    content = f.read_text()
+                    break
+        elif section == "hooks":
+            import pathlib
+
+            parts = name.split("/", 1)
+            if len(parts) == 2:
+                f = pathlib.Path.home() / ".claude" / "hooks" / parts[0] / parts[1]
+                if f.exists():
+                    content = f.read_text()
+    except Exception:
+        content = ""
+
+    return JsonResponse({"content": content, "name": name})
+
+
 def customize_section(request, section):
     """Render a customize sub-section (skills, commands, etc.)."""
     from django.http import Http404

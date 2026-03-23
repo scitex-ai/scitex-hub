@@ -355,3 +355,41 @@
 .customize-category.open .customize-category__items {
   display: flex;
 }
+
+/* ── Detail panel (click to expand item content) ── */
+.customize-detail {
+  display: none;
+  margin: 4px 0 12px;
+  padding: 16px;
+  background: var(--bg-secondary, #161b22);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.customize-detail-content {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary, #c9d1d9);
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.customize-detail-loading {
+  color: var(--text-muted, #8b949e);
+  font-size: 13px;
+}
+
+.customize-detail-empty {
+  color: var(--text-muted, #8b949e);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.customize-section-item.expanded {
+  background: rgba(56, 139, 253, 0.06);
+  border-radius: 8px;
+}

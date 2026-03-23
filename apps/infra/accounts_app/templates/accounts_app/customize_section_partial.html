@@ -61,4 +61,54 @@
             </div>
         {% endif %}
     </div>
+    <!-- Detail panel (shown when item is clicked) -->
+    <div id="customize-detail" class="customize-detail"></div>
 </div>
+<script>
+(function() {
+  const items = document.querySelectorAll('.customize-section-item');
+  const detail = document.getElementById('customize-detail');
+  if (!detail) return;
+
+  items.forEach(item => {
+    const name = item.querySelector('.customize-card-name');
+    if (!name) return;
+
+    item.style.cursor = 'pointer';
+    item.addEventListener('click', async (e) => {
+      if (e.target.closest('.customize-toggle')) return;
+      const itemName = name.textContent.trim();
+      const section = '{{ section }}';
+
+      item.classList.toggle('expanded');
+      if (!item.classList.contains('expanded')) {
+        detail.innerHTML = '';
+        detail.style.display = 'none';
+        return;
+      }
+
+      // Deselect others
+      items.forEach(i => { if (i !== item) i.classList.remove('expanded'); });
+
+      detail.style.display = 'block';
+      detail.innerHTML = '<div class="customize-detail-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+
+      // Position detail after clicked item
+      item.after(detail);
+
+      try {
+        const r = await fetch('/customize/api/item/' + section + '/' + encodeURIComponent(itemName) + '/');
+        const data = await r.json();
+        if (data.content) {
+          detail.innerHTML = '<pre class="customize-detail-content">' +
+            data.content.replace(/</g , '&lt;').replace( />/g, '&gt;') + '</pre>';
+        } else {
+          detail.innerHTML = '<p class="customize-detail-empty">No detail available.</p>';
+        }
+      } catch(err) {
+        detail.innerHTML = '<p class="customize-detail-empty">Failed to load.</p>';
+      }
+    });
+  });
+})();
+</script>
