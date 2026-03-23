@@ -434,6 +434,7 @@ export class AIPanelChatMode {
     } finally {
       this.busy = false;
       this.sendBtn!.disabled = false;
+      this.inputEl?.focus();
     }
   }
 
@@ -461,6 +462,7 @@ export class AIPanelChatMode {
     } finally {
       this.busy = false;
       this.sendBtn!.disabled = false;
+      this.inputEl?.focus();
     }
   }
 
