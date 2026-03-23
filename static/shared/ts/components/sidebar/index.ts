@@ -9,6 +9,7 @@
  */
 
 import { initAjaxLinks } from "./ajax-loader";
+import { initSidebarContextMenu } from "./context-menu";
 
 const STORAGE_KEY_SIDEBAR = "ws-sidebar-state";
 const STORAGE_KEY_PANE = "ws-active-pane";
@@ -161,6 +162,9 @@ class WorkspaceSidebar {
 
     // AJAX page loading for [data-ajax-load] links
     initAjaxLinks();
+
+    // Right-click context menu on module items
+    initSidebarContextMenu();
   }
 
   private initProjectDropdown(): void {
