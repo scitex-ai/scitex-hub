@@ -207,20 +207,36 @@
   font-weight: 600;
 }
 
+/* Override bootstrap's 1rem margin on lists */
 #pane-chat .stx-shell-ai-msg.assistant ul,
 #pane-chat .stx-shell-ai-msg.assistant ol {
-  padding-left: 1.2em;
-  margin: 0.15em 0;
+  padding-left: 1.2em !important;
+  margin: 0.15em 0 !important;
 }
 
 #pane-chat .stx-shell-ai-msg.assistant li {
-  margin-bottom: 0.1em;
+  margin-bottom: 0 !important;
+  line-height: 1.4;
 }
 
-/* Markdown segment spacing */
+/* Kill paragraph margins INSIDE list items (marked.js wraps in <p>) */
+#pane-chat .stx-shell-ai-msg.assistant li p {
+  margin: 0 !important;
+}
+
+/* Markdown segments: compact everything */
 #pane-chat .ai-md-segment p,
 #pane-chat .ai-md-segment li {
-  margin: 0.15em 0;
+  margin: 0.1em 0 !important;
+}
+
+#pane-chat .ai-md-segment li p {
+  margin: 0 !important;
+}
+
+/* Kill all BR-based spacing in messages */
+#pane-chat .stx-shell-ai-msg br + br {
+  display: none;
 }
 
 #pane-chat .stx-shell-ai-msg.assistant code {
