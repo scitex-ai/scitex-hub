@@ -231,6 +231,27 @@
   transform: translateX(18px);
 }
 
+/* Info text with docs link */
+.customize-section-info {
+  font-size: 14px;
+  color: var(--text-muted, #8b949e);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.customize-docs-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-link, #58a6ff);
+  text-decoration: none;
+  margin-left: 8px;
+}
+
+.customize-docs-link:hover {
+  text-decoration: underline;
+}
+
 .customize-empty {
   display: flex;
   flex-direction: column;

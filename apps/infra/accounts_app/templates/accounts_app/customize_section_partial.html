@@ -14,19 +14,30 @@
             <p class="customize-section-subtitle">{{ items|length }} item{{ items|length|pluralize }}</p>
         </div>
     </div>
+    {% if section == "mcp-servers" %}
+        <p class="customize-section-info">
+            Enable or disable MCP tool groups. Each group provides specialized capabilities to AI agents.
+            <a href="/apps/docs/#mcp-tools-local" class="customize-docs-link">
+                <i class="fas fa-book"></i> View full documentation
+            </a>
+        </p>
+    {% endif %}
     <div class="customize-section-content">
         {% if items %}
             {% for item in items %}
                 {% if item.has_toggle %}
-                    <a href="{{ item.url }}"
+                    <a href="{{ item.url|default:'#' }}"
                        class="customize-section-item customize-toggle-card"
-                       data-ajax-load="{{ item.url }}">
+                       {% if item.url %}data-ajax-load="{{ item.url }}"{% endif %}>
                         <div class="customize-card-icon">
                             <i class="{{ item.icon }}"></i>
                         </div>
                         <div class="customize-card-body">
                             <h3 class="customize-card-name">{{ item.name }}</h3>
-                            <p class="customize-card-desc">{{ item.description }} · {{ item.count }} tools</p>
+                            <p class="customize-card-desc">
+                                {{ item.description }}
+                                {% if item.count %}· {{ item.count }} tools{% endif %}
+                            </p>
                         </div>
                         <label class="customize-toggle"
                                onclick="event.preventDefault(); event.stopPropagation();">
