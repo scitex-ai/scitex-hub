@@ -27,7 +27,7 @@
             {% for item in items %}
                 {% if item.has_toggle %}
                     <a href="{{ item.url|default:'#' }}"
-                       class="customize-section-item customize-toggle-card"
+                       class="customize-section-item stx-toggle-card"
                        {% if item.url %}data-ajax-load="{{ item.url }}"{% endif %}>
                         <div class="customize-card-icon">
                             <i class="{{ item.icon }}"></i>
@@ -39,13 +39,12 @@
                                 {% if item.count %}· {{ item.count }} tools{% endif %}
                             </p>
                         </div>
-                        <label class="customize-toggle"
-                               onclick="event.preventDefault(); event.stopPropagation();">
+                        <label class="stx-toggle" onclick="event.preventDefault(); event.stopPropagation();">
                             <input type="checkbox"
-                                   class="customize-toggle-input"
+                                   class="stx-toggle-input"
                                    data-group="{{ item.group_key }}"
                                    {% if item.enabled %}checked{% endif %} />
-                            <span class="customize-toggle-slider"></span>
+                            <span class="stx-toggle-slider"></span>
                         </label>
                     </a>
                 {% else %}

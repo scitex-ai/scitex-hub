@@ -27,3 +27,13 @@ import "scitex-ui/css/shell/workspace-files-tree.css";
 // Mobile layout — bottom tab bar removed, sidebar drawer replaces it
 // @ts-ignore
 import "scitex-ui/css/shell/mobile.css";
+
+// App-level reusable components from scitex-ui
+// @ts-ignore
+import "scitex-ui/css/app/toggle-switch.css";
+// @ts-ignore
+import "scitex-ui/css/app/settings-card.css";
+// @ts-ignore
+import "scitex-ui/css/app/sidebar-layout.css";
+// @ts-ignore
+import "scitex-ui/css/app/context-menu.css";
