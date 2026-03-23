@@ -1,8 +1,10 @@
-from django.shortcuts import render
-from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.db.models import Q
+from django.http import JsonResponse
+from django.shortcuts import render
+
 from apps.infra.project_app.models import Project
+
 from .models import GlobalSearchQuery
 
 
@@ -217,6 +219,61 @@ def autocomplete(request):
                 "url": repo.get_absolute_url(),
             }
         )
+
+    # Search chat conversations (top 5, authenticated only)
+    if request.user.is_authenticated:
+        try:
+            from apps.infra.llm_app.models import ChatSession
+
+            chats = (
+                ChatSession.objects.filter(
+                    user=request.user,
+                    is_archived=False,
+                )
+                .filter(Q(title__icontains=query) | Q(messages__text__icontains=query))
+                .distinct()
+                .order_by("-updated_at")[:5]
+            )
+
+            for chat in chats:
+                suggestions.append(
+                    {
+                        "type": "conversation",
+                        "icon": "💬",
+                        "title": chat.title or "Untitled chat",
+                        "subtitle": f"Chat · {chat.updated_at.strftime('%b %d')}",
+                        "url": f"/chat/{chat.share_token}/",
+                    }
+                )
+        except Exception:
+            pass
+
+    # Search files in user's active project (top 5)
+    if request.user.is_authenticated:
+        try:
+            from apps.infra.project_app.utils.gitea_api import search_files_in_repo
+
+            profile = getattr(request.user, "profile", None)
+            active_project = profile.get_active_project() if profile else None
+            if active_project:
+                files = search_files_in_repo(
+                    active_project.owner.username,
+                    active_project.slug,
+                    query,
+                    limit=5,
+                )
+                for f in files:
+                    suggestions.append(
+                        {
+                            "type": "file",
+                            "icon": "📄",
+                            "title": f.get("name", f.get("path", "")),
+                            "subtitle": f"{active_project.slug}/{f.get('path', '')}",
+                            "url": f"/{active_project.owner.username}/{active_project.slug}/src/branch/main/{f.get('path', '')}",
+                        }
+                    )
+        except Exception:
+            pass
 
     return JsonResponse({"suggestions": suggestions})
 

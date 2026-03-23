@@ -501,19 +501,28 @@
       function renderDropdown(suggestions) {
         if (!suggestions.length) { dropdown.classList.remove('open'); return; }
 
+        const catNames = {
+          user: 'Users', repository: 'Repositories',
+          conversation: 'Conversations', file: 'Files'
+        };
+        const catIcons = {
+          user: 'fas fa-user', repository: 'fas fa-book',
+          conversation: 'fas fa-comment', file: 'fas fa-file-code'
+        };
+
         const groups = {};
         suggestions.forEach(s => {
-          const cat = s.type === 'user' ? 'Users' : 'Repositories';
-          if (!groups[cat]) groups[cat] = [];
-          groups[cat].push(s);
+          const cat = catNames[s.type] || s.type;
+          if (!groups[cat]) groups[cat] = {items: [], type: s.type};
+          groups[cat].items.push(s);
         });
 
         let html = '';
-        Object.entries(groups).forEach(([cat, items], i) => {
+        Object.entries(groups).forEach(([cat, g], i) => {
           if (i > 0) html += '<div class="search-ac-divider"></div>';
           html += '<div class="search-ac-category">' + cat + '</div>';
-          items.forEach(item => {
-            const icon = item.type === 'user' ? 'fas fa-user' : 'fas fa-book';
+          g.items.forEach(item => {
+            const icon = catIcons[item.type] || 'fas fa-search';
             html += '<a href="' + item.url + '" class="search-ac-item">'
               + '<i class="search-ac-icon ' + icon + '"></i>'
               + '<div class="search-ac-text">'
