@@ -57,98 +57,19 @@
   height: 100%;
 }
 
-/* ── Sessions tab bar — styled like console tab bar ── */
-#pane-chat .stx-shell-ai-sessions-bar {
-  display: flex !important;
-  align-items: center;
-  padding: 8px 16px !important;
-  gap: 8px !important;
-  border-bottom: 1px solid var(--border-default, #30363d);
-  background: var(--bg-tertiary, #1c2128);
-  flex-shrink: 0;
-}
+/* Tab bar styles: see workspace-tabbar.css (single source of truth) */
 
-/* New chat (+) button */
-#pane-chat .stx-shell-ai-new-chat {
-  font-size: 16px !important;
-  padding: 6px 10px !important;
-  width: 32px !important;
-  height: 32px !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  background: none;
-  border: 1px solid transparent;
-  color: var(--text-muted, #8b949e);
-  cursor: pointer;
-}
-
-#pane-chat .stx-shell-ai-new-chat:hover {
-  background: var(--ws-sidebar-hover-bg, rgba(177, 186, 196, 0.08));
-  color: var(--text-primary, #f0f6fc);
-}
-
-/* Session list items */
-#pane-chat .stx-shell-ai-sessions-list {
-  display: flex !important;
-  gap: 4px;
-  overflow-x: auto;
-  flex: 1;
-  min-width: 0;
-}
-
-#pane-chat .stx-shell-ai-session-item {
-  font-size: 14px !important;
-  padding: 6px 14px !important;
-  border-radius: 6px !important;
-  gap: 6px !important;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-#pane-chat .stx-shell-ai-sessions-list button {
-  font-size: 14px !important;
-  padding: 6px 14px !important;
-  border-radius: 6px !important;
-  white-space: nowrap;
-}
-
-/* All icon buttons in chat sessions bar — uniform style */
+/* Chat-specific: action buttons panel */
 #pane-chat .stx-shell-ai-sessions-bar .stx-shell-ai-panel-actions {
   display: flex;
   gap: 4px;
   align-items: center;
 }
 
-#pane-chat .stx-shell-ai-sessions-bar button {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-size: 16px !important;
-  width: 36px !important;
-  height: 36px !important;
-  padding: 0 !important;
-  background: none !important;
-  border: none !important;
-  border-radius: 6px !important;
-  color: var(--text-muted, #8b949e) !important;
-  cursor: pointer;
-}
-
-#pane-chat .stx-shell-ai-sessions-bar button:hover {
-  background: rgba(177, 186, 196, 0.08) !important;
-  color: var(--text-primary, #f0f6fc) !important;
-}
-
-/* Session tab items are divs, not buttons */
+/* Session tab items width override */
 #pane-chat .stx-shell-ai-session-item {
   width: auto !important;
   height: auto !important;
-  padding: 6px 14px !important;
-  color: var(--text-muted, #8b949e) !important;
-  background: transparent !important;
-  border: 1px solid transparent !important;
 }
 
 #pane-chat .stx-shell-ai-session-item.active {
