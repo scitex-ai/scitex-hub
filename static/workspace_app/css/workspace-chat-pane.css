@@ -188,9 +188,9 @@
   }
 }
 
-/* Assistant message content — zero-gap paragraphs like Claude.ai */
+/* Assistant message content — compact paragraphs (balanced) */
 #pane-chat .stx-shell-ai-msg.assistant p {
-  margin: 0 !important;
+  margin: 0.15em 0 !important;
   padding: 0 !important;
   line-height: 1.5;
 }
@@ -240,10 +240,10 @@
   display: none;
 }
 
-/* Streaming preview + segments: zero-gap paragraphs */
+/* Streaming preview + segments: compact paragraphs */
 #pane-chat .ai-md-streaming p,
 #pane-chat .ai-md-segment p {
-  margin: 0 !important;
+  margin: 0.15em 0 !important;
   padding: 0 !important;
   line-height: 1.5;
 }
