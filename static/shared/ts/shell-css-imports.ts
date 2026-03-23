@@ -37,3 +37,5 @@ import "scitex-ui/css/app/settings-card.css";
 import "scitex-ui/css/app/sidebar-layout.css";
 // @ts-ignore
 import "scitex-ui/css/app/context-menu.css";
+// @ts-ignore
+import "scitex-ui/css/app/miller-columns.css";

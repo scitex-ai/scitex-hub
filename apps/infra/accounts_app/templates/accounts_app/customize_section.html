@@ -2,20 +2,27 @@
 
 {% block title %}{{ section_title }} — AI Setup — SciTeX{% endblock %}
 {% block content %}
-    <div class="customize-workspace">
-        <aside class="customize-sidebar">
-            <nav class="customize-nav">
-                {% for cat in categories %}
-                    <a href="{{ cat.url }}"
-                       class="customize-nav-item{% if cat.name == section_title %} active{% endif %}"
-                       data-ajax-load="{{ cat.url }}"
-                       data-section="{{ cat.name|slugify }}">
-                        <i class="{{ cat.icon }}"></i>
-                        <span>{{ cat.name }}</span>
-                    </a>
-                {% endfor %}
-            </nav>
-        </aside>
-        <div class="customize-content" id="customize-content">{% include "accounts_app/customize_section_partial.html" %}</div>
+    <div class="stx-app-miller">
+        <!-- Col 1: Section nav -->
+        <div class="stx-app-miller__col">
+            {% for cat in categories %}
+                <button class="stx-app-miller__item{% if cat.name == section_title %} stx-app-miller__item--active{% endif %}"
+                        data-ajax-load="{{ cat.url }}"
+                        data-section="{{ cat.name|slugify }}">
+                    <i class="{{ cat.icon }}"></i>
+                    <span class="stx-app-miller__item-label">{{ cat.name }}</span>
+                    <i class="fas fa-chevron-right stx-app-miller__item-arrow"></i>
+                </button>
+            {% endfor %}
+        </div>
+        <!-- Col 2: Items with toggles -->
+        <div class="stx-app-miller__col" id="customize-content">
+            {% include "accounts_app/customize_section_partial.html" %}
+        </div>
+        <!-- Col 3: Detail (populated by JS on item click) -->
+        <div class="stx-app-miller__col stx-app-miller__col--detail"
+             id="customize-detail-col">
+            <div class="stx-app-miller__detail-empty">Select an item to view details</div>
+        </div>
     </div>
 {% endblock %}

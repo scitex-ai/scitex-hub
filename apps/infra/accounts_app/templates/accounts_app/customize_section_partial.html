@@ -1,115 +1,49 @@
-<div class="customize-section customize-section--scrollable">
-    <div class="customize-section-content">
-        {% if grouped_items %}
-            {% for group in grouped_items %}
-                <div class="customize-category" data-cat="{{ group.name }}">
-                    <div class="customize-category__header">
-                        <i class="fas fa-chevron-right customize-category__chevron"></i>
-                        <span class="customize-category__name">{{ group.name }}</span>
-                        <span class="customize-category__count">{{ group.count }} item{{ group.count|pluralize }}</span>
-                    </div>
-                    <div class="customize-category__items">
-                        {% for item in group.items %}
-                            <div class="customize-section-item">
-                                <div class="customize-card-icon">
-                                    <i class="{{ item.icon }}"></i>
-                                </div>
-                                <div class="customize-card-body">
-                                    <h3 class="customize-card-name">{{ item.name }}</h3>
-                                    <p class="customize-card-desc">{{ item.description }}</p>
-                                </div>
-                                <label class="customize-toggle" onclick="event.stopPropagation();">
-                                    <input type="checkbox"
-                                           class="customize-toggle-input"
-                                           data-item="{{ item.name }}"
-                                           {% if item.enabled %}checked{% endif %}
-                                           checked />
-                                    <span class="customize-toggle-slider"></span>
-                                </label>
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endfor %}
-        {% elif items %}
-            {% for item in items %}
-                <div class="customize-section-item{% if item.url %} customize-section-item--clickable{% endif %}"
-                     {% if item.url %}data-ajax-load="{{ item.url }}"{% endif %}>
-                    <div class="customize-card-icon">
-                        <i class="{{ item.icon }}"></i>
-                    </div>
-                    <div class="customize-card-body">
-                        <h3 class="customize-card-name">{{ item.name }}</h3>
-                        <p class="customize-card-desc">
-                            {{ item.description }}
-                            {% if item.count %}· {{ item.count }} tools{% endif %}
-                        </p>
-                    </div>
-                    <label class="customize-toggle" onclick="event.stopPropagation();">
-                        <input type="checkbox"
-                               class="customize-toggle-input"
-                               data-item="{{ item.group_key|default:item.name }}"
-                               {% if item.enabled %}checked{% endif %}
-                               checked />
-                        <span class="customize-toggle-slider"></span>
-                    </label>
-                    {% if item.url %}<i class="fas fa-chevron-right customize-card-arrow"></i>{% endif %}
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="customize-empty">
-                <i class="{{ section_icon }}"></i>
-                <p>No {{ section_title|lower }} configured yet.</p>
-            </div>
-        {% endif %}
+{% if items %}
+    {% for item in items %}
+        <button class="stx-app-miller__item"
+                data-item-name="{{ item.name }}"
+                data-section="{{ section }}">
+            <i class="{{ item.icon }}"></i>
+            <span class="stx-app-miller__item-label">{{ item.name }}</span>
+            <label class="customize-toggle" onclick="event.stopPropagation();">
+                <input type="checkbox"
+                       class="customize-toggle-input"
+                       data-item="{{ item.group_key|default:item.name }}"
+                       {% if item.enabled %}checked{% endif %}
+                       checked />
+                <span class="customize-toggle-slider"></span>
+            </label>
+            <i class="fas fa-chevron-right stx-app-miller__item-arrow"></i>
+        </button>
+    {% endfor %}
+{% else %}
+    <div class="stx-app-miller__detail-empty">
+        No {{ section_title|lower }} available.
     </div>
-    <!-- Detail panel (shown when item is clicked) -->
-    <div id="customize-detail" class="customize-detail"></div>
-</div>
+{% endif %}
 <script>
 (function() {
-  const items = document.querySelectorAll('.customize-section-item');
-  const detail = document.getElementById('customize-detail');
-  if (!detail) return;
-
-  items.forEach(item => {
-    const name = item.querySelector('.customize-card-name');
-    if (!name) return;
-
-    item.style.cursor = 'pointer';
-    item.addEventListener('click', async (e) => {
-      if (e.target.closest('.customize-toggle')) return;
-      const itemName = name.textContent.trim();
-      const section = '{{ section }}';
-
-      item.classList.toggle('expanded');
-      if (!item.classList.contains('expanded')) {
-        detail.innerHTML = '';
-        detail.style.display = 'none';
-        return;
-      }
-
-      // Deselect others
-      items.forEach(i => { if (i !== item) i.classList.remove('expanded'); });
-
-      detail.style.display = 'block';
-      detail.innerHTML = '<div class="customize-detail-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
-
-      // Position detail after clicked item
-      item.after(detail);
-
-      try {
-        const r = await fetch('/customize/api/item/' + section + '/' + encodeURIComponent(itemName) + '/');
-        const data = await r.json();
-        if (data.content) {
-          detail.innerHTML = '<pre class="customize-detail-content">' +
-            data.content.replace(/</g , '&lt;').replace( />/g, '&gt;') + '</pre>';
-        } else {
-          detail.innerHTML = '<p class="customize-detail-empty">No detail available.</p>';
-        }
-      } catch(err) {
-        detail.innerHTML = '<p class="customize-detail-empty">Failed to load.</p>';
-      }
+  var items = document.querySelectorAll('#customize-content .stx-app-miller__item');
+  var detail = document.getElementById('customize-detail-col');
+  if (!detail || !items.length) return;
+  items.forEach(function(item) {
+    item.addEventListener('click', function() {
+      items.forEach(function(i) { i.classList.remove('stx-app-miller__item--active'); });
+      item.classList.add('stx-app-miller__item--active');
+      var name = item.getAttribute('data-item-name');
+      var section = item.getAttribute('data-section');
+      if (!name || !section) return;
+      detail.innerHTML = '<div class="stx-app-miller__detail-empty"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+      fetch('/customize/api/item/' + section + '/' + encodeURIComponent(name) + '/')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.content) {
+            detail.innerHTML = '<pre class="stx-app-miller__detail-content">' + data.content.replace(/</g, '\&lt;').replace(/>/g, '\&gt;') + '</pre>';
+          } else {
+            detail.innerHTML = '<div class="stx-app-miller__detail-empty">No detail for ' + name + '</div>';
+          }
+        })
+        .catch(function() { detail.innerHTML = '<div class="stx-app-miller__detail-empty">Failed</div>'; });
     });
   });
 })();
