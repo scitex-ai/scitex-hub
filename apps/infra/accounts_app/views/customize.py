@@ -74,7 +74,7 @@ def customize_section(request, section):
         "section": section,
         "section_title": info["title"],
         "section_icon": info["icon"],
-        "items": _get_section_items(section),
+        "items": _get_section_items(section, user=request.user),
     }
 
     if request.headers.get("X-Workspace-Shell") == "1":
@@ -85,12 +85,56 @@ def customize_section(request, section):
     return render(request, template, ctx)
 
 
-def _get_section_items(section):
+def customize_mcp_server(request, server):
+    """Show individual MCP server tools with per-tool toggle."""
+    from apps.infra.accounts_app.views.mcp_settings_views import (
+        MCP_GROUP_INFO,
+        _get_tool_info,
+    )
+
+    group_key = server.upper()
+    info = MCP_GROUP_INFO.get(group_key)
+    if not info:
+        from django.http import Http404
+
+        raise Http404(f"Unknown MCP server: {server}")
+
+    _, tool_names = _get_tool_info()
+    tools = tool_names.get(group_key, [])
+
+    ctx = {
+        "section": "mcp-servers",
+        "section_title": info["display"],
+        "section_icon": f"fas {info['icon']}",
+        "server_key": group_key,
+        "server_desc": info["desc"],
+        "items": [
+            {
+                "name": name,
+                "description": name.replace("_", " ").title(),
+                "icon": f"fas {info['icon']}",
+                "has_toggle": True,
+                "enabled": True,
+            }
+            for name in tools
+        ],
+        "back_url": "/customize/mcp-servers/",
+    }
+
+    if request.headers.get("X-Workspace-Shell") == "1":
+        template = "accounts_app/customize_section_partial.html"
+    else:
+        template = "accounts_app/customize_section.html"
+
+    return render(request, template, ctx)
+
+
+def _get_section_items(section, user=None):
     """Fetch items for a customize section."""
     if section == "skills":
         return _get_skills()
     if section == "mcp-servers":
-        return _get_mcp_servers()
+        return _get_mcp_servers(user=user)
     if section == "cli-commands":
         return _get_cli_commands()
     if section == "commands":
@@ -145,22 +189,42 @@ def _get_skills():
         return []
 
 
-def _get_mcp_servers():
-    """Get MCP server tools from preferences."""
+def _get_mcp_servers(user=None):
+    """Get MCP tool groups with toggle state and tool counts."""
     try:
         from apps.infra.accounts_app.views.mcp_settings_views import (
-            MCP_TOOL_GROUPS,
+            MCP_GROUP_INFO,
+            _get_tool_info,
         )
+        from apps.workspace.console_app.services.agents_config import DEFAULT_MCP_GROUPS
 
-        return [
-            {
-                "name": g["label"],
-                "key": g["key"],
-                "description": f"{g['count']} tools",
-                "icon": "fas fa-plug",
-            }
-            for g in MCP_TOOL_GROUPS
-        ]
+        counts, _ = _get_tool_info()
+
+        # Get user preferences
+        prefs = {}
+        if user and user.is_authenticated:
+            profile = getattr(user, "profile", None)
+            if profile:
+                prefs = getattr(profile, "mcp_preferences", None) or {}
+
+        items = []
+        for key, info in MCP_GROUP_INFO.items():
+            count = counts.get(key, 0)
+            enabled = prefs.get(key, key in DEFAULT_MCP_GROUPS)
+            items.append(
+                {
+                    "name": info["display"],
+                    "key": key.lower(),
+                    "group_key": key,
+                    "description": info["desc"],
+                    "icon": f"fas {info['icon']}",
+                    "count": count,
+                    "enabled": enabled,
+                    "url": f"/customize/mcp-servers/{key.lower()}/",
+                    "has_toggle": True,
+                }
+            )
+        return items
     except Exception:
         return []
 

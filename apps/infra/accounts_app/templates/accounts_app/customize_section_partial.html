@@ -17,15 +17,37 @@
     <div class="customize-section-content">
         {% if items %}
             {% for item in items %}
-                <div class="customize-section-item">
-                    <div class="customize-card-icon">
-                        <i class="{{ item.icon }}"></i>
+                {% if item.has_toggle %}
+                    <a href="{{ item.url }}"
+                       class="customize-section-item customize-toggle-card"
+                       data-ajax-load="{{ item.url }}">
+                        <div class="customize-card-icon">
+                            <i class="{{ item.icon }}"></i>
+                        </div>
+                        <div class="customize-card-body">
+                            <h3 class="customize-card-name">{{ item.name }}</h3>
+                            <p class="customize-card-desc">{{ item.description }} · {{ item.count }} tools</p>
+                        </div>
+                        <label class="customize-toggle"
+                               onclick="event.preventDefault(); event.stopPropagation();">
+                            <input type="checkbox"
+                                   class="customize-toggle-input"
+                                   data-group="{{ item.group_key }}"
+                                   {% if item.enabled %}checked{% endif %} />
+                            <span class="customize-toggle-slider"></span>
+                        </label>
+                    </a>
+                {% else %}
+                    <div class="customize-section-item">
+                        <div class="customize-card-icon">
+                            <i class="{{ item.icon }}"></i>
+                        </div>
+                        <div class="customize-card-body">
+                            <h3 class="customize-card-name">{{ item.name }}</h3>
+                            <p class="customize-card-desc">{{ item.description }}</p>
+                        </div>
                     </div>
-                    <div class="customize-card-body">
-                        <h3 class="customize-card-name">{{ item.name }}</h3>
-                        <p class="customize-card-desc">{{ item.description }}</p>
-                    </div>
-                </div>
+                {% endif %}
             {% endfor %}
         {% else %}
             <div class="customize-empty">

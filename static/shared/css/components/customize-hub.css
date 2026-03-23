@@ -178,6 +178,59 @@
   background: rgba(177, 186, 196, 0.06);
 }
 
+/* Toggle card (link + toggle) */
+.customize-toggle-card {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.customize-toggle-card:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Toggle switch */
+.customize-toggle {
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.customize-toggle-input {
+  display: none;
+}
+
+.customize-toggle-slider {
+  display: block;
+  width: 40px;
+  height: 22px;
+  background: rgba(110, 118, 129, 0.4);
+  border-radius: 11px;
+  position: relative;
+  transition: background 200ms ease;
+}
+
+.customize-toggle-slider::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 200ms ease;
+}
+
+.customize-toggle-input:checked + .customize-toggle-slider {
+  background: var(--text-link, #58a6ff);
+}
+
+.customize-toggle-input:checked + .customize-toggle-slider::after {
+  transform: translateX(18px);
+}
+
 .customize-empty {
   display: flex;
   flex-direction: column;
