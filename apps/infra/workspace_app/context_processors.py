@@ -37,6 +37,10 @@ def workspace_context(request):
     if path in _CORE_PANE_PATHS and request.user.is_authenticated:
         is_ws = True
 
+    # /customize/ and /search/ paths → workspace with panes
+    if path.startswith(("/customize/", "/search/")) and request.user.is_authenticated:
+        is_ws = True
+
     active_name = extract_module_from_path(path) if is_ws else None
     # Pages with a real module match get workspace sidebars (AI, worktree, viewer).
     # User profile pages (/<username>/) also get panes — they render inside Hub.
