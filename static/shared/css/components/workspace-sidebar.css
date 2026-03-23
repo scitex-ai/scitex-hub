@@ -73,6 +73,12 @@
   letter-spacing: -0.01em;
 }
 
+.sidebar-brand-version {
+  font-size: 0.5em;
+  opacity: 0.6;
+  font-weight: 400;
+}
+
 /* Distinctive tilted "e" in SciTeX branding (inspired by Google's inclined "e") */
 .brand-e {
   display: inline-block;
