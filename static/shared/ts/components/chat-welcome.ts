@@ -85,6 +85,18 @@ function initChatWelcome(): void {
       const aiSketch = document.getElementById("stx-shell-ai-sketch");
       if (aiSketch) aiSketch.click();
     });
+
+  // Click on input-wrap area focuses the textarea (extends hit area)
+  document
+    .querySelector<HTMLElement>("#pane-chat .stx-shell-ai-input-wrap")
+    ?.addEventListener("click", (e) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "BUTTON" || target.tagName === "I") return;
+      const input = document.getElementById(
+        "stx-shell-ai-input",
+      ) as HTMLTextAreaElement | null;
+      input?.focus();
+    });
 }
 
 function sendToAiChat(message: string): void {

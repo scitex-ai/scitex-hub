@@ -356,16 +356,20 @@
   flex-wrap: wrap;
   gap: 8px;
   order: 1;
+  cursor: text;
 }
 
 #pane-chat .stx-shell-ai-input-wrap:focus-within {
   border-color: var(--text-link, #58a6ff) !important;
 }
 
-/* Textarea: two rows minimum height */
+/* Textarea: two rows, no resize handle, full hit area */
 #pane-chat .stx-shell-ai-input {
   min-height: 52px !important;
   font-size: 15px !important;
+  resize: none !important;
+  flex: 1;
+  width: 100%;
   line-height: 1.5;
 }
 
