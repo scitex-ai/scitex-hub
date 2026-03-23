@@ -282,55 +282,7 @@
   align-items: center;
 }
 
-/* ── Context menu (right-click on module items) ──────── */
-.sidebar-context-menu {
-  background: var(--ws-sidebar-bg);
-  border: 1px solid var(--ws-sidebar-border);
-  border-radius: 8px;
-  padding: 4px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  min-width: 180px;
-}
-
-.sidebar-ctx-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  width: 100%;
-  background: none;
-  border: none;
-  border-radius: 6px;
-  color: var(--ws-sidebar-text);
-  font-size: 13px;
-  cursor: pointer;
-  text-align: left;
-}
-
-.sidebar-ctx-item:hover {
-  background: var(--ws-sidebar-hover-bg);
-}
-
-.sidebar-ctx-item.danger {
-  color: #f85149;
-}
-
-.sidebar-ctx-item.danger:hover {
-  background: rgba(248, 81, 73, 0.1);
-}
-
-.sidebar-ctx-item i {
-  width: 16px;
-  text-align: center;
-  font-size: 12px;
-  opacity: 0.7;
-}
-
-.sidebar-ctx-divider {
-  height: 1px;
-  background: var(--ws-sidebar-border);
-  margin: 4px 8px;
-}
+/* Context menu — MIGRATED to scitex-ui (stx-app-context-menu) */
 
 /* ── Drag-and-drop reorder for module items ──────────── */
 .sidebar-item.sidebar-dragging {

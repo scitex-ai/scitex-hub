@@ -43,7 +43,7 @@ function showContextMenu(
   closeContextMenu();
 
   const menu = document.createElement("div");
-  menu.className = "sidebar-context-menu";
+  menu.className = "stx-app-context-menu";
 
   const actions = [
     {
@@ -64,12 +64,12 @@ function showContextMenu(
   actions.forEach((act) => {
     if ("divider" in act && act.divider) {
       const hr = document.createElement("div");
-      hr.className = "sidebar-ctx-divider";
+      hr.className = "stx-app-context-menu__divider";
       menu.appendChild(hr);
       return;
     }
     const btn = document.createElement("button");
-    btn.className = "sidebar-ctx-item";
+    btn.className = "stx-app-context-menu__item";
     if ("danger" in act && act.danger) btn.classList.add("danger");
     btn.innerHTML = `<i class="${act.icon}"></i><span>${act.label}</span>`;
     btn.addEventListener("click", () => {
