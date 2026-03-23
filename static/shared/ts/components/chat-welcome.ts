@@ -168,10 +168,39 @@ function observeStreamingState(): void {
   observer.observe(messagesContainer, { childList: true, subtree: true });
 }
 
+/** Share button — copy chat URL to clipboard */
+function initShareButton(): void {
+  const shareBtn = document.querySelector<HTMLElement>(
+    ".stx-shell-ai-share-btn",
+  );
+  if (!shareBtn) return;
+
+  shareBtn.addEventListener("click", async () => {
+    const url = window.location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      // Brief visual feedback
+      const icon = shareBtn.querySelector("i");
+      if (icon) {
+        icon.className = "fas fa-check";
+        shareBtn.title = "Link copied!";
+        setTimeout(() => {
+          icon.className = "fas fa-share-alt";
+          shareBtn.title = "Share conversation";
+        }, 2000);
+      }
+    } catch {
+      // Clipboard API may fail — fallback to prompt
+      prompt("Copy this link:", url);
+    }
+  });
+}
+
 // Auto-init
 function initAll(): void {
   initChatWelcome();
   observeStreamingState();
+  initShareButton();
 }
 
 if (document.readyState === "loading") {
