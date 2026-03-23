@@ -39,6 +39,7 @@ export class SessionsPanel {
   private listEl: HTMLElement | null = null;
   private chatCounter = 0;
   private contextMenu: HTMLElement | null = null;
+  private _pendingToken: string | null = null;
   private onSwitch:
     | ((messages: SessionMessage[], sessionId: number) => void)
     | null = null;
@@ -63,15 +64,16 @@ export class SessionsPanel {
     );
     newBtn?.addEventListener("click", () => this.newChat());
 
-    // Restore session: URL > data attribute > sessionStorage
-    const urlSessionId = document.body.getAttribute("data-chat-session-id");
-    const urlPathMatch = window.location.pathname.match(/^\/chat\/(\d+)\//);
-    const pathSessionId = urlPathMatch ? urlPathMatch[1] : null;
-    const saved =
-      pathSessionId ||
-      urlSessionId ||
-      sessionStorage.getItem("scitex_ai_session_id");
-    if (saved) this.currentSessionId = parseInt(saved, 10);
+    // Restore session: URL UUID > data attribute > sessionStorage
+    const urlToken = document.body.getAttribute("data-chat-session-token");
+    const urlPathMatch = window.location.pathname.match(
+      /^\/chat\/([0-9a-f-]{36})\//,
+    );
+    this._pendingToken = urlPathMatch?.[1] || urlToken || null;
+    const savedId = sessionStorage.getItem("scitex_ai_session_id");
+    if (savedId && !this._pendingToken) {
+      this.currentSessionId = parseInt(savedId, 10);
+    }
 
     // Dismiss context menu on click-outside
     document.addEventListener("click", () => this.dismissContextMenu());
@@ -89,6 +91,16 @@ export class SessionsPanel {
       // Auto-create C1 if no sessions exist (like T1 for console)
       if (data.sessions.length === 0) {
         await this.createSession("C1");
+      }
+      // Resolve pending UUID token from URL to numeric session ID
+      if (this._pendingToken && data.sessions.length > 0) {
+        const match = data.sessions.find(
+          (s) => s.share_token === this._pendingToken,
+        );
+        if (match) {
+          void this.switchSession(match.id);
+        }
+        this._pendingToken = null;
       }
     } catch {
       /* silent */
@@ -109,7 +121,7 @@ export class SessionsPanel {
       const session = (await resp.json()) as Session;
       this.currentSessionId = session.id;
       sessionStorage.setItem("scitex_ai_session_id", String(session.id));
-      this.updateChatUrl(session.id);
+      this.updateChatUrl(session.share_token);
       void this.loadSessions();
       return session.id;
     } catch {
@@ -128,7 +140,9 @@ export class SessionsPanel {
       };
       this.currentSessionId = id;
       sessionStorage.setItem("scitex_ai_session_id", String(id));
-      this.updateChatUrl(id);
+      // Use share_token (UUID) for URL
+      const session = this.sessions.find((s) => s.id === id);
+      if (session) this.updateChatUrl(session.share_token);
       this.onSwitch?.(data.messages, id);
       this.highlightActive();
       this.updateShareButton();
@@ -222,12 +236,12 @@ export class SessionsPanel {
     }
   }
 
-  /** Update browser URL to reflect current chat session */
-  private updateChatUrl(sessionId: number): void {
+  /** Update browser URL to reflect current chat session (UUID) */
+  private updateChatUrl(token: string): void {
     if (!window.location.pathname.startsWith("/chat")) return;
-    const newUrl = `/chat/${sessionId}/`;
+    const newUrl = `/chat/${token}/`;
     if (window.location.pathname !== newUrl) {
-      history.replaceState({ chatSession: sessionId }, "", newUrl);
+      history.replaceState({ chatSession: token }, "", newUrl);
     }
   }
 

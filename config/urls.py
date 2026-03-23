@@ -34,7 +34,7 @@ urlpatterns = [
     path("", root_dispatch, name="root"),
     path("chat/", root_dispatch, name="pane-chat", kwargs={"pane": "chat"}),
     path(
-        "chat/<int:session_id>/",
+        "chat/<uuid:session_token>/",
         root_dispatch,
         name="pane-chat-session",
         kwargs={"pane": "chat"},
