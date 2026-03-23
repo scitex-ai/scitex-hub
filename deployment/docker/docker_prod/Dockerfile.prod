@@ -13,8 +13,8 @@
 #   Stage 3: tool-builder     — yq, small binaries    (changes: ~never)
 #   Stage 4: node-builder     — mermaid-cli           (changes: rarely)
 #   Stage 5: python-builder   — Python deps (scitex core):
-#            Layer 0: scitex[all]==2.19.4      (anchor — NEVER changes, caches PyTorch)
-#            Layer A: scitex[all]==2.19.5      (latest — bump freely, ~30s rebuild)
+#            Layer 0: scitex[all]==2.26.0      (anchor — NEVER changes, caches PyTorch)
+#            Layer A: scitex[all]==2.26.0      (latest — bump freely, ~30s rebuild)
 #   Stage 6: runtime          — Final image, includes:
 #            Layer B: scitex-cloud==0.10.10-alpha (installed after app COPY, ~30s)
 #
@@ -114,12 +114,12 @@ RUN npm install -g @mermaid-js/mermaid-cli
 # Three-layer install strategy across builder + runtime:
 #
 #   Layer 0 (here, python-builder — "anchor"):
-#     scitex[all]==2.19.4 — installs PyTorch, CUDA, scipy, scikit-learn.
+#     scitex[all]==2.26.0 — installs PyTorch, CUDA, scipy, scikit-learn.
 #     This version is pinned to an old stable release and NEVER changes.
 #     Purpose: cache the ~2GB heavy dependency tree permanently. (~15 min cold)
 #
 #   Layer A (here, python-builder — "update"):
-#     scitex[all]==2.19.5 — overwrites scitex core to the latest version.
+#     scitex[all]==2.26.0 — overwrites scitex core to the latest version.
 #     PyTorch etc. are already installed from Layer 0 and version-compatible,
 #     so uv skips them and only updates scitex itself. (~30s)
 #     You bump this pin freely on every publish — Layer 0 stays cached.
@@ -168,13 +168,13 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
 # This installs PyTorch, scipy, scikit-learn, etc. as transitive deps.
 # The version is intentionally old and frozen. Only update when scitex
 # changes its major dependency versions (e.g., PyTorch 2.x → 3.x).
-RUN uv pip install --system --no-cache "scitex[all]==2.19.4"
+RUN uv pip install --system --no-cache "scitex[all]==2.26.0"
 
 # --- Layer A: Latest scitex (bump freely on every publish) ---
 # PyTorch etc. are already satisfied from Layer 0. uv skips them and
 # only downloads/installs the scitex package itself. (~30s)
 # No --no-cache here: we want uv to recognize existing packages.
-RUN uv pip install --system "scitex[all]==2.19.5"
+RUN uv pip install --system "scitex[all]==2.26.0"
 
 # Playwright browsers (cached separately via BuildKit cache mount)
 RUN --mount=type=cache,target=/root/.cache/ms-playwright \
