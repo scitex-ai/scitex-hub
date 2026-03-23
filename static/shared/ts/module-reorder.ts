@@ -308,10 +308,34 @@ window._moduleReorder = {
   makeReorderable,
 };
 
+/** Initialize sidebar module drag-drop (vertical) */
+function initSidebarDragDrop(): void {
+  // Find the sidebar group containing module items
+  const groups = document.querySelectorAll<HTMLElement>(".sidebar-group");
+  // The second group (after divider) contains modules
+  const moduleGroup = groups.length >= 2 ? groups[1] : null;
+  if (!moduleGroup) return;
+
+  makeReorderable(moduleGroup, {
+    itemSelector: ".sidebar-item[data-module]",
+    getModuleName: (el) => el.dataset.module ?? "",
+    dragClass: "sidebar-dragging",
+    beforeClass: "sidebar-drag-before",
+    afterClass: "sidebar-drag-after",
+    axis: "vertical",
+    onReorder: (order) => {
+      void postModuleOrder(order);
+      syncTabBar(order);
+      syncAppsNav(order);
+    },
+  });
+}
+
 // Auto-init
 function initAll(): void {
   initTabBarDragDrop();
   initAppsNavDragDrop();
+  initSidebarDragDrop();
 }
 
 if (document.readyState === "loading") {

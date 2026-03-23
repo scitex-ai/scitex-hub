@@ -363,4 +363,17 @@
   display: none;
 }
 
+/* ── Drag-and-drop reorder ─────────────────────────────────── */
+.sidebar-item.sidebar-dragging {
+  opacity: 0.5;
+}
+
+.sidebar-item.sidebar-drag-before {
+  border-top: 2px solid var(--ws-sidebar-active-text);
+}
+
+.sidebar-item.sidebar-drag-after {
+  border-bottom: 2px solid var(--ws-sidebar-active-text);
+}
+
 /* Responsive & mobile styles in workspace-sidebar-responsive.css */
