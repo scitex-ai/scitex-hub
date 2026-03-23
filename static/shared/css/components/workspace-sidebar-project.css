@@ -180,6 +180,11 @@
   min-width: 260px;
 }
 
+/* Collapsed: hide chevron */
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-chevron {
+  display: none !important;
+}
+
 /* Collapsed: hide owner/slug, show slug-only */
 .workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-full {
   display: none !important;

@@ -101,20 +101,46 @@ def _get_section_items(section):
 
 
 def _get_skills():
-    """Get registered skills."""
-    try:
-        from apps.infra.llm_app.skills import get_all_skills
+    """Get skills from scitex skills list CLI."""
+    import re
+    import subprocess
 
-        skills = get_all_skills()
-        return [
-            {
-                "name": s.display_name or name,
-                "key": name,
-                "description": s.description or "",
-                "icon": "fas fa-graduation-cap",
-            }
-            for name, s in skills.items()
-        ]
+    try:
+        result = subprocess.run(
+            ["python", "-m", "scitex", "skills", "list"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        items = []
+        current_pkg = ""
+        for line in result.stdout.splitlines():
+            if line.startswith("WARN:") or not line.strip():
+                continue
+            # Package header (no leading whitespace, ends with ':')
+            if not line.startswith(" ") and line.endswith(":"):
+                current_pkg = line.rstrip(":")
+                continue
+            # Skill entry (2-space indent, name on its own line)
+            m = re.match(r"^  (\S+)$", line)
+            if m:
+                skill_name = m.group(1)
+                continue
+            # Description (4-space indent)
+            m = re.match(r"^    (.+)$", line)
+            if m and current_pkg:
+                items.append(
+                    {
+                        "name": (
+                            f"{current_pkg}:{skill_name}"
+                            if skill_name != "SKILL"
+                            else current_pkg
+                        ),
+                        "description": m.group(1)[:120],
+                        "icon": "fas fa-graduation-cap",
+                    }
+                )
+        return items
     except Exception:
         return []
 

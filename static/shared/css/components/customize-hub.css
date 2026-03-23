@@ -103,6 +103,11 @@
   padding: 32px 24px;
 }
 
+.customize-section--scrollable {
+  overflow-y: auto;
+  height: 100%;
+}
+
 .customize-section-header {
   display: flex;
   align-items: center;
