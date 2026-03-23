@@ -208,31 +208,23 @@
   font-weight: 600;
 }
 
-/* Override bootstrap's 1rem margin on lists */
-#pane-chat .stx-shell-ai-msg.assistant ul,
-#pane-chat .stx-shell-ai-msg.assistant ol {
+/* Override bootstrap's 1rem margin on lists — covers both final + streaming */
+#pane-chat ul,
+#pane-chat ol {
   padding-left: 1.2em !important;
-  margin: 0.15em 0 !important;
-}
-
-#pane-chat .stx-shell-ai-msg.assistant li {
-  margin-bottom: 0 !important;
-  line-height: 1.4;
-}
-
-/* Kill paragraph margins INSIDE list items (marked.js wraps in <p>) */
-#pane-chat .stx-shell-ai-msg.assistant li p {
-  margin: 0 !important;
-}
-
-/* Markdown segments: compact everything */
-#pane-chat .ai-md-segment p,
-#pane-chat .ai-md-segment li {
   margin: 0.1em 0 !important;
 }
 
-#pane-chat .ai-md-segment li p {
+#pane-chat li {
   margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.5;
+}
+
+/* Kill paragraph margins INSIDE list items */
+#pane-chat li p {
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* Kill all BR-based spacing and streaming preview gaps */
