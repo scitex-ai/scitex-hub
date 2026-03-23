@@ -7,13 +7,13 @@ from django.shortcuts import render
 
 logger = logging.getLogger(__name__)
 
-# Simple in-memory cache: {key: (timestamp, data)}
+# Simple in-memory cache — sufficient now that scitex_dev discovery is fast (~0.3s)
 _cache: dict[str, tuple[float, list]] = {}
 _CACHE_TTL = 300  # 5 minutes
 
 
 def _cached(key: str, fetcher, ttl: int = _CACHE_TTL) -> list:
-    """Cache wrapper for slow data fetchers."""
+    """Cache wrapper for data fetchers."""
     now = time.time()
     if key in _cache:
         ts, data = _cache[key]
