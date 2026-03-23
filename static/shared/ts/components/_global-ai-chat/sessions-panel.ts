@@ -40,6 +40,7 @@ export class SessionsPanel {
   private chatCounter = 0;
   private contextMenu: HTMLElement | null = null;
   private _pendingToken: string | null = null;
+  private selectedIds: Set<number> = new Set();
   private onSwitch:
     | ((messages: SessionMessage[], sessionId: number) => void)
     | null = null;
@@ -77,6 +78,14 @@ export class SessionsPanel {
 
     // Dismiss context menu on click-outside
     document.addEventListener("click", () => this.dismissContextMenu());
+
+    // Delete key closes selected tabs
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Delete" && this.selectedIds.size > 0) {
+        e.preventDefault();
+        void this.deleteSelected();
+      }
+    });
 
     void this.loadSessions();
   }
@@ -252,6 +261,36 @@ export class SessionsPanel {
     }
   }
 
+  /** Toggle multi-selection on a session tab (Ctrl+Click) */
+  private toggleSelect(id: number, chip: HTMLElement): void {
+    if (this.selectedIds.has(id)) {
+      this.selectedIds.delete(id);
+      chip.classList.remove("selected");
+    } else {
+      this.selectedIds.add(id);
+      chip.classList.add("selected");
+    }
+  }
+
+  /** Clear all multi-selections */
+  private clearSelection(): void {
+    this.selectedIds.clear();
+    this.listEl
+      ?.querySelectorAll(".selected")
+      .forEach((el) => el.classList.remove("selected"));
+  }
+
+  /** Delete all selected sessions */
+  async deleteSelected(): Promise<void> {
+    const ids = [...this.selectedIds];
+    if (ids.length === 0) return;
+    for (const id of ids) {
+      await this.deleteSession(id);
+    }
+    this.selectedIds.clear();
+    void this.loadSessions();
+  }
+
   private updateShareButton(): void {
     const btn = document.querySelector<HTMLButtonElement>(
       ".stx-shell-ai-share-btn",
@@ -298,7 +337,16 @@ export class SessionsPanel {
 
       chip.appendChild(title);
       chip.appendChild(del);
-      chip.addEventListener("click", () => void this.switchSession(s.id));
+      chip.addEventListener("click", (e) => {
+        if (e.ctrlKey || e.metaKey) {
+          // Multi-select toggle
+          e.preventDefault();
+          this.toggleSelect(s.id, chip);
+        } else {
+          this.clearSelection();
+          void this.switchSession(s.id);
+        }
+      });
 
       // Right-click context menu
       chip.addEventListener("contextmenu", (e) => {

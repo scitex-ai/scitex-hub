@@ -65,6 +65,14 @@
   color: var(--text-primary, #f0f6fc) !important;
 }
 
+/* ── Multi-select state (Ctrl+Click) ── */
+#pane-chat .stx-shell-ai-session-item.selected,
+#pane-console .stx-shell-ai-console-tab-item.selected {
+  outline: 2px solid var(--text-link, #58a6ff) !important;
+  outline-offset: -2px;
+  background: rgba(56, 139, 253, 0.2) !important;
+}
+
 /* ── Tab close button — large hit area ── */
 #pane-chat .stx-shell-ai-session-close,
 #pane-console .stx-shell-ai-console-tab-close {
