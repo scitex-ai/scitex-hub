@@ -22,9 +22,16 @@ export function initSidebarContextMenu(): void {
     showContextMenu(e as MouseEvent, moduleName, moduleLabel, item);
   });
 
-  // Close on any click
+  // Close on any click or right-click elsewhere
   document.addEventListener("click", closeContextMenu);
-  document.addEventListener("contextmenu", () => closeContextMenu());
+  document.addEventListener("contextmenu", (e) => {
+    // Only close if the right-click is NOT on a module item (otherwise our
+    // sidebar handler will show a new menu)
+    const onModuleItem = (e.target as HTMLElement).closest(
+      ".sidebar-item[data-module]",
+    );
+    if (!onModuleItem) closeContextMenu();
+  });
 }
 
 function showContextMenu(
