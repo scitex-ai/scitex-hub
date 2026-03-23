@@ -95,7 +95,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 FROM alpine:latest AS tool-builder
 
-COPY bin/yq_linux_amd64 /usr/local/bin/yq
+COPY deployment/docker/docker_prod/bin/yq_linux_amd64 /usr/local/bin/yq
 RUN chmod +x /usr/local/bin/yq
 
 # ============================================
