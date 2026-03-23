@@ -91,7 +91,12 @@ def _get_section_items(section):
         return _get_skills()
     if section == "mcp-servers":
         return _get_mcp_servers()
-    # Placeholder for other sections
+    if section == "cli-commands":
+        return _get_cli_commands()
+    if section == "commands":
+        return _get_commands()
+    if section == "hooks":
+        return _get_hooks()
     return []
 
 
@@ -132,3 +137,67 @@ def _get_mcp_servers():
         ]
     except Exception:
         return []
+
+
+def _get_cli_commands():
+    """Get CLI commands from scitex --help-recursive."""
+    try:
+        import subprocess
+
+        result = subprocess.run(
+            ["python", "-m", "scitex", "--help-recursive"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        items = []
+        for line in result.stdout.splitlines():
+            line = line.strip()
+            if line and not line.startswith("Usage") and not line.startswith("Options"):
+                if line.startswith("scitex "):
+                    cmd = line.split()[1] if len(line.split()) > 1 else line
+                    items.append(
+                        {"name": cmd, "description": line, "icon": "fas fa-code"}
+                    )
+        return items[:50]
+    except Exception:
+        return []
+
+
+def _get_commands():
+    """Get slash commands from .claude/commands/."""
+    import pathlib
+
+    items = []
+    for d in [pathlib.Path.home() / ".claude" / "commands"]:
+        if d.is_dir():
+            for f in sorted(d.glob("*.md")):
+                items.append(
+                    {
+                        "name": f"/{f.stem}",
+                        "description": f.stem.replace("-", " ").title(),
+                        "icon": "fas fa-terminal",
+                    }
+                )
+    return items
+
+
+def _get_hooks():
+    """Get hooks from .claude/hooks/."""
+    import pathlib
+
+    items = []
+    for d in [pathlib.Path.home() / ".claude" / "hooks"]:
+        if d.is_dir():
+            for sub in sorted(d.iterdir()):
+                if sub.is_dir():
+                    for f in sorted(sub.glob("*")):
+                        if f.is_file() and not f.name.startswith("."):
+                            items.append(
+                                {
+                                    "name": f"{sub.name}/{f.name}",
+                                    "description": sub.name,
+                                    "icon": "fas fa-bolt",
+                                }
+                            )
+    return items
