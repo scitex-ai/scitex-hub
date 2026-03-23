@@ -83,6 +83,11 @@ class WorkspaceSidebar {
       this.switchPane("module", false);
       // Highlight the active module in sidebar
       this.highlightModuleItem(trackModule);
+    } else if (path.startsWith("/ai-setup/")) {
+      this.switchPane("module", false);
+      this.highlightActionBtn("sidebar-ai-setup");
+    } else if (path.startsWith("/search/")) {
+      this.switchPane("module", false);
     } else {
       // Restore last active core pane, default to chat
       const saved = localStorage.getItem(STORAGE_KEY_PANE) as PaneId | null;
@@ -154,9 +159,11 @@ class WorkspaceSidebar {
     // AI Setup button — load AI Setup hub into module pane
     document
       .getElementById("sidebar-ai-setup")
-      ?.addEventListener("click", () => {
+      ?.addEventListener("click", (e) => {
+        e.preventDefault();
         this.switchPane("module", true);
         this.items?.forEach((i) => i.classList.remove("active"));
+        this.highlightActionBtn("sidebar-ai-setup");
         loadPageContent("/ai-setup/");
         this.closeDrawer();
       });
@@ -242,6 +249,7 @@ class WorkspaceSidebar {
       e.preventDefault();
       this.switchPane("module", true);
       this.highlightModuleItem(moduleName);
+      this.clearActionBtnHighlight();
       this.loadModuleContent(moduleName, item);
       this.closeDrawer();
       return;
@@ -249,6 +257,7 @@ class WorkspaceSidebar {
 
     // Core panes: prevent default and switch client-side
     e.preventDefault();
+    this.clearActionBtnHighlight();
     this.switchPane(paneId, true);
     this.closeDrawer();
   }
@@ -300,6 +309,20 @@ class WorkspaceSidebar {
     document.dispatchEvent(
       new CustomEvent("workspace-pane-changed", { detail: { pane: paneId } }),
     );
+  }
+
+  private highlightActionBtn(btnId: string): void {
+    // Remove active from all action buttons, then add to target
+    this.sidebar
+      ?.querySelectorAll<HTMLElement>(".sidebar-action-btn")
+      .forEach((btn) => btn.classList.remove("active"));
+    document.getElementById(btnId)?.classList.add("active");
+  }
+
+  private clearActionBtnHighlight(): void {
+    this.sidebar
+      ?.querySelectorAll<HTMLElement>(".sidebar-action-btn")
+      .forEach((btn) => btn.classList.remove("active"));
   }
 
   private highlightModuleItem(moduleName: string): void {

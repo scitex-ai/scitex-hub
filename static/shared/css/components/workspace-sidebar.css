@@ -153,6 +153,11 @@
   color: var(--ws-sidebar-text);
 }
 
+.workspace-sidebar .sidebar-action-btn.active {
+  background: var(--ws-sidebar-active-bg);
+  color: var(--ws-sidebar-active-text);
+}
+
 .workspace-sidebar .sidebar-action-btn i {
   width: 24px;
   text-align: center;
