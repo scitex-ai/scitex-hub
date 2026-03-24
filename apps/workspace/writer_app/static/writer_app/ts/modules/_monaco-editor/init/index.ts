@@ -1,21 +1,26 @@
 /**
  * Monaco Editor Initialization Orchestrator
- * Coordinates all Monaco editor setup modules
+ * Uses scitex-ui for shared functionality, keeps citation providers local.
  */
 
+// Shared from scitex-ui
+import {
+  registerLatexLanguage,
+  registerLatexSnippetProvider,
+  setupMonacoTheme,
+} from "scitex-ui/ts/app/monaco-editor/index";
 
-// Import all modules
-import { registerLatexLanguage } from "./LanguageRegistration";
-import { registerLatexCompletionProvider } from "./CompletionProvider";
+// Writer-specific (citation data needed)
 import { registerCitationCompletionProvider } from "./CitationCompletion";
 import { registerCitationHoverProvider } from "./CitationHover";
-import { setupMonacoTheme } from "./EditorTheme";
+
+// Editor creation still uses scitex-ui defaults
 import { createMonacoEditor } from "./EditorFactory";
 
-// Re-export all functions
+// Re-export for consumers
 export {
   registerLatexLanguage,
-  registerLatexCompletionProvider,
+  registerLatexSnippetProvider as registerLatexCompletionProvider,
   registerCitationCompletionProvider,
   registerCitationHoverProvider,
   setupMonacoTheme,
@@ -24,7 +29,6 @@ export {
 
 /**
  * Initialize all Monaco editor features
- * This is the main orchestrator function
  */
 export function initializeMonacoEditor(
   monaco: any,
@@ -32,24 +36,21 @@ export function initializeMonacoEditor(
   initialValue: string,
   config: any,
 ): any {
-  console.log("[Monaco] Starting initialization...");
-
-  // Step 1: Register LaTeX language
+  // Step 1: Register LaTeX language (from scitex-ui)
   registerLatexLanguage(monaco);
 
   // Step 2: Register completion providers
-  registerLatexCompletionProvider(monaco);
+  registerLatexSnippetProvider(monaco);
   registerCitationCompletionProvider(monaco);
 
   // Step 3: Register hover providers
   registerCitationHoverProvider(monaco);
 
-  // Step 4: Setup themes (both dark + light) and observer — identical to Console
+  // Step 4: Setup themes (from scitex-ui)
   setupMonacoTheme(monaco);
 
-  // Step 5: Create editor instance (uses shared defaults)
+  // Step 5: Create editor instance
   const editor = createMonacoEditor(monaco, container, initialValue, config);
 
-  console.log("[Monaco] Initialization complete");
   return editor;
 }

@@ -183,6 +183,9 @@ export default defineConfig({
       "@": resolve(__dirname, "static/shared/ts"),
       "@types": resolve(__dirname, "static/shared/ts/types"),
       "@utils": resolve(__dirname, "static/shared/ts/utils"),
+      // Ensure monaco-editor resolves from scitex-cloud's node_modules
+      // even when imported from scitex-ui files outside this directory tree
+      "monaco-editor": resolve(__dirname, "node_modules/monaco-editor"),
       // scitex-ui: shared component library (auto-discovered)
       ...(SCITEX_UI_STATIC
         ? {
