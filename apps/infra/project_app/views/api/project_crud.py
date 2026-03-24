@@ -10,15 +10,15 @@ This module contains API endpoints for project CRUD operations.
 """
 
 from __future__ import annotations
+
 import json
 
-from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 
 from ...models import Project
-
 
 # ============================================================================
 # Project CRUD APIs
@@ -47,11 +47,15 @@ def api_project_create(request):
         if not name:
             return JsonResponse({"success": False, "error": "Project name is required"})
 
-        # Ensure unique name
-        unique_name = Project.generate_unique_name(name, request.user)
+        from apps.infra.project_app.views.projects.create_helpers import (
+            generate_unique_slug,
+        )
+
+        slug = generate_unique_slug(name, request.user)
 
         project = Project.objects.create(
-            name=unique_name,
+            name=name,
+            slug=slug,
             description=description,
             owner=request.user,
         )
@@ -60,6 +64,8 @@ def api_project_create(request):
             {
                 "success": True,
                 "project_id": project.pk,
+                "slug": project.slug,
+                "owner": project.owner.username,
                 "message": f'Project "{project.name}" created successfully',
             }
         )
