@@ -74,6 +74,7 @@
     left: 0;
     width: 0;
     height: 100vh;
+    height: 100dvh; /* iOS: accounts for browser chrome & home indicator */
     z-index: 200;
     overflow: visible;
   }
@@ -84,6 +85,7 @@
     left: 0;
     width: 280px;
     height: 100vh;
+    height: 100dvh; /* iOS: accounts for browser chrome & home indicator */
     transform: translateX(-100%);
     transition: transform 300ms ease;
     z-index: 201;
@@ -111,6 +113,11 @@
   /* Hide sidebar toggle in mobile (hamburger replaces it) */
   .sidebar-toggle-btn {
     display: none;
+  }
+
+  /* iOS safe area: prevent home indicator from covering footer */
+  .sidebar-footer {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   }
 }
 
