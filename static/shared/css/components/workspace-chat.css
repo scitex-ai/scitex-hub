@@ -1,0 +1,300 @@
+/* ============================================================
+   Workspace Chat Pane — Claude.ai-inspired welcome screen
+   ============================================================ */
+
+.ws-chat-pane {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-primary, #0d1117);
+}
+
+/* ── Welcome screen ────────────────────────────────────────── */
+.chat-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 32px;
+  padding: 48px 24px;
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Hero: glowing logo + tagline ───────────────────────────── */
+.chat-welcome-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.chat-welcome-logo-glow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(56, 139, 253, 0.15) 0%,
+    transparent 70%
+  );
+  box-shadow: 0 0 60px 20px rgba(56, 139, 253, 0.08);
+  animation: chat-logo-pulse 4s ease-in-out infinite;
+}
+
+@keyframes chat-logo-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 60px 20px rgba(56, 139, 253, 0.08);
+  }
+  50% {
+    box-shadow: 0 0 80px 30px rgba(56, 139, 253, 0.15);
+  }
+}
+
+.chat-welcome-logo {
+  width: 96px;
+  height: 96px;
+  transition: transform 300ms ease;
+}
+
+/* Spin the logo when AI is thinking */
+.chat-welcome-logo-glow.loading .chat-welcome-logo {
+  animation: logo-spin 2s linear infinite;
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.chat-welcome-tagline {
+  font-size: 16px;
+  color: var(--text-muted, #8b949e);
+  margin: 0;
+  text-align: center;
+  font-weight: 400;
+}
+
+/* ── Welcome input box ─────────────────────────────────────── */
+.chat-welcome-input-area {
+  width: 100%;
+  max-width: 600px;
+}
+
+.chat-welcome-input-box {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-secondary, #161b22);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 16px;
+  padding: 16px;
+  transition: border-color 200ms ease;
+}
+
+.chat-welcome-input-box:focus-within {
+  border-color: var(--text-link, #58a6ff);
+}
+
+.chat-welcome-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary, #f0f6fc);
+  font-size: 15px;
+  line-height: 1.5;
+  resize: none;
+  font-family: inherit;
+  min-height: 24px;
+  max-height: 200px;
+}
+
+.chat-welcome-input::placeholder {
+  color: var(--text-muted, #8b949e);
+}
+
+.chat-welcome-input-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.chat-welcome-attach {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 50%;
+  color: var(--text-muted, #8b949e);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.chat-welcome-attach:hover {
+  color: var(--text-primary, #f0f6fc);
+  border-color: var(--text-secondary, #c9d1d9);
+}
+
+.chat-welcome-model {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--text-muted, #8b949e);
+}
+
+/* Welcome input action buttons (camera, sketch, mic) */
+.chat-welcome-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  color: var(--text-muted, #8b949e);
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+.chat-welcome-btn:hover {
+  color: var(--text-primary, #f0f6fc);
+  background: rgba(177, 186, 196, 0.08);
+}
+
+/* ── Quick action shortcuts ────────────────────────────────── */
+.chat-welcome-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.chat-shortcut-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: none;
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 20px;
+  color: var(--text-secondary, #c9d1d9);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 150ms ease;
+  white-space: nowrap;
+}
+
+.chat-shortcut-btn:hover {
+  background: var(--bg-secondary, #161b22);
+  border-color: var(--text-secondary, #c9d1d9);
+  color: var(--text-primary, #f0f6fc);
+}
+
+.chat-shortcut-btn i {
+  font-size: 14px;
+}
+
+/* ── Hidden state ──────────────────────────────────────────── */
+.chat-messages-area.hidden,
+.chat-input-area.hidden {
+  display: none;
+}
+
+/* ── Chat messages (active conversation) ───────────────────── */
+.chat-messages-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Chat input (active conversation) ──────────────────────── */
+.chat-input-area {
+  padding: 16px 24px 24px;
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.chat-input-box {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  background: var(--bg-secondary, #161b22);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 16px;
+  padding: 12px 16px;
+}
+
+.chat-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary, #f0f6fc);
+  font-size: 15px;
+  line-height: 1.5;
+  resize: none;
+  font-family: inherit;
+  min-height: 24px;
+  max-height: 200px;
+}
+
+.chat-input::placeholder {
+  color: var(--text-muted, #8b949e);
+}
+
+.chat-input-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.chat-attach-btn,
+.chat-send-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  color: var(--text-muted, #8b949e);
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.chat-attach-btn:hover,
+.chat-send-btn:hover {
+  color: var(--text-primary, #f0f6fc);
+  background: rgba(177, 186, 196, 0.08);
+}
+
+.chat-send-btn {
+  background: var(--text-link, #58a6ff);
+  color: #fff;
+  border-radius: 50%;
+}
+
+.chat-send-btn:hover {
+  background: #4a9af5;
+  color: #fff;
+}

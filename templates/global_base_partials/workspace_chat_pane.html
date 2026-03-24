@@ -1,0 +1,79 @@
+{% load static %}
+
+{% if user.is_authenticated %}
+    <div class="ws-chat-pane" id="ws-chat-pane">
+        <!-- Welcome screen (shown when no conversation active) -->
+        <div class="chat-welcome" id="chat-welcome">
+            <div class="chat-welcome-hero">
+                <div class="chat-welcome-logo-glow">
+                    <img src="{% static 'shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg' %}"
+                         alt="SciTeX"
+                         class="chat-welcome-logo" />
+                </div>
+                <p class="chat-welcome-tagline">Ask anything about Scientific Research</p>
+            </div>
+            <div class="chat-welcome-input-area">
+                <div class="chat-welcome-input-box">
+                    <textarea id="chat-welcome-input"
+                              class="chat-welcome-input"
+                              rows="1"
+                              placeholder="How can I help you today?"
+                              autocomplete="off"></textarea>
+                    <div class="chat-welcome-input-actions">
+                        <button class="chat-welcome-attach" title="Attach file">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="chat-welcome-btn" id="chat-welcome-camera" title="Attach image">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                        <button class="chat-welcome-btn" id="chat-welcome-sketch" title="Draw sketch">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <span class="chat-welcome-model" id="chat-welcome-model">
+                            <span id="chat-welcome-model-name"></span>
+                        </span>
+                        <button class="chat-welcome-btn" id="chat-welcome-mic" title="Voice input">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-welcome-shortcuts">
+                <button class="chat-shortcut-btn" data-prompt="Help me write">
+                    <i class="fas fa-pen"></i> Write
+                </button>
+                <button class="chat-shortcut-btn" data-prompt="Help me analyze">
+                    <i class="fas fa-magnifying-glass-chart"></i> Analyze
+                </button>
+                <button class="chat-shortcut-btn" data-prompt="Help me code">
+                    <i class="fas fa-code"></i> Code
+                </button>
+                <button class="chat-shortcut-btn" data-prompt="Search literature">
+                    <i class="fas fa-book"></i> Literature
+                </button>
+            </div>
+        </div>
+        <!-- Chat messages area (shown during active conversation, hidden by CSS) -->
+        <div class="chat-messages-area hidden" id="chat-messages-area">
+            <div id="chat-messages" class="chat-messages"></div>
+        </div>
+        <!-- Persistent input area (shown during conversation, hidden by CSS initially) -->
+        <div class="chat-input-area hidden" id="chat-input-area">
+            <div class="chat-input-box">
+                <textarea id="chat-input"
+                          class="chat-input"
+                          rows="1"
+                          placeholder="Ask anything"
+                          autocomplete="off"></textarea>
+                <div class="chat-input-actions">
+                    <button class="chat-attach-btn" title="Attach file">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="chat-send-btn" id="chat-send" title="Send">
+                        <i class="fas fa-arrow-up"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}

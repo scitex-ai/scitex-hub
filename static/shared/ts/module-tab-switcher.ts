@@ -141,8 +141,11 @@ function init(): void {
     if (mod) updateActiveTab(mod);
   }
 
-  // Tab switching via fetch only works with three-column workspace layout.
-  if (!document.querySelector("#workspace-three-col.workspace-three-col"))
+  // Tab switching via fetch only works with workspace layout (sidebar + panes).
+  if (
+    !document.querySelector("#workspace-layout.workspace-layout") &&
+    !document.querySelector("#workspace-three-col.workspace-three-col")
+  )
     return;
 
   // Populate known modules from DOM (set by registry context processor).

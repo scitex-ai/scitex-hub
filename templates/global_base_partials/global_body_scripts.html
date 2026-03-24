@@ -58,6 +58,10 @@
 <!-- Unified resizer system (horizontal + vertical data-attribute resizers) -->
 {% vite_script 'shared/resizer' %}
 {% vite_script 'shared/global-ai-chat' %}
+<!-- Workspace Sidebar — pane switching, expand/collapse, mobile drawer -->
+{% vite_script 'shared/workspace-sidebar' %}
+<!-- Chat Welcome — bridges welcome input to AI chat backend -->
+{% vite_script 'shared/components/chat-welcome' %}
 <!-- Context-aware zoom: Ctrl+Wheel / Ctrl++/-/0 per pane (self-initializing) -->
 {% vite_script 'shared/components/context-zoom-init' %}
 <!-- App Navigation History (unified back/forward via browser history API) -->
@@ -74,7 +78,7 @@
 {% vite_script 'shared/components/nav-prefetch' %}
 <!-- Mobile Notice Banner Dismiss -->
 {% vite_script 'shared/utils/mobile-notice' %}
-<!-- Mobile Swipe Navigation (workspace pane switching on touch devices) -->
-{% vite_script 'scitex_ui/shell/mobile-swipe' %}
+<!-- Mobile Gestures (swipe right from edge → open sidebar, left → close) -->
+{% vite_script 'scitex_ui/shell/sidebar-drawer-gesture' %}
 <!-- Dev App Install/Uninstall (Hub Explore + Apps browse) -->
 {% vite_script 'apps_app/dev-install' %}

@@ -1,0 +1,227 @@
+/* ============================================================
+   Workspace Sidebar — Project Selector
+   ============================================================ */
+
+/* ── Project selector (expanded: dropdown row, collapsed: icon+slug) ── */
+.sidebar-project-selector {
+  padding: 0 8px 4px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.sidebar-project-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--ws-sidebar-text-muted);
+  font-size: 15px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.sidebar-project-btn:hover {
+  background: var(--ws-sidebar-hover-bg);
+  color: var(--ws-sidebar-text);
+}
+
+.sidebar-project-icon {
+  flex-shrink: 0;
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
+}
+
+.sidebar-project-name {
+  flex: 1;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  text-align: left;
+}
+
+.sidebar-project-chevron {
+  font-size: 10px;
+  margin-left: auto;
+  opacity: 0.5;
+}
+
+/* Expanded: hide slug-only label */
+.sidebar-project-short {
+  display: none;
+}
+
+/* ── Dropdown ── */
+.sidebar-project-dropdown {
+  display: none;
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 100%;
+  z-index: 50;
+  margin-top: 4px;
+  background: var(--ws-sidebar-bg);
+  border: 1px solid var(--ws-sidebar-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  min-width: 200px;
+}
+
+.sidebar-project-dropdown.open {
+  display: block;
+}
+
+/* Filter input */
+.sidebar-project-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-bottom: 1px solid var(--ws-sidebar-border);
+}
+
+.sidebar-project-filter-icon {
+  color: var(--ws-sidebar-text-muted);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.sidebar-project-filter-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text-primary, #f0f6fc);
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.sidebar-project-filter-input::placeholder {
+  color: var(--ws-sidebar-text-muted);
+}
+
+/* Project list (scrollable) */
+.sidebar-project-list {
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+/* Project item */
+.sidebar-project-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: var(--ws-sidebar-text-muted);
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 4px;
+}
+
+.sidebar-project-item:hover {
+  background: var(--ws-sidebar-hover-bg);
+  color: var(--ws-sidebar-text);
+  text-decoration: none;
+}
+
+.sidebar-project-item.hidden {
+  display: none;
+}
+
+.sidebar-project-check {
+  margin-left: auto;
+  color: var(--ws-sidebar-active-text);
+  font-size: 12px;
+}
+
+/* New project button */
+.sidebar-project-new {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--ws-sidebar-border);
+  color: var(--ws-sidebar-text-muted);
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.sidebar-project-new:hover {
+  background: var(--ws-sidebar-hover-bg);
+  color: var(--ws-sidebar-text);
+  text-decoration: none;
+}
+
+.sidebar-project-new i {
+  font-size: 12px;
+}
+
+/* ── Collapsed state ── */
+
+/* Collapsed: pop out as fixed overlay to avoid overflow clip */
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-dropdown {
+  position: fixed;
+  left: calc(var(--ws-sidebar-width-collapsed) + 4px);
+  right: auto;
+  top: 56px;
+  margin-top: 0;
+  width: 260px;
+  min-width: 260px;
+}
+
+/* Collapsed: hide chevron */
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-chevron {
+  display: none !important;
+}
+
+/* Collapsed: hide owner/slug, show slug-only */
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-full {
+  display: none !important;
+}
+
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-short {
+  display: block;
+  font-size: 10px;
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Collapsed: icon + truncated slug stacked vertically */
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-selector {
+  padding: 0 4px 4px;
+}
+
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-btn {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  gap: 2px;
+  border: none;
+  background: none;
+}
+
+/* Collapsed: larger rocket icon to match other collapsed icons */
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-icon {
+  font-size: 22px;
+  width: 28px;
+}
+
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-project-name {
+  font-size: 10px;
+  text-align: center;
+  max-width: 100%;
+}

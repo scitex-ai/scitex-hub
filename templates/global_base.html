@@ -20,7 +20,9 @@
           data-user-type="{% if user.is_authenticated and user.username|slice:':8' == 'visitor-' %}visitor{% elif user.is_authenticated %}registered{% else %}anonymous{% endif %}"
           {% if user.is_authenticated %}data-current-username="{{ user.username }}"{% endif %}
           data-track-module="{% if active_module %}{{ active_module.get_track_module }}{% elif '/server-status' in request.path %}server_status{% elif '/explore/' in request.path %}explore{% elif '/workspace/' in request.path %}files{% endif %}"
-          class="{% if request.path == '/' or request.path == '/landing/' %}workspace-page{% if user.is_authenticated %} no-transition{% else %} landing-page{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
+          {% if request.initial_pane %}data-initial-pane="{{ request.initial_pane }}"{% endif %}
+          {% if request.chat_session_token %}data-chat-session-token="{{ request.chat_session_token }}"{% endif %}
+          class="{% if request.path == '/' or request.path == '/landing/' %}workspace-page landing-page{% if user.is_authenticated %} no-transition{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
         <!-- Loading screen — hides FOUC until CSS/JS adds body.app-ready -->
         <div id="app-loading-screen">
             <div class="stx-loading-content">
@@ -30,14 +32,8 @@
         </div>
         <!-- Hidden CSRF token for JavaScript API calls -->
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
+        <!-- Header: shown on non-workspace pages only (sidebar replaces it on workspace) -->
         {% include 'global_base_partials/global_header.html' %}
-        <!-- Header Collapse Toggle (OUTSIDE header for CSS sibling selector) -->
-        <button id="header-collapse-toggle"
-                class="header-collapse-toggle"
-                data-tooltip="Toggle header"
-                aria-label="Toggle header collapse">
-            <i class="fas fa-chevron-up"></i>
-        </button>
         <!-- Django Messages (success hidden — only show errors/warnings) -->
         {% if messages %}
             <div class="container django-messages-container">
@@ -52,61 +48,46 @@
                 {% endfor %}
             </div>
         {% endif %}
-        <!-- Module Tab Bar — shown OUTSIDE workspace for non-pane pages -->
-        {% if not workspace_has_panes or not user.is_authenticated %}
-            {% include 'global_base_partials/module_tab_bar.html' %}
-        {% endif %}
-        <!-- Page content: five-col on authenticated workspace pages with panes, plain otherwise -->
-        <div id="workspace-three-col"
-             class="{% if workspace_has_panes and user.is_authenticated %}workspace-three-col{% endif %}">
-            {% if workspace_has_panes and user.is_authenticated %}
-                {% include 'global_base_partials/workspace_ai_pane.html' %}
-                {% block workspace_worktree_pane %}
-                    {% include 'global_base_partials/workspace_worktree_pane.html' %}
-                {% endblock %}
-                {% include 'global_base_partials/workspace_viewer_pane.html' %}
-                {% include 'global_base_partials/workspace_apps_pane.html' %}
-            {% endif %}
-            <main id="main-content"
-                  class="{% if workspace_has_panes and user.is_authenticated %}ws-module-pane{% endif %}"
-                  {% if active_module_name %}data-app-accent="{{ active_module_name }}"{% endif %}>
-                {% block content %}{% endblock %}
-            </main>
-        </div>
-        <!-- Mobile Bottom Tab Bar (hidden on desktop, visible on mobile workspace) -->
         {% if workspace_has_panes and user.is_authenticated %}
-            <nav id="mobile-tab-bar" class="mobile-tab-bar" aria-label="Mobile pane navigation">
-                <button class="mobile-tab-bar__item" data-mobile-tab="console" aria-label="Console">
-                    <i class="fas fa-terminal"></i>
-                    <span>Console</span>
-                </button>
-                <button class="mobile-tab-bar__item" data-mobile-tab="files" aria-label="Files">
-                    <i class="fas fa-folder"></i>
-                    <span>Files</span>
-                </button>
-                <button class="mobile-tab-bar__item" data-mobile-tab="viewer" aria-label="Viewer">
-                    <i class="fas fa-eye"></i>
-                    <span>Viewer</span>
-                </button>
-                <button class="mobile-tab-bar__item" data-mobile-tab="apps" aria-label="Apps">
-                    <i class="fas fa-th"></i>
-                    <span>Apps</span>
-                </button>
-                <button class="mobile-tab-bar__item active"
-                        data-mobile-tab="content"
-                        aria-label="Content">
-                    <i class="fas fa-file-alt"></i>
-                    <span>Content</span>
-                </button>
-            </nav>
+            <!-- ═══ Workspace Layout: Sidebar + Single Active Pane ═══ -->
+            <div id="workspace-layout" class="workspace-layout">
+                {% include 'global_base_partials/workspace_sidebar.html' %}
+                <div id="workspace-content" class="workspace-content">
+                    <!-- Chat pane: welcome overlay + AI panel (chat mode) -->
+                    <div class="workspace-pane" id="pane-chat" data-pane="chat">
+                        {% include 'global_base_partials/workspace_chat_pane.html' %}
+                        <div id="ai-panel-container">{% include 'global_base_partials/workspace_ai_pane.html' %}</div>
+                    </div>
+                    <!-- Console pane: JS moves AI panel here in console mode -->
+                    <div class="workspace-pane" id="pane-console" data-pane="console"></div>
+                    <!-- Editor pane (file tree left + viewer/editor right) -->
+                    <div class="workspace-pane" id="pane-editor" data-pane="editor">
+                        <div class="editor-split-layout">
+                            <div class="editor-split-left">
+                                {% block workspace_worktree_pane %}
+                                    {% include 'global_base_partials/workspace_worktree_pane.html' %}
+                                {% endblock %}
+                            </div>
+                            <div class="editor-split-right">{% include 'global_base_partials/workspace_viewer_pane.html' %}</div>
+                        </div>
+                    </div>
+                    <!-- Module pane (active module content) -->
+                    <div class="workspace-pane active" id="pane-module" data-pane="module">
+                    {% else %}
+                        <!-- Non-workspace pages: standard layout with header -->
+                        {% if not workspace_has_panes or not user.is_authenticated %}
+                            {% include 'global_base_partials/module_tab_bar.html' %}
+                        {% endif %}
+                    {% endif %}
+                    <main id="main-content"
+                          {% if active_module_name %}data-app-accent="{{ active_module_name }}"{% endif %}>
+                        {% block content %}{% endblock %}
+                    </main>
+                    {% if workspace_has_panes and user.is_authenticated %}
+                    </div>
+                </div>
+            </div>
         {% endif %}
-        <!-- Footer Collapse Toggle (OUTSIDE footer for body-class-based CSS) -->
-        <button id="footer-collapse-toggle"
-                class="footer-collapse-toggle"
-                data-tooltip="Toggle footer"
-                aria-label="Toggle footer collapse">
-            <i class="fas fa-chevron-down"></i>
-        </button>
         {% include 'global_base_partials/global_footer.html' %}
         {% if not is_workspace_page %}
             {% include 'global_base_partials/global_ai_panel.html' %}

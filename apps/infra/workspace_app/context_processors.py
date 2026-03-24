@@ -20,8 +20,16 @@ def workspace_context(request):
     path = request.path
     is_ws = is_workspace_path(path)
 
-    # Root path "/" is only a workspace for authenticated users (anon sees landing)
-    if path == "/" and not request.user.is_authenticated:
+    # /landing/ is never a workspace (hero must render outside workspace layout)
+    if path == "/landing/":
+        is_ws = False
+
+    # Root "/" is only workspace for authenticated non-visitor users
+    if path == "/" and (
+        not request.user.is_authenticated
+        or request.user.username.startswith("visitor-")
+        or request.user.username == "readonly-visitor"
+    ):
         is_ws = False
 
     # User profile pages (/<username>/...) should also show workspace chrome
@@ -30,6 +38,15 @@ def workspace_context(request):
 
     # /new/ renders inside workspace frame with Hub as active module
     if path.rstrip("/") == "/new" and request.user.is_authenticated:
+        is_ws = True
+
+    # Core pane paths (/chat/, /console/, /files/) → workspace with panes
+    _CORE_PANE_PATHS = {"/chat/", "/console/", "/files/"}
+    if path in _CORE_PANE_PATHS and request.user.is_authenticated:
+        is_ws = True
+
+    # /ai-setup/ and /search/ paths → workspace with panes
+    if path.startswith(("/ai-setup/", "/search/")) and request.user.is_authenticated:
         is_ws = True
 
     active_name = extract_module_from_path(path) if is_ws else None
@@ -42,7 +59,10 @@ def workspace_context(request):
         # Org profiles → Discovery context; user profiles → Home context
         active_name = "discovery" if _is_org_profile_path(path) else "home"
         if request.user.is_authenticated and (
-            _is_user_profile_path(path) or path.rstrip("/") == "/new"
+            _is_user_profile_path(path)
+            or path.rstrip("/") == "/new"
+            or path in _CORE_PANE_PATHS
+            or path.startswith("/accounts/")
         ):
             has_panes = True
 

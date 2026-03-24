@@ -383,6 +383,9 @@
 @media (max-width: 992px) {
   .hero-landing .hero-content {
     text-align: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    align-items: center !important;
   }
 
   .hero-landing .hero-badges {
@@ -411,7 +414,21 @@
     order: 1 !important;
     width: 100%;
     max-width: 500px;
-    margin-top: 2rem;
+    margin: 2rem auto 0;
+  }
+
+  .hero-links {
+    justify-content: center !important;
+  }
+
+  .hero-cta {
+    display: flex;
+    justify-content: center;
+  }
+
+  .hero-landing .warning-banner {
+    display: block !important;
+    text-align: center;
   }
 
   .demo-play-icon {

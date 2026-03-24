@@ -3,9 +3,11 @@
  * Manages the overlay container and styles
  */
 
+// Import CSS through Vite bundling (not dynamic <link> element)
+import "../../../css/utils/element-inspector.css";
+
 export class OverlayManager {
   private overlayContainer: HTMLDivElement | null = null;
-  private styleElement: HTMLStyleElement | null = null;
 
   public isActive(): boolean {
     return this.overlayContainer !== null;
@@ -40,9 +42,6 @@ export class OverlayManager {
             z-index: 999999;
         `;
 
-    // Add styles
-    this.addStyles();
-
     // Append to body
     document.body.appendChild(this.overlayContainer);
 
@@ -50,28 +49,9 @@ export class OverlayManager {
   }
 
   public removeOverlay(): void {
-    // Remove overlay
     if (this.overlayContainer) {
       this.overlayContainer.remove();
       this.overlayContainer = null;
     }
-
-    // Remove styles
-    if (this.styleElement) {
-      this.styleElement.remove();
-      this.styleElement = null;
-    }
-  }
-
-  private addStyles(): void {
-    // Load external CSS file instead of inline styles
-    const linkElement = document.createElement("link");
-    linkElement.rel = "stylesheet";
-    linkElement.href = "/static/shared/css/utils/element-inspector.css";
-    linkElement.id = "element-inspector-styles";
-    document.head.appendChild(linkElement);
-
-    // Store reference for cleanup (cast to HTMLStyleElement for compatibility)
-    this.styleElement = linkElement as any as HTMLStyleElement;
   }
 }

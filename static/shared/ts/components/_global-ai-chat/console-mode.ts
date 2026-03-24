@@ -179,11 +179,14 @@ export class AIPanelConsoleMode {
 
   // --- Instance lifecycle ---
 
-  private createInstance(
+  private async createInstance(
     id: string,
     containerEl: HTMLElement,
     sessionName?: string,
-  ): void {
+  ): Promise<void> {
+    // Wait for web fonts before opening terminal — prevents grid miscalculation
+    await document.fonts.ready;
+
     const terminal = new this.TerminalCtor({
       cursorBlink: true,
       fontSize: 13,
@@ -206,6 +209,14 @@ export class AIPanelConsoleMode {
       } catch {
         /* hidden */
       }
+      // Re-fit after fonts fully load for accurate grid
+      document.fonts.ready.then(() => {
+        try {
+          fitAddon.fit();
+        } catch {
+          /* */
+        }
+      });
 
       let lastObservedW = 0;
       let lastObservedH = 0;
@@ -314,8 +325,7 @@ export class AIPanelConsoleMode {
     this.instances.set(id, inst);
     this.activeTabId = id;
 
-    // Show spinner during initial connection and connect WebSocket
-    spinnerOn();
+    // Connect WebSocket — spinner shows only on allocation_starting state event
     this.connectInstance(inst);
   }
 
@@ -358,10 +368,12 @@ export class AIPanelConsoleMode {
 
     inst.ws.onerror = () => {
       if (inst.id === this.activeTabId) this.setStatus("error");
+      hideAllocationSpinner(inst.containerEl);
     };
 
     inst.ws.onclose = (ev) => {
       inst.connected = false;
+      hideAllocationSpinner(inst.containerEl);
       if (inst.id === this.activeTabId) {
         this.setStatus(ev.code === 1000 ? "disconnected" : "error");
       }
@@ -449,25 +461,16 @@ export class AIPanelConsoleMode {
       textNode = document.createTextNode("");
       this.statusEl.appendChild(textNode);
     }
-    switch (state) {
-      case "connecting":
-        icon.className = "fas fa-circle-notch fa-spin";
-        textNode.textContent = " Connecting...";
-        break;
-      case "connected":
-        this.statusEl.classList.add("connected");
-        icon.className = "fas fa-circle";
-        textNode.textContent = " Connected";
-        break;
-      case "disconnected":
-        icon.className = "fas fa-circle";
-        textNode.textContent = " Disconnected";
-        break;
-      case "error":
-        icon.className = "fas fa-exclamation-circle";
-        textNode.textContent = " Connection failed";
-        break;
-    }
+    const map: Record<string, [string, string, boolean]> = {
+      connecting: ["fas fa-circle-notch fa-spin", " Connecting...", false],
+      connected: ["fas fa-circle", " Connected", true],
+      disconnected: ["fas fa-circle", " Disconnected", false],
+      error: ["fas fa-exclamation-circle", " Connection failed", false],
+    };
+    const [cls, txt, active] = map[state];
+    icon.className = cls;
+    textNode.textContent = txt;
+    if (active) this.statusEl.classList.add("connected");
   }
 
   private getTheme(): Record<string, string> {

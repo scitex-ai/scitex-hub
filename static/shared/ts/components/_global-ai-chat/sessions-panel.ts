@@ -39,6 +39,8 @@ export class SessionsPanel {
   private listEl: HTMLElement | null = null;
   private chatCounter = 0;
   private contextMenu: HTMLElement | null = null;
+  private _pendingToken: string | null = null;
+  private selectedIds: Set<number> = new Set();
   private onSwitch:
     | ((messages: SessionMessage[], sessionId: number) => void)
     | null = null;
@@ -57,18 +59,46 @@ export class SessionsPanel {
     this.onClear = onClear;
     this.onShareChange = onShareChange || null;
 
-    // New chat button
-    const newBtn = document.querySelector<HTMLButtonElement>(
-      ".stx-shell-ai-new-chat",
-    );
+    // New chat button — scope to the same parent as the sessions list
+    // to avoid grabbing a duplicate button from a different template
+    const newBtn =
+      listEl.parentElement?.querySelector<HTMLButtonElement>(
+        ".stx-shell-ai-new-chat",
+      ) ?? document.querySelector<HTMLButtonElement>(".stx-shell-ai-new-chat");
     newBtn?.addEventListener("click", () => this.newChat());
 
-    // Restore last session
-    const saved = sessionStorage.getItem("scitex_ai_session_id");
-    if (saved) this.currentSessionId = parseInt(saved, 10);
+    // Restore session: URL UUID > data attribute > sessionStorage
+    const urlToken = document.body.getAttribute("data-chat-session-token");
+    const urlPathMatch = window.location.pathname.match(
+      /^\/chat\/([0-9a-f-]{36})\//,
+    );
+    this._pendingToken = urlPathMatch?.[1] || urlToken || null;
+    const savedId = sessionStorage.getItem("scitex_ai_session_id");
+    if (savedId && !this._pendingToken) {
+      this.currentSessionId = parseInt(savedId, 10);
+    }
 
     // Dismiss context menu on click-outside
     document.addEventListener("click", () => this.dismissContextMenu());
+
+    // Keyboard shortcuts for tabs
+    document.addEventListener("keydown", (e) => {
+      // Delete closes selected tabs
+      if (e.key === "Delete" && this.selectedIds.size > 0) {
+        e.preventDefault();
+        void this.deleteSelected();
+        return;
+      }
+      // Ctrl+Shift+Arrow navigates between tabs
+      if (
+        e.ctrlKey &&
+        e.shiftKey &&
+        (e.key === "ArrowLeft" || e.key === "ArrowRight")
+      ) {
+        e.preventDefault();
+        this.navigateTab(e.key === "ArrowRight" ? 1 : -1);
+      }
+    });
 
     void this.loadSessions();
   }
@@ -83,6 +113,16 @@ export class SessionsPanel {
       // Auto-create C1 if no sessions exist (like T1 for console)
       if (data.sessions.length === 0) {
         await this.createSession("C1");
+      }
+      // Resolve pending UUID token from URL to numeric session ID
+      if (this._pendingToken && data.sessions.length > 0) {
+        const match = data.sessions.find(
+          (s) => s.share_token === this._pendingToken,
+        );
+        if (match) {
+          void this.switchSession(match.id);
+        }
+        this._pendingToken = null;
       }
     } catch {
       /* silent */
@@ -103,6 +143,7 @@ export class SessionsPanel {
       const session = (await resp.json()) as Session;
       this.currentSessionId = session.id;
       sessionStorage.setItem("scitex_ai_session_id", String(session.id));
+      this.updateChatUrl(session.share_token);
       void this.loadSessions();
       return session.id;
     } catch {
@@ -121,9 +162,19 @@ export class SessionsPanel {
       };
       this.currentSessionId = id;
       sessionStorage.setItem("scitex_ai_session_id", String(id));
+      // Use share_token (UUID) for URL
+      const session = this.sessions.find((s) => s.id === id);
+      if (session) this.updateChatUrl(session.share_token);
       this.onSwitch?.(data.messages, id);
       this.highlightActive();
       this.updateShareButton();
+      // Auto-focus input after tab switch
+      setTimeout(() => {
+        const input = document.getElementById(
+          "stx-shell-ai-input",
+        ) as HTMLTextAreaElement | null;
+        input?.focus();
+      }, 100);
     } catch {
       /* silent */
     }
@@ -214,6 +265,55 @@ export class SessionsPanel {
     }
   }
 
+  /** Update browser URL to reflect current chat session (UUID) */
+  private updateChatUrl(token: string): void {
+    if (!window.location.pathname.startsWith("/chat")) return;
+    const newUrl = `/chat/${token}/`;
+    if (window.location.pathname !== newUrl) {
+      history.replaceState({ chatSession: token }, "", newUrl);
+    }
+  }
+
+  /** Toggle multi-selection on a session tab (Ctrl+Click) */
+  private toggleSelect(id: number, chip: HTMLElement): void {
+    if (this.selectedIds.has(id)) {
+      this.selectedIds.delete(id);
+      chip.classList.remove("selected");
+    } else {
+      this.selectedIds.add(id);
+      chip.classList.add("selected");
+    }
+  }
+
+  /** Clear all multi-selections */
+  private clearSelection(): void {
+    this.selectedIds.clear();
+    this.listEl
+      ?.querySelectorAll(".selected")
+      .forEach((el) => el.classList.remove("selected"));
+  }
+
+  /** Navigate to next/previous tab (Ctrl+Shift+Arrow) */
+  private navigateTab(direction: 1 | -1): void {
+    if (this.sessions.length === 0) return;
+    const idx = this.sessions.findIndex((s) => s.id === this.currentSessionId);
+    const next = idx + direction;
+    if (next >= 0 && next < this.sessions.length) {
+      void this.switchSession(this.sessions[next].id);
+    }
+  }
+
+  /** Delete all selected sessions */
+  async deleteSelected(): Promise<void> {
+    const ids = [...this.selectedIds];
+    if (ids.length === 0) return;
+    for (const id of ids) {
+      await this.deleteSession(id);
+    }
+    this.selectedIds.clear();
+    void this.loadSessions();
+  }
+
   private updateShareButton(): void {
     const btn = document.querySelector<HTMLButtonElement>(
       ".stx-shell-ai-share-btn",
@@ -260,7 +360,16 @@ export class SessionsPanel {
 
       chip.appendChild(title);
       chip.appendChild(del);
-      chip.addEventListener("click", () => void this.switchSession(s.id));
+      chip.addEventListener("click", (e) => {
+        if (e.ctrlKey || e.metaKey) {
+          // Multi-select toggle
+          e.preventDefault();
+          this.toggleSelect(s.id, chip);
+        } else {
+          this.clearSelection();
+          void this.switchSession(s.id);
+        }
+      });
 
       // Right-click context menu
       chip.addEventListener("contextmenu", (e) => {
@@ -331,7 +440,9 @@ export class SessionsPanel {
 
   private highlightActive(): void {
     if (!this.listEl) return;
-    for (const el of this.listEl.querySelectorAll(".stx-shell-ai-session-item")) {
+    for (const el of this.listEl.querySelectorAll(
+      ".stx-shell-ai-session-item",
+    )) {
       const id = parseInt((el as HTMLElement).dataset.sessionId || "0", 10);
       el.classList.toggle("active", id === this.currentSessionId);
     }

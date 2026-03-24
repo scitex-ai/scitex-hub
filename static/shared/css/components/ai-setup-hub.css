@@ -1,0 +1,395 @@
+/* ============================================================
+   Customize Hub — Docs-style two-column layout
+   ============================================================ */
+
+/* ── Two-column workspace (sidebar + content) ── */
+.ai-setup-workspace {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.ai-setup-sidebar {
+  width: 260px;
+  min-width: 200px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-default, #30363d);
+  overflow-y: auto;
+  padding: 12px 0;
+}
+
+.ai-setup-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px;
+}
+
+.ai-setup-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  color: var(--text-secondary, #c9d1d9);
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ai-setup-nav-item:hover {
+  background: rgba(177, 186, 196, 0.08);
+  text-decoration: none;
+  color: var(--text-primary, #f0f6fc);
+}
+
+.ai-setup-nav-item.active {
+  background: rgba(56, 139, 253, 0.12);
+  color: var(--text-link, #58a6ff);
+}
+
+.ai-setup-nav-item i {
+  width: 18px;
+  text-align: center;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.ai-setup-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px;
+}
+
+/* ── Welcome / hub view (cards) ── */
+.ai-setup-welcome {
+  max-width: 720px;
+}
+
+.ai-setup-hub {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.ai-setup-header {
+  margin-bottom: 32px;
+}
+
+.ai-setup-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary, #f0f6fc);
+  margin: 0 0 8px;
+}
+
+.ai-setup-subtitle {
+  font-size: 15px;
+  color: var(--text-muted, #8b949e);
+  margin: 0;
+}
+
+/* ── Card grid ── */
+.ai-setup-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-setup-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--bg-secondary, #161b22);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 12px;
+  color: var(--text-primary, #f0f6fc);
+  text-decoration: none;
+  transition: all 150ms ease;
+  cursor: pointer;
+}
+
+.ai-setup-card:hover {
+  background: rgba(177, 186, 196, 0.08);
+  border-color: var(--text-link, #58a6ff);
+  text-decoration: none;
+  color: var(--text-primary, #f0f6fc);
+}
+
+.ai-setup-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(56, 139, 253, 0.1);
+  color: var(--text-link, #58a6ff);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.ai-setup-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.ai-setup-card-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary, #f0f6fc);
+  margin: 0 0 2px;
+}
+
+.ai-setup-card-desc {
+  font-size: 13px;
+  color: var(--text-muted, #8b949e);
+  margin: 0;
+}
+
+.ai-setup-card-arrow {
+  color: var(--text-muted, #8b949e);
+  font-size: 12px;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.ai-setup-card:hover .ai-setup-card-arrow {
+  opacity: 1;
+  color: var(--text-link, #58a6ff);
+}
+
+/* ── Section page ── */
+.ai-setup-section {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.ai-setup-section--scrollable {
+  overflow-y: auto;
+  height: 100%;
+}
+
+.ai-setup-section-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.ai-setup-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: var(--text-muted, #8b949e);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.ai-setup-back:hover {
+  background: rgba(177, 186, 196, 0.08);
+  color: var(--text-primary, #f0f6fc);
+  text-decoration: none;
+}
+
+.ai-setup-section-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(56, 139, 253, 0.1);
+  color: var(--text-link, #58a6ff);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.ai-setup-section-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary, #f0f6fc);
+}
+
+.ai-setup-section-subtitle {
+  font-size: 13px;
+  color: var(--text-muted, #8b949e);
+  margin: 2px 0 0;
+}
+
+.ai-setup-section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ai-setup-section-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  transition: background 120ms ease;
+}
+
+.ai-setup-section-item:hover {
+  background: rgba(177, 186, 196, 0.06);
+}
+
+/* Toggle card (link + toggle) */
+.ai-setup-toggle-card {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.ai-setup-toggle-card:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Toggle switch — MIGRATED to scitex-ui (stx-toggle in toggle-switch.css) */
+
+/* Info text with docs link */
+.ai-setup-section-info {
+  font-size: 14px;
+  color: var(--text-muted, #8b949e);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.ai-setup-docs-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-link, #58a6ff);
+  text-decoration: none;
+  margin-left: 8px;
+}
+
+.ai-setup-docs-link:hover {
+  text-decoration: underline;
+}
+
+.ai-setup-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  gap: 12px;
+  color: var(--text-muted, #8b949e);
+}
+
+.ai-setup-empty i {
+  font-size: 2.5rem;
+  opacity: 0.4;
+}
+.ai-setup-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px;
+  color: var(--text-muted, #8b949e);
+  font-size: 15px;
+}
+
+/* ── Category groups (collapsible, like chat config) ── */
+.ai-setup-category {
+  margin-bottom: 8px;
+}
+
+.ai-setup-category__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 4px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 12px;
+  color: var(--text-muted, #8b949e);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.ai-setup-category__header:hover {
+  color: var(--text-secondary, #c9d1d9);
+}
+
+.ai-setup-category__chevron {
+  font-size: 10px;
+  transition: transform 150ms ease;
+}
+
+.ai-setup-category.open .ai-setup-category__chevron {
+  transform: rotate(90deg);
+}
+
+.ai-setup-category__name {
+  flex: 1;
+}
+
+.ai-setup-category__count {
+  font-weight: 400;
+  opacity: 0.6;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.ai-setup-category__items {
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 4px;
+}
+
+.ai-setup-category.open .ai-setup-category__items {
+  display: flex;
+}
+
+/* ── Detail panel (click to expand item content) ── */
+.ai-setup-detail {
+  display: none;
+  margin: 4px 0 12px;
+  padding: 16px;
+  background: var(--bg-secondary, #161b22);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.ai-setup-detail-content {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary, #c9d1d9);
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.ai-setup-detail-loading {
+  color: var(--text-muted, #8b949e);
+  font-size: 13px;
+}
+
+.ai-setup-detail-empty {
+  color: var(--text-muted, #8b949e);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.ai-setup-section-item.expanded {
+  background: rgba(56, 139, 253, 0.06);
+  border-radius: 8px;
+}

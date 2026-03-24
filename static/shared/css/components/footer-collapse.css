@@ -167,16 +167,17 @@ body.workspace-page {
   flex-direction: column;
 }
 
-body.workspace-page .workspace-three-col {
+body.workspace-page .workspace-three-col,
+body.workspace-page .workspace-layout {
   flex: 1;
   min-height: 0;
 }
 
-/* Override hardcoded calc() height from workspace-three-col.css.
-   flex: 1 + min-height: 0 (above) fills remaining space between
-   header and footer. Use 0 instead of auto to prevent flex children
+/* Fill remaining space between header and footer.
+   Use 0 instead of auto to prevent flex children
    from expanding beyond the viewport. */
-body.workspace-page:not(.landing-page) .workspace-three-col {
+body.workspace-page:not(.landing-page) .workspace-three-col,
+body.workspace-page:not(.landing-page) .workspace-layout {
   height: 0 !important;
 }
 

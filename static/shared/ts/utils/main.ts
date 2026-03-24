@@ -235,13 +235,22 @@ function initGlobalZenMode(): void {
   ];
 
   const toggleIds: Record<string, { sidebar?: string; details?: string }> = {
-    ".writer-sidebar": { sidebar: "stx-shell-sidebar__toggle", details: "details-toggle" },
-    ".code-sidebar": { sidebar: "stx-shell-sidebar__toggle", details: "terminal-toggle" },
+    ".writer-sidebar": {
+      sidebar: "stx-shell-sidebar__toggle",
+      details: "details-toggle",
+    },
+    ".code-sidebar": {
+      sidebar: "stx-shell-sidebar__toggle",
+      details: "terminal-toggle",
+    },
     "#ws-worktree-sidebar": {
       sidebar: "stx-shell-sidebar__toggle",
       details: "properties-toggle",
     },
-    ".vis-sidebar": { sidebar: "stx-shell-sidebar__toggle", details: "properties-toggle" },
+    ".vis-sidebar": {
+      sidebar: "stx-shell-sidebar__toggle",
+      details: "properties-toggle",
+    },
   };
 
   // Find which selectors exist on the current page
@@ -378,7 +387,9 @@ function initAltKeyShortcutBadges(): void {
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
     initApp();
+    document.body.classList.add("app-ready");
   });
 } else {
   initApp();
+  document.body.classList.add("app-ready");
 }

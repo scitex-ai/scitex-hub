@@ -1,11 +1,6 @@
 /**
- * Editor Theme Module for Writer
- * Re-exports shared Monaco theme configuration (identical to Console)
- *
- * Single source of truth: static/shared/ts/monaco/MonacoTheme.ts
+ * Editor Theme — re-exports from scitex-ui
  */
-
-
 export {
   setupMonacoTheme,
   initializeMonacoThemes,
@@ -15,6 +10,4 @@ export {
   MONACO_COLORS,
   getThemeForMode,
   getCurrentThemeMode,
-} from "/static/shared/ts/monaco/MonacoTheme.js";
-
-// EOF
+} from "scitex-ui/ts/app/monaco-editor/_MonacoTheme";

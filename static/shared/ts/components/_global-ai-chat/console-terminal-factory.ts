@@ -111,6 +111,8 @@ export function createTerminalInstance(
     inst.fitAddon = new FitAddonClass();
     terminal.loadAddon(inst.fitAddon);
     fitInstance(inst);
+    // Re-fit after web fonts load for accurate character grid
+    document.fonts.ready.then(() => fitInstance(inst));
 
     let lastW = 0;
     let lastH = 0;

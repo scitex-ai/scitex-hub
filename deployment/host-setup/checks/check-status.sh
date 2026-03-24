@@ -105,6 +105,7 @@ run_section "07-terminal" "${SCRIPT_DIR}/check-terminal-ready.sh" &
 run_section "08-filesizes" "${PROJECT_ROOT}/scripts/maintenance/check_file_sizes.sh" &
 run_section "09-apptainer" "${SCRIPT_DIR}/check-apptainer.sh" &
 run_section "10-services" "${SCRIPT_DIR}/check-services.sh" &
+run_section "11-resources" "${SCRIPT_DIR}/check-resource-limits.sh" &
 
 wait
 

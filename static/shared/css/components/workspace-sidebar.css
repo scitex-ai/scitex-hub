@@ -1,0 +1,421 @@
+/* ============================================================
+   Workspace Sidebar — Claude.ai-inspired navigation
+   ============================================================ */
+
+/* ── Variables ─────────────────────────────────────────────── */
+:root {
+  --ws-sidebar-width-expanded: 240px;
+  --ws-sidebar-width-collapsed: 72px;
+  --ws-sidebar-bg: var(--bg-secondary, #161b22);
+  --ws-sidebar-border: var(--border-default, #30363d);
+  --ws-sidebar-text: var(--text-secondary, #c9d1d9);
+  --ws-sidebar-text-muted: var(--text-muted, #8b949e);
+  --ws-sidebar-active-bg: rgba(56, 139, 253, 0.12);
+  --ws-sidebar-active-text: var(--text-link, #58a6ff);
+  --ws-sidebar-hover-bg: rgba(177, 186, 196, 0.08);
+  --ws-sidebar-transition: 200ms ease;
+  --ws-mobile-topbar-height: 48px;
+}
+
+/* ── Sidebar container ─────────────────────────────────────── */
+.workspace-sidebar {
+  position: relative;
+  flex-shrink: 0;
+  width: var(--ws-sidebar-width-expanded);
+  height: 100%;
+  z-index: 100;
+  transition: width var(--ws-sidebar-transition);
+}
+
+.workspace-sidebar[data-sidebar-state="collapsed"] {
+  width: var(--ws-sidebar-width-collapsed);
+}
+
+/* ── Inner nav ─────────────────────────────────────────────── */
+.sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  width: var(--ws-sidebar-width-expanded);
+  height: 100%;
+  background: var(--ws-sidebar-bg);
+  border-right: 1px solid var(--ws-sidebar-border);
+  overflow: hidden;
+  transition: width var(--ws-sidebar-transition);
+}
+
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-inner {
+  width: var(--ws-sidebar-width-collapsed);
+}
+
+/* Hide scrollbar */
+.sidebar-inner::-webkit-scrollbar {
+  width: 0;
+}
+.sidebar-inner {
+  scrollbar-width: none;
+}
+
+/* ── Top bar: brand + toggle ────────────────────────────────── */
+.sidebar-header-toggle {
+  display: flex;
+  align-items: center;
+  padding: 12px 12px 8px;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.sidebar-brand {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary, #f0f6fc);
+  flex: 1;
+  letter-spacing: -0.01em;
+}
+
+.sidebar-brand-version {
+  font-size: 0.5em;
+  opacity: 0.6;
+  font-weight: 400;
+}
+
+/* Distinctive tilted "e" in SciTeX branding (inspired by Google's inclined "e") */
+.brand-e {
+  display: inline-block;
+  transform: rotate(-21deg);
+  transform-origin: 50% 70%;
+  color: inherit;
+}
+
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-header-toggle {
+  justify-content: center;
+  padding: 12px 0 8px;
+}
+
+/* ── Header ────────────────────────────────────────────────── */
+.workspace-sidebar .sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 8px;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--text-primary, #f0f6fc);
+  font-weight: 600;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.sidebar-logo-icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+/* Project selector styles in workspace-sidebar-project.css */
+
+/* Hide logo icon in header toggle (brand text is sufficient) */
+.sidebar-header-toggle .sidebar-logo {
+  display: none;
+}
+
+/* Collapsed: hide text */
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-logo-text {
+  display: none;
+}
+
+/* ── Actions ───────────────────────────────────────────────── */
+.workspace-sidebar .sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 8px;
+}
+
+.workspace-sidebar .sidebar-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--ws-sidebar-text-muted);
+  font-size: 15px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-align: left;
+  width: 100%;
+}
+
+.workspace-sidebar .sidebar-action-btn:hover {
+  background: var(--ws-sidebar-hover-bg);
+  color: var(--ws-sidebar-text);
+}
+
+.workspace-sidebar .sidebar-action-btn.active {
+  background: var(--ws-sidebar-active-bg);
+  color: var(--ws-sidebar-active-text);
+}
+
+.workspace-sidebar .sidebar-action-btn i {
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 20px;
+}
+
+/* ── Divider ───────────────────────────────────────────────── */
+.workspace-sidebar hr.sidebar-divider {
+  margin: 4px 12px;
+  border: none;
+  border-top: 1px solid var(--ws-sidebar-border);
+  opacity: 0.5;
+  height: 0;
+  background: none;
+}
+
+.workspace-sidebar[data-sidebar-state="collapsed"] hr.sidebar-divider {
+  margin: 4px 8px;
+}
+
+/* ── Nav groups ────────────────────────────────────────────── */
+.workspace-sidebar .sidebar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 8px;
+  flex: 0 0 auto;
+}
+
+/* Scrollable modules section — takes remaining space */
+.workspace-sidebar .sidebar-modules-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.workspace-sidebar .sidebar-modules-scroll::-webkit-scrollbar {
+  width: 0;
+}
+
+/* Pinned bottom: Search + AI Setup + User */
+.workspace-sidebar .sidebar-bottom {
+  flex: 0 0 auto;
+  margin-top: auto;
+}
+
+/* ── Sidebar item (button or anchor) ──────────────────────── */
+.workspace-sidebar .sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--ws-sidebar-text-muted);
+  font-size: 15px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  text-align: left;
+  width: 100%;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
+}
+
+.workspace-sidebar .sidebar-item:hover {
+  background: var(--ws-sidebar-hover-bg);
+  color: var(--ws-sidebar-text);
+  text-decoration: none;
+}
+
+.workspace-sidebar .sidebar-item.active {
+  background: var(--ws-sidebar-active-bg);
+  color: var(--ws-sidebar-text);
+}
+
+/* Active item icon gets accent color, label stays neutral */
+.workspace-sidebar .sidebar-item.active i,
+.workspace-sidebar .sidebar-item.active .nav-icon-svg,
+.workspace-sidebar .sidebar-item.active .module-icon-wrap {
+  color: var(--ws-sidebar-active-text);
+}
+
+.workspace-sidebar .sidebar-item i,
+.workspace-sidebar .sidebar-item .nav-icon-svg,
+.workspace-sidebar .sidebar-item .tab-icon-svg,
+.workspace-sidebar .sidebar-item .module-icon-wrap {
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 22px;
+}
+
+/* Collapsed: larger icons for icon-only rail */
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-item i,
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-item .nav-icon-svg,
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-item .tab-icon-svg,
+.workspace-sidebar[data-sidebar-state="collapsed"]
+  .sidebar-item
+  .module-icon-wrap {
+  font-size: 22px;
+  width: 28px;
+}
+
+/* ── Labels ────────────────────────────────────────────────── */
+.workspace-sidebar .sidebar-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: opacity var(--ws-sidebar-transition);
+}
+
+/* Collapsed: icon + label stacked vertically */
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-item,
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-action-btn {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  gap: 2px;
+}
+
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-label {
+  opacity: 1;
+  width: auto;
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Collapsed: hide brand text and project selector */
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-brand {
+  display: none;
+}
+
+/* Collapsed: center groups */
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-group,
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-actions {
+  padding: 4px 4px;
+  align-items: center;
+}
+
+/* Context menu — MIGRATED to scitex-ui (stx-app-context-menu) */
+
+/* ── Drag-and-drop reorder for module items ──────────── */
+.sidebar-item.sidebar-dragging {
+  opacity: 0.4;
+}
+
+.sidebar-item.sidebar-drag-before {
+  border-top: 2px solid var(--ws-sidebar-active-text) !important;
+}
+
+.sidebar-item.sidebar-drag-after {
+  border-bottom: 2px solid var(--ws-sidebar-active-text) !important;
+}
+
+/* ── Footer ────────────────────────────────────────────────── */
+.workspace-sidebar .sidebar-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ws-sidebar-text-muted);
+  text-decoration: none;
+  font-size: 13px;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar-user:hover {
+  color: var(--ws-sidebar-text);
+  text-decoration: none;
+}
+
+.sidebar-user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--ws-sidebar-active-bg);
+  color: var(--ws-sidebar-active-text);
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.sidebar-username {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--ws-sidebar-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 18px;
+  outline: none;
+  transition: transform var(--ws-sidebar-transition);
+}
+
+.sidebar-toggle-btn:hover {
+  background: var(--ws-sidebar-hover-bg);
+  color: var(--ws-sidebar-text);
+}
+
+/* Collapsed: mirror the sidebar panel icon horizontally */
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-toggle-btn {
+  transform: scaleX(-1);
+}
+
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-footer {
+  justify-content: center;
+  padding: 8px;
+}
+
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-user {
+  display: none;
+}
+
+/* ── Drag-and-drop reorder ─────────────────────────────────── */
+.sidebar-item.sidebar-dragging {
+  opacity: 0.5;
+}
+
+.sidebar-item.sidebar-drag-before {
+  border-top: 2px solid var(--ws-sidebar-active-text);
+}
+
+.sidebar-item.sidebar-drag-after {
+  border-bottom: 2px solid var(--ws-sidebar-active-text);
+}
+
+/* Responsive & mobile styles in workspace-sidebar-responsive.css */

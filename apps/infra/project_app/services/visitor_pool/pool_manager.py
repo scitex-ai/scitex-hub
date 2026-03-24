@@ -16,6 +16,8 @@ from django.utils import timezone
 
 from apps.infra.project_app.models import Project, VisitorAllocation
 
+from .decorators import ensure_clean_workspace, reset_workspace_after
+
 logger = logging.getLogger(__name__)
 
 
@@ -116,7 +118,7 @@ class PoolAllocator:
             Project.DoesNotExist,
         ):
             logger.warning(
-                f"[VisitorPool] Invalid allocation token, clearing session and reallocating"
+                "[VisitorPool] Invalid allocation token, clearing session and reallocating"
             )
             # Clear stale session data before reallocating
             session.pop(cls.SESSION_KEY_PROJECT_ID, None)
@@ -126,6 +128,7 @@ class PoolAllocator:
             return None, None
 
     @classmethod
+    @ensure_clean_workspace
     def _try_allocate_slot(
         cls, visitor_num: int, session, pool_size: int
     ) -> Tuple[Optional[Project], Optional[User]]:
@@ -200,9 +203,13 @@ class PoolAllocator:
         return None, None
 
     @classmethod
+    @reset_workspace_after
     def deallocate_visitor(cls, session):
         """
         Free visitor slot (called when session expires or user signs up).
+
+        Decorated with @reset_workspace_after to clean workspace immediately
+        so the slot is ready for the next visitor with no data leakage.
 
         Args:
             session: Django session object

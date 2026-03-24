@@ -1,0 +1,122 @@
+/* ============================================================
+   Workspace Tab Bar — shared styles for Chat sessions & Console tabs
+   Single source of truth for both tab bars.
+   ============================================================ */
+
+/* ── Tab bar container ── */
+#pane-chat .stx-shell-ai-sessions-bar,
+#pane-console .stx-shell-ai-console-tabs-bar {
+  display: flex !important;
+  align-items: center;
+  padding: 8px 16px !important;
+  gap: 8px !important;
+  border-bottom: 1px solid var(--border-default, #30363d);
+  background: var(--bg-tertiary, #1c2128);
+  flex-shrink: 0;
+}
+
+/* ── New item (+) button ── */
+#pane-chat .stx-shell-ai-new-chat,
+#pane-console .stx-shell-ai-console-new-tab {
+  font-size: 16px !important;
+  padding: 6px 10px !important;
+  width: 36px !important;
+  height: 36px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: none !important;
+  border: 1px solid transparent !important;
+  color: var(--text-muted, #8b949e) !important;
+  cursor: pointer;
+}
+
+#pane-chat .stx-shell-ai-new-chat:hover,
+#pane-console .stx-shell-ai-console-new-tab:hover {
+  background: rgba(177, 186, 196, 0.08) !important;
+  color: var(--text-primary, #f0f6fc) !important;
+}
+
+/* ── Tab items (session chips / terminal tabs) ── */
+#pane-chat .stx-shell-ai-session-item,
+#pane-console .stx-shell-ai-console-tab-item {
+  font-size: 14px !important;
+  padding: 6px 14px !important;
+  border-radius: 6px !important;
+  gap: 6px !important;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  color: var(--text-muted, #8b949e) !important;
+}
+
+#pane-chat .stx-shell-ai-session-item:not(.active):hover,
+#pane-console .stx-shell-ai-console-tab-item:not(.active):hover {
+  background: rgba(177, 186, 196, 0.06) !important;
+}
+
+/* ── Active tab ── */
+#pane-chat .stx-shell-ai-session-item.active,
+#pane-console .stx-shell-ai-console-tab-item.active {
+  background: rgba(56, 139, 253, 0.12) !important;
+  border-color: rgba(56, 139, 253, 0.4) !important;
+  color: var(--text-primary, #f0f6fc) !important;
+}
+
+/* ── Multi-select state (Ctrl+Click) ── */
+#pane-chat .stx-shell-ai-session-item.selected,
+#pane-console .stx-shell-ai-console-tab-item.selected {
+  outline: 2px solid var(--text-link, #58a6ff) !important;
+  outline-offset: -2px;
+  background: rgba(56, 139, 253, 0.2) !important;
+}
+
+/* ── Tab close button — large hit area ── */
+#pane-chat .stx-shell-ai-session-close,
+#pane-console .stx-shell-ai-console-tab-close {
+  font-size: 16px !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 6px !important;
+  cursor: pointer;
+  margin-left: 4px;
+  opacity: 0.5;
+}
+
+#pane-chat .stx-shell-ai-session-close:hover,
+#pane-console .stx-shell-ai-console-tab-close:hover {
+  background: rgba(248, 81, 73, 0.15) !important;
+  color: #f85149 !important;
+  opacity: 1;
+}
+
+/* ── Action buttons in bar ── */
+#pane-chat .stx-shell-ai-sessions-bar button,
+#pane-console .stx-shell-ai-console-tabs-bar button {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* ── Session/tab list container ── */
+#pane-chat .stx-shell-ai-sessions-list {
+  display: flex !important;
+  gap: 4px;
+  overflow-x: auto;
+  flex: 1;
+  min-width: 0;
+}
+
+#pane-console .stx-shell-ai-console-tabs-list {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  flex: 1;
+  min-width: 0;
+}

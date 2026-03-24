@@ -1,230 +1,356 @@
 {% extends "global_base.html" %}
+
 {% load static %}
+
 {% block title %}
     Search: {{
     query }} - SciTeX
 {% endblock %}
 {% block extra_css %}
     <style>
-  .search-container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 32px 16px;
-  }
+        .search-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 32px 16px;
+        }
 
-  .search-header {
-    margin-bottom: 24px;
-  }
+        .search-header {
+            margin-bottom: 24px;
+        }
 
-  .search-title {
-    font-size: 24px;
-    font-weight: 600;
-    color: var(--color-fg-default);
-    margin-bottom: 8px;
-  }
+        .search-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--color-fg-default);
+            margin-bottom: 8px;
+        }
 
-  .search-meta {
-    font-size: 14px;
-    color: var(--color-fg-muted);
-  }
+        .search-meta {
+            font-size: 14px;
+            color: var(--color-fg-muted);
+        }
 
-  /* Filter tabs */
-  .search-filters {
-    display: flex;
-    gap: 16px;
-    border-bottom: 1px solid var(--color-border-default);
-    margin-bottom: 24px;
-  }
+        /* Filter tabs */
+        .search-filters {
+            display: flex;
+            gap: 16px;
+            border-bottom: 1px solid var(--color-border-default);
+            margin-bottom: 24px;
+        }
 
-  .filter-tab {
-    padding: 12px 16px;
-    color: var(--color-fg-muted);
-    text-decoration: none;
-    border-bottom: 2px solid transparent;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-  }
+        .filter-tab {
+            padding: 12px 16px;
+            color: var(--color-fg-muted);
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
 
-  .filter-tab:hover {
-    color: var(--color-fg-default);
-    text-decoration: none;
-  }
+        .filter-tab:hover {
+            color: var(--color-fg-default);
+            text-decoration: none;
+        }
 
-  .filter-tab.active {
-    color: var(--color-fg-default);
-    border-bottom-color: var(--tab-active-border);
-  }
+        .filter-tab.active {
+            color: var(--color-fg-default);
+            border-bottom-color: var(--tab-active-border);
+        }
 
-  .filter-count {
-    background: var(--color-canvas-subtle);
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    margin-left: 4px;
-  }
+        .filter-count {
+            background: var(--color-canvas-subtle);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 4px;
+        }
 
-  /* Results sections */
-  .results-section {
-    margin-bottom: 32px;
-  }
+        /* Results sections */
+        .results-section {
+            margin-bottom: 32px;
+        }
 
-  .section-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--color-fg-default);
-    margin-bottom: 16px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--color-border-default);
-  }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-fg-default);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--color-border-default);
+        }
 
-  /* User results */
-  .user-result {
-    display: flex;
-    align-items: start;
-    gap: 16px;
-    padding: 16px;
-    border: 1px solid var(--color-border-default);
-    border-radius: 6px;
-    margin-bottom: 12px;
-    transition: all 0.2s;
-  }
+        /* User results */
+        .user-result {
+            display: flex;
+            align-items: start;
+            gap: 16px;
+            padding: 16px;
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
 
-  .user-result:hover {
-    background: var(--color-canvas-subtle);
-    border-color: var(--color-accent-fg);
-  }
+        .user-result:hover {
+            background: var(--color-canvas-subtle);
+            border-color: var(--color-accent-fg);
+        }
 
-  .user-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: var(--color-canvas-subtle);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    color: var(--color-accent-fg);
-    flex-shrink: 0;
-  }
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--color-canvas-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--color-accent-fg);
+            flex-shrink: 0;
+        }
 
-  .user-avatar img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-  }
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
 
-  .user-info {
-    flex: 1;
-  }
+        .user-info {
+            flex: 1;
+        }
 
-  .user-name {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--color-accent-fg);
-    text-decoration: none;
-  }
+        .user-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-accent-fg);
+            text-decoration: none;
+        }
 
-  .user-name:hover {
-    text-decoration: underline;
-  }
+        .user-name:hover {
+            text-decoration: underline;
+        }
 
-  .user-username {
-    font-size: 14px;
-    color: var(--color-fg-muted);
-    margin-bottom: 4px;
-  }
+        .user-username {
+            font-size: 14px;
+            color: var(--color-fg-muted);
+            margin-bottom: 4px;
+        }
 
-  .user-meta {
-    font-size: 12px;
-    color: var(--color-fg-muted);
-    display: flex;
-    gap: 16px;
-    margin-top: 4px;
-  }
+        .user-meta {
+            font-size: 12px;
+            color: var(--color-fg-muted);
+            display: flex;
+            gap: 16px;
+            margin-top: 4px;
+        }
 
-  .user-bio {
-    font-size: 14px;
-    color: var(--color-fg-muted);
-    margin-top: 8px;
-  }
+        .user-bio {
+            font-size: 14px;
+            color: var(--color-fg-muted);
+            margin-top: 8px;
+        }
 
-  /* Repository results */
-  .repo-result {
-    padding: 16px;
-    border: 1px solid var(--color-border-default);
-    border-radius: 6px;
-    margin-bottom: 12px;
-    transition: all 0.2s;
-  }
+        /* Repository results */
+        .repo-result {
+            padding: 16px;
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
 
-  .repo-result:hover {
-    background: var(--color-canvas-subtle);
-    border-color: var(--color-accent-fg);
-  }
+        .repo-result:hover {
+            background: var(--color-canvas-subtle);
+            border-color: var(--color-accent-fg);
+        }
 
-  .repo-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
+        .repo-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
 
-  .repo-name {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--color-accent-fg);
-    text-decoration: none;
-  }
+        .repo-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-accent-fg);
+            text-decoration: none;
+        }
 
-  .repo-name:hover {
-    text-decoration: underline;
-  }
+        .repo-name:hover {
+            text-decoration: underline;
+        }
 
-  .repo-visibility {
-    font-size: 12px;
-    padding: 2px 8px;
-    border-radius: 12px;
-    border: 1px solid var(--color-border-default);
-    color: var(--color-fg-muted);
-  }
+        .repo-visibility {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            border: 1px solid var(--color-border-default);
+            color: var(--color-fg-muted);
+        }
 
-  .repo-description {
-    font-size: 14px;
-    color: var(--color-fg-muted);
-    margin-bottom: 8px;
-  }
+        .repo-description {
+            font-size: 14px;
+            color: var(--color-fg-muted);
+            margin-bottom: 8px;
+        }
 
-  .repo-meta {
-    display: flex;
-    gap: 16px;
-    font-size: 12px;
-    color: var(--color-fg-muted);
-  }
+        .repo-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--color-fg-muted);
+        }
 
-  .empty-state {
-    text-align: center;
-    padding: 64px 32px;
-  }
+        .empty-state {
+            text-align: center;
+            padding: 64px 32px;
+        }
 
-  .empty-icon {
-    font-size: 48px;
-    color: var(--color-fg-muted);
-    margin-bottom: 16px;
-  }
+        .empty-icon {
+            font-size: 48px;
+            color: var(--color-fg-muted);
+            margin-bottom: 16px;
+        }
 
-  .empty-title {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--color-fg-default);
-    margin-bottom: 8px;
-  }
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--color-fg-default);
+            margin-bottom: 8px;
+        }
 
-  .empty-description {
-    font-size: 14px;
-    color: var(--color-fg-muted);
-  }
+        .empty-description {
+            font-size: 14px;
+            color: var(--color-fg-muted);
+        }
+
+        /* Search input form */
+        .search-input-form {
+            margin-bottom: 24px;
+        }
+
+        .search-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg-secondary, #161b22);
+            border: 1px solid var(--border-default, #30363d);
+            border-radius: 12px;
+            max-width: 640px;
+        }
+
+        .search-input-wrap:focus-within {
+            border-color: var(--text-link, #58a6ff);
+        }
+
+        .search-input-icon {
+            color: var(--color-fg-muted, #8b949e);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .search-input-field {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--color-fg-default, #f0f6fc);
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        .search-input-field::placeholder {
+            color: var(--color-fg-muted, #8b949e);
+        }
+
+        /* Autocomplete dropdown */
+        .search-input-form {
+            position: relative;
+        }
+
+        .search-ac-dropdown {
+            display: none;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 100%;
+            max-width: 640px;
+            margin-top: 4px;
+            background: var(--bg-secondary, #161b22);
+            border: 1px solid var(--border-default, #30363d);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .search-ac-dropdown.open {
+            display: block;
+        }
+
+        .search-ac-category {
+            padding: 8px 16px 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-fg-muted, #8b949e);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .search-ac-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            color: var(--color-fg-default, #f0f6fc);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .search-ac-item:hover {
+            background: rgba(177, 186, 196, 0.08);
+            text-decoration: none;
+            color: var(--color-fg-default, #f0f6fc);
+        }
+
+        .search-ac-icon {
+            width: 20px;
+            text-align: center;
+            color: var(--color-fg-muted, #8b949e);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .search-ac-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .search-ac-title {
+            font-size: 14px;
+        }
+
+        .search-ac-subtitle {
+            font-size: 12px;
+            color: var(--color-fg-muted, #8b949e);
+        }
+
+        .search-ac-jump {
+            font-size: 12px;
+            color: var(--color-fg-muted, #8b949e);
+            flex-shrink: 0;
+        }
+
+        .search-ac-divider {
+            height: 1px;
+            background: var(--border-default, #30363d);
+            margin: 4px 0;
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -240,6 +366,22 @@
             </h1>
             {% if query %}<p class="search-meta">{{ total_results }} result{{ total_results|pluralize }} found</p>{% endif %}
         </div>
+        <!-- Search Input with Live Autocomplete -->
+        <form action="/search/" method="get" class="search-input-form">
+            <div class="search-input-wrap">
+                <i class="fas fa-search search-input-icon"></i>
+                <input type="text"
+                       name="q"
+                       id="search-page-input"
+                       value="{{ query|default:'' }}"
+                       class="search-input-field"
+                       placeholder="Search for users, repositories, papers..."
+                       autocomplete="off"
+                       autofocus
+                       autofocus />
+            </div>
+            <div id="search-autocomplete-dropdown" class="search-ac-dropdown"></div>
+        </form>
         {% if query %}
             <!-- Filter Tabs -->
             <nav class="search-filters">
@@ -326,4 +468,75 @@
             </div>
         {% endif %}
     </div>
+    <script>
+    (function() {
+      const input = document.getElementById('search-page-input');
+      const dropdown = document.getElementById('search-autocomplete-dropdown');
+      if (!input || !dropdown) return;
+
+      let timer;
+      input.addEventListener('input', function() {
+        clearTimeout(timer);
+        const q = this.value.trim();
+        if (q.length < 2) { dropdown.classList.remove('open'); return; }
+        timer = setTimeout(() => fetchResults(q), 200);
+      });
+
+      input.addEventListener('focus', function() {
+        if (this.value.trim().length >= 2) fetchResults(this.value.trim());
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-input-form')) dropdown.classList.remove('open');
+      });
+
+      async function fetchResults(q) {
+        try {
+          const r = await fetch('/search/api/autocomplete/?q=' + encodeURIComponent(q));
+          const data = await r.json();
+          renderDropdown(data.suggestions);
+        } catch(e) { console.error('[search]', e); }
+      }
+
+      function renderDropdown(suggestions) {
+        if (!suggestions.length) { dropdown.classList.remove('open'); return; }
+
+        const catNames = {
+          user: 'Users', repository: 'Repositories',
+          conversation: 'Conversations', file: 'Files'
+        };
+        const catIcons = {
+          user: 'fas fa-user', repository: 'fas fa-book',
+          conversation: 'fas fa-comment', file: 'fas fa-file-code'
+        };
+
+        const groups = {};
+        suggestions.forEach(s => {
+          const cat = catNames[s.type] || s.type;
+          if (!groups[cat]) groups[cat] = {items: [], type: s.type};
+          groups[cat].items.push(s);
+        });
+
+        let html = '';
+        Object.entries(groups).forEach(([cat, g], i) => {
+          if (i > 0) html += '<div class="search-ac-divider"></div>';
+          html += '<div class="search-ac-category">' + cat + '</div>';
+          g.items.forEach(item => {
+            const icon = catIcons[item.type] || 'fas fa-search';
+            html += '<a href="' + item.url + '" class="search-ac-item">'
+              + '<i class="search-ac-icon ' + icon + '"></i>'
+              + '<div class="search-ac-text">'
+              + '<div class="search-ac-title">' + item.title + '</div>'
+              + '<div class="search-ac-subtitle">' + item.subtitle + '</div>'
+              + '</div>'
+              + '<span class="search-ac-jump">Jump to</span>'
+              + '</a>';
+          });
+        });
+
+        dropdown.innerHTML = html;
+        dropdown.classList.add('open');
+      }
+    })();
+    </script>
 {% endblock %}

@@ -65,12 +65,19 @@ class WorkspaceManager:
         """
         Reset visitor's workspace via scitex.template (single source of truth).
 
-        Called after visitor signs up and claims project.
+        Clears ALL user-generated data to prevent leakage between visitors:
+        - Projects and filesystem
+        - Chat sessions and messages
+        - LLM usage logs
         """
         try:
             project_slug = "default-project"
 
             Project.objects.filter(slug=project_slug, owner=visitor_user).delete()
+
+            # Clear chat history (security: prevent previous visitor's
+            # conversations from being visible to the next visitor)
+            cls._clear_visitor_data(visitor_user)
 
             project = Project.objects.create(
                 name="default-project",
@@ -86,6 +93,24 @@ class WorkspaceManager:
         except Exception as e:
             logger.error(
                 f"[VisitorPool] Error resetting visitor workspace: {e}", exc_info=True
+            )
+
+    @classmethod
+    def _clear_visitor_data(cls, visitor_user: User):
+        """Delete all user-generated data for a visitor (chat, logs, etc.)."""
+        try:
+            from apps.infra.llm_app.models import ChatSession, LLMUsageLog
+
+            chat_count = ChatSession.objects.filter(user=visitor_user).count()
+            ChatSession.objects.filter(user=visitor_user).delete()
+            LLMUsageLog.objects.filter(user=visitor_user).delete()
+            if chat_count > 0:
+                logger.info(
+                    f"[VisitorPool] Cleared {chat_count} chat sessions for {visitor_user.username}"
+                )
+        except Exception as e:
+            logger.error(
+                f"[VisitorPool] Error clearing visitor data for {visitor_user.username}: {e}"
             )
 
     @classmethod

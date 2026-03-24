@@ -56,6 +56,32 @@ make ENV=prod stop && make ENV=prod start
 
 ---
 
+## Visitor Pool Security
+
+Anonymous visitors share a pre-allocated pool of 4 accounts
+(`visitor-001` to `visitor-004`). Three layers prevent chat history and
+files from leaking between visitors:
+
+| Layer | Where | Trigger |
+|-------|-------|---------|
+| `@reset_workspace_after` | `deallocate_visitor()` | Normal session end |
+| `@ensure_clean_workspace` | `_try_allocate_slot()` | Before every allocation |
+| `reset_visitor_pool` management command | `entrypoint.sh` | Container restart |
+
+On every container restart `entrypoint.sh` runs `reset_visitor_pool` in
+the background before accepting traffic, so no state survives a bounce.
+
+```bash
+# Manual operations
+python manage.py reset_visitor_pool          # wipe all slots
+python manage.py reset_visitor_pool --free-expired   # free expired only
+make status                                  # shows pool health
+```
+
+Full details: `apps/infra/project_app/services/visitor_pool/README.md`
+
+---
+
 ## Docker Reference
 
 ### Core Concepts

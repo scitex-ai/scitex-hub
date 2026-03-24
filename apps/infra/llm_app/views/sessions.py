@@ -180,17 +180,64 @@ def api_shared_session(request, token):
 @require_http_methods(["GET"])
 def shared_session_page(request, token):
     """Public read-only HTML page for a shared chat session."""
+    import re
+
+    import bleach
+
     session = get_object_or_404(ChatSession, share_token=token, is_shared=True)
     messages = list(
         session.messages.all().values(
             "role", "text", "tools_used", "media", "created_at"
         )
     )
+    # Render markdown server-side for shared page
+    try:
+        import markdown
+
+        md = markdown.Markdown(extensions=["extra", "nl2br"])
+        for msg in messages:
+            raw = msg["text"]
+            # Collapse excessive newlines
+            raw = re.sub(r"\n{3,}", "\n\n", raw)
+            html = md.convert(raw)
+            msg["text_html"] = bleach.clean(
+                html,
+                tags=bleach.ALLOWED_TAGS
+                | {
+                    "p",
+                    "br",
+                    "h1",
+                    "h2",
+                    "h3",
+                    "h4",
+                    "pre",
+                    "code",
+                    "ul",
+                    "ol",
+                    "li",
+                    "strong",
+                    "em",
+                    "table",
+                    "thead",
+                    "tbody",
+                    "tr",
+                    "th",
+                    "td",
+                    "hr",
+                    "img",
+                },
+                attributes={"a": ["href", "title"], "img": ["src", "alt"]},
+            )
+            md.reset()
+    except ImportError:
+        for msg in messages:
+            msg["text_html"] = msg["text"]
+
     return render(
         request,
         "llm_app/shared_session.html",
         {
             "session": session,
-            "messages": messages,
+            "chat_messages": messages,
         },
     )

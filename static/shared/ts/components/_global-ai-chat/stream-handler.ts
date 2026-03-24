@@ -30,9 +30,11 @@ function flushTextBuffer(
   msgEl: HTMLElement,
 ): HTMLElement | null {
   if (!textBuf.trim()) return null;
+  // Collapse 3+ consecutive newlines to max 2 (single paragraph break)
+  const compacted = textBuf.replace(/\n{3,}/g, "\n\n");
   const wrapper = document.createElement("div");
   wrapper.className = "ai-md-segment";
-  wrapper.innerHTML = renderMarkdown(textBuf);
+  wrapper.innerHTML = renderMarkdown(compacted);
   highlightCodeBlocks(wrapper);
   fixExternalLinks(wrapper);
   msgEl.appendChild(wrapper);
@@ -58,7 +60,7 @@ export async function processStream(
   let previewEl: HTMLElement | null = null;
   let renderTimer: ReturnType<typeof setTimeout> | null = null;
 
-  /** Debounced live preview of accumulated text */
+  /** Debounced live preview — show filtered rendered output only */
   function schedulePreview(): void {
     if (renderTimer) clearTimeout(renderTimer);
     renderTimer = setTimeout(() => {
@@ -68,7 +70,13 @@ export async function processStream(
         previewEl.className = "ai-md-segment ai-md-streaming";
         msgEl.appendChild(previewEl);
       }
-      previewEl.innerHTML = renderMarkdown(textBuf);
+      // Collapse excessive newlines and render as markdown
+      const compacted = textBuf.replace(/\n{3,}/g, "\n\n");
+      const html = renderMarkdown(compacted);
+      // Strip empty <p></p> tags that create blank lines
+      previewEl.innerHTML = html
+        .replace(/<p>\s*<\/p>/g, "")
+        .replace(/<br\s*\/?>\s*<br\s*\/?>/g, "");
       if (ctx.scrollIfNeeded) ctx.scrollIfNeeded();
       else
         requestAnimationFrame(() => {

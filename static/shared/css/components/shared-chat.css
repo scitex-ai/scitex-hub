@@ -1,0 +1,124 @@
+/* ============================================================
+   Shared Chat Page — identical to chat pane, read-only
+   ============================================================ */
+
+.shared-chat-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.shared-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-default, #30363d);
+  margin-bottom: 24px;
+}
+
+.shared-chat-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.shared-chat-meta {
+  font-size: 12px;
+  color: var(--text-muted, #8b949e);
+}
+
+.shared-chat-readonly {
+  margin-left: auto;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: rgba(139, 148, 158, 0.15);
+  color: var(--text-muted, #8b949e);
+}
+
+.shared-chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.shared-chat-msg {
+  word-wrap: break-word;
+  white-space: normal;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.shared-chat-msg p {
+  margin: 0.15em 0;
+}
+.shared-chat-msg li {
+  margin: 0;
+  padding: 0;
+}
+.shared-chat-msg li p {
+  margin: 0;
+}
+.shared-chat-msg ul,
+.shared-chat-msg ol {
+  padding-left: 1.2em;
+  margin: 0.1em 0;
+}
+
+/* User messages — right-aligned subtle bubble */
+.shared-chat-msg--user {
+  align-self: flex-end;
+  max-width: 80%;
+  padding: 12px 18px;
+  border-radius: 18px 18px 4px 18px;
+  background: rgba(56, 139, 253, 0.08);
+}
+
+/* Assistant messages — no bubble, flowing text */
+.shared-chat-msg--assistant {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+}
+
+/* SciTeX avatar — matches chat pane */
+.shared-chat-avatar {
+  width: 28px;
+  height: 28px;
+  margin-bottom: 8px;
+  background:
+    url("/static/shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg")
+      center / 20px 20px no-repeat,
+    linear-gradient(135deg, #2d333b, #1c2128);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.shared-chat-msg--error {
+  align-self: center;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: rgba(207, 34, 46, 0.1);
+  border: 1px solid rgba(207, 34, 46, 0.3);
+  color: var(--color-danger-fg, #cf222e);
+}
+
+.shared-chat-empty {
+  text-align: center;
+  padding: 48px;
+  color: var(--text-muted, #8b949e);
+}
+
+.shared-chat-footer {
+  text-align: center;
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-default, #30363d);
+  font-size: 12px;
+  color: var(--text-muted, #8b949e);
+}
+
+.shared-chat-footer a {
+  color: var(--text-muted, #8b949e);
+  text-decoration: none;
+}

@@ -28,14 +28,44 @@ from apps.workspace.hub_app.views.index import current_project_view
 from config.urls_helpers import RESERVED_PATHS, dev_module_view  # noqa: F401
 
 urlpatterns = [
+    # --- PWA (must be served from root for scope) ---
+    path(
+        "manifest.json",
+        serve,
+        {
+            "document_root": settings.STATIC_ROOT or settings.STATICFILES_DIRS[0],
+            "path": "shared/manifest.json",
+        },
+        name="pwa-manifest",
+    ),
+    path(
+        "sw.js",
+        serve,
+        {
+            "document_root": settings.STATIC_ROOT or settings.STATICFILES_DIRS[0],
+            "path": "shared/sw.js",
+        },
+        name="pwa-sw",
+    ),
     # --- Health ---
     path("healthz/", healthz, name="healthz"),
-    # --- Root ---
+    # --- Root + Core Panes ---
     path("", root_dispatch, name="root"),
+    path("chat/", root_dispatch, name="pane-chat", kwargs={"pane": "chat"}),
+    path(
+        "chat/<uuid:session_token>/",
+        root_dispatch,
+        name="pane-chat-session",
+        kwargs={"pane": "chat"},
+    ),
+    path("console/", root_dispatch, name="pane-console", kwargs={"pane": "console"}),
+    path("files/", root_dispatch, name="pane-files", kwargs={"pane": "editor"}),
     path("", include("apps.infra.public_app.urls")),
     path("apps/", include(("apps.workspace.tools_app.urls", "tools_app"))),
     # --- Admin ---
     path("admin/", admin.site.urls),
+    # --- AI Setup (AI agent configuration hub) ---
+    path("ai-setup/", include("apps.infra.accounts_app.urls_ai_setup")),
     # --- Auth ---
     path("accounts/", include(("apps.infra.accounts_app.urls", "accounts_app"))),
     path("auth/", include(("apps.infra.auth_app.urls", "auth_app"))),
@@ -62,6 +92,8 @@ urlpatterns = [
     path("apps/llm/", include(("apps.infra.llm_app.urls", "llm_app"))),
     path("apps/clew/", include(("apps.workspace.clew_app.urls", "clew_app"))),
     path("apps/store/", include(("apps.workspace.apps_app.urls", "apps_app"))),
+    # --- Dev-installed app modules (/apps/dev__<owner>__<repo>/) ---
+    path("apps/dev__<str:rest>/", dev_module_view, name="dev_module_shell_apps"),
     # --- Legacy redirects (/<app>/ → /apps/<app>/) ---
     path("", include("config.urls_legacy_redirects")),
     # --- Other apps ---

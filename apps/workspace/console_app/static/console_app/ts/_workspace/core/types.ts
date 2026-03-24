@@ -37,25 +37,6 @@ export interface GitDiff {
   status: string;
 }
 
-export const LANGUAGE_MAP: { [key: string]: string } = {
-  ".py": "python",
-  ".js": "javascript",
-  ".ts": "typescript",
-  ".html": "html",
-  ".css": "css",
-  ".json": "json",
-  ".md": "markdown",
-  ".yaml": "yaml",
-  ".yml": "yaml",
-  ".sh": "shell",
-  ".bash": "shell",
-  ".r": "r",
-  ".R": "r",
-  ".tex": "latex",
-  ".bib": "bibtex",
-  ".txt": "plaintext",
-};
-
 /** Image file extensions */
 export const IMAGE_EXTENSIONS = new Set([
   ".png",

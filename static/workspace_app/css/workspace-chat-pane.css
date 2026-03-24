@@ -1,0 +1,379 @@
+/* ============================================================
+   Workspace Chat Pane — Claude.ai-inspired message styling
+   ============================================================ */
+
+/* Chat pane: flex column — tab bar on top, content below
+   NOTE: do NOT set display here; .workspace-pane / .active controls visibility */
+#pane-chat.workspace-pane {
+  position: relative;
+  overflow: hidden;
+  flex-direction: column;
+}
+
+/* Welcome overlay fills remaining space below tabs */
+#pane-chat .ws-chat-pane {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  pointer-events: auto;
+  background: var(--bg-primary, #0d1117);
+}
+
+/* When chat has messages, hide welcome and show AI panel */
+#pane-chat .ws-chat-pane.has-messages {
+  display: none;
+}
+
+/* Sessions tab bar floats above the welcome overlay */
+#pane-chat #ai-panel-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+#pane-chat .stx-shell-ai-sessions-bar {
+  z-index: 20;
+  position: relative;
+}
+
+/* Chat pane: hide ALL old AI panel chrome */
+#pane-chat .stx-shell-ai-panel-header {
+  display: none !important;
+}
+
+#pane-chat .stx-shell-ai-console-view {
+  display: none !important;
+}
+
+#pane-chat .stx-shell-ai-chat-view {
+  display: flex !important;
+  flex-direction: column;
+  width: 100% !important;
+  height: 100%;
+}
+
+/* Tab bar styles: see workspace-tabbar.css (single source of truth) */
+
+/* Chat-specific: action buttons panel */
+#pane-chat .stx-shell-ai-sessions-bar .stx-shell-ai-panel-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+/* Session tab items width override */
+#pane-chat .stx-shell-ai-session-item {
+  width: auto !important;
+  height: auto !important;
+}
+
+#pane-chat .stx-shell-ai-session-item.active {
+  background: rgba(56, 139, 253, 0.12) !important;
+  border-color: rgba(56, 139, 253, 0.4) !important;
+  color: var(--text-primary, #f0f6fc) !important;
+}
+
+/* ── Messages: Claude.ai-inspired styling ── */
+
+/* Messages container: centered, compact gaps */
+#pane-chat .stx-shell-ai-messages {
+  width: 100% !important;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 24px 12px;
+  gap: 16px;
+}
+
+/* Base message styles — compact for LLM output */
+/* Override scitex-ui's white-space:pre-line which doubles every newline */
+#pane-chat .stx-shell-ai-msg {
+  font-size: 14px;
+  line-height: 1.45;
+  border: none !important;
+  white-space: normal !important;
+}
+
+/* Markdown segments inside messages — tighter spacing */
+#pane-chat .ai-md-segment {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* User messages: subtle bubble, right-aligned */
+#pane-chat .stx-shell-ai-msg.user {
+  max-width: 80%;
+  padding: 12px 18px;
+  border-radius: 18px 18px 4px 18px;
+  background: rgba(56, 139, 253, 0.08) !important;
+  color: var(--text-primary, #f0f6fc) !important;
+}
+
+/* Assistant messages: no bubble, flowing text, avatar above */
+#pane-chat .stx-shell-ai-msg.assistant {
+  max-width: 100%;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0;
+  position: relative;
+  padding: 0;
+  color: var(--text-primary, #f0f6fc) !important;
+}
+
+/* SciTeX agent avatar — below the message text (like Claude.ai) */
+#pane-chat .stx-shell-ai-msg.assistant::after {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 28px;
+  margin-top: 12px;
+  background:
+    url("/static/shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg")
+      center / 20px 20px no-repeat,
+    linear-gradient(135deg, #2d333b, #1c2128);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* Remove old ::before (no avatar above) */
+#pane-chat .stx-shell-ai-msg.assistant::before {
+  display: none;
+}
+
+/* Streaming: avatar grows and pulses during processing */
+#pane-chat.ai-streaming .stx-shell-ai-msg.assistant:last-of-type::after {
+  animation: avatar-breathe 2s ease-in-out infinite;
+}
+
+@keyframes avatar-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 4px 2px rgba(56, 139, 253, 0.1);
+    background:
+      url("/static/shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg")
+        center / 20px 20px no-repeat,
+      linear-gradient(135deg, #2d333b, #1c2128);
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 16px 6px rgba(56, 139, 253, 0.25);
+    background:
+      url("/static/shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg")
+        center / 20px 20px no-repeat,
+      linear-gradient(135deg, #1a3a5c, #0d2240);
+  }
+}
+
+/* Typing/loading — no separate avatar (streaming avatar handles it) */
+#pane-chat .stx-shell-ai-typing {
+  padding-left: 0;
+}
+
+@keyframes avatar-loading {
+  0%,
+  100% {
+    box-shadow: 0 0 4px 2px rgba(56, 139, 253, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 16px 6px rgba(56, 139, 253, 0.35);
+  }
+}
+
+/* Assistant message content — compact paragraphs (balanced) */
+#pane-chat .stx-shell-ai-msg.assistant p {
+  margin: 0.15em 0 !important;
+  padding: 0 !important;
+  line-height: 1.5;
+}
+
+#pane-chat .stx-shell-ai-msg.assistant h1,
+#pane-chat .stx-shell-ai-msg.assistant h2,
+#pane-chat .stx-shell-ai-msg.assistant h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0.6em 0 0.1em 0 !important;
+  line-height: 1.3;
+}
+
+#pane-chat .stx-shell-ai-msg.assistant strong {
+  font-weight: 600;
+}
+
+/* Override bootstrap's 1rem margin on lists — covers both final + streaming */
+#pane-chat ul,
+#pane-chat ol {
+  padding-left: 1.2em !important;
+  margin: 0.1em 0 !important;
+}
+
+#pane-chat li {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.5;
+}
+
+/* Kill paragraph margins INSIDE list items */
+#pane-chat li p {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Kill all BR-based spacing and streaming preview gaps */
+#pane-chat .stx-shell-ai-msg br + br {
+  display: none;
+}
+
+/* Streaming preview + segments: compact paragraphs */
+#pane-chat .ai-md-streaming p,
+#pane-chat .ai-md-segment p {
+  margin: 0.15em 0 !important;
+  padding: 0 !important;
+  line-height: 1.5;
+}
+
+#pane-chat .stx-shell-ai-msg.assistant code {
+  font-size: 13px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(110, 118, 129, 0.15);
+}
+
+#pane-chat .stx-shell-ai-msg.assistant pre {
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 0.8em 0;
+  overflow-x: auto;
+}
+
+#pane-chat .stx-shell-ai-msg.error {
+  font-size: 14px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  max-width: 85%;
+}
+
+/* Typing indicator — with spinning avatar */
+#pane-chat .stx-shell-ai-typing {
+  font-size: 14px;
+  padding: 8px 0 8px 44px;
+  background: transparent !important;
+  border: none !important;
+  position: relative;
+}
+
+#pane-chat .stx-shell-ai-typing::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 28px;
+  height: 28px;
+  background:
+    url("/static/shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg")
+      center / 20px 20px no-repeat,
+    linear-gradient(135deg, #2d333b, #1c2128);
+  border-radius: 50%;
+  animation: avatar-breathe 3s ease-in-out infinite;
+}
+
+/* ── Input area: flex column, model badge below input ── */
+#pane-chat .stx-shell-ai-input-area {
+  width: 100% !important;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 8px 24px 20px;
+  background: transparent !important;
+  display: flex !important;
+  flex-direction: column;
+}
+
+/* Input wrap: large rounded box — contains textarea + action buttons */
+#pane-chat .stx-shell-ai-input-wrap {
+  background: var(--bg-secondary, #161b22) !important;
+  border: 1px solid var(--border-default, #30363d) !important;
+  border-radius: 20px !important;
+  padding: 16px 20px 12px !important;
+  flex-wrap: wrap;
+  gap: 8px;
+  order: 1;
+  cursor: text;
+}
+
+#pane-chat .stx-shell-ai-input-wrap:focus-within {
+  border-color: var(--text-link, #58a6ff) !important;
+}
+
+/* Textarea: two rows, no resize handle, full hit area */
+#pane-chat .stx-shell-ai-input {
+  min-height: 52px !important;
+  font-size: 15px !important;
+  resize: none !important;
+  flex: 1;
+  width: 100%;
+  line-height: 1.5;
+}
+
+/* Model badge: pill button below input (Claude.ai style) */
+#pane-chat .stx-shell-ai-model-badge {
+  order: 2;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px !important;
+  font-weight: 500;
+  color: var(--text-secondary, #c9d1d9) !important;
+  padding: 6px 12px;
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  margin-top: 8px;
+  align-self: flex-end;
+}
+
+#pane-chat .stx-shell-ai-model-badge::after {
+  content: "▾";
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+#pane-chat .stx-shell-ai-model-badge:hover {
+  background: rgba(177, 186, 196, 0.08);
+  border-color: var(--text-secondary, #c9d1d9);
+}
+
+/* Image previews container */
+#pane-chat .stx-shell-ai-image-previews {
+  order: 0;
+}
+
+/* Keep all input buttons visible (camera, sketch, mic, gear) */
+
+/* Input buttons: subtle */
+#pane-chat .stx-shell-ai-input-btn,
+#pane-chat .stx-shell-ai-mic {
+  opacity: 0.6;
+}
+
+#pane-chat .stx-shell-ai-input-btn:hover,
+#pane-chat .stx-shell-ai-mic:hover {
+  opacity: 1;
+}
+
+/* Hide old empty state (replaced by our welcome overlay) */
+#pane-chat .stx-shell-ai-empty {
+  display: none !important;
+}
+
+/* Hide unnecessary elements in chat bottom */
+#pane-chat .stx-shell-ai-image-previews:empty,
+#pane-chat .stx-shell-ai-vol,
+#pane-chat .stx-shell-ai-stt-model,
+#pane-chat #stx-shell-ai-send {
+  display: none !important;
+}

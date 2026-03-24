@@ -1,96 +1,35 @@
 {% extends "global_base.html" %}
 
+{# Shared sessions should not show workspace chat pane behind content #}
 {% load static %}
 
 {% block title %}{{ session.title }} — Shared Chat{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/shared-chat.css' %}" />
+{% endblock %}
 {% block content %}
-    <div class="container py-4" style="max-width: 800px">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-            <div>
-                <h4 class="mb-1">
-                    <i class="fas fa-comments me-2 text-muted"></i>{{ session.title }}
-                </h4>
-                <small class="text-muted">
-                    Shared by <strong>{{ session.user.username }}</strong>
-                    &middot; {{ session.created_at|date:"M j, Y" }}
-                </small>
-            </div>
-            <span class="badge bg-secondary">
-                <i class="fas fa-eye me-1"></i>Read-only
+    <div class="shared-chat-page">
+        <div class="shared-chat-header">
+            <span class="shared-chat-title">{{ session.title }}</span>
+            <span class="shared-chat-meta">
+                Shared by {{ session.user.username }}
+                &middot; {{ session.created_at|date:"M j, Y" }}
             </span>
+            <span class="shared-chat-readonly">Read-only</span>
         </div>
         <div class="shared-chat-messages">
-            {% for msg in messages %}
+            {% for msg in chat_messages %}
                 <div class="shared-chat-msg shared-chat-msg--{{ msg.role }}">
-                    <div class="shared-chat-msg__role">
-                        {% if msg.role == "user" %}
-                            <i class="fas fa-user"></i> You
-                        {% elif msg.role == "assistant" %}
-                            <i class="fas fa-robot"></i> Assistant
-                        {% else %}
-                            <i class="fas fa-exclamation-circle"></i> Error
-                        {% endif %}
-                    </div>
-                    <div class="shared-chat-msg__text">{{ msg.text }}</div>
+                    {% if msg.role == "assistant" %}<div class="shared-chat-avatar"></div>{% endif %}
+                    <div class="shared-chat-msg__text">{{ msg.text_html|safe }}</div>
                 </div>
             {% empty %}
-                <p class="text-muted text-center py-5">No messages in this conversation.</p>
+                <p class="shared-chat-empty">No messages in this conversation.</p>
             {% endfor %}
         </div>
-        <div class="text-center mt-4 pt-3 border-top">
-            <small class="text-muted">
-                <a href="/" class="text-decoration-none">
-                    <i class="fas fa-flask me-1"></i>SciTeX
-                </a>
-                — Scientific Research Platform
-            </small>
+        <div class="shared-chat-footer">
+            <a href="/">SciTeX</a> — Scientific Research Platform
         </div>
     </div>
-    <style>
-        .shared-chat-messages {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .shared-chat-msg {
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            max-width: 90%;
-            word-wrap: break-word;
-            white-space: pre-line;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-
-        .shared-chat-msg--user {
-            align-self: flex-end;
-            background: var(--color-accent-subtle, rgba(9, 105, 218, 0.15));
-            border: 1px solid var(--color-accent-muted, rgba(9, 105, 218, 0.3));
-        }
-
-        .shared-chat-msg--assistant {
-            align-self: flex-start;
-            background: var(--bg-tertiary, #161b22);
-            border: 1px solid var(--border-default, #30363d);
-        }
-
-        .shared-chat-msg--error {
-            align-self: center;
-            background: rgba(207, 34, 46, 0.1);
-            border: 1px solid rgba(207, 34, 46, 0.3);
-            color: var(--color-danger-fg, #cf222e);
-        }
-
-        .shared-chat-msg__role {
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-            opacity: 0.7;
-        }
-
-        .shared-chat-msg__text {
-            font-size: 0.85rem;
-        }
-    </style>
+    <!-- Styles in static/shared/css/components/shared-chat.css -->
 {% endblock %}

@@ -17,6 +17,7 @@ lifecycle — from literature to manuscript — under your own control.
    cli
    mcp
    app_platform
+   visitor_pool_security
    api/index
 
 Indices and tables
