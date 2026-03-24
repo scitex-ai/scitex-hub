@@ -20,8 +20,16 @@ def workspace_context(request):
     path = request.path
     is_ws = is_workspace_path(path)
 
-    # Landing page is never a workspace (hero must render outside workspace layout)
-    if path in ("/", "/landing/"):
+    # /landing/ is never a workspace (hero must render outside workspace layout)
+    if path == "/landing/":
+        is_ws = False
+
+    # Root "/" is only workspace for authenticated non-visitor users
+    if path == "/" and (
+        not request.user.is_authenticated
+        or request.user.username.startswith("visitor-")
+        or request.user.username == "readonly-visitor"
+    ):
         is_ws = False
 
     # User profile pages (/<username>/...) should also show workspace chrome

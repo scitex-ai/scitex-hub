@@ -82,8 +82,7 @@ class WorkspaceSidebar {
     if (
       trackModule &&
       trackModule !== "files" &&
-      trackModule !== "home" &&
-      path !== "/"
+      !(trackModule === "home" && path === "/")
     ) {
       this.switchPane("module", false);
       this.highlightModuleItem(trackModule);

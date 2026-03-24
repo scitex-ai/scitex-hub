@@ -21,6 +21,12 @@ def root_dispatch(request, pane=None, session_token=None):
         session_token: Optional chat session UUID for /chat/<uuid>/ URLs.
     """
     if request.user.is_authenticated:
+        # Visitors and readonly visitors see the landing page at /
+        username = request.user.username
+        if not pane and (
+            username.startswith("visitor-") or username == "readonly-visitor"
+        ):
+            return redirect("public_app:landing")
         if pane:
             request.initial_pane = pane
         if session_token is not None:
