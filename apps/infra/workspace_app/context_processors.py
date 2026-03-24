@@ -20,8 +20,8 @@ def workspace_context(request):
     path = request.path
     is_ws = is_workspace_path(path)
 
-    # Root path "/" is only a workspace for authenticated users (anon sees landing)
-    if path == "/" and not request.user.is_authenticated:
+    # Landing page is never a workspace (hero must render outside workspace layout)
+    if path in ("/", "/landing/"):
         is_ws = False
 
     # User profile pages (/<username>/...) should also show workspace chrome
