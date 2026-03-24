@@ -93,8 +93,10 @@ main.add_command(workspace)
 main.add_command(sdk)
 
 from .project import project  # noqa: E402
+from .sync import register_sync_commands  # noqa: E402
 
 main.add_command(project)
+register_sync_commands(main)
 
 
 @main.command("list-python-apis", context_settings=CONTEXT_SETTINGS)
