@@ -1,7 +1,8 @@
 {% load static vite %}
 
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="description"
       content="{% block meta_description %}{{ META_DESCRIPTION_DEFAULT }}{% endblock %}" />
 <!-- Inline theme application - Prevents flash of unstyled content -->
@@ -19,6 +20,8 @@
 </script>
 <!-- Console Logger (Development Only) - Captures browser console to ./logs/console.log -->
 {% vite_script 'shared/utils/console-interceptor' %}
+<!-- PWA service worker registration -->
+{% vite_script 'shared/utils/pwa-register' %}
 <!-- Favicon (green camo for dev, orange camo for staging, standard for prod) -->
 {% if DEBUG %}
     <link rel="icon"
@@ -42,6 +45,12 @@
           type="image/png"
           href="{% static 'shared/images/favicons/favicon.png' %}?v=2" />
 {% endif %}
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#161b22" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="SciTeX" />
 <link rel="apple-touch-icon"
       href="{% static 'shared/images/favicons/apple-touch-icon.png' %}?v=2" />
 {% if user.is_authenticated %}

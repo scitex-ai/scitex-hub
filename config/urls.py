@@ -28,6 +28,25 @@ from apps.workspace.hub_app.views.index import current_project_view
 from config.urls_helpers import RESERVED_PATHS, dev_module_view  # noqa: F401
 
 urlpatterns = [
+    # --- PWA (must be served from root for scope) ---
+    path(
+        "manifest.json",
+        serve,
+        {
+            "document_root": settings.STATIC_ROOT or settings.STATICFILES_DIRS[0],
+            "path": "shared/manifest.json",
+        },
+        name="pwa-manifest",
+    ),
+    path(
+        "sw.js",
+        serve,
+        {
+            "document_root": settings.STATIC_ROOT or settings.STATICFILES_DIRS[0],
+            "path": "shared/sw.js",
+        },
+        name="pwa-sw",
+    ),
     # --- Health ---
     path("healthz/", healthz, name="healthz"),
     # --- Root + Core Panes ---
