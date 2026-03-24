@@ -132,7 +132,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-scitex_cloud = ["skills/*.md", "skills/references/*.md"]
+scitex_cloud = ["skills/*.md", "skills/references/*.md", "_skills/**/*.md"]
 
 [tool.setuptools.package-dir]
 "" = "src"
