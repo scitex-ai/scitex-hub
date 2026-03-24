@@ -19,6 +19,10 @@ This directory contains focused skill files for the scitex-cloud package.
 | [app-management.md](app-management.md) | App plugins — init, validate, submit, prefs, containers |
 | [sdk.md](sdk.md) | Cloud SDK — DataStore, FileVault, JobQueue |
 | [infrastructure.md](infrastructure.md) | Docker, setup, deploy, MCP server |
+| [deployment-staging.md](deployment-staging.md) | Deploy to staging — sync, build, verify |
+| [deployment-production.md](deployment-production.md) | Deploy to production — zero-downtime |
+| [version-management.md](version-management.md) | Ecosystem version sync and bump |
+| [refactoring-rules.md](refactoring-rules.md) | TS/Django refactoring conventions |
 
 ## Quick Navigation
 
@@ -29,5 +33,9 @@ This directory contains focused skill files for the scitex-cloud package.
 - DataStore / FileVault / JobQueue -> [sdk.md](sdk.md)
 - Docker, deploy, MCP server -> [infrastructure.md](infrastructure.md)
 - Python API programmatic access -> [python-api.md](python-api.md)
+- Deploy to staging -> [deployment-staging.md](deployment-staging.md)
+- Deploy to production -> [deployment-production.md](deployment-production.md)
+- Version sync across ecosystem -> [version-management.md](version-management.md)
+- Refactoring rules (TS/Django) -> [refactoring-rules.md](refactoring-rules.md)
 
 # EOF
