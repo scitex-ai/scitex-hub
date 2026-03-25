@@ -1,5 +1,4 @@
 ---
-name: scitex-cloud
 description: SciTeX Cloud platform CLI — project management, Git hosting (Gitea), three-way sync, app deployment, cloud SDK, and infrastructure. Use when managing projects, syncing code, deploying apps, or running cloud operations.
 allowed-tools: mcp__scitex__cloud_*
 ---
