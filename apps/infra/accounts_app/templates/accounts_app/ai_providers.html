@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{% static 'accounts_app/css/ai_providers.css' %}" />
 {% endblock %}
 {% block content %}
-    <div class="settings-page">
+    <div class="settings-page" data-available-providers='{{ available_providers_json }}'>
         <div class="settings-layout">
             <!-- Left Navigation -->
             <aside class="settings-nav">

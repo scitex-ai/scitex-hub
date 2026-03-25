@@ -40,11 +40,30 @@ const PROVIDER_KEY_URLS: Record<string, { label: string; url: string }> = {
   },
 };
 
-// Cache so we only fetch once per page load
+// Provider data is inlined by the server in the template — zero fetch needed
 let providerCache: ProviderInfo[] | null = null;
+
+function getInlineProviders(): ProviderInfo[] | null {
+  const el = document.querySelector<HTMLElement>("[data-available-providers]");
+  if (!el) return null;
+  try {
+    return JSON.parse(el.dataset.availableProviders ?? "null");
+  } catch {
+    return null;
+  }
+}
 
 async function fetchProviders(): Promise<ProviderInfo[]> {
   if (providerCache) return providerCache;
+
+  // Read from inline data (server-rendered, shared across all users)
+  const inline = getInlineProviders();
+  if (inline) {
+    providerCache = inline;
+    return providerCache;
+  }
+
+  // Fallback: fetch from API (should not happen in normal flow)
   const resp = await fetch("/apps/llm/api/providers/available/");
   const data = await resp.json();
   providerCache = data.providers ?? [];

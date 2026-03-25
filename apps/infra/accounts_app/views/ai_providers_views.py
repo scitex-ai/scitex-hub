@@ -149,10 +149,20 @@ def ai_providers(request):
             )
         providers.append(data)
 
+    # Inline available providers so the dropdown renders without an API call
+    import json
+
+    from apps.infra.llm_app.utils import get_all_providers_cached
+
+    available_providers = get_all_providers_cached()
+
     return render(
         request,
         "accounts_app/ai_providers.html",
-        {"providers": providers},
+        {
+            "providers": providers,
+            "available_providers_json": json.dumps(available_providers),
+        },
     )
 
 
