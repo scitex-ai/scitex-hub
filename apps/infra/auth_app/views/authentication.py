@@ -234,12 +234,8 @@ def login_view(request):
                 # Redirect to next page or user's project page
                 next_page = request.GET.get("next")
                 if not next_page:
-                    # Default to user's project page (GitHub-style)
-                    from django.urls import reverse
-
-                    next_page = reverse(
-                        "project_app:user_profile", kwargs={"username": user.username}
-                    )
+                    # Default to workspace (most useful landing after login)
+                    next_page = "/workspace/"
 
                 messages.success(request, f"Welcome back, @{user.username}!")
 

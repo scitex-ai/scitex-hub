@@ -394,3 +394,10 @@
     justify-content: center;
   }
 }
+
+/* Hide footer on mobile in workspace pages (collapsed by default) */
+@media (max-width: 768px) {
+  body.workspace-page:not(.landing-page) .site-footer {
+    display: none;
+  }
+}
