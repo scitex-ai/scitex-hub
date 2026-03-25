@@ -1,11 +1,12 @@
 /**
  * Drag state machine for BaseResizer.
  *
- * Handles mousedown → mousemove → mouseup with:
- * - Smart collapse: panel collapses instantly during drag (not on mouseUp)
+ * Handles pointerdown → pointermove → pointerup with:
+ * - Smart collapse: panel collapses instantly during drag (not on pointerUp)
  * - Cascade propagation: remaining delta transfers to adjacent panel
  * - Magnetic snap: resizer is physically pulled toward snap points
  * - Four resize modes: only-second, only-first, both, neither
+ * - Pointer Events API: works on mouse, touch, and pen (mobile support)
  */
 
 import type { BaseResizer } from "./_base";
