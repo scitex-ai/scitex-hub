@@ -724,6 +724,15 @@
             </div>
         {% endif %}
         {% if user.is_authenticated %}
+            <div class="mobile-menu-item mobile-menu-item--user">
+                <i class="fas fa-user-circle"></i>
+                <span>@{{ user.username }}</span>
+            </div>
+            <div class="mobile-menu-divider"></div>
+            <a href="/workspace/" class="mobile-menu-item">
+                <i class="fas fa-th-large"></i>
+                <span>Workspace</span>
+            </a>
             <a href="/accounts/profile/" class="mobile-menu-item">
                 <i class="fas fa-user"></i>
                 <span>Profile</span>

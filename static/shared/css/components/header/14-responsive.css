@@ -170,6 +170,12 @@
     color: var(--text-muted);
   }
 
+  .mobile-header-menu .mobile-menu-item--user {
+    cursor: default;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
   /* Show header collapse toggle on mobile (double-click or button to collapse) */
   .header-collapse-toggle {
     display: flex !important;
