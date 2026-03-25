@@ -1,5 +1,4 @@
 ---
-name: sync-architecture
 description: Three-way sync architecture between Local, Gitea, and Workspace. CLI commands for push/pull (git) and sync-to/sync-from (files). Conflict detection and resolution.
 ---
 

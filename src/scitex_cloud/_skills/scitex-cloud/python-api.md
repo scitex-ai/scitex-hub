@@ -1,5 +1,4 @@
 ---
-name: python-api
 description: Python API for scitex-cloud — CloudClient class, project functions, and health_check. For programmatic access from Python scripts.
 ---
 

@@ -1,5 +1,4 @@
 ---
-name: infrastructure
 description: Infrastructure management — environment setup, Docker container management, deploy, logs, SSH, and MCP server start/diagnose.
 ---
 

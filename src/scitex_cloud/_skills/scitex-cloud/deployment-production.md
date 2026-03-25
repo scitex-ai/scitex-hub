@@ -1,5 +1,4 @@
 ---
-name: deployment-production
 description: Deploy SciTeX Cloud to production — zero-downtime build, swap, verify.
 ---
 

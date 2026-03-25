@@ -1,5 +1,4 @@
 ---
-name: deployment-staging
 description: Deploy SciTeX Cloud to staging — sync versions, build Docker, verify.
 ---
 

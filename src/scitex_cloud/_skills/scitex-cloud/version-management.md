@@ -1,5 +1,4 @@
 ---
-name: version-management
 description: Manage and sync versions across SciTeX ecosystem packages.
 ---
 

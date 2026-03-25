@@ -1,5 +1,4 @@
 ---
-name: project-management
 description: CLI commands for SciTeX Cloud project CRUD — create, list, delete, rename. Each project gets a Gitea repo + Django project + workspace directory.
 ---
 

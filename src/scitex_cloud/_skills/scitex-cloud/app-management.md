@@ -1,5 +1,4 @@
 ---
-name: app-management
 description: SciTeX app plugin management — scaffold new apps, validate, submit for review, manage preferences, check dependencies, build Apptainer containers. Apps must end in _app or -app.
 ---
 

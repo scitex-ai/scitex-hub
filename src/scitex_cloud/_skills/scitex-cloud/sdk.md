@@ -1,5 +1,4 @@
 ---
-name: sdk
 description: Cloud SDK — DataStore (JSON CRUD), FileVault (file storage), JobQueue (background compute). CLI and Python API. SDK code lives in scitex-app but re-exported from scitex-cloud for backward compatibility.
 ---
 

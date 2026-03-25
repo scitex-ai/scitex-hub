@@ -1,5 +1,4 @@
 ---
-name: gitea-cli
 description: Gitea Git hosting CLI — repository management, fork, clone, PR, issue, push/pull, auth. Backend is git.scitex.ai via the `tea` CLI wrapper.
 ---
 

@@ -1,5 +1,4 @@
 ---
-name: refactoring-rules
 description: Refactoring rules for scitex-cloud Django/TypeScript codebase.
 ---
 
