@@ -25,17 +25,26 @@ grep 'scitex\[all\]==' ~/proj/scitex-cloud/deployment/docker/Dockerfile.prod
 ssh nas "cd ~/proj/scitex-cloud && git -C ~/proj/scitex-cloud pull origin develop"
 ```
 
-## Step 4: Build staging container
+## Step 4: Build staging in screen (survives SSH disconnect)
+
+**NEVER run raw `docker build` on NAS** — use `make rebuild` which has cgroup protections:
 ```bash
-ssh nas "cd ~/proj/scitex-cloud/deployment/docker/docker_staging && docker compose build --no-cache"
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+ssh nas "screen -dmS staging-$TIMESTAMP bash -c 'cd ~/proj/scitex-cloud && make ENV=staging YES=1 rebuild 2>&1 | tee /tmp/scitex-staging-$TIMESTAMP.log'"
 ```
 
-## Step 5: Start staging
+Monitor:
 ```bash
-ssh nas "cd ~/proj/scitex-cloud/deployment/docker/docker_staging && docker compose up -d"
+ssh nas "tail -20 /tmp/scitex-staging-$TIMESTAMP.log"
+ssh nas "screen -ls"
 ```
 
-## Step 6: Verify
-- Check staging URL
-- Run smoke tests
-- Verify all apps load
+## Step 5: Verify staging
+```bash
+# Check containers
+ssh nas 'docker ps --format "{{.Names}}: {{.Status}}" | grep staging'
+# Check site
+ssh nas 'curl -sL -o /dev/null -w "%{http_code}" http://localhost:8001/'
+# Read Django logs
+ssh nas 'docker logs scitex-cloud-staging-django-1 --tail 30'
+```

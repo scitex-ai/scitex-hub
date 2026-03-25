@@ -19,9 +19,12 @@ This directory contains focused skill files for the scitex-cloud package.
 | [sdk.md](sdk.md) | Cloud SDK — DataStore, FileVault, JobQueue |
 | [infrastructure.md](infrastructure.md) | Docker, setup, deploy, MCP server |
 | [deployment-staging.md](deployment-staging.md) | Deploy to staging — sync, build, verify |
-| [deployment-production.md](deployment-production.md) | Deploy to production — zero-downtime |
+| [deployment-production.md](deployment-production.md) | Deploy to production — NAS safety, cgroup limits |
 | [version-management.md](version-management.md) | Ecosystem version sync and bump |
-| [refactoring-rules.md](refactoring-rules.md) | TS/Django refactoring conventions |
+| [refactoring-rules.md](refactoring-rules.md) | File size thresholds, extraction patterns |
+| [development-environment.md](development-environment.md) | Docker dev setup, hot reload, access URLs |
+| [django-conventions.md](django-conventions.md) | 1:1:1:1 full-stack conventions, naming |
+| [vite-frontend.md](vite-frontend.md) | Vite HMR, entry points, template tags |
 
 ## Quick Navigation
 
@@ -35,6 +38,9 @@ This directory contains focused skill files for the scitex-cloud package.
 - Deploy to staging -> [deployment-staging.md](deployment-staging.md)
 - Deploy to production -> [deployment-production.md](deployment-production.md)
 - Version sync across ecosystem -> [version-management.md](version-management.md)
-- Refactoring rules (TS/Django) -> [refactoring-rules.md](refactoring-rules.md)
+- Refactoring rules (file sizes, extraction) -> [refactoring-rules.md](refactoring-rules.md)
+- Dev environment setup -> [development-environment.md](development-environment.md)
+- Django conventions (1:1:1:1) -> [django-conventions.md](django-conventions.md)
+- Vite/TypeScript frontend -> [vite-frontend.md](vite-frontend.md)
 
 # EOF
