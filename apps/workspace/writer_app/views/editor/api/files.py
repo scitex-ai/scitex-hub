@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File: /home/ywatanabe/proj/scitex-cloud/apps/writer_app/views/editor/api/files.py
-"""File operations - PDF serving, thumbnails."""
+"""File operations - PDF serving, thumbnails, SyncTeX reverse lookup."""
 
 from __future__ import annotations
+
 import logging
-from django.http import JsonResponse, FileResponse, HttpResponse
-from django.views.decorators.http import require_http_methods
+
 from django.contrib.auth.decorators import login_required
+from django.http import FileResponse, HttpResponse, JsonResponse
+from django.views.decorators.http import require_http_methods
+
 from ..auth_utils import api_login_optional, get_user_for_request
 
 logger = logging.getLogger(__name__)
@@ -25,8 +28,9 @@ def pdf_view(request, project_id, pdf_filename=None):
         pdf_filename: PDF filename (e.g., 'preview-abstract.pdf')
     """
     try:
-        from ....services import WriterService
         from apps.infra.project_app.models import Project
+
+        from ....services import WriterService
 
         # Get effective user (authenticated or visitor)
         user, is_visitor = get_user_for_request(request, project_id)
@@ -70,7 +74,7 @@ def pdf_view(request, project_id, pdf_filename=None):
         checked_paths.append(str(preview_path))
         if preview_path.exists():
             pdf_path = preview_path
-            logger.info(f"[PDFView] Found PDF in .preview directory")
+            logger.info("[PDFView] Found PDF in .preview directory")
 
         # 2. Full manuscript PDFs in document type directories
         if not pdf_path and pdf_filename in [
@@ -97,7 +101,7 @@ def pdf_view(request, project_id, pdf_filename=None):
             checked_paths.append(str(legacy_preview))
             if legacy_preview.exists():
                 pdf_path = legacy_preview
-                logger.info(f"[PDFView] Found PDF in legacy preview_output directory")
+                logger.info("[PDFView] Found PDF in legacy preview_output directory")
 
         # If still not found, return 404
         if not pdf_path:
@@ -186,9 +190,11 @@ def thumbnail_view(request, project_id, thumbnail_name):
         FileResponse with JPEG image or placeholder
     """
     try:
-        from django.conf import settings
-        from apps.infra.project_app.models import Project
         from pathlib import Path
+
+        from django.conf import settings
+
+        from apps.infra.project_app.models import Project
 
         project = Project.objects.get(id=project_id)
 
@@ -229,6 +235,216 @@ def thumbnail_view(request, project_id, thumbnail_name):
         )
     except Exception as e:
         logger.error(f"[Thumbnail] Error serving {thumbnail_name}: {e}")
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+@api_login_optional
+@require_http_methods(["POST"])
+def synctex_reverse_lookup(request, project_id):
+    """SyncTeX reverse lookup: PDF (page, x, y) -> .tex (file, line).
+
+    Accepts click coordinates from the PDF viewer and returns the
+    corresponding .tex source file and line number using the synctex
+    command-line tool.
+
+    POST body:
+        {
+            "page": 1,
+            "x": 150.5,
+            "y": 400.2,
+            "pdf_filename": "manuscript.pdf"
+        }
+
+    Returns:
+        {
+            "success": true,
+            "file": "01_manuscript/contents/introduction.tex",
+            "line": 42,
+            "column": 0
+        }
+    """
+    import json
+    import re
+    import subprocess
+    from pathlib import Path
+
+    try:
+        from apps.infra.project_app.models import Project
+
+        from ....services import WriterService
+
+        # Get effective user (authenticated or visitor)
+        user, is_visitor = get_user_for_request(request, project_id)
+        if not user:
+            return JsonResponse(
+                {"success": False, "error": "Invalid session"}, status=403
+            )
+
+        data = json.loads(request.body)
+        page = data.get("page")
+        x = data.get("x")
+        y = data.get("y")
+        pdf_filename = data.get("pdf_filename", "manuscript.pdf")
+
+        if page is None or x is None or y is None:
+            return JsonResponse(
+                {"success": False, "error": "page, x, and y are required"},
+                status=400,
+            )
+
+        # Get project and writer service
+        project = Project.objects.get(id=project_id)
+        writer_service = WriterService(project_id, user.id)
+        writer_dir = writer_service.writer_dir
+
+        # Locate the PDF and its .synctex.gz file
+        pdf_path = None
+        search_locations = []
+
+        # Full manuscript PDFs in document type directories
+        doc_type_dirs = {
+            "manuscript.pdf": "01_manuscript",
+            "supplementary.pdf": "02_supplementary",
+            "revision.pdf": "03_revision",
+        }
+
+        doc_dir_name = doc_type_dirs.get(pdf_filename)
+        if doc_dir_name:
+            candidate = writer_dir / doc_dir_name / pdf_filename
+            search_locations.append(candidate)
+            if candidate.exists():
+                pdf_path = candidate
+
+        # Also check logs directory where latexmk outputs
+        if not pdf_path and doc_dir_name:
+            logs_dir = writer_dir / doc_dir_name / "logs"
+            if logs_dir.exists():
+                candidate = logs_dir / pdf_filename
+                search_locations.append(candidate)
+                if candidate.exists():
+                    pdf_path = candidate
+
+        # Preview directory
+        if not pdf_path:
+            candidate = writer_dir / ".preview" / pdf_filename
+            search_locations.append(candidate)
+            if candidate.exists():
+                pdf_path = candidate
+
+        if not pdf_path:
+            logger.error(
+                f"[SyncTeX] PDF not found: {pdf_filename}, "
+                f"checked: {[str(p) for p in search_locations]}"
+            )
+            return JsonResponse(
+                {"success": False, "error": f"PDF not found: {pdf_filename}"},
+                status=404,
+            )
+
+        # Find .synctex.gz file near the PDF
+        synctex_gz = pdf_path.with_suffix(".synctex.gz")
+        synctex_plain = pdf_path.with_suffix(".synctex")
+
+        # Also check logs directory for synctex file
+        if not synctex_gz.exists() and not synctex_plain.exists() and doc_dir_name:
+            logs_dir = writer_dir / doc_dir_name / "logs"
+            synctex_gz = logs_dir / pdf_path.stem
+            synctex_gz = logs_dir / (pdf_path.stem + ".synctex.gz")
+            synctex_plain = logs_dir / (pdf_path.stem + ".synctex")
+
+        if not synctex_gz.exists() and not synctex_plain.exists():
+            logger.warning(
+                f"[SyncTeX] No .synctex.gz found for {pdf_filename}. "
+                f"Checked: {synctex_gz}, {synctex_plain}. "
+                f"Ensure compilation uses -synctex=1 flag."
+            )
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "SyncTeX data not found. Recompile with SyncTeX enabled.",
+                },
+                status=404,
+            )
+
+        # Run synctex edit command
+        # synctex edit -o "page:x:y:file.pdf"
+        synctex_query = f"{page}:{x}:{y}:{pdf_path}"
+        logger.info(f'[SyncTeX] Running: synctex edit -o "{synctex_query}"')
+
+        result = subprocess.run(
+            ["synctex", "edit", "-o", synctex_query],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            cwd=str(writer_dir),
+        )
+
+        logger.info(f"[SyncTeX] stdout: {result.stdout[:500]}")
+        if result.stderr:
+            logger.warning(f"[SyncTeX] stderr: {result.stderr[:500]}")
+
+        if result.returncode != 0:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": f"synctex command failed (exit {result.returncode})",
+                },
+                status=500,
+            )
+
+        # Parse synctex output
+        # Format:
+        #   Input:<filepath>
+        #   Line:<line_number>
+        #   Column:<column_number>
+        output = result.stdout
+        input_match = re.search(r"Input:(.+)", output)
+        line_match = re.search(r"Line:(\d+)", output)
+        column_match = re.search(r"Column:(-?\d+)", output)
+
+        if not input_match or not line_match:
+            logger.warning(f"[SyncTeX] Could not parse output: {output[:300]}")
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "SyncTeX returned no match for this position",
+                },
+                status=200,
+            )
+
+        source_file = input_match.group(1).strip()
+        source_line = int(line_match.group(1))
+        source_column = int(column_match.group(1)) if column_match else 0
+
+        # Make path relative to writer_dir for the frontend
+        source_path = Path(source_file)
+        try:
+            relative_path = source_path.relative_to(writer_dir)
+        except ValueError:
+            # Already relative or outside writer_dir
+            relative_path = source_path
+
+        logger.info(f"[SyncTeX] Result: {relative_path}:{source_line}:{source_column}")
+
+        return JsonResponse(
+            {
+                "success": True,
+                "file": str(relative_path),
+                "line": source_line,
+                "column": max(0, source_column),
+            }
+        )
+
+    except Project.DoesNotExist:
+        return JsonResponse(
+            {"success": False, "error": "Project not found"}, status=404
+        )
+    except subprocess.TimeoutExpired:
+        return JsonResponse(
+            {"success": False, "error": "SyncTeX lookup timed out"}, status=500
+        )
+    except Exception as e:
+        logger.error(f"[SyncTeX] Error: {e}", exc_info=True)
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
