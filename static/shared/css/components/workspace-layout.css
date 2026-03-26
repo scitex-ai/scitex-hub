@@ -79,8 +79,9 @@
 /* ── Mobile ────────────────────────────────────────────────── */
 @media (max-width: 767px) {
   .workspace-layout {
-    flex-direction: column;
+    flex-direction: row;
     height: 100vh;
+    height: 100dvh;
   }
 
   .workspace-content {
