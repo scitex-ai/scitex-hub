@@ -73,6 +73,10 @@ async function switchModule(name: string): Promise<void> {
         detail: { module: name },
       }),
     );
+    // Re-initialize resizers for the newly injected content
+    if (typeof (window as any).initNewResizers === "function") {
+      (window as any).initNewResizers();
+    }
     window._appNav?.push({ module: name });
     updateActiveTab(name);
   } catch (err) {
