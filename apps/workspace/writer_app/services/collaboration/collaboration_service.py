@@ -5,16 +5,17 @@ Handles collaborative editing sessions, user presence tracking, operational
 transforms for conflict-free concurrent editing, and real-time synchronization.
 """
 
-from typing import Optional, Dict, Any, List
 from datetime import timedelta
-from django.db import transaction
+from typing import Any, Dict, List, Optional, Tuple
+
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.utils import timezone
 
 from ...models.collaboration import (
+    CollaborativeEdit,
     CollaborativeSession,
     WriterPresence,
-    CollaborativeEdit,
 )
 
 

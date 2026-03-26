@@ -10,12 +10,18 @@ export { CollaborativeEditorManager } from "./manager";
 export { ChangeTracker } from "./changes";
 export { CursorManager } from "./cursors";
 export { SyncManager } from "./sync";
+export { WriterWSClient } from "./ws-client";
 export type {
   ManuscriptConfig,
   ManuscriptData,
   VersionData,
   VersionResponse,
   ExportData,
+  RemoteCollaborator,
+  CursorPosition,
+  ServerMessage,
+  ServerCollaborator,
+  WSEventCallbacks,
 } from "./types";
 
 // Global Export
