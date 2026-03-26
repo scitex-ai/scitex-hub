@@ -79,8 +79,8 @@
   }
 
   .project-selector-btn {
-    min-width: 100px;
-    max-width: 140px;
+    min-width: 80px;
+    max-width: 200px;
     font-size: 12px;
     padding: 4px 6px;
   }
