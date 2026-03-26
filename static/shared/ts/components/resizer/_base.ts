@@ -80,7 +80,7 @@ export abstract class BaseResizer {
 
   // --- Abstract axis methods (subclass implements) ---
 
-  protected abstract getMousePos(e: MouseEvent): number;
+  protected abstract getMousePos(e: PointerEvent): number;
   protected abstract getSize(el: HTMLElement): number;
   protected abstract setSize(el: HTMLElement, px: number): void;
   protected abstract clearSize(el: HTMLElement): void;
@@ -129,7 +129,7 @@ export abstract class BaseResizer {
   getCursorPublic(): string {
     return this.getCursor();
   }
-  getMousePosPublic(e: MouseEvent): number {
+  getMousePosPublic(e: PointerEvent): number {
     return this.getMousePos(e);
   }
   getSizePublic(el: HTMLElement): number {
@@ -173,7 +173,7 @@ export abstract class BaseResizer {
     return this.findCascadeTarget(panel, mousePos);
   }
 
-  startDrag(e: MouseEvent): void {
+  startDrag(e: PointerEvent): void {
     this._isDragging = true;
     this._primaryCollapsed = false;
     this._propagationTarget = null;
@@ -191,7 +191,7 @@ export abstract class BaseResizer {
     this._onDragEnd?.();
   }
 
-  isClickOnToggle(e: MouseEvent): boolean {
+  isClickOnToggle(e: PointerEvent): boolean {
     return !!(
       this.toggleBtn &&
       (e.target === this.toggleBtn || this.toggleBtn.contains(e.target as Node))

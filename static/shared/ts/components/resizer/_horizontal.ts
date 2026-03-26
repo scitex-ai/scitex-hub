@@ -47,7 +47,7 @@ export class HorizontalResizer extends BaseResizer {
     });
   }
 
-  protected getMousePos(e: MouseEvent): number {
+  protected getMousePos(e: PointerEvent): number {
     return e.clientX;
   }
 

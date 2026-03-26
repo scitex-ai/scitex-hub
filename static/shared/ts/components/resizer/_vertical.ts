@@ -46,7 +46,7 @@ export class VerticalResizer extends BaseResizer {
     });
   }
 
-  protected getMousePos(e: MouseEvent): number {
+  protected getMousePos(e: PointerEvent): number {
     return e.clientY;
   }
 

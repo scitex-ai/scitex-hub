@@ -8,7 +8,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 99;
+  z-index: 1050;
 }
 
 /* ── Mobile top bar ────────────────────────────────────────── */
@@ -68,9 +68,10 @@
 
 /* Mobile: same as desktop but collapsed by default */
 @media (max-width: 767px) {
-  /* Default to collapsed state on mobile */
+  /* Default to collapsed state on mobile; above header (z-index: 1000) */
   .workspace-sidebar {
     width: var(--ws-sidebar-width-collapsed);
+    z-index: 1010;
   }
 
   .sidebar-inner {
@@ -87,7 +88,7 @@
     max-width: 100%;
   }
 
-  /* When expanded, full sidebar overlays content */
+  /* When expanded, full sidebar overlays content (above header z-index: 1000) */
   .workspace-sidebar[data-sidebar-state="expanded"] {
     position: fixed;
     top: 0;
@@ -95,7 +96,7 @@
     width: var(--ws-sidebar-width-expanded);
     height: 100vh;
     height: 100dvh;
-    z-index: 200;
+    z-index: 1100;
   }
 
   .workspace-sidebar[data-sidebar-state="expanded"] .sidebar-inner {

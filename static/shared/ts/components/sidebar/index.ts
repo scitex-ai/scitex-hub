@@ -49,13 +49,20 @@ class WorkspaceSidebar {
   private restoreState(): void {
     if (!this.sidebar) return;
 
-    // Restore sidebar expand/collapse
-    const saved = localStorage.getItem(STORAGE_KEY_SIDEBAR);
-    if (saved === "collapsed") {
+    // On mobile (viewport <= 767px), always start collapsed to avoid
+    // the sidebar overlay covering content on page load.
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    if (isMobile) {
       this.sidebar.setAttribute("data-sidebar-state", "collapsed");
-    } else {
-      this.sidebar.setAttribute("data-sidebar-state", "expanded");
+      return;
     }
+
+    // Desktop/tablet: restore saved preference, default to expanded
+    const saved = localStorage.getItem(STORAGE_KEY_SIDEBAR);
+    this.sidebar.setAttribute(
+      "data-sidebar-state",
+      saved === "collapsed" ? "collapsed" : "expanded",
+    );
   }
 
   private activateInitialPane(): void {
