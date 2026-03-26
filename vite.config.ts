@@ -192,6 +192,12 @@ export default defineConfig({
       // Ensure zustand resolves from scitex-cloud's node_modules
       // even when imported from sibling repo bridges (e.g. figrecipe)
       zustand: resolve(__dirname, "node_modules/zustand"),
+      // Ensure @hpcc-js/wasm-graphviz resolves from scitex-cloud's node_modules
+      // even when dynamically imported from scitex-ui's GraphvizViewer
+      "@hpcc-js/wasm-graphviz": resolve(
+        __dirname,
+        "node_modules/@hpcc-js/wasm-graphviz",
+      ),
       // scitex-ui: shared component library (auto-discovered)
       ...(SCITEX_UI_STATIC
         ? {
