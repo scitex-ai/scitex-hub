@@ -177,8 +177,16 @@ def exec_slurm_shell(
     if host_project_dir.exists():
         os.chdir(str(host_project_dir))
     elif host_user_dir.exists():
+        logger.warning(
+            f"[Terminal] Project dir does not exist: {host_project_dir} — "
+            f"falling back to user home: {host_user_dir}"
+        )
         os.chdir(str(host_user_dir))
     else:
+        logger.error(
+            f"[Terminal] Neither project dir ({host_project_dir}) nor user dir "
+            f"({host_user_dir}) exist for {username}. Using /tmp as last resort."
+        )
         os.chdir("/tmp")
 
     # Reset signal handlers to default before exec to avoid EINTR in srun
