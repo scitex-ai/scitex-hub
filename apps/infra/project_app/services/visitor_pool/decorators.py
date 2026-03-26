@@ -15,6 +15,7 @@ import functools
 import logging
 
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
