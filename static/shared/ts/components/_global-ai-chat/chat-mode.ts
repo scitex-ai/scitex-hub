@@ -226,7 +226,7 @@ export class AIPanelChatMode {
     if (this.messagesEl) {
       this.messagesEl.innerHTML = `
         <div class="stx-shell-ai-empty">
-          <i class="fas fa-robot"></i>
+          <img src="/static/shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg" alt="SciTeX" class="stx-empty-avatar" />
           <span>Ask anything about Scientific Research.</span>
           <span>I can take actions: stats, plots, literature, and your current work.</span>
         </div>`;
