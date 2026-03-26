@@ -377,3 +377,28 @@
 #pane-chat #stx-shell-ai-send {
   display: none !important;
 }
+
+/* ── Mobile: remove horizontal lines, wider input ── */
+@media (max-width: 768px) {
+  /* Remove border between session tabs and messages */
+  #pane-chat .stx-shell-ai-sessions-bar {
+    border-bottom: none !important;
+  }
+
+  /* Remove border between messages and input area */
+  #pane-chat .stx-shell-ai-input-area {
+    border-top: none !important;
+    padding: 4px 12px 12px !important;
+  }
+
+  /* Wider input area on mobile */
+  #pane-chat .stx-shell-ai-input-wrap {
+    border-radius: 16px !important;
+    padding: 12px 14px 8px !important;
+  }
+
+  /* Smaller messages padding on mobile */
+  #pane-chat .stx-shell-ai-messages {
+    padding: 12px 12px 8px !important;
+  }
+}
