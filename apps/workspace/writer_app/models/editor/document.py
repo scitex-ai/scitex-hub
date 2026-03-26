@@ -7,9 +7,10 @@ This model exists only for:
 3. Tracking which projects have writer enabled
 """
 
-from django.db import models
-from django.contrib.auth.models import User
 from pathlib import Path
+
+from django.contrib.auth.models import User
+from django.db import models
 
 
 class Manuscript(models.Model):
@@ -41,6 +42,14 @@ class Manuscript(models.Model):
 
     description = models.TextField(
         blank=True, help_text="Short description of the manuscript"
+    )
+
+    # Collaboration
+    collaborators = models.ManyToManyField(
+        User,
+        related_name="collaborated_manuscripts",
+        blank=True,
+        help_text="Users who can collaborate on this manuscript",
     )
 
     # Timestamps

@@ -1,33 +1,35 @@
 """Writer app models - Feature-based organization."""
 
 # Editor models
-from .editor.document import Manuscript
-from .editor.section import ManuscriptSection
-from .editor.references import Citation, Figure, Table
-
-# Compilation models
-from .compilation.compilation import CompilationJob, AIAssistanceLog
-
-# Version control models
-from .version_control.version import (
-    ManuscriptVersion,
-    ManuscriptBranch,
-    DiffResult,
-    MergeRequest,
-)
-
 # arXiv integration models
 from .arxiv.submission import (
     ArxivAccount,
+    ArxivApiResponse,
     ArxivCategory,
     ArxivSubmission,
     ArxivSubmissionHistory,
     ArxivValidationResult,
-    ArxivApiResponse,
 )
 
 # Collaboration models
-from .collaboration.session import WriterPresence, CollaborativeSession
+from .collaboration.comment import Comment
+from .collaboration.edit import CollaborativeEdit
+from .collaboration.invitation import CollaborationInvitation
+from .collaboration.session import CollaborativeSession, WriterPresence
+
+# Compilation models
+from .compilation.compilation import AIAssistanceLog, CompilationJob
+from .editor.document import Manuscript
+from .editor.references import Citation, Figure, Table
+from .editor.section import ManuscriptSection
+
+# Version control models
+from .version_control.version import (
+    DiffResult,
+    ManuscriptBranch,
+    ManuscriptVersion,
+    MergeRequest,
+)
 
 __all__ = [
     # Editor
@@ -54,4 +56,7 @@ __all__ = [
     # Collaboration
     "WriterPresence",
     "CollaborativeSession",
+    "CollaborationInvitation",
+    "CollaborativeEdit",
+    "Comment",
 ]
