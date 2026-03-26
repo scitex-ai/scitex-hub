@@ -25,6 +25,7 @@ This directory contains focused skill files for the scitex-cloud package.
 | [development-environment.md](development-environment.md) | Docker dev setup, hot reload, access URLs |
 | [django-conventions.md](django-conventions.md) | 1:1:1:1 full-stack conventions, naming |
 | [vite-frontend.md](vite-frontend.md) | Vite HMR, entry points, template tags |
+| [mobile-testing.md](mobile-testing.md) | Mobile responsive testing — Playwright, viewport, auth selectors |
 
 ## Quick Navigation
 
@@ -42,5 +43,6 @@ This directory contains focused skill files for the scitex-cloud package.
 - Dev environment setup -> [development-environment.md](development-environment.md)
 - Django conventions (1:1:1:1) -> [django-conventions.md](django-conventions.md)
 - Vite/TypeScript frontend -> [vite-frontend.md](vite-frontend.md)
+- Mobile responsive testing -> [mobile-testing.md](mobile-testing.md)
 
 # EOF

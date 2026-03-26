@@ -118,7 +118,7 @@ make start                    # Start development environment
 # Test user: test-user / Password123!
 ```
 
-## Three Interfaces
+## Four Interfaces
 
 <details>
 <summary><strong>Python API</strong></summary>
@@ -203,6 +203,27 @@ AI agents can interact with the SciTeX Cloud platform autonomously via MCP (Mode
 ```
 
 > **[Full MCP specification](https://scitex-cloud.readthedocs.io/)**
+
+</details>
+
+<details>
+<summary><strong>Skills — for AI Agents</strong></summary>
+
+<br>
+
+Skill files provide context-aware guidance to AI agents working within the SciTeX ecosystem.
+
+```bash
+# Export skills to dotfiles (sync to Claude)
+scitex-dev skills export --package scitex-cloud
+
+# List available skills
+scitex-cloud skills list
+```
+
+Skills are stored in `src/scitex_cloud/_skills/scitex-cloud/` and cover deployment, development, testing, and more.
+
+> **[Skills index](_skills/scitex-cloud/SKILL.md)**
 
 </details>
 

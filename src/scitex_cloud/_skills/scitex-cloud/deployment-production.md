@@ -123,3 +123,24 @@ sshpass -p "$NAS_PASS" ssh nas "echo '$NAS_PASS' | sudo -S systemctl daemon-relo
 - `KeyError: 'apps.public_app.tasks...'` = stale Celery task names in Redis
 - `health: starting` for 2-3 min = normal cold start
 - `unhealthy` after 5+ min = read `docker logs` for actual error
+
+### Broken pyproject.toml in Ecosystem Packages (Common Root Cause)
+- **Symptom:** Empty page / Django entrypoint crash / `uv pip install` fails
+- **Root cause:** `pyproject.toml` in an ecosystem package (e.g. scitex-ui, figrecipe) is malformed or missing a field
+- **Fix:** Repair the `pyproject.toml`, then run a full rebuild:
+  ```bash
+  ssh nas 'cd ~/proj/scitex-cloud && make env=prod rebuild YES=1'
+  ```
+- **Verify after rebuild:**
+  ```bash
+  ssh nas 'docker ps --format "{{.Names}} {{.Status}}" | grep scitex-cloud'
+  ```
+
+### Screen Session with Timestamps (Preferred for Monitoring)
+Use named screen sessions with dates so you can find and re-attach them:
+```bash
+ssh nas "screen -S deploy-$(date +%Y%m%d)"
+# Or inline:
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+ssh nas "screen -dmS deploy-$TIMESTAMP bash -c 'cd ~/proj/scitex-cloud && make env=prod rebuild YES=1 2>&1 | tee /tmp/scitex-rebuild-$TIMESTAMP.log'"
+```
