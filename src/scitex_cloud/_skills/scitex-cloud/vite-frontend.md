@@ -38,6 +38,21 @@ tail -f ./logs/vite-dev.log
 make env=dev restart
 ```
 
+## Dynamic Hostname (LAN + localhost)
+
+Never hardcode `VITE_HOST_IP` or any IP in templates. Use `window.location.hostname` so the same build works for localhost and LAN access:
+
+```typescript
+// Good
+const host = window.location.hostname;
+const wsUrl = `ws://${host}:${port}/ws/...`;
+
+// Bad — breaks on LAN / remote access
+const host = import.meta.env.VITE_HOST_IP || "localhost";
+```
+
+This applies to WebSocket URLs, API base URLs, and any URL constructed in TypeScript that needs to reach the backend.
+
 ## scitex-ui Integration
 Vite auto-discovers scitex-ui static directory:
 1. `.apps/scitex-ui/` (dev-installed, preferred)

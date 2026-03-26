@@ -62,6 +62,22 @@ path('{feature}/', include([
 - Vite handles all TS compilation automatically
 - Use `.ts` extension in imports
 
+## App Registry URL Pattern
+
+Modules in the registry may or may not have an explicit `url` field. Always use `mod.get_url()` — never `mod.url` directly:
+
+```python
+# Good
+url = mod.get_url()   # defaults to /apps/{name}/ if no explicit url
+
+# Bad — AttributeError or wrong URL for modules without explicit url field
+url = mod.url
+```
+
 ## Edit Local Files Only
 - Never edit files directly in Docker containers
 - All changes must be in local project files (volume-mounted)
+
+## Legacy Code
+
+When old code causes confusion (e.g., outdated patterns, deprecated approaches), move it to a `legacy/` subdirectory rather than patching it. Let errors surface instead of masking them with compatibility shims. Delete or isolate, don't wrap.
