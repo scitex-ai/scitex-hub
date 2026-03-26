@@ -30,6 +30,11 @@
   display: none;
 }
 
+/* Mobile visitor badge: hidden on desktop, shown on mobile */
+.header-visitor-badge-mobile {
+  display: none;
+}
+
 @media (max-width: 768px) {
   /* Allow header collapse on mobile — compact 44px header, collapses to 6px */
   .global-header.collapsed {
@@ -58,6 +63,35 @@
 
   .header-right {
     display: none;
+  }
+
+  /* Show visitor badge in compact header bar on mobile (not hidden with header-right) */
+  .header-visitor-badge-mobile {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--status-warning, #e3b341);
+    background-color: rgba(227, 179, 65, 0.1);
+    border: 1px solid rgba(227, 179, 65, 0.3);
+    white-space: nowrap;
+    margin-left: auto;
+    margin-right: 4px;
+  }
+
+  .header-visitor-badge-mobile-icon {
+    margin-right: 4px;
+    font-size: 10px;
+  }
+
+  /* Read-only badge in mobile hamburger menu */
+  .mobile-menu-item--readonly-badge {
+    cursor: default;
+    color: var(--status-warning, #e3b341);
+    font-size: 0.85rem;
+    font-weight: 500;
   }
 
   .header-left {

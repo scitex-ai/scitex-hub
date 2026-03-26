@@ -383,6 +383,16 @@
                 </div>
             </div>
         </div>
+        <!-- Mobile-only Read-Only / Visitor badge (visible in compact mobile header bar) -->
+        {% if is_visitor %}
+            <span class="header-visitor-badge-mobile">
+                {% if is_readonly %}
+                    <i class="fas fa-lock header-visitor-badge-mobile-icon"></i>Read-Only
+                {% else %}
+                    <i class="fas fa-user-clock header-visitor-badge-mobile-icon"></i>Visitor
+                {% endif %}
+            </span>
+        {% endif %}
         <!-- Mobile Hamburger Button (visible only on mobile via CSS) -->
         <button class="mobile-hamburger" id="mobile-hamburger-btn" aria-label="Menu">
             <i class="fas fa-bars"></i>
@@ -715,13 +725,21 @@
             <div class="mobile-menu-item mobile-menu-item--muted">
                 <i class="fas fa-user-clock"></i>
                 <span id="mobile-visitor-info">
-                    {% if visitor_username %}
+                    {% if is_readonly %}
+                        Read-Only Mode
+                    {% elif visitor_username %}
                         Visitor #{{ visitor_username|slice:"8:" }}
                     {% else %}
                         Visitor Mode
                     {% endif %}
                 </span>
             </div>
+            {% if is_readonly %}
+                <div class="mobile-menu-item mobile-menu-item--readonly-badge">
+                    <i class="fas fa-lock"></i>
+                    <span>Read-Only — browsing only, editing disabled</span>
+                </div>
+            {% endif %}
         {% endif %}
         {% if user.is_authenticated %}
             <div class="mobile-menu-item mobile-menu-item--user">
