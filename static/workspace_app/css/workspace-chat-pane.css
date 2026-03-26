@@ -401,4 +401,25 @@
   #pane-chat .stx-shell-ai-messages {
     padding: 12px 12px 8px !important;
   }
+
+  /* Hide non-essential action buttons on mobile (copy, print, share) */
+  #pane-chat .stx-shell-ai-sessions-bar .stx-shell-ai-panel-actions {
+    gap: 2px;
+  }
+
+  /* Keep only delete and essential buttons visible */
+  #pane-chat
+    .stx-shell-ai-sessions-bar
+    .stx-shell-ai-panel-actions
+    button[title="Copy"],
+  #pane-chat
+    .stx-shell-ai-sessions-bar
+    .stx-shell-ai-panel-actions
+    button[title="Print"],
+  #pane-chat
+    .stx-shell-ai-sessions-bar
+    .stx-shell-ai-panel-actions
+    button[title="Share"] {
+    display: none !important;
+  }
 }
