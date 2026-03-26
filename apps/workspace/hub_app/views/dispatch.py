@@ -21,7 +21,10 @@ def root_dispatch(request, pane=None, session_token=None):
         session_token: Optional chat session UUID for /chat/<uuid>/ URLs.
     """
     if request.user.is_authenticated:
-        # All authenticated users (including visitors) go to workspace
+        # readonly-visitor → landing (read-only fallback, not a real workspace user)
+        if request.user.username == "readonly-visitor":
+            return redirect("public_app:landing")
+        # All other authenticated users (including visitors) go to workspace
         if pane:
             request.initial_pane = pane
         if session_token is not None:
