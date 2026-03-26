@@ -49,3 +49,23 @@ await browser.new_context(
 | Login template | `apps/infra/auth_app/templates/auth_app/signin.html` | Form markup |
 | Login logic | `apps/infra/auth_app/views/authentication.py` (login_view) | Auth handler |
 | Workspace shell | `apps/infra/workspace_app/views.py` (@login_required) | Main view gate |
+
+## Real Device Testing (iPhone via LAN)
+
+See `deployment/docs/11_MOBILE_DEV_TESTING.md` for full setup.
+
+Quick steps:
+1. Set `VITE_HOST_IP=<Windows-LAN-IP>` in `deployment/docker/docker_dev/.env`
+2. Windows PowerShell (Admin): forward ports 8000 and 5173 from Windows to WSL
+3. Windows Firewall: allow inbound on ports 8000 and 5173
+4. Restart dev: `make ENV=dev restart`
+5. iPhone Safari: `http://<Windows-LAN-IP>:8000`
+
+Without `VITE_HOST_IP`, templates reference `127.0.0.1:5173` which iPhone resolves to itself.
+
+## Known Mobile Issues
+
+- App-level resizer (`ts/app/resizer/_drag-handler.ts`) only handles mouse events, no touch
+- Workspace panel resizer (`ts/shell/workspace-panel-resizer/resizer.ts`) has touch support
+- Horizontal swipe can get stuck in split file browser view
+- `body.workspace-page.landing-page` at `/` shows footer; auth users at `/` get `workspace-page` only
