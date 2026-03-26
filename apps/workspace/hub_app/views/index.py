@@ -129,9 +129,12 @@ def index_view(request):
         )
 
         if is_browser:
-            # Browser request but not authenticated - visitor pool likely exhausted
-            logger.info(
-                "[Hub] Browser request not authenticated - redirecting to visitor-pool-full"
+            # Browser request but not authenticated — visitor allocation failed.
+            # This could be pool exhausted OR a bug in the allocation code.
+            # Log as error (not info) to make failures visible per no-fallbacks policy.
+            logger.error(
+                "[Hub] Browser request not authenticated — visitor allocation failed. "
+                "Check middleware logs for root cause."
             )
             return redirect("public_app:visitor_pool_full")
 

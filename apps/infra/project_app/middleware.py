@@ -129,7 +129,11 @@ class VisitorAutoLoginMiddleware:
                         "[Middleware] readonly-visitor user not found — run create_visitor_pool"
                     )
         except Exception as e:
-            logger.error(f"[Middleware] Visitor auto-login failed: {e}")
+            import traceback
+
+            logger.error(
+                f"[Middleware] Visitor auto-login failed: {e}\n{traceback.format_exc()}"
+            )
 
         # Always ensure a clean DB connection before the view runs.
         # The visitor allocation uses @transaction.atomic with
