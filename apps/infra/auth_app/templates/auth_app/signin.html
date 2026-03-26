@@ -191,6 +191,14 @@
       if (requirements) requirements.classList.remove("hidden");
     });
 
+    passwordInput.addEventListener("blur", function () {
+      // Hide requirements on blur (especially important on mobile
+      // where the box can overlay the Sign In button)
+      setTimeout(function () {
+        if (requirements) requirements.classList.add("hidden");
+      }, 200);
+    });
+
     passwordInput.addEventListener("input", function () {
       const password = this.value;
       if (requirements) requirements.classList.remove("hidden");
