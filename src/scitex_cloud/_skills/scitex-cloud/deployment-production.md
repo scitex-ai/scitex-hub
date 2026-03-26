@@ -136,6 +136,25 @@ sshpass -p "$NAS_PASS" ssh nas "echo '$NAS_PASS' | sudo -S systemctl daemon-relo
   ssh nas 'docker ps --format "{{.Names}} {{.Status}}" | grep scitex-cloud'
   ```
 
+### Missing Imports in Visitor Pool (Critical Silent Failure)
+- **Symptom:** Visitors see "pool full" but pool has free slots; visitor allocation silently fails
+- **Root cause:** `decorators.py` used `timezone.now()` without `from django.utils import timezone`
+- **Impact:** ALL 16 visitor slot allocations fail, making the site appear broken for anonymous users
+- **Why it was hard to find:** The middleware caught `Exception` and only logged `str(e)`, hiding the traceback
+- **Fix:** Add missing import; also log full `traceback.format_exc()` not just `str(e)`
+- **Lesson:** Follow no-fallbacks — never silently swallow errors. Log full tracebacks.
+
+### Bulk sed Breaks pyproject.toml (Ecosystem-Wide)
+- **Symptom:** Dev container fails to start; `uv pip install` errors during editable install
+- **Root cause:** Bulk sed/replace operations strip closing `]` from TOML arrays
+- **Affected:** scitex-stats, scitex-audio (found 2026-03-26)
+- **Prevention:** After ANY bulk rename/replace, validate ALL pyproject.toml files:
+  ```bash
+  for f in ~/proj/scitex-*/pyproject.toml; do
+    python3 -c "import tomllib; tomllib.load(open('$f', 'rb'))" && echo "OK: $f" || echo "FAIL: $f"
+  done
+  ```
+
 ### Screen Session with Timestamps (Preferred for Monitoring)
 Use named screen sessions with dates so you can find and re-attach them:
 ```bash
