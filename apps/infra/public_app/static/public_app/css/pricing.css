@@ -451,9 +451,9 @@ body
     margin-bottom: 2rem;
   }
 
-  .pricing-card.featured {
-    order: -1;
-  }
+  /* M1 fix: Do NOT reorder featured card on mobile.
+     Desktop order (Visitor, Registered, Pro, Team, Enterprise)
+     must be preserved on mobile too. */
 
   .comparison-table {
     font-size: 0.85rem;

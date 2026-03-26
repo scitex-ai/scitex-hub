@@ -449,6 +449,20 @@ class WorkspaceSidebar {
 
   private toggleSidebar(): void {
     if (!this.sidebar) return;
+
+    // M3/M4 fix: On mobile, use the drawer pattern (open/close)
+    // instead of just toggling the data attribute, because the CSS
+    // now requires .drawer-open class to show the expanded sidebar.
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    if (isMobile) {
+      if (this.sidebar.classList.contains("drawer-open")) {
+        this.closeDrawer();
+      } else {
+        this.openDrawer();
+      }
+      return;
+    }
+
     const current = this.sidebar.getAttribute("data-sidebar-state");
     const next = current === "collapsed" ? "expanded" : "collapsed";
     this.sidebar.setAttribute("data-sidebar-state", next);

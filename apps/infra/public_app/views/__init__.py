@@ -26,7 +26,7 @@ from .api import (
 from .landing import index, premium_subscription
 
 # Legal pages
-from .legal import contact, cookie_policy, privacy_policy, terms_of_use
+from .legal import contact, cookie_policy, donate, privacy_policy, terms_of_use
 
 # Information pages
 from .pages import (
@@ -88,6 +88,7 @@ __all__ = [
     "keyboard_shortcuts",
     # Legal
     "contact",
+    "donate",
     "privacy_policy",
     "terms_of_use",
     "cookie_policy",

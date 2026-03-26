@@ -23,7 +23,7 @@
   flex-shrink: 0;
 }
 
-.mobile-hamburger {
+.mobile-top-bar .mobile-hamburger {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -66,9 +66,11 @@
   }
 }
 
-/* Mobile: same as desktop but collapsed by default */
+/* Mobile: collapsed by default, expanded only as an overlay drawer */
 @media (max-width: 767px) {
-  /* Default to collapsed state on mobile; above header (z-index: 1000) */
+  /* M3/M4 fix: Force collapsed width on mobile regardless of initial
+     data-sidebar-state attribute. This prevents the expanded sidebar
+     from overlapping content before JS sets the attribute to "collapsed". */
   .workspace-sidebar {
     width: var(--ws-sidebar-width-collapsed);
     z-index: 1010;
@@ -79,7 +81,7 @@
   }
 
   /* Collapsed labels: small text under icons (same as desktop collapsed) */
-  .workspace-sidebar:not([data-sidebar-state="expanded"]) .sidebar-label {
+  .workspace-sidebar .sidebar-label {
     opacity: 1;
     width: auto;
     overflow: hidden;
@@ -88,8 +90,12 @@
     max-width: 100%;
   }
 
-  /* When expanded, full sidebar overlays content (above header z-index: 1000) */
-  .workspace-sidebar[data-sidebar-state="expanded"] {
+  /* When user explicitly opens the drawer (JS adds .drawer-open),
+     show the sidebar as a fixed overlay. The data-sidebar-state="expanded"
+     alone is NOT enough on mobile -- we require .drawer-open class
+     so the initial HTML attribute does not cause overlap. */
+  .workspace-sidebar.drawer-open,
+  .workspace-sidebar[data-sidebar-state="expanded"].drawer-open {
     position: fixed;
     top: 0;
     left: 0;
@@ -99,11 +105,24 @@
     z-index: 1100;
   }
 
-  .workspace-sidebar[data-sidebar-state="expanded"] .sidebar-inner {
+  .workspace-sidebar.drawer-open .sidebar-inner,
+  .workspace-sidebar[data-sidebar-state="expanded"].drawer-open .sidebar-inner {
     width: var(--ws-sidebar-width-expanded);
   }
 
-  .workspace-sidebar[data-sidebar-state="expanded"] ~ .sidebar-backdrop {
+  .workspace-sidebar.drawer-open .sidebar-label,
+  .workspace-sidebar[data-sidebar-state="expanded"].drawer-open .sidebar-label {
+    opacity: 1;
+    width: auto;
+    overflow: visible;
+    font-size: inherit;
+    text-overflow: clip;
+    max-width: none;
+  }
+
+  .workspace-sidebar.drawer-open ~ .sidebar-backdrop,
+  .workspace-sidebar[data-sidebar-state="expanded"].drawer-open
+    ~ .sidebar-backdrop {
     display: block;
   }
 

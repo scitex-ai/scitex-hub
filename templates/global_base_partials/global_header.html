@@ -723,29 +723,30 @@
         <div class="mobile-menu-divider"></div>
         {% if is_visitor %}
             <div class="mobile-menu-item mobile-menu-item--muted">
-                <i class="fas fa-user-clock"></i>
-                <span id="mobile-visitor-info">
-                    {% if is_readonly %}
-                        Read-Only Mode
-                    {% elif visitor_username %}
-                        Visitor #{{ visitor_username|slice:"8:" }}
-                    {% else %}
-                        Visitor Mode
-                    {% endif %}
-                </span>
-            </div>
-            {% if is_readonly %}
-                <div class="mobile-menu-item mobile-menu-item--readonly-badge">
+                {% if is_readonly %}
                     <i class="fas fa-lock"></i>
-                    <span>Read-Only — browsing only, editing disabled</span>
-                </div>
-            {% endif %}
+                    <span id="mobile-visitor-info">Read-Only Mode</span>
+                {% elif visitor_username %}
+                    <i class="fas fa-user-clock"></i>
+                    <span id="mobile-visitor-info">Visitor #{{ visitor_username|slice:"8:" }}
+                        {% if visitor_expires_at %}
+                            — <span id="mobile-visitor-countdown"
+       data-expires-at="{{ visitor_expires_at.isoformat }}">--:--</span>
+                        {% endif %}
+                    </span>
+                {% else %}
+                    <i class="fas fa-user-clock"></i>
+                    <span id="mobile-visitor-info">Visitor Mode</span>
+                {% endif %}
+            </div>
         {% endif %}
         {% if user.is_authenticated %}
-            <div class="mobile-menu-item mobile-menu-item--user">
-                <i class="fas fa-user-circle"></i>
-                <span>@{{ user.username }}</span>
-            </div>
+            {% if not is_visitor %}
+                <div class="mobile-menu-item mobile-menu-item--user">
+                    <i class="fas fa-user-circle"></i>
+                    <span>@{{ user.username }}</span>
+                </div>
+            {% endif %}
             <div class="mobile-menu-divider"></div>
             <a href="/workspace/" class="mobile-menu-item">
                 <i class="fas fa-th-large"></i>

@@ -208,6 +208,9 @@ function initializeHeader(): void {
   if (visitorMenuToggle && visitorMenuToggle.dataset.expiresAt) {
     const expiresAt = new Date(visitorMenuToggle.dataset.expiresAt);
     const countdownSpan = document.getElementById("visitor-countdown");
+    const mobileCountdownSpan = document.getElementById(
+      "mobile-visitor-countdown",
+    );
 
     function updateCountdown(): void {
       const now = new Date();
@@ -218,6 +221,10 @@ function initializeHeader(): void {
         if (countdownSpan) {
           countdownSpan.textContent = "⏰ EXPIRED";
           countdownSpan.style.color = "#f44336";
+        }
+        if (mobileCountdownSpan) {
+          mobileCountdownSpan.textContent = "EXPIRED";
+          mobileCountdownSpan.style.color = "#f44336";
         }
 
         // Don't redirect if already on visitor management or auth pages
@@ -267,6 +274,18 @@ function initializeHeader(): void {
         } else {
           // > 15 minutes: Default color
           countdownSpan.style.color = "inherit";
+        }
+      }
+
+      // Update mobile hamburger menu countdown
+      if (mobileCountdownSpan) {
+        mobileCountdownSpan.textContent = timeString;
+        if (timeLeft < 5 * 60 * 1000) {
+          mobileCountdownSpan.style.color = "#f44336";
+        } else if (timeLeft < 15 * 60 * 1000) {
+          mobileCountdownSpan.style.color = "#ff9800";
+        } else {
+          mobileCountdownSpan.style.color = "inherit";
         }
       }
     }

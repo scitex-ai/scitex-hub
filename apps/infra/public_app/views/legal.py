@@ -4,6 +4,7 @@
 # File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/views/legal.py
 # ----------------------------------------
 from __future__ import annotations
+
 import os
 
 __FILE__ = "./apps/public_app/views/legal.py"
@@ -17,6 +18,11 @@ Handles contact, privacy policy, terms of use, and cookie policy pages.
 """
 
 from django.shortcuts import render
+
+
+def donate(request):
+    """Donate page - support SciTeX development."""
+    return render(request, "public_app/legal/donate.html")
 
 
 def contact(request):

@@ -659,6 +659,17 @@
                         feedback.
                     </p>
                 </div>
+                <div class="faq-item">
+                    <h5>
+                        <i class="fas fa-question-circle"></i> How can I support SciTeX now?
+                    </h5>
+                    <p>
+                        You can support SciTeX development through
+                        <a href="https://github.com/sponsors/ywatanabe1989">GitHub Sponsors</a> or
+                        <a href="https://buymeacoffee.com/ywatanabe">Buy Me a Coffee</a>.
+                        Visit our <a href="{% url 'public_app:donate' %}">donate page</a> for details.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -670,6 +681,11 @@
             <div class="mt-4">
                 <a href="{% url 'writer_app:index' %}" class="btn btn-outline-light btn-lg mx-2">Try as Visitor</a>
                 <a href="{% url 'auth_app:signup' %}" class="btn btn-light btn-lg mx-2">Sign Up Free</a>
+            </div>
+            <div class="mt-3">
+                <a href="{% url 'public_app:donate' %}" class="btn btn-link text-light">
+                    <i class="fas fa-heart"></i> Support open science — Donate
+                </a>
             </div>
         </div>
     </section>
