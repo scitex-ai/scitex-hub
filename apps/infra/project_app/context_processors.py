@@ -120,7 +120,18 @@ def visitor_expiration_context(request):
             except VisitorAllocation.DoesNotExist:
                 pass
 
-    # Not a visitor
+    # Unauthenticated users without allocation are read-only visitors
+    if not request.user.is_authenticated:
+        return {
+            "visitor_expires_at": None,
+            "visitor_username": None,
+            "is_visitor": True,
+            "is_readonly": True,
+            "visitor_cpus": visitor_cpus,
+            "visitor_memory_gb": visitor_memory_gb,
+        }
+
+    # Authenticated non-visitor user
     return {
         "visitor_expires_at": None,
         "visitor_username": None,
