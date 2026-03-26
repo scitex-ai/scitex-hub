@@ -10,6 +10,7 @@
 
 import { initAjaxLinks, loadPageContent } from "./ajax-loader";
 import { initSidebarContextMenu } from "./context-menu";
+import { handleSidebarKeyDown } from "./keyboard";
 
 const STORAGE_KEY_SIDEBAR = "ws-sidebar-state";
 const STORAGE_KEY_PANE = "ws-active-pane";
@@ -118,10 +119,10 @@ class WorkspaceSidebar {
     // Mobile hamburger
     this.hamburger?.addEventListener("click", () => this.openDrawer());
 
-    // Backdrop click closes drawer
+    // Backdrop click closes sidebar
     this.backdrop?.addEventListener("click", () => this.closeDrawer());
 
-    // Swipe to close drawer
+    // Swipe to close sidebar
     this.sidebarInner?.addEventListener("touchstart", (e) => {
       this.touchStartX = e.touches[0].clientX;
     });
@@ -131,7 +132,9 @@ class WorkspaceSidebar {
     });
 
     // Keyboard shortcuts (Alt+key)
-    document.addEventListener("keydown", (e) => this.onKeyDown(e));
+    document.addEventListener("keydown", (e) =>
+      handleSidebarKeyDown(e, (p, h) => this.switchPane(p, h)),
+    );
 
     // Hash change (browser back/forward)
     window.addEventListener("hashchange", () => {
@@ -453,50 +456,11 @@ class WorkspaceSidebar {
   }
 
   private closeDrawer(): void {
-    this.sidebar?.classList.remove("drawer-open");
+    if (!this.sidebar) return;
+    this.sidebar.setAttribute("data-sidebar-state", "collapsed");
+    localStorage.setItem(STORAGE_KEY_SIDEBAR, "collapsed");
+    this.sidebar.classList.remove("drawer-open");
     document.body.style.overflow = "";
-  }
-
-  /* ── Keyboard shortcuts ─────────────────────────────────── */
-
-  private onKeyDown(e: KeyboardEvent): void {
-    // "/" shortcut to focus search (like GitHub/old SciTeX)
-    if (
-      e.key === "/" &&
-      !e.altKey &&
-      !e.ctrlKey &&
-      !e.metaKey &&
-      !(e.target instanceof HTMLInputElement) &&
-      !(e.target instanceof HTMLTextAreaElement)
-    ) {
-      e.preventDefault();
-      window.location.href = "/search/";
-      return;
-    }
-
-    if (!e.altKey || e.ctrlKey || e.metaKey) return;
-
-    const key = e.key.toLowerCase();
-    let pane: PaneId | null = null;
-
-    switch (key) {
-      case "a":
-        pane = "chat";
-        break;
-      case "t":
-        pane = "console";
-        break;
-      case "e":
-        pane = "editor";
-        break;
-      default:
-        return;
-    }
-
-    if (pane) {
-      e.preventDefault();
-      this.switchPane(pane, true);
-    }
   }
 }
 
