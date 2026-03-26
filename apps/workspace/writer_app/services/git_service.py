@@ -259,6 +259,13 @@ Thumbs.db
                         modified_content = diff_item.b_blob.data_stream.read().decode(
                             "utf-8", errors="replace"
                         )
+                    elif not commit_sha and file_path:
+                        # Working-directory diff: b_blob is None, read from disk
+                        working_file = self.writer_dir / file_path
+                        if working_file.is_file():
+                            modified_content = working_file.read_text(
+                                encoding="utf-8", errors="replace"
+                            )
                 except Exception as blob_err:
                     logger.debug(f"[Git] Could not read blob content: {blob_err}")
 
