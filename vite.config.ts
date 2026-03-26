@@ -268,6 +268,9 @@ export default defineConfig({
     manifest: true,
     rollupOptions: {
       input: getEntryPoints(__dirname),
+      // @hpcc-js/wasm-graphviz is loaded at runtime by GraphvizViewer;
+      // it ships WASM blobs that Rollup cannot bundle.
+      external: ["@hpcc-js/wasm-graphviz"],
       output: {
         entryFileNames: "[name]-[hash].js",
         chunkFileNames: "chunks/[name]-[hash].js",
