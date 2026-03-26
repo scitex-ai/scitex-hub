@@ -276,6 +276,40 @@ class VisitorExpirationMiddleware:
         return self.get_response(request)
 
 
+class VisitorAppRedirectMiddleware:
+    """
+    Redirect visitor users away from /apps/ URLs to the landing page.
+
+    Visitor users (visitor-* and readonly-visitor) should browse the
+    landing/public pages only. When they navigate to /apps/scholar/,
+    /apps/writer/, etc., redirect them to the landing page instead.
+
+    Excluded: /apps/tools/ (client-side, no login needed).
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if not request.user.is_authenticated:
+            return self.get_response(request)
+
+        path = request.path
+
+        # Only intercept /apps/ paths (excluding /apps/tools/ which is public)
+        if not path.startswith("/apps/") or path.startswith("/apps/tools/"):
+            return self.get_response(request)
+
+        # Redirect visitor users to landing
+        username = request.user.username
+        if username == "readonly-visitor" or username.startswith("visitor-"):
+            from django.shortcuts import redirect
+
+            return redirect("public_app:landing")
+
+        return self.get_response(request)
+
+
 class OnSiteAuthMiddleware:
     """
     Authenticate MCP tool requests from on-site agents (same container).

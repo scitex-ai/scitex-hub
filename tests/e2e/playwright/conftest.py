@@ -186,6 +186,13 @@ def visitor_storage_state(browser_type, pw_base_url):
     page = context.new_page()
 
     page.goto("/auth/login/")
+    page.wait_for_load_state("domcontentloaded")
+    # Wait for body.app-ready which disables loading screen pointer-events.
+    # The safety-net script in global_base.html guarantees this within 3s
+    # even if the Vite bundle fails to load.
+    page.wait_for_function(
+        "document.body.classList.contains('app-ready')", timeout=15000
+    )
     page.fill('input[name="username"]', TEST_USER)
     page.fill('input[name="password"]', TEST_PASS)
     page.click('button[type="submit"]')

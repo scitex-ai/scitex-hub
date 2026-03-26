@@ -167,6 +167,7 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
     "apps.infra.project_app.middleware.VisitorAutoLoginMiddleware",
     "apps.infra.project_app.middleware.VisitorExpirationMiddleware",
+    "apps.infra.project_app.middleware.VisitorAppRedirectMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.infra.project_app.middleware.GuestSessionMiddleware",
