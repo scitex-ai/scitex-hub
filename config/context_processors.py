@@ -71,8 +71,19 @@ def cache_buster(request):
 
         build_id = _cached_build_id or str(int(current_time))
     else:
-        # In production, use a fixed version from settings or environment
-        build_id = getattr(settings, "BUILD_ID", os.environ.get("BUILD_ID", "1.0.0"))
+        # In production, derive build_id from .build-timestamp or git hash
+        build_id = os.environ.get("BUILD_ID", "")
+        if not build_id:
+            try:
+                ts_file = Path(settings.STATIC_ROOT) / "vite" / ".build-timestamp"
+                if ts_file.exists():
+                    build_id = ts_file.read_text().strip()[:10]
+            except Exception:
+                pass
+        if not build_id:
+            import time
+
+            build_id = str(int(time.time()))
 
     return {"build_id": build_id}
 
