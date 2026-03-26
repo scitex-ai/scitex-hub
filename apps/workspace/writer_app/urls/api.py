@@ -252,6 +252,12 @@ urlpatterns = [
         api_views.table_update_api,
         name="api_table_update",
     ),
+    # SyncTeX reverse lookup (PDF click -> TeX source)
+    path(
+        "project/<int:project_id>/synctex/",
+        api_views.synctex_reverse_lookup,
+        name="api_synctex_reverse_lookup",
+    ),
     # Bibliography upload and regeneration
     path(
         "project/<int:project_id>/upload-bibliography/",
