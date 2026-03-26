@@ -10,9 +10,10 @@ from .index import index_view
 
 
 def root_dispatch(request, pane=None, session_token=None):
-    """Route / to hub workspace (auth) or landing page (anon).
+    """Route / to hub workspace (auth) or landing page (anon/visitor).
 
-    Authenticated users (including all visitor types) → workspace.
+    Authenticated regular users → workspace.
+    Visitor users (visitor-* and readonly-visitor) → landing page.
     Anonymous → landing page.
 
     Args:
@@ -21,10 +22,12 @@ def root_dispatch(request, pane=None, session_token=None):
         session_token: Optional chat session UUID for /chat/<uuid>/ URLs.
     """
     if request.user.is_authenticated:
-        # readonly-visitor → landing (read-only fallback, not a real workspace user)
-        if request.user.username == "readonly-visitor":
+        # Visitor users → landing page (they should browse as guests first)
+        if (
+            request.user.username == "readonly-visitor"
+            or request.user.username.startswith("visitor-")
+        ):
             return redirect("public_app:landing")
-        # All other authenticated users (including visitors) go to workspace
         if pane:
             request.initial_pane = pane
         if session_token is not None:
