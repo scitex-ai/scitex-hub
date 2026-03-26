@@ -20,7 +20,7 @@ import {
   handleSectionLocked,
   handleSectionUnlocked,
   handleConnectionChange,
-} from "@/collaboration-panel";
+} from "../../collaboration-panel";
 
 export class CollaborativeEditorManager {
   private changeTracker: ChangeTracker;
