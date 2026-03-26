@@ -189,6 +189,9 @@ export default defineConfig({
       // Ensure mermaid resolves from scitex-cloud's node_modules
       // even when dynamically imported from symlinked scitex-ui files
       mermaid: resolve(__dirname, "node_modules/mermaid"),
+      // Ensure zustand resolves from scitex-cloud's node_modules
+      // even when imported from sibling repo bridges (e.g. figrecipe)
+      zustand: resolve(__dirname, "node_modules/zustand"),
       // scitex-ui: shared component library (auto-discovered)
       ...(SCITEX_UI_STATIC
         ? {
@@ -268,9 +271,6 @@ export default defineConfig({
     manifest: true,
     rollupOptions: {
       input: getEntryPoints(__dirname),
-      // @hpcc-js/wasm-graphviz is loaded at runtime by GraphvizViewer;
-      // it ships WASM blobs that Rollup cannot bundle.
-      external: ["@hpcc-js/wasm-graphviz"],
       output: {
         entryFileNames: "[name]-[hash].js",
         chunkFileNames: "chunks/[name]-[hash].js",
