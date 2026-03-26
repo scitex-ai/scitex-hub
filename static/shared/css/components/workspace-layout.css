@@ -90,9 +90,11 @@
   }
 }
 
-/* ── Hide header on workspace pages (not landing) ──────────── */
-body.workspace-page:not(.landing-page) .global-header {
-  display: none;
+/* ── Hide header on workspace pages (desktop only) ──────────── */
+@media (min-width: 768px) {
+  body.workspace-page:not(.landing-page) .global-header {
+    display: none;
+  }
 }
 
 /* ── Landing page: hide workspace layout, show normal flow ─── */

@@ -66,93 +66,48 @@
   }
 }
 
-/* Mobile: sidebar = always-visible icon rail */
+/* Mobile: same as desktop but collapsed by default */
 @media (max-width: 767px) {
+  /* Default to collapsed state on mobile */
   .workspace-sidebar {
-    position: relative;
-    width: 52px;
-    height: 100%;
-    flex-shrink: 0;
-    z-index: 100;
+    width: var(--ws-sidebar-width-collapsed);
   }
 
   .sidebar-inner {
-    width: 52px;
-    height: 100%;
+    width: var(--ws-sidebar-width-collapsed);
   }
 
-  /* Hide labels — icon-only rail */
-  .workspace-sidebar .sidebar-label {
-    display: none !important;
+  /* Collapsed labels: small text under icons (same as desktop collapsed) */
+  .workspace-sidebar:not([data-sidebar-state="expanded"]) .sidebar-label {
+    opacity: 1;
+    width: auto;
+    overflow: hidden;
+    font-size: 10px;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
 
-  /* Hide brand text, show only logo */
-  .workspace-sidebar .sidebar-brand {
-    display: none;
+  /* When expanded, full sidebar overlays content */
+  .workspace-sidebar[data-sidebar-state="expanded"] {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--ws-sidebar-width-expanded);
+    height: 100vh;
+    height: 100dvh;
+    z-index: 200;
   }
 
-  .sidebar-header-toggle .sidebar-logo {
-    display: flex !important;
+  .workspace-sidebar[data-sidebar-state="expanded"] .sidebar-inner {
+    width: var(--ws-sidebar-width-expanded);
   }
 
-  /* Compact icon items */
-  .workspace-sidebar .sidebar-item,
-  .workspace-sidebar .sidebar-action-btn {
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 4px;
-    gap: 0;
+  .workspace-sidebar[data-sidebar-state="expanded"] ~ .sidebar-backdrop {
+    display: block;
   }
 
-  .workspace-sidebar .sidebar-item i,
-  .workspace-sidebar .sidebar-item .nav-icon-svg,
-  .workspace-sidebar .sidebar-item .tab-icon-svg,
-  .workspace-sidebar .sidebar-item .module-icon-wrap {
-    font-size: 18px;
-    width: 24px;
-  }
-
-  /* Compact header */
-  .sidebar-header-toggle {
-    justify-content: center;
-    padding: 8px 4px;
-  }
-
-  /* Hide sidebar toggle button (no expand on mobile) */
-  .sidebar-toggle-btn {
-    display: none;
-  }
-
-  /* Hide project selector on mobile (accessible via hamburger menu) */
-  .sidebar-project-selector {
-    display: none;
-  }
-
-  /* Compact groups */
-  .workspace-sidebar .sidebar-group,
-  .workspace-sidebar .sidebar-actions {
-    padding: 4px 2px;
-    align-items: center;
-  }
-
-  /* Compact divider */
-  .workspace-sidebar hr.sidebar-divider {
-    margin: 4px 4px;
-  }
-
-  /* Hide user name, show avatar only */
-  .workspace-sidebar .sidebar-user {
-    justify-content: center;
-  }
-
-  .workspace-sidebar .sidebar-username {
-    display: none;
-  }
-
-  .workspace-sidebar .sidebar-footer {
-    justify-content: center;
-    padding: 8px 4px;
+  /* iOS safe area */
+  .sidebar-footer {
     padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   }
 
