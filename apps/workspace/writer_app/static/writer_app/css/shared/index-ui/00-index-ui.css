@@ -11,6 +11,8 @@
   height: 100%;
   overflow: hidden;
   background: var(--workspace-bg-primary, #0d1117);
+  /* Prevent horizontal swipe from propagating to browser navigation */
+  overscroll-behavior-x: none;
 }
 
 .writer-container {
@@ -18,4 +20,5 @@
   min-width: 0;
   overflow: hidden;
   background: var(--workspace-bg-primary, #0d1117);
+  overscroll-behavior-x: none;
 }

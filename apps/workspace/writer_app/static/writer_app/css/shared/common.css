@@ -28,6 +28,9 @@
   background: var(--writer-surface);
   border-right: var(--border-width) solid var(--writer-border);
   overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .writer-content {

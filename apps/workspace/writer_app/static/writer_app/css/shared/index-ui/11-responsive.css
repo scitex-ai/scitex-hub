@@ -55,4 +55,22 @@
   .panel-header {
     font-size: 0.75rem;
   }
+
+  /* Files pane: prevent horizontal swipe from getting stuck on mobile */
+  .writer-sidebar {
+    touch-action: pan-y;
+    overscroll-behavior-x: none;
+  }
+
+  .writer-sidebar .stx-shell-sidebar__content {
+    touch-action: pan-y;
+    overscroll-behavior-x: none;
+  }
+
+  /* Split view panels: constrain touch to vertical scrolling only */
+  .split-view .latex-panel,
+  .split-view .preview-panel {
+    touch-action: pan-y pinch-zoom;
+    overscroll-behavior-x: none;
+  }
 }
