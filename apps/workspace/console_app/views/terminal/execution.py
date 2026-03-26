@@ -168,26 +168,21 @@ def exec_slurm_shell(
     )
     logger.debug(f"SLURM command: {' '.join(cmd)}")
 
-    # Note: host_user_dir and host_project_dir are HOST paths (not visible from container)
-    # SLURM will run on the host where these paths exist
+    # host_user_dir and host_project_dir are HOST paths.
+    # os.chdir() cannot access these from inside Docker — use srun --chdir instead.
+    # srun inherits --chdir and passes it to the SLURM job on the host.
+    srun_chdir = str(host_project_dir)
+    logger.info(f"[Terminal] Setting srun --chdir={srun_chdir} for {username}")
 
-    # Change to a directory that exists on the host (srun inherits cwd)
-    # The Django container runs from /app which doesn't exist on the host.
-    # Prefer user's project dir so terminal opens in the right place.
-    if host_project_dir.exists():
-        os.chdir(str(host_project_dir))
-    elif host_user_dir.exists():
-        logger.warning(
-            f"[Terminal] Project dir does not exist: {host_project_dir} — "
-            f"falling back to user home: {host_user_dir}"
-        )
-        os.chdir(str(host_user_dir))
-    else:
-        logger.error(
-            f"[Terminal] Neither project dir ({host_project_dir}) nor user dir "
-            f"({host_user_dir}) exist for {username}. Using /tmp as last resort."
-        )
-        os.chdir("/tmp")
+    # Insert --chdir before the srun command target (after 'srun' and its flags)
+    try:
+        chdir_idx = 1  # After 'srun'
+        cmd.insert(chdir_idx, f"--chdir={srun_chdir}")
+    except Exception as e:
+        logger.error(f"[Terminal] Failed to insert --chdir into srun cmd: {e}")
+
+    # Set cwd to /tmp as safe default for the Docker-side exec
+    os.chdir("/tmp")
 
     # Reset signal handlers to default before exec to avoid EINTR in srun
     # This helps prevent "pty: accept failure: Interrupted system call" errors
