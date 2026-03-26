@@ -280,6 +280,7 @@
   margin: 0 auto;
   padding: 8px 24px 20px;
   background: transparent !important;
+  border-top: none !important;
   display: flex !important;
   flex-direction: column;
 }
@@ -377,9 +378,8 @@
     border-bottom: none !important;
   }
 
-  /* Remove border between messages and input area */
+  /* Compact input area padding on mobile */
   #pane-chat .stx-shell-ai-input-area {
-    border-top: none !important;
     padding: 4px 12px 12px !important;
   }
 
