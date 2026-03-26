@@ -172,8 +172,14 @@ def exec_slurm_shell(
     # SLURM will run on the host where these paths exist
 
     # Change to a directory that exists on the host (srun inherits cwd)
-    # The Django container runs from /app which doesn't exist on the host
-    os.chdir("/tmp")
+    # The Django container runs from /app which doesn't exist on the host.
+    # Prefer user's project dir so terminal opens in the right place.
+    if host_project_dir.exists():
+        os.chdir(str(host_project_dir))
+    elif host_user_dir.exists():
+        os.chdir(str(host_user_dir))
+    else:
+        os.chdir("/tmp")
 
     # Reset signal handlers to default before exec to avoid EINTR in srun
     # This helps prevent "pty: accept failure: Interrupted system call" errors
