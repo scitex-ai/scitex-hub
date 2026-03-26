@@ -88,6 +88,18 @@
     flex: 1;
     min-height: 0;
   }
+
+  /* On 375px screens a 280px sidebar leaves ~95px for content.
+     Use single-pane tab switching: only the active pane is visible. */
+  .workspace-pane {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ensure pane content areas can scroll on mobile */
+  .workspace-pane[data-pane="module"] {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* ── Hide header on workspace pages (desktop only) ──────────── */

@@ -73,4 +73,46 @@
     touch-action: pan-y pinch-zoom;
     overscroll-behavior-x: none;
   }
+
+  /* Prevent sub-48px collapse on mobile — min-width: 0 on flex items
+     allows them to shrink below content size. Enforce a usable minimum. */
+  .split-view .latex-panel:not(.collapsed),
+  .split-view .preview-panel:not(.collapsed) {
+    min-width: 120px;
+  }
+
+  /* Collapsed panels keep their 48px strip */
+  .split-view .latex-panel.collapsed,
+  .split-view .preview-panel.collapsed {
+    min-width: var(--ui-collapsed-pane-width, 48px);
+    flex: 0 0 var(--ui-collapsed-pane-width, 48px);
+  }
+}
+
+/* Very narrow mobile: single-pane mode for writer */
+@media (max-width: 480px) {
+  .split-view {
+    flex-direction: column !important;
+    height: auto !important;
+  }
+
+  .split-view .latex-panel,
+  .split-view .preview-panel {
+    width: 100% !important;
+    min-width: 100% !important;
+    flex: none !important;
+    height: 50vh;
+  }
+
+  .split-view .latex-panel.collapsed,
+  .split-view .preview-panel.collapsed {
+    height: var(--ui-collapsed-pane-width, 48px);
+    min-width: 100% !important;
+    flex: none !important;
+  }
+
+  /* Hide resizer in single-pane mode */
+  .split-view .panel-resizer {
+    display: none;
+  }
 }

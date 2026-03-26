@@ -233,6 +233,53 @@
 }
 
 /* ===============================================
+   MOBILE RESPONSIVE — Scholar Module
+   On narrow screens, hide inline side panels
+   and allow content to scroll freely.
+   =============================================== */
+
+@media (max-width: 767px) {
+  /* Side panels: overlay or hide on mobile */
+  #tab-search .search-controls-inline,
+  #tab-bibtex .bibtex-controls-inline,
+  #tab-graph .graph-controls-inline {
+    display: none;
+  }
+
+  /* Tab resizers not needed on mobile */
+  .scholar-tab-resizer {
+    display: none;
+  }
+
+  /* Allow vertical scroll on tab containers */
+  #tab-search,
+  #tab-bibtex,
+  #tab-graph {
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Search container scrolls vertically */
+  #tab-search .scholar-search-container {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Properties panel: full-width below content on mobile */
+  .scholar-properties {
+    width: 100% !important;
+    min-width: unset !important;
+    max-height: 40vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ===============================================
    TWO-COLUMN SPLIT LAYOUT FOR ALL TABS
    Each tab has: left-panel | resizer | right-panel
    =============================================== */
