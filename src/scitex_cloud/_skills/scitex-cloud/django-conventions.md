@@ -81,3 +81,13 @@ url = mod.url
 ## Legacy Code
 
 When old code causes confusion (e.g., outdated patterns, deprecated approaches), move it to a `legacy/` subdirectory rather than patching it. Let errors surface instead of masking them with compatibility shims. Delete or isolate, don't wrap.
+
+## Design Reference: Anthropic (守破離)
+
+When unsure about UX/design decisions, follow Anthropic's patterns:
+- Page layout (desktop/mobile): reference claude.ai
+- Branding: snake icon only in chat/AI context, keep generic icons elsewhere
+- Don't push brand in every UI element — subtlety over saturation
+- Mobile responsiveness: match Anthropic-level polish
+
+This is the Shu-Ha-Ri principle — master by imitation first, then innovate.
