@@ -266,7 +266,6 @@ _WORKSPACE_EXTRA_PREFIXES = (
     "/files/",
     "/ai-setup/",
     "/search/",
-    "/apps/dev__",
 )
 
 
@@ -274,8 +273,8 @@ def is_workspace_path(path: str) -> bool:
     """Check if a URL path belongs to a workspace module or extra workspace page."""
     if path == "/":
         return True
-    for mod in sorted(_registry, key=lambda m: len(m.url or ""), reverse=True):
-        if mod.url and path.startswith(mod.url):
+    for mod in sorted(_registry, key=lambda m: len(m.get_url()), reverse=True):
+        if path.startswith(mod.get_url()):
             return True
     for prefix in _WORKSPACE_EXTRA_PREFIXES:
         if path.startswith(prefix):
@@ -287,8 +286,8 @@ def extract_module_from_path(path: str) -> Optional[str]:
     """Extract module name from URL path. Returns None if not a module path."""
     if path == "/":
         return "home"
-    for mod in sorted(_registry, key=lambda m: len(m.url or ""), reverse=True):
-        if mod.url and path.startswith(mod.url):
+    for mod in sorted(_registry, key=lambda m: len(m.get_url()), reverse=True):
+        if path.startswith(mod.get_url()):
             return mod.name
     # Dev-installed apps: /apps/dev__<owner>__<repo>/
     if path.startswith("/apps/dev__"):

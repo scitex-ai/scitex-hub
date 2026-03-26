@@ -24,12 +24,9 @@ def workspace_context(request):
     if path == "/landing/":
         is_ws = False
 
-    # Root "/" is only workspace for authenticated non-visitor users
-    if path == "/" and (
-        not request.user.is_authenticated
-        or request.user.username.startswith("visitor-")
-        or request.user.username == "readonly-visitor"
-    ):
+    # Root "/" is workspace for all authenticated users (including visitors).
+    # readonly-visitor is already redirected to landing in dispatch.py.
+    if path == "/" and not request.user.is_authenticated:
         is_ws = False
 
     # User profile pages (/<username>/...) should also show workspace chrome
