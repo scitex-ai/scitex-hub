@@ -65,3 +65,15 @@
   height: 100%;
   object-fit: cover;
 }
+
+/* Visitor End Session Link - subtle styling at bottom of visitor dropdown */
+.visitor-end-session-link {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.visitor-end-session-link .dropdown-item-icon {
+  margin-right: 6px;
+  vertical-align: text-bottom;
+}

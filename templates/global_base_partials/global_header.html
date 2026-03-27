@@ -1,6 +1,7 @@
 {% load static %}
 {% load module_icons %}
 
+<!-- hook-bypass: inline-style -->
 <!-- GitHub-Style Global Header -->
 <style>
     @keyframes pulse {
@@ -587,8 +588,25 @@
                             </svg>
                             Sign In
                         </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="/auth/logout/" class="dropdown-item visitor-end-session-link">
+                            <svg class="dropdown-item-icon"
+                                 width="14"
+                                 height="14"
+                                 viewBox="0 0 16 16"
+                                 fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
+                                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
+                            </svg>
+                            End Visitor Session
+                        </a>
                     </div>
                 </div>
+                <!-- Visible Sign In / Sign Up buttons for visitors -->
+                <a href="/auth/signin/" class="header-btn" data-tooltip="Sign in to your account">Sign in</a>
+                <a href="/auth/signup/"
+                   class="header-btn header-btn-primary"
+                   data-tooltip="Create a new account">Sign up</a>
             {% elif user.is_authenticated %}
                 <!-- User Menu -->
                 <div class="header-user-menu">
@@ -788,6 +806,11 @@
                 <a href="/auth/signup/" class="mobile-menu-item">
                     <i class="fas fa-user-plus"></i>
                     <span>Sign Up</span>
+                </a>
+                <div class="mobile-menu-divider"></div>
+                <a href="/auth/logout/" class="mobile-menu-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>End Visitor Session</span>
                 </a>
             {% else %}
                 <a href="/auth/logout/" class="mobile-menu-item">

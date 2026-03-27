@@ -152,6 +152,18 @@
                         </span>
                         <span class="sidebar-label sidebar-username">{{ user.username }}</span>
                     </a>
+                    <a href="/auth/logout/"
+                       class="sidebar-action-btn sidebar-logout-btn"
+                       title="{% if user.username|slice:':8' == 'visitor-' or user.username == 'readonly-visitor' %}End Session{% else %}Sign Out{% endif %}">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="sidebar-label">
+                            {% if user.username|slice:':8' == 'visitor-' or user.username == 'readonly-visitor' %}
+                                End Session
+                            {% else %}
+                                Sign Out
+                            {% endif %}
+                        </span>
+                    </a>
                 </div>
             </div>
             <!-- /sidebar-bottom -->

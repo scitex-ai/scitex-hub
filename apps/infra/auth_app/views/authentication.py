@@ -234,8 +234,8 @@ def login_view(request):
                 # Redirect to next page or user's project page
                 next_page = request.GET.get("next")
                 if not next_page:
-                    # Default to workspace (most useful landing after login)
-                    next_page = "/workspace/"
+                    # Default to hub root (Gitea-style project dashboard)
+                    next_page = "/"
 
                 messages.success(request, f"Welcome back, @{user.username}!")
 

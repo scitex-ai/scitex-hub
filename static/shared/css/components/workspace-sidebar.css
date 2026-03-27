@@ -405,6 +405,30 @@
   display: none;
 }
 
+/* Sidebar logout/end-session button */
+.sidebar-logout-btn {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 14px;
+  color: var(--ws-sidebar-muted-text);
+  padding: 4px 8px;
+}
+
+.sidebar-logout-btn:hover {
+  color: var(--ws-sidebar-text);
+}
+
+.workspace-sidebar .sidebar-footer {
+  flex-wrap: wrap;
+}
+
+.workspace-sidebar[data-sidebar-state="collapsed"] .sidebar-logout-btn {
+  display: flex;
+  margin-left: 0;
+  justify-content: center;
+  width: 100%;
+}
+
 /* ── Drag-and-drop reorder ─────────────────────────────────── */
 .sidebar-item.sidebar-dragging {
   opacity: 0.5;

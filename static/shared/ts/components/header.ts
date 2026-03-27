@@ -206,8 +206,16 @@ function initializeHeader(): void {
   }
 
   // Visitor Mode Countdown Timer
-  if (visitorMenuToggle && visitorMenuToggle.dataset.expiresAt) {
-    const expiresAt = new Date(visitorMenuToggle.dataset.expiresAt);
+  // Try visitorMenuToggle first, fall back to the mobile badge for expires-at data
+  const mobileBadge = document.querySelector(
+    ".header-visitor-badge-mobile",
+  ) as HTMLElement | null;
+  const expiresAtSource =
+    (visitorMenuToggle && visitorMenuToggle.dataset.expiresAt) ||
+    (mobileBadge && mobileBadge.dataset.expiresAt) ||
+    null;
+  if (expiresAtSource) {
+    const expiresAt = new Date(expiresAtSource);
     const countdownSpan = document.getElementById("visitor-countdown");
     const mobileCountdownSpan = document.getElementById(
       "mobile-visitor-countdown",

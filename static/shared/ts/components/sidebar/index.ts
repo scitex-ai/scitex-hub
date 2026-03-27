@@ -87,11 +87,14 @@ class WorkspaceSidebar {
     const trackModule =
       urlModule || document.body.getAttribute("data-track-module");
 
-    if (
-      trackModule &&
-      trackModule !== "files" &&
-      !(trackModule === "home" && path === "/")
-    ) {
+    if (trackModule === "home" && path === "/") {
+      // Root "/" renders the Hub (Gitea-style dashboard) in the module pane.
+      // Activate it so the hub content is visible instead of falling through
+      // to the last-used core pane (which would hide the hub content).
+      this.switchPane("module", false);
+      // Clear all sidebar-item highlights — the logo link is the "Home" affordance
+      this.items?.forEach((i) => i.classList.remove("active"));
+    } else if (trackModule && trackModule !== "files") {
       this.switchPane("module", false);
       this.highlightModuleItem(trackModule);
     } else if (path.startsWith("/ai-setup/")) {
