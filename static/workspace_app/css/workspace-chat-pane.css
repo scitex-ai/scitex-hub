@@ -46,11 +46,12 @@
   display: none !important;
 }
 
-#pane-chat .stx-shell-ai-console-view {
+/* ID selectors (elements use class="stx-shell-ai-view", not class=*-console/chat-view) */
+#pane-chat #stx-shell-ai-console-view {
   display: none !important;
 }
 
-#pane-chat .stx-shell-ai-chat-view {
+#pane-chat #stx-shell-ai-chat-view {
   display: flex !important;
   flex-direction: column;
   width: 100% !important;
@@ -448,7 +449,12 @@
 
 /* ── Mobile: remove horizontal lines, wider input ── */
 @media (max-width: 768px) {
-  /* Remove border between session tabs and messages */
+  /* Override scitex-ui mobile.css height:auto — panel must fill container */
+  #pane-chat #stx-shell-ai-panel {
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+
   #pane-chat .stx-shell-ai-sessions-bar {
     border-bottom: none !important;
   }
