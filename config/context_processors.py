@@ -72,14 +72,16 @@ def cache_buster(request):
         build_id = _cached_build_id or str(int(current_time))
     else:
         # In production, derive build_id from .build-timestamp or git hash
-        build_id = os.environ.get("BUILD_ID", "")
+        # Prefer timestamp file over BUILD_ID env var (which defaults to "1.0.0" in Dockerfile)
+        build_id = ""
+        try:
+            ts_file = Path(settings.STATIC_ROOT) / "vite" / ".build-timestamp"
+            if ts_file.exists():
+                build_id = ts_file.read_text().strip()[:10]
+        except Exception:
+            pass
         if not build_id:
-            try:
-                ts_file = Path(settings.STATIC_ROOT) / "vite" / ".build-timestamp"
-                if ts_file.exists():
-                    build_id = ts_file.read_text().strip()[:10]
-            except Exception:
-                pass
+            build_id = os.environ.get("BUILD_ID", "")
         if not build_id:
             import time
 
