@@ -140,14 +140,18 @@ def exec_command(request):
     return JsonResponse({"error": "Only POST allowed"}, status=405)
 
 
-@login_required
 def workspace_shell(request, module="chat"):
-    """Shell page — renders once. Modules load via AJAX into right pane."""
+    """Shell page — renders once. Modules load via AJAX into right pane.
+
+    Unauthenticated users are redirected to the landing page (not login)
+    to avoid a confusing 404 or login-wall when visiting /workspace/ directly.
+    """
+    if not request.user.is_authenticated:
+        return redirect("public_app:landing")
+
     from apps.infra.project_app.services.project_utils import get_current_project
 
-    current_project = (
-        get_current_project(request) if request.user.is_authenticated else None
-    )
+    current_project = get_current_project(request)
     return render(
         request,
         "workspace_app/shell.html",

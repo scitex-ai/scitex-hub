@@ -66,6 +66,41 @@
   align-items: center;
 }
 
+/* Share button — sibling of .stx-shell-ai-panel-actions inside sessions bar */
+.stx-shell-ai-share-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-muted, #8b949e);
+  cursor: pointer;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.stx-shell-ai-share-btn:hover {
+  background: rgba(177, 186, 196, 0.08);
+  color: var(--text-primary, #f0f6fc);
+}
+
+/* Active (shared) state — blue accent */
+.stx-shell-ai-share-btn.active {
+  color: var(--text-link, #58a6ff);
+}
+
+.stx-shell-ai-share-btn.active:hover {
+  color: var(--text-link, #58a6ff);
+  background: rgba(56, 139, 253, 0.12);
+}
+
 /* Session tab items width override */
 #pane-chat .stx-shell-ai-session-item {
   width: auto !important;
@@ -340,6 +375,46 @@
   border-color: var(--text-secondary, #c9d1d9);
 }
 
+/* Model dropdown: absolute-positioned menu spawned by badge click */
+.ai-model-dropdown {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  min-width: 200px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--bg-secondary, #161b22);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  padding: 4px 0;
+  margin-bottom: 4px;
+}
+
+.ai-model-dropdown-item {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-primary, #f0f6fc);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-model-dropdown-item:hover {
+  background: rgba(56, 139, 253, 0.1);
+}
+
+.ai-model-dropdown-item.selected {
+  color: var(--color-accent-fg, #58a6ff);
+  font-weight: 600;
+}
+
+.ai-model-dropdown-item.selected::before {
+  content: "\2713 ";
+}
+
 /* Image previews container */
 #pane-chat .stx-shell-ai-image-previews {
   order: 0;
@@ -407,11 +482,24 @@
   #pane-chat
     .stx-shell-ai-sessions-bar
     .stx-shell-ai-panel-actions
-    button[title="Print"],
-  #pane-chat
-    .stx-shell-ai-sessions-bar
-    .stx-shell-ai-panel-actions
-    button[title="Share"] {
+    button[title="Print"] {
     display: none !important;
+  }
+
+  /* Share button is a sibling of .stx-shell-ai-panel-actions, not inside it */
+  #pane-chat .stx-shell-ai-sessions-bar .stx-shell-ai-share-btn {
+    display: none !important;
+  }
+
+  /* Model dropdown: full-width on mobile for easier tap targets */
+  .ai-model-dropdown {
+    left: 0;
+    right: 0;
+    min-width: unset;
+  }
+
+  .ai-model-dropdown-item {
+    padding: 12px 14px;
+    font-size: 14px;
   }
 }

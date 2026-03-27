@@ -64,5 +64,11 @@ export function fetchAndPopulateLlmModels(
         updateBadges();
       });
     })
-    .catch(() => {});
+    .catch((err) => {
+      console.error("[llm-model-selector] Failed to fetch providers:", err);
+      const opt = document.createElement("option");
+      opt.textContent = "Failed to load models";
+      opt.disabled = true;
+      select.appendChild(opt);
+    });
 }
