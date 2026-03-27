@@ -1,11 +1,11 @@
 {
-  "name": "SciTeX",
+  "name": "SciTeX - Scientific Research Platform",
   "short_name": "SciTeX",
   "description": "Scientific computing workspace — local, cloud, self-hosting",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0d1117",
-  "theme_color": "#161b22",
+  "theme_color": "#0d1117",
   "orientation": "any",
   "icons": [
     {

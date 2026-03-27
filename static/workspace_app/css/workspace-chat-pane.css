@@ -46,7 +46,6 @@
   display: none !important;
 }
 
-/* ID selectors (elements use class="stx-shell-ai-view", not class=*-console/chat-view) */
 #pane-chat #stx-shell-ai-console-view {
   display: none !important;
 }
@@ -57,8 +56,6 @@
   width: 100% !important;
   height: 100%;
 }
-
-/* Tab bar styles: see workspace-tabbar.css (single source of truth) */
 
 /* Chat-specific: action buttons panel */
 #pane-chat .stx-shell-ai-sessions-bar .stx-shell-ai-panel-actions {
@@ -175,7 +172,6 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
-/* Remove old ::before (no avatar above) */
 #pane-chat .stx-shell-ai-msg.assistant::before {
   display: none;
 }
@@ -197,7 +193,6 @@
   }
 }
 
-/* Typing/loading — no separate avatar (streaming avatar handles it) */
 #pane-chat .stx-shell-ai-typing {
   padding-left: 0;
 }
@@ -421,8 +416,6 @@
   order: 0;
 }
 
-/* Keep all input buttons visible (camera, sketch, mic, gear) */
-
 /* Input buttons: subtle */
 #pane-chat .stx-shell-ai-input-btn,
 #pane-chat .stx-shell-ai-mic {
@@ -495,6 +488,12 @@
   /* Share button is a sibling of .stx-shell-ai-panel-actions, not inside it */
   #pane-chat .stx-shell-ai-sessions-bar .stx-shell-ai-share-btn {
     display: none !important;
+  }
+
+  #pane-chat .stx-shell-sidebar__content {
+    flex: 1 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
   }
 
   /* Model dropdown: full-width on mobile for easier tap targets */

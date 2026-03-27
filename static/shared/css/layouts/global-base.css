@@ -261,6 +261,30 @@ body.workspace-page.landing-page .site-footer {
    Responsive Adjustments
    ========================= */
 
+/* =========================
+   iPhone Safe Area Insets
+   Prevents Safari URL bar from overlapping page content.
+   Requires <meta name="viewport" ... viewport-fit=cover> (set in global_head_meta.html).
+   ========================= */
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .workspace-sidebar {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .site-footer {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* =========================
+   Responsive Adjustments
+   ========================= */
+
 @media (max-width: 768px) {
   .django-alert {
     padding: 0.875rem 2.5rem 0.875rem 0.875rem;
