@@ -14,7 +14,8 @@ function initializeMobileHamburger(): void {
   const menu = document.getElementById("mobile-header-menu");
   if (!btn || !menu) return;
 
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation(); // Prevent header collapse handlers from firing
     const isOpen = menu.classList.toggle("open");
     const icon = btn.querySelector("i");
     if (icon) {
@@ -464,8 +465,11 @@ function initializeHeaderCollapse(): void {
   });
 
   // Double-click on expanded header → collapse (works on both desktop and mobile)
+  // Skip if the dblclick originated from the mobile hamburger button
   header.addEventListener("dblclick", (e: MouseEvent) => {
     if (!header.classList.contains("collapsed")) {
+      const target = e.target as Element;
+      if (target.closest(".mobile-hamburger")) return;
       e.preventDefault();
       doToggle();
     }
