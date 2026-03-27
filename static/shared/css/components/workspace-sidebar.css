@@ -23,7 +23,7 @@
   flex-shrink: 0;
   width: var(--ws-sidebar-width-expanded);
   height: 100%;
-  z-index: 100;
+  z-index: 1001; /* Above .global-header (z-index:1000) so toggle button is never hidden */
   transition: width var(--ws-sidebar-transition);
 }
 

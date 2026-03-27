@@ -45,6 +45,7 @@
 .workspace-pane[data-pane="files"],
 .workspace-pane[data-pane="editor"] {
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
 /* ── Pane content stretching ───────────────────────────────── */
@@ -93,6 +94,13 @@
      Use single-pane tab switching: only the active pane is visible. */
   .workspace-pane {
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Editor pane: prevent horizontal swipe from getting stuck */
+  .workspace-pane[data-pane="editor"] {
+    touch-action: pan-y pinch-zoom;
+    overscroll-behavior: none;
   }
 
   /* Ensure pane content areas can scroll on mobile */

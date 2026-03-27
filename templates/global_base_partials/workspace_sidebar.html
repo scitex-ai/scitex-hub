@@ -2,6 +2,24 @@
 
 {% if user.is_authenticated %}
     <aside id="workspace-sidebar" class="workspace-sidebar" data-sidebar-state="expanded">
+        <!-- hook-bypass: inline-script -->
+        <!-- Critical: detect mobile viewport and collapse sidebar BEFORE first paint.
+         Must be inline/synchronous to prevent FOUC (expanded sidebar flash on mobile).
+         Same rationale as the critical CSS inline in global_head_styles.html. -->
+        <script>
+      (function() {
+        var el = document.getElementById('workspace-sidebar');
+        if (!el) return;
+        if (window.matchMedia('(max-width: 767px)').matches) {
+          el.setAttribute('data-sidebar-state', 'collapsed');
+        } else {
+          var saved = localStorage.getItem('ws-sidebar-state');
+          if (saved === 'collapsed') {
+            el.setAttribute('data-sidebar-state', 'collapsed');
+          }
+        }
+      })();
+        </script>
         <!-- Mobile backdrop -->
         <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
         <nav class="sidebar-inner" id="sidebar-inner">
