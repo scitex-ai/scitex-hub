@@ -11,6 +11,7 @@ import type {
   GitDiff,
   GitStatus,
 } from "./_git-history/types";
+import { getCsrfToken } from "../shared/utils";
 
 export type {
   GitCommit,
@@ -27,6 +28,10 @@ export class GitHistoryManager {
   private diffContent!: HTMLElement;
   private branchSelect!: HTMLSelectElement;
   private statusBadge!: HTMLElement;
+  private commitForm!: HTMLElement;
+  private commitMessageInput!: HTMLInputElement;
+  private commitBtn!: HTMLButtonElement;
+  private commitFeedback!: HTMLElement;
   private currentCommits: GitCommit[] = [];
   private selectedCommit: string | null = null;
   private gitDiffViewer: GitDiffViewer | null = null;
@@ -59,6 +64,21 @@ export class GitHistoryManager {
     this.branchSelect = branchSelect;
     this.statusBadge = statusBadge;
 
+    const commitForm = document.getElementById("gitCommitForm");
+    const commitMsg = document.getElementById(
+      "gitCommitMessage",
+    ) as HTMLInputElement;
+    const commitBtn = document.getElementById(
+      "gitCommitBtn",
+    ) as HTMLButtonElement;
+    const commitFeedback = document.getElementById("gitCommitFeedback");
+    if (commitForm && commitMsg && commitBtn && commitFeedback) {
+      this.commitForm = commitForm;
+      this.commitMessageInput = commitMsg;
+      this.commitBtn = commitBtn;
+      this.commitFeedback = commitFeedback;
+    }
+
     this.setupEventListeners();
     console.log("[GitHistory] Initialized with project:", projectId);
   }
@@ -77,6 +97,29 @@ export class GitHistoryManager {
     this.branchSelect.addEventListener("change", () => {
       this.loadHistory();
     });
+
+    if (this.commitBtn) {
+      this.commitBtn.addEventListener("click", () => {
+        const msg = this.commitMessageInput.value.trim();
+        if (msg) {
+          this.createCommit(msg);
+        }
+      });
+    }
+
+    if (this.commitMessageInput) {
+      this.commitMessageInput.addEventListener(
+        "keydown",
+        (e: KeyboardEvent) => {
+          if (e.key === "Enter") {
+            const msg = this.commitMessageInput.value.trim();
+            if (msg) {
+              this.createCommit(msg);
+            }
+          }
+        },
+      );
+    }
   }
 
   // ── Data loading ───────────────────────────────────────────────────
@@ -154,8 +197,52 @@ export class GitHistoryManager {
         this.statusBadge.className = "badge bg-warning";
         this.statusBadge.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i>${total} uncommitted change${total !== 1 ? "s" : ""}`;
       }
+
+      if (this.commitForm) {
+        this.commitForm.style.display = status.clean ? "none" : "block";
+      }
     } catch (error) {
       console.error("[GitHistory] Error loading status:", error);
+    }
+  }
+
+  // ── Commit creation ───────────────────────────────────────────────
+
+  public async createCommit(message: string): Promise<void> {
+    this.commitBtn.disabled = true;
+    this.commitFeedback.style.display = "none";
+
+    try {
+      const response = await fetch(
+        `/apps/writer/api/project/${this.projectId}/git/commit/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCsrfToken(),
+          },
+          body: JSON.stringify({ message }),
+        },
+      );
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Commit failed");
+      }
+
+      this.commitMessageInput.value = "";
+      this.commitFeedback.style.display = "block";
+      this.commitFeedback.className = "git-commit-feedback text-success";
+      this.commitFeedback.textContent = `Committed ${data.commit_sha_short}`;
+
+      await Promise.all([this.loadHistory(), this.loadStatus()]);
+    } catch (error: any) {
+      console.error("[GitHistory] Commit error:", error);
+      this.commitFeedback.style.display = "block";
+      this.commitFeedback.className = "git-commit-feedback text-danger";
+      this.commitFeedback.textContent = error.message;
+    } finally {
+      this.commitBtn.disabled = false;
     }
   }
 
