@@ -54,7 +54,8 @@
   display: flex !important;
   flex-direction: column;
   width: 100% !important;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 /* Chat-specific: action buttons panel */
@@ -440,71 +441,4 @@
   display: none !important;
 }
 
-/* ── Mobile: remove horizontal lines, wider input ── */
-@media (max-width: 768px) {
-  /* Override scitex-ui mobile.css height:auto — panel must fill container */
-  #pane-chat #stx-shell-ai-panel {
-    height: 100% !important;
-    overflow: hidden !important;
-  }
-
-  #pane-chat .stx-shell-ai-sessions-bar {
-    border-bottom: none !important;
-  }
-
-  /* Compact input area padding on mobile */
-  #pane-chat .stx-shell-ai-input-area {
-    padding: 4px 12px 12px !important;
-  }
-
-  /* Wider input area on mobile */
-  #pane-chat .stx-shell-ai-input-wrap {
-    border-radius: 16px !important;
-    padding: 12px 14px 8px !important;
-  }
-
-  /* Smaller messages padding on mobile */
-  #pane-chat .stx-shell-ai-messages {
-    padding: 12px 12px 8px !important;
-  }
-
-  /* Hide non-essential action buttons on mobile (copy, print, share) */
-  #pane-chat .stx-shell-ai-sessions-bar .stx-shell-ai-panel-actions {
-    gap: 2px;
-  }
-
-  /* Keep only delete and essential buttons visible */
-  #pane-chat
-    .stx-shell-ai-sessions-bar
-    .stx-shell-ai-panel-actions
-    button[title="Copy"],
-  #pane-chat
-    .stx-shell-ai-sessions-bar
-    .stx-shell-ai-panel-actions
-    button[title="Print"] {
-    display: none !important;
-  }
-
-  /* Share button is a sibling of .stx-shell-ai-panel-actions, not inside it */
-  #pane-chat .stx-shell-ai-sessions-bar .stx-shell-ai-share-btn {
-    display: none !important;
-  }
-
-  #pane-chat .stx-shell-sidebar__content {
-    flex: 1 !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
-  }
-
-  /* Model dropdown: full-width on mobile for easier tap targets */
-  .ai-model-dropdown {
-    left: 0;
-    right: 0;
-    min-width: unset;
-  }
-
-  .ai-model-dropdown-item {
-    padding: 12px 14px;
-    font-size: 14px;
-  }
-}
+/* Mobile rules: see workspace-chat-pane-mobile.css */
