@@ -49,8 +49,9 @@ _PLATFORM_APPS = frozenset(
     }
 )
 
-# Cache manifest in production
+# Cache manifest in production (with mtime for auto-invalidation after rebuilds)
 _manifest_cache = None
+_manifest_mtime: float = 0.0
 
 # Cache name→entry reverse index for manifest lookups
 _manifest_name_index: dict | None = None
@@ -85,19 +86,34 @@ def _find_app_ts_path(app_name: str, ts_rest: str) -> str:
 
 
 def get_manifest() -> dict:
-    """Load the Vite manifest file (production only)."""
-    global _manifest_cache
-    if _manifest_cache is not None:
-        return _manifest_cache
+    """Load the Vite manifest file (production only).
+
+    Re-reads from disk when the file's mtime changes, so a Vite rebuild
+    is picked up without restarting Django workers.
+    """
+    global _manifest_cache, _manifest_mtime, _manifest_name_index
 
     manifest_path = (
         Path(settings.BASE_DIR) / "staticfiles" / "vite" / ".vite" / "manifest.json"
     )
-    if manifest_path.exists():
-        with open(manifest_path) as f:
-            _manifest_cache = json.load(f)
-    else:
+
+    try:
+        current_mtime = manifest_path.stat().st_mtime
+    except OSError:
+        # File doesn't exist — return empty and don't cache
         _manifest_cache = {}
+        _manifest_mtime = 0.0
+        _manifest_name_index = None
+        return _manifest_cache
+
+    if _manifest_cache is not None and current_mtime == _manifest_mtime:
+        return _manifest_cache
+
+    with open(manifest_path) as f:
+        _manifest_cache = json.load(f)
+    _manifest_mtime = current_mtime
+    # Invalidate the name index so it gets rebuilt from the new manifest
+    _manifest_name_index = None
 
     return _manifest_cache
 
@@ -145,8 +161,8 @@ def vite_hmr_client():
             f"document.head.appendChild(s2);"
             f"</script>"
         )
-    else:
-        # Production: dev app Vite HMR through nginx proxy
+    elif getattr(settings, "VITE_DEV_APP_ENABLED", False):
+        # Production with dev apps: HMR through nginx proxy (only when explicitly enabled)
         scripts += '<script type="module" src="/_vite_dev_app/@vite/client" onerror=""></script>'
 
     return mark_safe(scripts) if scripts else ""
