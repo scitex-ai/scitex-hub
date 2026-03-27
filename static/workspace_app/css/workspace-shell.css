@@ -27,8 +27,6 @@
   height: 100%;
   position: relative;
   overflow: visible;
-  touch-action: pan-y;
-  overscroll-behavior-x: none;
 }
 
 .ws-worktree-pane #ws-worktree-sidebar {
@@ -37,8 +35,6 @@
   height: 100%;
   background: var(--bg-secondary, #161b22);
   overflow: visible;
-  touch-action: pan-y;
-  overscroll-behavior-x: none;
 }
 
 /* ── Full-pane viewer ──────────────────────────────────────── */
@@ -158,8 +154,6 @@
   height: 100%;
   border-right: 1px solid var(--border-default, #30363d);
   overflow: hidden;
-  touch-action: pan-y;
-  overscroll-behavior-x: none;
 }
 
 .editor-split-right {
@@ -167,8 +161,6 @@
   min-width: 0;
   height: 100%;
   overflow: hidden;
-  touch-action: pan-y pinch-zoom;
-  overscroll-behavior-x: none;
 }
 
 /* Inner panels in editor split fill their container */
