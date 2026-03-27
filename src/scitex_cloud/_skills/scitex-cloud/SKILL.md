@@ -5,6 +5,14 @@ allowed-tools: mcp__scitex__cloud_*
 
 # scitex-cloud Skills Index
 
+## Installation
+
+```bash
+pip install scitex-cloud
+# Development:
+pip install -e /home/ywatanabe/proj/scitex-cloud
+```
+
 This directory contains focused skill files for the scitex-cloud package.
 
 ## Sub-Skills
