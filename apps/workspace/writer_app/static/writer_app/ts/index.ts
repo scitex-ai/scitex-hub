@@ -90,10 +90,20 @@ import {
   updateStatusLamp,
   updateSlimProgress,
   restoreCompilationStatus,
+  setupSidebarButtons,
+  setupPDFZoomControls,
+  openPDF,
+  loadPanelCSS,
+  switchRightPanel,
+} from "./utils/index";
+// Direct imports to avoid circular dependencies through barrel re-exports
+import {
   populateSectionDropdownDirect,
   syncDropdownToSection,
   handleDocTypeSwitch,
   toggleSectionVisibility,
+} from "./utils/_section-dropdown/index";
+import {
   setupSectionListeners,
   loadSectionContent,
   switchSection,
@@ -101,15 +111,12 @@ import {
   loadCompiledPDF,
   setupSectionManagementButtons,
   clearCompileTimeout,
+} from "./utils/section-management";
+import {
   setupCompilationListeners,
   handleCompileFull,
   handleCompile,
-  setupSidebarButtons,
-  setupPDFZoomControls,
-  openPDF,
-  loadPanelCSS,
-  switchRightPanel,
-} from "./utils/index";
+} from "./utils/compilation-handlers";
 
 // Import and initialize editor loader (must happen before DOMContentLoaded)
 import { editorLoader } from "./loaders/editor-loader";

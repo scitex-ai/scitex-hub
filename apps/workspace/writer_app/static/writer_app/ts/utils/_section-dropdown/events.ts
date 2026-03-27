@@ -7,7 +7,8 @@ import { showToast } from "../ui";
 import { getCsrfToken } from "@/utils/csrf.js";
 import { getWriterConfig } from "../../_helpers";
 import { statePersistence } from "../../modules/_state-persistence";
-import type { CompilationManager } from "../../modules/index";
+// Direct import to avoid circular dependency through barrel re-export
+import type { CompilationManager } from "../../modules/_compilation";
 
 /**
  * Toggle section visibility (exclude/include from compilation)

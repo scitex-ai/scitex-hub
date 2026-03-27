@@ -10,12 +10,13 @@
  * to provide compilation functionality with progress feedback.
  */
 
-import { CompilationManager } from "../modules/index";
-import { PDFPreviewManager } from "../modules/index";
-import { WriterEditor } from "../modules/index";
-import { SectionsManager } from "../modules/index";
+// Direct imports to avoid circular dependency through barrel re-export
+import { CompilationManager } from "../modules/_compilation";
+import { PDFPreviewManager } from "../modules/pdf-preview/index";
+import { WriterEditor } from "../modules/_editor";
+import { SectionsManager } from "../modules/_sections";
 import { showToast } from "./ui";
-import { showCompilationOptionsModal } from "../modules/index";
+import { showCompilationOptionsModal } from "../modules/_modals";
 
 /**
  * Setup compilation event listeners

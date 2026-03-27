@@ -3,7 +3,8 @@
  * Handles deleting sections via modal interface
  */
 
-import type { WriterEditor, SectionsManager } from "../../modules/index";
+import type { WriterEditor } from "../../modules/_editor";
+import type { SectionsManager } from "../../modules/_sections";
 import { getCsrfToken } from "@/utils/csrf.js";
 import { showToast } from "../ui";
 import {

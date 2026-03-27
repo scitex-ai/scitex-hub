@@ -3,12 +3,12 @@
  * Handles document type dropdown changes
  */
 
+// Direct imports to avoid circular dependency through barrel re-export
 import {
   handleDocTypeSwitch,
   populateSectionDropdownDirect,
-} from "../../../utils/index";
+} from "../../../utils/_section-dropdown/index";
 import { getDoctypeFolder } from "./TreeConfiguration";
-
 
 export interface DoctypeChangeDependencies {
   editor: any;

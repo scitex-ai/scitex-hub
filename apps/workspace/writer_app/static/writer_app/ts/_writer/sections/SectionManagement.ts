@@ -4,11 +4,12 @@
  */
 
 import { getCsrfToken } from "@/utils/csrf.js";
+import { showToast } from "../../utils/index";
+// Direct imports to avoid circular dependency through barrel re-export
 import {
-  showToast,
   populateSectionDropdownDirect,
   handleDocTypeSwitch,
-} from "../../utils/index";
+} from "../../utils/_section-dropdown/index";
 
 export class SectionManagement {
   private config: any;
@@ -51,9 +52,7 @@ export class SectionManagement {
 
     // Delete Section Button
     if (deleteSectionBtn) {
-      deleteSectionBtn.addEventListener("click", () =>
-        this.showDeleteModal(),
-      );
+      deleteSectionBtn.addEventListener("click", () => this.showDeleteModal());
     }
 
     // Confirm Delete Section
@@ -231,9 +230,7 @@ export class SectionManagement {
     }
 
     // Show confirmation modal
-    const displayElem = document.getElementById(
-      "delete-section-name-display",
-    );
+    const displayElem = document.getElementById("delete-section-name-display");
     if (displayElem) {
       displayElem.textContent = sectionName;
     }

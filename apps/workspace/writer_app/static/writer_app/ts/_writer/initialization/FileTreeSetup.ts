@@ -9,10 +9,11 @@
  * - WriterTreeSync: Bidirectional sync between dropdowns and tree
  */
 
+// Direct imports to avoid circular dependency through barrel re-export
 import {
   populateSectionDropdownDirect,
   syncDropdownsFromPath,
-} from "../../utils/index";
+} from "../../utils/_section-dropdown/index";
 import { initializeWriterFilter } from "../../modules/_writer-file-filter";
 import { PanelSwitcher } from "../ui/PanelSwitcher";
 import {
@@ -22,7 +23,6 @@ import {
   createWriterTreeConfig,
 } from "./_handlers/index";
 import { initWriterTreeSync, getWriterTreeSync } from "../sync/index";
-
 
 // Type for WorkspaceFilesTree (loaded dynamically)
 interface WorkspaceFilesTreeType {
