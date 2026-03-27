@@ -13,7 +13,6 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from apps.infra.accounts_app.api.user_views import api_search_users
-from apps.workspace.apps_app.views import api_registry_webhook, api_submit_jwt
 from apps.infra.integrations_app.views_events import list_events, receive_event
 from apps.infra.project_app.views import api_check_name_availability
 from apps.infra.project_app.views.projects.api import (
@@ -22,6 +21,7 @@ from apps.infra.project_app.views.projects.api import (
     api_project_list_jwt,
     api_switch_active_project,
 )
+from apps.workspace.apps_app.views import api_registry_webhook, api_submit_jwt
 
 urlpatterns = [
     # JWT Token endpoints (for programmatic API access)
@@ -86,6 +86,8 @@ urlpatterns = [
     path("workspace/", include("apps.infra.workspace_api.urls")),
     # Public Scholar API (v1)
     path("v1/scholar/", include("apps.workspace.scholar_app.urls.public_api")),
+    # MCP Tools REST API (auto-generated from MCP tool registry)
+    path("v1/tools/", include("apps.infra.mcp_api.urls")),
 ]
 
 # EOF
