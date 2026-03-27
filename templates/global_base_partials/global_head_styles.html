@@ -47,45 +47,6 @@
         pointer-events: none
     }
 </style>
-<!-- hook-bypass: inline-style — critical mobile fix: chat/console pane height -->
-<style>
-    @media (max-width: 768px) {
-
-        #pane-chat .ws-ai-pane,
-        #pane-console .ws-ai-pane {
-            flex: 1 !important;
-            min-height: 0 !important;
-            display: flex !important;
-            flex-direction: column !important;
-        }
-
-        #pane-chat #stx-shell-ai-panel,
-        #pane-console #stx-shell-ai-panel {
-            flex: 1 !important;
-            min-height: 0 !important;
-            height: 100% !important;
-            overflow: hidden !important;
-        }
-
-        #pane-chat #stx-shell-ai-chat-view {
-            display: flex !important;
-            flex: 1 !important;
-            min-height: 0 !important;
-            flex-direction: column !important;
-        }
-
-        #pane-chat #stx-shell-ai-console-view {
-            display: none !important;
-        }
-
-        #pane-chat .stx-shell-sidebar__content,
-        #pane-console .stx-shell-sidebar__content {
-            flex: 1 !important;
-            min-height: 0 !important;
-            overflow: hidden !important;
-        }
-    }
-</style>
 <!-- Favicon alternate icon (conditional based on DEBUG) -->
 {% if DEBUG %}
     <link rel="alternate icon"
