@@ -288,6 +288,7 @@ def _entry_to_ts_path(entry_name: str) -> str:
         "shared/workspace-panel-resizer": "static/shared/ts/components/workspace-panel-resizer.ts",
         "shared/collapsible-panel-click-expand": "static/shared/ts/components/collapsible-panel-click-expand.ts",
         "shared/resizer": "static/shared/ts/components/resizer/index.ts",
+        "shared/workspace-sidebar": "static/shared/ts/components/sidebar/index.ts",
         "shared/repo-monitor": "static/shared/ts/components/repo-monitor/index.ts",
         # dev_app: scripts in scripts/ subdir instead of ts/
         "dev_app/scripts/design": "apps/workspace/dev_app/static/dev_app/scripts/design.ts",
