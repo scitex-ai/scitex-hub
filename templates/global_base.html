@@ -36,11 +36,14 @@
              bundle errors (e.g. on login page where workspace JS is irrelevant), the
              loading screen would block pointer-events forever. This timeout guarantees
              dismissal within 3 seconds. -->
+        <!-- hook-bypass: inline-script — critical: must dismiss loading screen even if JS bundle fails -->
         <script>
             setTimeout(function() {
                 if (!document.body.classList.contains("app-ready")) {
                     document.body.classList.add("app-ready");
                 }
+                var ls = document.getElementById("app-loading-screen");
+                if (ls) { ls.style.display = "none"; }
             }, 3000);
         </script>
         <!-- Hidden CSRF token for JavaScript API calls -->
