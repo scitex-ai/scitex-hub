@@ -141,7 +141,7 @@ def exec_command(request):
 
 
 @login_required
-def workspace_shell(request, module="writer"):
+def workspace_shell(request, module="chat"):
     """Shell page — renders once. Modules load via AJAX into right pane."""
     from apps.infra.project_app.services.project_utils import get_current_project
 
@@ -225,8 +225,8 @@ def _serve_dev_module(request, module):
     # Build context: run views.py context builder inside Apptainer (if available)
     context = {"request": request}
     if dev_install is not None:
-        from apps.workspace.apps_app.services.dev_app_runner import run_dev_context
         from apps.infra.project_app.services.project_utils import get_current_project
+        from apps.workspace.apps_app.services.dev_app_runner import run_dev_context
 
         current_project = None
         try:

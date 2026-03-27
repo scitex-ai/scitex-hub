@@ -385,11 +385,18 @@
         </div>
         <!-- Mobile-only Read-Only / Visitor badge (visible in compact mobile header bar) -->
         {% if is_visitor %}
-            <span class="header-visitor-badge-mobile">
+            <span class="header-visitor-badge-mobile"
+                  {% if visitor_expires_at %}data-expires-at="{{ visitor_expires_at.isoformat }}"{% endif %}>
                 {% if is_readonly %}
                     <i class="fas fa-lock header-visitor-badge-mobile-icon"></i>Read-Only
+                {% elif visitor_username %}
+                    <i class="fas fa-user-clock header-visitor-badge-mobile-icon"></i>Visitor #{{ visitor_username|slice:"8:" }}
                 {% else %}
                     <i class="fas fa-user-clock header-visitor-badge-mobile-icon"></i>Visitor
+                {% endif %}
+                {% if visitor_expires_at %}
+                    <span class="header-visitor-badge-mobile-countdown"
+                          id="mobile-header-visitor-countdown">⏰ --:--</span>
                 {% endif %}
             </span>
         {% endif %}
@@ -751,6 +758,18 @@
             <a href="/workspace/" class="mobile-menu-item">
                 <i class="fas fa-th-large"></i>
                 <span>Workspace</span>
+            </a>
+            <a href="/workspace/chat/" class="mobile-menu-item mobile-menu-item--indent">
+                <i class="fas fa-comment"></i>
+                <span>Chat</span>
+            </a>
+            <a href="/workspace/console/" class="mobile-menu-item mobile-menu-item--indent">
+                <i class="fas fa-terminal"></i>
+                <span>Console</span>
+            </a>
+            <a href="/workspace/editor/" class="mobile-menu-item mobile-menu-item--indent">
+                <i class="fas fa-folder"></i>
+                <span>Files</span>
             </a>
             <a href="/accounts/profile/" class="mobile-menu-item">
                 <i class="fas fa-user"></i>

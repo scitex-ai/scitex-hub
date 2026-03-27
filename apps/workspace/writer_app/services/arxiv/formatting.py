@@ -235,7 +235,7 @@ class ArxivFormattingService:
 
             # Run pdflatex
             subprocess.run(
-                ["pdflatex", "-interaction=nonstopmode", latex_file.name],
+                ["pdflatex", "-synctex=1", "-interaction=nonstopmode", latex_file.name],
                 check=True,
                 capture_output=True,
             )
@@ -250,12 +250,22 @@ class ArxivFormattingService:
 
                 # Run pdflatex twice more for references
                 subprocess.run(
-                    ["pdflatex", "-interaction=nonstopmode", latex_file.name],
+                    [
+                        "pdflatex",
+                        "-synctex=1",
+                        "-interaction=nonstopmode",
+                        latex_file.name,
+                    ],
                     check=True,
                     capture_output=True,
                 )
                 subprocess.run(
-                    ["pdflatex", "-interaction=nonstopmode", latex_file.name],
+                    [
+                        "pdflatex",
+                        "-synctex=1",
+                        "-interaction=nonstopmode",
+                        latex_file.name,
+                    ],
                     check=True,
                     capture_output=True,
                 )

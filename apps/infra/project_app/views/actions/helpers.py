@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 """Helper functions for workflow management."""
 
-from pathlib import Path
 import logging
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -57,10 +57,10 @@ jobs:
       - name: Compile LaTeX
         run: |
           cd scitex/writer/00_shared
-          pdflatex main.tex
+          pdflatex -synctex=1 main.tex
           bibtex main
-          pdflatex main.tex
-          pdflatex main.tex
+          pdflatex -synctex=1 main.tex
+          pdflatex -synctex=1 main.tex
 
       - name: Upload PDF
         uses: actions/upload-artifact@v3

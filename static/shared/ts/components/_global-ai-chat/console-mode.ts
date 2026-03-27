@@ -9,7 +9,11 @@ import { getCsrfToken } from "../../utils/csrf";
 import { setupAutoAccept } from "./console-auto-accept";
 import { handleOscEscapes } from "./console-osc-handler";
 import { ConsoleTabManager, type ConsoleTab } from "./console-tabs";
-import { setupFileDrop, setupRightClick } from "./console-event-handlers";
+import {
+  preventNavKeyDefault,
+  setupFileDrop,
+  setupRightClick,
+} from "./console-event-handlers";
 import { setupProjectSwitchHandler } from "./console-project-switch";
 import {
   showAllocationSpinner,
@@ -261,8 +265,9 @@ export class AIPanelConsoleMode {
       if (inst.ws?.readyState === WebSocket.OPEN) inst.ws.send(data);
     });
 
-    // Clipboard & selection
+    // Clipboard, selection, and navigation key handling
     terminal.attachCustomKeyEventHandler((ev: KeyboardEvent) => {
+      if (preventNavKeyDefault(ev)) return true;
       if (ev.ctrlKey && (ev.key === "c" || ev.key === "C")) {
         const sel = terminal.getSelection();
         if (sel) {
@@ -475,20 +480,13 @@ export class AIPanelConsoleMode {
 
   private getTheme(): Record<string, string> {
     const s = getComputedStyle(document.documentElement);
-    const get = (v: string, fb: string) => s.getPropertyValue(v).trim() || fb;
-    const isDark =
-      document.documentElement.getAttribute("data-theme") !== "light";
-    return isDark
-      ? {
-          background: get("--terminal-bg", "#0d1117"),
-          foreground: get("--terminal-fg", "#c9d1d9"),
-          cursor: get("--terminal-cursor", "#58a6ff"),
-        }
-      : {
-          background: get("--terminal-bg", "#ffffff"),
-          foreground: get("--terminal-fg", "#24292f"),
-          cursor: get("--terminal-cursor", "#0969da"),
-        };
+    const g = (v: string, fb: string) => s.getPropertyValue(v).trim() || fb;
+    const dk = document.documentElement.getAttribute("data-theme") !== "light";
+    return {
+      background: g("--terminal-bg", dk ? "#0d1117" : "#ffffff"),
+      foreground: g("--terminal-fg", dk ? "#c9d1d9" : "#24292f"),
+      cursor: g("--terminal-cursor", dk ? "#58a6ff" : "#0969da"),
+    };
   }
 
   private observeTheme(inst: TerminalInstance): void {
