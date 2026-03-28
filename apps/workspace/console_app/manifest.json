@@ -1,0 +1,34 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "2.0.0",
+  "name": "console",
+  "label": "Console",
+  "app_name": "console_app",
+  "icon": "fas fa-code",
+  "description": "Integrated development environment: code editor, terminal, job execution, notebook management, and data analysis.",
+  "version": "0.14.0",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "C",
+  "order": 40,
+  "accent_color": "console",
+  "body_class": "console-page",
+  "partial_template": "console_app/console_partial.html",
+  "context_builder": "",
+  "url": "/apps/console/",
+  "ai_hint": "Integrated development environment: code editor, terminal, job execution, notebook management, and data analysis.",
+  "allowed_extensions": [],
+  "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+  "privileges": [
+    {"type": "filesystem", "scope": "project", "reason": "Read/write project source files"},
+    {"type": "compute", "scope": "celery", "reason": "Code execution and job management"}
+  ],
+  "builtin": true,
+  "dependencies": {
+    "python": [],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}

@@ -168,6 +168,7 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
     "workspace/discovery_app/manifest.json",
     "workspace/docs_app/manifest.json",
     "workspace/apps_app/manifest.json",
+    "workspace/console_app/manifest.json",
 ]
 
 
