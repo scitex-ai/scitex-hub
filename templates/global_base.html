@@ -17,7 +17,7 @@
         {% block extra_css %}{% endblock %}
     </head>
     <body data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
-          data-user-type="{% if user.is_authenticated and user.username|slice:':8' == 'visitor-' %}visitor{% elif user.is_authenticated %}registered{% else %}anonymous{% endif %}"
+          data-user-type="{% if user.is_authenticated and user.username == 'readonly-visitor' %}read-only{% elif user.is_authenticated and user.username|slice:':8' == 'visitor-' %}visitor{% elif user.is_authenticated %}registered{% else %}anonymous{% endif %}"
           {% if user.is_authenticated %}data-current-username="{{ user.username }}"{% endif %}
           data-track-module="{% if active_module %}{{ active_module.get_track_module }}{% elif '/server-status' in request.path %}server_status{% elif '/explore/' in request.path %}explore{% elif '/workspace/' in request.path %}files{% endif %}"
           {% if request.initial_pane %}data-initial-pane="{{ request.initial_pane }}"{% endif %}
