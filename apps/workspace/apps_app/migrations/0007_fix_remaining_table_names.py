@@ -1,7 +1,7 @@
-"""Fix remaining table names after marketplace_app -> apps_app rename.
+"""Confirm table names after marketplace_app -> apps_app rename.
 
-Migration 0006 only fixed marketplacemodule. This fixes the other 5 models
-whose actual DB tables still have marketplace_app_ prefix.
+Migration 0006 already pins all models to apps_app_ tables.
+This migration is now a no-op but kept for migration graph integrity.
 """
 
 from django.db import migrations
@@ -13,29 +13,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.SeparateDatabaseAndState(
-            state_operations=[
-                migrations.AlterModelTable(
-                    name="moduleversion",
-                    table="marketplace_app_moduleversion",
-                ),
-                migrations.AlterModelTable(
-                    name="moduleinstallation",
-                    table="marketplace_app_moduleinstallation",
-                ),
-                migrations.AlterModelTable(
-                    name="modulestar",
-                    table="marketplace_app_modulestar",
-                ),
-                migrations.AlterModelTable(
-                    name="modulesubmission",
-                    table="marketplace_app_modulesubmission",
-                ),
-                migrations.AlterModelTable(
-                    name="modulereview",
-                    table="marketplace_app_modulereview",
-                ),
-            ],
-            database_operations=[],
-        ),
+        # No-op: 0006 already sets correct apps_app_ table names for all models.
+        # Previously this incorrectly set marketplace_app_ prefixes.
     ]
