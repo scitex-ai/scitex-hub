@@ -3,6 +3,11 @@ Visitor Pool Allocation and Deallocation Management
 
 Handles allocation of visitor slots from the pre-allocated pool and
 deallocation when sessions expire or users sign up.
+
+Allocation uses a 2-phase approach:
+  Phase 1 (synchronous, fast): DB slot allocation + set expires_at + login
+  Phase 2 (async, Celery):     clone_template + workspace setup
+This prevents clone_template() (5-30s) from blocking the HTTP request.
 """
 
 import logging
@@ -16,7 +21,7 @@ from django.utils import timezone
 
 from apps.infra.project_app.models import Project, VisitorAllocation
 
-from .decorators import ensure_clean_workspace, reset_workspace_after
+from .decorators import reset_workspace_after
 
 logger = logging.getLogger(__name__)
 
@@ -128,11 +133,15 @@ class PoolAllocator:
             return None, None
 
     @classmethod
-    @ensure_clean_workspace
     def _try_allocate_slot(
         cls, visitor_num: int, session, pool_size: int
     ) -> Tuple[Optional[Project], Optional[User]]:
-        """Try to allocate a specific visitor slot using atomic operations."""
+        """
+        Phase 1 (synchronous): allocate DB slot and set expires_at.
+
+        Workspace initialization (clone_template) is deferred to a Celery
+        task (Phase 2) so the HTTP request returns immediately.
+        """
         from django.db import IntegrityError
 
         # First verify the visitor user and project exist
@@ -171,15 +180,17 @@ class PoolAllocator:
                     allocation.allocation_token = allocation_token
                     allocation.expires_at = expires_at
                     allocation.is_active = True
+                    allocation.workspace_ready = False
                     allocation.save()
                 else:
                     # Create new allocation
-                    VisitorAllocation.objects.create(
+                    allocation = VisitorAllocation.objects.create(
                         visitor_number=visitor_num,
                         session_key=session.session_key or "",
                         allocation_token=allocation_token,
                         expires_at=expires_at,
                         is_active=True,
+                        workspace_ready=False,
                     )
 
                 # Store in session
@@ -189,8 +200,15 @@ class PoolAllocator:
                 session.save()
 
                 logger.info(
-                    f"[VisitorPool] Allocated visitor-{visitor_num:03d} to session"
+                    f"[VisitorPool] Phase 1 complete: allocated visitor-{visitor_num:03d} "
+                    f"(expires_at={expires_at.isoformat()}), queuing workspace init"
                 )
+
+                # Phase 2: queue async workspace initialization
+                from apps.infra.project_app.tasks import initialize_visitor_workspace
+
+                initialize_visitor_workspace.delay(allocation.id)
+
                 return project, user
 
             except IntegrityError:
