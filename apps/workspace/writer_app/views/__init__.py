@@ -30,7 +30,7 @@ except ImportError:
     pass
 
 try:
-    from .version_control.index import *
+    from .version_control.dashboard import *
 except ImportError:
     pass
 
