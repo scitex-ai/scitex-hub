@@ -129,7 +129,7 @@ export class ChatPanel {
     this.messageListEl = this.root.querySelector(".comms-message-list")!;
     this.typingBarEl = this.root.querySelector(".comms-typing-bar")!;
     this.inputEl = this.root.querySelector(".comms-input")!;
-    this.sendBtnEl = this.root.querySelector(".comms-send-btn")!;
+    this.sendBtnEl = this.root.querySelector(".comms-send-btn") as HTMLButtonElement;
     this.channelHeaderEl = this.root.querySelector(".comms-channel-header")!;
     this.connectionDotEl = this.root.querySelector(".comms-connection-dot")!;
   }
@@ -138,7 +138,9 @@ export class ChatPanel {
 
   private bindInputEvents(): void {
     // Send on button click
-    this.sendBtnEl.addEventListener("click", () => this.handleSend());
+    if (this.sendBtnEl) {
+      this.sendBtnEl.addEventListener("click", () => this.handleSend());
+    }
 
     // Send on Enter (Shift+Enter for newline)
     this.inputEl.addEventListener("keydown", (e: KeyboardEvent) => {
@@ -150,7 +152,9 @@ export class ChatPanel {
 
     // Typing indicator + enable/disable send button
     this.inputEl.addEventListener("input", () => {
-      this.sendBtnEl.disabled = this.inputEl.value.trim().length === 0;
+      if (this.sendBtnEl) {
+        this.sendBtnEl.disabled = this.inputEl.value.trim().length === 0;
+      }
       if (this.client && this.inputEl.value.trim().length > 0) {
         this.client.startTyping();
       }
@@ -163,7 +167,9 @@ export class ChatPanel {
 
     this.client.sendMessage(text);
     this.inputEl.value = "";
-    this.sendBtnEl.disabled = true;
+    if (this.sendBtnEl) {
+      this.sendBtnEl.disabled = true;
+    }
     this.client.stopTyping();
     this.inputEl.focus();
   }

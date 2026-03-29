@@ -1,0 +1,31 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "2.0.0",
+  "name": "tools",
+  "label": "Tools",
+  "app_name": "tools_app",
+  "icon": "fas fa-wrench",
+  "description": "Research utility tools: image processing, PDF manipulation, text formatting, citation scraping, and more.",
+  "version": "0.1.0",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "T",
+  "order": 70,
+  "accent_color": "tools",
+  "body_class": "tools-page",
+  "partial_template": "tools_app/tools_partial.html",
+  "context_builder": "apps.workspace.tools_app.views.tools_views.build_tools_context",
+  "url": "/apps/tools/",
+  "ai_hint": "Research utility tools: image processing, PDF manipulation, text formatting, citation scraping, and more.",
+  "allowed_extensions": [],
+  "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+  "privileges": [],
+  "builtin": true,
+  "dependencies": {
+    "python": [],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}
