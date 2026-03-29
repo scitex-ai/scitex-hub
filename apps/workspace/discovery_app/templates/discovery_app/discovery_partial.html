@@ -1,7 +1,7 @@
 {% comment %}
 Discovery module partial — rendered by workspace_module_content at /workspace/content/discovery/
 {% endcomment %}
-{% load static %}
+{% load static vite %}
 
 <link rel="stylesheet" href="{% static 'hub_app/css/hub.css' %}" />
 <link rel="stylesheet" href="{% static 'discovery_app/css/discovery.css' %}" />
@@ -25,3 +25,5 @@ Discovery module partial — rendered by workspace_module_content at /workspace/
     </nav>
     <div class="discovery-tab-content" id="discovery-tab-content">{% include "discovery_app/explore_content.html" %}</div>
 </div>
+{% vite_hmr_client %}
+{% vite_script 'discovery_app/index' %}

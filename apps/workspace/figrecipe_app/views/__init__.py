@@ -61,8 +61,12 @@ def build_figrecipe_context(request, current_project=None):
         "app_slug": "figrecipe",
         "app_label": "FigRecipe",
         "app_mount_css": "figrecipe_app/css/figrecipe-mount.css",
+        "bridge_entry_name": "figrecipe_app/figrecipe-bridge-init",
         "current_project": current_project,
     }
+    if request.user.is_authenticated and request.user.username.startswith("visitor-"):
+        context["is_demo"] = True
+        context["visitor_username"] = request.user.username
     if not current_project:
         context["needs_project_creation"] = True
     return context
