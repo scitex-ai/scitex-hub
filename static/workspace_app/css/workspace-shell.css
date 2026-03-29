@@ -200,6 +200,27 @@
   padding: 0;
 }
 
+/* ── Mobile: stack editor split vertically ─────────────────── */
+@media (max-width: 768px) {
+  .editor-split-layout {
+    flex-direction: column !important;
+  }
+
+  .editor-split-left {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    height: 40%;
+    min-height: 120px;
+    border-right: none;
+    border-bottom: 1px solid var(--border-default, #30363d);
+  }
+
+  .editor-split-right {
+    height: 60%;
+  }
+}
+
 /* ── Prevent body margin-left from global AI panel rules ──── */
 body.scitex-ai-present #main-content {
   margin-left: 0 !important;

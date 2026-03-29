@@ -137,13 +137,13 @@ services:
     # Restart policy
     restart: unless-stopped
 
-    # Health check (faster intervals for dev)
+    # Health check (longer start_period for editable pip installs in dev)
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthz/"]
-      interval: 10s
+      interval: 15s
       timeout: 5s
       retries: 5
-      start_period: 120s
+      start_period: 600s
 
     # Network
     networks:

@@ -163,3 +163,24 @@ def appearance_settings(request):
         "user": request.user,
     }
     return render(request, "accounts_app/appearance_settings.html", context)
+
+
+@login_required
+def privacy_settings(request):
+    """Privacy & analytics settings page."""
+    profile = request.user.profile
+    if request.method == "POST":
+        profile.analytics_opt_out = request.POST.get("analytics_opt_out") == "on"
+        profile.show_email = request.POST.get("show_email") == "on"
+        profile.save(update_fields=["analytics_opt_out", "show_email"])
+        from django.contrib import messages
+
+        messages.success(request, "Privacy settings updated.")
+        from django.shortcuts import redirect
+
+        return redirect("accounts_app:privacy_settings")
+    context = {
+        "user": request.user,
+        "profile": profile,
+    }
+    return render(request, "accounts_app/privacy_settings.html", context)

@@ -11,6 +11,7 @@ from .api_keys_views import api_keys
 from .mcp_settings_views import auto_response_prefs_api, mcp_settings, mcp_settings_api
 from .profile_views import (
     appearance_settings,
+    privacy_settings,
     profile_edit,
     profile_view,
 )
@@ -36,6 +37,7 @@ __all__ = [
     "profile_view",
     "profile_edit",
     "appearance_settings",
+    "privacy_settings",
     # SSH key views
     "ssh_keys",
     "api_generate_ssh_key",

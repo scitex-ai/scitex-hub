@@ -119,9 +119,20 @@ def umami_analytics(request):
     """
     Expose Umami Analytics configuration to templates.
     Umami is privacy-focused and does not use cookies.
+    Respects user's analytics_opt_out preference.
     """
+    # Check if user has opted out of analytics
+    opted_out = False
+    if hasattr(request, "user") and request.user.is_authenticated:
+        try:
+            opted_out = request.user.profile.analytics_opt_out
+        except Exception:
+            pass
+
     return {
-        "UMAMI_WEBSITE_ID": getattr(settings, "UMAMI_WEBSITE_ID", ""),
+        "UMAMI_WEBSITE_ID": (
+            "" if opted_out else getattr(settings, "UMAMI_WEBSITE_ID", "")
+        ),
         "UMAMI_SCRIPT_URL": getattr(
             settings, "UMAMI_SCRIPT_URL", "https://cloud.umami.is/script.js"
         ),

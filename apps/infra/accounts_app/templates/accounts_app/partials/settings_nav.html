@@ -53,6 +53,15 @@
         <span>API keys</span>
     </a>
 </div>
+<!-- Privacy -->
+<div class="settings-nav-section">
+    <div class="settings-nav-header">Privacy</div>
+    <a href="{% url 'accounts_app:privacy_settings' %}"
+       class="settings-nav-item {% if active == 'privacy' %}active{% endif %}">
+        <i class="fas fa-shield-alt"></i>
+        <span>Privacy & Analytics</span>
+    </a>
+</div>
 <!-- Repositories (Advanced) -->
 <div class="settings-nav-section">
     <div class="settings-nav-header">Repositories</div>
