@@ -43,6 +43,25 @@ class Comment(models.Model):
         help_text="Ending line number in the section",
     )
 
+    # Text-snippet anchoring (survives edits — source of truth for position)
+    anchor_text = models.TextField(
+        blank=True,
+        default="",
+        help_text="Verbatim text snippet this comment is anchored to (for re-matching after edits)",
+    )
+    anchor_context_before = models.CharField(
+        max_length=200,
+        blank=True,
+        default="",
+        help_text="~50 chars of text before the anchor (disambiguation)",
+    )
+    anchor_context_after = models.CharField(
+        max_length=200,
+        blank=True,
+        default="",
+        help_text="~50 chars of text after the anchor (disambiguation)",
+    )
+
     # Content
     text = models.TextField(
         help_text="Comment content",
@@ -112,6 +131,9 @@ class Comment(models.Model):
             "section_id": self.section_id,
             "line_start": self.line_start,
             "line_end": self.line_end,
+            "anchor_text": self.anchor_text,
+            "anchor_context_before": self.anchor_context_before,
+            "anchor_context_after": self.anchor_context_after,
             "text": self.text,
             "parent_id": self.parent_id,
             "status": self.status,

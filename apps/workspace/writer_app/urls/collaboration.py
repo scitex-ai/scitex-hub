@@ -5,6 +5,7 @@ from ..views.collaboration.comments import (
     create_comment,
     delete_comment,
     list_comments,
+    reanchor_comments,
     resolve_comment,
     update_comment,
 )
@@ -40,5 +41,10 @@ urlpatterns = [
         "comments/<int:manuscript_id>/<int:comment_id>/delete/",
         delete_comment,
         name="comment-delete",
+    ),
+    path(
+        "comments/<int:manuscript_id>/reanchor/",
+        reanchor_comments,
+        name="comment-reanchor",
     ),
 ]
