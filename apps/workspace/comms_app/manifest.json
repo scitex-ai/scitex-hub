@@ -1,0 +1,31 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "2.0.0",
+  "name": "comms",
+  "label": "Chat",
+  "app_name": "comms_app",
+  "icon": "fas fa-comments",
+  "description": "Real-time messaging: channels, direct messages, and agent communication.",
+  "version": "0.1.0",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "M",
+  "order": 80,
+  "accent_color": "comms",
+  "body_class": "comms-page",
+  "partial_template": "comms_app/comms_partial.html",
+  "context_builder": "",
+  "url": "/apps/comms/",
+  "ai_hint": "Real-time messaging: channels, direct messages, and agent communication.",
+  "allowed_extensions": [],
+  "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+  "privileges": [],
+  "builtin": true,
+  "dependencies": {
+    "python": [],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}
