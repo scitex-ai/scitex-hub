@@ -222,6 +222,17 @@ export class AIPanelConsoleMode {
         }
       });
 
+      // Secondary re-fit after short delay to catch late font rendering
+      setTimeout(() => {
+        if (fitAddon) {
+          try {
+            fitAddon.fit();
+          } catch {
+            /* container may be hidden */
+          }
+        }
+      }, 500);
+
       let lastObservedW = 0;
       let lastObservedH = 0;
       resizeObserver = new ResizeObserver((entries) => {
@@ -310,7 +321,13 @@ export class AIPanelConsoleMode {
     const spinnerOn = () => {
       showAllocationSpinner(containerEl);
       if (_st) clearTimeout(_st);
-      _st = setTimeout(() => hideAllocationSpinner(containerEl), 90_000);
+      _st = setTimeout(() => {
+        console.warn(
+          "[AIPanelConsole] 90s allocation spinner safety timeout — forcibly hiding spinner",
+        );
+        _st = null;
+        hideAllocationSpinner(containerEl);
+      }, 90_000);
     };
     const spinnerOff = () => {
       if (_st) {

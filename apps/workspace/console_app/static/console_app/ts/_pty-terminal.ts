@@ -84,6 +84,14 @@ export class PTYTerminal {
         this.sendResize();
       });
 
+      // Secondary re-fit after short delay to catch late font rendering
+      setTimeout(() => {
+        if (fitAddon) {
+          fitAddon.fit();
+          this.sendResize();
+        }
+      }, 500);
+
       window.addEventListener("resize", () => {
         fitAddon.fit();
         this.sendResize();
