@@ -247,6 +247,35 @@ def vite_script(entry_name: str):
 
 
 @register.simple_tag
+def vite_preload(entry_name: str):
+    """Emit <link rel="modulepreload"> for a Vite entry point.
+
+    Use this for scripts that are dynamically imported at runtime
+    so the browser fetches them early (without executing).
+    In dev mode this is a no-op since Vite serves files on demand.
+    """
+    if settings.DEBUG:
+        return ""
+
+    manifest = get_manifest()
+    ts_path = _entry_to_ts_path(entry_name)
+    entry = manifest.get(ts_path) or _get_manifest_by_name(entry_name)
+
+    if entry:
+        js_file = entry["file"]
+        return mark_safe(
+            f'<link rel="modulepreload" href="{settings.STATIC_URL}vite/{js_file}" />'
+        )
+
+    import logging
+
+    logging.getLogger(__name__).error(
+        f"Vite preload entry '{entry_name}' not found in manifest"
+    )
+    return ""
+
+
+@register.simple_tag
 def vite_legacy_script(static_path: str):
     """
     Fallback for scripts not yet migrated to Vite.
