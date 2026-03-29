@@ -1,10 +1,10 @@
 from django.urls import path
-from django.views.generic import TemplateView
+from ..views.version_control.dashboard import version_control_index
 
 urlpatterns = [
     path(
         "",
-        TemplateView.as_view(template_name="writer_app/version_control/index.html"),
+        version_control_index,
         name="index",
     ),
 ]
