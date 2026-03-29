@@ -257,6 +257,17 @@ export abstract class BaseResizer {
     this.firstPanel.style.transition = "none";
     this.secondPanel.style.transition = "none";
 
+    // Auto-collapse sidebar on mobile viewport (< 768px)
+    const isMobile = window.innerWidth < 768;
+    if (isMobile && this.firstCanCollapse) {
+      this.collapsePanel("first");
+      requestAnimationFrame(() => {
+        this.firstPanel.style.transition = "";
+        this.secondPanel.style.transition = "";
+      });
+      return;
+    }
+
     const firstCollapsed = restoreCollapsed(this.storageKey + "-first");
     const secondCollapsed = restoreCollapsed(this.storageKey + "-second");
 
