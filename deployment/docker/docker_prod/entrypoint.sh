@@ -201,6 +201,23 @@ else
 fi
 
 # ============================================
+# Start Orochi Bridge Daemon (Background) - Syncs Orochi <-> workspace
+# ============================================
+if [[ ! "$*" =~ "celery" ]]; then
+    echo_info "Starting Orochi bridge daemon (10s polling)..."
+    python manage.py orochi_bridge --daemon --interval 10 &
+    OROCHI_BRIDGE_PID=$!
+    sleep 2
+    if kill -0 $OROCHI_BRIDGE_PID 2>/dev/null; then
+        echo_success "Orochi bridge started (PID: $OROCHI_BRIDGE_PID)"
+    else
+        echo_warning "Orochi bridge failed to start - workspace-orochi sync unavailable"
+    fi
+else
+    echo_info "Skipping Orochi bridge (celery worker)"
+fi
+
+# ============================================
 # Start Application
 # ============================================
 echo -e "🚀 Starting production server..."
