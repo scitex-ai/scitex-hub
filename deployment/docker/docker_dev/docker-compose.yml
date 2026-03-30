@@ -48,6 +48,8 @@ services:
       - ../../../../scitex-plt:/scitex-plt:cached
       - ../../../../scitex-audio:/scitex-audio:cached
       - ../../../../scitex-dev:/scitex-dev:cached
+      - ../../../../scitex-notification:/scitex-notification:cached
+      - ../../../../scitex-db:/scitex-db:cached
 
       # Centralized logging - all container logs go here
       - ../../../logs:/app/logs
@@ -260,6 +262,8 @@ services:
       - ../../../../scitex-plt:/scitex-plt:cached
       - ../../../../scitex-audio:/scitex-audio:cached
       - ../../../../scitex-dev:/scitex-dev:cached
+      - ../../../../scitex-notification:/scitex-notification:cached
+      - ../../../../scitex-db:/scitex-db:cached
       - ../../../logs:/app/logs
 
     env_file:
@@ -338,6 +342,8 @@ services:
       - ../../../../scitex-plt:/scitex-plt:cached
       - ../../../../scitex-audio:/scitex-audio:cached
       - ../../../../scitex-dev:/scitex-dev:cached
+      - ../../../../scitex-notification:/scitex-notification:cached
+      - ../../../../scitex-db:/scitex-db:cached
       - ../../../logs:/app/logs
 
     env_file:

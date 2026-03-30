@@ -32,7 +32,7 @@ try_editable_install() {
     # For figrecipe: always reinstall to pick up new files
     if [ "$pkg_name" = "figrecipe" ]; then
         echo_info "Installing $pkg_name (editable mode)..."
-        if ! uv pip install -e "$install_spec" --link-mode=copy >/dev/null 2>&1; then
+        if ! uv pip install -e "$install_spec" --link-mode=copy 2>&1; then
             echo_warning "$pkg_name install failed (non-fatal)"
         fi
         return
@@ -43,11 +43,14 @@ try_editable_install() {
         echo -e "${GREEN}✅ $pkg_name already installed in editable mode${NC}"
     else
         echo_info "Installing $pkg_name (editable mode)..."
-        if ! uv pip install -e "$install_spec" --link-mode=copy >/dev/null 2>&1; then
+        if ! uv pip install -e "$install_spec" --link-mode=copy 2>&1; then
             echo_warning "$pkg_name install failed (non-fatal)"
         fi
     fi
 }
+
+# Install scitex-core FIRST (many packages depend on it: scitex-db, scitex-python, etc.)
+try_editable_install "/scitex-core" "scitex-core"
 
 # Install scitex core dependencies BEFORE scitex[all] (scitex depends on these)
 try_editable_install "/scitex-clew" "scitex-clew"
@@ -56,17 +59,21 @@ try_editable_install "/scitex-stats" "scitex-stats" "[all]"
 try_editable_install "/scitex-tunnel" "scitex-tunnel"
 try_editable_install "/scitex-audio" "scitex-audio" "[all]"
 try_editable_install "/scitex-scholar" "scitex-scholar"
-
-# Install scitex-core (required by scitex-python, must be installed before scitex[all])
-try_editable_install "/scitex-core" "scitex-core"
+try_editable_install "/scitex-notification" "scitex-notification"
+try_editable_install "/scitex-db" "scitex-db"
 
 # Install scitex[all] from local mount
+# Use pip (not uv) for this step: uv's resolver fails to find private scitex-*
+# packages on PyPI even when they're already installed locally. pip respects
+# already-installed packages during dependency resolution.
 if [ -d "/scitex-python" ]; then
     if [ -f "/scitex-python/pyproject.toml" ] || [ -f "/scitex-python/setup.py" ]; then
-        echo_info "Installing scitex (editable + upgrade)..."
-        if ! uv pip install -e "/scitex-python[all]" --link-mode=copy >/dev/null 2>&1; then
+        echo_info "Installing scitex[all] (editable, using pip for local dep resolution)..."
+        if ! pip install --no-build-isolation -e "/scitex-python[all]" 2>&1; then
             echo_warning "scitex[all] install failed - trying without extras..."
-            uv pip install -e "/scitex-python" --link-mode=copy >/dev/null 2>&1 || echo_warning "scitex install failed (non-fatal)"
+            if ! pip install --no-build-isolation -e "/scitex-python" 2>&1; then
+                echo_warning "scitex install failed (non-fatal)"
+            fi
         fi
         verify_scitex_package
     else
@@ -89,7 +96,7 @@ try_editable_install "/scitex-container" "scitex-container"
 # Install scitex-cloud itself in editable mode
 if [ -f "/app/pyproject.toml" ]; then
     echo_info "Installing scitex-cloud (editable)..."
-    uv pip install -e "/app" --link-mode=copy >/dev/null 2>&1 || true
+    uv pip install -e "/app" --link-mode=copy 2>&1 || true
 fi
 
 # Install ecosystem packages (skip on hot-reload — packages persist in container)
