@@ -12,7 +12,9 @@ from .index import index_view
 def root_dispatch(request, pane=None, session_token=None):
     """Route / to hub workspace (auth) or landing page (anon/visitor).
 
-    Authenticated regular users → workspace.
+    Authenticated regular users:
+      - / (no pane) → Hub index (Gitea-style project view)
+      - /console/, /chat/, /files/ → workspace shell with that module active
     Visitor users (visitor-* and readonly-visitor) → landing page.
     Anonymous → landing page.
 
@@ -28,8 +30,9 @@ def root_dispatch(request, pane=None, session_token=None):
             or request.user.username.startswith("visitor-")
         ):
             return redirect("public_app:landing")
+        # Pane-specific URLs → workspace shell with that module
         if pane:
-            request.initial_pane = pane
+            return redirect("workspace_app:shell_module", module=pane)
         if session_token is not None:
             request.chat_session_token = str(session_token)
         return index_view(request)

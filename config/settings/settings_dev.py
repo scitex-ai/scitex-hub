@@ -199,7 +199,10 @@ else:
             ),
             "HOST": os.environ.get("SCITEX_CLOUD_DB_HOST_DEV", "localhost"),
             "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT_DEV", "5432"),
-            "ATOMIC_REQUESTS": True,  # Wrap each request in a transaction
+            # ATOMIC_REQUESTS disabled: incompatible with ASGI (Daphne)
+            # — same issue as production (see settings_prod.py).
+            # Visitor middleware DB errors cascade to views.
+            "ATOMIC_REQUESTS": False,
             "CONN_MAX_AGE": 600,  # Connection pooling (10 minutes)
             "OPTIONS": {
                 "connect_timeout": 10,
