@@ -114,6 +114,9 @@ STATICFILES_DIRS = [
 # Container Vite (port 5174): developmentally-installed app files — runs in container on-demand
 VITE_HOST_PORT = 5173
 VITE_DEV_APP_PORT = 5174
+# Set True to use pre-built Vite assets (staticfiles/vite/) instead of Vite dev server.
+# Useful when Vite dev server can't run (resource constraints). Run `npm run build` first.
+VITE_USE_BUILD = os.environ.get("VITE_USE_BUILD", "").lower() in ("1", "true", "yes")
 # Set to your Windows LAN IP for iPhone dev testing (e.g. "192.168.0.67")
 # Default "127.0.0.1" works for localhost-only dev.
 # "auto" tries to detect the Windows host LAN IP via default gateway.

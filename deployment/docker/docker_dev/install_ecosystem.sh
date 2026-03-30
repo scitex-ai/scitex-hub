@@ -5,6 +5,9 @@
 # Shared helper for installing sibling packages mounted into Docker.
 # Sourced by entrypoint.sh — expects GREEN, NC, echo_info to be defined.
 
+# Mark all mounted repos as safe for git (prevents "dubious ownership" errors)
+git config --global --add safe.directory '*' 2>/dev/null || true
+
 # Generic editable install function
 # Usage: try_editable_install <mount_path> <package_name> [extras]
 #   mount_path:    e.g. /figrecipe
@@ -29,7 +32,9 @@ try_editable_install() {
     # For figrecipe: always reinstall to pick up new files
     if [ "$pkg_name" = "figrecipe" ]; then
         echo_info "Installing $pkg_name (editable mode)..."
-        uv pip install -e "$install_spec" --link-mode=copy >/dev/null
+        if ! uv pip install -e "$install_spec" --link-mode=copy >/dev/null 2>&1; then
+            echo_warning "$pkg_name install failed (non-fatal)"
+        fi
         return
     fi
 
@@ -38,7 +43,9 @@ try_editable_install() {
         echo -e "${GREEN}✅ $pkg_name already installed in editable mode${NC}"
     else
         echo_info "Installing $pkg_name (editable mode)..."
-        uv pip install -e "$install_spec" --link-mode=copy >/dev/null
+        if ! uv pip install -e "$install_spec" --link-mode=copy >/dev/null 2>&1; then
+            echo_warning "$pkg_name install failed (non-fatal)"
+        fi
     fi
 }
 
@@ -48,12 +55,19 @@ try_editable_install "/scitex-io" "scitex-io" "[all]"
 try_editable_install "/scitex-stats" "scitex-stats" "[all]"
 try_editable_install "/scitex-tunnel" "scitex-tunnel"
 try_editable_install "/scitex-audio" "scitex-audio" "[all]"
+try_editable_install "/scitex-scholar" "scitex-scholar"
+
+# Install scitex-core (required by scitex-python, must be installed before scitex[all])
+try_editable_install "/scitex-core" "scitex-core"
 
 # Install scitex[all] from local mount
 if [ -d "/scitex-python" ]; then
     if [ -f "/scitex-python/pyproject.toml" ] || [ -f "/scitex-python/setup.py" ]; then
         echo_info "Installing scitex (editable + upgrade)..."
-        uv pip install -e "/scitex-python[all]" --link-mode=copy >/dev/null
+        if ! uv pip install -e "/scitex-python[all]" --link-mode=copy >/dev/null 2>&1; then
+            echo_warning "scitex[all] install failed - trying without extras..."
+            uv pip install -e "/scitex-python" --link-mode=copy >/dev/null 2>&1 || echo_warning "scitex install failed (non-fatal)"
+        fi
         verify_scitex_package
     else
         echo -e "⚠️  WARNING: /scitex-python exists but is not a valid Python package"

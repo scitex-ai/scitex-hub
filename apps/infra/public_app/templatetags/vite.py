@@ -147,7 +147,7 @@ def vite_hmr_client():
     """
     scripts = ""
 
-    if settings.DEBUG:
+    if settings.DEBUG and not getattr(settings, "VITE_USE_BUILD", False):
         host_port = getattr(settings, "VITE_HOST_PORT", 5173)
         dev_port = getattr(settings, "VITE_DEV_APP_PORT", 5174)
         # Use browser's hostname so both localhost and LAN IP work automatically
@@ -204,7 +204,8 @@ def vite_script(entry_name: str):
             )
 
     # Platform entries
-    if settings.DEBUG:
+    # VITE_USE_BUILD=True: use built manifest even in dev (no Vite dev server needed)
+    if settings.DEBUG and not getattr(settings, "VITE_USE_BUILD", False):
         ts_path = _entry_to_ts_path(entry_name)
         port = getattr(settings, "VITE_HOST_PORT", 5173)
         return mark_safe(
@@ -254,7 +255,7 @@ def vite_preload(entry_name: str):
     so the browser fetches them early (without executing).
     In dev mode this is a no-op since Vite serves files on demand.
     """
-    if settings.DEBUG:
+    if settings.DEBUG and not getattr(settings, "VITE_USE_BUILD", False):
         return ""
 
     manifest = get_manifest()
