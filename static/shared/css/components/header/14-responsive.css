@@ -65,6 +65,11 @@
     display: none;
   }
 
+  /* Hide mobile visitor badge when hamburger menu is open (avoid showing 2 instances) */
+  .global-header:has(.mobile-header-menu.open) .header-visitor-badge-mobile {
+    display: none !important;
+  }
+
   /* Show visitor badge in compact header bar on mobile (not hidden with header-right) */
   .header-visitor-badge-mobile {
     display: inline-flex;

@@ -161,23 +161,27 @@ function initializeHeader(): void {
   ) as HTMLElement;
 
   if (visitorMenuToggle && visitorMenuDropdown) {
-    visitorMenuToggle.addEventListener("click", function (e) {
-      e.stopPropagation();
-      const isVisible = visitorMenuDropdown.style.display !== "none";
-      visitorMenuDropdown.style.display = isVisible ? "none" : "block";
-    });
+    // Skip click/outside-click handlers if inline fallback already attached
+    // (inline <script> in global_header.html sets data-inline-handler="true")
+    if (!visitorMenuToggle.hasAttribute("data-inline-handler")) {
+      visitorMenuToggle.addEventListener("click", function (e) {
+        e.stopPropagation();
+        const isVisible = visitorMenuDropdown.style.display !== "none";
+        visitorMenuDropdown.style.display = isVisible ? "none" : "block";
+      });
 
-    // Close dropdown when clicking outside
-    document.addEventListener("click", function (e) {
-      if (
-        !visitorMenuToggle.contains(e.target as Node) &&
-        !visitorMenuDropdown.contains(e.target as Node)
-      ) {
-        visitorMenuDropdown.style.display = "none";
-      }
-    });
+      // Close dropdown when clicking outside
+      document.addEventListener("click", function (e) {
+        if (
+          !visitorMenuToggle.contains(e.target as Node) &&
+          !visitorMenuDropdown.contains(e.target as Node)
+        ) {
+          visitorMenuDropdown.style.display = "none";
+        }
+      });
+    }
 
-    // Close dropdown when pressing Escape
+    // Close dropdown when pressing Escape (always add — inline fallback doesn't handle Escape)
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") {
         visitorMenuDropdown.style.display = "none";
@@ -216,6 +220,12 @@ function initializeHeader(): void {
     null;
   if (expiresAtSource) {
     const expiresAt = new Date(expiresAtSource);
+    if (isNaN(expiresAt.getTime())) {
+      console.error("[header] Invalid visitor expiration date:", expiresAtSource);
+      // Skip timer setup — date is unparseable
+    } else if (visitorMenuToggle?.hasAttribute("data-inline-countdown")) {
+      // Inline fallback countdown already running — skip to avoid duplicate timers
+    } else {
     const countdownSpan = document.getElementById("visitor-countdown");
     const mobileCountdownSpan = document.getElementById(
       "mobile-visitor-countdown",
@@ -321,6 +331,7 @@ function initializeHeader(): void {
     // Update immediately and then every second
     updateCountdown();
     setInterval(updateCountdown, 1000);
+    } // end else (valid date)
   }
 
   // Server Health Status Live Indicator

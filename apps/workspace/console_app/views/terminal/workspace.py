@@ -47,6 +47,12 @@ async def ensure_workspace(user_data_dir: Path, username: str, project_slug: str
             create_dotfiles_repo(dotfiles_dir, username)
             create_dotfiles_symlinks(user_data_dir, dotfiles_dir)
             logger.info(f"Created ~/proj/dotfiles git repo for {username}")
+        else:
+            # Ensure dotfiles symlinks exist even if dotfiles dir was
+            # created previously (e.g., interrupted setup, manual deletion).
+            # Without these symlinks, bash cannot find .bashrc/.bash_profile
+            # and the PS1 prompt is never set.
+            _ensure_dotfiles_symlinks(user_data_dir, dotfiles_dir)
 
         # Patch existing bashrc with AI CLI tools section if missing
         _patch_bashrc_ai_tools(dotfiles_dir)
@@ -59,6 +65,38 @@ async def ensure_workspace(user_data_dir: Path, username: str, project_slug: str
         logger.info(f"Workspace ready: {user_data_dir}")
 
     await asyncio.to_thread(setup)
+
+
+def _ensure_dotfiles_symlinks(user_data_dir: Path, dotfiles_dir: Path):
+    """Verify critical dotfiles symlinks exist; recreate if missing.
+
+    The .bashrc and .bash_profile symlinks are required for the PS1 prompt
+    and shell initialization. If they are missing or broken, the terminal
+    shows no prompt.
+    """
+    critical_symlinks = {
+        ".bashrc": "proj/dotfiles/bashrc",
+        ".bash_profile": "proj/dotfiles/bash_profile",
+    }
+    needs_repair = False
+    for target_name, source_rel in critical_symlinks.items():
+        target_path = user_data_dir / target_name
+        source_file = user_data_dir / source_rel
+        if not source_file.exists():
+            # Dotfiles source files missing — need full regeneration
+            needs_repair = True
+            break
+        if not target_path.exists() and not target_path.is_symlink():
+            needs_repair = True
+            break
+        # Check if symlink target resolves correctly
+        if target_path.is_symlink() and not target_path.resolve().exists():
+            needs_repair = True
+            break
+
+    if needs_repair:
+        create_dotfiles_symlinks(user_data_dir, dotfiles_dir)
+        logger.info(f"Repaired dotfiles symlinks in {user_data_dir}")
 
 
 def _patch_bashrc_ai_tools(dotfiles_dir: Path):

@@ -602,6 +602,64 @@
                         </a>
                     </div>
                 </div>
+                <!-- Inline fallback: visitor menu + countdown work even if Vite/JS bundle fails to load -->
+                <script>
+                (function() {
+                    var btn = document.getElementById('visitor-menu-toggle');
+                    var dd = document.getElementById('visitor-menu-dropdown');
+                    if (btn && dd) {
+                        btn.setAttribute('data-inline-handler', 'true');
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+                        });
+                        document.addEventListener('click', function(e) {
+                            if (!btn.contains(e.target) && !dd.contains(e.target)) {
+                                dd.style.display = 'none';
+                            }
+                        });
+                    }
+                    // Inline countdown fallback — runs only if Vite timer hasn't started within 3s
+                    var expiresAtStr = btn && btn.getAttribute('data-expires-at');
+                    if (!expiresAtStr) {
+                        var mobileBadge = document.querySelector('.header-visitor-badge-mobile');
+                        if (mobileBadge) expiresAtStr = mobileBadge.getAttribute('data-expires-at');
+                    }
+                    if (expiresAtStr) {
+                        var expiresAt = new Date(expiresAtStr);
+                        if (!isNaN(expiresAt.getTime())) {
+                            setTimeout(function() {
+                                // Only start if Vite hasn't already taken over (check if countdown shows time)
+                                var cs = document.getElementById('visitor-countdown');
+                                if (cs && cs.textContent.indexOf('--:--') !== -1) {
+                                    btn.setAttribute('data-inline-countdown', 'true');
+                                    var targets = [
+                                        document.getElementById('visitor-countdown'),
+                                        document.getElementById('mobile-header-visitor-countdown'),
+                                        document.getElementById('mobile-visitor-countdown')
+                                    ];
+                                    setInterval(function() {
+                                        var left = expiresAt.getTime() - Date.now();
+                                        if (left <= 0) {
+                                            targets.forEach(function(el) { if (el) { el.textContent = 'EXPIRED'; el.style.color = '#f44336'; } });
+                                            return;
+                                        }
+                                        var m = Math.floor((left % 3600000) / 60000);
+                                        var s = Math.floor((left % 60000) / 1000);
+                                        var t = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+                                        targets.forEach(function(el) {
+                                            if (el) {
+                                                el.textContent = el.id === 'mobile-visitor-countdown' ? t : '\u23F0 ' + t;
+                                                el.style.color = left < 300000 ? '#f44336' : left < 900000 ? '#ff9800' : 'inherit';
+                                            }
+                                        });
+                                    }, 1000);
+                                }
+                            }, 3000);
+                        }
+                    }
+                })();
+                </script>
                 <!-- Visible Sign In / Sign Up buttons for visitors -->
                 <a href="/auth/signin/" class="header-btn" data-tooltip="Sign in to your account">Sign in</a>
                 <a href="/auth/signup/"
