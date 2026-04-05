@@ -82,7 +82,7 @@ OAUTH2_PROVIDER = {
     "OAUTH2_VALIDATOR_CLASS": "apps.infra.auth_app.oauth_validator.SciTexOAuth2Validator",
     "ACCESS_TOKEN_EXPIRE_SECONDS": 3600,
     "REFRESH_TOKEN_EXPIRE_SECONDS": 86400 * 30,
-    "PKCE_REQUIRED": True,
+    "PKCE_REQUIRED": False,
 }
 
 
