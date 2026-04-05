@@ -70,6 +70,8 @@ urlpatterns = [
     path("accounts/", include(("apps.infra.accounts_app.urls", "accounts_app"))),
     path("auth/", include(("apps.infra.auth_app.urls", "auth_app"))),
     path("auth/social/", include("allauth.urls")),
+    # --- OAuth2 Provider (Sign in with SciTeX) ---
+    path("oauth/", include("oauth2_provider.urls", namespace="oauth2_provider")),
     # --- Hub ---
     path("apps/home/api/", include("apps.workspace.hub_app.urls.api")),
     path("apps/home/", include("apps.workspace.hub_app.urls.index")),

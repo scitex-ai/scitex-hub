@@ -67,6 +67,26 @@ SOCIALACCOUNT_ADAPTER = "apps.infra.auth_app.adapters.SciTexSocialAccountAdapter
 
 
 # ---------------------------------------
+# OAuth2 Provider (django-oauth-toolkit)
+# Allows external apps (e.g. orochi.scitex.ai) to "Sign in with SciTeX"
+# ---------------------------------------
+OAUTH2_PROVIDER = {
+    "SCOPES": {
+        "openid": "OpenID Connect",
+        "profile": "User profile",
+        "email": "Email address",
+    },
+    "DEFAULT_SCOPES": ["openid", "profile", "email"],
+    "OIDC_ENABLED": True,
+    "OIDC_RSA_PRIVATE_KEY": os.environ.get("SCITEX_CLOUD_OIDC_RSA_KEY", ""),
+    "OAUTH2_VALIDATOR_CLASS": "apps.infra.auth_app.oauth_validator.SciTexOAuth2Validator",
+    "ACCESS_TOKEN_EXPIRE_SECONDS": 3600,
+    "REFRESH_TOKEN_EXPIRE_SECONDS": 86400 * 30,
+    "PKCE_REQUIRED": True,
+}
+
+
+# ---------------------------------------
 # JWT Settings
 # ---------------------------------------
 def get_simple_jwt_settings(secret_key: str) -> dict:

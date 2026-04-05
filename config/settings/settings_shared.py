@@ -140,6 +140,7 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.orcid",
+    "oauth2_provider",
 ]
 
 # Required: scitex_ui (available on PyPI as scitex-ui)
