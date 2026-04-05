@@ -46,6 +46,8 @@ SECRET_KEY = os.environ.get("SCITEX_CLOUD_DJANGO_SECRET_KEY")
 ALLOWED_HOSTS = os.environ.get(
     "SCITEX_CLOUD_ALLOWED_HOSTS", "127.0.0.1,localhost"
 ).split(",")
+# Allow internal Docker container-to-container OAuth2 requests
+ALLOWED_HOSTS += ["scitex-cloud-prod-django-1"]
 
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
