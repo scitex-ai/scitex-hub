@@ -26,9 +26,8 @@ logger = logging.getLogger(__name__)
 SOCKET_PATH = "/tmp/scitex-terminal-broker.sock"
 
 # Feature flag: when True, use shared sbatch allocation per (user, project)
-SHARED_ALLOCATION = (
-    os.environ.get("SCITEX_CLOUD_SLURM_SHARED_ALLOCATION", "")
-    or os.environ.get("SCITEX_SHARED_ALLOCATION", "")  # backward compat
+SHARED_ALLOCATION = os.environ.get(
+    "SCITEX_CLOUD_SLURM_SHARED_ALLOCATION", ""
 ).lower() in ("true", "1", "yes")
 
 

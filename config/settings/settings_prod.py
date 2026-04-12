@@ -56,9 +56,8 @@ SECURE_REDIRECT_EXEMPT = []
 
 # SSL handled by Cloudflare Tunnel
 SECURE_SSL_REDIRECT = (
-    os.environ.get("SCITEX_CLOUD_ENABLE_SSL_REDIRECT")
-    or os.environ.get("ENABLE_SSL_REDIRECT", "false")
-).lower() == "true"
+    os.environ.get("SCITEX_CLOUD_ENABLE_SSL_REDIRECT", "false").lower() == "true"
+)
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 X_FRAME_OPTIONS = "SAMEORIGIN"  # Allow same-site iframes (needed for PDF viewer)
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
@@ -67,13 +66,11 @@ SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 # Cookie
 # ---------------------------------------
 SESSION_COOKIE_SECURE = (
-    os.environ.get("SCITEX_CLOUD_FORCE_HTTPS_COOKIES")
-    or os.environ.get("FORCE_HTTPS_COOKIES", "true")
-).lower() == "true"
+    os.environ.get("SCITEX_CLOUD_FORCE_HTTPS_COOKIES", "true").lower() == "true"
+)
 CSRF_COOKIE_SECURE = (
-    os.environ.get("SCITEX_CLOUD_FORCE_HTTPS_COOKIES")
-    or os.environ.get("FORCE_HTTPS_COOKIES", "true")
-).lower() == "true"
+    os.environ.get("SCITEX_CLOUD_FORCE_HTTPS_COOKIES", "true").lower() == "true"
+)
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 
@@ -127,9 +124,9 @@ else:
         DATABASES = {
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
-                "NAME": os.environ.get("POSTGRES_DB", "scitex_cloud_prod"),
-                "USER": os.environ.get("POSTGRES_USER", "scitex_prod"),
-                "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "CHANGE_THIS_IN_PROD"),
+                "NAME": os.environ.get("SCITEX_CLOUD_POSTGRES_DB", "scitex_cloud_prod"),
+                "USER": os.environ.get("SCITEX_CLOUD_POSTGRES_USER", "scitex_prod"),
+                "PASSWORD": os.environ.get("SCITEX_CLOUD_POSTGRES_PASSWORD", "CHANGE_THIS_IN_PROD"),
                 # Connect via PgBouncer for connection pooling
                 "HOST": os.environ.get("SCITEX_CLOUD_DB_HOST", "pgbouncer"),
                 "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT", "6432"),

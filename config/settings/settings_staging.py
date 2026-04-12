@@ -71,7 +71,8 @@ CSRF_COOKIE_HTTPONLY = True
 
 # CSRF trusted origins for staging (port 31294 per 3129X scheme)
 CSRF_TRUSTED_ORIGINS = os.environ.get(
-    "CSRF_TRUSTED_ORIGINS", "http://localhost:31294,http://127.0.0.1:31294"
+    "SCITEX_CLOUD_CSRF_TRUSTED_ORIGINS",
+    "http://localhost:31294,http://127.0.0.1:31294",
 ).split(",")
 
 # ---------------------------------------

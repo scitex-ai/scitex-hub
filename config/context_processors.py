@@ -72,7 +72,9 @@ def cache_buster(request):
         build_id = _cached_build_id or str(int(current_time))
     else:
         # In production, use a fixed version from settings or environment
-        build_id = getattr(settings, "BUILD_ID", os.environ.get("BUILD_ID", "1.0.0"))
+        build_id = getattr(
+            settings, "BUILD_ID", os.environ.get("SCITEX_CLOUD_BUILD_ID", "1.0.0")
+        )
 
     return {"build_id": build_id}
 

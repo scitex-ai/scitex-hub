@@ -49,14 +49,11 @@ SLURM_MEMORY_GB = int(
 # These paths must be accessible from the SLURM compute nodes
 # Using /opt/scitex to avoid NAS ACL issues with home directories
 SLURM_CONTAINER_PATH = os.environ.get(
-    "SCITEX_CLOUD_SLURM_CONTAINER_PATH"
-) or os.environ.get(
-    "SCITEX_SLURM_CONTAINER_PATH",
+    "SCITEX_CLOUD_SLURM_CONTAINER_PATH",
     "/opt/scitex/singularity/current-sandbox",
 )
 SLURM_USER_DATA_ROOT = Path(
-    os.environ.get("SCITEX_CLOUD_SLURM_USER_DATA_ROOT")
-    or os.environ.get("SCITEX_SLURM_USER_DATA_ROOT", "/opt/scitex/data/users")
+    os.environ.get("SCITEX_CLOUD_SLURM_USER_DATA_ROOT", "/opt/scitex/data/users")
 )
 
 # =============================================================================
