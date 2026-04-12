@@ -22,6 +22,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
+from django.core.cache import cache
 from django.http import JsonResponse
 from django.shortcuts import render
 
@@ -33,6 +34,13 @@ from .health_checks import (
 )
 
 logger = logging.getLogger("scitex")
+
+# Cache key and TTL for the public status page.
+# Health checks hit DB, Redis, SSH endpoints, and external APIs — expensive.
+# 30s TTL balances freshness against load: the page re-runs checks at most
+# twice per minute, regardless of concurrent requests.
+_STATUS_CACHE_KEY = "public_status:data:v1"
+_STATUS_CACHE_TTL = 30
 
 
 def _run_check_safe(fn, status_data):
@@ -168,15 +176,24 @@ def _get_status_data():
     }
 
 
+def _get_status_data_cached():
+    """Return cached status data, running checks at most once per _STATUS_CACHE_TTL."""
+    data = cache.get(_STATUS_CACHE_KEY)
+    if data is None:
+        data = _get_status_data()
+        cache.set(_STATUS_CACHE_KEY, data, _STATUS_CACHE_TTL)
+    return data
+
+
 def public_status_view(request):
     """Render the public status page. No authentication required."""
-    data = _get_status_data()
+    data = _get_status_data_cached()
     return render(request, "public_app/public_status.html", {"status": data})
 
 
 def public_status_api(request):
     """JSON API for public status. No authentication required."""
-    data = _get_status_data()
+    data = _get_status_data_cached()
     return JsonResponse(data)
 
 
