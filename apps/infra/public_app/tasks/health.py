@@ -331,4 +331,40 @@ Recommended actions:
         raise
 
 
+@shared_task(
+    name="apps.infra.public_app.tasks.warm_public_status_cache",
+    ignore_result=True,
+    soft_time_limit=60,
+    time_limit=90,
+)
+def warm_public_status_cache():
+    """Periodically refresh the /status page cache.
+
+    The synchronous health checks (DB, Redis, SSH, API) take ~15-20s on a
+    cold path which is intolerable for the user-facing /status page. We
+    keep the cache hot by recomputing every 60s in the background, so
+    visitors essentially never hit the cold path.
+
+    Refs scitex-orochi#82 (TTFB 17s regression).
+    """
+    try:
+        from apps.infra.public_app.views.status.public_status import (
+            PUBLIC_STATUS_CACHE_KEY,
+            PUBLIC_STATUS_CACHE_TTL,
+            _compute_status_data,
+        )
+
+        data = _compute_status_data()
+        cache.set(PUBLIC_STATUS_CACHE_KEY, data, PUBLIC_STATUS_CACHE_TTL)
+        logger.debug(
+            "[StatusCacheWarm] cached overall=%s in TTL=%ss",
+            data.get("overall"),
+            PUBLIC_STATUS_CACHE_TTL,
+        )
+        return {"status": "ok", "overall": data.get("overall")}
+    except Exception as e:
+        logger.error(f"[StatusCacheWarm] failed: {e}", exc_info=True)
+        return {"status": "error", "error": str(e)}
+
+
 # EOF

@@ -17,6 +17,7 @@ from .health import (
     check_site_health,
     cleanup_expired_visitor_allocations,
     check_request_flood,
+    warm_public_status_cache,
 )
 from .metrics import collect_server_metrics
 from .utils import check_port
@@ -31,6 +32,7 @@ __all__ = [
     "cleanup_expired_visitor_allocations",
     "check_site_health",
     "check_request_flood",
+    "warm_public_status_cache",
     "HEALTH_CHECK_CACHE_KEY",
     "HEALTH_CHECK_FAILURE_COUNT_KEY",
     "HEALTH_CHECK_LAST_NOTIFICATION_KEY",

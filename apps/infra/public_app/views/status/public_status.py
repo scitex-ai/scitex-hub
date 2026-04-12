@@ -135,8 +135,17 @@ def _compute_overall(services):
     return "operational"
 
 
-def _get_status_data():
-    """Run all public health checks and return structured data."""
+PUBLIC_STATUS_CACHE_KEY = "public_status_v1"
+PUBLIC_STATUS_CACHE_TTL = 120  # seconds
+
+
+def _compute_status_data():
+    """Run all public health checks and return structured data.
+
+    Pure computation, no caching. Called by ``_get_status_data`` (lazy)
+    and by the celery cache warmer (periodic) — see
+    apps.infra.public_app.tasks.health.warm_public_status_cache.
+    """
     status_data = {
         "services": [],
         "ssh_services": [],
@@ -166,6 +175,33 @@ def _get_status_data():
         "services": services,
         "checked_at": checked_at,
     }
+
+
+def _get_status_data():
+    """Cached wrapper around ``_compute_status_data``.
+
+    The user-facing /status page must be fast. The synchronous health
+    checks (DB, Redis, SSH, API) take ~15-20s on a cold path, which is
+    intolerable for casual visitors. We serve from a 120s cache; a
+    separate celery beat task (warm_public_status_cache, every 60s)
+    keeps the cache hot so visitors essentially never hit the cold
+    path. On the rare cache miss the user pays the cold cost once and
+    primes the cache for the next visitor.
+
+    Refs scitex-orochi#82 (TTFB 17s regression).
+    """
+    from django.core.cache import cache
+
+    cached = cache.get(PUBLIC_STATUS_CACHE_KEY)
+    if cached is not None:
+        return cached
+    data = _compute_status_data()
+    try:
+        cache.set(PUBLIC_STATUS_CACHE_KEY, data, PUBLIC_STATUS_CACHE_TTL)
+    except Exception:
+        # Cache backend unavailable — still serve fresh data, just slow.
+        pass
+    return data
 
 
 def public_status_view(request):
