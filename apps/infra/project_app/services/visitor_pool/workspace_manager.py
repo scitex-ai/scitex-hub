@@ -103,7 +103,9 @@ class WorkspaceManager:
 
             chat_count = ChatSession.objects.filter(user=visitor_user).count()
             ChatSession.objects.filter(user=visitor_user).delete()
-            LLMUsageLog.objects.filter(user=visitor_user).delete()
+            # LLMUsageLog has no direct user FK — it links to IntegrationConnection.
+            # Filter via the connection relationship to delete this visitor's logs.
+            LLMUsageLog.objects.filter(connection__user=visitor_user).delete()
             if chat_count > 0:
                 logger.info(
                     f"[VisitorPool] Cleared {chat_count} chat sessions for {visitor_user.username}"

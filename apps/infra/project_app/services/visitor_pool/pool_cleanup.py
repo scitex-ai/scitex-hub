@@ -60,11 +60,30 @@ class PoolCleanup:
             )
         )
 
+        # Snapshot the expiry reason before we flip is_active (for logging).
+        to_clean = [
+            (
+                alloc,
+                "expired" if alloc.expires_at < now else "idle",
+            )
+            for alloc in expired_or_idle
+        ]
+
+        # Free the slots FIRST in a single bulk update, BEFORE the expensive
+        # per-visitor workspace reset. If the celery task hits its time limit
+        # (60s) mid-loop, the slots are already marked inactive and available
+        # for new visitors — previously, a timeout left slots "active" forever
+        # because is_active was only set at the end of each iteration.
+        allocation_ids = [alloc.id for alloc, _ in to_clean]
+        VisitorAllocation.objects.filter(id__in=allocation_ids).update(is_active=False)
+
         count = 0
-        for allocation in expired_or_idle:
+        for allocation, reason in to_clean:
             visitor_username = (
                 f"{cls.VISITOR_USER_PREFIX}{allocation.visitor_number:03d}"
             )
+            count += 1
+            logger.info(f"[VisitorPool] Freed {reason} slot: {visitor_username}")
 
             try:
                 visitor_user = User.objects.get(username=visitor_username)
@@ -78,7 +97,11 @@ class PoolCleanup:
                         f"[VisitorPool] Deleted {project_count} projects for {visitor_username}"
                     )
 
-                # Reset workspace to clean state with fresh default-project
+                # Reset workspace to clean state with fresh default-project.
+                # This is the expensive step (filesystem + template clone +
+                # Gitea repo recreation). If it fails or times out, the slot
+                # is already freed — the next visitor will simply run through
+                # reset_visitor_workspace themselves.
                 WorkspaceManager.reset_visitor_workspace(visitor_user)
 
             except User.DoesNotExist:
@@ -88,14 +111,6 @@ class PoolCleanup:
                     f"[VisitorPool] Error cleaning up {visitor_username}: {e}",
                     exc_info=True,
                 )
-
-            allocation.is_active = False
-            allocation.save()
-            count += 1
-
-            # Log with reason
-            reason = "expired" if allocation.expires_at < now else "idle"
-            logger.info(f"[VisitorPool] Freed {reason} slot: {visitor_username}")
 
         return count
 
