@@ -80,6 +80,15 @@ CELERY_BEAT_SCHEDULE = {
             "expires": 55.0,  # Expire after 55 seconds if not started
         },
     },
+    # Warm /status page cache every 1 minute so user-facing visitors
+    # never hit the ~17s cold path (scitex-orochi#82).
+    "warm-public-status-cache": {
+        "task": "apps.infra.public_app.tasks.warm_public_status_cache",
+        "schedule": 60.0,  # Every 1 minute
+        "options": {
+            "expires": 55.0,
+        },
+    },
 }
 
 # EOF
