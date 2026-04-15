@@ -54,6 +54,16 @@ jobs:
       - name: Install Python dependencies
         run: pip install -e ".[django,dev,test]"
 
+      - name: Install sibling workspace apps (scitex-ui, figrecipe)
+        # package.json declares file:../scitex-ui and
+        # file:../figrecipe/src/figrecipe/_django/frontend — both must exist
+        # as siblings before `npm install` so that vite.config.ts's bridge
+        # auto-discovery can register the `figrecipe-editor` alias.
+        # install_apps.sh is the canonical script (same one tests.yml's
+        # typescript-check job uses) and handles every app declared in
+        # .scitex-apps.json, so new apps added later pick this up for free.
+        run: bash scripts/apps/install_apps.sh
+
       - name: Install Node dependencies & build
         run: |
           npm install
@@ -65,13 +75,15 @@ jobs:
       - name: Create test user & start server
         env:
           SCITEX_CLOUD_DJANGO_SECRET_KEY: ci-e2e-test-key  # pragma: allowlist secret
-          SCITEX_CLOUD_DB_NAME: scitex_test
-          SCITEX_CLOUD_DB_USER: scitex
-          SCITEX_CLOUD_DB_PASSWORD: scitex_test_pass  # pragma: allowlist secret
-          SCITEX_CLOUD_DB_HOST: localhost
-          SCITEX_CLOUD_DB_PORT: "5432"
+          # settings_dev.py reads the _DEV-suffixed variants, not the bare names
+          SCITEX_CLOUD_DB_NAME_DEV: scitex_test
+          SCITEX_CLOUD_DB_USER_DEV: scitex
+          SCITEX_CLOUD_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
+          SCITEX_CLOUD_DB_HOST_DEV: localhost
+          SCITEX_CLOUD_DB_PORT_DEV: "5432"
           SCITEX_CLOUD_REDIS_URL: redis://localhost:6379/0
           SCITEX_CLOUD_ENV: development
+          SCITEX_CLOUD_GITEA_SSH_PORT_DEV: "2222"
           DEBUG: "1"
         run: |
           python manage.py migrate --run-syncdb
@@ -95,13 +107,14 @@ jobs:
       - name: Run Playwright mobile tests
         env:
           SCITEX_CLOUD_DJANGO_SECRET_KEY: ci-e2e-test-key  # pragma: allowlist secret
-          SCITEX_CLOUD_DB_NAME: scitex_test
-          SCITEX_CLOUD_DB_USER: scitex
-          SCITEX_CLOUD_DB_PASSWORD: scitex_test_pass  # pragma: allowlist secret
-          SCITEX_CLOUD_DB_HOST: localhost
-          SCITEX_CLOUD_DB_PORT: "5432"
+          SCITEX_CLOUD_DB_NAME_DEV: scitex_test
+          SCITEX_CLOUD_DB_USER_DEV: scitex
+          SCITEX_CLOUD_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
+          SCITEX_CLOUD_DB_HOST_DEV: localhost
+          SCITEX_CLOUD_DB_PORT_DEV: "5432"
           SCITEX_CLOUD_REDIS_URL: redis://localhost:6379/0
           SCITEX_CLOUD_ENV: development
+          SCITEX_CLOUD_GITEA_SSH_PORT_DEV: "2222"
           SCITEX_BASE_URL: http://127.0.0.1:8000
           SCITEX_E2E_TEST_USER: test-user
           SCITEX_E2E_TEST_PASS: "Password123!"
