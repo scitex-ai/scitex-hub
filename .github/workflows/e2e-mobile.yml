@@ -82,6 +82,7 @@ jobs:
           SCITEX_CLOUD_DB_PORT: "5432"
           SCITEX_CLOUD_REDIS_URL: redis://localhost:6379/0
           SCITEX_CLOUD_ENV: development
+          SCITEX_CLOUD_GITEA_SSH_PORT_DEV: "2222"
           DEBUG: "1"
         run: |
           python manage.py migrate --run-syncdb
@@ -112,6 +113,7 @@ jobs:
           SCITEX_CLOUD_DB_PORT: "5432"
           SCITEX_CLOUD_REDIS_URL: redis://localhost:6379/0
           SCITEX_CLOUD_ENV: development
+          SCITEX_CLOUD_GITEA_SSH_PORT_DEV: "2222"
           SCITEX_BASE_URL: http://127.0.0.1:8000
           SCITEX_E2E_TEST_USER: test-user
           SCITEX_E2E_TEST_PASS: "Password123!"
