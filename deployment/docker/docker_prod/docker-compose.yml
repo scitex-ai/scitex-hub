@@ -16,6 +16,14 @@ services:
         BUILDKIT_INLINE_CACHE: 1
     image: scitex-cloud-prod-django:latest
     entrypoint: ["/root-init.sh", "/entrypoint.sh"]
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 8G
+        reservations:
+          cpus: '0.5'
+          memory: 2G
     command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "--access-log", "-", "--verbosity", "1", "config.asgi:application"]
     volumes:
       - static_volume:/app/staticfiles
@@ -136,11 +144,14 @@ services:
     image: edoburu/pgbouncer:v1.25.1-p0
     volumes:
       - ../common/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
-      - ../common/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt
+      - ../common/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
     env_file:
       - .env
     environment:
       - DATABASE_URL=postgresql://${SCITEX_CLOUD_POSTGRES_USER}:${SCITEX_CLOUD_POSTGRES_PASSWORD}@postgres:5432/${SCITEX_CLOUD_POSTGRES_DB}
+      - DB_USER=${SCITEX_CLOUD_POSTGRES_USER}
+      - DB_PASSWORD=${SCITEX_CLOUD_POSTGRES_PASSWORD}
+      - AUTH_TYPE=plain
     depends_on:
       postgres:
         condition: service_healthy
@@ -177,6 +188,14 @@ services:
       --queues=celery,ai_queue,search_queue,compute_queue,vis_queue
       --concurrency=8
       --prefetch-multiplier=1
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 6G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
 
     volumes:
       - static_volume:/app/staticfiles
@@ -327,9 +346,15 @@ services:
       - USER_GID=1000
       - GITEA__database__DB_TYPE=postgres
       - GITEA__database__HOST=postgres:5432
-      - GITEA__database__NAME=${SCITEX_CLOUD_POSTGRES_DB}
-      - GITEA__database__USER=${SCITEX_CLOUD_POSTGRES_USER}
-      - GITEA__database__PASSWD=${SCITEX_CLOUD_POSTGRES_PASSWORD}
+      # Hardcoded to avoid SCITEX_CLOUD_POSTGRES_DB=scitex_cloud shell override
+      # (01_cloud.src:20) which doesn't match the actual postgres DB scitex_cloud_nas
+      - GITEA__database__NAME=scitex_cloud_nas
+      # NOTE: using GITEA_DB_* aliases (from docker_prod/.env) instead of
+      # SCITEX_CLOUD_POSTGRES_USER/PASSWORD because the shell env exports
+      # SCITEX_CLOUD_POSTGRES_USER=admin (dotfiles#34) which collides and
+      # breaks gitea auth to postgres. The alias vars are NOT shell-exported.
+      - GITEA__database__USER=${GITEA_DB_USER:-scitex_nas}
+      - GITEA__database__PASSWD=${GITEA_DB_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy
