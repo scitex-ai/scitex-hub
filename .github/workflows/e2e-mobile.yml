@@ -54,6 +54,14 @@ jobs:
       - name: Install Python dependencies
         run: pip install -e ".[django,dev,test]"
 
+      - name: Checkout figrecipe sibling repo (for figrecipe-editor local dep)
+        # package.json declares `"figrecipe-editor": "file:../figrecipe/..."`
+        # which only resolves when the figrecipe repo is checked out as a
+        # sibling of scitex-cloud. Without this step the vite build fails
+        # with "Rollup failed to resolve import 'figrecipe-editor/...'".
+        run: |
+          git clone --depth 1 https://github.com/ywatanabe1989/figrecipe.git ../figrecipe
+
       - name: Install Node dependencies & build
         run: |
           npm install

@@ -20,8 +20,18 @@ import pytest
 
 
 def _run(coro):
-    """Run a coroutine synchronously in the default event loop."""
-    return asyncio.get_event_loop().run_until_complete(coro)
+    """Run a coroutine synchronously on a fresh event loop.
+
+    `asyncio.get_event_loop()` raises on Python 3.10+ when called from a
+    thread with no running loop — we create a dedicated loop per call and
+    close it after the coroutine completes so repeated invocations don't
+    share state.
+    """
+    loop = asyncio.new_event_loop()
+    try:
+        return loop.run_until_complete(coro)
+    finally:
+        loop.close()
 
 
 def _build_consumer():

@@ -28,6 +28,10 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Checkout figrecipe sibling repo (for figrecipe-editor local dep)
+        run: |
+          git clone --depth 1 https://github.com/ywatanabe1989/figrecipe.git ../figrecipe
+
       - name: Install dependencies
         run: npm install
 
@@ -46,6 +50,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      - name: Checkout figrecipe sibling repo (for figrecipe-editor local dep)
+        run: |
+          git clone --depth 1 https://github.com/ywatanabe1989/figrecipe.git ../figrecipe
 
       - name: Install dependencies
         run: npm install
