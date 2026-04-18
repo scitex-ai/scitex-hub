@@ -69,9 +69,10 @@ while IFS=$'\t' read -r name cpu memu; do
             mem_full="$(psi_total "${cg}/memory.pressure" full)"
             cpu_some="$(psi_total "${cg}/cpu.pressure" some)"
         fi
-        threads="$(docker exec "${name}" sh -c 'ls /proc/1/task 2>/dev/null | wc -l' 2>/dev/null)"
+        threads="$(timeout 5 docker exec "${name}" ls /proc/1/task 2>/dev/null | wc -l)"
         # TCP state 01 = ESTABLISHED
-        est_conns="$(docker exec "${name}" sh -c 'awk "NR>1 && \$4==\"01\" {c++} END{print c+0}" /proc/1/net/tcp 2>/dev/null' 2>/dev/null)"
+        # shellcheck disable=SC2016
+        est_conns="$(timeout 5 docker exec "${name}" awk 'NR>1 && $4=="01" {c++} END{print c+0}' /proc/1/net/tcp 2>/dev/null)"
     fi
 
     printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t\t\t\t\n' \
@@ -86,7 +87,7 @@ done <<<"${stats_raw}"
 # Parse inside the nginx container. Match this-minute or prev-minute key.
 now_key="$(date -u +'%d/%b/%Y:%H:%M')"
 prev_key="$(date -u -d '1 minute ago' +'%d/%b/%Y:%H:%M')"
-nginx_counts="$(docker logs --tail 20000 "${NGINX}" 2>/dev/null |
+nginx_counts="$(timeout 10 docker logs --tail 20000 "${NGINX}" 2>/dev/null |
     awk -v a="${prev_key}" -v b="${now_key}" '
         {
             s=index($0,"[")+1
@@ -111,5 +112,31 @@ s4991m="$(echo "${nginx_counts}" | awk -F'\t' '{print $4+0}')"
 printf '%s\t_nginx\t\t\t\t\t\t\t\t\t\t\t%s\t%s\t%s\t%s\n' \
     "${ts}" "${req1m}" "${s5xx1m}" "${s5041m}" "${s4991m}" \
     >>"${DAY_FILE}"
+
+# ---- capture daphne stack when 504 rate is high ----
+# When 504_1m >= 3, dump py-spy stacks so we have a stack trace aligned
+# with the outage signature. Rate-limited to once per 5 minutes to avoid
+# spamming. Output goes to logs/obs/stacks/ with the TS in the filename.
+STACK_DIR="${LOG_ROOT}/stacks"
+STACK_THRESHOLD=3
+STACK_COOLDOWN=300
+mkdir -p "${STACK_DIR}"
+last_stack_ts_file="${STACK_DIR}/.last_ts"
+now_epoch="$(date -u +%s)"
+last_stack_epoch=0
+[ -f "${last_stack_ts_file}" ] && last_stack_epoch="$(cat "${last_stack_ts_file}" 2>/dev/null)"
+elapsed=$((now_epoch - last_stack_epoch))
+
+if [ "${s5041m:-0}" -ge "${STACK_THRESHOLD}" ] && [ "${elapsed}" -ge "${STACK_COOLDOWN}" ]; then
+    echo "${now_epoch}" >"${last_stack_ts_file}"
+    stack_file="${STACK_DIR}/${ts}_504-${s5041m}.txt"
+    # py-spy is already installed inside the django container.
+    {
+        printf '# %s  504_1m=%s  req_1m=%s  est_conns=%s  threads=%s\n' \
+            "${ts}" "${s5041m}" "${req1m}" "${est_conns}" "${threads}"
+        docker exec --user root --privileged "${DJANGO}" \
+            py-spy dump --pid 1 2>&1
+    } >"${stack_file}"
+fi
 
 exit 0
