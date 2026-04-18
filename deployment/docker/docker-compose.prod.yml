@@ -46,6 +46,7 @@ services:
       resources:
         limits:
           memory: 8G
+          cpus: '4.0'
         reservations:
           memory: 2G
     command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "--access-log", "-", "--verbosity", "1", "config.asgi:application"]
@@ -118,6 +119,11 @@ services:
   # ============================================
   postgres:
     command: postgres -c max_connections=200 -c shared_buffers=128MB
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
     restart: always
 
   # ============================================
@@ -125,6 +131,11 @@ services:
   # ============================================
   redis:
     command: redis-server --appendonly yes
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
     restart: always
 
   # ============================================
@@ -143,6 +154,7 @@ services:
       resources:
         limits:
           memory: 6G
+          cpus: '2.0'
         reservations:
           memory: 1G
     volumes:
@@ -192,6 +204,11 @@ services:
     image: scitex-cloud-prod-django:latest
     entrypoint: ["/entrypoint.sh"]
     command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
     volumes:
       - apps_volume:/app/.apps
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
@@ -227,6 +244,11 @@ services:
     ports:
       - "${SCITEX_CLOUD_GITEA_HTTP_PORT:-3000}:3000"
       - "${SCITEX_CLOUD_GITEA_SSH_PORT}:22"
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
     restart: always
 
   # ============================================
@@ -235,6 +257,11 @@ services:
   umami:
     ports:
       - "${SCITEX_CLOUD_UMAMI_PORT:-3300}:3000"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
     restart: always
 
   # ============================================
@@ -245,6 +272,11 @@ services:
       context: ./crossref_local
       dockerfile: Dockerfile
     image: scitex-crossref-prod:latest
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
     ports:
       - "31291:31291"
     volumes:
@@ -270,6 +302,11 @@ services:
       context: ./ws_ssh_proxy
       dockerfile: Dockerfile
     image: scitex-ws-ssh-proxy:latest
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
     expose:
       - "8022"
     depends_on:
@@ -289,8 +326,14 @@ services:
   # ============================================
   nginx:
     image: nginx:alpine
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
     volumes:
       - ./common/nginx/nginx_prod.conf:/etc/nginx/nginx.conf:ro
+      - ./common/nginx/bots.conf:/etc/nginx/bots.conf:ro
       - ./common/nginx/error-pages:/etc/nginx/error-pages:ro
       - static_volume:/app/staticfiles:ro
       - media_volume:/app/media:ro
@@ -314,6 +357,11 @@ services:
   # ============================================
   cloudflared:
     image: cloudflare/cloudflared:latest
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
     command: tunnel --no-autoupdate run --token ${SCITEX_CLOUD_CLOUDFLARE_TUNNEL_TOKEN}
     env_file:
       - ./envs/.env.prod
