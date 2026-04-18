@@ -73,6 +73,9 @@ while IFS=$'\t' read -r name cpu memu; do
         # TCP state 01 = ESTABLISHED
         # shellcheck disable=SC2016
         est_conns="$(timeout 5 docker exec "${name}" awk 'NR>1 && $4=="01" {c++} END{print c+0}' /proc/1/net/tcp 2>/dev/null)"
+        # Persist for use in the stack-capture block after the loop.
+        django_threads="${threads}"
+        django_est_conns="${est_conns}"
     fi
 
     printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t\t\t\t\n' \
@@ -133,7 +136,7 @@ if [ "${s5041m:-0}" -ge "${STACK_THRESHOLD}" ] && [ "${elapsed}" -ge "${STACK_CO
     # py-spy is already installed inside the django container.
     {
         printf '# %s  504_1m=%s  req_1m=%s  est_conns=%s  threads=%s\n' \
-            "${ts}" "${s5041m}" "${req1m}" "${est_conns}" "${threads}"
+            "${ts}" "${s5041m}" "${req1m}" "${django_est_conns:-}" "${django_threads:-}"
         docker exec --user root --privileged "${DJANGO}" \
             py-spy dump --pid 1 2>&1
     } >"${stack_file}"
