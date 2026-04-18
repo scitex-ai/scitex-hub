@@ -1,9 +1,22 @@
 """
 Middleware for SciTeX Cloud.
+
+All middlewares in this module are hybrid sync+async. Under daphne/ASGI
+the chain is kept async end-to-end so that Django does not need to
+insert an async_to_sync bridge around the view — which was the bridge
+pair that serialized concurrent requests and caused the 504 pattern
+in issue #147 (see #152 day-0 analysis).
+
+Pattern: `sync_capable = True`, `async_capable = True`, the sync body
+is kept intact as a private method and the async path simply runs that
+body via `sync_to_async(..., thread_sensitive=True)` before awaiting
+the next layer. This keeps behaviour identical and isolates DB / session
+work in the existing sync code.
 """
 
 import logging
 
+from asgiref.sync import iscoroutinefunction, markcoroutinefunction, sync_to_async
 from django.contrib.auth import login
 
 logger = logging.getLogger(__name__)
@@ -21,13 +34,28 @@ class VisitorAutoLoginMiddleware:
     - Skips automated requests (curl, wget, empty UA, crawlers)
     """
 
+    sync_capable = True
+    async_capable = True
+
     def __init__(self, get_response):
         self.get_response = get_response
+        if iscoroutinefunction(get_response):
+            markcoroutinefunction(self)
 
     def __call__(self, request):
+        if iscoroutinefunction(self.get_response):
+            return self._acall(request)
+        self._sync_body(request)
+        return self.get_response(request)
+
+    async def _acall(self, request):
+        await sync_to_async(self._sync_body, thread_sensitive=True)(request)
+        return await self.get_response(request)
+
+    def _sync_body(self, request):
         # Skip if already authenticated
         if request.user.is_authenticated:
-            return self.get_response(request)
+            return
 
         # Skip static files, media, and paths that don't need visitor
         path = request.path
@@ -71,7 +99,7 @@ class VisitorAutoLoginMiddleware:
         )
 
         if any(path.startswith(p) for p in skip_paths):
-            return self.get_response(request)
+            return
 
         # Skip non-browser requests (bots, health checks, automated scripts)
         # Use User-Agent based detection (standard pattern)
@@ -85,7 +113,7 @@ class VisitorAutoLoginMiddleware:
 
         # Skip if not a browser (includes curl, wget, empty UA, bots, crawlers)
         if not is_browser:
-            return self.get_response(request)
+            return
 
         # Note: Cookie consent check removed - SciTeX uses privacy-focused Umami
         # analytics and only essential session cookies (no tracking/advertising)
@@ -149,8 +177,6 @@ class VisitorAutoLoginMiddleware:
         except Exception:
             pass
 
-        return self.get_response(request)
-
 
 class VisitorExpirationMiddleware:
     """
@@ -165,17 +191,38 @@ class VisitorExpirationMiddleware:
     unless all slots are full. Falls back to expiration page only if pool exhausted.
     """
 
+    sync_capable = True
+    async_capable = True
+
     def __init__(self, get_response):
         self.get_response = get_response
+        if iscoroutinefunction(get_response):
+            markcoroutinefunction(self)
 
     def __call__(self, request):
+        if iscoroutinefunction(self.get_response):
+            return self._acall(request)
+        short_circuit = self._sync_body(request)
+        if short_circuit is not None:
+            return short_circuit
+        return self.get_response(request)
+
+    async def _acall(self, request):
+        short_circuit = await sync_to_async(self._sync_body, thread_sensitive=True)(
+            request
+        )
+        if short_circuit is not None:
+            return short_circuit
+        return await self.get_response(request)
+
+    def _sync_body(self, request):
         # Only check for authenticated visitor users
         if not request.user.is_authenticated:
-            return self.get_response(request)
+            return None
 
         # Skip if not a visitor user (readonly-visitor also skipped here)
         if not request.user.username.startswith("visitor-"):
-            return self.get_response(request)
+            return None
 
         # Skip certain paths to avoid redirect loops and allow access to essential pages
         path = request.path
@@ -195,7 +242,7 @@ class VisitorExpirationMiddleware:
         )
 
         if any(path.startswith(p) for p in skip_paths):
-            return self.get_response(request)
+            return None
 
         # Check if visitor's allocation is expired
         try:
@@ -251,7 +298,7 @@ class VisitorExpirationMiddleware:
                         f"[Middleware] Auto-reallocated to {visitor_user.username} for {path}"
                     )
                     # Continue with the request - user doesn't see any interruption
-                    return self.get_response(request)
+                    return None
                 else:
                     # Pool exhausted - redirect to expiration page as fallback
                     logger.warning(
@@ -273,7 +320,7 @@ class VisitorExpirationMiddleware:
         except Exception:
             pass
 
-        return self.get_response(request)
+        return None
 
 
 class VisitorAppRedirectMiddleware:
@@ -285,10 +332,17 @@ class VisitorAppRedirectMiddleware:
     readonly-visitor should be able to browse the workspace.
     """
 
+    sync_capable = True
+    async_capable = True
+
     def __init__(self, get_response):
         self.get_response = get_response
+        if iscoroutinefunction(get_response):
+            markcoroutinefunction(self)
 
     def __call__(self, request):
+        # Pass-through: in async mode Django sees markcoroutinefunction and
+        # awaits the coroutine returned here; in sync mode this is the response.
         return self.get_response(request)
 
 
@@ -303,16 +357,31 @@ class OnSiteAuthMiddleware:
 
     TRUSTED_PREFIXES = ("127.", "10.", "172.", "192.168.", "::1")
 
+    sync_capable = True
+    async_capable = True
+
     def __init__(self, get_response):
         self.get_response = get_response
+        if iscoroutinefunction(get_response):
+            markcoroutinefunction(self)
 
     def __call__(self, request):
+        if iscoroutinefunction(self.get_response):
+            return self._acall(request)
+        self._sync_body(request)
+        return self.get_response(request)
+
+    async def _acall(self, request):
+        await sync_to_async(self._sync_body, thread_sensitive=True)(request)
+        return await self.get_response(request)
+
+    def _sync_body(self, request):
         if request.user.is_authenticated:
-            return self.get_response(request)
+            return
 
         username = request.META.get("HTTP_X_SCITEX_ONSITE")
         if not username:
-            return self.get_response(request)
+            return
 
         # Only trust internal network sources
         remote_ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
@@ -320,7 +389,7 @@ class OnSiteAuthMiddleware:
             remote_ip = request.META.get("REMOTE_ADDR", "")
         if not any(remote_ip.startswith(p) for p in self.TRUSTED_PREFIXES):
             logger.warning("OnSite auth rejected from untrusted IP: %s", remote_ip)
-            return self.get_response(request)
+            return
 
         from django.contrib.auth.models import User
 
@@ -332,8 +401,6 @@ class OnSiteAuthMiddleware:
             request._dont_enforce_csrf_checks = True
         except User.DoesNotExist:
             logger.warning("OnSite auth: user %s not found", username)
-
-        return self.get_response(request)
 
 
 class GuestSessionMiddleware:
@@ -348,10 +415,25 @@ class GuestSessionMiddleware:
     - Previously generated guest session IDs
     """
 
+    sync_capable = True
+    async_capable = True
+
     def __init__(self, get_response):
         self.get_response = get_response
+        if iscoroutinefunction(get_response):
+            markcoroutinefunction(self)
 
     def __call__(self, request):
+        if iscoroutinefunction(self.get_response):
+            return self._acall(request)
+        self._sync_body(request)
+        return self.get_response(request)
+
+    async def _acall(self, request):
+        await sync_to_async(self._sync_body, thread_sensitive=True)(request)
+        return await self.get_response(request)
+
+    def _sync_body(self, request):
         # Track current project from URL for logged-in users
         if request.user.is_authenticated:
             # Check if URL matches /<username>/<project>/...
@@ -372,6 +454,3 @@ class GuestSessionMiddleware:
                     # Update session with current project
                     request.session["current_project_slug"] = project_slug
                     request.session.modified = True
-
-        response = self.get_response(request)
-        return response
