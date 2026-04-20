@@ -1,6 +1,6 @@
 [project]
 name = "scitex-cloud"
-version = "0.17.0-alpha"
+version = "0.17.1-alpha"
 description = "SciTeX Cloud - Deployment and management CLI for SciTeX"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -16,6 +16,7 @@ classifiers = [
 dependencies = [
     "click>=8.0",
     "scitex-app>=0.1.0",
+    "scitex-writer>=2.14.0",
 ]
 
 [project.urls]

@@ -5,6 +5,16 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.1-alpha] - 2026-04-21
+
+### Fixed
+- **Deploy**: rebuild step 6 (Apptainer sandbox perms) no longer hangs nor prints misleading "permissions fixed" on failure. Replaced silent host-side `chmod -R a+rX || echo warning` with `apptainer exec --fakeroot --writable --contain --no-home --no-mount home,tmp,cwd` running `find / -xdev -not -path /proc* -not -path /sys* -not -path /dev* -exec chmod a+rX {} +`. Fakeroot inside the sandbox owns the sub-UID files left by prior fakeroot sessions, so chmod succeeds without sudo; `--contain`/`--no-home` stops the walk from entering host `$HOME` (e.g. `~/.scitex/...`); `-xdev` + path exclusions skip kernel pseudo-filesystems. Step now completes in ~35s and exits 0.
+- **CI**: install `scitex-writer` as a sibling checkout and gracefully skip v2 routes when the module is absent, unsticking CI on forks without the sibling repo.
+
+### Added
+- **Deploy preflight**: fail-fast check in `scripts/deploy/rebuild.sh` that aborts before the docker build if `apptainer` is missing or `/etc/subuid` has no entry for `$USER` (fakeroot requires the subuid map).
+- **Writer app**: `apps/workspace/writer_app` now consumes `scitex_writer._django` as a thin wrapper (additive); v2 routes mount only when the module is installed, keeping the v1 path intact (fix #146).
+
 ## [0.16.1] - 2026-03-22
 
 ### Fixed
