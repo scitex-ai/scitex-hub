@@ -78,6 +78,25 @@ if [ ! -d "$DOCKER_DIR" ]; then
     exit 1
 fi
 
+# Preflight: Apptainer + fakeroot (needed by Step 6 to chmod sandbox files
+# owned by sub-UIDs from prior --fakeroot sessions). Fail fast here rather
+# than masking a silent chmod failure later.
+SANDBOX_DIR_PREFLIGHT="$PROJECT_ROOT/deployment/singularity"
+if [ -d "$SANDBOX_DIR_PREFLIGHT" ] &&
+    find "$SANDBOX_DIR_PREFLIGHT" -maxdepth 1 \( -name "current-sandbox" -o -name "*-sandbox" \) -type d 2>/dev/null | grep -q .; then
+    if ! command -v apptainer >/dev/null 2>&1; then
+        echo -e "${RED}Error: apptainer not found but sandbox directory exists.${NC}" >&2
+        echo -e "${YELLOW}  Install Apptainer or remove $SANDBOX_DIR_PREFLIGHT/current-sandbox${NC}" >&2
+        exit 1
+    fi
+    if ! grep -qE "^${USER}:" /etc/subuid 2>/dev/null; then
+        echo -e "${RED}Error: no /etc/subuid entry for user '${USER}'; apptainer --fakeroot will fail.${NC}" >&2
+        echo -e "${YELLOW}  Fix: sudo usermod --add-subuids 100000-165535 --add-subgids 100000-165535 ${USER}${NC}" >&2
+        exit 1
+    fi
+fi
+unset SANDBOX_DIR_PREFLIGHT
+
 # Production safety confirmation
 if [ "$ENV" = "prod" ] && [ "$AUTO_YES" = false ]; then
     # Non-TTY (e.g., SSH pipe, cron, AI agent): fail fast with instructions
@@ -157,7 +176,28 @@ if [ -d "$SANDBOX_DIR" ]; then
     # Find current sandbox directory
     CURRENT_SANDBOX=$(find "$SANDBOX_DIR" -maxdepth 1 -name "current-sandbox" -o -name "*-sandbox" 2>/dev/null | head -1)
     if [ -n "$CURRENT_SANDBOX" ] && [ -d "$CURRENT_SANDBOX" ]; then
-        chmod -R a+rX "$CURRENT_SANDBOX" 2>/dev/null || echo -e "${YELLOW}   ⚠️ Permission fix needs sudo (run: sudo chmod -R a+rX $CURRENT_SANDBOX)${NC}"
+        # Use apptainer --fakeroot to chmod: inside the sandbox, fakeroot
+        # owns sub-UID files left behind by prior --fakeroot sessions, so
+        # chmod succeeds without sudo.
+        #
+        # --no-home and --no-mount home,tmp,cwd are CRITICAL: without them
+        # apptainer bind-mounts the host $HOME / $TMPDIR / $CWD into the
+        # namespace, and `chmod -R /` would walk into host files (e.g.
+        # ~/.scitex/scholar/cache) that we neither own nor want to touch.
+        # --contain additionally uses a minimal /tmp, /var/tmp.
+        # Skip /proc, /sys, /dev — kernel pseudo-filesystems that apptainer
+        # auto-mounts inside the namespace and whose perms cannot be changed.
+        # -xdev also prevents crossing into any nested mount.
+        if ! apptainer exec \
+            --fakeroot --writable \
+            --contain --no-home --no-mount home,tmp,cwd \
+            "$CURRENT_SANDBOX" \
+            find / -xdev \
+            -not -path '/proc*' -not -path '/sys*' -not -path '/dev*' \
+            -exec chmod a+rX {} + 2>&1; then
+            echo -e "${RED}   ❌ Sandbox permission fix failed (apptainer --fakeroot find/chmod).${NC}" >&2
+            exit 1
+        fi
         echo "   Sandbox permissions fixed"
     else
         echo -e "${YELLOW}   No sandbox directory found${NC}"
