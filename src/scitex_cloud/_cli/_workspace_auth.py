@@ -4,11 +4,14 @@
 """Workspace CLI - JWT authentication helpers."""
 
 import json
+import os
 import sys
 from pathlib import Path
 
 import click
 import requests
+
+from .._config import get_config_value
 
 # Cached token location
 TOKEN_CACHE_PATH = Path.home() / ".config" / "scitex" / "token.json"
@@ -17,6 +20,22 @@ TOKEN_CACHE_PATH = Path.home() / ".config" / "scitex" / "token.json"
 def get_server_url(server):
     """Normalise server URL — strip trailing slash."""
     return server.rstrip("/")
+
+
+def _resolve_workspace_credentials():
+    """Resolve (username, password) from env → config, per spec §6b.
+
+    No interactive prompting: missing values are reported by the caller
+    with exit code 2. CLI flag values (when the caller has them) take
+    precedence over what this helper returns.
+    """
+    username = os.environ.get("SCITEX_CLOUD_WORKSPACE_USER") or get_config_value(
+        "workspace", "user"
+    )
+    password = os.environ.get("SCITEX_CLOUD_WORKSPACE_PASSWORD") or get_config_value(
+        "workspace", "password"
+    )
+    return username, password
 
 
 def load_cached_token(server_url):
@@ -38,19 +57,35 @@ def save_token(server_url, tokens):
     TOKEN_CACHE_PATH.write_text(json.dumps({**tokens, "server": server_url}))
 
 
-def get_jwt_token(server_url):
+def get_jwt_token(server_url, username=None, password=None):
     """Return a valid JWT access token.
 
-    Uses cached token when available; otherwise prompts for credentials
-    and calls /api/token/ to obtain a fresh pair.
+    Uses cached token when available; otherwise requires credentials
+    from (in precedence order): function arguments (CLI flags) →
+    ``SCITEX_CLOUD_WORKSPACE_USER`` / ``SCITEX_CLOUD_WORKSPACE_PASSWORD``
+    env vars → config file (spec §6b). Missing credentials cause a
+    fail-fast exit with code 2 — no interactive prompt, so this is
+    safe to run under CI/agent/cron.
     """
     cached = load_cached_token(server_url)
     if cached:
         return cached
 
-    click.echo(f"Authenticating with {server_url}")
-    username = click.prompt("Username")
-    password = click.prompt("Password", hide_input=True)
+    env_user, env_password = _resolve_workspace_credentials()
+    username = username or env_user
+    password = password or env_password
+
+    if not username or not password:
+        click.echo(
+            "error: workspace credentials missing. Set "
+            "SCITEX_CLOUD_WORKSPACE_USER/SCITEX_CLOUD_WORKSPACE_PASSWORD, "
+            "pass --user/--password, or configure "
+            "~/.scitex/scitex-cloud/config.yaml",
+            err=True,
+        )
+        sys.exit(2)
+
+    click.echo(f"Authenticating with {server_url}", err=True)
 
     try:
         resp = requests.post(

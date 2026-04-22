@@ -8,6 +8,7 @@ import sys
 import click
 import requests
 
+from .._config import get_config_value
 from ._gitea_utils import get_tea_config, run_tea
 
 # ---------------------------------------------------------------------------
@@ -85,20 +86,43 @@ def _create_or_get_gitea_token(url, user, password):
 
 @click.command()
 @click.option(
-    "--url", default=None, help="Gitea instance URL (auto-detected from .env)"
+    "--url",
+    default=None,
+    envvar="SCITEX_CLOUD_GITEA_URL",
+    help="Gitea instance URL (auto-detected from .env; env: SCITEX_CLOUD_GITEA_URL)",
 )
-@click.option("--token", default=None, help="API token (skip username/password flow)")
-@click.option("--user", "-u", default=None, help="Gitea username")
-@click.option("--password", "-p", default=None, help="Gitea password")
+@click.option(
+    "--token",
+    default=None,
+    envvar="SCITEX_CLOUD_GITEA_TOKEN",
+    help="API token, skip username/password flow (env: SCITEX_CLOUD_GITEA_TOKEN)",
+)
+@click.option(
+    "--user",
+    "-u",
+    default=None,
+    envvar="SCITEX_CLOUD_GITEA_USER",
+    help="Gitea username (env: SCITEX_CLOUD_GITEA_USER)",
+)
+@click.option(
+    "--password",
+    "-p",
+    default=None,
+    envvar="SCITEX_CLOUD_GITEA_PASSWORD",
+    help="Gitea password (env: SCITEX_CLOUD_GITEA_PASSWORD)",
+)
 @click.option(
     "--name", default="scitex-dev", help="Tea login name (default: scitex-dev)"
 )
 def login(url, token, user, password, name):
     """Login to SciTeX Cloud (Gitea).
 
-    When --token is not given, prompts for username/password and
-    automatically creates an API token via the Gitea API (like gh auth login).
-    Running this command a second time re-uses an existing token if found.
+    Non-interactive. Credentials resolve in precedence order (spec §6b):
+    CLI flag → SCITEX_CLOUD_GITEA_{TOKEN,USER,PASSWORD} env var →
+    config file. Missing credentials fail fast with exit code 2.
+
+    Prefer --token (or SCITEX_CLOUD_GITEA_TOKEN) for unattended runs.
+    Username+password still works when token unavailable.
 
     The Gitea URL is auto-detected from SCITEX_CLOUD_GITEA_URL_DEV env var
     or SECRET/.env.dev file. Override with --url.
@@ -107,13 +131,21 @@ def login(url, token, user, password, name):
 
     if url is None:
         url = get_gitea_url()
-        click.echo(f"Auto-detected Gitea URL: {url}")
+        click.echo(f"Auto-detected Gitea URL: {url}", err=True)
 
     if not token:
-        if not user:
-            user = click.prompt("Username")
-        if not password:
-            password = click.prompt("Password", hide_input=True)
+        user = user or get_config_value("gitea", "user")
+        password = password or get_config_value("gitea", "password")
+
+        if not user or not password:
+            click.echo(
+                "error: gitea credentials missing. Set "
+                "SCITEX_CLOUD_GITEA_TOKEN (preferred) or "
+                "SCITEX_CLOUD_GITEA_USER/SCITEX_CLOUD_GITEA_PASSWORD, "
+                "or pass --token / --user and --password",
+                err=True,
+            )
+            sys.exit(2)
 
         token = _create_or_get_gitea_token(url, user, password)
         if not token:
@@ -133,19 +165,24 @@ def login(url, token, user, password, name):
     help="Tea login name to remove (default: scitex-dev)",
 )
 @click.option(
-    "--url", default=None, help="Gitea URL (needed when --delete-token is set)"
+    "--url",
+    default=None,
+    envvar="SCITEX_CLOUD_GITEA_URL",
+    help="Gitea URL (env: SCITEX_CLOUD_GITEA_URL; needed when --delete-token is set)",
 )
 @click.option(
     "--user",
     "-u",
     default=None,
-    help="Gitea username (needed when --delete-token is set)",
+    envvar="SCITEX_CLOUD_GITEA_USER",
+    help="Gitea username (env: SCITEX_CLOUD_GITEA_USER; needed when --delete-token is set)",
 )
 @click.option(
     "--password",
     "-p",
     default=None,
-    help="Gitea password (needed when --delete-token is set)",
+    envvar="SCITEX_CLOUD_GITEA_PASSWORD",
+    help="Gitea password (env: SCITEX_CLOUD_GITEA_PASSWORD; needed when --delete-token is set)",
 )
 @click.option(
     "--delete-token",
@@ -156,7 +193,9 @@ def logout(name, url, user, password, delete_token):
     """Logout from SciTeX Cloud (Gitea).
 
     Removes the local tea login entry.  Use --delete-token to also revoke
-    the API token on the Gitea server.
+    the API token on the Gitea server. In that mode, password is required
+    non-interactively via --password or SCITEX_CLOUD_GITEA_PASSWORD
+    (fail-fast with exit code 2 if missing — no prompt, spec §2).
     """
     if delete_token:
         # Try to pull connection details from tea config if not given
@@ -172,10 +211,17 @@ def logout(name, url, user, password, delete_token):
             click.echo(
                 "Error: --url and --user are required with --delete-token", err=True
             )
-            sys.exit(1)
+            sys.exit(2)
 
         if not password:
-            password = click.prompt("Password to revoke remote token", hide_input=True)
+            password = get_config_value("gitea", "password")
+        if not password:
+            click.echo(
+                "error: --delete-token requires a password. Set "
+                "SCITEX_CLOUD_GITEA_PASSWORD or pass --password",
+                err=True,
+            )
+            sys.exit(2)
 
         token_name = "scitex-cloud-cli"
         api_url = f"{url.rstrip('/')}/api/v1/users/{user}/tokens"

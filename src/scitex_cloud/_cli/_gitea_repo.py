@@ -148,9 +148,21 @@ def search(query, login, limit):
 @click.command()
 @click.argument("repository")
 @click.option("--login", "-l", default="scitex-dev", help="Tea login to use")
-@click.confirmation_option(prompt="Are you sure you want to delete this repository?")
-def delete(repository, login):
-    """Delete a repository (DANGEROUS!)"""
+@click.option(
+    "--yes",
+    "-y",
+    is_flag=True,
+    help="Confirm destructive action (required for non-interactive use)",
+)
+def delete(repository, login, yes):
+    """Delete a repository (DANGEROUS!). Requires --yes/-y (no prompt)."""
+    if not yes:
+        click.echo(
+            f"error: pass --yes/-y to confirm destructive action: "
+            f"delete repository '{repository}'",
+            err=True,
+        )
+        sys.exit(2)
     import requests
     import yaml
 
