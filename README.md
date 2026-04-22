@@ -26,6 +26,7 @@
   <a href="https://scitex-cloud.readthedocs.io/"><img src="https://readthedocs.org/projects/scitex-cloud/badge/?version=latest" alt="Documentation"></a>
   <a href="https://github.com/ywatanabe1989/scitex-cloud/actions/workflows/tests.yml"><img src="https://github.com/ywatanabe1989/scitex-cloud/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
   <a href="https://github.com/ywatanabe1989/scitex-cloud/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg" alt="License: AGPL-3.0"></a>
+[![SafeSkill 20/100](https://img.shields.io/badge/SafeSkill-20%2F100_Blocked-red)](https://safeskill.dev/scan/ywatanabe1989-scitex-cloud)
 </p>
 
 <p align="center">
