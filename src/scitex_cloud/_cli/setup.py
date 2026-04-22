@@ -5,10 +5,12 @@
 """Setup commands for scitex-cloud CLI."""
 
 import shutil
+import sys
 from pathlib import Path
 
 import click
 
+from .._config import load_config
 from .._config._environments import ENVIRONMENTS, get_environment
 
 
@@ -17,33 +19,46 @@ from .._config._environments import ENVIRONMENTS, get_environment
     "--env",
     type=click.Choice(list(ENVIRONMENTS.keys())),
     default=None,
-    help="Target environment (dev, prod)",
+    envvar="SCITEX_CLOUD_ENV",
+    help="Target environment — dev, prod (env: SCITEX_CLOUD_ENV)",
 )
 @click.option("--force", is_flag=True, help="Overwrite existing configuration")
-@click.pass_context
-def setup(ctx, env, force):
+def setup(env, force):
     """Setup SciTeX Cloud environment.
 
     \b
-    Interactive setup wizard for configuring SciTeX Cloud deployment.
-    Creates necessary configuration files and validates prerequisites.
+    Non-interactive setup wizard. Environment resolution (spec §6b):
+    --env flag > SCITEX_CLOUD_ENV env var > config file `env` key.
+    Missing value fails fast with exit code 2 — no prompt.
 
     \b
     Examples:
-        scitex-cloud setup              # Interactive setup
         scitex-cloud setup --env dev    # Setup development environment
         scitex-cloud setup --env prod   # Setup production environment
+        SCITEX_CLOUD_ENV=dev scitex-cloud setup
     """
     click.echo(click.style("SciTeX Cloud Setup", fg="cyan", bold=True))
     click.echo()
 
-    # Select environment
     if env is None:
-        env = click.prompt(
-            "Select environment",
-            type=click.Choice(list(ENVIRONMENTS.keys())),
-            default="dev",
+        cfg = load_config()
+        raw = cfg.get("env")
+        if isinstance(raw, str):
+            env = raw
+
+    if env is None:
+        click.echo(
+            "error: set SCITEX_CLOUD_ENV or pass --env (choices: "
+            f"{', '.join(ENVIRONMENTS.keys())})",
+            err=True,
         )
+        sys.exit(2)
+    if env not in ENVIRONMENTS:
+        click.echo(
+            f"error: invalid --env '{env}' (choices: {', '.join(ENVIRONMENTS.keys())})",
+            err=True,
+        )
+        sys.exit(2)
 
     environment = get_environment(env)
     click.echo(f"Setting up: {click.style(environment.description, fg='green')}")
