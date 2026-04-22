@@ -3,11 +3,23 @@
 # File: src/scitex_cloud/_cli/project.py
 """Project CRUD CLI commands."""
 
+import sys
+
 import click
 from rich.console import Console
 from rich.table import Table
 
 console = Console()
+
+
+def _require_yes(yes, action):
+    """Fail fast with exit 2 if destructive action lacks --yes (spec §2)."""
+    if not yes:
+        click.echo(
+            f"error: pass --yes/-y to confirm destructive action: {action}",
+            err=True,
+        )
+        sys.exit(2)
 
 
 @click.group()
@@ -76,13 +88,15 @@ def project_create(name, description, template):
 
 @project.command("delete")
 @click.argument("slug")
-@click.option("--yes", "-y", is_flag=True, help="Skip confirmation")
+@click.option(
+    "--yes",
+    "-y",
+    is_flag=True,
+    help="Confirm destructive action (required for non-interactive use)",
+)
 def project_delete(slug, yes):
-    """Delete a project by slug."""
-    if not yes:
-        if not click.confirm(f"Delete project '{slug}'?"):
-            console.print("[yellow]Cancelled.[/yellow]")
-            return
+    """Delete a project by slug. Requires --yes/-y (no interactive prompt)."""
+    _require_yes(yes, f"delete project '{slug}'")
 
     from scitex_cloud.project import project_delete as _delete
 
