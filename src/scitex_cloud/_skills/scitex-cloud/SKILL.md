@@ -1,6 +1,6 @@
 ---
-description: SciTeX Cloud platform — Django web app + CLI + MCP server + Python SDK. Covers project management, Git hosting (Gitea), three-way sync, app deployment, DataStore/FileVault/JobQueue SDK, and infrastructure. Use when managing cloud projects, syncing code, deploying apps, or running cloud operations.
-allowed-tools: Bash, Read, Grep, Glob
+description: SciTeX Cloud operational surface — 55 MCP tools across 6 categories — project_* (cloud project CRUD), repo_* (self-hosted Gitea clone/push/pull/PRs/issues), cloud_sdk_data/files/jobs_* (DataStore/FileVault/JobQueue SDK — submit compute jobs, upload/download files, CRUD records), api_* (Scholar paper search, CrossRef lookup, BibTeX enrichment, LaTeX compile via cloud), app_* (install/switch app plugins), onsite_* (in-browser Playwright on the live Django site). Plus CloudClient Python API, DockerManager, health_check, three-way sync, staging/production deploy. Use whenever the user asks to create a cloud project, push/clone via Gitea, submit a cloud job, upload to FileVault, compile LaTeX on cloud, search papers via Scholar, enrich BibTeX, switch app plugin, deploy to staging/production, or mentions SciTeX Cloud, Gitea, DataStore, FileVault, JobQueue, CloudClient. Drop-in replacement for raw `curl` + `git` + Playwright scripts against the Django instance.
+allowed-tools: mcp__scitex__cloud_*
 ---
 
 # scitex-cloud Skill

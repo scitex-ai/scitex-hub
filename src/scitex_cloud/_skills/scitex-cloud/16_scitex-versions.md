@@ -1,3 +1,4 @@
+<!-- TODO: Split per checklist §4 (currently 11 KB) -->
 # SciTeX Versions Management
 
 ## Overview
