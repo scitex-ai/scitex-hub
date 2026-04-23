@@ -71,8 +71,8 @@ def cache_buster(request):
 
         build_id = _cached_build_id or str(int(current_time))
     else:
-        # In production, derive build_id from .build-timestamp or git hash
-        # Prefer timestamp file over BUILD_ID env var (which defaults to "1.0.0" in Dockerfile)
+        # In production, derive build_id from .build-timestamp file, then
+        # SCITEX_CLOUD_BUILD_ID env var, falling back to timestamp.
         build_id = ""
         try:
             ts_file = Path(settings.STATIC_ROOT) / "vite" / ".build-timestamp"
@@ -81,7 +81,7 @@ def cache_buster(request):
         except Exception:
             pass
         if not build_id:
-            build_id = os.environ.get("BUILD_ID", "")
+            build_id = os.environ.get("SCITEX_CLOUD_BUILD_ID", "")
         if not build_id:
             import time
 

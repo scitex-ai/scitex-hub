@@ -116,11 +116,11 @@ VITE_HOST_PORT = 5173
 VITE_DEV_APP_PORT = 5174
 # Set True to use pre-built Vite assets (staticfiles/vite/) instead of Vite dev server.
 # Useful when Vite dev server can't run (resource constraints). Run `npm run build` first.
-VITE_USE_BUILD = os.environ.get("VITE_USE_BUILD", "").lower() in ("1", "true", "yes")
-# Set to your Windows LAN IP for iPhone dev testing (e.g. "192.168.0.67")
+VITE_USE_BUILD = os.environ.get("SCITEX_CLOUD_VITE_USE_BUILD", "").lower() in ("1", "true", "yes")
+# Set to your Windows LAN IP for iPhone dev testing (e.g. "192.168.0.67").
 # Default "127.0.0.1" works for localhost-only dev.
 # "auto" tries to detect the Windows host LAN IP via default gateway.
-_vite_host_env = os.environ.get("VITE_HOST_IP", "127.0.0.1")
+_vite_host_env = os.environ.get("SCITEX_CLOUD_VITE_HOST_IP", "127.0.0.1")
 if _vite_host_env == "auto":
     try:
         import subprocess
@@ -307,7 +307,7 @@ LOGGING.update(
             },
             "django.db.backends": {
                 "handlers": ["console_debug"],
-                "level": "DEBUG" if os.environ.get("SQL_DEBUG") else "INFO",
+                "level": "DEBUG" if os.environ.get("SCITEX_CLOUD_SQL_DEBUG") else "INFO",
                 "propagate": False,
             },
             "scitex": {
@@ -344,7 +344,7 @@ CELERY_BEAT_SCHEDULE["collect-server-metrics"] = {
 # Test User Credentials for API Docs Examples
 # ---------------------------------------
 # Used to populate API docs code examples in Private mode (dev only)
-TEST_USER_PASSWORD = os.environ.get("TEST_USER_PASSWORD", "Password123!")
+TEST_USER_PASSWORD = os.environ.get("SCITEX_CLOUD_TEST_USER_PASSWORD", "Password123!")
 
 # ---------------------------------------
 # Dev App Preview

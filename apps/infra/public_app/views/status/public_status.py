@@ -22,7 +22,6 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
-from django.core.cache import cache
 from django.http import JsonResponse
 from django.shortcuts import render
 
@@ -34,13 +33,6 @@ from .health_checks import (
 )
 
 logger = logging.getLogger("scitex")
-
-# Cache key and TTL for the public status page.
-# Health checks hit DB, Redis, SSH endpoints, and external APIs — expensive.
-# 30s TTL balances freshness against load: the page re-runs checks at most
-# twice per minute, regardless of concurrent requests.
-_STATUS_CACHE_KEY = "public_status:data:v1"
-_STATUS_CACHE_TTL = 30
 
 
 def _run_check_safe(fn, status_data):
@@ -143,8 +135,17 @@ def _compute_overall(services):
     return "operational"
 
 
-def _get_status_data():
-    """Run all public health checks and return structured data."""
+PUBLIC_STATUS_CACHE_KEY = "public_status_v1"
+PUBLIC_STATUS_CACHE_TTL = 120  # seconds
+
+
+def _compute_status_data():
+    """Run all public health checks and return structured data.
+
+    Pure computation, no caching. Called by ``_get_status_data`` (lazy)
+    and by the celery cache warmer (periodic) — see
+    apps.infra.public_app.tasks.health.warm_public_status_cache.
+    """
     status_data = {
         "services": [],
         "ssh_services": [],
@@ -176,24 +177,42 @@ def _get_status_data():
     }
 
 
-def _get_status_data_cached():
-    """Return cached status data, running checks at most once per _STATUS_CACHE_TTL."""
-    data = cache.get(_STATUS_CACHE_KEY)
-    if data is None:
-        data = _get_status_data()
-        cache.set(_STATUS_CACHE_KEY, data, _STATUS_CACHE_TTL)
+def _get_status_data():
+    """Cached wrapper around ``_compute_status_data``.
+
+    The user-facing /status page must be fast. The synchronous health
+    checks (DB, Redis, SSH, API) take ~15-20s on a cold path, which is
+    intolerable for casual visitors. We serve from a 120s cache; a
+    separate celery beat task (warm_public_status_cache, every 60s)
+    keeps the cache hot so visitors essentially never hit the cold
+    path. On the rare cache miss the user pays the cold cost once and
+    primes the cache for the next visitor.
+
+    Refs scitex-orochi#82 (TTFB 17s regression).
+    """
+    from django.core.cache import cache
+
+    cached = cache.get(PUBLIC_STATUS_CACHE_KEY)
+    if cached is not None:
+        return cached
+    data = _compute_status_data()
+    try:
+        cache.set(PUBLIC_STATUS_CACHE_KEY, data, PUBLIC_STATUS_CACHE_TTL)
+    except Exception:
+        # Cache backend unavailable — still serve fresh data, just slow.
+        pass
     return data
 
 
 def public_status_view(request):
     """Render the public status page. No authentication required."""
-    data = _get_status_data_cached()
+    data = _get_status_data()
     return render(request, "public_app/public_status.html", {"status": data})
 
 
 def public_status_api(request):
     """JSON API for public status. No authentication required."""
-    data = _get_status_data_cached()
+    data = _get_status_data()
     return JsonResponse(data)
 
 

@@ -85,11 +85,14 @@ for location in _WRITER_TEMPLATE_LOCATIONS:
 # ---------------------------------------
 # CrossRef Local API
 # ---------------------------------------
-CROSSREF_INTERNAL_URL = os.getenv("CROSSREF_INTERNAL_URL", "http://crossref:31291")
+CROSSREF_INTERNAL_URL = os.getenv(
+    "SCITEX_CLOUD_CROSSREF_INTERNAL_URL", "http://crossref:31291"
+)
 
 # CrossRef database path for citation graph service
 CROSSREF_DB_PATH = os.getenv(
-    "CROSSREF_DB_PATH", str(Path.home() / "proj/crossref_local/data/crossref.db")
+    "SCITEX_CLOUD_CROSSREF_DB_PATH",
+    str(Path.home() / "proj/crossref_local/data/crossref.db"),
 )
 
 # ---------------------------------------
