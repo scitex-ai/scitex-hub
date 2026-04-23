@@ -9,7 +9,7 @@ import pytest
 from playwright.sync_api import Page
 
 from .conftest import show_step, login_and_navigate, visual_drag, visual_click
-from scitex.browser import show_test_result
+from scitex_browser import show_test_result
 
 
 class TestLocalStoragePersistence:

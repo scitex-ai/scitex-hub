@@ -107,7 +107,7 @@ def logged_in_page(page: Page, base_url: str, test_credentials: dict) -> Page:
 def visual_page(page):
     """Page with visual effects enabled (if scitex.browser available)."""
     try:
-        from scitex.browser import inject_visual_effects
+        from scitex_browser import inject_visual_effects
 
         inject_visual_effects(page)
     except ImportError:
@@ -119,7 +119,7 @@ def visual_page(page):
 def logged_in_visual_page(logged_in_page):
     """Logged-in page with visual effects."""
     try:
-        from scitex.browser import inject_visual_effects
+        from scitex_browser import inject_visual_effects
 
         inject_visual_effects(logged_in_page)
     except ImportError:

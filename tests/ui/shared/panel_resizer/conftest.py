@@ -49,7 +49,7 @@ if not CREDENTIALS_AVAILABLE:
 print(f"[panel_resizer conftest] Using credentials: username={TEST_USER_USERNAME}")
 
 # Import ALL utilities from scitex.browser
-from scitex.browser import (
+from scitex_browser import (
     SyncBrowserSession,
     TestMonitor,
     collect_console_logs,
