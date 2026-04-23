@@ -5,122 +5,60 @@ allowed-tools: Bash, Read, Grep, Glob
 
 # scitex-cloud Skill
 
-## What this package is
-
 `scitex-cloud` provides the operational surface for a SciTeX Cloud
-deployment. It ships:
+deployment: a Django web platform, a `scitex-cloud` CLI, an MCP server
+with ~55 tools, and a small Python API (`CloudClient`, `DockerManager`,
+`health_check`, `get_environment`).
 
-- A **Django web platform** (under `apps/`) with Scholar, Writer,
-  FigRecipe, Console, Hub, Clew modules — run with
-  `make start` / `make ENV=prod start`.
-- A **CLI** (`scitex-cloud`) covering project management, Gitea Git
-  hosting, sync, docker, deploy, MCP, workspace, SDK, and status.
-- An **MCP server** (`scitex-cloud-mcp` / `scitex-cloud mcp start`)
-  exposing ~55 tools across 6 categories for AI agents.
-- A small **Python API** (`CloudClient`, `health_check`,
-  `get_environment`, `DockerManager`).
+## Installation & import (two equivalent paths)
 
-## Installation
-
-```bash
-pip install scitex-cloud               # CLI only
-pip install scitex-cloud[mcp]          # CLI + MCP server
-pip install scitex-cloud[all]          # Everything (django, test, gui, mcp, dev)
-# Development:
-pip install -e /home/ywatanabe/proj/scitex-cloud
-```
-
-## CLI surface (actual, from `src/scitex_cloud/_cli/main.py`)
-
-Top-level command groups registered on `main`:
-
-| Command | Module | Notes |
-|---------|--------|-------|
-| `app` | `_cli/app.py` | App plugin scaffolding |
-| `setup` | `_cli/setup.py` | Environment setup |
-| `deploy` | `_cli/deploy.py` | Deploy helpers |
-| `docker` | `_cli/docker.py` | Container mgmt |
-| `gitea` | `_cli/gitea.py` | Gitea Git hosting (repos, PRs, issues, auth) |
-| `mcp` | `_cli/mcp.py` | `start`, `list-tools`, `doctor`, `installation` |
-| `context` | `_cli/context.py` | Context group |
-| `status` / `logs` | `_cli/status.py` | Deployment status + logs |
-| `completion` | `_cli/completion.py` | Shell completion |
-| `workspace` | `_cli/workspace.py` | Workspace auth + commands |
-| `sdk` | `_cli/sdk.py` | SDK subcommands |
-| `project` | `_cli/project.py` | Project CRUD |
-| `skills` | `scitex_dev` plugin | Registered when `scitex-dev` is installed |
-
-Use `scitex-cloud --help-recursive` to list every sub-command.
-
-## MCP tools (actual, from `src/scitex_cloud/_mcp_tools/`)
-
-| Category | Tools | File |
-|----------|-------|------|
-| gitea | 14 | `_mcp_tools/gitea.py` |
-| sdk | 14 | `_mcp_tools/sdk.py` |
-| api | 9 | `_mcp_tools/api.py` |
-| app | 7 | `_mcp_tools/app.py` |
-| onsite | 6 | `_mcp_tools/onsite.py` |
-| project_crud | 5 | `_mcp_tools/project_crud.py` |
-
-Registration: `_mcp_tools/__init__.py::register_all_tools`.
-Entry point: `scitex-cloud-mcp` → `scitex_cloud._mcp_server:main`.
-
-## Python API (actual, from `src/scitex_cloud/__init__.py`)
+The same module is reachable via two install paths. Both forms work at
+runtime; which one a user has depends on their install choice.
 
 ```python
+# Standalone — pip install scitex-cloud
 import scitex_cloud
+scitex_cloud.CloudClient(...)
 
-scitex_cloud.__version__
-scitex_cloud.get_version()
-scitex_cloud.health_check(endpoint=None)       # local or remote
-client = scitex_cloud.CloudClient()            # from _api.py
-env = scitex_cloud.get_environment()           # from _config/_environments.py
-docker = scitex_cloud.DockerManager()          # from _utils/_docker.py
+# Umbrella — pip install scitex
+import scitex.cloud
+scitex.cloud.CloudClient(...)
 ```
 
-## Sub-skill files
+`pip install scitex-cloud` alone does NOT expose the `scitex` namespace;
+`import scitex.cloud` raises `ModuleNotFoundError`. To use the
+`scitex.cloud` form, also `pip install scitex`.
 
-| File | Topic |
-|------|-------|
-| [python-api.md](python-api.md) | CloudClient, project_*, health_check |
-| [project-management.md](project-management.md) | CLI project CRUD — create, list, delete, rename |
-| [sync-architecture.md](sync-architecture.md) | Three-way sync — push/pull (git) and sync-to/from (files) |
-| [gitea-cli.md](gitea-cli.md) | Gitea Git hosting — repos, PRs, issues, auth |
-| [app-management.md](app-management.md) | App plugins — init, validate, submit, prefs, containers |
-| [sdk.md](sdk.md) | Cloud SDK — DataStore, FileVault, JobQueue |
-| [infrastructure.md](infrastructure.md) | Docker, setup, deploy, MCP server |
-| [deployment-staging.md](deployment-staging.md) | Deploy to staging — sync, build, verify |
-| [deployment-production.md](deployment-production.md) | Deploy to production — NAS safety, cgroup limits |
-| [scitex-deploy-staging.md](scitex-deploy-staging.md) | Legacy staging deploy recipe |
-| [scitex-deploy-prod.md](scitex-deploy-prod.md) | Legacy production deploy recipe |
-| [scitex-cloud-stage.md](scitex-cloud-stage.md) | Ecosystem staging prerequisites |
-| [ship-scitex-cloud.md](ship-scitex-cloud.md) | Ship-to-prod one-liner recipe |
-| [version-management.md](version-management.md) | Ecosystem version sync and bump |
-| [scitex-versions.md](scitex-versions.md) | Detailed version-sync walkthrough (bidirectional) |
-| [refactoring-rules.md](refactoring-rules.md) | File size thresholds, extraction patterns |
-| [cloud-refactor.md](cloud-refactor.md) | Refactor request template |
-| [development-environment.md](development-environment.md) | Docker dev setup, hot reload, access URLs |
-| [django-conventions.md](django-conventions.md) | 1:1:1:1 full-stack conventions, naming |
-| [vite-frontend.md](vite-frontend.md) | Vite HMR, entry points, template tags |
-| [mobile-testing.md](mobile-testing.md) | Mobile responsive testing — Playwright, viewport, auth selectors |
+See [../../general/02_interface-python-api.md] for the ecosystem-wide
+rule and empirical verification table.
 
-## Quick navigation
+## Sub-skills
 
-- Managing cloud projects → [project-management.md](project-management.md)
-- Syncing code between local/workspace → [sync-architecture.md](sync-architecture.md)
-- Git repo operations (clone, fork, PR, issue) → [gitea-cli.md](gitea-cli.md)
-- Developing/publishing apps → [app-management.md](app-management.md)
-- DataStore / FileVault / JobQueue → [sdk.md](sdk.md)
-- Docker, deploy, MCP server → [infrastructure.md](infrastructure.md)
-- Python API programmatic access → [python-api.md](python-api.md)
-- Deploy to staging → [deployment-staging.md](deployment-staging.md)
-- Deploy to production → [deployment-production.md](deployment-production.md)
-- Version sync across ecosystem → [version-management.md](version-management.md) / [scitex-versions.md](scitex-versions.md)
-- Refactoring rules → [refactoring-rules.md](refactoring-rules.md)
-- Dev environment setup → [development-environment.md](development-environment.md)
-- Django conventions (1:1:1:1) → [django-conventions.md](django-conventions.md)
-- Vite/TypeScript frontend → [vite-frontend.md](vite-frontend.md)
-- Mobile responsive testing → [mobile-testing.md](mobile-testing.md)
+### Core (01–09)
+- [01_python-api.md](01_python-api.md) — CloudClient, project_*, health_check
+- [02_sdk.md](02_sdk.md) — Cloud SDK — DataStore, FileVault, JobQueue
+- [03_project-management.md](03_project-management.md) — CLI project CRUD — create, list, delete, rename
+- [04_app-management.md](04_app-management.md) — App plugins — init, validate, submit, prefs, containers
+- [05_gitea-cli.md](05_gitea-cli.md) — Gitea Git hosting — repos, PRs, issues, auth
+
+### Workflows (10–19)
+- [10_sync-architecture.md](10_sync-architecture.md) — Three-way sync — push/pull (git), sync-to/from (files)
+- [11_deployment-staging.md](11_deployment-staging.md) — Deploy to staging — sync, build, verify
+- [12_deployment-production.md](12_deployment-production.md) — Deploy to production — NAS safety, cgroup limits
+- [13_scitex-deploy-staging.md](13_scitex-deploy-staging.md) — Legacy staging deploy recipe
+- [14_scitex-deploy-prod.md](14_scitex-deploy-prod.md) — Legacy production deploy recipe
+- [15_version-management.md](15_version-management.md) — Ecosystem version sync and bump
+- [16_scitex-versions.md](16_scitex-versions.md) — Detailed version-sync walkthrough (bidirectional)
+
+### Standards (20–29)
+- [20_django-conventions.md](20_django-conventions.md) — 1:1:1:1 full-stack conventions, naming
+- [21_refactoring-rules.md](21_refactoring-rules.md) — File size thresholds, extraction patterns
+- [22_cloud-refactor.md](22_cloud-refactor.md) — Refactor request template
+- [23_mobile-testing.md](23_mobile-testing.md) — Mobile responsive testing — Playwright, viewport, auth selectors
+
+### Architecture (30–39)
+- [30_infrastructure.md](30_infrastructure.md) — Docker, setup, deploy, MCP server
+- [31_development-environment.md](31_development-environment.md) — Docker dev setup, hot reload, access URLs
+- [32_vite-frontend.md](32_vite-frontend.md) — Vite HMR, entry points, template tags
 
 # EOF
