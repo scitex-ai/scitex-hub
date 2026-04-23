@@ -37,8 +37,8 @@ rule and empirical verification table.
 ### Core (01–09)
 - [01_python-api.md](01_python-api.md) — CloudClient, project_*, health_check
 - [02_sdk.md](02_sdk.md) — Cloud SDK — DataStore, FileVault, JobQueue
-- [03_project-management.md](03_project-management.md) — CLI project CRUD — create, list, delete, rename
-- [04_app-management.md](04_app-management.md) — App plugins — init, validate, submit, prefs, containers
+- [03_project-management.md](03_project-management.md) — CLI project CRUD
+- [04_app-management.md](04_app-management.md) — App plugins — init, validate, prefs, containers
 - [05_gitea-cli.md](05_gitea-cli.md) — Gitea Git hosting — repos, PRs, issues, auth
 
 ### Workflows (10–19)
@@ -48,13 +48,15 @@ rule and empirical verification table.
 - [13_scitex-deploy-staging.md](13_scitex-deploy-staging.md) — Legacy staging deploy recipe
 - [14_scitex-deploy-prod.md](14_scitex-deploy-prod.md) — Legacy production deploy recipe
 - [15_version-management.md](15_version-management.md) — Ecosystem version sync and bump
-- [16_scitex-versions.md](16_scitex-versions.md) — Detailed version-sync walkthrough (bidirectional)
+- [16_scitex-versions.md](16_scitex-versions.md) — Version-sync commands + Python API
+- [17_scitex-versions-workflow.md](17_scitex-versions-workflow.md) — Bidirectional sync rules and workflow
+- [18_scitex-versions-release.md](18_scitex-versions-release.md) — Version increment, tags, troubleshooting
 
 ### Standards (20–29)
 - [20_django-conventions.md](20_django-conventions.md) — 1:1:1:1 full-stack conventions, naming
 - [21_refactoring-rules.md](21_refactoring-rules.md) — File size thresholds, extraction patterns
 - [22_cloud-refactor.md](22_cloud-refactor.md) — Refactor request template
-- [23_mobile-testing.md](23_mobile-testing.md) — Mobile responsive testing — Playwright, viewport, auth selectors
+- [23_mobile-testing.md](23_mobile-testing.md) — Mobile responsive testing — Playwright, viewport
 
 ### Architecture (30–39)
 - [30_infrastructure.md](30_infrastructure.md) — Docker, setup, deploy, MCP server
