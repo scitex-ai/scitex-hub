@@ -496,3 +496,16 @@ body {
     align-items: flex-start;
   }
 }
+
+/* Very narrow screens: shrink avatar */
+@media (max-width: 400px) {
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+
+  .profile-fullname {
+    font-size: 16px;
+  }
+}

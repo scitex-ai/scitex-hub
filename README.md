@@ -118,7 +118,7 @@ make start                    # Start development environment
 # Test user: test-user / Password123!
 ```
 
-## Three Interfaces
+## Four Interfaces
 
 <details>
 <summary><strong>Python API</strong></summary>
@@ -129,9 +129,15 @@ make start                    # Start development environment
 import scitex_cloud
 
 # Version and health
-scitex_cloud.__version__        # "0.15.0"
+scitex_cloud.__version__        # read from pyproject.toml (e.g. "0.17.0-alpha")
 scitex_cloud.get_version()      # Version string
-scitex_cloud.health_check()     # Service health status
+scitex_cloud.health_check()     # Local package info
+scitex_cloud.health_check("https://scitex.ai/api/health/")  # Remote endpoint
+
+# Clients / helpers
+client = scitex_cloud.CloudClient()            # HTTP client
+env = scitex_cloud.get_environment()           # Environment config
+docker = scitex_cloud.DockerManager()          # Container helpers
 ```
 
 > **[Full API reference](https://scitex-cloud.readthedocs.io/)**
@@ -156,8 +162,11 @@ scitex-cloud gitea pr create           # Create pull request
 scitex-cloud gitea issue create        # Create issue
 
 # Docker management
-scitex-cloud docker status             # Container status
-scitex-cloud docker logs               # View logs
+scitex-cloud docker up                 # Start containers
+scitex-cloud docker down               # Stop containers
+scitex-cloud docker ps                 # Container status
+scitex-cloud docker build              # Build images
+scitex-cloud docker restart            # Restart services
 
 # MCP server
 scitex-cloud mcp start                 # Start MCP server
@@ -184,10 +193,17 @@ AI agents can interact with the SciTeX Cloud platform autonomously via MCP (Mode
 
 | Category | Tools | Description |
 |----------|-------|-------------|
-| cloud | 14 | Git operations (clone, push, pull, PR, issues) |
+| gitea | 14 | Git operations (clone, push, pull, PR, issues, auth) |
+| sdk | 14 | DataStore, FileVault, JobQueue operations |
 | api | 9 | Scholar search, CrossRef, BibTeX enrichment |
+| app | 7 | App plugin lifecycle (init, validate, submit) |
+| onsite | 6 | On-site platform operations |
+| project_crud | 5 | Project create, list, rename, delete |
 
-<sub><b>Table 2.</b> MCP tool categories. All tools accept JSON parameters and return JSON results. Use <code>scitex-cloud mcp list-tools</code> for the full list.</sub>
+<sub><b>Table 2.</b> MCP tool categories — 55 tools total registered via
+<code>register_all_tools</code> in
+<code>_mcp_tools/__init__.py</code>. Use <code>scitex-cloud mcp list-tools</code>
+for the live list.</sub>
 
 **Claude Desktop** (`~/.config/claude/claude_desktop_config.json`):
 
@@ -203,6 +219,27 @@ AI agents can interact with the SciTeX Cloud platform autonomously via MCP (Mode
 ```
 
 > **[Full MCP specification](https://scitex-cloud.readthedocs.io/)**
+
+</details>
+
+<details>
+<summary><strong>Skills — for AI Agents</strong></summary>
+
+<br>
+
+Skill files provide context-aware guidance to AI agents working within the SciTeX ecosystem.
+
+```bash
+# Export skills to dotfiles (sync to Claude)
+scitex-dev skills export --package scitex-cloud
+
+# List available skills
+scitex-cloud skills list
+```
+
+Skills are stored in `src/scitex_cloud/_skills/scitex-cloud/` and cover deployment, development, testing, and more.
+
+> **[Skills index](_skills/scitex-cloud/SKILL.md)**
 
 </details>
 

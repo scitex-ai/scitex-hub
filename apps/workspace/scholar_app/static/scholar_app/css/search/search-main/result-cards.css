@@ -223,3 +223,38 @@
 #scitex-results-container:empty {
   display: none;
 }
+
+/* ===============================================
+   MOBILE: Progressive results scroll fix
+   overflow: hidden on parent containers blocks
+   touch scrolling on mobile devices.
+   =============================================== */
+
+@media (max-width: 767px) {
+  .progressive-results {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+  }
+
+  #scitex-results-container {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+  }
+
+  /* Result cards: stack vertically, reduce padding */
+  .progressive-results .result-card {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .progressive-results .result-right {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+  }
+
+  .progressive-results .result-meta {
+    font-size: 0.75rem;
+  }
+}

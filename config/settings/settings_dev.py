@@ -114,9 +114,25 @@ STATICFILES_DIRS = [
 # Container Vite (port 5174): developmentally-installed app files — runs in container on-demand
 VITE_HOST_PORT = 5173
 VITE_DEV_APP_PORT = 5174
-# Set to your Windows LAN IP for iPhone dev testing (e.g. "192.168.0.67")
-# Default "127.0.0.1" works for localhost-only dev
-VITE_HOST_IP = os.environ.get("SCITEX_CLOUD_VITE_HOST_IP", "127.0.0.1")
+# Set True to use pre-built Vite assets (staticfiles/vite/) instead of Vite dev server.
+# Useful when Vite dev server can't run (resource constraints). Run `npm run build` first.
+VITE_USE_BUILD = os.environ.get("SCITEX_CLOUD_VITE_USE_BUILD", "").lower() in ("1", "true", "yes")
+# Set to your Windows LAN IP for iPhone dev testing (e.g. "192.168.0.67").
+# Default "127.0.0.1" works for localhost-only dev.
+# "auto" tries to detect the Windows host LAN IP via default gateway.
+_vite_host_env = os.environ.get("SCITEX_CLOUD_VITE_HOST_IP", "127.0.0.1")
+if _vite_host_env == "auto":
+    try:
+        import subprocess
+
+        _gw = subprocess.check_output(
+            ["ip", "route", "show", "default"], text=True
+        ).split()[2]
+        VITE_HOST_IP = _gw
+    except Exception:
+        VITE_HOST_IP = "127.0.0.1"
+else:
+    VITE_HOST_IP = _vite_host_env
 
 
 # django-browser-reload configuration
@@ -186,7 +202,10 @@ else:
             ),
             "HOST": os.environ.get("SCITEX_CLOUD_DB_HOST_DEV", "localhost"),
             "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT_DEV", "5432"),
-            "ATOMIC_REQUESTS": True,  # Wrap each request in a transaction
+            # ATOMIC_REQUESTS disabled: incompatible with ASGI (Daphne)
+            # — same issue as production (see settings_prod.py).
+            # Visitor middleware DB errors cascade to views.
+            "ATOMIC_REQUESTS": False,
             "CONN_MAX_AGE": 600,  # Connection pooling (10 minutes)
             "OPTIONS": {
                 "connect_timeout": 10,

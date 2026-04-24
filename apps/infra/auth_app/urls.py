@@ -44,6 +44,12 @@ urlpatterns = [
         api_views.check_username_availability,
         name="api_check_username",
     ),
+    # API endpoint for remote credential verification (orochi)
+    path(
+        "api/login/",
+        api_views.verify_credentials_api,
+        name="api_verify_credentials",
+    ),
     # API endpoints for theme preferences
     path(
         "api/save-theme/",

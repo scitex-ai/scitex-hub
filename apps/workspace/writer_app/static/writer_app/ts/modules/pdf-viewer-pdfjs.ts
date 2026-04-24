@@ -11,7 +11,7 @@ import { PDFZoom } from "./_pdf-viewer/PDFZoom";
 import { PDFScrollState } from "./_pdf-viewer/PDFScrollState";
 import { PDFMouseHandler } from "./_pdf-viewer/PDFMouseHandler";
 import { PDFTheme } from "./_pdf-viewer/PDFTheme";
-
+import { setupSyncTeXHandler } from "./_pdf-viewer/PDFSyncTeX";
 
 export interface PDFViewerOptions {
   containerId: string;
@@ -148,6 +148,9 @@ export class PDFJSViewer {
 
     // Mouse panning
     this.mouseHandler.setupMousePanListener(viewer);
+
+    // SyncTeX reverse lookup (double-click PDF -> jump to .tex source)
+    setupSyncTeXHandler(viewer, () => this.zoom.getCurrentScale());
   }
 
   /**

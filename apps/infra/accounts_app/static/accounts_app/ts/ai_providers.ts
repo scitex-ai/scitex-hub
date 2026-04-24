@@ -40,15 +40,108 @@ const PROVIDER_KEY_URLS: Record<string, { label: string; url: string }> = {
   },
 };
 
-// Cache so we only fetch once per page load
+// Provider data is inlined by the server in the template — zero fetch needed
 let providerCache: ProviderInfo[] | null = null;
+
+// --- Persistent localStorage cache for instant page loads ---
+const LS_CACHE_KEY = "scitex:ai-providers:v1";
+const LS_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+interface CachedProviders {
+  ts: number;
+  providers: ProviderInfo[];
+}
+
+function readLocalCache(): ProviderInfo[] | null {
+  try {
+    const raw = localStorage.getItem(LS_CACHE_KEY);
+    if (!raw) return null;
+    const cached: CachedProviders = JSON.parse(raw);
+    if (Date.now() - cached.ts > LS_CACHE_TTL_MS) {
+      localStorage.removeItem(LS_CACHE_KEY);
+      return null;
+    }
+    return cached.providers;
+  } catch {
+    return null;
+  }
+}
+
+function writeLocalCache(providers: ProviderInfo[]): void {
+  try {
+    const entry: CachedProviders = { ts: Date.now(), providers };
+    localStorage.setItem(LS_CACHE_KEY, JSON.stringify(entry));
+  } catch {
+    // Storage full or unavailable — silent fail
+  }
+}
+
+function getInlineProviders(): ProviderInfo[] | null {
+  const el = document.querySelector<HTMLElement>("[data-available-providers]");
+  if (!el) return null;
+  try {
+    return JSON.parse(el.dataset.availableProviders ?? "null");
+  } catch {
+    return null;
+  }
+}
 
 async function fetchProviders(): Promise<ProviderInfo[]> {
   if (providerCache) return providerCache;
+
+  // 1. Try localStorage (survives page reloads)
+  const cached = readLocalCache();
+  if (cached) {
+    providerCache = cached;
+    // Sync fresh data from server in background (non-blocking)
+    syncProvidersInBackground();
+    return providerCache;
+  }
+
+  // 2. Try inline data (server-rendered in the HTML template)
+  const inline = getInlineProviders();
+  if (inline) {
+    providerCache = inline;
+    writeLocalCache(inline);
+    return providerCache;
+  }
+
+  // 3. Fallback: fetch from API (should not happen in normal flow)
   const resp = await fetch("/apps/llm/api/providers/available/");
   const data = await resp.json();
   providerCache = data.providers ?? [];
+  writeLocalCache(providerCache!);
   return providerCache!;
+}
+
+/**
+ * Fetch fresh provider data from the server and update both caches.
+ * If the data differs from the current cache, re-render the provider select.
+ */
+function syncProvidersInBackground(): void {
+  // Try inline first (already on the page, no network needed)
+  const inline = getInlineProviders();
+  if (inline) {
+    const changed = JSON.stringify(inline) !== JSON.stringify(providerCache);
+    providerCache = inline;
+    writeLocalCache(inline);
+    if (changed) populateProviderSelect();
+    return;
+  }
+
+  // Otherwise fetch from API
+  fetch("/apps/llm/api/providers/available/")
+    .then((resp) => resp.json())
+    .then((data) => {
+      const fresh: ProviderInfo[] = data.providers ?? [];
+      const changed = JSON.stringify(fresh) !== JSON.stringify(providerCache);
+      providerCache = fresh;
+      writeLocalCache(fresh);
+      if (changed) populateProviderSelect();
+    })
+    .catch(() => {
+      // Network error — stale cache is still fine
+    });
 }
 
 function getCsrfToken(): string {

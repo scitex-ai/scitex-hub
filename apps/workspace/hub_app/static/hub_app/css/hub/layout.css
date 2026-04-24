@@ -106,3 +106,18 @@
 .hub-browse-dynamic {
   transition: opacity 0.15s ease;
 }
+
+/* Mobile: hide details sidebar, reduce content padding */
+@media (max-width: 768px) {
+  .hub-details {
+    display: none;
+  }
+
+  .hub-content {
+    padding: 1rem;
+  }
+
+  .hub-browse-container {
+    padding: 0.5rem;
+  }
+}

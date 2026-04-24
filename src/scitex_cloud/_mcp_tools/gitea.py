@@ -72,10 +72,7 @@ def register_gitea_tools(mcp) -> None:
         token: Optional[str] = None,
         name: str = "scitex",
     ) -> str:
-        """Login to SciTeX Cloud (Gitea).
-
-        Adds a new login configuration for tea CLI.
-        """
+        """Use when the user asks to authenticate with SciTeX Cloud Gitea, add a tea login, or configure repo access; replaces manual `tea login add` commands and Gitea REST API auth setup."""
         args = ["login", "add", "--name", name, "--url", url]
         if token:
             args.extend(["--token", token])
@@ -88,11 +85,7 @@ def register_gitea_tools(mcp) -> None:
         destination: Optional[str] = None,
         login: str = "scitex-dev",
     ) -> str:
-        """Clone a repository from SciTeX Cloud.
-
-        If repository doesn't include owner (e.g., 'myrepo'), attempts to
-        find the owner automatically.
-        """
+        """Use when the user asks to clone a SciTeX Cloud repo, check out a Gitea project, or download source; replaces manual `git clone`, `tea clone`, gh CLI, and Gitea REST API calls. Auto-resolves owner if repository is given bare."""
         if "/" not in repository:
             # Try to find owner
             list_result = _run_tea(
@@ -128,7 +121,7 @@ def register_gitea_tools(mcp) -> None:
         private: bool = False,
         login: str = "scitex-dev",
     ) -> str:
-        """Create a new repository on SciTeX Cloud."""
+        """Use when the user asks to create a new SciTeX Cloud repository, make a Gitea repo, or start a new code project; replaces manual `tea repo create`, gh CLI, PyGithub, and Gitea REST API calls."""
         args = ["repo", "create", "--name", name, "--login", login]
         if description:
             args.extend(["--description", description])
@@ -144,7 +137,7 @@ def register_gitea_tools(mcp) -> None:
         starred: bool = False,
         watched: bool = False,
     ) -> str:
-        """List repositories from SciTeX Cloud."""
+        """Use when the user asks to list their SciTeX Cloud repositories, browse Gitea repos, see starred/watched projects; replaces manual `tea repos`, `gh repo list`, PyGithub, and Gitea REST API calls."""
         args = ["repos", "--login", login, "--output", "table"]
         if starred:
             args.append("--starred")
@@ -161,7 +154,7 @@ def register_gitea_tools(mcp) -> None:
         login: str = "scitex-dev",
         limit: int = 10,
     ) -> str:
-        """Search for repositories on SciTeX Cloud."""
+        """Use when the user asks to search SciTeX Cloud repositories, find a Gitea repo by keyword, or discover projects; replaces manual `tea repos search`, `gh search repos`, PyGithub, and Gitea REST API calls."""
         result = _run_tea(
             "repos", "search", "--login", login, "--limit", str(limit), query
         )
@@ -173,11 +166,7 @@ def register_gitea_tools(mcp) -> None:
         login: str = "scitex-dev",
         confirm: bool = False,
     ) -> str:
-        """Delete a repository (DANGEROUS!).
-
-        Requires confirm=True to actually delete.
-        Repository must be in 'owner/repo' format.
-        """
+        """Use when the user asks to delete a SciTeX Cloud repository or remove a Gitea repo; replaces manual Gitea REST API DELETE calls, `gh repo delete`, and PyGithub. DANGEROUS: requires confirm=True; repository must be in 'owner/repo' format."""
         if not confirm:
             return _json(
                 {
@@ -242,7 +231,7 @@ def register_gitea_tools(mcp) -> None:
 
     @mcp.tool()
     async def repo_fork(repository: str) -> str:
-        """Fork a repository on SciTeX Cloud."""
+        """Use when the user asks to fork a SciTeX Cloud repository or copy a Gitea repo to their account; replaces manual `tea repo fork`, `gh repo fork`, PyGithub, and Gitea REST API calls."""
         result = _run_tea("repo", "fork", repository)
         return _json(result)
 
@@ -253,7 +242,7 @@ def register_gitea_tools(mcp) -> None:
         base: str = "main",
         head: Optional[str] = None,
     ) -> str:
-        """Create a pull request."""
+        """Use when the user asks to open a pull request, create a PR on SciTeX Cloud, or request a merge in Gitea; replaces manual `tea pr create`, `gh pr create`, PyGithub, and Gitea REST API calls."""
         args = ["pr", "create"]
         if title:
             args.extend(["--title", title])
@@ -268,7 +257,7 @@ def register_gitea_tools(mcp) -> None:
 
     @mcp.tool()
     async def repo_pr_list() -> str:
-        """List pull requests for current repository."""
+        """Use when the user asks to list PRs, see open pull requests, or review merge requests on SciTeX Cloud; replaces manual `tea pr list`, `gh pr list`, PyGithub, and Gitea REST API calls for the current repository."""
         result = _run_tea("pr", "list")
         return _json(result)
 
@@ -277,7 +266,7 @@ def register_gitea_tools(mcp) -> None:
         title: str,
         body: Optional[str] = None,
     ) -> str:
-        """Create an issue."""
+        """Use when the user asks to file an issue, report a bug, or open a ticket on SciTeX Cloud; replaces manual `tea issue create`, `gh issue create`, PyGithub, and Gitea REST API calls."""
         args = ["issue", "create", "--title", title]
         if body:
             args.extend(["--body", body])
@@ -286,16 +275,13 @@ def register_gitea_tools(mcp) -> None:
 
     @mcp.tool()
     async def repo_issue_list() -> str:
-        """List issues for current repository."""
+        """Use when the user asks to list issues, see open bugs/tickets, or review issues on SciTeX Cloud; replaces manual `tea issue list`, `gh issue list`, PyGithub, and Gitea REST API calls for the current repository."""
         result = _run_tea("issue", "list")
         return _json(result)
 
     @mcp.tool()
     async def repo_push() -> str:
-        """Push local changes to remote.
-
-        Pushes current branch to origin.
-        """
+        """Use when the user asks to push commits, upload changes, or sync local work to SciTeX Cloud; replaces manual `git push origin <branch>`, `gh` pushes, and Gitea REST API sync (pushes current branch to origin)."""
         branch_result = _run_git("branch", "--show-current")
         if not branch_result["success"]:
             return _json({"success": False, "error": "Not in a git repository"})
@@ -311,10 +297,7 @@ def register_gitea_tools(mcp) -> None:
 
     @mcp.tool()
     async def repo_pull() -> str:
-        """Pull changes from remote.
-
-        Pulls current branch from origin.
-        """
+        """Use when the user asks to pull changes, fetch updates, or sync from SciTeX Cloud; replaces manual `git pull origin <branch>` and Gitea REST API sync (pulls current branch from origin)."""
         branch_result = _run_git("branch", "--show-current")
         if not branch_result["success"]:
             return _json({"success": False, "error": "Not in a git repository"})
@@ -330,7 +313,7 @@ def register_gitea_tools(mcp) -> None:
 
     @mcp.tool()
     async def repo_status() -> str:
-        """Show git repository status."""
+        """Use when the user asks about git status, modified files, staged changes, or working tree state in a SciTeX Cloud-cloned repo; replaces manual `git status` shell invocations."""
         result = _run_git("status")
         return _json(result)
 

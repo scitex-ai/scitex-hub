@@ -163,6 +163,7 @@
   height: 17px; /* 8px above + 1px border + 8px below */
   z-index: 1001;
   cursor: row-resize;
+  pointer-events: none;
 }
 
 /* Highlight the bottom border on hover (like vertical .panel-resizer:hover) */

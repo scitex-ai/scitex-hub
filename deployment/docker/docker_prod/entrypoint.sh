@@ -106,9 +106,11 @@ elif [ -n "$(find static apps -name '*.ts' -newer staticfiles/vite/.build-timest
 fi
 
 if [ "$VITE_REBUILD_NEEDED" = true ]; then
-    # Ensure vite output dir is writable (collectstatic or prior build may leave root-owned files)
+    # Clean stale vite output dir completely before rebuild.
+    # collectstatic (which runs earlier) may copy old vite files with different
+    # ownership, causing EACCES when Vite tries to emptyDir before writing.
     if [ -d "staticfiles/vite" ]; then
-        chmod -R u+rwX staticfiles/vite 2>/dev/null || true
+        rm -rf staticfiles/vite
     fi
     echo_info "Building TypeScript files with Vite..."
     npm run build
@@ -196,6 +198,23 @@ if [[ ! "$*" =~ "celery" ]]; then
     fi
 else
     echo_info "Skipping SSH gateway (celery worker)"
+fi
+
+# ============================================
+# Start Orochi Bridge Daemon (Background) - Syncs Orochi <-> workspace
+# ============================================
+if [[ ! "$*" =~ "celery" ]]; then
+    echo_info "Starting Orochi bridge daemon (10s polling)..."
+    python manage.py orochi_bridge --daemon --interval 10 &
+    OROCHI_BRIDGE_PID=$!
+    sleep 2
+    if kill -0 $OROCHI_BRIDGE_PID 2>/dev/null; then
+        echo_success "Orochi bridge started (PID: $OROCHI_BRIDGE_PID)"
+    else
+        echo_warning "Orochi bridge failed to start - workspace-orochi sync unavailable"
+    fi
+else
+    echo_info "Skipping Orochi bridge (celery worker)"
 fi
 
 # ============================================

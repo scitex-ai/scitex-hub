@@ -398,4 +398,37 @@
     border-top: 1px solid var(--workspace-border-default);
     padding-top: 1.5rem;
   }
+
+  .hub-mode-switcher {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .hub-mode {
+    white-space: nowrap;
+    padding: 0 0.6rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Very narrow screens */
+@media (max-width: 400px) {
+  .hub-user-avatar-wrapper {
+    width: 80px;
+    height: 80px;
+  }
+
+  .hub-user-avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 32px;
+  }
+
+  .hub-avatar-overlay {
+    width: 24px;
+    height: 24px;
+    bottom: 2px;
+    right: 2px;
+    font-size: 10px;
+  }
 }

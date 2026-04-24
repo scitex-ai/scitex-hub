@@ -97,9 +97,9 @@ services:
     networks:
       - scitex-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz/"]
       interval: 30s
-      timeout: 3s
+      timeout: 10s
       retries: 3
       start_period: 300s  # Production needs 4-5min for npm install
 
@@ -348,6 +348,7 @@ services:
     image: nginx:alpine
     volumes:
       - ../common/nginx/nginx_prod.conf:/etc/nginx/nginx.conf:ro
+      - ../common/nginx/bots.conf:/etc/nginx/bots.conf:ro
       - ../common/nginx/error-pages:/etc/nginx/error-pages:ro
       - static_volume:/app/staticfiles:ro
       - media_volume:/app/media:ro

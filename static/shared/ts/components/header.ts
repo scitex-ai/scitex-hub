@@ -14,7 +14,8 @@ function initializeMobileHamburger(): void {
   const menu = document.getElementById("mobile-header-menu");
   if (!btn || !menu) return;
 
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation(); // Prevent header collapse handlers from firing
     const isOpen = menu.classList.toggle("open");
     const icon = btn.querySelector("i");
     if (icon) {
@@ -160,23 +161,27 @@ function initializeHeader(): void {
   ) as HTMLElement;
 
   if (visitorMenuToggle && visitorMenuDropdown) {
-    visitorMenuToggle.addEventListener("click", function (e) {
-      e.stopPropagation();
-      const isVisible = visitorMenuDropdown.style.display !== "none";
-      visitorMenuDropdown.style.display = isVisible ? "none" : "block";
-    });
+    // Skip click/outside-click handlers if inline fallback already attached
+    // (inline <script> in global_header.html sets data-inline-handler="true")
+    if (!visitorMenuToggle.hasAttribute("data-inline-handler")) {
+      visitorMenuToggle.addEventListener("click", function (e) {
+        e.stopPropagation();
+        const isVisible = visitorMenuDropdown.style.display !== "none";
+        visitorMenuDropdown.style.display = isVisible ? "none" : "block";
+      });
 
-    // Close dropdown when clicking outside
-    document.addEventListener("click", function (e) {
-      if (
-        !visitorMenuToggle.contains(e.target as Node) &&
-        !visitorMenuDropdown.contains(e.target as Node)
-      ) {
-        visitorMenuDropdown.style.display = "none";
-      }
-    });
+      // Close dropdown when clicking outside
+      document.addEventListener("click", function (e) {
+        if (
+          !visitorMenuToggle.contains(e.target as Node) &&
+          !visitorMenuDropdown.contains(e.target as Node)
+        ) {
+          visitorMenuDropdown.style.display = "none";
+        }
+      });
+    }
 
-    // Close dropdown when pressing Escape
+    // Close dropdown when pressing Escape (always add — inline fallback doesn't handle Escape)
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") {
         visitorMenuDropdown.style.display = "none";
@@ -205,9 +210,29 @@ function initializeHeader(): void {
   }
 
   // Visitor Mode Countdown Timer
-  if (visitorMenuToggle && visitorMenuToggle.dataset.expiresAt) {
-    const expiresAt = new Date(visitorMenuToggle.dataset.expiresAt);
+  // Try visitorMenuToggle first, fall back to the mobile badge for expires-at data
+  const mobileBadge = document.querySelector(
+    ".header-visitor-badge-mobile",
+  ) as HTMLElement | null;
+  const expiresAtSource =
+    (visitorMenuToggle && visitorMenuToggle.dataset.expiresAt) ||
+    (mobileBadge && mobileBadge.dataset.expiresAt) ||
+    null;
+  if (expiresAtSource) {
+    const expiresAt = new Date(expiresAtSource);
+    if (isNaN(expiresAt.getTime())) {
+      console.error("[header] Invalid visitor expiration date:", expiresAtSource);
+      // Skip timer setup — date is unparseable
+    } else if (visitorMenuToggle?.hasAttribute("data-inline-countdown")) {
+      // Inline fallback countdown already running — skip to avoid duplicate timers
+    } else {
     const countdownSpan = document.getElementById("visitor-countdown");
+    const mobileCountdownSpan = document.getElementById(
+      "mobile-visitor-countdown",
+    );
+    const mobileHeaderCountdownSpan = document.getElementById(
+      "mobile-header-visitor-countdown",
+    );
 
     function updateCountdown(): void {
       const now = new Date();
@@ -218,6 +243,14 @@ function initializeHeader(): void {
         if (countdownSpan) {
           countdownSpan.textContent = "⏰ EXPIRED";
           countdownSpan.style.color = "#f44336";
+        }
+        if (mobileCountdownSpan) {
+          mobileCountdownSpan.textContent = "EXPIRED";
+          mobileCountdownSpan.style.color = "#f44336";
+        }
+        if (mobileHeaderCountdownSpan) {
+          mobileHeaderCountdownSpan.textContent = "⏰ EXPIRED";
+          mobileHeaderCountdownSpan.style.color = "#f44336";
         }
 
         // Don't redirect if already on visitor management or auth pages
@@ -269,11 +302,36 @@ function initializeHeader(): void {
           countdownSpan.style.color = "inherit";
         }
       }
+
+      // Update mobile hamburger menu countdown
+      if (mobileCountdownSpan) {
+        mobileCountdownSpan.textContent = timeString;
+        if (timeLeft < 5 * 60 * 1000) {
+          mobileCountdownSpan.style.color = "#f44336";
+        } else if (timeLeft < 15 * 60 * 1000) {
+          mobileCountdownSpan.style.color = "#ff9800";
+        } else {
+          mobileCountdownSpan.style.color = "inherit";
+        }
+      }
+
+      // Update mobile header bar countdown
+      if (mobileHeaderCountdownSpan) {
+        mobileHeaderCountdownSpan.textContent = `⏰ ${timeString}`;
+        if (timeLeft < 5 * 60 * 1000) {
+          mobileHeaderCountdownSpan.style.color = "#f44336";
+        } else if (timeLeft < 15 * 60 * 1000) {
+          mobileHeaderCountdownSpan.style.color = "#ff9800";
+        } else {
+          mobileHeaderCountdownSpan.style.color = "inherit";
+        }
+      }
     }
 
     // Update immediately and then every second
     updateCountdown();
     setInterval(updateCountdown, 1000);
+    } // end else (valid date)
   }
 
   // Server Health Status Live Indicator
@@ -426,8 +484,11 @@ function initializeHeaderCollapse(): void {
   });
 
   // Double-click on expanded header → collapse (works on both desktop and mobile)
+  // Skip if the dblclick originated from the mobile hamburger button
   header.addEventListener("dblclick", (e: MouseEvent) => {
     if (!header.classList.contains("collapsed")) {
+      const target = e.target as Element;
+      if (target.closest(".mobile-hamburger")) return;
       e.preventDefault();
       doToggle();
     }

@@ -1,53 +1,104 @@
 {% extends "writer_app/base/app_base.html" %}
 {% load static vite %}
 {% comment %}
-Version control index {% endcomment %}
+Version control dashboard — Git integration surface for manuscripts.
+Shows commit history, branches, status, and diff viewer.
+{% endcomment %}
 {% block writer_css %}
     <link rel="stylesheet"
           href="{% static 'writer_app/css/version_control/index.css' %}" />
 {% endblock %}
 {% block writer_sidebar %}
-    {% include
-    "writer_app/shared/_sidebar.html" %}
+    {% include "writer_app/shared/_sidebar.html" %}
 {% endblock %}
 {% block writer_content %}
-    <div class="version-control-container">
+    <div class="version-control-container" data-project-id="{{ project.id }}">
         <header class="vc-header">
-            <h2>Version Control</h2>
+            <div class="vc-header-left">
+                <h2><i class="fas fa-code-branch"></i> Version Control</h2>
+                {% if status %}
+                    <span class="vc-status-badge {% if status.is_clean %}clean{% else %}dirty{% endif %}">
+                        {% if status.is_clean %}
+                            <i class="fas fa-check-circle"></i> Clean
+                        {% else %}
+                            <i class="fas fa-circle"></i> {{ status.modified|length }} modified
+                        {% endif %}
+                    </span>
+                    <span class="vc-branch-badge">
+                        <i class="fas fa-code-branch"></i> {{ current_branch }}
+                    </span>
+                {% endif %}
+            </div>
             <div class="vc-actions">
-                <button class="btn-primary" id="btn-commit">Commit Changes</button>
-                <button class="btn-secondary" id="btn-view-diff">View Changes</button>
+                <button class="btn-primary" id="btn-commit">
+                    <i class="fas fa-check"></i> Commit Changes
+                </button>
+                <button class="btn-secondary" id="btn-create-branch">
+                    <i class="fas fa-code-branch"></i> New Branch
+                </button>
             </div>
         </header>
+
         <div class="vc-main">
+            {# Branches panel #}
             <div class="branches-panel">
-                <h3>Branches</h3>
+                <h3><i class="fas fa-code-branch"></i> Branches</h3>
                 <ul class="branch-list">
                     {% for branch in branches %}
-                        <li class="branch-item {% if branch.is_current %}active{% endif %}">{{ branch.name }}</li>
+                        <li class="branch-item {% if branch.is_current %}active{% endif %}"
+                            data-branch="{{ branch.name }}">
+                            <span class="branch-name">{{ branch.name }}</span>
+                            {% if branch.is_current %}
+                                <span class="branch-badge current">current</span>
+                            {% endif %}
+                        </li>
+                    {% empty %}
+                        <li class="branch-item active" data-branch="main">
+                            <span class="branch-name">main</span>
+                            <span class="branch-badge current">current</span>
+                        </li>
                     {% endfor %}
                 </ul>
             </div>
+
+            {# Commits panel #}
             <div class="commits-panel">
-                <h3>Commit History</h3>
-                <div class="commit-list">
+                <h3><i class="fas fa-history"></i> Commit History</h3>
+                <div class="commit-list" id="commit-list">
                     {% if commits %}
                         {% for commit in commits %}
-                            <div class="commit-item">
+                            <div class="commit-item" data-sha="{{ commit.sha }}">
                                 <div class="commit-message">{{ commit.message }}</div>
                                 <div class="commit-meta">
-                                    <span class="commit-hash">{{ commit.hash|slice:":7" }}</span>
-                                    <span class="commit-author">{{ commit.author }}</span>
-                                    <span class="commit-date">{{ commit.date }}</span>
+                                    <span class="commit-hash">{{ commit.sha_short }}</span>
+                                    <span class="commit-author">{{ commit.author_name }}</span>
+                                    <span class="commit-date">{{ commit.date_relative }}</span>
+                                    {% if commit.stats %}
+                                        <span class="commit-stats">
+                                            <span class="stat-add">+{{ commit.stats.insertions }}</span>
+                                            <span class="stat-del">-{{ commit.stats.deletions }}</span>
+                                        </span>
+                                    {% endif %}
                                 </div>
                             </div>
                         {% endfor %}
                     {% else %}
-                        <p class="empty-message">No commits yet.</p>
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="fas fa-history"></i></div>
+                            <div class="empty-state-message">No commits yet</div>
+                            <div class="empty-state-hint">Make changes and commit to start tracking history</div>
+                        </div>
                     {% endif %}
                 </div>
             </div>
         </div>
+
+        {# Diff viewer (hidden by default) #}
+        {% include "writer_app/version_control_dashboard_partials/diff_viewer.html" %}
+
+        {# Modals #}
+        {% include "writer_app/version_control_dashboard_partials/modal_create_version.html" %}
+        {% include "writer_app/version_control_dashboard_partials/modal_create_branch.html" %}
     </div>
 {% endblock %}
 {% block writer_js %}

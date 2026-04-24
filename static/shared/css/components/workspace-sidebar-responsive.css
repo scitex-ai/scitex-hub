@@ -8,7 +8,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 99;
+  z-index: 1050;
 }
 
 /* ── Mobile top bar ────────────────────────────────────────── */
@@ -23,7 +23,7 @@
   flex-shrink: 0;
 }
 
-.mobile-hamburger {
+.mobile-top-bar .mobile-hamburger {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -66,58 +66,74 @@
   }
 }
 
-/* Mobile: sidebar = drawer overlay */
+/* Mobile: collapsed by default, expanded only as an overlay drawer */
 @media (max-width: 767px) {
+  /* M3/M4 fix: Force collapsed width on mobile regardless of initial
+     data-sidebar-state attribute. This prevents the expanded sidebar
+     from overlapping content before JS sets the attribute to "collapsed". */
   .workspace-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 0;
-    height: 100vh;
-    height: 100dvh; /* iOS: accounts for browser chrome & home indicator */
-    z-index: 200;
-    overflow: visible;
+    width: var(--ws-sidebar-width-collapsed);
+    z-index: 1010;
   }
 
   .sidebar-inner {
+    width: var(--ws-sidebar-width-collapsed);
+  }
+
+  /* Collapsed labels: small text under icons (same as desktop collapsed) */
+  .workspace-sidebar .sidebar-label {
+    opacity: 1;
+    width: auto;
+    overflow: hidden;
+    font-size: 10px;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  /* When user explicitly opens the drawer (JS adds .drawer-open),
+     show the sidebar as a fixed overlay. The data-sidebar-state="expanded"
+     alone is NOT enough on mobile -- we require .drawer-open class
+     so the initial HTML attribute does not cause overlap. */
+  .workspace-sidebar.drawer-open,
+  .workspace-sidebar[data-sidebar-state="expanded"].drawer-open {
     position: fixed;
     top: 0;
     left: 0;
-    width: 280px;
+    width: var(--ws-sidebar-width-expanded);
     height: 100vh;
-    height: 100dvh; /* iOS: accounts for browser chrome & home indicator */
-    transform: translateX(-100%);
-    transition: transform 300ms ease;
-    z-index: 201;
+    height: 100dvh;
+    z-index: 1100;
   }
 
-  .workspace-sidebar.drawer-open .sidebar-inner {
-    transform: translateX(0);
+  .workspace-sidebar.drawer-open .sidebar-inner,
+  .workspace-sidebar[data-sidebar-state="expanded"].drawer-open .sidebar-inner {
+    width: var(--ws-sidebar-width-expanded);
   }
 
-  .workspace-sidebar.drawer-open .sidebar-backdrop {
+  .workspace-sidebar.drawer-open .sidebar-label,
+  .workspace-sidebar[data-sidebar-state="expanded"].drawer-open .sidebar-label {
+    opacity: 1;
+    width: auto;
+    overflow: visible;
+    font-size: inherit;
+    text-overflow: clip;
+    max-width: none;
+  }
+
+  .workspace-sidebar.drawer-open ~ .sidebar-backdrop,
+  .workspace-sidebar[data-sidebar-state="expanded"].drawer-open
+    ~ .sidebar-backdrop {
     display: block;
   }
 
-  /* Always show labels in mobile drawer */
-  .workspace-sidebar .sidebar-label {
-    opacity: 1 !important;
-    width: auto !important;
-  }
-
-  /* Show mobile top bar */
-  .mobile-top-bar {
-    display: flex;
-  }
-
-  /* Hide sidebar toggle in mobile (hamburger replaces it) */
-  .sidebar-toggle-btn {
-    display: none;
-  }
-
-  /* iOS safe area: prevent home indicator from covering footer */
+  /* iOS safe area */
   .sidebar-footer {
     padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Mobile top bar: hidden (sidebar is always visible) */
+  .mobile-top-bar {
+    display: none !important;
   }
 }
 

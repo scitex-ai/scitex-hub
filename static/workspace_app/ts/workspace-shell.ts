@@ -5,7 +5,7 @@
  */
 
 const STORAGE_KEY = "ws-active-module";
-const DEFAULT_MODULE = "writer";
+const DEFAULT_MODULE = "home";
 const CONTENT_BASE = "/apps/workspace/content/";
 
 /** Read module names from the DOM data attribute set by the registry context processor. */

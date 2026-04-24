@@ -1,6 +1,38 @@
-/** Event handlers for console terminal instances (file drop, right-click). */
+/** Event handlers for console terminal instances (file drop, right-click, nav keys). */
 
 import { uploadFiles } from "../../utils/file-upload";
+
+/** Navigation keys that xterm should handle — not the browser (prevents container scroll). */
+const NAV_KEYS = [
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "PageUp",
+  "PageDown",
+  "Home",
+  "End",
+];
+
+/**
+ * Prevent browser default for navigation keys inside xterm's custom key handler.
+ * Call at the top of `attachCustomKeyEventHandler`. Returns `true` when the key
+ * was a nav key (meaning: xterm should still process it, but browser scrolling
+ * is suppressed). Returns `false` when the key is not a nav key.
+ */
+export function preventNavKeyDefault(ev: KeyboardEvent): boolean {
+  if (
+    ev.type === "keydown" &&
+    !ev.altKey &&
+    !ev.ctrlKey &&
+    !ev.metaKey &&
+    NAV_KEYS.includes(ev.key)
+  ) {
+    ev.preventDefault();
+    return true;
+  }
+  return false;
+}
 
 interface WsHolder {
   ws: WebSocket | null;

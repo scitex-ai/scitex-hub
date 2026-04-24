@@ -1,29 +1,43 @@
 /**
  * Collaboration Panel Initialization
- * Handles the display of collaborators, chat, and activity in the collaboration view
+ *
+ * Displays real-time collaborator presence, online/offline status,
+ * cursor positions, and section-lock state. Fed by WriterWSClient events.
  */
 
 interface Collaborator {
+  user_id: number;
   username: string;
   isCurrentUser: boolean;
   isOnline: boolean;
   isOwner: boolean;
   currentAction: string;
   lastActivity: string;
+  lockedSections: string[];
 }
 
 let collaborators: Collaborator[] = [];
 let collaboratorsListElement: HTMLElement | null = null;
+let currentUsername = "";
+let projectOwner = "";
 
 /**
  * Get a deterministic color for a username
  */
 function getUserColor(username: string): string {
   const colors = [
-    '#54aeff', '#ff6b6b', '#51cf66', '#ffa94d',
-    '#845ef7', '#ff8787', '#5c7cfa', '#69db7c'
+    "#54aeff",
+    "#ff6b6b",
+    "#51cf66",
+    "#ffa94d",
+    "#845ef7",
+    "#ff8787",
+    "#5c7cfa",
+    "#69db7c",
   ];
-  const hash = username.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const hash = username
+    .split("")
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return colors[hash % colors.length];
 }
 
@@ -32,37 +46,39 @@ function getUserColor(username: string): string {
  */
 function renderCollaborators(): void {
   if (!collaboratorsListElement) {
-    console.error('[CollabPanel] collaboratorsListElement not available');
+    console.error("[CollabPanel] collaboratorsListElement not available");
     return;
   }
 
-  const html = collaborators.map(collab => {
-    const avatarColor = getUserColor(collab.username);
+  const html = collaborators
+    .map((collab) => {
+      const avatarColor = getUserColor(collab.username);
 
-    // Determine state
-    let statusColor: string, statusTooltip: string, stateLabel: string, stateColor: string;
-    if (collab.isOnline) {
-      statusColor = '#28a745'; // Green
-      statusTooltip = 'Active';
-      stateLabel = 'Active';
-      stateColor = '#28a745';
-    } else {
-      statusColor = '#6c757d'; // Gray
-      statusTooltip = 'Offline';
-      stateLabel = 'Offline';
-      stateColor = '#6c757d';
-    }
+      let statusColor: string, statusTooltip: string;
+      if (collab.isOnline) {
+        statusColor = "#28a745";
+        statusTooltip = "Active";
+      } else {
+        statusColor = "#6c757d";
+        statusTooltip = "Offline";
+      }
 
-    const ownerBadge = collab.isOwner && collab.isCurrentUser
-      ? '<span style="font-weight: 400; color: var(--workspace-text-tertiary); font-size: 11px;"> (Owner)</span>'
-      : collab.isCurrentUser
-      ? '<span style="font-weight: 400; color: var(--workspace-text-tertiary); font-size: 11px;"> (You)</span>'
-      : '';
+      const ownerBadge =
+        collab.isOwner && collab.isCurrentUser
+          ? '<span style="font-weight: 400; color: var(--workspace-text-tertiary); font-size: 11px;"> (Owner)</span>'
+          : collab.isCurrentUser
+            ? '<span style="font-weight: 400; color: var(--workspace-text-tertiary); font-size: 11px;"> (You)</span>'
+            : "";
 
-    // Opacity for offline users
-    const cardOpacity = collab.isOnline ? '1' : '0.6';
+      const cardOpacity = collab.isOnline ? "1" : "0.6";
 
-    return `
+      // Show lock info if user has locked sections
+      const lockInfo =
+        collab.lockedSections.length > 0
+          ? `<div style="font-size: 10px; color: ${avatarColor}; margin-top: 2px;"><i class="fas fa-lock" style="font-size: 9px; margin-right: 3px;"></i>${collab.lockedSections.join(", ")}</div>`
+          : "";
+
+      return `
       <div class="collaborator-card" style="background: var(--workspace-bg-secondary); border: 1px solid var(--workspace-border-default); border-radius: 6px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; transition: all 0.2s ease; opacity: ${cardOpacity};">
         <div class="user-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: ${avatarColor}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px; flex-shrink: 0; position: relative;" title="${collab.username}">
           ${collab.username.substring(0, 2).toUpperCase()}
@@ -72,28 +88,39 @@ function renderCollaborators(): void {
           <div style="font-size: 13px; font-weight: 600; color: var(--workspace-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
             ${collab.username}${ownerBadge}
           </div>
-          ${collab.isOnline && collab.currentAction ? `
+          ${
+            collab.isOnline && collab.currentAction
+              ? `
             <div class="user-current-action" style="font-size: 11px; color: var(--workspace-text-secondary); margin-top: 4px;">
               <i class="fas fa-edit" style="font-size: 9px; margin-right: 4px;"></i>${collab.currentAction}
             </div>
-          ` : ''}
+          `
+              : ""
+          }
+          ${lockInfo}
         </div>
       </div>
     `;
-  }).join('');
+    })
+    .join("");
 
   collaboratorsListElement.innerHTML = html;
-  console.log('[CollabPanel] Rendered', collaborators.length, 'collaborator(s)');
+  console.log(
+    "[CollabPanel] Rendered",
+    collaborators.length,
+    "collaborator(s)",
+  );
 }
 
 /**
  * Update current user's activity when switching sections
  */
 function updateCurrentUserActivity(): void {
-  const activeSectionBtn = document.querySelector('.section-btn.active');
-  if (activeSectionBtn && collaborators[0]) {
-    const newSection = activeSectionBtn.textContent?.trim() || 'Abstract';
-    collaborators[0].currentAction = `Editing ${newSection}`;
+  const activeSectionBtn = document.querySelector(".section-btn.active");
+  const me = collaborators.find((c) => c.isCurrentUser);
+  if (activeSectionBtn && me) {
+    const newSection = activeSectionBtn.textContent?.trim() || "Abstract";
+    me.currentAction = `Editing ${newSection}`;
     renderCollaborators();
   }
 }
@@ -103,83 +130,220 @@ function updateCurrentUserActivity(): void {
  */
 function updateCollaboratorCount(): void {
   const totalCount = collaborators.length;
+  const onlineCount = collaborators.filter((c) => c.isOnline).length;
 
-  // Update the section title to include count
-  const sectionTitle = document.querySelector('.collab-section-modern .section-title-modern span');
+  const sectionTitle = document.querySelector(
+    ".collab-section-modern .section-title-modern span",
+  );
   if (sectionTitle) {
-    const userText = totalCount === 1 ? 'user' : 'users';
-    sectionTitle.textContent = `Collaborators (${totalCount} ${userText})`;
+    const userText = totalCount === 1 ? "user" : "users";
+    sectionTitle.textContent = `Collaborators (${onlineCount}/${totalCount} ${userText} online)`;
   }
 }
 
+// ---------------------------------------------------------------- public API
+
 /**
- * Initialize the collaborators list
- * This should be called when the collaboration panel is ready
+ * Initialize the collaborators list.
+ * Should be called when the collaboration panel DOM is ready.
  */
 export function initializeCollaboratorsPanel(): void {
-  console.log('[CollabPanel] Initializing collaborators list...');
+  console.log("[CollabPanel] Initializing collaborators list...");
 
-  collaboratorsListElement = document.getElementById('collaborators-list-main');
+  collaboratorsListElement = document.getElementById("collaborators-list-main");
 
   if (!collaboratorsListElement) {
-    console.error('[CollabPanel] collaborators-list-main element not found');
+    console.error("[CollabPanel] collaborators-list-main element not found");
     return;
   }
 
-  // Check if WRITER_CONFIG is available
   const config = (window as any).WRITER_CONFIG;
   if (!config) {
-    console.warn('[CollabPanel] WRITER_CONFIG not available yet, retrying...');
+    console.warn("[CollabPanel] WRITER_CONFIG not available yet, retrying...");
     setTimeout(initializeCollaboratorsPanel, 100);
     return;
   }
 
-  const currentUser = config.username || config.visitorUsername || 'You';
-  const projectOwner = config.projectOwner;
+  currentUsername = config.username || config.visitorUsername || "You";
+  projectOwner = config.projectOwner || "";
 
-  console.log('[CollabPanel] Current user:', currentUser);
-  console.log('[CollabPanel] Project owner:', projectOwner);
+  console.log("[CollabPanel] Current user:", currentUsername);
+  console.log("[CollabPanel] Project owner:", projectOwner);
 
-  // Determine current section from active section button
-  let currentSection = 'Abstract';
-  const activeSectionBtn = document.querySelector('.section-btn.active');
+  let currentSection = "Abstract";
+  const activeSectionBtn = document.querySelector(".section-btn.active");
   if (activeSectionBtn) {
-    currentSection = activeSectionBtn.textContent?.trim() || 'Abstract';
+    currentSection = activeSectionBtn.textContent?.trim() || "Abstract";
   }
 
-  // Build collaborators list - in a real app, this would come from the backend
-  // For now, we'll show the current user as active
+  // Seed with current user; the WebSocket will add remote collaborators
   collaborators = [
     {
-      username: currentUser,
+      user_id: 0,
+      username: currentUsername,
       isCurrentUser: true,
       isOnline: true,
-      isOwner: currentUser === projectOwner,
+      isOwner: currentUsername === projectOwner,
       currentAction: `Editing ${currentSection}`,
-      lastActivity: 'Active now'
-    }
+      lastActivity: "Active now",
+      lockedSections: [],
+    },
   ];
 
-  // Render the collaborators
   renderCollaborators();
-
-  // Update counts
   updateCollaboratorCount();
 
-  // Listen for section changes
-  document.addEventListener('click', (e) => {
+  document.addEventListener("click", (e) => {
     const target = e.target as HTMLElement;
-    if (target.classList.contains('section-btn')) {
+    if (target.classList.contains("section-btn")) {
       setTimeout(updateCurrentUserActivity, 100);
     }
   });
 
-  console.log('[CollabPanel] Collaborators initialized successfully');
+  console.log("[CollabPanel] Collaborators initialized successfully");
 }
 
 /**
- * Public API to update collaborator list
- * Can be called by WebSocket handlers when collaboration state changes
+ * Called by the WebSocket client when the initial collaborators_list arrives.
+ * Replaces the remote entries while keeping the local (current) user entry.
+ */
+export function handleCollaboratorsList(
+  serverCollaborators: {
+    user_id: number;
+    username: string;
+    locked_sections: string[];
+  }[],
+): void {
+  const me = collaborators.find((c) => c.isCurrentUser);
+
+  collaborators = serverCollaborators.map((sc) => {
+    const isMe = sc.username === currentUsername;
+    if (isMe && me) {
+      // Keep local state for current user
+      me.user_id = sc.user_id;
+      me.lockedSections = sc.locked_sections;
+      return me;
+    }
+    return {
+      user_id: sc.user_id,
+      username: sc.username,
+      isCurrentUser: false,
+      isOnline: true,
+      isOwner: sc.username === projectOwner,
+      currentAction: "",
+      lastActivity: "Active now",
+      lockedSections: sc.locked_sections,
+    };
+  });
+
+  // If current user was not in the server list (should not happen), re-add
+  if (!collaborators.find((c) => c.isCurrentUser) && me) {
+    collaborators.unshift(me);
+  }
+
+  renderCollaborators();
+  updateCollaboratorCount();
+}
+
+/**
+ * Called when a user_joined event arrives.
+ */
+export function handleUserJoined(userId: number, username: string): void {
+  if (username === currentUsername) return; // ignore self echo
+
+  const existing = collaborators.find((c) => c.user_id === userId);
+  if (existing) {
+    existing.isOnline = true;
+    existing.lastActivity = "Active now";
+  } else {
+    collaborators.push({
+      user_id: userId,
+      username,
+      isCurrentUser: false,
+      isOnline: true,
+      isOwner: username === projectOwner,
+      currentAction: "",
+      lastActivity: "Active now",
+      lockedSections: [],
+    });
+  }
+
+  renderCollaborators();
+  updateCollaboratorCount();
+}
+
+/**
+ * Called when a user_left event arrives.
+ */
+export function handleUserLeft(userId: number, _username: string): void {
+  const collab = collaborators.find((c) => c.user_id === userId);
+  if (collab) {
+    collab.isOnline = false;
+    collab.currentAction = "";
+    collab.lockedSections = [];
+  }
+  renderCollaborators();
+  updateCollaboratorCount();
+}
+
+/**
+ * Update the displayed current-section for a remote user (from cursor_update).
+ */
+export function handleRemoteCursorUpdate(
+  userId: number,
+  _username: string,
+  section: string,
+): void {
+  const collab = collaborators.find((c) => c.user_id === userId);
+  if (collab && !collab.isCurrentUser) {
+    collab.currentAction = `Viewing ${section}`;
+    renderCollaborators();
+  }
+}
+
+/**
+ * Mark a section as locked by a user in the panel display.
+ */
+export function handleSectionLocked(
+  userId: number,
+  _username: string,
+  section: string,
+): void {
+  const collab = collaborators.find((c) => c.user_id === userId);
+  if (collab && !collab.lockedSections.includes(section)) {
+    collab.lockedSections.push(section);
+    renderCollaborators();
+  }
+}
+
+/**
+ * Mark a section as unlocked by a user in the panel display.
+ */
+export function handleSectionUnlocked(
+  userId: number,
+  _username: string,
+  section: string,
+): void {
+  const collab = collaborators.find((c) => c.user_id === userId);
+  if (collab) {
+    collab.lockedSections = collab.lockedSections.filter((s) => s !== section);
+    renderCollaborators();
+  }
+}
+
+/**
+ * Update panel to reflect WebSocket connection state.
+ */
+export function handleConnectionChange(connected: boolean): void {
+  const indicator = document.getElementById("ws-connection-indicator");
+  if (indicator) {
+    indicator.style.background = connected ? "#28a745" : "#dc3545";
+    indicator.title = connected ? "Connected" : "Disconnected";
+  }
+}
+
+/**
+ * Legacy API -- replace full collaborator list (kept for backward compatibility).
  */
 export function updateCollaborators(newCollaborators: Collaborator[]): void {
   collaborators = newCollaborators;

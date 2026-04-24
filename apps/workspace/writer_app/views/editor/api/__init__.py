@@ -47,6 +47,7 @@ from .content import (
 from .files import (
     pdf_view,
     presence_list_view,
+    synctex_reverse_lookup,
     thumbnail_view,
 )
 
@@ -109,6 +110,7 @@ __all__ = [
     # File operations
     "pdf_view",
     "presence_list_view",
+    "synctex_reverse_lookup",
     "thumbnail_view",
     # Media operations
     "figures_api",

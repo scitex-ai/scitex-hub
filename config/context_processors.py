@@ -71,10 +71,21 @@ def cache_buster(request):
 
         build_id = _cached_build_id or str(int(current_time))
     else:
-        # In production, use a fixed version from settings or environment
-        build_id = getattr(
-            settings, "BUILD_ID", os.environ.get("SCITEX_CLOUD_BUILD_ID", "1.0.0")
-        )
+        # In production, derive build_id from .build-timestamp file, then
+        # SCITEX_CLOUD_BUILD_ID env var, falling back to timestamp.
+        build_id = ""
+        try:
+            ts_file = Path(settings.STATIC_ROOT) / "vite" / ".build-timestamp"
+            if ts_file.exists():
+                build_id = ts_file.read_text().strip()[:10]
+        except Exception:
+            pass
+        if not build_id:
+            build_id = os.environ.get("SCITEX_CLOUD_BUILD_ID", "")
+        if not build_id:
+            import time
+
+            build_id = str(int(time.time()))
 
     return {"build_id": build_id}
 
@@ -108,9 +119,20 @@ def umami_analytics(request):
     """
     Expose Umami Analytics configuration to templates.
     Umami is privacy-focused and does not use cookies.
+    Respects user's analytics_opt_out preference.
     """
+    # Check if user has opted out of analytics
+    opted_out = False
+    if hasattr(request, "user") and request.user.is_authenticated:
+        try:
+            opted_out = request.user.profile.analytics_opt_out
+        except Exception:
+            pass
+
     return {
-        "UMAMI_WEBSITE_ID": getattr(settings, "UMAMI_WEBSITE_ID", ""),
+        "UMAMI_WEBSITE_ID": (
+            "" if opted_out else getattr(settings, "UMAMI_WEBSITE_ID", "")
+        ),
         "UMAMI_SCRIPT_URL": getattr(
             settings, "UMAMI_SCRIPT_URL", "https://cloud.umami.is/script.js"
         ),

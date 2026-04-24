@@ -446,6 +446,12 @@
   }
 }
 
+@media (max-width: 768px) {
+  .hero-landing .hero-title {
+    white-space: normal;
+  }
+}
+
 @media (max-width: 576px) {
   .hero-landing {
     margin-top: 1.5rem;

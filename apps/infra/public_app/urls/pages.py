@@ -38,6 +38,7 @@ urlpatterns = [
     path("keyboard-shortcuts/", views.keyboard_shortcuts, name="keyboard_shortcuts"),
     # Legal and contact pages
     path("contact/", views.contact, name="contact"),
+    path("donate/", views.donate, name="donate"),
     path("privacy/", views.privacy_policy, name="privacy"),
     path("terms/", views.terms_of_use, name="terms"),
     path("cookies/", views.cookie_policy, name="cookies"),

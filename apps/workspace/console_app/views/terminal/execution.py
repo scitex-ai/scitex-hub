@@ -168,11 +168,20 @@ def exec_slurm_shell(
     )
     logger.debug(f"SLURM command: {' '.join(cmd)}")
 
-    # Note: host_user_dir and host_project_dir are HOST paths (not visible from container)
-    # SLURM will run on the host where these paths exist
+    # host_user_dir and host_project_dir are HOST paths.
+    # os.chdir() cannot access these from inside Docker — use srun --chdir instead.
+    # srun inherits --chdir and passes it to the SLURM job on the host.
+    srun_chdir = str(host_project_dir)
+    logger.info(f"[Terminal] Setting srun --chdir={srun_chdir} for {username}")
 
-    # Change to a directory that exists on the host (srun inherits cwd)
-    # The Django container runs from /app which doesn't exist on the host
+    # Insert --chdir before the srun command target (after 'srun' and its flags)
+    try:
+        chdir_idx = 1  # After 'srun'
+        cmd.insert(chdir_idx, f"--chdir={srun_chdir}")
+    except Exception as e:
+        logger.error(f"[Terminal] Failed to insert --chdir into srun cmd: {e}")
+
+    # Set cwd to /tmp as safe default for the Docker-side exec
     os.chdir("/tmp")
 
     # Reset signal handlers to default before exec to avoid EINTR in srun

@@ -6,7 +6,7 @@
 .ai-setup-workspace {
   display: flex;
   width: 100%;
-  height: 100%;
+  height: calc(100vh - 48px);
   overflow: hidden;
 }
 
@@ -58,6 +58,7 @@
 
 .ai-setup-content {
   flex: 1;
+  min-width: 0;
   overflow-y: auto;
   padding: 32px;
 }

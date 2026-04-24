@@ -31,7 +31,7 @@
   font-family: "JetBrains Mono", "Monaco", "Menlo", monospace;
   font-size: 13px;
   padding: 0; /* Remove padding from container, add to xterm instead */
-  overflow-y: auto;
+  overflow: hidden; /* xterm.js manages its own scrolling via .xterm-viewport; outer overflow causes arrow keys to scroll container instead of terminal */
   line-height: normal; /* xterm.js computes its own line-height; overriding breaks cursor alignment */
   cursor: text;
   user-select: text; /* Allow text selection */

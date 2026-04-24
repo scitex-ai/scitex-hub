@@ -3,12 +3,11 @@
  * Handles loading section content from API and switching between sections
  */
 
-import type {
-  WriterEditor,
-  SectionsManager,
-  PDFPreviewManager,
-} from "../../modules/index";
-import { setLoadingContent } from "../../modules/index";
+import type { WriterEditor } from "../../modules/_editor";
+import type { SectionsManager } from "../../modules/_sections";
+import type { PDFPreviewManager } from "../../modules/pdf-preview/index";
+// Direct import to avoid circular dependency through barrel re-export
+import { setLoadingContent } from "../../modules/auto-save";
 import { getWriterConfig } from "../../_helpers";
 import { getUserContext } from "../ui";
 import { syncDropdownToSection } from "../_section-dropdown/index";

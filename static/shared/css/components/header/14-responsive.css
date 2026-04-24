@@ -30,6 +30,11 @@
   display: none;
 }
 
+/* Mobile visitor badge: hidden on desktop, shown on mobile */
+.header-visitor-badge-mobile {
+  display: none;
+}
+
 @media (max-width: 768px) {
   /* Allow header collapse on mobile — compact 44px header, collapses to 6px */
   .global-header.collapsed {
@@ -60,6 +65,46 @@
     display: none;
   }
 
+  /* Hide mobile visitor badge when hamburger menu is open (avoid showing 2 instances) */
+  .global-header:has(.mobile-header-menu.open) .header-visitor-badge-mobile {
+    display: none !important;
+  }
+
+  /* Show visitor badge in compact header bar on mobile (not hidden with header-right) */
+  .header-visitor-badge-mobile {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--status-warning, #e3b341);
+    background-color: rgba(227, 179, 65, 0.1);
+    border: 1px solid rgba(227, 179, 65, 0.3);
+    white-space: nowrap;
+    margin-left: auto;
+    margin-right: 4px;
+  }
+
+  .header-visitor-badge-mobile-icon {
+    margin-right: 4px;
+    font-size: 10px;
+  }
+
+  .header-visitor-badge-mobile-countdown {
+    margin-left: 4px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.9em;
+  }
+
+  /* Read-only badge in mobile hamburger menu */
+  .mobile-menu-item--readonly-badge {
+    cursor: default;
+    color: var(--status-warning, #e3b341);
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
   .header-left {
     gap: 8px;
   }
@@ -79,8 +124,8 @@
   }
 
   .project-selector-btn {
-    min-width: 100px;
-    max-width: 140px;
+    min-width: 80px;
+    max-width: 200px;
     font-size: 12px;
     padding: 4px 6px;
   }
@@ -102,9 +147,11 @@
     color: var(--text-primary);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
     padding: 0;
     margin-left: auto;
-    z-index: 1;
+    z-index: 1002;
+    position: relative;
   }
 
   .mobile-hamburger i {
@@ -120,7 +167,7 @@
     right: 0;
     bottom: 0;
     background: var(--bg-page, #0d1117);
-    z-index: 999;
+    z-index: 1100;
     flex-direction: column;
     padding: 16px;
     gap: 8px;
@@ -168,6 +215,17 @@
   .mobile-header-menu .mobile-menu-item--muted {
     cursor: default;
     color: var(--text-muted);
+  }
+
+  .mobile-header-menu .mobile-menu-item--user {
+    cursor: default;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .mobile-header-menu .mobile-menu-item--indent {
+    padding-left: 40px;
+    font-size: 0.9rem;
   }
 
   /* Show header collapse toggle on mobile (double-click or button to collapse) */

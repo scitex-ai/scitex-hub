@@ -49,8 +49,9 @@ _PLATFORM_APPS = frozenset(
     }
 )
 
-# Cache manifest in production
+# Cache manifest in production (with mtime for auto-invalidation after rebuilds)
 _manifest_cache = None
+_manifest_mtime: float = 0.0
 
 # Cache name→entry reverse index for manifest lookups
 _manifest_name_index: dict | None = None
@@ -85,19 +86,34 @@ def _find_app_ts_path(app_name: str, ts_rest: str) -> str:
 
 
 def get_manifest() -> dict:
-    """Load the Vite manifest file (production only)."""
-    global _manifest_cache
-    if _manifest_cache is not None:
-        return _manifest_cache
+    """Load the Vite manifest file (production only).
+
+    Re-reads from disk when the file's mtime changes, so a Vite rebuild
+    is picked up without restarting Django workers.
+    """
+    global _manifest_cache, _manifest_mtime, _manifest_name_index
 
     manifest_path = (
         Path(settings.BASE_DIR) / "staticfiles" / "vite" / ".vite" / "manifest.json"
     )
-    if manifest_path.exists():
-        with open(manifest_path) as f:
-            _manifest_cache = json.load(f)
-    else:
+
+    try:
+        current_mtime = manifest_path.stat().st_mtime
+    except OSError:
+        # File doesn't exist — return empty and don't cache
         _manifest_cache = {}
+        _manifest_mtime = 0.0
+        _manifest_name_index = None
+        return _manifest_cache
+
+    if _manifest_cache is not None and current_mtime == _manifest_mtime:
+        return _manifest_cache
+
+    with open(manifest_path) as f:
+        _manifest_cache = json.load(f)
+    _manifest_mtime = current_mtime
+    # Invalidate the name index so it gets rebuilt from the new manifest
+    _manifest_name_index = None
 
     return _manifest_cache
 
@@ -131,15 +147,22 @@ def vite_hmr_client():
     """
     scripts = ""
 
-    if settings.DEBUG:
-        vite_host = getattr(settings, "VITE_HOST_IP", "127.0.0.1")
+    if settings.DEBUG and not getattr(settings, "VITE_USE_BUILD", False):
         host_port = getattr(settings, "VITE_HOST_PORT", 5173)
-        scripts += f'<script type="module" src="http://{vite_host}:{host_port}/@vite/client"></script>\n'
-        # Dev app Vite HMR — direct access in dev
         dev_port = getattr(settings, "VITE_DEV_APP_PORT", 5174)
-        scripts += f'<script type="module" src="http://{vite_host}:{dev_port}/@vite/client" onerror=""></script>'
-    else:
-        # Production: dev app Vite HMR through nginx proxy
+        # Use browser's hostname so both localhost and LAN IP work automatically
+        scripts += (
+            f'<script type="module">'
+            f"const h=window.location.hostname;"
+            f'const s=document.createElement("script");s.type="module";'
+            f's.src="http://"+h+":{host_port}/@vite/client";document.head.appendChild(s);'
+            f'const s2=document.createElement("script");s2.type="module";'
+            f's2.src="http://"+h+":{dev_port}/@vite/client";s2.onerror=()=>{{}};'
+            f"document.head.appendChild(s2);"
+            f"</script>"
+        )
+    elif getattr(settings, "VITE_DEV_APP_ENABLED", False):
+        # Production with dev apps: HMR through nginx proxy (only when explicitly enabled)
         scripts += '<script type="module" src="/_vite_dev_app/@vite/client" onerror=""></script>'
 
     return mark_safe(scripts) if scripts else ""
@@ -165,12 +188,13 @@ def vite_script(entry_name: str):
         entry_name: Entry name like 'console_app/workspace'
     """
     # Dev app entries use container Vite — works in dev and prod
-    vite_host = getattr(settings, "VITE_HOST_IP", "127.0.0.1")
     if _is_dev_app_entry(entry_name):
         if settings.DEBUG:
             port = getattr(settings, "VITE_DEV_APP_PORT", 5174)
             return mark_safe(
-                f'<script type="module" src="http://{vite_host}:{port}/{entry_name}.ts"></script>'
+                f'<script type="module">{{const s=document.createElement("script");s.type="module";'
+                f's.src="http://"+window.location.hostname+":{port}/{entry_name}.ts";'
+                f"document.head.appendChild(s);}}</script>"
             )
         else:
             # Production: through nginx proxy
@@ -180,11 +204,14 @@ def vite_script(entry_name: str):
             )
 
     # Platform entries
-    if settings.DEBUG:
+    # VITE_USE_BUILD=True: use built manifest even in dev (no Vite dev server needed)
+    if settings.DEBUG and not getattr(settings, "VITE_USE_BUILD", False):
         ts_path = _entry_to_ts_path(entry_name)
         port = getattr(settings, "VITE_HOST_PORT", 5173)
         return mark_safe(
-            f'<script type="module" src="http://{vite_host}:{port}/{ts_path}"></script>'
+            f'<script type="module">{{const s=document.createElement("script");s.type="module";'
+            f's.src="http://"+window.location.hostname+":{port}/{ts_path}";'
+            f"document.head.appendChild(s);}}</script>"
         )
     else:
         # Production: Load from Vite manifest
@@ -218,6 +245,35 @@ def vite_script(entry_name: str):
                 f"Vite entry '{entry_name}' not found in manifest (tried ts_path='{ts_path}' and name='{entry_name}')"
             )
             return ""
+
+
+@register.simple_tag
+def vite_preload(entry_name: str):
+    """Emit <link rel="modulepreload"> for a Vite entry point.
+
+    Use this for scripts that are dynamically imported at runtime
+    so the browser fetches them early (without executing).
+    In dev mode this is a no-op since Vite serves files on demand.
+    """
+    if settings.DEBUG and not getattr(settings, "VITE_USE_BUILD", False):
+        return ""
+
+    manifest = get_manifest()
+    ts_path = _entry_to_ts_path(entry_name)
+    entry = manifest.get(ts_path) or _get_manifest_by_name(entry_name)
+
+    if entry:
+        js_file = entry["file"]
+        return mark_safe(
+            f'<link rel="modulepreload" href="{settings.STATIC_URL}vite/{js_file}" />'
+        )
+
+    import logging
+
+    logging.getLogger(__name__).error(
+        f"Vite preload entry '{entry_name}' not found in manifest"
+    )
+    return ""
 
 
 @register.simple_tag
@@ -262,6 +318,7 @@ def _entry_to_ts_path(entry_name: str) -> str:
         "shared/workspace-panel-resizer": "static/shared/ts/components/workspace-panel-resizer.ts",
         "shared/collapsible-panel-click-expand": "static/shared/ts/components/collapsible-panel-click-expand.ts",
         "shared/resizer": "static/shared/ts/components/resizer/index.ts",
+        "shared/workspace-sidebar": "static/shared/ts/components/sidebar/index.ts",
         "shared/repo-monitor": "static/shared/ts/components/repo-monitor/index.ts",
         # dev_app: scripts in scripts/ subdir instead of ts/
         "dev_app/scripts/design": "apps/workspace/dev_app/static/dev_app/scripts/design.ts",

@@ -15,6 +15,7 @@
   background: var(--workspace-border-default);
   cursor: col-resize;
   user-select: none;
+  touch-action: none;
   pointer-events: all;
   transition: background 0.2s ease;
   z-index: 10;
@@ -53,6 +54,7 @@
   background: var(--workspace-border-default);
   cursor: row-resize;
   user-select: none;
+  touch-action: none;
   pointer-events: all;
   transition: background 0.2s ease;
   z-index: 10;

@@ -122,3 +122,57 @@ class BroadcastMixin:
                 }
             )
         )
+
+    # ------------------------------------------------------------------
+    # Comment/annotation broadcasts
+    # ------------------------------------------------------------------
+
+    async def comment_created(self, event):
+        """Broadcast new comment to all clients."""
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "comment_created",
+                    "comment": event["comment"],
+                    "timestamp": event["timestamp"],
+                }
+            )
+        )
+
+    async def comment_updated(self, event):
+        """Broadcast comment update to all clients."""
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "comment_updated",
+                    "comment": event["comment"],
+                    "timestamp": event["timestamp"],
+                }
+            )
+        )
+
+    async def comment_resolved(self, event):
+        """Broadcast comment resolution to all clients."""
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "comment_resolved",
+                    "comment_id": event["comment_id"],
+                    "resolved_by": event["resolved_by"],
+                    "timestamp": event["timestamp"],
+                }
+            )
+        )
+
+    async def comment_deleted(self, event):
+        """Broadcast comment deletion to all clients."""
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "comment_deleted",
+                    "comment_id": event["comment_id"],
+                    "deleted_by": event["deleted_by"],
+                    "timestamp": event["timestamp"],
+                }
+            )
+        )

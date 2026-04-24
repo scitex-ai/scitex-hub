@@ -15,6 +15,7 @@ lifecycle — from literature to manuscript — under your own control.
    setup
    quickstart
    cli
+   sync
    mcp
    app_platform
    visitor_pool_security

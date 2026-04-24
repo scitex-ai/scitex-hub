@@ -3,18 +3,16 @@
  * Handles section loading, switching, and UI updates
  */
 
-import {
-  WriterEditor,
-  setLoadingContent,
-} from "../../modules/index";
+import { WriterEditor, setLoadingContent } from "../../modules/index";
 import {
   showToast,
   getUserContext,
   updateSectionTitleLabel,
   updatePDFPreviewTitle,
   updateCommitButtonVisibility,
-  syncDropdownToSection,
 } from "../../utils/index";
+// Direct import to avoid circular dependency through barrel re-export
+import { syncDropdownToSection } from "../../utils/_section-dropdown/index";
 import { getWriterConfig } from "../../_helpers";
 
 let modulePdfPreviewManager: any = null;
@@ -58,10 +56,7 @@ export async function loadSectionContent(
     // Extract section name and doc type from sectionId (e.g., "manuscript/abstract" -> doc_type="manuscript", section_name="abstract")
     const parts = sectionId.split("/");
     if (parts.length !== 2) {
-      console.warn(
-        "[SectionOperations] Invalid section ID format:",
-        sectionId,
-      );
+      console.warn("[SectionOperations] Invalid section ID format:", sectionId);
       return;
     }
 
@@ -139,10 +134,7 @@ export async function loadSectionContent(
       throw new Error(errorMsg);
     }
   } catch (error) {
-    console.error(
-      "[SectionOperations] Error loading section content:",
-      error,
-    );
+    console.error("[SectionOperations] Error loading section content:", error);
     setLoadingContent(false); // Reset flag on error
     throw error; // Re-throw to let caller handle it
   }
@@ -300,10 +292,7 @@ export function loadCompiledPDF(sectionId: string): void {
       textPreview.scrollTop = 0;
     })
     .catch((error) => {
-      console.error(
-        "[SectionOperations] Error checking compiled PDF:",
-        error,
-      );
+      console.error("[SectionOperations] Error checking compiled PDF:", error);
       textPreview.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 2rem; text-align: center; color: var(--color-fg-muted);">
                     <i class="fas fa-exclamation-triangle fa-3x mb-3 text-warning"></i>

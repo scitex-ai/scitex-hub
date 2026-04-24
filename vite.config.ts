@@ -186,6 +186,18 @@ export default defineConfig({
       // Ensure monaco-editor resolves from scitex-cloud's node_modules
       // even when imported from scitex-ui files outside this directory tree
       "monaco-editor": resolve(__dirname, "node_modules/monaco-editor"),
+      // Ensure mermaid resolves from scitex-cloud's node_modules
+      // even when dynamically imported from symlinked scitex-ui files
+      mermaid: resolve(__dirname, "node_modules/mermaid"),
+      // Ensure zustand resolves from scitex-cloud's node_modules
+      // even when imported from sibling repo bridges (e.g. figrecipe)
+      zustand: resolve(__dirname, "node_modules/zustand"),
+      // Ensure @hpcc-js/wasm-graphviz resolves from scitex-cloud's node_modules
+      // even when dynamically imported from scitex-ui's GraphvizViewer
+      "@hpcc-js/wasm-graphviz": resolve(
+        __dirname,
+        "node_modules/@hpcc-js/wasm-graphviz",
+      ),
       // scitex-ui: shared component library (auto-discovered)
       ...(SCITEX_UI_STATIC
         ? {
@@ -278,7 +290,7 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    include: ["fabric", "react", "react-dom"],
+    include: ["fabric", "react", "react-dom", "mermaid"],
     // Exclude auto-discovered app editor aliases from pre-bundling
     exclude: Object.keys(APP_BRIDGES.aliases),
   },

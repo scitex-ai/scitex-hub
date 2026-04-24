@@ -120,3 +120,12 @@
   flex: 1;
   min-width: 0;
 }
+
+/* ── Mobile: compact tab bars ── */
+@media (max-width: 768px) {
+  #pane-chat .stx-shell-ai-sessions-bar,
+  #pane-console .stx-shell-ai-console-tabs-bar {
+    padding: 4px 8px !important;
+    gap: 4px !important;
+  }
+}

@@ -1,0 +1,24 @@
+# Local overrides for WSL2 development alongside production.
+# This file is local-only and should NOT be committed.
+#
+# DNS note: DO NOT set `dns: 8.8.8.8` here. That replaces docker's embedded
+# resolver at 127.0.0.11, which breaks service-name resolution (django can't
+# find `postgres`, etc.). Docker's default DNS setup works on this host.
+#
+# Port conflicts are handled in .env (offset ports).
+# Extended start_period: fresh DB migrations take 5+ minutes on MBA.
+
+services:
+  django:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 600s
+  celery_worker:
+    healthcheck:
+      start_period: 600s
+  celery_beat:
+    healthcheck:
+      start_period: 600s

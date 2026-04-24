@@ -1,0 +1,71 @@
+{% extends 'global_base.html' %}
+
+{% load static %}
+
+{% block title %}
+    Privacy & Analytics - Settings - SciTeX
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
+{% endblock %}
+{% block content %}
+<div class="settings-page">
+    <div class="settings-layout">
+        <aside class="settings-nav">
+            {% include 'accounts_app/partials/settings_nav.html' with active='privacy' %}
+        </aside>
+        <main class="settings-content">
+            <div class="settings-header">
+                <h1 class="settings-title">Privacy & Analytics</h1>
+                <p class="settings-subtitle">Control how your data is collected and shared.</p>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <!-- Analytics Section -->
+                <div class="form-section">
+                    <h2 class="form-section-title">Usage Analytics</h2>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">
+                        SciTeX uses <a href="https://umami.is" target="_blank" rel="noopener">Umami</a>,
+                        a privacy-focused, cookie-free analytics tool. No personal data is collected
+                        &mdash; only anonymized page views and events. Data is self-hosted on our servers.
+                    </p>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px; font-weight: 400; cursor: pointer;">
+                            <input type="checkbox"
+                                   name="analytics_opt_out"
+                                   {% if profile.analytics_opt_out %}checked{% endif %} />
+                            <span>Opt out of anonymized usage analytics</span>
+                        </label>
+                        <p class="form-help">
+                            When enabled, the Umami tracking script will not be loaded on any page.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Profile Visibility Section -->
+                <div class="form-section">
+                    <h2 class="form-section-title">Profile Visibility</h2>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px; font-weight: 400; cursor: pointer;">
+                            <input type="checkbox"
+                                   name="show_email"
+                                   {% if profile.show_email %}checked{% endif %} />
+                            <span>Show email address on public profile</span>
+                        </label>
+                        <p class="form-help">
+                            Your email will be visible to other users on your profile page.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-check"></i> Save privacy settings
+                    </button>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+{% endblock %}

@@ -302,3 +302,22 @@
     position: static;
   }
 }
+
+/* Narrow screens: prevent content clipping */
+@media (max-width: 600px) {
+  .settings-page {
+    padding: 16px 8px;
+  }
+
+  .form-section {
+    padding: 16px 12px;
+  }
+
+  .settings-title {
+    font-size: 20px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+}

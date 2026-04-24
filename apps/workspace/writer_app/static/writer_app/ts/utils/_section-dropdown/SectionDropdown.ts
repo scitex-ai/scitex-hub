@@ -5,9 +5,10 @@
 
 import { showToast } from "../ui";
 import { getWriterConfig } from "../../_helpers";
-import { setupDragAndDrop } from "../../modules/index";
+// Direct import to avoid circular dependency through barrel re-export
+import { setupDragAndDrop } from "../../modules/_drag-drop";
 import { statePersistence } from "../../modules/_state-persistence";
-import type { CompilationManager } from "../../modules/index";
+import type { CompilationManager } from "../../modules/_compilation";
 import { renderSectionDropdown } from "./rendering";
 import { setupSectionEvents } from "./events";
 

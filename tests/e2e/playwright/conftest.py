@@ -1,0 +1,289 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Playwright E2E Test Configuration
+
+Provides:
+- iPhone 14 mobile fixture (390x844, has_touch=True)
+- Desktop fixture (1920x1080)
+- Visitor session with storage_state save/reuse
+- Screenshot directory setup
+"""
+
+import os
+from pathlib import Path
+
+import pytest
+
+# =============================================================================
+# Configuration
+# =============================================================================
+
+BASE_URL = os.getenv("SCITEX_BASE_URL", "http://127.0.0.1:8000")
+TEST_USER = os.getenv("SCITEX_E2E_TEST_USER", "test-user")
+TEST_PASS = os.getenv("SCITEX_E2E_TEST_PASS", "Password123!")
+TIMEOUT = int(os.getenv("SCITEX_E2E_TIMEOUT", "30")) * 1000  # ms for Playwright
+
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
+SCREENSHOT_DIR = PROJECT_ROOT / "GITIGNORED" / "e2e_screenshots"
+STORAGE_STATE_DIR = PROJECT_ROOT / "GITIGNORED" / "e2e_storage_states"
+
+# iPhone 14 device descriptor
+IPHONE_14 = {
+    "viewport": {"width": 390, "height": 844},
+    "user_agent": (
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) "
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) "
+        "Version/16.0 Mobile/15E148 Safari/604.1"
+    ),
+    "device_scale_factor": 3,
+    "is_mobile": True,
+    "has_touch": True,
+}
+
+DESKTOP = {
+    "viewport": {"width": 1920, "height": 1080},
+    "user_agent": (
+        "Mozilla/5.0 (X11; Linux x86_64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/120.0.0.0 Safari/537.36"
+    ),
+    "device_scale_factor": 1,
+    "is_mobile": False,
+    "has_touch": False,
+}
+
+
+# =============================================================================
+# Directory setup
+# =============================================================================
+
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_directories():
+    """Create output directories for screenshots and storage states."""
+    SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
+    STORAGE_STATE_DIR.mkdir(parents=True, exist_ok=True)
+
+
+# =============================================================================
+# Base URL
+# =============================================================================
+
+
+@pytest.fixture(scope="session")
+def pw_base_url():
+    """Base URL for the running server."""
+    return BASE_URL.rstrip("/")
+
+
+# =============================================================================
+# Browser contexts
+# =============================================================================
+
+
+@pytest.fixture
+def mobile_context(browser, pw_base_url):
+    """
+    iPhone 14 browser context.
+
+    Viewport: 390x844, has_touch=True, iOS Safari user agent.
+    """
+    context = browser.new_context(
+        base_url=pw_base_url,
+        viewport=IPHONE_14["viewport"],
+        user_agent=IPHONE_14["user_agent"],
+        device_scale_factor=IPHONE_14["device_scale_factor"],
+        is_mobile=IPHONE_14["is_mobile"],
+        has_touch=IPHONE_14["has_touch"],
+        ignore_https_errors=True,
+    )
+    context.set_default_timeout(TIMEOUT)
+    yield context
+    context.close()
+
+
+@pytest.fixture
+def mobile_page(mobile_context):
+    """A page within the iPhone 14 browser context."""
+    page = mobile_context.new_page()
+    yield page
+    page.close()
+
+
+@pytest.fixture
+def desktop_context(browser, pw_base_url):
+    """
+    Desktop browser context.
+
+    Viewport: 1920x1080, standard Chrome user agent.
+    """
+    context = browser.new_context(
+        base_url=pw_base_url,
+        viewport=DESKTOP["viewport"],
+        user_agent=DESKTOP["user_agent"],
+        device_scale_factor=DESKTOP["device_scale_factor"],
+        is_mobile=DESKTOP["is_mobile"],
+        has_touch=DESKTOP["has_touch"],
+        ignore_https_errors=True,
+    )
+    context.set_default_timeout(TIMEOUT)
+    yield context
+    context.close()
+
+
+@pytest.fixture
+def desktop_page(desktop_context):
+    """A page within the desktop browser context."""
+    page = desktop_context.new_page()
+    yield page
+    page.close()
+
+
+# =============================================================================
+# Visitor session with storage_state reuse
+# =============================================================================
+
+
+@pytest.fixture(scope="session")
+def visitor_storage_state(browser_type, pw_base_url):
+    """
+    Authenticate as visitor and save storage_state for reuse.
+
+    The storage state is saved to disk so subsequent test runs
+    can skip the login step if the session is still valid.
+    """
+    state_file = STORAGE_STATE_DIR / "visitor_state.json"
+
+    # Try to reuse existing state
+    if state_file.exists():
+        context = browser_type.launch().new_context(
+            base_url=pw_base_url,
+            storage_state=str(state_file),
+            ignore_https_errors=True,
+        )
+        page = context.new_page()
+        # Verify the session is still valid
+        page.goto("/")
+        if "login" not in page.url.lower():
+            # Session is still valid
+            browser = context.browser
+            page.close()
+            context.close()
+            browser.close()
+            return str(state_file)
+        page.close()
+        context.close()
+        context.browser.close()
+
+    # Create fresh session by logging in
+    browser = browser_type.launch()
+    context = browser.new_context(
+        base_url=pw_base_url,
+        ignore_https_errors=True,
+    )
+    context.set_default_timeout(TIMEOUT)
+    page = context.new_page()
+
+    page.goto("/auth/login/")
+    page.wait_for_load_state("domcontentloaded")
+    # Wait for body.app-ready which disables loading screen pointer-events.
+    # The safety-net script in global_base.html guarantees this within 3s
+    # even if the Vite bundle fails to load.
+    page.wait_for_function(
+        "document.body.classList.contains('app-ready')", timeout=15000
+    )
+    page.fill('input[name="username"]', TEST_USER)
+    page.fill('input[name="password"]', TEST_PASS)
+    page.click('button[type="submit"]')
+    page.wait_for_load_state("networkidle")
+
+    # Save storage state
+    context.storage_state(path=str(state_file))
+
+    page.close()
+    context.close()
+    browser.close()
+
+    return str(state_file)
+
+
+@pytest.fixture
+def visitor_mobile_context(browser, pw_base_url, visitor_storage_state):
+    """
+    iPhone 14 context with visitor session pre-loaded.
+    """
+    context = browser.new_context(
+        base_url=pw_base_url,
+        storage_state=visitor_storage_state,
+        viewport=IPHONE_14["viewport"],
+        user_agent=IPHONE_14["user_agent"],
+        device_scale_factor=IPHONE_14["device_scale_factor"],
+        is_mobile=IPHONE_14["is_mobile"],
+        has_touch=IPHONE_14["has_touch"],
+        ignore_https_errors=True,
+    )
+    context.set_default_timeout(TIMEOUT)
+    yield context
+    context.close()
+
+
+@pytest.fixture
+def visitor_mobile_page(visitor_mobile_context):
+    """A mobile page with visitor session."""
+    page = visitor_mobile_context.new_page()
+    yield page
+    page.close()
+
+
+@pytest.fixture
+def visitor_desktop_context(browser, pw_base_url, visitor_storage_state):
+    """
+    Desktop context with visitor session pre-loaded.
+    """
+    context = browser.new_context(
+        base_url=pw_base_url,
+        storage_state=visitor_storage_state,
+        viewport=DESKTOP["viewport"],
+        user_agent=DESKTOP["user_agent"],
+        device_scale_factor=DESKTOP["device_scale_factor"],
+        is_mobile=DESKTOP["is_mobile"],
+        has_touch=DESKTOP["has_touch"],
+        ignore_https_errors=True,
+    )
+    context.set_default_timeout(TIMEOUT)
+    yield context
+    context.close()
+
+
+@pytest.fixture
+def visitor_desktop_page(visitor_desktop_context):
+    """A desktop page with visitor session."""
+    page = visitor_desktop_context.new_page()
+    yield page
+    page.close()
+
+
+# =============================================================================
+# Screenshot helper
+# =============================================================================
+
+
+@pytest.fixture
+def screenshot(request):
+    """
+    Screenshot helper that saves to GITIGNORED/e2e_screenshots/.
+
+    Usage:
+        def test_example(mobile_page, screenshot):
+            mobile_page.goto("/")
+            screenshot(mobile_page, "landing_loaded")
+    """
+
+    def _screenshot(page, name):
+        filename = f"{request.node.name}_{name}.png"
+        path = SCREENSHOT_DIR / filename
+        page.screenshot(path=str(path), full_page=True)
+        return path
+
+    return _screenshot

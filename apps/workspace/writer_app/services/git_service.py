@@ -7,14 +7,13 @@ Provides visual Git interface for non-technical users:
 - Branch management
 """
 
-import os
 import logging
-from pathlib import Path
-from typing import List, Dict, Optional, Tuple
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional
 
 import git
-from git import Repo, GitCommandError, Actor
+from git import Actor, GitCommandError, Repo
 
 logger = logging.getLogger(__name__)
 
@@ -248,6 +247,28 @@ Thumbs.db
                 insertions = diff_text.count("\n+") - 1  # -1 for header
                 deletions = diff_text.count("\n-") - 1
 
+                # Retrieve original and modified file contents for Monaco DiffEditor
+                original_content = ""
+                modified_content = ""
+                try:
+                    if diff_item.a_blob:
+                        original_content = diff_item.a_blob.data_stream.read().decode(
+                            "utf-8", errors="replace"
+                        )
+                    if diff_item.b_blob:
+                        modified_content = diff_item.b_blob.data_stream.read().decode(
+                            "utf-8", errors="replace"
+                        )
+                    elif not commit_sha and file_path:
+                        # Working-directory diff: b_blob is None, read from disk
+                        working_file = self.writer_dir / file_path
+                        if working_file.is_file():
+                            modified_content = working_file.read_text(
+                                encoding="utf-8", errors="replace"
+                            )
+                except Exception as blob_err:
+                    logger.debug(f"[Git] Could not read blob content: {blob_err}")
+
                 files.append(
                     {
                         "path": file_path,
@@ -255,6 +276,8 @@ Thumbs.db
                         "diff": diff_text,
                         "insertions": insertions,
                         "deletions": deletions,
+                        "original_content": original_content,
+                        "modified_content": modified_content,
                     }
                 )
 

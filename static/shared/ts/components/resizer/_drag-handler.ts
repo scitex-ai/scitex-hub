@@ -1,11 +1,12 @@
 /**
  * Drag state machine for BaseResizer.
  *
- * Handles mousedown → mousemove → mouseup with:
- * - Smart collapse: panel collapses instantly during drag (not on mouseUp)
+ * Handles pointerdown → pointermove → pointerup with:
+ * - Smart collapse: panel collapses instantly during drag (not on pointerUp)
  * - Cascade propagation: remaining delta transfers to adjacent panel
  * - Magnetic snap: resizer is physically pulled toward snap points
  * - Four resize modes: only-second, only-first, both, neither
+ * - Pointer Events API: works on mouse, touch, and pen (mobile support)
  */
 
 import type { BaseResizer } from "./_base";
@@ -17,21 +18,29 @@ import { magneticSnap, percentSnapPoints } from "./_snap";
 /** Attach drag handling to a BaseResizer instance */
 export function attachDragHandler(resizer: BaseResizer): void {
   const el = resizer.getResizerEl();
-  el.addEventListener("mousedown", (e) => onMouseDown(resizer, e));
+  el.addEventListener("pointerdown", (e) => onPointerDown(resizer, e));
+  // Prevent touch scrolling on the resizer handle
+  el.addEventListener("touchstart", (e) => e.preventDefault(), {
+    passive: false,
+  });
 }
 
-function onMouseDown(r: BaseResizer, e: MouseEvent): void {
+function onPointerDown(r: BaseResizer, e: PointerEvent): void {
   if (r.isClickOnToggle(e)) return;
 
   e.preventDefault();
+  // Capture pointer so moves/up fire even if finger leaves the element
+  r.getResizerEl().setPointerCapture(e.pointerId);
+
   r.startDrag(e);
   const [sf, ss] = r.getStartSizes();
   console.log(
-    `[Resizer:drag] mousedown on ${r.getStorageKey()} — firstSize=${sf}, secondSize=${ss}, firstCan=${r.getFirstCanCollapse()}, secondCan=${r.getSecondCanCollapse()}, threshold=${r.getThresholdPx()}, isInApp=${r.getIsInApp()}`,
+    `[Resizer:drag] pointerdown on ${r.getStorageKey()} — firstSize=${sf}, secondSize=${ss}, firstCan=${r.getFirstCanCollapse()}, secondCan=${r.getSecondCanCollapse()}, threshold=${r.getThresholdPx()}, isInApp=${r.getIsInApp()}`,
   );
 
   document.body.style.cursor = r.getCursorPublic();
   document.body.style.userSelect = "none";
+  (document.body.style as any).touchAction = "none";
   r.getResizerEl().classList.add("active");
 
   // Disable transitions during drag
@@ -45,14 +54,15 @@ function onMouseDown(r: BaseResizer, e: MouseEvent): void {
 
   r.fireOnDragStart();
 
-  const onMove = (e: MouseEvent) => handleMouseMove(r, e);
-  const onUp = () => handleMouseUp(r, onMove, onUp);
+  const onMove = (e: PointerEvent) => handlePointerMove(r, e);
+  const onUp = () => handlePointerUp(r, onMove, onUp);
 
-  document.addEventListener("mousemove", onMove);
-  document.addEventListener("mouseup", onUp);
+  document.addEventListener("pointermove", onMove);
+  document.addEventListener("pointerup", onUp);
+  document.addEventListener("pointercancel", onUp);
 }
 
-function handleMouseMove(r: BaseResizer, e: MouseEvent): void {
+function handlePointerMove(r: BaseResizer, e: PointerEvent): void {
   if (!r.isDraggingNow()) return;
 
   // If primary collapsed and propagation target exists, resize that instead
@@ -66,9 +76,9 @@ function handleMouseMove(r: BaseResizer, e: MouseEvent): void {
   applyResize(r, delta, e);
 }
 
-function handleMouseUp(
+function handlePointerUp(
   r: BaseResizer,
-  onMove: (e: MouseEvent) => void,
+  onMove: (e: PointerEvent) => void,
   onUp: () => void,
 ): void {
   if (!r.isDraggingNow()) return;
@@ -76,6 +86,7 @@ function handleMouseUp(
 
   document.body.style.cursor = "";
   document.body.style.userSelect = "";
+  (document.body.style as any).touchAction = "";
   r.getResizerEl().classList.remove("active");
   r.getResizerEl().classList.remove("snapped");
   r.getFirstPanel().style.transition = "";
@@ -86,10 +97,11 @@ function handleMouseUp(
       .forEach((el) => (el.style.transition = ""));
   }
 
-  document.removeEventListener("mousemove", onMove);
-  document.removeEventListener("mouseup", onUp);
+  document.removeEventListener("pointermove", onMove);
+  document.removeEventListener("pointerup", onUp);
+  document.removeEventListener("pointercancel", onUp);
   console.log(
-    `[Resizer:drag] mouseup on ${r.getStorageKey()} — first.collapsed=${r.getFirstPanel().classList.contains("collapsed")}, second.collapsed=${r.getSecondPanel().classList.contains("collapsed")}, firstSize=${r.getSizePublic(r.getFirstPanel())}, secondSize=${r.getSizePublic(r.getSecondPanel())}`,
+    `[Resizer:drag] pointerup on ${r.getStorageKey()} — first.collapsed=${r.getFirstPanel().classList.contains("collapsed")}, second.collapsed=${r.getSecondPanel().classList.contains("collapsed")}, firstSize=${r.getSizePublic(r.getFirstPanel())}, secondSize=${r.getSizePublic(r.getSecondPanel())}`,
   );
 
   // Save propagation target state
@@ -135,7 +147,7 @@ function snap(r: BaseResizer, raw: number, snaps: number[]): number {
  *   2. Only first can collapse → size set on first
  *   3. Both/neither → proportional (snap first panel only to avoid conflicts)
  */
-function applyResize(r: BaseResizer, delta: number, e: MouseEvent): void {
+function applyResize(r: BaseResizer, delta: number, e: PointerEvent): void {
   const first = r.getFirstPanel();
   const second = r.getSecondPanel();
   const key = r.getStorageKey();
@@ -242,7 +254,7 @@ function applyResize(r: BaseResizer, delta: number, e: MouseEvent): void {
 function tryStartCascade(
   r: BaseResizer,
   collapsingPanel: HTMLElement,
-  e: MouseEvent,
+  e: PointerEvent,
 ): void {
   if (r.getIsInApp()) return;
   const target = r.findCascadeTargetPublic(
@@ -253,7 +265,7 @@ function tryStartCascade(
 }
 
 /** Apply propagation delta to the cascade target */
-function applyPropagation(r: BaseResizer, e: MouseEvent): void {
+function applyPropagation(r: BaseResizer, e: PointerEvent): void {
   const prop = r.getPropagate();
   if (!prop) return;
 

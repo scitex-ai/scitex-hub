@@ -76,22 +76,51 @@
   overflow: auto;
 }
 
+/* ── Safe-area insets for iPhone notch / home-indicator ────── */
+/* viewport-fit=cover is set in the meta viewport tag, which
+   exposes env(safe-area-inset-*) values for edge-to-edge PWA. */
+.workspace-layout {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+.workspace-pane[data-pane="chat"],
+.workspace-pane[data-pane="console"] {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* ── Mobile ────────────────────────────────────────────────── */
 @media (max-width: 767px) {
   .workspace-layout {
-    flex-direction: column;
+    flex-direction: row;
     height: 100vh;
+    height: 100dvh;
   }
 
   .workspace-content {
     flex: 1;
     min-height: 0;
   }
+
+  /* On 375px screens a 280px sidebar leaves ~95px for content.
+     Use single-pane tab switching: only the active pane is visible. */
+  .workspace-pane {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ensure pane content areas can scroll on mobile */
+  .workspace-pane[data-pane="module"] {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
-/* ── Hide header on workspace pages (not landing) ──────────── */
-body.workspace-page:not(.landing-page) .global-header {
-  display: none;
+/* ── Hide header on workspace pages (desktop only) ──────────── */
+@media (min-width: 768px) {
+  body.workspace-page:not(.landing-page) .global-header {
+    display: none;
+  }
 }
 
 /* ── Landing page: hide workspace layout, show normal flow ─── */

@@ -4,7 +4,8 @@
  */
 
 import { statusLamp, setLoadingContent } from "../../modules/index";
-import { handleCompileFull } from "../../utils/index";
+// Direct import to avoid circular dependency through barrel re-export
+import { handleCompileFull } from "../../utils/compilation-handlers";
 
 export class EventHandlerSetup {
   private state: any;

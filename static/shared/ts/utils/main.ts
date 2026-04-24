@@ -384,12 +384,18 @@ function initAltKeyShortcutBadges(): void {
 }
 
 // Initialize when DOM is ready
+function dismissLoadingScreen(): void {
+  document.body.classList.add("app-ready");
+  const ls = document.getElementById("app-loading-screen");
+  if (ls) ls.style.display = "none";
+}
+
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
     initApp();
-    document.body.classList.add("app-ready");
+    dismissLoadingScreen();
   });
 } else {
   initApp();
-  document.body.classList.add("app-ready");
+  dismissLoadingScreen();
 }

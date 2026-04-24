@@ -46,24 +46,58 @@
   display: none !important;
 }
 
-#pane-chat .stx-shell-ai-console-view {
+#pane-chat #stx-shell-ai-console-view {
   display: none !important;
 }
 
-#pane-chat .stx-shell-ai-chat-view {
+#pane-chat #stx-shell-ai-chat-view {
   display: flex !important;
   flex-direction: column;
   width: 100% !important;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
 }
-
-/* Tab bar styles: see workspace-tabbar.css (single source of truth) */
 
 /* Chat-specific: action buttons panel */
 #pane-chat .stx-shell-ai-sessions-bar .stx-shell-ai-panel-actions {
   display: flex;
   gap: 4px;
   align-items: center;
+}
+
+/* Share button — sibling of .stx-shell-ai-panel-actions inside sessions bar */
+.stx-shell-ai-share-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-muted, #8b949e);
+  cursor: pointer;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.stx-shell-ai-share-btn:hover {
+  background: rgba(177, 186, 196, 0.08);
+  color: var(--text-primary, #f0f6fc);
+}
+
+/* Active (shared) state — blue accent */
+.stx-shell-ai-share-btn.active {
+  color: var(--text-link, #58a6ff);
+}
+
+.stx-shell-ai-share-btn.active:hover {
+  color: var(--text-link, #58a6ff);
+  background: rgba(56, 139, 253, 0.12);
 }
 
 /* Session tab items width override */
@@ -139,7 +173,6 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
-/* Remove old ::before (no avatar above) */
 #pane-chat .stx-shell-ai-msg.assistant::before {
   display: none;
 }
@@ -154,22 +187,13 @@
   100% {
     transform: scale(1);
     box-shadow: 0 0 4px 2px rgba(56, 139, 253, 0.1);
-    background:
-      url("/static/shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg")
-        center / 20px 20px no-repeat,
-      linear-gradient(135deg, #2d333b, #1c2128);
   }
   50% {
     transform: scale(1.15);
     box-shadow: 0 0 16px 6px rgba(56, 139, 253, 0.25);
-    background:
-      url("/static/shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg")
-        center / 20px 20px no-repeat,
-      linear-gradient(135deg, #1a3a5c, #0d2240);
   }
 }
 
-/* Typing/loading — no separate avatar (streaming avatar handles it) */
 #pane-chat .stx-shell-ai-typing {
   padding-left: 0;
 }
@@ -288,6 +312,7 @@
   margin: 0 auto;
   padding: 8px 24px 20px;
   background: transparent !important;
+  border-top: none !important;
   display: flex !important;
   flex-direction: column;
 }
@@ -347,12 +372,50 @@
   border-color: var(--text-secondary, #c9d1d9);
 }
 
+/* Model dropdown: absolute-positioned menu spawned by badge click */
+.ai-model-dropdown {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  min-width: 200px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--bg-secondary, #161b22);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  padding: 4px 0;
+  margin-bottom: 4px;
+}
+
+.ai-model-dropdown-item {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-primary, #f0f6fc);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-model-dropdown-item:hover {
+  background: rgba(56, 139, 253, 0.1);
+}
+
+.ai-model-dropdown-item.selected {
+  color: var(--color-accent-fg, #58a6ff);
+  font-weight: 600;
+}
+
+.ai-model-dropdown-item.selected::before {
+  content: "\2713 ";
+}
+
 /* Image previews container */
 #pane-chat .stx-shell-ai-image-previews {
   order: 0;
 }
-
-/* Keep all input buttons visible (camera, sketch, mic, gear) */
 
 /* Input buttons: subtle */
 #pane-chat .stx-shell-ai-input-btn,
@@ -377,3 +440,5 @@
 #pane-chat #stx-shell-ai-send {
   display: none !important;
 }
+
+/* Mobile rules: see workspace-chat-pane-mobile.css */

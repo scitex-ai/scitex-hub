@@ -224,6 +224,9 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
     shell.start_reader(broker._make_output_callback(client))
     alloc.increment_shells()
 
+    # Dismiss the "Starting computing environment..." spinner on the frontend
+    send_state(broker, client, shell_id, "running")
+
     # Inject cd and MOTD after shell initializes
     container_dir = f"/home/{username}/proj/{project_slug}"
 

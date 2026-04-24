@@ -3,9 +3,9 @@
  * Handles file/section selection from dropdown or tree
  */
 
-import { switchSection } from "../../../utils/index";
+// Direct import to avoid circular dependency through barrel re-export
+import { switchSection } from "../../../utils/section-management";
 import { loadTexFile } from "../../files/FileLoader";
-
 
 export interface FileSelectDependencies {
   config: any;

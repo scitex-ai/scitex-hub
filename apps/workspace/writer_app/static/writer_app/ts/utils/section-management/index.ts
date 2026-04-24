@@ -3,7 +3,9 @@
  * Lightweight orchestrator that delegates to focused modules
  */
 
-import type { WriterEditor, SectionsManager, PDFPreviewManager } from "../../modules/index";
+import type { WriterEditor } from "../../modules/_editor";
+import type { SectionsManager } from "../../modules/_sections";
+import type { PDFPreviewManager } from "../../modules/pdf-preview/index";
 
 // Import focused modules
 import {

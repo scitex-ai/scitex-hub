@@ -63,6 +63,10 @@ class VisitorAllocation(models.Model):
     last_activity = models.DateTimeField(
         null=True, blank=True, help_text="Last activity timestamp for idle detection"
     )
+    workspace_ready = models.BooleanField(
+        default=False,
+        help_text="Whether async workspace initialization (template clone) has completed",
+    )
 
     class Meta:
         ordering = ["visitor_number"]

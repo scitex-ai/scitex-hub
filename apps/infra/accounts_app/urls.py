@@ -12,6 +12,7 @@ from .views import (
     git_integrations,
     mcp_settings,
     mcp_settings_api,
+    privacy_settings,
     profile_edit,
     profile_view,
     remote_credentials,
@@ -33,6 +34,7 @@ urlpatterns = [
     path("settings/profile/", profile_edit, name="profile_edit"),
     path("settings/appearance/", appearance_settings, name="appearance"),
     path("settings/account/", account_settings, name="account"),
+    path("settings/privacy/", privacy_settings, name="privacy_settings"),
     # Integrations
     path("settings/integrations/", git_integrations, name="git_integrations"),
     path("settings/ai-providers/", ai_providers, name="ai_providers"),

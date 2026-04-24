@@ -2,7 +2,6 @@
 
 from django.http import HttpResponse
 from django.views.decorators.cache import never_cache
-from weasyprint import HTML
 
 
 @never_cache
@@ -64,6 +63,8 @@ def test_pdf(request):
     html += "  </div>\n"
 
     html += "</body></html>"
+
+    from weasyprint import HTML
 
     pdf_bytes = HTML(string=html).write_pdf()
     return HttpResponse(pdf_bytes, content_type="application/pdf")

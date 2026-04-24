@@ -270,7 +270,7 @@ def _get_skills():
             ["python", "-m", "scitex", "skills", "list"],
             capture_output=True,
             text=True,
-            timeout=60,
+            timeout=10,
         )
         if result.returncode != 0:
             logger.warning("scitex skills list failed: %s", result.stderr[:200])

@@ -1,0 +1,168 @@
+{% extends "global_base.html" %}
+
+{% load static %}
+
+{% block title %}
+    Support SciTeX —
+    SciTeX
+{% endblock %}
+{% block meta_description %}
+    Support open science by funding SciTeX development. Donate via GitHub Sponsors,
+    Buy Me a Coffee, or future Stripe payments.
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/donate.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container py-4">
+        <!-- Hero Section -->
+        <header class="minimal-hero">
+            <h1 class="minimal-hero-title">Support Open Science</h1>
+            <p class="minimal-hero-subtitle">
+                Help us build free, open-source tools that make scientific research
+                accessible to everyone.
+            </p>
+        </header>
+    </div>
+    <!-- Mission Statement -->
+    <div class="donate-mission">
+        <p>
+            <strong>SciTeX</strong> is an open-source research platform licensed under AGPL v3.0.
+            We believe that the tools powering scientific discovery should be free and accessible
+            to every researcher, regardless of their institution or funding.
+            Your support directly funds server costs, development, and keeping SciTeX free
+            for the research community.
+        </p>
+    </div>
+    <!-- Donation Options -->
+    <div class="donate-options">
+        <!-- GitHub Sponsors (Primary) -->
+        <div class="donate-card donate-card-primary">
+            <div class="donate-card-badge">Recommended</div>
+            <div class="donate-card-icon">
+                <i class="fab fa-github"></i>
+            </div>
+            <h3>GitHub Sponsors</h3>
+            <p>
+                Recurring or one-time sponsorships through GitHub.
+                GitHub matches contributions for eligible projects.
+            </p>
+            <a href="https://github.com/sponsors/ywatanabe1989"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="donate-card-btn">
+                Sponsor on GitHub <i class="fas fa-external-link-alt"></i>
+            </a>
+        </div>
+        <!-- Buy Me a Coffee -->
+        <div class="donate-card">
+            <div class="donate-card-icon">
+                <i class="fas fa-mug-hot"></i>
+            </div>
+            <h3>Buy Me a Coffee</h3>
+            <p>
+                Quick one-time contributions to show your support.
+                Every coffee helps keep the servers running.
+            </p>
+            <a href="https://buymeacoffee.com/ywatanabe"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="donate-card-btn donate-card-btn-outline">
+                Buy a Coffee <i class="fas fa-external-link-alt"></i>
+            </a>
+        </div>
+        <!-- Stripe (Coming Soon) -->
+        <div class="donate-card">
+            <div class="donate-card-icon donate-card-icon-disabled">
+                <i class="fas fa-credit-card"></i>
+            </div>
+            <h3>Direct Payment</h3>
+            <p>
+                Credit card and bank transfer support via Stripe.
+                Currently pending Stripe Japan application (April 2026).
+            </p>
+            <span class="donate-card-btn donate-card-btn-disabled">Coming Soon</span>
+        </div>
+    </div>
+    <!-- Suggested Tiers -->
+    <div class="donate-tiers">
+        <h2 class="donate-tiers-title">Suggested Support Tiers</h2>
+        <div class="donate-tiers-grid">
+            <div class="donate-tier">
+                <div class="donate-tier-amount">$5</div>
+                <div class="donate-tier-period">/ month</div>
+                <div class="donate-tier-label">Supporter</div>
+                <div class="donate-tier-desc">Buy us a coffee each month</div>
+            </div>
+            <div class="donate-tier">
+                <div class="donate-tier-amount">$15</div>
+                <div class="donate-tier-period">/ month</div>
+                <div class="donate-tier-label">Researcher</div>
+                <div class="donate-tier-desc">Cover one user's server costs</div>
+            </div>
+            <div class="donate-tier">
+                <div class="donate-tier-amount">$50</div>
+                <div class="donate-tier-period">/ month</div>
+                <div class="donate-tier-label">Lab Sponsor</div>
+                <div class="donate-tier-desc">Fund infrastructure for a research group</div>
+            </div>
+            <div class="donate-tier">
+                <div class="donate-tier-amount">Custom</div>
+                <div class="donate-tier-period">&nbsp;</div>
+                <div class="donate-tier-label">Patron</div>
+                <div class="donate-tier-desc">Any amount makes a difference</div>
+            </div>
+        </div>
+    </div>
+    <!-- How Funds Are Used -->
+    <div class="donate-usage">
+        <h2 class="donate-usage-title">How Your Support Helps</h2>
+        <div class="donate-usage-list">
+            <div class="donate-usage-item">
+                <i class="fas fa-server"></i>
+                <div>
+                    <h4>Server Infrastructure</h4>
+                    <p>Cloud hosting, compute resources, and storage for the research platform</p>
+                </div>
+            </div>
+            <div class="donate-usage-item">
+                <i class="fas fa-code"></i>
+                <div>
+                    <h4>Development</h4>
+                    <p>New features, bug fixes, and maintaining the open-source codebase</p>
+                </div>
+            </div>
+            <div class="donate-usage-item">
+                <i class="fas fa-graduation-cap"></i>
+                <div>
+                    <h4>Research Access</h4>
+                    <p>Keeping SciTeX free for researchers at underfunded institutions</p>
+                </div>
+            </div>
+            <div class="donate-usage-item">
+                <i class="fas fa-book-open"></i>
+                <div>
+                    <h4>Documentation</h4>
+                    <p>Tutorials, guides, and training materials for the community</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Bottom CTA -->
+    <section class="donate-cta-section">
+        <div class="container">
+            <h2>Every Contribution Counts</h2>
+            <p>Whether it is $5 or $500, your support keeps open science moving forward.</p>
+            <div>
+                <a href="https://github.com/sponsors/ywatanabe1989"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="btn btn-light btn-lg">
+                    <i class="fab fa-github"></i> Sponsor on GitHub
+                </a>
+                <a href="{% url 'public_app:pricing' %}" class="btn btn-outline-light btn-lg">View Pricing Plans</a>
+            </div>
+        </div>
+    </section>
+{% endblock %}

@@ -226,7 +226,7 @@ export class AIPanelChatMode {
     if (this.messagesEl) {
       this.messagesEl.innerHTML = `
         <div class="stx-shell-ai-empty">
-          <i class="fas fa-robot"></i>
+          <img src="/static/shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg" alt="SciTeX" class="stx-empty-avatar" />
           <span>Ask anything about Scientific Research.</span>
           <span>I can take actions: stats, plots, literature, and your current work.</span>
         </div>`;
@@ -362,7 +362,7 @@ export class AIPanelChatMode {
     typing.textContent = "Thinking";
     this.messagesEl.appendChild(typing);
     this.busy = true;
-    this.sendBtn!.disabled = true;
+    if (this.sendBtn) this.sendBtn.disabled = true;
 
     const slug = readActiveProjectSlug();
     if (slug) this.context.project_slug = slug;
@@ -433,7 +433,7 @@ export class AIPanelChatMode {
       saveMessage({ role: "error", text: errEl.textContent });
     } finally {
       this.busy = false;
-      this.sendBtn!.disabled = false;
+      if (this.sendBtn) this.sendBtn.disabled = false;
       this.inputEl?.focus();
     }
   }
@@ -447,7 +447,7 @@ export class AIPanelChatMode {
     this.inputEl!.value = "";
     this.inputEl!.style.height = "auto";
     this.busy = true;
-    this.sendBtn!.disabled = true;
+    if (this.sendBtn) this.sendBtn.disabled = true;
     try {
       const { text } = await execBashCommand(
         command,
@@ -461,7 +461,7 @@ export class AIPanelChatMode {
       this.createMsgEl("error").textContent = `Bash error: ${err}`;
     } finally {
       this.busy = false;
-      this.sendBtn!.disabled = false;
+      if (this.sendBtn) this.sendBtn.disabled = false;
       this.inputEl?.focus();
     }
   }

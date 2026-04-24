@@ -128,5 +128,9 @@
     </div>
 {% endblock %}
 {% block extra_js %}
+    {% vite_preload 'shared/global-ai-chat' %}
+    {% vite_preload 'shared/workspace-viewer-init' %}
+    {% vite_preload 'shared/resizer' %}
     {% vite_script 'workspace_app/workspace-shell' %}
+    {% vite_script 'shared/workspace-panel-resizer' %}
 {% endblock %}

@@ -140,6 +140,7 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.orcid",
+    "oauth2_provider",
 ]
 
 # Required: scitex_ui (available on PyPI as scitex-ui)
@@ -167,6 +168,7 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
     "apps.infra.project_app.middleware.VisitorAutoLoginMiddleware",
     "apps.infra.project_app.middleware.VisitorExpirationMiddleware",
+    "apps.infra.project_app.middleware.VisitorAppRedirectMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.infra.project_app.middleware.GuestSessionMiddleware",

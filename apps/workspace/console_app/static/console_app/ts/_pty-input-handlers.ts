@@ -32,6 +32,30 @@ export function attachKeyboardHandler(
   projectId: number,
 ): void {
   term.attachCustomKeyEventHandler((event: KeyboardEvent) => {
+    // Prevent browser default for navigation keys (arrow, Page, Home/End)
+    // so the outer scrollable container doesn't steal them from xterm.
+    if (
+      event.type === "keydown" &&
+      !event.altKey &&
+      !event.ctrlKey &&
+      !event.metaKey
+    ) {
+      const nav = [
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+        "PageUp",
+        "PageDown",
+        "Home",
+        "End",
+      ];
+      if (nav.includes(event.key)) {
+        event.preventDefault();
+        return true; // let xterm handle the key
+      }
+    }
+
     // Global navigation shortcuts (Alt+key) - HIGHEST PRIORITY
     if (event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
       const key = event.key.toLowerCase();
@@ -53,7 +77,9 @@ export function attachKeyboardHandler(
       }
 
       if (key === "f") {
-        const sidebarToggle = document.getElementById("stx-shell-sidebar__toggle");
+        const sidebarToggle = document.getElementById(
+          "stx-shell-sidebar__toggle",
+        );
         if (sidebarToggle) sidebarToggle.click();
         return false;
       }

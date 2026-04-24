@@ -10,6 +10,7 @@
 
 import { initAjaxLinks, loadPageContent } from "./ajax-loader";
 import { initSidebarContextMenu } from "./context-menu";
+import { handleSidebarKeyDown } from "./keyboard";
 
 const STORAGE_KEY_SIDEBAR = "ws-sidebar-state";
 const STORAGE_KEY_PANE = "ws-active-pane";
@@ -48,13 +49,20 @@ class WorkspaceSidebar {
   private restoreState(): void {
     if (!this.sidebar) return;
 
-    // Restore sidebar expand/collapse
-    const saved = localStorage.getItem(STORAGE_KEY_SIDEBAR);
-    if (saved === "collapsed") {
+    // On mobile (viewport <= 767px), always start collapsed to avoid
+    // the sidebar overlay covering content on page load.
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    if (isMobile) {
       this.sidebar.setAttribute("data-sidebar-state", "collapsed");
-    } else {
-      this.sidebar.setAttribute("data-sidebar-state", "expanded");
+      return;
     }
+
+    // Desktop/tablet: restore saved preference, default to expanded
+    const saved = localStorage.getItem(STORAGE_KEY_SIDEBAR);
+    this.sidebar.setAttribute(
+      "data-sidebar-state",
+      saved === "collapsed" ? "collapsed" : "expanded",
+    );
   }
 
   private activateInitialPane(): void {
@@ -79,11 +87,14 @@ class WorkspaceSidebar {
     const trackModule =
       urlModule || document.body.getAttribute("data-track-module");
 
-    if (
-      trackModule &&
-      trackModule !== "files" &&
-      !(trackModule === "home" && path === "/")
-    ) {
+    if (trackModule === "home" && path === "/") {
+      // Root "/" renders the Hub (Gitea-style dashboard) in the module pane.
+      // Activate it so the hub content is visible instead of falling through
+      // to the last-used core pane (which would hide the hub content).
+      this.switchPane("module", false);
+      // Clear all sidebar-item highlights — the logo link is the "Home" affordance
+      this.items?.forEach((i) => i.classList.remove("active"));
+    } else if (trackModule && trackModule !== "files") {
       this.switchPane("module", false);
       this.highlightModuleItem(trackModule);
     } else if (path.startsWith("/ai-setup/")) {
@@ -118,10 +129,10 @@ class WorkspaceSidebar {
     // Mobile hamburger
     this.hamburger?.addEventListener("click", () => this.openDrawer());
 
-    // Backdrop click closes drawer
+    // Backdrop click closes sidebar
     this.backdrop?.addEventListener("click", () => this.closeDrawer());
 
-    // Swipe to close drawer
+    // Swipe to close sidebar
     this.sidebarInner?.addEventListener("touchstart", (e) => {
       this.touchStartX = e.touches[0].clientX;
     });
@@ -131,7 +142,9 @@ class WorkspaceSidebar {
     });
 
     // Keyboard shortcuts (Alt+key)
-    document.addEventListener("keydown", (e) => this.onKeyDown(e));
+    document.addEventListener("keydown", (e) =>
+      handleSidebarKeyDown(e, (p, h) => this.switchPane(p, h)),
+    );
 
     // Hash change (browser back/forward)
     window.addEventListener("hashchange", () => {
@@ -439,6 +452,20 @@ class WorkspaceSidebar {
 
   private toggleSidebar(): void {
     if (!this.sidebar) return;
+
+    // M3/M4 fix: On mobile, use the drawer pattern (open/close)
+    // instead of just toggling the data attribute, because the CSS
+    // now requires .drawer-open class to show the expanded sidebar.
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    if (isMobile) {
+      if (this.sidebar.classList.contains("drawer-open")) {
+        this.closeDrawer();
+      } else {
+        this.openDrawer();
+      }
+      return;
+    }
+
     const current = this.sidebar.getAttribute("data-sidebar-state");
     const next = current === "collapsed" ? "expanded" : "collapsed";
     this.sidebar.setAttribute("data-sidebar-state", next);
@@ -453,50 +480,11 @@ class WorkspaceSidebar {
   }
 
   private closeDrawer(): void {
-    this.sidebar?.classList.remove("drawer-open");
+    if (!this.sidebar) return;
+    this.sidebar.setAttribute("data-sidebar-state", "collapsed");
+    localStorage.setItem(STORAGE_KEY_SIDEBAR, "collapsed");
+    this.sidebar.classList.remove("drawer-open");
     document.body.style.overflow = "";
-  }
-
-  /* ── Keyboard shortcuts ─────────────────────────────────── */
-
-  private onKeyDown(e: KeyboardEvent): void {
-    // "/" shortcut to focus search (like GitHub/old SciTeX)
-    if (
-      e.key === "/" &&
-      !e.altKey &&
-      !e.ctrlKey &&
-      !e.metaKey &&
-      !(e.target instanceof HTMLInputElement) &&
-      !(e.target instanceof HTMLTextAreaElement)
-    ) {
-      e.preventDefault();
-      window.location.href = "/search/";
-      return;
-    }
-
-    if (!e.altKey || e.ctrlKey || e.metaKey) return;
-
-    const key = e.key.toLowerCase();
-    let pane: PaneId | null = null;
-
-    switch (key) {
-      case "a":
-        pane = "chat";
-        break;
-      case "t":
-        pane = "console";
-        break;
-      case "e":
-        pane = "editor";
-        break;
-      default:
-        return;
-    }
-
-    if (pane) {
-      e.preventDefault();
-      this.switchPane(pane, true);
-    }
   }
 }
 

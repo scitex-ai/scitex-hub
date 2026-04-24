@@ -167,14 +167,19 @@
     }
   });
 
-  // Password requirements validation - always visible, updates as user types
+  // Password requirements validation - hidden by default, shown on focus
   document.addEventListener("DOMContentLoaded", function () {
     const passwordInput = document.getElementById("password");
+    const requirements = document.getElementById("password-requirements");
     const ruleLength = document.getElementById("rule-length");
     const ruleLowercase = document.getElementById("rule-lowercase");
     const ruleUppercase = document.getElementById("rule-uppercase");
     const ruleNumber = document.getElementById("rule-number");
     const ruleSpecial = document.getElementById("rule-special");
+
+    if (requirements) {
+      requirements.classList.add("hidden");
+    }
 
     function updatePasswordRule(element, isValid) {
       element.classList.remove("valid", "invalid");
@@ -182,8 +187,21 @@
       element.querySelector("i").className = isValid ? "fas fa-check" : "fas fa-times";
     }
 
+    passwordInput.addEventListener("focus", function () {
+      if (requirements) requirements.classList.remove("hidden");
+    });
+
+    passwordInput.addEventListener("blur", function () {
+      // Hide requirements on blur (especially important on mobile
+      // where the box can overlay the Sign In button)
+      setTimeout(function () {
+        if (requirements) requirements.classList.add("hidden");
+      }, 200);
+    });
+
     passwordInput.addEventListener("input", function () {
       const password = this.value;
+      if (requirements) requirements.classList.remove("hidden");
       if (ruleLength && ruleLowercase && ruleUppercase && ruleNumber && ruleSpecial) {
         updatePasswordRule(ruleLength, password.length >= 8);
         updatePasswordRule(ruleLowercase, /[a-z]/.test(password));

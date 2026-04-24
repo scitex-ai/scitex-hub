@@ -146,6 +146,10 @@ class UserProfile(models.Model):
     allow_messages = models.BooleanField(
         default=True, help_text="Allow messages from other users"
     )
+    analytics_opt_out = models.BooleanField(
+        default=False,
+        help_text="Opt out of anonymized usage analytics (Umami)",
+    )
 
     # Academic institution recognition
     is_academic_ja = models.BooleanField(

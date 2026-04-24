@@ -29,6 +29,7 @@ services:
 
       # SciTeX ecosystem packages (editable mode) - must exist in ~/proj/
       - ../../../../scitex-python:/scitex-python:cached
+      - ../../../../scitex-core:/scitex-core:cached
       - ../../../../scitex-io:/scitex-io:cached
       - ../../../../scitex-stats:/scitex-stats:cached
       - ../../../../scitex-clew:/scitex-clew:cached
@@ -47,6 +48,8 @@ services:
       - ../../../../scitex-plt:/scitex-plt:cached
       - ../../../../scitex-audio:/scitex-audio:cached
       - ../../../../scitex-dev:/scitex-dev:cached
+      - ../../../../scitex-notification:/scitex-notification:cached
+      - ../../../../scitex-db:/scitex-db:cached
 
       # Centralized logging - all container logs go here
       - ../../../logs:/app/logs
@@ -104,6 +107,7 @@ services:
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
       - WATCHFILES_FORCE_POLLING=true  # For NFS/network filesystems
+      - VITE_USE_BUILD=${VITE_USE_BUILD:-false}  # Set true to use pre-built JS (no Vite dev server)
       # scitex.writer specific
       - SCITEX_WRITER_CACHE_DIR=/app/.cache
       # scitex-ui static dir for Vite alias resolution (avoids python3 discovery)
@@ -137,13 +141,13 @@ services:
     # Restart policy
     restart: unless-stopped
 
-    # Health check (faster intervals for dev)
+    # Health check (longer start_period for editable pip installs in dev)
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthz/"]
-      interval: 10s
+      interval: 15s
       timeout: 5s
       retries: 5
-      start_period: 120s
+      start_period: 600s
 
     # Network
     networks:
@@ -239,6 +243,7 @@ services:
     volumes:
       - ../../..:/app:cached
       - ../../../../scitex-python:/scitex-python:cached
+      - ../../../../scitex-core:/scitex-core:cached
       - ../../../../scitex-io:/scitex-io:cached
       - ../../../../scitex-stats:/scitex-stats:cached
       - ../../../../scitex-clew:/scitex-clew:cached
@@ -257,6 +262,8 @@ services:
       - ../../../../scitex-plt:/scitex-plt:cached
       - ../../../../scitex-audio:/scitex-audio:cached
       - ../../../../scitex-dev:/scitex-dev:cached
+      - ../../../../scitex-notification:/scitex-notification:cached
+      - ../../../../scitex-db:/scitex-db:cached
       - ../../../logs:/app/logs
 
     env_file:
@@ -316,6 +323,7 @@ services:
     volumes:
       - ../../..:/app:cached
       - ../../../../scitex-python:/scitex-python:cached
+      - ../../../../scitex-core:/scitex-core:cached
       - ../../../../scitex-io:/scitex-io:cached
       - ../../../../scitex-stats:/scitex-stats:cached
       - ../../../../scitex-clew:/scitex-clew:cached
@@ -334,6 +342,8 @@ services:
       - ../../../../scitex-plt:/scitex-plt:cached
       - ../../../../scitex-audio:/scitex-audio:cached
       - ../../../../scitex-dev:/scitex-dev:cached
+      - ../../../../scitex-notification:/scitex-notification:cached
+      - ../../../../scitex-db:/scitex-db:cached
       - ../../../logs:/app/logs
 
     env_file:

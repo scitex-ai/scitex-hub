@@ -113,10 +113,7 @@ def register_api_tools(mcp) -> None:
         query: str,
         limit: int = 10,
     ) -> str:
-        """Search papers via SciTeX Cloud (public, no auth).
-
-        Searches the scholar database for papers matching the query.
-        """
+        """Use whenever the user asks to search papers, find publications, look up scholarly articles, or mentions the SciTeX Cloud scholar database; replaces raw HTTP calls to the SciTeX Cloud /api/v1/scholar/search/ REST endpoint (public, no auth)."""
         result = _make_request(
             "GET",
             "/api/v1/scholar/search/",
@@ -131,10 +128,7 @@ def register_api_tools(mcp) -> None:
         rows: int = 10,
         offset: int = 0,
     ) -> str:
-        """Search CrossRef database via cloud proxy.
-
-        Requires authentication.
-        """
+        """Use when the user asks to search CrossRef, lookup DOI metadata by query, or enrich a bibliography via the SciTeX Cloud CrossRef proxy; replaces raw HTTP calls to the SciTeX Cloud /scholar/api/crossref/search/ REST endpoint (auth required)."""
         result = _make_request(
             "GET",
             "/scholar/api/crossref/search/",
@@ -144,7 +138,7 @@ def register_api_tools(mcp) -> None:
 
     @mcp.tool()
     async def api_crossref_by_doi(doi: str) -> str:
-        """Get CrossRef metadata by DOI."""
+        """Use when the user asks to resolve a DOI, fetch CrossRef metadata for a specific DOI, or verify a citation via SciTeX Cloud; replaces raw HTTP calls to the SciTeX Cloud /scholar/api/crossref/doi/ REST endpoint."""
         result = _make_request(
             "GET",
             "/scholar/api/crossref/doi/",
@@ -157,10 +151,7 @@ def register_api_tools(mcp) -> None:
         project_id: str,
         document_type: str = "manuscript",
     ) -> str:
-        """Compile LaTeX manuscript via cloud.
-
-        Document types: manuscript, supplementary, revision
-        """
+        """Use when the user asks to compile a LaTeX manuscript, build a PDF, or render a writer project on SciTeX Cloud; replaces raw HTTP calls to the SciTeX Cloud /writer/api/compile/ REST endpoint. Document types: manuscript, supplementary, revision."""
         result = _make_request(
             "POST",
             "/writer/api/compile/",
@@ -170,7 +161,7 @@ def register_api_tools(mcp) -> None:
 
     @mcp.tool()
     async def api_writer_list_sections(project_id: str) -> str:
-        """List manuscript sections for a project."""
+        """Use when the user asks to list manuscript sections, inspect writer project structure, or see chapter layout on SciTeX Cloud; replaces raw HTTP calls to the SciTeX Cloud /writer/api/sections/ REST endpoint."""
         result = _make_request(
             "GET",
             "/writer/api/sections/",
@@ -183,7 +174,7 @@ def register_api_tools(mcp) -> None:
         project_id: str,
         path: str = "",
     ) -> str:
-        """List files in a cloud project."""
+        """Use when the user asks to list files, browse a directory, or inspect the tree of a SciTeX Cloud project; replaces raw HTTP calls to the SciTeX Cloud /project/api/files/ REST endpoint."""
         result = _make_request(
             "GET",
             "/project/api/files/",
@@ -197,11 +188,7 @@ def register_api_tools(mcp) -> None:
         message: str,
         files: Optional[list] = None,
     ) -> str:
-        """Commit changes to a cloud project.
-
-        Files should be a list of file paths to include in the commit.
-        If not specified, commits all changes.
-        """
+        """Use when the user asks to commit changes, save edits, or snapshot a SciTeX Cloud project to Git; replaces raw HTTP calls to the SciTeX Cloud /project/api/commit/ REST endpoint. Pass files=[paths] to commit a subset, else all changes commit."""
         data = {"project_id": project_id, "message": message}
         if files:
             data["files"] = files
@@ -213,11 +200,7 @@ def register_api_tools(mcp) -> None:
         bibtex_content: str,
         use_cache: bool = True,
     ) -> str:
-        """Enrich BibTeX content with metadata.
-
-        Uploads BibTeX content and returns enriched version with
-        abstracts, DOIs, impact factors, etc.
-        """
+        """Use when the user asks to enrich a .bib file, fill in missing DOIs/abstracts/impact-factors, or run BibTeX enrichment via SciTeX Cloud; replaces raw HTTP calls to the SciTeX Cloud /scholar/bibtex/upload/ REST endpoint plus job polling."""
         import io
         import time
 
@@ -292,7 +275,7 @@ def register_api_tools(mcp) -> None:
 
     @mcp.tool()
     async def api_status() -> str:
-        """Check SciTeX Cloud API status and configuration."""
+        """Use when the user asks whether SciTeX Cloud is up, to check API health, verify credentials, or debug a connection issue; replaces raw HTTP calls to the SciTeX Cloud /api/v1/status/ REST endpoint."""
         config = _get_config()
         result = {
             "base_url": config["base_url"],

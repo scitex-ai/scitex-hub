@@ -14,10 +14,11 @@ import {
   EnhancedEditor,
   WriterEditor,
   PDFPreviewManager,
-  PDFScrollZoomHandler,
   EditorControls,
   GitHistoryManager,
 } from "../../modules/index";
+// Direct import to avoid circular dependency through barrel re-export
+import { PDFScrollZoomHandler } from "../../modules/pdf-scroll-zoom";
 import { HorizontalResizer } from "@/components/resizer";
 import { initPdfContextMenu } from "../../modules/pdf-scroll-zoom/pdf-context-menu";
 import { showToast } from "../../utils/index";
