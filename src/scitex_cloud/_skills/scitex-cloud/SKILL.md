@@ -76,3 +76,8 @@ rule and empirical verification table.
 - [32_vite-frontend.md](32_vite-frontend.md) — Vite HMR, entry points, template tags
 
 # EOF
+
+
+## Environment
+
+- [40_env-vars.md](40_env-vars.md) — SCITEX_* env vars read by scitex-cloud at runtime
