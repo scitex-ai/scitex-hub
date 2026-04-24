@@ -164,8 +164,25 @@ def mcp_doctor():
     click.echo("  scitex-cloud mcp start -t http      # HTTP transport")
 
 
-@mcp.command("installation", context_settings=CONTEXT_SETTINGS)
-def mcp_installation():
+@mcp.command(
+    "installation",
+    hidden=True,
+    context_settings={"ignore_unknown_options": True},
+)
+@click.pass_context
+def mcp_installation_deprecated(ctx):
+    """(deprecated) Renamed to `show-installation`."""
+    click.echo(
+        "error: `scitex-cloud mcp installation` was renamed to "
+        "`scitex-cloud mcp show-installation`.\n"
+        "Re-run with: scitex-cloud mcp show-installation",
+        err=True,
+    )
+    ctx.exit(2)
+
+
+@mcp.command("show-installation", context_settings=CONTEXT_SETTINGS)
+def mcp_show_installation():
     """Show MCP client installation instructions."""
     click.echo("MCP Client Configuration")
     click.echo("=" * 50)

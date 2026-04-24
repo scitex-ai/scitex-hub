@@ -7,31 +7,29 @@
 import click
 
 
-@click.command()
-@click.argument("shell", type=click.Choice(["bash", "zsh", "fish"]))
-def completion(shell):
-    """Generate shell completion script.
-
-    \b
-    Generate and install shell completion for scitex-cloud CLI.
-
-    \b
-    Usage:
-        # Bash (add to ~/.bashrc)
-        eval "$(scitex-cloud completion bash)"
-
-        # Zsh (add to ~/.zshrc)
-        eval "$(scitex-cloud completion zsh)"
-
-        # Fish (add to ~/.config/fish/completions/)
-        scitex-cloud completion fish > ~/.config/fish/completions/scitex-cloud.fish
+@click.group("completion", invoke_without_command=True)
+@click.pass_context
+def completion_group(ctx):
+    """Shell tab-completion commands for scitex-cloud.
 
     \b
     Examples:
-        scitex-cloud completion bash    # Output bash completion script
-        scitex-cloud completion zsh     # Output zsh completion script
-        scitex-cloud completion fish    # Output fish completion script
+        scitex-cloud completion print-script --shell bash
+        eval "$(scitex-cloud completion print-script --shell bash)"
     """
+    if ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
+
+
+@completion_group.command("print-script")
+@click.option(
+    "--shell",
+    type=click.Choice(["bash", "zsh", "fish"]),
+    default="bash",
+    help="Target shell. Default: bash.",
+)
+def print_script(shell):
+    """Print the completion script for the chosen shell to stdout."""
 
     # Get the shell completion from Click
     from click.shell_completion import get_completion_class

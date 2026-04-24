@@ -143,7 +143,7 @@ def pull():
         sys.exit(1)
 
 
-@click.command()
+@click.command("show-status")
 def status():
     """Show repository status"""
     ensure_not_in_workspace()

@@ -75,7 +75,7 @@ def context_eval(code, timeout):
         click.echo(click.style(f"Error: {result.get('error')}", fg="red"), err=True)
 
 
-@context.command("action")
+@context.command("trigger-action")
 @click.argument("steps_json")
 @click.option("--delay", type=int, default=900, help="Delay between steps (ms)")
 def context_action(steps_json, delay):

@@ -107,7 +107,7 @@ def app_validate(app_dir):
         raise SystemExit(1)
 
 
-@app.command("dev")
+@app.command("install-dev")
 @click.argument("app_dir", default=".", type=click.Path(exists=True))
 @click.option("--port", "-p", default=8000, type=int, help="Dev server port")
 def app_dev(app_dir, port):
@@ -210,7 +210,7 @@ def app_list(server):
     console.print(table)
 
 
-@app.command("current")
+@app.command("show-current")
 def app_current():
     """Show the currently active app.
 
@@ -243,7 +243,7 @@ def app_switch(app_name):
     console.print(f"[green]Switched to:[/green] {app_name}")
 
 
-@app.command("info")
+@app.command("show-info")
 @click.argument("app_name")
 def app_info(app_name):
     """Show detailed info for an app.

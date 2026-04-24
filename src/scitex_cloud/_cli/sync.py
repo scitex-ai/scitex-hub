@@ -311,10 +311,31 @@ def sync_status(repo, env_name):
 # ── Registration ─────────────────────────────────────────────────
 
 
+def _dep(old: str, new: str):
+    @click.pass_context
+    def _impl(ctx, **_):
+        click.echo(
+            f"error: `scitex-cloud {old}` was renamed to `scitex-cloud {new}`.\n"
+            f"Re-run with: scitex-cloud {new} [...]",
+            err=True,
+        )
+        ctx.exit(2)
+
+    return click.command(
+        old,
+        hidden=True,
+        context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
+    )(_impl)
+
+
 def register_sync_commands(group: click.Group) -> None:
     """Register sync commands and aliases on a click Group."""
+    push.name = "push-project"
+    pull.name = "pull-project"
     group.add_command(push)
     group.add_command(pull)
+    group.add_command(_dep("push", "push-project"))
+    group.add_command(_dep("pull", "pull-project"))
     group.add_command(sync_to, "sync-to")
     group.add_command(sync_from, "sync-from")
     group.add_command(sync_status, "sync-status")
