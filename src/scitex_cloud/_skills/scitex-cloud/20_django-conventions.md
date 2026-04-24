@@ -82,7 +82,7 @@ url = mod.url
 
 When old code causes confusion (e.g., outdated patterns, deprecated approaches), move it to a `legacy/` subdirectory rather than patching it. Let errors surface instead of masking them with compatibility shims. Delete or isolate, don't wrap.
 
-## Design Reference: Anthropic (守破離)
+## Design Reference: Anthropic (Shu-Ha-Ri)
 
 When unsure about UX/design decisions, follow Anthropic's patterns:
 - Page layout (desktop/mobile): reference claude.ai
