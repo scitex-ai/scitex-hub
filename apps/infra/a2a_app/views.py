@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 
 from apps.infra.a2a_app import _card
 from apps.infra.a2a_app._auth import require_a2a_bearer
+from apps.infra.a2a_app import _dispatch
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods
@@ -129,6 +130,27 @@ def agent_jsonrpc(request, name: str):
     rpc_id = req.get("id")
     method = req.get("method")
     params = req.get("params") or {}
+
+    # Tier 3 live dispatch: forward to orochi hub if this agent is
+    # marked dispatchable. The canned-echo path below stays as the
+    # fallback for agents not yet wired through to a real runtime.
+    if method == "tasks/send" and _dispatch.is_dispatchable(name):
+        code, payload = _dispatch.dispatch(name, req)
+        if code == 200:
+            return JsonResponse(payload, status=200)
+        # Surface hub errors as JSON-RPC error envelopes so A2A clients
+        # see a structured failure instead of an opaque HTTP code.
+        return JsonResponse(
+            {
+                "jsonrpc": "2.0",
+                "id": rpc_id,
+                "error": {
+                    "code": -32000,
+                    "message": payload.get("error", f"hub HTTP {code}"),
+                },
+            },
+            status=code if code >= 400 else 502,
+        )
 
     try:
         if method == "tasks/send":
