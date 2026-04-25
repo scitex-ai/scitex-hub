@@ -1,7 +1,17 @@
 """A2A AgentCard projection from scitex-agent-container/v3 YAML.
 
+**Mirror of scitex_agent_container.a2a._card** (canonical projection).
+This file enriches the canonical projection with orochi-fleet-specific
+x-orochi extensions (identity_url, runtime_url, role_class, scheduling)
+and request-aware base_url derived from Django request.
+
+Until a shared dependency boundary is established, the canonical and
+mirror must be kept in sync manually. Diverging field semantics is a
+bug; diverging extension namespaces is by design (sac uses
+x-scitex-agent-container, orochi adds x-orochi on top).
+
 Reads agent definitions from ``$SCITEX_OROCHI_AGENTS_DIR`` (default
-``~/.scitex/orochi/shared/agents/`` — synced via dotfiles to NAS) and
+``~/.scitex/orochi/shared/agents/`` -- synced via dotfiles to NAS) and
 projects them into A2A-compliant AgentCard JSON.
 
 URL construction is request-aware: pass ``base_url`` from
