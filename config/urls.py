@@ -29,6 +29,8 @@ from apps.workspace.hub_app.views.index import current_project_view
 from config.urls_helpers import RESERVED_PATHS, dev_module_view  # noqa: F401
 
 urlpatterns = [
+    # A2A protocol surface — canonical host: a2a.scitex.ai
+    path("", include("apps.infra.a2a_app.urls")),
     # --- PWA (must be served from root for scope) ---
     path(
         "manifest.json",
