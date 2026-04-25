@@ -40,7 +40,7 @@ REQUIRED_TOP_FIELDS = {
 BASE_URL = "https://a2a.scitex.ai"
 
 SCHEMA_PATH = (
-    Path(__file__).resolve().parent.parent.parent
+    Path(__file__).resolve().parent.parent.parent.parent
     / "fixtures"
     / "a2a_schema"
     / "agent_card.schema.json"
