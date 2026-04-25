@@ -7,6 +7,7 @@ import uuid
 from datetime import datetime, timezone
 
 from apps.infra.a2a_app import _card
+from apps.infra.a2a_app._auth import require_a2a_bearer
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods
@@ -114,6 +115,7 @@ def _handle_tasks_get(params: dict) -> dict:
 
 @csrf_exempt
 @require_http_methods(["POST"])
+@require_a2a_bearer
 def agent_jsonrpc(request, name: str):
     """POST /v1/agents/<name> — JSON-RPC tasks/send, tasks/get."""
     if _card.load_card(name, base_url=_base_url(request)) is None:
