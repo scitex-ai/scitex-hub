@@ -343,6 +343,14 @@ The SciTeX system follows the Four Freedoms for Research below, inspired by [the
 >
 >AGPL-3.0 — because we believe research infrastructure deserves the same freedoms as the software it runs on.
 
+## A2A Protocol Surface
+
+scitex-cloud serves the [Google A2A protocol](https://a2a-protocol.org/) at **`a2a.scitex.ai`** for the orochi agent fleet — AgentCard discovery, JSON-RPC dispatch, bearer-auth via Gitea PAT, and a Tier 3 forwarder to live agents. See [`apps/infra/a2a_app/README.md`](apps/infra/a2a_app/README.md).
+
+```bash
+curl https://a2a.scitex.ai/v1/agents/ | jq '.agents | length'
+```
+
 ## Status
 
 SciTeX Cloud is in **alpha**. Core functionality is working and under active development. Data formats may change between releases — back up important work.
