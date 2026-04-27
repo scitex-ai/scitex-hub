@@ -95,6 +95,7 @@ test = [
     "scitex[all]>=2.19",
 ]
 dev = [
+    "celery",
     "pytest>=7.0",
     "black>=23.0",
     "ruff>=0.1.0",
