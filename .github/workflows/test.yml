@@ -33,6 +33,9 @@ jobs:
           IMPORT_NAME=$(find src -maxdepth 2 -name __init__.py -printf '%h\n' | head -1 | xargs -n1 basename)
           echo "import_name=${IMPORT_NAME}" >> "$GITHUB_OUTPUT"
       - name: Run tests with coverage
+        env:
+          SCITEX_CLOUD_DJANGO_SECRET_KEY: "ci-test-secret-not-for-production-use-only"
+          DJANGO_SETTINGS_MODULE: config.settings.settings_dev
         run: |
           python -m pytest "$GITHUB_WORKSPACE/tests/" -v --tb=short --timeout=120 \
             --cov=src/${{ steps.pkg.outputs.import_name }} \
