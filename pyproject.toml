@@ -102,6 +102,7 @@ dev = [
     "pytest-base-url>=2.1",
     "pytest-asyncio>=1.2",
     "scitex",
+    "figrecipe>=0.13.0",
     "black>=23.0",
     "ruff>=0.1.0",
 ]
