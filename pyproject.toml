@@ -97,6 +97,11 @@ test = [
 dev = [
     "celery",
     "pytest>=7.0",
+    "pytest-django>=4.5",
+    "pytest-playwright>=0.7",
+    "pytest-base-url>=2.1",
+    "pytest-asyncio>=1.2",
+    "scitex",
     "black>=23.0",
     "ruff>=0.1.0",
 ]
