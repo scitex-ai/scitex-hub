@@ -97,6 +97,7 @@ test = [
 dev = [
     "celery",
     "flask",
+    "joblib",
     "pytest>=7.0",
     "pytest-django>=4.5",
     "pytest-playwright>=0.7",
