@@ -43,7 +43,13 @@ jobs:
           SCITEX_CLOUD_GITEA_SSH_PORT_DEV: "2222"
           SCITEX_CLOUD_ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
         run: |
+          # Skip e2e + UI tests — they require a live Django server on
+          # 127.0.0.1:8000 and a Playwright Chromium runtime, neither of
+          # which the standard CI matrix sets up. Those tests run in the
+          # E2E Mobile Tests workflow with proper service orchestration.
           python -m pytest "$GITHUB_WORKSPACE/tests/" -v --tb=short --timeout=120 \
+            --ignore="$GITHUB_WORKSPACE/tests/e2e" \
+            --ignore="$GITHUB_WORKSPACE/tests/ui" \
             --cov=src/${{ steps.pkg.outputs.import_name }} \
             --cov-report=xml --cov-report=term
       - name: Upload coverage to Codecov
