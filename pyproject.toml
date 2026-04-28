@@ -240,6 +240,7 @@ exclude_lines = [
 # STX-I007 warns to use @stx.session-injected `logger` instead, which
 # does not apply to Django views/services that have no @stx.session context.
 disable = ["STX-I007"]
+library_dirs = ["src", "tests", "examples", "apps", "lib", "config"]
 
 [tool.uv.extra-build-dependencies]
 # sktime==0.8.1 needs pkg_resources at build time but doesn't declare it.
