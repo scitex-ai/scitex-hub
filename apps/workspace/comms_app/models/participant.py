@@ -46,7 +46,10 @@ class Participant(models.Model):
         ordering = ["display_name"]
         constraints = [
             models.CheckConstraint(
-                check=(
+                # Django 5.1+ renamed `check` → `condition`. The keyword
+                # was previously accepted alongside `check`; in 5.2 it
+                # raises TypeError.
+                condition=(
                     models.Q(participant_type="user", user__isnull=False)
                     | models.Q(participant_type="agent", user__isnull=True)
                 ),
