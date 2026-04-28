@@ -19,6 +19,7 @@ dependencies = [
     "scitex-app>=0.1.0",
     "scitex-config>=0.3.0",
     "scitex-writer>=2.14.0",
+    "scitex-dev>=0.7.0",
 ]
 
 [project.urls]
