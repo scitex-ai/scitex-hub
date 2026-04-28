@@ -36,6 +36,9 @@ jobs:
         env:
           SCITEX_CLOUD_DJANGO_SECRET_KEY: "ci-test-secret-not-for-production-use-only"
           DJANGO_SETTINGS_MODULE: config.settings.settings_dev
+          SCITEX_CLOUD_USE_SQLITE_DEV: "1"
+          SCITEX_CLOUD_GITEA_SSH_PORT_DEV: "2222"
+          SCITEX_CLOUD_ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
         run: |
           python -m pytest "$GITHUB_WORKSPACE/tests/" -v --tb=short --timeout=120 \
             --cov=src/${{ steps.pkg.outputs.import_name }} \
