@@ -43,6 +43,8 @@ import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from scitex_config._ecosystem import local_state
+
 
 def _candidate_paths(explicit: Optional[str]) -> list[Path]:
     """Return config file candidates in precedence order."""
@@ -53,7 +55,7 @@ def _candidate_paths(explicit: Optional[str]) -> list[Path]:
     if env_path:
         paths.append(Path(env_path).expanduser())
     paths.append(Path.cwd() / ".scitex" / "scitex-cloud.yaml")
-    paths.append(Path.home() / ".scitex" / "scitex-cloud" / "config.yaml")
+    paths.append(local_state.path("cloud", "config.yaml"))
     return paths
 
 
