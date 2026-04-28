@@ -26,7 +26,10 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install pytest pytest-cov pytest-timeout
-          pip install -e ".[dev]" || pip install -e .
+          # [django] is required at runtime — settings.INSTALLED_APPS
+          # references daphne which lives in that extra. [dev] alone is
+          # insufficient. Fallback chain: [django,dev] → [django] → bare.
+          pip install -e ".[django,dev]" || pip install -e ".[django]" || pip install -e .
       - name: Detect import name
         id: pkg
         run: |
