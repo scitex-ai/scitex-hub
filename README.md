@@ -316,7 +316,9 @@ scitex-cloud/
 
 ## Part of SciTeX
 
-SciTeX Cloud is part of [**SciTeX**](https://scitex.ai). When modules work together, each output feeds naturally into the next:
+`scitex-hub` is part of [**SciTeX**](https://scitex.ai). Install via
+the umbrella with `pip install scitex[hub]` to use as
+`scitex.hub` (Python) or `scitex hub ...` (CLI).
 
 | From | Produces | To | Outcome |
 |------|----------|----|---------|
