@@ -21,31 +21,11 @@
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 <!-- scitex-badges:end -->
 
-
-<p align="center">
-  <a href="https://scitex.ai">
-    <img src="static/shared/images/scitex_logos/logo-files/png/scitex-logo-blue-cropped.png" alt="SciTeX Cloud" width="400">
-  </a>
-</p>
-
-<p align="center"><b>GitHub for research — verifiable, AI-native, self-hosted infrastructure for scientists</b></p>
-
-<p align="center"><sub>For researchers and lab teams who want a unified, open-source platform<br>to manage the full research lifecycle — from literature to manuscript — under their own control.<br><a href="https://scitex.ai">scitex.ai</a> is a live instance of this project.</sub></p>
-
-<p align="center">
-  <a href="https://pypi.org/project/scitex-cloud/"><img src="https://badge.fury.io/py/scitex-cloud.svg" alt="PyPI version"></a>
-  <a href="https://scitex-cloud.readthedocs.io/"><img src="https://readthedocs.org/projects/scitex-cloud/badge/?version=latest" alt="Documentation"></a>
-  <a href="https://github.com/ywatanabe1989/scitex-cloud/actions/workflows/tests.yml"><img src="https://github.com/ywatanabe1989/scitex-cloud/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
-  <a href="https://github.com/ywatanabe1989/scitex-cloud/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg" alt="License: AGPL-3.0"></a>
-</p>
-
 <p align="center">
   <a href="https://scitex-cloud.readthedocs.io/">Full Documentation</a> · <code>pip install scitex-cloud</code>
 </p>
 
 ---
-
-> **Interfaces:** Python ⭐ · CLI ⭐⭐⭐ · MCP ⭐⭐⭐ · Skills ⭐⭐ · Hook — · HTTP ⭐⭐
 
 ## Problem and Solution
 
