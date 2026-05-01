@@ -190,7 +190,7 @@ def jobs_submit(app, job_name, params_json, project):
     click.echo(json.dumps(result, indent=2))
 
 
-@jobs.command("status")
+@jobs.command("show-status")
 @click.argument("app")
 @click.argument("job_id")
 def jobs_status(app, job_id):

@@ -1,6 +1,6 @@
 [project]
 name = "scitex-cloud"
-version = "0.17.2-alpha"
+version = "0.17.4-alpha"
 description = "SciTeX Cloud - Deployment and management CLI for SciTeX"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -14,9 +14,13 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
+    "rich",
     "click>=8.0",
     "scitex-app>=0.1.0",
+    "scitex-config>=0.3.0",
     "scitex-writer>=2.14.0",
+    "scitex-dev>=0.7.0",
+    "gitpython>=3.1",
 ]
 
 [project.urls]
@@ -33,80 +37,47 @@ scitex-cloud = "scitex_cloud"
 scitex-cloud = "scitex_cloud"
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=7.0",
-    "black>=23.0",
-    "ruff>=0.1.0",
-]
 django = [
-    # Django core
     "Django>=5.2",
     "djangorestframework>=3.16",
     "django-cors-headers>=4.9",
     "django-extensions>=4.1",
     "django-browser-reload>=1.12",
     "djangorestframework-simplejwt>=5.3",
-    # Database
     "psycopg2-binary>=2.9",
-    # Server
     "gunicorn>=21.2",
     "daphne>=4.1",
     "fastapi>=0.109",
     "uvicorn[standard]>=0.27",
     "python-multipart>=0.0.6",
-    # Security
     "django-axes>=6.3",
     "python-decouple>=3.8",
-    # Authentication
     "PyJWT>=2.8",
     "cryptography>=42.0",
     "django-allauth[socialaccount]>=65.3",
     "django-oauth-toolkit>=3.0",
-    # Integrations
     "requests>=2.31",
     "feedparser>=6.0",
-    # Browser automation
     "playwright>=1.48",
-    # Container management
     "docker>=7.1",
     "paramiko>=3.4",
-    # scitex-container: provided via Docker host-mount (not on PyPI)
-    # System monitoring
     "psutil>=5.9",
-    # Utilities
     "python-dotenv>=1.0",
     "whitenoise>=6.11",
-    # WebSocket support
     "channels>=4.3",
     "channels-redis>=4.3",
-    # Task queue
     "celery[redis]>=5.4",
     "django-celery-results>=2.5",
     "django-celery-beat>=2.8",
-    # UI utilities
     "django-widget-tweaks>=1.5",
-    # Language detection
     "pygments",
-    # LLM integration
     "litellm>=1.0",
-    # Journal impact factors
     "impact-factor>=1.1",
-    # Jupyter support
     "nbformat>=5.9",
     "nbconvert>=7.0",
-    # PDF generation
     "weasyprint>=60.0",
     "pydantic<2.12",
-    # UI components
     "scitex-ui>=0.2.0",
-]
-test = [
-    "pytest>=8.4",
-    "pytest-django>=4.5",
-    "pytest-playwright>=0.7",
-    "pytest-base-url>=2.1",
-    "pytest-asyncio>=1.2",
-    "scitex[all]>=2.19",
 ]
 gui = [
     "dearpygui>=1.11",
@@ -118,8 +89,40 @@ mcp = [
     "requests>=2.31",
     "pyyaml>=6.0",
 ]
+test = [
+    "pytest>=8.4",
+    "pytest-django>=4.5",
+    "pytest-playwright>=0.7",
+    "pytest-base-url>=2.1",
+    "pytest-asyncio>=1.2",
+    "scitex[all]>=2.19",
+]
+dev = [
+    "celery",
+    "flask",
+    "joblib",
+    "pytest>=7.0",
+    "pytest-django>=4.5",
+    "pytest-playwright>=0.7",
+    "pytest-base-url>=2.1",
+    "pytest-asyncio>=1.2",
+    "scitex",
+    "figrecipe>=0.13.0",
+    "black>=23.0",
+    "ruff>=0.1.0",
+]
+docs = [
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=2.0",
+    "myst-parser>=2.0",
+    "sphinx-copybutton>=0.5",
+    "sphinx-autodoc-typehints>=1.25",
+]
 all = [
-    "scitex-cloud[django,test,gui,dev,mcp]",
+    "scitex-cloud[django]",
+    "scitex-cloud[gui]",
+    "scitex-cloud[mcp]",
+    "scitex-cloud[test]",
 ]
 
 [project.scripts]
@@ -242,6 +245,7 @@ exclude_lines = [
 # STX-I007 warns to use @stx.session-injected `logger` instead, which
 # does not apply to Django views/services that have no @stx.session context.
 disable = ["STX-I007"]
+library_dirs = ["src", "tests", "examples", "apps", "lib", "config"]
 
 [tool.uv.extra-build-dependencies]
 # sktime==0.8.1 needs pkg_resources at build time but doesn't declare it.

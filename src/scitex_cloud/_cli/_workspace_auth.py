@@ -6,15 +6,15 @@
 import json
 import os
 import sys
-from pathlib import Path
 
 import click
 import requests
+from scitex_config._ecosystem import local_state
 
 from .._config import get_config_value
 
 # Cached token location
-TOKEN_CACHE_PATH = Path.home() / ".config" / "scitex" / "token.json"
+TOKEN_CACHE_PATH = local_state.runtime_path("cloud", "token.json")
 
 
 def get_server_url(server):

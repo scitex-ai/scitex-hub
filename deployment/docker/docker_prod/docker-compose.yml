@@ -58,6 +58,9 @@ services:
       # Live-editable announcement banner (no rebuild needed)
       - ../../../apps/infra/public_app/templates/public_app/landing_partials/landing_announcement.html:/app/apps/infra/public_app/templates/public_app/landing_partials/landing_announcement.html:ro
 
+      # Orochi agent v3 YAML definitions (read-only) — for A2A AgentCard projection
+      - /home/ywatanabe/.scitex/orochi/shared/agents:/app/agents-orochi:ro
+
     ports:
       - "${SCITEX_CLOUD_SSH_PORT_PROD:-2200}:2200"  # SSH gateway for user workspaces
 
@@ -67,6 +70,7 @@ services:
       - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.settings_prod
+      - SCITEX_OROCHI_AGENTS_DIR=/app/agents-orochi
       - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
       - SCITEX_CLOUD_ENV=prod
       - PYTHONPATH=/home/scitex/.local/lib/python3.11/site-packages:/app

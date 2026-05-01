@@ -9,7 +9,7 @@ from rich.console import Console
 
 from .. import __version__
 from .app import app  # noqa: F401
-from .completion import completion
+from .completion import completion_group as completion
 from .context import context as context_group
 from .deploy import deploy
 from .docker import docker
@@ -78,16 +78,50 @@ def main(ctx):
     ctx.ensure_object(dict)
 
 
-# Register command groups
+# ── Deprecation-redirect helper (noun-verb convention §5) ──
+
+
+def _dep(old: str, new: str):
+    @click.pass_context
+    def _impl(ctx, **_):
+        click.echo(
+            f"error: `scitex-cloud {old}` was renamed to `scitex-cloud {new}`.\n"
+            f"Re-run with: scitex-cloud {new} [...]",
+            err=True,
+        )
+        ctx.exit(2)
+
+    return click.command(
+        old,
+        hidden=True,
+        context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
+    )(_impl)
+
+
+# Register command groups (renamed to verb-noun compound leaves where bare)
 main.add_command(app)
+
+setup.name = "setup-environment"
 main.add_command(setup)
+main.add_command(_dep("setup", "setup-environment"))
+
+deploy.name = "deploy-project"
 main.add_command(deploy)
+main.add_command(_dep("deploy", "deploy-project"))
+
 main.add_command(docker)
 main.add_command(gitea)
 main.add_command(mcp)
 main.add_command(context_group, "context")
+
+status.name = "show-status"
 main.add_command(status)
+main.add_command(_dep("status", "show-status"))
+
+logs.name = "show-logs"
 main.add_command(logs)
+main.add_command(_dep("logs", "show-logs"))
+
 main.add_command(completion)
 main.add_command(workspace)
 main.add_command(sdk)

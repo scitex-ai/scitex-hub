@@ -12,6 +12,7 @@ import time
 from pathlib import Path
 
 import click
+from scitex_config._ecosystem import local_state
 
 # Default Gitea port for SciTeX Cloud
 _DEFAULT_GITEA_PORT = 3000
@@ -242,7 +243,12 @@ def ensure_gitea_remote(remote_name="scitex", login_name="scitex-dev", repo=None
 class SyncLock:
     """File-based lock for preventing concurrent sync operations."""
 
-    def __init__(self, lock_path="/tmp/scitex-workspace-sync.lock", timeout=30):
+    def __init__(self, lock_path=None, timeout=30):
+        if lock_path is None:
+            # local_state.runtime_path() auto-creates runtime/ + seeds.
+            lock_path = str(local_state.runtime_path("cloud", "workspace-sync.lock"))
+        else:
+            Path(lock_path).parent.mkdir(parents=True, exist_ok=True)
         self.lock_path = lock_path
         self.timeout = timeout
         self.lock_file = None

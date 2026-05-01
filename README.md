@@ -11,22 +11,15 @@
 
 # SciTeX Cloud (<code>scitex-cloud</code>)
 
-<p align="center">
-  <a href="https://scitex.ai">
-    <img src="static/shared/images/scitex_logos/logo-files/png/scitex-logo-blue-cropped.png" alt="SciTeX Cloud" width="400">
-  </a>
-</p>
-
-<p align="center"><b>GitHub for research — verifiable, AI-native, self-hosted infrastructure for scientists</b></p>
-
-<p align="center"><sub>For researchers and lab teams who want a unified, open-source platform<br>to manage the full research lifecycle — from literature to manuscript — under their own control.<br><a href="https://scitex.ai">scitex.ai</a> is a live instance of this project.</sub></p>
-
-<p align="center">
-  <a href="https://pypi.org/project/scitex-cloud/"><img src="https://badge.fury.io/py/scitex-cloud.svg" alt="PyPI version"></a>
-  <a href="https://scitex-cloud.readthedocs.io/"><img src="https://readthedocs.org/projects/scitex-cloud/badge/?version=latest" alt="Documentation"></a>
-  <a href="https://github.com/ywatanabe1989/scitex-cloud/actions/workflows/tests.yml"><img src="https://github.com/ywatanabe1989/scitex-cloud/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
-  <a href="https://github.com/ywatanabe1989/scitex-cloud/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg" alt="License: AGPL-3.0"></a>
-</p>
+<!-- scitex-badges:start -->
+[![PyPI](https://img.shields.io/pypi/v/scitex-cloud.svg)](https://pypi.org/project/scitex-cloud/)
+[![Python](https://img.shields.io/pypi/pyversions/scitex-cloud.svg)](https://pypi.org/project/scitex-cloud/)
+[![Tests](https://github.com/ywatanabe1989/scitex-cloud/actions/workflows/test.yml/badge.svg)](https://github.com/ywatanabe1989/scitex-cloud/actions/workflows/test.yml)
+[![Install Test](https://github.com/ywatanabe1989/scitex-cloud/actions/workflows/install-test.yml/badge.svg)](https://github.com/ywatanabe1989/scitex-cloud/actions/workflows/install-test.yml)
+[![Coverage](https://codecov.io/gh/ywatanabe1989/scitex-cloud/graph/badge.svg)](https://codecov.io/gh/ywatanabe1989/scitex-cloud)
+[![Docs](https://readthedocs.org/projects/scitex-cloud/badge/?version=latest)](https://scitex-cloud.readthedocs.io/en/latest/)
+[![License: AGPL v3](https://img.shields.io/badge/license-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+<!-- scitex-badges:end -->
 
 <p align="center">
   <a href="https://scitex-cloud.readthedocs.io/">Full Documentation</a> · <code>pip install scitex-cloud</code>
@@ -323,7 +316,9 @@ scitex-cloud/
 
 ## Part of SciTeX
 
-SciTeX Cloud is part of [**SciTeX**](https://scitex.ai). When modules work together, each output feeds naturally into the next:
+`scitex-hub` is part of [**SciTeX**](https://scitex.ai). Install via
+the umbrella with `pip install scitex[hub]` to use as
+`scitex.hub` (Python) or `scitex hub ...` (CLI).
 
 | From | Produces | To | Outcome |
 |------|----------|----|---------|
@@ -342,6 +337,14 @@ The SciTeX system follows the Four Freedoms for Research below, inspired by [the
 >3. The freedom to **modify** any module and share improvements with the community.
 >
 >AGPL-3.0 — because we believe research infrastructure deserves the same freedoms as the software it runs on.
+
+## A2A Protocol Surface
+
+scitex-cloud serves the [Google A2A protocol](https://a2a-protocol.org/) at **`a2a.scitex.ai`** for the orochi agent fleet — AgentCard discovery, JSON-RPC dispatch, bearer-auth via Gitea PAT, and a Tier 3 forwarder to live agents. See [`apps/infra/a2a_app/README.md`](apps/infra/a2a_app/README.md).
+
+```bash
+curl https://a2a.scitex.ai/v1/agents/ | jq '.agents | length'
+```
 
 ## Status
 
