@@ -1,5 +1,8 @@
 ---
-description: Three-way sync architecture between Local, Gitea, and Workspace. CLI commands for push/pull (git) and sync-to/sync-from (files). Conflict detection and resolution.
+description: |
+  [TOPIC] Sync Architecture — Local ↔ Gitea ↔ Workspace
+  [DETAILS] Three-way sync architecture between Local, Gitea, and Workspace. CLI commands for push/pull (git) and sync-to/sync-from (files). Conflict detection and resolution..
+tags: [scitex-cloud-sync-architecture]
 ---
 
 # Sync Architecture — Local ↔ Gitea ↔ Workspace

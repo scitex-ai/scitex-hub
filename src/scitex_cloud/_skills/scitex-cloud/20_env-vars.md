@@ -1,6 +1,8 @@
 ---
-name: scitex-cloud-env-vars
-description: Environment variables read by scitex-cloud at import / runtime. Follow SCITEX_<MODULE>_* convention — see general/10_arch-environment-variables.md.
+description: |
+  [TOPIC] scitex-cloud — Environment Variables
+  [DETAILS] Environment variables read by scitex-cloud at import / runtime. Follow SCITEX_<MODULE>_* convention — see general/10_arch-environment-variables.md..
+tags: [scitex-cloud-env-vars]
 ---
 
 # scitex-cloud — Environment Variables

@@ -1,3 +1,9 @@
+---
+description: |
+  [TOPIC] SciTeX Cloud - Deploy Staging
+  [DETAILS] SciTeX Cloud - Deploy Staging.
+tags: [scitex-cloud-scitex-deploy-staging]
+---
 # SciTeX Cloud - Deploy Staging
 
 ## Prerequisites

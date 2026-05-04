@@ -1,5 +1,8 @@
 ---
-description: Infrastructure management — environment setup, Docker container management, deploy, logs, SSH, and MCP server start/diagnose.
+description: |
+  [TOPIC] Infrastructure CLI
+  [DETAILS] Infrastructure management — environment setup, Docker container management, deploy, logs, SSH, and MCP server start/diagnose..
+tags: [scitex-cloud-infrastructure]
 ---
 
 # Infrastructure CLI

@@ -1,5 +1,10 @@
 ---
-description: SciTeX Cloud operational surface — 55 MCP tools across 6 categories — project_* (cloud project CRUD), repo_* (self-hosted Gitea clone/push/pull/PRs/issues), cloud_sdk_data/files/jobs_* (DataStore/FileVault/JobQueue SDK — submit compute jobs, upload/download files, CRUD records), api_* (Scholar paper search, CrossRef lookup, BibTeX enrichment, LaTeX compile via cloud), app_* (install/switch app plugins), onsite_* (in-browser Playwright on the live Django site). Plus CloudClient Python API, DockerManager, health_check, three-way sync, staging/production deploy. Use whenever the user asks to create a cloud project, push/clone via Gitea, submit a cloud job, upload to FileVault, compile LaTeX on cloud, search papers via Scholar, enrich BibTeX, switch app plugin, deploy to staging/production, or mentions SciTeX Cloud, Gitea, DataStore, FileVault, JobQueue, CloudClient. Drop-in replacement for raw `curl` + `git` + Playwright scripts against the Django instance.
+name: scitex-cloud
+description: |
+  [WHAT] SciTeX Cloud operational surface — 55 MCP tools across 6 categories — project_* (cloud project CRUD), repo_* (self-hosted Gitea clone/push/pull/PRs/issues), cloud_sdk_data/files/jobs_* (DataStore/FileVault/JobQueue SDK — submit compute jobs, upload/download files, CRUD records), api_* (Scholar paper search, CrossRef lookup, BibTeX enrichment, LaTeX compile via cloud), app_* (install/switch app plugins), onsite_* (in-browser Playwright on the live Django site).
+  [WHEN] Use whenever the user asks to create a cloud project, push/clone via Gitea, submit a cloud job, upload to FileVault, compile LaTeX on cloud, search papers via Scholar, enrich BibTeX, switch app plugin, deploy to staging/production, or mentions SciTeX Cloud, Gitea, DataStore, FileVault, JobQueue, CloudClient.
+  [HOW] `pip install scitex-cloud` then `import scitex_cloud`; see leaf skills for details.
+tags: [scitex-cloud]
 allowed-tools: mcp__scitex__cloud_*
 primary_interface: mixed
 interfaces:
@@ -7,7 +12,6 @@ interfaces:
   cli: 3
   mcp: 3
   skills: 2
-  hook: 0
   http: 2
 ---
 
@@ -46,12 +50,19 @@ rule and empirical verification table.
 
 ## Sub-skills
 
-### Core (01–09)
-- [01_python-api.md](01_python-api.md) — CloudClient, project_*, health_check
-- [02_sdk.md](02_sdk.md) — Cloud SDK — DataStore, FileVault, JobQueue
-- [03_project-management.md](03_project-management.md) — CLI project CRUD
-- [04_app-management.md](04_app-management.md) — App plugins — init, validate, prefs, containers
-- [05_gitea-cli.md](05_gitea-cli.md) — Gitea Git hosting — repos, PRs, issues, auth
+### Mandatory leaves
+- [01_installation.md](01_installation.md) — pip install + extras + smoke verify
+- [02_quick-start.md](02_quick-start.md) — minimal create-project + push example
+- [03_python-api.md](03_python-api.md) — top-level Python surface
+- [04_cli-reference.md](04_cli-reference.md) — `scitex-cloud` subcommand summary
+- [05_mcp-tools.md](05_mcp-tools.md) — ~55 MCP tools across 6 categories
+
+### Core (06–09, 19)
+- [06_python-api.md](06_python-api.md) — CloudClient, project_*, health_check (extended)
+- [07_sdk.md](07_sdk.md) — Cloud SDK — DataStore, FileVault, JobQueue
+- [08_project-management.md](08_project-management.md) — CLI project CRUD
+- [09_app-management.md](09_app-management.md) — App plugins — init, validate, prefs, containers
+- [19_gitea-cli.md](19_gitea-cli.md) — Gitea Git hosting — repos, PRs, issues, auth
 
 ### Workflows (10–19)
 - [10_sync-architecture.md](10_sync-architecture.md) — Three-way sync — push/pull (git), sync-to/from (files)
@@ -65,8 +76,8 @@ rule and empirical verification table.
 - [18_scitex-versions-release.md](18_scitex-versions-release.md) — Version increment, tags, troubleshooting
 
 ### Standards (20–29)
-- [20_django-conventions.md](20_django-conventions.md) — 1:1:1:1 full-stack conventions, naming
 - [21_refactoring-rules.md](21_refactoring-rules.md) — File size thresholds, extraction patterns
+- [24_django-conventions.md](24_django-conventions.md) — 1:1:1:1 full-stack conventions, naming
 - [22_cloud-refactor.md](22_cloud-refactor.md) — Refactor request template
 - [23_mobile-testing.md](23_mobile-testing.md) — Mobile responsive testing — Playwright, viewport
 
@@ -80,4 +91,4 @@ rule and empirical verification table.
 
 ## Environment
 
-- [40_env-vars.md](40_env-vars.md) — SCITEX_* env vars read by scitex-cloud at runtime
+- [20_env-vars.md](20_env-vars.md) — SCITEX_* env vars read by scitex-cloud at runtime

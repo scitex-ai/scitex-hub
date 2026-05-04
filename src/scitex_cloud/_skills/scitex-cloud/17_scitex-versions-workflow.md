@@ -1,3 +1,9 @@
+---
+description: |
+  [TOPIC] SciTeX Versions — Sync Workflow
+  [DETAILS] SciTeX Versions — Sync Workflow.
+tags: [scitex-cloud-scitex-versions-workflow]
+---
 # SciTeX Versions — Sync Workflow
 
 ## RULES: Never Sync Blind

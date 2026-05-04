@@ -1,3 +1,9 @@
+---
+description: |
+  [TOPIC] SciTeX Cloud - Deploy Production
+  [DETAILS] SciTeX Cloud - Deploy Production.
+tags: [scitex-cloud-scitex-deploy-prod]
+---
 # SciTeX Cloud - Deploy Production
 
 ## WARNING: This affects the live site (scitex.ai). Confirm with user before proceeding.

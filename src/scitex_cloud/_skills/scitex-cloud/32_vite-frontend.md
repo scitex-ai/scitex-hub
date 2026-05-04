@@ -1,5 +1,8 @@
 ---
-description: Vite frontend build — HMR, entry points, template tags, troubleshooting.
+description: |
+  [TOPIC] Vite Frontend Build
+  [DETAILS] Vite frontend build — HMR, entry points, template tags, troubleshooting..
+tags: [scitex-cloud-vite-frontend]
 ---
 
 # Vite Frontend Build

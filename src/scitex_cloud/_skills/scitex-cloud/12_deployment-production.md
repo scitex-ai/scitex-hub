@@ -1,5 +1,8 @@
 ---
-description: Deploy SciTeX Cloud to production — zero-downtime build, swap, verify.
+description: |
+  [TOPIC] Deploy to Production
+  [DETAILS] Deploy SciTeX Cloud to production — zero-downtime build, swap, verify..
+tags: [scitex-cloud-deployment-production]
 ---
 
 # Deploy to Production

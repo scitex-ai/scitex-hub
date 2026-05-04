@@ -1,5 +1,8 @@
 ---
-description: Docker-based development environment — start/stop, container names, hot reload, access URLs, test user.
+description: |
+  [TOPIC] Development Environment
+  [DETAILS] Docker-based development environment — start/stop, container names, hot reload, access URLs, test user..
+tags: [scitex-cloud-development-environment]
 ---
 
 # Development Environment

@@ -1,3 +1,9 @@
+---
+description: |
+  [TOPIC] SciTeX Versions Management
+  [DETAILS] SciTeX Versions Management.
+tags: [scitex-cloud-scitex-versions]
+---
 # SciTeX Versions Management
 
 ## Overview

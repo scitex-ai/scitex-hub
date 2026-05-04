@@ -1,5 +1,8 @@
 ---
-description: SciTeX app plugin management — scaffold new apps, validate, submit for review, manage preferences, check dependencies, build Apptainer containers. Apps must end in _app or -app.
+description: |
+  [TOPIC] App Management CLI
+  [DETAILS] SciTeX app plugin management — scaffold new apps, validate, submit for review, manage preferences, check dependencies, build Apptainer containers. Apps must end in _app or -app..
+tags: [scitex-cloud-app-management]
 ---
 
 # App Management CLI

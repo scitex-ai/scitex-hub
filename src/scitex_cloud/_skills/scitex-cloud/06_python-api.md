@@ -1,5 +1,8 @@
 ---
-description: Python API for scitex-cloud — CloudClient class, project functions, and health_check. For programmatic access from Python scripts.
+description: |
+  [TOPIC] Python API
+  [DETAILS] Python API for scitex-cloud — CloudClient class, project functions, and health_check. For programmatic access from Python scripts..
+tags: [scitex-cloud-python-api]
 ---
 
 # Python API

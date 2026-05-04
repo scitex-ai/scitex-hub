@@ -1,5 +1,8 @@
 ---
-description: Manage and sync versions across SciTeX ecosystem packages.
+description: |
+  [TOPIC] Version Management
+  [DETAILS] Manage and sync versions across SciTeX ecosystem packages..
+tags: [scitex-cloud-version-management]
 ---
 
 # Version Management
