@@ -181,3 +181,14 @@ if __name__ == "__main__":
     main()
 
 # EOF
+
+
+# audit §4 — inject version into root --help
+try:
+    from importlib.metadata import version as _v
+    main.help = (
+        f"scitex-cloud (v{_v('scitex-cloud')}) — "
+        + (main.help or "").lstrip()
+    )
+except Exception:
+    pass
