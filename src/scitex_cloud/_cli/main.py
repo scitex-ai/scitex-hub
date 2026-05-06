@@ -168,6 +168,15 @@ except ImportError:
     pass
 
 
+# §1a: install-shell-completion + print-shell-completion (canonical leaves)
+try:
+    from scitex_dev._cli._completion import attach_shell_completion
+
+    attach_shell_completion(main, prog_name="scitex-cloud")
+except ImportError:
+    pass
+
+
 if __name__ == "__main__":
     main()
 
