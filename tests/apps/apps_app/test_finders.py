@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import patch
 
 from django.test import TestCase, override_settings
 
@@ -51,10 +50,18 @@ class TestDevAppStaticFinder(TestCase):
         items = list(finder.list([]))
         self.assertEqual(items, [])
 
-    @patch("apps.workspace.apps_app.finders.settings")
-    def test_find_handles_permission_error(self, mock_settings):
-        """Finder should not crash on PermissionError."""
-        mock_settings.BASE_DIR = Path("/root")  # Typically inaccessible
+    @override_settings(BASE_DIR=Path("/root"))
+    def test_find_handles_permission_error(self):
+        """Finder should not crash on PermissionError.
+
+        Note: previous version did `@patch(... .finders.settings)` which
+        replaced the entire settings module with a MagicMock. Django's
+        app registry then resolved AUTH_USER_MODEL / LOGGING_CONFIG against
+        that MagicMock and the test_apps subtree saw the mock leak as
+        `'<MagicMock>' doesn't look like a module path` errors. Using
+        `@override_settings` keeps the real settings module intact and
+        only swaps the named keys.
+        """
         finder = DevAppStaticFinder()
         result = finder.find("anything.css")
         self.assertIsNone(result)
