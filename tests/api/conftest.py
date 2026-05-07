@@ -12,12 +12,36 @@ Provides:
 - JSON response utilities
 """
 
-import os
-import requests
 import pytest
+import requests
 
 # Import from parent conftest
-from tests.conftest import BASE_URL, TEST_USER_USERNAME, TEST_USER_PASSWORD
+from tests.conftest import BASE_URL, TEST_USER_PASSWORD, TEST_USER_USERNAME
+
+
+def _is_server_reachable(url: str, timeout: float = 1.5) -> bool:
+    try:
+        requests.head(url, timeout=timeout, allow_redirects=False)
+        return True
+    except (requests.ConnectionError, requests.Timeout):
+        return False
+
+
+# Skip the whole `tests/api/` tree when no Django dev server is running at
+# BASE_URL. These are integration tests against a live HTTP surface, not
+# unit tests; CI can't run them without spinning up the server.
+collect_ignore_marker = "scitex-cloud-api-server-unreachable"
+
+
+def pytest_collection_modifyitems(config, items):  # noqa: D401
+    if _is_server_reachable(BASE_URL):
+        return
+    skip_no_server = pytest.mark.skip(
+        reason=f"requires running Django server at {BASE_URL} (set SCITEX_BASE_URL or start `manage.py runserver`)"
+    )
+    for item in items:
+        if "/tests/api/" in str(item.fspath):
+            item.add_marker(skip_no_server)
 
 
 @pytest.fixture(scope="session")
@@ -30,10 +54,12 @@ def api_base_url():
 def client():
     """Create a new requests session for each test."""
     session = requests.Session()
-    session.headers.update({
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-    })
+    session.headers.update(
+        {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+    )
     yield session
     session.close()
 
