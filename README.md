@@ -81,7 +81,7 @@
 
 SciTeX Cloud is an AI-native infrastructure so that researchers can focus on science, not on tooling.
 
-## Screenshots
+## Demo
 
 <p align="center"><b>Writer</b><br><img src="docs/images/screenshot-writer.png" alt="Writer" width="100%"></p>
 
@@ -90,6 +90,38 @@ SciTeX Cloud is an AI-native infrastructure so that researchers can focus on sci
 <p align="center"><b>Apps</b><br><img src="docs/images/screenshot-apps.png" alt="Apps" width="100%"></p>
 
 <p align="center"><sub><b>Figure 1.</b> Core application modules. Writer provides a LaTeX manuscript environment with live compilation. Scholar offers literature discovery, BibTeX enrichment, and PDF management. The Apps panel shows the project-centric hub linking all modules.</sub></p>
+
+## Architecture
+
+```mermaid
+graph TB
+    subgraph workspace[apps/workspace]
+        S[scholar_app] --- W[writer_app]
+        W --- F[figrecipe / plt]
+        F --- CN[console_app]
+        CN --- H[hub_app]
+        H --- CW[clew_app]
+    end
+    subgraph infra[apps/infra]
+        WS[workspace_app] --- PA[platform_app<br/>DataStore / FileVault / JobQueue]
+        PA --- PR[project_app]
+        PR --- A2[a2a_app]
+    end
+    workspace --> infra
+    infra --> DK[Docker / Postgres / Gitea]
+```
+
+```
+scitex-cloud/
+├── apps/
+│   ├── workspace/         # scholar / writer / figrecipe / console / hub / clew
+│   ├── infra/             # workspace_app, platform_app, project_app, a2a_app
+│   └── public_app/        # landing page + public tools
+├── deployment/docker/     # docker_dev / docker_prod / envs
+├── config/                # Django settings
+├── src/scitex_cloud/      # pip package: CLI + MCP server
+└── tests/
+```
 
 ## Installation
 
