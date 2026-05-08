@@ -5,6 +5,7 @@
 import hashlib
 
 import pytest
+from asgiref.sync import sync_to_async
 from django.contrib.auth.models import User
 from django.test import Client
 
@@ -41,9 +42,11 @@ class TestMCPAPIKeyValidation:
         """_mcp_api_key_valid returns True when valid key with * scope"""
         from config.asgi import _mcp_api_key_valid
 
-        # Create test user and API key
-        user = User.objects.create_user(username="testuser", password="testpass")
-        api_key_obj, full_key = APIKey.create_key(
+        # Django sync ORM in async test → wrap with sync_to_async.
+        user = await sync_to_async(User.objects.create_user)(
+            username="testuser", password="testpass"
+        )
+        api_key_obj, full_key = await sync_to_async(APIKey.create_key)(
             user=user, name="test-key-full", scopes=["*"]
         )
 
@@ -56,7 +59,7 @@ class TestMCPAPIKeyValidation:
         assert result is True
 
         # Verify last_used_at was updated
-        api_key_obj.refresh_from_db()
+        await sync_to_async(api_key_obj.refresh_from_db)()
         assert api_key_obj.last_used_at is not None
 
     @pytest.mark.asyncio
@@ -64,9 +67,10 @@ class TestMCPAPIKeyValidation:
         """_mcp_api_key_valid returns True when valid key with mcp scope"""
         from config.asgi import _mcp_api_key_valid
 
-        # Create test user and API key with mcp scope
-        user = User.objects.create_user(username="testuser2", password="testpass")
-        api_key_obj, full_key = APIKey.create_key(
+        user = await sync_to_async(User.objects.create_user)(
+            username="testuser2", password="testpass"
+        )
+        api_key_obj, full_key = await sync_to_async(APIKey.create_key)(
             user=user, name="test-key-mcp", scopes=["mcp"]
         )
 
@@ -83,9 +87,10 @@ class TestMCPAPIKeyValidation:
         """_mcp_api_key_valid returns False when valid key with only project:read scope"""
         from config.asgi import _mcp_api_key_valid
 
-        # Create test user and API key with insufficient scope
-        user = User.objects.create_user(username="testuser3", password="testpass")
-        api_key_obj, full_key = APIKey.create_key(
+        user = await sync_to_async(User.objects.create_user)(
+            username="testuser3", password="testpass"
+        )
+        api_key_obj, full_key = await sync_to_async(APIKey.create_key)(
             user=user, name="test-key-limited", scopes=["project:read"]
         )
 
@@ -102,13 +107,14 @@ class TestMCPAPIKeyValidation:
         """_mcp_api_key_valid returns False when key is inactive"""
         from config.asgi import _mcp_api_key_valid
 
-        # Create test user and API key, then deactivate it
-        user = User.objects.create_user(username="testuser4", password="testpass")
-        api_key_obj, full_key = APIKey.create_key(
+        user = await sync_to_async(User.objects.create_user)(
+            username="testuser4", password="testpass"
+        )
+        api_key_obj, full_key = await sync_to_async(APIKey.create_key)(
             user=user, name="test-key-inactive", scopes=["*"]
         )
         api_key_obj.is_active = False
-        api_key_obj.save()
+        await sync_to_async(api_key_obj.save)()
 
         # Test with valid key that is inactive
         scope = {
@@ -135,8 +141,10 @@ class TestMCPAPIKeyValidation:
         """_mcp_api_key_valid returns False for non-Bearer auth"""
         from config.asgi import _mcp_api_key_valid
 
-        user = User.objects.create_user(username="testuser5", password="testpass")
-        api_key_obj, full_key = APIKey.create_key(
+        user = await sync_to_async(User.objects.create_user)(
+            username="testuser5", password="testpass"
+        )
+        api_key_obj, full_key = await sync_to_async(APIKey.create_key)(
             user=user, name="test-key-basic", scopes=["*"]
         )
 
