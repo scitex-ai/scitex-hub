@@ -76,6 +76,53 @@ def _install_django_stubs():
     )
 
 
+# ---------------------------------------------------------------------------
+# IMPORTANT: do NOT call _install_django_stubs() at module level. Doing so
+# replaces sys.modules["django.conf"] with a stub whose .settings is a
+# MagicMock — and that leaks to every subsequent test file that does
+# `from django.conf import settings`. The leak surfaces during pytest-
+# django's `django_db_setup` fixture as
+#   `ValueError: Dependency on unknown app:
+#    <MagicMock name='mock.AUTH_USER_MODEL.split().__getitem__()'>`
+# which fails ~hundreds of unrelated tests.
+#
+# Use the session-scoped autouse fixture below instead: install the stub
+# only for the duration of THIS module's tests, and restore the original
+# sys.modules entries on teardown.
+import pytest as _pytest
+
+
+@_pytest.fixture(autouse=True, scope="module")
+def _install_django_stubs_fixture():
+    """Install + tear down the django/config sys.modules stubs.
+
+    Saves any pre-existing sys.modules entries we're about to overwrite
+    so they can be restored after the module's tests finish, preventing
+    cross-file leakage of MagicMock settings.
+    """
+    keys = (
+        "django",
+        "django.conf",
+        "apps.workspace.console_app.views.terminal.config",
+        "apps.workspace.console_app.views.terminal._command_builder",
+    )
+    saved = {k: sys.modules.get(k) for k in keys}
+    _install_django_stubs()
+    try:
+        yield
+    finally:
+        for k, prev in saved.items():
+            if prev is None:
+                sys.modules.pop(k, None)
+            else:
+                sys.modules[k] = prev
+
+
+# Eagerly call the stub installer once at IMPORT time too — the tests in
+# this module import functions from the modules being stubbed at module
+# level (see imports below this comment), so by the time pytest collects
+# the fixture we'd already have None on those names. The fixture is what
+# guards against cross-module leakage; this call just satisfies imports.
 _install_django_stubs()
 
 # ---------------------------------------------------------------------------
