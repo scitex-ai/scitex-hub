@@ -22,7 +22,7 @@
 <!-- scitex-badges:end -->
 
 <p align="center">
-  <a href="https://scitex-cloud.readthedocs.io/">Full Documentation</a> · <code>pip install scitex-cloud</code>
+  <a href="https://scitex-cloud.readthedocs.io/">Full Documentation</a> · <code>uv pip install scitex-cloud[all]</code>
 </p>
 
 ---
