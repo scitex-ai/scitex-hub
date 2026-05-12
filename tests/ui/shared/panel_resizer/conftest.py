@@ -12,7 +12,21 @@ import sys
 from pathlib import Path
 
 import pytest
-from playwright.sync_api import Page
+
+# Skip the panel-resizer subtree when ``playwright`` or ``scitex_browser``
+# aren't installed (PA-303). Either missing raises ImportError at
+# collection time and tanks the suite — importorskip turns the failure
+# into a clean skip on minimal envs.
+pytest.importorskip(
+    "playwright",
+    reason="playwright not installed — ui/shared/panel_resizer skipped",
+)
+pytest.importorskip(
+    "scitex_browser",
+    reason="scitex_browser not installed — ui/shared/panel_resizer skipped",
+)
+
+from playwright.sync_api import Page  # noqa: E402
 
 # Project paths
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.parent
@@ -49,7 +63,7 @@ if not CREDENTIALS_AVAILABLE:
 print(f"[panel_resizer conftest] Using credentials: username={TEST_USER_USERNAME}")
 
 # Import ALL utilities from scitex.browser
-from scitex_browser import (
+from scitex_browser import (  # noqa: E402
     SyncBrowserSession,
     TestMonitor,
     collect_console_logs,

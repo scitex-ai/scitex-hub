@@ -15,6 +15,7 @@ Provides:
 
 import os
 import sys
+import sysconfig
 import time
 from pathlib import Path
 
@@ -23,6 +24,42 @@ import pytest
 # Project root
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
+
+# ---------------------------------------------------------------------------
+# Module-import-time coverage wiring (parallel + subprocess support).
+#
+# `os.environ.setdefault` would be a no-op here because pytest-cov has
+# already set COVERAGE_FILE to a tmp dir by the time conftest is loaded.
+# Force-set so child Python interpreters (subprocess.run, jupyter
+# nbconvert --execute, …) record into the canonical repo-root shards.
+# See scitex-dev/_skills/general/05_development_06_subprocess-coverage.md.
+# ---------------------------------------------------------------------------
+os.environ["COVERAGE_PROCESS_START"] = str(PROJECT_ROOT / "pyproject.toml")
+os.environ["COVERAGE_FILE"] = str(PROJECT_ROOT / ".coverage")
+
+
+def _ensure_subprocess_coverage_shim() -> None:
+    """Drop an idempotent ``.pth`` file in site-packages that auto-starts
+    coverage in every child Python interpreter via
+    ``coverage.process_startup()``.
+    """
+    purelib = Path(sysconfig.get_paths()["purelib"])
+    pth = purelib / "_scitex_cloud_subprocess_coverage.pth"
+    shim = (
+        "import os, coverage\n"
+        "if os.environ.get('COVERAGE_PROCESS_START'):\n"
+        "    coverage.process_startup()\n"
+    )
+    try:
+        if not pth.exists() or pth.read_text() != shim:
+            pth.write_text(shim)
+    except OSError:
+        # site-packages may be read-only (e.g. system Python); silently
+        # skip — local dev venvs are writable and that's where it matters.
+        pass
+
+
+_ensure_subprocess_coverage_shim()
 
 # Ensure logs directory exists
 (PROJECT_ROOT / "logs").mkdir(exist_ok=True)

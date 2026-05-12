@@ -13,10 +13,20 @@ Provides:
 """
 
 import pytest
-import requests
+
+# Skip the whole ``tests/api/`` tree when ``requests`` isn't installed
+# (PA-303) — collection-safety on minimal envs.
+requests = pytest.importorskip(
+    "requests",
+    reason="requests not installed — api/ tests skipped",
+)
 
 # Import from parent conftest
-from tests.conftest import BASE_URL, TEST_USER_PASSWORD, TEST_USER_USERNAME
+from tests.conftest import (
+    BASE_URL,
+    TEST_USER_PASSWORD,
+    TEST_USER_USERNAME,
+)  # noqa: E402
 
 
 def _is_server_reachable(url: str, timeout: float = 1.5) -> bool:
@@ -114,9 +124,9 @@ def csrf_token(client, api_base_url):
 
 def assert_json_response(response, status_code=200):
     """Assert response is valid JSON with expected status."""
-    assert response.status_code == status_code, (
-        f"Expected {status_code}, got {response.status_code}: {response.text[:200]}"
-    )
+    assert (
+        response.status_code == status_code
+    ), f"Expected {status_code}, got {response.status_code}: {response.text[:200]}"
     try:
         return response.json()
     except ValueError:
@@ -125,20 +135,24 @@ def assert_json_response(response, status_code=200):
 
 def assert_error_response(response, status_code=400):
     """Assert response is an error with expected status."""
-    assert response.status_code == status_code, (
-        f"Expected error {status_code}, got {response.status_code}"
-    )
+    assert (
+        response.status_code == status_code
+    ), f"Expected error {status_code}, got {response.status_code}"
     return response
 
 
 def assert_redirect(response, expected_path=None):
     """Assert response is a redirect."""
-    assert response.status_code in (301, 302, 303, 307, 308), (
-        f"Expected redirect, got {response.status_code}"
-    )
+    assert response.status_code in (
+        301,
+        302,
+        303,
+        307,
+        308,
+    ), f"Expected redirect, got {response.status_code}"
     if expected_path:
         location = response.headers.get("Location", "")
-        assert expected_path in location, (
-            f"Expected redirect to '{expected_path}', got '{location}'"
-        )
+        assert (
+            expected_path in location
+        ), f"Expected redirect to '{expected_path}', got '{location}'"
     return response

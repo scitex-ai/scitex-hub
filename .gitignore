@@ -8,7 +8,10 @@ references.bib
 
 # SciTeX user data directory (should be in home dir, not project root)
 # This gets accidentally created when Docker uses /app/.scitex/ path
-.scitex/
+.scitex/*
+!.scitex/dev/
+.scitex/dev/*
+!.scitex/dev/config.yaml
 
 ### Source: /home/ywatanabe/.git-templates/.gitignore-templates/Custom/Claude.gitignore ###
 .claude

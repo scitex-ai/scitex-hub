@@ -15,7 +15,16 @@ import sys
 from pathlib import Path
 
 import pytest
-from playwright.sync_api import BrowserContext, Page, expect
+
+# Skip every Playwright-backed ``tests/ui/*`` test when ``playwright``
+# isn't installed (PA-303). Without this guard, ``from playwright...``
+# below aborts collection and tanks the full suite on minimal envs.
+pytest.importorskip(
+    "playwright",
+    reason="scitex-cloud[django] / [test] not installed — ui/ tests skipped",
+)
+
+from playwright.sync_api import BrowserContext, Page, expect  # noqa: E402
 
 # Project paths
 PROJECT_ROOT = Path(__file__).parent.parent.parent

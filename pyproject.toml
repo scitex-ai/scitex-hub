@@ -265,7 +265,9 @@ log_cli = true
 log_cli_level = "INFO"
 
 [tool.coverage.run]
-source = ["src/scitex_cloud"]
+parallel = true
+source = ["scitex_cloud"]
+concurrency = ["multiprocessing", "thread"]
 omit = [
     "*/tests/*",
     "*/__main__.py",
