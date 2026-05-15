@@ -1,4 +1,4 @@
-name: Newb
+name: newb
 
 # Doc-quality verification — fresh Claude agent reads only the package's
 # docs in a hard-isolated container, then tries to install + import +
@@ -14,6 +14,7 @@ on:
 
 jobs:
   newb:
+    name: newb-docs-quality-on-ubuntu-latest
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
