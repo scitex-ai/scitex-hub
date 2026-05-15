@@ -12,12 +12,17 @@
 # SciTeX Cloud (<code>scitex-cloud</code>)
 
 <!-- scitex-badges:start -->
-[![PyPI](https://img.shields.io/pypi/v/scitex-cloud.svg)](https://pypi.org/project/scitex-cloud/)
-[![Python](https://img.shields.io/pypi/pyversions/scitex-cloud.svg)](https://pypi.org/project/scitex-cloud/)
-[![Tests](https://github.com/ywatanabe1989/scitex-cloud/actions/workflows/test.yml/badge.svg)](https://github.com/ywatanabe1989/scitex-cloud/actions/workflows/test.yml)
-[![Coverage](https://codecov.io/gh/ywatanabe1989/scitex-cloud/graph/badge.svg)](https://codecov.io/gh/ywatanabe1989/scitex-cloud)
-[![Docs](https://readthedocs.org/projects/scitex-cloud/badge/?version=latest)](https://scitex-cloud.readthedocs.io/en/latest/)
-[![License: AGPL v3](https://img.shields.io/badge/license-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+<p align="center">
+  <a href="https://pypi.org/project/scitex-cloud/"><img src="https://img.shields.io/pypi/v/scitex-cloud?label=pypi" alt="pypi"></a>
+  <a href="https://pypi.org/project/scitex-cloud/"><img src="https://img.shields.io/pypi/pyversions/scitex-cloud?label=python" alt="python"></a>
+  <a href="https://scitex-cloud.readthedocs.io/en/latest/"><img src="https://img.shields.io/readthedocs/scitex-cloud?label=docs" alt="docs"></a>
+</p>
+<p align="center">
+  <a href="https://github.com/ywatanabe1989/scitex-cloud/actions/workflows/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-cloud/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml?branch=develop&label=tests" alt="tests"></a>
+  <a href="https://github.com/ywatanabe1989/scitex-cloud/actions/workflows/import-smoke-on-ubuntu-py3-12.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-cloud/import-smoke-on-ubuntu-py3-12.yml?branch=develop&label=install-check" alt="install-check"></a>
+  <a href="https://codecov.io/gh/ywatanabe1989/scitex-cloud"><img src="https://img.shields.io/codecov/c/github/ywatanabe1989/scitex-cloud/develop?label=cov" alt="cov"></a>
+  <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/license-AGPL_v3-blue.svg" alt="license"></a>
+</p>
 <!-- scitex-badges:end -->
 
 <p align="center">
