@@ -1,4 +1,4 @@
-name: Publish to PyPI
+name: pypi
 
 on:
   push:
@@ -13,6 +13,7 @@ on:
 
 jobs:
   build:
+    name: pypi-build-distribution-on-ubuntu-latest
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,6 +38,7 @@ jobs:
           path: dist/
 
   publish:
+    name: pypi-publish-trusted-on-ubuntu-latest
     needs: build
     runs-on: ubuntu-latest
     environment:
@@ -55,6 +57,7 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
 
   release:
+    name: github-release-create-on-ubuntu-latest
     # Sync a GitHub Release with every PyPI publish. Notes come from
     # CHANGELOG.md (section heading "## [VERSION]"); wheel + sdist
     # attach as release assets so users can audit what shipped without
