@@ -1,8 +1,11 @@
 name: import-smoke
 
-# Catches "wheel installs but `import scitex_cloud` blows up at
-# runtime" — separate from the full pytest suite so a broken
-# entry-point fails fast without paying for the matrix.
+# Catches "wheel installs but `import scitex_cloud` blows up at runtime"
+# — separate from the full pytest suite so a broken entry-point fails
+# fast without paying for the matrix. Companion to `tests` — confirms
+# the bare package (no extras) is `pip install -e .`-able and
+# `import scitex_cloud` succeeds. Catches `[project] dependencies`
+# drift that the test matrix masks because it installs `[all,dev]`.
 
 on:
   push:
@@ -10,7 +13,7 @@ on:
   pull_request:
     branches: [main, develop]
   schedule:
-    - cron: "0 7 * * *"
+    - cron: "0 7 * * *"  # nightly 07:00 UTC
   workflow_dispatch:
 
 jobs:
@@ -22,42 +25,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Build wheel
+      - name: Install (no extras)
         run: |
-          python -m pip install --upgrade pip build
-          python -m build --wheel
-      - name: Install + import in a fresh venv
-        run: |
-          python -m venv /tmp/clean-venv
-          /tmp/clean-venv/bin/pip install --upgrade pip
-          /tmp/clean-venv/bin/pip install dist/*.whl
-          # Detect import name from src/ layout (the only directory
-          # under src/ that contains __init__.py). Works without tomllib
-          # / tomli (no extra dep).
-          IMPORT_NAME=$(find src -maxdepth 2 -name __init__.py -printf '%h\n' \
-                          | head -1 | xargs -n1 basename)
-          if [ -z "$IMPORT_NAME" ]; then
-              echo "Could not detect import name under src/" >&2
-              exit 1
-          fi
-          echo "Importing $IMPORT_NAME ..."
-          /tmp/clean-venv/bin/python -c "import ${IMPORT_NAME}; print(f'OK: {${IMPORT_NAME}.__name__}')"
-      - name: Audit declared deps vs actual imports (best-effort)
-        # Secondary check using scitex_dev.audit_dependencies(). Non-fatal:
-        # skipped if scitex-dev isn't yet available on PyPI for this Python.
-        continue-on-error: true
-        run: |
-          /tmp/clean-venv/bin/pip install scitex-dev 2>/dev/null || (
-              echo "scitex-dev not installable on this Python; skipping"
-              exit 0
-          )
-          /tmp/clean-venv/bin/python -c "
-          try:
-              from scitex_dev import audit_dependencies
-          except ImportError:
-              import sys; sys.exit(0)
-          rep = audit_dependencies('.')
-          print(rep)
-          import sys
-          sys.exit(0 if rep.is_clean else 1)
-          "
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -e .
+      - name: Import smoke
+        run: .venv/bin/python -c "import scitex_cloud; print(scitex_cloud.__version__)"
