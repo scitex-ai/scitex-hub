@@ -1,0 +1,321 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MCP Server &mdash; SciTeX Cloud v0.17.4-alpha</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=cad3b55a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="App Platform" href="app_platform.html" />
+    <link rel="prev" title="Three-Way Sync" href="sync.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            SciTeX Cloud
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#install-from-pypi">Install from PyPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#install-from-source">Install from Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#verify-installation">Verify Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Setup Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#what-you-get">What You Get</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#quick-start-development">Quick Start (Development)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#step-by-step-development-setup">Step-by-Step Development Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#production-setup">Production Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#cli-only-install">CLI-Only Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#configuration-reference">Configuration Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#common-commands">Common Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#deployment">Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#cli-only-install">CLI-Only Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#common-operations">Common Operations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#global-options">Global Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#project-management">Project Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#three-way-sync">Three-Way Sync</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#git-hosting-gitea">Git Hosting (Gitea)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#app-management">App Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#cloud-sdk">Cloud SDK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#infrastructure">Infrastructure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#mcp-server">MCP Server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#utilities">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sync.html">Three-Way Sync</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#commands">Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#conflict-handling">Conflict Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#state-tracking">State Tracking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#typical-workflows">Typical Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">MCP Server</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#available-tools">Available Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setup-for-claude-desktop">Setup for Claude Desktop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setup-for-claude-code">Setup for Claude Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#environment-source-file-env-src">Environment Source File (<code class="docutils literal notranslate"><span class="pre">ENV_SRC</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cli-commands">CLI Commands</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="app_platform.html">App Platform</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#workspace-layout">Workspace Layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#platform-services">Platform Services</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#datastore">DataStore</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#filevault">FileVault</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#jobqueue">JobQueue</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#scitexbridge">ScitexBridge</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#externalapi">ExternalAPI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#realtimehub">RealtimeHub</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#frontendkit">FrontendKit</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#app-registration">App Registration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#built-in-apps">Built-in Apps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#external-pip-installed-apps">External (pip-installed) Apps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#context-bootstrap">Context Bootstrap</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#dev-install-workflow">Dev Install Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#app-submission-and-review">App Submission and Review</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#separation-of-concerns">Separation of Concerns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="visitor_pool_security.html">Visitor Pool Security</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#background-the-fix">Background: the fix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-1-reset-workspace-after">Layer 1 — <code class="docutils literal notranslate"><span class="pre">&#64;reset_workspace_after</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-2-ensure-clean-workspace">Layer 2 — <code class="docutils literal notranslate"><span class="pre">&#64;ensure_clean_workspace</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-3-reset-visitor-pool-on-container-restart">Layer 3 — <code class="docutils literal notranslate"><span class="pre">reset_visitor_pool</span></code> on container restart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#what-gets-cleared">What gets cleared</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#pool-lifecycle-diagram">Pool lifecycle diagram</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#operations">Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#further-reading">Further reading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_cloud.html">scitex_cloud Package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/scitex_cloud.html#main-package">Main Package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/index.html#package-overview">Package Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/_autosummary/scitex_cloud.html">scitex_cloud</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.html#scitex_cloud.get_version"><code class="docutils literal notranslate"><span class="pre">get_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.html#scitex_cloud.health_check"><code class="docutils literal notranslate"><span class="pre">health_check()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.html#scitex_cloud.CloudClient"><code class="docutils literal notranslate"><span class="pre">CloudClient</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.html#scitex_cloud.Environment"><code class="docutils literal notranslate"><span class="pre">Environment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.html#scitex_cloud.get_environment"><code class="docutils literal notranslate"><span class="pre">get_environment()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.html#scitex_cloud.DockerManager"><code class="docutils literal notranslate"><span class="pre">DockerManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.appmaker.html">scitex_cloud.appmaker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.module.html">scitex_cloud.module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.project.html">scitex_cloud.project</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.sdk.html">scitex_cloud.sdk</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SciTeX Cloud</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">MCP Server</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/ywatanabe1989/scitex-cloud/blob/main/docs/sphinx/mcp.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="mcp-server">
+<h1>MCP Server<a class="headerlink" href="#mcp-server" title="Link to this heading"></a></h1>
+<p>SciTeX Cloud ships with an <a class="reference external" href="https://modelcontextprotocol.io/">MCP (Model Context Protocol)</a>
+server that lets AI agents — Claude, Cursor, and others — interact with the platform
+autonomously. AI agents can search literature, manage citations, query project files,
+and submit jobs without manual intervention.</p>
+<section id="available-tools">
+<h2>Available Tools<a class="headerlink" href="#available-tools" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15.0%" />
+<col style="width: 10.0%" />
+<col style="width: 75.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Category</p></th>
+<th class="head"><p>Count</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cloud</span></code></p></td>
+<td><p>14</p></td>
+<td><p>Git operations: clone, push, pull, create pull requests, create and list issues</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">api</span></code></p></td>
+<td><p>9</p></td>
+<td><p>Scholar search, CrossRef lookup, BibTeX enrichment, citation management</p></td>
+</tr>
+</tbody>
+</table>
+<p>Run <code class="docutils literal notranslate"><span class="pre">scitex-cloud</span> <span class="pre">mcp</span> <span class="pre">list-tools</span></code> for the full list of tools with descriptions.</p>
+</section>
+<section id="setup-for-claude-desktop">
+<h2>Setup for Claude Desktop<a class="headerlink" href="#setup-for-claude-desktop" title="Link to this heading"></a></h2>
+<p>Add the following to your Claude Desktop configuration
+(<code class="docutils literal notranslate"><span class="pre">~/.config/claude/claude_desktop_config.json</span></code>):</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;scitex-cloud&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;scitex-cloud&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;mcp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;start&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="setup-for-claude-code">
+<h2>Setup for Claude Code<a class="headerlink" href="#setup-for-claude-code" title="Link to this heading"></a></h2>
+<p>Add the following to your project <code class="docutils literal notranslate"><span class="pre">.mcp.json</span></code> (or the global
+<code class="docutils literal notranslate"><span class="pre">~/.claude/.mcp.json</span></code>):</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;scitex-cloud&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;scitex-cloud&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;mcp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;start&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="environment-source-file-env-src">
+<h2>Environment Source File (<code class="docutils literal notranslate"><span class="pre">ENV_SRC</span></code>)<a class="headerlink" href="#environment-source-file-env-src" title="Link to this heading"></a></h2>
+<p>To pass credentials and configuration to the MCP server without hardcoding
+values in the JSON config, use the <code class="docutils literal notranslate"><span class="pre">SCITEX_CLOUD_ENV_SRC</span></code> environment variable.
+Set it to the path of a shell <code class="docutils literal notranslate"><span class="pre">.src</span></code> file that exports the required variables:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># ~/.scitex_cloud.src</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">SCITEX_CLOUD_API_BASE_URL</span><span class="o">=</span>https://scitex.example.com
+<span class="nb">export</span><span class="w"> </span><span class="nv">SCITEX_CLOUD_API_TOKEN</span><span class="o">=</span>your-token-here
+</pre></div>
+</div>
+<p>Then reference it in your MCP config:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;scitex-cloud&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;scitex-cloud&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;mcp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;start&quot;</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;SCITEX_CLOUD_ENV_SRC&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/home/user/.scitex_cloud.src&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The server will source the <code class="docutils literal notranslate"><span class="pre">.src</span></code> file at startup and make all exported
+variables available to the MCP tools.</p>
+</section>
+<section id="cli-commands">
+<h2>CLI Commands<a class="headerlink" href="#cli-commands" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>mcp<span class="w"> </span>start<span class="w">             </span><span class="c1"># Start the MCP server (stdio transport)</span>
+scitex-cloud<span class="w"> </span>mcp<span class="w"> </span>doctor<span class="w">            </span><span class="c1"># Diagnose setup and connectivity</span>
+scitex-cloud<span class="w"> </span>mcp<span class="w"> </span>installation<span class="w">      </span><span class="c1"># Print client configuration instructions</span>
+scitex-cloud<span class="w"> </span>mcp<span class="w"> </span>list-tools<span class="w">        </span><span class="c1"># List all available tools with descriptions</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="sync.html" class="btn btn-neutral float-left" title="Three-Way Sync" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="app_platform.html" class="btn btn-neutral float-right" title="App Platform" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025-2026, SciTeX Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

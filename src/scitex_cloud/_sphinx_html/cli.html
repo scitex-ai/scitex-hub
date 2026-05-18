@@ -1,0 +1,367 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLI Reference &mdash; SciTeX Cloud v0.17.4-alpha</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=cad3b55a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Three-Way Sync" href="sync.html" />
+    <link rel="prev" title="Quick Start" href="quickstart.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            SciTeX Cloud
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#install-from-pypi">Install from PyPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#install-from-source">Install from Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#verify-installation">Verify Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Setup Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#what-you-get">What You Get</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#quick-start-development">Quick Start (Development)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#step-by-step-development-setup">Step-by-Step Development Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#production-setup">Production Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#cli-only-install">CLI-Only Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#configuration-reference">Configuration Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#common-commands">Common Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#deployment">Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#cli-only-install">CLI-Only Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#common-operations">Common Operations</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CLI Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#global-options">Global Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#project-management">Project Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#three-way-sync">Three-Way Sync</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#git-hosting-gitea">Git Hosting (Gitea)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#app-management">App Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cloud-sdk">Cloud SDK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#infrastructure">Infrastructure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mcp-server">MCP Server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utilities">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sync.html">Three-Way Sync</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#commands">Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#conflict-handling">Conflict Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#state-tracking">State Tracking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#typical-workflows">Typical Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mcp.html">MCP Server</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#available-tools">Available Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#setup-for-claude-desktop">Setup for Claude Desktop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#setup-for-claude-code">Setup for Claude Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#environment-source-file-env-src">Environment Source File (<code class="docutils literal notranslate"><span class="pre">ENV_SRC</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#cli-commands">CLI Commands</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="app_platform.html">App Platform</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#workspace-layout">Workspace Layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#platform-services">Platform Services</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#datastore">DataStore</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#filevault">FileVault</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#jobqueue">JobQueue</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#scitexbridge">ScitexBridge</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#externalapi">ExternalAPI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#realtimehub">RealtimeHub</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#frontendkit">FrontendKit</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#app-registration">App Registration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#built-in-apps">Built-in Apps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#external-pip-installed-apps">External (pip-installed) Apps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#context-bootstrap">Context Bootstrap</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#dev-install-workflow">Dev Install Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#app-submission-and-review">App Submission and Review</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#separation-of-concerns">Separation of Concerns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="visitor_pool_security.html">Visitor Pool Security</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#background-the-fix">Background: the fix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-1-reset-workspace-after">Layer 1 — <code class="docutils literal notranslate"><span class="pre">&#64;reset_workspace_after</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-2-ensure-clean-workspace">Layer 2 — <code class="docutils literal notranslate"><span class="pre">&#64;ensure_clean_workspace</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-3-reset-visitor-pool-on-container-restart">Layer 3 — <code class="docutils literal notranslate"><span class="pre">reset_visitor_pool</span></code> on container restart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#what-gets-cleared">What gets cleared</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#pool-lifecycle-diagram">Pool lifecycle diagram</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#operations">Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#further-reading">Further reading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_cloud.html">scitex_cloud Package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/scitex_cloud.html#main-package">Main Package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/index.html#package-overview">Package Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/_autosummary/scitex_cloud.html">scitex_cloud</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.html#scitex_cloud.get_version"><code class="docutils literal notranslate"><span class="pre">get_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.html#scitex_cloud.health_check"><code class="docutils literal notranslate"><span class="pre">health_check()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.html#scitex_cloud.CloudClient"><code class="docutils literal notranslate"><span class="pre">CloudClient</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.html#scitex_cloud.Environment"><code class="docutils literal notranslate"><span class="pre">Environment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.html#scitex_cloud.get_environment"><code class="docutils literal notranslate"><span class="pre">get_environment()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.html#scitex_cloud.DockerManager"><code class="docutils literal notranslate"><span class="pre">DockerManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.appmaker.html">scitex_cloud.appmaker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.module.html">scitex_cloud.module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.project.html">scitex_cloud.project</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_cloud.sdk.html">scitex_cloud.sdk</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SciTeX Cloud</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">CLI Reference</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/ywatanabe1989/scitex-cloud/blob/main/docs/sphinx/cli.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="cli-reference">
+<h1>CLI Reference<a class="headerlink" href="#cli-reference" title="Link to this heading"></a></h1>
+<p>SciTeX Cloud provides a command-line interface for managing projects,
+syncing code, interacting with the Git hosting service, deploying apps,
+and controlling the MCP server.</p>
+<p>Install with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>scitex-cloud
+</pre></div>
+</div>
+<section id="global-options">
+<h2>Global Options<a class="headerlink" href="#global-options" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>--help<span class="w">                    </span><span class="c1"># Show help</span>
+scitex-cloud<span class="w"> </span>--help-recursive<span class="w">          </span><span class="c1"># Show all subcommands recursively</span>
+scitex-cloud<span class="w"> </span>--version<span class="w">                 </span><span class="c1"># Show version</span>
+</pre></div>
+</div>
+</section>
+<section id="project-management">
+<h2>Project Management<a class="headerlink" href="#project-management" title="Link to this heading"></a></h2>
+<p>Create and manage SciTeX Cloud projects. <code class="docutils literal notranslate"><span class="pre">project</span> <span class="pre">create</span></code> triggers the
+full flow: Gitea repository + Django project + server-side workspace.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>project<span class="w"> </span>create<span class="w"> </span>my-research<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;Paper on X&quot;</span>
+scitex-cloud<span class="w"> </span>project<span class="w"> </span>list<span class="w"> </span><span class="o">[</span>--json<span class="o">]</span>
+scitex-cloud<span class="w"> </span>project<span class="w"> </span>delete<span class="w"> </span>my-research<span class="w"> </span>--yes
+scitex-cloud<span class="w"> </span>project<span class="w"> </span>rename<span class="w"> </span>my-research<span class="w"> </span>new-name
+</pre></div>
+</div>
+</section>
+<section id="three-way-sync">
+<h2>Three-Way Sync<a class="headerlink" href="#three-way-sync" title="Link to this heading"></a></h2>
+<p>SciTeX manages three repositories per project:</p>
+<ul class="simple">
+<li><p><strong>Local</strong> — your dev machine</p></li>
+<li><p><strong>Gitea</strong> — source of truth (hosted Git)</p></li>
+<li><p><strong>Workspace</strong> — server-side working directory (web UI edits here)</p></li>
+</ul>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>          Gitea
+         (source of truth)
+        /              \
+  push/pull          (server-side git)
+  (git)
+      /                  \
+   Local ------------ Workspace
+(dev machine)  sync-to/from  (server-side)
+                (files)
+</pre></div>
+</div>
+<p><strong>Git operations</strong> (committed changes):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>push<span class="w">              </span><span class="c1"># git push → Gitea</span>
+scitex-cloud<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>main<span class="w">  </span><span class="c1"># push specific branch</span>
+scitex-cloud<span class="w"> </span>pull<span class="w">              </span><span class="c1"># git pull ← Gitea</span>
+scitex-cloud<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </span>main<span class="w">  </span><span class="c1"># pull specific branch</span>
+</pre></div>
+</div>
+<p><strong>File sync</strong> (working tree, Dropbox-style):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>sync-to<span class="w">                    </span><span class="c1"># local → workspace</span>
+scitex-cloud<span class="w"> </span>sync-to<span class="w"> </span>ywatanabe/my-proj<span class="w">  </span><span class="c1"># explicit repo</span>
+scitex-cloud<span class="w"> </span>sync-to<span class="w"> </span>--dry-run<span class="w">          </span><span class="c1"># preview changes</span>
+scitex-cloud<span class="w"> </span>sync-from<span class="w">                  </span><span class="c1"># workspace → local</span>
+scitex-cloud<span class="w"> </span>sync-from<span class="w"> </span>--dry-run<span class="w">        </span><span class="c1"># preview changes</span>
+</pre></div>
+</div>
+<p>Conflict handling: when both sides changed the same file since the last
+sync, both versions are kept — the synced version overwrites, and the
+other side’s version is saved as <code class="docutils literal notranslate"><span class="pre">file.conflict-&lt;timestamp&gt;.ext</span></code>.</p>
+<p><strong>Status</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>sync-status<span class="w">  </span><span class="c1"># show divergence (alias: ss)</span>
+</pre></div>
+</div>
+</section>
+<section id="git-hosting-gitea">
+<h2>Git Hosting (Gitea)<a class="headerlink" href="#git-hosting-gitea" title="Link to this heading"></a></h2>
+<p>Lower-level Gitea operations. For most workflows, use <code class="docutils literal notranslate"><span class="pre">push</span></code>/<code class="docutils literal notranslate"><span class="pre">pull</span></code>
+and <code class="docutils literal notranslate"><span class="pre">project</span> <span class="pre">create</span></code> instead.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>list<span class="w">                </span><span class="c1"># List repositories</span>
+scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>clone<span class="w"> </span>user/repo<span class="w">     </span><span class="c1"># Clone a repository</span>
+scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>create<span class="w"> </span>my-repo<span class="w">      </span><span class="c1"># Create Gitea repo only</span>
+scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>push<span class="w">                </span><span class="c1"># Push changes</span>
+scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>pull<span class="w">                </span><span class="c1"># Pull changes</span>
+scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>search<span class="w"> </span><span class="s2">&quot;query&quot;</span><span class="w">      </span><span class="c1"># Search repos</span>
+scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>fork<span class="w"> </span>user/repo<span class="w">      </span><span class="c1"># Fork a repo</span>
+scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>pr<span class="w"> </span>create<span class="w">           </span><span class="c1"># Create a pull request</span>
+scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>pr<span class="w"> </span>list<span class="w">             </span><span class="c1"># List pull requests</span>
+scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>issue<span class="w"> </span>create<span class="w">        </span><span class="c1"># Create an issue</span>
+scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>issue<span class="w"> </span>list<span class="w">          </span><span class="c1"># List issues</span>
+scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>login<span class="w">               </span><span class="c1"># Authenticate</span>
+scitex-cloud<span class="w"> </span>gitea<span class="w"> </span><span class="nb">logout</span><span class="w">              </span><span class="c1"># Remove credentials</span>
+scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>status<span class="w">              </span><span class="c1"># Repo status</span>
+</pre></div>
+</div>
+</section>
+<section id="app-management">
+<h2>App Management<a class="headerlink" href="#app-management" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>app<span class="w"> </span>list<span class="w">                  </span><span class="c1"># List installed apps</span>
+scitex-cloud<span class="w"> </span>app<span class="w"> </span>info<span class="w"> </span>&lt;name&gt;<span class="w">           </span><span class="c1"># App details</span>
+scitex-cloud<span class="w"> </span>app<span class="w"> </span>current<span class="w">               </span><span class="c1"># Active app</span>
+scitex-cloud<span class="w"> </span>app<span class="w"> </span>init<span class="w"> </span>.<span class="w"> </span>--name<span class="w"> </span>my_app<span class="w">  </span><span class="c1"># Scaffold new app</span>
+scitex-cloud<span class="w"> </span>app<span class="w"> </span>check-deps<span class="w"> </span>&lt;name&gt;<span class="w">     </span><span class="c1"># Check dependencies</span>
+scitex-cloud<span class="w"> </span>app<span class="w"> </span>submit<span class="w"> </span>&lt;path&gt;<span class="w">         </span><span class="c1"># Submit for review</span>
+scitex-cloud<span class="w"> </span>app<span class="w"> </span>prefs<span class="w"> </span>get/set<span class="w">         </span><span class="c1"># User preferences</span>
+</pre></div>
+</div>
+</section>
+<section id="cloud-sdk">
+<h2>Cloud SDK<a class="headerlink" href="#cloud-sdk" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># DataStore (JSON CRUD)</span>
+scitex-cloud<span class="w"> </span>sdk<span class="w"> </span>data<span class="w"> </span>list<span class="p">|</span>create<span class="p">|</span>get<span class="p">|</span>update<span class="p">|</span>delete<span class="p">|</span>search
+
+<span class="c1"># FileVault (file storage)</span>
+scitex-cloud<span class="w"> </span>sdk<span class="w"> </span>files<span class="w"> </span>list<span class="p">|</span>upload<span class="p">|</span>download<span class="p">|</span>delete
+
+<span class="c1"># JobQueue (background compute)</span>
+scitex-cloud<span class="w"> </span>sdk<span class="w"> </span><span class="nb">jobs</span><span class="w"> </span>submit<span class="p">|</span>status<span class="p">|</span>list<span class="p">|</span>cancel
+</pre></div>
+</div>
+</section>
+<section id="infrastructure">
+<h2>Infrastructure<a class="headerlink" href="#infrastructure" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>status<span class="w">                    </span><span class="c1"># Deployment health</span>
+scitex-cloud<span class="w"> </span>deploy<span class="w">                    </span><span class="c1"># Deploy to production</span>
+scitex-cloud<span class="w"> </span>setup<span class="w"> </span><span class="o">[</span>--env<span class="w"> </span>dev<span class="p">|</span>prod<span class="o">]</span><span class="w">    </span><span class="c1"># Setup environment</span>
+scitex-cloud<span class="w"> </span>docker<span class="w"> </span>up<span class="p">|</span>down<span class="p">|</span>restart<span class="w">    </span><span class="c1"># Container management</span>
+scitex-cloud<span class="w"> </span>logs<span class="w"> </span><span class="o">[</span>service<span class="o">]</span><span class="w">            </span><span class="c1"># View logs</span>
+scitex-cloud<span class="w"> </span>ssh<span class="w">                       </span><span class="c1"># SSH into cloud instance</span>
+</pre></div>
+</div>
+</section>
+<section id="mcp-server">
+<h2>MCP Server<a class="headerlink" href="#mcp-server" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>mcp<span class="w"> </span>start<span class="w">                 </span><span class="c1"># Start the MCP server</span>
+scitex-cloud<span class="w"> </span>mcp<span class="w"> </span>list-tools<span class="w">            </span><span class="c1"># List available MCP tools</span>
+scitex-cloud<span class="w"> </span>mcp<span class="w"> </span>doctor<span class="w">                </span><span class="c1"># Diagnose MCP setup</span>
+</pre></div>
+</div>
+<p>For full MCP documentation, see <a class="reference internal" href="mcp.html"><span class="doc">MCP Server</span></a>.</p>
+</section>
+<section id="utilities">
+<h2>Utilities<a class="headerlink" href="#utilities" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>completion<span class="w">                </span><span class="c1"># Set up shell completion</span>
+scitex-cloud<span class="w"> </span>list-python-apis<span class="w">          </span><span class="c1"># List all available Python APIs</span>
+scitex-cloud<span class="w"> </span>skills<span class="w"> </span>list<span class="w">               </span><span class="c1"># List available skills</span>
+scitex-cloud<span class="w"> </span>skills<span class="w"> </span>get<span class="w"> </span>&lt;name&gt;<span class="w">         </span><span class="c1"># Show a skill</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quickstart.html" class="btn btn-neutral float-left" title="Quick Start" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="sync.html" class="btn btn-neutral float-right" title="Three-Way Sync" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025-2026, SciTeX Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
