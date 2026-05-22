@@ -1,10 +1,11 @@
-# Coverage reporting configuration for scitex-cloud.
-#
-# The project still has substantial Django app surface and CLI code not
-# fully exercised by the unit suite — keep the target on "auto" while
-# the per-module coverage push (subprocess wiring landed 2026-05) drives
-# the absolute number up. Switch to a hard floor once the baseline
-# settles above 80%.
+codecov:
+  require_ci_to_pass: false
+  # Treat develop as the de-facto default branch — main is a stable
+  # release mirror that only fast-forwards from develop, so develop
+  # is where coverage uploads land. This makes the unbranched badge
+  # endpoint (/graph/badge.svg) follow develop's value.
+  branch: develop
+
 coverage:
   status:
     project:
@@ -13,7 +14,16 @@ coverage:
         threshold: 1%
     patch:
       default:
-        target: auto
-        threshold: 1%
+        target: 80%
 
-comment: false
+ignore:
+  - "src/scitex_cloud/_sphinx_html/**"
+  - "src/scitex_cloud/_skills/**"
+  - "src/scitex_cloud/_completion.py"
+  - "src/scitex_cloud/_cli/_completion.py"
+  - "tests/**"
+  - "examples/**"
+
+comment:
+  layout: "diff, files"
+  require_changes: true
