@@ -77,7 +77,7 @@ def api_browse(request):
             )
 
     html = render_to_string(
-        "hub_app/partials/browse_content.html",
+        "repo_app/partials/browse_content.html",
         {
             "project": current_project,
             "directories": dirs,
@@ -147,7 +147,7 @@ def api_file_view(request):
     )
 
     html = render_to_string(
-        "hub_app/partials/file_content.html",
+        "repo_app/partials/file_content.html",
         {
             "project": current_project,
             "file_name": file_name,

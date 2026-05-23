@@ -40,7 +40,7 @@ def reset_database():
         "apps/workspace/console_app/migrations",
         "apps/workspace/writer_app/migrations",
         "apps/workspace/scholar_app/migrations",
-        "apps/workspace/hub_app/migrations",
+        "apps/workspace/repo_app/migrations",
         "apps/workspace/docs_app/migrations",
         "apps/workspace/discovery_app/migrations",
         "apps/infra/project_app/migrations",

@@ -50,7 +50,7 @@ apps/workspace/*/static/*/ts/ (app code imports via @/components/*)
 
 | App | Shortcut | Description |
 |-----|----------|-------------|
-| hub_app | Alt+H | User dashboard, projects |
+| repo_app | Alt+H | User dashboard, projects |
 | writer_app | Alt+W | LaTeX manuscript editor |
 | scholar_app | Alt+S | Literature management |
 | figrecipe_app | Alt+F | Interactive figure editor |

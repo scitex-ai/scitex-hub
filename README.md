@@ -103,7 +103,7 @@ graph TB
         S[scholar_app] --- W[writer_app]
         W --- F[figrecipe / plt]
         F --- CN[console_app]
-        CN --- H[hub_app]
+        CN --- H[repo_app]
         H --- CW[clew_app]
     end
     subgraph infra[apps/infra]
@@ -325,7 +325,7 @@ scitex-hub/
 │   │   ├── scholar_app/   # Literature discovery
 │   │   ├── writer_app/    # Scientific writing
 │   │   ├── console_app/   # Terminal & code execution
-│   │   ├── hub_app/       # Project hub & file browser
+│   │   ├── repo_app/       # Project hub & file browser
 │   │   └── clew_app/      # Verification pipeline
 │   ├── infra/             # Platform infrastructure
 │   │   ├── workspace_app/ # Module registry & workspace shell

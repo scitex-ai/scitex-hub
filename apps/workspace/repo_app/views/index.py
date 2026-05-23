@@ -141,7 +141,7 @@ def index_view(request):
         # Non-browser request - return empty page
         return render(
             request,
-            "hub_app/index.html",
+            "repo_app/index.html",
             {
                 "is_visitor": True,
             },
@@ -156,7 +156,7 @@ def index_view(request):
         context["hub_view_mode"] = "profile"
         context["hub_profile_username"] = profile_username
         context.update(_build_profile_context(request, profile_username))
-        return render(request, "hub_app/index.html", context)
+        return render(request, "repo_app/index.html", context)
 
     current_project = (
         get_current_project(request, user=request.user)
@@ -164,7 +164,7 @@ def index_view(request):
         else None
     )
     context = build_hub_context(request, current_project=current_project)
-    return render(request, "hub_app/index.html", context)
+    return render(request, "repo_app/index.html", context)
 
 
 def explore_view(request):
@@ -173,7 +173,7 @@ def explore_view(request):
         return redirect("public_app:visitor_pool_full")
     context = build_hub_context(request)
     context["hub_initial_mode"] = "explore"
-    return render(request, "hub_app/index.html", context)
+    return render(request, "repo_app/index.html", context)
 
 
 def current_project_view(request):
@@ -183,7 +183,7 @@ def current_project_view(request):
     current_project = get_current_project(request, user=request.user)
     context = build_hub_context(request, current_project=current_project)
     context["hub_initial_mode"] = "projects"
-    return render(request, "hub_app/index.html", context)
+    return render(request, "repo_app/index.html", context)
 
 
 def _build_profile_context(request, username):

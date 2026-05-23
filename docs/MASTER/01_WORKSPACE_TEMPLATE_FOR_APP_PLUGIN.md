@@ -187,17 +187,17 @@ all HTML + a `<link>` tag for its own CSS.
 ### Hub
 
 ```
-apps/hub_app/templates/hub_app/index.html
+apps/repo_app/templates/repo_app/index.html
 ```
 
 ```html
 {% extends "global_base.html" %}
 {% block title %}Hub{% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'hub_app/css/hub.css' %}" />
+    <link rel="stylesheet" href="{% static 'repo_app/css/hub.css' %}" />
 {% endblock %}
 {% block content %}
-    {% include "hub_app/index_partial.html" %}
+    {% include "repo_app/index_partial.html" %}
 {% endblock %}
 ```
 

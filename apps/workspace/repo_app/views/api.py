@@ -111,7 +111,7 @@ def api_issues(request):
     closed_count = current_project.issues.filter(state="closed").count()
 
     html = render_to_string(
-        "hub_app/partials/issues_content.html",
+        "repo_app/partials/issues_content.html",
         {
             "project": current_project,
             "issues": issues,
@@ -161,7 +161,7 @@ def api_pulls(request):
     ).count()
 
     html = render_to_string(
-        "hub_app/partials/pulls_content.html",
+        "repo_app/partials/pulls_content.html",
         {
             "project": current_project,
             "prs": prs,
@@ -189,7 +189,7 @@ def api_settings(request):
         )
 
     html = render_to_string(
-        "hub_app/partials/settings_content.html",
+        "repo_app/partials/settings_content.html",
         {
             "project": current_project,
             "is_owner": current_project.owner == request.user,
@@ -258,7 +258,7 @@ def api_select_project(request):
     _add_file_browser_context(request, project, context)
 
     html = render_to_string(
-        "hub_app/partials/project_workspace.html", context, request=request
+        "repo_app/partials/project_workspace.html", context, request=request
     )
     return JsonResponse(
         {
@@ -325,7 +325,7 @@ def api_projects_overview(request):
     projects_count = Project.objects.filter(owner=request.user).count()
 
     html = render_to_string(
-        "hub_app/partials/projects_overview.html",
+        "repo_app/partials/projects_overview.html",
         {"user_projects": user_projects, "projects_count": projects_count},
         request=request,
     )
@@ -340,7 +340,7 @@ def api_account_settings(request):
 
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     html = render_to_string(
-        "hub_app/partials/account_settings_content.html",
+        "repo_app/partials/account_settings_content.html",
         {"profile": profile, "user": request.user},
         request=request,
     )
@@ -394,7 +394,7 @@ def api_explore(request):
         context["organizations"] = organizations
 
     html = render_to_string(
-        "hub_app/partials/explore_content.html", context, request=request
+        "repo_app/partials/explore_content.html", context, request=request
     )
     return JsonResponse({"success": True, "html": html})
 

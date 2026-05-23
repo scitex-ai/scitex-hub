@@ -33,7 +33,7 @@ def api_me(request):
     organizations = Organization.objects.filter(members=user).order_by("name")
 
     html = render_to_string(
-        "hub_app/partials/user_profile_content.html",
+        "repo_app/partials/user_profile_content.html",
         {
             "profile_user": user,
             "projects": user_projects,
@@ -84,7 +84,7 @@ def api_user_profile(request):
     organizations = Organization.objects.filter(members=profile_user).order_by("name")
 
     html = render_to_string(
-        "hub_app/partials/user_profile_content.html",
+        "repo_app/partials/user_profile_content.html",
         {
             "profile_user": profile_user,
             "projects": user_projects,

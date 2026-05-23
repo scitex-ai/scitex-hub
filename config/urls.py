@@ -24,8 +24,8 @@ from apps.infra.project_app.views import (
     project_create,
 )
 from apps.infra.public_app.views import healthz
-from apps.workspace.hub_app.views.dispatch import root_dispatch
-from apps.workspace.hub_app.views.index import current_project_view
+from apps.workspace.repo_app.views.dispatch import root_dispatch
+from apps.workspace.repo_app.views.index import current_project_view
 from config.urls_helpers import RESERVED_PATHS, dev_module_view  # noqa: F401
 
 urlpatterns = [
@@ -81,8 +81,8 @@ urlpatterns = [
     ),
     path("oauth/", include("oauth2_provider.urls", namespace="oauth2_provider")),
     # --- Hub ---
-    path("apps/home/api/", include("apps.workspace.hub_app.urls.api")),
-    path("apps/home/", include("apps.workspace.hub_app.urls.index")),
+    path("apps/home/api/", include("apps.workspace.repo_app.urls.api")),
+    path("apps/home/", include("apps.workspace.repo_app.urls.index")),
     # --- Discovery ---
     path(
         "apps/discovery/",

@@ -65,7 +65,7 @@ Add manifest path to `_BUILTIN_MANIFEST_PATHS` in `registry.py`:
 
 ```python
 _BUILTIN_MANIFEST_PATHS = [
-    "workspace/hub_app/manifest.json",
+    "workspace/repo_app/manifest.json",
     "workspace/my_app/manifest.json",  # add here
 ]
 ```
