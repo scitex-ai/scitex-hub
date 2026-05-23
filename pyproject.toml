@@ -99,13 +99,11 @@ all = [
     # --- SciTeX umbrella (Django-settings imports `import scitex as stx`
     # for `@stx.session` / `stx.session.INJECTED` / `@stx.module`, so
     # this is a hard runtime requirement, not an optional sibling.) ---
-    # TEMPORARY upper-bound: scitex 2.29.0 / 2.29.1 ship a broken
-    # exact-pin on `scitex-config==0.3.3` (a version never published to
-    # PyPI), so any install touching scitex>=2.29 hits
-    # `ResolutionImpossible`. Tracking upstream fix in
-    # https://github.com/ywatanabe1989/scitex-python/issues/282 —
-    # relax to `scitex>=2.28.13` once 2.29.2 lands with sane `>=` pins.
-    "scitex>=2.28.13,<2.29",
+    # scitex 2.29.3 restored sane `>=` pins for sub-packages (the broken
+    # `scitex-config==0.3.3` exact-pin on 2.29.0/2.29.1 was the original
+    # ResolutionImpossible — see scitex-python#282, resolved). Floor at
+    # 2.29.3 to skip the broken 2.29.0/2.29.1 entirely.
+    "scitex>=2.29.3",
     "scitex-ui>=0.2.0",
     # --- GUI (dearpygui-based modules) ---
     "dearpygui>=1.11",
