@@ -134,7 +134,7 @@ if __name__ == "__main__":
 #     },
 #     "visitor_pool": {
 #         "color": "#C9CBCF",
-#         "y_max": int(getattr(settings, "SCITEX_CLOUD_VISITOR_POOL_SIZE", 4) * 1.1),
+#         "y_max": int(getattr(settings, "SCITEX_HUB_VISITOR_POOL_SIZE", 4) * 1.1),
 #         "fill": True,
 #         "field": "visitor_pool_allocated",
 #         "ylabel": "Slots (n)",

@@ -41,7 +41,7 @@ def print_script(shell):
     # Import the main CLI to get completions
     from .main import main
 
-    comp = comp_cls(main, {}, "scitex-hub", "_SCITEX_CLOUD_COMPLETE")
+    comp = comp_cls(main, {}, "scitex-hub", "_SCITEX_HUB_COMPLETE")
     click.echo(comp.source())
 
 

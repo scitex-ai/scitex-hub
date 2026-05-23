@@ -19,8 +19,8 @@ from .._config._environments import ENVIRONMENTS, get_environment
     "--env",
     type=click.Choice(list(ENVIRONMENTS.keys())),
     default=None,
-    envvar="SCITEX_CLOUD_ENV",
-    help="Target environment — dev, prod (env: SCITEX_CLOUD_ENV)",
+    envvar="SCITEX_HUB_ENV",
+    help="Target environment — dev, prod (env: SCITEX_HUB_ENV)",
 )
 @click.option("--force", is_flag=True, help="Overwrite existing configuration")
 def setup(env, force):
@@ -28,14 +28,14 @@ def setup(env, force):
 
     \b
     Non-interactive setup wizard. Environment resolution (spec §6b):
-    --env flag > SCITEX_CLOUD_ENV env var > config file `env` key.
+    --env flag > SCITEX_HUB_ENV env var > config file `env` key.
     Missing value fails fast with exit code 2 — no prompt.
 
     \b
     Examples:
         scitex-hub setup --env dev    # Setup development environment
         scitex-hub setup --env prod   # Setup production environment
-        SCITEX_CLOUD_ENV=dev scitex-hub setup
+        SCITEX_HUB_ENV=dev scitex-hub setup
     """
     click.echo(click.style("SciTeX Hub Setup", fg="cyan", bold=True))
     click.echo()
@@ -48,7 +48,7 @@ def setup(env, force):
 
     if env is None:
         click.echo(
-            "error: set SCITEX_CLOUD_ENV or pass --env (choices: "
+            "error: set SCITEX_HUB_ENV or pass --env (choices: "
             f"{', '.join(ENVIRONMENTS.keys())})",
             err=True,
         )

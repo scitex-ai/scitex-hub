@@ -23,6 +23,10 @@ repos:
       - id: end-of-file-fixer
         exclude: migrations/
       - id: check-yaml
+        # mkdocs.yml uses MkDocs' custom !ENV tag — without --unsafe the
+        # check fails to construct the tag (ConstructorError). The flag
+        # only allows custom tags; it does NOT execute them.
+        args: ['--unsafe']
       - id: check-json
 
   # Python security

@@ -66,8 +66,8 @@ SciTeX Hub: Git and Cloud API Operations (https://scitex.ai)
 - app_set_prefs: Set user app preferences
 
 ## Configuration:
-- SCITEX_CLOUD_API_KEY: API key for authenticated endpoints
-- SCITEX_CLOUD_URL: Cloud server URL (default: https://scitex.cloud)
+- SCITEX_HUB_API_KEY: API key for authenticated endpoints
+- SCITEX_HUB_URL: Cloud server URL (default: https://scitex.cloud)
 """,
     )
 else:

@@ -79,14 +79,14 @@ check_postgres_status() {
 
     # Database connection test
     echo_info "Database Connection:"
-    SCITEX_CLOUD_POSTGRES_USER="${SCITEX_CLOUD_POSTGRES_USER:-scitex_dev}"
-    SCITEX_CLOUD_POSTGRES_DB="${SCITEX_CLOUD_POSTGRES_DB:-scitex_hub_dev}"
+    SCITEX_HUB_POSTGRES_USER="${SCITEX_HUB_POSTGRES_USER:-scitex_dev}"
+    SCITEX_HUB_POSTGRES_DB="${SCITEX_HUB_POSTGRES_DB:-scitex_hub_dev}"
 
     if docker-compose -f docker-compose.dev.yml exec -T db \
-        psql -U "$SCITEX_CLOUD_POSTGRES_USER" -d "$SCITEX_CLOUD_POSTGRES_DB" -c "SELECT 1;" > /dev/null 2>&1; then
+        psql -U "$SCITEX_HUB_POSTGRES_USER" -d "$SCITEX_HUB_POSTGRES_DB" -c "SELECT 1;" > /dev/null 2>&1; then
         echo_success "  ✓ Connection successful"
-        echo_info "  User: $SCITEX_CLOUD_POSTGRES_USER"
-        echo_info "  Database: $SCITEX_CLOUD_POSTGRES_DB"
+        echo_info "  User: $SCITEX_HUB_POSTGRES_USER"
+        echo_info "  Database: $SCITEX_HUB_POSTGRES_DB"
     else
         echo_error "  ✗ Connection failed"
         echo_info "  Check credentials in .env"
@@ -97,22 +97,22 @@ check_postgres_status() {
     # Database version
     echo_info "PostgreSQL Version:"
     VERSION=$(docker-compose -f docker-compose.dev.yml exec -T db \
-        psql -U "$SCITEX_CLOUD_POSTGRES_USER" -t -c "SELECT version();" 2> /dev/null | head -1 | xargs)
+        psql -U "$SCITEX_HUB_POSTGRES_USER" -t -c "SELECT version();" 2> /dev/null | head -1 | xargs)
     echo_info "  $VERSION"
     echo
 
     # Database size
     echo_info "Database Size:"
     DB_SIZE=$(docker-compose -f docker-compose.dev.yml exec -T db \
-        psql -U "$SCITEX_CLOUD_POSTGRES_USER" -d "$SCITEX_CLOUD_POSTGRES_DB" -t \
-        -c "SELECT pg_size_pretty(pg_database_size('$SCITEX_CLOUD_POSTGRES_DB'));" 2> /dev/null | xargs)
-    echo_info "  $SCITEX_CLOUD_POSTGRES_DB: $DB_SIZE"
+        psql -U "$SCITEX_HUB_POSTGRES_USER" -d "$SCITEX_HUB_POSTGRES_DB" -t \
+        -c "SELECT pg_size_pretty(pg_database_size('$SCITEX_HUB_POSTGRES_DB'));" 2> /dev/null | xargs)
+    echo_info "  $SCITEX_HUB_POSTGRES_DB: $DB_SIZE"
     echo
 
     # Active connections
     echo_info "Active Connections:"
     docker-compose -f docker-compose.dev.yml exec -T db \
-        psql -U "$SCITEX_CLOUD_POSTGRES_USER" -d "$SCITEX_CLOUD_POSTGRES_DB" -c \
+        psql -U "$SCITEX_HUB_POSTGRES_USER" -d "$SCITEX_HUB_POSTGRES_DB" -c \
         "SELECT datname, count(*) as connections
          FROM pg_stat_activity
          WHERE datname IS NOT NULL
@@ -120,16 +120,16 @@ check_postgres_status() {
     echo
 
     # Tables
-    echo_info "Tables in $SCITEX_CLOUD_POSTGRES_DB:"
+    echo_info "Tables in $SCITEX_HUB_POSTGRES_DB:"
     TABLE_COUNT=$(docker-compose -f docker-compose.dev.yml exec -T db \
-        psql -U "$SCITEX_CLOUD_POSTGRES_USER" -d "$SCITEX_CLOUD_POSTGRES_DB" -t \
+        psql -U "$SCITEX_HUB_POSTGRES_USER" -d "$SCITEX_HUB_POSTGRES_DB" -t \
         -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2> /dev/null | xargs)
     echo_info "  Total tables: $TABLE_COUNT"
 
     if [ "$TABLE_COUNT" -gt 0 ]; then
         echo_info "  Recent tables (top 5 by size):"
         docker-compose -f docker-compose.dev.yml exec -T db \
-            psql -U "$SCITEX_CLOUD_POSTGRES_USER" -d "$SCITEX_CLOUD_POSTGRES_DB" -c \
+            psql -U "$SCITEX_HUB_POSTGRES_USER" -d "$SCITEX_HUB_POSTGRES_DB" -c \
             "SELECT tablename, pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size
              FROM pg_tables
              WHERE schemaname = 'public'
@@ -169,8 +169,8 @@ check_postgres_status() {
     # Summary
     echo_header "Quick Actions"
     echo_info "View logs:     docker logs docker_db_1 -f"
-    echo_info "psql shell:    docker-compose -f docker-compose.dev.yml exec db psql -U $SCITEX_CLOUD_POSTGRES_USER -d $SCITEX_CLOUD_POSTGRES_DB"
-    echo_info "Backup DB:     docker-compose -f docker-compose.dev.yml exec db pg_dump -U $SCITEX_CLOUD_POSTGRES_USER $SCITEX_CLOUD_POSTGRES_DB > backup.sql"
+    echo_info "psql shell:    docker-compose -f docker-compose.dev.yml exec db psql -U $SCITEX_HUB_POSTGRES_USER -d $SCITEX_HUB_POSTGRES_DB"
+    echo_info "Backup DB:     docker-compose -f docker-compose.dev.yml exec db pg_dump -U $SCITEX_HUB_POSTGRES_USER $SCITEX_HUB_POSTGRES_DB > backup.sql"
     echo_info "Restart:       cd $DOCKER_DIR && docker-compose -f docker-compose.dev.yml restart db"
 }
 

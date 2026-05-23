@@ -283,8 +283,8 @@ cp deployment/docker/envs/.env.example deployment/docker/docker_dev/.env</code><
             <p>
                 <strong>2. Set secret key</strong> (edit <code>.env</code>)
             </p>
-            <pre><code>SCITEX_CLOUD_DJANGO_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')
-SCITEX_CLOUD_POSTGRES_PASSWORD=your-dev-password</code></pre>
+            <pre><code>SCITEX_HUB_DJANGO_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')
+SCITEX_HUB_POSTGRES_PASSWORD=your-dev-password</code></pre>
             <p>
                 <strong>3. Start services</strong>
             </p>
@@ -320,10 +320,10 @@ make ENV=prod check-host</code></pre>
                 <strong>3. Configure for production</strong> (edit <code>.env</code>)
             </p>
             <pre><code>DEBUG=False
-SCITEX_CLOUD_DOMAIN=scitex.example.com
-SCITEX_CLOUD_SITE_URL=https://scitex.example.com
-SCITEX_CLOUD_ENABLE_SSL_REDIRECT=true
-SCITEX_CLOUD_DJANGO_SECRET_KEY=your-strong-secret-key</code></pre>
+SCITEX_HUB_DOMAIN=scitex.example.com
+SCITEX_HUB_SITE_URL=https://scitex.example.com
+SCITEX_HUB_ENABLE_SSL_REDIRECT=true
+SCITEX_HUB_DJANGO_SECRET_KEY=your-strong-secret-key</code></pre>
             <p>
                 <strong>4. Build and start</strong>
             </p>
@@ -360,7 +360,7 @@ make status</code></pre>
                             <strong>Server</strong>
                         </td>
                         <td>
-                            <code>SCITEX_CLOUD_DOMAIN</code>, <code>SCITEX_CLOUD_SITE_URL</code>, <code>SCITEX_CLOUD_ALLOWED_HOSTS</code>
+                            <code>SCITEX_HUB_DOMAIN</code>, <code>SCITEX_HUB_SITE_URL</code>, <code>SCITEX_HUB_ALLOWED_HOSTS</code>
                         </td>
                     </tr>
                     <tr>
@@ -368,7 +368,7 @@ make status</code></pre>
                             <strong>Database</strong>
                         </td>
                         <td>
-                            <code>SCITEX_CLOUD_POSTGRES_DB</code>, <code>SCITEX_CLOUD_POSTGRES_USER</code>, <code>SCITEX_CLOUD_POSTGRES_PASSWORD</code>
+                            <code>SCITEX_HUB_POSTGRES_DB</code>, <code>SCITEX_HUB_POSTGRES_USER</code>, <code>SCITEX_HUB_POSTGRES_PASSWORD</code>
                         </td>
                     </tr>
                     <tr>
@@ -376,7 +376,7 @@ make status</code></pre>
                             <strong>Email</strong>
                         </td>
                         <td>
-                            <code>SCITEX_CLOUD_EMAIL_HOST</code>, <code>SCITEX_CLOUD_EMAIL_PORT</code>, <code>SCITEX_CLOUD_EMAIL_USE_TLS</code>
+                            <code>SCITEX_HUB_EMAIL_HOST</code>, <code>SCITEX_HUB_EMAIL_PORT</code>, <code>SCITEX_HUB_EMAIL_USE_TLS</code>
                         </td>
                     </tr>
                     <tr>
@@ -384,7 +384,7 @@ make status</code></pre>
                             <strong>Gitea</strong>
                         </td>
                         <td>
-                            <code>SCITEX_CLOUD_GITEA_URL_DEV</code>, <code>SCITEX_CLOUD_GITEA_ADMIN_USERNAME</code>, <code>SCITEX_CLOUD_GITEA_TOKEN_DEV</code>
+                            <code>SCITEX_HUB_GITEA_URL_DEV</code>, <code>SCITEX_HUB_GITEA_ADMIN_USERNAME</code>, <code>SCITEX_HUB_GITEA_TOKEN_DEV</code>
                         </td>
                     </tr>
                     <tr>
@@ -400,7 +400,7 @@ make status</code></pre>
                             <strong>SLURM</strong>
                         </td>
                         <td>
-                            <code>SCITEX_CLOUD_SLURM_HOST</code>, <code>SCITEX_CLOUD_SLURM_CONTAINER_PATH</code>, <code>SCITEX_CLOUD_USER_DATA_ROOT</code>
+                            <code>SCITEX_HUB_SLURM_HOST</code>, <code>SCITEX_HUB_SLURM_CONTAINER_PATH</code>, <code>SCITEX_HUB_USER_DATA_ROOT</code>
                         </td>
                     </tr>
                     <tr>
@@ -408,7 +408,7 @@ make status</code></pre>
                             <strong>Quotas</strong>
                         </td>
                         <td>
-                            <code>SCITEX_CLOUD_QUOTA_SLURM_MAX_CONCURRENT_JOBS</code>, <code>SCITEX_CLOUD_QUOTA_STORAGE_TOTAL_GB</code>, <code>SCITEX_CLOUD_QUOTA_MAX_PROJECTS</code>
+                            <code>SCITEX_HUB_QUOTA_SLURM_MAX_CONCURRENT_JOBS</code>, <code>SCITEX_HUB_QUOTA_STORAGE_TOTAL_GB</code>, <code>SCITEX_HUB_QUOTA_MAX_PROJECTS</code>
                         </td>
                     </tr>
                     <tr>
@@ -416,7 +416,7 @@ make status</code></pre>
                             <strong>OAuth</strong>
                         </td>
                         <td>
-                            <code>SCITEX_CLOUD_GOOGLE_CLIENT_ID</code>, <code>SCITEX_CLOUD_ORCID_CLIENT_ID</code>
+                            <code>SCITEX_HUB_GOOGLE_CLIENT_ID</code>, <code>SCITEX_HUB_ORCID_CLIENT_ID</code>
                         </td>
                     </tr>
                 </tbody>

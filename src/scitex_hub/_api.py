@@ -25,9 +25,9 @@ class CloudClient:
     Parameters
     ----------
     api_key : str, optional
-        API key for authenticated endpoints. Falls back to SCITEX_CLOUD_API_KEY env var.
+        API key for authenticated endpoints. Falls back to SCITEX_HUB_API_KEY env var.
     base_url : str, optional
-        Cloud server URL. Falls back to SCITEX_CLOUD_URL env var or https://scitex.cloud.
+        Cloud server URL. Falls back to SCITEX_HUB_URL env var or https://scitex.cloud.
 
     Examples
     --------
@@ -41,9 +41,9 @@ class CloudClient:
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
     ):
-        self.api_key = api_key or os.environ.get("SCITEX_CLOUD_API_KEY")
+        self.api_key = api_key or os.environ.get("SCITEX_HUB_API_KEY")
         self.base_url = (
-            base_url or os.environ.get("SCITEX_CLOUD_URL") or "https://scitex.cloud"
+            base_url or os.environ.get("SCITEX_HUB_URL") or "https://scitex.cloud"
         )
 
     def _request(
@@ -63,7 +63,7 @@ class CloudClient:
         if auth_required:
             if not self.api_key:
                 raise ValueError(
-                    "API key required. Set SCITEX_CLOUD_API_KEY or pass api_key."
+                    "API key required. Set SCITEX_HUB_API_KEY or pass api_key."
                 )
             headers["Authorization"] = f"Bearer {self.api_key}"
 

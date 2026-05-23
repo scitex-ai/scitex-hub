@@ -38,11 +38,11 @@ PROJECT_ROOT="/home/ywatanabe/proj/scitex-hub"
 
 # Critical environment variables that should exist
 CRITICAL_VARS=(
-    "SCITEX_CLOUD_DJANGO_SECRET_KEY"
-    "SCITEX_CLOUD_SCITEX_CLOUD_DJANGO_SETTINGS_MODULE"
-    "SCITEX_CLOUD_DB_NAME"
-    "SCITEX_CLOUD_DB_USER"
-    "SCITEX_CLOUD_DB_PASSWORD"
+    "SCITEX_HUB_DJANGO_SECRET_KEY"
+    "SCITEX_HUB_SCITEX_HUB_DJANGO_SETTINGS_MODULE"
+    "SCITEX_HUB_DB_NAME"
+    "SCITEX_HUB_DB_USER"
+    "SCITEX_HUB_DB_PASSWORD"
 )
 
 # Check if a dotenv file exists and is readable
@@ -85,22 +85,22 @@ check_critical_vars() {
     echo_info "  Critical Variables:"
 
     # Check Django settings
-    if grep -q "^export SCITEX_CLOUD_DJANGO_SECRET_KEY=" "$file" 2> /dev/null; then
-        echo_success "    ✓ SCITEX_CLOUD_DJANGO_SECRET_KEY is set"
+    if grep -q "^export SCITEX_HUB_DJANGO_SECRET_KEY=" "$file" 2> /dev/null; then
+        echo_success "    ✓ SCITEX_HUB_DJANGO_SECRET_KEY is set"
     else
-        echo_error "    ✗ SCITEX_CLOUD_DJANGO_SECRET_KEY is missing"
-        missing_vars+=("SCITEX_CLOUD_DJANGO_SECRET_KEY")
+        echo_error "    ✗ SCITEX_HUB_DJANGO_SECRET_KEY is missing"
+        missing_vars+=("SCITEX_HUB_DJANGO_SECRET_KEY")
     fi
 
-    if grep -q "^export SCITEX_CLOUD_SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=" "$file" 2> /dev/null; then
-        echo_success "    ✓ SCITEX_CLOUD_SCITEX_CLOUD_DJANGO_SETTINGS_MODULE is set"
+    if grep -q "^export SCITEX_HUB_SCITEX_HUB_DJANGO_SETTINGS_MODULE=" "$file" 2> /dev/null; then
+        echo_success "    ✓ SCITEX_HUB_SCITEX_HUB_DJANGO_SETTINGS_MODULE is set"
     else
-        echo_error "    ✗ SCITEX_CLOUD_SCITEX_CLOUD_DJANGO_SETTINGS_MODULE is missing"
-        missing_vars+=("SCITEX_CLOUD_SCITEX_CLOUD_DJANGO_SETTINGS_MODULE")
+        echo_error "    ✗ SCITEX_HUB_SCITEX_HUB_DJANGO_SETTINGS_MODULE is missing"
+        missing_vars+=("SCITEX_HUB_SCITEX_HUB_DJANGO_SETTINGS_MODULE")
     fi
 
     # Check database variables with environment suffix
-    for var in "SCITEX_CLOUD_DB_NAME" "SCITEX_CLOUD_DB_USER" "SCITEX_CLOUD_DB_PASSWORD"; do
+    for var in "SCITEX_HUB_DB_NAME" "SCITEX_HUB_DB_USER" "SCITEX_HUB_DB_PASSWORD"; do
         if grep -q "^export ${var}${env_suffix}=" "$file" 2> /dev/null; then
             echo_success "    ✓ ${var}${env_suffix} is set"
         else
@@ -161,7 +161,7 @@ check_production() {
         fi
 
         # Check for production database
-        if grep -q "SCITEX_CLOUD_DB_NAME_PROD" "$PROJECT_ROOT/deployment/dotenvs/dotenv.prod" 2> /dev/null; then
+        if grep -q "SCITEX_HUB_DB_NAME_PROD" "$PROJECT_ROOT/deployment/dotenvs/dotenv.prod" 2> /dev/null; then
             echo_success "  ✓ Production database configured"
         else
             echo_warning "  ⚠ Production database configuration not found"
@@ -214,7 +214,7 @@ check_consistency() {
     echo_info "Checking variable differences between dev and prod:"
     echo
 
-    for var in "SCITEX_CLOUD_DB_NAME" "SCITEX_CLOUD_DB_USER"; do
+    for var in "SCITEX_HUB_DB_NAME" "SCITEX_HUB_DB_USER"; do
         if [ -f "$PROJECT_ROOT/deployment/dotenvs/dotenv.dev" ] && [ -f "$PROJECT_ROOT/deployment/dotenvs/dotenv.prod" ]; then
             DEV_VAL=$(grep "^export ${var}_DEV=" "$PROJECT_ROOT/deployment/dotenvs/dotenv.dev" 2> /dev/null | cut -d'=' -f2)
             PROD_VAL=$(grep "^export ${var}_PROD=" "$PROJECT_ROOT/deployment/dotenvs/dotenv.prod" 2> /dev/null | cut -d'=' -f2)
@@ -253,10 +253,10 @@ show_security_recommendations() {
 
     echo_info "Best Practices:"
     echo_info "  • Never commit .env files with secrets to git"
-    echo_info "  • Use different SCITEX_CLOUD_DJANGO_SECRET_KEY for dev and prod"
+    echo_info "  • Use different SCITEX_HUB_DJANGO_SECRET_KEY for dev and prod"
     echo_info "  • Use different database credentials for dev and prod"
     echo_info "  • Keep production DEBUG=False"
-    echo_info "  • Set specific SCITEX_CLOUD_ALLOWED_HOSTS in production"
+    echo_info "  • Set specific SCITEX_HUB_ALLOWED_HOSTS in production"
     echo
 }
 

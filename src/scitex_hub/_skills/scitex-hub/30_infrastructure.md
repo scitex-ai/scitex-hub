@@ -66,7 +66,7 @@ Local (stdio, Claude Desktop):
       "command": "scitex-hub",
       "args": ["mcp", "start"],
       "env": {
-        "SCITEX_CLOUD_API_KEY": "your-api-key"
+        "SCITEX_HUB_API_KEY": "your-api-key"
       }
     }
   }
@@ -88,10 +88,10 @@ Remote (HTTP):
 
 | Variable | Purpose |
 |----------|---------|
-| `SCITEX_CLOUD_API_KEY` | API key for cloud operations |
-| `SCITEX_CLOUD_URL` | Cloud server URL (default: `https://scitex.cloud`) |
-| `SCITEX_CLOUD_MCP_HOST` | MCP server bind host |
-| `SCITEX_CLOUD_MCP_PORT` | MCP server port (default: 8086) |
+| `SCITEX_HUB_API_KEY` | API key for cloud operations |
+| `SCITEX_HUB_URL` | Cloud server URL (default: `https://scitex.cloud`) |
+| `SCITEX_HUB_MCP_HOST` | MCP server bind host |
+| `SCITEX_HUB_MCP_PORT` | MCP server port (default: 8086) |
 
 ## DockerManager (Python API)
 

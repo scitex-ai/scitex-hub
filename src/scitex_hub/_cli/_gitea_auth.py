@@ -88,28 +88,28 @@ def _create_or_get_gitea_token(url, user, password):
 @click.option(
     "--url",
     default=None,
-    envvar="SCITEX_CLOUD_GITEA_URL",
-    help="Gitea instance URL (auto-detected from .env; env: SCITEX_CLOUD_GITEA_URL)",
+    envvar="SCITEX_HUB_GITEA_URL",
+    help="Gitea instance URL (auto-detected from .env; env: SCITEX_HUB_GITEA_URL)",
 )
 @click.option(
     "--token",
     default=None,
-    envvar="SCITEX_CLOUD_GITEA_TOKEN",
-    help="API token, skip username/password flow (env: SCITEX_CLOUD_GITEA_TOKEN)",
+    envvar="SCITEX_HUB_GITEA_TOKEN",
+    help="API token, skip username/password flow (env: SCITEX_HUB_GITEA_TOKEN)",
 )
 @click.option(
     "--user",
     "-u",
     default=None,
-    envvar="SCITEX_CLOUD_GITEA_USER",
-    help="Gitea username (env: SCITEX_CLOUD_GITEA_USER)",
+    envvar="SCITEX_HUB_GITEA_USER",
+    help="Gitea username (env: SCITEX_HUB_GITEA_USER)",
 )
 @click.option(
     "--password",
     "-p",
     default=None,
-    envvar="SCITEX_CLOUD_GITEA_PASSWORD",
-    help="Gitea password (env: SCITEX_CLOUD_GITEA_PASSWORD)",
+    envvar="SCITEX_HUB_GITEA_PASSWORD",
+    help="Gitea password (env: SCITEX_HUB_GITEA_PASSWORD)",
 )
 @click.option(
     "--name", default="scitex-dev", help="Tea login name (default: scitex-dev)"
@@ -118,13 +118,13 @@ def login(url, token, user, password, name):
     """Login to SciTeX Hub (Gitea).
 
     Non-interactive. Credentials resolve in precedence order (spec §6b):
-    CLI flag → SCITEX_CLOUD_GITEA_{TOKEN,USER,PASSWORD} env var →
+    CLI flag → SCITEX_HUB_GITEA_{TOKEN,USER,PASSWORD} env var →
     config file. Missing credentials fail fast with exit code 2.
 
-    Prefer --token (or SCITEX_CLOUD_GITEA_TOKEN) for unattended runs.
+    Prefer --token (or SCITEX_HUB_GITEA_TOKEN) for unattended runs.
     Username+password still works when token unavailable.
 
-    The Gitea URL is auto-detected from SCITEX_CLOUD_GITEA_URL_DEV env var
+    The Gitea URL is auto-detected from SCITEX_HUB_GITEA_URL_DEV env var
     or SECRET/.env.dev file. Override with --url.
     """
     from ._gitea_utils import get_gitea_url
@@ -140,8 +140,8 @@ def login(url, token, user, password, name):
         if not user or not password:
             click.echo(
                 "error: gitea credentials missing. Set "
-                "SCITEX_CLOUD_GITEA_TOKEN (preferred) or "
-                "SCITEX_CLOUD_GITEA_USER/SCITEX_CLOUD_GITEA_PASSWORD, "
+                "SCITEX_HUB_GITEA_TOKEN (preferred) or "
+                "SCITEX_HUB_GITEA_USER/SCITEX_HUB_GITEA_PASSWORD, "
                 "or pass --token / --user and --password",
                 err=True,
             )
@@ -167,22 +167,22 @@ def login(url, token, user, password, name):
 @click.option(
     "--url",
     default=None,
-    envvar="SCITEX_CLOUD_GITEA_URL",
-    help="Gitea URL (env: SCITEX_CLOUD_GITEA_URL; needed when --delete-token is set)",
+    envvar="SCITEX_HUB_GITEA_URL",
+    help="Gitea URL (env: SCITEX_HUB_GITEA_URL; needed when --delete-token is set)",
 )
 @click.option(
     "--user",
     "-u",
     default=None,
-    envvar="SCITEX_CLOUD_GITEA_USER",
-    help="Gitea username (env: SCITEX_CLOUD_GITEA_USER; needed when --delete-token is set)",
+    envvar="SCITEX_HUB_GITEA_USER",
+    help="Gitea username (env: SCITEX_HUB_GITEA_USER; needed when --delete-token is set)",
 )
 @click.option(
     "--password",
     "-p",
     default=None,
-    envvar="SCITEX_CLOUD_GITEA_PASSWORD",
-    help="Gitea password (env: SCITEX_CLOUD_GITEA_PASSWORD; needed when --delete-token is set)",
+    envvar="SCITEX_HUB_GITEA_PASSWORD",
+    help="Gitea password (env: SCITEX_HUB_GITEA_PASSWORD; needed when --delete-token is set)",
 )
 @click.option(
     "--delete-token",
@@ -194,7 +194,7 @@ def logout(name, url, user, password, delete_token):
 
     Removes the local tea login entry.  Use --delete-token to also revoke
     the API token on the Gitea server. In that mode, password is required
-    non-interactively via --password or SCITEX_CLOUD_GITEA_PASSWORD
+    non-interactively via --password or SCITEX_HUB_GITEA_PASSWORD
     (fail-fast with exit code 2 if missing — no prompt, spec §2).
     """
     if delete_token:
@@ -218,7 +218,7 @@ def logout(name, url, user, password, delete_token):
         if not password:
             click.echo(
                 "error: --delete-token requires a password. Set "
-                "SCITEX_CLOUD_GITEA_PASSWORD or pass --password",
+                "SCITEX_HUB_GITEA_PASSWORD or pass --password",
                 err=True,
             )
             sys.exit(2)

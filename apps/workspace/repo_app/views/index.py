@@ -270,9 +270,9 @@ def _add_file_browser_context(request, project, context):
         ).exists()
 
         # Gitea URLs
-        gitea_url = getattr(settings, "SCITEX_CLOUD_GITEA_URL", "http://127.0.0.1:3000")
-        ssh_domain = getattr(settings, "SCITEX_CLOUD_GIT_DOMAIN", "127.0.0.1")
-        ssh_port = getattr(settings, "SCITEX_CLOUD_GITEA_SSH_PORT", "2222")
+        gitea_url = getattr(settings, "SCITEX_HUB_GITEA_URL", "http://127.0.0.1:3000")
+        ssh_domain = getattr(settings, "SCITEX_HUB_GIT_DOMAIN", "127.0.0.1")
+        ssh_port = getattr(settings, "SCITEX_HUB_GITEA_SSH_PORT", "2222")
 
         owner_name = project.owner.username
         slug = project.slug

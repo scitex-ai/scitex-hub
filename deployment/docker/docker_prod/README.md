@@ -36,7 +36,7 @@ make ENV=prodrebuild  # Full rebuild (causes downtime)
 5. Copy the tunnel token
 6. Add to `.env`:
    ```
-   SCITEX_CLOUD_CLOUDFLARE_TUNNEL_TOKEN_PROD=<your-token>
+   SCITEX_HUB_CLOUDFLARE_TUNNEL_TOKEN_PROD=<your-token>
    ```
 
 ### Adding Public Hostnames
@@ -103,8 +103,8 @@ docker logs scitex-hub-prod-cloudflared-1
 
 ### Environment Variables
 ```env
-SCITEX_CLOUD_UMAMI_PORT_PROD=3300
-SCITEX_CLOUD_UMAMI_APP_SECRET=<random-secret>
+SCITEX_HUB_UMAMI_PORT_PROD=3300
+SCITEX_HUB_UMAMI_APP_SECRET=<random-secret>
 ```
 
 ## Database Management

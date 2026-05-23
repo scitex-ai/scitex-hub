@@ -36,7 +36,7 @@ def check_docker_containers(status_data):
         import docker
 
         client = docker.from_env()
-        scitex_env = os.environ.get("SCITEX_CLOUD_ENV", "dev")
+        scitex_env = os.environ.get("SCITEX_HUB_ENV", "dev")
         container_name_prefix = f"scitex-hub-{scitex_env}"
         containers = client.containers.list(
             all=True, filters={"name": container_name_prefix}
@@ -149,7 +149,7 @@ def check_ssh_services(status_data):
     gitea_ssh_port = (
         22
         if Path("/.dockerenv").exists()
-        else int(getattr(settings, "SCITEX_CLOUD_GITEA_SSH_PORT", 2222))
+        else int(getattr(settings, "SCITEX_HUB_GITEA_SSH_PORT", 2222))
     )
     is_functional, banner_or_error = _check_ssh_banner(gitea_ssh_host, gitea_ssh_port)
     status_data["ssh_services"].append(

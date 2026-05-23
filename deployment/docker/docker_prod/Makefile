@@ -183,13 +183,13 @@ collectstatic: docker-check-health
 # ============================================
 db-shell: docker-check-health
 	@echo -e "$(CYAN)🗄️  Opening PostgreSQL shell...$(NC)"
-	@$(COMPOSE) exec db psql -U $${SCITEX_CLOUD_POSTGRES_USER} -d $${SCITEX_CLOUD_POSTGRES_DB}
+	@$(COMPOSE) exec db psql -U $${SCITEX_HUB_POSTGRES_USER} -d $${SCITEX_HUB_POSTGRES_DB}
 
 db-backup: docker-check-health
 	@echo -e "$(CYAN)💾 Backing up production database...$(NC)"
 	@mkdir -p ../../backups
 	@BACKUP_FILE="../../backups/scitex_prod_$$(date +%Y%m%d_%H%M%S).sql" && \
-	$(COMPOSE) exec -T db pg_dump -U $${SCITEX_CLOUD_POSTGRES_USER} $${SCITEX_CLOUD_POSTGRES_DB} > $$BACKUP_FILE && \
+	$(COMPOSE) exec -T db pg_dump -U $${SCITEX_HUB_POSTGRES_USER} $${SCITEX_HUB_POSTGRES_DB} > $$BACKUP_FILE && \
 	gzip $$BACKUP_FILE && \
 	echo -e "$(GREEN)✅ Backup saved to: $$BACKUP_FILE.gz$(NC)"
 

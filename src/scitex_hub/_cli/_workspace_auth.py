@@ -29,10 +29,10 @@ def _resolve_workspace_credentials():
     with exit code 2. CLI flag values (when the caller has them) take
     precedence over what this helper returns.
     """
-    username = os.environ.get("SCITEX_CLOUD_WORKSPACE_USER") or get_config_value(
+    username = os.environ.get("SCITEX_HUB_WORKSPACE_USER") or get_config_value(
         "workspace", "user"
     )
-    password = os.environ.get("SCITEX_CLOUD_WORKSPACE_PASSWORD") or get_config_value(
+    password = os.environ.get("SCITEX_HUB_WORKSPACE_PASSWORD") or get_config_value(
         "workspace", "password"
     )
     return username, password
@@ -62,7 +62,7 @@ def get_jwt_token(server_url, username=None, password=None):
 
     Uses cached token when available; otherwise requires credentials
     from (in precedence order): function arguments (CLI flags) →
-    ``SCITEX_CLOUD_WORKSPACE_USER`` / ``SCITEX_CLOUD_WORKSPACE_PASSWORD``
+    ``SCITEX_HUB_WORKSPACE_USER`` / ``SCITEX_HUB_WORKSPACE_PASSWORD``
     env vars → config file (spec §6b). Missing credentials cause a
     fail-fast exit with code 2 — no interactive prompt, so this is
     safe to run under CI/agent/cron.
@@ -78,7 +78,7 @@ def get_jwt_token(server_url, username=None, password=None):
     if not username or not password:
         click.echo(
             "error: workspace credentials missing. Set "
-            "SCITEX_CLOUD_WORKSPACE_USER/SCITEX_CLOUD_WORKSPACE_PASSWORD, "
+            "SCITEX_HUB_WORKSPACE_USER/SCITEX_HUB_WORKSPACE_PASSWORD, "
             "pass --user/--password, or configure "
             "~/.scitex/scitex-hub/config.yaml",
             err=True,

@@ -10,8 +10,8 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-# Use SCITEX_CLOUD_ prefix for configuration
-settings_module = os.getenv("SCITEX_CLOUD_DJANGO_SETTINGS_MODULE") or "config.settings"
+# Use SCITEX_HUB_ prefix for configuration
+settings_module = os.getenv("SCITEX_HUB_DJANGO_SETTINGS_MODULE") or "config.settings"
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
 
 application = get_wsgi_application()

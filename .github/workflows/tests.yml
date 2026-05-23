@@ -74,8 +74,8 @@ jobs:
 
       - name: Run terminal tests
         env:
-          SCITEX_CLOUD_DJANGO_SECRET_KEY: ci-test-key  # pragma: allowlist secret
-          SCITEX_CLOUD_GITEA_SSH_PORT_DEV: "2222"
+          SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-key  # pragma: allowlist secret
+          SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
         run: |
           python -m pytest \
             tests/apps/console_app/views/terminal/ \

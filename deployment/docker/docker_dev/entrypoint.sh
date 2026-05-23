@@ -272,8 +272,8 @@ fi
 # ============================================
 # Create test-user for development and E2E testing
 initialize_test_user() {
-    local username="${SCITEX_CLOUD_TEST_USER_USERNAME:-test-user}"
-    local password="${SCITEX_CLOUD_TEST_USER_PASSWORD:-Password123!}"
+    local username="${SCITEX_HUB_TEST_USER_USERNAME:-test-user}"
+    local password="${SCITEX_HUB_TEST_USER_PASSWORD:-Password123!}"
     local email="test@example.com"
 
     echo_info "Ensuring test user exists: $username"

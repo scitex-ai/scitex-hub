@@ -23,7 +23,7 @@ sys.path.insert(0, str(project_root))
 # Set Django settings module
 os.environ.setdefault(
     "DJANGO_SETTINGS_MODULE",
-    os.getenv("SCITEX_CLOUD_DJANGO_SETTINGS_MODULE", "config.settings.settings_dev"),
+    os.getenv("SCITEX_HUB_DJANGO_SETTINGS_MODULE", "config.settings.settings_dev"),
 )
 
 # Import Django's autoreload before setup

@@ -282,8 +282,8 @@
     <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="p">[</span><span class="n">current</span><span class="p">,</span> <span class="o">*</span><span class="n">current</span><span class="o">.</span><span class="n">parents</span><span class="p">]:</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;manage.py&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;apps&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="k">return</span> <span class="n">parent</span>
-    <span class="c1"># Check SCITEX_CLOUD_ROOT env var</span>
-    <span class="n">env_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SCITEX_CLOUD_ROOT&quot;</span><span class="p">)</span>
+    <span class="c1"># Check SCITEX_HUB_ROOT env var</span>
+    <span class="n">env_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SCITEX_HUB_ROOT&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">env_root</span><span class="p">:</span>
         <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">env_root</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">root</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>

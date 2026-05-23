@@ -39,11 +39,11 @@ DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
 SCITEX_WRITER_TEMPLATE_BRANCH = os.getenv("SCITEX_WRITER_TEMPLATE_BRANCH", "main")
 SCITEX_WRITER_TEMPLATE_TAG = os.getenv("SCITEX_WRITER_TEMPLATE_TAG", None)
 
-SECRET_KEY = os.environ.get("SCITEX_CLOUD_DJANGO_SECRET_KEY")
+SECRET_KEY = os.environ.get("SCITEX_HUB_DJANGO_SECRET_KEY")
 
 # Allow localhost and internal IPs for staging
 ALLOWED_HOSTS = os.environ.get(
-    "SCITEX_CLOUD_ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0"
+    "SCITEX_HUB_ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0"
 ).split(",")
 
 # Security headers (lighter than production - no external access)
@@ -68,7 +68,7 @@ CSRF_COOKIE_HTTPONLY = True
 
 # CSRF trusted origins for staging (port 31294 per 3129X scheme)
 CSRF_TRUSTED_ORIGINS = os.environ.get(
-    "SCITEX_CLOUD_CSRF_TRUSTED_ORIGINS",
+    "SCITEX_HUB_CSRF_TRUSTED_ORIGINS",
     "http://localhost:31294,http://127.0.0.1:31294",
 ).split(",")
 
@@ -79,14 +79,14 @@ CSRF_TRUSTED_ORIGINS = os.environ.get(
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("SCITEX_CLOUD_POSTGRES_DB", "scitex_hub_staging"),
-        "USER": os.environ.get("SCITEX_CLOUD_POSTGRES_USER", "scitex_staging"),
+        "NAME": os.environ.get("SCITEX_HUB_POSTGRES_DB", "scitex_hub_staging"),
+        "USER": os.environ.get("SCITEX_HUB_POSTGRES_USER", "scitex_staging"),
         "PASSWORD": os.environ.get(
-            "SCITEX_CLOUD_POSTGRES_PASSWORD", "scitex_staging_2025"
+            "SCITEX_HUB_POSTGRES_PASSWORD", "scitex_staging_2025"
         ),
         # Connect via PgBouncer for connection pooling
-        "HOST": os.environ.get("SCITEX_CLOUD_DB_HOST", "pgbouncer"),
-        "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT", "6432"),
+        "HOST": os.environ.get("SCITEX_HUB_DB_HOST", "pgbouncer"),
+        "PORT": os.environ.get("SCITEX_HUB_DB_PORT", "6432"),
         "ATOMIC_REQUESTS": True,
         # CONN_MAX_AGE=0: Let PgBouncer handle connection pooling
         "CONN_MAX_AGE": 0,
@@ -104,24 +104,24 @@ DATABASES = {
 # ---------------------------------------
 # Console backend for staging (no actual emails sent)
 EMAIL_BACKEND = os.getenv(
-    "SCITEX_CLOUD_EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+    "SCITEX_HUB_EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
 )
 
 # ---------------------------------------
 # Integration
 # ---------------------------------------
 # Gitea - Local staging instance
-GITEA_URL = os.environ.get("SCITEX_CLOUD_GITEA_URL_IN_CONTAINER", "http://gitea:3000")
+GITEA_URL = os.environ.get("SCITEX_HUB_GITEA_URL_IN_CONTAINER", "http://gitea:3000")
 GITEA_API_URL = f"{GITEA_URL}/api/v1"
-GITEA_TOKEN = os.environ.get("SCITEX_CLOUD_GITEA_TOKEN", "")
+GITEA_TOKEN = os.environ.get("SCITEX_HUB_GITEA_TOKEN", "")
 GITEA_INTEGRATION_ENABLED = True
 
 # Gitea Clone URLs (for user-facing clone button)
-SCITEX_CLOUD_GITEA_URL = os.environ.get(
-    "SCITEX_CLOUD_GITEA_URL_IN_HOST", "http://localhost:3013"
+SCITEX_HUB_GITEA_URL = os.environ.get(
+    "SCITEX_HUB_GITEA_URL_IN_HOST", "http://localhost:3013"
 )
-SCITEX_CLOUD_GIT_DOMAIN = os.environ.get("SCITEX_CLOUD_GIT_DOMAIN", "127.0.0.1")
-SCITEX_CLOUD_GITEA_SSH_PORT = os.environ.get("SCITEX_CLOUD_GITEA_SSH_PORT", "2232")
+SCITEX_HUB_GIT_DOMAIN = os.environ.get("SCITEX_HUB_GIT_DOMAIN", "127.0.0.1")
+SCITEX_HUB_GITEA_SSH_PORT = os.environ.get("SCITEX_HUB_GITEA_SSH_PORT", "2232")
 
 # ---------------------------------------
 # Logging

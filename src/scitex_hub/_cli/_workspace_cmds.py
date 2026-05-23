@@ -115,7 +115,7 @@ def _setup_remote_and_push(server_url, username, project_name, remote_name):
 @click.option(
     "--server",
     "-s",
-    envvar="SCITEX_CLOUD_URL",
+    envvar="SCITEX_HUB_URL",
     default=_DEFAULT_SERVER,
     show_default=True,
     help="SciTeX Hub server URL",
@@ -209,7 +209,7 @@ def upload(name, description, server, visibility, remote, push):
 @click.option(
     "--server",
     "-s",
-    envvar="SCITEX_CLOUD_URL",
+    envvar="SCITEX_HUB_URL",
     default=_DEFAULT_SERVER,
     show_default=True,
     help="SciTeX Hub server URL",
@@ -334,7 +334,7 @@ def sync(remote, direction):
 @click.option(
     "--server",
     "-s",
-    envvar="SCITEX_CLOUD_URL",
+    envvar="SCITEX_HUB_URL",
     default=_DEFAULT_SERVER,
     show_default=True,
     help="SciTeX Hub server URL",

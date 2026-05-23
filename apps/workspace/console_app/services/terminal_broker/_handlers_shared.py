@@ -254,7 +254,7 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
             "including SciTeX usage and app creation\x1b[0m\r\n"
             "\r\n"
             "\x1b[0;90m  To hide this message: "
-            "set SCITEX_CLOUD_SHOW_MOTD=false in config\x1b[0m"
+            "set SCITEX_HUB_SHOW_MOTD=false in config\x1b[0m"
             "\r\n\r\n"
         ).encode()
         broker._send_message(

@@ -8,13 +8,13 @@ for CLI values. Resolution precedence (highest first) per the SciTeX
 CLI convention:
 
     1. CLI flag (e.g. ``--user``)
-    2. Env var (``SCITEX_CLOUD_*``)
+    2. Env var (``SCITEX_HUB_*``)
     3. Config file (this module)
 
 Config file search order (first existing wins):
 
     1. explicit ``path`` argument to :func:`load_config`
-    2. ``$SCITEX_CLOUD_CONFIG``
+    2. ``$SCITEX_HUB_CONFIG``
     3. ``./.scitex/scitex-hub.yaml`` (project-local override)
     4. ``~/.scitex/scitex-hub/config.yaml`` (user default)
 
@@ -51,7 +51,7 @@ def _candidate_paths(explicit: Optional[str]) -> list[Path]:
     paths: list[Path] = []
     if explicit:
         paths.append(Path(explicit).expanduser())
-    env_path = os.environ.get("SCITEX_CLOUD_CONFIG")
+    env_path = os.environ.get("SCITEX_HUB_CONFIG")
     if env_path:
         paths.append(Path(env_path).expanduser())
     paths.append(Path.cwd() / ".scitex" / "scitex-hub.yaml")

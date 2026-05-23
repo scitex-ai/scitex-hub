@@ -67,12 +67,12 @@ def cleanup_expired_visitor_allocations(self):
 def _get_health_config() -> tuple[str, str, str | None, str]:
     """Get health check configuration from settings/env."""
     site_url = getattr(
-        settings, "SITE_URL", os.getenv("SCITEX_CLOUD_SITE_URL", "https://scitex.ai")
+        settings, "SITE_URL", os.getenv("SCITEX_HUB_SITE_URL", "https://scitex.ai")
     )
     health_check_url = f"{site_url}/"
-    notification_recipient = os.getenv("SCITEX_CLOUD_HEALTH_NOTIFICATION_RECIPIENT")
+    notification_recipient = os.getenv("SCITEX_HUB_HEALTH_NOTIFICATION_RECIPIENT")
     notification_sender = os.getenv(
-        "SCITEX_CLOUD_HEALTH_NOTIFICATION_SENDER", "noreply@scitex.ai"
+        "SCITEX_HUB_HEALTH_NOTIFICATION_SENDER", "noreply@scitex.ai"
     )
     return health_check_url, site_url, notification_recipient, notification_sender
 
@@ -169,7 +169,7 @@ def check_site_health(self):
 
         if not recipient:
             logger.debug(
-                "[HealthCheck] SCITEX_CLOUD_HEALTH_NOTIFICATION_RECIPIENT not set"
+                "[HealthCheck] SCITEX_HUB_HEALTH_NOTIFICATION_RECIPIENT not set"
             )
 
         # Perform check

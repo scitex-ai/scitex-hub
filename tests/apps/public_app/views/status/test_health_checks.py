@@ -60,7 +60,7 @@ if __name__ == "__main__":
 #     try:
 #         import docker
 #         client = docker.from_env()
-#         scitex_env = os.environ.get("SCITEX_CLOUD_ENV", "dev")
+#         scitex_env = os.environ.get("SCITEX_HUB_ENV", "dev")
 #         container_name_prefix = f"scitex-hub-{scitex_env}"
 #         containers = client.containers.list(all=True, filters={"name": container_name_prefix})
 #
@@ -135,7 +135,7 @@ if __name__ == "__main__":
 #         })
 #
 #     # Gitea SSH
-#     gitea_ssh_port = int(getattr(settings, 'SCITEX_CLOUD_GITEA_SSH_PORT', 2222))
+#     gitea_ssh_port = int(getattr(settings, 'SCITEX_HUB_GITEA_SSH_PORT', 2222))
 #     try:
 #         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 #         sock.settimeout(1)

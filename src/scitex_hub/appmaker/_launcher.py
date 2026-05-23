@@ -92,8 +92,8 @@ def _find_project_root() -> Path | None:
     for parent in [current, *current.parents]:
         if (parent / "manage.py").exists() and (parent / "apps").exists():
             return parent
-    # Check SCITEX_CLOUD_ROOT env var
-    env_root = os.environ.get("SCITEX_CLOUD_ROOT")
+    # Check SCITEX_HUB_ROOT env var
+    env_root = os.environ.get("SCITEX_HUB_ROOT")
     if env_root:
         root = Path(env_root)
         if root.exists():

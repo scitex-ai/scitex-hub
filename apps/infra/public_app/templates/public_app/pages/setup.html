@@ -135,8 +135,8 @@ cp deployment/docker/envs/.env.example deployment/docker/envs/.env.dev</code></p
                     </li>
                     <li>
                         <strong>Set secret key</strong> (edit <code>.env.dev</code>)
-                        <pre><code>SCITEX_CLOUD_DJANGO_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')
-SCITEX_CLOUD_POSTGRES_PASSWORD=your-dev-password</code></pre>
+                        <pre><code>SCITEX_HUB_DJANGO_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')
+SCITEX_HUB_POSTGRES_PASSWORD=your-dev-password</code></pre>
                     </li>
                     <li>
                         <strong>Start services</strong>
@@ -157,9 +157,9 @@ make status</code></pre>
                     <li>
                         <strong>Configure for production</strong> (edit <code>.env.prod</code>)
                         <pre><code>DEBUG=False
-SCITEX_CLOUD_DOMAIN=scitex.example.com
-SCITEX_CLOUD_SITE_URL=https://scitex.example.com
-SCITEX_CLOUD_ENABLE_SSL_REDIRECT=true</code></pre>
+SCITEX_HUB_DOMAIN=scitex.example.com
+SCITEX_HUB_SITE_URL=https://scitex.example.com
+SCITEX_HUB_ENABLE_SSL_REDIRECT=true</code></pre>
                     </li>
                     <li>
                         <strong>Start production</strong>

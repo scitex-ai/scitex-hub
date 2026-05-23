@@ -128,7 +128,7 @@ def app_dev(app_dir, port):
 @click.option(
     "--server",
     "-s",
-    envvar="SCITEX_CLOUD_URL",
+    envvar="SCITEX_HUB_URL",
     default="http://127.0.0.1:8000",
     help="SciTeX Hub server URL",
 )
@@ -172,7 +172,7 @@ def app_submit(app_dir, server):
 @click.option(
     "--server",
     "-s",
-    envvar="SCITEX_CLOUD_URL",
+    envvar="SCITEX_HUB_URL",
     default="http://127.0.0.1:8000",
     help="SciTeX Hub server URL",
 )

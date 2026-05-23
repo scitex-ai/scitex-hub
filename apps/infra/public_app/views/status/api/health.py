@@ -338,7 +338,7 @@ def versions_api(request):
             packages[pkg] = {"installed": None, "status": "error", "error": str(e)}
 
     # Include scitex-hub version from settings
-    cloud_version = getattr(settings, "SCITEX_CLOUD_VERSION", "unknown")
+    cloud_version = getattr(settings, "SCITEX_HUB_VERSION", "unknown")
     packages["scitex-hub"] = {"installed": cloud_version, "status": "ok"}
 
     # Include environment info

@@ -26,7 +26,7 @@ Seamless anonymous visitor access without signup. Pre-allocated visitor accounts
 
 | Parameter | Default | Source |
 |-----------|---------|--------|
-| Pool Size | `4` | `SCITEX_CLOUD_VISITOR_POOL_SIZE` env var |
+| Pool Size | `4` | `SCITEX_HUB_VISITOR_POOL_SIZE` env var |
 | Session Lifetime | `1 hour` | `SESSION_LIFETIME_HOURS` |
 | Extension on Activity | `30 min` | `SESSION_EXTENSION_MINUTES` |
 | Idle Timeout | `30 min` | `IDLE_TIMEOUT_MINUTES` |

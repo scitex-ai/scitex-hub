@@ -83,7 +83,7 @@ else
 fi
 
 # Step 3: Check if website ID is configured
-WEBSITE_ID=$(grep -E "^SCITEX_CLOUD_UMAMI_WEBSITE_ID=" "$ENV_FILE" 2>/dev/null | cut -d= -f2 || echo "")
+WEBSITE_ID=$(grep -E "^SCITEX_HUB_UMAMI_WEBSITE_ID=" "$ENV_FILE" 2>/dev/null | cut -d= -f2 || echo "")
 
 if [[ -z "$WEBSITE_ID" ]]; then
     log_warn "Umami Website ID not configured yet."
@@ -94,7 +94,7 @@ if [[ -z "$WEBSITE_ID" ]]; then
     echo "3. Change the default password"
     echo "4. Go to Settings → Websites → Add website"
     echo "   - Name: SciTeX $ENV"
-    echo "   - Domain: $(grep SCITEX_CLOUD_DOMAIN "$ENV_FILE" | cut -d= -f2 || echo '127.0.0.1')"
+    echo "   - Domain: $(grep SCITEX_HUB_DOMAIN "$ENV_FILE" | cut -d= -f2 || echo '127.0.0.1')"
     echo "5. Copy the Website ID and run:"
     echo ""
     echo -e "   ${GREEN}$0 $ENV --set-website-id <YOUR_WEBSITE_ID>${NC}"
@@ -108,10 +108,10 @@ if [[ "${2:-}" == "--set-website-id" && -n "${3:-}" ]]; then
     NEW_WEBSITE_ID="$3"
     log_info "Setting Website ID: $NEW_WEBSITE_ID"
 
-    if grep -q "^SCITEX_CLOUD_UMAMI_WEBSITE_ID=" "$ENV_FILE"; then
-        sed -i "s|^SCITEX_CLOUD_UMAMI_WEBSITE_ID=.*|SCITEX_CLOUD_UMAMI_WEBSITE_ID=$NEW_WEBSITE_ID|" "$ENV_FILE"
+    if grep -q "^SCITEX_HUB_UMAMI_WEBSITE_ID=" "$ENV_FILE"; then
+        sed -i "s|^SCITEX_HUB_UMAMI_WEBSITE_ID=.*|SCITEX_HUB_UMAMI_WEBSITE_ID=$NEW_WEBSITE_ID|" "$ENV_FILE"
     else
-        echo "SCITEX_CLOUD_UMAMI_WEBSITE_ID=$NEW_WEBSITE_ID" >>"$ENV_FILE"
+        echo "SCITEX_HUB_UMAMI_WEBSITE_ID=$NEW_WEBSITE_ID" >>"$ENV_FILE"
     fi
 
     log_success "Website ID saved to $ENV_FILE"

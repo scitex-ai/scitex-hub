@@ -67,7 +67,7 @@ Falls back to `project_id=0` (dotfiles project) when no project is selected.
 
 After shell initialization, the broker injects a welcome message directly
 to the client (bypassing the shell to avoid prompt corruption). Controlled
-by the `SCITEX_CLOUD_SHOW_MOTD` environment variable (default: `true`).
+by the `SCITEX_HUB_SHOW_MOTD` environment variable (default: `true`).
 
 ## Security
 

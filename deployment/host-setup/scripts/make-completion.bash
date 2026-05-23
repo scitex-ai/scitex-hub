@@ -33,8 +33,8 @@ _scitex_make_completion() {
     local makefile=""
     if [ -f "Makefile" ]; then
         makefile="Makefile"
-    elif [ -f "${SCITEX_CLOUD_ROOT:-}/Makefile" ]; then
-        makefile="${SCITEX_CLOUD_ROOT}/Makefile"
+    elif [ -f "${SCITEX_HUB_ROOT:-}/Makefile" ]; then
+        makefile="${SCITEX_HUB_ROOT}/Makefile"
     fi
 
     if [ -n "$makefile" ]; then

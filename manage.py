@@ -52,9 +52,9 @@ def main():
     # No need to add src directory anymore as it's been replaced by apps
 
     # Use new auto-detection settings module
-    # Set SCITEX_CLOUD_ENV=prod for production deployment, defaults to development
+    # Set SCITEX_HUB_ENV=prod for production deployment, defaults to development
     settings_module = os.environ.get(
-        "SCITEX_CLOUD_DJANGO_SETTINGS_MODULE", "config.settings"
+        "SCITEX_HUB_DJANGO_SETTINGS_MODULE", "config.settings"
     )
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
     try:

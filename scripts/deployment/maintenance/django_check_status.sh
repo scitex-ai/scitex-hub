@@ -177,9 +177,9 @@ run_django_checks() {
     echo
 
     if [ "$ENV" = "development" ]; then
-        export SCITEX_CLOUD_DJANGO_SETTINGS_MODULE="config.settings.settings_dev"
+        export SCITEX_HUB_DJANGO_SETTINGS_MODULE="config.settings.settings_dev"
     else
-        export SCITEX_CLOUD_DJANGO_SETTINGS_MODULE="config.settings.settings_prod"
+        export SCITEX_HUB_DJANGO_SETTINGS_MODULE="config.settings.settings_prod"
     fi
 
     if python3 manage.py check --deploy 2>&1; then
@@ -202,9 +202,9 @@ check_migrations() {
     ENV=$(detect_environment)
 
     if [ "$ENV" = "development" ]; then
-        export SCITEX_CLOUD_DJANGO_SETTINGS_MODULE="config.settings.settings_dev"
+        export SCITEX_HUB_DJANGO_SETTINGS_MODULE="config.settings.settings_dev"
     else
-        export SCITEX_CLOUD_DJANGO_SETTINGS_MODULE="config.settings.settings_prod"
+        export SCITEX_HUB_DJANGO_SETTINGS_MODULE="config.settings.settings_prod"
     fi
 
     # Check if there are unapplied migrations

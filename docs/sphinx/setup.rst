@@ -73,10 +73,10 @@ Edit ``.env.dev`` and set at minimum:
 .. code-block:: bash
 
    # Generate a secret key
-   SCITEX_CLOUD_DJANGO_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')
+   SCITEX_HUB_DJANGO_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')
 
    # Database password (any strong password)
-   SCITEX_CLOUD_POSTGRES_PASSWORD=your-dev-password
+   SCITEX_HUB_POSTGRES_PASSWORD=your-dev-password
 
 4. **Start services**
 
@@ -116,19 +116,19 @@ For deploying on a home server, NAS, or VPS.
 .. code-block:: bash
 
    # Required changes for production
-   SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
+   SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
    DEBUG=False
-   SCITEX_CLOUD_DOMAIN=scitex.example.com
-   SCITEX_CLOUD_SITE_URL=https://scitex.example.com
-   SCITEX_CLOUD_ALLOWED_HOSTS=scitex.example.com
+   SCITEX_HUB_DOMAIN=scitex.example.com
+   SCITEX_HUB_SITE_URL=https://scitex.example.com
+   SCITEX_HUB_ALLOWED_HOSTS=scitex.example.com
 
    # Strong passwords
-   SCITEX_CLOUD_DJANGO_SECRET_KEY=<generate-new-secret>
-   SCITEX_CLOUD_POSTGRES_PASSWORD=<strong-db-password>
+   SCITEX_HUB_DJANGO_SECRET_KEY=<generate-new-secret>
+   SCITEX_HUB_POSTGRES_PASSWORD=<strong-db-password>
 
    # SSL
-   SCITEX_CLOUD_ENABLE_SSL_REDIRECT=true
-   SCITEX_CLOUD_FORCE_HTTPS_COOKIES=true
+   SCITEX_HUB_ENABLE_SSL_REDIRECT=true
+   SCITEX_HUB_FORCE_HTTPS_COOKIES=true
 
 4. **Start production services**
 
@@ -170,7 +170,7 @@ MCP server for AI agents:
 Configuration Reference
 -----------------------
 
-All environment variables use the ``SCITEX_CLOUD_`` prefix.
+All environment variables use the ``SCITEX_HUB_`` prefix.
 
 .. list-table::
    :header-rows: 1
@@ -179,25 +179,25 @@ All environment variables use the ``SCITEX_CLOUD_`` prefix.
    * - Variable
      - Required
      - Description
-   * - ``SCITEX_CLOUD_DJANGO_SECRET_KEY``
+   * - ``SCITEX_HUB_DJANGO_SECRET_KEY``
      - Yes
      - Django secret key (generate unique per deployment)
-   * - ``SCITEX_CLOUD_POSTGRES_PASSWORD``
+   * - ``SCITEX_HUB_POSTGRES_PASSWORD``
      - Yes
      - PostgreSQL database password
-   * - ``SCITEX_CLOUD_DOMAIN``
+   * - ``SCITEX_HUB_DOMAIN``
      - Prod
      - Your domain (e.g., ``scitex.example.com``)
-   * - ``SCITEX_CLOUD_SITE_URL``
+   * - ``SCITEX_HUB_SITE_URL``
      - Prod
      - Full URL (e.g., ``https://scitex.example.com``)
-   * - ``SCITEX_CLOUD_ALLOWED_HOSTS``
+   * - ``SCITEX_HUB_ALLOWED_HOSTS``
      - Prod
      - Comma-separated allowed hostnames
-   * - ``SCITEX_CLOUD_ENABLE_SSL_REDIRECT``
+   * - ``SCITEX_HUB_ENABLE_SSL_REDIRECT``
      - Prod
      - Set ``true`` for HTTPS
-   * - ``SCITEX_CLOUD_GITEA_TOKEN_DEV``
+   * - ``SCITEX_HUB_GITEA_TOKEN_DEV``
      - No
      - Gitea API token for Git integration
 
@@ -269,7 +269,7 @@ Troubleshooting
    # Check what's using port 8000
    lsof -i :8000
    # Or change the port in .env
-   SCITEX_CLOUD_HTTP_PORT_DEV=8080
+   SCITEX_HUB_HTTP_PORT_DEV=8080
 
 **Docker permission denied**
 

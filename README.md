@@ -305,9 +305,9 @@ make help                     # All available commands
 
 Key variables:
 ```bash
-SCITEX_CLOUD_DJANGO_SECRET_KEY=your-secret-key
-SCITEX_CLOUD_POSTGRES_PASSWORD=strong-password
-SCITEX_CLOUD_GITEA_TOKEN=your-token
+SCITEX_HUB_DJANGO_SECRET_KEY=your-secret-key
+SCITEX_HUB_POSTGRES_PASSWORD=strong-password
+SCITEX_HUB_GITEA_TOKEN=your-token
 ```
 
 </details>

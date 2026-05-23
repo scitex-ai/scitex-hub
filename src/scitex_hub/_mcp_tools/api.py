@@ -17,27 +17,27 @@ def get_on_site_env(username: str = "", site_url: str = "") -> dict[str, str]:
 
     Args:
         username: The container user's Django username.
-        site_url: Django server URL. Falls back to SCITEX_CLOUD_SITE_URL env
+        site_url: Django server URL. Falls back to SCITEX_HUB_SITE_URL env
                   var, then to http://web:8000 (Docker internal).
     """
-    url = site_url or os.environ.get("SCITEX_CLOUD_SITE_URL", "http://web:8000")
-    env = {"SCITEX_CLOUD_IS_ON_SITE": "1", "SCITEX_CLOUD_URL": url}
+    url = site_url or os.environ.get("SCITEX_HUB_SITE_URL", "http://web:8000")
+    env = {"SCITEX_HUB_IS_ON_SITE": "1", "SCITEX_HUB_URL": url}
     if username:
-        env["SCITEX_CLOUD_USERNAME"] = username
+        env["SCITEX_HUB_USERNAME"] = username
     return env
 
 
 def _get_config() -> dict:
     """Get API configuration from environment."""
-    is_on_site = os.environ.get("SCITEX_CLOUD_IS_ON_SITE") == "1"
+    is_on_site = os.environ.get("SCITEX_HUB_IS_ON_SITE") == "1"
     return {
-        "api_key": os.environ.get("SCITEX_CLOUD_API_KEY"),
+        "api_key": os.environ.get("SCITEX_HUB_API_KEY"),
         "base_url": os.environ.get(
-            "SCITEX_CLOUD_URL",
+            "SCITEX_HUB_URL",
             "http://web:8000" if is_on_site else "https://scitex.ai",
         ),
         "is_on_site": is_on_site,
-        "username": os.environ.get("SCITEX_CLOUD_USERNAME", ""),
+        "username": os.environ.get("SCITEX_HUB_USERNAME", ""),
     }
 
 
@@ -65,7 +65,7 @@ def _make_request(
             return {
                 "success": False,
                 "error": "API key required",
-                "hint": "Set SCITEX_CLOUD_API_KEY or SCITEX_CLOUD_IS_ON_SITE=1",
+                "hint": "Set SCITEX_HUB_API_KEY or SCITEX_HUB_IS_ON_SITE=1",
             }
 
     try:

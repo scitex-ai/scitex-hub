@@ -34,7 +34,7 @@ from apps.project_app.models import Project, VisitorAllocation
 from django.utils import timezone
 
 # Get pool size from settings
-pool_size = int(os.environ.get('SCITEX_CLOUD_VISITOR_POOL_SIZE', getattr(settings, 'SCITEX_CLOUD_VISITOR_POOL_SIZE', 4)))
+pool_size = int(os.environ.get('SCITEX_HUB_VISITOR_POOL_SIZE', getattr(settings, 'SCITEX_HUB_VISITOR_POOL_SIZE', 4)))
 
 # Check visitor users
 missing_users = []

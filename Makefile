@@ -506,7 +506,7 @@ start:
 	@echo -e "$(CYAN)Starting $(ENV) services...$(NC)"
 	@if [ -f "$(DOCKER_DIR)/.env.worktree" ]; then \
 		echo -e "$(YELLOW)  Worktree mode: using .env.worktree for port isolation$(NC)"; \
-		grep -E '^SCITEX_CLOUD_HTTP_PORT' "$(DOCKER_DIR)/.env.worktree" | head -1 | \
+		grep -E '^SCITEX_HUB_HTTP_PORT' "$(DOCKER_DIR)/.env.worktree" | head -1 | \
 			sed 's/.*=//' | xargs -I{} echo -e "$(YELLOW)  HTTP port: {}$(NC)"; \
 	fi
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) up -d || (echo "$(RED)❌ Start failed. Run 'make ENV=$(ENV) start' to retry$(NC)"; exit 1)

@@ -35,14 +35,14 @@ def mcp():
 @click.option(
     "--host",
     default="0.0.0.0",
-    envvar="SCITEX_CLOUD_MCP_HOST",
+    envvar="SCITEX_HUB_MCP_HOST",
     help="Host for HTTP/SSE transport",
 )
 @click.option(
     "--port",
     default=8086,
     type=int,
-    envvar="SCITEX_CLOUD_MCP_PORT",
+    envvar="SCITEX_HUB_MCP_PORT",
     help="Port for HTTP/SSE transport",
 )
 def mcp_start(transport: str, host: str, port: int):
@@ -144,14 +144,14 @@ def mcp_doctor():
     click.echo("API Configuration:")
     import os
 
-    api_key = os.environ.get("SCITEX_CLOUD_API_KEY")
-    base_url = os.environ.get("SCITEX_CLOUD_URL", "https://scitex.cloud")
+    api_key = os.environ.get("SCITEX_HUB_API_KEY")
+    base_url = os.environ.get("SCITEX_HUB_URL", "https://scitex.cloud")
 
     if api_key:
-        click.echo("  [OK] SCITEX_CLOUD_API_KEY configured")
+        click.echo("  [OK] SCITEX_HUB_API_KEY configured")
     else:
         click.echo(
-            "  [WARN] SCITEX_CLOUD_API_KEY not set (needed for authenticated APIs)"
+            "  [WARN] SCITEX_HUB_API_KEY not set (needed for authenticated APIs)"
         )
 
     click.echo(f"  [OK] Base URL: {base_url}")
@@ -218,7 +218,7 @@ def mcp_install():
     click.echo('         "args": ["mcp", "start"],')
     click.echo('         "env": {')
     click.echo(
-        '           "SCITEX_CLOUD_API_KEY": "your-api-key"'
+        '           "SCITEX_HUB_API_KEY": "your-api-key"'
     )  # pragma: allowlist secret
     click.echo("         }")
     click.echo("       }")

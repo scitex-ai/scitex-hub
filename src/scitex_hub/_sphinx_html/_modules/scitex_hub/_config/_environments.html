@@ -253,8 +253,8 @@
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">ENVIRONMENTS</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
 
-    <span class="c1"># Auto-detect from SCITEX_CLOUD_ENV or default to dev</span>
-    <span class="n">env_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SCITEX_CLOUD_ENV&quot;</span><span class="p">,</span> <span class="s2">&quot;dev&quot;</span><span class="p">)</span>
+    <span class="c1"># Auto-detect from SCITEX_HUB_ENV or default to dev</span>
+    <span class="n">env_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SCITEX_HUB_ENV&quot;</span><span class="p">,</span> <span class="s2">&quot;dev&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ENVIRONMENTS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">env_name</span><span class="p">,</span> <span class="n">ENVIRONMENTS</span><span class="p">[</span><span class="s2">&quot;dev&quot;</span><span class="p">])</span></div>
 
 

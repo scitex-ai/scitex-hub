@@ -621,7 +621,7 @@ class WorkflowTestCase(TestCase):
 
 ### Secrets Management
 
-1. **Encryption**: Secrets are encrypted using Django's `SCITEX_CLOUD_DJANGO_SECRET_KEY`
+1. **Encryption**: Secrets are encrypted using Django's `SCITEX_HUB_DJANGO_SECRET_KEY`
 2. **Access Control**: Only project owners/admins can view/edit secrets
 3. **Audit Log**: Track secret usage via `last_used_at`
 

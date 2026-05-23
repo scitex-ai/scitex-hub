@@ -22,7 +22,7 @@ import importlib.metadata
 from django.db import connection, transaction
 from django.shortcuts import render
 
-# Pip package names for ecosystem table (scitex-hub uses SCITEX_CLOUD_VERSION from context processor)
+# Pip package names for ecosystem table (scitex-hub uses SCITEX_HUB_VERSION from context processor)
 _ECOSYSTEM_PACKAGES = [
     "scitex",
     "figrecipe",

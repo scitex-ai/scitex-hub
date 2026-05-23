@@ -249,7 +249,7 @@ if __name__ == "__main__":
 #
 # # Add your custom environment variables below
 # # API_KEY=your_api_key_here
-# # SCITEX_CLOUD_POSTGRES_URL=your_database_url_here
+# # SCITEX_HUB_POSTGRES_URL=your_database_url_here
 # """
 #
 #     with open(config_path / ".env.template", "w") as f:

@@ -22,26 +22,26 @@ def get_gitea_url():
     """Return the Gitea base URL from env or .env file.
 
     Resolution order:
-    1. SCITEX_CLOUD_GITEA_URL_DEV env var
-    2. SCITEX_CLOUD_GITEA_HTTP_PORT_DEV env var (builds http://localhost:{port})
+    1. SCITEX_HUB_GITEA_URL_DEV env var
+    2. SCITEX_HUB_GITEA_HTTP_PORT_DEV env var (builds http://localhost:{port})
     3. SECRET/.env.dev file (parsed for the above keys)
     4. Fallback: http://localhost:3000
     """
-    url = os.environ.get("SCITEX_CLOUD_GITEA_URL_DEV")
+    url = os.environ.get("SCITEX_HUB_GITEA_URL_DEV")
     if url:
         return url.rstrip("/")
 
-    port = os.environ.get("SCITEX_CLOUD_GITEA_HTTP_PORT_DEV")
+    port = os.environ.get("SCITEX_HUB_GITEA_HTTP_PORT_DEV")
     if port:
         return f"http://localhost:{port}"
 
     # Try reading from .env file
     for env_path in _find_env_files():
         parsed = _parse_env_file(env_path)
-        if "SCITEX_CLOUD_GITEA_URL_DEV" in parsed:
-            return parsed["SCITEX_CLOUD_GITEA_URL_DEV"].rstrip("/")
-        if "SCITEX_CLOUD_GITEA_HTTP_PORT_DEV" in parsed:
-            return f"http://localhost:{parsed['SCITEX_CLOUD_GITEA_HTTP_PORT_DEV']}"
+        if "SCITEX_HUB_GITEA_URL_DEV" in parsed:
+            return parsed["SCITEX_HUB_GITEA_URL_DEV"].rstrip("/")
+        if "SCITEX_HUB_GITEA_HTTP_PORT_DEV" in parsed:
+            return f"http://localhost:{parsed['SCITEX_HUB_GITEA_HTTP_PORT_DEV']}"
 
     return f"http://localhost:{_DEFAULT_GITEA_PORT}"
 

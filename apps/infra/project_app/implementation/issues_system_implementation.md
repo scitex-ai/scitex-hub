@@ -804,7 +804,7 @@ Before deploying to production:
 
 - [ ] Run all tests
 - [ ] Apply database migrations
-- [ ] Update SCITEX_CLOUD_ALLOWED_HOSTS
+- [ ] Update SCITEX_HUB_ALLOWED_HOSTS
 - [ ] Set DEBUG = False
 - [ ] Configure logging
 - [ ] Set up monitoring

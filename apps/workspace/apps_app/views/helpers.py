@@ -244,7 +244,7 @@ def browse_context(request, current_project=None):
 
     from django.conf import settings
 
-    gitea_url = getattr(settings, "SCITEX_CLOUD_GITEA_URL", "")
+    gitea_url = getattr(settings, "SCITEX_HUB_GITEA_URL", "")
 
     return {
         "current_project": current_project,

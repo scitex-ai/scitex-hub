@@ -33,20 +33,20 @@ def runner():
 
 @pytest.fixture
 def isolated_env(monkeypatch, tmp_path):
-    """Strip SCITEX_CLOUD_* env and point HOME to a clean tmp dir.
+    """Strip SCITEX_HUB_* env and point HOME to a clean tmp dir.
 
     Prevents the developer's real config file from affecting tests.
     """
     for name in [
-        "SCITEX_CLOUD_WORKSPACE_USER",
-        "SCITEX_CLOUD_WORKSPACE_PASSWORD",
-        "SCITEX_CLOUD_WORKSPACE_URL",
-        "SCITEX_CLOUD_GITEA_USER",
-        "SCITEX_CLOUD_GITEA_PASSWORD",
-        "SCITEX_CLOUD_GITEA_TOKEN",
-        "SCITEX_CLOUD_GITEA_URL",
-        "SCITEX_CLOUD_ENV",
-        "SCITEX_CLOUD_CONFIG",
+        "SCITEX_HUB_WORKSPACE_USER",
+        "SCITEX_HUB_WORKSPACE_PASSWORD",
+        "SCITEX_HUB_WORKSPACE_URL",
+        "SCITEX_HUB_GITEA_USER",
+        "SCITEX_HUB_GITEA_PASSWORD",
+        "SCITEX_HUB_GITEA_TOKEN",
+        "SCITEX_HUB_GITEA_URL",
+        "SCITEX_HUB_ENV",
+        "SCITEX_HUB_CONFIG",
     ]:
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv("HOME", str(tmp_path))
@@ -57,10 +57,10 @@ class TestSetupNoPrompt:
     def test_missing_env_fails_fast(self, runner, isolated_env):
         result = runner.invoke(setup_cmd, [], input="")
         assert result.exit_code == 2, result.output
-        assert "SCITEX_CLOUD_ENV" in result.output
+        assert "SCITEX_HUB_ENV" in result.output
 
     def test_env_from_envvar(self, runner, isolated_env, monkeypatch):
-        monkeypatch.setenv("SCITEX_CLOUD_ENV", "nonexistent-env")
+        monkeypatch.setenv("SCITEX_HUB_ENV", "nonexistent-env")
         result = runner.invoke(setup_cmd, [], input="")
         # Either invalid-choice exit 2 or ENVIRONMENTS-specific path;
         # the key property is: no prompt, no hang.
@@ -81,7 +81,7 @@ class TestGiteaLoginNoPrompt:
     def test_token_from_envvar_skips_username_flow(
         self, runner, isolated_env, monkeypatch
     ):
-        monkeypatch.setenv("SCITEX_CLOUD_GITEA_TOKEN", "envtoken")
+        monkeypatch.setenv("SCITEX_HUB_GITEA_TOKEN", "envtoken")
         with (
             patch(
                 "scitex_hub._cli._gitea_utils.get_gitea_url", return_value="https://x"
@@ -100,8 +100,8 @@ class TestGiteaLogoutNoPrompt:
     def test_delete_token_without_password_fails_fast(
         self, runner, isolated_env, monkeypatch
     ):
-        monkeypatch.setenv("SCITEX_CLOUD_GITEA_URL", "https://x")
-        monkeypatch.setenv("SCITEX_CLOUD_GITEA_USER", "u")
+        monkeypatch.setenv("SCITEX_HUB_GITEA_URL", "https://x")
+        monkeypatch.setenv("SCITEX_HUB_GITEA_USER", "u")
         result = runner.invoke(
             gitea_logout,
             ["--delete-token", "--url", "https://x", "--user", "u"],

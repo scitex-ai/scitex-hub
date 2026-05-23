@@ -59,11 +59,11 @@ config/
 
 ```bash
 # Development (default)
-export SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_dev
+export SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_dev
 python manage.py runserver
 
 # Production
-export SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
+export SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
 ```
 
 ### Method 2: Auto-detection
@@ -75,20 +75,20 @@ The `settings/__init__.py` automatically detects the environment based on:
 
 ## Environment Variables
 
-Both environments use `SCITEX_CLOUD_*` prefix:
+Both environments use `SCITEX_HUB_*` prefix:
 
 **Development:**
 ```bash
-SCITEX_CLOUD_DB_NAME_DEV=scitex_hub_dev
-SCITEX_CLOUD_DB_USER_DEV=scitex_dev
-SCITEX_CLOUD_DB_PASSWORD_DEV=scitex_dev_2025
+SCITEX_HUB_DB_NAME_DEV=scitex_hub_dev
+SCITEX_HUB_DB_USER_DEV=scitex_dev
+SCITEX_HUB_DB_PASSWORD_DEV=scitex_dev_2025
 ```
 
 **Production:**
 ```bash
-SCITEX_CLOUD_DB_NAME_PROD=scitex_hub_prod
-SCITEX_CLOUD_DB_USER_PROD=scitex_prod
-SCITEX_CLOUD_DB_PASSWORD_PROD=your_secure_password
+SCITEX_HUB_DB_NAME_PROD=scitex_hub_prod
+SCITEX_HUB_DB_USER_PROD=scitex_prod
+SCITEX_HUB_DB_PASSWORD_PROD=your_secure_password
 ```
 
 See `../deployment/docs/01_ENVIRONMENT_VARIABLES.md` for complete documentation.

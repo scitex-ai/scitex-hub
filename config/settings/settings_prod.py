@@ -41,11 +41,11 @@ DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
 SCITEX_WRITER_TEMPLATE_BRANCH = os.getenv("SCITEX_WRITER_TEMPLATE_BRANCH", "main")
 SCITEX_WRITER_TEMPLATE_TAG = os.getenv("SCITEX_WRITER_TEMPLATE_TAG", None)
 
-SECRET_KEY = os.environ.get("SCITEX_CLOUD_DJANGO_SECRET_KEY")
+SECRET_KEY = os.environ.get("SCITEX_HUB_DJANGO_SECRET_KEY")
 
-ALLOWED_HOSTS = os.environ.get(
-    "SCITEX_CLOUD_ALLOWED_HOSTS", "127.0.0.1,localhost"
-).split(",")
+ALLOWED_HOSTS = os.environ.get("SCITEX_HUB_ALLOWED_HOSTS", "127.0.0.1,localhost").split(
+    ","
+)
 # Allow internal Docker container-to-container OAuth2 requests
 ALLOWED_HOSTS += ["scitex-hub-prod-django-1"]
 
@@ -58,7 +58,7 @@ SECURE_REDIRECT_EXEMPT = []
 
 # SSL handled by Cloudflare Tunnel
 SECURE_SSL_REDIRECT = (
-    os.environ.get("SCITEX_CLOUD_ENABLE_SSL_REDIRECT", "false").lower() == "true"
+    os.environ.get("SCITEX_HUB_ENABLE_SSL_REDIRECT", "false").lower() == "true"
 )
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 X_FRAME_OPTIONS = "SAMEORIGIN"  # Allow same-site iframes (needed for PDF viewer)
@@ -68,10 +68,10 @@ SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 # Cookie
 # ---------------------------------------
 SESSION_COOKIE_SECURE = (
-    os.environ.get("SCITEX_CLOUD_FORCE_HTTPS_COOKIES", "true").lower() == "true"
+    os.environ.get("SCITEX_HUB_FORCE_HTTPS_COOKIES", "true").lower() == "true"
 )
 CSRF_COOKIE_SECURE = (
-    os.environ.get("SCITEX_CLOUD_FORCE_HTTPS_COOKIES", "true").lower() == "true"
+    os.environ.get("SCITEX_HUB_FORCE_HTTPS_COOKIES", "true").lower() == "true"
 )
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
@@ -79,7 +79,7 @@ CSRF_COOKIE_HTTPONLY = True
 # ---------------------------------------
 # Database
 # ---------------------------------------
-if os.environ.get("SCITEX_CLOUD_USE_SQLITE_PROD"):
+if os.environ.get("SCITEX_HUB_USE_SQLITE_PROD"):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -88,19 +88,19 @@ if os.environ.get("SCITEX_CLOUD_USE_SQLITE_PROD"):
     }
 else:
     # PostgreSQL (default for production)
-    DB_PASSWORD = os.environ.get("SCITEX_CLOUD_DB_PASSWORD")
+    DB_PASSWORD = os.environ.get("SCITEX_HUB_DB_PASSWORD")
 
     if DB_PASSWORD and DB_PASSWORD != "CHANGE-THIS-DATABASE-PASSWORD-FOR-PROD":
         # Remote PostgreSQL via PgBouncer (for production deployment)
         DATABASES = {
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
-                "NAME": os.environ.get("SCITEX_CLOUD_DB_NAME", "scitex_hub_prod"),
-                "USER": os.environ.get("SCITEX_CLOUD_DB_USER", "scitex_prod"),
+                "NAME": os.environ.get("SCITEX_HUB_DB_NAME", "scitex_hub_prod"),
+                "USER": os.environ.get("SCITEX_HUB_DB_USER", "scitex_prod"),
                 "PASSWORD": DB_PASSWORD,
                 # Connect via PgBouncer for connection pooling
-                "HOST": os.environ.get("SCITEX_CLOUD_DB_HOST", "pgbouncer"),
-                "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT", "6432"),
+                "HOST": os.environ.get("SCITEX_HUB_DB_HOST", "pgbouncer"),
+                "PORT": os.environ.get("SCITEX_HUB_DB_PORT", "6432"),
                 # ATOMIC_REQUESTS disabled: incompatible with ASGI (Daphne)
                 # + PgBouncer transaction pooling.  Middleware and views run
                 # in different threads under ASGI, so a dirty connection in
@@ -126,14 +126,14 @@ else:
         DATABASES = {
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
-                "NAME": os.environ.get("SCITEX_CLOUD_POSTGRES_DB", "scitex_hub_prod"),
-                "USER": os.environ.get("SCITEX_CLOUD_POSTGRES_USER", "scitex_prod"),
+                "NAME": os.environ.get("SCITEX_HUB_POSTGRES_DB", "scitex_hub_prod"),
+                "USER": os.environ.get("SCITEX_HUB_POSTGRES_USER", "scitex_prod"),
                 "PASSWORD": os.environ.get(
-                    "SCITEX_CLOUD_POSTGRES_PASSWORD", "CHANGE_THIS_IN_PROD"
+                    "SCITEX_HUB_POSTGRES_PASSWORD", "CHANGE_THIS_IN_PROD"
                 ),
                 # Connect via PgBouncer for connection pooling
-                "HOST": os.environ.get("SCITEX_CLOUD_DB_HOST", "pgbouncer"),
-                "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT", "6432"),
+                "HOST": os.environ.get("SCITEX_HUB_DB_HOST", "pgbouncer"),
+                "PORT": os.environ.get("SCITEX_HUB_DB_PORT", "6432"),
                 "ATOMIC_REQUESTS": False,
                 "CONN_MAX_AGE": 0,
                 "CONN_HEALTH_CHECKS": True,
@@ -153,19 +153,17 @@ ADMINS = [
 # Integration
 # ---------------------------------------
 # Gitea - Always enabled (core feature)
-GITEA_URL = os.environ.get("SCITEX_CLOUD_GITEA_URL", "https://git.scitex.ai")
+GITEA_URL = os.environ.get("SCITEX_HUB_GITEA_URL", "https://git.scitex.ai")
 GITEA_API_URL = os.environ.get(
-    "SCITEX_CLOUD_GITEA_API_URL", "https://git.scitex.ai/api/v1"
+    "SCITEX_HUB_GITEA_API_URL", "https://git.scitex.ai/api/v1"
 )
-GITEA_TOKEN = os.environ.get("SCITEX_CLOUD_GITEA_TOKEN", "")
+GITEA_TOKEN = os.environ.get("SCITEX_HUB_GITEA_TOKEN", "")
 GITEA_INTEGRATION_ENABLED = True  # Core feature, always enabled
 
 # Gitea Clone URLs (for user-facing clone button)
-SCITEX_CLOUD_GITEA_URL = os.environ.get(
-    "SCITEX_CLOUD_GITEA_URL", "https://git.scitex.ai"
-)
-SCITEX_CLOUD_GIT_DOMAIN = os.environ.get("SCITEX_CLOUD_GIT_DOMAIN", "git.scitex.ai")
-SCITEX_CLOUD_GITEA_SSH_PORT = require_env("SCITEX_CLOUD_GITEA_SSH_PORT")
+SCITEX_HUB_GITEA_URL = os.environ.get("SCITEX_HUB_GITEA_URL", "https://git.scitex.ai")
+SCITEX_HUB_GIT_DOMAIN = os.environ.get("SCITEX_HUB_GIT_DOMAIN", "git.scitex.ai")
+SCITEX_HUB_GITEA_SSH_PORT = require_env("SCITEX_HUB_GITEA_SSH_PORT")
 
 # ---------------------------------------
 # Logging

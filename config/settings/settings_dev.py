@@ -54,7 +54,7 @@ X_FRAME_OPTIONS = "SAMEORIGIN"
 # ---------------------------------------
 # Security
 # ---------------------------------------
-DEBUG = os.getenv("SCITEX_CLOUD_DJANGO_DEBUG", "True").lower() in [
+DEBUG = os.getenv("SCITEX_HUB_DJANGO_DEBUG", "True").lower() in [
     "true",
     "1",
     "yes",
@@ -68,9 +68,9 @@ _wtb = os.getenv("SCITEX_WRITER_TEMPLATE_BRANCH", "main")
 SCITEX_WRITER_TEMPLATE_BRANCH = None if _wtb in ("", "null", "None") else _wtb
 _wtt = os.getenv("SCITEX_WRITER_TEMPLATE_TAG", "")
 SCITEX_WRITER_TEMPLATE_TAG = None if _wtt in ("", "null", "None") else _wtt
-SECRET_KEY = os.getenv("SCITEX_CLOUD_DJANGO_SECRET_KEY")
+SECRET_KEY = os.getenv("SCITEX_HUB_DJANGO_SECRET_KEY")
 ALLOWED_HOSTS = os.getenv(
-    "SCITEX_CLOUD_ALLOWED_HOSTS",
+    "SCITEX_HUB_ALLOWED_HOSTS",
     "localhost,127.0.0.1,0.0.0.0,[::1],testserver",
 ).split(",")
 
@@ -116,7 +116,7 @@ VITE_HOST_PORT = 5173
 VITE_DEV_APP_PORT = 5174
 # Set True to use pre-built Vite assets (staticfiles/vite/) instead of Vite dev server.
 # Useful when Vite dev server can't run (resource constraints). Run `npm run build` first.
-VITE_USE_BUILD = os.environ.get("SCITEX_CLOUD_VITE_USE_BUILD", "").lower() in (
+VITE_USE_BUILD = os.environ.get("SCITEX_HUB_VITE_USE_BUILD", "").lower() in (
     "1",
     "true",
     "yes",
@@ -124,7 +124,7 @@ VITE_USE_BUILD = os.environ.get("SCITEX_CLOUD_VITE_USE_BUILD", "").lower() in (
 # Set to your Windows LAN IP for iPhone dev testing (e.g. "192.168.0.67").
 # Default "127.0.0.1" works for localhost-only dev.
 # "auto" tries to detect the Windows host LAN IP via default gateway.
-_vite_host_env = os.environ.get("SCITEX_CLOUD_VITE_HOST_IP", "127.0.0.1")
+_vite_host_env = os.environ.get("SCITEX_HUB_VITE_HOST_IP", "127.0.0.1")
 if _vite_host_env == "auto":
     try:
         import subprocess
@@ -186,8 +186,8 @@ MIDDLEWARE += [
 # ---------------------------------------
 # Database - Fallback
 # ---------------------------------------
-# Use SQLite: export SCITEX_CLOUD_USE_SQLITE_DEV=1
-if os.environ.get("SCITEX_CLOUD_USE_SQLITE_DEV"):
+# Use SQLite: export SCITEX_HUB_USE_SQLITE_DEV=1
+if os.environ.get("SCITEX_HUB_USE_SQLITE_DEV"):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -199,13 +199,11 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get("SCITEX_CLOUD_DB_NAME_DEV", "scitex_hub_dev"),
-            "USER": os.environ.get("SCITEX_CLOUD_DB_USER_DEV", "scitex_dev"),
-            "PASSWORD": os.environ.get(
-                "SCITEX_CLOUD_DB_PASSWORD_DEV", "scitex_dev_2025"
-            ),
-            "HOST": os.environ.get("SCITEX_CLOUD_DB_HOST_DEV", "localhost"),
-            "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT_DEV", "5432"),
+            "NAME": os.environ.get("SCITEX_HUB_DB_NAME_DEV", "scitex_hub_dev"),
+            "USER": os.environ.get("SCITEX_HUB_DB_USER_DEV", "scitex_dev"),
+            "PASSWORD": os.environ.get("SCITEX_HUB_DB_PASSWORD_DEV", "scitex_dev_2025"),
+            "HOST": os.environ.get("SCITEX_HUB_DB_HOST_DEV", "localhost"),
+            "PORT": os.environ.get("SCITEX_HUB_DB_PORT_DEV", "5432"),
             # ATOMIC_REQUESTS disabled: incompatible with ASGI (Daphne)
             # — same issue as production (see settings_prod.py).
             # Visitor middleware DB errors cascade to views.
@@ -222,19 +220,17 @@ else:
 # ---------------------------------------
 # Gitea
 # Use container URL for Django (http://gitea:3000) for inter-container communication
-GITEA_URL = os.environ.get(
-    "SCITEX_CLOUD_GITEA_URL_IN_CONTAINER_DEV", "http://gitea:3000"
-)
+GITEA_URL = os.environ.get("SCITEX_HUB_GITEA_URL_IN_CONTAINER_DEV", "http://gitea:3000")
 GITEA_API_URL = f"{GITEA_URL}/api/v1"
-GITEA_TOKEN = os.environ.get("SCITEX_CLOUD_GITEA_TOKEN_DEV", "")
+GITEA_TOKEN = os.environ.get("SCITEX_HUB_GITEA_TOKEN_DEV", "")
 GITEA_INTEGRATION_ENABLED = True  # Core feature, always enabled
 
 # Gitea Clone URLs (for user-facing clone button)
-SCITEX_CLOUD_GITEA_URL = os.environ.get(
-    "SCITEX_CLOUD_GITEA_URL_DEV", "http://127.0.0.1:3000"
+SCITEX_HUB_GITEA_URL = os.environ.get(
+    "SCITEX_HUB_GITEA_URL_DEV", "http://127.0.0.1:3000"
 )
-SCITEX_CLOUD_GIT_DOMAIN = os.environ.get("SCITEX_CLOUD_GIT_DOMAIN", "127.0.0.1")
-SCITEX_CLOUD_GITEA_SSH_PORT = require_env("SCITEX_CLOUD_GITEA_SSH_PORT_DEV")
+SCITEX_HUB_GIT_DOMAIN = os.environ.get("SCITEX_HUB_GIT_DOMAIN", "127.0.0.1")
+SCITEX_HUB_GITEA_SSH_PORT = require_env("SCITEX_HUB_GITEA_SSH_PORT_DEV")
 
 # Development Cache Configuration - fallback to dummy cache if Redis not available
 # Override cache configuration for development if Redis is not available
@@ -312,7 +308,7 @@ LOGGING.update(
             "django.db.backends": {
                 "handlers": ["console_debug"],
                 "level": (
-                    "DEBUG" if os.environ.get("SCITEX_CLOUD_SQL_DEBUG") else "INFO"
+                    "DEBUG" if os.environ.get("SCITEX_HUB_SQL_DEBUG") else "INFO"
                 ),
                 "propagate": False,
             },
@@ -350,7 +346,7 @@ CELERY_BEAT_SCHEDULE["collect-server-metrics"] = {
 # Test User Credentials for API Docs Examples
 # ---------------------------------------
 # Used to populate API docs code examples in Private mode (dev only)
-TEST_USER_PASSWORD = os.environ.get("SCITEX_CLOUD_TEST_USER_PASSWORD", "Password123!")
+TEST_USER_PASSWORD = os.environ.get("SCITEX_HUB_TEST_USER_PASSWORD", "Password123!")
 
 # ---------------------------------------
 # Dev App Preview

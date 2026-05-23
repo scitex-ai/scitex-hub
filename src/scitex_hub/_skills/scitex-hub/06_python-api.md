@@ -13,8 +13,8 @@ tags: [scitex-hub-python-api]
 import scitex_hub
 
 client = scitex_hub.CloudClient(
-    api_key=None,    # or set SCITEX_CLOUD_API_KEY env var
-    base_url=None,   # or set SCITEX_CLOUD_URL env var (default: https://scitex.cloud)
+    api_key=None,    # or set SCITEX_HUB_API_KEY env var
+    base_url=None,   # or set SCITEX_HUB_URL env var (default: https://scitex.cloud)
 )
 ```
 
@@ -99,8 +99,8 @@ docker = scitex_hub.DockerManager(env)      # container management
 
 | Variable | Purpose |
 |----------|---------|
-| `SCITEX_CLOUD_API_KEY` | API key for authenticated endpoints |
-| `SCITEX_CLOUD_URL` | Cloud server base URL (default: https://scitex.cloud) |
+| `SCITEX_HUB_API_KEY` | API key for authenticated endpoints |
+| `SCITEX_HUB_URL` | Cloud server base URL (default: https://scitex.cloud) |
 
 ## Examples
 

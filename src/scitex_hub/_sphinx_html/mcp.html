@@ -252,11 +252,11 @@ and submit jobs without manual intervention.</p>
 <section id="environment-source-file-env-src">
 <h2>Environment Source File (<code class="docutils literal notranslate"><span class="pre">ENV_SRC</span></code>)<a class="headerlink" href="#environment-source-file-env-src" title="Link to this heading"></a></h2>
 <p>To pass credentials and configuration to the MCP server without hardcoding
-values in the JSON config, use the <code class="docutils literal notranslate"><span class="pre">SCITEX_CLOUD_ENV_SRC</span></code> environment variable.
+values in the JSON config, use the <code class="docutils literal notranslate"><span class="pre">SCITEX_HUB_ENV_SRC</span></code> environment variable.
 Set it to the path of a shell <code class="docutils literal notranslate"><span class="pre">.src</span></code> file that exports the required variables:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># ~/.scitex_hub.src</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">SCITEX_CLOUD_API_BASE_URL</span><span class="o">=</span>https://scitex.example.com
-<span class="nb">export</span><span class="w"> </span><span class="nv">SCITEX_CLOUD_API_TOKEN</span><span class="o">=</span>your-token-here
+<span class="nb">export</span><span class="w"> </span><span class="nv">SCITEX_HUB_API_BASE_URL</span><span class="o">=</span>https://scitex.example.com
+<span class="nb">export</span><span class="w"> </span><span class="nv">SCITEX_HUB_API_TOKEN</span><span class="o">=</span>your-token-here
 </pre></div>
 </div>
 <p>Then reference it in your MCP config:</p>
@@ -266,7 +266,7 @@ Set it to the path of a shell <code class="docutils literal notranslate"><span c
 <span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;scitex-hub&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;mcp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;start&quot;</span><span class="p">],</span>
 <span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;SCITEX_CLOUD_ENV_SRC&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/home/user/.scitex_hub.src&quot;</span>
+<span class="w">        </span><span class="nt">&quot;SCITEX_HUB_ENV_SRC&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/home/user/.scitex_hub.src&quot;</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>

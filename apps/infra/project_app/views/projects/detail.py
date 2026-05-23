@@ -158,9 +158,9 @@ def project_detail(request, username, slug):
     if not is_remote_type:
         from django.conf import settings
 
-        gitea_url = getattr(settings, "SCITEX_CLOUD_GITEA_URL", "http://127.0.0.1:3000")
-        gitea_ssh_domain = getattr(settings, "SCITEX_CLOUD_GIT_DOMAIN", "127.0.0.1")
-        gitea_ssh_port = getattr(settings, "SCITEX_CLOUD_GITEA_SSH_PORT", "2222")
+        gitea_url = getattr(settings, "SCITEX_HUB_GITEA_URL", "http://127.0.0.1:3000")
+        gitea_ssh_domain = getattr(settings, "SCITEX_HUB_GIT_DOMAIN", "127.0.0.1")
+        gitea_ssh_port = getattr(settings, "SCITEX_HUB_GITEA_SSH_PORT", "2222")
 
         gitea_https_url = f"{gitea_url}/{project.owner.username}/{project.slug}.git"
         gitea_ssh_url = f"ssh://git@{gitea_ssh_domain}:{gitea_ssh_port}/{project.owner.username}/{project.slug}.git"

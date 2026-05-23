@@ -50,7 +50,7 @@ def list_all(*, server_url: Optional[str] = None) -> list[dict]:
         pass
 
     # Fallback: server API
-    url = server_url or os.environ.get("SCITEX_CLOUD_URL", "http://127.0.0.1:8000")
+    url = server_url or os.environ.get("SCITEX_HUB_URL", "http://127.0.0.1:8000")
     return _fetch_app_list(url)
 
 
@@ -108,7 +108,7 @@ def install_app(
 
     Requires authentication. Returns result dict with success/error.
     """
-    url = server_url or os.environ.get("SCITEX_CLOUD_URL", "http://127.0.0.1:8000")
+    url = server_url or os.environ.get("SCITEX_HUB_URL", "http://127.0.0.1:8000")
     endpoint = f"{url.rstrip('/')}/apps/store/api/install/"
 
     import requests

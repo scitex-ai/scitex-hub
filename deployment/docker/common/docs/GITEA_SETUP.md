@@ -13,8 +13,8 @@ Django-Gitea integration is automatic.
 In `SECRETS/.env.dev`:
 
 ```bash
-SCITEX_CLOUD_GITEA_URL_DEV=http://gitea:3000
-SCITEX_CLOUD_GITEA_TOKEN_DEV=<token>
+SCITEX_HUB_GITEA_URL_DEV=http://gitea:3000
+SCITEX_HUB_GITEA_TOKEN_DEV=<token>
 ```
 
 ## Generate Token
