@@ -38,6 +38,11 @@ jobs:
           SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-secret-do-not-use-in-prod  # pragma: allowlist secret
           # settings_dev.py L233: require_env("SCITEX_HUB_GITEA_SSH_PORT_DEV")
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          # settings_dev.py L189-194: SCITEX_HUB_USE_SQLITE_DEV switches
+          # Django from postgres to a local sqlite file. No postgres
+          # service runs in this matrix; sqlite keeps the test gate
+          # focused on the wheel + import + unit-level behaviour.
+          SCITEX_HUB_USE_SQLITE_DEV: "1"
         run: |
           pytest tests/ --cov=src/scitex_hub --cov-report=xml --cov-report=term
       - name: Upload coverage to Codecov
