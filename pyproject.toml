@@ -1,6 +1,6 @@
 [project]
 name = "scitex-hub"
-version = "0.17.6"
+version = "0.18.0"
 description = "SciTeX Hub - Deployment and management CLI for SciTeX"
 readme = "README.md"
 license = "AGPL-3.0-only"
