@@ -67,6 +67,12 @@ jobs:
           # (already set in tests.yml; mirror it here so the release-tag
           # pipeline matches the push/PR matrix).
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          # settings_dev.py L189-194: when SCITEX_HUB_USE_SQLITE_DEV is set,
+          # Django uses a local sqlite file instead of the postgres service
+          # we don't run in this CI job (no `services: postgres:14` block).
+          # Tests that need postgres behaviour will skip/xfail naturally;
+          # the goal of this gate is to confirm the wheel + import chain.
+          SCITEX_HUB_USE_SQLITE_DEV: "1"
         run: |
           if [ -d tests ]; then
             pytest tests/ -x
