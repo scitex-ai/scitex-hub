@@ -78,6 +78,13 @@ django = [
     "weasyprint>=60.0",
     "pydantic<2.12",
     "scitex-ui>=0.2.0",
+    # The umbrella `scitex` package is imported at Django-settings load
+    # time (`config/routing.py` and `config/settings/settings_*.py` do
+    # `import scitex as stx`), so it's a hard runtime requirement for
+    # the Django stack — not just a sibling dev tool. Without this,
+    # `pytest tests/` halts in pytest-django with
+    # `ImportError: No module named 'scitex'` before any test runs.
+    "scitex>=2.29",
 ]
 gui = [
     "dearpygui>=1.11",
