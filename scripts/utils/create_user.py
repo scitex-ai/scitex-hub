@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Create admin user for SciTeX Cloud platform.
+Create admin user for SciTeX Hub platform.
 
 Reads credentials from environment variables:
   SCITEX_CLOUD_ADMIN_USERNAME (required)

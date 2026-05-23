@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-SciTeX Cloud Branding Constants - Single Source of Truth
+SciTeX Hub Branding Constants - Single Source of Truth
 
 All site-wide branding text should be defined here and referenced
 via Django settings or context processors.

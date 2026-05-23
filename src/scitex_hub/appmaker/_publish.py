@@ -16,7 +16,7 @@ def publish(app_dir: str | Path, server_url: str, token: str) -> dict:
     app_dir : path
         Directory containing the app with manifest.json.
     server_url : str
-        Base URL of the SciTeX Cloud server (e.g. http://127.0.0.1:8000).
+        Base URL of the SciTeX Hub server (e.g. http://127.0.0.1:8000).
     token : str
         JWT access token (Bearer auth).
 

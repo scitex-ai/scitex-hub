@@ -118,7 +118,7 @@ def _setup_remote_and_push(server_url, username, project_name, remote_name):
     envvar="SCITEX_CLOUD_URL",
     default=_DEFAULT_SERVER,
     show_default=True,
-    help="SciTeX Cloud server URL",
+    help="SciTeX Hub server URL",
 )
 @click.option(
     "--visibility",
@@ -212,7 +212,7 @@ def upload(name, description, server, visibility, remote, push):
     envvar="SCITEX_CLOUD_URL",
     default=_DEFAULT_SERVER,
     show_default=True,
-    help="SciTeX Cloud server URL",
+    help="SciTeX Hub server URL",
 )
 @click.option("--json", "as_json", is_flag=True, help="Output raw JSON")
 def list_projects(server, as_json):
@@ -337,7 +337,7 @@ def sync(remote, direction):
     envvar="SCITEX_CLOUD_URL",
     default=_DEFAULT_SERVER,
     show_default=True,
-    help="SciTeX Cloud server URL",
+    help="SciTeX Hub server URL",
 )
 def logout(server):
     """Clear the cached JWT token for the given server."""

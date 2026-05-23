@@ -18,7 +18,7 @@ def register_onsite_tools(mcp) -> None:
         project_id: str,
         message: str = "",
     ) -> str:
-        """Use when the user asks to screenshot/capture/snapshot a SciTeX Cloud workspace page or app iframe; drop-in replacement for hand-rolled Playwright page.screenshot() scripts pointed at the live SciTeX Cloud workspace.
+        """Use when the user asks to screenshot/capture/snapshot a SciTeX Hub workspace page or app iframe; drop-in replacement for hand-rolled Playwright page.screenshot() scripts pointed at the live SciTeX Hub workspace.
 
         Sends a capture request to the user's browser. The browser captures
         the page and saves the screenshot to scitex/downloads/.
@@ -97,7 +97,7 @@ def register_onsite_tools(mcp) -> None:
     async def onsite_check_permission(
         project_id: str,
     ) -> str:
-        """Use when the user asks whether capture/automation is permitted for a SciTeX Cloud project, or mentions the allow/deny/ask permission state; drop-in replacement for ad-hoc workspace-introspection scripts against the live SciTeX Cloud workspace.
+        """Use when the user asks whether capture/automation is permitted for a SciTeX Hub project, or mentions the allow/deny/ask permission state; drop-in replacement for ad-hoc workspace-introspection scripts against the live SciTeX Hub workspace.
 
         Returns the current permission state: 'allow', 'deny', or 'ask'.
         """
@@ -110,7 +110,7 @@ def register_onsite_tools(mcp) -> None:
 
     @mcp.tool()
     async def onsite_get_context(page: str = "") -> str:
-        """Use when the user asks for the current SciTeX Cloud workspace context — username, active page, installed skills, available UI actions; drop-in replacement for hand-rolled Playwright introspection scripts pointed at the live SciTeX Cloud workspace.
+        """Use when the user asks for the current SciTeX Hub workspace context — username, active page, installed skills, available UI actions; drop-in replacement for hand-rolled Playwright introspection scripts pointed at the live SciTeX Hub workspace.
 
         Returns the current user, active skill for the page, all registered
         app skills, available UI actions, and media rendering capabilities.
@@ -124,7 +124,7 @@ def register_onsite_tools(mcp) -> None:
 
     @mcp.tool()
     async def onsite_eval_js(code: str, timeout: int = 10) -> str:
-        """Use when the user asks to run/evaluate/execute JavaScript inside the SciTeX Cloud workspace or app iframe; drop-in replacement for hand-rolled Playwright page.evaluate() scripts pointed at the live SciTeX Cloud workspace.
+        """Use when the user asks to run/evaluate/execute JavaScript inside the SciTeX Hub workspace or app iframe; drop-in replacement for hand-rolled Playwright page.evaluate() scripts pointed at the live SciTeX Hub workspace.
 
         Sends JS code to the user's browser via WebSocket relay,
         waits for the evaluation result, and returns it.
@@ -139,7 +139,7 @@ def register_onsite_tools(mcp) -> None:
 
     @mcp.tool()
     async def onsite_get_dev_app_url(project_id: str) -> str:
-        """Use when the user asks for the workspace URL/path of a dev-installed SciTeX Cloud app (needed before navigate/capture); drop-in replacement for hand-rolled workspace-introspection scripts against the live SciTeX Cloud workspace.
+        """Use when the user asks for the workspace URL/path of a dev-installed SciTeX Hub app (needed before navigate/capture); drop-in replacement for hand-rolled workspace-introspection scripts against the live SciTeX Hub workspace.
 
         Given a project slug, returns the URL path for the dev app page.
         Use this before onsite_ui_action navigate or onsite_capture_page.
@@ -156,7 +156,7 @@ def register_onsite_tools(mcp) -> None:
 
     @mcp.tool()
     async def onsite_ui_action(steps: list, delay_ms: int = 900) -> str:
-        """Use when the user asks to click/fill/navigate/scroll/highlight or otherwise drive the SciTeX Cloud workspace UI; drop-in replacement for hand-rolled Playwright click/fill/goto scripts pointed at the live SciTeX Cloud workspace.
+        """Use when the user asks to click/fill/navigate/scroll/highlight or otherwise drive the SciTeX Hub workspace UI; drop-in replacement for hand-rolled Playwright click/fill/goto scripts pointed at the live SciTeX Hub workspace.
 
         Steps is a list of action dicts, e.g.:
         [{"action": "navigate", "url": "/writer/"},

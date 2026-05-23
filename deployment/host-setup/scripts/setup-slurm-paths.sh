@@ -1,5 +1,5 @@
 #!/bin/bash
-# Setup SLURM-accessible paths for SciTeX Cloud
+# Setup SLURM-accessible paths for SciTeX Hub
 #
 # Creates /opt/scitex with proper permissions for SLURM jobs.
 # This avoids NAS ACL issues with home directories.

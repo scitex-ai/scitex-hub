@@ -4,7 +4,7 @@
 !-- File: /home/ywatanabe/proj/scitex-hub/config/README.md
 !-- --- -->
 
-# SciTeX Cloud Configuration
+# SciTeX Hub Configuration
 
 This directory contains all Django configuration files organized for easy environment management.
 

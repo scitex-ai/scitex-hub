@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.4
 # ============================================
-# SciTeX Cloud - Production Image
+# SciTeX Hub - Production Image
 # ============================================
 #
 # Cache Strategy Overview
@@ -188,7 +188,7 @@ RUN --mount=type=cache,target=/root/.cache/ms-playwright \
 FROM python:3.11-slim-bookworm AS runtime
 
 LABEL maintainer="ywatanabe@scitex.ai"
-LABEL description="SciTeX Cloud - NAS"
+LABEL description="SciTeX Hub - NAS"
 LABEL version="0.10.10-alpha"
 
 ARG SCITEX_CLOUD_BUILD_ID="1.0.0"

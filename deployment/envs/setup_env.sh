@@ -113,7 +113,7 @@ setup_environment() {
     echo -e "Loading environment variables..."
     source "$ENV_FILE"
     echo -e ""
-    echo -e "SciTeX Cloud - Environment: $ENV"
+    echo -e "SciTeX Hub - Environment: $ENV"
     echo -e "Django Settings: $SCITEX_CLOUD_DJANGO_SETTINGS_MODULE"
 
     if [ "$ENV" = "dev" ]; then

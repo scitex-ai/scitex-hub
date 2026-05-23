@@ -23,7 +23,7 @@ class {class_name}Config(AppConfig):
 
 
 def _views_py(name, label, description):
-    desc = description or f"A SciTeX Cloud app for {label}."
+    desc = description or f"A SciTeX Hub app for {label}."
     return f'''"""Views for {label} workspace app."""
 
 from __future__ import annotations
@@ -118,7 +118,7 @@ class {class_label}ContextTest(TestCase):
 
 
 def _skill_py(name, label, description):
-    desc = description or f"A SciTeX Cloud app for {label}."
+    desc = description or f"A SciTeX Hub app for {label}."
     caps = _derive_capabilities(label, description)
     caps_str = json.dumps(caps, ensure_ascii=False)
     return f'''"""Skill registration for {label}."""
@@ -163,7 +163,7 @@ def _manifest_json(
     name, label, icon, description, extra_manifest, license_id, frontend_type="html"
 ):
     slug = name.replace("_", "-")
-    desc = description or "A SciTeX Cloud app."
+    desc = description or "A SciTeX Hub app."
     manifest = {
         "$schema": "scitex-app-manifest",
         "$schema_version": "2.0.0",
@@ -380,7 +380,7 @@ def _agents_json(name, label):
 
 
 def _readme_md(name, label, description, license_id, *, frontend_type: str = "html"):
-    desc = description or "A SciTeX Cloud App plugin."
+    desc = description or "A SciTeX Hub App plugin."
     frontend_section = ""
     if frontend_type == "react":
         frontend_section = f"""

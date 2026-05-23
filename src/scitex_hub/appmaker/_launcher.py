@@ -1,4 +1,4 @@
-"""App launcher — local development setup for SciTeX Cloud app plugins."""
+"""App launcher — local development setup for SciTeX Hub app plugins."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ def dev_server(app_dir: str | Path, port: int = 8000) -> None:
 
     # Check basic structure
     if not (root / "apps.py").exists():
-        print(f"Error: {root} does not look like a SciTeX Cloud app (missing apps.py).")
+        print(f"Error: {root} does not look like a SciTeX Hub app (missing apps.py).")
         print("Run 'scitex-hub app init' first to scaffold the boilerplate.")
         sys.exit(1)
 

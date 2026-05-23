@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # File: src/scitex_hub/api.py
 """
-SciTeX Cloud Python API - Programmatic access to cloud operations.
+SciTeX Hub Python API - Programmatic access to cloud operations.
 
 Usage:
     >>> import scitex_hub
@@ -20,7 +20,7 @@ from typing import Optional
 
 
 class CloudClient:
-    """Python client for SciTeX Cloud API.
+    """Python client for SciTeX Hub API.
 
     Parameters
     ----------
@@ -54,7 +54,7 @@ class CloudClient:
         files: Optional[dict] = None,
         auth_required: bool = True,
     ) -> dict:
-        """Make HTTP request to SciTeX Cloud API."""
+        """Make HTTP request to SciTeX Hub API."""
         import requests
 
         url = f"{self.base_url}{endpoint}"
@@ -87,7 +87,7 @@ class CloudClient:
             return {"content": response.text}
 
     def scholar_search(self, query: str, limit: int = 10) -> dict:
-        """Search papers via SciTeX Cloud (public, no auth required).
+        """Search papers via SciTeX Hub (public, no auth required).
 
         Parameters
         ----------

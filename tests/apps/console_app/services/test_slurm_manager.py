@@ -31,7 +31,7 @@ if __name__ == "__main__":
 # # File: apps/console_app/services/slurm_manager.py
 #
 # """
-# SLURM job management for SciTeX Cloud.
+# SLURM job management for SciTeX Hub.
 #
 # This module provides a Python interface to SLURM for submitting and managing
 # computational jobs in Apptainer containers.
@@ -48,7 +48,7 @@ if __name__ == "__main__":
 #
 # class SlurmManager:
 #     """
-#     Manage SLURM job submissions for SciTeX Cloud.
+#     Manage SLURM job submissions for SciTeX Hub.
 #
 #     Handles job submission, status monitoring, and cancellation through
 #     SLURM's command-line interface.

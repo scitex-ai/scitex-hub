@@ -3,7 +3,7 @@
 # Timestamp: 2026-03-09
 # File: /home/ywatanabe/proj/scitex-hub/config/urls.py
 """
-URL Configuration for SciTeX Cloud project.
+URL Configuration for SciTeX Hub project.
 Organized into clear sections; helpers, API routes, and legacy redirects
 are extracted into separate modules.
 """

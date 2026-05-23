@@ -55,7 +55,7 @@ if __name__ == "__main__":
 #             {
 #                 "name": "REST API",
 #                 "slug": "api",
-#                 "description": "REST API reference for SciTeX Cloud",
+#                 "description": "REST API reference for SciTeX Hub",
 #                 "icon": "scitex_logos/scitex-icons/scitex-icon-navy.svg",
 #                 "available": True,  # Always available (static HTML)
 #             },

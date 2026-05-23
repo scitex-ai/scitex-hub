@@ -1,6 +1,6 @@
-# SciTeX Cloud - Legal and Policy Declarations
+# SciTeX Hub - Legal and Policy Declarations
 
-This directory contains legal and policy declaration pages for SciTeX Cloud.
+This directory contains legal and policy declaration pages for SciTeX Hub.
 
 ## Templates
 

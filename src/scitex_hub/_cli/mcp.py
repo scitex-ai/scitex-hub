@@ -330,7 +330,7 @@ def mcp_list_tools(verbose: int, as_json: bool):
         return
 
     total = len(tools_dict)
-    click.secho("SciTeX Cloud MCP", fg="cyan", bold=True)
+    click.secho("SciTeX Hub MCP", fg="cyan", bold=True)
     click.echo(f"Tools: {total} ({len(modules)} modules)")
     click.echo()
 

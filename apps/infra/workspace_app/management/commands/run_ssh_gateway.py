@@ -294,7 +294,7 @@ def handle_client(client: socket.socket, addr: tuple, host_key: paramiko.RSAKey)
         # Send welcome message
         welcome_msg = (
             f"\r\n"
-            f"Welcome to SciTeX Cloud Workspace, {server.username}!\r\n"
+            f"Welcome to SciTeX Hub Workspace, {server.username}!\r\n"
             f"Container: {container.name}\r\n"
             f"\r\n"
         )

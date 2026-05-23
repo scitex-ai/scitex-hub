@@ -1,7 +1,7 @@
 App Platform
 ============
 
-SciTeX Cloud ships a first-class **app platform** that lets third-party apps
+SciTeX Hub ships a first-class **app platform** that lets third-party apps
 integrate into the workspace alongside built-in tools.  The platform handles
 registration, isolation, data persistence, job queuing, and developer
 tooling so apps can focus on domain logic.

@@ -1,6 +1,6 @@
 # Static Images Organization
 
-This directory contains all static images and icons for the SciTeX Cloud application, organized by category and purpose.
+This directory contains all static images and icons for the SciTeX Hub application, organized by category and purpose.
 
 ## Directory Structure
 

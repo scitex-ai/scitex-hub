@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # File: src/scitex_hub/utils/docker.py
 
-"""Docker management utilities for SciTeX Cloud."""
+"""Docker management utilities for SciTeX Hub."""
 
 import subprocess
 from pathlib import Path
@@ -12,7 +12,7 @@ from .._config._environments import Environment, get_environment
 
 
 class DockerManager:
-    """Manage Docker containers for SciTeX Cloud."""
+    """Manage Docker containers for SciTeX Hub."""
 
     def __init__(
         self, env: Optional[Environment] = None, project_root: Optional[Path] = None

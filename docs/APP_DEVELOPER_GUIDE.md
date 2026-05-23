@@ -1,4 +1,4 @@
-# SciTeX Cloud — App Developer Guide
+# SciTeX Hub — App Developer Guide
 
 For AI agents and developers building apps that integrate with scitex-hub.
 
@@ -6,7 +6,7 @@ For AI agents and developers building apps that integrate with scitex-hub.
 
 ## 1. Platform Overview
 
-SciTeX Cloud renders inside a **three-column workspace layout**:
+SciTeX Hub renders inside a **three-column workspace layout**:
 
 ```
 ┌─────────────┬──────────────────┬────────────────┐

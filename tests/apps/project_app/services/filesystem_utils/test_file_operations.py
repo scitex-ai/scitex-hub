@@ -26,7 +26,7 @@ if __name__ == "__main__":
 # Start of Source Code from: apps/project_app/services/filesystem_utils/file_operations.py
 # --------------------------------------------------------------------------------
 # """
-# SciTeX Cloud - File Operations
+# SciTeX Hub - File Operations
 #
 # Basic file operations for reading, writing, and getting file information.
 # """

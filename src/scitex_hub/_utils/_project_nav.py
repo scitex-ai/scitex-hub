@@ -36,7 +36,7 @@ def build_cd_command(username: str, project_slug: str) -> str:
         f'cd "{project_dir}"; '
         f"else "
         f'echo "⚠ Project directory {project_dir} not found '
-        f'— project may have changed on SciTeX Cloud"; '
+        f'— project may have changed on SciTeX Hub"; '
         f"fi"
     )
 

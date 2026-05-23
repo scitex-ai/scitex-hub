@@ -1,4 +1,4 @@
-# SciTeX Cloud App Templates
+# SciTeX Hub App Templates
 
 This directory contains the template files for the main cloud_app (landing pages, legal pages, etc.).
 

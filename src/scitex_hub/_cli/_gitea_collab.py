@@ -179,7 +179,7 @@ def status():
     help="SciTeX API key (or set SCITEX_CLOUD_API_KEY)",
 )
 @click.option("--no-cache", is_flag=True, help="Disable cache")
-@click.option("--url", default="https://scitex.cloud", help="SciTeX Cloud URL")
+@click.option("--url", default="https://scitex.cloud", help="SciTeX Hub URL")
 def enrich(input_file, output_file, api_key, no_cache, url):
     """Enrich BibTeX file with metadata"""
     if not api_key:

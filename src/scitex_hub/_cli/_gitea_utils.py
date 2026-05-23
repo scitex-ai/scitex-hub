@@ -14,7 +14,7 @@ from pathlib import Path
 import click
 from scitex_config._ecosystem import local_state
 
-# Default Gitea port for SciTeX Cloud
+# Default Gitea port for SciTeX Hub
 _DEFAULT_GITEA_PORT = 3000
 
 

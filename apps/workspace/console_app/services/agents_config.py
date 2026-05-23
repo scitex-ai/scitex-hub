@@ -94,9 +94,9 @@ def _build_agents_md(project_name: str) -> str:
     """
     parts = [
         f"# {project_name}\n",
-        "SciTeX Cloud project with access to 145+ MCP tools.\n",
+        "SciTeX Hub project with access to 145+ MCP tools.\n",
         "## Platform\n",
-        "You are running inside an Apptainer container on SciTeX Cloud — a browser-based",
+        "You are running inside an Apptainer container on SciTeX Hub — a browser-based",
         "scientific research platform. Python 3.11 and the `scitex` package are pre-installed.",
         "The MCP server is connected.\n",
     ]

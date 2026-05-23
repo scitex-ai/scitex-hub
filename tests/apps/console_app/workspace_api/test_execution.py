@@ -163,7 +163,7 @@ if __name__ == "__main__":
 #         env['HOSTNAME'] = 'scitex-hub'
 #         env['TERM'] = 'xterm-256color'  # Enable terminal features like clear
 #
-#         # SciTeX Cloud Code-specific env vars for scitex.plt auto-detection
+#         # SciTeX Hub Code-specific env vars for scitex.plt auto-detection
 #         env['SCITEX_CLOUD_CODE_WORKSPACE'] = 'true'  # Marker for scitex.plt
 #         env['SCITEX_CLOUD_CODE_BACKEND'] = 'inline'  # Use inline plotting in terminal
 #         env['SCITEX_CLOUD_CODE_SESSION_ID'] = str(project.id)  # Session tracking

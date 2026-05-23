@@ -1,5 +1,5 @@
 # ============================================
-# SciTeX Cloud - Docker Development Environment
+# SciTeX Hub - Docker Development Environment
 # ============================================
 # Location: /containers/docker_dev/Makefile.dev
 
@@ -69,7 +69,7 @@ NC := \033[0m
 help:
 	@echo -e ""
 	@echo -e "$(GREEN)╔═══════════════════════════════════════════════════════╗$(NC)"
-	@echo -e "$(GREEN)║          SciTeX Cloud - Development Mode              ║$(NC)"
+	@echo -e "$(GREEN)║          SciTeX Hub - Development Mode              ║$(NC)"
 	@echo -e "$(GREEN)╚═══════════════════════════════════════════════════════╝$(NC)"
 	@echo -e ""
 	@echo -e "$(CYAN)🚀 Quick Start:$(NC)"

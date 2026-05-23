@@ -1,4 +1,4 @@
-# SciTeX Cloud — Security & Permission Architecture
+# SciTeX Hub — Security & Permission Architecture
 
 **Date:** 2026-02-20
 **Status:** Mostly Implemented — see section status tags
@@ -7,7 +7,7 @@
 
 ## Overview
 
-SciTeX Cloud enforces isolation at multiple layers, so that one authenticated
+SciTeX Hub enforces isolation at multiple layers, so that one authenticated
 user cannot read, modify, or exhaust resources of another user, even if they
 find a way to run arbitrary shell commands inside the Django process.
 

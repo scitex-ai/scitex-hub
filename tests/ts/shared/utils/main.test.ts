@@ -26,7 +26,7 @@ describe('main', () => {
 // =============================================================================
 
 // /**
-//  * SciTeX Cloud - Main Application Initialization
+//  * SciTeX Hub - Main Application Initialization
 //  * Handles mobile menu, global UI initialization
 //  */
 //

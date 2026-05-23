@@ -35,7 +35,7 @@ BOLD='\033[1m'
 # Example: usage
 usage() {
     cat << EOF
-${BOLD}Reset All Data - SciTeX Cloud${NC}
+${BOLD}Reset All Data - SciTeX Hub${NC}
 
 Delete all users and projects for a fresh start with v2.0.0-beta.
 
@@ -210,7 +210,7 @@ main() {
 
     # Header
     echo ""
-    echo_header "SciTeX Cloud - Reset All Data"
+    echo_header "SciTeX Hub - Reset All Data"
     echo_info "Environment: $env"
     echo_info "Command args: $cmd_args"
     echo ""

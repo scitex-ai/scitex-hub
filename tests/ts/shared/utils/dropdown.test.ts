@@ -26,7 +26,7 @@ describe('dropdown', () => {
 // =============================================================================
 
 // /**
-//  * SciTeX Cloud - Dropdown Menu Functionality
+//  * SciTeX Hub - Dropdown Menu Functionality
 //  * Handles generic dropdown menus with click-outside-to-close behavior
 //  */
 //

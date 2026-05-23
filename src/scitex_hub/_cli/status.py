@@ -22,7 +22,7 @@ def status(ctx, env):
     """Show deployment status.
 
     \b
-    Display current status of SciTeX Cloud deployment including
+    Display current status of SciTeX Hub deployment including
     container states, resource usage, and service health.
 
     \b
@@ -33,7 +33,7 @@ def status(ctx, env):
     environment = get_environment(env)
     click.echo(
         click.style(
-            f"SciTeX Cloud Status: {environment.description}", fg="cyan", bold=True
+            f"SciTeX Hub Status: {environment.description}", fg="cyan", bold=True
         )
     )
     click.echo()
@@ -63,7 +63,7 @@ def logs(ctx, env, follow, tail, service):
     """Show container logs.
 
     \b
-    Display logs from SciTeX Cloud containers.
+    Display logs from SciTeX Hub containers.
 
     \b
     Examples:

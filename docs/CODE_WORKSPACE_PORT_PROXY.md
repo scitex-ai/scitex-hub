@@ -2,7 +2,7 @@
 
 ## Overview
 
-The port proxy feature allows users to access services running on localhost ports through the SciTeX Cloud web interface. This enables seamless integration of development tools like TensorBoard, Jupyter notebooks, MLflow, and other HTTP-based services without requiring additional port forwarding or network configuration.
+The port proxy feature allows users to access services running on localhost ports through the SciTeX Hub web interface. This enables seamless integration of development tools like TensorBoard, Jupyter notebooks, MLflow, and other HTTP-based services without requiring additional port forwarding or network configuration.
 
 ## Usage
 

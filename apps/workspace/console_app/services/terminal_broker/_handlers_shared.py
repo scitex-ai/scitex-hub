@@ -243,7 +243,7 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
         # Send MOTD directly to client (not through shell)
         motd = (
             "\r\n"
-            "\x1b[1;36m  Welcome to SciTeX Cloud\x1b[0m\r\n"
+            "\x1b[1;36m  Welcome to SciTeX Hub\x1b[0m\r\n"
             "\r\n"
             "\x1b[0;36m  1. Type \x1b[1mclaude\x1b[0;36m, "
             "\x1b[1mcodex\x1b[0;36m, or "

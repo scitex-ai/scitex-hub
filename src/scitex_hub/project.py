@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File: src/scitex_hub/project.py
-"""Project CRUD — Python API for SciTeX Cloud project management.
+"""Project CRUD — Python API for SciTeX Hub project management.
 
 Usage:
     from scitex_hub.project import project_list, project_create
@@ -32,7 +32,7 @@ def project_create(
     description: str = "",
     template: str = "scitex_minimal",
 ) -> dict:
-    """Create a new SciTeX Cloud project.
+    """Create a new SciTeX Hub project.
 
     Args:
         name: Project name.

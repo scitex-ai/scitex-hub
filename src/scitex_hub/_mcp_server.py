@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # File: src/scitex_hub/mcp_server.py
 """
-SciTeX Cloud MCP Server - Git and Cloud API Operations.
+SciTeX Hub MCP Server - Git and Cloud API Operations.
 
 Provides MCP tools for:
 - Gitea operations (via tea CLI wrapper)
@@ -29,10 +29,10 @@ if FASTMCP_AVAILABLE:
     mcp = FastMCP(
         name="scitex-hub",
         instructions="""\
-SciTeX Cloud: Git and Cloud API Operations (https://scitex.ai)
+SciTeX Hub: Git and Cloud API Operations (https://scitex.ai)
 
 ## Gitea Tools (Local Git Operations):
-- cloud_login: Login to SciTeX Cloud (Gitea)
+- cloud_login: Login to SciTeX Hub (Gitea)
 - cloud_clone: Clone a repository
 - cloud_create: Create a new repository
 - cloud_list: List repositories

@@ -1,4 +1,4 @@
-"""Sphinx configuration for SciTeX Cloud documentation."""
+"""Sphinx configuration for SciTeX Hub documentation."""
 
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath("../../src"))
 
 # -- Project information -----------------------------------------------------
 
-project = "SciTeX Cloud"
+project = "SciTeX Hub"
 copyright = "2025-2026, SciTeX Team"
 author = "SciTeX Team"
 try:

@@ -66,7 +66,7 @@ if __name__ == "__main__":
 #
 #
 # class ProjectFilesystemManager:
-#     """Manages user-specific directory structures for SciTeX Cloud."""
+#     """Manages user-specific directory structures for SciTeX Hub."""
 #
 #     # Standardized scientific research project structure
 #     PROJECT_STRUCTURE = {

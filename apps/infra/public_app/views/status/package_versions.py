@@ -78,7 +78,7 @@ def check_package_versions(status_data):
 
     status_data["package_versions"].append(
         {
-            "name": "SciTeX Cloud",
+            "name": "SciTeX Hub",
             "package": "scitex-hub",
             "version": cloud_version,
             "icon": "fa-cloud",

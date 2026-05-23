@@ -9,14 +9,14 @@ from __future__ import annotations
 
 def _agents_md(name: str, label: str, icon: str, description: str) -> str:
     """Generate AGENTS.md — the agent's full context for building this app."""
-    desc = description or "A SciTeX Cloud app."
-    return f"""# {label} — SciTeX Cloud App
+    desc = description or "A SciTeX Hub app."
+    return f"""# {label} — SciTeX Hub App
 
 {desc}
 
 ## What This Is
 
-This is a **SciTeX Cloud App** — a plugin that runs as a workspace tab.
+This is a **SciTeX Hub App** — a plugin that runs as a workspace tab.
 Users install it via "Dev Install" from the Hub, and it appears in their sidebar.
 
 ## File Structure — What To Edit

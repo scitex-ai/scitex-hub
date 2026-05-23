@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Setup Guide &mdash; SciTeX Cloud v0.9.1a0</title>
+  <title>Setup Guide &mdash; SciTeX Hub v0.9.1a0</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -35,7 +35,7 @@
 
 
           <a href="index.html" class="icon icon-home">
-            SciTeX Cloud
+            SciTeX Hub
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -105,7 +105,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">SciTeX Cloud</a>
+          <a href="index.html">SciTeX Hub</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -125,10 +125,10 @@
 
   <section id="setup-guide">
 <h1>Setup Guide<a class="headerlink" href="#setup-guide" title="Link to this heading"></a></h1>
-<p>Deploy SciTeX Cloud anywhere: local development, home server, or cloud.</p>
+<p>Deploy SciTeX Hub anywhere: local development, home server, or cloud.</p>
 <section id="what-you-get">
 <h2>What You Get<a class="headerlink" href="#what-you-get" title="Link to this heading"></a></h2>
-<p>SciTeX Cloud is a self-hostable research platform. One <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">start</span></code> gives you:</p>
+<p>SciTeX Hub is a self-hostable research platform. One <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">start</span></code> gives you:</p>
 <ul class="simple">
 <li><p><strong>Scholar</strong> — Literature search across CrossRef, PubMed, arXiv, and OpenAlex. BibTeX management and citation tracking.</p></li>
 <li><p><strong>Writer</strong> — LaTeX manuscript editor with BibTeX integration, figure/table management, and IMRAD templates.</p></li>
@@ -358,7 +358,7 @@ make<span class="w"> </span><span class="nb">help</span><span class="w">        
 </section>
 <section id="architecture">
 <h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading"></a></h2>
-<p>SciTeX Cloud runs as a set of Docker containers:</p>
+<p>SciTeX Hub runs as a set of Docker containers:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">+------------------+</span>     <span class="o">+------------------+</span>
 <span class="o">|</span>   <span class="n">Django</span> <span class="p">(</span><span class="mi">8000</span><span class="p">)</span>  <span class="o">|----&gt;|</span>  <span class="n">PostgreSQL</span> <span class="p">(</span><span class="n">DB</span><span class="p">)</span>  <span class="o">|</span>
 <span class="o">+------------------+</span>     <span class="o">+------------------+</span>

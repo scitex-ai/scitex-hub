@@ -1,5 +1,5 @@
 """
-Django settings auto-loader for SciTeX Cloud.
+Django settings auto-loader for SciTeX Hub.
 
 This module automatically loads the appropriate settings based on:
 1. SCITEX_CLOUD_DJANGO_SETTINGS_MODULE environment variable
@@ -16,13 +16,13 @@ import os
 import sys
 
 # Determine which settings to use
-env = os.environ.get('SCITEX_CLOUD_ENV', 'development').lower()
+env = os.environ.get("SCITEX_CLOUD_ENV", "development").lower()
 
-if env in ('prod', 'production'):
+if env in ("prod", "production"):
     from .settings_prod import *
-elif env in ('staging', 'stag'):
+elif env in ("staging", "stag"):
     from .settings_staging import *
-elif env in ('development', 'dev'):
+elif env in ("development", "dev"):
     from .settings_dev import *
 else:
     # Fallback to development

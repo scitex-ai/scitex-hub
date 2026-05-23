@@ -1,5 +1,5 @@
 # ============================================
-# SciTeX Cloud - Development Override
+# SciTeX Hub - Development Override
 # ============================================
 # Automatically loaded with docker-compose.yml when running:
 #   docker compose up

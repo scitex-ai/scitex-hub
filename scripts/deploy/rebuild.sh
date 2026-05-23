@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==============================================================================
-# rebuild.sh - Full rebuild of SciTeX Cloud environment
+# rebuild.sh - Full rebuild of SciTeX Hub environment
 # ==============================================================================
 # Usage: ./scripts/deploy/rebuild.sh <env>
 #   env: dev, staging, or prod

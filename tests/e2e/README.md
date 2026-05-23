@@ -1,4 +1,4 @@
-# E2E Tests for SciTeX Cloud
+# E2E Tests for SciTeX Hub
 
 Minimal end-to-end tests that must pass before deployment.
 

@@ -26,7 +26,7 @@ if __name__ == "__main__":
 # Start of Source Code from: apps/project_app/services/filesystem_utils/constants.py
 # --------------------------------------------------------------------------------
 # """
-# SciTeX Cloud - Filesystem Constants
+# SciTeX Hub - Filesystem Constants
 #
 # File type definitions and ignore patterns for filesystem operations.
 # """

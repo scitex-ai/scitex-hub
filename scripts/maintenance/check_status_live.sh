@@ -1,6 +1,6 @@
 #!/bin/bash
 # Live Status Checker with Spinners
-# Shows real-time status updates for SciTeX Cloud
+# Shows real-time status updates for SciTeX Hub
 
 set -euo pipefail
 
@@ -57,7 +57,7 @@ main() {
     local ENV="${1:-prod}"
 
     echo -e "${CYAN}╔═══════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║           SciTeX Cloud - Live Status                  ║${NC}"
+    echo -e "${CYAN}║           SciTeX Hub - Live Status                  ║${NC}"
     echo -e "${CYAN}╚═══════════════════════════════════════════════════════╝${NC}"
     echo ""
 

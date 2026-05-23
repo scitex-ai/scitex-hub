@@ -1,5 +1,5 @@
 """
-Middleware for SciTeX Cloud.
+Middleware for SciTeX Hub.
 
 All middlewares in this module are hybrid sync+async. Under daphne/ASGI
 the chain is kept async end-to-end so that Django does not need to

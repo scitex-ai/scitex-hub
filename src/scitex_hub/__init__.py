@@ -3,7 +3,7 @@
 # File: src/scitex_hub/__init__.py
 
 """
-SciTeX Cloud - CLI tools and APIs for SciTeX deployment and management.
+SciTeX Hub - CLI tools and APIs for SciTeX deployment and management.
 
 Usage:
     pip install scitex-hub

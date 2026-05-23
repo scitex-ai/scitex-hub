@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the relationships between TypeScript, JavaScript, Vite, Django, Docker, tsconfig, vite.config, and browser cache handling in SciTeX Cloud.
+This document describes the relationships between TypeScript, JavaScript, Vite, Django, Docker, tsconfig, vite.config, and browser cache handling in SciTeX Hub.
 
 ## Architecture Diagram
 

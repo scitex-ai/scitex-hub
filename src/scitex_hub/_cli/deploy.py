@@ -23,10 +23,10 @@ from .._utils._docker import DockerManager
 @click.option("--no-cache", is_flag=True, help="Build without cache")
 @click.pass_context
 def deploy(ctx, env, build, no_cache):
-    """Deploy SciTeX Cloud.
+    """Deploy SciTeX Hub.
 
     \b
-    Deploy or update SciTeX Cloud containers for the specified environment.
+    Deploy or update SciTeX Hub containers for the specified environment.
     Automatically handles configuration and container orchestration.
 
     \b
@@ -65,7 +65,7 @@ def deploy(ctx, env, build, no_cache):
     click.echo(click.style("Deployment complete!", fg="green", bold=True))
     click.echo()
     click.echo(
-        f"SciTeX Cloud is running at: http://{environment.host}:{environment.port}"
+        f"SciTeX Hub is running at: http://{environment.host}:{environment.port}"
     )
     click.echo()
     click.echo("Useful commands:")

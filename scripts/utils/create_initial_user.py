@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Create initial user and profile for SciTeX Cloud platform.
+Create initial user and profile for SciTeX Hub platform.
 
 Reads credentials from environment variables:
   SCITEX_CLOUD_ADMIN_USERNAME (required)

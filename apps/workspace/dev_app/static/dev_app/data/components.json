@@ -518,7 +518,7 @@
       ],
       "examples": [
         "<nav class=\"navbar\">\n  <div class=\"navbar-brand\">\n    <a href=\"/\" class=\"brand-logo\">SciTeX</a>\n  </div>\n  <ul class=\"navbar-nav\">\n    <li class=\"nav-item\"><a href=\"#\" class=\"nav-link active\">Home</a></li>\n    <li class=\"nav-item\"><a href=\"#\" class=\"nav-link\">About</a></li>\n    <li class=\"nav-item\"><a href=\"#\" class=\"nav-link\">Contact</a></li>\n  </ul>\n</nav>",
-        "<nav class=\"navbar\">\n  <div class=\"navbar-brand\">\n    <a href=\"/\" class=\"brand-logo\">SciTeX Cloud</a>\n  </div>\n  <button class=\"navbar-toggler\">\u2630</button>\n  <div class=\"navbar-collapse\">\n    <ul class=\"navbar-nav\">\n      <li class=\"nav-item\"><a href=\"#\" class=\"nav-link\">Dashboard</a></li>\n      <li class=\"nav-item\"><a href=\"#\" class=\"nav-link\">Projects</a></li>\n      <li class=\"nav-item\"><a href=\"#\" class=\"nav-link\">Settings</a></li>\n    </ul>\n  </div>\n</nav>"
+        "<nav class=\"navbar\">\n  <div class=\"navbar-brand\">\n    <a href=\"/\" class=\"brand-logo\">SciTeX Hub</a>\n  </div>\n  <button class=\"navbar-toggler\">\u2630</button>\n  <div class=\"navbar-collapse\">\n    <ul class=\"navbar-nav\">\n      <li class=\"nav-item\"><a href=\"#\" class=\"nav-link\">Dashboard</a></li>\n      <li class=\"nav-item\"><a href=\"#\" class=\"nav-link\">Projects</a></li>\n      <li class=\"nav-item\"><a href=\"#\" class=\"nav-link\">Settings</a></li>\n    </ul>\n  </div>\n</nav>"
       ]
     },
     {

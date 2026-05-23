@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Timestamp: 2026-02-04
 # File: config/settings/settings_integrations.py
-"""Third-party integrations settings for SciTeX Cloud."""
+"""Third-party integrations settings for SciTeX Hub."""
 
 import os
 from pathlib import Path

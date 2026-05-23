@@ -1,5 +1,5 @@
 #!/bin/bash
-# Check and display SciTeX Cloud log files
+# Check and display SciTeX Hub log files
 # Usage: ./scripts/check_logs.sh [log_type] [lines]
 #   log_type: app, django, uwsgi, error, all (default: all)
 #   lines: number of lines to show (default: 20)
@@ -55,7 +55,7 @@ function show_log {
 }
 
 # Display header
-echo -e "${GREEN}SciTeX Cloud Log Checker${NC}"
+echo -e "${GREEN}SciTeX Hub Log Checker${NC}"
 echo -e "${CYAN}Log directory: $LOG_DIR${NC}"
 echo -e "${CYAN}Showing last $LINES lines${NC}"
 

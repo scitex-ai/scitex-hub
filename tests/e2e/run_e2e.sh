@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# E2E Test Runner for SciTeX Cloud
+# E2E Test Runner for SciTeX Hub
 #
 # Usage:
 #   ./run_e2e.sh              # Run against local dev (http://127.0.0.1:8000)

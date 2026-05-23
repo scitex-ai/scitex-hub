@@ -1,12 +1,12 @@
 Setup Guide
 ===========
 
-Deploy SciTeX Cloud anywhere: local development, home server, or cloud.
+Deploy SciTeX Hub anywhere: local development, home server, or cloud.
 
 What You Get
 ------------
 
-SciTeX Cloud is a self-hostable research platform. One ``make start`` gives you:
+SciTeX Hub is a self-hostable research platform. One ``make start`` gives you:
 
 - **Scholar** — Literature search across CrossRef, PubMed, arXiv, and OpenAlex. BibTeX management and citation tracking.
 - **Writer** — LaTeX manuscript editor with BibTeX integration, figure/table management, and IMRAD templates.
@@ -234,7 +234,7 @@ Common Commands
 Architecture
 ------------
 
-SciTeX Cloud runs as a set of Docker containers:
+SciTeX Hub runs as a set of Docker containers:
 
 ::
 

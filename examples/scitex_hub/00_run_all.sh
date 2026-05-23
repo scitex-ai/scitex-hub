@@ -6,7 +6,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-echo "=== SciTeX Cloud Examples ==="
+echo "=== SciTeX Hub Examples ==="
 echo
 
 # Example 1: Show version and help

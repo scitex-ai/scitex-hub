@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Timestamp: 2026-02-04
 # File: config/settings/settings_logging.py
-"""Logging configuration for SciTeX Cloud."""
+"""Logging configuration for SciTeX Hub."""
 
 from pathlib import Path
 

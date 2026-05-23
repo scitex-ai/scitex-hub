@@ -1,7 +1,7 @@
 Three-Way Sync
 ==============
 
-SciTeX Cloud manages three copies of each project's repository:
+SciTeX Hub manages three copies of each project's repository:
 
 .. list-table::
    :header-rows: 1

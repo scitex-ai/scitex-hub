@@ -154,7 +154,7 @@ class WriterService(
                 # The scitex.writer.Writer class expects to create a NEW project with its own directory.
                 # When you pass a 'name' parameter, Writer creates a subdirectory: project_path/name/
                 #
-                # However, Django SciTeX Cloud uses an organized ecosystem structure:
+                # However, Django SciTeX Hub uses an organized ecosystem structure:
                 #   data/users/{username}/{project-slug}/scitex/writer/
                 #
                 # The 'writer' directory is already the final target where Writer should operate.

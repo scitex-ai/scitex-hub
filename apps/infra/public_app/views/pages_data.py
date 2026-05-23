@@ -104,23 +104,23 @@ VIDEO_CATALOG = {
     },
     # Cloud demos
     "scitex-hub-v0.11.5": {
-        "title": "SciTeX Cloud v0.11.5 Demo",
+        "title": "SciTeX Hub v0.11.5 Demo",
         "url": "/media/videos/scitex-hub-v0.11.5-demo.mp4",
         "thumbnail": "/media/videos/scitex-hub-v0.11.5-demo-thumbnail.png",
         "date": "2026-03-02",
         "description": (
-            "SciTeX Cloud v0.11.5 — AI panel redesign with 2-mode layout "
+            "SciTeX Hub v0.11.5 — AI panel redesign with 2-mode layout "
             "(Chat/Console), multi-terminal tabs, flat tab styling, and "
             "hub project about section."
         ),
     },
     "scitex-hub": {
-        "title": "SciTeX Cloud v0.9.3 Demo",
+        "title": "SciTeX Hub v0.9.3 Demo",
         "url": "/media/videos/scitex-hub-v0.9.3-demo.mp4",
         "thumbnail": "/media/videos/scitex-hub-v0.9.3-demo-thumbnail.png",
         "date": "2026-02-16",
         "description": (
-            "SciTeX Cloud — self-hosted research platform. Scholar, Writer, "
+            "SciTeX Hub — self-hosted research platform. Scholar, Writer, "
             "Console, and Visualizer modules in a unified web interface."
         ),
     },

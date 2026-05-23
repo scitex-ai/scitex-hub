@@ -1,10 +1,10 @@
 ---
 description: |
-  [TOPIC] SciTeX Cloud - Deploy Production
-  [DETAILS] SciTeX Cloud - Deploy Production.
+  [TOPIC] SciTeX Hub - Deploy Production
+  [DETAILS] SciTeX Hub - Deploy Production.
 tags: [scitex-hub-scitex-deploy-prod]
 ---
-# SciTeX Cloud - Deploy Production
+# SciTeX Hub - Deploy Production
 
 ## WARNING: This affects the live site (scitex.ai). Confirm with user before proceeding.
 

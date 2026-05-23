@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # File: src/scitex_hub/cli/gitea.py
 """
-SciTeX Cloud Gitea Commands - Wrapper for tea (Gitea CLI)
+SciTeX Hub Gitea Commands - Wrapper for tea (Gitea CLI)
 
 Provides git/repository operations by wrapping the tea command.
 Usage: scitex-hub gitea {login,logout,clone,create,list,search,delete,fork,pr,issue,push,pull,status,enrich}

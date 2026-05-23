@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the implementation of a GitHub-style commit detail page for the SciTeX Cloud project management system. The commit detail page displays comprehensive information about a specific Git commit, including metadata, changed files, and unified diffs.
+This document describes the implementation of a GitHub-style commit detail page for the SciTeX Hub project management system. The commit detail page displays comprehensive information about a specific Git commit, including metadata, changed files, and unified diffs.
 
 ## Implementation Date
 

@@ -110,7 +110,7 @@ main() {
         esac
     done
 
-    echo_info "=== SciTeX Cloud Database Backup ==="
+    echo_info "=== SciTeX Hub Database Backup ==="
     echo_info "Timestamp: $TIMESTAMP"
     echo ""
 

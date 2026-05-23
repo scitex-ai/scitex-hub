@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # File: src/scitex_hub/cli/workspace.py
 """
-SciTeX Cloud Workspace Commands
+SciTeX Hub Workspace Commands
 
 Provides workspace operations (upload, list, sync, logout) similar to
 how `gh` works for GitHub.
@@ -28,7 +28,7 @@ def workspace():
     """Workspace operations (upload, sync, list projects).
 
     \b
-    Manage SciTeX Cloud projects from your local machine, similar to
+    Manage SciTeX Hub projects from your local machine, similar to
     how `gh` works for GitHub.
 
     \b

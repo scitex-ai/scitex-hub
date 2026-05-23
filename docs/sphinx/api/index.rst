@@ -1,7 +1,7 @@
 API Reference
 =============
 
-This section contains the API documentation for SciTeX Cloud.
+This section contains the API documentation for SciTeX Hub.
 
 .. toctree::
    :maxdepth: 2

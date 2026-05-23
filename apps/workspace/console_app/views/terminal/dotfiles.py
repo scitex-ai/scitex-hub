@@ -15,7 +15,7 @@ def create_dotfiles_repo(dotfiles_dir: Path, username: str):
     """Create ~/.dotfiles as a git repository with default configs"""
     # bashrc
     (dotfiles_dir / "bashrc").write_text(
-        f"""# SciTeX Cloud - bashrc
+        f"""# SciTeX Hub - bashrc
 # Edit this file and run ./install.sh to apply changes
 
 # Emacs-style editing
@@ -103,7 +103,7 @@ fi
 
     # bash_profile
     (dotfiles_dir / "bash_profile").write_text(
-        """# SciTeX Cloud - bash_profile
+        """# SciTeX Hub - bash_profile
 # Sources bashrc for login shells
 
 if [ -f ~/.bashrc ]; then
@@ -114,7 +114,7 @@ fi
 
     # vimrc
     (dotfiles_dir / "vimrc").write_text(
-        """" SciTeX Cloud - vimrc
+        """" SciTeX Hub - vimrc
 " Edit this file to customize vim
 
 syntax on
@@ -141,7 +141,7 @@ silent! colorscheme desert
 
     # gitconfig
     (dotfiles_dir / "gitconfig").write_text(
-        f"""# SciTeX Cloud - gitconfig
+        f"""# SciTeX Hub - gitconfig
 [user]
     name = {username}
     email = {username}@scitex.cloud
@@ -170,7 +170,7 @@ silent! colorscheme desert
 
     # screenrc
     (dotfiles_dir / "screenrc").write_text(
-        """# SciTeX Cloud - screenrc
+        """# SciTeX Hub - screenrc
 
 # Use Ctrl-J as prefix (escape key)
 escape ^Jj
@@ -196,7 +196,7 @@ defencoding utf-8
     ipython_dir = dotfiles_dir / "ipython"
     ipython_dir.mkdir(exist_ok=True)
     (ipython_dir / "ipython_config.py").write_text(
-        """# SciTeX Cloud - IPython configuration
+        """# SciTeX Hub - IPython configuration
 c = get_config()
 
 # Cleaner prompts
@@ -213,7 +213,7 @@ c.InteractiveShellApp.exec_lines = ['%autoreload 2']
     # install.sh
     (dotfiles_dir / "install.sh").write_text(
         """#!/bin/bash
-# SciTeX Cloud - Dotfiles installer
+# SciTeX Hub - Dotfiles installer
 # Run this after editing dotfiles to apply changes
 
 DOTFILES_DIR="$HOME/proj/dotfiles"
@@ -240,7 +240,7 @@ echo "Done! Restart your shell or run: source ~/.bashrc"
     (dotfiles_dir / "README.md").write_text(
         f"""# {username}'s Dotfiles
 
-Personal configuration files for SciTeX Cloud.
+Personal configuration files for SciTeX Hub.
 
 ## Usage
 

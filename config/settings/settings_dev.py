@@ -12,7 +12,7 @@ __DIR__ = os.path.dirname(__FILE__)
 # ----------------------------------------
 
 """
-Development settings for SciTeX Cloud project.
+Development settings for SciTeX Hub project.
 """
 
 import socket

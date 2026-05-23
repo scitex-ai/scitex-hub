@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-WSGI config for SciTeX Cloud project.
+WSGI config for SciTeX Hub project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 """

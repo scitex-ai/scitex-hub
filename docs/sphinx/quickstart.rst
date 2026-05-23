@@ -1,7 +1,7 @@
 Quick Start
 ===========
 
-Get SciTeX Cloud running in three commands.
+Get SciTeX Hub running in three commands.
 
 Deployment
 ----------

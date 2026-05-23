@@ -1,10 +1,10 @@
 ---
 description: |
-  [TOPIC] SciTeX Cloud - Deploy Staging
-  [DETAILS] SciTeX Cloud - Deploy Staging.
+  [TOPIC] SciTeX Hub - Deploy Staging
+  [DETAILS] SciTeX Hub - Deploy Staging.
 tags: [scitex-hub-scitex-deploy-staging]
 ---
-# SciTeX Cloud - Deploy Staging
+# SciTeX Hub - Deploy Staging
 
 ## Prerequisites
 - Ensure scitex packages are latest and synchronized (run `/scitex-versions` first)

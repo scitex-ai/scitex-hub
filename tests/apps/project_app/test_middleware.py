@@ -26,7 +26,7 @@ if __name__ == "__main__":
 # Start of Source Code from: apps/project_app/middleware.py
 # --------------------------------------------------------------------------------
 # """
-# Middleware for SciTeX Cloud.
+# Middleware for SciTeX Hub.
 # """
 #
 # import logging

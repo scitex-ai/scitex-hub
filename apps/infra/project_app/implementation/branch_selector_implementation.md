@@ -1,7 +1,7 @@
 # Branch Selector and Action Buttons Implementation
 
 ## Overview
-This document describes the implementation of GitHub-style repository meta line with branch selector and action buttons for the SciTeX Cloud project detail page.
+This document describes the implementation of GitHub-style repository meta line with branch selector and action buttons for the SciTeX Hub project detail page.
 
 ## Date
 2025-10-24

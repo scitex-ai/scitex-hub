@@ -1,5 +1,5 @@
 # ============================================
-# SciTeX Cloud - Environment Orchestrator
+# SciTeX Hub - Environment Orchestrator
 # ============================================
 # Exclusive environment management for dev/staging/prod
 # Location: /Makefile
@@ -233,7 +233,7 @@ validate: validate-docker
 # ============================================
 help:
 	@echo -e ""
-	@echo -e "$(GREEN)SciTeX Cloud$(NC) - Environment: $(CYAN)dev$(NC) | $(CYAN)staging$(NC) | $(CYAN)prod$(NC)"
+	@echo -e "$(GREEN)SciTeX Hub$(NC) - Environment: $(CYAN)dev$(NC) | $(CYAN)staging$(NC) | $(CYAN)prod$(NC)"
 	@echo -e ""
 	@echo -e "$(CYAN)Common Commands:$(NC)"
 	@echo -e "  make status                  Show what's running"
@@ -305,7 +305,7 @@ help-commands:
 help-all:
 	@echo -e ""
 	@echo -e "$(GREEN)╔═══════════════════════════════════════════════════════╗$(NC)"
-	@echo -e "$(GREEN)║      SciTeX Cloud - Full Command Reference            ║$(NC)"
+	@echo -e "$(GREEN)║      SciTeX Hub - Full Command Reference            ║$(NC)"
 	@echo -e "$(GREEN)╚═══════════════════════════════════════════════════════╝$(NC)"
 	@echo -e ""
 	@echo -e "$(CYAN)📋 Core:$(NC)"
@@ -1075,7 +1075,7 @@ install-completion:
 		echo -e "$(GREEN)✅ Completion already installed in $$BASHRC$(NC)"; \
 	else \
 		echo "" >> "$$BASHRC"; \
-		echo "# SciTeX Cloud Makefile tab completion" >> "$$BASHRC"; \
+		echo "# SciTeX Hub Makefile tab completion" >> "$$BASHRC"; \
 		echo "$$COMPLETION_LINE" >> "$$BASHRC"; \
 		echo -e "$(GREEN)✅ Completion installed in $$BASHRC$(NC)"; \
 		echo -e "$(CYAN)   Run: source $$BASHRC$(NC)"; \

@@ -1,6 +1,6 @@
 # Workspace App
 
-User computational workspace management for SciTeX Cloud.
+User computational workspace management for SciTeX Hub.
 
 ## Overview
 

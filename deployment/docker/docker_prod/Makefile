@@ -1,5 +1,5 @@
 # ============================================
-# SciTeX Cloud - Docker Production Deployment
+# SciTeX Hub - Docker Production Deployment
 # ============================================
 # Location: /containers/docker_prod/Makefile.prod
 
@@ -30,7 +30,7 @@ NC := \033[0m
 help:
 	@echo -e ""
 	@echo -e "$(GREEN)╔═══════════════════════════════════════════════════════╗$(NC)"
-	@echo -e "$(GREEN)║      SciTeX Cloud - Production Deployment            ║$(NC)"
+	@echo -e "$(GREEN)║      SciTeX Hub - Production Deployment            ║$(NC)"
 	@echo -e "$(GREEN)╚═══════════════════════════════════════════════════════╝$(NC)"
 	@echo -e ""
 	@echo -e "$(YELLOW)📦 Production-optimized deployment for home/lab servers$(NC)"

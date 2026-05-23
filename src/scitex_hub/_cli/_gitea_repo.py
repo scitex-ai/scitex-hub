@@ -17,7 +17,7 @@ from ._gitea_utils import get_gitea_http_url, get_tea_config, run_tea
 @click.argument("destination", required=False)
 @click.option("--login", "-l", default="scitex-dev", help="Tea login to use")
 def clone(repository, destination, login):
-    """Clone a repository from SciTeX Cloud"""
+    """Clone a repository from SciTeX Hub"""
     if "/" not in repository:
         try:
             result = subprocess.run(

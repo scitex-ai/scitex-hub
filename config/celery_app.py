@@ -4,7 +4,7 @@
 # File: config/celery.py
 
 """
-Celery configuration for SciTeX Cloud.
+Celery configuration for SciTeX Hub.
 
 Provides async task processing with fair scheduling and rate limiting.
 """

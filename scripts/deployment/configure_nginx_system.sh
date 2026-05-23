@@ -61,7 +61,7 @@ backup_config() {
 }
 
 apply_enhancements() {
-    if grep -q "# SciTeX Cloud Enhancements" "$NGINX_CONF"; then
+    if grep -q "# SciTeX Hub Enhancements" "$NGINX_CONF"; then
         echo_warning "Enhancements already applied"
         return 0
     fi
@@ -75,7 +75,7 @@ apply_enhancements() {
     awk '
     /include \/etc\/nginx\/conf.d\/\*.conf;/ {
         print "    ##"
-        print "    # SciTeX Cloud Enhancements"
+        print "    # SciTeX Hub Enhancements"
         print "    ##"
         print ""
         print "    client_max_body_size 100M;"
@@ -159,7 +159,7 @@ main() {
         esac
     done
 
-    echo_info "=== SciTeX Cloud Nginx System Configuration ==="
+    echo_info "=== SciTeX Hub Nginx System Configuration ==="
     echo ""
 
     check_root

@@ -4,15 +4,15 @@
 # SciTeX User Workspace Container Definition
 # ============================================
 # This Singularity container provides a secure computational environment
-# for SciTeX Cloud users. Superior to Docker for HPC integration.
+# for SciTeX Hub users. Superior to Docker for HPC integration.
 
 Bootstrap: docker
 From: python:3.11-slim
 
 %labels
-    Author SciTeX Cloud Team
+    Author SciTeX Hub Team
     Version 2.0.0
-    Description User computational workspace for SciTeX Cloud with full SciTeX platform
+    Description User computational workspace for SciTeX Hub with full SciTeX platform
     Documentation https://github.com/ywatanabe/scitex-cloud
     BuildDate 2025-11-25
     SciTeX Latest from PyPI with all extras [all]
@@ -196,7 +196,7 @@ else:
     ========================================
 
     This container provides a secure Python execution environment
-    for SciTeX Cloud users.
+    for SciTeX Hub users.
 
     USAGE:
         # Execute a Python script

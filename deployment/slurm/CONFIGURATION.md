@@ -1,4 +1,4 @@
-# SLURM Configuration for SciTeX Cloud
+# SLURM Configuration for SciTeX Hub
 
 ## Partition Time Limits
 

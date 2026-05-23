@@ -130,7 +130,7 @@ def app_dev(app_dir, port):
     "-s",
     envvar="SCITEX_CLOUD_URL",
     default="http://127.0.0.1:8000",
-    help="SciTeX Cloud server URL",
+    help="SciTeX Hub server URL",
 )
 def app_submit(app_dir, server):
     """Validate and submit an app for publication review.
@@ -174,7 +174,7 @@ def app_submit(app_dir, server):
     "-s",
     envvar="SCITEX_CLOUD_URL",
     default="http://127.0.0.1:8000",
-    help="SciTeX Cloud server URL",
+    help="SciTeX Hub server URL",
 )
 def app_list(server):
     """List available apps.

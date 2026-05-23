@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CLI Reference &mdash; SciTeX Cloud v0.17.6</title>
+  <title>CLI Reference &mdash; SciTeX Hub v0.17.6</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -35,7 +35,7 @@
 
 
           <a href="index.html" class="icon icon-home">
-            SciTeX Cloud
+            SciTeX Hub
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -168,7 +168,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">SciTeX Cloud</a>
+          <a href="index.html">SciTeX Hub</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -188,7 +188,7 @@
 
   <section id="cli-reference">
 <h1>CLI Reference<a class="headerlink" href="#cli-reference" title="Link to this heading"></a></h1>
-<p>SciTeX Cloud provides a command-line interface for managing projects,
+<p>SciTeX Hub provides a command-line interface for managing projects,
 syncing code, interacting with the Git hosting service, deploying apps,
 and controlling the MCP server.</p>
 <p>Install with:</p>
@@ -205,7 +205,7 @@ scitex-hub<span class="w"> </span>--version<span class="w">                 </sp
 </section>
 <section id="project-management">
 <h2>Project Management<a class="headerlink" href="#project-management" title="Link to this heading"></a></h2>
-<p>Create and manage SciTeX Cloud projects. <code class="docutils literal notranslate"><span class="pre">project</span> <span class="pre">create</span></code> triggers the
+<p>Create and manage SciTeX Hub projects. <code class="docutils literal notranslate"><span class="pre">project</span> <span class="pre">create</span></code> triggers the
 full flow: Gitea repository + Django project + server-side workspace.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>project<span class="w"> </span>create<span class="w"> </span>my-research<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;Paper on X&quot;</span>
 scitex-hub<span class="w"> </span>project<span class="w"> </span>list<span class="w"> </span><span class="o">[</span>--json<span class="o">]</span>

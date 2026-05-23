@@ -1,9 +1,9 @@
-SciTeX Cloud Documentation
+SciTeX Hub Documentation
 ==========================
 
 **GitHub for research — verifiable, AI-native, self-hosted infrastructure for scientists.**
 
-SciTeX Cloud is a self-hostable research platform for managing the full research
+SciTeX Hub is a self-hostable research platform for managing the full research
 lifecycle — from literature to manuscript — under your own control.
 `scitex.ai <https://scitex.ai>`_ is a live instance of this project.
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # File: src/scitex_hub/config/environments.py
 
-"""Environment configuration for SciTeX Cloud deployments."""
+"""Environment configuration for SciTeX Hub deployments."""
 
 import os
 from dataclasses import dataclass

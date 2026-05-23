@@ -24,7 +24,7 @@ from .._config._environments import ENVIRONMENTS, get_environment
 )
 @click.option("--force", is_flag=True, help="Overwrite existing configuration")
 def setup(env, force):
-    """Setup SciTeX Cloud environment.
+    """Setup SciTeX Hub environment.
 
     \b
     Non-interactive setup wizard. Environment resolution (spec §6b):
@@ -37,7 +37,7 @@ def setup(env, force):
         scitex-hub setup --env prod   # Setup production environment
         SCITEX_CLOUD_ENV=dev scitex-hub setup
     """
-    click.echo(click.style("SciTeX Cloud Setup", fg="cyan", bold=True))
+    click.echo(click.style("SciTeX Hub Setup", fg="cyan", bold=True))
     click.echo()
 
     if env is None:
@@ -132,7 +132,7 @@ def _check_compose_file(environment):
 
 def _get_minimal_env_content(environment):
     """Generate minimal .env file content."""
-    return f"""# SciTeX Cloud Environment Configuration
+    return f"""# SciTeX Hub Environment Configuration
 # Environment: {environment.name}
 
 # Django Settings

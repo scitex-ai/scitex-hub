@@ -10,7 +10,7 @@ __DIR__ = os.path.dirname(__FILE__)
 # ----------------------------------------
 
 """
-Staging settings for SciTeX Cloud project.
+Staging settings for SciTeX Hub project.
 Production-like setup for local testing before deployment.
 Uses daphne (ASGI) but without SSL/Cloudflare.
 """

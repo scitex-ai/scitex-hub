@@ -1,4 +1,4 @@
-# SSH Gateway for SciTeX Cloud Workspaces
+# SSH Gateway for SciTeX Hub Workspaces
 
 ## Overview
 
@@ -6,7 +6,7 @@ The SSH Gateway allows users to connect directly to their workspace containers v
 
 ## Features
 
-- **Django Authentication**: Authenticate using your SciTeX Cloud credentials
+- **Django Authentication**: Authenticate using your SciTeX Hub credentials
 - **Automatic Container Management**: Containers are spawned/attached automatically on connection
 - **Persistent Sessions**: Your workspace persists across SSH sessions
 - **Secure**: Uses SSH protocol with RSA host keys
@@ -96,7 +96,7 @@ ssh -p 2200 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null your-use
 ```bash
 $ ssh -p 2200 test-user@127.0.0.1
 
-Welcome to SciTeX Cloud Workspace, test-user!
+Welcome to SciTeX Hub Workspace, test-user!
 Container: scitex-workspace-test-user
 
 test-user@abc123:~$ pwd
@@ -146,7 +146,7 @@ The SSH gateway uses RSA host keys for security:
 
 ## Port Allocation
 
-SciTeX Cloud uses the following SSH ports:
+SciTeX Hub uses the following SSH ports:
 
 - **2200**: User workspace SSH gateway (this service)
 - **2222**: Gitea SSH for Git operations
@@ -255,7 +255,7 @@ Example systemd service:
 
 ```ini
 [Unit]
-Description=SciTeX Cloud SSH Gateway
+Description=SciTeX Hub SSH Gateway
 After=network.target docker.service
 
 [Service]

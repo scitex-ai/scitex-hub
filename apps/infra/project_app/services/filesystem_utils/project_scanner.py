@@ -1,5 +1,5 @@
 """
-SciTeX Cloud - Project Scanner
+SciTeX Hub - Project Scanner
 
 Project directory scanning and structured views.
 No database dependencies - pure filesystem scanning.

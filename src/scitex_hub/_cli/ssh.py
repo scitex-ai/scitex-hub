@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # File: src/scitex_hub/cli/ssh.py
 
-"""SSH commands for connecting to SciTeX Cloud instances."""
+"""SSH commands for connecting to SciTeX Hub instances."""
 
 import os
 import subprocess
@@ -49,7 +49,7 @@ SSH_HOSTS = {
 )
 @click.argument("ssh_args", nargs=-1, type=click.UNPROCESSED)
 def ssh(env_name, username, port, ssh_args):
-    """SSH into a SciTeX Cloud instance.
+    """SSH into a SciTeX Hub instance.
 
     \b
     Examples:
@@ -108,7 +108,7 @@ def ssh(env_name, username, port, ssh_args):
     help="Identity file to copy (default: ssh-copy-id default)",
 )
 def ssh_copy_id(env_name, username, port, identity_file):
-    """Register your SSH key with a SciTeX Cloud instance.
+    """Register your SSH key with a SciTeX Hub instance.
 
     \b
     Examples:

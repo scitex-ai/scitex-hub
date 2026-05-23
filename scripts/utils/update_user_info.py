@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Update user information for SciTeX Cloud platform.
+Update user information for SciTeX Hub platform.
 
 Reads credentials from environment variables:
   SCITEX_CLOUD_ADMIN_USERNAME (required)

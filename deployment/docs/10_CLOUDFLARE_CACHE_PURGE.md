@@ -2,7 +2,7 @@
 
 ## Overview
 
-SciTeX Cloud uses Cloudflare as a CDN with aggressive caching for static files (30-day TTL). When static assets (CSS, JS, images) are updated, the Cloudflare cache must be purged to serve fresh content.
+SciTeX Hub uses Cloudflare as a CDN with aggressive caching for static files (30-day TTL). When static assets (CSS, JS, images) are updated, the Cloudflare cache must be purged to serve fresh content.
 
 ## Configuration
 

@@ -1,5 +1,5 @@
 """
-ASGI config for SciTeX Cloud project.
+ASGI config for SciTeX Hub project.
 
 HTTP routing:
   /mcp  → FastMCP (scitex tools), requires Bearer API key

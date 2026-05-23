@@ -11,7 +11,7 @@ __DIR__ = os.path.dirname(__FILE__)
 # ----------------------------------------
 
 """
-Production settings for SciTeX Cloud project.
+Production settings for SciTeX Hub project.
 Optimized for deployment with Cloudflare Tunnel.
 """
 

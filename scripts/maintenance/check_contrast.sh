@@ -4,7 +4,7 @@
 # Author: ywatanabe (with Claude Code)
 # File: /home/ywatanabe/proj/scitex-hub/scripts/maintenance/check_contrast.sh
 #
-# WCAG AA Contrast Ratio Checker for SciTeX Cloud
+# WCAG AA Contrast Ratio Checker for SciTeX Hub
 #
 # Checks text contrast ratios on key pages using Playwright (primary)
 # or static CSS analysis (fallback).

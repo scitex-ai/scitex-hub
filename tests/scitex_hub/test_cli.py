@@ -30,7 +30,7 @@ class TestMainCLI:
         """Test --help flag."""
         result = runner.invoke(main, ["--help"])
         assert result.exit_code == 0
-        assert "SciTeX Cloud" in result.output
+        assert "SciTeX Hub" in result.output
         assert "deploy" in result.output
         assert "docker" in result.output
         assert "setup" in result.output

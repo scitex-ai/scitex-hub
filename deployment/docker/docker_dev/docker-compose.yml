@@ -1,7 +1,7 @@
 # Timestamp: "2025-11-01 16:05:04 (ywatanabe)"
 # File: ./deployment/docker/docker_dev/docker-compose.yml
 # ============================================
-# SciTeX Cloud - Development Environment
+# SciTeX Hub - Development Environment
 # ============================================
 
 # Set project name with environment for clear identification

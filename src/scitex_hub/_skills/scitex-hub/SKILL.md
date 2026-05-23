@@ -1,8 +1,8 @@
 ---
 name: scitex-hub
 description: |
-  [WHAT] SciTeX Cloud operational surface — 55 MCP tools across 6 categories — project_* (cloud project CRUD), repo_* (self-hosted Gitea clone/push/pull/PRs/issues), cloud_sdk_data/files/jobs_* (DataStore/FileVault/JobQueue SDK — submit compute jobs, upload/download files, CRUD records), api_* (Scholar paper search, CrossRef lookup, BibTeX enrichment, LaTeX compile via cloud), app_* (install/switch app plugins), onsite_* (in-browser Playwright on the live Django site).
-  [WHEN] Use whenever the user asks to create a cloud project, push/clone via Gitea, submit a cloud job, upload to FileVault, compile LaTeX on cloud, search papers via Scholar, enrich BibTeX, switch app plugin, deploy to staging/production, or mentions SciTeX Cloud, Gitea, DataStore, FileVault, JobQueue, CloudClient.
+  [WHAT] SciTeX Hub operational surface — 55 MCP tools across 6 categories — project_* (cloud project CRUD), repo_* (self-hosted Gitea clone/push/pull/PRs/issues), cloud_sdk_data/files/jobs_* (DataStore/FileVault/JobQueue SDK — submit compute jobs, upload/download files, CRUD records), api_* (Scholar paper search, CrossRef lookup, BibTeX enrichment, LaTeX compile via cloud), app_* (install/switch app plugins), onsite_* (in-browser Playwright on the live Django site).
+  [WHEN] Use whenever the user asks to create a cloud project, push/clone via Gitea, submit a cloud job, upload to FileVault, compile LaTeX on cloud, search papers via Scholar, enrich BibTeX, switch app plugin, deploy to staging/production, or mentions SciTeX Hub, Gitea, DataStore, FileVault, JobQueue, CloudClient.
   [HOW] `pip install scitex-hub` then `import scitex_hub`; see leaf skills for details.
 tags: [scitex-hub]
 allowed-tools: mcp__scitex__cloud_*
@@ -21,7 +21,7 @@ interfaces:
 
 > **Primary interfaces (two).** Both CLI and Python (or MCP) see heavy daily use — pick whichever fits the task.
 
-`scitex-hub` provides the operational surface for a SciTeX Cloud
+`scitex-hub` provides the operational surface for a SciTeX Hub
 deployment: a Django web platform, a `scitex-hub` CLI, an MCP server
 with ~55 tools, and a small Python API (`CloudClient`, `DockerManager`,
 `health_check`, `get_environment`).

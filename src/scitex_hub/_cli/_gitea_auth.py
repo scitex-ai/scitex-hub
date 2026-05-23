@@ -115,7 +115,7 @@ def _create_or_get_gitea_token(url, user, password):
     "--name", default="scitex-dev", help="Tea login name (default: scitex-dev)"
 )
 def login(url, token, user, password, name):
-    """Login to SciTeX Cloud (Gitea).
+    """Login to SciTeX Hub (Gitea).
 
     Non-interactive. Credentials resolve in precedence order (spec §6b):
     CLI flag → SCITEX_CLOUD_GITEA_{TOKEN,USER,PASSWORD} env var →
@@ -190,7 +190,7 @@ def login(url, token, user, password, name):
     help="Also delete the API token from the Gitea server",
 )
 def logout(name, url, user, password, delete_token):
-    """Logout from SciTeX Cloud (Gitea).
+    """Logout from SciTeX Hub (Gitea).
 
     Removes the local tea login entry.  Use --delete-token to also revoke
     the API token on the Gitea server. In that mode, password is required

@@ -1,7 +1,7 @@
 ---
 description: |
   [TOPIC] Deploy to Staging
-  [DETAILS] Deploy SciTeX Cloud to staging — sync versions, build Docker, verify..
+  [DETAILS] Deploy SciTeX Hub to staging — sync versions, build Docker, verify..
 tags: [scitex-hub-deployment-staging]
 ---
 

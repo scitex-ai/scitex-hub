@@ -1,7 +1,7 @@
 CLI Reference
 =============
 
-SciTeX Cloud provides a command-line interface for managing projects,
+SciTeX Hub provides a command-line interface for managing projects,
 syncing code, interacting with the Git hosting service, deploying apps,
 and controlling the MCP server.
 
@@ -23,7 +23,7 @@ Global Options
 Project Management
 ------------------
 
-Create and manage SciTeX Cloud projects. ``project create`` triggers the
+Create and manage SciTeX Hub projects. ``project create`` triggers the
 full flow: Gitea repository + Django project + server-side workspace.
 
 .. code-block:: bash

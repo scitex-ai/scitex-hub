@@ -3,13 +3,13 @@
 # ============================================
 # User Workspace Container Image
 # ============================================
-# This image provides a computational environment for SciTeX Cloud users
+# This image provides a computational environment for SciTeX Hub users
 # Used for SSH access and web-based code execution (Codespace/Jupyter)
 
 FROM python:3.11-slim
 
-LABEL maintainer="SciTeX Cloud <support@scitex.ai>"
-LABEL description="User computational workspace for SciTeX Cloud"
+LABEL maintainer="SciTeX Hub <support@scitex.ai>"
+LABEL description="User computational workspace for SciTeX Hub"
 LABEL version="1.0.0"
 
 # Set timezone

@@ -22,7 +22,7 @@ def docker(ctx, env):
     """Docker container management.
 
     \b
-    Manage Docker containers for SciTeX Cloud deployment.
+    Manage Docker containers for SciTeX Hub deployment.
 
     \b
     Examples:

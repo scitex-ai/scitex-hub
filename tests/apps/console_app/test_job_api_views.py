@@ -31,7 +31,7 @@ if __name__ == "__main__":
 # # File: apps/console_app/job_api_views.py
 #
 # """
-# SLURM job management API views for SciTeX Cloud.
+# SLURM job management API views for SciTeX Hub.
 #
 # Provides REST API endpoints for submitting and managing computational jobs
 # through SLURM and Apptainer containers.

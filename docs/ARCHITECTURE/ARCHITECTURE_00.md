@@ -4,7 +4,7 @@
 !-- File: /home/ywatanabe/proj/scitex-hub/docs/ARCHITECTURE_00.md
 !-- --- -->
 
-# SciTeX Cloud Architecture
+# SciTeX Hub Architecture
 
 ## Table of Contents
 1. [Application Architecture](#application-architecture)
@@ -19,7 +19,7 @@
 
 ### SciTeX Ecosystem Overview
 
-**SciTeX Cloud**: Live at https://scitex.ai (Dev: http://127.0.0.1:8000)
+**SciTeX Hub**: Live at https://scitex.ai (Dev: http://127.0.0.1:8000)
 
 **Core Modules:**
 - **Files**: http://127.0.0.1:8000/\<username\>/\<project-name\>
@@ -122,7 +122,7 @@ flowchart TD
 
 ### Deployment Overview (Production)
 
-SciTeX Cloud runs on a UGREEN DXP480T Plus server with the following stack:
+SciTeX Hub runs on a UGREEN DXP480T Plus server with the following stack:
 
 ```mermaid
 graph TB

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Timestamp: 2026-02-04
 # File: config/settings/settings_celery.py
-"""Celery configuration for SciTeX Cloud async task queue."""
+"""Celery configuration for SciTeX Hub async task queue."""
 
 import os
 

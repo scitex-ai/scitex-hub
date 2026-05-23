@@ -1,5 +1,5 @@
 """
-Resource Quota Settings for SciTeX Cloud.
+Resource Quota Settings for SciTeX Hub.
 
 Loads quota configurations from environment variables.
 These can be overridden per-user in the database.
@@ -38,11 +38,17 @@ SLURM_QUOTAS = {
     "max_queued_jobs": get_int("SCITEX_CLOUD_QUOTA_SLURM_MAX_QUEUED_JOBS", 10),
     # Resource limits
     "max_cpu_hours_daily": get_int("SCITEX_CLOUD_QUOTA_SLURM_MAX_CPU_HOURS_DAILY", 24),
-    "max_cpu_hours_monthly": get_int("SCITEX_CLOUD_QUOTA_SLURM_MAX_CPU_HOURS_MONTHLY", 500),
-    "max_memory_gb_per_job": get_int("SCITEX_CLOUD_QUOTA_SLURM_MAX_MEMORY_GB_PER_JOB", 8),
+    "max_cpu_hours_monthly": get_int(
+        "SCITEX_CLOUD_QUOTA_SLURM_MAX_CPU_HOURS_MONTHLY", 500
+    ),
+    "max_memory_gb_per_job": get_int(
+        "SCITEX_CLOUD_QUOTA_SLURM_MAX_MEMORY_GB_PER_JOB", 8
+    ),
     "max_runtime_hours": get_int("SCITEX_CLOUD_QUOTA_SLURM_MAX_RUNTIME_HOURS", 24),
     # Partitions
-    "default_partition": get_str("SCITEX_CLOUD_QUOTA_SLURM_DEFAULT_PARTITION", "normal"),
+    "default_partition": get_str(
+        "SCITEX_CLOUD_QUOTA_SLURM_DEFAULT_PARTITION", "normal"
+    ),
     "allowed_partitions": get_list(
         "SCITEX_CLOUD_QUOTA_SLURM_ALLOWED_PARTITIONS", "normal,express,long"
     ),
@@ -54,7 +60,9 @@ SLURM_QUOTAS = {
         "SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_TIME_LIMIT", "04:00:00"
     ),
     "interactive_cpus": get_int("SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_CPUS", 2),
-    "interactive_memory_gb": get_int("SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_MEMORY_GB", 8),
+    "interactive_memory_gb": get_int(
+        "SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_MEMORY_GB", 8
+    ),
 }
 
 

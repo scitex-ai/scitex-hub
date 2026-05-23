@@ -31,7 +31,7 @@ if __name__ == "__main__":
 # # File: ./apps/workspace_app/gitea_sync.py
 #
 # """
-# Gitea synchronization utilities for SciTeX Cloud
+# Gitea synchronization utilities for SciTeX Hub
 #
 # Provides helper functions for syncing Django users and projects with Gitea.
 # """
@@ -188,7 +188,7 @@ if __name__ == "__main__":
 #                     return True, None
 #
 #         # Add SSH key to Gitea
-#         title = f"SciTeX Cloud Key ({user.username})"
+#         title = f"SciTeX Hub Key ({user.username})"
 #         client.add_ssh_key(
 #             title=title, key=profile.ssh_public_key, username=user.username
 #         )

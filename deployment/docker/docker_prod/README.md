@@ -16,7 +16,7 @@ make ENV=prodrebuild  # Full rebuild (causes downtime)
 
 | Service | Local URL | Public URL | Default Credentials |
 |---------|-----------|------------|---------------------|
-| SciTeX Cloud | http://localhost:8000 | https://scitex.ai | - |
+| SciTeX Hub | http://localhost:8000 | https://scitex.ai | - |
 | Gitea | http://localhost:3000 | https://gitea.scitex.ai | - |
 | CrossRef API | http://localhost:31291 | https://crossref.scitex.ai | - |
 | Umami Analytics | http://localhost:3300 | https://umami.scitex.ai | admin / umami |
@@ -97,7 +97,7 @@ docker logs scitex-hub-prod-cloudflared-1
 ### Adding Website Tracking
 1. Login to Umami
 2. Go to Settings → Websites → Add website
-3. Name: SciTeX Cloud
+3. Name: SciTeX Hub
 4. Domain: scitex.ai
 5. Copy the tracking script and add to your templates
 

@@ -28,7 +28,7 @@ SCITEX_PROJECTS = [
     {
         "name": "scitex-hub",
         "slug": "scitex-hub",
-        "description": "SciTeX Cloud - Web platform for scientific research workflow management",
+        "description": "SciTeX Hub - Web platform for scientific research workflow management",
         "source_url": "https://github.com/scitex-ai/scitex-hub",
         "primary_language": "Python",
     },

@@ -4,7 +4,7 @@
 !-- File: /home/ywatanabe/proj/scitex-hub/docs/ARCHITECTURE.md
 !-- --- -->
 
-## SciTeX Cloud
+## SciTeX Hub
 - [ ] Live at http:127.0.0.1:8000 (https://scitex.ai)
 
 ## SciTeX Files
@@ -128,7 +128,7 @@ graph TB
     end
 
     subgraph "Infrastructure"
-        CLOUD[SciTeX Cloud<br/>scitex.ai:8000]
+        CLOUD[SciTeX Hub<br/>scitex.ai:8000]
         DB[(Database)]
     end
 
@@ -199,7 +199,7 @@ graph TB
     end
 
     subgraph "Infrastructure"
-        CLOUD[SciTeX Cloud<br/>scitex.ai]
+        CLOUD[SciTeX Hub<br/>scitex.ai]
         DB[(Database)]
     end
 

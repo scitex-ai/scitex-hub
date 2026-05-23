@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-E2E Tests for SciTeX Cloud
+E2E Tests for SciTeX Hub
 
 Minimal tests that must pass before deployment.
 These test critical user flows against a running server.

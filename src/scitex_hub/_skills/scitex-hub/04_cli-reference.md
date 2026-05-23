@@ -21,7 +21,7 @@ tags: [scitex-hub-cli-reference]
 
 | Command          | Purpose                                              |
 |------------------|------------------------------------------------------|
-| `project`        | Manage SciTeX Cloud projects                         |
+| `project`        | Manage SciTeX Hub projects                         |
 | `push-project`   | `git push` to Gitea (committed changes)              |
 | `pull-project`   | `git pull` from Gitea (committed changes)            |
 | `gitea`          | Gitea operations (wraps `tea` CLI)                   |
@@ -40,8 +40,8 @@ tags: [scitex-hub-cli-reference]
 
 | Command              | Purpose                                            |
 |----------------------|----------------------------------------------------|
-| `deploy-project`     | Deploy SciTeX Cloud                                |
-| `setup-environment`  | Setup SciTeX Cloud environment                     |
+| `deploy-project`     | Deploy SciTeX Hub                                |
+| `setup-environment`  | Setup SciTeX Hub environment                     |
 | `docker`             | Docker container management                        |
 | `show-status`        | Show deployment status                             |
 | `show-logs`          | Show container logs                                |

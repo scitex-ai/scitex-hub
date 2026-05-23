@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""SciTeX Cloud Module -- decorator and output APIs for custom workspace modules.
+"""SciTeX Hub Module -- decorator and output APIs for custom workspace modules.
 
 Usage:
     from scitex_hub.module import module, output, html, INJECTED

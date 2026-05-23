@@ -10,9 +10,9 @@ from __future__ import annotations
 def _platform_docs_md(name: str) -> str:
     """Generate docs/PLATFORM.md — full platform reference for agents."""
     module_name = name.removesuffix("_app")
-    return f"""# SciTeX Cloud App Platform Reference
+    return f"""# SciTeX Hub App Platform Reference
 
-This document is the comprehensive platform reference for building SciTeX Cloud
+This document is the comprehensive platform reference for building SciTeX Hub
 apps. For a quick-start guide, see `AGENTS.md` in the project root.
 
 ---
@@ -351,7 +351,7 @@ SciTeX uses a layered licensing model:
 
 | Component | License | Copyleft? |
 |-----------|---------|-----------|
-| SciTeX Cloud Platform | AGPL-3.0 | Yes (strong) |
+| SciTeX Hub Platform | AGPL-3.0 | Yes (strong) |
 | App Maker SDK / API | Apache-2.0 | No |
 | User Apps | Author's choice | Depends on chosen license |
 

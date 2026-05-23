@@ -26,7 +26,7 @@ django.setup()
 
 def reset_database():
     """Reset the database and migrations"""
-    print("🔄 Resetting SciTeX Cloud database with new permission system...")
+    print("🔄 Resetting SciTeX Hub database with new permission system...")
 
     # 1. Remove database file
     db_path = Path("db.sqlite3")
@@ -89,8 +89,8 @@ def reset_database():
         profile, created = UserProfile.objects.get_or_create(
             user=admin_user,
             defaults={
-                "bio": "SciTeX Cloud Administrator",
-                "institution": "SciTeX Cloud",
+                "bio": "SciTeX Hub Administrator",
+                "institution": "SciTeX Hub",
                 "academic_title": "System Administrator",
                 "department": "Platform Operations",
                 "research_interests": "Research platform development and management",

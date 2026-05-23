@@ -24,7 +24,7 @@ def _require_yes(yes, action):
 
 @click.group()
 def project():
-    """Manage SciTeX Cloud projects.
+    """Manage SciTeX Hub projects.
 
     \b
     Examples:

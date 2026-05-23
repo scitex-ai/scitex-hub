@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-This report compares the visual differences between GitHub's interface and the local SciTeX Cloud implementation across three main page types: project root, directory listing, and file view. The analysis reveals that SciTeX has successfully implemented a GitHub-like interface with dark theme styling and many similar UI patterns, but there are notable differences and some functional issues.
+This report compares the visual differences between GitHub's interface and the local SciTeX Hub implementation across three main page types: project root, directory listing, and file view. The analysis reveals that SciTeX has successfully implemented a GitHub-like interface with dark theme styling and many similar UI patterns, but there are notable differences and some functional issues.
 
 ---
 

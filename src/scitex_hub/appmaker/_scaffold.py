@@ -116,7 +116,7 @@ def _build_all_files(
     files = {}
 
     # __init__.py
-    files["__init__.py"] = f'"""SciTeX Cloud App: {label}."""\n'
+    files["__init__.py"] = f'"""SciTeX Hub App: {label}."""\n'
 
     # apps.py
     files["apps.py"] = _apps_py(name, label, class_name)
@@ -212,7 +212,7 @@ def _build_all_files(
 def _pyproject_toml(name, label, description, license_id):
     """Generate pyproject.toml for dual-mode app (standalone + scitex-hub extension)."""
     slug = name.replace("_", "-")
-    desc = description or f"{label} — a SciTeX Cloud app."
+    desc = description or f"{label} — a SciTeX Hub app."
     return f"""[build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

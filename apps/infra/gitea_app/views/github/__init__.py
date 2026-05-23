@@ -1,6 +1,6 @@
 """
 GitHub Integration Views
-Modular organization of GitHub-related views for SciTeX Cloud
+Modular organization of GitHub-related views for SciTeX Hub
 """
 
 # OAuth and Authentication

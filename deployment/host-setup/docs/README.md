@@ -1,6 +1,6 @@
 # Host Setup Scripts
 
-Automated scripts for setting up and validating the NAS host environment for SciTeX Cloud.
+Automated scripts for setting up and validating the NAS host environment for SciTeX Hub.
 
 ## Directory Structure
 

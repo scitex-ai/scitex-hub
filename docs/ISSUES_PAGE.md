@@ -4,9 +4,9 @@
 !-- File: /home/ywatanabe/proj/scitex-hub/docs/ISSUES_PAGE.md
 !-- --- -->
 
-# SciTeX Cloud - GitHub for Researchers
+# SciTeX Hub - GitHub for Researchers
 
-SciTeX Cloud aims to be a complete GitHub-like platform for researchers, with all
+SciTeX Hub aims to be a complete GitHub-like platform for researchers, with all
 issue tracking, discussions, and collaboration hosted internally (not on GitHub).
 
 ## Architecture

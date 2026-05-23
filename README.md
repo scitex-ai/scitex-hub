@@ -9,7 +9,7 @@
 !-- File: /home/ywatanabe/proj/scitex-hub/README.md
 !-- --- -->
 
-# SciTeX Cloud (<code>scitex-hub</code>)
+# SciTeX Hub (<code>scitex-hub</code>)
 
 <!-- scitex-badges:start -->
 <p align="center">
@@ -81,9 +81,9 @@
 </tr>
 </table>
 
-<p align="center"><sub><b>Table 1.</b> Eight infrastructure challenges in scientific research and how SciTeX Cloud addresses each. These gaps fuel the reproducibility crisis, limit what AI can do for research, and leave knowledge stranded when people move on.</sub></p>
+<p align="center"><sub><b>Table 1.</b> Eight infrastructure challenges in scientific research and how SciTeX Hub addresses each. These gaps fuel the reproducibility crisis, limit what AI can do for research, and leave knowledge stranded when people move on.</sub></p>
 
-SciTeX Cloud is an AI-native infrastructure so that researchers can focus on science, not on tooling.
+SciTeX Hub is an AI-native infrastructure so that researchers can focus on science, not on tooling.
 
 ## Demo
 
@@ -218,7 +218,7 @@ scitex-hub list-python-apis          # List all Python APIs
 
 <br>
 
-AI agents can interact with the SciTeX Cloud platform autonomously via MCP (Model Context Protocol) tools.
+AI agents can interact with the SciTeX Hub platform autonomously via MCP (Model Context Protocol) tools.
 
 | Category | Tools | Description |
 |----------|-------|-------------|
@@ -384,7 +384,7 @@ curl https://a2a.scitex.ai/v1/agents/ | jq '.agents | length'
 
 ## Status
 
-SciTeX Cloud is in **alpha**. Core functionality is working and under active development. Data formats may change between releases — back up important work.
+SciTeX Hub is in **alpha**. Core functionality is working and under active development. Data formats may change between releases — back up important work.
 
 ## Contributing
 

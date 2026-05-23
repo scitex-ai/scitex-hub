@@ -45,7 +45,7 @@ fi
 
 # Create the user
 echo -e "${BLUE}Creating system user '${SCITEX_USER}' with UID ${SCITEX_UID}...${NC}"
-useradd -r -u "$SCITEX_UID" -m -s /bin/bash -c "SciTeX Cloud Service User" "${SCITEX_USER}"
+useradd -r -u "$SCITEX_UID" -m -s /bin/bash -c "SciTeX Hub Service User" "${SCITEX_USER}"
 
 # Verify creation
 if id "${SCITEX_USER}" &>/dev/null; then

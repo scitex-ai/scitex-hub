@@ -28,7 +28,7 @@ if __name__ == "__main__":
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
 # """
-# Gitea API Client for SciTeX Cloud
+# Gitea API Client for SciTeX Hub
 #
 # This module provides a Python wrapper for the Gitea REST API.
 # Re-exports all components from the modular api_client package for backward compatibility.

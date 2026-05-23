@@ -26,7 +26,7 @@ if __name__ == "__main__":
 # Start of Source Code from: apps/project_app/services/filesystem_utils/directory_operations.py
 # --------------------------------------------------------------------------------
 # """
-# SciTeX Cloud - Directory Operations
+# SciTeX Hub - Directory Operations
 #
 # Directory listing, statistics, and searching utilities.
 # """

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # File: config/settings/settings_shared.py
 """
-Django settings for SciTeX Cloud project.
+Django settings for SciTeX Hub project.
 Base settings shared across all environments.
 Sub-modules: settings_celery, settings_logging, settings_auth, settings_integrations
 """

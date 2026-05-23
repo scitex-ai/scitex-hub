@@ -1,7 +1,7 @@
 ---
 description: |
   [TOPIC] Project Management CLI
-  [DETAILS] CLI commands for SciTeX Cloud project CRUD — create, list, delete, rename. Each project gets a Gitea repo + Django project + workspace directory..
+  [DETAILS] CLI commands for SciTeX Hub project CRUD — create, list, delete, rename. Each project gets a Gitea repo + Django project + workspace directory..
 tags: [scitex-hub-project-management]
 ---
 

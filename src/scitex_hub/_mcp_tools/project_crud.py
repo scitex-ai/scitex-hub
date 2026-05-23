@@ -13,7 +13,7 @@ def register_project_crud_tools(mcp) -> None:
 
     @mcp.tool()
     async def project_list() -> str:
-        """Use when the user asks to list SciTeX Cloud projects, see what projects they own, or enumerate workspaces; replaces `scitex-hub project list` CLI invocations and raw HTTP calls to /api/v1/projects/."""
+        """Use when the user asks to list SciTeX Hub projects, see what projects they own, or enumerate workspaces; replaces `scitex-hub project list` CLI invocations and raw HTTP calls to /api/v1/projects/."""
         result = _make_request("GET", "/api/v1/projects/")
         return _json(result)
 
@@ -23,7 +23,7 @@ def register_project_crud_tools(mcp) -> None:
         description: str = "",
         template: str = "scitex_minimal",
     ) -> str:
-        """Use when the user asks to create a new SciTeX Cloud project, start a new workspace, or scaffold from a template; replaces `scitex-hub project create` CLI invocations and raw HTTP calls to /api/v1/projects/create/.
+        """Use when the user asks to create a new SciTeX Hub project, start a new workspace, or scaffold from a template; replaces `scitex-hub project create` CLI invocations and raw HTTP calls to /api/v1/projects/create/.
 
         Args:
             name: Project name (will be slugified for URL).
@@ -39,7 +39,7 @@ def register_project_crud_tools(mcp) -> None:
 
     @mcp.tool()
     async def project_delete(slug: str) -> str:
-        """Use when the user asks to delete, remove, or destroy a SciTeX Cloud project (by slug); replaces `scitex-hub project delete <slug>` CLI invocations. WARNING: permanently deletes the project and all its files.
+        """Use when the user asks to delete, remove, or destroy a SciTeX Hub project (by slug); replaces `scitex-hub project delete <slug>` CLI invocations. WARNING: permanently deletes the project and all its files.
 
         Args:
             slug: Project slug (URL-safe name, e.g. "my-research").
@@ -49,7 +49,7 @@ def register_project_crud_tools(mcp) -> None:
 
     @mcp.tool()
     async def project_rename(slug: str, new_name: str) -> str:
-        """Use when the user asks to rename a SciTeX Cloud project or change its display name; replaces `scitex-hub project rename <slug> <new-name>` CLI invocations.
+        """Use when the user asks to rename a SciTeX Hub project or change its display name; replaces `scitex-hub project rename <slug> <new-name>` CLI invocations.
 
         Args:
             slug: Current project slug.
@@ -64,7 +64,7 @@ def register_project_crud_tools(mcp) -> None:
 
     @mcp.tool()
     async def project_switch(slug: str) -> str:
-        """Use when the user asks to switch to a different SciTeX Cloud project or open a project page; replaces `scitex-hub project switch <slug>` CLI invocations. Only works on-site (navigates the browser via ui-action).
+        """Use when the user asks to switch to a different SciTeX Hub project or open a project page; replaces `scitex-hub project switch <slug>` CLI invocations. Only works on-site (navigates the browser via ui-action).
 
         Args:
             slug: Project slug to switch to.

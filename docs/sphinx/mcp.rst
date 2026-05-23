@@ -1,7 +1,7 @@
 MCP Server
 ==========
 
-SciTeX Cloud ships with an `MCP (Model Context Protocol) <https://modelcontextprotocol.io/>`_
+SciTeX Hub ships with an `MCP (Model Context Protocol) <https://modelcontextprotocol.io/>`_
 server that lets AI agents — Claude, Cursor, and others — interact with the platform
 autonomously. AI agents can search literature, manage citations, query project files,
 and submit jobs without manual intervention.

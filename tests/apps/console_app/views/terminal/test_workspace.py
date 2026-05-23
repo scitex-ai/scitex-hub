@@ -200,7 +200,7 @@ class TestEnsureWorkspaceIdempotency:
 
 # A minimal "correct" bashrc that satisfies all required markers.
 _CORRECT_BASHRC = """\
-# SciTeX Cloud - bashrc
+# SciTeX Hub - bashrc
 PS1='\\[\\033[01;32m\\]testuser@scitex\\[\\033[00m\\]:\\w \\$ '
 
 # AI CLI tools

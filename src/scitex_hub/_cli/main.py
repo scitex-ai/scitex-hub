@@ -63,9 +63,9 @@ def _print_recursive_help(ctx, param, value):
 )
 @click.pass_context
 def main(ctx):
-    """SciTeX Cloud - Deployment and management CLI.
+    """SciTeX Hub - Deployment and management CLI.
 
-    Manage SciTeX Cloud deployments with simple commands.
+    Manage SciTeX Hub deployments with simple commands.
 
     \b
     Examples:

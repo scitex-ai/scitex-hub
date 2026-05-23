@@ -14,7 +14,7 @@ def register_sdk_tools(mcp) -> None:
 
     @mcp.tool()
     async def cloud_sdk_data_list(app: str, schema: str, project_id: str = "") -> str:
-        """Use when the user asks to list records, query rows, or enumerate entries in a SciTeX Cloud DataStore schema; replaces hand-rolled REST wrappers for the SciTeX Cloud data namespace.
+        """Use when the user asks to list records, query rows, or enumerate entries in a SciTeX Hub DataStore schema; replaces hand-rolled REST wrappers for the SciTeX Hub data namespace.
 
         Args:
             app: App identifier (e.g. "my-app").
@@ -31,7 +31,7 @@ def register_sdk_tools(mcp) -> None:
 
     @mcp.tool()
     async def cloud_sdk_data_create(app: str, schema: str, json_data: str) -> str:
-        """Use when the user asks to create/insert/add a record or row in a SciTeX Cloud DataStore schema; drop-in replacement for hand-rolled POST /api/data/<project>/... calls against the SciTeX Cloud data namespace.
+        """Use when the user asks to create/insert/add a record or row in a SciTeX Hub DataStore schema; drop-in replacement for hand-rolled POST /api/data/<project>/... calls against the SciTeX Hub data namespace.
 
         Args:
             app: App identifier.
@@ -48,7 +48,7 @@ def register_sdk_tools(mcp) -> None:
 
     @mcp.tool()
     async def cloud_sdk_data_get(app: str, schema: str, record_id: str) -> str:
-        """Use when the user asks to fetch/read/get a single record by ID from a SciTeX Cloud DataStore schema; drop-in replacement for hand-rolled GET /api/data/<project>/... calls against the SciTeX Cloud data namespace.
+        """Use when the user asks to fetch/read/get a single record by ID from a SciTeX Hub DataStore schema; drop-in replacement for hand-rolled GET /api/data/<project>/... calls against the SciTeX Hub data namespace.
 
         Args:
             app: App identifier.
@@ -64,7 +64,7 @@ def register_sdk_tools(mcp) -> None:
     async def cloud_sdk_data_update(
         app: str, schema: str, record_id: str, json_data: str
     ) -> str:
-        """Use when the user asks to update/edit/modify/patch a record in a SciTeX Cloud DataStore schema; drop-in replacement for hand-rolled PATCH/PUT /api/data/<project>/... calls against the SciTeX Cloud data namespace.
+        """Use when the user asks to update/edit/modify/patch a record in a SciTeX Hub DataStore schema; drop-in replacement for hand-rolled PATCH/PUT /api/data/<project>/... calls against the SciTeX Hub data namespace.
 
         Args:
             app: App identifier.
@@ -82,7 +82,7 @@ def register_sdk_tools(mcp) -> None:
 
     @mcp.tool()
     async def cloud_sdk_data_delete(app: str, schema: str, record_id: str) -> str:
-        """Use when the user asks to delete/remove/drop a record by ID from a SciTeX Cloud DataStore schema; drop-in replacement for hand-rolled DELETE /api/data/<project>/... calls against the SciTeX Cloud data namespace.
+        """Use when the user asks to delete/remove/drop a record by ID from a SciTeX Hub DataStore schema; drop-in replacement for hand-rolled DELETE /api/data/<project>/... calls against the SciTeX Hub data namespace.
 
         Args:
             app: App identifier.
@@ -96,7 +96,7 @@ def register_sdk_tools(mcp) -> None:
 
     @mcp.tool()
     async def cloud_sdk_data_search(app: str, schema: str, query: str) -> str:
-        """Use when the user asks to search/query/filter records by text in a SciTeX Cloud DataStore schema; drop-in replacement for hand-rolled GET /api/data/<project>/search REST/httpx calls against the SciTeX Cloud data namespace.
+        """Use when the user asks to search/query/filter records by text in a SciTeX Hub DataStore schema; drop-in replacement for hand-rolled GET /api/data/<project>/search REST/httpx calls against the SciTeX Hub data namespace.
 
         Args:
             app: App identifier.
@@ -112,7 +112,7 @@ def register_sdk_tools(mcp) -> None:
 
     @mcp.tool()
     async def cloud_sdk_files_list(app: str, path: str = "", project: str = "") -> str:
-        """Use when the user asks to list/enumerate files or objects in a SciTeX Cloud FileVault, or mentions browsing a project's file storage; drop-in replacement for boto3/Azure Blob list_objects calls inside a SciTeX Cloud project.
+        """Use when the user asks to list/enumerate files or objects in a SciTeX Hub FileVault, or mentions browsing a project's file storage; drop-in replacement for boto3/Azure Blob list_objects calls inside a SciTeX Hub project.
 
         Args:
             app: App identifier.
@@ -131,7 +131,7 @@ def register_sdk_tools(mcp) -> None:
     async def cloud_sdk_files_upload(
         app: str, remote_path: str, content: str, project: str = ""
     ) -> str:
-        """Use when the user asks to upload/put/write a file or text content into a SciTeX Cloud FileVault; drop-in replacement for boto3 put_object or Azure Blob upload_blob when working inside a SciTeX Cloud project.
+        """Use when the user asks to upload/put/write a file or text content into a SciTeX Hub FileVault; drop-in replacement for boto3 put_object or Azure Blob upload_blob when working inside a SciTeX Hub project.
 
         Args:
             app: App identifier.
@@ -151,7 +151,7 @@ def register_sdk_tools(mcp) -> None:
     async def cloud_sdk_files_download(
         app: str, remote_path: str, project: str = ""
     ) -> str:
-        """Use when the user asks to download/fetch/read a file from a SciTeX Cloud FileVault; drop-in replacement for boto3 get_object or Azure Blob download_blob when working inside a SciTeX Cloud project.
+        """Use when the user asks to download/fetch/read a file from a SciTeX Hub FileVault; drop-in replacement for boto3 get_object or Azure Blob download_blob when working inside a SciTeX Hub project.
 
         Args:
             app: App identifier.
@@ -170,7 +170,7 @@ def register_sdk_tools(mcp) -> None:
     async def cloud_sdk_files_delete(
         app: str, remote_path: str, project: str = ""
     ) -> str:
-        """Use when the user asks to delete/remove a file from a SciTeX Cloud FileVault; drop-in replacement for boto3 delete_object or Azure Blob delete_blob when working inside a SciTeX Cloud project.
+        """Use when the user asks to delete/remove a file from a SciTeX Hub FileVault; drop-in replacement for boto3 delete_object or Azure Blob delete_blob when working inside a SciTeX Hub project.
 
         Args:
             app: App identifier.
@@ -191,7 +191,7 @@ def register_sdk_tools(mcp) -> None:
     async def cloud_sdk_jobs_submit(
         app: str, job_name: str, params_json: str = "{}", project_id: str = ""
     ) -> str:
-        """Use when the user asks to submit/queue/run a background job, task, or batch workload in SciTeX Cloud JobQueue; drop-in replacement for subprocess schedulers or SLURM sbatch when the agent wants to run a job in the SciTeX Cloud compute fabric.
+        """Use when the user asks to submit/queue/run a background job, task, or batch workload in SciTeX Hub JobQueue; drop-in replacement for subprocess schedulers or SLURM sbatch when the agent wants to run a job in the SciTeX Hub compute fabric.
 
         Args:
             app: App identifier.
@@ -212,7 +212,7 @@ def register_sdk_tools(mcp) -> None:
 
     @mcp.tool()
     async def cloud_sdk_jobs_status(app: str, job_id: str) -> str:
-        """Use when the user asks to check status, progress, or result of a SciTeX Cloud JobQueue job; drop-in replacement for squeue/sacct polling or subprocess.Popen.poll when running jobs in the SciTeX Cloud compute fabric.
+        """Use when the user asks to check status, progress, or result of a SciTeX Hub JobQueue job; drop-in replacement for squeue/sacct polling or subprocess.Popen.poll when running jobs in the SciTeX Hub compute fabric.
 
         Args:
             app: App identifier.
@@ -225,7 +225,7 @@ def register_sdk_tools(mcp) -> None:
 
     @mcp.tool()
     async def cloud_sdk_jobs_cancel(app: str, job_id: str) -> str:
-        """Use when the user asks to cancel/kill/abort a running SciTeX Cloud JobQueue job; drop-in replacement for scancel or subprocess.terminate when managing jobs in the SciTeX Cloud compute fabric.
+        """Use when the user asks to cancel/kill/abort a running SciTeX Hub JobQueue job; drop-in replacement for scancel or subprocess.terminate when managing jobs in the SciTeX Hub compute fabric.
 
         Args:
             app: App identifier.
@@ -238,7 +238,7 @@ def register_sdk_tools(mcp) -> None:
 
     @mcp.tool()
     async def cloud_sdk_jobs_list(app: str) -> str:
-        """Use when the user asks to list/enumerate/show all jobs for a SciTeX Cloud app, or mentions checking the SciTeX Cloud JobQueue; drop-in replacement for squeue or subprocess-based job listings in the SciTeX Cloud compute fabric.
+        """Use when the user asks to list/enumerate/show all jobs for a SciTeX Hub app, or mentions checking the SciTeX Hub JobQueue; drop-in replacement for squeue or subprocess-based job listings in the SciTeX Hub compute fabric.
 
         Args:
             app: App identifier.

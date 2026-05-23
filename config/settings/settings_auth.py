@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # File: config/settings/settings_auth.py
-"""Authentication and OAuth settings for SciTeX Cloud."""
+"""Authentication and OAuth settings for SciTeX Hub."""
 
 import os
 from datetime import timedelta

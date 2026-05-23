@@ -31,7 +31,7 @@ if __name__ == "__main__":
 # # File: /home/ywatanabe/proj/scitex-hub/apps/workspace_app/ssh_manager.py
 # # ----------------------------------------
 # """
-# SSH Key Management for SciTeX Cloud
+# SSH Key Management for SciTeX Hub
 #
 # Handles SSH key generation, storage, and usage for Git operations.
 # """

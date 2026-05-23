@@ -100,7 +100,7 @@ def debug_mode(request):
 
 def scitex_version(request):
     """
-    Expose SciTeX Cloud version to all templates.
+    Expose SciTeX Hub version to all templates.
     Single source of truth: settings.SCITEX_CLOUD_VERSION
     """
     return {"SCITEX_CLOUD_VERSION": get_scitex_hub_version()}
