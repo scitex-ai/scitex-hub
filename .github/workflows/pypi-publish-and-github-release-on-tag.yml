@@ -63,6 +63,10 @@ jobs:
         # secret, so we set an obviously-fake one for the test process only.
         env:
           SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-secret-do-not-use-in-prod  # pragma: allowlist secret
+          # settings_dev.py L233: require_env("SCITEX_HUB_GITEA_SSH_PORT_DEV")
+          # (already set in tests.yml; mirror it here so the release-tag
+          # pipeline matches the push/PR matrix).
+          SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
         run: |
           if [ -d tests ]; then
             pytest tests/ -x
