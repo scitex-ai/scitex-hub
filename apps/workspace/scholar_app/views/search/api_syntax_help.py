@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: /home/ywatanabe/proj/scitex-cloud/apps/scholar_app/views/search/api_syntax_help.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/scholar_app/views/search/api_syntax_help.py
 # Search syntax documentation endpoint
 # ----------------------------------------
 from __future__ import annotations

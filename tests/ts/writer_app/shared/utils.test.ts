@@ -28,13 +28,13 @@ describe('utils', () => {
 // /**
 //  * Shared utility functions for writer_app
 //  */
-// 
+//
 // /**
 //  * Get CSRF token from cookies
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/shared/utils.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/shared/utils.ts loaded",
 // );
 // export function getCsrfToken(): string {
 //   const name = "csrftoken";
@@ -51,7 +51,7 @@ describe('utils', () => {
 //   }
 //   return cookieValue;
 // }
-// 
+//
 // /**
 //  * Make API request with CSRF token
 //  */
@@ -65,7 +65,7 @@ describe('utils', () => {
 //       "X-CSRFToken": getCsrfToken(),
 //     },
 //   };
-// 
+//
 //   const mergedOptions = {
 //     ...defaultOptions,
 //     ...options,
@@ -74,10 +74,10 @@ describe('utils', () => {
 //       ...options.headers,
 //     },
 //   };
-// 
+//
 //   return fetch(url, mergedOptions);
 // }
-// 
+//
 // /**
 //  * Format date to human-readable string
 //  */
@@ -85,7 +85,7 @@ describe('utils', () => {
 //   const d = typeof date === "string" ? new Date(date) : date;
 //   return d.toLocaleDateString() + " " + d.toLocaleTimeString();
 // }
-// 
+//
 // /**
 //  * Debounce function calls
 //  */
@@ -94,20 +94,20 @@ describe('utils', () => {
 //   wait: number,
 // ): (...args: Parameters<T>) => void {
 //   let timeout: ReturnType<typeof setTimeout> | null = null;
-// 
+//
 //   return function executedFunction(...args: Parameters<T>) {
 //     const later = () => {
 //       timeout = null;
 //       func(...args);
 //     };
-// 
+//
 //     if (timeout !== null) {
 //       clearTimeout(timeout);
 //     }
 //     timeout = setTimeout(later, wait);
 //   };
 // }
-// 
+//
 // /**
 //  * Show toast notification
 //  */
@@ -118,7 +118,7 @@ describe('utils', () => {
 //   console.log(`[Toast ${type}] ${message}`);
 //   // TODO: Implement actual toast UI
 // }
-// 
+//
 // /**
 //  * Format file size to human-readable string
 //  */

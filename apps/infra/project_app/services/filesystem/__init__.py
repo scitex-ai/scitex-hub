@@ -1,5 +1,5 @@
 """
-SciTeX Cloud - User Directory Management System
+SciTeX Hub - User Directory Management System
 
 This module handles user-specific directory trees with a minimal structure.
 

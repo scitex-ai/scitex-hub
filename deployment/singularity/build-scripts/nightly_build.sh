@@ -13,7 +13,7 @@
 #   ./nightly_build.sh --help
 #
 # Cron example (2 AM daily, 1 CPU core max):
-#   0 2 * * * /home/ywatanabe/proj/scitex-cloud/deployment/singularity/build-scripts/nightly_build.sh >> /var/log/scitex-nightly-build.log 2>&1
+#   0 2 * * * /home/ywatanabe/proj/scitex-hub/deployment/singularity/build-scripts/nightly_build.sh >> /var/log/scitex-nightly-build.log 2>&1
 #
 # Resource limits:
 #   - nice -n 19:     lowest CPU scheduling priority

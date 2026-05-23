@@ -26,7 +26,7 @@ if echo "$containerd_cpu" | grep -qE '^[0-9]+ [0-9]+$'; then
 else
     echo -e "  ${RED}[FAIL] containerd CPU limit NOT set${NC}"
     echo -e "  ${YELLOW}  Fix: create /etc/systemd/system/containerd.service.d/resource-limit.conf${NC}"
-    echo -e "  ${YELLOW}  See: skill:scitex-cloud → production-deployment.md → NAS Resource Protection${NC}"
+    echo -e "  ${YELLOW}  See: skill:scitex-hub → production-deployment.md → NAS Resource Protection${NC}"
     errors=$((errors + 1))
 fi
 

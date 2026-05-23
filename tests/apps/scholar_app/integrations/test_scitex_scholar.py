@@ -27,7 +27,7 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
-# # File: /home/ywatanabe/proj/scitex-cloud/apps/scholar_app/integrations/scitex_scholar.py
+# # File: /home/ywatanabe/proj/scitex-hub/apps/scholar_app/integrations/scitex_scholar.py
 # """
 # Integration layer between Django and scitex.scholar package.
 #

@@ -2,7 +2,7 @@
 
 **Date**: 2025-12-06
 **Status**: ✅ Backend API Ready
-**Location**: `scitex-cloud/apps/scholar_app/`
+**Location**: `scitex-hub/apps/scholar_app/`
 
 ---
 
@@ -305,7 +305,7 @@ Create:
 
 ## Files Created
 
-### In scitex-cloud/apps/scholar_app/
+### In scitex-hub/apps/scholar_app/
 
 ```
 services/citation_graph/

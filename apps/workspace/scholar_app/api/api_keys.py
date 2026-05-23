@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: /home/ywatanabe/proj/scitex-cloud/apps/scholar_app/api/api_keys.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/scholar_app/api/api_keys.py
 """
 API Key management endpoints for Scholar API.
 

@@ -154,8 +154,8 @@ fi
 echo -e "\n${CYAN}[3/3] Checking Gitea repositories...${NC}"
 
 # Check if Gitea container is running
-if docker ps --filter "name=scitex-cloud.*gitea" --format "{{.Names}}" | grep -q gitea; then
-    GITEA_CONTAINER=$(docker ps --filter "name=scitex-cloud.*gitea" --format "{{.Names}}" | head -1)
+if docker ps --filter "name=scitex-hub.*gitea" --format "{{.Names}}" | grep -q gitea; then
+    GITEA_CONTAINER=$(docker ps --filter "name=scitex-hub.*gitea" --format "{{.Names}}" | head -1)
 
     # Get all repos ending with -code
     REPOS=$(docker exec "$GITEA_CONTAINER" gitea admin repo list 2>/dev/null | grep -E '/.*-code$' || true)

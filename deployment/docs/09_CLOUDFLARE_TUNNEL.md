@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2026-01-06 10:54:09
 !-- Author: ywatanabe
-!-- File: /ssh:nas:/home/ywatanabe/proj/scitex-cloud/deployment/docs/CLOUDFLARE_TUNNEL.md
+!-- File: /ssh:nas:/home/ywatanabe/proj/scitex-hub/deployment/docs/CLOUDFLARE_TUNNEL.md
 !-- --- -->
 
 # Self-Hosting with Cloudflare Tunnel

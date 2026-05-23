@@ -344,7 +344,7 @@ export const TS_SEARCH_DIRS = [
   "apps/scholar_app/static/scholar_app/ts",
   "apps/public_app/static/public_app/ts",
   "apps/accounts_app/static/accounts_app/ts",
-  "apps/hub_app/static/hub_app/ts",
+  "apps/repo_app/static/repo_app/ts",
   "apps/clew_app/static/clew_app/ts",
   "apps/social_app/static/social_app/ts",
   "apps/docs_app/static/docs_app/ts",

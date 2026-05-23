@@ -1,8 +1,8 @@
 /**
  * Shell CSS — imported from scitex-ui (canonical source, bundled by Vite).
  *
- * These CSS modules are shared between scitex-cloud and standalone apps.
- * The canonical source is scitex-ui; scitex-cloud imports via Vite alias.
+ * These CSS modules are shared between scitex-hub and standalone apps.
+ * The canonical source is scitex-ui; scitex-hub imports via Vite alias.
  * Corresponding @import lines in global-ai-chat.css are commented out
  * to prevent double-loading.
  */

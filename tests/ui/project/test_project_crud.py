@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: 2025-11-30
-# File: /home/ywatanabe/proj/scitex-cloud/tests/e2e/project/test_project_crud.py
+# File: /home/ywatanabe/proj/scitex-hub/tests/e2e/project/test_project_crud.py
 
 """
 E2E tests for project CRUD operations.
@@ -33,8 +33,7 @@ class TestProjectListPage:
 
         # Go to user's project list
         page.goto(
-            f"{base_url}/{test_credentials['username']}/",
-            wait_until="domcontentloaded"
+            f"{base_url}/{test_credentials['username']}/", wait_until="domcontentloaded"
         )
         page.wait_for_timeout(2000)
 
@@ -54,8 +53,7 @@ class TestProjectListPage:
 
         # Go to user's page
         page.goto(
-            f"{base_url}/{test_credentials['username']}/",
-            wait_until="domcontentloaded"
+            f"{base_url}/{test_credentials['username']}/", wait_until="domcontentloaded"
         )
         page.wait_for_timeout(2000)
 
@@ -81,15 +79,13 @@ class TestProjectCreation:
 
         # Go to user's page
         page.goto(
-            f"{base_url}/{test_credentials['username']}/",
-            wait_until="domcontentloaded"
+            f"{base_url}/{test_credentials['username']}/", wait_until="domcontentloaded"
         )
         page.wait_for_timeout(2000)
 
         # Look for new project button
         new_btn = page.locator(
-            "a[href*='new'], button:has-text('New'), "
-            "[data-action='create-project']"
+            "a[href*='new'], button:has-text('New'), " "[data-action='create-project']"
         )
         # Button may or may not exist depending on page design
         assert new_btn.count() >= 0
@@ -108,7 +104,7 @@ class TestProjectCreation:
         # Try to access project creation page
         page.goto(
             f"{base_url}/{test_credentials['username']}/new/",
-            wait_until="domcontentloaded"
+            wait_until="domcontentloaded",
         )
         page.wait_for_timeout(2000)
 
@@ -133,7 +129,7 @@ class TestProjectView:
         # Try default project
         page.goto(
             f"{base_url}/{test_credentials['username']}/default-project/",
-            wait_until="domcontentloaded"
+            wait_until="domcontentloaded",
         )
         page.wait_for_timeout(2000)
 
@@ -154,7 +150,7 @@ class TestProjectView:
         # Go to project
         page.goto(
             f"{base_url}/{test_credentials['username']}/default-project/",
-            wait_until="domcontentloaded"
+            wait_until="domcontentloaded",
         )
         page.wait_for_timeout(2000)
 
@@ -183,7 +179,7 @@ class TestProjectSettings:
         # Try settings page
         page.goto(
             f"{base_url}/{test_credentials['username']}/default-project/settings/",
-            wait_until="domcontentloaded"
+            wait_until="domcontentloaded",
         )
         page.wait_for_timeout(2000)
 

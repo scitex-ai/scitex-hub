@@ -38,8 +38,8 @@ if __name__ == "__main__":
 # def version_context(request):
 #     """Add SciTeX version to all templates."""
 #     return {
-#         "SCITEX_CLOUD_VERSION": getattr(
-#             settings, "SCITEX_CLOUD_VERSION", "0.1.0-alpha"
+#         "SCITEX_HUB_VERSION": getattr(
+#             settings, "SCITEX_HUB_VERSION", "0.1.0-alpha"
 #         ),
 #     }
 #

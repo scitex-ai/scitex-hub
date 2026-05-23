@@ -222,7 +222,7 @@ This should NOT happen with broker architecture. If it does:
 
 ```bash
 # Emergency: Restart container
-docker restart scitex-cloud-prod-django-1
+docker restart scitex-hub-prod-django-1
 
 # Investigate: Check if broker was bypassed
 grep "direct pty.fork" /app/logs/django.log

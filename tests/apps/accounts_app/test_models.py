@@ -357,7 +357,7 @@ if __name__ == "__main__":
 #
 #
 # class APIKey(models.Model):
-#     """API keys for programmatic access to SciTeX Cloud"""
+#     """API keys for programmatic access to SciTeX Hub"""
 #
 #     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="api_keys")
 #     name = models.CharField(

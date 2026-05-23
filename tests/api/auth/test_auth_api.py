@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: 2025-11-30
-# File: /home/ywatanabe/proj/scitex-cloud/tests/api/auth/test_auth_api.py
+# File: /home/ywatanabe/proj/scitex-hub/tests/api/auth/test_auth_api.py
 
 """
 API tests for authentication endpoints.

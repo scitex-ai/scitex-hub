@@ -1,5 +1,5 @@
 # ============================================
-# SciTeX Cloud - Docker Production Deployment
+# SciTeX Hub - Docker Production Deployment
 # ============================================
 # Location: /containers/docker_prod/Makefile.prod
 
@@ -11,9 +11,9 @@
 # Variables
 # ============================================
 COMPOSE := docker compose -f docker-compose.yml
-DJANGO_CONTAINER := scitex-cloud-prod-django-1
-DB_CONTAINER := scitex-cloud-prod-db-1
-REDIS_CONTAINER := scitex-cloud-prod-redis-1
+DJANGO_CONTAINER := scitex-hub-prod-django-1
+DB_CONTAINER := scitex-hub-prod-db-1
+REDIS_CONTAINER := scitex-hub-prod-redis-1
 MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 SCRIPTS_DIR := $(MAKEFILE_DIR)../common/scripts
 
@@ -30,7 +30,7 @@ NC := \033[0m
 help:
 	@echo -e ""
 	@echo -e "$(GREEN)╔═══════════════════════════════════════════════════════╗$(NC)"
-	@echo -e "$(GREEN)║      SciTeX Cloud - Production Deployment            ║$(NC)"
+	@echo -e "$(GREEN)║      SciTeX Hub - Production Deployment            ║$(NC)"
 	@echo -e "$(GREEN)╚═══════════════════════════════════════════════════════╝$(NC)"
 	@echo -e ""
 	@echo -e "$(YELLOW)📦 Production-optimized deployment for home/lab servers$(NC)"
@@ -103,7 +103,7 @@ restart:
 	@echo -e "$(CYAN)🔄 Restarting production services...$(NC)"
 	$(COMPOSE) restart
 	@# Reload nginx to refresh DNS cache (prevents 502 after container IP changes)
-	@sleep 2 && docker exec scitex-cloud-prod-nginx-1 nginx -s reload 2>/dev/null || true
+	@sleep 2 && docker exec scitex-hub-prod-nginx-1 nginx -s reload 2>/dev/null || true
 	@echo -e "$(GREEN)✅ Services restarted$(NC)"
 
 stop: down
@@ -140,7 +140,7 @@ rebuild: down clean-static build up migrate collectstatic cache-purge-static
 
 clean-static:
 	@echo -e "$(CYAN)🧹 Clearing static files volume...$(NC)"
-	@docker volume rm scitex-cloud-prod_static_volume 2>/dev/null || true
+	@docker volume rm scitex-hub-prod_static_volume 2>/dev/null || true
 	@echo -e "$(GREEN)✅ Static volume cleared$(NC)"
 
 # ============================================
@@ -183,13 +183,13 @@ collectstatic: docker-check-health
 # ============================================
 db-shell: docker-check-health
 	@echo -e "$(CYAN)🗄️  Opening PostgreSQL shell...$(NC)"
-	@$(COMPOSE) exec db psql -U $${SCITEX_CLOUD_POSTGRES_USER} -d $${SCITEX_CLOUD_POSTGRES_DB}
+	@$(COMPOSE) exec db psql -U $${SCITEX_HUB_POSTGRES_USER} -d $${SCITEX_HUB_POSTGRES_DB}
 
 db-backup: docker-check-health
 	@echo -e "$(CYAN)💾 Backing up production database...$(NC)"
 	@mkdir -p ../../backups
 	@BACKUP_FILE="../../backups/scitex_prod_$$(date +%Y%m%d_%H%M%S).sql" && \
-	$(COMPOSE) exec -T db pg_dump -U $${SCITEX_CLOUD_POSTGRES_USER} $${SCITEX_CLOUD_POSTGRES_DB} > $$BACKUP_FILE && \
+	$(COMPOSE) exec -T db pg_dump -U $${SCITEX_HUB_POSTGRES_USER} $${SCITEX_HUB_POSTGRES_DB} > $$BACKUP_FILE && \
 	gzip $$BACKUP_FILE && \
 	echo -e "$(GREEN)✅ Backup saved to: $$BACKUP_FILE.gz$(NC)"
 

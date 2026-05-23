@@ -1,6 +1,6 @@
 # Environment Configuration
 
-Centralized environment files for SciTeX Cloud deployment.
+Centralized environment files for SciTeX Hub deployment.
 
 ## Files
 

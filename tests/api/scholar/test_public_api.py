@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: 2026-02-05
-# File: /home/ywatanabe/proj/scitex-cloud/tests/api/scholar/test_public_api.py
+# File: /home/ywatanabe/proj/scitex-hub/tests/api/scholar/test_public_api.py
 
 """
 Tests for the Public Scholar API (v1).

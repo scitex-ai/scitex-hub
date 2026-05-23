@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # File: config/settings/settings_auth.py
-"""Authentication and OAuth settings for SciTeX Cloud."""
+"""Authentication and OAuth settings for SciTeX Hub."""
 
 import os
 from datetime import timedelta
@@ -10,10 +10,10 @@ import scitex as stx
 # ---------------------------------------
 # ORCID OAuth (legacy - for profile linking)
 # ---------------------------------------
-ORCID_CLIENT_ID = os.getenv("SCITEX_CLOUD_ORCID_CLIENT_ID") or os.getenv(
+ORCID_CLIENT_ID = os.getenv("SCITEX_HUB_ORCID_CLIENT_ID") or os.getenv(
     "ORCID_CLIENT_ID", ""
 )
-ORCID_CLIENT_SECRET = os.getenv("SCITEX_CLOUD_ORCID_CLIENT_SECRET") or os.getenv(
+ORCID_CLIENT_SECRET = os.getenv("SCITEX_HUB_ORCID_CLIENT_SECRET") or os.getenv(
     "ORCID_CLIENT_SECRET", ""
 )
 ORCID_REDIRECT_URI = os.getenv(
@@ -55,10 +55,10 @@ SOCIALACCOUNT_PROVIDERS = {
     },
 }
 
-GOOGLE_CLIENT_ID = os.getenv("SCITEX_CLOUD_GOOGLE_CLIENT_ID") or os.getenv(
+GOOGLE_CLIENT_ID = os.getenv("SCITEX_HUB_GOOGLE_CLIENT_ID") or os.getenv(
     "SCITEX_GOOGLE_CLIENT_ID", ""
 )
-GOOGLE_CLIENT_SECRET = os.getenv("SCITEX_CLOUD_GOOGLE_CLIENT_SECRET") or os.getenv(
+GOOGLE_CLIENT_SECRET = os.getenv("SCITEX_HUB_GOOGLE_CLIENT_SECRET") or os.getenv(
     "SCITEX_GOOGLE_CLIENT_SECRET", ""
 )
 

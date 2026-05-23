@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-SLURM job management for SciTeX Cloud.
+SLURM job management for SciTeX Hub.
 
 This module provides a Python interface to SLURM for submitting and managing
 computational jobs in Apptainer containers.
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class SlurmManager:
     """
-    Manage SLURM job submissions for SciTeX Cloud.
+    Manage SLURM job submissions for SciTeX Hub.
 
     Handles job submission, status monitoring, and cancellation through
     SLURM's command-line interface.

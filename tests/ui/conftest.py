@@ -21,7 +21,7 @@ import pytest
 # below aborts collection and tanks the full suite on minimal envs.
 pytest.importorskip(
     "playwright",
-    reason="scitex-cloud[django] / [test] not installed — ui/ tests skipped",
+    reason="scitex-hub[django] / [test] not installed — ui/ tests skipped",
 )
 
 from playwright.sync_api import BrowserContext, Page, expect  # noqa: E402
@@ -36,8 +36,8 @@ SESSION_DIR = Path.home() / ".scitex" / "browser" / "test_session"
 SESSION_DIR.mkdir(parents=True, exist_ok=True)
 
 # Environment configuration
-TEST_USER_USERNAME = os.getenv("SCITEX_CLOUD_TEST_USER_USERNAME", "test-user")
-TEST_USER_PASSWORD = os.getenv("SCITEX_CLOUD_TEST_USER_PASSWORD", "Password123!")
+TEST_USER_USERNAME = os.getenv("SCITEX_HUB_TEST_USER_USERNAME", "test-user")
+TEST_USER_PASSWORD = os.getenv("SCITEX_HUB_TEST_USER_PASSWORD", "Password123!")
 BASE_URL = os.getenv("SCITEX_BASE_URL", "http://127.0.0.1:8000")
 
 

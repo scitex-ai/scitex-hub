@@ -29,17 +29,17 @@ describe('events', () => {
 //  * Event Handlers
 //  * Manages all event listeners for section dropdown interactions
 //  */
-// 
+//
 // import { showToast } from "../ui";
 // import { getCsrfToken } from "@/utils/csrf.js";
 // import { getWriterConfig } from "../../helpers";
 // import { statePersistence } from "../../modules/state-persistence";
 // import type { CompilationManager } from "../../modules/index";
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/utils/section-dropdown/events.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/utils/section-dropdown/events.ts loaded",
 // );
-// 
+//
 // /**
 //  * Toggle section visibility (exclude/include from compilation)
 //  *
@@ -55,12 +55,12 @@ describe('events', () => {
 //     showToast("No project selected", "error");
 //     return;
 //   }
-// 
+//
 //   const isExcluded = sectionItem.classList.contains("excluded");
 //   const checkbox = sectionItem.querySelector(
 //     '.section-item-toggle input[type="checkbox"]',
 //   ) as HTMLInputElement;
-// 
+//
 //   try {
 //     // Call API to toggle exclusion
 //     const response = await fetch(
@@ -76,19 +76,19 @@ describe('events', () => {
 //         }),
 //       },
 //     );
-// 
+//
 //     const data = await response.json();
-// 
+//
 //     if (response.ok && data.success) {
 //       // Update UI
 //       sectionItem.classList.toggle("excluded");
 //       if (checkbox) {
 //         checkbox.checked = !data.excluded; // Checkbox is checked when NOT excluded
 //       }
-// 
+//
 //       const action = data.excluded ? "excluded from" : "included in";
 //       showToast(`Section ${action} compilation`, "success");
-// 
+//
 //       console.log(
 //         "[Writer] Toggled visibility for section:",
 //         sectionId,
@@ -114,7 +114,7 @@ describe('events', () => {
 //     }
 //   }
 // }
-// 
+//
 // /**
 //  * Setup event listeners for section items
 //  *
@@ -138,7 +138,7 @@ describe('events', () => {
 //   // Setup section item clicks
 //   dropdownContainer.querySelectorAll(".section-item").forEach((item) => {
 //     const sectionItem = item as HTMLElement;
-// 
+//
 //     // Setup toggle switch change event
 //     const toggleCheckbox = sectionItem.querySelector(
 //       '.section-item-toggle input[type="checkbox"]',
@@ -152,7 +152,7 @@ describe('events', () => {
 //         }
 //       });
 //     }
-// 
+//
 //     // Setup action buttons (compile/download for FULL MANUSCRIPT)
 //     const compileBtn = sectionItem.querySelector(
 //       '[data-action="compile-full"]',
@@ -160,23 +160,23 @@ describe('events', () => {
 //     if (compileBtn) {
 //       compileBtn.addEventListener("click", async (e) => {
 //         e.stopPropagation();
-// 
+//
 //         // Extract doc type from section ID (e.g., "manuscript/compiled_pdf" -> "manuscript")
 //         const sectionId = sectionItem.dataset.sectionId;
 //         let docTypeToCompile = "manuscript"; // default
-// 
+//
 //         if (sectionId && sectionId.includes("/")) {
 //           const parts = sectionId.split("/");
 //           docTypeToCompile = parts[0]; // Get category (manuscript, supplementary, revision)
 //         }
-// 
+//
 //         console.log(
 //           "[Writer] Compile button clicked for section:",
 //           sectionId,
 //           "docType:",
 //           docTypeToCompile,
 //         );
-// 
+//
 //         // Call compilation with correct doc type
 //         if (compilationManager && state) {
 //           // Import handleCompileFull dynamically to avoid circular dependency
@@ -190,11 +190,11 @@ describe('events', () => {
 //           console.error("[Writer] compilationManager or state not available");
 //           showToast("Compilation manager not initialized", "error");
 //         }
-// 
+//
 //         dropdownContainer.style.display = "none";
 //       });
 //     }
-// 
+//
 //     const downloadBtn = sectionItem.querySelector(
 //       '[data-action="download-section"]',
 //     );
@@ -213,11 +213,11 @@ describe('events', () => {
 //         dropdownContainer.style.display = "none";
 //       });
 //     }
-// 
+//
 //     // Setup section selection (on item click, but not on toggle/actions)
 //     sectionItem.addEventListener("click", (e) => {
 //       const target = e.target as HTMLElement;
-// 
+//
 //       // Ignore clicks on toggle switch or action buttons
 //       if (
 //         target.closest('[data-action="toggle-visibility"]') ||
@@ -226,30 +226,30 @@ describe('events', () => {
 //       ) {
 //         return;
 //       }
-// 
+//
 //       // Handle section selection
 //       const sectionId = sectionItem.dataset.sectionId;
 //       const sectionName =
 //         sectionItem.querySelector(".section-item-name")?.textContent || "";
 //       const sectionIndex = sectionItem.dataset.index;
-// 
+//
 //       if (sectionId && onFileSelectCallback) {
 //         // Update active state
 //         dropdownContainer
 //           .querySelectorAll(".section-item")
 //           .forEach((si) => si.classList.remove("active"));
 //         sectionItem.classList.add("active");
-// 
+//
 //         // Update button text with page number
 //         const pageNum = sectionIndex ? parseInt(sectionIndex) + 1 : "";
 //         selectorText.textContent = pageNum ? `${pageNum}. ${sectionName}` : sectionName;
-// 
+//
 //         // Close dropdown
 //         dropdownContainer.style.display = "none";
-// 
+//
 //         // Save selected section - both globally and per-doctype
 //         statePersistence.saveSection(sectionId);
-// 
+//
 //         // Extract doctype from sectionId (format: doctype/section_name)
 //         const doctypeMatch = sectionId.match(/^(manuscript|supplementary|revision|shared)\//);
 //         if (doctypeMatch) {
@@ -259,13 +259,13 @@ describe('events', () => {
 //         } else {
 //           console.log("[Writer] Saved section to persistence:", sectionId);
 //         }
-// 
+//
 //         // Trigger callback
 //         onFileSelectCallback(sectionId, sectionName);
 //       }
 //     });
 //   });
-// 
+//
 //   // Setup "New Section..." click
 //   const newSectionItem = dropdownContainer.querySelector(
 //     '[data-action="new-section"]',

@@ -1,7 +1,7 @@
 App Platform
 ============
 
-SciTeX Cloud ships a first-class **app platform** that lets third-party apps
+SciTeX Hub ships a first-class **app platform** that lets third-party apps
 integrate into the workspace alongside built-in tools.  The platform handles
 registration, isolation, data persistence, job queuing, and developer
 tooling so apps can focus on domain logic.
@@ -11,7 +11,7 @@ tooling so apps can focus on domain logic.
    This page describes what the **platform** provides.
    For the developer-facing workflow — scaffolding, manifest schema,
    frontend integration — see the
-   `App Developer Guide <https://github.com/ywatanabe1989/scitex-cloud/blob/main/docs/APP_DEVELOPER_GUIDE.md>`_
+   `App Developer Guide <https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/APP_DEVELOPER_GUIDE.md>`_
    and the ``scitex-app`` package documentation.
 
 ---
@@ -158,7 +158,7 @@ App Registration
 Built-in Apps
 ~~~~~~~~~~~~~
 
-Built-in apps ship inside the ``scitex-cloud`` repository.  They are
+Built-in apps ship inside the ``scitex-hub`` repository.  They are
 listed in ``_BUILTIN_MANIFEST_PATHS`` in ``apps/infra/workspace_app/registry.py``
 and are loaded unconditionally at startup.
 
@@ -175,7 +175,7 @@ Third-party apps declare themselves through a Python entry point:
 
 The platform calls ``discover_external_modules()`` at startup and
 registers any apps found via this mechanism.  No code changes to
-``scitex-cloud`` are required.
+``scitex-hub`` are required.
 
 Context Bootstrap
 ~~~~~~~~~~~~~~~~~
@@ -268,11 +268,11 @@ Separation of Concerns
 
    * - Layer
      - Responsibility
-   * - ``scitex-cloud`` (this project)
+   * - ``scitex-hub`` (this project)
      - Platform APIs, workspace layout, registry, isolation enforcement,
        store, review workflow, built-in apps
    * - ``scitex-app`` (pip package)
-     - Developer CLI (``scitex-cloud app init``), manifest schema
+     - Developer CLI (``scitex-hub app init``), manifest schema
        validation, scaffold templates, local dev server integration
    * - ``scitex-ui`` (npm package)
      - Shared TypeScript/React UI components, Shadow DOM isolation,
@@ -281,7 +281,7 @@ Separation of Concerns
      - Domain logic only — ``manifest.json``, a partial template,
        optionally a React/Vite frontend
 
-Django code in ``scitex-cloud`` is intentionally a **thin wrapper**.
+Django code in ``scitex-hub`` is intentionally a **thin wrapper**.
 Business logic lives in the ``scitex`` Python package and is exposed to
 apps via ScitexBridge, not re-implemented per-app.
 
@@ -290,7 +290,7 @@ apps via ScitexBridge, not re-implemented per-app.
 Reference
 ---------
 
-- `App Developer Guide <https://github.com/ywatanabe1989/scitex-cloud/blob/main/docs/APP_DEVELOPER_GUIDE.md>`_ — full manifest schema, scaffold CLI, and frontend integration
+- `App Developer Guide <https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/APP_DEVELOPER_GUIDE.md>`_ — full manifest schema, scaffold CLI, and frontend integration
 - `figrecipe <https://github.com/ywatanabe1989/figrecipe>`_ — reference implementation
 - `scitex-app <https://pypi.org/project/scitex-app/>`_ — developer CLI package
 - `scitex-ui <https://www.npmjs.com/package/@scitex/ui>`_ — shared UI components

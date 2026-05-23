@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 # Timestamp: 2026-02-04
 # File: config/settings/settings_celery.py
-"""Celery configuration for SciTeX Cloud async task queue."""
+"""Celery configuration for SciTeX Hub async task queue."""
 
 import os
 
 # Celery broker and result backend
-CELERY_BROKER_URL = os.getenv("SCITEX_CLOUD_REDIS_URL", "redis://localhost:6379/1")
+CELERY_BROKER_URL = os.getenv("SCITEX_HUB_REDIS_URL", "redis://localhost:6379/1")
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_CACHE_BACKEND = "django-cache"
 CELERY_ACCEPT_CONTENT = ["json"]

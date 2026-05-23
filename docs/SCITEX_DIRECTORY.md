@@ -64,7 +64,7 @@ Priority:
 
 **Directory Layout:**
 ```
-scitex-cloud/
+scitex-hub/
 └── data/
     ├── users/
     │   ├── alice/.scitex/scholar/...
@@ -89,7 +89,7 @@ from apps.scholar_app.integrations.scitex_scholar import (
 
 # Get user-specific directory
 user_dir = get_user_scitex_dir(request.user)
-# → /path/to/scitex-cloud/data/users/alice/.scitex
+# → /path/to/scitex-hub/data/users/alice/.scitex
 
 # Get configured ScholarConfig (thread-safe)
 config = get_scholar_config(request.user)

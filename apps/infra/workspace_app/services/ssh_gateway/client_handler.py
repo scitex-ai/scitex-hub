@@ -154,7 +154,7 @@ def _start_shell_session(channel: paramiko.Channel, server: SSHGateway):
     server._broker_client = broker_client
 
     channel.send(
-        f"\r\nWelcome to SciTeX Cloud, {username}!\r\n"
+        f"\r\nWelcome to SciTeX Hub, {username}!\r\n"
         f"Project: {project.slug}\r\n\r\n".encode()
     )
 

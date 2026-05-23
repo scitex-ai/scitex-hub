@@ -31,7 +31,7 @@ if __name__ == "__main__":
 # # File: ./apps/workspace_app/git_operations.py
 #
 # """
-# Git operations for SciTeX Cloud
+# Git operations for SciTeX Hub
 #
 # Provides helper functions for git operations on Django projects
 # that are backed by Gitea repositories.

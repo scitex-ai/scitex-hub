@@ -17,7 +17,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--repo",
             type=str,
-            default="ywatanabe1989/scitex-cloud",
+            default="ywatanabe1989/scitex-hub",
             help="GitHub repository (owner/repo format)",
         )
         parser.add_argument(

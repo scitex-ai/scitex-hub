@@ -25,7 +25,7 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # Start of Source Code from: apps/auth_app/validators.py
 # --------------------------------------------------------------------------------
-# """Username validation for SciTeX Cloud"""
+# """Username validation for SciTeX Hub"""
 #
 #
 # def get_reserved_usernames():

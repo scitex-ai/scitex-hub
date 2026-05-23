@@ -20,11 +20,11 @@ source "${SCRIPT_DIR}/../scripts/lib/colors.sh" 2>/dev/null || {
 ENV="${1:-}"
 if [ -z "$ENV" ]; then
     # Auto-detect from running containers
-    RUNNING=$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|prod)-' | head -1 | sed 's/scitex-cloud-//' | sed 's/-//' || echo "")
+    RUNNING=$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-hub-(dev|prod)-' | head -1 | sed 's/scitex-hub-//' | sed 's/-//' || echo "")
     ENV="${RUNNING:-dev}"
 fi
 
-CONTAINER_NAME="scitex-cloud-${ENV}-django-1"
+CONTAINER_NAME="scitex-hub-${ENV}-django-1"
 
 # Determine which user to test as based on environment
 if [ "$ENV" = "prod" ]; then

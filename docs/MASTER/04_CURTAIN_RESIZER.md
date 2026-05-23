@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2026-03-07 07:18:57
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/docs/MASTER/04_CURTAIN_RESIZER.md
+!-- File: /home/ywatanabe/proj/scitex-hub/docs/MASTER/04_CURTAIN_RESIZER.md
 !-- --- -->
 
 # Curtain Resizer Specification

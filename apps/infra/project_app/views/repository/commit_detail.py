@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-11-04"
-# File: /home/ywatanabe/proj/scitex-cloud/apps/project_app/views/repository/commit_detail.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/project_app/views/repository/commit_detail.py
 # ----------------------------------------
 """
 Repository Commit Detail

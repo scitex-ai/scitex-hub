@@ -1,0 +1,534 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App Platform &mdash; SciTeX Hub v0.17.6</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+
+
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=63ccc059"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Visitor Pool Security" href="visitor_pool_security.html" />
+    <link rel="prev" title="MCP Server" href="mcp.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+
+
+          <a href="index.html" class="icon icon-home">
+            SciTeX Hub
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#install-from-pypi">Install from PyPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#install-from-source">Install from Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#verify-installation">Verify Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Setup Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#what-you-get">What You Get</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#quick-start-development">Quick Start (Development)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#step-by-step-development-setup">Step-by-Step Development Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#production-setup">Production Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#cli-only-install">CLI-Only Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#configuration-reference">Configuration Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#common-commands">Common Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#deployment">Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#cli-only-install">CLI-Only Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#common-operations">Common Operations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#global-options">Global Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#project-management">Project Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#three-way-sync">Three-Way Sync</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#git-hosting-gitea">Git Hosting (Gitea)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#app-management">App Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#cloud-sdk">Cloud SDK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#infrastructure">Infrastructure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#mcp-server">MCP Server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#utilities">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sync.html">Three-Way Sync</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#commands">Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#conflict-handling">Conflict Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#state-tracking">State Tracking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#typical-workflows">Typical Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mcp.html">MCP Server</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#available-tools">Available Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#setup-for-claude-desktop">Setup for Claude Desktop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#setup-for-claude-code">Setup for Claude Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#environment-source-file-env-src">Environment Source File (<code class="docutils literal notranslate"><span class="pre">ENV_SRC</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#cli-commands">CLI Commands</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">App Platform</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#workspace-layout">Workspace Layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#platform-services">Platform Services</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#datastore">DataStore</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#filevault">FileVault</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#jobqueue">JobQueue</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitexbridge">ScitexBridge</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#externalapi">ExternalAPI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#realtimehub">RealtimeHub</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#frontendkit">FrontendKit</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#app-registration">App Registration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#built-in-apps">Built-in Apps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#external-pip-installed-apps">External (pip-installed) Apps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#context-bootstrap">Context Bootstrap</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#dev-install-workflow">Dev Install Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#app-submission-and-review">App Submission and Review</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#separation-of-concerns">Separation of Concerns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="visitor_pool_security.html">Visitor Pool Security</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#background-the-fix">Background: the fix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-1-reset-workspace-after">Layer 1 — <code class="docutils literal notranslate"><span class="pre">&#64;reset_workspace_after</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-2-ensure-clean-workspace">Layer 2 — <code class="docutils literal notranslate"><span class="pre">&#64;ensure_clean_workspace</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-3-reset-visitor-pool-on-container-restart">Layer 3 — <code class="docutils literal notranslate"><span class="pre">reset_visitor_pool</span></code> on container restart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#what-gets-cleared">What gets cleared</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#pool-lifecycle-diagram">Pool lifecycle diagram</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#operations">Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#further-reading">Further reading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_hub.html">scitex_hub Package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/scitex_hub.html#main-package">Main Package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/index.html#package-overview">Package Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/_autosummary/scitex_hub.html">scitex_hub</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.get_version"><code class="docutils literal notranslate"><span class="pre">get_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.health_check"><code class="docutils literal notranslate"><span class="pre">health_check()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.CloudClient"><code class="docutils literal notranslate"><span class="pre">CloudClient</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.Environment"><code class="docutils literal notranslate"><span class="pre">Environment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.get_environment"><code class="docutils literal notranslate"><span class="pre">get_environment()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.DockerManager"><code class="docutils literal notranslate"><span class="pre">DockerManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.appmaker.html">scitex_hub.appmaker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.module.html">scitex_hub.module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.project.html">scitex_hub.project</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.sdk.html">scitex_hub.sdk</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SciTeX Hub</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">App Platform</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/sphinx/app_platform.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <section id="app-platform">
+<h1>App Platform<a class="headerlink" href="#app-platform" title="Link to this heading"></a></h1>
+<p>SciTeX Hub ships a first-class <strong>app platform</strong> that lets third-party apps
+integrate into the workspace alongside built-in tools.  The platform handles
+registration, isolation, data persistence, job queuing, and developer
+tooling so apps can focus on domain logic.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This page describes what the <strong>platform</strong> provides.
+For the developer-facing workflow — scaffolding, manifest schema,
+frontend integration — see the
+<a class="reference external" href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/APP_DEVELOPER_GUIDE.md">App Developer Guide</a>
+and the <code class="docutils literal notranslate"><span class="pre">scitex-app</span></code> package documentation.</p>
+</div>
+<p>—</p>
+<section id="workspace-layout">
+<h2>Workspace Layout<a class="headerlink" href="#workspace-layout" title="Link to this heading"></a></h2>
+<p>Every app renders as a <strong>partial template</strong> loaded by AJAX into the
+right-most column of the three-column workspace:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>┌─────────────┬──────────────────┬────────────────┐
+│  AI Pane    │  Worktree/Files  │  Module (app)  │
+└─────────────┴──────────────────┴────────────────┘
+</pre></div>
+</div>
+<p>Apps never render a full HTML page.  The platform supplies the outer
+chrome — tab bar, layout, resizers, file tree, file viewer, and AI chat.</p>
+<p>—</p>
+</section>
+<section id="platform-services">
+<h2>Platform Services<a class="headerlink" href="#platform-services" title="Link to this heading"></a></h2>
+<p>All services are accessible under <code class="docutils literal notranslate"><span class="pre">/platform/api/</span></code>.
+Session authentication is required; include <code class="docutils literal notranslate"><span class="pre">X-CSRFToken</span></code> on all writes.</p>
+<section id="datastore">
+<h3>DataStore<a class="headerlink" href="#datastore" title="Link to this heading"></a></h3>
+<p>Structured, schema-typed key/value records scoped per app.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 45.0%" />
+<col style="width: 55.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Endpoint</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GET|POST</span> <span class="pre">/platform/api/data/&lt;app&gt;/&lt;schema&gt;/</span></code></p></td>
+<td><p>List records or create a new one</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">GET|PUT|DELETE</span> <span class="pre">/platform/api/data/&lt;app&gt;/&lt;schema&gt;/&lt;uuid&gt;/</span></code></p></td>
+<td><p>Retrieve, update, or delete a record</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/platform/api/data/&lt;app&gt;/&lt;schema&gt;/search/</span></code></p></td>
+<td><p>Filter records by field values</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="filevault">
+<h3>FileVault<a class="headerlink" href="#filevault" title="Link to this heading"></a></h3>
+<p>File storage scoped to each app.  Paths are relative to the app’s
+private storage root; apps cannot escape their own namespace.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 45.0%" />
+<col style="width: 55.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Endpoint</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/platform/api/files/&lt;app&gt;/</span></code></p></td>
+<td><p>List stored files</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/platform/api/files/&lt;app&gt;/&lt;path&gt;</span></code></p></td>
+<td><p>Read file content</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PUT</span> <span class="pre">/platform/api/files/&lt;app&gt;/&lt;path&gt;</span></code></p></td>
+<td><p>Write or overwrite a file</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DELETE</span> <span class="pre">/platform/api/files/&lt;app&gt;/&lt;path&gt;</span></code></p></td>
+<td><p>Delete a file</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="jobqueue">
+<h3>JobQueue<a class="headerlink" href="#jobqueue" title="Link to this heading"></a></h3>
+<p>Asynchronous background task execution.  Jobs report progress
+incrementally so frontends can poll or stream status.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 45.0%" />
+<col style="width: 55.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Endpoint</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/platform/api/jobs/&lt;app&gt;/submit/</span></code></p></td>
+<td><p>Submit a job: <code class="docutils literal notranslate"><span class="pre">{&quot;task&quot;:</span> <span class="pre">&quot;name&quot;,</span> <span class="pre">&quot;args&quot;:</span> <span class="pre">{...}}</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/platform/api/jobs/&lt;app&gt;/</span></code></p></td>
+<td><p>List all jobs for the app</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/platform/api/jobs/&lt;app&gt;/&lt;uuid&gt;/</span></code></p></td>
+<td><p>Poll status: <code class="docutils literal notranslate"><span class="pre">{&quot;status&quot;:</span> <span class="pre">&quot;running|done|failed&quot;,</span> <span class="pre">&quot;progress&quot;:</span> <span class="pre">0–100}</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/platform/api/jobs/&lt;app&gt;/&lt;uuid&gt;/cancel/</span></code></p></td>
+<td><p>Request cancellation</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="scitexbridge">
+<h3>ScitexBridge<a class="headerlink" href="#scitexbridge" title="Link to this heading"></a></h3>
+<p>Call any public function in the <code class="docutils literal notranslate"><span class="pre">scitex</span></code> Python package directly from
+the browser without writing custom Django views.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>POST /platform/api/scitex/&lt;module&gt;/&lt;function&gt;/
+</pre></div>
+</div>
+<p>Example — load a CSV file:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>POST /platform/api/scitex/io/load/
+{&quot;path&quot;: &quot;experiment/results.csv&quot;}
+</pre></div>
+</div>
+<p>Available modules mirror the <code class="docutils literal notranslate"><span class="pre">scitex</span></code> package namespaces: <code class="docutils literal notranslate"><span class="pre">io</span></code>,
+<code class="docutils literal notranslate"><span class="pre">plt</span></code>, <code class="docutils literal notranslate"><span class="pre">stats</span></code>, and so on.</p>
+</section>
+<section id="externalapi">
+<h3>ExternalAPI<a class="headerlink" href="#externalapi" title="Link to this heading"></a></h3>
+<p>Proxy to external services registered by the platform administrator
+(CrossRef, OpenAlex, custom institutional APIs, etc.).</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>GET|POST /platform/api/external/&lt;api_name&gt;/
+</pre></div>
+</div>
+</section>
+<section id="realtimehub">
+<h3>RealtimeHub<a class="headerlink" href="#realtimehub" title="Link to this heading"></a></h3>
+<p>WebSocket channels for live collaboration and streaming job output.
+Apps subscribe to a channel keyed by <code class="docutils literal notranslate"><span class="pre">app_slug</span></code> and <code class="docutils literal notranslate"><span class="pre">project_id</span></code>;
+the platform handles routing and authentication.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>ws://&lt;host&gt;/ws/app/&lt;app_slug&gt;/&lt;project_id&gt;/
+</pre></div>
+</div>
+</section>
+<section id="frontendkit">
+<h3>FrontendKit<a class="headerlink" href="#frontendkit" title="Link to this heading"></a></h3>
+<p>Pre-built TypeScript/React components provided by <code class="docutils literal notranslate"><span class="pre">scitex-ui</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DataTableManager</span></code> — spreadsheet with selection, editing, and CSV import</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WorkspacePanelResizer</span></code> — drag-to-resize panels with <code class="docutils literal notranslate"><span class="pre">data-h-resizer</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">AppSandbox</span></code> — Shadow DOM wrapper enforcing CSS isolation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PlatformContext</span></code> — React context populated by <code class="docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/platform/api/context/</span></code></p></li>
+</ul>
+<p>Install via <code class="docutils literal notranslate"><span class="pre">scitex-ui</span></code> (npm) and import from <code class="docutils literal notranslate"><span class="pre">&#64;scitex/ui</span></code>.</p>
+<p>—</p>
+</section>
+</section>
+<section id="app-registration">
+<h2>App Registration<a class="headerlink" href="#app-registration" title="Link to this heading"></a></h2>
+<section id="built-in-apps">
+<h3>Built-in Apps<a class="headerlink" href="#built-in-apps" title="Link to this heading"></a></h3>
+<p>Built-in apps ship inside the <code class="docutils literal notranslate"><span class="pre">scitex-hub</span></code> repository.  They are
+listed in <code class="docutils literal notranslate"><span class="pre">_BUILTIN_MANIFEST_PATHS</span></code> in <code class="docutils literal notranslate"><span class="pre">apps/infra/workspace_app/registry.py</span></code>
+and are loaded unconditionally at startup.</p>
+</section>
+<section id="external-pip-installed-apps">
+<h3>External (pip-installed) Apps<a class="headerlink" href="#external-pip-installed-apps" title="Link to this heading"></a></h3>
+<p>Third-party apps declare themselves through a Python entry point:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># pyproject.toml</span>
+<span class="k">[project.entry-points.</span><span class="s2">&quot;scitex_modules&quot;</span><span class="k">]</span>
+<span class="n">my_app</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_app:get_module_config&quot;</span>
+</pre></div>
+</div>
+<p>The platform calls <code class="docutils literal notranslate"><span class="pre">discover_external_modules()</span></code> at startup and
+registers any apps found via this mechanism.  No code changes to
+<code class="docutils literal notranslate"><span class="pre">scitex-hub</span></code> are required.</p>
+</section>
+<section id="context-bootstrap">
+<h3>Context Bootstrap<a class="headerlink" href="#context-bootstrap" title="Link to this heading"></a></h3>
+<p>Apps call <code class="docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/platform/api/context/</span></code> on load to receive:</p>
+<ul class="simple">
+<li><p>Active project (owner, slug, permissions)</p></li>
+<li><p>Current user info</p></li>
+<li><p>List of enabled module names</p></li>
+</ul>
+<p>—</p>
+</section>
+</section>
+<section id="dev-install-workflow">
+<h2>Dev Install Workflow<a class="headerlink" href="#dev-install-workflow" title="Link to this heading"></a></h2>
+<p>The dev install path lets an individual developer test their app in the
+live workspace <strong>without</strong> going through the store review process.  Only
+the installing user sees the tab.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>POST /apps/store/api/dev/install/
+Content-Type: application/json
+{&quot;owner&quot;: &quot;alice&quot;, &quot;repo&quot;: &quot;my-app&quot;}
+</pre></div>
+</div>
+<p>Response:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{&quot;success&quot;: true, &quot;module_name&quot;: &quot;dev__alice__my-app&quot;, &quot;label&quot;: &quot;My App&quot;}
+</pre></div>
+</div>
+<p>What the platform does:</p>
+<ol class="arabic simple">
+<li><p>Checks Gitea access for the authenticated user.</p></li>
+<li><p>Calls <code class="docutils literal notranslate"><span class="pre">validate_dev_repo()</span></code> — the repository must contain a
+<code class="docutils literal notranslate"><span class="pre">templates/</span></code> directory and a valid <code class="docutils literal notranslate"><span class="pre">manifest.json</span></code>.</p></li>
+<li><p>Creates a <code class="docutils literal notranslate"><span class="pre">DevInstallation</span></code> record.</p></li>
+<li><p>The tab appears on next page load under the name
+<code class="docutils literal notranslate"><span class="pre">dev__&lt;owner&gt;__&lt;repo&gt;</span></code>.</p></li>
+</ol>
+<p>Additional dev-install endpoints:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Endpoint</p></th>
+<th class="head"><p>Action</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/apps/store/api/dev/&lt;owner&gt;/&lt;repo&gt;/uninstall/</span></code></p></td>
+<td><p>Soft-delete (hides tab)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/apps/store/api/dev/&lt;owner&gt;/&lt;repo&gt;/reinstall/</span></code></p></td>
+<td><p>Re-enable after soft-delete</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GET</span>&#160; <span class="pre">/apps/store/api/dev/url/?project_id=&lt;repo&gt;</span></code></p></td>
+<td><p>Resolve workspace URL for the installed app</p></td>
+</tr>
+</tbody>
+</table>
+<p>—</p>
+</section>
+<section id="app-submission-and-review">
+<h2>App Submission and Review<a class="headerlink" href="#app-submission-and-review" title="Link to this heading"></a></h2>
+<p>When an app is ready for wider distribution it is submitted through the
+store:</p>
+<ol class="arabic simple">
+<li><p><strong>Publish</strong> the app to a Gitea repository accessible to the platform.</p></li>
+<li><p><strong>Submit</strong> via <code class="docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/apps/store/api/submit/</span></code> — the platform reads
+<code class="docutils literal notranslate"><span class="pre">manifest.json</span></code>, validates the privilege declarations, and creates a
+<code class="docutils literal notranslate"><span class="pre">StoreSubmission</span></code> record.</p></li>
+<li><p><strong>Review</strong> — a platform administrator audits the manifest, privilege
+list, and dependency declarations.</p></li>
+<li><p><strong>Approve</strong> — sets <code class="docutils literal notranslate"><span class="pre">StoreSubmission.status</span> <span class="pre">=</span> <span class="pre">&quot;approved&quot;</span></code>.  The app
+becomes available to all users via the store UI.</p></li>
+<li><p><strong>Install</strong> — users install from the store; no per-user Gitea access
+check is required after approval.</p></li>
+</ol>
+<p>The review focuses on:</p>
+<ul class="simple">
+<li><p>Declared <code class="docutils literal notranslate"><span class="pre">privileges</span></code> match actual API usage.</p></li>
+<li><p>No undeclared <code class="docutils literal notranslate"><span class="pre">system</span></code> or <code class="docutils literal notranslate"><span class="pre">node</span></code> dependencies.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">license</span></code> field is present and OSI-compatible (or flagged for review).</p></li>
+<li><p>No calls to platform-internal endpoints outside <code class="docutils literal notranslate"><span class="pre">/platform/api/</span></code>.</p></li>
+</ul>
+<p>—</p>
+</section>
+<section id="separation-of-concerns">
+<h2>Separation of Concerns<a class="headerlink" href="#separation-of-concerns" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Layer</p></th>
+<th class="head"><p>Responsibility</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scitex-hub</span></code> (this project)</p></td>
+<td><p>Platform APIs, workspace layout, registry, isolation enforcement,
+store, review workflow, built-in apps</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">scitex-app</span></code> (pip package)</p></td>
+<td><p>Developer CLI (<code class="docutils literal notranslate"><span class="pre">scitex-hub</span> <span class="pre">app</span> <span class="pre">init</span></code>), manifest schema
+validation, scaffold templates, local dev server integration</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scitex-ui</span></code> (npm package)</p></td>
+<td><p>Shared TypeScript/React UI components, Shadow DOM isolation,
+resizer, data table, platform context hook</p></td>
+</tr>
+<tr class="row-odd"><td><p>Third-party app</p></td>
+<td><p>Domain logic only — <code class="docutils literal notranslate"><span class="pre">manifest.json</span></code>, a partial template,
+optionally a React/Vite frontend</p></td>
+</tr>
+</tbody>
+</table>
+<p>Django code in <code class="docutils literal notranslate"><span class="pre">scitex-hub</span></code> is intentionally a <strong>thin wrapper</strong>.
+Business logic lives in the <code class="docutils literal notranslate"><span class="pre">scitex</span></code> Python package and is exposed to
+apps via ScitexBridge, not re-implemented per-app.</p>
+<p>—</p>
+</section>
+<section id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/APP_DEVELOPER_GUIDE.md">App Developer Guide</a> — full manifest schema, scaffold CLI, and frontend integration</p></li>
+<li><p><a class="reference external" href="https://github.com/ywatanabe1989/figrecipe">figrecipe</a> — reference implementation</p></li>
+<li><p><a class="reference external" href="https://pypi.org/project/scitex-app/">scitex-app</a> — developer CLI package</p></li>
+<li><p><a class="reference external" href="https://www.npmjs.com/package/&#64;scitex/ui">scitex-ui</a> — shared UI components</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mcp.html" class="btn btn-neutral float-left" title="MCP Server" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="visitor_pool_security.html" class="btn btn-neutral float-right" title="Visitor Pool Security" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025-2026, SciTeX Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>

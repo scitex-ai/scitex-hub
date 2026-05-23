@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2025-12-06 09:02:41
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/docs/LOCAL_CROSSREF.md
+!-- File: /home/ywatanabe/proj/scitex-hub/docs/LOCAL_CROSSREF.md
 !-- --- -->
 
 # Local CrossRef Database & Citation Graph Services
@@ -230,7 +230,7 @@ pip install -e .
 - ✅ Redis caching (production)
 - ✅ Part of deployed application
 
-**Deploy**: Included in standard scitex-cloud deployment
+**Deploy**: Included in standard scitex-hub deployment
 
 ---
 
@@ -249,7 +249,7 @@ pip install -e .
 **Deploy**:
 ```bash
 # Local
-cd ~/proj/scitex-cloud/deployment/docker/citation_graph
+cd ~/proj/scitex-hub/deployment/docker/citation_graph
 python3 server.py
 
 # Docker
@@ -701,7 +701,7 @@ ON works(json_extract(metadata, '$.published.date-parts[0][0]'));
 ### Services
 
 ```
-~/proj/scitex-cloud/
+~/proj/scitex-hub/
 
 # CrossRef Local (Port 31291)
 deployment/docker/crossref_local/
@@ -738,7 +738,7 @@ apps/scholar_app/
 
 ### Project Requirements
 
-Added to `~/proj/scitex-cloud/requirements.txt`:
+Added to `~/proj/scitex-hub/requirements.txt`:
 ```txt
 fastapi>=0.109.0
 uvicorn[standard]>=0.27.0

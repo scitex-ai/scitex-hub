@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Timestamp: 2026-03-09
-# File: /home/ywatanabe/proj/scitex-cloud/config/urls_helpers.py
+# File: /home/ywatanabe/proj/scitex-hub/config/urls_helpers.py
 """
 Helper functions extracted from config/urls.py to reduce file size.
 """

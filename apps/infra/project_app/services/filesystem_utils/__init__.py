@@ -1,5 +1,5 @@
 """
-SciTeX Cloud - Filesystem Utilities
+SciTeX Hub - Filesystem Utilities
 
 Native filesystem operations for seamless local file integration.
 This module provides utilities for working directly with the filesystem

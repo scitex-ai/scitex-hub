@@ -1,5 +1,5 @@
 # ============================================
-# SciTeX Cloud - Production Override
+# SciTeX Hub - Production Override
 # ============================================
 # Usage:
 #   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
@@ -12,7 +12,7 @@
 #   - Cloudflare tunnel
 #   - No debug ports
 
-name: scitex-cloud-prod
+name: scitex-hub-prod
 
 services:
   # ============================================
@@ -40,7 +40,7 @@ services:
       dockerfile: deployment/docker/Dockerfile.prod
       args:
         BUILDKIT_INLINE_CACHE: 1
-    image: scitex-cloud-prod-django:latest
+    image: scitex-hub-prod-django:latest
     entrypoint: ["/usr/bin/tini", "--", "/root-init.sh", "/entrypoint.sh"]
     deploy:
       resources:
@@ -79,15 +79,15 @@ services:
       # Live-editable announcement banner
       - ../../apps/infra/public_app/templates/public_app/landing_partials/landing_announcement.html:/app/apps/infra/public_app/templates/public_app/landing_partials/landing_announcement.html:ro
     ports:
-      - "${SCITEX_CLOUD_SSH_PORT:-2200}:2200"
+      - "${SCITEX_HUB_SSH_PORT:-2200}:2200"
     expose:
       - "8000"
     env_file:
       - ./envs/.env.prod
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.settings_prod
-      SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: config.settings.settings_prod
-      SCITEX_CLOUD_ENV: prod
+      SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_prod
+      SCITEX_HUB_ENV: prod
       PYTHONPATH: /home/scitex/.local/lib/python3.11/site-packages:/app
       CROSSREF_DB_PATH: /data/crossref/crossref.db
       SCITEX_DIR: /app/.scitex
@@ -98,7 +98,7 @@ services:
         condition: service_started
     extra_hosts:
       - "host.docker.internal:host-gateway"
-      - "${SCITEX_CLOUD_SLURM_HOST:-DXP480TPLUS-994}:host-gateway"
+      - "${SCITEX_HUB_SLURM_HOST:-DXP480TPLUS-994}:host-gateway"
     privileged: true
     devices:
       - /dev/fuse:/dev/fuse
@@ -142,7 +142,7 @@ services:
   # Celery Worker (Production)
   # ============================================
   celery_worker:
-    image: scitex-cloud-prod-django:latest
+    image: scitex-hub-prod-django:latest
     entrypoint: ["/entrypoint.sh"]
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
@@ -175,8 +175,8 @@ services:
       - ./envs/.env.prod
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.settings_prod
-      SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: config.settings.settings_prod
-      SCITEX_CLOUD_ENV: prod
+      SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_prod
+      SCITEX_HUB_ENV: prod
       PYTHONUNBUFFERED: 1
       SCITEX_DIR: /app/.scitex
     depends_on:
@@ -186,7 +186,7 @@ services:
         condition: service_started
     extra_hosts:
       - "host.docker.internal:host-gateway"
-      - "${SCITEX_CLOUD_SLURM_HOST:-DXP480TPLUS-994}:host-gateway"
+      - "${SCITEX_HUB_SLURM_HOST:-DXP480TPLUS-994}:host-gateway"
     restart: always
     healthcheck:
       test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
@@ -201,7 +201,7 @@ services:
   # Celery Beat (Production)
   # ============================================
   celery_beat:
-    image: scitex-cloud-prod-django:latest
+    image: scitex-hub-prod-django:latest
     entrypoint: ["/entrypoint.sh"]
     command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
     deploy:
@@ -216,8 +216,8 @@ services:
       - ./envs/.env.prod
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.settings_prod
-      SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: config.settings.settings_prod
-      SCITEX_CLOUD_ENV: prod
+      SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_prod
+      SCITEX_HUB_ENV: prod
       PYTHONUNBUFFERED: 1
       SCITEX_DIR: /app/.scitex
     depends_on:
@@ -242,8 +242,8 @@ services:
   # ============================================
   gitea:
     ports:
-      - "${SCITEX_CLOUD_GITEA_HTTP_PORT:-3000}:3000"
-      - "${SCITEX_CLOUD_GITEA_SSH_PORT}:22"
+      - "${SCITEX_HUB_GITEA_HTTP_PORT:-3000}:3000"
+      - "${SCITEX_HUB_GITEA_SSH_PORT}:22"
     deploy:
       resources:
         limits:
@@ -256,7 +256,7 @@ services:
   # ============================================
   umami:
     ports:
-      - "${SCITEX_CLOUD_UMAMI_PORT:-3300}:3000"
+      - "${SCITEX_HUB_UMAMI_PORT:-3300}:3000"
     deploy:
       resources:
         limits:
@@ -362,7 +362,7 @@ services:
         limits:
           memory: 512M
           cpus: '0.5'
-    command: tunnel --no-autoupdate run --token ${SCITEX_CLOUD_CLOUDFLARE_TUNNEL_TOKEN}
+    command: tunnel --no-autoupdate run --token ${SCITEX_HUB_CLOUDFLARE_TUNNEL_TOKEN}
     env_file:
       - ./envs/.env.prod
     restart: always

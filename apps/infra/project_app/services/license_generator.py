@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """License Generator — create LICENSE files in Gitea repos.
 
-License text generation is delegated to scitex_cloud.appmaker._license
+License text generation is delegated to scitex_hub.appmaker._license
 (single source of truth). This module handles Gitea file creation.
 """
 
@@ -12,7 +12,7 @@ import logging
 
 from apps.infra.gitea_app.api_client.client import GiteaClient
 from apps.infra.gitea_app.exceptions import GiteaAPIError
-from scitex_cloud.appmaker._license import generate_license_text  # noqa: F401
+from scitex_hub.appmaker._license import generate_license_text  # noqa: F401
 
 logger = logging.getLogger(__name__)
 

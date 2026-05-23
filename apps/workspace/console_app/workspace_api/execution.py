@@ -155,10 +155,10 @@ def api_execute_command(request):
             "LOGNAME": username,
             "PATH": "/usr/local/bin:/usr/bin:/bin",
             "TERM": "xterm-256color",
-            "SCITEX_CLOUD_CODE_WORKSPACE": "true",
-            "SCITEX_CLOUD_CODE_BACKEND": "inline",
-            "SCITEX_CLOUD_CODE_SESSION_ID": str(project.id),
-            "SCITEX_CLOUD_CODE_PROJECT_ROOT": str(project_dir),
+            "SCITEX_HUB_CODE_WORKSPACE": "true",
+            "SCITEX_HUB_CODE_BACKEND": "inline",
+            "SCITEX_HUB_CODE_SESSION_ID": str(project.id),
+            "SCITEX_HUB_CODE_PROJECT_ROOT": str(project_dir),
         }
 
         result = subprocess.run(

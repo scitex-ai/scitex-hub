@@ -1,5 +1,5 @@
 # ============================================
-# SciTeX Cloud - Docker Development Environment
+# SciTeX Hub - Docker Development Environment
 # ============================================
 # Location: /containers/docker_dev/Makefile.dev
 
@@ -50,10 +50,10 @@
 # Variables
 # ============================================
 COMPOSE := docker compose -f docker-compose.yml
-DJANGO_CONTAINER := scitex-cloud-dev-django-1
-DB_CONTAINER := scitex-cloud-dev-db-1
-GITEA_CONTAINER := scitex-cloud-dev-gitea-1
-REDIS_CONTAINER := scitex-cloud-dev-redis-1
+DJANGO_CONTAINER := scitex-hub-dev-django-1
+DB_CONTAINER := scitex-hub-dev-db-1
+GITEA_CONTAINER := scitex-hub-dev-gitea-1
+REDIS_CONTAINER := scitex-hub-dev-redis-1
 SCRIPTS_DIR := .
 
 # Colors for output
@@ -69,7 +69,7 @@ NC := \033[0m
 help:
 	@echo -e ""
 	@echo -e "$(GREEN)╔═══════════════════════════════════════════════════════╗$(NC)"
-	@echo -e "$(GREEN)║          SciTeX Cloud - Development Mode              ║$(NC)"
+	@echo -e "$(GREEN)║          SciTeX Hub - Development Mode              ║$(NC)"
 	@echo -e "$(GREEN)╚═══════════════════════════════════════════════════════╝$(NC)"
 	@echo -e ""
 	@echo -e "$(CYAN)🚀 Quick Start:$(NC)"
@@ -251,7 +251,7 @@ test-e2e-specific: docker-check-health
 # ============================================
 db-shell: docker-check-health
 	@echo -e "$(CYAN)🗄️  Opening PostgreSQL shell...$(NC)"
-	@$(COMPOSE) exec db psql -U $${SCITEX_CLOUD_POSTGRES_USER:-scitex_dev} -d $${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud_dev}
+	@$(COMPOSE) exec db psql -U $${SCITEX_HUB_POSTGRES_USER:-scitex_dev} -d $${SCITEX_HUB_POSTGRES_DB:-scitex_hub_dev}
 
 db-reset: docker-check-health
 	@echo -e "$(RED)⚠️  WARNING: This will DELETE ALL DATA in the database!$(NC)"

@@ -1,5 +1,5 @@
 """
-SciTeX Cloud - File Detection Utilities
+SciTeX Hub - File Detection Utilities
 
 File type detection, hashing, and validation utilities.
 """

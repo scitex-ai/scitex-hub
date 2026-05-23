@@ -31,7 +31,7 @@ def _canned_reply(agent: str, user_text: str, base_url: str) -> str:
     role = (card.get("x-orochi") or {}).get("role_class", "agent")
     return (
         f"[{agent} | role={role}] received: {user_text!r}. "
-        "Experimental A2A echo on a2a.scitex.ai (NAS, scitex-cloud Django). "
+        "Experimental A2A echo on a2a.scitex.ai (NAS, scitex-hub Django). "
         "Live runtime bridge to the orochi hub on mba is not yet wired."
     )
 

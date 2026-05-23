@@ -55,7 +55,7 @@ This makes Django templates reference Vite assets at `http://192.168.0.67:5173/`
 ### 5. Restart Dev Server
 
 ```bash
-cd /path/to/scitex-cloud
+cd /path/to/scitex-hub
 make ENV=dev restart
 ```
 

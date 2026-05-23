@@ -1,7 +1,7 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-12-05 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/scripts/maintenance/clean_stale_js.sh
+# File: /home/ywatanabe/proj/scitex-hub/scripts/maintenance/clean_stale_js.sh
 # ----------------------------------------
 # Clean stale compiled JavaScript files and obsolete TypeScript build artifacts
 # These files are no longer needed with Vite handling TypeScript directly

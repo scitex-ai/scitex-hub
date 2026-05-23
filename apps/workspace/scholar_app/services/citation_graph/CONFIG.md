@@ -98,7 +98,7 @@ CROSSREF_DB_PATH=/home/ywatanabe/proj/crossref_local/data/crossref.db
 REDIS_URL=redis://localhost:6379/1
 
 # Django Settings
-DJANGO_SETTINGS_MODULE=scitex_cloud.settings.production
+DJANGO_SETTINGS_MODULE=scitex_hub.settings.production
 ```
 
 ---
@@ -314,9 +314,9 @@ WORKDIR /app
 
 # Environment
 ENV CROSSREF_DB_PATH=/data/crossref.db
-ENV DJANGO_SETTINGS_MODULE=scitex_cloud.settings.production
+ENV DJANGO_SETTINGS_MODULE=scitex_hub.settings.production
 
-CMD ["gunicorn", "scitex_cloud.wsgi:application"]
+CMD ["gunicorn", "scitex_hub.wsgi:application"]
 ```
 
 ### systemd Service
@@ -329,9 +329,9 @@ After=network.target redis.service
 [Service]
 Type=notify
 User=scitex
-WorkingDirectory=/opt/scitex-cloud
+WorkingDirectory=/opt/scitex-hub
 Environment="CROSSREF_DB_PATH=/data/crossref.db"
-ExecStart=/opt/scitex-cloud/venv/bin/gunicorn scitex_cloud.wsgi:application
+ExecStart=/opt/scitex-hub/venv/bin/gunicorn scitex_hub.wsgi:application
 
 [Install]
 WantedBy=multi-user.target
@@ -375,4 +375,4 @@ For issues:
 1. Check logs: `logs/citation_graph.log`
 2. Test health endpoint
 3. Verify database access
-4. Check GitHub issues: https://github.com/yourorg/scitex-cloud/issues
+4. Check GitHub issues: https://github.com/yourorg/scitex-hub/issues

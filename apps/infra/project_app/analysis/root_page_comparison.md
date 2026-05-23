@@ -1,7 +1,7 @@
 # GitHub vs SciTeX Root Page UI Comparison
 
 **Analysis Date:** 2025-10-24
-**GitHub URL:** https://github.com/SciTeX-AI/scitex-cloud
+**GitHub URL:** https://github.com/SciTeX-AI/scitex-hub
 **SciTeX URL:** http://127.0.0.1:8000/ywatanabe/test7/
 
 ## Executive Summary
@@ -57,7 +57,7 @@ This document compares the UI elements between GitHub's repository root page and
 ## 2. Breadcrumb & Repository Meta Line
 
 ### GitHub Breadcrumb
-- **Format:** `SciTeX-AI / scitex-cloud` with "Public" badge
+- **Format:** `SciTeX-AI / scitex-hub` with "Public" badge
 - **Styling:** Organization name is a link, repository name is bold and linked
 - **Visibility Badge:** Clear "Public" label in gray
 - **Position:** Below main header, above repository tabs
@@ -987,8 +987,8 @@ The key question is: What is SciTeX's target user experience? If it aims to be G
 
 ## Screenshots
 
-- **GitHub Root Page:** `/home/ywatanabe/proj/scitex-cloud/.playwright-mcp/github_root_page.png`
-- **SciTeX Root Page:** `/home/ywatanabe/proj/scitex-cloud/.playwright-mcp/scitex_root_page.png`
+- **GitHub Root Page:** `/home/ywatanabe/proj/scitex-hub/.playwright-mcp/github_root_page.png`
+- **SciTeX Root Page:** `/home/ywatanabe/proj/scitex-hub/.playwright-mcp/scitex_root_page.png`
 
 ---
 

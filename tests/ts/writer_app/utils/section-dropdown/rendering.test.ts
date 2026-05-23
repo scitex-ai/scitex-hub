@@ -29,11 +29,11 @@ describe('rendering', () => {
 //  * Dropdown Rendering
 //  * Generates HTML for section dropdown items
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/utils/section-dropdown/rendering.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/utils/section-dropdown/rendering.ts loaded",
 // );
-// 
+//
 // /**
 //  * Generate file path for a section
 //  *
@@ -46,7 +46,7 @@ describe('rendering', () => {
 //     (window as any).WRITER_CONFIG?.projectOwner || "ywatanabe";
 //   const projectSlug =
 //     (window as any).WRITER_CONFIG?.projectSlug || "default-project";
-// 
+//
 //   // Use the path from backend if available, otherwise construct default path
 //   if (section.path) {
 //     // Backend provides the correct path like "01_manuscript/contents/abstract.tex"
@@ -63,7 +63,7 @@ describe('rendering', () => {
 //     return `/${username}/${projectSlug}/blob/scitex/writer/${docDir}/contents/${sectionPath}.tex`;
 //   }
 // }
-// 
+//
 // /**
 //  * Generate HTML for a single section item
 //  *
@@ -82,12 +82,12 @@ describe('rendering', () => {
 //   const isViewOnly = section.view_only === true;
 //   const isCompiledPdf = section.name === "compiled_pdf";
 //   const sectionLabel = section.label;
-// 
+//
 //   // Don't show toggle for view-only sections (like compiled_pdf)
 //   const showToggle = !isViewOnly && (isOptional || isExcluded);
-// 
+//
 //   const filePath = generateFilePath(section, docType);
-// 
+//
 //   return `
 //         <div class="section-item ${isExcluded ? "excluded" : ""} section-item-with-actions"
 //              data-section-id="${section.id}"
@@ -128,7 +128,7 @@ describe('rendering', () => {
 //         </div>
 //     `;
 // }
-// 
+//
 // /**
 //  * Render the complete section dropdown HTML
 //  *
@@ -143,11 +143,11 @@ describe('rendering', () => {
 //   // Separate regular sections from footer items (compiled PDFs, New Section)
 //   let regularSectionsHtml = "";
 //   let footerSectionsHtml = "";
-// 
+//
 //   sections.forEach((section: any, index: number) => {
 //     const isCompiledPdf = section.name === "compiled_pdf";
 //     const itemHtml = renderSectionItem(section, index, docType);
-// 
+//
 //     // Separate compiled sections to footer
 //     if (isCompiledPdf) {
 //       footerSectionsHtml += itemHtml;
@@ -155,7 +155,7 @@ describe('rendering', () => {
 //       regularSectionsHtml += itemHtml;
 //     }
 //   });
-// 
+//
 //   // Build final HTML with scrollable sections + fixed footer
 //   return `
 //         <div class="section-items-scrollable">

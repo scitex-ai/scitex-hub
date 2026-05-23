@@ -384,7 +384,7 @@ class UserPreference(models.Model):
         """Get or create encryption key for this user"""
         # Use user-specific key derived from settings secret key and user ID
         key_material = (
-            f"{settings.SCITEX_CLOUD_DJANGO_SECRET_KEY}-{self.user.id}".encode()
+            f"{settings.SCITEX_HUB_DJANGO_SECRET_KEY}-{self.user.id}".encode()
         )
         # Create a 32-byte key for Fernet
         key = base64.urlsafe_b64encode(key_material[:32].ljust(32, b"0"))

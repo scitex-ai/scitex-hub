@@ -12,7 +12,7 @@ This document describes the implementation of a GitHub Actions-style CI/CD syste
 
 ### Database Models
 
-Located in: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/models/actions.py`
+Located in: `/home/ywatanabe/proj/scitex-hub/apps/project_app/models/actions.py`
 
 #### 1. Workflow
 
@@ -101,7 +101,7 @@ Files/artifacts produced by workflow runs.
 
 ## Views
 
-Located in: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/views/actions_views.py`
+Located in: `/home/ywatanabe/proj/scitex-hub/apps/project_app/views/actions_views.py`
 
 ### Main Views
 
@@ -157,7 +157,7 @@ Located in: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/views/actions_vi
 
 ## Templates
 
-Located in: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/actions/`
+Located in: `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/actions/`
 
 ### Template Files
 
@@ -196,7 +196,7 @@ All templates follow the SciTeX design system:
 
 ## Celery Tasks
 
-Located in: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/tasks/workflow_tasks.py`
+Located in: `/home/ywatanabe/proj/scitex-hub/apps/project_app/tasks/workflow_tasks.py`
 
 ### Task Hierarchy
 
@@ -264,7 +264,7 @@ execute_workflow_run (run_id)
 
 ## URL Patterns
 
-Added to: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/user_urls.py`
+Added to: `/home/ywatanabe/proj/scitex-hub/apps/project_app/user_urls.py`
 
 ```python
 # CI/CD Actions URLs (GitHub-style /actions/ pattern)
@@ -487,7 +487,7 @@ python manage.py migrate project_app
 
 ## Admin Interface
 
-Add to: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/admin.py`
+Add to: `/home/ywatanabe/proj/scitex-hub/apps/project_app/admin.py`
 
 ```python
 from django.contrib import admin
@@ -571,7 +571,7 @@ class WorkflowArtifactAdmin(admin.ModelAdmin):
 
 ### Unit Tests
 
-Create: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/tests/test_actions.py`
+Create: `/home/ywatanabe/proj/scitex-hub/apps/project_app/tests/test_actions.py`
 
 ```python
 from django.test import TestCase
@@ -621,7 +621,7 @@ class WorkflowTestCase(TestCase):
 
 ### Secrets Management
 
-1. **Encryption**: Secrets are encrypted using Django's `SCITEX_CLOUD_DJANGO_SECRET_KEY`
+1. **Encryption**: Secrets are encrypted using Django's `SCITEX_HUB_DJANGO_SECRET_KEY`
 2. **Access Control**: Only project owners/admins can view/edit secrets
 3. **Audit Log**: Track secret usage via `last_used_at`
 

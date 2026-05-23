@@ -29,12 +29,12 @@ describe('ui', () => {
 //  * UI Utility Module
 //  * Common UI interaction helpers
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/utils/ui.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/static/ts/utils/ui.ts loaded",
 // );
 // export type ToastType = "success" | "error" | "warning" | "info";
-// 
+//
 // /**
 //  * Show a toast notification
 //  */
@@ -54,21 +54,21 @@ describe('ui', () => {
 //         min-width: 300px;
 //         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 //     `;
-// 
+//
 //   toast.innerHTML = `
 //         ${message}
 //         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 //     `;
-// 
+//
 //   document.body.appendChild(toast);
-// 
+//
 //   if (duration > 0) {
 //     setTimeout(() => {
 //       toast.remove();
 //     }, duration);
 //   }
 // }
-// 
+//
 // /**
 //  * Show a status message in a specific container
 //  */
@@ -81,12 +81,12 @@ describe('ui', () => {
 //     ? document.getElementById(containerId)
 //     : document.body;
 //   if (!container) return;
-// 
+//
 //   const status = document.createElement("div");
 //   status.className = `alert alert-${type === "error" ? "danger" : type}`;
 //   status.textContent = message;
 //   status.style.margin = "10px 0";
-// 
+//
 //   if (containerId) {
 //     const existing = container.querySelector(".alert");
 //     if (existing) existing.remove();
@@ -94,10 +94,10 @@ describe('ui', () => {
 //   } else {
 //     document.body.insertBefore(status, document.body.firstChild);
 //   }
-// 
+//
 //   setTimeout(() => status.remove(), 5000);
 // }
-// 
+//
 // /**
 //  * Disable/enable button with loading state
 //  */
@@ -108,7 +108,7 @@ describe('ui', () => {
 // ): void {
 //   const originalText = button.textContent;
 //   const originalHTML = button.innerHTML;
-// 
+//
 //   if (isLoading) {
 //     button.setAttribute("disabled", "true");
 //     button.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i>${loadingText}`;
@@ -118,14 +118,14 @@ describe('ui', () => {
 //     button.innerHTML = originalHTML;
 //   }
 // }
-// 
+//
 // /**
 //  * Show/hide loading spinner
 //  */
 // export function showSpinner(containerId: string, show: boolean = true): void {
 //   const container = document.getElementById(containerId);
 //   if (!container) return;
-// 
+//
 //   if (show) {
 //     const spinner = document.createElement("div");
 //     spinner.className = "spinner-container";
@@ -140,27 +140,27 @@ describe('ui', () => {
 //     if (spinner) spinner.remove();
 //   }
 // }
-// 
+//
 // /**
 //  * Modal helper to show/hide modals
 //  */
 // export class Modal {
 //   private element: HTMLElement;
 //   private bootstrap?: any;
-// 
+//
 //   constructor(elementId: string) {
 //     const el = document.getElementById(elementId);
 //     if (!el) {
 //       throw new Error(`Modal element with id "${elementId}" not found`);
 //     }
 //     this.element = el;
-// 
+//
 //     // Try to get Bootstrap modal instance
 //     if ((window as any).bootstrap) {
 //       this.bootstrap = new (window as any).bootstrap.Modal(el);
 //     }
 //   }
-// 
+//
 //   show(): void {
 //     if (this.bootstrap) {
 //       this.bootstrap.show();
@@ -168,7 +168,7 @@ describe('ui', () => {
 //       this.element.setAttribute("style", "display: flex;");
 //     }
 //   }
-// 
+//
 //   hide(): void {
 //     if (this.bootstrap) {
 //       this.bootstrap.hide();
@@ -176,7 +176,7 @@ describe('ui', () => {
 //       this.element.setAttribute("style", "display: none;");
 //     }
 //   }
-// 
+//
 //   toggle(): void {
 //     if (this.bootstrap) {
 //       this.bootstrap.toggle();
@@ -186,14 +186,14 @@ describe('ui', () => {
 //     }
 //   }
 // }
-// 
+//
 // /**
 //  * Confirm dialog helper
 //  */
 // export function confirm(message: string): Promise<boolean> {
 //   return Promise.resolve(window.confirm(message));
 // }
-// 
+//
 // /**
 //  * Debounce function calls
 //  */
@@ -202,20 +202,20 @@ describe('ui', () => {
 //   wait: number,
 // ): (...args: Parameters<T>) => void {
 //   let timeout: NodeJS.Timeout | null = null;
-// 
+//
 //   return function executedFunction(...args: Parameters<T>) {
 //     const later = () => {
 //       timeout = null;
 //       func(...args);
 //     };
-// 
+//
 //     if (timeout) {
 //       clearTimeout(timeout);
 //     }
 //     timeout = setTimeout(later, wait);
 //   };
 // }
-// 
+//
 // /**
 //  * Throttle function calls
 //  */
@@ -224,7 +224,7 @@ describe('ui', () => {
 //   limit: number,
 // ): (...args: Parameters<T>) => void {
 //   let inThrottle: boolean = false;
-// 
+//
 //   return function executedFunction(...args: Parameters<T>) {
 //     if (!inThrottle) {
 //       func(...args);

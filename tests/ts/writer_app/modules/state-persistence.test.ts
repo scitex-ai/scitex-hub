@@ -29,11 +29,11 @@ describe('state-persistence', () => {
 //  * State Persistence Manager
 //  * Saves and restores editor state across page refreshes
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/state-persistence.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/modules/state-persistence.ts loaded",
 // );
-// 
+//
 // interface EditorState {
 //   doctype?: string;
 //   sectionId?: string;
@@ -80,10 +80,10 @@ describe('state-persistence', () => {
 //   pdfZoom?: number; // PDF zoom level percentage (50-300)
 //   panelWidth?: number; // Left panel width percentage (20-80)
 // }
-// 
+//
 // export class StatePersistenceManager {
 //   private readonly STORAGE_KEY = "scitex_writer_state";
-// 
+//
 //   /**
 //    * Save current editor state to localStorage
 //    */
@@ -97,7 +97,7 @@ describe('state-persistence', () => {
 //       console.error("[StatePersistence] Failed to save state:", error);
 //     }
 //   }
-// 
+//
 //   /**
 //    * Load editor state from localStorage
 //    */
@@ -114,7 +114,7 @@ describe('state-persistence', () => {
 //     }
 //     return {};
 //   }
-// 
+//
 //   /**
 //    * Clear saved state
 //    */
@@ -126,21 +126,21 @@ describe('state-persistence', () => {
 //       console.error("[StatePersistence] Failed to clear state:", error);
 //     }
 //   }
-// 
+//
 //   /**
 //    * Save doctype selection
 //    */
 //   public saveDoctype(doctype: string): void {
 //     this.saveState({ doctype });
 //   }
-// 
+//
 //   /**
 //    * Save section selection
 //    */
 //   public saveSection(sectionId: string): void {
 //     this.saveState({ sectionId });
 //   }
-// 
+//
 //   /**
 //    * Save section for a specific doctype
 //    */
@@ -151,7 +151,7 @@ describe('state-persistence', () => {
 //     this.saveState({ sectionPerDoctype, sectionId }); // Also update current sectionId
 //     console.log(`[StatePersistence] Saved section for ${doctype}:`, sectionId);
 //   }
-// 
+//
 //   /**
 //    * Get saved section for a specific doctype
 //    */
@@ -161,63 +161,63 @@ describe('state-persistence', () => {
 //     console.log(`[StatePersistence] Retrieved section for ${doctype}:`, section);
 //     return section;
 //   }
-// 
+//
 //   /**
 //    * Save cursor position
 //    */
 //   public saveCursorPosition(lineNumber: number, column: number): void {
 //     this.saveState({ cursorPosition: { lineNumber, column } });
 //   }
-// 
+//
 //   /**
 //    * Save scroll position
 //    */
 //   public saveScrollPosition(scrollTop: number, scrollLeft: number): void {
 //     this.saveState({ scrollPosition: { scrollTop, scrollLeft } });
 //   }
-// 
+//
 //   /**
 //    * Get saved doctype
 //    */
 //   public getSavedDoctype(): string | undefined {
 //     return this.loadState().doctype;
 //   }
-// 
+//
 //   /**
 //    * Get saved section
 //    */
 //   public getSavedSection(): string | undefined {
 //     return this.loadState().sectionId;
 //   }
-// 
+//
 //   /**
 //    * Get saved cursor position
 //    */
 //   public getSavedCursorPosition(): { lineNumber: number; column: number } | undefined {
 //     return this.loadState().cursorPosition;
 //   }
-// 
+//
 //   /**
 //    * Get saved scroll position
 //    */
 //   public getSavedScrollPosition(): { scrollTop: number; scrollLeft: number } | undefined {
 //     return this.loadState().scrollPosition;
 //   }
-// 
+//
 //   /**
 //    * Save PDF scroll position
 //    */
 //   public savePdfScrollPosition(scrollTop: number, scrollLeft: number): void {
 //     this.saveState({ pdfScrollPosition: { scrollTop, scrollLeft } });
 //   }
-// 
+//
 //   /**
 //    * Get saved PDF scroll position
 //    */
 //   public getSavedPdfScrollPosition(): { scrollTop: number; scrollLeft: number } | undefined {
 //     return this.loadState().pdfScrollPosition;
 //   }
-// 
+//
 //   /**
 //    * Save active pane (pdf or citations)
 //    */
@@ -225,7 +225,7 @@ describe('state-persistence', () => {
 //     this.saveState({ activePane: pane });
 //     console.log("[StatePersistence] Saved active pane:", pane);
 //   }
-// 
+//
 //   /**
 //    * Get saved active pane
 //    */
@@ -234,7 +234,7 @@ describe('state-persistence', () => {
 //     console.log("[StatePersistence] Retrieved active pane:", pane);
 //     return pane;
 //   }
-// 
+//
 //   /**
 //    * Save compilation settings
 //    */
@@ -256,7 +256,7 @@ describe('state-persistence', () => {
 //   }): void {
 //     this.saveState({ compilationSettings: settings });
 //   }
-// 
+//
 //   /**
 //    * Get saved compilation settings
 //    */
@@ -278,49 +278,49 @@ describe('state-persistence', () => {
 //   } | undefined {
 //     return this.loadState().compilationSettings;
 //   }
-// 
+//
 //   /**
 //    * Save citations sorting
 //    */
 //   public saveCitationsSorting(sorting: string): void {
 //     this.saveState({ citationsSorting: sorting });
 //   }
-// 
+//
 //   /**
 //    * Get saved citations sorting
 //    */
 //   public getSavedCitationsSorting(): string | undefined {
 //     return this.loadState().citationsSorting;
 //   }
-// 
+//
 //   /**
 //    * Save figures sorting
 //    */
 //   public saveFiguresSorting(sorting: string): void {
 //     this.saveState({ figuresSorting: sorting });
 //   }
-// 
+//
 //   /**
 //    * Get saved figures sorting
 //    */
 //   public getSavedFiguresSorting(): string | undefined {
 //     return this.loadState().figuresSorting;
 //   }
-// 
+//
 //   /**
 //    * Save tables sorting
 //    */
 //   public saveTablesSorting(sorting: string): void {
 //     this.saveState({ tablesSorting: sorting });
 //   }
-// 
+//
 //   /**
 //    * Get saved tables sorting
 //    */
 //   public getSavedTablesSorting(): string | undefined {
 //     return this.loadState().tablesSorting;
 //   }
-// 
+//
 //   /**
 //    * Save PDF zoom level
 //    */
@@ -328,7 +328,7 @@ describe('state-persistence', () => {
 //     this.saveState({ pdfZoom: zoom });
 //     console.log("[StatePersistence] Saved PDF zoom:", zoom);
 //   }
-// 
+//
 //   /**
 //    * Get saved PDF zoom level
 //    */
@@ -337,7 +337,7 @@ describe('state-persistence', () => {
 //     console.log("[StatePersistence] Retrieved PDF zoom:", zoom);
 //     return zoom;
 //   }
-// 
+//
 //   /**
 //    * Save panel width (left panel percentage)
 //    */
@@ -345,7 +345,7 @@ describe('state-persistence', () => {
 //     this.saveState({ panelWidth: widthPercent });
 //     console.log("[StatePersistence] Saved panel width:", widthPercent);
 //   }
-// 
+//
 //   /**
 //    * Get saved panel width
 //    */
@@ -355,7 +355,7 @@ describe('state-persistence', () => {
 //     return width;
 //   }
 // }
-// 
+//
 // // Export singleton instance
 // export const statePersistence = new StatePersistenceManager();
 

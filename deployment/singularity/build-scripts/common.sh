@@ -39,8 +39,8 @@ FINAL_HASH_FILE="$SCRIPT_DIR/.def-hash-final"
 VERSIONS_JSON="$SCRIPT_DIR/versions.json"
 VERSIONS_FILE="$SCRIPT_DIR/.pypi-versions"
 
-LEGACY_DEF="$SCRIPT_DIR/scitex-cloud-shared-v0.1.0.def"
-LEGACY_SIF="$SCRIPT_DIR/scitex-cloud-shared-v0.1.0.sif"
+LEGACY_DEF="$SCRIPT_DIR/scitex-hub-shared-v0.1.0.def"
+LEGACY_SIF="$SCRIPT_DIR/scitex-hub-shared-v0.1.0.sif"
 LEGACY_HASH_FILE="$SCRIPT_DIR/.def-hash-legacy"
 
 # ============================================

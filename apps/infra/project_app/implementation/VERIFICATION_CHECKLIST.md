@@ -1,6 +1,6 @@
 # Sidebar Implementation Verification Checklist
 
-**File:** /home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_detail.html
+**File:** /home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_detail.html
 **Lines:** 1114 (was 764, +350 lines)
 **Server:** http://127.0.0.1:8000
 

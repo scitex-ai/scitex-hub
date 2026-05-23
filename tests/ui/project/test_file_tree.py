@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: 2025-12-07
-# File: /home/ywatanabe/proj/scitex-cloud/tests/e2e/project/test_file_tree.py
+# File: /home/ywatanabe/proj/scitex-hub/tests/e2e/project/test_file_tree.py
 
 """
 E2E tests for WorkspaceFilesTree component in Vis app.
@@ -88,7 +88,7 @@ class TestFolderSelection:
         page.wait_for_timeout(500)
 
         # Re-locate the folder (DOM may have changed) and check selection
-        folder = page.locator(f".wft-folder[data-path=\"{initial_path}\"]")
+        folder = page.locator(f'.wft-folder[data-path="{initial_path}"]')
         has_selected_class = "selected" in (folder.get_attribute("class") or "")
         assert has_selected_class, "Folder should be selected after click"
 
@@ -112,11 +112,13 @@ class TestFolderSelection:
         page.wait_for_timeout(500)
 
         # Re-locate and check state changed
-        folder = page.locator(f".wft-folder[data-path=\"{initial_path}\"]")
+        folder = page.locator(f'.wft-folder[data-path="{initial_path}"]')
         is_expanded = "expanded" in (folder.get_attribute("class") or "")
 
         # State should have toggled
-        assert is_expanded != was_expanded, f"Folder expansion should toggle (was: {was_expanded}, now: {is_expanded})"
+        assert (
+            is_expanded != was_expanded
+        ), f"Folder expansion should toggle (was: {was_expanded}, now: {is_expanded})"
 
 
 class TestKeyboardShortcuts:
@@ -246,7 +248,7 @@ class TestFileSelection:
         page.wait_for_timeout(500)
 
         # Re-locate and check for selection
-        file_item = page.locator(f".wft-file[data-path=\"{file_path}\"]")
+        file_item = page.locator(f'.wft-file[data-path="{file_path}"]')
         has_selected_class = "selected" in (file_item.get_attribute("class") or "")
         assert has_selected_class, "File should be selected after click"
 

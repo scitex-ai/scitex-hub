@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Timestamp: 2025-12-07
 # Author: ywatanabe (with Claude Code)
-# File: /home/ywatanabe/proj/scitex-cloud/scripts/check_untracked_assets.sh
+# File: /home/ywatanabe/proj/scitex-hub/scripts/check_untracked_assets.sh
 # Description: Check for untracked or unstaged CSS and TypeScript files
 
 set -euo pipefail

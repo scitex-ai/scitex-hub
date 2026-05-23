@@ -27,7 +27,7 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
-# # File: /home/ywatanabe/proj/scitex-cloud/apps/scholar_app/services/library_cache.py
+# # File: /home/ywatanabe/proj/scitex-hub/apps/scholar_app/services/library_cache.py
 # """
 # Library caching service for Scholar app.
 #

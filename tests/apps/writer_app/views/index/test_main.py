@@ -28,7 +28,7 @@ if __name__ == "__main__":
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
 # # Timestamp: "2025-11-04 20:46:58 (ywatanabe)"
-# # File: /home/ywatanabe/proj/scitex-cloud/apps/writer_app/views/index/main.py
+# # File: /home/ywatanabe/proj/scitex-hub/apps/writer_app/views/index/main.py
 # # ----------------------------------------
 # from __future__ import annotations
 # import os

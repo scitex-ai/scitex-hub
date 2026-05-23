@@ -32,18 +32,18 @@ describe('rendering', () => {
 //  * @version 2.0.0 (TypeScript)
 //  * @author SciTeX Development Team
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/editor/preview-panel/rendering.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/editor/preview-panel/rendering.ts loaded",
 // );
-// 
+//
 // import type { CompilationStatus } from "./types";
-// 
+//
 // export class PreviewRenderer {
 //   private previewContent: HTMLElement;
 //   private compileStatus: HTMLElement;
 //   private statusIndicator: HTMLElement;
-// 
+//
 //   constructor(
 //     previewContent: HTMLElement,
 //     compileStatus: HTMLElement,
@@ -53,7 +53,7 @@ describe('rendering', () => {
 //     this.compileStatus = compileStatus;
 //     this.statusIndicator = statusIndicator;
 //   }
-// 
+//
 //   /**
 //    * Show PDF preview in iframe
 //    */
@@ -62,7 +62,7 @@ describe('rendering', () => {
 //             <iframe src="${pdfUrl}" width="100%" height="100%" class="iframe-borderless"></iframe>
 //         `;
 //   }
-// 
+//
 //   /**
 //    * Update job status display
 //    */
@@ -70,7 +70,7 @@ describe('rendering', () => {
 //     const message = `${data.status} (${data.progress}%)`;
 //     this.updateCompileStatus(message, data.status);
 //   }
-// 
+//
 //   /**
 //    * Update status indicator
 //    */
@@ -79,7 +79,7 @@ describe('rendering', () => {
 //       this.statusIndicator.innerHTML = `<i class="fas fa-circle ${className} me-1"></i>${text}`;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Update compilation status message
 //    */
@@ -89,7 +89,7 @@ describe('rendering', () => {
 //       this.compileStatus.className = `compile-status ${type}`;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Handle compilation error
 //    */
@@ -97,7 +97,7 @@ describe('rendering', () => {
 //     this.updateStatus("Error", "text-danger");
 //     this.updateCompileStatus("✗ " + message, "error");
 //   }
-// 
+//
 //   /**
 //    * Show success message
 //    */

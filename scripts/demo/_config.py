@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2026-02-18 20:15:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/scripts/demo/_config.py
+# File: /home/ywatanabe/proj/scitex-hub/scripts/demo/_config.py
 
 
 """Configuration for SciTeX demo screenshot capture."""
@@ -28,8 +28,8 @@ else:
 BASE_URL = "http://127.0.0.1:8000"
 
 # Load test user credentials from environment variables
-TEST_USER = os.getenv("SCITEX_CLOUD_TEST_USER_USERNAME", "test-user")
-TEST_PASSWORD = os.getenv("SCITEX_CLOUD_TEST_USER_PASSWORD", "Password123!")
+TEST_USER = os.getenv("SCITEX_HUB_TEST_USER_USERNAME", "test-user")
+TEST_PASSWORD = os.getenv("SCITEX_HUB_TEST_USER_PASSWORD", "Password123!")
 
 # Standard viewport sizes for consistent screenshots
 VIEWPORT_PRESETS = {

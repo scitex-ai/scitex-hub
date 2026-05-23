@@ -102,7 +102,7 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
             existing_shell.start_reader(broker._make_output_callback(client))
             # cd to project dir if project changed
             if existing_shell.last_project_slug != project_slug:
-                from scitex_cloud._utils._project_nav import build_switch_command
+                from scitex_hub._utils._project_nav import build_switch_command
 
                 cd_cmd = build_switch_command(username, project_slug)
                 existing_shell.write(f"{cd_cmd}\n".encode())
@@ -243,7 +243,7 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
         # Send MOTD directly to client (not through shell)
         motd = (
             "\r\n"
-            "\x1b[1;36m  Welcome to SciTeX Cloud\x1b[0m\r\n"
+            "\x1b[1;36m  Welcome to SciTeX Hub\x1b[0m\r\n"
             "\r\n"
             "\x1b[0;36m  1. Type \x1b[1mclaude\x1b[0;36m, "
             "\x1b[1mcodex\x1b[0;36m, or "
@@ -254,7 +254,7 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
             "including SciTeX usage and app creation\x1b[0m\r\n"
             "\r\n"
             "\x1b[0;90m  To hide this message: "
-            "set SCITEX_CLOUD_SHOW_MOTD=false in config\x1b[0m"
+            "set SCITEX_HUB_SHOW_MOTD=false in config\x1b[0m"
             "\r\n\r\n"
         ).encode()
         broker._send_message(

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: 2025-11-30
-# File: /home/ywatanabe/proj/scitex-cloud/tests/e2e/auth/test_signup.py
+# File: /home/ywatanabe/proj/scitex-hub/tests/e2e/auth/test_signup.py
 
 """
 E2E tests for user signup functionality.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: 2025-11-30
-# File: /home/ywatanabe/proj/scitex-cloud/tests/api/conftest.py
+# File: /home/ywatanabe/proj/scitex-hub/tests/api/conftest.py
 
 """
 API test fixtures using requests library.
@@ -40,7 +40,7 @@ def _is_server_reachable(url: str, timeout: float = 1.5) -> bool:
 # Skip the whole `tests/api/` tree when no Django dev server is running at
 # BASE_URL. These are integration tests against a live HTTP surface, not
 # unit tests; CI can't run them without spinning up the server.
-collect_ignore_marker = "scitex-cloud-api-server-unreachable"
+collect_ignore_marker = "scitex-hub-api-server-unreachable"
 
 
 def pytest_collection_modifyitems(config, items):  # noqa: D401

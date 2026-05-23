@@ -74,16 +74,16 @@ jobs:
 
       - name: Create test user & start server
         env:
-          SCITEX_CLOUD_DJANGO_SECRET_KEY: ci-e2e-test-key  # pragma: allowlist secret
+          SCITEX_HUB_DJANGO_SECRET_KEY: ci-e2e-test-key  # pragma: allowlist secret
           # settings_dev.py reads the _DEV-suffixed variants, not the bare names
-          SCITEX_CLOUD_DB_NAME_DEV: scitex_test
-          SCITEX_CLOUD_DB_USER_DEV: scitex
-          SCITEX_CLOUD_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
-          SCITEX_CLOUD_DB_HOST_DEV: localhost
-          SCITEX_CLOUD_DB_PORT_DEV: "5432"
-          SCITEX_CLOUD_REDIS_URL: redis://localhost:6379/0
-          SCITEX_CLOUD_ENV: development
-          SCITEX_CLOUD_GITEA_SSH_PORT_DEV: "2222"
+          SCITEX_HUB_DB_NAME_DEV: scitex_test
+          SCITEX_HUB_DB_USER_DEV: scitex
+          SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
+          SCITEX_HUB_DB_HOST_DEV: localhost
+          SCITEX_HUB_DB_PORT_DEV: "5432"
+          SCITEX_HUB_REDIS_URL: redis://localhost:6379/0
+          SCITEX_HUB_ENV: development
+          SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
           DEBUG: "1"
         run: |
           python manage.py migrate --run-syncdb
@@ -106,15 +106,15 @@ jobs:
 
       - name: Run Playwright mobile tests
         env:
-          SCITEX_CLOUD_DJANGO_SECRET_KEY: ci-e2e-test-key  # pragma: allowlist secret
-          SCITEX_CLOUD_DB_NAME_DEV: scitex_test
-          SCITEX_CLOUD_DB_USER_DEV: scitex
-          SCITEX_CLOUD_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
-          SCITEX_CLOUD_DB_HOST_DEV: localhost
-          SCITEX_CLOUD_DB_PORT_DEV: "5432"
-          SCITEX_CLOUD_REDIS_URL: redis://localhost:6379/0
-          SCITEX_CLOUD_ENV: development
-          SCITEX_CLOUD_GITEA_SSH_PORT_DEV: "2222"
+          SCITEX_HUB_DJANGO_SECRET_KEY: ci-e2e-test-key  # pragma: allowlist secret
+          SCITEX_HUB_DB_NAME_DEV: scitex_test
+          SCITEX_HUB_DB_USER_DEV: scitex
+          SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
+          SCITEX_HUB_DB_HOST_DEV: localhost
+          SCITEX_HUB_DB_PORT_DEV: "5432"
+          SCITEX_HUB_REDIS_URL: redis://localhost:6379/0
+          SCITEX_HUB_ENV: development
+          SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
           SCITEX_BASE_URL: http://127.0.0.1:8000
           SCITEX_E2E_TEST_USER: test-user
           SCITEX_E2E_TEST_PASS: "Password123!"

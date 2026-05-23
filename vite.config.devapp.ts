@@ -71,7 +71,7 @@ function scanDir(
 
 const devEntries = getDevAppEntries(__dirname);
 const hasEntries = Object.keys(devEntries).length > 0;
-const isProd = process.env.SCITEX_CLOUD_ENV === "prod";
+const isProd = process.env.SCITEX_HUB_ENV === "prod";
 
 if (hasEntries) {
   console.log(

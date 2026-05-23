@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # File: config/settings/settings_shared.py
 """
-Django settings for SciTeX Cloud project.
+Django settings for SciTeX Hub project.
 Base settings shared across all environments.
 Sub-modules: settings_celery, settings_logging, settings_auth, settings_integrations
 """
@@ -99,21 +99,19 @@ LOGOUT_REDIRECT_URL = "/"
 # ---------------------------------------
 # Metadata
 # ---------------------------------------
-SCITEX_CLOUD_VERSION = _get_version()
-SCITEX_CLOUD_VISITOR_POOL_SIZE = int(
-    os.environ.get("SCITEX_CLOUD_VISITOR_POOL_SIZE", 4)
-)
-UMAMI_WEBSITE_ID = os.environ.get("SCITEX_CLOUD_UMAMI_WEBSITE_ID", "")
+SCITEX_HUB_VERSION = _get_version()
+SCITEX_HUB_VISITOR_POOL_SIZE = int(os.environ.get("SCITEX_HUB_VISITOR_POOL_SIZE", 4))
+UMAMI_WEBSITE_ID = os.environ.get("SCITEX_HUB_UMAMI_WEBSITE_ID", "")
 UMAMI_SCRIPT_URL = os.environ.get(
-    "SCITEX_CLOUD_UMAMI_SCRIPT_URL", "https://cloud.umami.is/script.js"
+    "SCITEX_HUB_UMAMI_SCRIPT_URL", "https://cloud.umami.is/script.js"
 )
 
 # ---------------------------------------
 # Security
 # ---------------------------------------
-SECRET_KEY = os.getenv("SCITEX_CLOUD_DJANGO_SECRET_KEY")
+SECRET_KEY = os.getenv("SCITEX_HUB_DJANGO_SECRET_KEY")
 if not SECRET_KEY:
-    raise ValueError("SCITEX_CLOUD_DJANGO_SECRET_KEY must be set in environment")
+    raise ValueError("SCITEX_HUB_DJANGO_SECRET_KEY must be set in environment")
 
 # ---------------------------------------
 # Applications
@@ -221,14 +219,14 @@ TEMPLATES = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "data" / "db" / "sqlite" / "scitex_cloud.db",
+        "NAME": BASE_DIR / "data" / "db" / "sqlite" / "scitex_hub.db",
     }
 }
 
 # ---------------------------------------
 # Cache + Sessions
 # ---------------------------------------
-REDIS_URL = os.getenv("SCITEX_CLOUD_REDIS_URL", "redis://127.0.0.1:6379/1")
+REDIS_URL = os.getenv("SCITEX_HUB_REDIS_URL", "redis://127.0.0.1:6379/1")
 
 try:
     import redis as _redis
@@ -239,7 +237,7 @@ try:
         "default": {
             "BACKEND": "django.core.cache.backends.redis.RedisCache",
             "LOCATION": REDIS_URL,
-            "KEY_PREFIX": "scitex_cloud",
+            "KEY_PREFIX": "scitex_hub",
             "TIMEOUT": 3600,
         }
     }
@@ -262,7 +260,7 @@ SESSION_COOKIE_AGE = 86400
 try:
     import redis as _redis2
 
-    _redis_url2 = os.getenv("SCITEX_CLOUD_REDIS_URL", "redis://127.0.0.1:6379/2")
+    _redis_url2 = os.getenv("SCITEX_HUB_REDIS_URL", "redis://127.0.0.1:6379/2")
     _redis2.from_url(_redis_url2).ping()
     CHANNEL_LAYERS = {
         "default": {
@@ -292,24 +290,24 @@ USE_TZ = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-EMAIL_BACKEND = os.getenv("SCITEX_CLOUD_EMAIL_BACKEND")
-EMAIL_HOST = os.getenv("SCITEX_CLOUD_EMAIL_HOST")
-EMAIL_PORT = int(os.getenv("SCITEX_CLOUD_EMAIL_PORT", "587"))
-EMAIL_USE_TLS = os.getenv("SCITEX_CLOUD_EMAIL_USE_TLS", "True").lower() == "true"
-EMAIL_HOST_USER = os.getenv("SCITEX_CLOUD_EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("SCITEX_CLOUD_EMAIL_HOST_PASSWORD")
+EMAIL_BACKEND = os.getenv("SCITEX_HUB_EMAIL_BACKEND")
+EMAIL_HOST = os.getenv("SCITEX_HUB_EMAIL_HOST")
+EMAIL_PORT = int(os.getenv("SCITEX_HUB_EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.getenv("SCITEX_HUB_EMAIL_USE_TLS", "True").lower() == "true"
+EMAIL_HOST_USER = os.getenv("SCITEX_HUB_EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("SCITEX_HUB_EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
-SITE_URL = os.getenv("SCITEX_CLOUD_SITE_URL", "http://127.0.0.1:8000")
+SITE_URL = os.getenv("SCITEX_HUB_SITE_URL", "http://127.0.0.1:8000")
 
 # Campaign Chat Mode
-SCITEX_CLOUD_CAMPAIGN_ANTHROPIC_API_KEY = os.getenv(
-    "SCITEX_CLOUD_CAMPAIGN_ANTHROPIC_API_KEY", ""
+SCITEX_HUB_CAMPAIGN_ANTHROPIC_API_KEY = os.getenv(
+    "SCITEX_HUB_CAMPAIGN_ANTHROPIC_API_KEY", ""
 )
-SCITEX_CLOUD_CAMPAIGN_MODEL = os.getenv(
-    "SCITEX_CLOUD_CAMPAIGN_MODEL", "claude-haiku-4-5-20251001"
+SCITEX_HUB_CAMPAIGN_MODEL = os.getenv(
+    "SCITEX_HUB_CAMPAIGN_MODEL", "claude-haiku-4-5-20251001"
 )
-SCITEX_CLOUD_CAMPAIGN_DAILY_LIMIT = os.getenv("SCITEX_CLOUD_CAMPAIGN_DAILY_LIMIT", "10")
+SCITEX_HUB_CAMPAIGN_DAILY_LIMIT = os.getenv("SCITEX_HUB_CAMPAIGN_DAILY_LIMIT", "10")
 
 # ---------------------------------------
 # Sub-module imports (celery, logging, auth, integrations)

@@ -32,27 +32,27 @@ describe('manager', () => {
 //  * @version 2.0.0 (TypeScript)
 //  * @author SciTeX Development Team
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/editor/preview-panel/manager.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/editor/preview-panel/manager.ts loaded",
 // );
-// 
+//
 // import type { PreviewPanelConfig } from "./types";
 // import { LATEX_TEMPLATES } from "./types";
 // import { PreviewRenderer } from "./rendering";
 // import { PreviewNavigation } from "./navigation";
 // import { PreviewSync } from "./sync";
-// 
+//
 // export class PreviewPanelManager {
 //   private config: PreviewPanelConfig;
 //   private editor: any; // CodeMirror instance
 //   private saveTimeout: ReturnType<typeof setTimeout> | null = null;
-// 
+//
 //   // Sub-managers
 //   private renderer!: PreviewRenderer;
 //   private navigation!: PreviewNavigation;
 //   private sync!: PreviewSync;
-// 
+//
 //   // DOM elements
 //   private compileBtn!: HTMLButtonElement;
 //   private saveBtn!: HTMLButtonElement;
@@ -63,32 +63,32 @@ describe('manager', () => {
 //   private togglePreviewBtn!: HTMLButtonElement;
 //   private templateSelect!: HTMLSelectElement;
 //   private documentTitle!: HTMLInputElement;
-// 
+//
 //   constructor(config: PreviewPanelConfig) {
 //     this.config = config;
 //   }
-// 
+//
 //   /**
 //    * Initialize the preview panel manager
 //    */
 //   initialize(): void {
 //     console.log("[PreviewPanel] Initializing preview panel manager");
-// 
+//
 //     // Initialize CodeMirror editor
 //     this.initializeEditor();
-// 
+//
 //     // Get DOM elements
 //     this.getDOMElements();
-// 
+//
 //     // Initialize sub-managers
 //     this.initializeSubManagers();
-// 
+//
 //     // Setup event listeners
 //     this.setupEventListeners();
-// 
+//
 //     console.log("[PreviewPanel] Initialization complete");
 //   }
-// 
+//
 //   /**
 //    * Initialize CodeMirror editor
 //    */
@@ -100,12 +100,12 @@ describe('manager', () => {
 //       console.error("[PreviewPanel] LaTeX editor textarea not found");
 //       return;
 //     }
-// 
+//
 //     if (!(window as any).CodeMirror) {
 //       console.error("[PreviewPanel] CodeMirror not loaded");
 //       return;
 //     }
-// 
+//
 //     this.editor = (window as any).CodeMirror.fromTextArea(textarea, {
 //       mode: "stex",
 //       theme: "github",
@@ -115,15 +115,15 @@ describe('manager', () => {
 //       lineWrapping: true,
 //       indentUnit: 2,
 //     });
-// 
+//
 //     // Auto-save on content change
 //     this.editor.on("change", () => {
 //       this.handleEditorChange();
 //     });
-// 
+//
 //     console.log("[PreviewPanel] CodeMirror editor initialized");
 //   }
-// 
+//
 //   /**
 //    * Get DOM element references
 //    */
@@ -152,7 +152,7 @@ describe('manager', () => {
 //       "document-title",
 //     ) as HTMLInputElement;
 //   }
-// 
+//
 //   /**
 //    * Initialize sub-managers
 //    */
@@ -162,15 +162,15 @@ describe('manager', () => {
 //       this.compileStatus,
 //       this.statusIndicator,
 //     );
-// 
+//
 //     this.navigation = new PreviewNavigation(
 //       this.previewPanel,
 //       this.togglePreviewBtn,
 //     );
-// 
+//
 //     this.sync = new PreviewSync(this.config, this.renderer, this.compileBtn);
 //   }
-// 
+//
 //   /**
 //    * Setup all event listeners
 //    */
@@ -181,14 +181,14 @@ describe('manager', () => {
 //         this.handleTemplateChange();
 //       });
 //     }
-// 
+//
 //     // Save draft
 //     if (this.saveBtn) {
 //       this.saveBtn.addEventListener("click", () => {
 //         this.saveDraft();
 //       });
 //     }
-// 
+//
 //     // Compile document
 //     if (this.compileBtn) {
 //       this.compileBtn.addEventListener("click", () => {
@@ -196,7 +196,7 @@ describe('manager', () => {
 //       });
 //     }
 //   }
-// 
+//
 //   /**
 //    * Handle template selection change
 //    */
@@ -212,7 +212,7 @@ describe('manager', () => {
 //       }
 //     }
 //   }
-// 
+//
 //   /**
 //    * Save draft (auto-save functionality)
 //    */
@@ -223,7 +223,7 @@ describe('manager', () => {
 //       setTimeout(() => this.renderer.updateStatus("Ready", "text-success"), 2000);
 //     }, 500);
 //   }
-// 
+//
 //   /**
 //    * Compile LaTeX document to PDF
 //    */
@@ -232,7 +232,7 @@ describe('manager', () => {
 //     const title = this.documentTitle.value.trim() || "Quick Document";
 //     await this.sync.compileDocument(content, title);
 //   }
-// 
+//
 //   /**
 //    * Handle editor content change
 //    */
@@ -240,14 +240,14 @@ describe('manager', () => {
 //     if (this.saveTimeout) {
 //       clearTimeout(this.saveTimeout);
 //     }
-// 
+//
 //     this.renderer.updateStatus("Unsaved changes", "text-warning");
-// 
+//
 //     this.saveTimeout = setTimeout(() => {
 //       this.renderer.updateStatus("Ready", "text-success");
 //     }, 3000);
 //   }
-// 
+//
 //   /**
 //    * Destroy the preview panel manager and cleanup
 //    */
@@ -255,11 +255,11 @@ describe('manager', () => {
 //     if (this.saveTimeout) {
 //       clearTimeout(this.saveTimeout);
 //     }
-// 
+//
 //     if (this.sync) {
 //       this.sync.destroy();
 //     }
-// 
+//
 //     console.log("[PreviewPanel] Preview panel manager destroyed");
 //   }
 // }

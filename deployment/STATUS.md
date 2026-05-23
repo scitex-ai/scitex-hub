@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2025-11-28 13:43:42
 !-- Author: ywatanabe
-!-- File: /ssh:ywatanabe@nas:/home/ywatanabe/proj/scitex-cloud/deployment/STATUS.md
+!-- File: /ssh:ywatanabe@nas:/home/ywatanabe/proj/scitex-hub/deployment/STATUS.md
 !-- --- -->
 
 # Server Status Page
@@ -14,9 +14,9 @@ Single source of truth: `SECRET/.env.{ENV}`
 
 | Variable                            | Description             |
 |-------------------------------------|-------------------------|
-| `SCITEX_CLOUD_VISITOR_POOL_SIZE`          | Number of visitor slots |
-| `SCITEX_CLOUD_SSH_PORT_{ENV}`       | SSH gateway port        |
-| `SCITEX_CLOUD_GITEA_SSH_PORT_{ENV}` | Gitea SSH port          |
+| `SCITEX_HUB_VISITOR_POOL_SIZE`          | Number of visitor slots |
+| `SCITEX_HUB_SSH_PORT_{ENV}`       | SSH gateway port        |
+| `SCITEX_HUB_GITEA_SSH_PORT_{ENV}` | Gitea SSH port          |
 
 ## Source Code
 
@@ -42,7 +42,7 @@ Host computer metrics (all processes, not just SciTeX).
 | GPU          | Graphics load (if available)                      |
 | Disk I/O     | Read/write speed                                  |
 | Network I/O  | Upload/download speed                             |
-| Visitor Pool | Available slots (X / `$SCITEX_CLOUD_VISITOR_POOL_SIZE`) |
+| Visitor Pool | Available slots (X / `$SCITEX_HUB_VISITOR_POOL_SIZE`) |
 | Active Users | Logged-in users                                   |
 
 ### 2. Docker Services (9 containers)
@@ -67,8 +67,8 @@ Services checked by socket connection or command execution.
 
 | Service     | Purpose           | Health Check                                        |
 |-------------|-------------------|-----------------------------------------------------|
-| SSH Gateway | Workspace access  | TCP connect to `$SCITEX_CLOUD_SSH_PORT_{ENV}`       |
-| Gitea SSH   | Git operations    | TCP connect to `$SCITEX_CLOUD_GITEA_SSH_PORT_{ENV}` |
+| SSH Gateway | Workspace access  | TCP connect to `$SCITEX_HUB_SSH_PORT_{ENV}`       |
+| Gitea SSH   | Git operations    | TCP connect to `$SCITEX_HUB_GITEA_SSH_PORT_{ENV}` |
 | SLURM       | Job scheduler     | `sinfo` returns partitions                          |
 | Apptainer   | Secure containers | `apptainer --version` succeeds                      |
 
@@ -99,10 +99,10 @@ Starting (Orange)
 
 ```bash
 # Check logs
-docker logs scitex-cloud-prod-django-1
+docker logs scitex-hub-prod-django-1
 
 # Restart service
-docker restart scitex-cloud-prod-django-1
+docker restart scitex-hub-prod-django-1
 
 # Full rebuild
 make ENV=prod build && make ENV=prod restart

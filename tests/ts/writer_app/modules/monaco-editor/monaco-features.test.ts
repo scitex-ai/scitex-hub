@@ -29,11 +29,11 @@ describe('monaco-features', () => {
 //  * Monaco Editor Features Module
 //  * Handles Monaco-specific features: citations, drag-and-drop, protection, custom actions
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/monaco-editor/monaco-features.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/modules/monaco-editor/monaco-features.ts loaded",
 // );
-// 
+//
 // /**
 //  * Setup Monaco Editor event listeners and actions
 //  */
@@ -46,19 +46,19 @@ describe('monaco-features', () => {
 //   getOnChangeCallback?: () => ((content: string, wordCount: number) => void) | undefined
 // ): void {
 //   if (!monacoEditor) return;
-// 
+//
 //   // Track changes - use getter function if provided, otherwise fall back to direct callback
 //   monacoEditor.onDidChangeModelContent(() => {
 //     const content = monacoEditor.getValue();
 //     const wordCount = countWords(content);
-// 
+//
 //     // Get callback at call time (allows late binding)
 //     const callback = getOnChangeCallback ? getOnChangeCallback() : onChangeCallback;
 //     if (callback) {
 //       callback(content, wordCount);
 //     }
 //   });
-// 
+//
 //   // Save cursor position on cursor changes (debounced)
 //   let cursorSaveTimeout: number | undefined;
 //   monacoEditor.onDidChangeCursorPosition(() => {
@@ -71,7 +71,7 @@ describe('monaco-features', () => {
 //       }
 //     }, 500); // Debounce by 500ms
 //   });
-// 
+//
 //   // Add custom comment toggle action (Ctrl+/ or Cmd+/)
 //   monacoEditor.addAction({
 //     id: "toggle-line-comment",
@@ -84,7 +84,7 @@ describe('monaco-features', () => {
 //       editor.trigger("keyboard", "editor.action.commentLine", {});
 //     },
 //   });
-// 
+//
 //   // Add Ctrl+; (C-;) as alternative comment toggle shortcut
 //   monacoEditor.addAction({
 //     id: "toggle-line-comment-alt",
@@ -95,10 +95,10 @@ describe('monaco-features', () => {
 //       editor.trigger("keyboard", "editor.action.commentLine", {});
 //     },
 //   });
-// 
+//
 //   console.log("[Editor] Monaco Editor listeners and actions configured");
 // }
-// 
+//
 // /**
 //  * Count words in text
 //  */
@@ -107,16 +107,16 @@ describe('monaco-features', () => {
 //   if (!trimmed) return 0;
 //   return trimmed.split(/\s+/).length;
 // }
-// 
+//
 // /**
 //  * Setup drag-and-drop zone for citation insertion
 //  */
 // export function setupCitationDropZone(monacoEditor: any): void {
 //   if (!monacoEditor) return;
-// 
+//
 //   const editorDomNode = monacoEditor.getDomNode();
 //   if (!editorDomNode) return;
-// 
+//
 //   // Dragover: Allow drop
 //   editorDomNode.addEventListener("dragover", (e: DragEvent) => {
 //     e.preventDefault();
@@ -126,37 +126,37 @@ describe('monaco-features', () => {
 //     // Add visual feedback
 //     editorDomNode.parentElement?.classList.add("drag-over");
 //   });
-// 
+//
 //   // Dragleave: Remove visual feedback
 //   editorDomNode.addEventListener("dragleave", () => {
 //     editorDomNode.parentElement?.classList.remove("drag-over");
 //   });
-// 
+//
 //   // Drop: Insert citation or figure
 //   editorDomNode.addEventListener("drop", (e: DragEvent) => {
 //     e.preventDefault();
 //     e.stopPropagation(); // Prevent Monaco's default drop handling
 //     editorDomNode.parentElement?.classList.remove("drag-over");
-// 
+//
 //     if (!e.dataTransfer) return;
-// 
+//
 //     const droppedContent = e.dataTransfer.getData("text/plain");
 //     if (!droppedContent) return;
-// 
+//
 //     // Get drop position from Monaco
 //     const position = monacoEditor.getTargetAtClientPoint(
 //       e.clientX,
 //       e.clientY,
 //     );
 //     if (!position) return;
-// 
+//
 //     // Check if this is a figure (LaTeX code) or a citation key
 //     const isFigure = droppedContent.trim().startsWith("\\begin{figure}");
-// 
+//
 //     let insertText: string;
 //     let messageType: string;
 //     let messageContent: string;
-// 
+//
 //     if (isFigure) {
 //       // Insert figure LaTeX code as-is
 //       insertText = droppedContent;
@@ -170,14 +170,14 @@ describe('monaco-features', () => {
 //       messageContent = `Citation added: ${droppedContent}`;
 //       console.log(`[Editor] Inserted citation at drop position: ${droppedContent}`);
 //     }
-// 
+//
 //     const range = {
 //       startLineNumber: position.position.lineNumber,
 //       startColumn: position.position.column,
 //       endLineNumber: position.position.lineNumber,
 //       endColumn: position.position.column,
 //     };
-// 
+//
 //     // Use pushEditOperations to prevent default text insertion
 //     monacoEditor.pushUndoStop();
 //     monacoEditor.executeEdits(`${messageType}-drop`, [
@@ -188,47 +188,47 @@ describe('monaco-features', () => {
 //       },
 //     ]);
 //     monacoEditor.pushUndoStop();
-// 
+//
 //     // Focus editor and move cursor after inserted content
 //     monacoEditor.setPosition({
 //       lineNumber: position.position.lineNumber,
 //       column: position.position.column + insertText.length,
 //     });
 //     monacoEditor.focus();
-// 
+//
 //     // Show toast notification
 //     const showToast = (window as any).showToast;
 //     if (showToast) {
 //       showToast(messageContent, "success");
 //     }
 //   });
-// 
+//
 //   console.log("[Editor] Citation and figure drop zone configured");
 // }
-// 
+//
 // /**
 //  * Setup citation protection - treat \cite{key} as atomic unit
 //  */
 // export function setupCitationProtection(monacoEditor: any, monaco: any): void {
 //   if (!monacoEditor) return;
-// 
+//
 //   // Register link provider to detect citations
 //   monaco.languages.registerLinkProvider("latex", {
 //     provideLinks: (model: any) => {
 //       const links: any[] = [];
 //       const lineCount = model.getLineCount();
-// 
+//
 //       for (let lineNumber = 1; lineNumber <= lineCount; lineNumber++) {
 //         const lineContent = model.getLineContent(lineNumber);
-// 
+//
 //         // Find all \cite{...} patterns
 //         const regex = /\\cite[tp]?\{([^}]+)\}/g;
 //         let match;
-// 
+//
 //         while ((match = regex.exec(lineContent)) !== null) {
 //           const startColumn = match.index + 1;
 //           const endColumn = match.index + match[0].length + 1;
-// 
+//
 //           links.push({
 //             range: new monaco.Range(
 //               lineNumber,
@@ -241,12 +241,12 @@ describe('monaco-features', () => {
 //           });
 //         }
 //       }
-// 
+//
 //       return { links };
 //     },
 //   });
 // }
-// 
+//
 // /**
 //  * Force suggestion widget to show details panel on right side
 //  */
@@ -259,7 +259,7 @@ describe('monaco-features', () => {
 //       suggestController.widget._setDetailsVisible(true);
 //     }
 //   }, 1000);
-// 
+//
 //   // Watch for suggestion widget creation and force positioning + auto-expand
 //   const observer = new MutationObserver((mutations) => {
 //     mutations.forEach((mutation) => {
@@ -271,11 +271,11 @@ describe('monaco-features', () => {
 //           console.log(
 //             "[Citations] Suggestion widget detected, forcing right-side layout and auto-expanding details",
 //           );
-// 
+//
 //           // Force horizontal layout
 //           node.style.flexDirection = "row";
 //           node.style.alignItems = "flex-start";
-// 
+//
 //           // Find and reposition details panel
 //           const details = node.querySelector(".suggest-details");
 //           if (details) {
@@ -285,7 +285,7 @@ describe('monaco-features', () => {
 //             (details as HTMLElement).style.display = "block";
 //             (details as HTMLElement).style.visibility = "visible";
 //           }
-// 
+//
 //           // Programmatically trigger "show more" mode
 //           setTimeout(() => {
 //             try {
@@ -309,7 +309,7 @@ describe('monaco-features', () => {
 //       });
 //     });
 //   });
-// 
+//
 //   observer.observe(document.body, {
 //     childList: true,
 //     subtree: true,

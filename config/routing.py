@@ -1,5 +1,5 @@
 """
-WebSocket routing configuration for SciTeX Cloud.
+WebSocket routing configuration for SciTeX Hub.
 """
 
 from channels.auth import AuthMiddlewareStack

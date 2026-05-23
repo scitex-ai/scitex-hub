@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2026-03-16 05:25:56
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/apps/workspace/README.md
+!-- File: /home/ywatanabe/proj/scitex-hub/apps/workspace/README.md
 !-- --- -->
 
 # Workspace Apps
@@ -14,7 +14,7 @@ All workspace apps consume shared packages following DRY and SOC principles:
 |---------|------|------------------|
 | **scitex-ui** (`~/proj/scitex-ui`) | Frontend components | React + vanilla TS components, CSS tokens, Python registry |
 | **scitex-app** (`~/proj/scitex-app`) | Backend SDK | File I/O, chat streaming, path resolution, CLI, MCP tools |
-| **scitex-cloud** | Orchestration | Django workspace shell, tab switching, App Store, auth |
+| **scitex-hub** | Orchestration | Django workspace shell, tab switching, App Store, auth |
 
 ## Component Flow
 
@@ -22,13 +22,13 @@ All workspace apps consume shared packages following DRY and SOC principles:
 scitex-ui (canonical source)
     |
     v  (Vite alias: "scitex-ui" -> scitex_ui.get_static_dir())
-scitex-cloud/static/shared/ts/components/ (re-export stubs)
+scitex-hub/static/shared/ts/components/ (re-export stubs)
     |
     v  (Vite alias: "@" -> static/shared/ts/)
 apps/workspace/*/static/*/ts/ (app code imports via @/components/*)
 ```
 
-## Migrated Components (scitex-cloud -> scitex-ui)
+## Migrated Components (scitex-hub -> scitex-ui)
 
 | Component | Lines | Used by | Status |
 |-----------|-------|---------|--------|
@@ -50,7 +50,7 @@ apps/workspace/*/static/*/ts/ (app code imports via @/components/*)
 
 | App | Shortcut | Description |
 |-----|----------|-------------|
-| hub_app | Alt+H | User dashboard, projects |
+| repo_app | Alt+H | User dashboard, projects |
 | writer_app | Alt+W | LaTeX manuscript editor |
 | scholar_app | Alt+S | Literature management |
 | figrecipe_app | Alt+F | Interactive figure editor |
@@ -83,19 +83,19 @@ Each app declares its configuration in `manifest.json`:
 ## Creating New Apps
 
 ```bash
-scitex-cloud app init ./my_app --name my_app --frontend react
+scitex-hub app init ./my_app --name my_app --frontend react
 ```
 
 Generated apps automatically consume scitex-ui components and scitex-app SDK.
-Apps work both standalone and as scitex-cloud extensions (dual-mode).
+Apps work both standalone and as scitex-hub extensions (dual-mode).
 
 ## Future: AI Chat Extraction
 
 The `_global-ai-chat` component is a candidate for extraction:
 - **scitex-ui**: Chat UI component (message list, input, streaming display)
 - **scitex-app**: Already has `_chat` module (Anthropic/LiteLLM backends, SSE streaming, Django views)
-- **scitex-cloud**: Thin wrapper connecting WebSocket auth + workspace context
+- **scitex-hub**: Thin wrapper connecting WebSocket auth + workspace context
 
-This would let standalone apps have AI chat without depending on scitex-cloud's Django WebSocket.
+This would let standalone apps have AI chat without depending on scitex-hub's Django WebSocket.
 
 <!-- EOF -->

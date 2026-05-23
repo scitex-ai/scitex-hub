@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: /home/ywatanabe/proj/scitex-cloud/apps/docs_app/views.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/docs_app/views.py
 
 from pathlib import Path
 
@@ -269,13 +269,13 @@ def docs_export(request, slug):
 
     if slug == "all":
         markdown = _export_all_pages(request, ver)
-        filename = f"scitex-cloud-v{ver}-docs-all.md"
+        filename = f"scitex-hub-v{ver}-docs-all.md"
     else:
         page = _PAGES_BY_SLUG.get(slug)
         if not page:
             raise Http404(f"Documentation page '{slug}' not found")
         markdown = _export_single_page(request, page)
-        filename = f"scitex-cloud-v{ver}-docs-{slug}.md"
+        filename = f"scitex-hub-v{ver}-docs-{slug}.md"
 
     response = HttpResponse(markdown, content_type="text/markdown; charset=utf-8")
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
@@ -309,7 +309,7 @@ def docs_export_batch(request):
 
     resp = HttpResponse("\n".join(parts), content_type="text/markdown; charset=utf-8")
     resp["Content-Disposition"] = (
-        f'attachment; filename="scitex-cloud-v{ver}-docs-selected.md"'
+        f'attachment; filename="scitex-hub-v{ver}-docs-selected.md"'
     )
     return resp
 

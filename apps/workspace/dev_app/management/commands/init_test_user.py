@@ -7,12 +7,12 @@ Usage:
     python manage.py init_test_user
 
 Or via Docker:
-    docker exec scitex-cloud-dev-django-1 python manage.py init_test_user
+    docker exec scitex-hub-dev-django-1 python manage.py init_test_user
 
 Environment Variables (from deployment/docker/envs/.env.dev):
-    SCITEX_CLOUD_TEST_USER_USERNAME - Test user username (default: test-user)
-    SCITEX_CLOUD_TEST_USER_PASSWORD - Test user password (default: Password123!)
-    SCITEX_CLOUD_TEST_USER_EMAIL    - Test user email (default: test@example.com)
+    SCITEX_HUB_TEST_USER_USERNAME - Test user username (default: test-user)
+    SCITEX_HUB_TEST_USER_PASSWORD - Test user password (default: Password123!)
+    SCITEX_HUB_TEST_USER_EMAIL    - Test user email (default: test@example.com)
 """
 
 import logging
@@ -24,9 +24,9 @@ from django.core.management.base import BaseCommand
 logger = logging.getLogger(__name__)
 
 # Default values from environment variables
-DEFAULT_USERNAME = os.getenv("SCITEX_CLOUD_TEST_USER_USERNAME", "test-user")
-DEFAULT_PASSWORD = os.getenv("SCITEX_CLOUD_TEST_USER_PASSWORD", "Password123!")
-DEFAULT_EMAIL = os.getenv("SCITEX_CLOUD_TEST_USER_EMAIL", "test@example.com")
+DEFAULT_USERNAME = os.getenv("SCITEX_HUB_TEST_USER_USERNAME", "test-user")
+DEFAULT_PASSWORD = os.getenv("SCITEX_HUB_TEST_USER_PASSWORD", "Password123!")
+DEFAULT_EMAIL = os.getenv("SCITEX_HUB_TEST_USER_EMAIL", "test@example.com")
 
 
 class Command(BaseCommand):
@@ -43,7 +43,7 @@ class Command(BaseCommand):
             "--password",
             type=str,
             default=DEFAULT_PASSWORD,
-            help="Password for the test user (from SCITEX_CLOUD_TEST_USER_PASSWORD)",
+            help="Password for the test user (from SCITEX_HUB_TEST_USER_PASSWORD)",
         )
         parser.add_argument(
             "--email",

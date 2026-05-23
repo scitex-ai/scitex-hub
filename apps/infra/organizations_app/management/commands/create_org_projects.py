@@ -26,10 +26,10 @@ GITEA_BASE_URL = "http://gitea:3000"  # Docker internal URL
 # Define the organization projects with multiple remote sources
 SCITEX_PROJECTS = [
     {
-        "name": "scitex-cloud",
-        "slug": "scitex-cloud",
-        "description": "SciTeX Cloud - Web platform for scientific research workflow management",
-        "source_url": "https://github.com/scitex-ai/scitex-cloud",
+        "name": "scitex-hub",
+        "slug": "scitex-hub",
+        "description": "SciTeX Hub - Web platform for scientific research workflow management",
+        "source_url": "https://github.com/scitex-ai/scitex-hub",
         "primary_language": "Python",
     },
     {

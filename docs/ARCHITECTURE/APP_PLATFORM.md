@@ -1,10 +1,10 @@
 # SciTeX App Platform -- Platform-Side Architecture
 
-scitex-cloud is the host platform that discovers, validates, and mounts third-party apps without importing any app-specific code.
+scitex-hub is the host platform that discovers, validates, and mounts third-party apps without importing any app-specific code.
 
 ## Core Principle: App Ignorance
 
-scitex-cloud must never `import figrecipe`, `import my_cool_app`, or reference any app by name in its core logic. All app interaction flows through generic interfaces:
+scitex-hub must never `import figrecipe`, `import my_cool_app`, or reference any app by name in its core logic. All app interaction flows through generic interfaces:
 
 - **Manifest-driven registration** -- apps declare themselves via `manifest.json`
 - **Entry-point discovery** -- pip-installed apps register via `scitex_modules` entry points
@@ -40,7 +40,7 @@ class ModuleConfig:
 
 ## URL Mounting Pattern
 
-Apps mount at `/apps/<name>/` by default. The platform's `config/urls.py` includes each registered app's URL patterns. For apps with a Django-side package (like figrecipe), scitex-cloud provides a thin wrapper that injects platform context:
+Apps mount at `/apps/<name>/` by default. The platform's `config/urls.py` includes each registered app's URL patterns. For apps with a Django-side package (like figrecipe), scitex-hub provides a thin wrapper that injects platform context:
 
 ```
 /apps/figrecipe/figrecipe/<endpoint>
@@ -56,11 +56,11 @@ The `_inject_project_context(request)` function in each app's URL wrapper:
 2. Injects `working_dir` into `request.GET` so the app can locate files
 3. Passes through to the app's own `api_dispatch` unchanged
 
-This is the **only** place scitex-cloud touches app internals -- and it does so generically.
+This is the **only** place scitex-hub touches app internals -- and it does so generically.
 
 ## Runtime Context Provided to Apps
 
-scitex-cloud provides these values to any mounted app:
+scitex-hub provides these values to any mounted app:
 
 | Context         | Source                          | Access                        |
 |-----------------|---------------------------------|-------------------------------|
@@ -100,7 +100,7 @@ Before an app is approved for the platform, `app_validator.py` runs:
 
 Validation runs against the local filesystem first; falls back to Gitea API for remote-only repos.
 
-## What scitex-cloud Does NOT Do
+## What scitex-hub Does NOT Do
 
 - Does not import app Python packages in core code
 - Does not hardcode app names in URL routing

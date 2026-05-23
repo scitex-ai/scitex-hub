@@ -192,7 +192,7 @@ if __name__ == "__main__":
 #     """
 #     Automatically delete Gitea repository when a Django Project is deleted.
 #
-#     Ensures that deleting a project from SciTeX Cloud also removes the
+#     Ensures that deleting a project from SciTeX Hub also removes the
 #     corresponding repository from Gitea to maintain consistency.
 #
 #     Args:

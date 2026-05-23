@@ -19,7 +19,7 @@ def test_audit_all_clean():
 
     try:
         audit_all_for_package(
-            "scitex-cloud",
+            "scitex-hub",
             skip_rules=(
                 "PS102",
                 "PS105",

@@ -29,11 +29,11 @@ describe('doctype-config', () => {
 //  * Doctype Configuration Module
 //  * Contains doctype-to-directory mappings and file handling configurations
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/writer/config/doctype-config.ts loaded"
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/writer/config/doctype-config.ts loaded"
 // );
-// 
+//
 // // Mapping: doctype -> directory path
 // export const doctypeToDirectory: Record<string, string> = {
 //   shared: "scitex/writer/00_shared",
@@ -41,7 +41,7 @@ describe('doctype-config', () => {
 //   supplementary: "scitex/writer/02_supplementary",
 //   revision: "scitex/writer/03_revision",
 // };
-// 
+//
 // // Files to skip when building section list
 // export const skipFiles: string[] = [
 //   "wordcount.tex",
@@ -49,7 +49,7 @@ describe('doctype-config', () => {
 //   "base.tex",
 //   "main.tex",
 // ];
-// 
+//
 // // Directories to skip when looking for sections (non-content directories)
 // export const skipDirs: string[] = [
 //   "figures",
@@ -60,7 +60,7 @@ describe('doctype-config', () => {
 //   "wordcounts",
 //   "logs",
 // ];
-// 
+//
 // // Non-editable files (view-only, no preview compilation)
 // export const nonEditableFiles: string[] = [
 //   // Full manuscripts
@@ -77,7 +77,7 @@ describe('doctype-config', () => {
 //   "main.tex",
 //   "shared.tex",
 // ];
-// 
+//
 // // Doctype directory names for filtering
 // export const doctypeDirs: string[] = [
 //   "00_shared",
@@ -85,7 +85,7 @@ describe('doctype-config', () => {
 //   "02_supplementary",
 //   "03_revision",
 // ];
-// 
+//
 // // System directories to hide in file tree
 // export const systemDirs: string[] = [
 //   "ai",
@@ -96,7 +96,7 @@ describe('doctype-config', () => {
 //   "tests",
 //   "texts",
 // ];
-// 
+//
 // /**
 //  * Check if a file is non-editable (read-only)
 //  */
@@ -104,14 +104,14 @@ describe('doctype-config', () => {
 //   const fileName = path.split("/").pop();
 //   return fileName ? nonEditableFiles.includes(fileName) : false;
 // };
-// 
+//
 // /**
 //  * Get directory path for a doctype
 //  */
 // export const getDoctypePath = (doctype: string): string | undefined => {
 //   return doctypeToDirectory[doctype];
 // };
-// 
+//
 // /**
 //  * Get doctype from a file path
 //  */

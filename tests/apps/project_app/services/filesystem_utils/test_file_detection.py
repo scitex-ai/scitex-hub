@@ -26,7 +26,7 @@ if __name__ == "__main__":
 # Start of Source Code from: apps/project_app/services/filesystem_utils/file_detection.py
 # --------------------------------------------------------------------------------
 # """
-# SciTeX Cloud - File Detection Utilities
+# SciTeX Hub - File Detection Utilities
 #
 # File type detection, hashing, and validation utilities.
 # """

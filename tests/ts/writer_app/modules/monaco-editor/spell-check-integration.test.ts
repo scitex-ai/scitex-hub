@@ -29,20 +29,20 @@ describe('spell-check-integration', () => {
 //  * Spell Check Integration Module
 //  * Manages spell checking functionality
 //  */
-// 
+//
 // import { SpellChecker } from "../spell-checker";
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/monaco-editor/spell-check-integration.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/modules/monaco-editor/spell-check-integration.ts loaded",
 // );
-// 
+//
 // export class SpellCheckIntegration {
 //   private spellChecker?: SpellChecker;
-// 
+//
 //   constructor(spellChecker: SpellChecker | undefined) {
 //     this.spellChecker = spellChecker;
 //   }
-// 
+//
 //   /**
 //    * Enable spell checking
 //    */
@@ -52,7 +52,7 @@ describe('spell-check-integration', () => {
 //       console.log("[Editor] Spell check enabled");
 //     }
 //   }
-// 
+//
 //   /**
 //    * Disable spell checking
 //    */
@@ -62,7 +62,7 @@ describe('spell-check-integration', () => {
 //       console.log("[Editor] Spell check disabled");
 //     }
 //   }
-// 
+//
 //   /**
 //    * Re-check all content for spelling errors
 //    */
@@ -72,7 +72,7 @@ describe('spell-check-integration', () => {
 //       console.log("[Editor] Re-checking all content");
 //     }
 //   }
-// 
+//
 //   /**
 //    * Add word to custom dictionary
 //    */
@@ -81,7 +81,7 @@ describe('spell-check-integration', () => {
 //       this.spellChecker.addToCustomDictionary(word);
 //     }
 //   }
-// 
+//
 //   /**
 //    * Clear custom spell check dictionary
 //    */

@@ -116,7 +116,7 @@ Open browser console (F12) to see:
 
 ## File Changes
 
-**Modified:** `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_detail.html`
+**Modified:** `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_detail.html`
 
 ### CSS Added (lines ~235-566):
 - `.repo-layout.sidebar-collapsed`

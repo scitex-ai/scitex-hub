@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/config/__init__.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/public_app/config/__init__.py
 """Public App Configuration Module."""
 
 from .api_docs import (

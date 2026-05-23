@@ -1,0 +1,33 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "2.0.0",
+  "name": "home",
+  "label": "Home",
+  "app_name": "repo_app",
+  "icon": "fas fa-home",
+  "description": "User dashboard: profile, projects, and current project workspace.",
+  "version": "0.14.0",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "H",
+  "order": 10,
+  "accent_color": "home",
+  "body_class": "home-page",
+  "partial_template": "repo_app/index_partial.html",
+  "context_builder": "apps.workspace.repo_app.views.index.build_hub_context",
+  "url": "/apps/home/",
+  "ai_hint": "User dashboard: profile, projects, and current project workspace.",
+  "allowed_extensions": [],
+  "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+  "privileges": [
+    {"type": "filesystem", "scope": "projects", "reason": "List and manage user projects"}
+  ],
+  "builtin": true,
+  "dependencies": {
+    "python": [],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}

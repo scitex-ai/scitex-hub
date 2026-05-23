@@ -11,7 +11,7 @@
 
 set -e
 
-CONTAINER="scitex-cloud-prod-django-1"
+CONTAINER="scitex-hub-prod-django-1"
 PROD_HOME="/home/ywatanabe"
 
 echo "Copying demo media files to container volume..."

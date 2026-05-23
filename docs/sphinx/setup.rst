@@ -1,12 +1,12 @@
 Setup Guide
 ===========
 
-Deploy SciTeX Cloud anywhere: local development, home server, or cloud.
+Deploy SciTeX Hub anywhere: local development, home server, or cloud.
 
 What You Get
 ------------
 
-SciTeX Cloud is a self-hostable research platform. One ``make start`` gives you:
+SciTeX Hub is a self-hostable research platform. One ``make start`` gives you:
 
 - **Scholar** — Literature search across CrossRef, PubMed, arXiv, and OpenAlex. BibTeX management and citation tracking.
 - **Writer** — LaTeX manuscript editor with BibTeX integration, figure/table management, and IMRAD templates.
@@ -38,8 +38,8 @@ Three commands to get running:
 
 .. code-block:: bash
 
-   git clone https://github.com/ywatanabe1989/scitex-cloud.git
-   cd scitex-cloud
+   git clone https://github.com/ywatanabe1989/scitex-hub.git
+   cd scitex-hub
    make start
 
 This pulls Docker images, builds containers, runs migrations, and creates a test user.
@@ -57,8 +57,8 @@ Step-by-Step Development Setup
 
 .. code-block:: bash
 
-   git clone https://github.com/ywatanabe1989/scitex-cloud.git
-   cd scitex-cloud
+   git clone https://github.com/ywatanabe1989/scitex-hub.git
+   cd scitex-hub
 
 2. **Create environment file**
 
@@ -73,10 +73,10 @@ Edit ``.env.dev`` and set at minimum:
 .. code-block:: bash
 
    # Generate a secret key
-   SCITEX_CLOUD_DJANGO_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')
+   SCITEX_HUB_DJANGO_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')
 
    # Database password (any strong password)
-   SCITEX_CLOUD_POSTGRES_PASSWORD=your-dev-password
+   SCITEX_HUB_POSTGRES_PASSWORD=your-dev-password
 
 4. **Start services**
 
@@ -116,19 +116,19 @@ For deploying on a home server, NAS, or VPS.
 .. code-block:: bash
 
    # Required changes for production
-   SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
+   SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
    DEBUG=False
-   SCITEX_CLOUD_DOMAIN=scitex.example.com
-   SCITEX_CLOUD_SITE_URL=https://scitex.example.com
-   SCITEX_CLOUD_ALLOWED_HOSTS=scitex.example.com
+   SCITEX_HUB_DOMAIN=scitex.example.com
+   SCITEX_HUB_SITE_URL=https://scitex.example.com
+   SCITEX_HUB_ALLOWED_HOSTS=scitex.example.com
 
    # Strong passwords
-   SCITEX_CLOUD_DJANGO_SECRET_KEY=<generate-new-secret>
-   SCITEX_CLOUD_POSTGRES_PASSWORD=<strong-db-password>
+   SCITEX_HUB_DJANGO_SECRET_KEY=<generate-new-secret>
+   SCITEX_HUB_POSTGRES_PASSWORD=<strong-db-password>
 
    # SSL
-   SCITEX_CLOUD_ENABLE_SSL_REDIRECT=true
-   SCITEX_CLOUD_FORCE_HTTPS_COOKIES=true
+   SCITEX_HUB_ENABLE_SSL_REDIRECT=true
+   SCITEX_HUB_FORCE_HTTPS_COOKIES=true
 
 4. **Start production services**
 
@@ -148,29 +148,29 @@ Use the CLI and MCP server without Docker:
 
 .. code-block:: bash
 
-   pip install scitex-cloud           # CLI only
-   pip install scitex-cloud[mcp]      # CLI + MCP server
-   pip install scitex-cloud[all]      # Everything
+   pip install scitex-hub           # CLI only
+   pip install scitex-hub[mcp]      # CLI + MCP server
+   pip install scitex-hub[all]      # Everything
 
 Verify:
 
 .. code-block:: bash
 
-   scitex-cloud --version
-   scitex-cloud --help
+   scitex-hub --version
+   scitex-hub --help
 
 MCP server for AI agents:
 
 .. code-block:: bash
 
-   scitex-cloud mcp start             # Start MCP server
-   scitex-cloud mcp doctor            # Diagnose setup
-   scitex-cloud mcp installation      # Client config instructions
+   scitex-hub mcp start             # Start MCP server
+   scitex-hub mcp doctor            # Diagnose setup
+   scitex-hub mcp installation      # Client config instructions
 
 Configuration Reference
 -----------------------
 
-All environment variables use the ``SCITEX_CLOUD_`` prefix.
+All environment variables use the ``SCITEX_HUB_`` prefix.
 
 .. list-table::
    :header-rows: 1
@@ -179,25 +179,25 @@ All environment variables use the ``SCITEX_CLOUD_`` prefix.
    * - Variable
      - Required
      - Description
-   * - ``SCITEX_CLOUD_DJANGO_SECRET_KEY``
+   * - ``SCITEX_HUB_DJANGO_SECRET_KEY``
      - Yes
      - Django secret key (generate unique per deployment)
-   * - ``SCITEX_CLOUD_POSTGRES_PASSWORD``
+   * - ``SCITEX_HUB_POSTGRES_PASSWORD``
      - Yes
      - PostgreSQL database password
-   * - ``SCITEX_CLOUD_DOMAIN``
+   * - ``SCITEX_HUB_DOMAIN``
      - Prod
      - Your domain (e.g., ``scitex.example.com``)
-   * - ``SCITEX_CLOUD_SITE_URL``
+   * - ``SCITEX_HUB_SITE_URL``
      - Prod
      - Full URL (e.g., ``https://scitex.example.com``)
-   * - ``SCITEX_CLOUD_ALLOWED_HOSTS``
+   * - ``SCITEX_HUB_ALLOWED_HOSTS``
      - Prod
      - Comma-separated allowed hostnames
-   * - ``SCITEX_CLOUD_ENABLE_SSL_REDIRECT``
+   * - ``SCITEX_HUB_ENABLE_SSL_REDIRECT``
      - Prod
      - Set ``true`` for HTTPS
-   * - ``SCITEX_CLOUD_GITEA_TOKEN_DEV``
+   * - ``SCITEX_HUB_GITEA_TOKEN_DEV``
      - No
      - Gitea API token for Git integration
 
@@ -234,7 +234,7 @@ Common Commands
 Architecture
 ------------
 
-SciTeX Cloud runs as a set of Docker containers:
+SciTeX Hub runs as a set of Docker containers:
 
 ::
 
@@ -269,7 +269,7 @@ Troubleshooting
    # Check what's using port 8000
    lsof -i :8000
    # Or change the port in .env
-   SCITEX_CLOUD_HTTP_PORT_DEV=8080
+   SCITEX_HUB_HTTP_PORT_DEV=8080
 
 **Docker permission denied**
 

@@ -29,11 +29,11 @@ describe('formatting', () => {
 //  * Font Size Formatting Module
 //  * Handles font size management for all editors
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/editor-controls/formatting.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/modules/editor-controls/formatting.ts loaded",
 // );
-// 
+//
 // export class FontSizeFormatter {
 //   private currentFontSize: number = 14;
 //   private defaultFontSize: number = 14;
@@ -41,7 +41,7 @@ describe('formatting', () => {
 //   private latexEditor: HTMLTextAreaElement | null;
 //   private editor: any;
 //   private pdfPreviewManager: any;
-// 
+//
 //   constructor(
 //     latexEditor: HTMLTextAreaElement | null,
 //     editor: any,
@@ -51,14 +51,14 @@ describe('formatting', () => {
 //     this.editor = editor;
 //     this.pdfPreviewManager = pdfPreviewManager;
 //   }
-// 
+//
 //   /**
 //    * Load font size from localStorage
 //    */
 //   public loadFontSize(): number {
 //     const saved = localStorage.getItem(this.storageFontSizeKey);
 //     let fontSize = saved ? parseInt(saved, 10) : this.defaultFontSize;
-// 
+//
 //     // Ensure minimum font size of 12px for readability
 //     if (fontSize < 12) {
 //       console.warn(
@@ -67,14 +67,14 @@ describe('formatting', () => {
 //       fontSize = 12;
 //       localStorage.setItem(this.storageFontSizeKey, "12");
 //     }
-// 
+//
 //     this.currentFontSize = fontSize;
 //     this.applyFontSizeToAllEditors(fontSize);
-// 
+//
 //     console.log(`[FontSizeFormatter] Loaded font size: ${fontSize}px`);
 //     return fontSize;
 //   }
-// 
+//
 //   /**
 //    * Update font size and apply changes
 //    */
@@ -84,7 +84,7 @@ describe('formatting', () => {
 //     localStorage.setItem(this.storageFontSizeKey, fontSize.toString());
 //     console.log(`[FontSizeFormatter] Font size changed to ${fontSize}px`);
 //   }
-// 
+//
 //   /**
 //    * Apply font size to all editors (Monaco, CodeMirror, PDF)
 //    */
@@ -93,7 +93,7 @@ describe('formatting', () => {
 //     if (this.latexEditor) {
 //       this.latexEditor.style.fontSize = `${fontSize}px`;
 //     }
-// 
+//
 //     // Update Monaco editor if available
 //     if (
 //       this.editor &&
@@ -105,26 +105,26 @@ describe('formatting', () => {
 //         monacoInstance.updateOptions({ fontSize: fontSize });
 //       }
 //     }
-// 
+//
 //     // Update CodeMirror if available
 //     const cmElement = document.querySelector(".CodeMirror") as HTMLElement;
 //     if (cmElement) {
 //       cmElement.style.fontSize = `${fontSize}px`;
 //     }
-// 
+//
 //     // Update PDF compilation font size
 //     if (this.pdfPreviewManager && this.pdfPreviewManager.setFontSize) {
 //       this.pdfPreviewManager.setFontSize(fontSize);
 //     }
 //   }
-// 
+//
 //   /**
 //    * Get current font size
 //    */
 //   public getFontSize(): number {
 //     return this.currentFontSize;
 //   }
-// 
+//
 //   /**
 //    * Set font size programmatically
 //    */

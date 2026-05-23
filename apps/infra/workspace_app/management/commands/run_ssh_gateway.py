@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-11-14 20:40:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/apps/workspace_app/management/commands/run_ssh_gateway.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/workspace_app/management/commands/run_ssh_gateway.py
 # ----------------------------------------
 """
 Django management command to run SSH gateway for user workspaces.
@@ -294,7 +294,7 @@ def handle_client(client: socket.socket, addr: tuple, host_key: paramiko.RSAKey)
         # Send welcome message
         welcome_msg = (
             f"\r\n"
-            f"Welcome to SciTeX Cloud Workspace, {server.username}!\r\n"
+            f"Welcome to SciTeX Hub Workspace, {server.username}!\r\n"
             f"Container: {container.name}\r\n"
             f"\r\n"
         )

@@ -28,7 +28,7 @@ if __name__ == "__main__":
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
 # # Timestamp: "2025-11-29 07:00:00 (ywatanabe)"
-# # File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/views/status/health_checks.py
+# # File: /home/ywatanabe/proj/scitex-hub/apps/public_app/views/status/health_checks.py
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
@@ -60,8 +60,8 @@ if __name__ == "__main__":
 #     try:
 #         import docker
 #         client = docker.from_env()
-#         scitex_env = os.environ.get("SCITEX_CLOUD_ENV", "dev")
-#         container_name_prefix = f"scitex-cloud-{scitex_env}"
+#         scitex_env = os.environ.get("SCITEX_HUB_ENV", "dev")
+#         container_name_prefix = f"scitex-hub-{scitex_env}"
 #         containers = client.containers.list(all=True, filters={"name": container_name_prefix})
 #
 #         for container in containers:
@@ -81,7 +81,7 @@ if __name__ == "__main__":
 #                 health_class = "healthy" if is_running else "down"
 #
 #             status_data["services"].append({
-#                 "name": container.name.replace("scitex-cloud-dev-", "").replace("-1", ""),
+#                 "name": container.name.replace("scitex-hub-dev-", "").replace("-1", ""),
 #                 "status": container.status,
 #                 "display_status": display_status,
 #                 "health_status": health_status,
@@ -135,7 +135,7 @@ if __name__ == "__main__":
 #         })
 #
 #     # Gitea SSH
-#     gitea_ssh_port = int(getattr(settings, 'SCITEX_CLOUD_GITEA_SSH_PORT', 2222))
+#     gitea_ssh_port = int(getattr(settings, 'SCITEX_HUB_GITEA_SSH_PORT', 2222))
 #     try:
 #         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 #         sock.settimeout(1)

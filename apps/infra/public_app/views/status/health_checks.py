@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-11-29 07:00:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/views/status/health_checks.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/public_app/views/status/health_checks.py
 # ----------------------------------------
 from __future__ import annotations
 
@@ -36,8 +36,8 @@ def check_docker_containers(status_data):
         import docker
 
         client = docker.from_env()
-        scitex_env = os.environ.get("SCITEX_CLOUD_ENV", "dev")
-        container_name_prefix = f"scitex-cloud-{scitex_env}"
+        scitex_env = os.environ.get("SCITEX_HUB_ENV", "dev")
+        container_name_prefix = f"scitex-hub-{scitex_env}"
         containers = client.containers.list(
             all=True, filters={"name": container_name_prefix}
         )
@@ -60,7 +60,7 @@ def check_docker_containers(status_data):
 
             status_data["services"].append(
                 {
-                    "name": container.name.replace("scitex-cloud-dev-", "").replace(
+                    "name": container.name.replace("scitex-hub-dev-", "").replace(
                         "-1", ""
                     ),
                     "status": container.status,
@@ -149,7 +149,7 @@ def check_ssh_services(status_data):
     gitea_ssh_port = (
         22
         if Path("/.dockerenv").exists()
-        else int(getattr(settings, "SCITEX_CLOUD_GITEA_SSH_PORT", 2222))
+        else int(getattr(settings, "SCITEX_HUB_GITEA_SSH_PORT", 2222))
     )
     is_functional, banner_or_error = _check_ssh_banner(gitea_ssh_host, gitea_ssh_port)
     status_data["ssh_services"].append(

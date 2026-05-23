@@ -93,9 +93,9 @@ try_editable_install "/scitex-app" "scitex-app"
 # Install scitex-container (required: terminal broker needs scitex_container.apptainer)
 try_editable_install "/scitex-container" "scitex-container"
 
-# Install scitex-cloud itself in editable mode
+# Install scitex-hub itself in editable mode
 if [ -f "/app/pyproject.toml" ]; then
-    echo_info "Installing scitex-cloud (editable)..."
+    echo_info "Installing scitex-hub (editable)..."
     uv pip install -e "/app" --link-mode=copy 2>&1 || true
 fi
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Timestamp: 2026-03-09
-# File: /home/ywatanabe/proj/scitex-cloud/config/urls_legacy_redirects.py
+# File: /home/ywatanabe/proj/scitex-hub/config/urls_legacy_redirects.py
 """
 Legacy redirect patterns: /<app>/ → /apps/<app>/
 Extracted from config/urls.py to eliminate 11 copy-paste blocks.

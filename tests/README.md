@@ -1,4 +1,4 @@
-# SciTeX Cloud Test Suite
+# SciTeX Hub Test Suite
 
 ## Directory Structure
 

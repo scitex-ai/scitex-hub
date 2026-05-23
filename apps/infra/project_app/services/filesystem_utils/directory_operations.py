@@ -1,5 +1,5 @@
 """
-SciTeX Cloud - Directory Operations
+SciTeX Hub - Directory Operations
 
 Directory listing, statistics, and searching utilities.
 """

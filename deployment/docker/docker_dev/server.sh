@@ -8,7 +8,7 @@ THIS_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 
 GIT_ROOT="$(git rev-parse --show-toplevel 2> /dev/null)"
 if [ -z "$GIT_ROOT" ]; then
-    echo -e "ERROR: Not in a git repository. Please run from within scitex-cloud directory."
+    echo -e "ERROR: Not in a git repository. Please run from within scitex-hub directory."
     exit 1
 fi
 
@@ -87,10 +87,10 @@ verify_env_setup() {
     source "$DOCKER_DIR"/.env 2> /dev/null
 
     local critical_vars=(
-        "SCITEX_CLOUD_GITEA_URL_IN_CONTAINER_DEV"
-        "SCITEX_CLOUD_DB_HOST_DEV"
-        "SCITEX_CLOUD_POSTGRES_DB"
-        "SCITEX_CLOUD_POSTGRES_USER"
+        "SCITEX_HUB_GITEA_URL_IN_CONTAINER_DEV"
+        "SCITEX_HUB_DB_HOST_DEV"
+        "SCITEX_HUB_POSTGRES_DB"
+        "SCITEX_HUB_POSTGRES_USER"
     )
 
     for var_name in "${critical_vars[@]}"; do
@@ -102,13 +102,13 @@ verify_env_setup() {
     echo_success "All critical variables are set"
 
     # Verify Gitea URL uses Docker networking
-    if [[ "$SCITEX_CLOUD_GITEA_URL_IN_CONTAINER_DEV" == *"127.0.0.1"* ]]; then
-        echo_error "SCITEX_CLOUD_GITEA_URL_IN_CONTAINER_DEV uses 127.0.0.1 (should use 'gitea' for Docker networking)"
-        echo_info "Current value: $SCITEX_CLOUD_GITEA_URL_IN_CONTAINER_DEV"
+    if [[ "$SCITEX_HUB_GITEA_URL_IN_CONTAINER_DEV" == *"127.0.0.1"* ]]; then
+        echo_error "SCITEX_HUB_GITEA_URL_IN_CONTAINER_DEV uses 127.0.0.1 (should use 'gitea' for Docker networking)"
+        echo_info "Current value: $SCITEX_HUB_GITEA_URL_IN_CONTAINER_DEV"
         echo_info "Expected: http://gitea:3000"
         return 1
     fi
-    echo_success "Gitea URL uses Docker networking: $SCITEX_CLOUD_GITEA_URL_IN_CONTAINER_DEV"
+    echo_success "Gitea URL uses Docker networking: $SCITEX_HUB_GITEA_URL_IN_CONTAINER_DEV"
 
     return 0
 }
@@ -151,12 +151,12 @@ list_env_dev() {
     source .env 2> /dev/null || true
 
     REQUIRED_ENV_VARS=(
-        "SCITEX_CLOUD_ENV"
-        "SCITEX_CLOUD_HTTP_PORT_DEV"
-        "SCITEX_CLOUD_GITEA_HTTP_PORT_DEV"
-        "SCITEX_CLOUD_POSTGRES_USER"
-        "SCITEX_CLOUD_POSTGRES_DB"
-        "SCITEX_CLOUD_TEST_USER_PASSWORD"
+        "SCITEX_HUB_ENV"
+        "SCITEX_HUB_HTTP_PORT_DEV"
+        "SCITEX_HUB_GITEA_HTTP_PORT_DEV"
+        "SCITEX_HUB_POSTGRES_USER"
+        "SCITEX_HUB_POSTGRES_DB"
+        "SCITEX_HUB_TEST_USER_PASSWORD"
     )
 
     SENSITIVE_VARS=(
@@ -230,7 +230,7 @@ validate_required_files() {
     if [ ! -d "$SCITEX_CODE_DIR" ]; then
         echo_warning "scitex-code directory not found at $SCITEX_CODE_DIR"
         echo_info "The scitex package will not be available in editable mode"
-        echo_info "To fix: clone scitex-code in the same parent directory as scitex-cloud"
+        echo_info "To fix: clone scitex-code in the same parent directory as scitex-hub"
     else
         echo_success "scitex-code found"
     fi
@@ -300,7 +300,7 @@ stop_conflicting_services() {
         sudo systemctl stop gitea 2> /dev/null || true
 
         GITEA_PID=$(
-            sudo lsof -ti :${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000} \
+            sudo lsof -ti :${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000} \
                 2> /dev/null
         )
         if [ ! -z "$GITEA_PID" ]; then
@@ -311,7 +311,7 @@ stop_conflicting_services() {
     else
         # Try without sudo for processes owned by current user
         GITEA_PID=$(
-            lsof -ti :${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000} \
+            lsof -ti :${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000} \
                 2> /dev/null || true
         )
         if [ ! -z "$GITEA_PID" ]; then
@@ -324,48 +324,48 @@ stop_conflicting_services() {
 
 verify_ports_free() {
     for ii in {1..3}; do
-        if lsof -i :${SCITEX_CLOUD_HTTP_PORT_DEV:-8000} \
+        if lsof -i :${SCITEX_HUB_HTTP_PORT_DEV:-8000} \
             > /dev/null 2>&1; then
             echo_warning \
-                "Port ${SCITEX_CLOUD_HTTP_PORT_DEV:-8000} " \
+                "Port ${SCITEX_HUB_HTTP_PORT_DEV:-8000} " \
                 "still in use, waiting..."
             sleep 2
         else
             echo_success \
-                "Port ${SCITEX_CLOUD_HTTP_PORT_DEV:-8000} " \
+                "Port ${SCITEX_HUB_HTTP_PORT_DEV:-8000} " \
                 "is free (HTTP)"
             break
         fi
     done
 
     for ii in {1..3}; do
-        if lsof -i :${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000} \
+        if lsof -i :${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000} \
             > /dev/null 2>&1; then
             echo_warning \
-                "Port ${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000} " \
+                "Port ${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000} " \
                 "still in use, killing..."
             fuser -k \
-                ${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000}/tcp \
+                ${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000}/tcp \
                 2> /dev/null || true
             pkill -f gitea || true
             killall gitea 2> /dev/null || true
             GITEA_CONTAINER=$(
                 docker ps \
                     | grep \
-                        "0.0.0.0:${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000}" \
+                        "0.0.0.0:${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000}" \
                     | awk '{print $1}'
             )
             if [ ! -z "$GITEA_CONTAINER" ]; then
                 echo_warning \
                     "Found Docker container on port " \
-                    "${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000}, " \
+                    "${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000}, " \
                     "stopping..."
                 docker stop $GITEA_CONTAINER || true
             fi
             sleep 2
         else
             echo_success \
-                "Port ${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000} " \
+                "Port ${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000} " \
                 "is free (Gitea)"
             break
         fi
@@ -376,25 +376,25 @@ cleanup_containers() {
     echo_info "Cleaning up old containers..."
     docker compose -f docker-compose.yml down
     docker rm -f \
-        scitex-cloud-dev-db-1 scitex-cloud-dev-django-1 scitex-cloud-dev-redis-1 scitex-cloud-dev-gitea-1 \
+        scitex-hub-dev-db-1 scitex-hub-dev-django-1 scitex-hub-dev-redis-1 scitex-hub-dev-gitea-1 \
         2> /dev/null || true
 }
 
 check_database_credentials() {
-    if docker ps | grep -q scitex-cloud-dev-db-1; then
+    if docker ps | grep -q scitex-hub-dev-db-1; then
         echo_success "Database already running, skipping check"
         return 0
     fi
 
-    if docker volume inspect scitex-cloud-dev_postgres_data \
+    if docker volume inspect scitex-hub-dev_postgres_data \
         > /dev/null 2>&1; then
         echo_info \
             "Database volume exists, checking credentials..."
         docker compose -f docker-compose.yml up -d db
         sleep 3
         if ! docker compose -f docker-compose.yml exec -T db \
-            psql -U "${SCITEX_CLOUD_POSTGRES_USER:-scitex_dev}" \
-            -d "${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud_dev}" \
+            psql -U "${SCITEX_HUB_POSTGRES_USER:-scitex_dev}" \
+            -d "${SCITEX_HUB_POSTGRES_DB:-scitex_hub_dev}" \
             -c "SELECT 1" > /dev/null 2>&1; then
             echo_warning \
                 "Credentials mismatch. " \
@@ -423,28 +423,28 @@ rebuild_and_nuclear_cleanup() {
     docker network prune -f || true
     docker ps -aq \
         --filter \
-        "publish=${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000}" \
+        "publish=${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000}" \
         | xargs -r docker rm -f 2> /dev/null || true
     fuser -k \
-        ${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000}/tcp \
+        ${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000}/tcp \
         2> /dev/null || true
     docker system prune -f || true
     sleep 3
 
-    if lsof -i :${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000} \
+    if lsof -i :${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000} \
         > /dev/null 2>&1; then
         echo_error \
-            "Port ${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000} " \
+            "Port ${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000} " \
             "STILL in use!"
         echo_info \
             "Manual: " \
             "sudo lsof -i :" \
-            "${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000}"
+            "${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000}"
         return 1
     fi
 
     if netstat -tlnp 2> /dev/null \
-        | grep ":${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000}" \
+        | grep ":${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000}" \
         | grep -q "docker-proxy"; then
         echo_error \
             "Docker userland proxy stale binding detected"
@@ -460,7 +460,7 @@ rebuild_and_nuclear_cleanup() {
     fi
 
     echo_success \
-        "Port ${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000} " \
+        "Port ${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000} " \
         "confirmed free"
 }
 
@@ -468,7 +468,7 @@ cleanup_corrupted_containers() {
     echo_header "Cleaning up any corrupted containers..."
 
     # Remove any containers in a bad state (exited status)
-    local bad_containers=$(docker ps -a --filter "status=exited" --format "{{.Names}}" | grep "^scitex-cloud-dev-")
+    local bad_containers=$(docker ps -a --filter "status=exited" --format "{{.Names}}" | grep "^scitex-hub-dev-")
 
     if [ -n "$bad_containers" ]; then
         echo_warning "Found corrupted containers, removing: $bad_containers"
@@ -494,7 +494,7 @@ wait_for_services_healthy() {
     echo_header "Waiting for Gitea to be ready..."
     timeout 60 bash -c \
         'until docker compose -f docker-compose.yml ps | \
-        grep scitex-cloud-dev-gitea-1 | \
+        grep scitex-hub-dev-gitea-1 | \
         grep -q "(healthy)"; do \
         sleep 2; \
         done' \
@@ -511,34 +511,34 @@ verify_and_test_endpoints() {
 
     echo_info "Testing endpoints..."
     curl -I \
-        http://localhost:${SCITEX_CLOUD_HTTP_PORT_DEV:-8000}
+        http://localhost:${SCITEX_HUB_HTTP_PORT_DEV:-8000}
     curl -I \
-        http://localhost:${SCITEX_CLOUD_HTTP_PORT_DEV:-8000}/admin/
+        http://localhost:${SCITEX_HUB_HTTP_PORT_DEV:-8000}/admin/
     curl -I \
-        http://localhost:${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000}
+        http://localhost:${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000}
 
     echo -e ""
     echo_success "Access Information:"
-    echo_success "Django:  http://localhost:${SCITEX_CLOUD_HTTP_PORT_DEV:-8000}"
-    echo_success "Gitea:   http://localhost:${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000}"
+    echo_success "Django:  http://localhost:${SCITEX_HUB_HTTP_PORT_DEV:-8000}"
+    echo_success "Gitea:   http://localhost:${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000}"
     echo -e ""
     echo_success "Gitea Admin Login:"
-    echo_success "  Username: ${SCITEX_CLOUD_GITEA_ADMIN_USERNAME:-scitex_admin}"
-    echo_success "  Password: ${SCITEX_CLOUD_GITEA_ADMIN_PASSWORD:-scitex_admin_2025}"
+    echo_success "  Username: ${SCITEX_HUB_GITEA_ADMIN_USERNAME:-scitex_admin}"
+    echo_success "  Password: ${SCITEX_HUB_GITEA_ADMIN_PASSWORD:-scitex_admin_2025}"
 }
 
 setup_gitea_token() {
     echo_header "Setting up Gitea API token..."
 
     # Use localhost for host machine access
-    local GITEA_API_URL="http://127.0.0.1:${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000}"
+    local GITEA_API_URL="http://127.0.0.1:${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000}"
 
     # Check if token already exists in .env (single source of truth)
-    if [ -n "$SCITEX_CLOUD_GITEA_TOKEN_DEV" ]; then
+    if [ -n "$SCITEX_HUB_GITEA_TOKEN_DEV" ]; then
         echo_info "Token found in .env"
 
         # Verify token still works
-        if curl -s -f -H "Authorization: token $SCITEX_CLOUD_GITEA_TOKEN_DEV" \
+        if curl -s -f -H "Authorization: token $SCITEX_HUB_GITEA_TOKEN_DEV" \
             "${GITEA_API_URL}/api/v1/user" > /dev/null 2>&1; then
             echo_success "Existing token is valid"
             return 0
@@ -551,14 +551,14 @@ setup_gitea_token() {
     echo_info "Generating new Gitea admin token..."
 
     # Get admin credentials from environment
-    local ADMIN_USERNAME="${SCITEX_CLOUD_GITEA_ADMIN_USERNAME:-scitex_admin}"
-    local ADMIN_PASSWORD="${SCITEX_CLOUD_GITEA_ADMIN_PASSWORD:-scitex_admin_2025}"
-    local ADMIN_EMAIL="${SCITEX_CLOUD_GITEA_ADMIN_EMAIL:-admin@scitex.local}"
+    local ADMIN_USERNAME="${SCITEX_HUB_GITEA_ADMIN_USERNAME:-scitex_admin}"
+    local ADMIN_PASSWORD="${SCITEX_HUB_GITEA_ADMIN_PASSWORD:-scitex_admin_2025}"
+    local ADMIN_EMAIL="${SCITEX_HUB_GITEA_ADMIN_EMAIL:-admin@scitex.local}"
 
     # Check if admin user exists, create if not
-    if ! docker exec -u git scitex-cloud-dev-gitea-1 gitea admin user list 2> /dev/null | grep -q "$ADMIN_USERNAME"; then
+    if ! docker exec -u git scitex-hub-dev-gitea-1 gitea admin user list 2> /dev/null | grep -q "$ADMIN_USERNAME"; then
         echo_info "Creating Gitea admin user: $ADMIN_USERNAME"
-        docker exec -u git scitex-cloud-dev-gitea-1 gitea admin user create \
+        docker exec -u git scitex-hub-dev-gitea-1 gitea admin user create \
             --username "$ADMIN_USERNAME" \
             --password "$ADMIN_PASSWORD" \
             --email "$ADMIN_EMAIL" \
@@ -568,7 +568,7 @@ setup_gitea_token() {
     fi
 
     # Generate token for admin user
-    local NEW_TOKEN=$(docker exec -u git scitex-cloud-dev-gitea-1 gitea admin user generate-access-token \
+    local NEW_TOKEN=$(docker exec -u git scitex-hub-dev-gitea-1 gitea admin user generate-access-token \
         --username "$ADMIN_USERNAME" \
         --token-name "scitex-dev-$(date +%Y%m%d)" \
         --scopes "write:repository,write:user,write:admin,write:organization" \
@@ -577,10 +577,10 @@ setup_gitea_token() {
     if [ -n "$NEW_TOKEN" ]; then
         # Update .env (single source of truth)
         local ENV_FILE="$GIT_ROOT/deployment/docker/envs/.env.dev"
-        if grep -q "SCITEX_CLOUD_GITEA_TOKEN_DEV=" "$ENV_FILE"; then
-            sed -i "s|SCITEX_CLOUD_GITEA_TOKEN_DEV=.*|SCITEX_CLOUD_GITEA_TOKEN_DEV=$NEW_TOKEN|" "$ENV_FILE"
+        if grep -q "SCITEX_HUB_GITEA_TOKEN_DEV=" "$ENV_FILE"; then
+            sed -i "s|SCITEX_HUB_GITEA_TOKEN_DEV=.*|SCITEX_HUB_GITEA_TOKEN_DEV=$NEW_TOKEN|" "$ENV_FILE"
         else
-            echo -e "SCITEX_CLOUD_GITEA_TOKEN_DEV=$NEW_TOKEN" >> "$ENV_FILE"
+            echo -e "SCITEX_HUB_GITEA_TOKEN_DEV=$NEW_TOKEN" >> "$ENV_FILE"
         fi
         echo_success "Token saved to deployment/docker/envs/.env.dev"
 
@@ -597,8 +597,8 @@ verify_gitea_api() {
     echo_header "Verifying Gitea API..."
 
     # Use localhost for host machine access
-    local GITEA_URL="${SCITEX_CLOUD_GITEA_URL_IN_HOST_DEV:-http://127.0.0.1:3000}"
-    GITEA_TOKEN="${SCITEX_CLOUD_GITEA_TOKEN_DEV}"
+    local GITEA_URL="${SCITEX_HUB_GITEA_URL_IN_HOST_DEV:-http://127.0.0.1:3000}"
+    GITEA_TOKEN="${SCITEX_HUB_GITEA_TOKEN_DEV}"
 
     # Test Gitea API version
     if curl -f -s "${GITEA_URL}/api/v1/version" > /dev/null 2>&1; then
@@ -617,7 +617,7 @@ verify_gitea_api() {
         echo_success "Authenticated to Gitea as: $GITEA_USER"
     else
         echo_error "Failed to authenticate to Gitea"
-        echo_info "Check SCITEX_CLOUD_GITEA_TOKEN_DEV in .env"
+        echo_info "Check SCITEX_HUB_GITEA_TOKEN_DEV in .env"
         return 1
     fi
 
@@ -629,9 +629,9 @@ recreate_test_user() {
 
     local USERNAME="test-user"
     local EMAIL="test@example.com"
-    local PASSWORD="${SCITEX_CLOUD_TEST_USER_PASSWORD:-Password123!}"
-    local GITEA_URL="${SCITEX_CLOUD_GITEA_URL_IN_HOST_DEV:-http://127.0.0.1:3000}"
-    local GITEA_TOKEN="${SCITEX_CLOUD_GITEA_TOKEN_DEV}"
+    local PASSWORD="${SCITEX_HUB_TEST_USER_PASSWORD:-Password123!}"
+    local GITEA_URL="${SCITEX_HUB_GITEA_URL_IN_HOST_DEV:-http://127.0.0.1:3000}"
+    local GITEA_TOKEN="${SCITEX_HUB_GITEA_TOKEN_DEV}"
 
     # Step 1: Delete from Django (will trigger signal to delete from Gitea)
     echo_info "Deleting test user from Django..."
@@ -682,8 +682,8 @@ verify_test_user() {
 
     local USERNAME="test-user"
     local EMAIL="test@example.com"
-    local GITEA_URL="${SCITEX_CLOUD_GITEA_URL_IN_HOST_DEV:-http://127.0.0.1:3000}"
-    local GITEA_TOKEN="${SCITEX_CLOUD_GITEA_TOKEN_DEV}"
+    local GITEA_URL="${SCITEX_HUB_GITEA_URL_IN_HOST_DEV:-http://127.0.0.1:3000}"
+    local GITEA_TOKEN="${SCITEX_HUB_GITEA_TOKEN_DEV}"
 
     local django_ok=false
     local gitea_ok=false
@@ -763,7 +763,7 @@ wait_for_web_healthy() {
     while [ $((SECONDS - START_TIME)) -lt $TIMEOUT ]; do
         # Check if container is healthy (matches "Up ... (healthy)" format)
         if docker compose -f docker-compose.yml ps \
-            | grep scitex-cloud-dev-django-1 \
+            | grep scitex-hub-dev-django-1 \
             | grep -q "(healthy)"; then
             echo -e ""
             echo_success \
@@ -773,12 +773,12 @@ wait_for_web_healthy() {
         fi
 
         # Stream all new logs from container since last check
-        docker logs scitex-cloud-dev-django-1 2>&1 | tail -n +$((LAST_LOG_LINE + 1)) | while IFS= read -r line; do
+        docker logs scitex-hub-dev-django-1 2>&1 | tail -n +$((LAST_LOG_LINE + 1)) | while IFS= read -r line; do
             echo -e "  $line"
         done
 
         # Update line count for next iteration
-        LAST_LOG_LINE=$(docker logs scitex-cloud-dev-django-1 2>&1 | wc -l)
+        LAST_LOG_LINE=$(docker logs scitex-hub-dev-django-1 2>&1 | wc -l)
 
         sleep 2
     done
@@ -834,7 +834,7 @@ restart_dev() {
     echo_info "Checking dependencies..."
 
     # Check if Gitea is running
-    if ! docker compose -f docker-compose.yml ps | grep scitex-cloud-dev-gitea-1 | grep -q "Up"; then
+    if ! docker compose -f docker-compose.yml ps | grep scitex-hub-dev-gitea-1 | grep -q "Up"; then
         echo_warning "Gitea not running, starting all services..."
         docker compose -f docker-compose.yml up -d
         wait_for_services_healthy
@@ -849,11 +849,11 @@ restart_dev() {
 
     echo_info "Testing endpoints..."
     curl -I \
-        http://localhost:${SCITEX_CLOUD_HTTP_PORT_DEV:-8000}
+        http://localhost:${SCITEX_HUB_HTTP_PORT_DEV:-8000}
     curl -I \
-        http://localhost:${SCITEX_CLOUD_HTTP_PORT_DEV:-8000}/admin/
+        http://localhost:${SCITEX_HUB_HTTP_PORT_DEV:-8000}/admin/
     curl -I \
-        http://localhost:${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000}
+        http://localhost:${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3000}
 }
 
 usage() {

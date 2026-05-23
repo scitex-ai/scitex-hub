@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: 2025-11-30
-# File: /home/ywatanabe/proj/scitex-cloud/tests/conftest.py
+# File: /home/ywatanabe/proj/scitex-hub/tests/conftest.py
 
 """
 Pytest configuration and shared fixtures for SciTeX test suite.
@@ -44,7 +44,7 @@ def _ensure_subprocess_coverage_shim() -> None:
     ``coverage.process_startup()``.
     """
     purelib = Path(sysconfig.get_paths()["purelib"])
-    pth = purelib / "_scitex_cloud_subprocess_coverage.pth"
+    pth = purelib / "_scitex_hub_subprocess_coverage.pth"
     shim = (
         "import os, coverage\n"
         "if os.environ.get('COVERAGE_PROCESS_START'):\n"
@@ -100,8 +100,8 @@ except Exception as e:
 # Configuration
 # =============================================================================
 
-TEST_USER_USERNAME = os.getenv("SCITEX_CLOUD_TEST_USER_USERNAME", "test-user")
-TEST_USER_PASSWORD = os.getenv("SCITEX_CLOUD_TEST_USER_PASSWORD", "Password123!")
+TEST_USER_USERNAME = os.getenv("SCITEX_HUB_TEST_USER_USERNAME", "test-user")
+TEST_USER_PASSWORD = os.getenv("SCITEX_HUB_TEST_USER_PASSWORD", "Password123!")
 BASE_URL = os.getenv("SCITEX_BASE_URL", "http://127.0.0.1:8000")
 
 

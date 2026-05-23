@@ -31,7 +31,7 @@ __all__ = [
 
 
 def setup_guide(request):
-    """Setup guide - how to deploy SciTeX Cloud anywhere."""
+    """Setup guide - how to deploy SciTeX Hub anywhere."""
     return render(request, "public_app/pages/setup.html")
 
 

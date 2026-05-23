@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: 2025-11-30
-# File: /home/ywatanabe/proj/scitex-cloud/tests/e2e/scholar/test_bibtex.py
+# File: /home/ywatanabe/proj/scitex-hub/tests/e2e/scholar/test_bibtex.py
 
 """
 E2E tests for BibTeX functionality.
@@ -20,9 +20,7 @@ from playwright.sync_api import Page, expect
 class TestBibTeXPage:
     """Tests for BibTeX page."""
 
-    def test_bibtex_page_loads(
-        self, page: Page, base_url: str, test_credentials: dict
-    ):
+    def test_bibtex_page_loads(self, page: Page, base_url: str, test_credentials: dict):
         """BibTeX page loads."""
         # Login
         page.goto(f"{base_url}/auth/signin/", wait_until="domcontentloaded")
@@ -34,7 +32,7 @@ class TestBibTeXPage:
         # Go to scholar/bibtex
         page.goto(
             f"{base_url}/{test_credentials['username']}/default-project/scholar/bibtex/",
-            wait_until="domcontentloaded"
+            wait_until="domcontentloaded",
         )
         page.wait_for_timeout(2000)
 
@@ -55,7 +53,7 @@ class TestBibTeXPage:
         # Go to bibtex page
         page.goto(
             f"{base_url}/{test_credentials['username']}/default-project/scholar/bibtex/",
-            wait_until="domcontentloaded"
+            wait_until="domcontentloaded",
         )
         page.wait_for_timeout(2000)
 
@@ -85,7 +83,7 @@ class TestBibTeXUpload:
         # Go to bibtex page
         page.goto(
             f"{base_url}/{test_credentials['username']}/default-project/scholar/bibtex/",
-            wait_until="domcontentloaded"
+            wait_until="domcontentloaded",
         )
         page.wait_for_timeout(2000)
 
@@ -114,14 +112,13 @@ class TestBibTeXEnrichment:
         # Go to bibtex page
         page.goto(
             f"{base_url}/{test_credentials['username']}/default-project/scholar/bibtex/",
-            wait_until="domcontentloaded"
+            wait_until="domcontentloaded",
         )
         page.wait_for_timeout(2000)
 
         # Look for enrich button
         btn = page.locator(
-            "button:has-text('Enrich'), .enrich-btn, "
-            "[data-action='enrich']"
+            "button:has-text('Enrich'), .enrich-btn, " "[data-action='enrich']"
         )
         assert btn.count() >= 0
 
@@ -143,7 +140,7 @@ class TestBibTeXExport:
         # Go to bibtex page
         page.goto(
             f"{base_url}/{test_credentials['username']}/default-project/scholar/bibtex/",
-            wait_until="domcontentloaded"
+            wait_until="domcontentloaded",
         )
         page.wait_for_timeout(2000)
 

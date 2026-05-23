@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2026-02-18 20:15:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/scripts/demo/capture_screenshots.py
+# File: /home/ywatanabe/proj/scitex-hub/scripts/demo/capture_screenshots.py
 
 """
 SciTeX Demo Screenshot Capture Script
@@ -10,8 +10,8 @@ Captures screenshots of SciTeX pages after logging in as test-user.
 Uses parallel browser tabs for fast capture.
 
 Credentials are automatically loaded from deployment/docker/envs/.env.dev:
-    - SCITEX_CLOUD_TEST_USER_USERNAME (default: test-user)
-    - SCITEX_CLOUD_TEST_USER_PASSWORD (default: Password123!)
+    - SCITEX_HUB_TEST_USER_USERNAME (default: test-user)
+    - SCITEX_HUB_TEST_USER_PASSWORD (default: Password123!)
 
 Usage:
     python scripts/demo/capture_screenshots.py [OPTIONS]

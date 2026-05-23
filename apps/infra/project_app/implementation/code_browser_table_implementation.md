@@ -47,8 +47,8 @@ return {
 ### 2. Template Changes
 
 #### Updated Templates:
-1. `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_directory.html`
-2. `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_detail.html`
+1. `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_directory.html`
+2. `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_detail.html`
 
 #### CSS Improvements
 
@@ -262,23 +262,23 @@ Potential improvements for future iterations:
 
 ## Files Modified
 
-1. `/home/ywatanabe/proj/scitex-cloud/apps/project_app/views.py`
+1. `/home/ywatanabe/proj/scitex-hub/apps/project_app/views.py`
    - Lines 222-282 (project_detail view)
    - Lines 1744-1805 (project_directory view)
 
-2. `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_directory.html`
+2. `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_directory.html`
    - CSS: Lines 51-143
    - HTML: Lines 422-460
    - JavaScript: Lines 555-573
 
-3. `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_detail.html`
+3. `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_detail.html`
    - CSS: Lines 36-131
    - HTML: Lines 735-774
    - JavaScript: Lines 981-994
 
 ## Related Issues/TODOs
 
-This implementation addresses requirements from `/home/ywatanabe/proj/scitex-cloud/apps/project_app/TODO.md`:
+This implementation addresses requirements from `/home/ywatanabe/proj/scitex-hub/apps/project_app/TODO.md`:
 - ✅ Columns: Name · Commit message · Last commit time · Commit hash tooltip
 - ✅ Clickable rows with responsive color on hover
 - ✅ Compact spacing to match GitHub

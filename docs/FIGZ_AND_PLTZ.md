@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2025-12-16 20:10:58
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/docs/FIGZ_AND_PLTZ.md
+!-- File: /home/ywatanabe/proj/scitex-hub/docs/FIGZ_AND_PLTZ.md
 !-- --- -->
 
 # FIGZ and PLTZ Bundle Formats

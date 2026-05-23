@@ -1,7 +1,7 @@
 [project]
-name = "scitex-cloud"
-version = "0.17.6"
-description = "SciTeX Cloud - Deployment and management CLI for SciTeX"
+name = "scitex-hub"
+version = "0.18.0"
+description = "SciTeX Hub - Deployment and management CLI for SciTeX"
 readme = "README.md"
 license = "AGPL-3.0-only"
 requires-python = ">=3.11"
@@ -25,16 +25,16 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://scitex.ai"
-Repository = "https://github.com/ywatanabe1989/scitex-cloud"
-Documentation = "https://scitex-cloud.readthedocs.io"
-Issues = "https://github.com/ywatanabe1989/scitex-cloud/issues"
-Changelog = "https://github.com/ywatanabe1989/scitex-cloud/blob/main/CHANGELOG.md"
+Repository = "https://github.com/ywatanabe1989/scitex-hub"
+Documentation = "https://scitex-hub.readthedocs.io"
+Issues = "https://github.com/ywatanabe1989/scitex-hub/issues"
+Changelog = "https://github.com/ywatanabe1989/scitex-hub/blob/main/CHANGELOG.md"
 
 [project.entry-points."scitex_dev.docs"]
-scitex-cloud = "scitex_cloud"
+scitex-hub = "scitex_hub"
 
 [project.entry-points."scitex_dev.skills"]
-scitex-cloud = "scitex_cloud"
+scitex-hub = "scitex_hub"
 
 [project.optional-dependencies]
 django = [
@@ -159,15 +159,15 @@ docs = [
     "sphinx-autodoc-typehints>=1.25",
 ]
 all = [
-    "scitex-cloud[django]",
-    "scitex-cloud[gui]",
-    "scitex-cloud[mcp]",
-    "scitex-cloud[test]",
+    "scitex-hub[django]",
+    "scitex-hub[gui]",
+    "scitex-hub[mcp]",
+    "scitex-hub[test]",
 ]
 
 [project.scripts]
-scitex-cloud = "scitex_cloud._cli.main:main"
-scitex-cloud-mcp = "scitex_cloud._mcp_server:main"
+scitex-hub = "scitex_hub._cli.main:main"
+scitex-hub-mcp = "scitex_hub._mcp_server:main"
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
@@ -177,7 +177,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-scitex_cloud = ["skills/*.md", "skills/references/*.md", "_skills/**/*.md"]
+scitex_hub = ["skills/*.md", "skills/references/*.md", "_skills/**/*.md"]
 
 [tool.setuptools.package-dir]
 "" = "src"
@@ -266,7 +266,7 @@ log_cli_level = "INFO"
 
 [tool.coverage.run]
 parallel = true
-source = ["scitex_cloud"]
+source = ["scitex_hub"]
 concurrency = ["multiprocessing", "thread"]
 omit = [
     "*/tests/*",

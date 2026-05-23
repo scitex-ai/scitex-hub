@@ -19,14 +19,14 @@ import django
 
 # Setup Django
 os.environ.setdefault(
-    "SCITEX_CLOUD_DJANGO_SETTINGS_MODULE", "config.settings.development"
+    "SCITEX_HUB_DJANGO_SETTINGS_MODULE", "config.settings.development"
 )
 django.setup()
 
 
 def reset_database():
     """Reset the database and migrations"""
-    print("🔄 Resetting SciTeX Cloud database with new permission system...")
+    print("🔄 Resetting SciTeX Hub database with new permission system...")
 
     # 1. Remove database file
     db_path = Path("db.sqlite3")
@@ -40,7 +40,7 @@ def reset_database():
         "apps/workspace/console_app/migrations",
         "apps/workspace/writer_app/migrations",
         "apps/workspace/scholar_app/migrations",
-        "apps/workspace/hub_app/migrations",
+        "apps/workspace/repo_app/migrations",
         "apps/workspace/docs_app/migrations",
         "apps/workspace/discovery_app/migrations",
         "apps/infra/project_app/migrations",
@@ -72,9 +72,9 @@ def reset_database():
     from apps.infra.workspace_app.models import UserProfile
 
     # Create superuser from env vars
-    admin_user_name = os.environ.get("SCITEX_CLOUD_ADMIN_USERNAME", "admin")
-    admin_email = os.environ.get("SCITEX_CLOUD_ADMIN_EMAIL", "admin@scitex.ai")
-    admin_password = os.environ.get("SCITEX_CLOUD_ADMIN_PASSWORD", "admin123")
+    admin_user_name = os.environ.get("SCITEX_HUB_ADMIN_USERNAME", "admin")
+    admin_email = os.environ.get("SCITEX_HUB_ADMIN_EMAIL", "admin@scitex.ai")
+    admin_password = os.environ.get("SCITEX_HUB_ADMIN_PASSWORD", "admin123")
 
     if not User.objects.filter(username=admin_user_name).exists():
         admin_user = User.objects.create_superuser(
@@ -89,8 +89,8 @@ def reset_database():
         profile, created = UserProfile.objects.get_or_create(
             user=admin_user,
             defaults={
-                "bio": "SciTeX Cloud Administrator",
-                "institution": "SciTeX Cloud",
+                "bio": "SciTeX Hub Administrator",
+                "institution": "SciTeX Hub",
                 "academic_title": "System Administrator",
                 "department": "Platform Operations",
                 "research_interests": "Research platform development and management",
@@ -105,7 +105,7 @@ def reset_database():
     print("\n🎉 Database reset complete!")
     print("📝 You can now login with:")
     print(f"   Username: {admin_user_name}")
-    print("   Password: <SCITEX_CLOUD_ADMIN_PASSWORD>")
+    print("   Password: <SCITEX_HUB_ADMIN_PASSWORD>")
     print("\n🚀 Enhanced group and permission system is ready!")
 
 

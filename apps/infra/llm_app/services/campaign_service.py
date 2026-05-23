@@ -34,16 +34,16 @@ def _get_client_ip(request) -> str:
 
 def is_campaign_enabled() -> bool:
     """Check if campaign chat mode is configured."""
-    return bool(getattr(settings, "SCITEX_CLOUD_CAMPAIGN_ANTHROPIC_API_KEY", ""))
+    return bool(getattr(settings, "SCITEX_HUB_CAMPAIGN_ANTHROPIC_API_KEY", ""))
 
 
 def get_campaign_config() -> dict:
     """Return campaign configuration from settings."""
     return {
-        "api_key": settings.SCITEX_CLOUD_CAMPAIGN_ANTHROPIC_API_KEY,
-        "model": getattr(settings, "SCITEX_CLOUD_CAMPAIGN_MODEL", DEFAULT_MODEL),
+        "api_key": settings.SCITEX_HUB_CAMPAIGN_ANTHROPIC_API_KEY,
+        "model": getattr(settings, "SCITEX_HUB_CAMPAIGN_MODEL", DEFAULT_MODEL),
         "daily_limit": int(
-            getattr(settings, "SCITEX_CLOUD_CAMPAIGN_DAILY_LIMIT", DEFAULT_DAILY_LIMIT)
+            getattr(settings, "SCITEX_HUB_CAMPAIGN_DAILY_LIMIT", DEFAULT_DAILY_LIMIT)
         ),
     }
 

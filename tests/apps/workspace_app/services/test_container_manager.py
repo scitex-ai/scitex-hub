@@ -68,8 +68,8 @@ if __name__ == "__main__":
 #     """
 #
 #     # Configuration
-#     IMAGE_NAME = "scitex-cloud-shared-v0.1.0:latest"
-#     NETWORK_NAME = "scitex-cloud-dev_scitex-dev"  # Same network as web/db containers
+#     IMAGE_NAME = "scitex-hub-shared-v0.1.0:latest"
+#     NETWORK_NAME = "scitex-hub-dev_scitex-dev"  # Same network as web/db containers
 #
 #     # Resource limits
 #     DEFAULT_CPU_QUOTA = 200000  # 2 CPU cores (100000 = 1 core)

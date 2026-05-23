@@ -33,13 +33,13 @@ describe('editor-loader', () => {
 //  * @version 1.0.0 (TypeScript)
 //  * @author SciTeX Development Team
 //  */
-// 
+//
 // // ============================================================================
 // // Type Definitions
 // // ============================================================================
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/loaders/editor-loader.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/loaders/editor-loader.ts loaded",
 // );
 // interface FakeWorker {
 //   postMessage: () => void;
@@ -47,16 +47,16 @@ describe('editor-loader', () => {
 //   addEventListener: () => void;
 //   removeEventListener: () => void;
 // }
-// 
+//
 // interface MonacoEnvironment {
 //   getWorker: (moduleId: string, label: string) => Promise<FakeWorker>;
 // }
-// 
+//
 // interface RequireConfig {
 //   paths: Record<string, string>;
 //   "vs/nls": { availableLanguages: Record<string, never> };
 // }
-// 
+//
 // declare global {
 //   interface Window {
 //     define: any;
@@ -67,24 +67,24 @@ describe('editor-loader', () => {
 //     CodeMirror: any;
 //   }
 // }
-// 
+//
 // // ============================================================================
 // // Editor Loader Class
 // // ============================================================================
-// 
+//
 // export class EditorLoader {
 //   private readonly CODEMIRROR_VERSION = "5.65.16";
 //   private readonly MONACO_VERSION = "0.45.0";
-// 
+//
 //   private originalDefine: any = null;
 //   private originalRequire: any = null;
-// 
+//
 //   /**
 //    * Initialize and load both CodeMirror and Monaco editors
 //    */
 //   async initialize(): Promise<void> {
 //     console.log("[EditorLoader] Starting editor initialization");
-// 
+//
 //     try {
 //       await this.loadCodeMirror();
 //       await this.loadMonaco();
@@ -94,13 +94,13 @@ describe('editor-loader', () => {
 //       throw error;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Load CodeMirror scripts without AMD conflicts
 //    */
 //   private async loadCodeMirror(): Promise<void> {
 //     console.log("[EditorLoader] Loading CodeMirror...");
-// 
+//
 //     // CodeMirror scripts to load in order
 //     const scripts = [
 //       `https://cdnjs.cloudflare.com/ajax/libs/codemirror/${this.CODEMIRROR_VERSION}/codemirror.min.js`,
@@ -111,20 +111,20 @@ describe('editor-loader', () => {
 //       `https://cdnjs.cloudflare.com/ajax/libs/codemirror/${this.CODEMIRROR_VERSION}/keymap/vim.min.js`,
 //       `https://cdnjs.cloudflare.com/ajax/libs/codemirror/${this.CODEMIRROR_VERSION}/keymap/emacs.min.js`,
 //     ];
-// 
+//
 //     // Save original AMD globals
 //     this.originalDefine = window.define;
 //     this.originalRequire = window.require;
-// 
+//
 //     // Temporarily disable AMD to prevent conflicts
 //     // CodeMirror UMD modules detect AMD and try to register, causing conflicts with Monaco's RequireJS
 //     window.define = undefined;
 //     window.require = undefined;
-// 
+//
 //     try {
 //       // Load all CodeMirror scripts sequentially
 //       await this.loadScriptsSequentially(scripts);
-// 
+//
 //       console.log("[EditorLoader] CodeMirror loaded successfully");
 //     } finally {
 //       // Always restore AMD globals, even if loading fails
@@ -132,13 +132,13 @@ describe('editor-loader', () => {
 //       window.require = this.originalRequire;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Load Monaco Editor with fake worker to avoid CORS issues
 //    */
 //   private async loadMonaco(): Promise<void> {
 //     console.log("[EditorLoader] Loading Monaco Editor...");
-// 
+//
 //     // Configure Monaco environment with main-thread worker fallback
 //     // This prevents CORS issues when loading from CDN
 //     window.MonacoEnvironment = {
@@ -146,11 +146,11 @@ describe('editor-loader', () => {
 //         return Promise.resolve(this.createFakeWorker());
 //       },
 //     };
-// 
+//
 //     // Load Monaco loader script
 //     const loaderUrl = `https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/${this.MONACO_VERSION}/min/vs/loader.min.js`;
 //     await this.loadScript(loaderUrl);
-// 
+//
 //     // Configure and load Monaco
 //     return new Promise<void>((resolve, reject) => {
 //       // Wait for RequireJS to be available
@@ -166,9 +166,9 @@ describe('editor-loader', () => {
 //             },
 //             "vs/nls": { availableLanguages: {} },
 //           };
-// 
+//
 //           (window.require as any).config(requireConfig);
-// 
+//
 //           // Load Monaco editor main module
 //           (window.require as any)(
 //             ["vs/editor/editor.main"],
@@ -188,11 +188,11 @@ describe('editor-loader', () => {
 //           setTimeout(checkRequire, 50);
 //         }
 //       };
-// 
+//
 //       checkRequire();
 //     });
 //   }
-// 
+//
 //   /**
 //    * Create a fake Worker that runs in the main thread
 //    * Used to prevent CORS issues with Monaco's web workers
@@ -205,7 +205,7 @@ describe('editor-loader', () => {
 //       removeEventListener: () => {},
 //     };
 //   }
-// 
+//
 //   /**
 //    * Load a single script asynchronously
 //    */
@@ -213,22 +213,22 @@ describe('editor-loader', () => {
 //     return new Promise((resolve, reject) => {
 //       const script = document.createElement("script");
 //       script.src = url;
-// 
+//
 //       script.onload = () => {
 //         console.log("[EditorLoader] Loaded:", url);
 //         resolve();
 //       };
-// 
+//
 //       script.onerror = () => {
 //         const error = new Error(`Failed to load script: ${url}`);
 //         console.error("[EditorLoader]", error);
 //         reject(error);
 //       };
-// 
+//
 //       document.head.appendChild(script);
 //     });
 //   }
-// 
+//
 //   /**
 //    * Load multiple scripts in sequential order
 //    */
@@ -247,11 +247,11 @@ describe('editor-loader', () => {
 //     }
 //   }
 // }
-// 
+//
 // // ============================================================================
 // // Auto-initialization
 // // ============================================================================
-// 
+//
 // /**
 //  * Auto-initialize editors when this module is loaded
 //  * Can be imported and used directly in templates
@@ -260,7 +260,7 @@ describe('editor-loader', () => {
 //   const loader = new EditorLoader();
 //   await loader.initialize();
 // }
-// 
+//
 // // Export singleton instance for direct use
 // export const editorLoader = new EditorLoader();
 

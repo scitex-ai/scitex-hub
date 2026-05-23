@@ -159,7 +159,7 @@ _APPS_ROOT = Path(__file__).resolve().parent.parent.parent  # project root / app
 
 # (manifest_path_relative_to_apps_root, )
 _BUILTIN_MANIFEST_PATHS: list[str] = [
-    "workspace/hub_app/manifest.json",
+    "workspace/repo_app/manifest.json",
     "workspace/writer_app/manifest.json",
     "workspace/scholar_app/manifest.json",
     "workspace/figrecipe_app/manifest.json",

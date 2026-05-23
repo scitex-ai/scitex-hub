@@ -74,7 +74,7 @@ The security system follows GitHub's security model with these key principles:
 ## Database Models
 
 ### Location
-`/home/ywatanabe/proj/scitex-cloud/apps/project_app/models/security.py`
+`/home/ywatanabe/proj/scitex-hub/apps/project_app/models/security.py`
 
 ### Models
 
@@ -238,7 +238,7 @@ Records history of security scans.
 ## Security Scanning Service
 
 ### Location
-`/home/ywatanabe/proj/scitex-cloud/apps/project_app/services/security_scanning.py`
+`/home/ywatanabe/proj/scitex-hub/apps/project_app/services/security_scanning.py`
 
 ### SecurityScanner Class
 
@@ -343,8 +343,8 @@ if cve_info:
 ## Views and Templates
 
 ### Location
-- Views: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/views/security_views.py`
-- Templates: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/security/`
+- Views: `/home/ywatanabe/proj/scitex-hub/apps/project_app/views/security_views.py`
+- Templates: `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/security/`
 
 ### Views
 
@@ -467,7 +467,7 @@ Info:     #656d76 (gray)
 ## URL Patterns
 
 ### Location
-`/home/ywatanabe/proj/scitex-cloud/apps/project_app/user_urls.py`
+`/home/ywatanabe/proj/scitex-hub/apps/project_app/user_urls.py`
 
 ### Security URLs
 
@@ -706,7 +706,7 @@ Even without edit permissions, contributors can:
 
 1. **Create migrations:**
    ```bash
-   cd /home/ywatanabe/proj/scitex-cloud
+   cd /home/ywatanabe/proj/scitex-hub
    python manage.py makemigrations project_app
    ```
 

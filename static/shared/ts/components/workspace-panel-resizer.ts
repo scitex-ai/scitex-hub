@@ -1,6 +1,6 @@
 /**
  * Workspace Panel Resizer — re-exports from scitex-ui (single source of truth).
- * Do NOT duplicate resizer logic in scitex-cloud.
+ * Do NOT duplicate resizer logic in scitex-hub.
  */
 export type { PanelConfig } from "scitex-ui/ts/shell/workspace-panel-resizer/index";
 export type { AxisConfig } from "scitex-ui/ts/shell/workspace-panel-resizer/index";

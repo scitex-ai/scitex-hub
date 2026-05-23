@@ -2,9 +2,9 @@
 // -*- coding: utf-8 -*-
 // Timestamp: 2026-02-13
 // Author: ywatanabe (with Claude Code)
-// File: /home/ywatanabe/proj/scitex-cloud/scripts/maintenance/_check_contrast_worker.js
+// File: /home/ywatanabe/proj/scitex-hub/scripts/maintenance/_check_contrast_worker.js
 //
-// Playwright-based WCAG AA contrast checker for SciTeX Cloud.
+// Playwright-based WCAG AA contrast checker for SciTeX Hub.
 // Visits each page, evaluates computed styles, and reports violations.
 
 const { chromium } = require("playwright");

@@ -1,10 +1,10 @@
 <!-- ---
 !-- Timestamp: 2025-11-22 01:46:59
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/docs/ARCHITECTURE.md
+!-- File: /home/ywatanabe/proj/scitex-hub/docs/ARCHITECTURE.md
 !-- --- -->
 
-## SciTeX Cloud
+## SciTeX Hub
 - [ ] Live at http:127.0.0.1:8000 (https://scitex.ai)
 
 ## SciTeX Files
@@ -114,58 +114,58 @@ graph TB
         CLI[CLI<br/>$ scitex module]
         WEB[Web UI<br/>scitex.ai]
     end
-    
+
     subgraph "Module Ecosystem - Independent but Synergistic"
         FILES[Files Hub<br/>user/project<br/>Central Storage<br/>Version Control]
-        
+
         WRITER[Writer<br/>LaTeX Editor<br/>PDF Compile<br/>scitex-writer]
-        
+
         SCHOLAR[Scholar<br/>Literature Search<br/>BibTeX Manager<br/>scitex-python]
-        
+
         CODE[Code<br/>Analysis Scripts<br/>io, logging<br/>scitex-python]
-        
+
         VIS[Vis<br/>Plotting plt<br/>Visualization<br/>scitex-python]
     end
-    
+
     subgraph "Infrastructure"
-        CLOUD[SciTeX Cloud<br/>scitex.ai:8000]
+        CLOUD[SciTeX Hub<br/>scitex.ai:8000]
         DB[(Database)]
     end
-    
+
     PY --> FILES
     PY --> WRITER
     PY --> SCHOLAR
     PY --> CODE
     PY --> VIS
-    
+
     CLI --> FILES
     CLI --> WRITER
     CLI --> SCHOLAR
     CLI --> CODE
     CLI --> VIS
-    
+
     WEB --> CLOUD
-    
+
     FILES <-->|LaTeX, PDF<br/>Version History| WRITER
     FILES <-->|BibTeX, PDFs<br/>References| SCHOLAR
     FILES <-->|Scripts, Data<br/>Outputs| CODE
     FILES -->|Data Files| VIS
     VIS -->|Figures, Plots| FILES
-    
+
     WRITER <--->|Citations| SCHOLAR
     WRITER <-->|Scripts| CODE
     WRITER <---|Figures| VIS
-    
+
     CODE <-->|Data/Plots| VIS
-    
+
     WRITER --> CLOUD
     SCHOLAR --> CLOUD
     CODE --> CLOUD
     VIS --> CLOUD
     FILES --> CLOUD
-    
+
     CLOUD --> DB
-    
+
     style FILES fill:#ffd700,stroke:#ff8c00,stroke-width:4px
     style WRITER fill:#90EE90
     style SCHOLAR fill:#87CEEB
@@ -185,41 +185,41 @@ graph TB
         CLI[Command Line]
         WEB[Web Browser]
     end
-    
+
     subgraph "SciTeX Modules with Unique Strengths"
         FILES["📁 Files Hub<br/>└─ Central Integration<br/>└─ Version Control<br/>└─ User/Project Structure"]
-        
+
         WRITER["✍️ Writer<br/><b>Strengths:</b><br/>• Section-Separated Writing<br/>• Collaborative Editing<br/>• AI-Native (Auto Files)<br/>• Stats Integration<br/>• Context-Aware"]
-        
+
         SCHOLAR["📚 Scholar<br/><b>Strength:</b><br/>• Abstract Appended<br/>  (AI-Native)<br/>• Citation Enrichment<br/>• Auto-metadata"]
-        
+
         VIS["📊 Vis<br/><b>Strengths:</b><br/>• Reproducibility<br/>  - Metadata Embedded<br/>  - CSV + JSON Export<br/>  - Plot ↔ Text<br/>• Flexibility<br/>  - Style Change<br/>  - mm-level Precision<br/>• GUI Layout/Style"]
-        
+
         CODE["💻 Code<br/><b>Strengths:</b><br/>• Work Anywhere<br/>  (Local/Cloud/Self-host)<br/>• Reusable Modules<br/>• Reproducible<br/>  by Default"]
     end
-    
+
     subgraph "Infrastructure"
-        CLOUD[SciTeX Cloud<br/>scitex.ai]
+        CLOUD[SciTeX Hub<br/>scitex.ai]
         DB[(Database)]
     end
-    
+
     PY --> FILES & WRITER & SCHOLAR & CODE & VIS
     CLI --> FILES & WRITER & SCHOLAR & CODE & VIS
     WEB --> CLOUD
-    
+
     FILES <-->|LaTeX, PDF<br/>Sections| WRITER
     FILES <-->|BibTeX, PDFs<br/>Abstracts| SCHOLAR
     FILES <-->|Scripts, Data<br/>Outputs| CODE
     FILES <-->|Data Files<br/>Figures| VIS
-    
+
     WRITER <-.->|Auto-Citations| SCHOLAR
     WRITER <-.->|Embed Stats| CODE
     WRITER <-.->|Include Figs| VIS
     CODE <-.->|Generate Plots| VIS
-    
+
     WRITER & SCHOLAR & CODE & VIS & FILES --> CLOUD
     CLOUD --> DB
-    
+
     style FILES fill:#ffd700,stroke:#ff8c00,stroke-width:4px,color:#000
     style WRITER fill:#90EE90,stroke:#228B22,stroke-width:3px,color:#000
     style SCHOLAR fill:#87CEEB,stroke:#4682B4,stroke-width:3px,color:#000

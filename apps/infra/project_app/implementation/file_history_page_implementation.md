@@ -14,7 +14,7 @@ Example: `/ywatanabe/scitex/commits/develop/README.md`
 
 ## Files Modified/Created
 
-### 1. `/home/ywatanabe/proj/scitex-cloud/apps/project_app/views.py`
+### 1. `/home/ywatanabe/proj/scitex-hub/apps/project_app/views.py`
 
 Added `file_history_view()` function (lines 2039-2201):
 
@@ -32,14 +32,14 @@ git log --follow --format=%H|%an|%ae|%at|%ar|%s -- <file-path>
 git show --numstat --format= <commit-hash> -- <file-path>
 ```
 
-### 2. `/home/ywatanabe/proj/scitex-cloud/apps/project_app/user_urls.py`
+### 2. `/home/ywatanabe/proj/scitex-hub/apps/project_app/user_urls.py`
 
 Added URL pattern (line 81):
 ```python
 path('<slug:slug>/commits/<str:branch>/<path:file_path>', views.file_history_view, name='file_history'),
 ```
 
-### 3. `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/file_history.html`
+### 3. `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/file_history.html`
 
 Created complete template with:
 

@@ -38,35 +38,35 @@ describe('highlight-js-bibtex', () => {
 //  *   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 //  *   <script src="/static/js/utils/highlight-js-bibtex.js"></script>
 //  */
-// 
+//
 // // Note: hljs types are declared in global.d.ts
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/utils/highlight-js-bibtex.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/static/ts/utils/highlight-js-bibtex.ts loaded",
 // );
 // interface HljsApi {
 //   COMMENT: (begin: string, end: string) => CommentRule;
 //   QUOTE_STRING_MODE: QuoteStringMode;
 //   C_NUMBER_MODE: NumberMode;
 // }
-// 
+//
 // interface CommentRule {
 //   scope?: string;
 //   begin: string;
 //   end: string;
 // }
-// 
+//
 // interface QuoteStringMode {
 //   scope?: string;
 //   begin?: string;
 //   end?: string;
 // }
-// 
+//
 // interface NumberMode {
 //   scope?: string;
 //   variants?: any[];
 // }
-// 
+//
 // interface LanguageRule {
 //   className?: string;
 //   scope?: string;
@@ -76,24 +76,24 @@ describe('highlight-js-bibtex', () => {
 //   contains?: LanguageRule[];
 //   relevance?: number;
 // }
-// 
+//
 // interface LanguageDefinition {
 //   name: string;
 //   aliases?: string[];
 //   case_insensitive?: boolean;
 //   contains: (CommentRule | LanguageRule | QuoteStringMode | NumberMode)[];
 // }
-// 
+//
 // (function registerBibTeXLanguage(): void {
 //   "use strict";
-// 
+//
 //   // Wait for hljs to be available
 //   if (typeof window.hljs === "undefined") {
 //     console.warn("[BibTeX] hljs not available yet, retrying...");
 //     setTimeout(registerBibTeXLanguage, 100);
 //     return;
 //   }
-// 
+//
 //   try {
 //     window.hljs.registerLanguage(
 //       "bibtex",
@@ -105,14 +105,14 @@ describe('highlight-js-bibtex', () => {
 //           contains: [
 //             // Comments: % to end of line
 //             hljs.COMMENT("%", "$"),
-// 
+//
 //             // Entry types: @article, @book, @inproceedings, etc.
 //             {
 //               className: "keyword",
 //               begin: "@[a-zA-Z]+",
 //               relevance: 10,
 //             },
-// 
+//
 //             // Citation keys: the identifier after @article{HERE,
 //             {
 //               className: "title",
@@ -120,7 +120,7 @@ describe('highlight-js-bibtex', () => {
 //               end: /,/,
 //               relevance: 8,
 //             },
-// 
+//
 //             // Field names: author=, title=, year=, etc.
 //             {
 //               className: "attribute",
@@ -128,7 +128,7 @@ describe('highlight-js-bibtex', () => {
 //               end: /=/,
 //               relevance: 5,
 //             },
-// 
+//
 //             // Braced strings: {value}
 //             {
 //               className: "string",
@@ -139,7 +139,7 @@ describe('highlight-js-bibtex', () => {
 //                 { begin: /\\[a-zA-Z]+/, className: "subst" }, // LaTeX commands
 //               ],
 //             },
-// 
+//
 //             // Quoted strings: "value"
 //             {
 //               className: "string",
@@ -150,7 +150,7 @@ describe('highlight-js-bibtex', () => {
 //                 { begin: /\\[a-zA-Z]+/, className: "subst" }, // LaTeX commands
 //               ],
 //             },
-// 
+//
 //             // Numbers (years, pages, etc.)
 //             {
 //               className: "number",
@@ -160,11 +160,11 @@ describe('highlight-js-bibtex', () => {
 //         };
 //       },
 //     );
-// 
+//
 //     console.log(
 //       "[BibTeX] ✓ Language successfully registered with Highlight.js",
 //     );
-// 
+//
 //     // Re-highlight any code blocks that were already processed
 //     document.querySelectorAll("code.language-bibtex").forEach((block) => {
 //       if (window.hljs) {

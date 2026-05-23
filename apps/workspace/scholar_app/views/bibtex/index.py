@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: /home/ywatanabe/proj/scitex-cloud/apps/scholar_app/views/bibtex/index.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/scholar_app/views/bibtex/index.py
 
 """
 BibTeX Enrichment Index View

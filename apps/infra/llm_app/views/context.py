@@ -2,7 +2,7 @@
 Web app context API for AI agents.
 
 Exposes the same context that terminal agents get via SKILL.md,
-but as a queryable HTTP endpoint. Called by scitex_cloud MCP tools
+but as a queryable HTTP endpoint. Called by scitex_hub MCP tools
 (cloud_get_context, cloud_eval_js, cloud_ui_action).
 """
 

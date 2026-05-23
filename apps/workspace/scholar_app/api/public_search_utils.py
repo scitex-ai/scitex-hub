@@ -42,7 +42,7 @@ def validate_api_key(api_key: str) -> tuple[bool, str]:
     """Validate API key against database or environment."""
     from django.conf import settings
 
-    campaign_key = getattr(settings, "SCITEX_CLOUD_CAMPAIGN_API_KEY", None)
+    campaign_key = getattr(settings, "SCITEX_HUB_CAMPAIGN_API_KEY", None)
     if campaign_key and api_key == campaign_key:
         return True, "campaign"
 

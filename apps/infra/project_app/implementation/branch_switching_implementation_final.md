@@ -14,7 +14,7 @@ Implemented session-based branch switching for the project file browser, allowin
 
 ### 1. Session-Based Branch Tracking
 
-**Location:** `/home/ywatanabe/proj/scitex-cloud/apps/project_app/views/api_views.py`
+**Location:** `/home/ywatanabe/proj/scitex-hub/apps/project_app/views/api_views.py`
 
 Created a session-based system that tracks the current branch per project per user:
 
@@ -62,7 +62,7 @@ Created a session-based system that tracks the current branch per project per us
 
 **Function:** `get_current_branch_from_session(request, project)`
 
-**Location:** `/home/ywatanabe/proj/scitex-cloud/apps/project_app/views/api_views.py`
+**Location:** `/home/ywatanabe/proj/scitex-hub/apps/project_app/views/api_views.py`
 
 **Purpose:** Get the current branch for a project from session or repository
 
@@ -82,8 +82,8 @@ current_branch = get_current_branch_from_session(request, project)
 ### 4. Frontend Integration
 
 **Files Modified:**
-- `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_directory.html`
-- `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_file_view.html`
+- `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_directory.html`
+- `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_file_view.html`
 
 **JavaScript Functions Added:**
 
@@ -111,7 +111,7 @@ async function switchBranch(branch) {
 
 ### 5. View Integration
 
-**File Modified:** `/home/ywatanabe/proj/scitex-cloud/apps/project_app/views.py`
+**File Modified:** `/home/ywatanabe/proj/scitex-hub/apps/project_app/views.py`
 
 **Changes in `project_file_view()`:**
 
@@ -132,7 +132,7 @@ git_info['current_branch'] = current_branch
 
 ### 6. URL Routing
 
-**File Modified:** `/home/ywatanabe/proj/scitex-cloud/apps/project_app/user_urls.py`
+**File Modified:** `/home/ywatanabe/proj/scitex-hub/apps/project_app/user_urls.py`
 
 **Added Route:**
 ```python
@@ -195,25 +195,25 @@ file_content = result.stdout
 ## Files Modified
 
 ### Backend
-1. **NEW:** `/home/ywatanabe/proj/scitex-cloud/apps/project_app/views/api_views.py`
+1. **NEW:** `/home/ywatanabe/proj/scitex-hub/apps/project_app/views/api_views.py`
    - Added `api_switch_branch()` endpoint
    - Added `get_current_branch_from_session()` helper
 
-2. **MODIFIED:** `/home/ywatanabe/proj/scitex-cloud/apps/project_app/views/__init__.py`
+2. **MODIFIED:** `/home/ywatanabe/proj/scitex-hub/apps/project_app/views/__init__.py`
    - Exported new API functions
 
-3. **MODIFIED:** `/home/ywatanabe/proj/scitex-cloud/apps/project_app/views.py`
+3. **MODIFIED:** `/home/ywatanabe/proj/scitex-hub/apps/project_app/views.py`
    - Updated `project_file_view()` to use session branch
 
-4. **MODIFIED:** `/home/ywatanabe/proj/scitex-cloud/apps/project_app/user_urls.py`
+4. **MODIFIED:** `/home/ywatanabe/proj/scitex-hub/apps/project_app/user_urls.py`
    - Added API route for branch switching
 
 ### Frontend
-5. **MODIFIED:** `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_directory.html`
+5. **MODIFIED:** `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_directory.html`
    - Added `getCookie()` helper
    - Added `switchBranch()` async function
 
-6. **MODIFIED:** `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_file_view.html`
+6. **MODIFIED:** `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_file_view.html`
    - Added `getCookie()` helper
    - Added `switchBranch()` async function
 
@@ -399,7 +399,7 @@ No migration required - this is a new feature. Existing projects will:
 ## Contact & Support
 
 For questions or issues regarding this implementation:
-- **File:** `/home/ywatanabe/proj/scitex-cloud/apps/project_app/implementation/branch_switching_implementation_final.md`
+- **File:** `/home/ywatanabe/proj/scitex-hub/apps/project_app/implementation/branch_switching_implementation_final.md`
 - **Related Files:** See "Files Modified" section above
 
 ---

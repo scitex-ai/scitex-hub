@@ -1,9 +1,39 @@
 # Changelog
 
-All notable changes to SciTeX Cloud will be documented in this file.
+All notable changes to SciTeX Hub (formerly `scitex-cloud`, renamed in
+v0.18.0) will be documented in this file. Pre-v0.18.0 entries below
+intentionally retain the historical "SciTeX Cloud" / `scitex_cloud`
+names — they describe real releases under that name and are preserved
+verbatim. See [ADR-0001](docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md).
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.18.0] - 2026-05-23
+
+### Renamed (BREAKING)
+- **Project**: `scitex-cloud` → `scitex-hub` end-to-end. PyPI distribution
+  (`pip install scitex-hub`), Python module (`import scitex_hub`), GitHub
+  repository, display name ("SciTeX Hub"), Django sub-app
+  (`hub_app` → `repo_app`), and runtime env var prefix
+  (`SCITEX_CLOUD_*` → `SCITEX_HUB_*`). See
+  [ADR-0001](docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md) for the
+  full rationale (cloud implies vendor-hosted, but this is a self-hostable
+  research hub) and migration policy (hard cutover, no silent fallback).
+- **Migration for deployments**: rename every `SCITEX_CLOUD_*` entry in
+  your `.env`/`.env.dev`/`.env.prod` to `SCITEX_HUB_*` and restart. Old
+  `pip install scitex-cloud` now installs a stub that raises
+  `ImportError` at import time with a pointer to `scitex-hub`.
+- **Migration for callers**: replace `import scitex_cloud` with
+  `import scitex_hub`. There is no compat alias module.
+- **Migration for tokens**: existing `scitex-cloud-campaign-*` API tokens
+  remain valid as a back-compat alias and emit a `DeprecationWarning`
+  on use. New tokens are issued under `scitex-hub-campaign-*`. Re-issue
+  at your convenience.
+- **Snapshot tag**: pre-rename HEAD is preserved as
+  `pre-rename-cloud-to-hub` (== commit `379018c4`) so the entire rename
+  is invertible by re-running `scitex-dev rename-symbols` with old/new
+  swapped.
 
 ## [0.17.1-alpha] - 2026-04-21
 

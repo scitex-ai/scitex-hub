@@ -19,7 +19,7 @@ CYAN='\033[0;36m'
 DIM='\033[2m'
 NC='\033[0m'
 
-PREFIX="scitex-cloud-${ENV}-"
+PREFIX="scitex-hub-${ENV}-"
 
 get_status() {
     docker ps --format '{{.Names}}\t{{.Status}}' 2>/dev/null |

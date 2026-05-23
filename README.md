@@ -1,32 +1,32 @@
 <!-- ---
 !-- Timestamp: 2026-03-15 01:57:12
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/README.md
+!-- File: /home/ywatanabe/proj/scitex-hub/README.md
 !-- --- -->
 
 <!-- ---
 !-- Timestamp: 2026-03-15
-!-- File: /home/ywatanabe/proj/scitex-cloud/README.md
+!-- File: /home/ywatanabe/proj/scitex-hub/README.md
 !-- --- -->
 
-# SciTeX Cloud (<code>scitex-cloud</code>)
+# SciTeX Hub (<code>scitex-hub</code>)
 
 <!-- scitex-badges:start -->
 <p align="center">
-  <a href="https://pypi.org/project/scitex-cloud/"><img src="https://img.shields.io/pypi/v/scitex-cloud?label=pypi" alt="pypi"></a>
-  <a href="https://pypi.org/project/scitex-cloud/"><img src="https://img.shields.io/pypi/pyversions/scitex-cloud?label=python" alt="python"></a>
-  <a href="https://scitex-cloud.readthedocs.io/en/latest/"><img src="https://img.shields.io/readthedocs/scitex-cloud?label=docs" alt="docs"></a>
+  <a href="https://pypi.org/project/scitex-hub/"><img src="https://img.shields.io/pypi/v/scitex-hub?label=pypi" alt="pypi"></a>
+  <a href="https://pypi.org/project/scitex-hub/"><img src="https://img.shields.io/pypi/pyversions/scitex-hub?label=python" alt="python"></a>
+  <a href="https://scitex-hub.readthedocs.io/en/latest/"><img src="https://img.shields.io/readthedocs/scitex-hub?label=docs" alt="docs"></a>
 </p>
 <p align="center">
-  <a href="https://github.com/ywatanabe1989/scitex-cloud/actions/workflows/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-cloud/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml?branch=develop&label=tests" alt="tests"></a>
-  <a href="https://github.com/ywatanabe1989/scitex-cloud/actions/workflows/import-smoke-on-ubuntu-py3-12.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-cloud/import-smoke-on-ubuntu-py3-12.yml?branch=develop&label=install-check" alt="install-check"></a>
-  <a href="https://codecov.io/gh/ywatanabe1989/scitex-cloud"><img src="https://img.shields.io/codecov/c/github/ywatanabe1989/scitex-cloud/develop?label=cov" alt="cov"></a>
+  <a href="https://github.com/ywatanabe1989/scitex-hub/actions/workflows/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-hub/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml?branch=develop&label=tests" alt="tests"></a>
+  <a href="https://github.com/ywatanabe1989/scitex-hub/actions/workflows/import-smoke-on-ubuntu-py3-12.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-hub/import-smoke-on-ubuntu-py3-12.yml?branch=develop&label=install-check" alt="install-check"></a>
+  <a href="https://codecov.io/gh/ywatanabe1989/scitex-hub"><img src="https://img.shields.io/codecov/c/github/ywatanabe1989/scitex-hub/develop?label=cov" alt="cov"></a>
   <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/license-AGPL_v3-blue.svg" alt="license"></a>
 </p>
 <!-- scitex-badges:end -->
 
 <p align="center">
-  <a href="https://scitex-cloud.readthedocs.io/">Full Documentation</a> · <code>uv pip install scitex-cloud[all]</code>
+  <a href="https://scitex-hub.readthedocs.io/">Full Documentation</a> · <code>uv pip install scitex-hub[all]</code>
 </p>
 
 ---
@@ -81,9 +81,9 @@
 </tr>
 </table>
 
-<p align="center"><sub><b>Table 1.</b> Eight infrastructure challenges in scientific research and how SciTeX Cloud addresses each. These gaps fuel the reproducibility crisis, limit what AI can do for research, and leave knowledge stranded when people move on.</sub></p>
+<p align="center"><sub><b>Table 1.</b> Eight infrastructure challenges in scientific research and how SciTeX Hub addresses each. These gaps fuel the reproducibility crisis, limit what AI can do for research, and leave knowledge stranded when people move on.</sub></p>
 
-SciTeX Cloud is an AI-native infrastructure so that researchers can focus on science, not on tooling.
+SciTeX Hub is an AI-native infrastructure so that researchers can focus on science, not on tooling.
 
 ## Demo
 
@@ -103,7 +103,7 @@ graph TB
         S[scholar_app] --- W[writer_app]
         W --- F[figrecipe / plt]
         F --- CN[console_app]
-        CN --- H[hub_app]
+        CN --- H[repo_app]
         H --- CW[clew_app]
     end
     subgraph infra[apps/infra]
@@ -116,30 +116,30 @@ graph TB
 ```
 
 ```
-scitex-cloud/
+scitex-hub/
 ├── apps/
 │   ├── workspace/         # scholar / writer / figrecipe / console / hub / clew
 │   ├── infra/             # workspace_app, platform_app, project_app, a2a_app
 │   └── public_app/        # landing page + public tools
 ├── deployment/docker/     # docker_dev / docker_prod / envs
 ├── config/                # Django settings
-├── src/scitex_cloud/      # pip package: CLI + MCP server
+├── src/scitex_hub/      # pip package: CLI + MCP server
 └── tests/
 ```
 
 ## Installation
 
 ```bash
-pip install scitex-cloud              # CLI only
-pip install scitex-cloud[mcp]         # CLI + MCP server
-pip install scitex-cloud[all]         # Everything
+pip install scitex-hub              # CLI only
+pip install scitex-hub[mcp]         # CLI + MCP server
+pip install scitex-hub[all]         # Everything
 ```
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/ywatanabe1989/scitex-cloud.git
-cd scitex-cloud
+git clone https://github.com/ywatanabe1989/scitex-hub.git
+cd scitex-hub
 make start                    # Start development environment
 
 # Access at: http://localhost:8000
@@ -155,21 +155,21 @@ make start                    # Start development environment
 <br>
 
 ```python
-import scitex_cloud
+import scitex_hub
 
 # Version and health
-scitex_cloud.__version__        # read from pyproject.toml (e.g. "0.17.0-alpha")
-scitex_cloud.get_version()      # Version string
-scitex_cloud.health_check()     # Local package info
-scitex_cloud.health_check("https://scitex.ai/api/health/")  # Remote endpoint
+scitex_hub.__version__        # read from pyproject.toml (e.g. "0.17.0-alpha")
+scitex_hub.get_version()      # Version string
+scitex_hub.health_check()     # Local package info
+scitex_hub.health_check("https://scitex.ai/api/health/")  # Remote endpoint
 
 # Clients / helpers
-client = scitex_cloud.CloudClient()            # HTTP client
-env = scitex_cloud.get_environment()           # Environment config
-docker = scitex_cloud.DockerManager()          # Container helpers
+client = scitex_hub.CloudClient()            # HTTP client
+env = scitex_hub.get_environment()           # Environment config
+docker = scitex_hub.DockerManager()          # Container helpers
 ```
 
-> **[Full API reference](https://scitex-cloud.readthedocs.io/)**
+> **[Full API reference](https://scitex-hub.readthedocs.io/)**
 
 </details>
 
@@ -179,37 +179,37 @@ docker = scitex_cloud.DockerManager()          # Container helpers
 <br>
 
 ```bash
-scitex-cloud --help                    # Help
-scitex-cloud --help-recursive          # All commands recursively
-scitex-cloud --version                 # Version
+scitex-hub --help                    # Help
+scitex-hub --help-recursive          # All commands recursively
+scitex-hub --version                 # Version
 
 # Git hosting (Gitea)
-scitex-cloud gitea list                # List repositories
-scitex-cloud gitea clone user/repo     # Clone repository
-scitex-cloud gitea push                # Push changes
-scitex-cloud gitea pr create           # Create pull request
-scitex-cloud gitea issue create        # Create issue
+scitex-hub gitea list                # List repositories
+scitex-hub gitea clone user/repo     # Clone repository
+scitex-hub gitea push                # Push changes
+scitex-hub gitea pr create           # Create pull request
+scitex-hub gitea issue create        # Create issue
 
 # Docker management
-scitex-cloud docker up                 # Start containers
-scitex-cloud docker down               # Stop containers
-scitex-cloud docker ps                 # Container status
-scitex-cloud docker build              # Build images
-scitex-cloud docker restart            # Restart services
+scitex-hub docker up                 # Start containers
+scitex-hub docker down               # Stop containers
+scitex-hub docker ps                 # Container status
+scitex-hub docker build              # Build images
+scitex-hub docker restart            # Restart services
 
 # MCP server
-scitex-cloud mcp start                 # Start MCP server
-scitex-cloud mcp list-tools            # List available tools
-scitex-cloud mcp doctor                # Diagnose setup
-scitex-cloud mcp installation          # Client config instructions
+scitex-hub mcp start                 # Start MCP server
+scitex-hub mcp list-tools            # List available tools
+scitex-hub mcp doctor                # Diagnose setup
+scitex-hub mcp installation          # Client config instructions
 
 # Utilities
-scitex-cloud status                    # Deployment status
-scitex-cloud completion                # Shell completion setup
-scitex-cloud list-python-apis          # List all Python APIs
+scitex-hub status                    # Deployment status
+scitex-hub completion                # Shell completion setup
+scitex-hub list-python-apis          # List all Python APIs
 ```
 
-> **[Full CLI reference](https://scitex-cloud.readthedocs.io/)**
+> **[Full CLI reference](https://scitex-hub.readthedocs.io/)**
 
 </details>
 
@@ -218,7 +218,7 @@ scitex-cloud list-python-apis          # List all Python APIs
 
 <br>
 
-AI agents can interact with the SciTeX Cloud platform autonomously via MCP (Model Context Protocol) tools.
+AI agents can interact with the SciTeX Hub platform autonomously via MCP (Model Context Protocol) tools.
 
 | Category | Tools | Description |
 |----------|-------|-------------|
@@ -231,7 +231,7 @@ AI agents can interact with the SciTeX Cloud platform autonomously via MCP (Mode
 
 <sub><b>Table 2.</b> MCP tool categories — 55 tools total registered via
 <code>register_all_tools</code> in
-<code>_mcp_tools/__init__.py</code>. Use <code>scitex-cloud mcp list-tools</code>
+<code>_mcp_tools/__init__.py</code>. Use <code>scitex-hub mcp list-tools</code>
 for the live list.</sub>
 
 **Claude Desktop** (`~/.config/claude/claude_desktop_config.json`):
@@ -239,15 +239,15 @@ for the live list.</sub>
 ```json
 {
   "mcpServers": {
-    "scitex-cloud": {
-      "command": "scitex-cloud",
+    "scitex-hub": {
+      "command": "scitex-hub",
       "args": ["mcp", "start"]
     }
   }
 }
 ```
 
-> **[Full MCP specification](https://scitex-cloud.readthedocs.io/)**
+> **[Full MCP specification](https://scitex-hub.readthedocs.io/)**
 
 </details>
 
@@ -260,15 +260,15 @@ Skill files provide context-aware guidance to AI agents working within the SciTe
 
 ```bash
 # Export skills to dotfiles (sync to Claude)
-scitex-dev skills export --package scitex-cloud
+scitex-dev skills export --package scitex-hub
 
 # List available skills
-scitex-cloud skills list
+scitex-hub skills list
 ```
 
-Skills are stored in `src/scitex_cloud/_skills/scitex-cloud/` and cover deployment, development, testing, and more.
+Skills are stored in `src/scitex_hub/_skills/scitex-hub/` and cover deployment, development, testing, and more.
 
-> **[Skills index](_skills/scitex-cloud/SKILL.md)**
+> **[Skills index](_skills/scitex-hub/SKILL.md)**
 
 </details>
 
@@ -305,9 +305,9 @@ make help                     # All available commands
 
 Key variables:
 ```bash
-SCITEX_CLOUD_DJANGO_SECRET_KEY=your-secret-key
-SCITEX_CLOUD_POSTGRES_PASSWORD=strong-password
-SCITEX_CLOUD_GITEA_TOKEN=your-token
+SCITEX_HUB_DJANGO_SECRET_KEY=your-secret-key
+SCITEX_HUB_POSTGRES_PASSWORD=strong-password
+SCITEX_HUB_GITEA_TOKEN=your-token
 ```
 
 </details>
@@ -318,14 +318,14 @@ SCITEX_CLOUD_GITEA_TOKEN=your-token
 <br>
 
 ```
-scitex-cloud/
+scitex-hub/
 ├── apps/                    # Django applications
 │   ├── workspace/          # Workspace modules
 │   │   ├── apps_app/      # App marketplace & dev install
 │   │   ├── scholar_app/   # Literature discovery
 │   │   ├── writer_app/    # Scientific writing
 │   │   ├── console_app/   # Terminal & code execution
-│   │   ├── hub_app/       # Project hub & file browser
+│   │   ├── repo_app/       # Project hub & file browser
 │   │   └── clew_app/      # Verification pipeline
 │   ├── infra/             # Platform infrastructure
 │   │   ├── workspace_app/ # Module registry & workspace shell
@@ -340,13 +340,13 @@ scitex-cloud/
 │
 ├── config/                  # Django settings
 ├── static/                  # Shared frontend assets
-├── src/scitex_cloud/        # pip package (platform CLI + MCP)
+├── src/scitex_hub/        # pip package (platform CLI + MCP)
 ├── tests/                   # Test suite
 └── Makefile                 # Thin dispatcher
 ```
 
 > **For app developers:** Use `pip install scitex-app[cli]` and the `scitex-app app` CLI.
-> scitex-cloud is the platform server — app developers don't need to install it.
+> scitex-hub is the platform server — app developers don't need to install it.
 
 </details>
 
@@ -376,7 +376,7 @@ The SciTeX system follows the Four Freedoms for Research below, inspired by [the
 
 ## A2A Protocol Surface
 
-scitex-cloud serves the [Google A2A protocol](https://a2a-protocol.org/) at **`a2a.scitex.ai`** for the orochi agent fleet — AgentCard discovery, JSON-RPC dispatch, bearer-auth via Gitea PAT, and a Tier 3 forwarder to live agents. See [`apps/infra/a2a_app/README.md`](apps/infra/a2a_app/README.md).
+scitex-hub serves the [Google A2A protocol](https://a2a-protocol.org/) at **`a2a.scitex.ai`** for the orochi agent fleet — AgentCard discovery, JSON-RPC dispatch, bearer-auth via Gitea PAT, and a Tier 3 forwarder to live agents. See [`apps/infra/a2a_app/README.md`](apps/infra/a2a_app/README.md).
 
 ```bash
 curl https://a2a.scitex.ai/v1/agents/ | jq '.agents | length'
@@ -384,7 +384,7 @@ curl https://a2a.scitex.ai/v1/agents/ | jq '.agents | length'
 
 ## Status
 
-SciTeX Cloud is in **alpha**. Core functionality is working and under active development. Data formats may change between releases — back up important work.
+SciTeX Hub is in **alpha**. Core functionality is working and under active development. Data formats may change between releases — back up important work.
 
 ## Contributing
 

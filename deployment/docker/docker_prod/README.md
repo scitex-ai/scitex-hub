@@ -16,7 +16,7 @@ make ENV=prodrebuild  # Full rebuild (causes downtime)
 
 | Service | Local URL | Public URL | Default Credentials |
 |---------|-----------|------------|---------------------|
-| SciTeX Cloud | http://localhost:8000 | https://scitex.ai | - |
+| SciTeX Hub | http://localhost:8000 | https://scitex.ai | - |
 | Gitea | http://localhost:3000 | https://gitea.scitex.ai | - |
 | CrossRef API | http://localhost:31291 | https://crossref.scitex.ai | - |
 | Umami Analytics | http://localhost:3300 | https://umami.scitex.ai | admin / umami |
@@ -36,7 +36,7 @@ make ENV=prodrebuild  # Full rebuild (causes downtime)
 5. Copy the tunnel token
 6. Add to `.env`:
    ```
-   SCITEX_CLOUD_CLOUDFLARE_TUNNEL_TOKEN_PROD=<your-token>
+   SCITEX_HUB_CLOUDFLARE_TUNNEL_TOKEN_PROD=<your-token>
    ```
 
 ### Adding Public Hostnames
@@ -71,12 +71,12 @@ For each service, add a public hostname in the tunnel configuration:
 
 **Tunnel not connecting:**
 ```bash
-docker logs scitex-cloud-prod-cloudflared-1
+docker logs scitex-hub-prod-cloudflared-1
 ```
 
 **502 Bad Gateway:**
 - Check if nginx and django are healthy: `make ENV=prodstatus`
-- Check django logs: `docker logs scitex-cloud-prod-django-1`
+- Check django logs: `docker logs scitex-hub-prod-django-1`
 
 ## Umami Analytics Setup
 
@@ -84,8 +84,8 @@ docker logs scitex-cloud-prod-cloudflared-1
 1. Database is auto-created on first start
 2. If container fails with "database does not exist":
    ```bash
-   docker exec scitex-cloud-prod-postgres-1 psql -U scitex_prod -d postgres -c "CREATE DATABASE umami;"
-   docker restart scitex-cloud-prod-umami-1
+   docker exec scitex-hub-prod-postgres-1 psql -U scitex_prod -d postgres -c "CREATE DATABASE umami;"
+   docker restart scitex-hub-prod-umami-1
    ```
 
 ### Access & Login
@@ -97,14 +97,14 @@ docker logs scitex-cloud-prod-cloudflared-1
 ### Adding Website Tracking
 1. Login to Umami
 2. Go to Settings → Websites → Add website
-3. Name: SciTeX Cloud
+3. Name: SciTeX Hub
 4. Domain: scitex.ai
 5. Copy the tracking script and add to your templates
 
 ### Environment Variables
 ```env
-SCITEX_CLOUD_UMAMI_PORT_PROD=3300
-SCITEX_CLOUD_UMAMI_APP_SECRET=<random-secret>
+SCITEX_HUB_UMAMI_PORT_PROD=3300
+SCITEX_HUB_UMAMI_APP_SECRET=<random-secret>
 ```
 
 ## Database Management
@@ -112,19 +112,19 @@ SCITEX_CLOUD_UMAMI_APP_SECRET=<random-secret>
 ### PostgreSQL
 ```bash
 # Connect to postgres
-docker exec -it scitex-cloud-prod-postgres-1 psql -U scitex_prod -d scitex_cloud_prod
+docker exec -it scitex-hub-prod-postgres-1 psql -U scitex_prod -d scitex_hub_prod
 
 # List databases
-docker exec scitex-cloud-prod-postgres-1 psql -U scitex_prod -d postgres -c "\l"
+docker exec scitex-hub-prod-postgres-1 psql -U scitex_prod -d postgres -c "\l"
 
 # Backup
-docker exec scitex-cloud-prod-postgres-1 pg_dump -U scitex_prod scitex_cloud_prod > backup.sql
+docker exec scitex-hub-prod-postgres-1 pg_dump -U scitex_prod scitex_hub_prod > backup.sql
 ```
 
 ### Redis
 ```bash
 # Check Redis
-docker exec scitex-cloud-prod-redis-1 redis-cli ping
+docker exec scitex-hub-prod-redis-1 redis-cli ping
 ```
 
 ## Common Issues
@@ -135,8 +135,8 @@ docker exec scitex-cloud-prod-redis-1 redis-cli ping
 
 ### Umami "database does not exist"
 ```bash
-docker exec scitex-cloud-prod-postgres-1 psql -U scitex_prod -d postgres -c "CREATE DATABASE umami;"
-docker restart scitex-cloud-prod-umami-1
+docker exec scitex-hub-prod-postgres-1 psql -U scitex_prod -d postgres -c "CREATE DATABASE umami;"
+docker restart scitex-hub-prod-umami-1
 ```
 
 ### Services not starting after rebuild

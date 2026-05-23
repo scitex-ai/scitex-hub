@@ -131,7 +131,7 @@ class TestCampaignTokens:
         start = datetime(2025, 2, 1)
         end = datetime(2025, 3, 31)
         token = generate_campaign_token(start, end, "alpha")
-        assert token == "scitex-cloud-campaign-20250201-20250331-alpha"
+        assert token == "scitex-hub-campaign-20250201-20250331-alpha"
 
     def test_generate_campaign_token_sanitizes_hashtag(self):
         """Hashtag should be sanitized (lowercase, no special chars)."""
@@ -142,13 +142,13 @@ class TestCampaignTokens:
         start = datetime(2025, 1, 1)
         end = datetime(2025, 12, 31)
         token = generate_campaign_token(start, end, "Test@Campaign#2025!")
-        assert token == "scitex-cloud-campaign-20250101-20251231-testcampaign2025"
+        assert token == "scitex-hub-campaign-20250101-20251231-testcampaign2025"
 
     def test_parse_campaign_token_valid(self):
         """Parsing valid token should return components."""
         from apps.infra.public_app.config import parse_campaign_token
 
-        result = parse_campaign_token("scitex-cloud-campaign-20260101-20261231-alpha")
+        result = parse_campaign_token("scitex-hub-campaign-20260101-20261231-alpha")
         assert result is not None
         assert result["hashtag"] == "alpha"
         assert result["start_date"].year == 2026
@@ -167,12 +167,49 @@ class TestCampaignTokens:
         """Validation should correctly identify valid/invalid tokens."""
         from apps.infra.public_app.config import is_valid_campaign_token
 
-        assert is_valid_campaign_token("scitex-cloud-campaign-20260101-20261231-alpha")
+        assert is_valid_campaign_token("scitex-hub-campaign-20260101-20261231-alpha")
         assert is_valid_campaign_token(
-            "scitex-cloud-campaign-20261201-20270131-beta-test"
+            "scitex-hub-campaign-20261201-20270131-beta-test"
         )
         assert not is_valid_campaign_token("invalid")
         assert not is_valid_campaign_token("scitex-alpha-key")
+
+    def test_parse_legacy_campaign_token_alias(self):
+        """Legacy scitex-cloud-campaign-* tokens are accepted (ADR-0001)."""
+        import warnings
+
+        from apps.infra.public_app.config import parse_campaign_token
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            result = parse_campaign_token(
+                "scitex-cloud-campaign-20260101-20261231-alpha"
+            )
+        assert result is not None, "legacy alias must still parse"
+        assert result["hashtag"] == "alpha"
+        assert result["legacy_format"] is True
+        # No silent fallback: a DeprecationWarning must be emitted.
+        assert any(
+            issubclass(w.category, DeprecationWarning) for w in caught
+        ), "legacy prefix should emit DeprecationWarning"
+
+    def test_is_valid_campaign_token_accepts_legacy_alias(self):
+        """is_valid_campaign_token should accept the legacy alias too."""
+        from apps.infra.public_app.config import is_valid_campaign_token
+
+        assert is_valid_campaign_token("scitex-cloud-campaign-20260101-20261231-alpha")
+
+    def test_generate_campaign_token_never_emits_legacy_prefix(self):
+        """The generator must only emit the current scitex-hub prefix."""
+        from datetime import datetime
+
+        from apps.infra.public_app.config import generate_campaign_token
+
+        token = generate_campaign_token(
+            datetime(2025, 1, 1), datetime(2025, 12, 31), "alpha"
+        )
+        assert token.startswith("scitex-hub-campaign-")
+        assert "scitex-cloud" not in token
 
     def test_campaign_tokens_have_required_fields(self):
         """Campaign tokens config should have required fields."""

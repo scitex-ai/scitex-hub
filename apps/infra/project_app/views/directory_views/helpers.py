@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-11-28"
-# File: /home/ywatanabe/proj/scitex-cloud/apps/project_app/views/directory_views/helpers.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/project_app/views/directory_views/helpers.py
 # ----------------------------------------
 """
 Helper Functions for Directory and File Views

@@ -1,7 +1,7 @@
 # GitHub vs SciTeX Child Directory UI Comparison
 
 **Analysis Date:** 2025-10-24
-**GitHub URL:** https://github.com/SciTeX-AI/scitex-cloud/tree/develop/apps
+**GitHub URL:** https://github.com/SciTeX-AI/scitex-hub/tree/develop/apps
 **SciTeX URL:** http://127.0.0.1:8000/ywatanabe/test7/scitex/
 
 ## Executive Summary
@@ -280,7 +280,7 @@ This document compares the UI elements of GitHub's child directory view with Sci
 
 **Structure:**
 ```
-scitex-cloud / apps /
+scitex-hub / apps /
 ```
 
 **Features:**
@@ -721,4 +721,4 @@ SciTeX has a solid foundation with unique features that differentiate it from Gi
 
 **Document Version:** 1.0
 **Last Updated:** 2025-10-24
-**Screenshots Location:** `/home/ywatanabe/proj/scitex-cloud/.playwright-mcp/`
+**Screenshots Location:** `/home/ywatanabe/proj/scitex-hub/.playwright-mcp/`

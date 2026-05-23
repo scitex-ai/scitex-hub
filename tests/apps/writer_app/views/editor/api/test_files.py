@@ -27,7 +27,7 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
-# # File: /home/ywatanabe/proj/scitex-cloud/apps/writer_app/views/editor/api/files.py
+# # File: /home/ywatanabe/proj/scitex-hub/apps/writer_app/views/editor/api/files.py
 # """File operations - PDF serving, thumbnails."""
 #
 # from __future__ import annotations

@@ -47,9 +47,9 @@ if ENV_FILE.exists():
     with open(ENV_FILE) as f:
         for line in f:
             line = line.strip()
-            if line.startswith("SCITEX_CLOUD_TEST_USER_USERNAME="):
+            if line.startswith("SCITEX_HUB_TEST_USER_USERNAME="):
                 TEST_USER_USERNAME = line.split("=", 1)[1]
-            elif line.startswith("SCITEX_CLOUD_TEST_USER_PASSWORD="):
+            elif line.startswith("SCITEX_HUB_TEST_USER_PASSWORD="):
                 TEST_USER_PASSWORD = line.split("=", 1)[1]
 
 CREDENTIALS_AVAILABLE = bool(TEST_USER_USERNAME and TEST_USER_PASSWORD)

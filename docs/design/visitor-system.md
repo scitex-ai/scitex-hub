@@ -26,7 +26,7 @@ Seamless anonymous visitor access without signup. Pre-allocated visitor accounts
 
 | Parameter | Default | Source |
 |-----------|---------|--------|
-| Pool Size | `4` | `SCITEX_CLOUD_VISITOR_POOL_SIZE` env var |
+| Pool Size | `4` | `SCITEX_HUB_VISITOR_POOL_SIZE` env var |
 | Session Lifetime | `1 hour` | `SESSION_LIFETIME_HOURS` |
 | Extension on Activity | `30 min` | `SESSION_EXTENSION_MINUTES` |
 | Idle Timeout | `30 min` | `IDLE_TIMEOUT_MINUTES` |
@@ -89,16 +89,16 @@ allocation_token = secrets.token_urlsafe(32)
 
 ```bash
 # Create visitor pool (default: 4 slots)
-docker exec scitex-cloud-dev-django-1 python manage.py create_visitor_pool
+docker exec scitex-hub-dev-django-1 python manage.py create_visitor_pool
 
 # Custom size
-docker exec scitex-cloud-dev-django-1 python manage.py create_visitor_pool --size 8
+docker exec scitex-hub-dev-django-1 python manage.py create_visitor_pool --size 8
 
 # Check pool status
-docker exec scitex-cloud-dev-django-1 python manage.py create_visitor_pool --status
+docker exec scitex-hub-dev-django-1 python manage.py create_visitor_pool --status
 
 # Reset pool (when stuck)
-docker exec scitex-cloud-dev-django-1 python manage.py reset_visitor_pool
+docker exec scitex-hub-dev-django-1 python manage.py reset_visitor_pool
 ```
 
 ## Key Files

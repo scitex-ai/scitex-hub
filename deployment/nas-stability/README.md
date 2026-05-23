@@ -91,7 +91,7 @@ ssh nas 'dmesg | tail -50'
 The `health-check.sh` script is designed to run as a cron job on WSL:
 
 ```
-*/5 * * * * /home/ywatanabe/proj/scitex-cloud/deployment/nas-stability/health-check.sh >> /tmp/nas-health-check.log 2>&1
+*/5 * * * * /home/ywatanabe/proj/scitex-hub/deployment/nas-stability/health-check.sh >> /tmp/nas-health-check.log 2>&1
 ```
 
 Install automatically with:

@@ -132,17 +132,17 @@ http://127.0.0.1:8000/ywatanabe/test7/.git/
 
 ## Files Modified
 
-1. `/home/ywatanabe/proj/scitex-cloud/apps/project_app/static/project_app/css/components/sidebar.css`
+1. `/home/ywatanabe/proj/scitex-hub/apps/project_app/static/project_app/css/components/sidebar.css`
    - Enhanced with GitHub-like styling
    - Better hover effects
    - Dark theme support
 
-2. `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/partials/_sidebar.html`
+2. `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/partials/_sidebar.html`
    - Added proper IDs
    - Improved onclick handler
    - Better styling
 
-3. `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/partials/_project_scripts.html`
+3. `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/partials/_project_scripts.html`
    - Enhanced toggle function
    - localStorage support
    - Dynamic tooltip updates

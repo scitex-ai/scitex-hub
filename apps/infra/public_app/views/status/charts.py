@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-12-02 16:00:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/views/status/charts.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/public_app/views/status/charts.py
 
 """
 Server Status Charts - Pre-rendered PNG serving.

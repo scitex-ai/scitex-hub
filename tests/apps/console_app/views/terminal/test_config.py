@@ -10,7 +10,7 @@ import pytest
 
 
 class TestDevReposParsing:
-    """Test DEV_REPOS parsing from SCITEX_CLOUD_DEV_REPOS env var."""
+    """Test DEV_REPOS parsing from SCITEX_HUB_DEV_REPOS env var."""
 
     def _reload_config(self):
         """Reload config module to pick up env changes."""
@@ -19,14 +19,14 @@ class TestDevReposParsing:
         importlib.reload(cfg)
         return cfg
 
-    @mock.patch.dict(os.environ, {"SCITEX_CLOUD_DEV_REPOS": ""}, clear=False)
+    @mock.patch.dict(os.environ, {"SCITEX_HUB_DEV_REPOS": ""}, clear=False)
     def test_empty_env_returns_empty_list(self):
         cfg = self._reload_config()
         assert cfg.DEV_REPOS == []
 
     @mock.patch.dict(
         os.environ,
-        {"SCITEX_CLOUD_DEV_REPOS": "scitex-python:/home/user/proj/scitex-python:all"},
+        {"SCITEX_HUB_DEV_REPOS": "scitex-python:/home/user/proj/scitex-python:all"},
         clear=False,
     )
     def test_single_repo_parsed(self):
@@ -39,7 +39,7 @@ class TestDevReposParsing:
     @mock.patch.dict(
         os.environ,
         {
-            "SCITEX_CLOUD_DEV_REPOS": (
+            "SCITEX_HUB_DEV_REPOS": (
                 "scitex-python:/home/user/proj/scitex-python:all,"
                 "figrecipe:/home/user/proj/figrecipe:all"
             )
@@ -54,7 +54,7 @@ class TestDevReposParsing:
 
     @mock.patch.dict(
         os.environ,
-        {"SCITEX_CLOUD_DEV_REPOS": "myrepo:/some/path"},
+        {"SCITEX_HUB_DEV_REPOS": "myrepo:/some/path"},
         clear=False,
     )
     def test_missing_extras_defaults_to_all(self):
@@ -64,7 +64,7 @@ class TestDevReposParsing:
 
     @mock.patch.dict(
         os.environ,
-        {"SCITEX_CLOUD_DEV_REPOS": "bad-entry"},
+        {"SCITEX_HUB_DEV_REPOS": "bad-entry"},
         clear=False,
     )
     def test_malformed_entry_skipped(self):
@@ -74,7 +74,7 @@ class TestDevReposParsing:
     @mock.patch.dict(
         os.environ,
         {
-            "SCITEX_CLOUD_DEV_REPOS": (
+            "SCITEX_HUB_DEV_REPOS": (
                 "scitex-python:/home/user/proj/scitex-python:all,"
                 "bad,"
                 "figrecipe:/home/user/proj/figrecipe:all"

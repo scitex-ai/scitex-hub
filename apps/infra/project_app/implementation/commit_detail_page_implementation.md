@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the implementation of a GitHub-style commit detail page for the SciTeX Cloud project management system. The commit detail page displays comprehensive information about a specific Git commit, including metadata, changed files, and unified diffs.
+This document describes the implementation of a GitHub-style commit detail page for the SciTeX Hub project management system. The commit detail page displays comprehensive information about a specific Git commit, including metadata, changed files, and unified diffs.
 
 ## Implementation Date
 
@@ -22,7 +22,7 @@ Example:
 ## Files Modified/Created
 
 ### 1. View Function
-**File**: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/views.py`
+**File**: `/home/ywatanabe/proj/scitex-hub/apps/project_app/views.py`
 
 Added `commit_detail` view function that:
 - Validates project access permissions
@@ -48,7 +48,7 @@ git branch --show-current
 ```
 
 ### 2. Template
-**File**: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/commit_detail.html`
+**File**: `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/commit_detail.html`
 
 Features:
 - GitHub-inspired design with theme support (light/dark)
@@ -76,7 +76,7 @@ Features:
     - Line-by-line context
 
 ### 3. URL Configuration
-**File**: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/user_urls.py`
+**File**: `/home/ywatanabe/proj/scitex-hub/apps/project_app/user_urls.py`
 
 Added:
 - `commit_detail_wrapper` function
@@ -84,8 +84,8 @@ Added:
 
 ### 4. Template Updates
 **Files**:
-- `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_detail.html`
-- `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_directory.html`
+- `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_detail.html`
+- `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_directory.html`
 
 Changes:
 - Made commit messages in file browser clickable

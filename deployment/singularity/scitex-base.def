@@ -9,7 +9,7 @@ Bootstrap: docker
 From: python:3.11-slim
 
 %labels
-    Author SciTeX Cloud Team
+    Author SciTeX Hub Team
     Description Base layer with system deps, ML stack, and AI CLI tools
     Documentation https://github.com/ywatanabe/scitex-cloud
     BaseVersion BASE_VERSION_PLACEHOLDER

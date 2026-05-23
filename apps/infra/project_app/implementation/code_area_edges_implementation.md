@@ -9,7 +9,7 @@ This document describes the implementation of borders/edges around the code disp
 ## Changes Made
 
 ### 1. File Header Styling
-**Location**: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_file_view.html` (lines 22-31)
+**Location**: `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_file_view.html` (lines 22-31)
 
 **Changes**:
 - Added `border: 1px solid var(--color-border-default)` to create a border around the header
@@ -31,7 +31,7 @@ This document describes the implementation of borders/edges around the code disp
 ```
 
 ### 2. File Container Styling
-**Location**: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_file_view.html` (lines 38-45)
+**Location**: `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_file_view.html` (lines 38-45)
 
 **Changes**:
 - Added `border: 1px solid var(--color-border-default)` for side and bottom borders
@@ -52,7 +52,7 @@ This document describes the implementation of borders/edges around the code disp
 ```
 
 ### 3. File Content Styling
-**Location**: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_file_view.html` (lines 47-49)
+**Location**: `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_file_view.html` (lines 47-49)
 
 **Changes**:
 - Added `border-top: 1px solid var(--color-border-default)` to separate content from header
@@ -70,7 +70,7 @@ This document describes the implementation of borders/edges around the code disp
 ```
 
 ### 4. Markdown Body Styling
-**Location**: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_file_view.html` (lines 72-77)
+**Location**: `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_file_view.html` (lines 72-77)
 
 **Changes**:
 - Added `border-top: 1px solid var(--color-border-default)` for consistency with code view
@@ -86,7 +86,7 @@ This document describes the implementation of borders/edges around the code disp
 ```
 
 ### 5. Inner Element Border Control
-**Location**: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_file_view.html` (lines 262-280)
+**Location**: `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_file_view.html` (lines 262-280)
 
 **Changes**:
 - Replaced overly aggressive border removal with targeted approach
@@ -153,10 +153,10 @@ All tests passed successfully with borders visible and properly styled.
 ## Screenshots
 
 Screenshots saved to:
-- `/home/ywatanabe/proj/scitex-cloud/.playwright-mcp/code_area_with_borders.png` (shell script)
-- `/home/ywatanabe/proj/scitex-cloud/.playwright-mcp/code_area_plaintext_with_borders.png` (plain text)
-- `/home/ywatanabe/proj/scitex-cloud/.playwright-mcp/code_area_markdown_with_borders.png` (markdown preview)
-- `/home/ywatanabe/proj/scitex-cloud/.playwright-mcp/code_area_markdown_code_view_with_borders.png` (markdown code view)
+- `/home/ywatanabe/proj/scitex-hub/.playwright-mcp/code_area_with_borders.png` (shell script)
+- `/home/ywatanabe/proj/scitex-hub/.playwright-mcp/code_area_plaintext_with_borders.png` (plain text)
+- `/home/ywatanabe/proj/scitex-hub/.playwright-mcp/code_area_markdown_with_borders.png` (markdown preview)
+- `/home/ywatanabe/proj/scitex-hub/.playwright-mcp/code_area_markdown_code_view_with_borders.png` (markdown code view)
 
 ## GitHub Design Compliance
 
@@ -168,8 +168,8 @@ This implementation matches GitHub's file viewer design:
 
 ## Related Files
 
-- Template: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_file_view.html`
-- TODO reference: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/TODO.md` (line 46)
+- Template: `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_file_view.html`
+- TODO reference: `/home/ywatanabe/proj/scitex-hub/apps/project_app/TODO.md` (line 46)
 
 ## Summary
 

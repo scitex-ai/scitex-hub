@@ -27,7 +27,7 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
-# # File: /home/ywatanabe/proj/scitex-cloud/apps/docs_app/views.py
+# # File: /home/ywatanabe/proj/scitex-hub/apps/docs_app/views.py
 #
 # from django.shortcuts import render, redirect
 # from django.http import Http404, HttpResponse
@@ -55,7 +55,7 @@ if __name__ == "__main__":
 #             {
 #                 "name": "REST API",
 #                 "slug": "api",
-#                 "description": "REST API reference for SciTeX Cloud",
+#                 "description": "REST API reference for SciTeX Hub",
 #                 "icon": "scitex_logos/scitex-icons/scitex-icon-navy.svg",
 #                 "available": True,  # Always available (static HTML)
 #             },

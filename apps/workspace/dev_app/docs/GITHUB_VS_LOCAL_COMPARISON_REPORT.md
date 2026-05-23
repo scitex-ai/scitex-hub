@@ -6,14 +6,14 @@
 
 ## Executive Summary
 
-This report compares the visual differences between GitHub's interface and the local SciTeX Cloud implementation across three main page types: project root, directory listing, and file view. The analysis reveals that SciTeX has successfully implemented a GitHub-like interface with dark theme styling and many similar UI patterns, but there are notable differences and some functional issues.
+This report compares the visual differences between GitHub's interface and the local SciTeX Hub implementation across three main page types: project root, directory listing, and file view. The analysis reveals that SciTeX has successfully implemented a GitHub-like interface with dark theme styling and many similar UI patterns, but there are notable differences and some functional issues.
 
 ---
 
 ## Comparison 1: Project Root Page
 
 ### URLs Compared
-- **GitHub:** https://github.com/SciTeX-AI/scitex-cloud
+- **GitHub:** https://github.com/SciTeX-AI/scitex-hub
 - **Local:** http://127.0.0.1:8000/ywatanabe/test7/
 
 ### Visual Differences
@@ -25,7 +25,7 @@ This report compares the visual differences between GitHub's interface and the l
 #### Header/Navigation
 - **GitHub:**
   - Standard GitHub global navigation (Platform, Solutions, Resources, etc.)
-  - Repository name: "SciTeX-AI / scitex-cloud" with Public badge
+  - Repository name: "SciTeX-AI / scitex-hub" with Public badge
   - Tabs: Code, Issues, Pull requests, Actions, Projects, Security, Insights
 
 - **Local:**
@@ -81,7 +81,7 @@ This report compares the visual differences between GitHub's interface and the l
 ## Comparison 2: Directory/Folder View
 
 ### URLs Compared
-- **GitHub:** https://github.com/SciTeX-AI/scitex-cloud/tree/develop/apps
+- **GitHub:** https://github.com/SciTeX-AI/scitex-hub/tree/develop/apps
 - **Local:** http://127.0.0.1:8000/ywatanabe/test7/scitex/
 
 ### Visual Differences
@@ -117,7 +117,7 @@ This report compares the visual differences between GitHub's interface and the l
 
 #### Breadcrumb Path
 - **GitHub:**
-  - Shows: `scitex-cloud / apps /` with copy button
+  - Shows: `scitex-hub / apps /` with copy button
   - Last commit info: "ywatanabe1989 and claude feat: Enhance writer app UX with improved editor and navigation" (50ef3be - last week)
 
 - **Local:**
@@ -146,14 +146,14 @@ This report compares the visual differences between GitHub's interface and the l
 ## Comparison 3: File View Page
 
 ### URLs Compared
-- **GitHub:** https://github.com/SciTeX-AI/scitex-cloud/blob/develop/apps/auth_app/urls.py
+- **GitHub:** https://github.com/SciTeX-AI/scitex-hub/blob/develop/apps/auth_app/urls.py
 - **Local:** http://127.0.0.1:8000/ywatanabe/test7/blob/scitex/writer/scripts/examples/link_project_assets.sh
 
 ### Visual Differences
 
 #### File Header
 - **GitHub:**
-  - Path: `scitex-cloud / apps / auth_app / urls.py` with copy button
+  - Path: `scitex-hub / apps / auth_app / urls.py` with copy button
   - Commit info: "ywatanabe1989 feat: Create clean permissions_app with GitLab-style RBAC" (507c64c - last week) with History link
   - File metadata: "Executable File · 39 lines (33 loc) · 1.18 KB"
   - Tabs: Code, Blame
@@ -255,7 +255,7 @@ This report compares the visual differences between GitHub's interface and the l
 ## Screenshots Reference
 
 All comparison screenshots are saved in:
-`/home/ywatanabe/proj/scitex-cloud/apps/dev_app/screenshots/`
+`/home/ywatanabe/proj/scitex-hub/apps/dev_app/screenshots/`
 
 Files:
 - `root_github.png` - GitHub repository root

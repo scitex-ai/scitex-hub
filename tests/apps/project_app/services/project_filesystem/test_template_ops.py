@@ -187,7 +187,7 @@ if __name__ == "__main__":
 #                 )
 #                 readme_content = readme_content.replace(
 #                     "This is an example research project",
-#                     f"{project.description or 'Research project created with SciTeX Cloud'}",
+#                     f"{project.description or 'Research project created with SciTeX Hub'}",
 #                 )
 #                 readme_path.write_text(readme_content)
 #

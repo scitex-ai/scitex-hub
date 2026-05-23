@@ -28,7 +28,7 @@ if __name__ == "__main__":
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
 # # Timestamp: "2025-12-11 (ywatanabe)"
-# # File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/api_views.py
+# # File: /home/ywatanabe/proj/scitex-hub/apps/public_app/api_views.py
 # # ----------------------------------------
 # """
 # API views for public_app tools.

@@ -1,6 +1,6 @@
 /**
  * Re-export from scitex-ui — the canonical implementation.
- * scitex-cloud consumers should import from "@/components/confirm-modal".
+ * scitex-hub consumers should import from "@/components/confirm-modal".
  */
 export { showConfirm } from "scitex-ui/ts/app/confirm-modal";
 export type { ConfirmModalOptions } from "scitex-ui/ts/app/confirm-modal";

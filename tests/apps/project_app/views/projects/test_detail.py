@@ -162,9 +162,9 @@ if __name__ == "__main__":
 #
 #     # Get Gitea URLs for clone button
 #     from django.conf import settings
-#     gitea_url = getattr(settings, 'SCITEX_CLOUD_GITEA_URL', 'http://127.0.0.1:3000')
-#     gitea_ssh_domain = getattr(settings, 'SCITEX_CLOUD_GIT_DOMAIN', '127.0.0.1')
-#     gitea_ssh_port = getattr(settings, 'SCITEX_CLOUD_GITEA_SSH_PORT', '2222')
+#     gitea_url = getattr(settings, 'SCITEX_HUB_GITEA_URL', 'http://127.0.0.1:3000')
+#     gitea_ssh_domain = getattr(settings, 'SCITEX_HUB_GIT_DOMAIN', '127.0.0.1')
+#     gitea_ssh_port = getattr(settings, 'SCITEX_HUB_GITEA_SSH_PORT', '2222')
 #
 #     gitea_https_url = f"{gitea_url}/{project.owner.username}/{project.slug}.git"
 #     # Use SSH URI format with explicit port: ssh://user@host:port/path

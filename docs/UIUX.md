@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2025-12-06 18:02:19
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/docs/UIUX.md
+!-- File: /home/ywatanabe/proj/scitex-hub/docs/UIUX.md
 !-- --- -->
 
 ## USER DOES NOT CONFIRM THIS YET. THIS IS JUST A DRAFT AND KEPT FOR BRAINSTORMING.

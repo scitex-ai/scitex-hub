@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive system validation for SciTeX Cloud platform
+Comprehensive system validation for SciTeX Hub platform
 """
 import os
 import sys
@@ -8,7 +8,7 @@ import django
 
 # Setup Django environment
 os.environ.setdefault(
-    "SCITEX_CLOUD_DJANGO_SETTINGS_MODULE", "config.settings.development"
+    "SCITEX_HUB_DJANGO_SETTINGS_MODULE", "config.settings.development"
 )
 django.setup()
 
@@ -187,7 +187,7 @@ class SystemValidator:
 
     def run_all_tests(self):
         """Run all validation tests"""
-        print("🔄 Starting SciTeX Cloud System Validation...")
+        print("🔄 Starting SciTeX Hub System Validation...")
         print("=" * 50)
 
         self.test_homepage()
@@ -205,7 +205,7 @@ class SystemValidator:
         )
 
         if self.results["failed"] == 0:
-            print("🎉 All systems operational! SciTeX Cloud is ready for use.")
+            print("🎉 All systems operational! SciTeX Hub is ready for use.")
         else:
             print("⚠️  Some issues found. Review failed tests above.")
 
