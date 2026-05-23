@@ -80,7 +80,7 @@ check_postgres_status() {
     # Database connection test
     echo_info "Database Connection:"
     SCITEX_CLOUD_POSTGRES_USER="${SCITEX_CLOUD_POSTGRES_USER:-scitex_dev}"
-    SCITEX_CLOUD_POSTGRES_DB="${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud_dev}"
+    SCITEX_CLOUD_POSTGRES_DB="${SCITEX_CLOUD_POSTGRES_DB:-scitex_hub_dev}"
 
     if docker-compose -f docker-compose.dev.yml exec -T db \
         psql -U "$SCITEX_CLOUD_POSTGRES_USER" -d "$SCITEX_CLOUD_POSTGRES_DB" -c "SELECT 1;" > /dev/null 2>&1; then

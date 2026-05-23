@@ -221,7 +221,7 @@ TEMPLATES = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "data" / "db" / "sqlite" / "scitex_cloud.db",
+        "NAME": BASE_DIR / "data" / "db" / "sqlite" / "scitex_hub.db",
     }
 }
 
@@ -239,7 +239,7 @@ try:
         "default": {
             "BACKEND": "django.core.cache.backends.redis.RedisCache",
             "LOCATION": REDIS_URL,
-            "KEY_PREFIX": "scitex_cloud",
+            "KEY_PREFIX": "scitex_hub",
             "TIMEOUT": 3600,
         }
     }

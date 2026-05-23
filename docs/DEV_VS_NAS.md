@@ -13,7 +13,7 @@
 | **HTTP Port**         | 8000 (direct Django) | 80 (nginx + Cloudflare)              |
 | **Domain**            | 127.0.0.1            | scitex.ai                            |
 | **HTTPS Cookies**     | false                | true                                 |
-| **Database**          | scitex_cloud_dev     | scitex_cloud_prod                     |
+| **Database**          | scitex_hub_dev     | scitex_hub_prod                     |
 | **Cloudflare Tunnel** | none                 | configured                           |
 | **Gitea URL**         | 127.0.0.1:3000       | gitea:3000 (Docker internal)         |
 | **SLURM Host**        | ywata-note-win       | DXP480TPLUS-994                      |

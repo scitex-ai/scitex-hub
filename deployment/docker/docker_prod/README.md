@@ -112,13 +112,13 @@ SCITEX_CLOUD_UMAMI_APP_SECRET=<random-secret>
 ### PostgreSQL
 ```bash
 # Connect to postgres
-docker exec -it scitex-cloud-prod-postgres-1 psql -U scitex_prod -d scitex_cloud_prod
+docker exec -it scitex-cloud-prod-postgres-1 psql -U scitex_prod -d scitex_hub_prod
 
 # List databases
 docker exec scitex-cloud-prod-postgres-1 psql -U scitex_prod -d postgres -c "\l"
 
 # Backup
-docker exec scitex-cloud-prod-postgres-1 pg_dump -U scitex_prod scitex_cloud_prod > backup.sql
+docker exec scitex-cloud-prod-postgres-1 pg_dump -U scitex_prod scitex_hub_prod > backup.sql
 ```
 
 ### Redis

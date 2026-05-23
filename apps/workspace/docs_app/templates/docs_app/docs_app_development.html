@@ -271,7 +271,7 @@ scitex-cloud app validate .</code></pre>
                 <i class="fas fa-plug"></i> Platform SDK
             </h2>
             <p>
-                The <code>scitex_cloud.sdk</code> Python library wraps Platform
+                The <code>scitex_hub.sdk</code> Python library wraps Platform
                 REST APIs into a clean interface. Works from Apptainer containers,
                 CLI, and local dev. Auth is automatic via env vars.
             </p>
@@ -279,7 +279,7 @@ scitex-cloud app validate .</code></pre>
             <p>Store and query JSON data without Django models or migrations:</p>
             <div class="card mt-3">
                 <div class="card-body">
-                    <pre class="bg-dark text-light p-3 rounded"><code>from scitex_cloud.sdk import data
+                    <pre class="bg-dark text-light p-3 rounded"><code>from scitex_hub.sdk import data
 data.create("my-app", "Experiment", {"title": "Test", "status": "running"})
 data.list_records("my-app", "Experiment", filters={"status": "running"})
 data.get("my-app", "Experiment", record_id)
@@ -292,7 +292,7 @@ data.search("my-app", "Experiment", query="neural")</code></pre>
             <p>Per-app namespaced file storage:</p>
             <div class="card mt-3">
                 <div class="card-body">
-                    <pre class="bg-dark text-light p-3 rounded"><code>from scitex_cloud.sdk import files
+                    <pre class="bg-dark text-light p-3 rounded"><code>from scitex_hub.sdk import files
 files.upload("my-app", "exports/data.csv", csv_content)
 files.download("my-app", "exports/data.csv")
 files.list_files("my-app", path="exports/")
@@ -303,7 +303,7 @@ files.delete("my-app", "exports/data.csv")</code></pre>
             <p>Submit and monitor background jobs:</p>
             <div class="card mt-3">
                 <div class="card-body">
-                    <pre class="bg-dark text-light p-3 rounded"><code>from scitex_cloud.sdk import jobs
+                    <pre class="bg-dark text-light p-3 rounded"><code>from scitex_hub.sdk import jobs
 jobs.submit("my-app", "export_csv", params={"format": "xlsx"})
 jobs.status("my-app", job_id)
 jobs.list_jobs("my-app")</code></pre>
@@ -496,7 +496,7 @@ scitex-cloud app build-container .</code></pre>
             <h4 class="mt-4">Python API</h4>
             <div class="card mt-3">
                 <div class="card-body">
-                    <pre class="bg-dark text-light p-3 rounded"><code>from scitex_cloud.appmaker import get_prefs, set_prefs
+                    <pre class="bg-dark text-light p-3 rounded"><code>from scitex_hub.appmaker import get_prefs, set_prefs
 # Read preferences
 prefs = get_prefs("writer")  # {"theme": "dark", "font_size": 14}
 
@@ -664,7 +664,7 @@ scitex-cloud app prefs delete writer</code></pre>
                     <strong>Python API</strong>
                 </div>
                 <div class="card-body">
-                    <pre class="bg-dark text-light p-3 rounded"><code>from scitex_cloud.appmaker import ui
+                    <pre class="bg-dark text-light p-3 rounded"><code>from scitex_hub.appmaker import ui
 # Build step sequences
 steps = ui.chain(
     ui.navigate_to("/apps/writer/"),

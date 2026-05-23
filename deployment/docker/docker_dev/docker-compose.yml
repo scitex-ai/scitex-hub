@@ -176,7 +176,7 @@ services:
 
     environment:
       # PostgreSQL expects POSTGRES_* variables (not SCITEX_CLOUD_POSTGRES_*)
-      - POSTGRES_DB=${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud_dev}
+      - POSTGRES_DB=${SCITEX_CLOUD_POSTGRES_DB:-scitex_hub_dev}
       - POSTGRES_USER=${SCITEX_CLOUD_POSTGRES_USER:-scitex_dev}
       - POSTGRES_PASSWORD=${SCITEX_CLOUD_POSTGRES_PASSWORD:-scitex_dev_2025}
 
@@ -193,7 +193,7 @@ services:
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${SCITEX_CLOUD_POSTGRES_USER:-scitex_dev} -d ${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud_dev}"]
+      test: ["CMD-SHELL", "pg_isready -U ${SCITEX_CLOUD_POSTGRES_USER:-scitex_dev} -d ${SCITEX_CLOUD_POSTGRES_DB:-scitex_hub_dev}"]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -411,7 +411,7 @@ services:
       # Database connection
       - GITEA__database__DB_TYPE=postgres
       - GITEA__database__HOST=postgres:5432
-      - GITEA__database__NAME=${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud_dev}
+      - GITEA__database__NAME=${SCITEX_CLOUD_POSTGRES_DB:-scitex_hub_dev}
       - GITEA__database__USER=${SCITEX_CLOUD_POSTGRES_USER:-scitex_dev}
       - GITEA__database__PASSWD=${SCITEX_CLOUD_POSTGRES_PASSWORD:-scitex_dev_2025}
 

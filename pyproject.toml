@@ -31,10 +31,10 @@ Issues = "https://github.com/ywatanabe1989/scitex-cloud/issues"
 Changelog = "https://github.com/ywatanabe1989/scitex-cloud/blob/main/CHANGELOG.md"
 
 [project.entry-points."scitex_dev.docs"]
-scitex-cloud = "scitex_cloud"
+scitex-cloud = "scitex_hub"
 
 [project.entry-points."scitex_dev.skills"]
-scitex-cloud = "scitex_cloud"
+scitex-cloud = "scitex_hub"
 
 [project.optional-dependencies]
 django = [
@@ -166,8 +166,8 @@ all = [
 ]
 
 [project.scripts]
-scitex-cloud = "scitex_cloud._cli.main:main"
-scitex-cloud-mcp = "scitex_cloud._mcp_server:main"
+scitex-cloud = "scitex_hub._cli.main:main"
+scitex-cloud-mcp = "scitex_hub._mcp_server:main"
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
@@ -177,7 +177,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-scitex_cloud = ["skills/*.md", "skills/references/*.md", "_skills/**/*.md"]
+scitex_hub = ["skills/*.md", "skills/references/*.md", "_skills/**/*.md"]
 
 [tool.setuptools.package-dir]
 "" = "src"
@@ -266,7 +266,7 @@ log_cli_level = "INFO"
 
 [tool.coverage.run]
 parallel = true
-source = ["scitex_cloud"]
+source = ["scitex_hub"]
 concurrency = ["multiprocessing", "thread"]
 omit = [
     "*/tests/*",

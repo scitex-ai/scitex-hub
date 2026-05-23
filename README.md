@@ -123,7 +123,7 @@ scitex-cloud/
 │   └── public_app/        # landing page + public tools
 ├── deployment/docker/     # docker_dev / docker_prod / envs
 ├── config/                # Django settings
-├── src/scitex_cloud/      # pip package: CLI + MCP server
+├── src/scitex_hub/      # pip package: CLI + MCP server
 └── tests/
 ```
 
@@ -155,18 +155,18 @@ make start                    # Start development environment
 <br>
 
 ```python
-import scitex_cloud
+import scitex_hub
 
 # Version and health
-scitex_cloud.__version__        # read from pyproject.toml (e.g. "0.17.0-alpha")
-scitex_cloud.get_version()      # Version string
-scitex_cloud.health_check()     # Local package info
-scitex_cloud.health_check("https://scitex.ai/api/health/")  # Remote endpoint
+scitex_hub.__version__        # read from pyproject.toml (e.g. "0.17.0-alpha")
+scitex_hub.get_version()      # Version string
+scitex_hub.health_check()     # Local package info
+scitex_hub.health_check("https://scitex.ai/api/health/")  # Remote endpoint
 
 # Clients / helpers
-client = scitex_cloud.CloudClient()            # HTTP client
-env = scitex_cloud.get_environment()           # Environment config
-docker = scitex_cloud.DockerManager()          # Container helpers
+client = scitex_hub.CloudClient()            # HTTP client
+env = scitex_hub.get_environment()           # Environment config
+docker = scitex_hub.DockerManager()          # Container helpers
 ```
 
 > **[Full API reference](https://scitex-cloud.readthedocs.io/)**
@@ -266,7 +266,7 @@ scitex-dev skills export --package scitex-cloud
 scitex-cloud skills list
 ```
 
-Skills are stored in `src/scitex_cloud/_skills/scitex-cloud/` and cover deployment, development, testing, and more.
+Skills are stored in `src/scitex_hub/_skills/scitex-cloud/` and cover deployment, development, testing, and more.
 
 > **[Skills index](_skills/scitex-cloud/SKILL.md)**
 
@@ -340,7 +340,7 @@ scitex-cloud/
 │
 ├── config/                  # Django settings
 ├── static/                  # Shared frontend assets
-├── src/scitex_cloud/        # pip package (platform CLI + MCP)
+├── src/scitex_hub/        # pip package (platform CLI + MCP)
 ├── tests/                   # Test suite
 └── Makefile                 # Thin dispatcher
 ```

@@ -13,13 +13,13 @@ import os
 from celery import Celery
 
 # Set default Django settings module
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.settings_dev')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.settings_dev")
 
 # Create Celery app
-app = Celery('scitex_cloud')
+app = Celery("scitex_hub")
 
 # Configure from Django settings with CELERY_ prefix
-app.config_from_object('django.conf:settings', namespace='CELERY')
+app.config_from_object("django.conf:settings", namespace="CELERY")
 
 # Auto-discover tasks in all Django apps
 app.autodiscover_tasks()
@@ -28,7 +28,7 @@ app.autodiscover_tasks()
 @app.task(bind=True, ignore_result=True)
 def debug_task(self):
     """Debug task to verify Celery is working."""
-    print(f'Request: {self.request!r}')
+    print(f"Request: {self.request!r}")
 
 
 # EOF

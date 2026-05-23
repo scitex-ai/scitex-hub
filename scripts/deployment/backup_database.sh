@@ -117,13 +117,13 @@ main() {
     mkdir -p "$BACKUP_DIR"
 
     if [ -z "$ENV" ] || [ "$ENV" = "dev" ]; then
-        backup_postgres "scitex_cloud_dev" "scitex_dev"
-        backup_sqlite "$PROJECT_ROOT/data/db/sqlite/scitex_cloud_dev.db"
+        backup_postgres "scitex_hub_dev" "scitex_dev"
+        backup_sqlite "$PROJECT_ROOT/data/db/sqlite/scitex_hub_dev.db"
     fi
 
     if [ -z "$ENV" ] || [ "$ENV" = "prod" ]; then
-        backup_postgres "scitex_cloud_prod" "scitex_prod"
-        backup_sqlite "$PROJECT_ROOT/data/db/sqlite/scitex_cloud_prod.db"
+        backup_postgres "scitex_hub_prod" "scitex_prod"
+        backup_sqlite "$PROJECT_ROOT/data/db/sqlite/scitex_hub_prod.db"
     fi
 
     echo ""

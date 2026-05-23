@@ -68,7 +68,7 @@ Set it to the path of a shell ``.src`` file that exports the required variables:
 
 .. code-block:: bash
 
-   # ~/.scitex_cloud.src
+   # ~/.scitex_hub.src
    export SCITEX_CLOUD_API_BASE_URL=https://scitex.example.com
    export SCITEX_CLOUD_API_TOKEN=your-token-here
 
@@ -82,7 +82,7 @@ Then reference it in your MCP config:
          "command": "scitex-cloud",
          "args": ["mcp", "start"],
          "env": {
-           "SCITEX_CLOUD_ENV_SRC": "/home/user/.scitex_cloud.src"
+           "SCITEX_CLOUD_ENV_SRC": "/home/user/.scitex_hub.src"
          }
        }
      }

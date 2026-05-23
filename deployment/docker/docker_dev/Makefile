@@ -251,7 +251,7 @@ test-e2e-specific: docker-check-health
 # ============================================
 db-shell: docker-check-health
 	@echo -e "$(CYAN)🗄️  Opening PostgreSQL shell...$(NC)"
-	@$(COMPOSE) exec db psql -U $${SCITEX_CLOUD_POSTGRES_USER:-scitex_dev} -d $${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud_dev}
+	@$(COMPOSE) exec db psql -U $${SCITEX_CLOUD_POSTGRES_USER:-scitex_dev} -d $${SCITEX_CLOUD_POSTGRES_DB:-scitex_hub_dev}
 
 db-reset: docker-check-health
 	@echo -e "$(RED)⚠️  WARNING: This will DELETE ALL DATA in the database!$(NC)"

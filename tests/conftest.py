@@ -44,7 +44,7 @@ def _ensure_subprocess_coverage_shim() -> None:
     ``coverage.process_startup()``.
     """
     purelib = Path(sysconfig.get_paths()["purelib"])
-    pth = purelib / "_scitex_cloud_subprocess_coverage.pth"
+    pth = purelib / "_scitex_hub_subprocess_coverage.pth"
     shim = (
         "import os, coverage\n"
         "if os.environ.get('COVERAGE_PROCESS_START'):\n"

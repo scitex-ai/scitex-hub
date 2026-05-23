@@ -48,7 +48,7 @@ log_info "Checking umami database..."
 
 # PostgreSQL user and default database
 PG_USER="scitex_${ENV}"
-PG_DB="scitex_cloud_${ENV}"
+PG_DB="scitex_hub_${ENV}"
 
 if docker exec "$POSTGRES_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" -lqt | cut -d \| -f 1 | grep -qw umami; then
     log_success "Database 'umami' already exists"

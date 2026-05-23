@@ -4,9 +4,8 @@
 # ----------------------------------------
 from __future__ import annotations
 import os
-__FILE__ = (
-    "./config/settings/settings_staging.py"
-)
+
+__FILE__ = "./config/settings/settings_staging.py"
 __DIR__ = os.path.dirname(__FILE__)
 # ----------------------------------------
 
@@ -37,9 +36,7 @@ DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
 # SciTeX Settings
 # ---------------------------------------
 # Use 'main' branch for writer template in staging (same as prod)
-SCITEX_WRITER_TEMPLATE_BRANCH = os.getenv(
-    "SCITEX_WRITER_TEMPLATE_BRANCH", "main"
-)
+SCITEX_WRITER_TEMPLATE_BRANCH = os.getenv("SCITEX_WRITER_TEMPLATE_BRANCH", "main")
 SCITEX_WRITER_TEMPLATE_TAG = os.getenv("SCITEX_WRITER_TEMPLATE_TAG", None)
 
 SECRET_KEY = os.environ.get("SCITEX_CLOUD_DJANGO_SECRET_KEY")
@@ -82,9 +79,11 @@ CSRF_TRUSTED_ORIGINS = os.environ.get(
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("SCITEX_CLOUD_POSTGRES_DB", "scitex_cloud_staging"),
+        "NAME": os.environ.get("SCITEX_CLOUD_POSTGRES_DB", "scitex_hub_staging"),
         "USER": os.environ.get("SCITEX_CLOUD_POSTGRES_USER", "scitex_staging"),
-        "PASSWORD": os.environ.get("SCITEX_CLOUD_POSTGRES_PASSWORD", "scitex_staging_2025"),
+        "PASSWORD": os.environ.get(
+            "SCITEX_CLOUD_POSTGRES_PASSWORD", "scitex_staging_2025"
+        ),
         # Connect via PgBouncer for connection pooling
         "HOST": os.environ.get("SCITEX_CLOUD_DB_HOST", "pgbouncer"),
         "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT", "6432"),
@@ -105,17 +104,14 @@ DATABASES = {
 # ---------------------------------------
 # Console backend for staging (no actual emails sent)
 EMAIL_BACKEND = os.getenv(
-    "SCITEX_CLOUD_EMAIL_BACKEND",
-    "django.core.mail.backends.console.EmailBackend"
+    "SCITEX_CLOUD_EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
 )
 
 # ---------------------------------------
 # Integration
 # ---------------------------------------
 # Gitea - Local staging instance
-GITEA_URL = os.environ.get(
-    "SCITEX_CLOUD_GITEA_URL_IN_CONTAINER", "http://gitea:3000"
-)
+GITEA_URL = os.environ.get("SCITEX_CLOUD_GITEA_URL_IN_CONTAINER", "http://gitea:3000")
 GITEA_API_URL = f"{GITEA_URL}/api/v1"
 GITEA_TOKEN = os.environ.get("SCITEX_CLOUD_GITEA_TOKEN", "")
 GITEA_INTEGRATION_ENABLED = True

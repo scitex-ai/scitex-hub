@@ -191,7 +191,7 @@ def handle_app_template_creation(request, project, manager):
     if not (app_name.endswith("_app") or app_name.endswith("-app")):
         app_name = f"{app_name}_app"
 
-    from scitex_cloud.appmaker import init_app
+    from scitex_hub.appmaker import init_app
 
     try:
         created = init_app(

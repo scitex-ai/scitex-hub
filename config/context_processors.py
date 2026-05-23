@@ -103,10 +103,10 @@ def scitex_version(request):
     Expose SciTeX Cloud version to all templates.
     Single source of truth: settings.SCITEX_CLOUD_VERSION
     """
-    return {"SCITEX_CLOUD_VERSION": get_scitex_cloud_version()}
+    return {"SCITEX_CLOUD_VERSION": get_scitex_hub_version()}
 
 
-def get_scitex_cloud_version():
+def get_scitex_hub_version():
     """
     Get version from Django settings (single source of truth).
     settings.SCITEX_CLOUD_VERSION is the scitex-cloud web app version,

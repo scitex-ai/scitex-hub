@@ -6,7 +6,7 @@ This section contains the API documentation for SciTeX Cloud.
 .. toctree::
    :maxdepth: 2
 
-   scitex_cloud
+   scitex_hub
 
 Package Overview
 ----------------
@@ -15,4 +15,4 @@ Package Overview
    :toctree: _autosummary
    :recursive:
 
-   scitex_cloud
+   scitex_hub

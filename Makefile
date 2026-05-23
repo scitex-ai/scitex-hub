@@ -852,12 +852,12 @@ test-status:
 # ============================================
 db-shell: validate
 	@echo -e "$(CYAN)🗄️  Opening database shell ($(ENV))...$(NC)"
-	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec postgres psql -U scitex_$(ENV) -d scitex_cloud_$(ENV)
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec postgres psql -U scitex_$(ENV) -d scitex_hub_$(ENV)
 
 db-backup: validate
 	@echo -e "$(CYAN)💾 Backing up database ($(ENV))...$(NC)"
 	@BACKUP_FILE="backup_$(ENV)_$$(date +%Y%m%d_%H%M%S).sql"; \
-	cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec postgres pg_dump -U scitex_$(ENV) scitex_cloud_$(ENV) > ../../backups/$$BACKUP_FILE && \
+	cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec postgres pg_dump -U scitex_$(ENV) scitex_hub_$(ENV) > ../../backups/$$BACKUP_FILE && \
 	echo -e "$(GREEN)✅ Backup saved to backups/$$BACKUP_FILE$(NC)"
 
 db-reset: validate
@@ -892,7 +892,7 @@ fresh-start: validate
 	@USERS=$$(docker exec scitex-cloud-dev-django-1 python manage.py shell -c "from django.contrib.auth.models import User; print(User.objects.count())" 2>/dev/null | tail -1); \
 	PROJECTS=$$(docker exec scitex-cloud-dev-django-1 python manage.py shell -c "from apps.project_app.models import Project; print(Project.objects.count())" 2>/dev/null | tail -1); \
 	MANUSCRIPTS=$$(docker exec scitex-cloud-dev-django-1 python manage.py shell -c "from apps.writer_app.models import Manuscript; print(Manuscript.objects.count())" 2>/dev/null | tail -1); \
-	REPOS=$$(docker exec scitex-cloud-dev-db-1 psql -U scitex_dev -d scitex_cloud_dev -t -c "SELECT COUNT(*) FROM repository;" 2>/dev/null | xargs); \
+	REPOS=$$(docker exec scitex-cloud-dev-db-1 psql -U scitex_dev -d scitex_hub_dev -t -c "SELECT COUNT(*) FROM repository;" 2>/dev/null | xargs); \
 	DB_SIZE=$$(docker exec scitex-cloud-dev-db-1 du -sh /var/lib/postgresql/data 2>/dev/null | cut -f1); \
 	GITEA_SIZE=$$(docker exec scitex-cloud-dev-gitea-1 du -sh /data 2>/dev/null | cut -f1); \
 	USER_SIZE=$$(du -sh ./data/users/ 2>/dev/null | cut -f1); \

@@ -394,7 +394,7 @@ check_database_credentials() {
         sleep 3
         if ! docker compose -f docker-compose.yml exec -T db \
             psql -U "${SCITEX_CLOUD_POSTGRES_USER:-scitex_dev}" \
-            -d "${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud_dev}" \
+            -d "${SCITEX_CLOUD_POSTGRES_DB:-scitex_hub_dev}" \
             -c "SELECT 1" > /dev/null 2>&1; then
             echo_warning \
                 "Credentials mismatch. " \

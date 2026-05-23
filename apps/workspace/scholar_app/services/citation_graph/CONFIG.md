@@ -98,7 +98,7 @@ CROSSREF_DB_PATH=/home/ywatanabe/proj/crossref_local/data/crossref.db
 REDIS_URL=redis://localhost:6379/1
 
 # Django Settings
-DJANGO_SETTINGS_MODULE=scitex_cloud.settings.production
+DJANGO_SETTINGS_MODULE=scitex_hub.settings.production
 ```
 
 ---
@@ -314,9 +314,9 @@ WORKDIR /app
 
 # Environment
 ENV CROSSREF_DB_PATH=/data/crossref.db
-ENV DJANGO_SETTINGS_MODULE=scitex_cloud.settings.production
+ENV DJANGO_SETTINGS_MODULE=scitex_hub.settings.production
 
-CMD ["gunicorn", "scitex_cloud.wsgi:application"]
+CMD ["gunicorn", "scitex_hub.wsgi:application"]
 ```
 
 ### systemd Service
@@ -331,7 +331,7 @@ Type=notify
 User=scitex
 WorkingDirectory=/opt/scitex-cloud
 Environment="CROSSREF_DB_PATH=/data/crossref.db"
-ExecStart=/opt/scitex-cloud/venv/bin/gunicorn scitex_cloud.wsgi:application
+ExecStart=/opt/scitex-cloud/venv/bin/gunicorn scitex_hub.wsgi:application
 
 [Install]
 WantedBy=multi-user.target

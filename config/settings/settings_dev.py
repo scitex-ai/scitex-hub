@@ -116,7 +116,11 @@ VITE_HOST_PORT = 5173
 VITE_DEV_APP_PORT = 5174
 # Set True to use pre-built Vite assets (staticfiles/vite/) instead of Vite dev server.
 # Useful when Vite dev server can't run (resource constraints). Run `npm run build` first.
-VITE_USE_BUILD = os.environ.get("SCITEX_CLOUD_VITE_USE_BUILD", "").lower() in ("1", "true", "yes")
+VITE_USE_BUILD = os.environ.get("SCITEX_CLOUD_VITE_USE_BUILD", "").lower() in (
+    "1",
+    "true",
+    "yes",
+)
 # Set to your Windows LAN IP for iPhone dev testing (e.g. "192.168.0.67").
 # Default "127.0.0.1" works for localhost-only dev.
 # "auto" tries to detect the Windows host LAN IP via default gateway.
@@ -187,7 +191,7 @@ if os.environ.get("SCITEX_CLOUD_USE_SQLITE_DEV"):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "data" / "db" / "sqlite" / "scitex_cloud_dev.db",
+            "NAME": BASE_DIR / "data" / "db" / "sqlite" / "scitex_hub_dev.db",
         }
     }
 else:
@@ -195,7 +199,7 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get("SCITEX_CLOUD_DB_NAME_DEV", "scitex_cloud_dev"),
+            "NAME": os.environ.get("SCITEX_CLOUD_DB_NAME_DEV", "scitex_hub_dev"),
             "USER": os.environ.get("SCITEX_CLOUD_DB_USER_DEV", "scitex_dev"),
             "PASSWORD": os.environ.get(
                 "SCITEX_CLOUD_DB_PASSWORD_DEV", "scitex_dev_2025"
@@ -307,7 +311,9 @@ LOGGING.update(
             },
             "django.db.backends": {
                 "handlers": ["console_debug"],
-                "level": "DEBUG" if os.environ.get("SCITEX_CLOUD_SQL_DEBUG") else "INFO",
+                "level": (
+                    "DEBUG" if os.environ.get("SCITEX_CLOUD_SQL_DEBUG") else "INFO"
+                ),
                 "propagate": False,
             },
             "scitex": {

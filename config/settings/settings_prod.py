@@ -83,7 +83,7 @@ if os.environ.get("SCITEX_CLOUD_USE_SQLITE_PROD"):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "data" / "db" / "sqlite" / "scitex_cloud_prod.db",
+            "NAME": BASE_DIR / "data" / "db" / "sqlite" / "scitex_hub_prod.db",
         }
     }
 else:
@@ -95,7 +95,7 @@ else:
         DATABASES = {
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
-                "NAME": os.environ.get("SCITEX_CLOUD_DB_NAME", "scitex_cloud_prod"),
+                "NAME": os.environ.get("SCITEX_CLOUD_DB_NAME", "scitex_hub_prod"),
                 "USER": os.environ.get("SCITEX_CLOUD_DB_USER", "scitex_prod"),
                 "PASSWORD": DB_PASSWORD,
                 # Connect via PgBouncer for connection pooling
@@ -126,9 +126,11 @@ else:
         DATABASES = {
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
-                "NAME": os.environ.get("SCITEX_CLOUD_POSTGRES_DB", "scitex_cloud_prod"),
+                "NAME": os.environ.get("SCITEX_CLOUD_POSTGRES_DB", "scitex_hub_prod"),
                 "USER": os.environ.get("SCITEX_CLOUD_POSTGRES_USER", "scitex_prod"),
-                "PASSWORD": os.environ.get("SCITEX_CLOUD_POSTGRES_PASSWORD", "CHANGE_THIS_IN_PROD"),
+                "PASSWORD": os.environ.get(
+                    "SCITEX_CLOUD_POSTGRES_PASSWORD", "CHANGE_THIS_IN_PROD"
+                ),
                 # Connect via PgBouncer for connection pooling
                 "HOST": os.environ.get("SCITEX_CLOUD_DB_HOST", "pgbouncer"),
                 "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT", "6432"),

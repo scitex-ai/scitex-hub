@@ -45,7 +45,7 @@ def _build_agents_json(
     env["SCITEX_MCP_USE_CAPTURE"] = "0"
 
     # On-site auth: skip API key, authenticate via trusted header
-    from scitex_cloud._mcp_tools.api import get_on_site_env
+    from scitex_hub._mcp_tools.api import get_on_site_env
 
     env.update(get_on_site_env(username=username))
 
@@ -236,7 +236,7 @@ def _build_mcp_json(mcp_env: dict[str, str] | None = None, username: str = "") -
     env["SCITEX_MCP_USE_CAPTURE"] = "0"
 
     # On-site auth: skip API key, authenticate via trusted header
-    from scitex_cloud._mcp_tools.api import get_on_site_env
+    from scitex_hub._mcp_tools.api import get_on_site_env
 
     env.update(get_on_site_env(username=username))
 

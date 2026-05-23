@@ -49,9 +49,9 @@ detect_environment() {
         fi
     else
         # Fallback: check if dev or prod service is running
-        if systemctl is-active --quiet scitex_cloud_prod 2> /dev/null; then
+        if systemctl is-active --quiet scitex_hub_prod 2> /dev/null; then
             echo "production"
-        elif systemctl is-active --quiet scitex_cloud_dev 2> /dev/null; then
+        elif systemctl is-active --quiet scitex_hub_dev 2> /dev/null; then
             echo "development"
         else
             echo "unknown"

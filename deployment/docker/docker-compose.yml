@@ -42,7 +42,7 @@ services:
     env_file:
       - ./envs/.env.${SCITEX_ENV:-dev}
     environment:
-      POSTGRES_DB: ${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud}
+      POSTGRES_DB: ${SCITEX_CLOUD_POSTGRES_DB:-scitex_hub}
       POSTGRES_USER: ${SCITEX_CLOUD_POSTGRES_USER:-scitex}
       POSTGRES_PASSWORD: ${SCITEX_CLOUD_POSTGRES_PASSWORD:-scitex_2025}
     restart: unless-stopped
@@ -61,7 +61,7 @@ services:
     env_file:
       - ./envs/.env.${SCITEX_ENV:-dev}
     environment:
-      DATABASE_URL: postgresql://${SCITEX_CLOUD_POSTGRES_USER:-scitex}:${SCITEX_CLOUD_POSTGRES_PASSWORD:-scitex_2025}@postgres:5432/${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud}
+      DATABASE_URL: postgresql://${SCITEX_CLOUD_POSTGRES_USER:-scitex}:${SCITEX_CLOUD_POSTGRES_PASSWORD:-scitex_2025}@postgres:5432/${SCITEX_CLOUD_POSTGRES_DB:-scitex_hub}
     depends_on:
       postgres:
         condition: service_healthy
@@ -102,7 +102,7 @@ services:
       USER_GID: 1000
       GITEA__database__DB_TYPE: postgres
       GITEA__database__HOST: postgres:5432
-      GITEA__database__NAME: ${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud}
+      GITEA__database__NAME: ${SCITEX_CLOUD_POSTGRES_DB:-scitex_hub}
       GITEA__database__USER: ${SCITEX_CLOUD_POSTGRES_USER:-scitex}
       GITEA__database__PASSWD: ${SCITEX_CLOUD_POSTGRES_PASSWORD:-scitex_2025}
       GITEA__security__INSTALL_LOCK: "true"

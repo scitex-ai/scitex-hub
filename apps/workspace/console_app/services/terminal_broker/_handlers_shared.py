@@ -102,7 +102,7 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
             existing_shell.start_reader(broker._make_output_callback(client))
             # cd to project dir if project changed
             if existing_shell.last_project_slug != project_slug:
-                from scitex_cloud._utils._project_nav import build_switch_command
+                from scitex_hub._utils._project_nav import build_switch_command
 
                 cd_cmd = build_switch_command(username, project_slug)
                 existing_shell.write(f"{cd_cmd}\n".encode())

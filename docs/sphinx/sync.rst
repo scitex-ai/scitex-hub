@@ -121,7 +121,7 @@ show an error with a hint:
 Implementation
 --------------
 
-- ``src/scitex_cloud/_cli/sync.py`` — CLI commands
-- ``src/scitex_cloud/_cli/_sync_engine.py`` — Conflict-aware sync engine
+- ``src/scitex_hub/_cli/sync.py`` — CLI commands
+- ``src/scitex_hub/_cli/_sync_engine.py`` — Conflict-aware sync engine
 - Remote file listing via SSH + ``find`` + ``sha256sum``
 - Per-file transfer via ``scp``
