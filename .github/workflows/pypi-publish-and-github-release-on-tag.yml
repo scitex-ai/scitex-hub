@@ -58,6 +58,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[all,dev]" || pip install -e ".[dev]" || pip install -e .
       - name: Run pytest
+        # Django settings hard-fail (ValueError, per "no silent fallback")
+        # if SCITEX_HUB_DJANGO_SECRET_KEY is unset. CI doesn't need a real
+        # secret, so we set an obviously-fake one for the test process only.
+        env:
+          SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-secret-do-not-use-in-prod  # pragma: allowlist secret
         run: |
           if [ -d tests ]; then
             pytest tests/ -x
