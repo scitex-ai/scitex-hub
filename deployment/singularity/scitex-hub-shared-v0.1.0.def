@@ -1,5 +1,5 @@
 # Timestamp: "2025-11-25 20:00:00 (ywatanabe)"
-# File: ./deployment/singularity/scitex-cloud-shared-v0.1.0.def
+# File: ./deployment/singularity/scitex-hub-shared-v0.1.0.def
 # ============================================
 # SciTeX User Workspace Container Definition
 # ============================================
@@ -200,13 +200,13 @@ else:
 
     USAGE:
         # Execute a Python script
-        singularity exec scitex-cloud-shared-v0.1.0.sif python script.py
+        singularity exec scitex-hub-shared-v0.1.0.sif python script.py
 
         # Execute with workspace binding
-        singularity exec --bind /data:/workspace scitex-cloud-shared-v0.1.0.sif python analysis.py
+        singularity exec --bind /data:/workspace scitex-hub-shared-v0.1.0.sif python analysis.py
 
         # Interactive shell
-        singularity shell scitex-cloud-shared-v0.1.0.sif
+        singularity shell scitex-hub-shared-v0.1.0.sif
 
     FEATURES:
         - Python 3.11 with full scientific stack
@@ -233,7 +233,7 @@ else:
         - agents CLI: unified MCP config syncing across all AI tools
 
     BUILD:
-        sudo singularity build scitex-cloud-shared-v0.1.0.sif scitex-cloud-shared-v0.1.0.def
+        sudo singularity build scitex-hub-shared-v0.1.0.sif scitex-hub-shared-v0.1.0.def
 
     For more information, visit:
     https://scitex.ai/docs/user-workspace

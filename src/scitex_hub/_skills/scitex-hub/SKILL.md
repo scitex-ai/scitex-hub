@@ -78,7 +78,7 @@ rule and empirical verification table.
 ### Standards (20–29)
 - [21_refactoring-rules.md](21_refactoring-rules.md) — File size thresholds, extraction patterns
 - [24_django-conventions.md](24_django-conventions.md) — 1:1:1:1 full-stack conventions, naming
-- [22_cloud-refactor.md](22_cloud-refactor.md) — Refactor request template
+- [22_hub-refactor.md](22_hub-refactor.md) — Refactor request template
 - [23_mobile-testing.md](23_mobile-testing.md) — Mobile responsive testing — Playwright, viewport
 
 ### Architecture (30–39)

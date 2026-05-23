@@ -20,7 +20,7 @@ These templates should be accessible at:
 ## Template Guidelines
 
 All declaration templates should:
-1. Extend from `base.html` or `public_app/cloud_base.html`
+1. Extend from `base.html` or `public_app/hub_base.html`
 2. Include clear section headings
 3. Use proper legal language
 4. Display last updated date
