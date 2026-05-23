@@ -37,139 +37,98 @@ scitex-hub = "scitex_hub"
 scitex-hub = "scitex_hub"
 
 [project.optional-dependencies]
-django = [
+# Project rule: ONLY [all] is a user-facing install target. Sub-extras
+# like [django], [gui], [mcp], [test], [docs] used to exist and were
+# referenced recursively from [all] (`scitex-hub[django]` etc.), which
+# tripped pip's resolver when a recursively-installed dep added a
+# conflicting pin (the v0.18.0 release pipeline halted because the
+# umbrella `scitex==2.29` pin on `scitex-app==0.2.7` could not be
+# reconciled through the recursive `scitex-hub[django]` reference).
+# Flattening eliminates the recursion entirely.
+#
+# [dev] is kept separate — it covers tools needed only for development
+# (formatters, linters, dev-only test plugins) and CI installs with
+# `pip install -e ".[all,dev]"`.
+all = [
+    # --- Django stack (web framework + DRF + auth + ORM + ASGI) ---
     "Django>=5.2",
     "djangorestframework>=3.16",
+    "djangorestframework-simplejwt>=5.3",
     "django-cors-headers>=4.9",
     "django-extensions>=4.1",
     "django-browser-reload>=1.12",
-    "djangorestframework-simplejwt>=5.3",
+    "django-axes>=6.3",
+    "django-allauth[socialaccount]>=65.3",
+    "django-oauth-toolkit>=3.0",
+    "django-widget-tweaks>=1.5",
+    "django-celery-results>=2.5",
+    "django-celery-beat>=2.8",
     "psycopg2-binary>=2.9",
     "gunicorn>=21.2",
     "daphne>=4.1",
-    "fastapi>=0.109",
-    "uvicorn[standard]>=0.27",
-    "python-multipart>=0.0.6",
-    "django-axes>=6.3",
-    "python-decouple>=3.8",
-    "PyJWT>=2.8",
-    "cryptography>=42.0",
-    "django-allauth[socialaccount]>=65.3",
-    "django-oauth-toolkit>=3.0",
-    "requests>=2.31",
-    "feedparser>=6.0",
-    "playwright>=1.48",
-    "docker>=7.1",
-    "paramiko>=3.4",
-    "psutil>=5.9",
-    "python-dotenv>=1.0",
-    "whitenoise>=6.11",
     "channels>=4.3",
     "channels-redis>=4.3",
     "celery[redis]>=5.4",
-    "django-celery-results>=2.5",
-    "django-celery-beat>=2.8",
-    "django-widget-tweaks>=1.5",
-    "pygments",
+    "whitenoise>=6.11",
+    # --- HTTP / async server / API ---
+    "fastapi>=0.109",
+    "uvicorn[standard]>=0.27",
+    "python-multipart>=0.0.6",
+    "requests>=2.31",
+    "feedparser>=6.0",
+    # --- Auth / crypto ---
+    "PyJWT>=2.8",
+    "cryptography>=42.0",
+    "python-decouple>=3.8",
+    "python-dotenv>=1.0",
+    "paramiko>=3.4",
+    # --- Container / OS / runtime ---
+    "docker>=7.1",
+    "psutil>=5.9",
+    "playwright>=1.48",
+    # --- AI / LLM / domain ---
     "litellm>=1.0",
     "impact-factor>=1.1",
+    # --- Notebook / docs / rendering ---
     "nbformat>=5.9",
     "nbconvert>=7.0",
     "weasyprint>=60.0",
+    "pygments",
+    # --- Validation ---
     "pydantic<2.12",
-    "scitex-ui>=0.2.0",
-    # The umbrella `scitex` package is imported at Django-settings load
-    # time (`config/routing.py` and `config/settings/settings_*.py` do
-    # `import scitex as stx`), so it's a hard runtime requirement for
-    # the Django stack — not just a sibling dev tool. Without this,
-    # `pytest tests/` halts in pytest-django with
-    # `ImportError: No module named 'scitex'` before any test runs.
+    # --- SciTeX umbrella (Django-settings imports `import scitex as stx`
+    # for `@stx.session` / `stx.session.INJECTED` / `@stx.module`, so
+    # this is a hard runtime requirement, not an optional sibling.) ---
     "scitex>=2.29",
-]
-gui = [
+    "scitex-ui>=0.2.0",
+    # --- GUI (dearpygui-based modules) ---
     "dearpygui>=1.11",
     "cairosvg>=2.7",
     "Pillow>=10.0",
-]
-mcp = [
+    # --- MCP server surface ---
     "fastmcp>=2.0.0",
-    "requests>=2.31",
     "pyyaml>=6.0",
-]
-test = [
+    # --- Test runtime (kept here, not [dev], because some tests run
+    # against the deployed app inside the container) ---
     "pytest>=8.4",
     "pytest-django>=4.5",
     "pytest-playwright>=0.7",
     "pytest-base-url>=2.1",
     "pytest-asyncio>=1.2",
-]
-dev = [
-    "black>=23.0",
-    "celery",
-    "celery[redis]>=5.4",
-    "channels-redis>=4.3",
-    "channels>=4.3",
-    "cryptography>=42.0",
-    "daphne>=4.1",
-    "django-allauth[socialaccount]>=65.3",
-    "django-axes>=6.3",
-    "django-browser-reload>=1.12",
-    "django-celery-beat>=2.8",
-    "django-celery-results>=2.5",
-    "django-cors-headers>=4.9",
-    "django-extensions>=4.1",
-    "django-oauth-toolkit>=3.0",
-    "django-widget-tweaks>=1.5",
-    "Django>=5.2",
-    "djangorestframework-simplejwt>=5.3",
-    "djangorestframework>=3.16",
-    "docker>=7.1",
-    "fastapi>=0.109",
-    "fastmcp>=2.0.0",
-    "feedparser>=6.0",
-    "figrecipe>=0.13.0",
-    "flask",
-    "gunicorn>=21.2",
-    "impact-factor>=1.1",
-    "joblib",
-    "litellm>=1.0",
-    "nbconvert>=7.0",
-    "nbformat>=5.9",
-    "paramiko>=3.4",
-    "playwright>=1.48",
-    "psutil>=5.9",
-    "psycopg2-binary>=2.9",
-    "pydantic<2.12",
-    "pygments",
-    "PyJWT>=2.8",
-    "pytest-asyncio>=1.2",
-    "pytest-base-url>=2.1",
-    "pytest-django>=4.5",
-    "pytest-playwright>=0.7",
-    "pytest>=7.0",
-    "python-decouple>=3.8",
-    "python-dotenv>=1.0",
-    "python-multipart>=0.0.6",
-    "pyyaml>=6.0",
-    "requests>=2.31",
-    "ruff>=0.1.0",
-    "scitex-ui>=0.2.0",
-    "uvicorn[standard]>=0.27",
-    "weasyprint>=60.0",
-    "whitenoise>=6.11",
-]
-docs = [
+    # --- Sphinx docs build (run by CI on tag) ---
     "sphinx>=7.0",
     "sphinx-rtd-theme>=2.0",
     "myst-parser>=2.0",
     "sphinx-copybutton>=0.5",
     "sphinx-autodoc-typehints>=1.25",
 ]
-all = [
-    "scitex-hub[django]",
-    "scitex-hub[gui]",
-    "scitex-hub[mcp]",
-    "scitex-hub[test]",
+dev = [
+    "black>=23.0",
+    "ruff>=0.1.0",
+    "pytest>=7.0",
+    "figrecipe>=0.13.0",
+    "joblib",
+    "flask",
 ]
 
 [project.scripts]
