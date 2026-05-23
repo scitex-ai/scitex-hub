@@ -31,6 +31,11 @@ jobs:
           # plain editable so a packaging hiccup doesn't strand CI.
           pip install -e ".[all,dev]" || pip install -e ".[dev]" || pip install -e .
       - name: Run tests
+        # Django settings hard-fail (ValueError, per "no silent fallback")
+        # if SCITEX_HUB_DJANGO_SECRET_KEY is unset. CI doesn't need a real
+        # secret, so we set an obviously-fake one for the test process only.
+        env:
+          SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-secret-do-not-use-in-prod  # pragma: allowlist secret
         run: |
           pytest tests/ --cov=src/scitex_hub --cov-report=xml --cov-report=term
       - name: Upload coverage to Codecov
