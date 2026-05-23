@@ -52,11 +52,11 @@ describe('seekbar', () => {
 //  * @version 2.1.0 (Modular TypeScript)
 //  * @author SciTeX Development Team
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/components/seekbar.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/static/ts/components/seekbar.ts loaded",
 // );
-// 
+//
 // import type {
 //   SeekbarOptions,
 //   SeekbarValues,
@@ -67,21 +67,21 @@ describe('seekbar', () => {
 // import { ValueCalculator } from "./seekbar/value-calculator";
 // import { SeekbarRenderer } from "./seekbar/renderer";
 // import { EventHandlers } from "./seekbar/event-handlers";
-// 
+//
 // export type { SeekbarOptions, SeekbarValues } from "./seekbar/types";
-// 
+//
 // export class ScitexSeekbar {
 //   private container: HTMLElement;
 //   private options: CompleteSeekbarOptions;
 //   private values: SeekbarValues;
 //   private elements!: SeekbarElements; // Initialized in _init
-// 
+//
 //   // Delegated components
 //   private domBuilder!: DOMBuilder;
 //   private valueCalculator!: ValueCalculator;
 //   private renderer!: SeekbarRenderer;
 //   private eventHandlers!: EventHandlers;
-// 
+//
 //   /**
 //    * Creates a new ScitexSeekbar instance
 //    *
@@ -95,13 +95,13 @@ describe('seekbar', () => {
 //       typeof element === "string"
 //         ? document.querySelector<HTMLElement>(element)
 //         : element;
-// 
+//
 //     if (!container) {
 //       throw new Error("ScitexSeekbar: Element not found");
 //     }
-// 
+//
 //     this.container = container;
-// 
+//
 //     // Default options
 //     const dataset = this.container.dataset;
 //     this.options = {
@@ -119,7 +119,7 @@ describe('seekbar', () => {
 //       showValues: false,
 //       ...options,
 //     };
-// 
+//
 //     // Validate values
 //     this.values = {
 //       min: this.clamp(
@@ -133,22 +133,22 @@ describe('seekbar', () => {
 //         this.options.max,
 //       ),
 //     };
-// 
+//
 //     // Initialize
 //     this.init();
 //   }
-// 
+//
 //   /**
 //    * Initialize the seekbar
 //    */
 //   private init(): void {
 //     // Add class to container
 //     this.container.classList.add("scitex-seekbar-dual");
-// 
+//
 //     // Initialize DOM builder and build DOM
 //     this.domBuilder = new DOMBuilder(this.container, this.options, this.values);
 //     this.elements = this.domBuilder.buildDOM();
-// 
+//
 //     // Initialize components
 //     this.valueCalculator = new ValueCalculator(
 //       this.options,
@@ -167,32 +167,32 @@ describe('seekbar', () => {
 //       this.valueCalculator,
 //       this.renderer,
 //     );
-// 
+//
 //     // Bind event handlers
 //     this.eventHandlers.bindEvents();
-// 
+//
 //     // Initial render
 //     this.renderer.render();
 //   }
-// 
+//
 //   /**
 //    * Clamp a value between min and max
 //    */
 //   private clamp(value: number, min: number, max: number): number {
 //     return Math.min(Math.max(value, min), max);
 //   }
-// 
+//
 //   // ========================================================================
 //   // Public API
 //   // ========================================================================
-// 
+//
 //   /**
 //    * Get current values
 //    */
 //   public getValues(): SeekbarValues {
 //     return this.renderer.getValues();
 //   }
-// 
+//
 //   /**
 //    * Set values programmatically
 //    */
@@ -204,14 +204,14 @@ describe('seekbar', () => {
 //       this.options.onChange(this.getValues());
 //     }
 //   }
-// 
+//
 //   /**
 //    * Reset to initial values
 //    */
 //   public reset(): void {
 //     this.setValues(this.options.valueMin, this.options.valueMax);
 //   }
-// 
+//
 //   /**
 //    * Destroy the seekbar instance
 //    */
@@ -222,11 +222,11 @@ describe('seekbar', () => {
 //     }
 //   }
 // }
-// 
+//
 // // ============================================================================
 // // Auto-initialization
 // // ============================================================================
-// 
+//
 // /**
 //  * Auto-initialization from DOM
 //  * Automatically initializes all elements with data-scitex-seekbar attribute
@@ -239,17 +239,17 @@ describe('seekbar', () => {
 //     new ScitexSeekbar(element);
 //   });
 // });
-// 
+//
 // // ============================================================================
 // // Global Export
 // // ============================================================================
-// 
+//
 // declare global {
 //   interface Window {
 //     ScitexSeekbar: typeof ScitexSeekbar;
 //   }
 // }
-// 
+//
 // // Export to global namespace
 // if (typeof window !== "undefined") {
 //   window.ScitexSeekbar = ScitexSeekbar;

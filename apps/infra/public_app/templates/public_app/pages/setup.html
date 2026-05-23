@@ -105,8 +105,8 @@
             <section class="about-section">
                 <h2>Quick Start</h2>
                 <p>Three commands to get everything running:</p>
-                <pre><code>git clone https://github.com/ywatanabe1989/scitex-cloud.git
-cd scitex-cloud
+                <pre><code>git clone https://github.com/ywatanabe1989/scitex-hub.git
+cd scitex-hub
 make start</code></pre>
                 <p>
                     Access at <a href="http://localhost:8000">localhost:8000</a>.
@@ -129,8 +129,8 @@ make start</code></pre>
                 <ol class="setup-steps">
                     <li>
                         <strong>Clone and configure</strong>
-                        <pre><code>git clone https://github.com/ywatanabe1989/scitex-cloud.git
-cd scitex-cloud
+                        <pre><code>git clone https://github.com/ywatanabe1989/scitex-hub.git
+cd scitex-hub
 cp deployment/docker/envs/.env.example deployment/docker/envs/.env.dev</code></pre>
                     </li>
                     <li>
@@ -172,20 +172,20 @@ make ENV=prod status</code></pre>
             <section class="about-section">
                 <h2>CLI-Only Install</h2>
                 <p>Use the CLI and MCP server without Docker:</p>
-                <pre><code>pip install scitex-cloud              # CLI only
-pip install scitex-cloud[mcp]         # CLI + MCP server
-pip install scitex-cloud[all]         # Everything
+                <pre><code>pip install scitex-hub              # CLI only
+pip install scitex-hub[mcp]         # CLI + MCP server
+pip install scitex-hub[all]         # Everything
 
-scitex-cloud --version
-scitex-cloud --help</code></pre>
+scitex-hub --version
+scitex-hub --help</code></pre>
             </section>
             <!-- MCP -->
             <section class="about-section">
                 <h2>MCP Server for AI Agents</h2>
                 <p>Connect AI assistants (Claude, Cursor, etc.) to your SciTeX instance:</p>
-                <pre><code>scitex-cloud mcp start                # Start MCP server
-scitex-cloud mcp doctor               # Diagnose setup
-scitex-cloud mcp installation          # Client config</code></pre>
+                <pre><code>scitex-hub mcp start                # Start MCP server
+scitex-hub mcp doctor               # Diagnose setup
+scitex-hub mcp installation          # Client config</code></pre>
             </section>
             <!-- Common Commands -->
             <section class="about-section">
@@ -203,7 +203,7 @@ make help                     # All available commands</code></pre>
                 <h2>Full Documentation</h2>
                 <p>
                     For configuration reference, troubleshooting, and architecture details, see the
-                    <a href="/apps/docs/#pkg-scitex-cloud" class="setup-external-link">full documentation</a>.
+                    <a href="/apps/docs/#pkg-scitex-hub" class="setup-external-link">full documentation</a>.
                 </p>
             </section>
         </article>

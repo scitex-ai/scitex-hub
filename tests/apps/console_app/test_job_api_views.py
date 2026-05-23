@@ -99,7 +99,7 @@ if __name__ == "__main__":
 #         container_path = Path(getattr(
 #             settings,
 #             'APPTAINER_CONTAINER_PATH',
-#             '/home/ywatanabe/proj/scitex-cloud/deployment/singularity/scitex-cloud-shared-v0.1.0.sif'
+#             '/home/ywatanabe/proj/scitex-hub/deployment/singularity/scitex-hub-shared-v0.1.0.sif'
 #         ))
 #
 #         # Submit job

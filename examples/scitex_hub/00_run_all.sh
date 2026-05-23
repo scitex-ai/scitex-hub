@@ -1,6 +1,6 @@
 #!/bin/bash
 # File: examples/scitex_hub/00_run_all.sh
-# Run all scitex-cloud examples
+# Run all scitex-hub examples
 
 set -e
 

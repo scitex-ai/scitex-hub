@@ -50,10 +50,10 @@
 # Variables
 # ============================================
 COMPOSE := docker compose -f docker-compose.yml
-DJANGO_CONTAINER := scitex-cloud-dev-django-1
-DB_CONTAINER := scitex-cloud-dev-db-1
-GITEA_CONTAINER := scitex-cloud-dev-gitea-1
-REDIS_CONTAINER := scitex-cloud-dev-redis-1
+DJANGO_CONTAINER := scitex-hub-dev-django-1
+DB_CONTAINER := scitex-hub-dev-db-1
+GITEA_CONTAINER := scitex-hub-dev-gitea-1
+REDIS_CONTAINER := scitex-hub-dev-redis-1
 SCRIPTS_DIR := .
 
 # Colors for output

@@ -1,4 +1,4 @@
-"""Run scitex-cloud CLI as a module: ``python -m scitex_hub``."""
+"""Run scitex-hub CLI as a module: ``python -m scitex_hub``."""
 
 from scitex_hub._cli import main
 

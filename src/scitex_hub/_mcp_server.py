@@ -9,9 +9,9 @@ Provides MCP tools for:
 - Django API operations (scholar, writer, project)
 
 Usage:
-    scitex-cloud serve                      # stdio (Claude Desktop)
-    scitex-cloud serve -t sse --port 8086   # SSE (remote)
-    scitex-cloud serve -t http --port 8086  # HTTP (streamable)
+    scitex-hub serve                      # stdio (Claude Desktop)
+    scitex-hub serve -t sse --port 8086   # SSE (remote)
+    scitex-hub serve -t http --port 8086  # HTTP (streamable)
 """
 
 from __future__ import annotations
@@ -20,14 +20,14 @@ import json
 
 from scitex_dev import try_import_optional
 
-FastMCP = try_import_optional("fastmcp", "FastMCP", extra="mcp", pkg="scitex-cloud")
+FastMCP = try_import_optional("fastmcp", "FastMCP", extra="mcp", pkg="scitex-hub")
 FASTMCP_AVAILABLE = FastMCP is not None
 
 __all__ = ["mcp", "run_server", "main", "FASTMCP_AVAILABLE"]
 
 if FASTMCP_AVAILABLE:
     mcp = FastMCP(
-        name="scitex-cloud",
+        name="scitex-hub",
         instructions="""\
 SciTeX Cloud: Git and Cloud API Operations (https://scitex.ai)
 
@@ -98,18 +98,18 @@ def run_server(transport: str = "stdio", host: str = "0.0.0.0", port: int = 8086
     if transport == "stdio":
         mcp.run(transport="stdio")
     elif transport == "sse":
-        print(f"Starting scitex-cloud MCP (SSE) on {host}:{port}")
+        print(f"Starting scitex-hub MCP (SSE) on {host}:{port}")
         print(f"Remote: ssh -R {port}:localhost:{port} remote-host")
         mcp.run(transport="sse", host=host, port=port)
     elif transport == "http":
-        print(f"Starting scitex-cloud MCP (HTTP) on {host}:{port}")
+        print(f"Starting scitex-hub MCP (HTTP) on {host}:{port}")
         mcp.run(transport="streamable-http", host=host, port=port)
     else:
         raise ValueError(f"Unknown transport: {transport}")
 
 
 def main():
-    """Entry point for scitex-cloud-mcp command."""
+    """Entry point for scitex-hub-mcp command."""
     run_server(transport="stdio")
 
 

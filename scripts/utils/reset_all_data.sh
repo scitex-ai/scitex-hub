@@ -113,7 +113,7 @@ restart_containers() {
 run_reset_command() {
     local env="$1"
     local cmd_args="$2"
-    local container_name="scitex-cloud-$env-web-1"
+    local container_name="scitex-hub-$env-web-1"
 
     echo_header "Step 2/3: Running reset command in Docker"
     echo_info "Container: $container_name"
@@ -132,7 +132,7 @@ run_reset_command() {
 # Example: recreate_visitor_pool "dev"
 recreate_visitor_pool() {
     local env="$1"
-    local container_name="scitex-cloud-$env-web-1"
+    local container_name="scitex-hub-$env-web-1"
 
     echo_header "Step 3/3: Recreating visitor pool"
     echo_info "Container: $container_name"

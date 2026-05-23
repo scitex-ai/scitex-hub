@@ -28,7 +28,7 @@ if __name__ == "__main__":
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
 # # Timestamp: "2025-12-02 16:00:00 (ywatanabe)"
-# # File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/views/status/chart_generator.py
+# # File: /home/ywatanabe/proj/scitex-hub/apps/public_app/views/status/chart_generator.py
 #
 # """
 # Chart Generator - Creates metric charts for server status page.

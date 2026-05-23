@@ -5,7 +5,7 @@
 #   lines: number of lines to show (default: 20)
 
 # Log directory
-LOG_DIR="/var/log/scitex-cloud"
+LOG_DIR="/var/log/scitex-hub"
 
 # Default values
 LOG_TYPE=${1:-"all"}
@@ -78,9 +78,9 @@ case "$LOG_TYPE" in
         show_log "$LOG_DIR/error.log" "Error" $LINES
         ;;
     "nginx")
-        if [ -f "/var/log/nginx/scitex-cloud-access.log" ]; then
-            show_log "/var/log/nginx/scitex-cloud-access.log" "Nginx Access" $LINES
-            show_log "/var/log/nginx/scitex-cloud-error.log" "Nginx Error" $LINES
+        if [ -f "/var/log/nginx/scitex-hub-access.log" ]; then
+            show_log "/var/log/nginx/scitex-hub-access.log" "Nginx Access" $LINES
+            show_log "/var/log/nginx/scitex-hub-error.log" "Nginx Error" $LINES
         else
             echo -e "${YELLOW}Nginx logs not found. They might be in a different location or Nginx isn't installed.${NC}"
         fi
@@ -94,9 +94,9 @@ case "$LOG_TYPE" in
         show_log "$LOG_DIR/gunicorn-error.log" "Gunicorn Error" $LINES
 
         # Check if Nginx is installed and logs exist
-        if [ -f "/var/log/nginx/scitex-cloud-access.log" ]; then
-            show_log "/var/log/nginx/scitex-cloud-access.log" "Nginx Access" $LINES
-            show_log "/var/log/nginx/scitex-cloud-error.log" "Nginx Error" $LINES
+        if [ -f "/var/log/nginx/scitex-hub-access.log" ]; then
+            show_log "/var/log/nginx/scitex-hub-access.log" "Nginx Access" $LINES
+            show_log "/var/log/nginx/scitex-hub-error.log" "Nginx Error" $LINES
         fi
         ;;
     *)

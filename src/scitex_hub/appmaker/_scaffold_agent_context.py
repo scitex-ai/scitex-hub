@@ -104,7 +104,7 @@ Each SciTeX package owns its own AI agent documentation. Read these for full API
 |---------|-------|----------------|
 | **scitex-ui** | `pip show scitex-ui` → docs/APP_DEVELOPER_GUIDE.md | React components (DataTable, FileBrowser), bridge contract, theme CSS, usePanelResize |
 | **scitex-app** | `pip show scitex-app` → docs/APP_DEVELOPER_GUIDE.md | FilesBackend SDK, ScitexAppConfig, manifest schema, AppValidator |
-| **scitex-cloud** | Platform docs/APP_DEVELOPER_GUIDE.md | Platform services (DataStore, FileVault, JobQueue), dev install, workspace integration |
+| **scitex-hub** | Platform docs/APP_DEVELOPER_GUIDE.md | Platform services (DataStore, FileVault, JobQueue), dev install, workspace integration |
 
 ### Reference Implementation
 

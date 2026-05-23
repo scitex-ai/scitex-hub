@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2025-10-18 21:32:16
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/config/README.md
+!-- File: /home/ywatanabe/proj/scitex-hub/config/README.md
 !-- --- -->
 
 # SciTeX Cloud Configuration

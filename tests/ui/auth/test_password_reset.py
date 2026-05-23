@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: 2025-11-30
-# File: /home/ywatanabe/proj/scitex-cloud/tests/e2e/auth/test_password_reset.py
+# File: /home/ywatanabe/proj/scitex-hub/tests/e2e/auth/test_password_reset.py
 
 """
 E2E tests for password reset functionality.
@@ -38,9 +38,7 @@ class TestForgotPasswordPage:
         page.goto(f"{base_url}/auth/forgot-password/")
         page.wait_for_timeout(1000)
 
-        email_field = page.locator(
-            "#email, input[name='email'], input[type='email']"
-        )
+        email_field = page.locator("#email, input[name='email'], input[type='email']")
         expect(email_field).to_be_visible()
 
     def test_forgot_password_has_submit_button(self, page: Page, base_url: str):
@@ -73,9 +71,7 @@ class TestForgotPasswordRequest:
         # We need to get the test user's email
         # For now, assume the test user has an email like test-user@example.com
         # or use a pattern that matches
-        email_field = page.locator(
-            "#email, input[name='email'], input[type='email']"
-        )
+        email_field = page.locator("#email, input[name='email'], input[type='email']")
 
         # Try with a test email pattern
         # Note: This might need adjustment based on actual test user email
@@ -92,16 +88,16 @@ class TestForgotPasswordRequest:
         confirmation_page = "confirm" in page.url or "sent" in page.url
 
         # Either shows success or moves to confirmation
-        assert success_indicator.count() > 0 or confirmation_page or "forgot" in page.url
+        assert (
+            success_indicator.count() > 0 or confirmation_page or "forgot" in page.url
+        )
 
     def test_reset_request_with_invalid_email_format(self, page: Page, base_url: str):
         """Password reset should reject invalid email format."""
         page.goto(f"{base_url}/auth/forgot-password/")
         page.wait_for_timeout(1000)
 
-        email_field = page.locator(
-            "#email, input[name='email'], input[type='email']"
-        )
+        email_field = page.locator("#email, input[name='email'], input[type='email']")
         email_field.fill("not-an-email")
 
         page.click("button[type='submit'], input[type='submit']")
@@ -119,9 +115,7 @@ class TestForgotPasswordRequest:
         page.goto(f"{base_url}/auth/forgot-password/")
         page.wait_for_timeout(1000)
 
-        email_field = page.locator(
-            "#email, input[name='email'], input[type='email']"
-        )
+        email_field = page.locator("#email, input[name='email'], input[type='email']")
         email_field.fill("nonexistent_user_xyz123@example.com")
 
         page.click("button[type='submit'], input[type='submit']")
@@ -130,7 +124,9 @@ class TestForgotPasswordRequest:
         # For security, should show same response as valid email
         # (to prevent email enumeration)
         # Should either show generic success or stay on page
-        is_on_page = "forgot" in page.url or "reset" in page.url or "confirm" in page.url
+        is_on_page = (
+            "forgot" in page.url or "reset" in page.url or "confirm" in page.url
+        )
 
         # Page should not crash and should handle gracefully
         assert is_on_page or page.url.startswith(base_url)
@@ -151,9 +147,7 @@ class TestForgotPasswordRequest:
 class TestResetPasswordPage:
     """Tests for the actual password reset page (with token)."""
 
-    def test_reset_page_with_invalid_token_shows_error(
-        self, page: Page, base_url: str
-    ):
+    def test_reset_page_with_invalid_token_shows_error(self, page: Page, base_url: str):
         """Reset page with invalid token should show error."""
         # Try to access reset page with fake token
         fake_token = "invalid-token-12345"
@@ -163,17 +157,16 @@ class TestResetPasswordPage:
         page.wait_for_timeout(1000)
 
         # Should show error or redirect
-        has_error = page.locator(
-            ".alert-danger, .error, .invalid-token, [data-error]"
-        ).count() > 0
+        has_error = (
+            page.locator(".alert-danger, .error, .invalid-token, [data-error]").count()
+            > 0
+        )
         is_redirected = "signin" in page.url or "forgot" in page.url
 
         # Either shows error or redirects away
         assert has_error or is_redirected or "reset" in page.url
 
-    def test_reset_page_with_expired_token_shows_error(
-        self, page: Page, base_url: str
-    ):
+    def test_reset_page_with_expired_token_shows_error(self, page: Page, base_url: str):
         """Reset page with expired token should show error."""
         # This is similar to invalid token test
         # Real expired tokens need to be generated first
@@ -206,8 +199,7 @@ class TestPasswordResetFlow:
         # Step 1: Request password reset
         page.goto(f"{base_url}/auth/forgot-password/")
         page.fill(
-            "#email, input[name='email']",
-            f"{test_credentials['username']}@example.com"
+            "#email, input[name='email']", f"{test_credentials['username']}@example.com"
         )
         page.click("button[type='submit']")
         page.wait_for_timeout(2000)

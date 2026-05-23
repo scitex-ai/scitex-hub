@@ -1,8 +1,8 @@
 ---
 description: |
-  [TOPIC] scitex-cloud Installation
-  [DETAILS] pip install scitex-cloud with optional [django] (server stack), [gui], [mcp] extras; smoke verify.
-tags: [scitex-cloud-installation]
+  [TOPIC] scitex-hub Installation
+  [DETAILS] pip install scitex-hub with optional [django] (server stack), [gui], [mcp] extras; smoke verify.
+tags: [scitex-hub-installation]
 ---
 
 # Installation
@@ -10,7 +10,7 @@ tags: [scitex-cloud-installation]
 ## Standard
 
 ```bash
-pip install scitex-cloud
+pip install scitex-hub
 ```
 
 ## Optional extras
@@ -22,8 +22,8 @@ pip install scitex-cloud
 | `mcp`     | fastmcp (expose tools to AI agents)                           |
 
 ```bash
-pip install 'scitex-cloud[django]'   # for self-hosting the platform
-pip install 'scitex-cloud[mcp]'      # for AI-agent integration
+pip install 'scitex-hub[django]'   # for self-hosting the platform
+pip install 'scitex-hub[mcp]'      # for AI-agent integration
 ```
 
 The pure CLI surface (project / repo / sync / sdk subcommands) works
@@ -33,6 +33,6 @@ without any extras.
 
 ```bash
 python -c "import scitex_hub; print(scitex_hub.__version__)"
-scitex-cloud --help
-scitex-cloud show-status
+scitex-hub --help
+scitex-hub show-status
 ```

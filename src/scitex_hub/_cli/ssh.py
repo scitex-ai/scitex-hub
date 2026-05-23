@@ -53,11 +53,11 @@ def ssh(env_name, username, port, ssh_args):
 
     \b
     Examples:
-        scitex-cloud ssh                    # SSH to default env
-        scitex-cloud ssh --env dev          # SSH to dev (127.0.0.1:2200)
-        scitex-cloud ssh --env prod         # SSH to production
-        scitex-cloud ssh -u myuser          # SSH as specific user
-        scitex-cloud ssh -- -L 8888:localhost:8888  # With port forwarding
+        scitex-hub ssh                    # SSH to default env
+        scitex-hub ssh --env dev          # SSH to dev (127.0.0.1:2200)
+        scitex-hub ssh --env prod         # SSH to production
+        scitex-hub ssh -u myuser          # SSH as specific user
+        scitex-hub ssh -- -L 8888:localhost:8888  # With port forwarding
     """
     env = get_environment(env_name)
     host = SSH_HOSTS.get(env.name, "127.0.0.1")
@@ -112,9 +112,9 @@ def ssh_copy_id(env_name, username, port, identity_file):
 
     \b
     Examples:
-        scitex-cloud ssh-copy-id                    # Register default key
-        scitex-cloud ssh-copy-id --env dev          # Register with dev instance
-        scitex-cloud ssh-copy-id -i ~/.ssh/id_ed25519.pub  # Specific key
+        scitex-hub ssh-copy-id                    # Register default key
+        scitex-hub ssh-copy-id --env dev          # Register with dev instance
+        scitex-hub ssh-copy-id -i ~/.ssh/id_ed25519.pub  # Specific key
     """
     env = get_environment(env_name)
     host = SSH_HOSTS.get(env.name, "127.0.0.1")

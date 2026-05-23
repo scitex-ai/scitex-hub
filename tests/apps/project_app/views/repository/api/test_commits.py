@@ -28,7 +28,7 @@ if __name__ == "__main__":
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
 # # Timestamp: "2025-11-29 (auto-generated)"
-# # File: /home/ywatanabe/proj/scitex-cloud/apps/project_app/views/repository/api/commits.py
+# # File: /home/ywatanabe/proj/scitex-hub/apps/project_app/views/repository/api/commits.py
 # # ----------------------------------------
 # """
 # Commit operations API endpoints

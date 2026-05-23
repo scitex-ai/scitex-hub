@@ -70,7 +70,7 @@ The user workspace image must be built before use:
 ./scripts/deployment/build_user_workspace_image.sh
 
 # Or manually
-docker build -t scitex-cloud-shared-v0.1.0:latest \
+docker build -t scitex-hub-shared-v0.1.0:latest \
   -f deployment/docker/Dockerfile.user-workspace .
 ```
 

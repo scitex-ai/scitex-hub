@@ -204,14 +204,14 @@ endif
 # Docker Reality Detection
 # ============================================
 # Detect which environments are actually running in Docker
-get-running-envs = $(shell docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|staging|prod)-' | sed 's/scitex-cloud-//' | sed 's/-//' | sort -u)
+get-running-envs = $(shell docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-hub-(dev|staging|prod)-' | sed 's/scitex-hub-//' | sed 's/-//' | sort -u)
 
 # ============================================
 # Validation Functions
 # ============================================
 validate-docker:
 	@echo -e "$(CYAN)🔍 Checking for container conflicts...$(NC)"
-	@RUNNING=$$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|staging|prod)-' | sed 's/scitex-cloud-//' | sed 's/-//' | sort -u); \
+	@RUNNING=$$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-hub-(dev|staging|prod)-' | sed 's/scitex-hub-//' | sed 's/-//' | sort -u); \
 	COUNT=$$(echo "$$RUNNING" | wc -w); \
 	HAS_DEV=$$(echo "$$RUNNING" | grep -c 'dev' || true); \
 	if [ $$COUNT -eq 0 ]; then \
@@ -435,9 +435,9 @@ stop-all:
 	@echo -e "$(GREEN)✅ All environments stopped$(NC)"
 
 force-stop-all:
-	@echo -e "$(RED)⚠️  Force stopping all scitex-cloud containers...$(NC)"
-	@docker ps -a --format "{{.Names}}" | grep -E "scitex-cloud-(dev|staging|prod)-" | xargs -r docker stop 2>/dev/null || true
-	@docker ps -a --format "{{.Names}}" | grep -E "scitex-cloud-(dev|staging|prod)-" | xargs -r docker rm 2>/dev/null || true
+	@echo -e "$(RED)⚠️  Force stopping all scitex-hub containers...$(NC)"
+	@docker ps -a --format "{{.Names}}" | grep -E "scitex-hub-(dev|staging|prod)-" | xargs -r docker stop 2>/dev/null || true
+	@docker ps -a --format "{{.Names}}" | grep -E "scitex-hub-(dev|staging|prod)-" | xargs -r docker rm 2>/dev/null || true
 	@echo -e "$(GREEN)✅ All containers force-stopped$(NC)"
 
 # ============================================
@@ -516,10 +516,10 @@ start:
 
 restart: validate
 	@# Clear logs - use docker exec for root-owned files (includes rotated logs like *.log.1)
-	@docker exec scitex-cloud-$(ENV)-django-1 sh -c 'rm -f /app/logs/*.log /app/logs/*.log.[0-9]*' 2>/dev/null || true
+	@docker exec scitex-hub-$(ENV)-django-1 sh -c 'rm -f /app/logs/*.log /app/logs/*.log.[0-9]*' 2>/dev/null || true
 	@rm -f ./logs/*.log ./logs/*.log.[0-9]* 2>/dev/null || true
 
-	@RUNNING=$$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|staging|prod)-' | sed 's/scitex-cloud-//' | sed 's/-//' | sort -u | tr '\n' ' ' | xargs); \
+	@RUNNING=$$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-hub-(dev|staging|prod)-' | sed 's/scitex-hub-//' | sed 's/-//' | sort -u | tr '\n' ' ' | xargs); \
 	if ! echo " $$RUNNING " | grep -q " $(ENV) "; then \
 		echo -e "$(RED)❌ $(ENV) is not running ($$RUNNING is active)$(NC)"; \
 		echo -e "$(YELLOW)   Options:$(NC)"; \
@@ -534,10 +534,10 @@ restart: validate
 
 reload: validate
 	@# Clear logs - use docker exec for root-owned files (includes rotated logs like *.log.1)
-	@docker exec scitex-cloud-$(ENV)-django-1 sh -c 'rm -f /app/logs/*.log /app/logs/*.log.[0-9]*' 2>/dev/null || true
+	@docker exec scitex-hub-$(ENV)-django-1 sh -c 'rm -f /app/logs/*.log /app/logs/*.log.[0-9]*' 2>/dev/null || true
 	@rm -f ./logs/*.log ./logs/*.log.[0-9]* 2>/dev/null || true
 
-	@RUNNING=$$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|staging|prod)-' | sed 's/scitex-cloud-//' | sed 's/-//' | sort -u | tr '\n' ' ' | xargs); \
+	@RUNNING=$$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-hub-(dev|staging|prod)-' | sed 's/scitex-hub-//' | sed 's/-//' | sort -u | tr '\n' ' ' | xargs); \
 	if ! echo " $$RUNNING " | grep -q " $(ENV) "; then \
 		echo -e "$(RED)❌ $(ENV) is not running ($$RUNNING is active)$(NC)"; \
 		echo -e "$(YELLOW)   Options:$(NC)"; \
@@ -889,12 +889,12 @@ fresh-start: validate
 	@echo -e "$(CYAN)📊 Current System State:$(NC)"
 	@echo -e ""
 	@# Show database info
-	@USERS=$$(docker exec scitex-cloud-dev-django-1 python manage.py shell -c "from django.contrib.auth.models import User; print(User.objects.count())" 2>/dev/null | tail -1); \
-	PROJECTS=$$(docker exec scitex-cloud-dev-django-1 python manage.py shell -c "from apps.project_app.models import Project; print(Project.objects.count())" 2>/dev/null | tail -1); \
-	MANUSCRIPTS=$$(docker exec scitex-cloud-dev-django-1 python manage.py shell -c "from apps.writer_app.models import Manuscript; print(Manuscript.objects.count())" 2>/dev/null | tail -1); \
-	REPOS=$$(docker exec scitex-cloud-dev-db-1 psql -U scitex_dev -d scitex_hub_dev -t -c "SELECT COUNT(*) FROM repository;" 2>/dev/null | xargs); \
-	DB_SIZE=$$(docker exec scitex-cloud-dev-db-1 du -sh /var/lib/postgresql/data 2>/dev/null | cut -f1); \
-	GITEA_SIZE=$$(docker exec scitex-cloud-dev-gitea-1 du -sh /data 2>/dev/null | cut -f1); \
+	@USERS=$$(docker exec scitex-hub-dev-django-1 python manage.py shell -c "from django.contrib.auth.models import User; print(User.objects.count())" 2>/dev/null | tail -1); \
+	PROJECTS=$$(docker exec scitex-hub-dev-django-1 python manage.py shell -c "from apps.project_app.models import Project; print(Project.objects.count())" 2>/dev/null | tail -1); \
+	MANUSCRIPTS=$$(docker exec scitex-hub-dev-django-1 python manage.py shell -c "from apps.writer_app.models import Manuscript; print(Manuscript.objects.count())" 2>/dev/null | tail -1); \
+	REPOS=$$(docker exec scitex-hub-dev-db-1 psql -U scitex_dev -d scitex_hub_dev -t -c "SELECT COUNT(*) FROM repository;" 2>/dev/null | xargs); \
+	DB_SIZE=$$(docker exec scitex-hub-dev-db-1 du -sh /var/lib/postgresql/data 2>/dev/null | cut -f1); \
+	GITEA_SIZE=$$(docker exec scitex-hub-dev-gitea-1 du -sh /data 2>/dev/null | cut -f1); \
 	USER_SIZE=$$(du -sh ./data/users/ 2>/dev/null | cut -f1); \
 	echo -e "  $(YELLOW)Database:$(NC)"; \
 	echo "    • Users: $$USERS"; \
@@ -945,7 +945,7 @@ fresh-start: validate
 	@echo -e ""
 	@# Step 2: Remove volumes
 	@echo -e "$(CYAN)Step 2/6: Removing Docker volumes...$(NC)"
-	@docker volume rm -f scitex-cloud-dev_postgres_data scitex-cloud-dev_gitea_data 2>/dev/null || true
+	@docker volume rm -f scitex-hub-dev_postgres_data scitex-hub-dev_gitea_data 2>/dev/null || true
 	@echo -e "$(GREEN)✓ Volumes removed$(NC)"
 	@echo -e ""
 	@# Step 3: Clean data directories
@@ -973,7 +973,7 @@ fresh-start: validate
 	@echo -e ""
 	@# Step 6: Initialize visitor pool
 	@echo -e "$(CYAN)Step 6/6: Initializing visitor pool...$(NC)"
-	@docker exec scitex-cloud-dev-django-1 python manage.py create_visitor_pool
+	@docker exec scitex-hub-dev-django-1 python manage.py create_visitor_pool
 	@echo -e ""
 	@echo -e "$(GREEN)╔═══════════════════════════════════════════════════════╗$(NC)"
 	@echo -e "$(GREEN)║            ✨ FRESH START COMPLETE! ✨                ║$(NC)"
@@ -999,12 +999,12 @@ fresh-start-confirm: validate
 	fi
 	@echo -e "$(YELLOW)⚠️  Running fresh start without confirmation...$(NC)"
 	@$(MAKE) --no-print-directory stop-all
-	@docker volume rm -f scitex-cloud-dev_postgres_data scitex-cloud-dev_gitea_data 2>/dev/null || true
+	@docker volume rm -f scitex-hub-dev_postgres_data scitex-hub-dev_gitea_data 2>/dev/null || true
 	@rm -rf ./data/users/*
 	@rm -rf ./logs/*.log
 	@$(MAKE) --no-print-directory ENV=dev start
 	@sleep 15
-	@docker exec scitex-cloud-dev-django-1 python manage.py create_visitor_pool
+	@docker exec scitex-hub-dev-django-1 python manage.py create_visitor_pool
 	@echo -e "$(GREEN)✅ Fresh start complete$(NC)"
 
 # ============================================
@@ -1305,7 +1305,7 @@ check-host:
 # ============================================
 info:
 	@echo -e "Specified environment: $(ENV)"
-	@echo -e "Running environments: $$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|staging|prod)-' | sed 's/scitex-cloud-//' | sed 's/-//' | sort -u | tr '\n' ' ')"
+	@echo -e "Running environments: $$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-hub-(dev|staging|prod)-' | sed 's/scitex-hub-//' | sed 's/-//' | sort -u | tr '\n' ' ')"
 	@echo -e "Container directory: $(DOCKER_DIR)"
 	@echo -e "Compose command: $(COMPOSE_CMD)"
 
@@ -1546,7 +1546,7 @@ slurm-reset:
 slurm-cleanup:
 	@echo -e "$(CYAN)🧹 Cancelling stale terminal SLURM jobs...$(NC)"
 	@count=0; \
-	for jid in $$(squeue --noheader --format="%i %j" 2>/dev/null | awk '$$2 ~ /^scitex-cloud-terminal/ || $$2 == "true" {print $$1}'); do \
+	for jid in $$(squeue --noheader --format="%i %j" 2>/dev/null | awk '$$2 ~ /^scitex-hub-terminal/ || $$2 == "true" {print $$1}'); do \
 		sudo scancel $$jid 2>/dev/null && echo -e "  Cancelled job $$jid" && count=$$((count+1)); \
 	done; \
 	if [ $$count -eq 0 ]; then echo -e "  $(GREEN)No stale jobs found$(NC)"; \

@@ -167,7 +167,7 @@ ps aux | grep apptainer | grep -v srun
 
 3. **Check Django logs:**
    ```bash
-   docker logs scitex-cloud-prod-django-1 | grep -i "slurm\|terminal"
+   docker logs scitex-hub-prod-django-1 | grep -i "slurm\|terminal"
    ```
 
 ### Jobs Stuck in Queue

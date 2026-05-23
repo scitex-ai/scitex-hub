@@ -109,7 +109,7 @@
                         <td>
                             <strong>Django</strong>
                         </td>
-                        <td>scitex-cloud-dev-django</td>
+                        <td>scitex-hub-dev-django</td>
                         <td>Web application, REST API, WebSocket (Daphne ASGI in prod)</td>
                     </tr>
                     <tr>
@@ -216,8 +216,8 @@
                 <i class="fas fa-rocket"></i> Quick Start
             </h2>
             <p>Three commands to get everything running:</p>
-            <pre><code>git clone https://github.com/ywatanabe1989/scitex-cloud.git
-cd scitex-cloud
+            <pre><code>git clone https://github.com/ywatanabe1989/scitex-hub.git
+cd scitex-hub
 make start</code></pre>
             <div class="api-callout api-callout-info">
                 <i class="fas fa-info-circle"></i>
@@ -277,8 +277,8 @@ make start</code></pre>
             <p>
                 <strong>1. Clone and configure</strong>
             </p>
-            <pre><code>git clone https://github.com/ywatanabe1989/scitex-cloud.git
-cd scitex-cloud
+            <pre><code>git clone https://github.com/ywatanabe1989/scitex-hub.git
+cd scitex-hub
 cp deployment/docker/envs/.env.example deployment/docker/docker_dev/.env</code></pre>
             <p>
                 <strong>2. Set secret key</strong> (edit <code>.env</code>)
@@ -560,7 +560,7 @@ make status</code></pre>
                 <strong>Build from definition file:</strong>
             </p>
             <pre><code>cd deployment/singularity
-apptainer build scitex-cloud-shared-v0.1.0.sif scitex-cloud-shared-v0.1.0.def</code></pre>
+apptainer build scitex-hub-shared-v0.1.0.sif scitex-hub-shared-v0.1.0.def</code></pre>
             <p>
                 <strong>Test with writable sandbox:</strong>
             </p>
@@ -703,7 +703,7 @@ scitex mcp installation          # Client config</code></pre>
                 <i class="fas fa-book"></i>
                 <div>
                     For troubleshooting and advanced configuration, see the
-                    <a href="https://github.com/ywatanabe1989/scitex-cloud#readme"
+                    <a href="https://github.com/ywatanabe1989/scitex-hub#readme"
                        target="_blank"
                        rel="noopener">full documentation on GitHub</a>.
                 </div>

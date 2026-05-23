@@ -2,7 +2,7 @@
 description: |
   [TOPIC] SciTeX Versions Management
   [DETAILS] SciTeX Versions Management.
-tags: [scitex-cloud-scitex-versions]
+tags: [scitex-hub-scitex-versions]
 ---
 # SciTeX Versions Management
 
@@ -17,7 +17,7 @@ http://127.0.0.1:5000
 
 ## Ecosystem Packages (in order)
 01. scitex (scitex-python)
-02. scitex-cloud
+02. scitex-hub
 03. figrecipe
 04. openalex-local
 05. crossref-local

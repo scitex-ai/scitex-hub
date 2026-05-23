@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2025-10-21 19:52:23
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/static/css/UI_COMPONENT_IDEAL_LIST.md
+!-- File: /home/ywatanabe/proj/scitex-hub/static/css/UI_COMPONENT_IDEAL_LIST.md
 !-- --- -->
 
 UI Components Hierarchy

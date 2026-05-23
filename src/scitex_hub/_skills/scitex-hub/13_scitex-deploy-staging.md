@@ -2,7 +2,7 @@
 description: |
   [TOPIC] SciTeX Cloud - Deploy Staging
   [DETAILS] SciTeX Cloud - Deploy Staging.
-tags: [scitex-cloud-scitex-deploy-staging]
+tags: [scitex-hub-scitex-deploy-staging]
 ---
 # SciTeX Cloud - Deploy Staging
 
@@ -23,14 +23,14 @@ scitex dev versions sync --confirm --host nas
 ## Step 2: Ensure Dockerfile.prod pins correct scitex version
 ```bash
 # Check pinned version
-grep 'scitex\[all\]==' ~/proj/scitex-cloud/deployment/docker/Dockerfile.prod
+grep 'scitex\[all\]==' ~/proj/scitex-hub/deployment/docker/Dockerfile.prod
 
 # If outdated, update the pin, commit, push, and sync to NAS
 ```
 
 ## Step 3: Build staging image on NAS (no downtime)
 ```bash
-ssh nas "cd ~/proj/scitex-cloud/deployment/docker && \
+ssh nas "cd ~/proj/scitex-hub/deployment/docker && \
   nohup docker compose --env-file ./envs/.env.staging \
     -f docker-compose.yml -f docker-compose.staging.yml \
     build --no-cache > /tmp/staging-rebuild.log 2>&1 &"
@@ -44,7 +44,7 @@ ssh nas "ps aux | grep 'docker.*build' | grep -v grep"
 
 ## Step 5: Restart containers (seconds of downtime)
 ```bash
-ssh nas "cd ~/proj/scitex-cloud/deployment/docker && \
+ssh nas "cd ~/proj/scitex-hub/deployment/docker && \
   docker compose --env-file ./envs/.env.staging \
     -f docker-compose.yml -f docker-compose.staging.yml down && \
   docker compose --env-file ./envs/.env.staging \

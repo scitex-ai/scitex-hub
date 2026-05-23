@@ -337,9 +337,9 @@ def versions_api(request):
         except Exception as e:
             packages[pkg] = {"installed": None, "status": "error", "error": str(e)}
 
-    # Include scitex-cloud version from settings
+    # Include scitex-hub version from settings
     cloud_version = getattr(settings, "SCITEX_CLOUD_VERSION", "unknown")
-    packages["scitex-cloud"] = {"installed": cloud_version, "status": "ok"}
+    packages["scitex-hub"] = {"installed": cloud_version, "status": "ok"}
 
     # Include environment info
     env = getattr(settings, "SCITEX_ENV", "unknown")

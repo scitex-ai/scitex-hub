@@ -2,7 +2,7 @@
 description: |
   [TOPIC] Version Management
   [DETAILS] Manage and sync versions across SciTeX ecosystem packages..
-tags: [scitex-cloud-version-management]
+tags: [scitex-hub-version-management]
 ---
 
 # Version Management
@@ -22,7 +22,7 @@ scitex dev ecosystem list
 
 ## Ecosystem Package Order
 1. scitex (scitex-python) — core framework
-2. scitex-cloud — platform
+2. scitex-hub — platform
 3. figrecipe — plotting
 4. openalex-local, crossref-local — literature
 5. scitex-writer — manuscripts

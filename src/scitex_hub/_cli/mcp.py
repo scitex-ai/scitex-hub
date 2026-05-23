@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File: src/scitex_hub/cli/mcp.py
-"""MCP CLI subcommands for scitex-cloud."""
+"""MCP CLI subcommands for scitex-hub."""
 
 import sys
 
@@ -58,8 +58,8 @@ def mcp_start(transport: str, host: str, port: int):
     Local configuration (stdio):
       {
         "mcpServers": {
-          "scitex-cloud": {
-            "command": "scitex-cloud",
+          "scitex-hub": {
+            "command": "scitex-hub",
             "args": ["mcp", "start"]
           }
         }
@@ -68,12 +68,12 @@ def mcp_start(transport: str, host: str, port: int):
     \b
     Remote configuration (http):
       # Start server:
-      scitex-cloud mcp start -t http --host 0.0.0.0 --port 8086
+      scitex-hub mcp start -t http --host 0.0.0.0 --port 8086
 
       # Client config:
       {
         "mcpServers": {
-          "scitex-cloud-remote": {
+          "scitex-hub-remote": {
             "url": "http://your-server:8086/mcp"
           }
         }
@@ -99,7 +99,7 @@ def mcp_doctor():
         )
     except ImportError:
         click.echo("  [FAIL] fastmcp not installed")
-        click.echo("         Fix: pip install scitex-cloud[mcp]")
+        click.echo("         Fix: pip install scitex-hub[mcp]")
         sys.exit(1)
 
     # Check requests
@@ -111,7 +111,7 @@ def mcp_doctor():
         )
     except ImportError:
         click.echo("  [FAIL] requests not installed")
-        click.echo("         Fix: pip install scitex-cloud[mcp]")
+        click.echo("         Fix: pip install scitex-hub[mcp]")
         sys.exit(1)
 
     # Check pyyaml (for gitea config)
@@ -121,7 +121,7 @@ def mcp_doctor():
         click.echo("  [OK] pyyaml installed")
     except ImportError:
         click.echo("  [WARN] pyyaml not installed (needed for gitea delete)")
-        click.echo("         Fix: pip install scitex-cloud[mcp]")
+        click.echo("         Fix: pip install scitex-hub[mcp]")
 
     click.echo()
 
@@ -160,8 +160,8 @@ def mcp_doctor():
     click.echo("All checks passed! MCP server is ready.")
     click.echo()
     click.echo("Start with:")
-    click.echo("  scitex-cloud mcp start              # stdio (Claude Desktop)")
-    click.echo("  scitex-cloud mcp start -t http      # HTTP transport")
+    click.echo("  scitex-hub mcp start              # stdio (Claude Desktop)")
+    click.echo("  scitex-hub mcp start -t http      # HTTP transport")
 
 
 @mcp.command(
@@ -173,9 +173,9 @@ def mcp_doctor():
 def mcp_installation_deprecated(ctx):
     """(deprecated) Renamed to `install`."""
     click.echo(
-        "error: `scitex-cloud mcp installation` was renamed to "
-        "`scitex-cloud mcp install`.\n"
-        "Re-run with: scitex-cloud mcp install",
+        "error: `scitex-hub mcp installation` was renamed to "
+        "`scitex-hub mcp install`.\n"
+        "Re-run with: scitex-hub mcp install",
         err=True,
     )
     ctx.exit(2)
@@ -190,9 +190,9 @@ def mcp_installation_deprecated(ctx):
 def mcp_show_installation_deprecated(ctx):
     """(deprecated) Renamed to `install`."""
     click.echo(
-        "error: `scitex-cloud mcp show-installation` was renamed to "
-        "`scitex-cloud mcp install`.\n"
-        "Re-run with: scitex-cloud mcp install",
+        "error: `scitex-hub mcp show-installation` was renamed to "
+        "`scitex-hub mcp install`.\n"
+        "Re-run with: scitex-hub mcp install",
         err=True,
     )
     ctx.exit(2)
@@ -213,8 +213,8 @@ def mcp_install():
     click.echo()
     click.echo("   {")
     click.echo('     "mcpServers": {')
-    click.echo('       "scitex-cloud": {')
-    click.echo('         "command": "scitex-cloud",')
+    click.echo('       "scitex-hub": {')
+    click.echo('         "command": "scitex-hub",')
     click.echo('         "args": ["mcp", "start"],')
     click.echo('         "env": {')
     click.echo(
@@ -228,19 +228,19 @@ def mcp_install():
     click.echo("2. Remote (HTTP) - Persistent server:")
     click.echo()
     click.echo("   Server side:")
-    click.echo("     scitex-cloud mcp start -t http --host 0.0.0.0 --port 8086")
+    click.echo("     scitex-hub mcp start -t http --host 0.0.0.0 --port 8086")
     click.echo()
     click.echo("   Client config:")
     click.echo("   {")
     click.echo('     "mcpServers": {')
-    click.echo('       "scitex-cloud-remote": {')
+    click.echo('       "scitex-hub-remote": {')
     click.echo('         "url": "http://your-server:8086/mcp"')
     click.echo("       }")
     click.echo("     }")
     click.echo("   }")
     click.echo()
     click.echo("Available tools: 23 (14 gitea + 9 cloud API)")
-    click.echo("Run 'scitex-cloud mcp list-tools' to see all tools.")
+    click.echo("Run 'scitex-hub mcp list-tools' to see all tools.")
 
 
 def _format_signature(tool_obj, indent: str = "  ") -> str:
@@ -285,12 +285,12 @@ def mcp_list_tools(verbose: int, as_json: bool):
         from .._mcp_server import mcp as mcp_server
     except ImportError:
         click.secho("ERROR: Could not import MCP server", fg="red", err=True)
-        click.echo("Install with: pip install scitex-cloud[mcp]")
+        click.echo("Install with: pip install scitex-hub[mcp]")
         raise SystemExit(1)
 
     if not FASTMCP_AVAILABLE or mcp_server is None:
         click.secho("ERROR: fastmcp not installed", fg="red", err=True)
-        click.echo("Install with: pip install scitex-cloud[mcp]")
+        click.echo("Install with: pip install scitex-hub[mcp]")
         raise SystemExit(1)
 
     # Get tools (FastMCP 2.x/3.x compat via shared layer)
@@ -308,7 +308,7 @@ def mcp_list_tools(verbose: int, as_json: bool):
         import json
 
         output = {
-            "name": "scitex-cloud",
+            "name": "scitex-hub",
             "total": len(tools_dict),
             "modules": {
                 mod: {
@@ -361,7 +361,7 @@ def run_mcp_server(transport: str, host: str, port: int):
     except ImportError:
         click.echo(
             "MCP server requires fastmcp. Install with:\n"
-            "  pip install scitex-cloud[mcp]",
+            "  pip install scitex-hub[mcp]",
             err=True,
         )
         sys.exit(1)

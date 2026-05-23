@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-11-29 07:00:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/views/status/health_checks.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/public_app/views/status/health_checks.py
 # ----------------------------------------
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ def check_docker_containers(status_data):
 
         client = docker.from_env()
         scitex_env = os.environ.get("SCITEX_CLOUD_ENV", "dev")
-        container_name_prefix = f"scitex-cloud-{scitex_env}"
+        container_name_prefix = f"scitex-hub-{scitex_env}"
         containers = client.containers.list(
             all=True, filters={"name": container_name_prefix}
         )
@@ -60,7 +60,7 @@ def check_docker_containers(status_data):
 
             status_data["services"].append(
                 {
-                    "name": container.name.replace("scitex-cloud-dev-", "").replace(
+                    "name": container.name.replace("scitex-hub-dev-", "").replace(
                         "-1", ""
                     ),
                     "status": container.status,

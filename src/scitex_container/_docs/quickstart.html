@@ -115,7 +115,7 @@
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Quick Start</li>
       <li class="wy-breadcrumbs-aside">
-              <a href="https://github.com/ywatanabe1989/scitex-cloud/blob/main/docs/sphinx/quickstart.rst" class="fa fa-github"> Edit on GitHub</a>
+              <a href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/sphinx/quickstart.rst" class="fa fa-github"> Edit on GitHub</a>
       </li>
   </ul>
   <hr/>
@@ -129,15 +129,15 @@
 <section id="basic-usage">
 <h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading"></a></h2>
 <p>Check the status of your SciTeX deployment:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>status
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>status
 </pre></div>
 </div>
 <p>Start services in development mode:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>start<span class="w"> </span>--env<span class="w"> </span>dev
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>start<span class="w"> </span>--env<span class="w"> </span>dev
 </pre></div>
 </div>
 <p>Stop all services:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>stop
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>stop
 </pre></div>
 </div>
 </section>
@@ -149,8 +149,8 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">prod</span></code>: Production deployment (home NAS)</p></li>
 </ul>
 <p>Switch between environments using the <code class="docutils literal notranslate"><span class="pre">--env</span></code> flag:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>start<span class="w"> </span>--env<span class="w"> </span>dev<span class="w">   </span><span class="c1"># Development</span>
-scitex-cloud<span class="w"> </span>start<span class="w"> </span>--env<span class="w"> </span>prod<span class="w">   </span><span class="c1"># Production</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>start<span class="w"> </span>--env<span class="w"> </span>dev<span class="w">   </span><span class="c1"># Development</span>
+scitex-hub<span class="w"> </span>start<span class="w"> </span>--env<span class="w"> </span>prod<span class="w">   </span><span class="c1"># Production</span>
 </pre></div>
 </div>
 </section>
@@ -166,13 +166,13 @@ scitex-cloud<span class="w"> </span>start<span class="w"> </span>--env<span clas
 <h2>Docker Management<a class="headerlink" href="#docker-management" title="Link to this heading"></a></h2>
 <p>Manage Docker containers:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># View running containers</span>
-scitex-cloud<span class="w"> </span>docker<span class="w"> </span>ps
+scitex-hub<span class="w"> </span>docker<span class="w"> </span>ps
 
 <span class="c1"># View logs</span>
-scitex-cloud<span class="w"> </span>docker<span class="w"> </span>logs
+scitex-hub<span class="w"> </span>docker<span class="w"> </span>logs
 
 <span class="c1"># Restart services</span>
-scitex-cloud<span class="w"> </span>docker<span class="w"> </span>restart
+scitex-hub<span class="w"> </span>docker<span class="w"> </span>restart
 </pre></div>
 </div>
 </section>

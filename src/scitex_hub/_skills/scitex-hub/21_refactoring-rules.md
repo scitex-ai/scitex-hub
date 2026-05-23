@@ -1,8 +1,8 @@
 ---
 description: |
   [TOPIC] Refactoring Rules
-  [DETAILS] Refactoring rules for scitex-cloud Django/TypeScript codebase..
-tags: [scitex-cloud-refactoring-rules]
+  [DETAILS] Refactoring rules for scitex-hub Django/TypeScript codebase..
+tags: [scitex-hub-refactoring-rules]
 ---
 
 # Refactoring Rules

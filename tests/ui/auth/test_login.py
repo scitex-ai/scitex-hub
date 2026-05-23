@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: 2025-11-30
-# File: /home/ywatanabe/proj/scitex-cloud/tests/e2e/auth/test_login.py
+# File: /home/ywatanabe/proj/scitex-hub/tests/e2e/auth/test_login.py
 
 """
 E2E tests for login functionality.
@@ -97,9 +97,9 @@ class TestLoginSuccess:
                 f"Login failed with error (test credentials may need setup): {page.url}"
             )
 
-        assert is_authenticated or is_redirected, (
-            f"Login failed: authenticated={is_authenticated}, url={page.url}"
-        )
+        assert (
+            is_authenticated or is_redirected
+        ), f"Login failed: authenticated={is_authenticated}, url={page.url}"
 
     def test_login_redirects_to_home(
         self, page: Page, base_url: str, test_credentials: dict
@@ -132,9 +132,9 @@ class TestLoginSuccess:
             )
 
         # At least one condition should be true
-        assert is_redirected or is_authenticated, (
-            f"Expected redirect or authentication, got url={current_url}"
-        )
+        assert (
+            is_redirected or is_authenticated
+        ), f"Expected redirect or authentication, got url={current_url}"
 
 
 class TestLoginFailure:
@@ -309,4 +309,6 @@ class TestSessionPersistence:
         still_authenticated = (
             page.locator("body").get_attribute("data-user-authenticated") == "true"
         )
-        assert still_authenticated, "User should remain authenticated when accessing signin"
+        assert (
+            still_authenticated
+        ), "User should remain authenticated when accessing signin"

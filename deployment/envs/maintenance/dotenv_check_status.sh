@@ -34,7 +34,7 @@ BLUE='\033[0;34m'
 echo_header() { echo -e "${BLUE}$1${NC}"; }
 
 # Project root
-PROJECT_ROOT="/home/ywatanabe/proj/scitex-cloud"
+PROJECT_ROOT="/home/ywatanabe/proj/scitex-hub"
 
 # Critical environment variables that should exist
 CRITICAL_VARS=(

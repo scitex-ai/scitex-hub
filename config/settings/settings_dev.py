@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-11-10 15:46:56 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/config/settings/settings_dev.py
+# File: /home/ywatanabe/proj/scitex-hub/config/settings/settings_dev.py
 # ----------------------------------------
 from __future__ import annotations
 
@@ -243,7 +243,7 @@ if not test_redis_connection():
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            "LOCATION": "scitex-cloud-dev",
+            "LOCATION": "scitex-hub-dev",
             "TIMEOUT": 3600,
             "OPTIONS": {"MAX_ENTRIES": 1000},
         }

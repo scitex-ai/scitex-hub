@@ -42,7 +42,7 @@ Skills are reusable knowledge files that AI agents load for domain-specific guid
 
 ### Platform Skills (Auto-Generated)
 
-SciTeX compiles a `SKILL.md` from all registered app modules and deploys it to `~/.claude/skills/scitex-cloud/SKILL.md` on every terminal connect. Built dynamically from `apps/*/skill.py` registrations.
+SciTeX compiles a `SKILL.md` from all registered app modules and deploys it to `~/.claude/skills/scitex-hub/SKILL.md` on every terminal connect. Built dynamically from `apps/*/skill.py` registrations.
 
 | Module | MCP Prefixes | Capabilities |
 |--------|-------------|--------------|

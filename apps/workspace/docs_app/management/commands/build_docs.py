@@ -13,7 +13,7 @@ from django.core.management.base import BaseCommand
 # Map package name → relative path from BASE_DIR to Sphinx source dir
 _SPHINX_SOURCES = {
     "scitex-python": "../scitex-python/docs/sphinx",
-    "scitex-cloud": "docs/sphinx",
+    "scitex-hub": "docs/sphinx",
     "figrecipe": "../figrecipe/docs/sphinx",
     "scitex-writer": "../scitex-writer/docs/sphinx",
     "scitex-io": "../scitex-io/docs/sphinx",

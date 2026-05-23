@@ -2,7 +2,7 @@
 description: |
   [TOPIC] Project Management CLI
   [DETAILS] CLI commands for SciTeX Cloud project CRUD — create, list, delete, rename. Each project gets a Gitea repo + Django project + workspace directory..
-tags: [scitex-cloud-project-management]
+tags: [scitex-hub-project-management]
 ---
 
 # Project Management CLI
@@ -10,10 +10,10 @@ tags: [scitex-cloud-project-management]
 ## Commands
 
 ```bash
-scitex-cloud project create <name> [-d "description"] [-t template]
-scitex-cloud project list [--json]
-scitex-cloud project delete <slug> [--yes]
-scitex-cloud project rename <slug> <new-name>
+scitex-hub project create <name> [-d "description"] [-t template]
+scitex-hub project list [--json]
+scitex-hub project delete <slug> [--yes]
+scitex-hub project rename <slug> <new-name>
 ```
 
 ## Options
@@ -74,12 +74,12 @@ project_rename("my-research", "my-research-v2")
 
 ```bash
 # Create and verify
-scitex-cloud project create neural-dynamics -d "Spiking network paper"
-scitex-cloud project list
+scitex-hub project create neural-dynamics -d "Spiking network paper"
+scitex-hub project list
 
 # Rename then delete
-scitex-cloud project rename neural-dynamics neural-dynamics-v2
-scitex-cloud project delete neural-dynamics-v2 --yes
+scitex-hub project rename neural-dynamics neural-dynamics-v2
+scitex-hub project delete neural-dynamics-v2 --yes
 ```
 
 # EOF

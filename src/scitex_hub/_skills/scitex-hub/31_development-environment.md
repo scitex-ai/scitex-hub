@@ -2,7 +2,7 @@
 description: |
   [TOPIC] Development Environment
   [DETAILS] Docker-based development environment — start/stop, container names, hot reload, access URLs, test user..
-tags: [scitex-cloud-development-environment]
+tags: [scitex-hub-development-environment]
 ---
 
 # Development Environment
@@ -19,18 +19,18 @@ make env=dev status      # Status
 ```
 
 ## Container Names
-Project name `scitex-cloud-dev` (set in `deployment/docker/docker_dev/docker-compose.yml`):
-- `scitex-cloud-dev-django` — Main Django app
-- `scitex-cloud-dev-postgres` — PostgreSQL database
-- `scitex-cloud-dev-redis` — Redis cache
-- `scitex-cloud-dev-gitea` — Git hosting
-- `scitex-cloud-dev-celery_worker` — Background tasks
-- `scitex-cloud-dev-celery_beat` — Scheduled tasks
+Project name `scitex-hub-dev` (set in `deployment/docker/docker_dev/docker-compose.yml`):
+- `scitex-hub-dev-django` — Main Django app
+- `scitex-hub-dev-postgres` — PostgreSQL database
+- `scitex-hub-dev-redis` — Redis cache
+- `scitex-hub-dev-gitea` — Git hosting
+- `scitex-hub-dev-celery_worker` — Background tasks
+- `scitex-hub-dev-celery_beat` — Scheduled tasks
 
 ## Running Django Commands
 ```bash
-docker exec scitex-cloud-dev-django-1 python manage.py migrate --settings=config.settings.settings_dev
-docker exec -it scitex-cloud-dev-django-1 python manage.py shell --settings=config.settings.settings_dev
+docker exec scitex-hub-dev-django-1 python manage.py migrate --settings=config.settings.settings_dev
+docker exec -it scitex-hub-dev-django-1 python manage.py shell --settings=config.settings.settings_dev
 ```
 
 ## Hot Reload

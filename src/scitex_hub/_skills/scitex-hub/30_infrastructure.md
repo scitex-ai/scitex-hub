@@ -2,7 +2,7 @@
 description: |
   [TOPIC] Infrastructure CLI
   [DETAILS] Infrastructure management — environment setup, Docker container management, deploy, logs, SSH, and MCP server start/diagnose..
-tags: [scitex-cloud-infrastructure]
+tags: [scitex-hub-infrastructure]
 ---
 
 # Infrastructure CLI
@@ -10,50 +10,50 @@ tags: [scitex-cloud-infrastructure]
 ## Setup
 
 ```bash
-scitex-cloud setup [--env dev|prod] [--force]
+scitex-hub setup [--env dev|prod] [--force]
 ```
 
 Interactive wizard: checks prerequisites (docker, git), creates `.env` from template, validates docker-compose file.
 
 ```bash
-scitex-cloud setup              # interactive, prompts for env
-scitex-cloud setup --env dev    # dev environment
-scitex-cloud setup --env prod   # production environment
-scitex-cloud setup --env dev --force   # overwrite existing .env
+scitex-hub setup              # interactive, prompts for env
+scitex-hub setup --env dev    # dev environment
+scitex-hub setup --env prod   # production environment
+scitex-hub setup --env dev --force   # overwrite existing .env
 ```
 
 ## Docker
 
 ```bash
-scitex-cloud docker [--env dev|prod] build [--no-cache]
-scitex-cloud docker [--env dev|prod] up    [-d]           # start (detached default)
-scitex-cloud docker [--env dev|prod] down  [-v]           # stop (--volumes to remove)
-scitex-cloud docker [--env dev|prod] restart
-scitex-cloud docker [--env dev|prod] ps                   # show container status
+scitex-hub docker [--env dev|prod] build [--no-cache]
+scitex-hub docker [--env dev|prod] up    [-d]           # start (detached default)
+scitex-hub docker [--env dev|prod] down  [-v]           # stop (--volumes to remove)
+scitex-hub docker [--env dev|prod] restart
+scitex-hub docker [--env dev|prod] ps                   # show container status
 ```
 
 ## Deploy and Status
 
 ```bash
-scitex-cloud deploy                   # deploy with current settings
-scitex-cloud status                   # show deployment health
-scitex-cloud logs [service]           # tail service logs
-scitex-cloud ssh                      # SSH into cloud
+scitex-hub deploy                   # deploy with current settings
+scitex-hub status                   # show deployment health
+scitex-hub logs [service]           # tail service logs
+scitex-hub ssh                      # SSH into cloud
 ```
 
 ## MCP Server
 
 ```bash
 # Start
-scitex-cloud mcp start                          # stdio (Claude Desktop default)
-scitex-cloud mcp start -t sse                   # SSE (deprecated, avoid)
-scitex-cloud mcp start -t http                  # HTTP streamable (recommended for remote)
-scitex-cloud mcp start -t http --host 0.0.0.0 --port 8086
+scitex-hub mcp start                          # stdio (Claude Desktop default)
+scitex-hub mcp start -t sse                   # SSE (deprecated, avoid)
+scitex-hub mcp start -t http                  # HTTP streamable (recommended for remote)
+scitex-hub mcp start -t http --host 0.0.0.0 --port 8086
 
 # Diagnose
-scitex-cloud mcp doctor                         # check deps, tea CLI, API key
-scitex-cloud mcp installation                   # show client config snippets
-scitex-cloud mcp list-tools [-v] [-vv] [--json] # list all MCP tools
+scitex-hub mcp doctor                         # check deps, tea CLI, API key
+scitex-hub mcp installation                   # show client config snippets
+scitex-hub mcp list-tools [-v] [-vv] [--json] # list all MCP tools
 ```
 
 ### MCP Client Configuration
@@ -62,8 +62,8 @@ Local (stdio, Claude Desktop):
 ```json
 {
   "mcpServers": {
-    "scitex-cloud": {
-      "command": "scitex-cloud",
+    "scitex-hub": {
+      "command": "scitex-hub",
       "args": ["mcp", "start"],
       "env": {
         "SCITEX_CLOUD_API_KEY": "your-api-key"
@@ -77,7 +77,7 @@ Remote (HTTP):
 ```json
 {
   "mcpServers": {
-    "scitex-cloud-remote": {
+    "scitex-hub-remote": {
       "url": "http://your-server:8086/mcp"
     }
   }

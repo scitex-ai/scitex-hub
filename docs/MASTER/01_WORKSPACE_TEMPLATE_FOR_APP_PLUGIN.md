@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2026-03-01 05:49:14
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/docs/MASTER/01_WORKSPACE_TEMPLATE_FOR_APP_PLUGIN.md
+!-- File: /home/ywatanabe/proj/scitex-hub/docs/MASTER/01_WORKSPACE_TEMPLATE_FOR_APP_PLUGIN.md
 !-- --- -->
 
 # Workspace Template for App Plugins

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # File: src/scitex_hub/cli/deploy.py
 
-"""Deploy commands for scitex-cloud CLI."""
+"""Deploy commands for scitex-hub CLI."""
 
 from pathlib import Path
 
@@ -31,9 +31,9 @@ def deploy(ctx, env, build, no_cache):
 
     \b
     Examples:
-        scitex-cloud deploy              # Deploy with current settings
-        scitex-cloud deploy --env prod   # Deploy to production environment
-        scitex-cloud deploy --build      # Rebuild and deploy
+        scitex-hub deploy              # Deploy with current settings
+        scitex-hub deploy --env prod   # Deploy to production environment
+        scitex-hub deploy --build      # Rebuild and deploy
     """
     environment = get_environment(env)
     click.echo(
@@ -69,9 +69,9 @@ def deploy(ctx, env, build, no_cache):
     )
     click.echo()
     click.echo("Useful commands:")
-    click.echo("  scitex-cloud status    # Check container status")
-    click.echo("  scitex-cloud logs -f   # Follow logs")
-    click.echo("  scitex-cloud docker down  # Stop containers")
+    click.echo("  scitex-hub status    # Check container status")
+    click.echo("  scitex-hub logs -f   # Follow logs")
+    click.echo("  scitex-hub docker down  # Stop containers")
 
 
 def _validate_deployment(environment):
@@ -92,7 +92,7 @@ def _validate_deployment(environment):
         for error in errors:
             click.echo(f"  - {error}")
         click.echo()
-        click.echo("Run 'scitex-cloud setup' to configure the environment.")
+        click.echo("Run 'scitex-hub setup' to configure the environment.")
         raise click.ClickException("Deployment validation failed")
 
     click.echo(f"  {click.style('✓', fg='green')} Configuration validated")

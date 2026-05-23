@@ -1,14 +1,14 @@
 ---
 description: |
-  [TOPIC] scitex-cloud MCP Tools
-  [DETAILS] ~55 MCP tools across 6 categories — project_*, repo_*, cloud_sdk_data/files/jobs_*, api_*, app_*, onsite_* — exposed to AI agents via `scitex-cloud-mcp` (stdio).
-tags: [scitex-cloud-mcp-tools]
+  [TOPIC] scitex-hub MCP Tools
+  [DETAILS] ~55 MCP tools across 6 categories — project_*, repo_*, cloud_sdk_data/files/jobs_*, api_*, app_*, onsite_* — exposed to AI agents via `scitex-hub-mcp` (stdio).
+tags: [scitex-hub-mcp-tools]
 ---
 
 # MCP Tools
 
-`scitex-cloud` ships ~55 MCP tools, exposed via the `scitex-cloud-mcp`
-stdio server (or `scitex-cloud mcp start`). Tool names are namespaced
+`scitex-hub` ships ~55 MCP tools, exposed via the `scitex-hub-mcp`
+stdio server (or `scitex-hub mcp start`). Tool names are namespaced
 under `mcp__scitex__cloud_*`.
 
 ## Categories
@@ -27,8 +27,8 @@ under `mcp__scitex__cloud_*`.
 ## Starting the server
 
 ```bash
-scitex-cloud-mcp                # stdio server (Claude Desktop)
-scitex-cloud serve -t sse       # SSE (remote)
+scitex-hub-mcp                # stdio server (Claude Desktop)
+scitex-hub serve -t sse       # SSE (remote)
 ```
 
 ## Discoverability from inside Claude

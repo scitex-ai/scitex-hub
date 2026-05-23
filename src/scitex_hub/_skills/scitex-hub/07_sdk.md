@@ -1,8 +1,8 @@
 ---
 description: |
   [TOPIC] Cloud SDK
-  [DETAILS] Cloud SDK — DataStore (JSON CRUD), FileVault (file storage), JobQueue (background compute). CLI and Python API. SDK code lives in scitex-app but re-exported from scitex-cloud for backward compatibility..
-tags: [scitex-cloud-sdk]
+  [DETAILS] Cloud SDK — DataStore (JSON CRUD), FileVault (file storage), JobQueue (background compute). CLI and Python API. SDK code lives in scitex-app but re-exported from scitex-hub for backward compatibility..
+tags: [scitex-hub-sdk]
 ---
 
 # Cloud SDK
@@ -11,35 +11,35 @@ Three services: DataStore (JSON records), FileVault (files), JobQueue (async job
 
 ## CLI
 
-All commands under `scitex-cloud sdk`.
+All commands under `scitex-hub sdk`.
 
 ### DataStore
 
 ```bash
-scitex-cloud sdk data list   <app> <schema> [--filter key=val ...] [--project ID]
-scitex-cloud sdk data get    <app> <schema> <record_id>
-scitex-cloud sdk data create <app> <schema> --json '{"title": "Experiment 1"}'
-scitex-cloud sdk data update <app> <schema> <record_id> --json '{"status": "done"}'
-scitex-cloud sdk data delete <app> <schema> <record_id>
-scitex-cloud sdk data search <app> <schema> -q "query string"
+scitex-hub sdk data list   <app> <schema> [--filter key=val ...] [--project ID]
+scitex-hub sdk data get    <app> <schema> <record_id>
+scitex-hub sdk data create <app> <schema> --json '{"title": "Experiment 1"}'
+scitex-hub sdk data update <app> <schema> <record_id> --json '{"status": "done"}'
+scitex-hub sdk data delete <app> <schema> <record_id>
+scitex-hub sdk data search <app> <schema> -q "query string"
 ```
 
 ### FileVault
 
 ```bash
-scitex-cloud sdk files list     <app> [--path subdir] [--project ID] [--ext .csv]
-scitex-cloud sdk files upload   <app> <local_path> <remote_path> [--project ID]
-scitex-cloud sdk files download <app> <remote_path> [--project ID]
-scitex-cloud sdk files delete   <app> <remote_path> [--project ID]
+scitex-hub sdk files list     <app> [--path subdir] [--project ID] [--ext .csv]
+scitex-hub sdk files upload   <app> <local_path> <remote_path> [--project ID]
+scitex-hub sdk files download <app> <remote_path> [--project ID]
+scitex-hub sdk files delete   <app> <remote_path> [--project ID]
 ```
 
 ### JobQueue
 
 ```bash
-scitex-cloud sdk jobs submit <app> <job_name> [--params '{"fmt":"xlsx"}'] [--project ID]
-scitex-cloud sdk jobs status <app> <job_id>
-scitex-cloud sdk jobs list   <app>
-scitex-cloud sdk jobs cancel <app> <job_id>
+scitex-hub sdk jobs submit <app> <job_name> [--params '{"fmt":"xlsx"}'] [--project ID]
+scitex-hub sdk jobs status <app> <job_id>
+scitex-hub sdk jobs list   <app>
+scitex-hub sdk jobs cancel <app> <job_id>
 ```
 
 ## Python API
@@ -102,16 +102,16 @@ reset_client()                # clear singleton
 
 ```bash
 # Store experiment results
-scitex-cloud sdk data create my_app Experiment \
+scitex-hub sdk data create my_app Experiment \
   --json '{"title": "Run 1", "accuracy": 0.95}'
 
 # Upload output CSV
-scitex-cloud sdk files upload my_app ./results.csv exports/results.csv
+scitex-hub sdk files upload my_app ./results.csv exports/results.csv
 
 # Submit background export job, then poll
-scitex-cloud sdk jobs submit my_app export_csv --params '{"fmt":"xlsx"}'
+scitex-hub sdk jobs submit my_app export_csv --params '{"fmt":"xlsx"}'
 # -> {"job_id": "j_abc123"}
-scitex-cloud sdk jobs status my_app j_abc123
+scitex-hub sdk jobs status my_app j_abc123
 ```
 
 # EOF

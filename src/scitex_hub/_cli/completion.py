@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # File: src/scitex_hub/cli/completion.py
 
-"""Shell completion commands for scitex-cloud CLI."""
+"""Shell completion commands for scitex-hub CLI."""
 
 import click
 
@@ -10,12 +10,12 @@ import click
 @click.group("completion", invoke_without_command=True)
 @click.pass_context
 def completion_group(ctx):
-    """Shell tab-completion commands for scitex-cloud.
+    """Shell tab-completion commands for scitex-hub.
 
     \b
     Examples:
-        scitex-cloud completion print-script --shell bash
-        eval "$(scitex-cloud completion print-script --shell bash)"
+        scitex-hub completion print-script --shell bash
+        eval "$(scitex-hub completion print-script --shell bash)"
     """
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
@@ -41,7 +41,7 @@ def print_script(shell):
     # Import the main CLI to get completions
     from .main import main
 
-    comp = comp_cls(main, {}, "scitex-cloud", "_SCITEX_CLOUD_COMPLETE")
+    comp = comp_cls(main, {}, "scitex-hub", "_SCITEX_CLOUD_COMPLETE")
     click.echo(comp.source())
 
 

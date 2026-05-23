@@ -29,55 +29,55 @@ describe('pdf-mode-manager', () => {
 //  * PDF Mode Manager Module
 //  * Handles interaction modes (text/hand/zoom) and mode switching UI
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/pdf-scroll-zoom/pdf-mode-manager.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/modules/pdf-scroll-zoom/pdf-mode-manager.ts loaded",
 // );
-// 
+//
 // export type PDFInteractionMode = "text" | "hand" | "zoom";
-// 
+//
 // export class PDFModeManager {
 //   private currentMode: PDFInteractionMode = "text"; // Default to text selection mode
 //   private isSpacePressed: boolean = false;
 //   private isWaitingForCommand: boolean = false;
 //   private commandTimeout: number | null = null;
 //   private pdfViewer: HTMLElement | null = null;
-// 
+//
 //   /**
 //    * Set PDF viewer reference
 //    */
 //   setPdfViewer(viewer: HTMLElement | null): void {
 //     this.pdfViewer = viewer;
 //   }
-// 
+//
 //   /**
 //    * Get current mode
 //    */
 //   getCurrentMode(): PDFInteractionMode {
 //     return this.currentMode;
 //   }
-// 
+//
 //   /**
 //    * Get spacebar pressed state
 //    */
 //   isSpacePressedState(): boolean {
 //     return this.isSpacePressed;
 //   }
-// 
+//
 //   /**
 //    * Set spacebar pressed state
 //    */
 //   setSpacePressed(pressed: boolean): void {
 //     this.isSpacePressed = pressed;
 //   }
-// 
+//
 //   /**
 //    * Get command mode waiting state
 //    */
 //   isWaitingForCommandState(): boolean {
 //     return this.isWaitingForCommand;
 //   }
-// 
+//
 //   /**
 //    * Toggle hand/pan mode (public method for toolbar button)
 //    */
@@ -90,26 +90,26 @@ describe('pdf-mode-manager', () => {
 //       this.showModeMessage("Hand/Pan Mode (press ESC to exit)");
 //     }
 //   }
-// 
+//
 //   /**
 //    * Set interaction mode and sync with PDFJSViewer
 //    */
 //   setMode(mode: PDFInteractionMode): void {
 //     this.currentMode = mode;
-// 
+//
 //     // Update local state
 //     if (mode === "hand") {
 //       this.isSpacePressed = true;
 //     } else {
 //       this.isSpacePressed = false;
 //     }
-// 
+//
 //     // Update cursor
 //     if (this.pdfViewer) {
 //       this.pdfViewer.style.cursor = mode === "hand" ? "grab" :
 //                                     mode === "zoom" ? "crosshair" : "auto";
 //     }
-// 
+//
 //     // Sync mode with PDFJSViewer if it exists
 //     const pdfjsViewer = document.getElementById("pdfjs-viewer");
 //     if (pdfjsViewer) {
@@ -123,7 +123,7 @@ describe('pdf-mode-manager', () => {
 //       pdfjsViewer.style.cursor = mode === "hand" ? "grab" :
 //                                  mode === "zoom" ? "crosshair" : "auto";
 //     }
-// 
+//
 //     // Update toolbar button appearance
 //     const panBtn = document.getElementById("pdf-pan-mode-btn");
 //     if (panBtn) {
@@ -136,17 +136,17 @@ describe('pdf-mode-manager', () => {
 //       }
 //     }
 //   }
-// 
+//
 //   /**
 //    * Enter command mode (Ctrl+Space)
 //    */
 //   enterCommandMode(): void {
 //     this.isWaitingForCommand = true;
 //     console.log("[PDFModeManager] 🎯 Command mode activated - Press T (text), H (hand), or Z (zoom)");
-// 
+//
 //     // Show visual indicator
 //     this.showCommandModeIndicator();
-// 
+//
 //     // Auto-exit command mode after 2 seconds if no command pressed
 //     if (this.commandTimeout) clearTimeout(this.commandTimeout);
 //     this.commandTimeout = window.setTimeout(() => {
@@ -154,7 +154,7 @@ describe('pdf-mode-manager', () => {
 //       console.log("[PDFModeManager] Command mode timeout - exited");
 //     }, 2000);
 //   }
-// 
+//
 //   /**
 //    * Exit command mode
 //    */
@@ -163,15 +163,15 @@ describe('pdf-mode-manager', () => {
 //     if (this.commandTimeout) clearTimeout(this.commandTimeout);
 //     this.hideCommandModeIndicator();
 //   }
-// 
+//
 //   /**
 //    * Handle command key press
 //    */
 //   handleCommandKey(key: string): boolean {
 //     if (!this.isWaitingForCommand) return false;
-// 
+//
 //     this.exitCommandMode();
-// 
+//
 //     switch (key.toLowerCase()) {
 //       case "t":
 //         console.log("[PDFModeManager] 📝 Text selection mode activated");
@@ -194,7 +194,7 @@ describe('pdf-mode-manager', () => {
 //         return false;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Handle escape key - exit modes
 //    */
@@ -212,14 +212,14 @@ describe('pdf-mode-manager', () => {
 //     }
 //     return false;
 //   }
-// 
+//
 //   /**
 //    * Show command mode indicator
 //    */
 //   private showCommandModeIndicator(): void {
 //     // Remove any existing indicator
 //     this.hideCommandModeIndicator();
-// 
+//
 //     const indicator = document.createElement("div");
 //     indicator.id = "pdf-command-mode-indicator";
 //     indicator.innerHTML = `
@@ -232,7 +232,7 @@ describe('pdf-mode-manager', () => {
 //     `;
 //     document.body.appendChild(indicator);
 //   }
-// 
+//
 //   /**
 //    * Hide command mode indicator
 //    */
@@ -240,7 +240,7 @@ describe('pdf-mode-manager', () => {
 //     const indicator = document.getElementById("pdf-command-mode-indicator");
 //     if (indicator) indicator.remove();
 //   }
-// 
+//
 //   /**
 //    * Show temporary mode message
 //    */
@@ -248,7 +248,7 @@ describe('pdf-mode-manager', () => {
 //     // Remove any existing message
 //     const existingMsg = document.getElementById("pdf-mode-message");
 //     if (existingMsg) existingMsg.remove();
-// 
+//
 //     const msgDiv = document.createElement("div");
 //     msgDiv.id = "pdf-mode-message";
 //     msgDiv.innerHTML = `
@@ -267,7 +267,7 @@ describe('pdf-mode-manager', () => {
 //       </style>
 //     `;
 //     document.body.appendChild(msgDiv);
-// 
+//
 //     // Auto-remove after 3 seconds
 //     setTimeout(() => {
 //       if (msgDiv.parentNode) msgDiv.remove();

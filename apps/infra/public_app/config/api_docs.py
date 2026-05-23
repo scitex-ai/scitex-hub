@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-02-05 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/config/api_docs.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/public_app/config/api_docs.py
 # ----------------------------------------
 from __future__ import annotations
 
@@ -173,13 +173,13 @@ def get_all_subsection_ids() -> list[str]:
 # ============================================================
 # Campaign Token Utilities
 # ============================================================
-# Format: scitex-cloud-campaign-YYYYMMDD-YYYYMMDD-HASHTAG
-# Example: scitex-cloud-campaign-20250201-20250228-alpha
+# Format: scitex-hub-campaign-YYYYMMDD-YYYYMMDD-HASHTAG
+# Example: scitex-hub-campaign-20250201-20250228-alpha
 import re
 from datetime import datetime
 
 CAMPAIGN_TOKEN_PATTERN = re.compile(
-    r"^scitex-cloud-campaign-(\d{8})-(\d{8})-([a-z0-9_-]+)$"
+    r"^scitex-hub-campaign-(\d{8})-(\d{8})-([a-z0-9_-]+)$"
 )
 
 
@@ -190,7 +190,7 @@ def generate_campaign_token(
 ) -> str:
     """Generate a standardized campaign token.
 
-    Format: scitex-cloud-campaign-YYYYMMDD-YYYYMMDD-hashtag
+    Format: scitex-hub-campaign-YYYYMMDD-YYYYMMDD-hashtag
 
     Args:
         start_date: Campaign start date
@@ -202,7 +202,7 @@ def generate_campaign_token(
     """
     hashtag_clean = re.sub(r"[^a-z0-9_-]", "", hashtag.lower())
     return (
-        f"scitex-cloud-campaign-"
+        f"scitex-hub-campaign-"
         f"{start_date.strftime('%Y%m%d')}-"
         f"{end_date.strftime('%Y%m%d')}-"
         f"{hashtag_clean}"
@@ -244,7 +244,7 @@ def is_valid_campaign_token(token: str) -> bool:
 # Active campaign tokens for API docs examples
 CAMPAIGN_TOKENS = {
     "alpha": {
-        "token": "scitex-cloud-campaign-20260101-20261231-alpha",
+        "token": "scitex-hub-campaign-20260101-20261231-alpha",
         "description": "Alpha testing campaign",
         "permissions": ["read", "search"],
     },

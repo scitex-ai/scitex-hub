@@ -11,7 +11,7 @@
 #   - No Cloudflare tunnel (direct access)
 #   - Separate database
 
-name: scitex-cloud-staging
+name: scitex-hub-staging
 
 services:
   # ============================================
@@ -23,7 +23,7 @@ services:
       dockerfile: deployment/docker/Dockerfile.prod
       args:
         BUILDKIT_INLINE_CACHE: 1
-    image: scitex-cloud-staging-django:latest
+    image: scitex-hub-staging-django:latest
     entrypoint: ["/root-init.sh", "/entrypoint.sh"]
     command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "--access-log", "-", "--verbosity", "1", "config.asgi:application"]
     volumes:
@@ -102,7 +102,7 @@ services:
   # Celery Worker (Staging)
   # ============================================
   celery_worker:
-    image: scitex-cloud-staging-django:latest
+    image: scitex-hub-staging-django:latest
     entrypoint: ["/entrypoint.sh"]
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
@@ -156,7 +156,7 @@ services:
   # Celery Beat (Staging)
   # ============================================
   celery_beat:
-    image: scitex-cloud-staging-django:latest
+    image: scitex-hub-staging-django:latest
     entrypoint: ["/entrypoint.sh"]
     command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
     volumes:

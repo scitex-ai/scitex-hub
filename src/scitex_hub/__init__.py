@@ -6,8 +6,8 @@
 SciTeX Cloud - CLI tools and APIs for SciTeX deployment and management.
 
 Usage:
-    pip install scitex-cloud
-    scitex-cloud --help
+    pip install scitex-hub
+    scitex-hub --help
 
 Python API:
     >>> import scitex_hub
@@ -16,8 +16,8 @@ Python API:
     >>> client.enrich_bibtex("@article{...}")
 
 MCP Server:
-    scitex-cloud serve              # stdio (Claude Desktop)
-    scitex-cloud serve -t sse       # SSE (remote)
+    scitex-hub serve              # stdio (Claude Desktop)
+    scitex-hub serve -t sse       # SSE (remote)
 """
 
 
@@ -48,12 +48,12 @@ from ._utils._docker import DockerManager as DockerManager
 
 
 def get_version() -> str:
-    """Get scitex-cloud version."""
+    """Get scitex-hub version."""
     return __version__
 
 
 def health_check(endpoint: str | None = None) -> dict:
-    """Check scitex-cloud service health.
+    """Check scitex-hub service health.
 
     Parameters
     ----------
@@ -78,7 +78,7 @@ def health_check(endpoint: str | None = None) -> dict:
     return {
         "status": "ok",
         "version": __version__,
-        "package": "scitex-cloud",
+        "package": "scitex-hub",
     }
 
 

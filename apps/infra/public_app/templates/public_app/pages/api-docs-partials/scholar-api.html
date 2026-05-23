@@ -114,7 +114,7 @@
                     </button>
                 </div>
                 <div class="api-example-body">
-                    <pre><code id="public-search-basic-campaign">curl -H "X-SCITEX-API-KEY: {{ campaign_token|default:'scitex-cloud-campaign-20260101-20261231-alpha' }}" \
+                    <pre><code id="public-search-basic-campaign">curl -H "X-SCITEX-API-KEY: {{ campaign_token|default:'scitex-hub-campaign-20260101-20261231-alpha' }}" \
      "{{ request.scheme }}://{{ request.get_host }}/api/v1/scholar/search/?q=neural+networks&limit=10"</code></pre>
                 </div>
             </div>
@@ -169,7 +169,7 @@
                     </button>
                 </div>
                 <div class="api-example-body">
-                    <pre><code id="public-search-auth-campaign">curl -H "X-SCITEX-API-KEY: {{ campaign_token|default:'scitex-cloud-campaign-20260101-20261231-alpha' }}" \
+                    <pre><code id="public-search-auth-campaign">curl -H "X-SCITEX-API-KEY: {{ campaign_token|default:'scitex-hub-campaign-20260101-20261231-alpha' }}" \
      "{{ request.scheme }}://{{ request.get_host }}/api/v1/scholar/search/?q=machine+learning"</code></pre>
                 </div>
             </div>
@@ -345,7 +345,7 @@
                     </button>
                 </div>
                 <div class="api-example-body">
-                    <pre><code id="public-info-campaign">curl -H "X-SCITEX-API-KEY: {{ campaign_token|default:'scitex-cloud-campaign-20260101-20261231-alpha' }}" \
+                    <pre><code id="public-info-campaign">curl -H "X-SCITEX-API-KEY: {{ campaign_token|default:'scitex-hub-campaign-20260101-20261231-alpha' }}" \
      "{{ request.scheme }}://{{ request.get_host }}/api/v1/scholar/info/"</code></pre>
                 </div>
             </div>

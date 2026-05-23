@@ -18,7 +18,7 @@ Fast, offline API server for local CrossRef database (1TB+ SQLite database).
 │  └──────────────────────────────┘        │
 │         ↓ HTTP API                       │
 │  ┌──────────────────────────────┐        │
-│  │ Django: scitex-cloud         │        │
+│  │ Django: scitex-hub         │        │
 │  │ Scholar App                  │        │
 │  └──────────────────────────────┘        │
 └───────────────────────────────────────────┘
@@ -39,7 +39,7 @@ Fast, offline API server for local CrossRef database (1TB+ SQLite database).
 
 ```bash
 # Check what you have
-cd /home/ywatanabe/proj/scitex-cloud
+cd /home/ywatanabe/proj/scitex-hub
 bash scripts/explore_crossref_local.sh
 
 # Review the analysis

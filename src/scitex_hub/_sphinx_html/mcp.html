@@ -178,7 +178,7 @@
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">MCP Server</li>
       <li class="wy-breadcrumbs-aside">
-              <a href="https://github.com/ywatanabe1989/scitex-cloud/blob/main/docs/sphinx/mcp.rst" class="fa fa-github"> Edit on GitHub</a>
+              <a href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/sphinx/mcp.rst" class="fa fa-github"> Edit on GitHub</a>
       </li>
   </ul>
   <hr/>
@@ -217,7 +217,7 @@ and submit jobs without manual intervention.</p>
 </tr>
 </tbody>
 </table>
-<p>Run <code class="docutils literal notranslate"><span class="pre">scitex-cloud</span> <span class="pre">mcp</span> <span class="pre">list-tools</span></code> for the full list of tools with descriptions.</p>
+<p>Run <code class="docutils literal notranslate"><span class="pre">scitex-hub</span> <span class="pre">mcp</span> <span class="pre">list-tools</span></code> for the full list of tools with descriptions.</p>
 </section>
 <section id="setup-for-claude-desktop">
 <h2>Setup for Claude Desktop<a class="headerlink" href="#setup-for-claude-desktop" title="Link to this heading"></a></h2>
@@ -225,8 +225,8 @@ and submit jobs without manual intervention.</p>
 (<code class="docutils literal notranslate"><span class="pre">~/.config/claude/claude_desktop_config.json</span></code>):</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;scitex-cloud&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;scitex-cloud&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;scitex-hub&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;scitex-hub&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;mcp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;start&quot;</span><span class="p">]</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
@@ -240,8 +240,8 @@ and submit jobs without manual intervention.</p>
 <code class="docutils literal notranslate"><span class="pre">~/.claude/.mcp.json</span></code>):</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;scitex-cloud&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;scitex-cloud&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;scitex-hub&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;scitex-hub&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;mcp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;start&quot;</span><span class="p">]</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
@@ -262,8 +262,8 @@ Set it to the path of a shell <code class="docutils literal notranslate"><span c
 <p>Then reference it in your MCP config:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;scitex-cloud&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;scitex-cloud&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;scitex-hub&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;scitex-hub&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;mcp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;start&quot;</span><span class="p">],</span>
 <span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="nt">&quot;SCITEX_CLOUD_ENV_SRC&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/home/user/.scitex_hub.src&quot;</span>
@@ -278,10 +278,10 @@ variables available to the MCP tools.</p>
 </section>
 <section id="cli-commands">
 <h2>CLI Commands<a class="headerlink" href="#cli-commands" title="Link to this heading"></a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>mcp<span class="w"> </span>start<span class="w">             </span><span class="c1"># Start the MCP server (stdio transport)</span>
-scitex-cloud<span class="w"> </span>mcp<span class="w"> </span>doctor<span class="w">            </span><span class="c1"># Diagnose setup and connectivity</span>
-scitex-cloud<span class="w"> </span>mcp<span class="w"> </span>installation<span class="w">      </span><span class="c1"># Print client configuration instructions</span>
-scitex-cloud<span class="w"> </span>mcp<span class="w"> </span>list-tools<span class="w">        </span><span class="c1"># List all available tools with descriptions</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>mcp<span class="w"> </span>start<span class="w">             </span><span class="c1"># Start the MCP server (stdio transport)</span>
+scitex-hub<span class="w"> </span>mcp<span class="w"> </span>doctor<span class="w">            </span><span class="c1"># Diagnose setup and connectivity</span>
+scitex-hub<span class="w"> </span>mcp<span class="w"> </span>installation<span class="w">      </span><span class="c1"># Print client configuration instructions</span>
+scitex-hub<span class="w"> </span>mcp<span class="w"> </span>list-tools<span class="w">        </span><span class="c1"># List all available tools with descriptions</span>
 </pre></div>
 </div>
 </section>

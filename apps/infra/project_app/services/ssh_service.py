@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-10-18 23:50:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/apps/workspace_app/ssh_manager.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/workspace_app/ssh_manager.py
 # ----------------------------------------
 """
 SSH Key Management for SciTeX Cloud

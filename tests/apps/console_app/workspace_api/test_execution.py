@@ -160,7 +160,7 @@ if __name__ == "__main__":
 #         env['USER'] = username
 #         env['LOGNAME'] = username
 #         env['PWD'] = str(project_dir)
-#         env['HOSTNAME'] = 'scitex-cloud'
+#         env['HOSTNAME'] = 'scitex-hub'
 #         env['TERM'] = 'xterm-256color'  # Enable terminal features like clear
 #
 #         # SciTeX Cloud Code-specific env vars for scitex.plt auto-detection

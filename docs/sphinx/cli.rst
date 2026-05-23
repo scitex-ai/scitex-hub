@@ -9,16 +9,16 @@ Install with:
 
 .. code-block:: bash
 
-   pip install scitex-cloud
+   pip install scitex-hub
 
 Global Options
 --------------
 
 .. code-block:: bash
 
-   scitex-cloud --help                    # Show help
-   scitex-cloud --help-recursive          # Show all subcommands recursively
-   scitex-cloud --version                 # Show version
+   scitex-hub --help                    # Show help
+   scitex-hub --help-recursive          # Show all subcommands recursively
+   scitex-hub --version                 # Show version
 
 Project Management
 ------------------
@@ -28,10 +28,10 @@ full flow: Gitea repository + Django project + server-side workspace.
 
 .. code-block:: bash
 
-   scitex-cloud project create my-research -d "Paper on X"
-   scitex-cloud project list [--json]
-   scitex-cloud project delete my-research --yes
-   scitex-cloud project rename my-research new-name
+   scitex-hub project create my-research -d "Paper on X"
+   scitex-hub project list [--json]
+   scitex-hub project delete my-research --yes
+   scitex-hub project rename my-research new-name
 
 Three-Way Sync
 --------------
@@ -58,20 +58,20 @@ SciTeX manages three repositories per project:
 
 .. code-block:: bash
 
-   scitex-cloud push              # git push → Gitea
-   scitex-cloud push origin main  # push specific branch
-   scitex-cloud pull              # git pull ← Gitea
-   scitex-cloud pull origin main  # pull specific branch
+   scitex-hub push              # git push → Gitea
+   scitex-hub push origin main  # push specific branch
+   scitex-hub pull              # git pull ← Gitea
+   scitex-hub pull origin main  # pull specific branch
 
 **File sync** (working tree, Dropbox-style):
 
 .. code-block:: bash
 
-   scitex-cloud sync-to                    # local → workspace
-   scitex-cloud sync-to ywatanabe/my-proj  # explicit repo
-   scitex-cloud sync-to --dry-run          # preview changes
-   scitex-cloud sync-from                  # workspace → local
-   scitex-cloud sync-from --dry-run        # preview changes
+   scitex-hub sync-to                    # local → workspace
+   scitex-hub sync-to ywatanabe/my-proj  # explicit repo
+   scitex-hub sync-to --dry-run          # preview changes
+   scitex-hub sync-from                  # workspace → local
+   scitex-hub sync-from --dry-run        # preview changes
 
 Conflict handling: when both sides changed the same file since the last
 sync, both versions are kept — the synced version overwrites, and the
@@ -81,7 +81,7 @@ other side's version is saved as ``file.conflict-<timestamp>.ext``.
 
 .. code-block:: bash
 
-   scitex-cloud sync-status  # show divergence (alias: ss)
+   scitex-hub sync-status  # show divergence (alias: ss)
 
 Git Hosting (Gitea)
 -------------------
@@ -91,33 +91,33 @@ and ``project create`` instead.
 
 .. code-block:: bash
 
-   scitex-cloud gitea list                # List repositories
-   scitex-cloud gitea clone user/repo     # Clone a repository
-   scitex-cloud gitea create my-repo      # Create Gitea repo only
-   scitex-cloud gitea push                # Push changes
-   scitex-cloud gitea pull                # Pull changes
-   scitex-cloud gitea search "query"      # Search repos
-   scitex-cloud gitea fork user/repo      # Fork a repo
-   scitex-cloud gitea pr create           # Create a pull request
-   scitex-cloud gitea pr list             # List pull requests
-   scitex-cloud gitea issue create        # Create an issue
-   scitex-cloud gitea issue list          # List issues
-   scitex-cloud gitea login               # Authenticate
-   scitex-cloud gitea logout              # Remove credentials
-   scitex-cloud gitea status              # Repo status
+   scitex-hub gitea list                # List repositories
+   scitex-hub gitea clone user/repo     # Clone a repository
+   scitex-hub gitea create my-repo      # Create Gitea repo only
+   scitex-hub gitea push                # Push changes
+   scitex-hub gitea pull                # Pull changes
+   scitex-hub gitea search "query"      # Search repos
+   scitex-hub gitea fork user/repo      # Fork a repo
+   scitex-hub gitea pr create           # Create a pull request
+   scitex-hub gitea pr list             # List pull requests
+   scitex-hub gitea issue create        # Create an issue
+   scitex-hub gitea issue list          # List issues
+   scitex-hub gitea login               # Authenticate
+   scitex-hub gitea logout              # Remove credentials
+   scitex-hub gitea status              # Repo status
 
 App Management
 --------------
 
 .. code-block:: bash
 
-   scitex-cloud app list                  # List installed apps
-   scitex-cloud app info <name>           # App details
-   scitex-cloud app current               # Active app
-   scitex-cloud app init . --name my_app  # Scaffold new app
-   scitex-cloud app check-deps <name>     # Check dependencies
-   scitex-cloud app submit <path>         # Submit for review
-   scitex-cloud app prefs get/set         # User preferences
+   scitex-hub app list                  # List installed apps
+   scitex-hub app info <name>           # App details
+   scitex-hub app current               # Active app
+   scitex-hub app init . --name my_app  # Scaffold new app
+   scitex-hub app check-deps <name>     # Check dependencies
+   scitex-hub app submit <path>         # Submit for review
+   scitex-hub app prefs get/set         # User preferences
 
 Cloud SDK
 ---------
@@ -125,34 +125,34 @@ Cloud SDK
 .. code-block:: bash
 
    # DataStore (JSON CRUD)
-   scitex-cloud sdk data list|create|get|update|delete|search
+   scitex-hub sdk data list|create|get|update|delete|search
 
    # FileVault (file storage)
-   scitex-cloud sdk files list|upload|download|delete
+   scitex-hub sdk files list|upload|download|delete
 
    # JobQueue (background compute)
-   scitex-cloud sdk jobs submit|status|list|cancel
+   scitex-hub sdk jobs submit|status|list|cancel
 
 Infrastructure
 --------------
 
 .. code-block:: bash
 
-   scitex-cloud status                    # Deployment health
-   scitex-cloud deploy                    # Deploy to production
-   scitex-cloud setup [--env dev|prod]    # Setup environment
-   scitex-cloud docker up|down|restart    # Container management
-   scitex-cloud logs [service]            # View logs
-   scitex-cloud ssh                       # SSH into cloud instance
+   scitex-hub status                    # Deployment health
+   scitex-hub deploy                    # Deploy to production
+   scitex-hub setup [--env dev|prod]    # Setup environment
+   scitex-hub docker up|down|restart    # Container management
+   scitex-hub logs [service]            # View logs
+   scitex-hub ssh                       # SSH into cloud instance
 
 MCP Server
 ----------
 
 .. code-block:: bash
 
-   scitex-cloud mcp start                 # Start the MCP server
-   scitex-cloud mcp list-tools            # List available MCP tools
-   scitex-cloud mcp doctor                # Diagnose MCP setup
+   scitex-hub mcp start                 # Start the MCP server
+   scitex-hub mcp list-tools            # List available MCP tools
+   scitex-hub mcp doctor                # Diagnose MCP setup
 
 For full MCP documentation, see :doc:`mcp`.
 
@@ -161,7 +161,7 @@ Utilities
 
 .. code-block:: bash
 
-   scitex-cloud completion                # Set up shell completion
-   scitex-cloud list-python-apis          # List all available Python APIs
-   scitex-cloud skills list               # List available skills
-   scitex-cloud skills get <name>         # Show a skill
+   scitex-hub completion                # Set up shell completion
+   scitex-hub list-python-apis          # List all available Python APIs
+   scitex-hub skills list               # List available skills
+   scitex-hub skills get <name>         # Show a skill

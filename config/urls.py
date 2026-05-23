@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # scitex-linter: skip-file
 # Timestamp: 2026-03-09
-# File: /home/ywatanabe/proj/scitex-cloud/config/urls.py
+# File: /home/ywatanabe/proj/scitex-hub/config/urls.py
 """
 URL Configuration for SciTeX Cloud project.
 Organized into clear sections; helpers, API routes, and legacy redirects

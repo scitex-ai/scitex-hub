@@ -19,7 +19,7 @@ source "${SCRIPT_DIR}/../scripts/lib/colors.sh" 2>/dev/null || {
 echo "👥 Visitors:"
 
 # Find running django container
-CONTAINER=$(docker ps --format '{{.Names}}' 2>/dev/null | grep -E 'scitex-cloud-(dev|prod)-django' | head -1 || echo "")
+CONTAINER=$(docker ps --format '{{.Names}}' 2>/dev/null | grep -E 'scitex-hub-(dev|prod)-django' | head -1 || echo "")
 
 if [ -z "$CONTAINER" ]; then
     echo -e "  ${YELLOW}[WARN] No Django container running${NC}"

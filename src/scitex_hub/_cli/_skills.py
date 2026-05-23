@@ -1,7 +1,7 @@
-"""`scitex-cloud skills` — list / get / install agent-facing skills.
+"""`scitex-hub skills` — list / get / install agent-facing skills.
 
 Self-contained. No scitex-dev runtime dep — walks the package's own
-`_skills/scitex-cloud/` directory directly.
+`_skills/scitex-hub/` directory directly.
 """
 
 from __future__ import annotations
@@ -11,11 +11,11 @@ from pathlib import Path
 
 import click
 
-PKG = "scitex-cloud"
+PKG = "scitex-hub"
 
 
 def _skills_root() -> Path:
-    """Resolve the bundled `_skills/scitex-cloud/` directory."""
+    """Resolve the bundled `_skills/scitex-hub/` directory."""
     import scitex_hub
 
     pkg_dir = Path(scitex_hub.__file__).parent
@@ -23,7 +23,7 @@ def _skills_root() -> Path:
 
 
 def _list_skill_files(root: Path) -> list[Path]:
-    """All `.md` files under `_skills/scitex-cloud/` (recursive), excluding SKILL.md."""
+    """All `.md` files under `_skills/scitex-hub/` (recursive), excluding SKILL.md."""
     if not root.is_dir():
         return []
     return sorted(p for p in root.rglob("*.md") if p.is_file() and p.name != "SKILL.md")
@@ -32,14 +32,14 @@ def _list_skill_files(root: Path) -> list[Path]:
 @click.group(name="skills", invoke_without_command=True)
 @click.pass_context
 def skills_group(ctx) -> None:
-    """Agent-facing skills bundled with scitex-cloud.
+    """Agent-facing skills bundled with scitex-hub.
 
     \b
     Examples:
-      $ scitex-cloud skills list
-      $ scitex-cloud skills get 01_installation
-      $ scitex-cloud skills install                  # → ~/.scitex/dev/skills/scitex-cloud/
-      $ scitex-cloud skills install --claude-symlink # also expose to ~/.claude/skills/scitex/
+      $ scitex-hub skills list
+      $ scitex-hub skills get 01_installation
+      $ scitex-hub skills install                  # → ~/.scitex/dev/skills/scitex-hub/
+      $ scitex-hub skills install --claude-symlink # also expose to ~/.claude/skills/scitex/
     """
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
@@ -52,8 +52,8 @@ def skills_list(as_json: bool) -> None:
 
     \b
     Example:
-      $ scitex-cloud skills list
-      $ scitex-cloud skills list --json
+      $ scitex-hub skills list
+      $ scitex-hub skills list --json
     """
     root = _skills_root()
     files = _list_skill_files(root)
@@ -83,8 +83,8 @@ def skills_get(name: str, as_json: bool) -> None:
 
     \b
     Example:
-      $ scitex-cloud skills get 01_installation
-      $ scitex-cloud skills get 02_quick-start --json
+      $ scitex-hub skills get 01_installation
+      $ scitex-hub skills get 02_quick-start --json
     """
     root = _skills_root()
     target_stem = name[:-3] if name.endswith(".md") else name
@@ -116,7 +116,7 @@ def skills_get(name: str, as_json: bool) -> None:
     "--dest",
     type=click.Path(),
     default=None,
-    help="Destination dir (default: ~/.scitex/dev/skills/scitex-cloud/).",
+    help="Destination dir (default: ~/.scitex/dev/skills/scitex-hub/).",
 )
 @click.option(
     "--no-link",
@@ -141,15 +141,15 @@ def skills_install(
     """Install this package's skills into a target directory.
 
     \b
-    Default: symlink the entire `_skills/scitex-cloud/` dir to
-    ~/.scitex/dev/skills/scitex-cloud/ so add/rename/delete in
+    Default: symlink the entire `_skills/scitex-hub/` dir to
+    ~/.scitex/dev/skills/scitex-hub/ so add/rename/delete in
     source propagates immediately.
 
     \b
     Example:
-      $ scitex-cloud skills install
-      $ scitex-cloud skills install --claude-symlink
-      $ scitex-cloud skills install --no-link --dest /tmp/scitex-cloud-skills
+      $ scitex-hub skills install
+      $ scitex-hub skills install --claude-symlink
+      $ scitex-hub skills install --no-link --dest /tmp/scitex-hub-skills
     """
     del yes  # accepted for §2 compliance; install is non-interactive
     src = _skills_root().resolve()

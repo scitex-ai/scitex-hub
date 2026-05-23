@@ -39,17 +39,17 @@ if __name__ == "__main__":
 # SCREENSHOT_PAIRS = [
 #     {
 #         "name": "root",
-#         "github": "https://github.com/SciTeX-AI/scitex-cloud",
+#         "github": "https://github.com/SciTeX-AI/scitex-hub",
 #         "local": "http://127.0.0.1:8000/ywatanabe/test7/",
 #     },
 #     {
 #         "name": "child_directory",
-#         "github": "https://github.com/SciTeX-AI/scitex-cloud/tree/develop/apps",
+#         "github": "https://github.com/SciTeX-AI/scitex-hub/tree/develop/apps",
 #         "local": "http://127.0.0.1:8000/ywatanabe/test7/scitex/",
 #     },
 #     {
 #         "name": "file_view",
-#         "github": "https://github.com/SciTeX-AI/scitex-cloud/blob/develop/apps/auth_app/urls.py",
+#         "github": "https://github.com/SciTeX-AI/scitex-hub/blob/develop/apps/auth_app/urls.py",
 #         "local": "http://127.0.0.1:8000/ywatanabe/test7/blob/scitex/writer/scripts/examples/link_project_assets.sh",
 #     },
 # ]
@@ -59,7 +59,7 @@ if __name__ == "__main__":
 # LOCAL_PASSWORD = "test"
 #
 # # Output directory
-# OUTPUT_DIR = Path("/home/ywatanabe/proj/scitex-cloud/apps/dev_app/screenshots")
+# OUTPUT_DIR = Path("/home/ywatanabe/proj/scitex-hub/apps/dev_app/screenshots")
 #
 #
 # async def take_screenshots():

@@ -40,8 +40,8 @@ if ! docker info &>/dev/null; then
 fi
 
 # Get container names based on environment
-POSTGRES_CONTAINER="scitex-cloud-${ENV}-postgres-1"
-UMAMI_CONTAINER="scitex-cloud-${ENV}-umami-1"
+POSTGRES_CONTAINER="scitex-hub-${ENV}-postgres-1"
+UMAMI_CONTAINER="scitex-hub-${ENV}-umami-1"
 
 # Step 1: Create umami database if it doesn't exist
 log_info "Checking umami database..."

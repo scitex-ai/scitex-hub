@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-11-20 19:32:25 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/manage.py
+# File: /home/ywatanabe/proj/scitex-hub/manage.py
 
 
 import os
@@ -48,9 +48,7 @@ def main():
     # Add base and config directories to Python path
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     sys.path.insert(0, BASE_DIR)  # Add base directory
-    sys.path.insert(
-        0, os.path.join(BASE_DIR, "config")
-    )  # Add config directory
+    sys.path.insert(0, os.path.join(BASE_DIR, "config"))  # Add config directory
     # No need to add src directory anymore as it's been replaced by apps
 
     # Use new auto-detection settings module

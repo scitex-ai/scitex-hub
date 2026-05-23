@@ -12,10 +12,10 @@ Sub-modules:
     _workspace_cmds  -- Command implementations (upload, list, sync, logout)
 
 Usage:
-    scitex-cloud workspace upload [--name NAME] [--description DESC]
-    scitex-cloud workspace list   [--json]
-    scitex-cloud workspace sync   [--direction push|pull|both]
-    scitex-cloud workspace logout
+    scitex-hub workspace upload [--name NAME] [--description DESC]
+    scitex-hub workspace list   [--json]
+    scitex-hub workspace sync   [--direction push|pull|both]
+    scitex-hub workspace logout
 """
 
 import click
@@ -33,10 +33,10 @@ def workspace():
 
     \b
     Examples:
-        scitex-cloud workspace upload --name my-project
-        scitex-cloud workspace list
-        scitex-cloud workspace sync
-        scitex-cloud workspace logout
+        scitex-hub workspace upload --name my-project
+        scitex-hub workspace list
+        scitex-hub workspace sync
+        scitex-hub workspace logout
     """
     pass
 

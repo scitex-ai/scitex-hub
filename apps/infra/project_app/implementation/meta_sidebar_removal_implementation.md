@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2025-10-24
 !-- Author: Claude Code Agent
-!-- File: /home/ywatanabe/proj/scitex-cloud/apps/project_app/implementation/meta_sidebar_removal_implementation.md
+!-- File: /home/ywatanabe/proj/scitex-hub/apps/project_app/implementation/meta_sidebar_removal_implementation.md
 !-- --- -->
 
 # Meta Sidebar Removal Implementation
@@ -25,7 +25,7 @@ Following GitHub's design:
 ## Changes Made
 
 ### 1. Template Modification
-**File:** `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_directory.html`
+**File:** `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_directory.html`
 
 **Lines affected:** 463-464 (previously 463-484)
 
@@ -109,8 +109,8 @@ If metadata needs to be accessible from the directory view:
 3. Add to the project settings page as the primary location
 
 ## Related Files
-- Template: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_directory.html`
-- TODO Reference: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/TODO.md` (line 41)
+- Template: `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_directory.html`
+- TODO Reference: `/home/ywatanabe/proj/scitex-hub/apps/project_app/TODO.md` (line 41)
 
 ## Completion Status
 - [x] Remove ABOUT sidebar section from template

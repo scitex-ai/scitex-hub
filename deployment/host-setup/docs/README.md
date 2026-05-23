@@ -149,7 +149,7 @@ fi
 
 3. Test from container:
    ```bash
-   docker exec scitex-cloud-prod-django-1 su scitex -c "srun --partition=express --pty true"
+   docker exec scitex-hub-prod-django-1 su scitex -c "srun --partition=express --pty true"
    # Should succeed with no errors
    ```
 

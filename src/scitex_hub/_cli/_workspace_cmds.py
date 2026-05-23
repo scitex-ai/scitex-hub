@@ -70,7 +70,7 @@ def _setup_remote_and_push(server_url, username, project_name, remote_name):
             err=True,
         )
         click.echo(
-            "Run 'scitex-cloud gitea login' to configure authenticated access.",
+            "Run 'scitex-hub gitea login' to configure authenticated access.",
             err=True,
         )
 
@@ -306,7 +306,7 @@ def sync(remote, direction):
     if check.returncode != 0:
         click.echo(f"Error: Remote '{remote}' not found.", err=True)
         click.echo(
-            "Run 'scitex-cloud workspace upload' to create the project first.",
+            "Run 'scitex-hub workspace upload' to create the project first.",
             err=True,
         )
         sys.exit(1)

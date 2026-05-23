@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # File: src/scitex_hub/cli/status.py
 
-"""Status and logs commands for scitex-cloud CLI."""
+"""Status and logs commands for scitex-hub CLI."""
 
 import click
 
@@ -27,8 +27,8 @@ def status(ctx, env):
 
     \b
     Examples:
-        scitex-cloud status              # Show current status
-        scitex-cloud status --env prod   # Show production deployment status
+        scitex-hub status              # Show current status
+        scitex-hub status --env prod   # Show production deployment status
     """
     environment = get_environment(env)
     click.echo(
@@ -67,10 +67,10 @@ def logs(ctx, env, follow, tail, service):
 
     \b
     Examples:
-        scitex-cloud logs                # Show all logs
-        scitex-cloud logs -f             # Follow logs
-        scitex-cloud logs --tail 100     # Show last 100 lines
-        scitex-cloud logs web            # Show web container logs
+        scitex-hub logs                # Show all logs
+        scitex-hub logs -f             # Follow logs
+        scitex-hub logs --tail 100     # Show last 100 lines
+        scitex-hub logs web            # Show web container logs
     """
     environment = get_environment(env)
     docker = DockerManager(environment)

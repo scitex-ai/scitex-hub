@@ -55,7 +55,7 @@ To change the interactive terminal time limit:
 
 3. Restart Django container:
    ```bash
-   docker restart scitex-cloud-prod-django-1
+   docker restart scitex-hub-prod-django-1
    ```
 
 ## Troubleshooting

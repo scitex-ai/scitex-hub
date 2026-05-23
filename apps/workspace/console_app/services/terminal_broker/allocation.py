@@ -37,8 +37,8 @@ def _get_host_script_dir() -> Path:
             SLURM_USER_DATA_ROOT,
         )
 
-        # SLURM_USER_DATA_ROOT is e.g. /home/.../scitex-cloud/data/users
-        # We want /home/.../scitex-cloud/data/.cache/alloc-scripts
+        # SLURM_USER_DATA_ROOT is e.g. /home/.../scitex-hub/data/users
+        # We want /home/.../scitex-hub/data/.cache/alloc-scripts
         _HOST_SCRIPT_DIR = SLURM_USER_DATA_ROOT.parent / ".cache" / "alloc-scripts"
     return _HOST_SCRIPT_DIR
 
@@ -62,7 +62,7 @@ class Allocation:
 
     # Job name format: matches build_sbatch_command() in scitex_container
     # Pattern: scitex_{username}_{project_slug}
-    JOB_NAME_PREFIX = "scitex-cloud-terminal"
+    JOB_NAME_PREFIX = "scitex-hub-terminal"
 
     def __init__(
         self,

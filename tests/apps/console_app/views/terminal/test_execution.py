@@ -131,7 +131,7 @@ _install_django_stubs()
 # ---------------------------------------------------------------------------
 
 # Add project root to sys.path so absolute imports work.
-_PROJECT_ROOT = Path(__file__).parents[6]  # …/scitex-cloud
+_PROJECT_ROOT = Path(__file__).parents[6]  # …/scitex-hub
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 

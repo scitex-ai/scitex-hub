@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File: src/scitex_hub/_mcp_tools/__init__.py
-"""FastMCP tool registration for scitex-cloud server."""
+"""FastMCP tool registration for scitex-hub server."""
 
 from __future__ import annotations
 

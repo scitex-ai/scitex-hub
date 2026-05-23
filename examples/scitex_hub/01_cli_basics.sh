@@ -3,16 +3,16 @@
 # Demonstrate basic CLI usage
 
 echo "1. Show version:"
-scitex-cloud --version
+scitex-hub --version
 
 echo
 echo "2. Show main help:"
-scitex-cloud --help
+scitex-hub --help
 
 echo
 echo "3. Show setup help:"
-scitex-cloud setup --help
+scitex-hub setup --help
 
 echo
 echo "4. Show docker subcommands:"
-scitex-cloud docker --help
+scitex-hub docker --help

@@ -21,10 +21,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Checkout scitex-cloud
+      - name: Checkout scitex-hub
         uses: actions/checkout@v4
         with:
-          path: scitex-cloud
+          path: scitex-hub
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -39,8 +39,8 @@ jobs:
           import json, re, subprocess, sys
           from pathlib import Path
           # 0.11.0 layout: ecosystem.py moved to _ecosystem/_core.py.
-          eco_new = Path("scitex-cloud/src/scitex_hub/_ecosystem/_core.py")
-          eco_old = Path("scitex-cloud/src/scitex_hub/ecosystem.py")
+          eco_new = Path("scitex-hub/src/scitex_hub/_ecosystem/_core.py")
+          eco_old = Path("scitex-hub/src/scitex_hub/ecosystem.py")
           src = (eco_new if eco_new.is_file() else eco_old).read_text()
           for m in re.finditer(
               r'^\s*"([\w-]+)"\s*:\s*\{(.*?)\},?\s*$', src,
@@ -68,9 +68,9 @@ jobs:
       - name: Run ecosystem audit
         id: audit
         run: |
-          python3 scitex-cloud/scripts/quality/audit_ecosystem.py \
+          python3 scitex-hub/scripts/quality/audit_ecosystem.py \
             --projects-root proj \
-            --scitex-cloud-root scitex-cloud \
+            --scitex-hub-root scitex-hub \
             --out audit.json
           echo "json_path=$(pwd)/audit.json" >> "$GITHUB_OUTPUT"
           # Surface summary in step output.

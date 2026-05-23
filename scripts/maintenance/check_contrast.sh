@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Timestamp: 2026-02-13
 # Author: ywatanabe (with Claude Code)
-# File: /home/ywatanabe/proj/scitex-cloud/scripts/maintenance/check_contrast.sh
+# File: /home/ywatanabe/proj/scitex-hub/scripts/maintenance/check_contrast.sh
 #
 # WCAG AA Contrast Ratio Checker for SciTeX Cloud
 #

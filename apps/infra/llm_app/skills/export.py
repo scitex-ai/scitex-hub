@@ -48,7 +48,7 @@ def export_claude_skill() -> str:
     """
     parts = [
         "---",
-        "name: scitex-cloud",
+        "name: scitex-hub",
         "description: SciTeX Cloud research platform with MCP tools for "
         "plotting, statistics, literature management, manuscript writing, "
         "pipeline execution, and more.",

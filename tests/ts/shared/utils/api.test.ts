@@ -29,35 +29,35 @@ describe('api', () => {
 //  * API Client Utility Module
 //  * Provides reusable fetch wrapper with CSRF token handling
 //  */
-// 
+//
 // import { getCsrfToken } from "./csrf";
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/utils/api.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/static/ts/utils/api.ts loaded",
 // );
 // export interface ApiRequestInit extends Omit<RequestInit, "body"> {
 //   body?: BodyInit | object | null;
 // }
-// 
+//
 // export interface ApiResponse<T = any> {
 //   success: boolean;
 //   data?: T;
 //   error?: string;
 //   message?: string;
 // }
-// 
+//
 // /**
 //  * API Client class for making requests with automatic CSRF token handling
 //  */
 // export class ApiClient {
 //   private baseUrl: string;
 //   private csrfTokenFn: () => string;
-// 
+//
 //   constructor(baseUrl: string = "", csrfTokenFn: () => string = getCsrfToken) {
 //     this.baseUrl = baseUrl;
 //     this.csrfTokenFn = csrfTokenFn;
 //   }
-// 
+//
 //   /**
 //    * Prepare request headers with CSRF token
 //    */
@@ -66,10 +66,10 @@ describe('api', () => {
 //       "Content-Type": "application/json",
 //       "X-CSRFToken": this.csrfTokenFn(),
 //     };
-// 
+//
 //     return { ...defaultHeaders, ...headers };
 //   }
-// 
+//
 //   /**
 //    * Make GET request
 //    */
@@ -79,7 +79,7 @@ describe('api', () => {
 //   ): Promise<ApiResponse<T>> {
 //     return this.request<T>(url, { ...options, method: "GET" });
 //   }
-// 
+//
 //   /**
 //    * Make POST request
 //    */
@@ -94,7 +94,7 @@ describe('api', () => {
 //       body: JSON.stringify(body),
 //     });
 //   }
-// 
+//
 //   /**
 //    * Make PUT request
 //    */
@@ -109,7 +109,7 @@ describe('api', () => {
 //       body: JSON.stringify(body),
 //     });
 //   }
-// 
+//
 //   /**
 //    * Make PATCH request
 //    */
@@ -124,7 +124,7 @@ describe('api', () => {
 //       body: JSON.stringify(body),
 //     });
 //   }
-// 
+//
 //   /**
 //    * Make DELETE request
 //    */
@@ -134,7 +134,7 @@ describe('api', () => {
 //   ): Promise<ApiResponse<T>> {
 //     return this.request<T>(url, { ...options, method: "DELETE" });
 //   }
-// 
+//
 //   /**
 //    * Core request method
 //    */
@@ -143,14 +143,14 @@ describe('api', () => {
 //     options: ApiRequestInit = {},
 //   ): Promise<ApiResponse<T>> {
 //     const fullUrl = this.baseUrl ? `${this.baseUrl}${url}` : url;
-// 
+//
 //     try {
 //       // Build request with proper body handling
 //       const requestInit: any = {
 //         ...options,
 //         headers: this.getHeaders(options.headers),
 //       };
-// 
+//
 //       // Ensure body is properly stringified if it's an object
 //       if (
 //         options.body &&
@@ -159,19 +159,19 @@ describe('api', () => {
 //       ) {
 //         requestInit.body = JSON.stringify(options.body);
 //       }
-// 
+//
 //       const response = await fetch(fullUrl, requestInit);
-// 
+//
 //       // Handle different response types
 //       const contentType = response.headers.get("content-type");
 //       let data: any;
-// 
+//
 //       if (contentType?.includes("application/json")) {
 //         data = await response.json();
 //       } else {
 //         data = await response.text();
 //       }
-// 
+//
 //       if (!response.ok) {
 //         console.error(`[API] Error ${response.status}: ${url}`, data);
 //         return {
@@ -180,7 +180,7 @@ describe('api', () => {
 //           data: data as T,
 //         };
 //       }
-// 
+//
 //       return {
 //         success: true,
 //         data: data as T,
@@ -195,7 +195,7 @@ describe('api', () => {
 //     }
 //   }
 // }
-// 
+//
 // // Export singleton instance
 // export const apiClient = new ApiClient();
 

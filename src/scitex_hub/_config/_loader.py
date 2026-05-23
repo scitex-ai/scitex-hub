@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File: src/scitex_hub/_config/_loader.py
-"""YAML config loader for scitex-cloud CLI (spec §6b).
+"""YAML config loader for scitex-hub CLI (spec §6b).
 
 Provides a minimal, non-failing loader used as a last-resort fallback
 for CLI values. Resolution precedence (highest first) per the SciTeX
@@ -15,8 +15,8 @@ Config file search order (first existing wins):
 
     1. explicit ``path`` argument to :func:`load_config`
     2. ``$SCITEX_CLOUD_CONFIG``
-    3. ``./.scitex/scitex-cloud.yaml`` (project-local override)
-    4. ``~/.scitex/scitex-cloud/config.yaml`` (user default)
+    3. ``./.scitex/scitex-hub.yaml`` (project-local override)
+    4. ``~/.scitex/scitex-hub/config.yaml`` (user default)
 
 If none of those resolve to a readable YAML file, an empty dict is
 returned — missing config is not an error.
@@ -24,10 +24,10 @@ returned — missing config is not an error.
 Schema (all keys optional)::
 
     workspace:
-      url: https://scitex-cloud.com
+      url: https://scitex-hub.com
       user: <username>
     gitea:
-      url: https://gitea.scitex-cloud.com
+      url: https://gitea.scitex-hub.com
       user: <username>
       token: <api-token>
     env: dev | prod | staging
@@ -54,7 +54,7 @@ def _candidate_paths(explicit: Optional[str]) -> list[Path]:
     env_path = os.environ.get("SCITEX_CLOUD_CONFIG")
     if env_path:
         paths.append(Path(env_path).expanduser())
-    paths.append(Path.cwd() / ".scitex" / "scitex-cloud.yaml")
+    paths.append(Path.cwd() / ".scitex" / "scitex-hub.yaml")
     paths.append(local_state.path("cloud", "config.yaml"))
     return paths
 

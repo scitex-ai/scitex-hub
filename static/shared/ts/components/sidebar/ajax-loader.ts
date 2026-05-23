@@ -3,7 +3,7 @@
  * Uses X-Workspace-Shell: 1 header so Django views return partials.
  *
  * NOTE: Core logic extracted to scitex-ui AjaxLoader class.
- * This file provides scitex-cloud-specific initialization.
+ * This file provides scitex-hub-specific initialization.
  */
 
 /** Init collapsible category headers in loaded content */

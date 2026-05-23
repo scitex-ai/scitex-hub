@@ -21,7 +21,7 @@ def _create_or_get_gitea_token(url, user, password):
 
     Returns the token string (sha1), or None on failure.
     """
-    token_name = "scitex-cloud-cli"
+    token_name = "scitex-hub-cli"
     api_url = f"{url.rstrip('/')}/api/v1/users/{user}/tokens"
     auth = (user, password)
 
@@ -223,7 +223,7 @@ def logout(name, url, user, password, delete_token):
             )
             sys.exit(2)
 
-        token_name = "scitex-cloud-cli"
+        token_name = "scitex-hub-cli"
         api_url = f"{url.rstrip('/')}/api/v1/users/{user}/tokens"
         auth = (user, password)
 

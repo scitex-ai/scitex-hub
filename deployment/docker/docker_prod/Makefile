@@ -11,9 +11,9 @@
 # Variables
 # ============================================
 COMPOSE := docker compose -f docker-compose.yml
-DJANGO_CONTAINER := scitex-cloud-prod-django-1
-DB_CONTAINER := scitex-cloud-prod-db-1
-REDIS_CONTAINER := scitex-cloud-prod-redis-1
+DJANGO_CONTAINER := scitex-hub-prod-django-1
+DB_CONTAINER := scitex-hub-prod-db-1
+REDIS_CONTAINER := scitex-hub-prod-redis-1
 MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 SCRIPTS_DIR := $(MAKEFILE_DIR)../common/scripts
 
@@ -103,7 +103,7 @@ restart:
 	@echo -e "$(CYAN)🔄 Restarting production services...$(NC)"
 	$(COMPOSE) restart
 	@# Reload nginx to refresh DNS cache (prevents 502 after container IP changes)
-	@sleep 2 && docker exec scitex-cloud-prod-nginx-1 nginx -s reload 2>/dev/null || true
+	@sleep 2 && docker exec scitex-hub-prod-nginx-1 nginx -s reload 2>/dev/null || true
 	@echo -e "$(GREEN)✅ Services restarted$(NC)"
 
 stop: down
@@ -140,7 +140,7 @@ rebuild: down clean-static build up migrate collectstatic cache-purge-static
 
 clean-static:
 	@echo -e "$(CYAN)🧹 Clearing static files volume...$(NC)"
-	@docker volume rm scitex-cloud-prod_static_volume 2>/dev/null || true
+	@docker volume rm scitex-hub-prod_static_volume 2>/dev/null || true
 	@echo -e "$(GREEN)✅ Static volume cleared$(NC)"
 
 # ============================================

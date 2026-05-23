@@ -1,13 +1,13 @@
 ---
 description: |
-  [TOPIC] scitex-cloud CLI Reference
-  [DETAILS] Top-level subcommands of `scitex-cloud` — project, push/pull, sync-to/from, deploy, docker, gitea, sdk, app, mcp, etc.
-tags: [scitex-cloud-cli-reference]
+  [TOPIC] scitex-hub CLI Reference
+  [DETAILS] Top-level subcommands of `scitex-hub` — project, push/pull, sync-to/from, deploy, docker, gitea, sdk, app, mcp, etc.
+tags: [scitex-hub-cli-reference]
 ---
 
 # CLI Reference
 
-`scitex-cloud` is the entry point installed by `pip install scitex-cloud`.
+`scitex-hub` is the entry point installed by `pip install scitex-hub`.
 
 ## Top-level options
 
@@ -61,12 +61,12 @@ tags: [scitex-cloud-cli-reference]
 ## Examples
 
 ```bash
-scitex-cloud setup-environment --env dev
-scitex-cloud project create my-paper
-scitex-cloud push-project
-scitex-cloud sync-to
-scitex-cloud docker up
-scitex-cloud mcp start
+scitex-hub setup-environment --env dev
+scitex-hub project create my-paper
+scitex-hub push-project
+scitex-hub sync-to
+scitex-hub docker up
+scitex-hub mcp start
 ```
 
 See workflow leaves (`08_project-management.md`, `19_gitea-cli.md`,

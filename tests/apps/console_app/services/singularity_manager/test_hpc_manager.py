@@ -123,7 +123,7 @@ if __name__ == "__main__":
 #     --cleanenv \\
 #     --bind {hpc_workspace}:/workspace \\
 #     --pwd /workspace \\
-#     /data/projects/scitex/containers/scitex-cloud-shared-v0.1.0.sif \\
+#     /data/projects/scitex/containers/scitex-hub-shared-v0.1.0.sif \\
 #     python {script_path}
 # """
 #

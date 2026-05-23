@@ -52,7 +52,7 @@ urlpatterns = [
         name="api_docs_section",
     ),
     path(
-        "docs/web-api/scitex-cloud-api-docs.<str:fmt>",
+        "docs/web-api/scitex-hub-api-docs.<str:fmt>",
         views.api_docs_download,
         name="api_docs_download",
     ),

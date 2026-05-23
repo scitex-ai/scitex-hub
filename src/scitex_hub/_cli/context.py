@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File: src/scitex_hub/cli/context.py
-"""Context commands for scitex-cloud CLI."""
+"""Context commands for scitex-hub CLI."""
 
 import json
 
@@ -17,9 +17,9 @@ def context():
 
     \b
     Examples:
-        scitex-cloud context get                # Get full context
-        scitex-cloud context get --page /writer/ # Context for writer page
-        scitex-cloud context eval "document.title"
+        scitex-hub context get                # Get full context
+        scitex-hub context get --page /writer/ # Context for writer page
+        scitex-hub context eval "document.title"
     """
 
 

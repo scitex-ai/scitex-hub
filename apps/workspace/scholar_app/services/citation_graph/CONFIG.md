@@ -329,9 +329,9 @@ After=network.target redis.service
 [Service]
 Type=notify
 User=scitex
-WorkingDirectory=/opt/scitex-cloud
+WorkingDirectory=/opt/scitex-hub
 Environment="CROSSREF_DB_PATH=/data/crossref.db"
-ExecStart=/opt/scitex-cloud/venv/bin/gunicorn scitex_hub.wsgi:application
+ExecStart=/opt/scitex-hub/venv/bin/gunicorn scitex_hub.wsgi:application
 
 [Install]
 WantedBy=multi-user.target
@@ -375,4 +375,4 @@ For issues:
 1. Check logs: `logs/citation_graph.log`
 2. Test health endpoint
 3. Verify database access
-4. Check GitHub issues: https://github.com/yourorg/scitex-cloud/issues
+4. Check GitHub issues: https://github.com/yourorg/scitex-hub/issues

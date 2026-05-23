@@ -2,7 +2,7 @@
 description: |
   [TOPIC] SciTeX Versions — Sync Workflow
   [DETAILS] SciTeX Versions — Sync Workflow.
-tags: [scitex-cloud-scitex-versions-workflow]
+tags: [scitex-hub-scitex-versions-workflow]
 ---
 # SciTeX Versions — Sync Workflow
 
@@ -86,7 +86,7 @@ scitex dev versions list
 ### Manual workflow (if needed)
 ```bash
 # Push changes to origin
-for repo in scitex-python scitex-cloud figrecipe openalex-local crossref-local scitex-writer scitex-dataset socialia; do
+for repo in scitex-python scitex-hub figrecipe openalex-local crossref-local scitex-writer scitex-dataset socialia; do
     cd ~/proj/$repo && git push origin develop 2>/dev/null || git push origin main
 done
 

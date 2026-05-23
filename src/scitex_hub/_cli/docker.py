@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # File: src/scitex_hub/cli/docker.py
 
-"""Docker commands for scitex-cloud CLI."""
+"""Docker commands for scitex-hub CLI."""
 
 import click
 
@@ -26,11 +26,11 @@ def docker(ctx, env):
 
     \b
     Examples:
-        scitex-cloud docker build        # Build containers
-        scitex-cloud docker up           # Start containers
-        scitex-cloud docker down         # Stop containers
-        scitex-cloud docker restart      # Restart containers
-        scitex-cloud docker ps           # Show container status
+        scitex-hub docker build        # Build containers
+        scitex-hub docker up           # Start containers
+        scitex-hub docker down         # Stop containers
+        scitex-hub docker restart      # Restart containers
+        scitex-hub docker ps           # Show container status
     """
     ctx.ensure_object(dict)
     ctx.obj["env"] = get_environment(env)

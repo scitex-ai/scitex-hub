@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: 2025-11-30
-# File: /home/ywatanabe/proj/scitex-cloud/tests/api/project/test_project_api.py
+# File: /home/ywatanabe/proj/scitex-hub/tests/api/project/test_project_api.py
 
 """
 API tests for project management endpoints.

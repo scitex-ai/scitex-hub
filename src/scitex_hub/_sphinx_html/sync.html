@@ -178,7 +178,7 @@
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Three-Way Sync</li>
       <li class="wy-breadcrumbs-aside">
-              <a href="https://github.com/ywatanabe1989/scitex-cloud/blob/main/docs/sphinx/sync.rst" class="fa fa-github"> Edit on GitHub</a>
+              <a href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/sphinx/sync.rst" class="fa fa-github"> Edit on GitHub</a>
       </li>
   </ul>
   <hr/>
@@ -233,15 +233,15 @@
 <section id="commands">
 <h2>Commands<a class="headerlink" href="#commands" title="Link to this heading"></a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Git operations (committed changes)</span>
-scitex-cloud<span class="w"> </span>push<span class="w"> </span><span class="o">[</span>remote<span class="o">]</span><span class="w"> </span><span class="o">[</span>branch<span class="o">]</span>
-scitex-cloud<span class="w"> </span>pull<span class="w"> </span><span class="o">[</span>remote<span class="o">]</span><span class="w"> </span><span class="o">[</span>branch<span class="o">]</span>
+scitex-hub<span class="w"> </span>push<span class="w"> </span><span class="o">[</span>remote<span class="o">]</span><span class="w"> </span><span class="o">[</span>branch<span class="o">]</span>
+scitex-hub<span class="w"> </span>pull<span class="w"> </span><span class="o">[</span>remote<span class="o">]</span><span class="w"> </span><span class="o">[</span>branch<span class="o">]</span>
 
 <span class="c1"># File sync (working tree, Dropbox-style)</span>
-scitex-cloud<span class="w"> </span>sync-to<span class="w"> </span><span class="o">[</span>repo<span class="o">]</span><span class="w"> </span><span class="o">[</span>--dry-run<span class="o">]</span>
-scitex-cloud<span class="w"> </span>sync-from<span class="w"> </span><span class="o">[</span>repo<span class="o">]</span><span class="w"> </span><span class="o">[</span>--dry-run<span class="o">]</span>
+scitex-hub<span class="w"> </span>sync-to<span class="w"> </span><span class="o">[</span>repo<span class="o">]</span><span class="w"> </span><span class="o">[</span>--dry-run<span class="o">]</span>
+scitex-hub<span class="w"> </span>sync-from<span class="w"> </span><span class="o">[</span>repo<span class="o">]</span><span class="w"> </span><span class="o">[</span>--dry-run<span class="o">]</span>
 
 <span class="c1"># Status</span>
-scitex-cloud<span class="w"> </span>sync-status<span class="w"> </span><span class="o">[</span>repo<span class="o">]</span><span class="w">   </span><span class="c1"># alias: ss</span>
+scitex-hub<span class="w"> </span>sync-status<span class="w"> </span><span class="o">[</span>repo<span class="o">]</span><span class="w">   </span><span class="c1"># alias: ss</span>
 </pre></div>
 </div>
 </section>
@@ -283,15 +283,15 @@ successful sync. This enables change detection on the next sync.</p>
 <h2>Typical Workflows<a class="headerlink" href="#typical-workflows" title="Link to this heading"></a></h2>
 <p><strong>Developer edits locally, wants to see changes in workspace:</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Edit files locally...</span>
-scitex-cloud<span class="w"> </span>sync-to<span class="w">          </span><span class="c1"># files appear in workspace immediately</span>
+scitex-hub<span class="w"> </span>sync-to<span class="w">          </span><span class="c1"># files appear in workspace immediately</span>
 <span class="c1"># Verify in browser...</span>
-scitex-cloud<span class="w"> </span>push<span class="w">             </span><span class="c1"># commit and push to Gitea when ready</span>
+scitex-hub<span class="w"> </span>push<span class="w">             </span><span class="c1"># commit and push to Gitea when ready</span>
 </pre></div>
 </div>
 <p><strong>User edits in web UI, developer wants the changes:</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>sync-from<span class="w">        </span><span class="c1"># pull workspace files to local</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>sync-from<span class="w">        </span><span class="c1"># pull workspace files to local</span>
 <span class="c1"># If conflicts: resolve .conflict-* files manually</span>
-scitex-cloud<span class="w"> </span>push<span class="w">             </span><span class="c1"># push resolved version to Gitea</span>
+scitex-hub<span class="w"> </span>push<span class="w">             </span><span class="c1"># push resolved version to Gitea</span>
 </pre></div>
 </div>
 <p><strong>On the workspace server:</strong></p>

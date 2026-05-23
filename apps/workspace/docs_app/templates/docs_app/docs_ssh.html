@@ -95,7 +95,7 @@ ssh -p 2200 your-username@127.0.0.1</code></pre>
                     <strong>Method 4: SciTeX CLI</strong>
                 </div>
                 <div class="card-body">
-                    <pre class="bg-dark text-light p-3 rounded"><code>scitex-cloud ssh-copy-id --env dev
+                    <pre class="bg-dark text-light p-3 rounded"><code>scitex-hub ssh-copy-id --env dev
 scitex cloud ssh-copy-id --env dev</code></pre>
                 </div>
             </div>
@@ -257,16 +257,16 @@ scontrol ping</code></pre>
             <div class="card mt-3">
                 <div class="card-body">
                     <pre class="bg-dark text-light p-3 rounded"><code># Connect via SSH
-scitex-cloud ssh --env dev
+scitex-hub ssh --env dev
 scitex cloud ssh --env dev
 
 # Register SSH key
-scitex-cloud ssh-copy-id --env dev
+scitex-hub ssh-copy-id --env dev
 scitex cloud ssh-copy-id --env dev
 
 # Options
-scitex-cloud ssh --user myuser --port 2200
-scitex-cloud ssh -- -L 8888:localhost:8888  # Port forwarding</code></pre>
+scitex-hub ssh --user myuser --port 2200
+scitex-hub ssh -- -L 8888:localhost:8888  # Port forwarding</code></pre>
                 </div>
             </div>
         </section>

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2026-02-18 20:15:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/scripts/demo/capture_screenshots.py
+# File: /home/ywatanabe/proj/scitex-hub/scripts/demo/capture_screenshots.py
 
 """
 SciTeX Demo Screenshot Capture Script

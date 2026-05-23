@@ -23,13 +23,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 
 # Source SIF location
-SOURCE_SIF="${PROJECT_ROOT}/deployment/singularity/scitex-cloud-shared-v0.1.0.sif"
+SOURCE_SIF="${PROJECT_ROOT}/deployment/singularity/scitex-hub-shared-v0.1.0.sif"
 
 # Target locations
 TARGET_BASE="/opt/scitex"
 TARGET_SINGULARITY="${TARGET_BASE}/singularity"
 TARGET_DATA="${TARGET_BASE}/data/users"
-TARGET_SIF="${TARGET_SINGULARITY}/scitex-cloud-shared-v0.1.0.sif"
+TARGET_SIF="${TARGET_SINGULARITY}/scitex-hub-shared-v0.1.0.sif"
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}SciTeX SLURM Path Setup${NC}"

@@ -315,8 +315,8 @@ def _dep(old: str, new: str):
     @click.pass_context
     def _impl(ctx, **_):
         click.echo(
-            f"error: `scitex-cloud {old}` was renamed to `scitex-cloud {new}`.\n"
-            f"Re-run with: scitex-cloud {new} [...]",
+            f"error: `scitex-hub {old}` was renamed to `scitex-hub {new}`.\n"
+            f"Re-run with: scitex-hub {new} [...]",
             err=True,
         )
         ctx.exit(2)

@@ -109,7 +109,7 @@ def scitex_version(request):
 def get_scitex_hub_version():
     """
     Get version from Django settings (single source of truth).
-    settings.SCITEX_CLOUD_VERSION is the scitex-cloud web app version,
+    settings.SCITEX_CLOUD_VERSION is the scitex-hub web app version,
     separate from pyproject.toml which is for the pypi package.
     """
     return getattr(settings, "SCITEX_CLOUD_VERSION", "0.0.0")

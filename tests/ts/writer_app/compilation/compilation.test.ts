@@ -30,13 +30,13 @@ describe('compilation', () => {
 //  *
 //  * Handles compilation job submission, status tracking, and PDF preview.
 //  */
-// 
+//
 // /**
 //  * Interface for compilation job response
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/compilation/compilation.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/compilation/compilation.ts loaded",
 // );
 // export interface CompilationJob {
 //   job_id: string;
@@ -45,14 +45,14 @@ describe('compilation', () => {
 //   error_message?: string;
 //   compilation_time?: number;
 // }
-// 
+//
 // /**
 //  * Compilation handler for LaTeX documents
 //  */
 // export class CompilationHandler {
 //   private jobId: string | null = null;
 //   private pollInterval: number | null = null;
-// 
+//
 //   /**
 //    * Submit a compilation job
 //    */
@@ -68,11 +68,11 @@ describe('compilation', () => {
 //         },
 //         body: JSON.stringify({ compilation_type: compilationType }),
 //       });
-// 
+//
 //       if (!response.ok) {
 //         throw new Error("Compilation submission failed");
 //       }
-// 
+//
 //       const data = await response.json();
 //       this.jobId = data.job_id;
 //       this.startPolling();
@@ -82,7 +82,7 @@ describe('compilation', () => {
 //       throw error;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Check compilation status
 //    */
@@ -98,7 +98,7 @@ describe('compilation', () => {
 //       throw error;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Start polling for job status
 //    */
@@ -106,14 +106,14 @@ describe('compilation', () => {
 //     if (this.pollInterval) {
 //       clearInterval(this.pollInterval);
 //     }
-// 
+//
 //     this.pollInterval = setInterval(async () => {
 //       if (!this.jobId) return;
-// 
+//
 //       try {
 //         const status = await this.checkStatus(this.jobId);
 //         this.handleStatusUpdate(status);
-// 
+//
 //         if (status.status === "completed" || status.status === "failed") {
 //           this.stopPolling();
 //         }
@@ -123,7 +123,7 @@ describe('compilation', () => {
 //       }
 //     }, 1000) as unknown as number; // Poll every second
 //   }
-// 
+//
 //   /**
 //    * Stop polling
 //    */
@@ -133,7 +133,7 @@ describe('compilation', () => {
 //       this.pollInterval = null;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Handle status updates
 //    */
@@ -141,7 +141,7 @@ describe('compilation', () => {
 //     console.log("Compilation status:", status);
 //     // TODO: Update UI with status
 //   }
-// 
+//
 //   /**
 //    * Get CSRF token from DOM
 //    */
@@ -151,7 +151,7 @@ describe('compilation', () => {
 //     ) as HTMLInputElement;
 //     return token ? token.value : "";
 //   }
-// 
+//
 //   /**
 //    * Cancel ongoing polling
 //    */
@@ -160,11 +160,11 @@ describe('compilation', () => {
 //     this.jobId = null;
 //   }
 // }
-// 
+//
 // // Initialize on document load
 // document.addEventListener("DOMContentLoaded", () => {
 //   const handler = new CompilationHandler();
-// 
+//
 //   const submitButton = document.getElementById("compile-button");
 //   if (submitButton) {
 //     submitButton.addEventListener("click", async () => {

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: /home/ywatanabe/proj/scitex-cloud/apps/scholar_app/api_auth.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/scholar_app/api_auth.py
 
 """
 API Authentication utilities for Scholar app

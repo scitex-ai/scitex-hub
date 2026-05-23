@@ -450,7 +450,7 @@ To test your app in the SciTeX workspace, use **Dev Install**:
 
 Alternatively, from the CLI:
 ```bash
-scitex-cloud app dev .
+scitex-hub app dev .
 ```
 
 Note: Dev Install is the standard path for external apps. Do NOT edit
@@ -460,7 +460,7 @@ Note: Dev Install is the standard path for external apps. Do NOT edit
 
 When ready to publish:
 
-1. Run validation: `scitex-cloud app validate .`
+1. Run validation: `scitex-hub app validate .`
 2. Submit: use the Apps settings panel in your project
 
 ## License

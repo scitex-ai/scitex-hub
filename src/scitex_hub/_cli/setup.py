@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # File: src/scitex_hub/cli/setup.py
 
-"""Setup commands for scitex-cloud CLI."""
+"""Setup commands for scitex-hub CLI."""
 
 import shutil
 import sys
@@ -33,9 +33,9 @@ def setup(env, force):
 
     \b
     Examples:
-        scitex-cloud setup --env dev    # Setup development environment
-        scitex-cloud setup --env prod   # Setup production environment
-        SCITEX_CLOUD_ENV=dev scitex-cloud setup
+        scitex-hub setup --env dev    # Setup development environment
+        scitex-hub setup --env prod   # Setup production environment
+        SCITEX_CLOUD_ENV=dev scitex-hub setup
     """
     click.echo(click.style("SciTeX Cloud Setup", fg="cyan", bold=True))
     click.echo()
@@ -80,7 +80,7 @@ def setup(env, force):
     click.echo()
     click.echo("Next steps:")
     click.echo(f"  1. Edit {environment.env_path} with your settings")
-    click.echo(f"  2. Run: scitex-cloud deploy --env {env}")
+    click.echo(f"  2. Run: scitex-hub deploy --env {env}")
 
 
 def _check_prerequisites():

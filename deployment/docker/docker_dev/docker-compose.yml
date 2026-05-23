@@ -5,7 +5,7 @@
 # ============================================
 
 # Set project name with environment for clear identification
-name: scitex-cloud-dev
+name: scitex-hub-dev
 
 services:
   # ============================================
@@ -16,11 +16,11 @@ services:
       context: ../../..
       dockerfile: deployment/docker/docker_dev/Dockerfile
       cache_from:
-        - scitex-cloud-dev-django:latest
+        - scitex-hub-dev-django:latest
       args:
         BUILDKIT_INLINE_CACHE: 1
         SLURM_VERSION: ${SCITEX_CLOUD_SLURM_VERSION:-24.05.5}
-    image: scitex-cloud-dev-django:latest
+    image: scitex-hub-dev-django:latest
 
     # Volumes - Live code reload
     volumes:
@@ -235,10 +235,10 @@ services:
       context: ../../..
       dockerfile: deployment/docker/docker_dev/Dockerfile
       cache_from:
-        - scitex-cloud-dev-django:latest
+        - scitex-hub-dev-django:latest
       args:
         SLURM_VERSION: ${SCITEX_CLOUD_SLURM_VERSION:-24.05.5}
-    image: scitex-cloud-dev-django:latest
+    image: scitex-hub-dev-django:latest
 
     volumes:
       - ../../..:/app:cached
@@ -315,10 +315,10 @@ services:
       context: ../../..
       dockerfile: deployment/docker/docker_dev/Dockerfile
       cache_from:
-        - scitex-cloud-dev-django:latest
+        - scitex-hub-dev-django:latest
       args:
         SLURM_VERSION: ${SCITEX_CLOUD_SLURM_VERSION:-24.05.5}
-    image: scitex-cloud-dev-django:latest
+    image: scitex-hub-dev-django:latest
 
     volumes:
       - ../../..:/app:cached

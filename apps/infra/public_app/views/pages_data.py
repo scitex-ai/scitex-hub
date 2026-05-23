@@ -103,10 +103,10 @@ VIDEO_CATALOG = {
         ),
     },
     # Cloud demos
-    "scitex-cloud-v0.11.5": {
+    "scitex-hub-v0.11.5": {
         "title": "SciTeX Cloud v0.11.5 Demo",
-        "url": "/media/videos/scitex-cloud-v0.11.5-demo.mp4",
-        "thumbnail": "/media/videos/scitex-cloud-v0.11.5-demo-thumbnail.png",
+        "url": "/media/videos/scitex-hub-v0.11.5-demo.mp4",
+        "thumbnail": "/media/videos/scitex-hub-v0.11.5-demo-thumbnail.png",
         "date": "2026-03-02",
         "description": (
             "SciTeX Cloud v0.11.5 — AI panel redesign with 2-mode layout "
@@ -114,10 +114,10 @@ VIDEO_CATALOG = {
             "hub project about section."
         ),
     },
-    "scitex-cloud": {
+    "scitex-hub": {
         "title": "SciTeX Cloud v0.9.3 Demo",
-        "url": "/media/videos/scitex-cloud-v0.9.3-demo.mp4",
-        "thumbnail": "/media/videos/scitex-cloud-v0.9.3-demo-thumbnail.png",
+        "url": "/media/videos/scitex-hub-v0.9.3-demo.mp4",
+        "thumbnail": "/media/videos/scitex-hub-v0.9.3-demo-thumbnail.png",
         "date": "2026-02-16",
         "description": (
             "SciTeX Cloud — self-hosted research platform. Scholar, Writer, "

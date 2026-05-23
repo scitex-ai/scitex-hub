@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: /home/ywatanabe/proj/scitex-cloud/apps/scholar_app/views/search/api_filters.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/scholar_app/views/search/api_filters.py
 # Filter extraction and formatting utilities for search API
 # ----------------------------------------
 from __future__ import annotations

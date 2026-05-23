@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2026-03-01 06:35:52
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/docs/MASTER/02_PLATFOR_SERVICES.md
+!-- File: /home/ywatanabe/proj/scitex-hub/docs/MASTER/02_PLATFOR_SERVICES.md
 !-- --- -->
 
 # Platform Services

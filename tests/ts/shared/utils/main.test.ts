@@ -29,34 +29,34 @@ describe('main', () => {
 //  * SciTeX Cloud - Main Application Initialization
 //  * Handles mobile menu, global UI initialization
 //  */
-// 
+//
 // import { initZenMode } from "@/components/zen-mode";
 // import { toggleShortcutsModal } from "@/components/shortcuts-modal";
 // import { SHARED_SHORTCUTS, getShortcutKey, checkShortcutConflict, registerAppShortcut, getSharedShortcutsHTML, getSharedShortcutsList } from "./shared-shortcuts";
-// 
+//
 // // Re-export shared shortcuts utilities for use by other modules
 // export { SHARED_SHORTCUTS, checkShortcutConflict, registerAppShortcut, getSharedShortcutsHTML, getSharedShortcutsList };
-// 
+//
 // /**
 //  * Initialize the main application
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/utils/main.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/static/ts/utils/main.ts loaded",
 // );
 // function initApp(): void {
 //   // Initialize mobile menu toggle
 //   initMobileMenu();
-// 
+//
 //   // Initialize Zen Mode globally (works on all workspace pages)
 //   initGlobalZenMode();
-// 
+//
 //   // Initialize module switcher shortcuts (Alt+S/C/V/W)
 //   initModuleSwitcher();
-// 
+//
 //   // Initialize Alt key shortcut badges on navigation
 //   initAltKeyShortcutBadges();
-// 
+//
 //   // Add event listeners for primary CTAs
 //   const getStartedBtn =
 //     document.querySelector<HTMLButtonElement>(".btn-primary");
@@ -67,7 +67,7 @@ describe('main', () => {
 //     });
 //   }
 // }
-// 
+//
 // /**
 //  * Initialize mobile menu functionality
 //  * Handles responsive menu toggle and cloning header actions for mobile
@@ -79,16 +79,16 @@ describe('main', () => {
 //   const siteNavigation =
 //     document.querySelector<HTMLElement>(".site-navigation");
 //   const headerActions = document.querySelector<HTMLElement>(".header-actions");
-// 
+//
 //   if (mobileToggle && siteNavigation) {
 //     // Toggle menu on button click
 //     mobileToggle.addEventListener("click", () => {
 //       const isOpen = siteNavigation.classList.contains("open");
-// 
+//
 //       if (isOpen) {
 //         // Close menu
 //         siteNavigation.classList.remove("open");
-// 
+//
 //         // Remove header actions from mobile menu if they were added
 //         const mobileActions =
 //           siteNavigation.querySelector<HTMLElement>(".header-actions");
@@ -98,7 +98,7 @@ describe('main', () => {
 //       } else {
 //         // Open menu
 //         siteNavigation.classList.add("open");
-// 
+//
 //         // Clone header actions into mobile menu on small screens
 //         if (window.innerWidth <= 576 && headerActions) {
 //           const mobileActions = headerActions.cloneNode(true) as HTMLElement;
@@ -107,12 +107,12 @@ describe('main', () => {
 //         }
 //       }
 //     });
-// 
+//
 //     // Handle window resize - close mobile menu on desktop
 //     window.addEventListener("resize", () => {
 //       if (window.innerWidth > 768) {
 //         siteNavigation.classList.remove("open");
-// 
+//
 //         // Remove cloned actions if they exist
 //         const mobileActions =
 //           siteNavigation.querySelector<HTMLElement>(".header-actions");
@@ -123,7 +123,7 @@ describe('main', () => {
 //     });
 //   }
 // }
-// 
+//
 // /**
 //  * Initialize module switcher keyboard shortcuts
 //  * Alt+S → Scholar, Alt+C → Code, Alt+V → Vis, Alt+W → Writer
@@ -140,16 +140,16 @@ describe('main', () => {
 //     'v': '/vis/',
 //     'w': '/writer/',
 //   };
-// 
+//
 //   // Use capture phase to intercept before Monaco/xterm can consume the event
 //   document.addEventListener('keydown', (e: KeyboardEvent) => {
 //     // Only handle Alt+key combinations (no other modifiers)
 //     if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) {
 //       return;
 //     }
-// 
+//
 //     const key = e.key.toLowerCase();
-// 
+//
 //     // Handle Alt+/ for keyboard shortcuts help
 //     if (key === '/' || e.key === '/') {
 //       e.preventDefault();
@@ -157,15 +157,15 @@ describe('main', () => {
 //       toggleShortcutsModal();
 //       return;
 //     }
-// 
+//
 //     const route = moduleRoutes[key];
-// 
+//
 //     if (route) {
 //       // Don't switch if we're already on this module
 //       if (window.location.pathname.startsWith(route)) {
 //         return;
 //       }
-// 
+//
 //       // Skip if user is in a regular text input (NOT Monaco or Terminal)
 //       // Monaco uses a hidden textarea, xterm uses a hidden input
 //       // We want to allow Alt+key in those since they're not for typing Alt+letter
@@ -179,28 +179,28 @@ describe('main', () => {
 //           !activeElement.closest('.xterm') &&
 //           !activeElement.classList.contains('xterm-helper-textarea')
 //         );
-// 
+//
 //         // Also skip for contentEditable elements that are NOT code editors
 //         const isContentEditable = activeElement.isContentEditable &&
 //           !activeElement.closest('.monaco-editor');
-// 
+//
 //         if (isVisibleInput || isContentEditable) {
 //           return;
 //         }
 //       }
-// 
+//
 //       // Stop propagation to prevent Monaco/Terminal from seeing this event
 //       e.preventDefault();
 //       e.stopPropagation();
-// 
+//
 //       console.log(`[ModuleSwitcher] Navigating to ${route}`);
 //       window.location.href = route;
 //     }
 //   }, true); // Use capture phase
-// 
+//
 //   console.log('[ModuleSwitcher] Initialized - Alt+F/S/C/V/W to switch modules, Alt+/ for shortcuts (capture phase)');
 // }
-// 
+//
 // /**
 //  * Initialize Zen Mode only on workspace pages (Writer, Code, Scholar, Vis)
 //  * Auto-detects panels based on CSS selectors
@@ -214,14 +214,14 @@ describe('main', () => {
 //     '.scholar-workspace',   // Scholar app
 //     '.vis-editor-container', // Vis app
 //   ];
-// 
+//
 //   // Check if we're on a workspace page
 //   const isWorkspacePage = workspaceSelectors.some(sel => document.querySelector(sel));
 //   if (!isWorkspacePage) {
 //     console.log('[ZenMode] Not a workspace page, skipping initialization');
 //     return;
 //   }
-// 
+//
 //   // Auto-detect sidebar and details panel selectors
 //   const sidebarSelectors = [
 //     '.writer-sidebar',      // Writer app
@@ -229,27 +229,27 @@ describe('main', () => {
 //     '.scholar-sidebar',     // Scholar app
 //     '.vis-sidebar',         // Vis app
 //   ];
-// 
+//
 //   const detailsSelectors = [
 //     '.writer-details',          // Writer app
 //     '.code-terminal-panel',     // Code app (right panel)
 //     '.scholar-properties',      // Scholar app (right panel)
 //     '.vis-properties',          // Vis app (right panel)
 //   ];
-// 
+//
 //   const toggleIds: Record<string, { sidebar?: string; details?: string }> = {
 //     '.writer-sidebar': { sidebar: 'stx-shell-sidebar__toggle', details: 'details-toggle' },
 //     '.code-sidebar': { sidebar: 'stx-shell-sidebar__toggle', details: 'terminal-toggle' },
 //     '.scholar-sidebar': { sidebar: 'stx-shell-sidebar__toggle', details: 'properties-toggle' },
 //     '.vis-sidebar': { sidebar: 'stx-shell-sidebar__toggle', details: 'properties-toggle' },
 //   };
-// 
+//
 //   // Find which selectors exist on the current page
 //   let sidebarSelector: string | undefined;
 //   let detailsSelector: string | undefined;
 //   let sidebarToggleId: string | undefined;
 //   let detailsToggleId: string | undefined;
-// 
+//
 //   for (const selector of sidebarSelectors) {
 //     if (document.querySelector(selector)) {
 //       sidebarSelector = selector;
@@ -261,14 +261,14 @@ describe('main', () => {
 //       break;
 //     }
 //   }
-// 
+//
 //   for (const selector of detailsSelectors) {
 //     if (document.querySelector(selector)) {
 //       detailsSelector = selector;
 //       break;
 //     }
 //   }
-// 
+//
 //   // Initialize zen mode with detected selectors
 //   initZenMode({
 //     headerSelector: '.global-header',
@@ -278,10 +278,10 @@ describe('main', () => {
 //     detailsToggleId,
 //     storagePrefix: 'scitex-',
 //   });
-// 
+//
 //   console.log('[ZenMode] Initialized for workspace - sidebar:', sidebarSelector, 'details:', detailsSelector);
 // }
-// 
+//
 // /**
 //  * Initialize Alt key shortcut badges on navigation buttons
 //  * Shows visual badges (e.g., "Alt+F") when Alt key is pressed
@@ -289,7 +289,7 @@ describe('main', () => {
 // function initAltKeyShortcutBadges(): void {
 //   const navItems = document.querySelectorAll<HTMLElement>('.header-nav-item[data-shortcut]');
 //   if (navItems.length === 0) return;
-// 
+//
 //   // Create and inject styles for shortcut badges
 //   const style = document.createElement('style');
 //   style.textContent = `
@@ -320,21 +320,21 @@ describe('main', () => {
 //     }
 //   `;
 //   document.head.appendChild(style);
-// 
+//
 //   // Add badges to navigation items
 //   navItems.forEach(item => {
 //     const shortcut = item.dataset.shortcut;
 //     if (!shortcut) return;
-// 
+//
 //     const badge = document.createElement('span');
 //     badge.className = 'shortcut-badge';
 //     badge.textContent = `Alt+${shortcut}`;
 //     item.appendChild(badge);
 //   });
-// 
+//
 //   // Show badges when Alt is pressed
 //   let altPressed = false;
-// 
+//
 //   document.addEventListener('keydown', (e: KeyboardEvent) => {
 //     if (e.key === 'Alt' && !altPressed) {
 //       altPressed = true;
@@ -343,7 +343,7 @@ describe('main', () => {
 //       });
 //     }
 //   }, true);
-// 
+//
 //   document.addEventListener('keyup', (e: KeyboardEvent) => {
 //     if (e.key === 'Alt') {
 //       altPressed = false;
@@ -352,7 +352,7 @@ describe('main', () => {
 //       });
 //     }
 //   }, true);
-// 
+//
 //   // Also hide badges when window loses focus (Alt+Tab scenario)
 //   window.addEventListener('blur', () => {
 //     altPressed = false;
@@ -360,10 +360,10 @@ describe('main', () => {
 //       badge.classList.remove('visible');
 //     });
 //   });
-// 
+//
 //   console.log('[AltKeyBadges] Initialized - Press Alt to see navigation shortcuts');
 // }
-// 
+//
 // // Initialize when DOM is ready
 // document.addEventListener("DOMContentLoaded", () => {
 //   initApp();

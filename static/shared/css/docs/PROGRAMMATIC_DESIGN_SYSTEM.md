@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2025-10-21 20:00:18
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/static/css/PROGRAMMATIC_DESIGN_SYSTEM.md
+!-- File: /home/ywatanabe/proj/scitex-hub/static/css/PROGRAMMATIC_DESIGN_SYSTEM.md
 !-- --- -->
 
 # Programmatic Design System Documentation
@@ -249,7 +249,7 @@ import os
 def design_system(request):
     with open('design_system/fixtures/components.json') as f:
         components = json.load(f)
-    
+
     return render(request, 'design_system/index.html', {
         'components': components['components']
     })
@@ -257,9 +257,9 @@ def design_system(request):
 def component_detail(request, component_id):
     with open('design_system/fixtures/components.json') as f:
         components = json.load(f)
-    
+
     component = next(c for c in components['components'] if c['id'] == component_id)
-    
+
     return render(request, 'design_system/component.html', {
         'component': component
     })
@@ -277,7 +277,7 @@ def component_detail(request, component_id):
   <section class="design-section" id="{{ component.id }}">
     <h2>{{ component.name }}</h2>
     <p>{{ component.description }}</p>
-    
+
     <!-- Variants -->
     <div class="variants">
       {% for variant in component.variants %}
@@ -290,7 +290,7 @@ def component_detail(request, component_id):
       </div>
       {% endfor %}
     </div>
-    
+
     <!-- States -->
     {% if component.states %}
     <div class="states">
@@ -305,7 +305,7 @@ def component_detail(request, component_id):
       {% endfor %}
     </div>
     {% endif %}
-    
+
     <!-- Documentation -->
     {% if component.docs %}
     <div class="docs">
@@ -329,16 +329,16 @@ import os
 class Command(BaseCommand):
     def handle(self, *args, **options):
         components = []
-        
+
         # Parse CSS files for component documentation
         css_dir = 'static/css/components/'
         for filename in os.listdir(css_dir):
             if filename.endswith('.css'):
                 component_name = filename.replace('.css', '')
-                
+
                 with open(f'{css_dir}{filename}') as f:
                     content = f.read()
-                    
+
                     # Extract component info from CSS comments
                     match = re.search(r'/\*\s*(.*?)\*/', content, re.DOTALL)
                     if match:
@@ -349,12 +349,12 @@ class Command(BaseCommand):
                             'css_file': f'/static/css/components/{filename}',
                             'variants': self.extract_variants(content),
                         })
-        
+
         with open('design_system/fixtures/components.json', 'w') as f:
             json.dump({'components': components}, f, indent=2)
-        
+
         self.stdout.write(f"Generated docs for {len(components)} components")
-    
+
     def extract_variants(self, css_content):
         # Parse CSS comments like /* variant: primary */
         variants = []

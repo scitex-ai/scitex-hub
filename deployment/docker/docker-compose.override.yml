@@ -11,7 +11,7 @@
 #   - Verbose logging
 #   - FigRecipe editor
 
-name: scitex-cloud-dev
+name: scitex-hub-dev
 
 services:
   # ============================================
@@ -24,7 +24,7 @@ services:
       args:
         BUILDKIT_INLINE_CACHE: 1
         SLURM_VERSION: ${SCITEX_CLOUD_SLURM_VERSION:-24.05.5}
-    image: scitex-cloud-dev-django:latest
+    image: scitex-hub-dev-django:latest
     volumes:
       # Live code reload
       - ../..:/app:cached
@@ -144,7 +144,7 @@ services:
       dockerfile: deployment/docker/Dockerfile
       args:
         SLURM_VERSION: ${SCITEX_CLOUD_SLURM_VERSION:-24.05.5}
-    image: scitex-cloud-dev-django:latest
+    image: scitex-hub-dev-django:latest
     volumes:
       - ../..:/app:cached
       - ../../../scitex-python:/scitex-python:cached
@@ -204,7 +204,7 @@ services:
       dockerfile: deployment/docker/Dockerfile
       args:
         SLURM_VERSION: ${SCITEX_CLOUD_SLURM_VERSION:-24.05.5}
-    image: scitex-cloud-dev-django:latest
+    image: scitex-hub-dev-django:latest
     volumes:
       - ../..:/app:cached
       - ../../../scitex-python:/scitex-python:cached

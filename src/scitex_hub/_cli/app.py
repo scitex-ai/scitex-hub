@@ -42,9 +42,9 @@ def app_init(target_dir, name, label, icon, description, frontend, overwrite):
 
     \b
     Examples:
-        scitex-cloud app init .
-        scitex-cloud app init /path/to/my_app --name my_awesome_app
-        scitex-cloud app init . -n demo_app -l "Demo" -i "fas fa-flask"
+        scitex-hub app init .
+        scitex-hub app init /path/to/my_app --name my_awesome_app
+        scitex-hub app init . -n demo_app -l "Demo" -i "fas fa-flask"
     """
 
     target = Path(target_dir).resolve()
@@ -91,8 +91,8 @@ def app_validate(app_dir):
 
     \b
     Examples:
-        scitex-cloud app validate .
-        scitex-cloud app validate /path/to/my_app
+        scitex-hub app validate .
+        scitex-hub app validate /path/to/my_app
     """
     from scitex_hub.appmaker import validate
 
@@ -115,8 +115,8 @@ def app_dev(app_dir, port):
 
     \b
     Examples:
-        scitex-cloud app dev .
-        scitex-cloud app dev /path/to/my_app --port 8001
+        scitex-hub app dev .
+        scitex-hub app dev /path/to/my_app --port 8001
     """
     from scitex_hub.appmaker import dev_server
 
@@ -142,7 +142,7 @@ def app_submit(app_dir, server):
 
     \b
     Examples:
-        scitex-cloud app submit .
+        scitex-hub app submit .
         scitex cloud app submit /path/to/my_app --server https://scitex.example.com
     """
     from scitex_hub._cli._workspace_auth import get_jwt_token, get_server_url
@@ -181,8 +181,8 @@ def app_list(server):
 
     \b
     Examples:
-        scitex-cloud app list
-        scitex-cloud app list --server https://scitex.example.com
+        scitex-hub app list
+        scitex-hub app list --server https://scitex.example.com
     """
     from scitex_hub.appmaker import list_all
 
@@ -216,7 +216,7 @@ def app_current():
 
     \b
     Examples:
-        scitex-cloud app current
+        scitex-hub app current
     """
     from scitex_hub.appmaker import get_current
 
@@ -234,8 +234,8 @@ def app_switch(app_name):
 
     \b
     Examples:
-        scitex-cloud app switch scholar
-        scitex-cloud app switch writer
+        scitex-hub app switch scholar
+        scitex-hub app switch writer
     """
     from scitex_hub.appmaker import switch_to
 
@@ -250,8 +250,8 @@ def app_info(app_name):
 
     \b
     Examples:
-        scitex-cloud app info writer
-        scitex-cloud app info scholar
+        scitex-hub app info writer
+        scitex-hub app info scholar
     """
     from scitex_hub.appmaker import get_info
 
@@ -276,7 +276,7 @@ def prefs_get(app_name):
 
     \b
     Examples:
-        scitex-cloud app prefs get writer
+        scitex-hub app prefs get writer
     """
     from scitex_hub.appmaker import get_prefs
 
@@ -298,8 +298,8 @@ def prefs_set(app_name, key_values):
 
     \b
     Examples:
-        scitex-cloud app prefs set writer theme=dark font_size=14
-        scitex-cloud app prefs set scholar engine=crossref
+        scitex-hub app prefs set writer theme=dark font_size=14
+        scitex-hub app prefs set scholar engine=crossref
     """
     from scitex_hub.appmaker import set_prefs
 
@@ -328,7 +328,7 @@ def prefs_delete(app_name):
 
     \b
     Examples:
-        scitex-cloud app prefs delete writer
+        scitex-hub app prefs delete writer
     """
     from scitex_hub.appmaker import delete_prefs
 
@@ -344,7 +344,7 @@ def prefs_list():
 
     \b
     Examples:
-        scitex-cloud app prefs list
+        scitex-hub app prefs list
     """
     import json
 
@@ -365,8 +365,8 @@ def app_check_deps(app_dir):
 
     \b
     Examples:
-        scitex-cloud app check-deps .
-        scitex-cloud app check-deps /path/to/my_app
+        scitex-hub app check-deps .
+        scitex-hub app check-deps /path/to/my_app
     """
     from scitex_hub.appmaker import check_deps_from_manifest, format_missing_report
 
@@ -399,8 +399,8 @@ def app_install_deps(app_dir, dep_type):
 
     \b
     Examples:
-        scitex-cloud app install-deps . --type python
-        scitex-cloud app install-deps . -t system
+        scitex-hub app install-deps . --type python
+        scitex-hub app install-deps . -t system
     """
     import json
 
@@ -444,8 +444,8 @@ def app_build_container(app_dir, output_dir):
 
     \b
     Examples:
-        scitex-cloud app build-container .
-        scitex-cloud app build-container /path/to/my_app -o /data/containers/
+        scitex-hub app build-container .
+        scitex-hub app build-container /path/to/my_app -o /data/containers/
     """
     from scitex_hub.appmaker import build_container
 

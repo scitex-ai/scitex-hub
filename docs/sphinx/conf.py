@@ -118,7 +118,7 @@ html_favicon = None  # Add path to favicon if available
 html_context = {
     "display_github": True,
     "github_user": "ywatanabe1989",
-    "github_repo": "scitex-cloud",
+    "github_repo": "scitex-hub",
     "github_version": "main",
     "conf_py_path": "/docs/sphinx/",
 }

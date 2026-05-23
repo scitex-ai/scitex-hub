@@ -5,7 +5,7 @@ Mirrors the `figrecipe_app/urls/figrecipe.py` pattern:
 - a small wrapper injects `working_dir` from the authenticated user's
   current project
 
-This is the entry point for scitex-cloud#146 — the gradual cut-over from
+This is the entry point for scitex-hub#146 — the gradual cut-over from
 the legacy in-repo writer UI to the shared `_django` implementation.
 
 Lives alongside (not replacing) the old `writer_app/urls/editor.py` so the

@@ -178,7 +178,7 @@
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Setup Guide</li>
       <li class="wy-breadcrumbs-aside">
-              <a href="https://github.com/ywatanabe1989/scitex-cloud/blob/main/docs/sphinx/setup.rst" class="fa fa-github"> Edit on GitHub</a>
+              <a href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/sphinx/setup.rst" class="fa fa-github"> Edit on GitHub</a>
       </li>
   </ul>
   <hr/>
@@ -221,8 +221,8 @@
 <section id="quick-start-development">
 <h2>Quick Start (Development)<a class="headerlink" href="#quick-start-development" title="Link to this heading"></a></h2>
 <p>Three commands to get running:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ywatanabe1989/scitex-cloud.git
-<span class="nb">cd</span><span class="w"> </span>scitex-cloud
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ywatanabe1989/scitex-hub.git
+<span class="nb">cd</span><span class="w"> </span>scitex-hub
 make<span class="w"> </span>start
 </pre></div>
 </div>
@@ -239,8 +239,8 @@ make<span class="w"> </span>start
 <ol class="arabic simple">
 <li><p><strong>Clone the repository</strong></p></li>
 </ol>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ywatanabe1989/scitex-cloud.git
-<span class="nb">cd</span><span class="w"> </span>scitex-cloud
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ywatanabe1989/scitex-hub.git
+<span class="nb">cd</span><span class="w"> </span>scitex-hub
 </pre></div>
 </div>
 <ol class="arabic simple" start="2">
@@ -327,20 +327,20 @@ make<span class="w"> </span><span class="nv">ENV</span><span class="o">=</span>p
 <section id="cli-only-install">
 <h2>CLI-Only Install<a class="headerlink" href="#cli-only-install" title="Link to this heading"></a></h2>
 <p>Use the CLI and MCP server without Docker:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>scitex-cloud<span class="w">           </span><span class="c1"># CLI only</span>
-pip<span class="w"> </span>install<span class="w"> </span>scitex-cloud<span class="o">[</span>mcp<span class="o">]</span><span class="w">      </span><span class="c1"># CLI + MCP server</span>
-pip<span class="w"> </span>install<span class="w"> </span>scitex-cloud<span class="o">[</span>all<span class="o">]</span><span class="w">      </span><span class="c1"># Everything</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>scitex-hub<span class="w">           </span><span class="c1"># CLI only</span>
+pip<span class="w"> </span>install<span class="w"> </span>scitex-hub<span class="o">[</span>mcp<span class="o">]</span><span class="w">      </span><span class="c1"># CLI + MCP server</span>
+pip<span class="w"> </span>install<span class="w"> </span>scitex-hub<span class="o">[</span>all<span class="o">]</span><span class="w">      </span><span class="c1"># Everything</span>
 </pre></div>
 </div>
 <p>Verify:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>--version
-scitex-cloud<span class="w"> </span>--help
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>--version
+scitex-hub<span class="w"> </span>--help
 </pre></div>
 </div>
 <p>MCP server for AI agents:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>mcp<span class="w"> </span>start<span class="w">             </span><span class="c1"># Start MCP server</span>
-scitex-cloud<span class="w"> </span>mcp<span class="w"> </span>doctor<span class="w">            </span><span class="c1"># Diagnose setup</span>
-scitex-cloud<span class="w"> </span>mcp<span class="w"> </span>installation<span class="w">      </span><span class="c1"># Client config instructions</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>mcp<span class="w"> </span>start<span class="w">             </span><span class="c1"># Start MCP server</span>
+scitex-hub<span class="w"> </span>mcp<span class="w"> </span>doctor<span class="w">            </span><span class="c1"># Diagnose setup</span>
+scitex-hub<span class="w"> </span>mcp<span class="w"> </span>installation<span class="w">      </span><span class="c1"># Client config instructions</span>
 </pre></div>
 </div>
 </section>

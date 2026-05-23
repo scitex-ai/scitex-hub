@@ -80,7 +80,7 @@ def get_jwt_token(server_url, username=None, password=None):
             "error: workspace credentials missing. Set "
             "SCITEX_CLOUD_WORKSPACE_USER/SCITEX_CLOUD_WORKSPACE_PASSWORD, "
             "pass --user/--password, or configure "
-            "~/.scitex/scitex-cloud/config.yaml",
+            "~/.scitex/scitex-hub/config.yaml",
             err=True,
         )
         sys.exit(2)

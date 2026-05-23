@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2025-12-06 17:25:00
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/docs/DEV_VS_NAS.md
+!-- File: /home/ywatanabe/proj/scitex-hub/docs/DEV_VS_NAS.md
 !-- --- -->
 
 # Dev vs Production Environment Configuration

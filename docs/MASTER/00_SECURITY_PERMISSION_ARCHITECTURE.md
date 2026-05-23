@@ -260,27 +260,27 @@ Will be revisited when HPC integration (SLURM) is extended to bash exec.
 
 ### Check UID allocation
 ```bash
-docker exec -it scitex-cloud-dev-django-1 python manage.py sync_unix_users
+docker exec -it scitex-hub-dev-django-1 python manage.py sync_unix_users
 # Output: Done: N accounts ensured, N data dirs owned, 0 errors
 ```
 
 ### Check filesystem permissions
 ```bash
-docker exec scitex-cloud-dev-django-1 ls -la /app/data/users/
+docker exec scitex-hub-dev-django-1 ls -la /app/data/users/
 # Every dir: drwx------ owned by 100xxx:100xxx
 ```
 
 ### Test cross-user isolation
 ```bash
 # Should be "Permission denied"
-docker exec scitex-cloud-dev-django-1 \
+docker exec scitex-hub-dev-django-1 \
   setpriv --reuid=100021 --regid=100021 --clear-groups \
   -- ls /app/data/users/test-user/
 ```
 
 ### Check setpriv capability
 ```bash
-docker exec scitex-cloud-dev-django-1 getcap /usr/bin/setpriv
+docker exec scitex-hub-dev-django-1 getcap /usr/bin/setpriv
 # /usr/bin/setpriv = cap_setgid,cap_setuid+eip
 ```
 

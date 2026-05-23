@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-11-20 15:59:01 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/deployment/docker/docker_dev/run_daphne_with_autoreload.py
+# File: /home/ywatanabe/proj/scitex-hub/deployment/docker/docker_dev/run_daphne_with_autoreload.py
 
 
 """
@@ -23,9 +23,7 @@ sys.path.insert(0, str(project_root))
 # Set Django settings module
 os.environ.setdefault(
     "DJANGO_SETTINGS_MODULE",
-    os.getenv(
-        "SCITEX_CLOUD_DJANGO_SETTINGS_MODULE", "config.settings.settings_dev"
-    ),
+    os.getenv("SCITEX_CLOUD_DJANGO_SETTINGS_MODULE", "config.settings.settings_dev"),
 )
 
 # Import Django's autoreload before setup
@@ -36,6 +34,7 @@ from django.utils import autoreload
 
 # Now setup Django
 import django
+
 django.setup()
 
 

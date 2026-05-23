@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: 2025-11-30
-# File: /home/ywatanabe/proj/scitex-cloud/tests/conftest.py
+# File: /home/ywatanabe/proj/scitex-hub/tests/conftest.py
 
 """
 Pytest configuration and shared fixtures for SciTeX test suite.

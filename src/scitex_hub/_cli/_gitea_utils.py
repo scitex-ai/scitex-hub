@@ -173,7 +173,7 @@ def get_tea_config(login_name="scitex-dev"):
     config_path = Path.home() / ".config" / "tea" / "config.yml"
     if not config_path.exists():
         click.echo(
-            "Error: Tea configuration not found. Run 'scitex-cloud gitea login' first.",
+            "Error: Tea configuration not found. Run 'scitex-hub gitea login' first.",
             err=True,
         )
         sys.exit(1)

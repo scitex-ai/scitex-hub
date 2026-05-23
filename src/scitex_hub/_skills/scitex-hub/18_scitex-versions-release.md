@@ -2,7 +2,7 @@
 description: |
   [TOPIC] SciTeX Versions — Release, Tags, Environment & Troubleshooting
   [DETAILS] SciTeX Versions — Release, Tags, Environment & Troubleshooting.
-tags: [scitex-cloud-scitex-versions-release]
+tags: [scitex-hub-scitex-versions-release]
 ---
 # SciTeX Versions — Release, Tags, Environment & Troubleshooting
 

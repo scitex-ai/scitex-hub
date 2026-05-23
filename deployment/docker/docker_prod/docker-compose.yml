@@ -3,7 +3,7 @@
 # No router access or port forwarding needed!
 
 # Set project name with environment for clear identification
-name: scitex-cloud-prod
+name: scitex-hub-prod
 
 services:
   django:
@@ -11,10 +11,10 @@ services:
       context: ../../..
       dockerfile: deployment/docker/docker_prod/Dockerfile.prod
       cache_from:
-        - scitex-cloud-prod-django:latest
+        - scitex-hub-prod-django:latest
       args:
         BUILDKIT_INLINE_CACHE: 1
-    image: scitex-cloud-prod-django:latest
+    image: scitex-hub-prod-django:latest
     entrypoint: ["/root-init.sh", "/entrypoint.sh"]
     command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "--access-log", "-", "--verbosity", "1", "config.asgi:application"]
     volumes:
@@ -173,7 +173,7 @@ services:
 
   # Celery Worker (Async Task Processing)
   celery_worker:
-    image: scitex-cloud-prod-django:latest
+    image: scitex-hub-prod-django:latest
     entrypoint: ["/entrypoint.sh"]
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
@@ -230,7 +230,7 @@ services:
 
   # Celery Beat (Periodic Task Scheduler)
   celery_beat:
-    image: scitex-cloud-prod-django:latest
+    image: scitex-hub-prod-django:latest
     entrypoint: ["/entrypoint.sh"]
     command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
 
@@ -392,25 +392,25 @@ services:
 
 volumes:
   # Use existing nas volumes to preserve all data (including Umami analytics)
-  # This migrates data from scitex-cloud-nas to scitex-cloud-prod containers
+  # This migrates data from scitex-hub-nas to scitex-hub-prod containers
   postgres_data:
     external: true
-    name: scitex-cloud-nas_postgres_data
+    name: scitex-hub-nas_postgres_data
   redis_data:
     external: true
-    name: scitex-cloud-nas_redis_data
+    name: scitex-hub-nas_redis_data
   static_volume:
     external: true
-    name: scitex-cloud-nas_static_volume
+    name: scitex-hub-nas_static_volume
   media_volume:
     external: true
-    name: scitex-cloud-nas_media_volume
+    name: scitex-hub-nas_media_volume
   gitea_data:
     external: true
-    name: scitex-cloud-nas_gitea_data
+    name: scitex-hub-nas_gitea_data
   scitex_config_volume:
     external: true
-    name: scitex-cloud-nas_scitex_config_volume
+    name: scitex-hub-nas_scitex_config_volume
 
 networks:
   scitex-network:

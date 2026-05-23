@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # File: src/scitex_hub/cli/main.py
 
-"""Main CLI entry point for scitex-cloud."""
+"""Main CLI entry point for scitex-hub."""
 
 import click
 from rich.console import Console
@@ -41,18 +41,18 @@ def _print_recursive_help(ctx, param, value):
                 _print_command_help(sub_cmd, f"{prefix} {sub_name}", sub_ctx)
 
     # Print main help
-    console.print("[bold cyan]━━━ scitex-cloud ━━━[/bold cyan]")
+    console.print("[bold cyan]━━━ scitex-hub ━━━[/bold cyan]")
     console.print(ctx.get_help())
 
     # Print all subcommands recursively
     for name, cmd in sorted(main.commands.items()):
-        _print_command_help(cmd, f"scitex-cloud {name}", ctx)
+        _print_command_help(cmd, f"scitex-hub {name}", ctx)
 
     ctx.exit(0)
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
-@click.version_option(version=__version__, prog_name="scitex-cloud")
+@click.version_option(version=__version__, prog_name="scitex-hub")
 @click.option(
     "--help-recursive",
     is_flag=True,
@@ -69,11 +69,11 @@ def main(ctx):
 
     \b
     Examples:
-        scitex-cloud setup --env dev     # Setup development environment
-        scitex-cloud deploy              # Deploy with current settings
-        scitex-cloud docker up           # Start containers
-        scitex-cloud status              # Show deployment status
-        scitex-cloud mcp start           # Start MCP server
+        scitex-hub setup --env dev     # Setup development environment
+        scitex-hub deploy              # Deploy with current settings
+        scitex-hub docker up           # Start containers
+        scitex-hub status              # Show deployment status
+        scitex-hub mcp start           # Start MCP server
     """
     ctx.ensure_object(dict)
 
@@ -85,8 +85,8 @@ def _dep(old: str, new: str):
     @click.pass_context
     def _impl(ctx, **_):
         click.echo(
-            f"error: `scitex-cloud {old}` was renamed to `scitex-cloud {new}`.\n"
-            f"Re-run with: scitex-cloud {new} [...]",
+            f"error: `scitex-hub {old}` was renamed to `scitex-hub {new}`.\n"
+            f"Re-run with: scitex-hub {new} [...]",
             err=True,
         )
         ctx.exit(2)
@@ -163,7 +163,7 @@ def list_python_apis(verbose, max_depth, as_json):
 try:
     from scitex_dev.cli import skills_click_group
 
-    main.add_command(skills_click_group(package="scitex-cloud"))
+    main.add_command(skills_click_group(package="scitex-hub"))
 except ImportError:
     pass
 
@@ -172,7 +172,7 @@ except ImportError:
 try:
     from scitex_dev._cli._completion import attach_shell_completion
 
-    attach_shell_completion(main, prog_name="scitex-cloud")
+    attach_shell_completion(main, prog_name="scitex-hub")
 except ImportError:
     pass
 
@@ -193,6 +193,6 @@ if __name__ == "__main__":
 try:
     from importlib.metadata import version as _v
 
-    main.help = f"scitex-cloud (v{_v('scitex-cloud')}) — " + (main.help or "").lstrip()
+    main.help = f"scitex-hub (v{_v('scitex-hub')}) — " + (main.help or "").lstrip()
 except Exception:
     pass

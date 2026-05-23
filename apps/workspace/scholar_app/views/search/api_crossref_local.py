@@ -105,13 +105,13 @@ def api_search_crossref_local(request):
         django_capped = requested > configured_limit
         total_available = getattr(search_result, "total", result_count)
         limit_reason = (
-            f"scitex-cloud: Capped from {requested} to {configured_limit}"
+            f"scitex-hub: Capped from {requested} to {configured_limit}"
             if django_capped
-            else f"scitex-cloud: Returned {result_count} of {total_available} available (limit={configured_limit})"
+            else f"scitex-hub: Returned {result_count} of {total_available} available (limit={configured_limit})"
         )
         limit_info_chain.append(
             {
-                "stage": "scitex-cloud",
+                "stage": "scitex-hub",
                 "requested": requested,
                 "returned": result_count,
                 "total_available": total_available,

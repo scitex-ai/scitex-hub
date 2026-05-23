@@ -178,7 +178,7 @@
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">CLI Reference</li>
       <li class="wy-breadcrumbs-aside">
-              <a href="https://github.com/ywatanabe1989/scitex-cloud/blob/main/docs/sphinx/cli.rst" class="fa fa-github"> Edit on GitHub</a>
+              <a href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/sphinx/cli.rst" class="fa fa-github"> Edit on GitHub</a>
       </li>
   </ul>
   <hr/>
@@ -192,14 +192,14 @@
 syncing code, interacting with the Git hosting service, deploying apps,
 and controlling the MCP server.</p>
 <p>Install with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>scitex-cloud
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>scitex-hub
 </pre></div>
 </div>
 <section id="global-options">
 <h2>Global Options<a class="headerlink" href="#global-options" title="Link to this heading"></a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>--help<span class="w">                    </span><span class="c1"># Show help</span>
-scitex-cloud<span class="w"> </span>--help-recursive<span class="w">          </span><span class="c1"># Show all subcommands recursively</span>
-scitex-cloud<span class="w"> </span>--version<span class="w">                 </span><span class="c1"># Show version</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>--help<span class="w">                    </span><span class="c1"># Show help</span>
+scitex-hub<span class="w"> </span>--help-recursive<span class="w">          </span><span class="c1"># Show all subcommands recursively</span>
+scitex-hub<span class="w"> </span>--version<span class="w">                 </span><span class="c1"># Show version</span>
 </pre></div>
 </div>
 </section>
@@ -207,10 +207,10 @@ scitex-cloud<span class="w"> </span>--version<span class="w">                 </
 <h2>Project Management<a class="headerlink" href="#project-management" title="Link to this heading"></a></h2>
 <p>Create and manage SciTeX Cloud projects. <code class="docutils literal notranslate"><span class="pre">project</span> <span class="pre">create</span></code> triggers the
 full flow: Gitea repository + Django project + server-side workspace.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>project<span class="w"> </span>create<span class="w"> </span>my-research<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;Paper on X&quot;</span>
-scitex-cloud<span class="w"> </span>project<span class="w"> </span>list<span class="w"> </span><span class="o">[</span>--json<span class="o">]</span>
-scitex-cloud<span class="w"> </span>project<span class="w"> </span>delete<span class="w"> </span>my-research<span class="w"> </span>--yes
-scitex-cloud<span class="w"> </span>project<span class="w"> </span>rename<span class="w"> </span>my-research<span class="w"> </span>new-name
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>project<span class="w"> </span>create<span class="w"> </span>my-research<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;Paper on X&quot;</span>
+scitex-hub<span class="w"> </span>project<span class="w"> </span>list<span class="w"> </span><span class="o">[</span>--json<span class="o">]</span>
+scitex-hub<span class="w"> </span>project<span class="w"> </span>delete<span class="w"> </span>my-research<span class="w"> </span>--yes
+scitex-hub<span class="w"> </span>project<span class="w"> </span>rename<span class="w"> </span>my-research<span class="w"> </span>new-name
 </pre></div>
 </div>
 </section>
@@ -234,25 +234,25 @@ scitex-cloud<span class="w"> </span>project<span class="w"> </span>rename<span c
 </pre></div>
 </div>
 <p><strong>Git operations</strong> (committed changes):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>push<span class="w">              </span><span class="c1"># git push → Gitea</span>
-scitex-cloud<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>main<span class="w">  </span><span class="c1"># push specific branch</span>
-scitex-cloud<span class="w"> </span>pull<span class="w">              </span><span class="c1"># git pull ← Gitea</span>
-scitex-cloud<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </span>main<span class="w">  </span><span class="c1"># pull specific branch</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>push<span class="w">              </span><span class="c1"># git push → Gitea</span>
+scitex-hub<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>main<span class="w">  </span><span class="c1"># push specific branch</span>
+scitex-hub<span class="w"> </span>pull<span class="w">              </span><span class="c1"># git pull ← Gitea</span>
+scitex-hub<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </span>main<span class="w">  </span><span class="c1"># pull specific branch</span>
 </pre></div>
 </div>
 <p><strong>File sync</strong> (working tree, Dropbox-style):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>sync-to<span class="w">                    </span><span class="c1"># local → workspace</span>
-scitex-cloud<span class="w"> </span>sync-to<span class="w"> </span>ywatanabe/my-proj<span class="w">  </span><span class="c1"># explicit repo</span>
-scitex-cloud<span class="w"> </span>sync-to<span class="w"> </span>--dry-run<span class="w">          </span><span class="c1"># preview changes</span>
-scitex-cloud<span class="w"> </span>sync-from<span class="w">                  </span><span class="c1"># workspace → local</span>
-scitex-cloud<span class="w"> </span>sync-from<span class="w"> </span>--dry-run<span class="w">        </span><span class="c1"># preview changes</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>sync-to<span class="w">                    </span><span class="c1"># local → workspace</span>
+scitex-hub<span class="w"> </span>sync-to<span class="w"> </span>ywatanabe/my-proj<span class="w">  </span><span class="c1"># explicit repo</span>
+scitex-hub<span class="w"> </span>sync-to<span class="w"> </span>--dry-run<span class="w">          </span><span class="c1"># preview changes</span>
+scitex-hub<span class="w"> </span>sync-from<span class="w">                  </span><span class="c1"># workspace → local</span>
+scitex-hub<span class="w"> </span>sync-from<span class="w"> </span>--dry-run<span class="w">        </span><span class="c1"># preview changes</span>
 </pre></div>
 </div>
 <p>Conflict handling: when both sides changed the same file since the last
 sync, both versions are kept — the synced version overwrites, and the
 other side’s version is saved as <code class="docutils literal notranslate"><span class="pre">file.conflict-&lt;timestamp&gt;.ext</span></code>.</p>
 <p><strong>Status</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>sync-status<span class="w">  </span><span class="c1"># show divergence (alias: ss)</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>sync-status<span class="w">  </span><span class="c1"># show divergence (alias: ss)</span>
 </pre></div>
 </div>
 </section>
@@ -260,74 +260,74 @@ other side’s version is saved as <code class="docutils literal notranslate"><s
 <h2>Git Hosting (Gitea)<a class="headerlink" href="#git-hosting-gitea" title="Link to this heading"></a></h2>
 <p>Lower-level Gitea operations. For most workflows, use <code class="docutils literal notranslate"><span class="pre">push</span></code>/<code class="docutils literal notranslate"><span class="pre">pull</span></code>
 and <code class="docutils literal notranslate"><span class="pre">project</span> <span class="pre">create</span></code> instead.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>list<span class="w">                </span><span class="c1"># List repositories</span>
-scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>clone<span class="w"> </span>user/repo<span class="w">     </span><span class="c1"># Clone a repository</span>
-scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>create<span class="w"> </span>my-repo<span class="w">      </span><span class="c1"># Create Gitea repo only</span>
-scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>push<span class="w">                </span><span class="c1"># Push changes</span>
-scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>pull<span class="w">                </span><span class="c1"># Pull changes</span>
-scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>search<span class="w"> </span><span class="s2">&quot;query&quot;</span><span class="w">      </span><span class="c1"># Search repos</span>
-scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>fork<span class="w"> </span>user/repo<span class="w">      </span><span class="c1"># Fork a repo</span>
-scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>pr<span class="w"> </span>create<span class="w">           </span><span class="c1"># Create a pull request</span>
-scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>pr<span class="w"> </span>list<span class="w">             </span><span class="c1"># List pull requests</span>
-scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>issue<span class="w"> </span>create<span class="w">        </span><span class="c1"># Create an issue</span>
-scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>issue<span class="w"> </span>list<span class="w">          </span><span class="c1"># List issues</span>
-scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>login<span class="w">               </span><span class="c1"># Authenticate</span>
-scitex-cloud<span class="w"> </span>gitea<span class="w"> </span><span class="nb">logout</span><span class="w">              </span><span class="c1"># Remove credentials</span>
-scitex-cloud<span class="w"> </span>gitea<span class="w"> </span>status<span class="w">              </span><span class="c1"># Repo status</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>gitea<span class="w"> </span>list<span class="w">                </span><span class="c1"># List repositories</span>
+scitex-hub<span class="w"> </span>gitea<span class="w"> </span>clone<span class="w"> </span>user/repo<span class="w">     </span><span class="c1"># Clone a repository</span>
+scitex-hub<span class="w"> </span>gitea<span class="w"> </span>create<span class="w"> </span>my-repo<span class="w">      </span><span class="c1"># Create Gitea repo only</span>
+scitex-hub<span class="w"> </span>gitea<span class="w"> </span>push<span class="w">                </span><span class="c1"># Push changes</span>
+scitex-hub<span class="w"> </span>gitea<span class="w"> </span>pull<span class="w">                </span><span class="c1"># Pull changes</span>
+scitex-hub<span class="w"> </span>gitea<span class="w"> </span>search<span class="w"> </span><span class="s2">&quot;query&quot;</span><span class="w">      </span><span class="c1"># Search repos</span>
+scitex-hub<span class="w"> </span>gitea<span class="w"> </span>fork<span class="w"> </span>user/repo<span class="w">      </span><span class="c1"># Fork a repo</span>
+scitex-hub<span class="w"> </span>gitea<span class="w"> </span>pr<span class="w"> </span>create<span class="w">           </span><span class="c1"># Create a pull request</span>
+scitex-hub<span class="w"> </span>gitea<span class="w"> </span>pr<span class="w"> </span>list<span class="w">             </span><span class="c1"># List pull requests</span>
+scitex-hub<span class="w"> </span>gitea<span class="w"> </span>issue<span class="w"> </span>create<span class="w">        </span><span class="c1"># Create an issue</span>
+scitex-hub<span class="w"> </span>gitea<span class="w"> </span>issue<span class="w"> </span>list<span class="w">          </span><span class="c1"># List issues</span>
+scitex-hub<span class="w"> </span>gitea<span class="w"> </span>login<span class="w">               </span><span class="c1"># Authenticate</span>
+scitex-hub<span class="w"> </span>gitea<span class="w"> </span><span class="nb">logout</span><span class="w">              </span><span class="c1"># Remove credentials</span>
+scitex-hub<span class="w"> </span>gitea<span class="w"> </span>status<span class="w">              </span><span class="c1"># Repo status</span>
 </pre></div>
 </div>
 </section>
 <section id="app-management">
 <h2>App Management<a class="headerlink" href="#app-management" title="Link to this heading"></a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>app<span class="w"> </span>list<span class="w">                  </span><span class="c1"># List installed apps</span>
-scitex-cloud<span class="w"> </span>app<span class="w"> </span>info<span class="w"> </span>&lt;name&gt;<span class="w">           </span><span class="c1"># App details</span>
-scitex-cloud<span class="w"> </span>app<span class="w"> </span>current<span class="w">               </span><span class="c1"># Active app</span>
-scitex-cloud<span class="w"> </span>app<span class="w"> </span>init<span class="w"> </span>.<span class="w"> </span>--name<span class="w"> </span>my_app<span class="w">  </span><span class="c1"># Scaffold new app</span>
-scitex-cloud<span class="w"> </span>app<span class="w"> </span>check-deps<span class="w"> </span>&lt;name&gt;<span class="w">     </span><span class="c1"># Check dependencies</span>
-scitex-cloud<span class="w"> </span>app<span class="w"> </span>submit<span class="w"> </span>&lt;path&gt;<span class="w">         </span><span class="c1"># Submit for review</span>
-scitex-cloud<span class="w"> </span>app<span class="w"> </span>prefs<span class="w"> </span>get/set<span class="w">         </span><span class="c1"># User preferences</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>app<span class="w"> </span>list<span class="w">                  </span><span class="c1"># List installed apps</span>
+scitex-hub<span class="w"> </span>app<span class="w"> </span>info<span class="w"> </span>&lt;name&gt;<span class="w">           </span><span class="c1"># App details</span>
+scitex-hub<span class="w"> </span>app<span class="w"> </span>current<span class="w">               </span><span class="c1"># Active app</span>
+scitex-hub<span class="w"> </span>app<span class="w"> </span>init<span class="w"> </span>.<span class="w"> </span>--name<span class="w"> </span>my_app<span class="w">  </span><span class="c1"># Scaffold new app</span>
+scitex-hub<span class="w"> </span>app<span class="w"> </span>check-deps<span class="w"> </span>&lt;name&gt;<span class="w">     </span><span class="c1"># Check dependencies</span>
+scitex-hub<span class="w"> </span>app<span class="w"> </span>submit<span class="w"> </span>&lt;path&gt;<span class="w">         </span><span class="c1"># Submit for review</span>
+scitex-hub<span class="w"> </span>app<span class="w"> </span>prefs<span class="w"> </span>get/set<span class="w">         </span><span class="c1"># User preferences</span>
 </pre></div>
 </div>
 </section>
 <section id="cloud-sdk">
 <h2>Cloud SDK<a class="headerlink" href="#cloud-sdk" title="Link to this heading"></a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># DataStore (JSON CRUD)</span>
-scitex-cloud<span class="w"> </span>sdk<span class="w"> </span>data<span class="w"> </span>list<span class="p">|</span>create<span class="p">|</span>get<span class="p">|</span>update<span class="p">|</span>delete<span class="p">|</span>search
+scitex-hub<span class="w"> </span>sdk<span class="w"> </span>data<span class="w"> </span>list<span class="p">|</span>create<span class="p">|</span>get<span class="p">|</span>update<span class="p">|</span>delete<span class="p">|</span>search
 
 <span class="c1"># FileVault (file storage)</span>
-scitex-cloud<span class="w"> </span>sdk<span class="w"> </span>files<span class="w"> </span>list<span class="p">|</span>upload<span class="p">|</span>download<span class="p">|</span>delete
+scitex-hub<span class="w"> </span>sdk<span class="w"> </span>files<span class="w"> </span>list<span class="p">|</span>upload<span class="p">|</span>download<span class="p">|</span>delete
 
 <span class="c1"># JobQueue (background compute)</span>
-scitex-cloud<span class="w"> </span>sdk<span class="w"> </span><span class="nb">jobs</span><span class="w"> </span>submit<span class="p">|</span>status<span class="p">|</span>list<span class="p">|</span>cancel
+scitex-hub<span class="w"> </span>sdk<span class="w"> </span><span class="nb">jobs</span><span class="w"> </span>submit<span class="p">|</span>status<span class="p">|</span>list<span class="p">|</span>cancel
 </pre></div>
 </div>
 </section>
 <section id="infrastructure">
 <h2>Infrastructure<a class="headerlink" href="#infrastructure" title="Link to this heading"></a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>status<span class="w">                    </span><span class="c1"># Deployment health</span>
-scitex-cloud<span class="w"> </span>deploy<span class="w">                    </span><span class="c1"># Deploy to production</span>
-scitex-cloud<span class="w"> </span>setup<span class="w"> </span><span class="o">[</span>--env<span class="w"> </span>dev<span class="p">|</span>prod<span class="o">]</span><span class="w">    </span><span class="c1"># Setup environment</span>
-scitex-cloud<span class="w"> </span>docker<span class="w"> </span>up<span class="p">|</span>down<span class="p">|</span>restart<span class="w">    </span><span class="c1"># Container management</span>
-scitex-cloud<span class="w"> </span>logs<span class="w"> </span><span class="o">[</span>service<span class="o">]</span><span class="w">            </span><span class="c1"># View logs</span>
-scitex-cloud<span class="w"> </span>ssh<span class="w">                       </span><span class="c1"># SSH into cloud instance</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>status<span class="w">                    </span><span class="c1"># Deployment health</span>
+scitex-hub<span class="w"> </span>deploy<span class="w">                    </span><span class="c1"># Deploy to production</span>
+scitex-hub<span class="w"> </span>setup<span class="w"> </span><span class="o">[</span>--env<span class="w"> </span>dev<span class="p">|</span>prod<span class="o">]</span><span class="w">    </span><span class="c1"># Setup environment</span>
+scitex-hub<span class="w"> </span>docker<span class="w"> </span>up<span class="p">|</span>down<span class="p">|</span>restart<span class="w">    </span><span class="c1"># Container management</span>
+scitex-hub<span class="w"> </span>logs<span class="w"> </span><span class="o">[</span>service<span class="o">]</span><span class="w">            </span><span class="c1"># View logs</span>
+scitex-hub<span class="w"> </span>ssh<span class="w">                       </span><span class="c1"># SSH into cloud instance</span>
 </pre></div>
 </div>
 </section>
 <section id="mcp-server">
 <h2>MCP Server<a class="headerlink" href="#mcp-server" title="Link to this heading"></a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>mcp<span class="w"> </span>start<span class="w">                 </span><span class="c1"># Start the MCP server</span>
-scitex-cloud<span class="w"> </span>mcp<span class="w"> </span>list-tools<span class="w">            </span><span class="c1"># List available MCP tools</span>
-scitex-cloud<span class="w"> </span>mcp<span class="w"> </span>doctor<span class="w">                </span><span class="c1"># Diagnose MCP setup</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>mcp<span class="w"> </span>start<span class="w">                 </span><span class="c1"># Start the MCP server</span>
+scitex-hub<span class="w"> </span>mcp<span class="w"> </span>list-tools<span class="w">            </span><span class="c1"># List available MCP tools</span>
+scitex-hub<span class="w"> </span>mcp<span class="w"> </span>doctor<span class="w">                </span><span class="c1"># Diagnose MCP setup</span>
 </pre></div>
 </div>
 <p>For full MCP documentation, see <a class="reference internal" href="mcp.html"><span class="doc">MCP Server</span></a>.</p>
 </section>
 <section id="utilities">
 <h2>Utilities<a class="headerlink" href="#utilities" title="Link to this heading"></a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-cloud<span class="w"> </span>completion<span class="w">                </span><span class="c1"># Set up shell completion</span>
-scitex-cloud<span class="w"> </span>list-python-apis<span class="w">          </span><span class="c1"># List all available Python APIs</span>
-scitex-cloud<span class="w"> </span>skills<span class="w"> </span>list<span class="w">               </span><span class="c1"># List available skills</span>
-scitex-cloud<span class="w"> </span>skills<span class="w"> </span>get<span class="w"> </span>&lt;name&gt;<span class="w">         </span><span class="c1"># Show a skill</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>completion<span class="w">                </span><span class="c1"># Set up shell completion</span>
+scitex-hub<span class="w"> </span>list-python-apis<span class="w">          </span><span class="c1"># List all available Python APIs</span>
+scitex-hub<span class="w"> </span>skills<span class="w"> </span>list<span class="w">               </span><span class="c1"># List available skills</span>
+scitex-hub<span class="w"> </span>skills<span class="w"> </span>get<span class="w"> </span>&lt;name&gt;<span class="w">         </span><span class="c1"># Show a skill</span>
 </pre></div>
 </div>
 </section>

@@ -23,11 +23,11 @@ jobs:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.CLA_PERSONAL_ACCESS_TOKEN }}
         with:
           path-to-signatures: "signatures/cla.json"
-          path-to-document: "https://github.com/ywatanabe1989/scitex-cloud/blob/main/CLA.md"
+          path-to-document: "https://github.com/ywatanabe1989/scitex-hub/blob/main/CLA.md"
           branch: "cla-signatures"
           allowlist: bot*,ywatanabe1989
           custom-allsigned-prcomment: |
             Thank you for signing the SciTeX CLA. Your contribution can now be reviewed.
           custom-notsigned-prcomment: |
-            Please sign the [SciTeX CLA](https://github.com/ywatanabe1989/scitex-cloud/blob/main/CLA.md) before your contribution can be merged.
+            Please sign the [SciTeX CLA](https://github.com/ywatanabe1989/scitex-hub/blob/main/CLA.md) before your contribution can be merged.
             Comment `I have read and agree to the SciTeX CLA.` to sign.

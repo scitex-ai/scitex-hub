@@ -13,7 +13,7 @@ def register_app_tools(mcp) -> None:
 
     @mcp.tool()
     async def app_get_current() -> str:
-        """Use when the user asks which SciTeX app is active, wants to know the current context, or mentions app switching; replaces `scitex-cloud app current` CLI invocations when the agent needs to introspect which app is selected (reads SCITEX_CURRENT_APP)."""
+        """Use when the user asks which SciTeX app is active, wants to know the current context, or mentions app switching; replaces `scitex-hub app current` CLI invocations when the agent needs to introspect which app is selected (reads SCITEX_CURRENT_APP)."""
         from scitex_hub.appmaker import get_current
 
         name = get_current()
@@ -21,7 +21,7 @@ def register_app_tools(mcp) -> None:
 
     @mcp.tool()
     async def app_switch_to(app_name: str) -> str:
-        """Use when the user asks to switch apps, change to writer/scholar/etc., or mentions activating a different SciTeX app; replaces `scitex-cloud app switch <name>` CLI invocations (sets SCITEX_CURRENT_APP).
+        """Use when the user asks to switch apps, change to writer/scholar/etc., or mentions activating a different SciTeX app; replaces `scitex-hub app switch <name>` CLI invocations (sets SCITEX_CURRENT_APP).
 
         Args:
             app_name: Name of the app to switch to (e.g. "writer", "scholar").
@@ -33,7 +33,7 @@ def register_app_tools(mcp) -> None:
 
     @mcp.tool()
     async def app_list_all() -> str:
-        """Use when the user asks what SciTeX apps exist, to enumerate the app registry, or to pick an app; replaces `scitex-cloud app list` CLI invocations when the agent needs to introspect available apps (names, labels, icons, ordering)."""
+        """Use when the user asks what SciTeX apps exist, to enumerate the app registry, or to pick an app; replaces `scitex-hub app list` CLI invocations when the agent needs to introspect available apps (names, labels, icons, ordering)."""
         from scitex_hub.appmaker import list_all
 
         apps = list_all()
@@ -41,7 +41,7 @@ def register_app_tools(mcp) -> None:
 
     @mcp.tool()
     async def app_get_info(app_name: str) -> str:
-        """Use when the user asks for details, metadata, or manifest of a specific SciTeX app; replaces `scitex-cloud app info <name>` CLI invocations when the agent needs to introspect an app's config.
+        """Use when the user asks for details, metadata, or manifest of a specific SciTeX app; replaces `scitex-hub app info <name>` CLI invocations when the agent needs to introspect an app's config.
 
         Args:
             app_name: Name of the app (e.g. "writer", "scholar").
@@ -55,7 +55,7 @@ def register_app_tools(mcp) -> None:
 
     @mcp.tool()
     async def app_check_deps(app_dir: str = ".") -> str:
-        """Use when the user asks to verify an app's dependencies, check if python/node/system/R packages are installed, or diagnose a missing-dependency error for a SciTeX app; replaces `scitex-cloud app check-deps` CLI invocations.
+        """Use when the user asks to verify an app's dependencies, check if python/node/system/R packages are installed, or diagnose a missing-dependency error for a SciTeX app; replaces `scitex-hub app check-deps` CLI invocations.
 
         Args:
             app_dir: Path to the app directory containing manifest.json.
@@ -83,7 +83,7 @@ def register_app_tools(mcp) -> None:
 
     @mcp.tool()
     async def app_get_prefs(app_name: str) -> str:
-        """Use when the user asks for saved app settings, preferences, or config for a SciTeX app; replaces `scitex-cloud app prefs get <name>` CLI invocations when the agent needs to introspect persisted user preferences.
+        """Use when the user asks for saved app settings, preferences, or config for a SciTeX app; replaces `scitex-hub app prefs get <name>` CLI invocations when the agent needs to introspect persisted user preferences.
 
         Args:
             app_name: Name of the app (e.g. "writer", "scholar").
@@ -95,7 +95,7 @@ def register_app_tools(mcp) -> None:
 
     @mcp.tool()
     async def app_set_prefs(app_name: str, prefs_json: str) -> str:
-        """Use when the user asks to save/update/merge preferences or settings for a SciTeX app; replaces `scitex-cloud app prefs set <name> <json>` CLI invocations (merges with existing prefs; does not replace).
+        """Use when the user asks to save/update/merge preferences or settings for a SciTeX app; replaces `scitex-hub app prefs set <name> <json>` CLI invocations (merges with existing prefs; does not replace).
 
         Args:
             app_name: Name of the app (e.g. "writer", "scholar").

@@ -178,7 +178,7 @@
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">App Platform</li>
       <li class="wy-breadcrumbs-aside">
-              <a href="https://github.com/ywatanabe1989/scitex-cloud/blob/main/docs/sphinx/app_platform.rst" class="fa fa-github"> Edit on GitHub</a>
+              <a href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/sphinx/app_platform.rst" class="fa fa-github"> Edit on GitHub</a>
       </li>
   </ul>
   <hr/>
@@ -197,7 +197,7 @@ tooling so apps can focus on domain logic.</p>
 <p>This page describes what the <strong>platform</strong> provides.
 For the developer-facing workflow — scaffolding, manifest schema,
 frontend integration — see the
-<a class="reference external" href="https://github.com/ywatanabe1989/scitex-cloud/blob/main/docs/APP_DEVELOPER_GUIDE.md">App Developer Guide</a>
+<a class="reference external" href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/APP_DEVELOPER_GUIDE.md">App Developer Guide</a>
 and the <code class="docutils literal notranslate"><span class="pre">scitex-app</span></code> package documentation.</p>
 </div>
 <p>—</p>
@@ -353,7 +353,7 @@ the platform handles routing and authentication.</p>
 <h2>App Registration<a class="headerlink" href="#app-registration" title="Link to this heading"></a></h2>
 <section id="built-in-apps">
 <h3>Built-in Apps<a class="headerlink" href="#built-in-apps" title="Link to this heading"></a></h3>
-<p>Built-in apps ship inside the <code class="docutils literal notranslate"><span class="pre">scitex-cloud</span></code> repository.  They are
+<p>Built-in apps ship inside the <code class="docutils literal notranslate"><span class="pre">scitex-hub</span></code> repository.  They are
 listed in <code class="docutils literal notranslate"><span class="pre">_BUILTIN_MANIFEST_PATHS</span></code> in <code class="docutils literal notranslate"><span class="pre">apps/infra/workspace_app/registry.py</span></code>
 and are loaded unconditionally at startup.</p>
 </section>
@@ -367,7 +367,7 @@ and are loaded unconditionally at startup.</p>
 </div>
 <p>The platform calls <code class="docutils literal notranslate"><span class="pre">discover_external_modules()</span></code> at startup and
 registers any apps found via this mechanism.  No code changes to
-<code class="docutils literal notranslate"><span class="pre">scitex-cloud</span></code> are required.</p>
+<code class="docutils literal notranslate"><span class="pre">scitex-hub</span></code> are required.</p>
 </section>
 <section id="context-bootstrap">
 <h3>Context Bootstrap<a class="headerlink" href="#context-bootstrap" title="Link to this heading"></a></h3>
@@ -466,12 +466,12 @@ check is required after approval.</p></li>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scitex-cloud</span></code> (this project)</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scitex-hub</span></code> (this project)</p></td>
 <td><p>Platform APIs, workspace layout, registry, isolation enforcement,
 store, review workflow, built-in apps</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">scitex-app</span></code> (pip package)</p></td>
-<td><p>Developer CLI (<code class="docutils literal notranslate"><span class="pre">scitex-cloud</span> <span class="pre">app</span> <span class="pre">init</span></code>), manifest schema
+<td><p>Developer CLI (<code class="docutils literal notranslate"><span class="pre">scitex-hub</span> <span class="pre">app</span> <span class="pre">init</span></code>), manifest schema
 validation, scaffold templates, local dev server integration</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scitex-ui</span></code> (npm package)</p></td>
@@ -484,7 +484,7 @@ optionally a React/Vite frontend</p></td>
 </tr>
 </tbody>
 </table>
-<p>Django code in <code class="docutils literal notranslate"><span class="pre">scitex-cloud</span></code> is intentionally a <strong>thin wrapper</strong>.
+<p>Django code in <code class="docutils literal notranslate"><span class="pre">scitex-hub</span></code> is intentionally a <strong>thin wrapper</strong>.
 Business logic lives in the <code class="docutils literal notranslate"><span class="pre">scitex</span></code> Python package and is exposed to
 apps via ScitexBridge, not re-implemented per-app.</p>
 <p>—</p>
@@ -492,7 +492,7 @@ apps via ScitexBridge, not re-implemented per-app.</p>
 <section id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><a class="reference external" href="https://github.com/ywatanabe1989/scitex-cloud/blob/main/docs/APP_DEVELOPER_GUIDE.md">App Developer Guide</a> — full manifest schema, scaffold CLI, and frontend integration</p></li>
+<li><p><a class="reference external" href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/APP_DEVELOPER_GUIDE.md">App Developer Guide</a> — full manifest schema, scaffold CLI, and frontend integration</p></li>
 <li><p><a class="reference external" href="https://github.com/ywatanabe1989/figrecipe">figrecipe</a> — reference implementation</p></li>
 <li><p><a class="reference external" href="https://pypi.org/project/scitex-app/">scitex-app</a> — developer CLI package</p></li>
 <li><p><a class="reference external" href="https://www.npmjs.com/package/&#64;scitex/ui">scitex-ui</a> — shared UI components</p></li>

@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2025-11-28 13:43:42
 !-- Author: ywatanabe
-!-- File: /ssh:ywatanabe@nas:/home/ywatanabe/proj/scitex-cloud/deployment/STATUS.md
+!-- File: /ssh:ywatanabe@nas:/home/ywatanabe/proj/scitex-hub/deployment/STATUS.md
 !-- --- -->
 
 # Server Status Page
@@ -99,10 +99,10 @@ Starting (Orange)
 
 ```bash
 # Check logs
-docker logs scitex-cloud-prod-django-1
+docker logs scitex-hub-prod-django-1
 
 # Restart service
-docker restart scitex-cloud-prod-django-1
+docker restart scitex-hub-prod-django-1
 
 # Full rebuild
 make ENV=prod build && make ENV=prod restart

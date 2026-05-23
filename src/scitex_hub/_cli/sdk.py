@@ -14,9 +14,9 @@ def sdk():
 
     \b
     Examples:
-        scitex-cloud sdk data list my-app Experiment
-        scitex-cloud sdk files upload my-app local.csv exports/data.csv
-        scitex-cloud sdk jobs submit my-app export_csv --params '{"fmt":"xlsx"}'
+        scitex-hub sdk data list my-app Experiment
+        scitex-hub sdk files upload my-app local.csv exports/data.csv
+        scitex-hub sdk jobs submit my-app export_csv --params '{"fmt":"xlsx"}'
     """
     pass
 

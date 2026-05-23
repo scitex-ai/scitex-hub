@@ -28,10 +28,10 @@ def project():
 
     \b
     Examples:
-        scitex-cloud project list
-        scitex-cloud project create my-research --description "Paper on X"
-        scitex-cloud project delete my-research --yes
-        scitex-cloud project rename my-research new-name
+        scitex-hub project list
+        scitex-hub project create my-research --description "Paper on X"
+        scitex-hub project delete my-research --yes
+        scitex-hub project rename my-research new-name
     """
 
 

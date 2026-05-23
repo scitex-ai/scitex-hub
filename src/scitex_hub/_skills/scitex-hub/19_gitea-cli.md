@@ -2,46 +2,46 @@
 description: |
   [TOPIC] Gitea CLI
   [DETAILS] Gitea Git hosting CLI — repository management, fork, clone, PR, issue, push/pull, auth. Backend is git.scitex.ai via the `tea` CLI wrapper..
-tags: [scitex-cloud-gitea-cli]
+tags: [scitex-hub-gitea-cli]
 ---
 
 # Gitea CLI
 
-All commands under `scitex-cloud gitea`. Backend: `git.scitex.ai` (wraps the `tea` CLI).
+All commands under `scitex-hub gitea`. Backend: `git.scitex.ai` (wraps the `tea` CLI).
 
 ## Authentication
 
 ```bash
-scitex-cloud gitea login    # authenticate with Gitea
-scitex-cloud gitea logout   # clear credentials
+scitex-hub gitea login    # authenticate with Gitea
+scitex-hub gitea logout   # clear credentials
 ```
 
 ## Repository Management
 
 ```bash
-scitex-cloud gitea create <name>           # create repo on Gitea
-scitex-cloud gitea list                    # list your repos
-scitex-cloud gitea search <query>          # search repos
-scitex-cloud gitea clone <user/repo>       # clone from Gitea
-scitex-cloud gitea fork <user/repo>        # fork a repo
-scitex-cloud gitea delete <user/repo>      # delete a repo
-scitex-cloud gitea status                  # show current repo status
+scitex-hub gitea create <name>           # create repo on Gitea
+scitex-hub gitea list                    # list your repos
+scitex-hub gitea search <query>          # search repos
+scitex-hub gitea clone <user/repo>       # clone from Gitea
+scitex-hub gitea fork <user/repo>        # fork a repo
+scitex-hub gitea delete <user/repo>      # delete a repo
+scitex-hub gitea status                  # show current repo status
 ```
 
 ## Collaboration
 
 ```bash
 # Pull requests
-scitex-cloud gitea pr create               # open a PR
-scitex-cloud gitea pr list                 # list open PRs
+scitex-hub gitea pr create               # open a PR
+scitex-hub gitea pr list                 # list open PRs
 
 # Issues
-scitex-cloud gitea issue create            # create an issue
-scitex-cloud gitea issue list              # list issues
+scitex-hub gitea issue create            # create an issue
+scitex-hub gitea issue list              # list issues
 
 # Sync committed changes
-scitex-cloud gitea push [remote] [branch]  # push to Gitea
-scitex-cloud gitea pull [remote] [branch]  # pull from Gitea
+scitex-hub gitea push [remote] [branch]  # push to Gitea
+scitex-hub gitea pull [remote] [branch]  # pull from Gitea
 ```
 
 ## MCP Tools
@@ -73,13 +73,13 @@ scitex-cloud gitea pull [remote] [branch]  # pull from Gitea
 ## Examples
 
 ```bash
-scitex-cloud gitea login
-scitex-cloud gitea create my-new-repo
-scitex-cloud gitea clone ywatanabe/my-new-repo
+scitex-hub gitea login
+scitex-hub gitea create my-new-repo
+scitex-hub gitea clone ywatanabe/my-new-repo
 cd my-new-repo
 # ... make changes, git commit ...
-scitex-cloud gitea push
-scitex-cloud gitea pr create
+scitex-hub gitea push
+scitex-hub gitea pr create
 ```
 
 # EOF

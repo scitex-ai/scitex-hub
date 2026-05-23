@@ -408,16 +408,16 @@ path('<str:username>/<str:slug>/api/branches/', views.api_branches, name='api_br
 ### IMPLEMENTED (2025-10-24)
 
 **Backend Implementation:**
-- Created social interaction models in `/home/ywatanabe/proj/scitex-cloud/apps/project_app/models.py`:
+- Created social interaction models in `/home/ywatanabe/proj/scitex-hub/apps/project_app/models.py`:
   - `ProjectWatch` - Track users watching projects for notifications
   - `ProjectStar` - Track users starring projects
   - `ProjectFork` - Track project forks
-- Created API views in `/home/ywatanabe/proj/scitex-cloud/apps/project_app/api_views_module/api_views.py`:
+- Created API views in `/home/ywatanabe/proj/scitex-hub/apps/project_app/api_views_module/api_views.py`:
   - `api_project_watch` - POST endpoint to toggle watch status
   - `api_project_star` - POST endpoint to toggle star status
   - `api_project_fork` - POST endpoint to create project fork
   - `api_project_stats` - GET endpoint to fetch counts and user status
-- Added API routes to `/home/ywatanabe/proj/scitex-cloud/apps/project_app/user_urls.py`:
+- Added API routes to `/home/ywatanabe/proj/scitex-hub/apps/project_app/user_urls.py`:
   - `/<username>/<slug>/api/watch/` - Toggle watch
   - `/<username>/<slug>/api/star/` - Toggle star
   - `/<username>/<slug>/api/fork/` - Create fork
@@ -425,7 +425,7 @@ path('<str:username>/<str:slug>/api/branches/', views.api_branches, name='api_br
 - Created and ran database migration: `0013_projectfork_projectstar_projectwatch.py`
 
 **Frontend Implementation:**
-- Updated `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_detail.html`:
+- Updated `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_detail.html`:
   - Added CSS styles for GitHub-style action buttons
   - Added Watch/Star/Fork buttons to repository header
   - Implemented JavaScript handlers for all three actions

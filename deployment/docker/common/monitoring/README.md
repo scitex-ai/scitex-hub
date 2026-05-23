@@ -11,5 +11,5 @@ Health check scripts.
 ## Usage
 
 ```bash
-docker exec scitex-cloud-dev-django-1 /app/common/scripts/maintenance/django_check_status.sh
+docker exec scitex-hub-dev-django-1 /app/common/scripts/maintenance/django_check_status.sh
 ```

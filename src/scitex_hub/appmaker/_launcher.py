@@ -29,7 +29,7 @@ def dev_server(app_dir: str | Path, port: int = 8000) -> None:
     # Check basic structure
     if not (root / "apps.py").exists():
         print(f"Error: {root} does not look like a SciTeX Cloud app (missing apps.py).")
-        print("Run 'scitex-cloud app init' first to scaffold the boilerplate.")
+        print("Run 'scitex-hub app init' first to scaffold the boilerplate.")
         sys.exit(1)
 
     # Run validation
@@ -80,14 +80,14 @@ def dev_server(app_dir: str | Path, port: int = 8000) -> None:
     print()
     print(f"  3. Open http://127.0.0.1:{port} and switch to your app tab")
     print()
-    print("  Tip: Run 'scitex-cloud app validate .' to check your app.")
+    print("  Tip: Run 'scitex-hub app validate .' to check your app.")
     print()
     print("  Note: Do NOT edit registry.py or INSTALLED_APPS —")
     print("  those are for platform-builtin modules only.")
 
 
 def _find_project_root() -> Path | None:
-    """Walk up from cwd to find the scitex-cloud project root."""
+    """Walk up from cwd to find the scitex-hub project root."""
     current = Path.cwd()
     for parent in [current, *current.parents]:
         if (parent / "manage.py").exists() and (parent / "apps").exists():

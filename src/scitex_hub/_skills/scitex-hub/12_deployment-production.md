@@ -2,7 +2,7 @@
 description: |
   [TOPIC] Deploy to Production
   [DETAILS] Deploy SciTeX Cloud to production — zero-downtime build, swap, verify..
-tags: [scitex-cloud-deployment-production]
+tags: [scitex-hub-deployment-production]
 ---
 
 # Deploy to Production
@@ -13,7 +13,7 @@ tags: [scitex-cloud-deployment-production]
 
 **NEVER run `docker build` directly on NAS.** ALWAYS use:
 ```bash
-ssh nas 'cd ~/proj/scitex-cloud && make ENV=prod YES=1 rebuild'
+ssh nas 'cd ~/proj/scitex-hub && make ENV=prod YES=1 rebuild'
 ```
 
 `make rebuild` calls `scripts/deploy/rebuild.sh` which has:
@@ -33,13 +33,13 @@ Running raw `docker build` bypasses ALL these protections and **will crash the N
 
 ## Step 1: Sync NAS repo
 ```bash
-ssh nas 'cd ~/proj/scitex-cloud && git pull origin develop'
+ssh nas 'cd ~/proj/scitex-hub && git pull origin develop'
 ```
 
 ## Step 2: Build prod in screen (survives SSH disconnect)
 ```bash
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-ssh nas "screen -dmS rebuild-$TIMESTAMP bash -c 'cd ~/proj/scitex-cloud && make ENV=prod YES=1 rebuild 2>&1 | tee /tmp/scitex-rebuild-$TIMESTAMP.log'"
+ssh nas "screen -dmS rebuild-$TIMESTAMP bash -c 'cd ~/proj/scitex-hub && make ENV=prod YES=1 rebuild 2>&1 | tee /tmp/scitex-rebuild-$TIMESTAMP.log'"
 ```
 
 Before rebuild — stop non-essential containers to free memory for npm install:
@@ -59,13 +59,13 @@ ssh nas "screen -ls"
 
 ```bash
 # 1. Check container health
-ssh nas 'docker ps --format "{{.Names}}: {{.Status}}" | grep scitex-cloud'
+ssh nas 'docker ps --format "{{.Names}}: {{.Status}}" | grep scitex-hub'
 
 # 2. READ Django logs — this is where real errors show
-ssh nas 'docker logs scitex-cloud-prod-django-1 --tail 50'
+ssh nas 'docker logs scitex-hub-prod-django-1 --tail 50'
 
 # 3. READ Celery worker logs — stale task names cause KeyError
-ssh nas 'docker logs scitex-cloud-prod-celery_worker-1 --tail 30'
+ssh nas 'docker logs scitex-hub-prod-celery_worker-1 --tail 30'
 
 # 4. Check site HTTP
 curl -sL -o /dev/null -w "%{http_code}" https://scitex.ai/
@@ -106,7 +106,7 @@ sshpass -p "$NAS_PASS" ssh nas "echo '$NAS_PASS' | sudo -S systemctl daemon-relo
 
 ### Celery Stale Task Names
 - After renaming apps, old task names persist in Redis
-- Fix: `docker exec scitex-cloud-prod-redis-1 redis-cli FLUSHALL`
+- Fix: `docker exec scitex-hub-prod-redis-1 redis-cli FLUSHALL`
 
 ### Dockerfile Intentional Double Install (Cache Strategy)
 - **Layer C0** (pinned): `uv pip install --system "scitex-ui==X.Y.Z"` — sets cache baseline
@@ -132,11 +132,11 @@ sshpass -p "$NAS_PASS" ssh nas "echo '$NAS_PASS' | sudo -S systemctl daemon-relo
 - **Root cause:** `pyproject.toml` in an ecosystem package (e.g. scitex-ui, figrecipe) is malformed or missing a field
 - **Fix:** Repair the `pyproject.toml`, then run a full rebuild:
   ```bash
-  ssh nas 'cd ~/proj/scitex-cloud && make env=prod rebuild YES=1'
+  ssh nas 'cd ~/proj/scitex-hub && make env=prod rebuild YES=1'
   ```
 - **Verify after rebuild:**
   ```bash
-  ssh nas 'docker ps --format "{{.Names}} {{.Status}}" | grep scitex-cloud'
+  ssh nas 'docker ps --format "{{.Names}} {{.Status}}" | grep scitex-hub'
   ```
 
 ### Missing Imports in Visitor Pool (Critical Silent Failure)
@@ -164,5 +164,5 @@ Use named screen sessions with dates so you can find and re-attach them:
 ssh nas "screen -S deploy-$(date +%Y%m%d)"
 # Or inline:
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-ssh nas "screen -dmS deploy-$TIMESTAMP bash -c 'cd ~/proj/scitex-cloud && make env=prod rebuild YES=1 2>&1 | tee /tmp/scitex-rebuild-$TIMESTAMP.log'"
+ssh nas "screen -dmS deploy-$TIMESTAMP bash -c 'cd ~/proj/scitex-hub && make env=prod rebuild YES=1 2>&1 | tee /tmp/scitex-rebuild-$TIMESTAMP.log'"
 ```

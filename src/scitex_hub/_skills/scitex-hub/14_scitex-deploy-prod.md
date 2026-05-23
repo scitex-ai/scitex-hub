@@ -2,7 +2,7 @@
 description: |
   [TOPIC] SciTeX Cloud - Deploy Production
   [DETAILS] SciTeX Cloud - Deploy Production.
-tags: [scitex-cloud-scitex-deploy-prod]
+tags: [scitex-hub-scitex-deploy-prod]
 ---
 # SciTeX Cloud - Deploy Production
 
@@ -15,12 +15,12 @@ tags: [scitex-cloud-scitex-deploy-prod]
 
 ## Step 1: Sync NAS repo to latest
 ```bash
-ssh nas "cd ~/proj/scitex-cloud && git pull origin develop"
+ssh nas "cd ~/proj/scitex-hub && git pull origin develop"
 ```
 
 ## Step 2: Build prod image WHILE prod stays running (zero downtime during build)
 ```bash
-ssh nas "cd ~/proj/scitex-cloud/deployment/docker/docker_prod && \
+ssh nas "cd ~/proj/scitex-hub/deployment/docker/docker_prod && \
   nohup docker compose build --no-cache > /tmp/prod-build.log 2>&1 &"
 ```
 
@@ -33,7 +33,7 @@ ssh nas "ps aux | grep 'docker.*build' | grep -v grep"
 ## Step 4: Once build completes, restart containers (minimal downtime ~10s)
 ```bash
 # Confirm with user before this step - it causes brief downtime
-ssh nas "cd ~/proj/scitex-cloud/deployment/docker/docker_prod && \
+ssh nas "cd ~/proj/scitex-hub/deployment/docker/docker_prod && \
   docker compose down && docker compose up -d"
 ```
 
@@ -50,7 +50,7 @@ ssh nas "curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8012/"
 ## Step 6: Purge Cloudflare cache (if needed)
 The rebuild.sh script handles this automatically, but if doing manual deploy:
 ```bash
-ssh nas "cd ~/proj/scitex-cloud && bash scripts/deploy/purge_cache.sh"
+ssh nas "cd ~/proj/scitex-hub && bash scripts/deploy/purge_cache.sh"
 ```
 
 ## Key Details
@@ -68,13 +68,13 @@ gitea, umami, nginx, cloudflared, autoheal, ws_ssh_proxy
 ## Rollback (if something goes wrong)
 ```bash
 # Check recent images
-ssh nas "docker images | grep scitex-cloud-prod"
+ssh nas "docker images | grep scitex-hub-prod"
 
 # If containers are crashing, check logs
-ssh nas "cd ~/proj/scitex-cloud/deployment/docker/docker_prod && \
+ssh nas "cd ~/proj/scitex-hub/deployment/docker/docker_prod && \
   docker compose logs django --tail 50"
 
 # Revert to previous git commit and rebuild
-ssh nas "cd ~/proj/scitex-cloud && git checkout HEAD~1"
+ssh nas "cd ~/proj/scitex-hub && git checkout HEAD~1"
 # Then repeat build + restart steps
 ```

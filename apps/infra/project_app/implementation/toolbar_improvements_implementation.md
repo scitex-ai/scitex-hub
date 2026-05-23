@@ -150,7 +150,7 @@ From TODO.md line 37:
 
 ## Files Modified
 
-1. `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_directory.html`
+1. `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_directory.html`
    - Lines 362-430: Repository tabs (kept)
    - Lines 432-539: NEW file browser toolbar
    - Lines 749-891: NEW JavaScript functions for toolbar

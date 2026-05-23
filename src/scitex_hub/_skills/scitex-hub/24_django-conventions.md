@@ -2,7 +2,7 @@
 description: |
   [TOPIC] Django Full-Stack Conventions
   [DETAILS] Django full-stack conventions — 1:1:1:1 correspondence, directory structure, naming, URL patterns, no inline styles..
-tags: [scitex-cloud-django-conventions]
+tags: [scitex-hub-django-conventions]
 ---
 
 # Django Full-Stack Conventions

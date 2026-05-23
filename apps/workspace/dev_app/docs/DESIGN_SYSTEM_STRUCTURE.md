@@ -163,7 +163,7 @@ To edit a specific design section:
 
 Example: To modify the color palette
 ```bash
-nano /home/ywatanabe/proj/scitex-cloud/apps/dev_app/templates/dev_app/design_partial/colors.html
+nano /home/ywatanabe/proj/scitex-hub/apps/dev_app/templates/dev_app/design_partial/colors.html
 ```
 
 ## Adding New Sections

@@ -1,11 +1,11 @@
 ---
 description: |
-  [TOPIC] scitex-cloud — Environment Variables
-  [DETAILS] Environment variables read by scitex-cloud at import / runtime. Follow SCITEX_<MODULE>_* convention — see general/10_arch-environment-variables.md..
-tags: [scitex-cloud-env-vars]
+  [TOPIC] scitex-hub — Environment Variables
+  [DETAILS] Environment variables read by scitex-hub at import / runtime. Follow SCITEX_<MODULE>_* convention — see general/10_arch-environment-variables.md..
+tags: [scitex-hub-env-vars]
 ---
 
-# scitex-cloud — Environment Variables
+# scitex-hub — Environment Variables
 
 ## Environment selection
 
@@ -13,7 +13,7 @@ tags: [scitex-cloud-env-vars]
 |---|---|---|---|
 | `SCITEX_CLOUD_ENV` | Target environment (`dev`, `staging`, `prod`, `onsite`). | `dev` | string |
 | `SCITEX_CLOUD_CONFIG` | Path to YAML config. | bundled | path |
-| `SCITEX_CLOUD_ROOT` | Root directory of the scitex-cloud repo (dev). | repo-root | path |
+| `SCITEX_CLOUD_ROOT` | Root directory of the scitex-hub repo (dev). | repo-root | path |
 | `SCITEX_CLOUD_WORKSPACE` / `SCITEX_WORKSPACE` | Active workspace name. | `default` | string |
 | `SCITEX_CLOUD_IS_ON_SITE` | Mark the deployment as on-site (enables on-site tools only). | `false` | bool |
 | `SCITEX_CLOUD_COMPLETE` | Internal sentinel: standalone importable. | unset | bool (presence) |
@@ -80,5 +80,5 @@ tags: [scitex-cloud-env-vars]
 ## Audit
 
 ```bash
-grep -rhoE 'SCITEX_[A-Z0-9_]+' $HOME/proj/scitex-cloud/src/ | sort -u
+grep -rhoE 'SCITEX_[A-Z0-9_]+' $HOME/proj/scitex-hub/src/ | sort -u
 ```

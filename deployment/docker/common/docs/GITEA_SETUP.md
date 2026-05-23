@@ -20,7 +20,7 @@ SCITEX_CLOUD_GITEA_TOKEN_DEV=<token>
 ## Generate Token
 
 ```bash
-docker exec -u git scitex-cloud-dev-gitea-1 gitea admin user generate-access-token \
+docker exec -u git scitex-hub-dev-gitea-1 gitea admin user generate-access-token \
   --username admin \
   --token-name "django-token" \
   --scopes "write:admin,write:repository,write:user"

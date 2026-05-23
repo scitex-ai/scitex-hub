@@ -2,7 +2,7 @@
 description: |
   [TOPIC] Mobile Testing with Playwright
   [DETAILS] Mobile responsive testing patterns, key file locations, and Playwright mobile emulation setup.
-tags: [scitex-cloud-mobile-testing]
+tags: [scitex-hub-mobile-testing]
 ---
 
 # Mobile Testing with Playwright

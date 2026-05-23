@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2026-03-02
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/docs/MASTER/03_SHARED_UI_COMPONENTS.md
+!-- File: /home/ywatanabe/proj/scitex-hub/docs/MASTER/03_SHARED_UI_COMPONENTS.md
 !-- --- -->
 
 # Shared UI Components for App Plugins

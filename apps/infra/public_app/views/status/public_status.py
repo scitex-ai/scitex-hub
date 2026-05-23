@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2026-03-22 00:00:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/views/status/public_status.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/public_app/views/status/public_status.py
 # ----------------------------------------
 from __future__ import annotations
 

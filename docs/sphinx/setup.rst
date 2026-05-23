@@ -38,8 +38,8 @@ Three commands to get running:
 
 .. code-block:: bash
 
-   git clone https://github.com/ywatanabe1989/scitex-cloud.git
-   cd scitex-cloud
+   git clone https://github.com/ywatanabe1989/scitex-hub.git
+   cd scitex-hub
    make start
 
 This pulls Docker images, builds containers, runs migrations, and creates a test user.
@@ -57,8 +57,8 @@ Step-by-Step Development Setup
 
 .. code-block:: bash
 
-   git clone https://github.com/ywatanabe1989/scitex-cloud.git
-   cd scitex-cloud
+   git clone https://github.com/ywatanabe1989/scitex-hub.git
+   cd scitex-hub
 
 2. **Create environment file**
 
@@ -148,24 +148,24 @@ Use the CLI and MCP server without Docker:
 
 .. code-block:: bash
 
-   pip install scitex-cloud           # CLI only
-   pip install scitex-cloud[mcp]      # CLI + MCP server
-   pip install scitex-cloud[all]      # Everything
+   pip install scitex-hub           # CLI only
+   pip install scitex-hub[mcp]      # CLI + MCP server
+   pip install scitex-hub[all]      # Everything
 
 Verify:
 
 .. code-block:: bash
 
-   scitex-cloud --version
-   scitex-cloud --help
+   scitex-hub --version
+   scitex-hub --help
 
 MCP server for AI agents:
 
 .. code-block:: bash
 
-   scitex-cloud mcp start             # Start MCP server
-   scitex-cloud mcp doctor            # Diagnose setup
-   scitex-cloud mcp installation      # Client config instructions
+   scitex-hub mcp start             # Start MCP server
+   scitex-hub mcp doctor            # Diagnose setup
+   scitex-hub mcp installation      # Client config instructions
 
 Configuration Reference
 -----------------------

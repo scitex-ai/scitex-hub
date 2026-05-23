@@ -129,8 +129,8 @@
 <span class="sd">SciTeX Cloud - CLI tools and APIs for SciTeX deployment and management.</span>
 
 <span class="sd">Usage:</span>
-<span class="sd">    pip install scitex-cloud</span>
-<span class="sd">    scitex-cloud --help</span>
+<span class="sd">    pip install scitex-hub</span>
+<span class="sd">    scitex-hub --help</span>
 
 <span class="sd">Python API:</span>
 <span class="sd">    &gt;&gt;&gt; import scitex_hub</span>
@@ -139,8 +139,8 @@
 <span class="sd">    &gt;&gt;&gt; client.enrich_bibtex(&quot;@article{...}&quot;)</span>
 
 <span class="sd">MCP Server:</span>
-<span class="sd">    scitex-cloud serve              # stdio (Claude Desktop)</span>
-<span class="sd">    scitex-cloud serve -t sse       # SSE (remote)</span>
+<span class="sd">    scitex-hub serve              # stdio (Claude Desktop)</span>
+<span class="sd">    scitex-hub serve -t sse       # SSE (remote)</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 
@@ -176,7 +176,7 @@
 <div class="viewcode-block" id="get_version">
 <a class="viewcode-back" href="../api/scitex_hub.html#scitex_hub.get_version">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_version</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get scitex-cloud version.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get scitex-hub version.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">__version__</span></div>
 
 
@@ -184,7 +184,7 @@
 <div class="viewcode-block" id="health_check">
 <a class="viewcode-back" href="../api/scitex_hub.html#scitex_hub.health_check">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">health_check</span><span class="p">(</span><span class="n">endpoint</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check scitex-cloud service health.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check scitex-hub service health.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -209,7 +209,7 @@
     <span class="k">return</span> <span class="p">{</span>
         <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;ok&quot;</span><span class="p">,</span>
         <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="n">__version__</span><span class="p">,</span>
-        <span class="s2">&quot;package&quot;</span><span class="p">:</span> <span class="s2">&quot;scitex-cloud&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;package&quot;</span><span class="p">:</span> <span class="s2">&quot;scitex-hub&quot;</span><span class="p">,</span>
     <span class="p">}</span></div>
 
 

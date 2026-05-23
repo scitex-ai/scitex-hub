@@ -1,7 +1,7 @@
 # File View UI Comparison: GitHub vs SciTeX
 
 **Analysis Date:** 2025-10-24
-**GitHub URL:** https://github.com/SciTeX-AI/scitex-cloud/blob/develop/apps/auth_app/urls.py
+**GitHub URL:** https://github.com/SciTeX-AI/scitex-hub/blob/develop/apps/auth_app/urls.py
 **SciTeX URL:** http://127.0.0.1:8000/ywatanabe/test7/blob/scitex/writer/scripts/examples/link_project_assets.sh
 
 ## Executive Summary
@@ -14,7 +14,7 @@ This document compares the file view UI between GitHub and SciTeX to identify sp
 
 ### GitHub
 - **Layout:** Horizontal breadcrumb at top of content area
-- **Structure:** `scitex-cloud / apps / auth_app / urls.py`
+- **Structure:** `scitex-hub / apps / auth_app / urls.py`
 - **Style:**
   - Links separated by forward slashes `/`
   - Each path component is clickable
@@ -332,8 +332,8 @@ To achieve feature parity with GitHub while maintaining SciTeX's unique identity
 
 ## 11. Screenshots Reference
 
-- **GitHub File View:** `/home/ywatanabe/proj/scitex-cloud/.playwright-mcp/github_file_view.png`
-- **SciTeX File View:** `/home/ywatanabe/proj/scitex-cloud/.playwright-mcp/scitex_file_view_full.png`
+- **GitHub File View:** `/home/ywatanabe/proj/scitex-hub/.playwright-mcp/github_file_view.png`
+- **SciTeX File View:** `/home/ywatanabe/proj/scitex-hub/.playwright-mcp/scitex_file_view_full.png`
 
 ---
 

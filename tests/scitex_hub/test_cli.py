@@ -149,7 +149,7 @@ class TestMcpCommand:
         """Test mcp list-tools --json."""
         result = runner.invoke(main, ["mcp", "list-tools", "--json"])
         assert result.exit_code == 0
-        assert '"name": "scitex-cloud"' in result.output
+        assert '"name": "scitex-hub"' in result.output
 
 
 class TestListPythonApisCommand:

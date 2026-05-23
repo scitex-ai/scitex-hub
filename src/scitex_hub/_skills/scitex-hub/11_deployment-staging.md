@@ -2,7 +2,7 @@
 description: |
   [TOPIC] Deploy to Staging
   [DETAILS] Deploy SciTeX Cloud to staging — sync versions, build Docker, verify..
-tags: [scitex-cloud-deployment-staging]
+tags: [scitex-hub-deployment-staging]
 ---
 
 # Deploy to Staging
@@ -20,12 +20,12 @@ scitex dev versions sync --confirm --host nas
 
 ## Step 2: Verify Dockerfile pins correct version
 ```bash
-grep 'scitex\[all\]==' ~/proj/scitex-cloud/deployment/docker/Dockerfile.prod
+grep 'scitex\[all\]==' ~/proj/scitex-hub/deployment/docker/Dockerfile.prod
 ```
 
 ## Step 3: Sync NAS repo
 ```bash
-ssh nas "cd ~/proj/scitex-cloud && git -C ~/proj/scitex-cloud pull origin develop"
+ssh nas "cd ~/proj/scitex-hub && git -C ~/proj/scitex-hub pull origin develop"
 ```
 
 ## Step 4: Build staging in screen (survives SSH disconnect)
@@ -33,7 +33,7 @@ ssh nas "cd ~/proj/scitex-cloud && git -C ~/proj/scitex-cloud pull origin develo
 **NEVER run raw `docker build` on NAS** — use `make rebuild` which has cgroup protections:
 ```bash
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-ssh nas "screen -dmS staging-$TIMESTAMP bash -c 'cd ~/proj/scitex-cloud && make ENV=staging YES=1 rebuild 2>&1 | tee /tmp/scitex-staging-$TIMESTAMP.log'"
+ssh nas "screen -dmS staging-$TIMESTAMP bash -c 'cd ~/proj/scitex-hub && make ENV=staging YES=1 rebuild 2>&1 | tee /tmp/scitex-staging-$TIMESTAMP.log'"
 ```
 
 Monitor:
@@ -49,5 +49,5 @@ ssh nas 'docker ps --format "{{.Names}}: {{.Status}}" | grep staging'
 # Check site
 ssh nas 'curl -sL -o /dev/null -w "%{http_code}" http://localhost:8001/'
 # Read Django logs
-ssh nas 'docker logs scitex-cloud-staging-django-1 --tail 30'
+ssh nas 'docker logs scitex-hub-staging-django-1 --tail 30'
 ```

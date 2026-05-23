@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2025-12-06 05:23:55
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/docs/ARCHITECTURE_00.md
+!-- File: /home/ywatanabe/proj/scitex-hub/docs/ARCHITECTURE_00.md
 !-- --- -->
 
 # SciTeX Cloud Architecture
@@ -585,7 +585,7 @@ graph TB
 ### Common Issues
 
 **1. Services show "starting" for too long**
-- Check logs: `docker logs scitex-cloud-prod-<service>-1`
+- Check logs: `docker logs scitex-hub-prod-<service>-1`
 - Verify dependencies: PostgreSQL must be healthy first
 
 **2. SLURM jobs fail**
@@ -594,13 +594,13 @@ graph TB
 - Test: `docker exec django su scitex -c "srun hostname"`
 
 **3. Charts not updating**
-- Check Celery: `docker logs scitex-cloud-prod-celery_worker-1`
+- Check Celery: `docker logs scitex-hub-prod-celery_worker-1`
 - Verify Flower: http://localhost:8000/flower/
 - Check filesystem: `ls -la /tmp/scitex_charts/`
 
 **4. Git push fails**
 - Verify SSH port: `nc -zv localhost 2222`
-- Check Gitea logs: `docker logs scitex-cloud-prod-gitea-1`
+- Check Gitea logs: `docker logs scitex-hub-prod-gitea-1`
 - Verify keys: Gitea web UI → Settings → SSH Keys
 
 ### Debug Commands
@@ -610,19 +610,19 @@ graph TB
 make ENV=prod status
 
 # View logs
-docker logs scitex-cloud-prod-django-1 --tail 100 -f
+docker logs scitex-hub-prod-django-1 --tail 100 -f
 
 # Execute command in container
-docker exec -it scitex-cloud-prod-django-1 bash
+docker exec -it scitex-hub-prod-django-1 bash
 
 # Check SLURM from container
-docker exec scitex-cloud-prod-django-1 su scitex -c "sinfo"
+docker exec scitex-hub-prod-django-1 su scitex -c "sinfo"
 
 # Test database connection
-docker exec scitex-cloud-prod-django-1 python manage.py dbshell
+docker exec scitex-hub-prod-django-1 python manage.py dbshell
 
 # Clear Redis cache
-docker exec scitex-cloud-prod-redis-1 redis-cli FLUSHALL
+docker exec scitex-hub-prod-redis-1 redis-cli FLUSHALL
 
 # Restart services
 make ENV=prod restart

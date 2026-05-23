@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2025-11-27 05:19:51
 !-- Author: ywatanabe
-!-- File: /ssh:ug:/home/ywatanabe/proj/scitex-cloud/deployment/slurm/README.md
+!-- File: /ssh:ug:/home/ywatanabe/proj/scitex-hub/deployment/slurm/README.md
 !-- --- -->
 
 # SLURM

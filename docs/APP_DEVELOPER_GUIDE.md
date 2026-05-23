@@ -1,6 +1,6 @@
 # SciTeX Cloud — App Developer Guide
 
-For AI agents and developers building apps that integrate with scitex-cloud.
+For AI agents and developers building apps that integrate with scitex-hub.
 
 ---
 
@@ -190,7 +190,7 @@ App CSS is injected when `app_mount_css` context variable is set.
 ## 6. Scaffold CLI
 
 ```bash
-scitex-cloud app init <dir> --name my_app [--label "My App"] [--frontend react]
+scitex-hub app init <dir> --name my_app [--label "My App"] [--frontend react]
 ```
 
 Generated files:
@@ -236,6 +236,6 @@ Files:           /platform/api/files/<app>/<path>
 Jobs:            /platform/api/jobs/<app>/submit/
 scitex calls:    /platform/api/scitex/<module>/<function>/
 Bootstrap:       /platform/api/context/
-Scaffold:        scitex-cloud app init <dir> --name <name> [--frontend react]
+Scaffold:        scitex-hub app init <dir> --name <name> [--frontend react]
 Reference:       github.com/ywatanabe1989/figrecipe
 ```

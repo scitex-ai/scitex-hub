@@ -133,7 +133,7 @@ See `docs/TERMINAL_SLURM_SECURITY.md` for full security policy.
 ├── .nvm/                     # Node Version Manager
 ├── .npm-global/              # npm global packages
 ├── .claude/                  # Claude Code user config
-│   └── skills/scitex-cloud/SKILL.md
+│   └── skills/scitex-hub/SKILL.md
 ├── .singularity/             # Apptainer cache
 └── .ai-cli-installed         # Sentinel file
 ```

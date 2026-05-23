@@ -1,4 +1,4 @@
-# Coverage reporting configuration for scitex-cloud.
+# Coverage reporting configuration for scitex-hub.
 #
 # The project still has substantial Django app surface and CLI code not
 # fully exercised by the unit suite — keep the target on "auto" while

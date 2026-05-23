@@ -1,8 +1,8 @@
 ---
 description: |
-  [TOPIC] scitex-cloud Quick Start
+  [TOPIC] scitex-hub Quick Start
   [DETAILS] Smallest useful example — create a cloud project and push code via the CLI; equivalent Python via CloudClient.
-tags: [scitex-cloud-quick-start]
+tags: [scitex-hub-quick-start]
 ---
 
 # Quick Start
@@ -10,9 +10,9 @@ tags: [scitex-cloud-quick-start]
 ## CLI: create project, push, check status
 
 ```bash
-scitex-cloud project create my-project
-scitex-cloud push-project           # push current dir to Gitea
-scitex-cloud show-status
+scitex-hub project create my-project
+scitex-hub push-project           # push current dir to Gitea
+scitex-hub show-status
 ```
 
 Project state lives under `~/.scitex/cloud/projects/<name>/` and on the
@@ -31,9 +31,9 @@ print(client.scholar_search("hippocampus")) # via cloud Scholar API
 ## Sync workflows
 
 ```bash
-scitex-cloud sync-to        # push working files (Dropbox-style)
-scitex-cloud sync-from      # pull working files
-scitex-cloud sync-status    # 3-way: Local / Gitea / Workspace
+scitex-hub sync-to        # push working files (Dropbox-style)
+scitex-hub sync-from      # pull working files
+scitex-hub sync-status    # 3-way: Local / Gitea / Workspace
 ```
 
 ## Next steps

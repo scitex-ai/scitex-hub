@@ -1,8 +1,8 @@
 ---
 description: |
-  [TOPIC] scitex-cloud Python API
+  [TOPIC] scitex-hub Python API
   [DETAILS] Top-level public callables — CloudClient, Environment, get_environment, DockerManager, get_version, health_check.
-tags: [scitex-cloud-python-api]
+tags: [scitex-hub-python-api]
 ---
 
 # Python API

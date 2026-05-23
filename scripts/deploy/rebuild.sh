@@ -123,7 +123,7 @@ echo -e "${CYAN}🔄 Rebuilding ${ENV} environment...${NC}"
 # Step 1: Clean SLURM state (before stopping containers)
 echo -e "${CYAN}  1. Cleaning SLURM state...${NC}"
 cd "$DOCKER_DIR"
-DJANGO_CONTAINER="scitex-cloud-${ENV}-django-1"
+DJANGO_CONTAINER="scitex-hub-${ENV}-django-1"
 if docker ps --format '{{.Names}}' | grep -q "^${DJANGO_CONTAINER}$"; then
     docker exec "$DJANGO_CONTAINER" bash -c '
         if command -v scancel &>/dev/null; then
@@ -151,7 +151,7 @@ $COMPOSE_CMD down --remove-orphans --volumes=false 2>/dev/null || true
 
 # Remove any leftover containers (handles edge cases like "Created" state)
 echo -e "${CYAN}  2b. Cleaning up leftover containers...${NC}"
-docker ps -a --format '{{.Names}}' | grep "^scitex-cloud-${ENV}-" | xargs -r docker rm -f 2>/dev/null || true
+docker ps -a --format '{{.Names}}' | grep "^scitex-hub-${ENV}-" | xargs -r docker rm -f 2>/dev/null || true
 
 # Step 3: Build images (with resource limits to keep SSH responsive)
 echo -e "${CYAN}  3. Building Docker images (CPU-limited to keep SSH alive)...${NC}"
@@ -162,7 +162,7 @@ nice -n 10 $COMPOSE_CMD build
 
 # Step 4: Clear vite timestamp (forces TypeScript rebuild)
 echo -e "${CYAN}  4. Clearing vite timestamp (forces TypeScript rebuild)...${NC}"
-docker run --rm -v "scitex-cloud-${ENV}_static_volume:/staticfiles" alpine \
+docker run --rm -v "scitex-hub-${ENV}_static_volume:/staticfiles" alpine \
     rm -f /staticfiles/vite/.build-timestamp 2>/dev/null || true
 
 # Step 5: Start services

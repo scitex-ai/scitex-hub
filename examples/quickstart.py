@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Quickstart for scitex-cloud: import + show environment + version (offline)."""
+"""Quickstart for scitex-hub: import + show environment + version (offline)."""
 
 import scitex_hub
 from scitex_hub import get_environment, get_version

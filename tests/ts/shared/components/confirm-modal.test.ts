@@ -29,13 +29,13 @@ describe('confirm-modal', () => {
 //  * Modern Confirmation Modal Component
 //  * Reusable across the site for better UX than browser confirm()
 //  */
-// 
+//
 // /**
 //  * Configuration options for confirmation modal
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/components/confirm-modal.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/static/ts/components/confirm-modal.ts loaded",
 // );
 // export interface ConfirmModalOptions {
 //   /** Modal title */
@@ -51,7 +51,7 @@ describe('confirm-modal', () => {
 //   /** Callback when cancelled */
 //   onCancel?: () => void;
 // }
-// 
+//
 // /**
 //  * Show a modern confirmation dialog
 //  *
@@ -66,13 +66,13 @@ describe('confirm-modal', () => {
 //     onConfirm,
 //     onCancel,
 //   } = options;
-// 
+//
 //   // Remove existing modal if present
 //   const existingModal = document.getElementById("scitex-confirm-modal");
 //   if (existingModal) {
 //     existingModal.remove();
 //   }
-// 
+//
 //   // Create modal HTML
 //   const modal = document.createElement("div");
 //   modal.id = "scitex-confirm-modal";
@@ -92,10 +92,10 @@ describe('confirm-modal', () => {
 //       </div>
 //     </div>
 //   `;
-// 
+//
 //   // Add to page
 //   document.body.appendChild(modal);
-// 
+//
 //   // Get button elements
 //   const closeBtn = modal.querySelector<HTMLButtonElement>(
 //     ".scitex-modal-close",
@@ -106,7 +106,7 @@ describe('confirm-modal', () => {
 //   const confirmBtn = modal.querySelector<HTMLButtonElement>(
 //     '[data-action="confirm"]',
 //   );
-// 
+//
 //   /**
 //    * Close modal with animation
 //    */
@@ -114,23 +114,23 @@ describe('confirm-modal', () => {
 //     modal.classList.add("scitex-modal-closing");
 //     setTimeout(() => modal.remove(), 300);
 //   };
-// 
+//
 //   // Event listeners
 //   closeBtn?.addEventListener("click", () => {
 //     if (onCancel) onCancel();
 //     closeModal();
 //   });
-// 
+//
 //   cancelBtn?.addEventListener("click", () => {
 //     if (onCancel) onCancel();
 //     closeModal();
 //   });
-// 
+//
 //   confirmBtn?.addEventListener("click", () => {
 //     if (onConfirm) onConfirm();
 //     closeModal();
 //   });
-// 
+//
 //   // Close on overlay click
 //   modal.addEventListener("click", (e: MouseEvent) => {
 //     if (e.target === modal) {
@@ -138,7 +138,7 @@ describe('confirm-modal', () => {
 //       closeModal();
 //     }
 //   });
-// 
+//
 //   // Close on Escape key
 //   const escapeHandler = (e: KeyboardEvent): void => {
 //     if (e.key === "Escape") {
@@ -148,14 +148,14 @@ describe('confirm-modal', () => {
 //     }
 //   };
 //   document.addEventListener("keydown", escapeHandler);
-// 
+//
 //   // Animate in
 //   setTimeout(() => modal.classList.add("scitex-modal-visible"), 10);
-// 
+//
 //   // Focus confirm button
 //   confirmBtn?.focus();
 // }
-// 
+//
 // /**
 //  * Escape HTML to prevent XSS
 //  */
@@ -164,14 +164,14 @@ describe('confirm-modal', () => {
 //   div.textContent = text;
 //   return div.innerHTML;
 // }
-// 
+//
 // // Make it available globally for inline scripts
 // declare global {
 //   interface Window {
 //     scitexConfirm: typeof showConfirm;
 //   }
 // }
-// 
+//
 // window.scitexConfirm = showConfirm;
 
 // =============================================================================

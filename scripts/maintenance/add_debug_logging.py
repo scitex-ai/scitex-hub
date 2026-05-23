@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-11-06 07:15:01 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/scripts/add_debug_logging.py
+# File: /home/ywatanabe/proj/scitex-hub/scripts/add_debug_logging.py
 # ----------------------------------------
 from __future__ import annotations
 import os
-__FILE__ = (
-    "./scripts/add_debug_logging.py"
-)
+
+__FILE__ = "./scripts/add_debug_logging.py"
 __DIR__ = os.path.dirname(__FILE__)
 # ----------------------------------------
 """
@@ -20,9 +19,7 @@ from pathlib import Path
 
 def has_debug_logging(content: str) -> bool:
     """Check if file already has DEBUG loaded statement."""
-    return bool(
-        re.search(r'console\.log\(["\']?\[DEBUG\].*loaded["\']?\)', content)
-    )
+    return bool(re.search(r'console\.log\(["\']?\[DEBUG\].*loaded["\']?\)', content))
 
 
 def add_debug_logging(file_path: Path) -> bool:
@@ -60,9 +57,7 @@ def add_debug_logging(file_path: Path) -> bool:
                 continue
 
             # Skip import statements
-            if stripped.startswith("import ") or stripped.startswith(
-                "import{"
-            ):
+            if stripped.startswith("import ") or stripped.startswith("import{"):
                 insert_position = i + 1
                 continue
 
@@ -107,9 +102,7 @@ def main():
     ts_files = []
     for pattern in ["apps/*/static/*/ts/**/*.ts", "static/shared/ts/**/*.ts"]:
         for file_path in base_dir.glob(pattern):
-            if file_path.suffix == ".ts" and not file_path.name.endswith(
-                ".d.ts"
-            ):
+            if file_path.suffix == ".ts" and not file_path.name.endswith(".d.ts"):
                 ts_files.append(file_path)
 
     print(f"Found {len(ts_files)} TypeScript files")

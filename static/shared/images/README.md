@@ -7,7 +7,7 @@ This directory contains all static images and icons for the SciTeX Cloud applica
 ```
 images/
 ├── icons_svg/                   # SVG feature icons (8 files)
-│   ├── scitex-cloud-icon.svg
+│   ├── scitex-hub-icon.svg
 │   ├── scitex-code-icon.svg
 │   ├── scitex-doc-icon.svg
 │   ├── scitex-engine-icon.svg
@@ -65,7 +65,7 @@ Use SVG icons from `icons_svg/` for UI elements in templates:
 ```
 
 Available icons:
-- `scitex-cloud-icon.svg` - Cloud module
+- `scitex-hub-icon.svg` - Cloud module
 - `scitex-code-icon.svg` - Code module
 - `scitex-doc-icon.svg` - Document/Writer module
 - `scitex-engine-icon.svg` - Engine/Local deployment

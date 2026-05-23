@@ -27,7 +27,7 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
-# # File: /home/ywatanabe/proj/scitex-cloud/apps/project_app/views/repository/api/git_operations.py
+# # File: /home/ywatanabe/proj/scitex-hub/apps/project_app/views/repository/api/git_operations.py
 # # ----------------------------------------
 # """
 # Git Operations API

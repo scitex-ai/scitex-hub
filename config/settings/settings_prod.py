@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: /home/ywatanabe/proj/scitex-cloud/config/settings/settings_prod.py
+# File: /home/ywatanabe/proj/scitex-hub/config/settings/settings_prod.py
 # ----------------------------------------
 from __future__ import annotations
 
@@ -47,7 +47,7 @@ ALLOWED_HOSTS = os.environ.get(
     "SCITEX_CLOUD_ALLOWED_HOSTS", "127.0.0.1,localhost"
 ).split(",")
 # Allow internal Docker container-to-container OAuth2 requests
-ALLOWED_HOSTS += ["scitex-cloud-prod-django-1"]
+ALLOWED_HOSTS += ["scitex-hub-prod-django-1"]
 
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True

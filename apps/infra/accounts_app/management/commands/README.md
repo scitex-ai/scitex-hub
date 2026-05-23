@@ -12,10 +12,10 @@ List all users with filtering and formatting options.
 
 ```bash
 # Production
-docker exec scitex-cloud-prod-django-1 python manage.py list_users
+docker exec scitex-hub-prod-django-1 python manage.py list_users
 
 # Development
-docker exec scitex-cloud-dev-django-1 python manage.py list_users
+docker exec scitex-hub-dev-django-1 python manage.py list_users
 ```
 
 #### Options
@@ -41,16 +41,16 @@ python manage.py list_users --inactive-only
 
 ```bash
 # List all users in table format (default)
-docker exec scitex-cloud-prod-django-1 python manage.py list_users
+docker exec scitex-hub-prod-django-1 python manage.py list_users
 
 # List only staff users with details
-docker exec scitex-cloud-prod-django-1 python manage.py list_users --staff-only --verbose
+docker exec scitex-hub-prod-django-1 python manage.py list_users --staff-only --verbose
 
 # Export all users as JSON
-docker exec scitex-cloud-prod-django-1 python manage.py list_users --format json > users.json
+docker exec scitex-hub-prod-django-1 python manage.py list_users --format json > users.json
 
 # List inactive users only
-docker exec scitex-cloud-prod-django-1 python manage.py list_users --inactive-only
+docker exec scitex-hub-prod-django-1 python manage.py list_users --inactive-only
 ```
 
 ## Quick Access Script

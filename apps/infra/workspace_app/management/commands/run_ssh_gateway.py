@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-11-14 20:40:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/apps/workspace_app/management/commands/run_ssh_gateway.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/workspace_app/management/commands/run_ssh_gateway.py
 # ----------------------------------------
 """
 Django management command to run SSH gateway for user workspaces.

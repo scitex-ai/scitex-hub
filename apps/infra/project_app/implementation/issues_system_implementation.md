@@ -13,7 +13,7 @@ This document describes the implementation of a comprehensive GitHub-style Issue
 ## 1. Database Models
 
 ### Location
-- `/home/ywatanabe/proj/scitex-cloud/apps/project_app/models/issues.py`
+- `/home/ywatanabe/proj/scitex-hub/apps/project_app/models/issues.py`
 
 ### Models Implemented
 
@@ -143,8 +143,8 @@ Tracks all events on issues (timeline).
 ## 2. Views
 
 ### Location
-- `/home/ywatanabe/proj/scitex-cloud/apps/project_app/views/issues_views.py`
-- `/home/ywatanabe/proj/scitex-cloud/apps/project_app/views/api_issues_views.py`
+- `/home/ywatanabe/proj/scitex-hub/apps/project_app/views/issues_views.py`
+- `/home/ywatanabe/proj/scitex-hub/apps/project_app/views/api_issues_views.py`
 
 ### Main Views
 
@@ -288,7 +288,7 @@ Manages project milestones.
 ## 3. URL Patterns
 
 ### Location
-- `/home/ywatanabe/proj/scitex-cloud/apps/project_app/user_urls.py`
+- `/home/ywatanabe/proj/scitex-hub/apps/project_app/user_urls.py`
 
 ### Routes Added
 
@@ -317,7 +317,7 @@ path('<slug:slug>/api/issues/<int:issue_number>/milestone/', api_issues_views.ap
 ## 4. Templates
 
 ### Location
-- `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/issues/`
+- `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/issues/`
 
 ### Templates Created
 
@@ -368,7 +368,7 @@ Milestone management interface (placeholder).
 ## 5. Integration with Project Detail
 
 ### Updated Template
-- `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_detail.html`
+- `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_detail.html`
 
 ### Changes
 Updated the Issues tab in the project navigation:
@@ -454,7 +454,7 @@ Updated the Issues tab in the project navigation:
 
 ### Status
 Models created and defined in:
-- `/home/ywatanabe/proj/scitex-cloud/apps/project_app/models/issues.py`
+- `/home/ywatanabe/proj/scitex-hub/apps/project_app/models/issues.py`
 
 ### To Apply Migrations
 

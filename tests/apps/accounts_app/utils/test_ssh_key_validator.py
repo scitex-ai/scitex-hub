@@ -28,7 +28,7 @@ if __name__ == "__main__":
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
 # # Timestamp: "2025-11-14 21:45:00 (ywatanabe)"
-# # File: /home/ywatanabe/proj/scitex-cloud/apps/accounts_app/utils/ssh_key_validator.py
+# # File: /home/ywatanabe/proj/scitex-hub/apps/accounts_app/utils/ssh_key_validator.py
 # # ----------------------------------------
 # """
 # SSH public key validation and fingerprint calculation.

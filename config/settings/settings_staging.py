@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: /home/ywatanabe/proj/scitex-cloud/config/settings/settings_staging.py
+# File: /home/ywatanabe/proj/scitex-hub/config/settings/settings_staging.py
 # ----------------------------------------
 from __future__ import annotations
 import os

@@ -29,16 +29,16 @@ describe('editor-config', () => {
 //  * Editor Configuration Module
 //  * Manages editor configuration (theme, read-only, keybindings)
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/monaco-editor/editor-config.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/modules/monaco-editor/editor-config.ts loaded",
 // );
-// 
+//
 // export class EditorConfig {
 //   private editor: any;
 //   private monacoEditor: any;
 //   private editorType: "monaco" | "codemirror";
-// 
+//
 //   constructor(
 //     editor: any,
 //     monacoEditor: any,
@@ -48,7 +48,7 @@ describe('editor-config', () => {
 //     this.monacoEditor = monacoEditor;
 //     this.editorType = editorType;
 //   }
-// 
+//
 //   /**
 //    * Set editor theme
 //    */
@@ -78,7 +78,7 @@ describe('editor-config', () => {
 //       }
 //     }
 //   }
-// 
+//
 //   /**
 //    * Set editor read-only state
 //    */
@@ -96,7 +96,7 @@ describe('editor-config', () => {
 //       }
 //     }
 //   }
-// 
+//
 //   /**
 //    * Set editor keybinding mode
 //    */

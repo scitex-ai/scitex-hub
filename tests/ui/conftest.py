@@ -21,7 +21,7 @@ import pytest
 # below aborts collection and tanks the full suite on minimal envs.
 pytest.importorskip(
     "playwright",
-    reason="scitex-cloud[django] / [test] not installed — ui/ tests skipped",
+    reason="scitex-hub[django] / [test] not installed — ui/ tests skipped",
 )
 
 from playwright.sync_api import BrowserContext, Page, expect  # noqa: E402
