@@ -127,6 +127,11 @@ all = [
     "pytest-playwright>=0.7",
     "pytest-base-url>=2.1",
     "pytest-asyncio>=1.2",
+    # pytest-matrix workflow runs `pytest --cov=src/scitex_hub
+    # --cov-report=xml --cov-report=term` and uploads to Codecov — the
+    # plugin must be in the install graph, otherwise pytest exits 4 on
+    # "unrecognized arguments: --cov".
+    "pytest-cov>=4.1",
     # --- Sphinx docs build (run by CI on tag) ---
     "sphinx>=7.0",
     "sphinx-rtd-theme>=2.0",
