@@ -18,6 +18,14 @@ dependencies = [
     "click>=8.0",
     "scitex-app>=0.2.8",
     "scitex-config>=0.3.6",
+    # `scitex-session` is consumed via the umbrella as `scitex.session.INJECTED`
+    # (settings_shared.py / settings_auth.py / config/routing.py).
+    # scitex >= 2.29 lazy-loads `scitex_session` and raises ImportError if
+    # the sub-package is missing — but the umbrella's `[session]` extra
+    # only declares matplotlib + pyyaml, NOT scitex-session itself
+    # (upstream gap, ywatanabe1989/scitex-python). Declare it directly
+    # so the import works in any install graph.
+    "scitex-session>=0.1.6",
     "scitex-writer>=2.17.2",
     "scitex-dev>=0.15.0",
     "gitpython>=3.1",
