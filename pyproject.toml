@@ -145,6 +145,11 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+# Explicit include: the `scitex_cloud` module was renamed to `scitex_hub`
+# in v0.18.0 via a hard cutover (ADR-0001) — no compat alias. Pinning the
+# discovery list keeps a stray local `src/scitex_cloud/` leftover from
+# being re-packaged and re-registered in top_level.txt.
+include = ["scitex_hub*", "scitex_container*"]
 
 [tool.setuptools.package-data]
 scitex_hub = ["skills/*.md", "skills/references/*.md", "_skills/**/*.md"]
