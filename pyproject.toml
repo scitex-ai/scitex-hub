@@ -16,10 +16,10 @@ classifiers = [
 dependencies = [
     "rich",
     "click>=8.0",
-    "scitex-app>=0.1.0",
-    "scitex-config>=0.3.0",
-    "scitex-writer>=2.14.0",
-    "scitex-dev>=0.11.5",
+    "scitex-app>=0.2.8",
+    "scitex-config>=0.3.6",
+    "scitex-writer>=2.17.2",
+    "scitex-dev>=0.15.0",
     "gitpython>=3.1",
 ]
 
