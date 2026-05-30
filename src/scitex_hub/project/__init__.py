@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: src/scitex_hub/project.py
-"""Project CRUD — Python API for SciTeX Hub project management.
+# File: src/scitex_hub/project/__init__.py
+"""SciTeX Hub project management.
 
-Usage:
+Project CRUD (Python API):
     from scitex_hub.project import project_list, project_create
 
     projects = project_list()
     new = project_create("my-project", description="My research")
+
+Sandboxed file-operation handlers (async, used by MCP tools) live in
+:mod:`scitex_hub.project._mcp.handlers`.
 """
 
 from __future__ import annotations
 
-from ._mcp_tools.api import _make_request
+from .._mcp_tools.api import _make_request
 
 
 def project_list() -> list[dict]:
