@@ -19,7 +19,7 @@ dependencies = [
     "scitex-app==0.2.8",
     "scitex-config==0.3.6",
     "scitex-writer==2.17.2",
-    "scitex-dev==0.14.1",
+    "scitex-dev==0.15.0",
     "gitpython>=3.1",
 ]
 
