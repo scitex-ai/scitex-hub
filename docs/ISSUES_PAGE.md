@@ -23,7 +23,7 @@ issue tracking, discussions, and collaboration hosted internally (not on GitHub)
 │  git.scitex.ai (Gitea)                                          │
 │  └── Git hosting backend (clone, push, pull)                    │
 ├─────────────────────────────────────────────────────────────────┤
-│  scitex cloud CLI                                               │
+│  scitex hub CLI                                                 │
 │  └── Thin wrapper calling scitex-hub Django APIs              │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -65,7 +65,7 @@ issue tracking, discussions, and collaboration hosted internally (not on GitHub)
 - [ ] Discussion categories (General, Q&A, Ideas, etc.)
 
 ### TODO - Phase 4: CLI Migration
-- [ ] Move `scitex cloud` logic from scitex-code to scitex-hub
+- [ ] Move `scitex hub` logic from scitex-code to scitex-hub
 - [ ] Create Django management commands for CLI operations
 - [ ] Keep scitex CLI as thin wrapper calling Django APIs
 

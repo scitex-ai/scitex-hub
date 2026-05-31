@@ -9,6 +9,127 @@ verbatim. See [ADR-0001](docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md).
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.18.1] - 2026-06-01
+
+Stabilization release for the v0.18.0 `scitex-cloud` → `scitex-hub`
+rename. The pytest-matrix release gate is genuinely green on all of
+py3.11 / py3.12 / py3.13; the "1442 passed, 43 failed" tail noted in
+v0.18.0's verification has been driven to zero with real root-cause
+fixes (no skips, no mocks, no silent fallback).
+
+### Fixed (test gate green-up)
+
+- **writer_app migration 0007** (#196): `RemoveIndex×4` and
+  `AlterUniqueTogether(None)` now run before the `RemoveField`/`DeleteModel`,
+  fixing `FieldDoesNotExist: NewCollaborativeEdit ... manuscript` at
+  test-DB setup on SQLite (~170 collection errors).
+- **apps_app db_table alignment + migration `0009`** (#196): aligns the
+  `marketplace_app_*` tables that surfaced as `OperationalError: no
+  such table` after #189.
+- **apps_app URL standardization** (#203): tests follow the canonical
+  `/apps/store/` mount (`config/urls.py:104`); bare `/apps/` is a 301
+  legacy redirect.
+- **workspace_app module slug** (#203): the dashboard module is now
+  registered as `home` to mirror the `hub_app` → `repo_app` rename
+  (Step D, commit `5f5ed303`). Duplicate `tools` registry entry from
+  `public_app/manifest.json` dropped (canonical is
+  `workspace/tools_app/manifest.json`).
+- **apps_app `DevAppStaticFinder`** (#203): now swallows
+  `PermissionError` from `Path.is_dir()`, matching upstream Django's
+  `FileSystemFinder` contract.
+- **accounts `APIKey.key_prefix` high-entropy** (#202, #205): prefix
+  widened from 14 → 16 chars with `unique=True` to stop UNIQUE
+  collisions in test fixtures (~3 failures); `test_api_keys_view_*`
+  fully migrated to `reverse("accounts_app:api_keys")`.
+- **llm `chat_tts_relay` event-loop bug** (#206): `api_tts_relay`
+  previously sent the channel message on a throwaway
+  `asyncio.new_event_loop()`; `InMemoryChannelLayer` binds queues to
+  the running loop, so the message was dropped (~4 failures).
+  Switched to `async_to_sync(group_send)` — the canonical channels
+  idiom and a real production fix, not a test mock.
+- **project_app visitor_pool Redis dependency** (#208): pytest-matrix
+  runs without a Redis broker, so `.delay()` raised
+  `kombu.exceptions.OperationalError` (~6 failures). Celery now
+  switches to `CELERY_TASK_ALWAYS_EAGER = True` (with
+  `EAGER_PROPAGATES=True`, so exceptions remain loud) and
+  `CELERY_BROKER_URL = "memory://"` when `SCITEX_HUB_USE_SQLITE_DEV=1`.
+  Production (env unset) keeps the redis broker unchanged.
+- **scholar bucket** (#200): URL routing follow-ups for crossref / pdf
+  / public_search / zotero after the apps/ standardization.
+- **llm bash exec tests** (#199): real mounts, no-mock, per CLAUDE.md.
+- **public-misc bucket** (#201): terminal config + console_app test
+  fixes; `vite.py` returns the absolute resolved path consistently
+  (was probing repo-relative form first, which failed for
+  site-packages installs).
+- **terminal config sys.modules stub** (#206):
+  `tests/.../terminal/test_execution.py` installed a leaked config
+  stub omitting `SHOW_MOTD`, causing
+  `terminal_broker.test_handlers_shared` to hit `AttributeError`
+  purely from collection-order pollution. The stub now mirrors the
+  real module.
+- **audit gate restoration** (#206): replaced the `@pytest.mark.e2e`
+  dodge in `tests/develop/test_audit.py` with the canonical
+  `skip_rules` approach mirrored from scitex-orochi
+  (PA-306/PA-307 + §1/§2/§4/§5/§6/§10 CLI/MCP backlog + `defer`,
+  600s timeout). `test_audit_all_clean` now genuinely PASSES instead
+  of being silently SKIPPED.
+- **e2e-guard for out-of-tree browser tests** (#186):
+  `tests/conftest.py` skips Playwright tests that live outside
+  `tests/ui/`.
+- **headless release gate** (#184): browser-launch flags removed from
+  the global `pytest` addopts.
+- **test_execution.py django.conf leak** (#185): stops the stub
+  `django.conf` from leaking into sibling tests' `sys.modules`,
+  unblocking pytest-matrix collection.
+
+### Added
+
+- **SCITEX_CLOUD_* env alias** (#177): `config/_env.py` ships
+  `getenv_with_legacy_alias` / `require_env_with_legacy_alias`. When
+  the canonical `SCITEX_HUB_<X>` is unset but legacy `SCITEX_CLOUD_<X>`
+  is set, the legacy value is returned **and** a `DeprecationWarning`
+  is emitted. No silent fallback. One-directional (`HUB` is canonical;
+  `CLOUD` is the legacy alias from v0.18.0). Operators can roll
+  v0.18.0+ to NAS without an env-rename flag day.
+- **`scitex_hub.module` umbrella absorption** (#181, "umbrella-thinning
+  Phase A"): cloud helpers + project `_mcp` + skills absorbed from
+  the `scitex` umbrella so the hub stands on its own without the
+  `[hub]` extra at runtime.
+- **`scitex_cloud` deprecation shim** (#180): `import scitex_cloud`
+  raises `ImportError` with a pointer to `scitex-hub` (no compat
+  alias module).
+- **ADR-0002** (#178): formalises the "scitex django apps and config"
+  app standard the gate-3 PRs follow.
+
+### Changed
+
+- **`scitex` umbrella peer version policy** (#181, post-merge): `>=`
+  floors (per ADR 0002 §5) instead of `==` exact pins; `scitex-dev`
+  pinned `>=0.15.0` (lands `audit-django`).
+
+### CI
+
+- **Auto-merge for green develop PRs** (commit `7c05471e`): CI-native
+  `check_suite`-triggered auto-merge once required checks pass.
+- **SQLite in pytest-matrix** (#175): `SCITEX_HUB_USE_SQLITE_DEV=1`
+  for the three-version matrix; CI test gate sets
+  `SCITEX_HUB_DJANGO_SECRET_KEY` / `SCITEX_HUB_GITEA_SSH_PORT_DEV`.
+- **pytest-cov in `[dev]` extra** (#182) so the Codecov matrix
+  `--cov` flag works.
+- **`[all,dev]` extras post-flatten** (#183) — replace the removed
+  `[django]/[test]/[docs]` extras.
+- **Quality workflow** (#167) — single-package `audit-all`; renamed
+  to match the new `scitex-hub` namespace per ADR-0001.
+
+### Compatibility
+
+- Deployments on v0.18.0 can upgrade in place — the new
+  `SCITEX_CLOUD_*` alias means existing `.env` files continue to
+  work (with a `DeprecationWarning`). Renaming to `SCITEX_HUB_*` is
+  still recommended; the alias will be removed in a future major.
+- `pip install scitex-cloud` continues to fail loudly with a pointer
+  to `scitex-hub` (unchanged from v0.18.0).
+
 ## [0.18.0] - 2026-05-23
 
 ### Renamed (BREAKING)
