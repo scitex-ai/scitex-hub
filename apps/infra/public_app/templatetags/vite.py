@@ -352,8 +352,15 @@ def _entry_to_ts_path(entry_name: str) -> str:
             pkg_dir = Path(mod.__file__).parent
             ts_path = pkg_dir / "static" / app_name / "ts" / f"{rest}.ts"
             if ts_path.exists():
-                return str(ts_path.relative_to(Path(settings.BASE_DIR).parent))
-        except (ImportError, ValueError, TypeError):
+                # Prefer a repo-relative path when the package lives inside the
+                # source tree (editable install). For out-of-tree installs
+                # (site-packages), relative_to() fails — return the absolute
+                # path so callers still resolve to a real file on disk.
+                try:
+                    return str(ts_path.relative_to(Path(settings.BASE_DIR).parent))
+                except ValueError:
+                    return str(ts_path)
+        except (ImportError, TypeError):
             pass
 
     # Last resort
