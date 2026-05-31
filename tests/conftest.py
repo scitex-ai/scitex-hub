@@ -214,3 +214,46 @@ def cleanup_test_users():
             print(f"\n[Cleanup] Deleted {deleted_count} test user(s)")
     except Exception as e:
         print(f"\n[Cleanup] Skipped (DB not accessible): {e}")
+
+
+# =============================================================================
+# Headless release-gate guard
+# =============================================================================
+#
+# The global ``addopts`` in pyproject.toml no longer carry the Playwright
+# browser flags (``--browser``/``--headed``/``--slowmo``/``--video``/
+# ``--screenshot``). That keeps the release gate (``pytest tests/ -x``, run by
+# the pytest-matrix workflow in headless CI) from trying to launch a *headed*
+# browser. But pytest-playwright still launches a (headless) browser whenever
+# an E2E test that uses the ``page``/``browser`` fixtures is collected, so a
+# plain ``pytest tests/`` would still open a browser at run time.
+#
+# The "E2E Mobile Tests" workflow (e2e-mobile.yml) drives the browser tests
+# explicitly: it clears addopts with ``-o "addopts="`` and passes ``--browser``
+# (plus ``--headed=false --screenshot --video``) on the command line. We detect
+# that by checking whether ``--browser`` was supplied; when it was, the E2E
+# tests run untouched. Otherwise (the headless gate) we skip everything under
+# ``tests/e2e/`` and anything marked ``@pytest.mark.e2e``.
+
+
+def pytest_collection_modifyitems(config, items):
+    """Skip E2E/browser tests in the headless gate; run them when the
+    "E2E Mobile Tests" workflow passes ``--browser`` explicitly."""
+    browser_requested = False
+    try:
+        browser_requested = bool(config.getoption("--browser"))
+    except (ValueError, KeyError):
+        # pytest-playwright not installed → no --browser option → headless gate.
+        browser_requested = False
+    if browser_requested:
+        return
+
+    skip_e2e = pytest.mark.skip(
+        reason="E2E/browser test skipped in headless gate "
+        "(run via the 'E2E Mobile Tests' workflow with --browser)"
+    )
+    e2e_dir = os.sep + "e2e" + os.sep
+    for item in items:
+        path = str(getattr(item, "fspath", ""))
+        if "e2e" in item.keywords or e2e_dir in path:
+            item.add_marker(skip_e2e)

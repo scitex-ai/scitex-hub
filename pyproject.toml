@@ -208,16 +208,16 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 DJANGO_SETTINGS_MODULE = "config.settings.settings_dev"
 norecursedirs = ["data", "docs", "scripts", "static", "deployment", "node_modules", ".git", "__pycache__", "*.egg-info", ".dev"]
+# Global addopts intentionally exclude browser/E2E flags
+# (--browser/--headed/--slowmo/--video/--screenshot). Those launch a
+# headed Playwright browser and break the headless release gate
+# (`pytest tests/ -x`). E2E tests are marked `@pytest.mark.e2e` and the
+# browser flags are passed explicitly by the "E2E Mobile Tests" workflow.
 addopts = [
     "--verbose",
     "--strict-markers",
     "--tb=short",
     "--capture=no",
-    "--browser=chromium",
-    "--headed",
-    "--slowmo=50",
-    "--video=retain-on-failure",
-    "--screenshot=only-on-failure",
 ]
 markers = [
     "e2e: End-to-end tests using browser automation",
