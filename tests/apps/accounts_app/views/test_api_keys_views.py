@@ -8,6 +8,7 @@ import pytest
 from asgiref.sync import sync_to_async
 from django.contrib.auth.models import User
 from django.test import Client
+from django.urls import reverse
 
 from apps.infra.accounts_app.models import APIKey
 
@@ -161,9 +162,9 @@ class TestAPIKeysView:
     """Test API keys management view"""
 
     def test_api_keys_view_requires_login(self):
-        """GET to /settings/api-keys/ requires authentication"""
+        """GET to the api-keys page requires authentication"""
         client = Client()
-        response = client.get("/settings/api-keys/", follow=True)
+        response = client.get(reverse("accounts_app:api_keys"), follow=True)
         # Should redirect to login
         assert response.status_code == 200
         # Check we ended up at login page or redirected
@@ -184,7 +185,7 @@ class TestAPIKeysView:
             password="testpass123",  # pragma: allowlist secret
         )
 
-        response = client.get("/settings/api-keys/")
+        response = client.get(reverse("accounts_app:api_keys"))
         assert response.status_code == 200
 
     def test_api_keys_view_context_data(self):

@@ -164,7 +164,6 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
     "workspace/scholar_app/manifest.json",
     "workspace/figrecipe_app/manifest.json",
     "workspace/clew_app/manifest.json",
-    "infra/public_app/manifest.json",
     "workspace/discovery_app/manifest.json",
     "workspace/docs_app/manifest.json",
     "workspace/apps_app/manifest.json",

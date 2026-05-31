@@ -4,6 +4,9 @@
 
 from __future__ import annotations
 
+import os
+import stat
+import tempfile
 from pathlib import Path
 
 from django.test import TestCase, override_settings
@@ -50,20 +53,35 @@ class TestDevAppStaticFinder(TestCase):
         items = list(finder.list([]))
         self.assertEqual(items, [])
 
-    @override_settings(BASE_DIR=Path("/root"))
     def test_find_handles_permission_error(self):
-        """Finder should not crash on PermissionError.
+        """Finder returns None instead of crashing when data/users is unreadable.
 
-        Note: previous version did `@patch(... .finders.settings)` which
-        replaced the entire settings module with a MagicMock. Django's
-        app registry then resolved AUTH_USER_MODEL / LOGGING_CONFIG against
-        that MagicMock and the test_apps subtree saw the mock leak as
-        `'<MagicMock>' doesn't look like a module path` errors. Using
-        `@override_settings` keeps the real settings module intact and
-        only swaps the named keys.
+        Hermetic: builds a real ``data/users`` directory under a temp BASE_DIR
+        and strips its read/execute bits so ``Path.iterdir()`` raises a genuine
+        ``PermissionError``. This exercises ``_safe_iterdir``'s handler without
+        ``unittest.mock`` (STX-NM00x) and without touching a root-owned path
+        like ``/root/data/users`` (which made the prior version fail in CI).
         """
-        finder = DevAppStaticFinder()
-        result = finder.find("anything.css")
+        # Arrange
+        tmp_base = Path(tempfile.mkdtemp())
+        users_dir = tmp_base / "data" / "users"
+        users_dir.mkdir(parents=True)
+        (users_dir / "someowner").mkdir()
+        # Remove read+execute so iterdir() raises PermissionError, but the
+        # directory still stat()s as a dir so users_dir.is_dir() is True.
+        os.chmod(users_dir, 0)
+        self.addCleanup(
+            lambda: (
+                os.chmod(users_dir, stat.S_IRWXU),
+                __import__("shutil").rmtree(tmp_base, ignore_errors=True),
+            )
+        )
+
+        # Act
+        with override_settings(BASE_DIR=tmp_base):
+            result = DevAppStaticFinder().find("anything.css")
+
+        # Assert
         self.assertIsNone(result)
 
 
