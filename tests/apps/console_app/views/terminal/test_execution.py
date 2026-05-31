@@ -124,22 +124,24 @@ def _install_django_stubs_fixture():
 # the fixture we'd already have None on those names. The fixture is what
 # guards against cross-module leakage; this call just satisfies imports.
 #
-# CRITICAL (cross-module leak fix): capture the TRUE original sys.modules
-# entries *before* the import-time stub install, so the real modules are
-# restored once the module-under-test is imported (see restore block after
-# the imports below). Without this, the MagicMock `django.conf` stub leaked
-# into every later test file and broke the lazy `from django.conf import
-# STATICFILES_STORAGE_ALIAS` that Django's `storages_changed` signal runs,
-# producing ~1000 spurious errors across tests/apps/*.
+# CRITICAL (cross-module leak fix): capture the TRUE original `django` /
+# `django.conf` sys.modules entries *before* the import-time stub install,
+# so the real modules are restored once the module-under-test is imported
+# (see restore block after the imports below). Without this, the MagicMock
+# `django.conf` stub leaked into every later test file and broke the lazy
+# `from django.conf import STATICFILES_STORAGE_ALIAS` that Django's
+# `storages_changed` signal runs, producing ~1000 spurious errors across
+# tests/apps/*.
+#
+# NOTE: we deliberately restore ONLY the `django` keys. The local
+# `apps.workspace.console_app.views.terminal.{config,_command_builder}`
+# stubs are intentionally left installed — sibling tests in this directory
+# (e.g. test_config.py) import that stubbed `config` module and rely on it
+# being present in sys.modules. Those app-local stubs don't poison the
+# wider suite the way the MagicMock `django.conf` does.
 _STUB_KEYS = (
     "django",
     "django.conf",
-    "apps",
-    "apps.workspace.console_app",
-    "apps.workspace.console_app.views",
-    "apps.workspace.console_app.views.terminal",
-    "apps.workspace.console_app.views.terminal.config",
-    "apps.workspace.console_app.views.terminal._command_builder",
 )
 _ORIGINAL_MODULES = {k: sys.modules.get(k) for k in _STUB_KEYS}
 _install_django_stubs()
