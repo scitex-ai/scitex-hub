@@ -35,20 +35,36 @@ def _post_json(client, body):
     return client.post(_RELAY_URL, data=body, content_type="application/json")
 
 
-def _receive_group_message(group_name):
-    """Subscribe a temporary channel to the group and return one message.
+def _subscribe_to_group(group_name):
+    """Subscribe a fresh channel to ``group_name`` BEFORE the sender runs.
 
-    Returns the delivered dict, or None if nothing was delivered within the
-    timeout. Uses the real default channel layer (InMemoryChannelLayer under
-    the override_settings applied to the test classes).
+    InMemoryChannelLayer's ``group_send`` fans out to whichever channels are
+    currently in the group — there is no replay of missed messages to late
+    subscribers. So to test that a view's ``group_send`` reached the group,
+    the test must subscribe first, trigger the view, then receive.
+
+    Returns the channel name; pass to :func:`_receive_on_channel`.
+    """
+    layer = get_channel_layer()
+
+    async def _subscribe():
+        channel = await layer.new_channel()
+        await layer.group_add(group_name, channel)
+        return channel
+
+    return async_to_sync(_subscribe)()
+
+
+def _receive_on_channel(channel, timeout=1.0):
+    """Pull one message from a channel previously added to a group.
+
+    Returns the delivered dict, or None if nothing arrived within timeout.
     """
     layer = get_channel_layer()
 
     async def _pull():
-        channel = await layer.new_channel()
-        await layer.group_add(group_name, channel)
         try:
-            return await asyncio.wait_for(layer.receive(channel), timeout=1.0)
+            return await asyncio.wait_for(layer.receive(channel), timeout=timeout)
         except asyncio.TimeoutError:
             return None
 
@@ -162,21 +178,22 @@ class TestTtsRelayChannelSend(TestCase):
 
     def test_relay_delivers_message_to_user_speech_group(self):
         """A subscriber on speech_<username> must receive the relayed message."""
-        # Arrange
-        group_name = self.group_name
+        # Arrange — subscribe BEFORE the view runs (InMemoryChannelLayer
+        # does not replay missed messages to late subscribers).
+        channel = _subscribe_to_group(self.group_name)
         # Act
         _post_json(self.client, json.dumps({"text": "hello from container"}))
-        message = _receive_group_message(group_name)
+        message = _receive_on_channel(channel)
         # Assert
         assert message is not None
 
     def test_relay_message_has_tts_speak_type(self):
         """The message delivered to the group must have type tts_speak."""
         # Arrange
-        group_name = self.group_name
+        channel = _subscribe_to_group(self.group_name)
         # Act
         _post_json(self.client, json.dumps({"text": "speak this"}))
-        message = _receive_group_message(group_name)
+        message = _receive_on_channel(channel)
         # Assert
         assert message["type"] == "tts_speak"
 
@@ -184,9 +201,10 @@ class TestTtsRelayChannelSend(TestCase):
         """The delivered message must carry the exact text from the request body."""
         # Arrange
         expected_text = "precise text payload"
+        channel = _subscribe_to_group(self.group_name)
         # Act
         _post_json(self.client, json.dumps({"text": expected_text}))
-        message = _receive_group_message(self.group_name)
+        message = _receive_on_channel(channel)
         # Assert
         assert message["text"] == expected_text
 
@@ -230,11 +248,12 @@ class TestTtsRelaySuccessResponse(TestCase):
 
     def test_relay_long_text_is_truncated_to_4096_chars(self):
         """Text longer than 4096 chars must be truncated to 4096 on the wire."""
-        # Arrange
+        # Arrange — subscribe first (see _subscribe_to_group docstring).
         group_name = f"speech_{self.user.username}"
+        channel = _subscribe_to_group(group_name)
         # Act
         _post_json(self.client, json.dumps({"text": "a" * 5000}))
-        message = _receive_group_message(group_name)
+        message = _receive_on_channel(channel)
         # Assert
         assert len(message["text"]) <= 4096
 

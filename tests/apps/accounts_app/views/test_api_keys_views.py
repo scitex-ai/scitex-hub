@@ -8,6 +8,7 @@ import pytest
 from asgiref.sync import sync_to_async
 from django.contrib.auth.models import User
 from django.test import Client
+from django.urls import reverse
 
 from apps.infra.accounts_app.models import APIKey
 
@@ -161,9 +162,14 @@ class TestAPIKeysView:
     """Test API keys management view"""
 
     def test_api_keys_view_requires_login(self):
-        """GET to /settings/api-keys/ requires authentication"""
+        """GET to the api-keys page requires authentication.
+
+        The page now lives under /accounts/ after the apps/config
+        standardization (see ADR-0002). Use reverse() so the test does
+        not regress if the mount point moves again.
+        """
         client = Client()
-        response = client.get("/settings/api-keys/", follow=True)
+        response = client.get(reverse("accounts_app:api_keys"), follow=True)
         # Should redirect to login
         assert response.status_code == 200
         # Check we ended up at login page or redirected
@@ -173,7 +179,7 @@ class TestAPIKeysView:
         )
 
     def test_api_keys_view_logged_in_user(self):
-        """GET to /settings/api-keys/ returns 200 for logged-in user"""
+        """GET to the api-keys page returns 200 for logged-in user."""
         client = Client()
         user = User.objects.create_user(
             username="testuser6",
@@ -184,7 +190,7 @@ class TestAPIKeysView:
             password="testpass123",  # pragma: allowlist secret
         )
 
-        response = client.get("/settings/api-keys/")
+        response = client.get(reverse("accounts_app:api_keys"))
         assert response.status_code == 200
 
     def test_api_keys_view_context_data(self):
@@ -203,7 +209,7 @@ class TestAPIKeysView:
         APIKey.create_key(user=user, name="key1", scopes=["*"])
         APIKey.create_key(user=user, name="key2", scopes=["mcp"])
 
-        response = client.get("/settings/api-keys/")
+        response = client.get(reverse("accounts_app:api_keys"))
         assert response.status_code == 200
         # Check context has api_keys
         assert "api_keys" in response.context
