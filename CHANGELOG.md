@@ -9,6 +9,38 @@ verbatim. See [ADR-0001](docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md).
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.18.1] - 2026-06-01
+
+### Added
+- Absorbed the umbrella cloud helpers, project `_mcp`, and skills into the
+  package (umbrella-thinning Phase A, #181).
+- [ADR-0002](docs/adr/0002-scitex-django-apps-and-config-standard.md): the
+  SciTeX Django "apps and config" app-layout standard.
+
+### Changed
+- `scitex_cloud` -> `scitex_hub` rename with a deprecation shim so the old
+  import path fails loudly with a pointer to the new package (Phase 1).
+- Dependency pins follow ADR-0002 §5 `>=` floors for the umbrella peers
+  (`scitex>=2.29.3`, `scitex-app>=0.2.8`, `scitex-config>=0.3.6`,
+  `scitex-session>=0.1.6`, `scitex-dev>=0.15.0`); `scitex-session` is now
+  declared directly to work around the 2.29.x umbrella session-extra gap.
+- `SCITEX_CLOUD_*` environment variables are accepted as a back-compat
+  alias of `SCITEX_HUB_*`.
+
+### Fixed
+- Headless release gate: browser/E2E flags dropped from the global pytest
+  `addopts`; E2E tests are marked `@pytest.mark.e2e` and guarded by an
+  autouse conftest fixture, so `pytest tests/ -x` runs headless by default
+  (#184, #185).
+- `writer_app` migration ordering and assorted gate-3 failures surfaced by
+  the apps/config standardization (accounts, project, scholar, llm,
+  apps/workspace, public-misc buckets).
+- `APIKey.key_prefix` made high-entropy to stop UNIQUE-constraint
+  collisions.
+- Audit gate honors `skip_rules` for the PA / § backlog.
+- CI installs `[all,dev]` (not the removed `[django]`/`[test]`/`[docs]`
+  sub-extras) and includes `pytest-cov` so the Codecov matrix runs.
+
 ## [0.18.0] - 2026-05-23
 
 ### Renamed (BREAKING)
