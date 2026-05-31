@@ -177,7 +177,7 @@ if __name__ == "__main__":
 #         )
 #
 #         manager = get_project_filesystem_manager(demo_user)
-#         success, project_path = manager.create_empty_project_directory(project)
+#         success, project_path = manager.create_project_directory(project)
 #
 #         if not success:
 #             logger.error(
