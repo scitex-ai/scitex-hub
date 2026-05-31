@@ -43,10 +43,29 @@ class TemplateOperationsManager:
         self.manager = filesystem_manager
 
     def create_minimal_readme(self, project: Project, project_path: Path):
-        """Create minimal README file for empty projects."""
-        from scitex.template import create_minimal_readme
+        """Create minimal README file for empty projects.
 
-        create_minimal_readme(str(project_path), _project_metadata(project))
+        Delegates to scitex.template when available. The ``scitex_template``
+        package is an optional extra; when it is not installed we fall back to
+        writing a basic README directly so that project/demo directory creation
+        still succeeds rather than hard-failing on a missing optional dep.
+        """
+        meta = _project_metadata(project)
+        try:
+            from scitex.template import create_minimal_readme
+
+            create_minimal_readme(str(project_path), meta)
+        except ImportError:
+            logger.warning(
+                "scitex.template unavailable (scitex_template not installed); "
+                "writing fallback README for %s",
+                project.slug,
+            )
+            readme = Path(project_path) / "README.md"
+            readme.write_text(
+                f"# {meta['name']}\n\n{meta['description']}\n",
+                encoding="utf-8",
+            )
 
     def create_project_readme(self, project: Project, project_path: Path):
         """Create comprehensive README file for the project."""

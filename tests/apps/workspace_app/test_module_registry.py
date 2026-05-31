@@ -88,17 +88,20 @@ class TestModuleRegistry(TestCase):
 
     def test_is_workspace_path(self):
         """is_workspace_path() correctly identifies module paths."""
-        self.assertTrue(is_workspace_path("/writer/"))
+        # Workspace modules now live under the /apps/<name>/ prefix.
+        self.assertTrue(is_workspace_path("/apps/writer/"))
         self.assertTrue(is_workspace_path("/apps/home/"))
-        self.assertTrue(is_workspace_path("/tools/"))
+        self.assertTrue(is_workspace_path("/apps/tools/"))
         self.assertFalse(is_workspace_path("/admin/"))
-        self.assertFalse(is_workspace_path("/"))
+        # Root renders inside the workspace layout (root dispatch).
+        self.assertTrue(is_workspace_path("/"))
 
     def test_get_module_names(self):
         """get_module_names() returns all registered names."""
         names = get_module_names()
         self.assertIn("writer", names)
-        self.assertIn("hub", names)
+        # The repo/hub module is registered under the name "home".
+        self.assertIn("home", names)
         self.assertIn("tools", names)
 
     def test_modules_ordered(self):

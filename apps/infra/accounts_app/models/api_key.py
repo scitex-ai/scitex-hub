@@ -19,9 +19,9 @@ class APIKey(models.Model):
         max_length=100, help_text="Descriptive name for this API key"
     )
     key_prefix = models.CharField(
-        max_length=8,
+        max_length=15,
         unique=True,
-        help_text="First 8 characters of the key (for display)",
+        help_text="First 15 characters of the key (for display)",
     )
     key_hash = models.CharField(
         max_length=64, unique=True, help_text="SHA256 hash of the full key"
@@ -83,7 +83,10 @@ class APIKey(models.Model):
         """
         full_key = cls.generate_key()
         key_hash = cls.hash_key(full_key)
-        key_prefix = full_key[:8]  # "scitex_x"
+        # "scitex_" + 8 hex chars (32 bits entropy) keeps the display prefix
+        # unique in practice; an 8-char prefix only captured 1 hex char and
+        # collided on the unique constraint after a handful of keys.
+        key_prefix = full_key[:15]
 
         api_key = cls.objects.create(
             user=user,

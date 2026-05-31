@@ -30,7 +30,7 @@ class TestZoteroStatus:
             "scitex.scholar.integration.zotero.ZoteroLocalReader",
             side_effect=FileNotFoundError("No Zotero DB"),
         ):
-            response = client.get("/scholar/api/library/zotero/status/")
+            response = client.get("/apps/scholar/api/library/zotero/status/")
         assert response.status_code == 200
         data = response.json()
         assert data["available"] is False
@@ -38,7 +38,7 @@ class TestZoteroStatus:
     @pytest.mark.django_db
     def test_status_requires_login(self, client):
         """Unauthenticated users are redirected."""
-        response = client.get("/scholar/api/library/zotero/status/")
+        response = client.get("/apps/scholar/api/library/zotero/status/")
         assert response.status_code in (302, 403)
 
 
@@ -62,7 +62,7 @@ class TestZoteroImport:
         import json
 
         response = client.post(
-            "/scholar/api/library/zotero/import/",
+            "/apps/scholar/api/library/zotero/import/",
             data=json.dumps({"mode": "all"}),
             content_type="application/json",
         )
@@ -73,7 +73,7 @@ class TestZoteroImport:
         """Invalid JSON body returns 400."""
         client.force_login(user)
         response = client.post(
-            "/scholar/api/library/zotero/import/",
+            "/apps/scholar/api/library/zotero/import/",
             data="not-json",
             content_type="application/json",
         )
@@ -154,7 +154,7 @@ class TestProjectWorkspace:
         import uuid
 
         response = client.post(
-            f"/scholar/api/library/projects/{uuid.uuid4()}/setup-workspace/"
+            f"/apps/scholar/api/library/projects/{uuid.uuid4()}/setup-workspace/"
         )
         assert response.status_code in (302, 403)
 
@@ -165,7 +165,7 @@ class TestProjectWorkspace:
 
         client.force_login(user)
         response = client.post(
-            f"/scholar/api/library/projects/{uuid.uuid4()}/setup-workspace/"
+            f"/apps/scholar/api/library/projects/{uuid.uuid4()}/setup-workspace/"
         )
         assert response.status_code == 404
 

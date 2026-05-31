@@ -131,17 +131,16 @@ def api_tts_relay(request):
     group_name = f"speech_{username}"
 
     try:
-        import asyncio
+        from asgiref.sync import async_to_sync
 
         channel_layer = get_channel_layer()
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(
-            channel_layer.group_send(
-                group_name,
-                {"type": "tts_speak", "text": text},
-            )
+        # Use async_to_sync rather than a fresh event loop: a brand-new loop
+        # does not share the InMemoryChannelLayer state (queues are bound to
+        # the running loop), so group_send would silently drop the message.
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {"type": "tts_speak", "text": text},
         )
-        loop.close()
         return JsonResponse({"success": True, "relayed_to": group_name})
     except Exception as e:
         logger.error("TTS relay failed: %s", e)

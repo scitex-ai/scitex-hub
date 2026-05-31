@@ -17,14 +17,13 @@ class TestRegistryManifestLoading:
         from apps.infra.workspace_app.registry import get_all_modules
 
         modules = get_all_modules()
-        assert len(modules) == 12
+        assert len(modules) == 11
 
     def test_module_names(self):
         from apps.infra.workspace_app.registry import get_module_names
 
         names = get_module_names()
-        # Unique module names. There are 12 registered modules but two share
-        # the "tools" name (apps_app + tools_app), so the unique-name set has 11.
+        # 11 registered modules, each with a unique name.
         expected = {
             "writer",
             "scholar",
@@ -119,7 +118,7 @@ class TestAppManagementAPI:
         from scitex_hub.appmaker import list_all
 
         apps = list_all()
-        assert len(apps) == 12
+        assert len(apps) == 11
         names = {a["name"] for a in apps}
         assert "writer" in names
         assert "scholar" in names

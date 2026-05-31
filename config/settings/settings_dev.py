@@ -194,6 +194,14 @@ if os.environ.get("SCITEX_HUB_USE_SQLITE_DEV"):
             "NAME": BASE_DIR / "data" / "db" / "sqlite" / "scitex_hub_dev.db",
         }
     }
+    # The SQLite path is the brokerless CI/test environment. Run Celery tasks
+    # eagerly (in-process, synchronously) so .delay() does not block trying to
+    # reach a Redis broker that isn't running, which otherwise hangs and fails
+    # any code path that enqueues a task (e.g. visitor workspace init).
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = False
+    CELERY_BROKER_URL = "memory://"
+    CELERY_RESULT_BACKEND = "cache+memory://"
 else:
     # PostgreSQL (default for development)
     DATABASES = {

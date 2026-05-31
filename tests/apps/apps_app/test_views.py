@@ -33,15 +33,15 @@ class AppsBrowseTest(TestCase):
         )
 
     def test_browse_page_200(self):
-        resp = self.client.get("/apps/")
+        resp = self.client.get("/apps/store/")
         self.assertEqual(resp.status_code, 200)
 
     def test_browse_with_category_filter(self):
-        resp = self.client.get("/apps/?category=writing")
+        resp = self.client.get("/apps/store/?category=writing")
         self.assertEqual(resp.status_code, 200)
 
     def test_browse_with_search(self):
-        resp = self.client.get("/apps/?q=t-browse")
+        resp = self.client.get("/apps/store/?q=t-browse")
         self.assertEqual(resp.status_code, 200)
 
 
@@ -58,7 +58,7 @@ class AppsDetailTest(TestCase):
         )
 
     def test_detail_page_200(self):
-        resp = self.client.get("/apps/t-detail/")
+        resp = self.client.get("/apps/store/t-detail/")
         self.assertEqual(resp.status_code, 200)
 
     def test_detail_page_404(self):

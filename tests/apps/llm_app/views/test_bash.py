@@ -94,7 +94,7 @@ class TestBashExecAuthentication(TestCase):
 
     def test_unauthenticated_request_redirects(self):
         response = self.client.post(
-            "/llm/api/bash/",
+            "/apps/llm/api/bash/",
             data=json.dumps({"command": "ls"}),
             content_type="application/json",
         )
@@ -103,13 +103,13 @@ class TestBashExecAuthentication(TestCase):
 
     def test_get_method_not_allowed(self):
         self._login("bash_test_alice")
-        response = self.client.get("/llm/api/bash/")
+        response = self.client.get("/apps/llm/api/bash/")
         assert response.status_code == 405
 
     def test_missing_command_returns_400(self):
         self._login("bash_test_alice2")
         response = self.client.post(
-            "/llm/api/bash/",
+            "/apps/llm/api/bash/",
             data=json.dumps({}),
             content_type="application/json",
         )
@@ -120,7 +120,7 @@ class TestBashExecAuthentication(TestCase):
     def test_invalid_json_returns_400(self):
         self._login("bash_test_alice3")
         response = self.client.post(
-            "/llm/api/bash/",
+            "/apps/llm/api/bash/",
             data="not-json",
             content_type="application/json",
         )

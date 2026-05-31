@@ -333,6 +333,30 @@ class ProjectLibraryLinker:
             .order_by("-saved_at")
         )
 
+    def setup_project_workspace(self, project) -> Dict[str, str]:
+        """Ensure scholar workspace exists for a project.
+
+        Delegates to scitex.scholar.ensure_workspace().
+        Returns workspace paths for display in the UI.
+
+        Args:
+            project: Project instance
+
+        Returns:
+            Dict with workspace path strings
+        """
+        from scitex.scholar import ensure_workspace
+
+        project_dir = project.get_local_path()
+        workspace = ensure_workspace(project_dir)
+
+        return {
+            "workspace_dir": str(workspace),
+            "bib_dir": str(workspace / "bib_files"),
+            "library_dir": str(workspace / "library"),
+            "project_bib": str(project_dir / "scitex" / "scholar" / "project.bib"),
+        }
+
     def get_linkable_papers(self) -> QuerySet:
         """
         Get all papers in user library that can be linked to projects.

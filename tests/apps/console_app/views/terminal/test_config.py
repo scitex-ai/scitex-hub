@@ -19,6 +19,19 @@ class TestDevReposParsing:
         importlib.reload(cfg)
         return cfg
 
+    def teardown_method(self, method):
+        """Reload config under the restored (post-patch) environment.
+
+        Each test reloads the shared config module under a patched env; without
+        restoring it, the module is left holding test-specific values, which
+        leaks into unrelated tests that later import/patch this module (e.g.
+        terminal_broker tests patching config.SHOW_MOTD). Reloading here returns
+        the module to its real-environment state.
+        """
+        import apps.workspace.console_app.views.terminal.config as cfg
+
+        importlib.reload(cfg)
+
     @mock.patch.dict(os.environ, {"SCITEX_HUB_DEV_REPOS": ""}, clear=False)
     def test_empty_env_returns_empty_list(self):
         cfg = self._reload_config()

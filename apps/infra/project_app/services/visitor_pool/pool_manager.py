@@ -40,15 +40,19 @@ class PoolAllocator:
 
     @classmethod
     def _check_table_exists(cls) -> bool:
-        """Check if VisitorAllocation table exists."""
+        """Check if VisitorAllocation table exists.
+
+        Uses Django's backend-agnostic introspection rather than a raw
+        ``information_schema`` query: ``information_schema`` does not exist on
+        SQLite, so the raw query silently failed and forced the DemoProjectPool
+        fallback on SQLite (incl. the CI test database).
+        """
         try:
             from django.db import connection
 
+            table = VisitorAllocation._meta.db_table
             with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'project_app_visitorallocation'"
-                )
-                return cursor.fetchone()[0] > 0
+                return table in connection.introspection.table_names(cursor)
         except Exception:
             return False
 
@@ -204,10 +208,24 @@ class PoolAllocator:
                     f"(expires_at={expires_at.isoformat()}), queuing workspace init"
                 )
 
-                # Phase 2: queue async workspace initialization
-                from apps.infra.project_app.tasks import initialize_visitor_workspace
+                # Phase 2: queue async workspace initialization.
+                # Best-effort: a missing/unreachable Celery broker must not undo
+                # the Phase 1 allocation that already succeeded above (and must
+                # not hang the synchronous request). The workspace is created
+                # lazily on first use if the task never runs.
+                from apps.infra.project_app.tasks import (
+                    initialize_visitor_workspace,
+                )
 
-                initialize_visitor_workspace.delay(allocation.id)
+                try:
+                    initialize_visitor_workspace.delay(allocation.id)
+                except Exception as exc:
+                    logger.warning(
+                        "[VisitorPool] Could not queue workspace init for "
+                        "visitor-%03d (broker unavailable?): %s",
+                        visitor_num,
+                        exc,
+                    )
 
                 return project, user
 

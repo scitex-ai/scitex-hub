@@ -288,4 +288,33 @@ def api_project_papers(request, project_id):
         )
 
 
+@login_required
+@require_http_methods(["POST"])
+def api_setup_project_workspace(request, project_id):
+    """Ensure scholar workspace exists for a project.
+
+    POST /api/library/projects/<project_id>/setup-workspace/
+
+    Returns workspace paths for display in the UI.
+    """
+    try:
+        from apps.infra.project_app.models import Project
+
+        project_id = UUID(str(project_id))
+        try:
+            project = Project.objects.get(id=project_id, owner=request.user)
+        except Project.DoesNotExist:
+            return JsonResponse(
+                {"success": False, "error": "Project not found"}, status=404
+            )
+
+        linker = ProjectLibraryLinker(request.user)
+        paths = linker.setup_project_workspace(project)
+        return JsonResponse({"success": True, **paths})
+
+    except Exception as e:
+        logger.error(f"Error setting up project workspace: {e}", exc_info=True)
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
 # EOF

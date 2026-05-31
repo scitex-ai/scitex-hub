@@ -163,7 +163,7 @@ class TestAPIKeysView:
     def test_api_keys_view_requires_login(self):
         """GET to /settings/api-keys/ requires authentication"""
         client = Client()
-        response = client.get("/settings/api-keys/", follow=True)
+        response = client.get("/accounts/settings/api-keys/", follow=True)
         # Should redirect to login
         assert response.status_code == 200
         # Check we ended up at login page or redirected
@@ -184,7 +184,7 @@ class TestAPIKeysView:
             password="testpass123",  # pragma: allowlist secret
         )
 
-        response = client.get("/settings/api-keys/")
+        response = client.get("/accounts/settings/api-keys/")
         assert response.status_code == 200
 
     def test_api_keys_view_context_data(self):
@@ -203,7 +203,7 @@ class TestAPIKeysView:
         APIKey.create_key(user=user, name="key1", scopes=["*"])
         APIKey.create_key(user=user, name="key2", scopes=["mcp"])
 
-        response = client.get("/settings/api-keys/")
+        response = client.get("/accounts/settings/api-keys/")
         assert response.status_code == 200
         # Check context has api_keys
         assert "api_keys" in response.context
@@ -225,7 +225,7 @@ class TestAPIKeyModel:
         assert api_key_obj.name == "test-key"
         assert api_key_obj.scopes == ["*"]
         assert full_key.startswith("scitex_")
-        assert api_key_obj.key_prefix == full_key[:8]
+        assert api_key_obj.key_prefix == full_key[:15]
 
     def test_api_key_hash_verification(self):
         """APIKey stores and verifies key hash correctly"""

@@ -35,18 +35,31 @@ def _post_json(client, body):
     return client.post(_RELAY_URL, data=body, content_type="application/json")
 
 
-def _receive_group_message(group_name):
-    """Subscribe a temporary channel to the group and return one message.
+def _subscribe(group_name):
+    """Subscribe a fresh channel to the group and return it.
 
-    Returns the delivered dict, or None if nothing was delivered within the
-    timeout. Uses the real default channel layer (InMemoryChannelLayer under
-    the override_settings applied to the test classes).
+    Must be called BEFORE the relay POST: a channel layer only delivers a
+    group_send to channels already in the group at send time, so the
+    subscriber has to be registered before the message is sent.
+    """
+    layer = get_channel_layer()
+
+    async def _add():
+        channel = await layer.new_channel()
+        await layer.group_add(group_name, channel)
+        return channel
+
+    return async_to_sync(_add)()
+
+
+def _receive(channel):
+    """Receive one message on a previously subscribed channel.
+
+    Returns the delivered dict, or None if nothing arrived within the timeout.
     """
     layer = get_channel_layer()
 
     async def _pull():
-        channel = await layer.new_channel()
-        await layer.group_add(group_name, channel)
         try:
             return await asyncio.wait_for(layer.receive(channel), timeout=1.0)
         except asyncio.TimeoutError:
@@ -163,20 +176,20 @@ class TestTtsRelayChannelSend(TestCase):
     def test_relay_delivers_message_to_user_speech_group(self):
         """A subscriber on speech_<username> must receive the relayed message."""
         # Arrange
-        group_name = self.group_name
+        channel = _subscribe(self.group_name)
         # Act
         _post_json(self.client, json.dumps({"text": "hello from container"}))
-        message = _receive_group_message(group_name)
+        message = _receive(channel)
         # Assert
         assert message is not None
 
     def test_relay_message_has_tts_speak_type(self):
         """The message delivered to the group must have type tts_speak."""
         # Arrange
-        group_name = self.group_name
+        channel = _subscribe(self.group_name)
         # Act
         _post_json(self.client, json.dumps({"text": "speak this"}))
-        message = _receive_group_message(group_name)
+        message = _receive(channel)
         # Assert
         assert message["type"] == "tts_speak"
 
@@ -184,9 +197,10 @@ class TestTtsRelayChannelSend(TestCase):
         """The delivered message must carry the exact text from the request body."""
         # Arrange
         expected_text = "precise text payload"
+        channel = _subscribe(self.group_name)
         # Act
         _post_json(self.client, json.dumps({"text": expected_text}))
-        message = _receive_group_message(self.group_name)
+        message = _receive(channel)
         # Assert
         assert message["text"] == expected_text
 
@@ -232,9 +246,10 @@ class TestTtsRelaySuccessResponse(TestCase):
         """Text longer than 4096 chars must be truncated to 4096 on the wire."""
         # Arrange
         group_name = f"speech_{self.user.username}"
+        channel = _subscribe(group_name)
         # Act
         _post_json(self.client, json.dumps({"text": "a" * 5000}))
-        message = _receive_group_message(group_name)
+        message = _receive(channel)
         # Assert
         assert len(message["text"]) <= 4096
 
