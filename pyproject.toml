@@ -18,6 +18,14 @@ dependencies = [
     "click>=8.0",
     "scitex-app>=0.2.8",
     "scitex-config>=0.3.6",
+    # `scitex-session` is consumed via the umbrella as `scitex.session.INJECTED`
+    # (settings_shared.py / settings_auth.py / config/routing.py).
+    # scitex >= 2.29 lazy-loads `scitex_session` and raises ImportError if
+    # the sub-package is missing — but the umbrella's `[session]` extra
+    # only declares matplotlib + pyyaml, NOT scitex-session itself
+    # (upstream gap, ywatanabe1989/scitex-python). Declare it directly
+    # so the import works in any install graph.
+    "scitex-session>=0.1.6",
     "scitex-writer>=2.17.2",
     "scitex-dev>=0.15.0",
     "gitpython>=3.1",
@@ -119,6 +127,11 @@ all = [
     "pytest-playwright>=0.7",
     "pytest-base-url>=2.1",
     "pytest-asyncio>=1.2",
+    # pytest-matrix workflow runs `pytest --cov=src/scitex_hub
+    # --cov-report=xml --cov-report=term` and uploads to Codecov — the
+    # plugin must be in the install graph, otherwise pytest exits 4 on
+    # "unrecognized arguments: --cov".
+    "pytest-cov>=4.1",
     # --- Sphinx docs build (run by CI on tag) ---
     "sphinx>=7.0",
     "sphinx-rtd-theme>=2.0",
