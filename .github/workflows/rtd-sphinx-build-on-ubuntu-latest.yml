@@ -26,7 +26,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install package + docs deps
-        run: pip install -e ".[docs]"
+        run: pip install -e ".[all]" || pip install -e ".[dev]" || pip install -e .
 
       - name: Build Sphinx HTML (warnings fail PRs only)
         run: |
