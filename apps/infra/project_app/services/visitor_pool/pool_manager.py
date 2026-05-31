@@ -40,17 +40,18 @@ class PoolAllocator:
 
     @classmethod
     def _check_table_exists(cls) -> bool:
-        """Check if VisitorAllocation table exists."""
-        try:
-            from django.db import connection
+        """Check if VisitorAllocation table exists.
 
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'project_app_visitorallocation'"
-                )
-                return cursor.fetchone()[0] > 0
-        except Exception:
-            return False
+        Uses Django's database-agnostic introspection so the check works
+        across SQLite (test/CI), PostgreSQL, and MySQL alike. The previous
+        implementation queried ``information_schema.tables`` directly, which
+        does not exist on SQLite and silently returned False there, wrongly
+        triggering the DemoProjectPool fallback.
+        """
+        from django.db import connection
+
+        table_name = VisitorAllocation._meta.db_table
+        return table_name in connection.introspection.table_names()
 
     @classmethod
     @transaction.atomic
