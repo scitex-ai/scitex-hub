@@ -84,7 +84,9 @@ class TestStatusCommand:
 
     def test_status_help(self, runner):
         """Test status --help."""
-        result = runner.invoke(main, ["status", "--help"])
+        # `status` was renamed to `show-status` (verb-noun convention §5);
+        # the old name is now a hidden deprecation redirect.
+        result = runner.invoke(main, ["show-status", "--help"])
         assert result.exit_code == 0
         assert "--env" in result.output
 
@@ -94,7 +96,9 @@ class TestLogsCommand:
 
     def test_logs_help(self, runner):
         """Test logs --help."""
-        result = runner.invoke(main, ["logs", "--help"])
+        # `logs` was renamed to `show-logs` (verb-noun convention §5);
+        # the old name is now a hidden deprecation redirect.
+        result = runner.invoke(main, ["show-logs", "--help"])
         assert result.exit_code == 0
         assert "--follow" in result.output
         assert "--tail" in result.output

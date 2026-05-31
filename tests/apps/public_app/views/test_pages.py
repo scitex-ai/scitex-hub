@@ -45,7 +45,7 @@ class TestVideoCatalogStructure:
             "pages_data",
             os.path.join(
                 os.path.dirname(__file__),
-                "../../../../apps/public_app/views/pages_data.py",
+                "../../../../apps/infra/public_app/views/pages_data.py",
             ),
         )
         # We need to mock the pages_shortcuts import
@@ -61,7 +61,7 @@ class TestVideoCatalogStructure:
         # Now manually parse the file to extract OG_BASE_URL
         pages_data_path = os.path.join(
             os.path.dirname(__file__),
-            "../../../../apps/public_app/views/pages_data.py",
+            "../../../../apps/infra/public_app/views/pages_data.py",
         )
         pages_data_path = os.path.abspath(pages_data_path)
 
@@ -75,9 +75,9 @@ class TestVideoCatalogStructure:
         assert match, "OG_BASE_URL not found in pages_data.py"
         og_base_url = match.group(1)
 
-        assert og_base_url.startswith("https://"), (
-            f"OG_BASE_URL should be HTTPS: {og_base_url}"
-        )
+        assert og_base_url.startswith(
+            "https://"
+        ), f"OG_BASE_URL should be HTTPS: {og_base_url}"
         assert "scitex.ai" in og_base_url
 
     def test_video_catalog_structure(self):
@@ -87,7 +87,7 @@ class TestVideoCatalogStructure:
         # Parse the file to extract VIDEO_CATALOG structure
         pages_data_path = os.path.join(
             os.path.dirname(__file__),
-            "../../../../apps/public_app/views/pages_data.py",
+            "../../../../apps/infra/public_app/views/pages_data.py",
         )
         pages_data_path = os.path.abspath(pages_data_path)
 
@@ -118,7 +118,7 @@ class TestVideoCatalogStructure:
         """Thumbnails should be PNG files."""
         pages_data_path = os.path.join(
             os.path.dirname(__file__),
-            "../../../../apps/public_app/views/pages_data.py",
+            "../../../../apps/infra/public_app/views/pages_data.py",
         )
         pages_data_path = os.path.abspath(pages_data_path)
 
@@ -251,9 +251,9 @@ class TestVideoPlayerIntegration:
         assert match, "og:image meta tag not found"
 
         og_image_url = match.group(1)
-        assert og_image_url.startswith("https://"), (
-            f"OG image should be HTTPS: {og_image_url}"
-        )
+        assert og_image_url.startswith(
+            "https://"
+        ), f"OG image should be HTTPS: {og_image_url}"
 
 
 if __name__ == "__main__":
