@@ -2,7 +2,7 @@
 description: |
   [TOPIC] Cloud Refactor
   [DETAILS] Cloud Refactor.
-tags: [scitex-hub-cloud-refactor]
+tags: [scitex-hub-hub-refactor]
 ---
 ## Refactoring
 

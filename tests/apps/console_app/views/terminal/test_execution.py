@@ -49,6 +49,12 @@ def _install_django_stubs():
     config_stub.BASE_CONTAINER_PATH = _BASE_CONTAINER_PATH
     config_stub.SLURM_PARTITION = _SLURM_PARTITION
     config_stub.SLURM_USER_DATA_ROOT = _SLURM_USER_DATA_ROOT
+    # SHOW_MOTD must mirror the real config module: this stub is intentionally
+    # left installed in sys.modules after this file is collected (see the note
+    # below), so any later test that reads / patches
+    # ``...terminal.config.SHOW_MOTD`` (e.g. terminal_broker.test_handlers_shared)
+    # would otherwise hit AttributeError on this incomplete stand-in.
+    config_stub.SHOW_MOTD = False
 
     def _parse_time_limit_seconds(time_str: str) -> int:
         parts = time_str.split(":")
