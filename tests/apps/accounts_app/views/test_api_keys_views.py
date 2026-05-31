@@ -225,7 +225,7 @@ class TestAPIKeyModel:
         assert api_key_obj.name == "test-key"
         assert api_key_obj.scopes == ["*"]
         assert full_key.startswith("scitex_")
-        assert api_key_obj.key_prefix == full_key[:8]
+        assert api_key_obj.key_prefix == full_key[:14]
 
     def test_api_key_hash_verification(self):
         """APIKey stores and verifies key hash correctly"""
