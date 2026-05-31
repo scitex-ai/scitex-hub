@@ -236,9 +236,40 @@ def cleanup_test_users():
 # ``tests/e2e/`` and anything marked ``@pytest.mark.e2e``.
 
 
+# Playwright fixtures that imply a real browser must be launched. Any test
+# requesting one of these would call ``BrowserType.launch`` at run time, which
+# crashes in the headless release gate where no browser executable is provided.
+# pytest-playwright provides ``page``/``browser``/``context``/``browser_context``
+# etc.; ``live_server`` (pytest-django) spins up a live HTTP server that these
+# browser tests target. Detecting the fixture names lets us catch browser tests
+# that live OUTSIDE ``tests/e2e/`` (e.g. ``tests/ui/...``) without having to mark
+# every file by hand.
+_BROWSER_FIXTURES = frozenset(
+    {
+        "page",
+        "browser",
+        "context",
+        "browser_context",
+        "browser_context_args",
+        "browser_type",
+        "browser_name",
+        "new_context",
+        "new_page",
+        "live_server",
+    }
+)
+
+
 def pytest_collection_modifyitems(config, items):
     """Skip E2E/browser tests in the headless gate; run them when the
-    "E2E Mobile Tests" workflow passes ``--browser`` explicitly."""
+    "E2E Mobile Tests" workflow passes ``--browser`` explicitly.
+
+    A test is treated as a browser test (and skipped in the headless gate) when
+    it lives under ``tests/e2e/``, is marked ``@pytest.mark.e2e``, OR requests a
+    Playwright/live-server fixture (``page``, ``browser``, ``live_server``, …).
+    The fixture check is what keeps a plain ``pytest tests/`` from launching a
+    browser for the browser-driven tests under ``tests/ui/``.
+    """
     browser_requested = False
     try:
         browser_requested = bool(config.getoption("--browser"))
@@ -255,5 +286,8 @@ def pytest_collection_modifyitems(config, items):
     e2e_dir = os.sep + "e2e" + os.sep
     for item in items:
         path = str(getattr(item, "fspath", ""))
-        if "e2e" in item.keywords or e2e_dir in path:
+        uses_browser_fixture = bool(
+            _BROWSER_FIXTURES.intersection(getattr(item, "fixturenames", ()))
+        )
+        if "e2e" in item.keywords or e2e_dir in path or uses_browser_fixture:
             item.add_marker(skip_e2e)
