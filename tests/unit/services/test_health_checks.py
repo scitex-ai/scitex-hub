@@ -9,7 +9,6 @@ NAS bind mount permission issues.
 
 import os
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
@@ -31,22 +30,10 @@ class TestUserDataPermissions:
         proj_dir.mkdir()
 
         status_data = {}
-        with patch(
-            "apps.infra.public_app.views.status.health_checks.Path"
-        ) as mock_path:
-            mock_path.return_value = users_dir
-            # Actually use the real path for iteration
-            with patch.object(
-                Path,
-                "__new__",
-                lambda cls, *args: (
-                    users_dir
-                    if args and args[0] == "/app/data/users"
-                    else Path.__new__(cls)
-                ),
-            ):
-                # Direct test with tmp_path
-                check_user_data_permissions_with_path(status_data, users_dir)
+        # Use the *_with_path variant against the real tmp_path tree — no
+        # mocks needed (the previous Path.__new__ patch recursed infinitely,
+        # RecursionError on py3.12/3.13, and violated STX-NM00x).
+        check_user_data_permissions_with_path(status_data, users_dir)
 
         assert status_data["user_data_permissions"]["is_healthy"] is True
         assert status_data["user_data_permissions"]["health_class"] == "healthy"
