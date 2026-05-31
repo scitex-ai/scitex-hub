@@ -194,6 +194,15 @@ if os.environ.get("SCITEX_HUB_USE_SQLITE_DEV"):
             "NAME": BASE_DIR / "data" / "db" / "sqlite" / "scitex_hub_dev.db",
         }
     }
+    # SCITEX_HUB_USE_SQLITE_DEV is the CI / headless-test indicator (set by
+    # the pytest-matrix + release workflows). In that mode there is no Redis
+    # service, so run Celery tasks in-process and use an in-memory channel
+    # layer — tests stay self-contained instead of hitting localhost:6379.
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True
+    CELERY_BROKER_URL = "memory://"
+    CELERY_RESULT_BACKEND = "cache+memory://"
+    CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 else:
     # PostgreSQL (default for development)
     DATABASES = {
