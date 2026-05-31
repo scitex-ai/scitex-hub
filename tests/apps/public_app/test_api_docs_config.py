@@ -35,9 +35,9 @@ class TestAPIDocSections:
     def test_section_order_matches_sections(self):
         """All sections in order list must exist in sections dict."""
         for key in API_DOC_SECTION_ORDER:
-            assert (
-                key in API_DOC_SECTIONS
-            ), f"Section {key} in order but not in sections"
+            assert key in API_DOC_SECTIONS, (
+                f"Section {key} in order but not in sections"
+            )
 
     def test_all_sections_in_order(self):
         """All sections must be in the order list."""
@@ -95,6 +95,7 @@ def client():
     return Client()
 
 
+@pytest.mark.django_db
 class TestAPIDocURLs:
     """Test API documentation URL generation."""
 
@@ -102,9 +103,9 @@ class TestAPIDocURLs:
         """Each section URL should return 200."""
         for key in API_DOC_SECTION_ORDER:
             response = client.get(f"/docs/web-api/{key}/")
-            assert (
-                response.status_code == 200
-            ), f"Section {key} returned {response.status_code}"
+            assert response.status_code == 200, (
+                f"Section {key} returned {response.status_code}"
+            )
 
     def test_main_api_docs_url(self, client):
         """Main API docs URL should return 200."""
@@ -189,9 +190,9 @@ class TestCampaignTokens:
         assert result["hashtag"] == "alpha"
         assert result["legacy_format"] is True
         # No silent fallback: a DeprecationWarning must be emitted.
-        assert any(
-            issubclass(w.category, DeprecationWarning) for w in caught
-        ), "legacy prefix should emit DeprecationWarning"
+        assert any(issubclass(w.category, DeprecationWarning) for w in caught), (
+            "legacy prefix should emit DeprecationWarning"
+        )
 
     def test_is_valid_campaign_token_accepts_legacy_alias(self):
         """is_valid_campaign_token should accept the legacy alias too."""
