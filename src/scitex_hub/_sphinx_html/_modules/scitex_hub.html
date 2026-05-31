@@ -143,6 +143,9 @@
 <li class="toctree-l3"><a class="reference internal" href="../api/_autosummary/scitex_hub.html">scitex_hub</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../api/_autosummary/scitex_hub.html#scitex_hub.get_version"><code class="docutils literal notranslate"><span class="pre">get_version()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../api/_autosummary/scitex_hub.html#scitex_hub.health_check"><code class="docutils literal notranslate"><span class="pre">health_check()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/_autosummary/scitex_hub.html#scitex_hub.get_context"><code class="docutils literal notranslate"><span class="pre">get_context()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/_autosummary/scitex_hub.html#scitex_hub.eval_js"><code class="docutils literal notranslate"><span class="pre">eval_js()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/_autosummary/scitex_hub.html#scitex_hub.ui_action"><code class="docutils literal notranslate"><span class="pre">ui_action()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient"><code class="docutils literal notranslate"><span class="pre">CloudClient</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../api/_autosummary/scitex_hub.html#scitex_hub.Environment"><code class="docutils literal notranslate"><span class="pre">Environment</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../api/_autosummary/scitex_hub.html#scitex_hub.get_environment"><code class="docutils literal notranslate"><span class="pre">get_environment()</span></code></a></li>
@@ -241,6 +244,80 @@
 
 
 
+<div class="viewcode-block" id="get_context">
+<a class="viewcode-back" href="../api/scitex_hub.html#scitex_hub.get_context">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_context</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get web app context: username, page, skills, available actions.</span>
+
+<span class="sd">    Convenience wrapper over :class:`CloudClient.get_context`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    page : str, optional</span>
+<span class="sd">        Page name or URL fragment to query context for. ``&quot;&quot;`` means the</span>
+<span class="sd">        current page.</span>
+<span class="sd">    **kw</span>
+<span class="sd">        Forwarded to :class:`CloudClient` (e.g. base URL, auth credentials).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Context dict (``username``, ``page``, ``actions``, ...).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">CloudClient</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">)</span><span class="o">.</span><span class="n">get_context</span><span class="p">(</span><span class="n">page</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="eval_js">
+<a class="viewcode-back" href="../api/scitex_hub.html#scitex_hub.eval_js">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">eval_js</span><span class="p">(</span><span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Evaluate JavaScript in the user&#39;s connected browser.</span>
+
+<span class="sd">    Convenience wrapper over :class:`CloudClient.eval_js`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    code : str</span>
+<span class="sd">        JavaScript code to evaluate.</span>
+<span class="sd">    timeout : int, optional</span>
+<span class="sd">        Seconds to wait for the result (default ``10``).</span>
+<span class="sd">    **kw</span>
+<span class="sd">        Forwarded to :class:`CloudClient`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Result of the JavaScript evaluation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">CloudClient</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">)</span><span class="o">.</span><span class="n">eval_js</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ui_action">
+<a class="viewcode-back" href="../api/scitex_hub.html#scitex_hub.ui_action">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ui_action</span><span class="p">(</span><span class="n">steps</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">delay_ms</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">900</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Drive browser UI: navigate, highlight, click, fill, scroll.</span>
+
+<span class="sd">    Convenience wrapper over :class:`CloudClient.ui_action`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    steps : list</span>
+<span class="sd">        List of action-step dicts; each describes one browser action.</span>
+<span class="sd">    delay_ms : int, optional</span>
+<span class="sd">        Milliseconds to wait between steps (default ``900``).</span>
+<span class="sd">    **kw</span>
+<span class="sd">        Forwarded to :class:`CloudClient`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Result summary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">CloudClient</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">)</span><span class="o">.</span><span class="n">ui_action</span><span class="p">(</span><span class="n">steps</span><span class="p">,</span> <span class="n">delay_ms</span><span class="p">)</span></div>
+
+
+
 <div class="viewcode-block" id="health_check">
 <a class="viewcode-back" href="../api/scitex_hub.html#scitex_hub.health_check">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">health_check</span><span class="p">(</span><span class="n">endpoint</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
@@ -278,6 +355,9 @@
     <span class="s2">&quot;__version__&quot;</span><span class="p">,</span>
     <span class="s2">&quot;get_version&quot;</span><span class="p">,</span>
     <span class="s2">&quot;health_check&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;get_context&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;eval_js&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ui_action&quot;</span><span class="p">,</span>
     <span class="s2">&quot;CloudClient&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Environment&quot;</span><span class="p">,</span>
     <span class="s2">&quot;get_environment&quot;</span><span class="p">,</span>

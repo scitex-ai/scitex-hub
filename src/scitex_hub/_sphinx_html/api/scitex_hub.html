@@ -146,6 +146,9 @@
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/scitex_hub.html">scitex_hub</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="_autosummary/scitex_hub.html#scitex_hub.get_version"><code class="docutils literal notranslate"><span class="pre">get_version()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="_autosummary/scitex_hub.html#scitex_hub.health_check"><code class="docutils literal notranslate"><span class="pre">health_check()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/scitex_hub.html#scitex_hub.get_context"><code class="docutils literal notranslate"><span class="pre">get_context()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/scitex_hub.html#scitex_hub.eval_js"><code class="docutils literal notranslate"><span class="pre">eval_js()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/scitex_hub.html#scitex_hub.ui_action"><code class="docutils literal notranslate"><span class="pre">ui_action()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="_autosummary/scitex_hub.html#scitex_hub.CloudClient"><code class="docutils literal notranslate"><span class="pre">CloudClient</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="_autosummary/scitex_hub.html#scitex_hub.Environment"><code class="docutils literal notranslate"><span class="pre">Environment</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="_autosummary/scitex_hub.html#scitex_hub.get_environment"><code class="docutils literal notranslate"><span class="pre">get_environment()</span></code></a></li>
@@ -224,6 +227,72 @@ scitex-hub serve -t sse       # SSE (remote)</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Health status with version, environment, and service status.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">scitex_hub.</span></span><span class="sig-name descname"><span class="pre">get_context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kw</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/scitex_hub.html#get_context"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Get web app context: username, page, skills, available actions.</p>
+<p>Convenience wrapper over <a class="reference internal" href="_autosummary/scitex_hub.html#scitex_hub.CloudClient.get_context" title="scitex_hub.CloudClient.get_context"><code class="xref py py-class docutils literal notranslate"><span class="pre">CloudClient.get_context</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Page name or URL fragment to query context for. <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> means the
+current page.</p></li>
+<li><p><strong>**kw</strong> – Forwarded to <a class="reference internal" href="_autosummary/scitex_hub.html#scitex_hub.CloudClient" title="scitex_hub.CloudClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">CloudClient</span></code></a> (e.g. base URL, auth credentials).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Context dict (<code class="docutils literal notranslate"><span class="pre">username</span></code>, <code class="docutils literal notranslate"><span class="pre">page</span></code>, <code class="docutils literal notranslate"><span class="pre">actions</span></code>, …).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">scitex_hub.</span></span><span class="sig-name descname"><span class="pre">eval_js</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kw</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/scitex_hub.html#eval_js"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Evaluate JavaScript in the user’s connected browser.</p>
+<p>Convenience wrapper over <a class="reference internal" href="_autosummary/scitex_hub.html#scitex_hub.CloudClient.eval_js" title="scitex_hub.CloudClient.eval_js"><code class="xref py py-class docutils literal notranslate"><span class="pre">CloudClient.eval_js</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>code</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – JavaScript code to evaluate.</p></li>
+<li><p><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Seconds to wait for the result (default <code class="docutils literal notranslate"><span class="pre">10</span></code>).</p></li>
+<li><p><strong>**kw</strong> – Forwarded to <a class="reference internal" href="_autosummary/scitex_hub.html#scitex_hub.CloudClient" title="scitex_hub.CloudClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">CloudClient</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Result of the JavaScript evaluation.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">scitex_hub.</span></span><span class="sig-name descname"><span class="pre">ui_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay_ms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">900</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kw</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/scitex_hub.html#ui_action"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Drive browser UI: navigate, highlight, click, fill, scroll.</p>
+<p>Convenience wrapper over <a class="reference internal" href="_autosummary/scitex_hub.html#scitex_hub.CloudClient.ui_action" title="scitex_hub.CloudClient.ui_action"><code class="xref py py-class docutils literal notranslate"><span class="pre">CloudClient.ui_action</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>steps</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a>) – List of action-step dicts; each describes one browser action.</p></li>
+<li><p><strong>delay_ms</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Milliseconds to wait between steps (default <code class="docutils literal notranslate"><span class="pre">900</span></code>).</p></li>
+<li><p><strong>**kw</strong> – Forwarded to <a class="reference internal" href="_autosummary/scitex_hub.html#scitex_hub.CloudClient" title="scitex_hub.CloudClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">CloudClient</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Result summary.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>

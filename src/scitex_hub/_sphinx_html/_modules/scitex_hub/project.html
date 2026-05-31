@@ -143,6 +143,9 @@
 <li class="toctree-l3"><a class="reference internal" href="../../api/_autosummary/scitex_hub.html">scitex_hub</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../api/_autosummary/scitex_hub.html#scitex_hub.get_version"><code class="docutils literal notranslate"><span class="pre">get_version()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../api/_autosummary/scitex_hub.html#scitex_hub.health_check"><code class="docutils literal notranslate"><span class="pre">health_check()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/_autosummary/scitex_hub.html#scitex_hub.get_context"><code class="docutils literal notranslate"><span class="pre">get_context()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/_autosummary/scitex_hub.html#scitex_hub.eval_js"><code class="docutils literal notranslate"><span class="pre">eval_js()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/_autosummary/scitex_hub.html#scitex_hub.ui_action"><code class="docutils literal notranslate"><span class="pre">ui_action()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient"><code class="docutils literal notranslate"><span class="pre">CloudClient</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../api/_autosummary/scitex_hub.html#scitex_hub.Environment"><code class="docutils literal notranslate"><span class="pre">Environment</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../api/_autosummary/scitex_hub.html#scitex_hub.get_environment"><code class="docutils literal notranslate"><span class="pre">get_environment()</span></code></a></li>
@@ -187,19 +190,22 @@
   <h1>Source code for scitex_hub.project</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python3</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="c1"># File: src/scitex_hub/project.py</span>
-<span class="sd">&quot;&quot;&quot;Project CRUD — Python API for SciTeX Hub project management.</span>
+<span class="c1"># File: src/scitex_hub/project/__init__.py</span>
+<span class="sd">&quot;&quot;&quot;SciTeX Hub project management.</span>
 
-<span class="sd">Usage:</span>
+<span class="sd">Project CRUD (Python API):</span>
 <span class="sd">    from scitex_hub.project import project_list, project_create</span>
 
 <span class="sd">    projects = project_list()</span>
 <span class="sd">    new = project_create(&quot;my-project&quot;, description=&quot;My research&quot;)</span>
+
+<span class="sd">Sandboxed file-operation handlers (async, used by MCP tools) live in</span>
+<span class="sd">:mod:`scitex_hub.project._mcp.handlers`.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">._mcp_tools.api</span><span class="w"> </span><span class="kn">import</span> <span class="n">_make_request</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.._mcp_tools.api</span><span class="w"> </span><span class="kn">import</span> <span class="n">_make_request</span>
 
 
 <div class="viewcode-block" id="project_list">
