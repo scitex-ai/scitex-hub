@@ -204,7 +204,7 @@ class TestAPIKeysView:
         APIKey.create_key(user=user, name="key1", scopes=["*"])
         APIKey.create_key(user=user, name="key2", scopes=["mcp"])
 
-        response = client.get("/settings/api-keys/")
+        response = client.get(reverse("accounts_app:api_keys"))
         assert response.status_code == 200
         # Check context has api_keys
         assert "api_keys" in response.context
