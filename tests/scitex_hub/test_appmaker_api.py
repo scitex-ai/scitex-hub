@@ -17,16 +17,17 @@ class TestRegistryManifestLoading:
         from apps.infra.workspace_app.registry import get_all_modules
 
         modules = get_all_modules()
-        assert len(modules) == 10
+        assert len(modules) == 12
 
     def test_module_names(self):
         from apps.infra.workspace_app.registry import get_module_names
 
         names = get_module_names()
+        # Unique module names. There are 12 registered modules but two share
+        # the "tools" name (apps_app + tools_app), so the unique-name set has 11.
         expected = {
             "writer",
             "scholar",
-            "vis",
             "clew",
             "home",
             "tools",
@@ -34,6 +35,8 @@ class TestRegistryManifestLoading:
             "docs",
             "figrecipe",
             "discovery",
+            "comms",
+            "console",
         }
         assert names == expected
 
@@ -64,12 +67,12 @@ class TestRegistryManifestLoading:
         for rel_path in _BUILTIN_MANIFEST_PATHS:
             path = _APPS_ROOT / rel_path
             data = json.loads(path.read_text())
-            assert (
-                data.get("$schema") == "scitex-app-manifest"
-            ), f"{rel_path} missing $schema"
-            assert (
-                data.get("$schema_version") == "1.0.0"
-            ), f"{rel_path} missing $schema_version"
+            assert data.get("$schema") == "scitex-app-manifest", (
+                f"{rel_path} missing $schema"
+            )
+            assert data.get("$schema_version") == "2.0.0", (
+                f"{rel_path} missing $schema_version"
+            )
 
 
 class TestInitAppRename:
@@ -116,7 +119,7 @@ class TestAppManagementAPI:
         from scitex_hub.appmaker import list_all
 
         apps = list_all()
-        assert len(apps) == 10
+        assert len(apps) == 12
         names = {a["name"] for a in apps}
         assert "writer" in names
         assert "scholar" in names

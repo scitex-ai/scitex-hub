@@ -118,7 +118,7 @@ class AppsModule(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "marketplace_app_marketplacemodule"
+        db_table = "apps_app_marketplacemodule"
         ordering = ["-star_count", "-install_count"]
         verbose_name = "App"
 
@@ -168,7 +168,7 @@ class ModuleVersion(models.Model):
     released_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "marketplace_app_moduleversion"
+        db_table = "apps_app_moduleversion"
         unique_together = ("module", "version")
         ordering = ["-released_at"]
         verbose_name = "App Version"
@@ -192,7 +192,7 @@ class ModuleInstallation(models.Model):
     config = models.JSONField(default=dict, blank=True)
 
     class Meta:
-        db_table = "marketplace_app_moduleinstallation"
+        db_table = "apps_app_moduleinstallation"
         unique_together = ("user", "module")
         ordering = ["tab_order"]
         verbose_name = "App Installation"
@@ -214,7 +214,7 @@ class ModuleStar(models.Model):
     starred_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "marketplace_app_modulestar"
+        db_table = "apps_app_modulestar"
         unique_together = ("user", "module")
         ordering = ["-starred_at"]
 
@@ -255,7 +255,7 @@ class ModuleSubmission(models.Model):
     reviewed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        db_table = "marketplace_app_modulesubmission"
+        db_table = "apps_app_modulesubmission"
         ordering = ["-submitted_at"]
         verbose_name = "App Submission"
 
@@ -282,7 +282,7 @@ class ModuleReview(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "marketplace_app_modulereview"
+        db_table = "apps_app_modulereview"
         unique_together = ("user", "module")
         ordering = ["-created_at"]
         verbose_name = "App Review"

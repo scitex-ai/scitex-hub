@@ -24,6 +24,25 @@ pytest.importorskip(
     reason="scitex-hub[django] / [test] not installed — ui/ tests skipped",
 )
 
+
+def pytest_collection_modifyitems(config, items):
+    """Mark the whole ``tests/ui/`` tree as ``e2e``.
+
+    These are browser-driven Playwright tests (they use the ``page: Page``
+    fixture and a real Chromium binary). They cannot run in the headless
+    unit-test release gate (``pytest tests/ -x`` with ``-m "not e2e"`` —
+    see pyproject ``[tool.pytest.ini_options].addopts``); the browser
+    binary isn't installed there, so they error with
+    ``BrowserType.launch: Executable doesn't exist``. The dedicated E2E
+    Mobile workflow installs the browser and opts back in via
+    ``-o "addopts="``. Marking the tree here keeps new ui/ tests gated
+    automatically. Mirrors tests/e2e/conftest.py.
+    """
+    for item in items:
+        if "tests/ui/" in item.nodeid or item.nodeid.startswith("tests/ui/"):
+            item.add_marker(pytest.mark.e2e)
+
+
 from playwright.sync_api import BrowserContext, Page, expect  # noqa: E402
 
 # Project paths

@@ -4,12 +4,37 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("writer_app", "0006_collaborationinvitation"),
     ]
 
     operations = [
+        # Drop indexes / unique_together that reference the fields being removed
+        # BEFORE removing those fields. On SQLite every RemoveField triggers a
+        # full table remake which rebuilds the model's indexes from the current
+        # model state; if a manuscript/session index is still declared at that
+        # point, _model_indexes_sql calls options.get_field('manuscript') on a
+        # field that no longer exists -> KeyError: 'manuscript'.
+        migrations.RemoveIndex(
+            model_name="collaborativeedit",
+            name="writer_app__manuscr_98b4a0_idx",
+        ),
+        migrations.RemoveIndex(
+            model_name="collaborativeedit",
+            name="writer_app__session_5175fe_idx",
+        ),
+        migrations.AlterUniqueTogether(
+            name="collaborationinvitation",
+            unique_together=None,
+        ),
+        migrations.RemoveIndex(
+            model_name="collaborationinvitation",
+            name="writer_app__manuscr_7a7459_idx",
+        ),
+        migrations.RemoveIndex(
+            model_name="collaborationinvitation",
+            name="writer_app__invited_5b1353_idx",
+        ),
         migrations.RemoveField(
             model_name="collaborativeedit",
             name="manuscript",
