@@ -70,9 +70,9 @@ class TestRegistryManifestLoading:
         for rel_path in _BUILTIN_MANIFEST_PATHS:
             path = _APPS_ROOT / rel_path
             data = json.loads(path.read_text())
-            assert data.get("$schema") == "scitex-app-manifest", (
-                f"{rel_path} missing $schema"
-            )
+            assert (
+                data.get("$schema") == "scitex-app-manifest"
+            ), f"{rel_path} missing $schema"
             assert data.get("$schema_version") in _SUPPORTED_SCHEMA_VERSIONS, (
                 f"{rel_path} has unsupported $schema_version "
                 f"{data.get('$schema_version')!r}"
@@ -120,10 +120,14 @@ class TestAppManagementAPI:
             os.environ.pop("SCITEX_CURRENT_APP", None)
 
     def test_list_all_from_registry(self):
+        from apps.infra.workspace_app.registry import get_all_modules
         from scitex_hub.appmaker import list_all
 
         apps = list_all()
-        assert len(apps) == 10
+        # list_all must reflect every module the registry exposes (one dict
+        # per builtin manifest). The exact count grows as builtin apps are
+        # added, so assert against the registry rather than a frozen number.
+        assert len(apps) == len(get_all_modules())
         names = {a["name"] for a in apps}
         assert "writer" in names
         assert "scholar" in names
