@@ -88,11 +88,14 @@ class TestModuleRegistry(TestCase):
 
     def test_is_workspace_path(self):
         """is_workspace_path() correctly identifies module paths."""
-        self.assertTrue(is_workspace_path("/writer/"))
+        # Modules now live under the /apps/ prefix (apps standardization);
+        # the old top-level /writer/ and /tools/ are legacy redirects.
+        self.assertTrue(is_workspace_path("/apps/writer/"))
         self.assertTrue(is_workspace_path("/apps/home/"))
-        self.assertTrue(is_workspace_path("/tools/"))
+        self.assertTrue(is_workspace_path("/apps/tools/"))
         self.assertFalse(is_workspace_path("/admin/"))
-        self.assertFalse(is_workspace_path("/"))
+        # "/" is the workspace root (maps to the home module).
+        self.assertTrue(is_workspace_path("/"))
 
     def test_get_module_names(self):
         """get_module_names() returns all registered names."""
