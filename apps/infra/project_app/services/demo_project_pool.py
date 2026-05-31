@@ -18,8 +18,10 @@ import logging
 import secrets
 from datetime import timedelta
 from typing import Optional, Tuple
-from django.utils import timezone
+
 from django.contrib.auth.models import User
+from django.utils import timezone
+
 from apps.infra.project_app.models import Project
 
 logger = logging.getLogger(__name__)
@@ -150,7 +152,7 @@ class VisitorPool:
         )
 
         manager = get_project_filesystem_manager(demo_user)
-        success, project_path = manager.create_empty_project_directory(project)
+        success, project_path = manager.create_project_directory(project)
 
         if not success:
             logger.error(

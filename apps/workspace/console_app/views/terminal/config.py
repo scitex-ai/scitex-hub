@@ -9,6 +9,14 @@ from pathlib import Path
 from django.conf import settings
 
 # =============================================================================
+# Terminal MOTD (Message of the Day)
+# =============================================================================
+# Defined first so that a partial module (re)load — e.g. if a later
+# environment-dependent assignment raises — never leaves this name undefined.
+SHOW_MOTD = os.environ.get("SCITEX_HUB_SHOW_MOTD", "true").lower() != "false"
+
+
+# =============================================================================
 # Container Configuration
 # =============================================================================
 
@@ -123,12 +131,6 @@ def parse_time_limit_seconds(time_str: str) -> int:
 
 
 SLURM_TIME_LIMIT_SECONDS = parse_time_limit_seconds(SLURM_TIME_LIMIT)
-
-
-# =============================================================================
-# Terminal MOTD (Message of the Day)
-# =============================================================================
-SHOW_MOTD = os.environ.get("SCITEX_HUB_SHOW_MOTD", "true").lower() != "false"
 
 
 # EOF

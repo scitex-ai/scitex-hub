@@ -38,11 +38,16 @@ class TestMainCLI:
 
 
 class TestSetupCommand:
-    """Tests for setup command."""
+    """Tests for setup-environment command.
+
+    Per noun-verb CLI convention (§5), the bare ``setup`` leaf was renamed
+    to ``setup-environment``; bare ``setup`` is now a hidden deprecation
+    redirect. The real options live under the canonical name.
+    """
 
     def test_setup_help(self, runner):
-        """Test setup --help."""
-        result = runner.invoke(main, ["setup", "--help"])
+        """Test setup-environment --help."""
+        result = runner.invoke(main, ["setup-environment", "--help"])
         assert result.exit_code == 0
         assert "--env" in result.output
         assert "dev" in result.output
@@ -50,11 +55,11 @@ class TestSetupCommand:
 
 
 class TestDeployCommand:
-    """Tests for deploy command."""
+    """Tests for deploy-project command (renamed from bare ``deploy``)."""
 
     def test_deploy_help(self, runner):
-        """Test deploy --help."""
-        result = runner.invoke(main, ["deploy", "--help"])
+        """Test deploy-project --help."""
+        result = runner.invoke(main, ["deploy-project", "--help"])
         assert result.exit_code == 0
         assert "--env" in result.output
         assert "--build" in result.output
@@ -80,21 +85,21 @@ class TestDockerCommand:
 
 
 class TestStatusCommand:
-    """Tests for status command."""
+    """Tests for show-status command (renamed from bare ``status``)."""
 
     def test_status_help(self, runner):
-        """Test status --help."""
-        result = runner.invoke(main, ["status", "--help"])
+        """Test show-status --help."""
+        result = runner.invoke(main, ["show-status", "--help"])
         assert result.exit_code == 0
         assert "--env" in result.output
 
 
 class TestLogsCommand:
-    """Tests for logs command."""
+    """Tests for show-logs command (renamed from bare ``logs``)."""
 
     def test_logs_help(self, runner):
-        """Test logs --help."""
-        result = runner.invoke(main, ["logs", "--help"])
+        """Test show-logs --help."""
+        result = runner.invoke(main, ["show-logs", "--help"])
         assert result.exit_code == 0
         assert "--follow" in result.output
         assert "--tail" in result.output
@@ -112,11 +117,24 @@ class TestGiteaCommand:
         assert "list" in result.output
 
     def test_gitea_subcommands_help(self, runner):
-        """Test gitea subcommands have help."""
-        subcommands = ["clone", "create", "list", "search", "push", "pull", "status"]
+        """Test gitea subcommands have help.
+
+        The bare ``status`` leaf was renamed to ``show-status`` under the
+        noun-verb CLI convention; the remaining repository/sync leaves are
+        unchanged and still live directly under ``gitea``.
+        """
+        subcommands = [
+            "clone",
+            "create",
+            "list",
+            "search",
+            "push",
+            "pull",
+            "show-status",
+        ]
         for cmd in subcommands:
             result = runner.invoke(main, ["gitea", cmd, "--help"])
-            assert result.exit_code == 0
+            assert result.exit_code == 0, f"gitea {cmd} failed"
 
 
 class TestMcpCommand:

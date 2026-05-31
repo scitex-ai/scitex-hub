@@ -14,6 +14,27 @@ import asyncio
 import pytest
 
 
+def _run(coro):
+    """Run a coroutine to completion from a synchronous test.
+
+    ``asyncio.run`` raises ``RuntimeError`` if an event loop is already
+    running in the current thread (which can happen when another test in the
+    same session leaves a loop installed, e.g. Django/channels async tests).
+    To stay independent of session-wide loop state, run the coroutine on a
+    fresh loop in a dedicated worker thread whenever a loop is already
+    running; otherwise use ``asyncio.run`` directly.
+    """
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+
+    import concurrent.futures
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(asyncio.run, coro).result()
+
+
 @pytest.fixture
 def data_root(tmp_path):
     """Point the handlers' sandbox root at a tmp dir; restore on teardown."""
@@ -77,7 +98,7 @@ def test_write_then_read_roundtrip(data_root):
     project_dir = data_root / "alice" / "proj"
     project_dir.mkdir(parents=True)
     # Act
-    write_result = asyncio.run(
+    write_result = _run(
         handlers.write_file_handler(str(project_dir), "notes.txt", "hello")
     )
     # Assert
@@ -90,9 +111,9 @@ def test_read_returns_written_content(data_root):
 
     project_dir = data_root / "bob" / "proj"
     project_dir.mkdir(parents=True)
-    asyncio.run(handlers.write_file_handler(str(project_dir), "notes.txt", "hello"))
+    _run(handlers.write_file_handler(str(project_dir), "notes.txt", "hello"))
     # Act
-    read_result = asyncio.run(handlers.read_file_handler(str(project_dir), "notes.txt"))
+    read_result = _run(handlers.read_file_handler(str(project_dir), "notes.txt"))
     # Assert
     assert read_result["content"] == "hello"
 
@@ -104,7 +125,7 @@ def test_path_traversal_is_blocked(data_root):
     project_dir = data_root / "carol" / "proj"
     project_dir.mkdir(parents=True)
     # Act
-    result = asyncio.run(
+    result = _run(
         handlers.read_file_handler(str(project_dir), "../../../../etc/passwd")
     )
     # Assert

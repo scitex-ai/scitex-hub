@@ -1,5 +1,6 @@
 import json
 
+from channels.layers import get_channel_layer
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import HttpResponse, JsonResponse
@@ -114,8 +115,6 @@ def api_tts_relay(request):
     browser can call ``/llm/api/tts/`` and play audio through speakers.
     """
     import logging
-
-    from channels.layers import get_channel_layer
 
     logger = logging.getLogger(__name__)
 

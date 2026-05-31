@@ -231,7 +231,11 @@ REDIS_URL = os.getenv("SCITEX_HUB_REDIS_URL", "redis://127.0.0.1:6379/1")
 try:
     import redis as _redis
 
-    _r = _redis.from_url(REDIS_URL)
+    # Short, explicit timeouts so an unreachable / unanswered Redis fails
+    # fast and we fall back to local cache, instead of blocking settings
+    # import (and therefore django.setup()) on a hanging TCP connect — e.g.
+    # under WSL2 where a closed port may hang rather than refuse.
+    _r = _redis.from_url(REDIS_URL, socket_connect_timeout=0.5, socket_timeout=0.5)
     _r.ping()
     CACHES = {
         "default": {
@@ -261,7 +265,9 @@ try:
     import redis as _redis2
 
     _redis_url2 = os.getenv("SCITEX_HUB_REDIS_URL", "redis://127.0.0.1:6379/2")
-    _redis2.from_url(_redis_url2).ping()
+    # Same fast-fail timeouts as the cache probe above — never block
+    # settings import on an unreachable Redis.
+    _redis2.from_url(_redis_url2, socket_connect_timeout=0.5, socket_timeout=0.5).ping()
     CHANNEL_LAYERS = {
         "default": {
             "BACKEND": "channels_redis.core.RedisChannelLayer",
