@@ -98,7 +98,9 @@ class TestModuleRegistry(TestCase):
         """get_module_names() returns all registered names."""
         names = get_module_names()
         self.assertIn("writer", names)
-        self.assertIn("hub", names)
+        # The dashboard module is registered as "home" (repo_app/manifest.json);
+        # it was previously called "hub".
+        self.assertIn("home", names)
         self.assertIn("tools", names)
 
     def test_modules_ordered(self):

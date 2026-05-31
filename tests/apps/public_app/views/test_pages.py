@@ -75,9 +75,9 @@ class TestVideoCatalogStructure:
         assert match, "OG_BASE_URL not found in pages_data.py"
         og_base_url = match.group(1)
 
-        assert og_base_url.startswith("https://"), (
-            f"OG_BASE_URL should be HTTPS: {og_base_url}"
-        )
+        assert og_base_url.startswith(
+            "https://"
+        ), f"OG_BASE_URL should be HTTPS: {og_base_url}"
         assert "scitex.ai" in og_base_url
 
     def test_video_catalog_structure(self):
@@ -257,9 +257,9 @@ class TestVideoPlayerIntegration:
         assert match, "og:image meta tag not found"
 
         og_image_url = match.group(1)
-        assert og_image_url.startswith("https://"), (
-            f"OG image should be HTTPS: {og_image_url}"
-        )
+        assert og_image_url.startswith(
+            "https://"
+        ), f"OG image should be HTTPS: {og_image_url}"
 
 
 if __name__ == "__main__":
