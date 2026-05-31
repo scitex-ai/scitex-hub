@@ -19,9 +19,9 @@ class APIKey(models.Model):
         max_length=100, help_text="Descriptive name for this API key"
     )
     key_prefix = models.CharField(
-        max_length=8,
+        max_length=16,
         unique=True,
-        help_text="First 8 characters of the key (for display)",
+        help_text="Leading characters of the key (for display only)",
     )
     key_hash = models.CharField(
         max_length=64, unique=True, help_text="SHA256 hash of the full key"
@@ -83,7 +83,11 @@ class APIKey(models.Model):
         """
         full_key = cls.generate_key()
         key_hash = cls.hash_key(full_key)
-        key_prefix = full_key[:8]  # "scitex_x"
+        # Display-only prefix. Must carry enough entropy of the random
+        # portion to stay unique (unique=True); "scitex_" + 1 hex char only
+        # yields 16 possible values and collides once >16 keys exist.
+        # "scitex_" (7 chars) + 9 hex chars = 16-char prefix.
+        key_prefix = full_key[:16]
 
         api_key = cls.objects.create(
             user=user,
