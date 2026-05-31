@@ -8,7 +8,24 @@ Tests the public API endpoints documented in /api-docs/:
 """
 
 import pytest
+from django.core.cache import cache
 from django.test import Client
+
+
+@pytest.fixture(autouse=True)
+def _clear_rate_limit_cache():
+    """Clear the rate-limit cache between tests.
+
+    The public search API rate-limits anonymous callers to 10 req/min keyed
+    on client IP (apps/workspace/scholar_app/api/public_search_utils.py).
+    The Django test client reuses 127.0.0.1, so without isolation the 11th+
+    request across the whole module would return 429 instead of 200. Clearing
+    the cache per test keeps each test independent rather than weakening the
+    200-status assertions.
+    """
+    cache.clear()
+    yield
+    cache.clear()
 
 
 class TestPublicSearchAPI:

@@ -244,6 +244,7 @@ def api_remove_library_paper(request, paper_id):
         return JsonResponse({"success": False, "error": str(e)}, status=400)
 
 
+@login_required
 @require_http_methods(["GET"])
 def api_zotero_status(request):
     """Stub: Zotero integration not yet implemented."""
@@ -252,6 +253,7 @@ def api_zotero_status(request):
     )
 
 
+@login_required
 @require_http_methods(["GET"])
 def api_connected_papers_status(request):
     """Stub: Connected Papers integration not yet implemented."""
