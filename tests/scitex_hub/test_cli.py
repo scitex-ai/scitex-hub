@@ -41,8 +41,13 @@ class TestSetupCommand:
     """Tests for setup command."""
 
     def test_setup_help(self, runner):
-        """Test setup --help."""
-        result = runner.invoke(main, ["setup", "--help"])
+        """Test setup-environment --help.
+
+        The bare ``setup`` leaf was renamed to ``setup-environment`` under the
+        verb-noun CLI convention (audit §5); ``setup`` is now a hidden
+        deprecation redirect with no options.
+        """
+        result = runner.invoke(main, ["setup-environment", "--help"])
         assert result.exit_code == 0
         assert "--env" in result.output
         assert "dev" in result.output
@@ -53,8 +58,12 @@ class TestDeployCommand:
     """Tests for deploy command."""
 
     def test_deploy_help(self, runner):
-        """Test deploy --help."""
-        result = runner.invoke(main, ["deploy", "--help"])
+        """Test deploy-project --help.
+
+        ``deploy`` was renamed to ``deploy-project`` (verb-noun convention,
+        audit §5); ``deploy`` is now a hidden deprecation redirect.
+        """
+        result = runner.invoke(main, ["deploy-project", "--help"])
         assert result.exit_code == 0
         assert "--env" in result.output
         assert "--build" in result.output
@@ -83,8 +92,12 @@ class TestStatusCommand:
     """Tests for status command."""
 
     def test_status_help(self, runner):
-        """Test status --help."""
-        result = runner.invoke(main, ["status", "--help"])
+        """Test show-status --help.
+
+        ``status`` was renamed to ``show-status`` (verb-noun convention,
+        audit §5); ``status`` is now a hidden deprecation redirect.
+        """
+        result = runner.invoke(main, ["show-status", "--help"])
         assert result.exit_code == 0
         assert "--env" in result.output
 
@@ -93,8 +106,12 @@ class TestLogsCommand:
     """Tests for logs command."""
 
     def test_logs_help(self, runner):
-        """Test logs --help."""
-        result = runner.invoke(main, ["logs", "--help"])
+        """Test show-logs --help.
+
+        ``logs`` was renamed to ``show-logs`` (verb-noun convention,
+        audit §5); ``logs`` is now a hidden deprecation redirect.
+        """
+        result = runner.invoke(main, ["show-logs", "--help"])
         assert result.exit_code == 0
         assert "--follow" in result.output
         assert "--tail" in result.output
@@ -112,8 +129,20 @@ class TestGiteaCommand:
         assert "list" in result.output
 
     def test_gitea_subcommands_help(self, runner):
-        """Test gitea subcommands have help."""
-        subcommands = ["clone", "create", "list", "search", "push", "pull", "status"]
+        """Test gitea subcommands have help.
+
+        ``gitea status`` was renamed to ``gitea show-status`` under the
+        verb-noun CLI convention (audit §5).
+        """
+        subcommands = [
+            "clone",
+            "create",
+            "list",
+            "search",
+            "push",
+            "pull",
+            "show-status",
+        ]
         for cmd in subcommands:
             result = runner.invoke(main, ["gitea", cmd, "--help"])
             assert result.exit_code == 0
