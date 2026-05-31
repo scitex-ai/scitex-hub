@@ -18,6 +18,20 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes max per task
 CELERY_RESULT_EXTENDED = True
 
+# Test-mode eager execution
+# ------------------------
+# The SQLite test gate (SCITEX_HUB_USE_SQLITE_DEV=1, used by pytest-matrix
+# in CI) runs without a Redis broker, so .delay() raises
+# kombu.exceptions.OperationalError. Run tasks inline instead of enqueuing.
+# EAGER_PROPAGATES=True surfaces task exceptions to the caller — per
+# project policy, errors must be loud (no silent fallback).
+# In-memory broker keeps Celery's internal probes (canvas, etc.) from
+# doing real network I/O at import time.
+if os.environ.get("SCITEX_HUB_USE_SQLITE_DEV"):
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True
+    CELERY_BROKER_URL = "memory://"
+
 # Task routing to dedicated queues
 CELERY_TASK_ROUTES = {
     "apps.workspace.writer_app.tasks.*": {"queue": "ai_queue"},
