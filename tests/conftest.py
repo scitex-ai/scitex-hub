@@ -61,8 +61,13 @@ def _ensure_subprocess_coverage_shim() -> None:
 
 _ensure_subprocess_coverage_shim()
 
-# Ensure logs directory exists
-(PROJECT_ROOT / "logs").mkdir(exist_ok=True)
+# Ensure log directory exists. Mirrors config.settings.settings_shared:
+# LOG_DIR defaults to GITIGNORED/logs/ so PS-102 (no top-level forbidden
+# dirs) stays clean — operators can override with SCITEX_HUB_LOG_DIR.
+_log_dir = os.environ.get("SCITEX_HUB_LOG_DIR") or (
+    PROJECT_ROOT / "GITIGNORED" / "logs"
+)
+Path(_log_dir).mkdir(parents=True, exist_ok=True)
 
 # Django settings
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.settings_dev")

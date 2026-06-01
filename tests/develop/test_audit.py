@@ -28,6 +28,7 @@ import pytest
 
 
 def test_audit_all_clean():
+    # Arrange: skip cleanly if the audit corpus isn't installed.
     if shutil.which("scitex-dev") is None:
         pytest.skip(
             "scitex-dev not installed — add `scitex-dev[cli-audit]` "
@@ -35,6 +36,11 @@ def test_audit_all_clean():
         )
     from scitex_dev.testing import audit_all_for_package
 
+    # Act: run `scitex-dev ecosystem audit-all scitex-hub` and re-classify
+    # known-deferred violations via `skip_rules`.
+    # Assert: `audit_all_for_package` raises AssertionError on any
+    # unrecognized violation (unknown rules surface as failures — that
+    # is the gate's job).
     audit_all_for_package(
         "scitex-hub",
         # audit-all walks every sub-auditor; cold CI runs (pip resolve
@@ -55,6 +61,17 @@ def test_audit_all_clean():
             # live INSIDE the umbrella, not in dedicated peers). Tracked
             # under the umbrella-thinning campaign (ADR-0002 §5).
             "PS-139",
+            # PS-202 / PS-207 — src/scitex_hub/{appmaker, module, _utils,
+            # _config, project/_mcp} have no matching test mirror dir
+            # (PS-202). Creating an empty one trips PS-207
+            # ("empty test directory mirrors src/...; move test_*.py
+            # files in or remove the dir"), and creating real tests is
+            # the orphan-relocation work in PS-204. All three resolve
+            # together once the CLI noun-verb migration (Group C)
+            # settles and the orphan tests get moved into their
+            # canonical homes.
+            "PS-202",
+            "PS-207",
             # PS-204 — orphan tests under tests/scitex_hub/ predate the
             # mirror-dir convention. Resolving means relocating files
             # like tests/scitex_hub/test_docker.py to
