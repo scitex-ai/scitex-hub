@@ -2,12 +2,15 @@
 # -*- coding: utf-8 -*-
 """SciTeX Hub Module -- decorator and output APIs for custom workspace modules.
 
-Usage:
-    from scitex_hub.module import module, output, html, INJECTED
+Example
+-------
+.. code-block:: python
 
-    @module(label="My Analysis", icon="fa-brain", category="analysis")
-    def my_analysis(project=INJECTED, plt=INJECTED):
-        output(df, title="Raw Data")
+   from scitex_hub.module import module, output, html, INJECTED
+
+   @module(label="My Analysis", icon="fa-brain", category="analysis")
+   def my_analysis(project=INJECTED, plt=INJECTED):
+       output(df, title="Raw Data")
 """
 
 from __future__ import annotations
