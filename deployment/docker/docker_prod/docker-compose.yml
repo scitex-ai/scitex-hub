@@ -147,6 +147,8 @@ services:
     env_file:
       - .env
     environment:
+      # SCITEX_HUB_POSTGRES_* (renamed from SCITEX_CLOUD_POSTGRES_*, see #150).
+      # If undefined, substitution yields empty and libpq falls back to OS user.
       - DATABASE_URL=postgresql://${SCITEX_HUB_POSTGRES_USER}:${SCITEX_HUB_POSTGRES_PASSWORD}@postgres:5432/${SCITEX_HUB_POSTGRES_DB}
     depends_on:
       postgres:
@@ -279,6 +281,9 @@ services:
     ports:
       - "${SCITEX_HUB_UMAMI_PORT_PROD:-3300}:3000"
     environment:
+      # SCITEX_HUB_POSTGRES_* (renamed from SCITEX_CLOUD_POSTGRES_*, see #150).
+      # If undefined, substitution yields empty and prisma reports 28P01
+      # "password authentication failed for user '<os-user>'".
       - DATABASE_URL=postgresql://${SCITEX_HUB_POSTGRES_USER}:${SCITEX_HUB_POSTGRES_PASSWORD}@postgres:5432/umami
       - DATABASE_TYPE=postgresql
       - APP_SECRET=${SCITEX_HUB_UMAMI_APP_SECRET:-scitex-umami-secret-2026}
