@@ -10,8 +10,11 @@ import pytest
 class TestPlaceholder:
     """Placeholder test class - replace with actual tests."""
 
-    def test_placeholder(self):
+    def test_placeholder_pending_implementation(self):
         """Placeholder test - implement actual tests."""
+        # Arrange
+        # Act
+        # Assert
         pytest.skip("Not implemented yet")
 
 
