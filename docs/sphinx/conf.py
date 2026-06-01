@@ -70,7 +70,18 @@ napoleon_include_special_with_doc = True
 napoleon_use_admonition_for_examples = True
 napoleon_use_admonition_for_notes = True
 napoleon_use_admonition_for_references = True
-napoleon_use_ivar = False
+# napoleon_use_ivar=True makes Napoleon render `Attributes` sections in
+# class docstrings as `:ivar:` field-list entries (info-field-list,
+# scoped to the class) instead of `.. attribute::` directives (named,
+# globally-registered objects). The `.. attribute::` form clashed with
+# autodoc's automodule registration of dataclass fields, producing
+# `duplicate object description of scitex_hub.module.ModuleManifest.<f>`
+# warnings (8 of them, one per ModuleManifest field) which then failed
+# `sphinx-build -W` on PR docs builds. `:ivar:` registers no global
+# object, so the duplicate vanishes — and ModuleManifest's Attributes
+# section still renders, just as part of the class signature rather
+# than as separate doc entries. See sphinxcontrib-napoleon docs.
+napoleon_use_ivar = True
 napoleon_use_param = True
 napoleon_use_rtype = True
 napoleon_preprocess_types = False

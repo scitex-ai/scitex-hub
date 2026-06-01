@@ -137,6 +137,11 @@ all = [
     # plugin must be in the install graph, otherwise pytest exits 4 on
     # "unrecognized arguments: --cov".
     "pytest-cov>=4.1",
+    # e2e-mobile.yml passes `--timeout=120` to cap individual Playwright
+    # tests — the flag is provided by pytest-timeout, not core pytest.
+    # Without this dep pytest exits 4 with "unrecognized arguments:
+    # --timeout=120".
+    "pytest-timeout>=2.0",
     # --- Sphinx docs build (run by CI on tag) ---
     "sphinx>=7.0",
     "sphinx-rtd-theme>=2.0",
