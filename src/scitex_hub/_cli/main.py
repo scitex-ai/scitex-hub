@@ -52,7 +52,7 @@ def _print_recursive_help(ctx, param, value):
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
-@click.version_option(version=__version__, prog_name="scitex-hub")
+@click.version_option(__version__, "-V", "--version", prog_name="scitex-hub")
 @click.option(
     "--help-recursive",
     is_flag=True,
@@ -61,21 +61,33 @@ def _print_recursive_help(ctx, param, value):
     callback=_print_recursive_help,
     help="Show help for all commands recursively.",
 )
+@click.option(
+    "--json",
+    "json_output",
+    is_flag=True,
+    default=False,
+    help=(
+        "Emit machine-readable JSON output (propagates to subcommands that "
+        "honour it; see `<verb> --json`)."
+    ),
+)
 @click.pass_context
-def main(ctx):
+def main(ctx, json_output):
     """SciTeX Hub - Deployment and management CLI.
 
-    Manage SciTeX Hub deployments with simple commands.
+    Config path resolution:
+      config.yaml -> $SCITEX_HUB_CONFIG -> ~/.scitex/hub/config.yaml -> defaults
 
     \b
-    Examples:
+    Example:
         scitex-hub setup --env dev     # Setup development environment
         scitex-hub deploy              # Deploy with current settings
         scitex-hub docker up           # Start containers
-        scitex-hub status              # Show deployment status
+        scitex-hub show-status         # Show deployment status
         scitex-hub mcp start           # Start MCP server
     """
     ctx.ensure_object(dict)
+    ctx.obj["json"] = json_output
 
 
 # ── Deprecation-redirect helper (noun-verb convention §5) ──
