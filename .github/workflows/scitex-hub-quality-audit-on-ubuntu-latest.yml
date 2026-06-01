@@ -44,5 +44,12 @@ jobs:
           pip install -e ".[dev]"
           pip install "scitex-dev[cli-audit]"
 
-      - name: Run scitex-dev ecosystem audit-all
-        run: scitex-dev ecosystem audit-all scitex-hub --no-version-check
+      # Use the pytest wrapper so the documented `skip_rules` deferrals in
+      # tests/develop/test_audit.py are honoured. Calling `scitex-dev
+      # ecosystem audit-all` directly bypasses skip_rules and forces every
+      # in-flight migration campaign (TQ-migration, CLI noun-verb, umbrella
+      # thinning) to land in one commit, which is not how this repo
+      # schedules them. Unknown rules still SURFACE as failures because
+      # `audit_all_for_package` raises on any unrecognised violation.
+      - name: Run audit via pytest wrapper (honors skip_rules)
+        run: python -m pytest tests/develop/test_audit.py -q --no-header

@@ -147,6 +147,14 @@ dev = [
     "figrecipe>=0.13.0",
     "joblib",
     "flask",
+    # PS-210: `[all]` ships these and the test suite imports them
+    # unguarded, so a fresh `pip install -e .[dev]` must include them too
+    # to be self-sufficient (no `pytest.importorskip` dance).
+    "channels>=4.3",
+    "fastmcp>=2.0.0",
+    "scitex>=2.29.3",
+    # scitex-dev provides the `audit-all` corpus the release gate runs.
+    "scitex-dev>=0.15.0",
 ]
 
 [project.scripts]

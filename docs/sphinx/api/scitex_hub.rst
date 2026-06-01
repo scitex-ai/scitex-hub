@@ -1,13 +1,10 @@
 scitex_hub Package
 ====================
 
-The scitex_hub package provides CLI tools for deploying and managing SciTeX.
+The ``scitex_hub`` package provides CLI tools, Python APIs, and an MCP server
+for deploying and managing SciTeX.
 
-Main Package
-------------
-
-.. automodule:: scitex_hub
-   :members:
-   :undoc-members:
-   :show-inheritance:
-   :no-index:
+The full API reference (auto-generated, recursive) is in the
+*Package Overview* on :doc:`index` — every public submodule has its own page
+under ``_autosummary/``. This page intentionally has no ``automodule``
+directive to avoid duplicate object descriptions vs. the autosummary stubs.
