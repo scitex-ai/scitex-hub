@@ -22,20 +22,25 @@ MCP Server:
 
 
 def _get_version() -> str:
-    """Read version from pyproject.toml (single source of truth)."""
-    from pathlib import Path
+    """Read installed package version via ``importlib.metadata``.
+
+    PEP 566 / 621 publishes the distribution version in the package
+    metadata. ``importlib.metadata.version`` reads that without
+    re-parsing pyproject.toml — which (a) works the same on editable
+    installs and on built wheels, (b) doesn't break when pyproject.toml
+    isn't shipped (wheel / sdist install), and (c) matches the rule
+    PA-202 §2 (version-not-from-metadata) the ecosystem audit enforces.
+
+    Falls back to ``"unknown"`` when the dist isn't installed (e.g.
+    running directly from a checkout without ``pip install -e .``),
+    so import never raises.
+    """
+    from importlib.metadata import PackageNotFoundError, version
 
     try:
-        import tomllib
-    except ImportError:
-        import tomli as tomllib
-
-    pyproject = Path(__file__).resolve().parent.parent.parent / "pyproject.toml"
-    if pyproject.exists():
-        with open(pyproject, "rb") as f:
-            data = tomllib.load(f)
-            return data.get("project", {}).get("version", "unknown")
-    return "unknown"
+        return version("scitex-hub")
+    except PackageNotFoundError:
+        return "unknown"
 
 
 __version__ = _get_version()

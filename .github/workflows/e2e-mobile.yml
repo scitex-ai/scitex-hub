@@ -120,12 +120,15 @@ jobs:
           SCITEX_E2E_TEST_PASS: "Password123!"
           DEBUG: "1"
         run: |
+          # pytest-playwright's `--headed` is a store_true flag; passing
+          # `--headed=false` is an argparse error ("ignored explicit
+          # argument 'false'", exit=4). Headless is the default; just
+          # omit the flag.
           python -m pytest \
             tests/e2e/playwright/test_mobile_workspace.py \
             tests/e2e/playwright/test_mobile_scholar.py \
             tests/e2e/playwright/test_mobile_writer.py \
             -v --tb=short \
-            --headed=false \
             --screenshot=only-on-failure \
             --video=retain-on-failure \
             -o "addopts=" \
