@@ -1,7 +1,7 @@
 <!-- ---
 !-- File: <repo>/.scitex/todo/IN_FLIGHT.md
 !-- Owner: proj-scitex-hub (agent) — kept fresh while a task runs.
-!-- Last update: 2026-06-01T22:33Z
+!-- Last update: 2026-06-01T22:37Z
 !-- --- -->
 
 # IN-FLIGHT — currently active tasks
@@ -25,17 +25,18 @@ Pre-flight (no-sudo subset) — done by agent 2026-06-01T22:23Z:
 - [x] `~/proj/claude-code-telegrammer` full clone (replaced stub) -> `4371e99`
 - [x] `mkdir -p ~/.scitex/agent-container/agents/proj-scitex-hub`
 
-Lead-owned steps (host autonomy required — sudo, host-side `scp`, or
-claude CLI device flow):
+**Lead decisions locked in 2026-06-01T22:35Z:** SIF rebuild = LAZY (try H first), `session.jsonl` = YES preserve, Telegram `messages.db` = TRANSFER, claude OAuth = scp account snapshot (no browser flow).
+
+Lead-owned steps (host autonomy required — sudo, host-side `scp`):
 
 - [ ] **A.** `ssh nas-direct 'sudo mkdir -p /state/proj-scitex-hub /run/hub-secrets && sudo chown ywatanabe:ywatanabe ...'`
-- [ ] **B.** `scp -rp ~/.scitex/agent-container/agents/proj-scitex-hub nas-direct:~/.scitex/agent-container/agents/` **+ edit NAS spec.yaml so `apptainer.image` points at NAS-local SIF** (`/home/ywatanabe/.scitex/agent-container/containers/sac-base/sac-base.sif`, not `~/.dotfiles/src/...`)
-- [ ] **B'.** (alt to B's edit) Fix the broken `~/.dotfiles/src/.scitex` symlink on NAS so it resolves locally
-- [ ] **C.** Refresh `~/.claude` auth on NAS (claude CLI device flow as user `ywatanabe`)
+- [ ] **B.** `scp -rp ~/.scitex/agent-container/agents/proj-scitex-hub nas-direct:~/.scitex/agent-container/agents/` **+ edit NAS spec.yaml so `apptainer.image` points at NAS-local SIF**
+- [ ] **B'.** (alt to B's edit) fix `~/.dotfiles/src/.scitex` symlink on NAS to resolve locally
+- [ ] **C.** `scp -rp ~/.scitex/agent-container/accounts/ywatanabe-scitex-ai/ nas-direct:~/.scitex/agent-container/accounts/` — per-account OAuth snapshot (bound at `/tmp/sac-claude` per PR#284). Replaces interactive claude login.
 - [ ] **D.** (after A) `scp -p /run/hub-secrets/bot-token nas-direct:/run/hub-secrets/bot-token && ssh nas-direct 'chmod 0600 /run/hub-secrets/bot-token'`
-- [ ] **E.** (optional, fallback) `ssh nas-direct 'sudo ~/.venv-3.11/bin/sac image build base --yes'` — only if H fails on v3 incompat
-- [ ] **F.** `sac agents stop proj-scitex-hub` on ywata-note-win (quiesce source — Telegram silence starts here)
-- [ ] **G.** Rsync state (post-F): `~/.scitex/hub/` + `.claude-code-telegrammer-scitex-hub/` (+ optionally `state.db`, `session.jsonl`, `instance_id`, `session_id`). Full block in CUTOVER_PLAN.
+- [ ] **E.** (FALLBACK only) `ssh nas-direct 'sudo ~/.venv-3.11/bin/sac image build base --yes'` — only if H surfaces v3 incompat
+- [ ] **F.** Lead pings agent first; agent ACKs "freeze acknowledged"; then `sac agents stop proj-scitex-hub` on ywata-note-win (quiesce — Telegram silence starts here)
+- [ ] **G.** Rsync state (post-F): `~/.scitex/hub/`, `.claude-code-telegrammer-scitex-hub/`, `state.db`, `session.jsonl`, `instance_id`, `session_id` (full block in CUTOVER_PLAN)
 - [ ] **H.** `ssh nas-direct '~/.venv-3.11/bin/sac agents start proj-scitex-hub'`
 
 Once H is run, the new NAS-side agent will execute its STARTUP
