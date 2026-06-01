@@ -15,6 +15,9 @@ services:
       args:
         BUILDKIT_INLINE_CACHE: 1
     image: scitex-hub-prod-django:latest
+    # tini reaps SIGCHLD so subprocess/pty.fork+execvpe("srun", ...) children
+    # don't accumulate as zombies under daphne PID 1 (issue #148).
+    init: true
     entrypoint: ["/root-init.sh", "/entrypoint.sh"]
     command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "--access-log", "-", "--verbosity", "1", "config.asgi:application"]
     volumes:
@@ -174,6 +177,9 @@ services:
   # Celery Worker (Async Task Processing)
   celery_worker:
     image: scitex-hub-prod-django:latest
+    # tini reaps SIGCHLD so compute_queue tasks that spawn srun/subprocess
+    # don't leave zombies under celery PID 1 (issue #148).
+    init: true
     entrypoint: ["/entrypoint.sh"]
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
