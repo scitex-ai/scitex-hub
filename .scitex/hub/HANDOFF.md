@@ -1,19 +1,26 @@
 <!-- ---
 !-- Author: proj-scitex-hub (agent)
-!-- File: /home/ywatanabe/proj/scitex-cloud/docs/agents/proj-scitex-hub-handoff.md
+!-- File: <repo>/.scitex/hub/HANDOFF.md
 !-- Purpose: Host-portable handoff doc for the proj-scitex-hub agent.
 !-- Updated: 2026-06-01
 !-- --- -->
 
-# proj-scitex-hub — Agent Handoff & Migration Guide
+# scitex-hub — Agent Handoff & Migration Guide
 
 This document is the **host-portable** definition of the `proj-scitex-hub`
-agent. The persistent agent state lives outside the repo
-(`~/.scitex/proj-scitex-hub/` inside the container, bind-mounted from
-`/state/proj-scitex-hub/home/.scitex/proj-scitex-hub/` on the host), but
-the parts that need to be reproducible on a new host — spec, mounts,
-secrets, sync ordering — are committed here so any operator can rebuild
-the agent without consulting the previous host.
+agent. State conventions follow the SciTeX `.scitex/hub/` layout (slug
+"hub" matches `~/.scitex/hub/config.yaml` referenced by the
+`scitex-hub` CLI):
+
+| location | role |
+| --- | --- |
+| `<repo>/.scitex/hub/` (this file) | **project-tracked** — committed runbook material, host-portable |
+| `~/.scitex/hub/` | **agent-private** — runtime ledgers (state.md, decisions.md, sync-manifest.yaml) |
+| `/state/proj-scitex-hub/` (host) | **sac runtime root** — full $HOME overlay, session.jsonl, sac state DB |
+
+Note: the `proj-scitex-hub` token in `/state/proj-scitex-hub/` is the
+agent identity baked into sac; the `hub` token in `.scitex/hub/` is the
+project slug. They are deliberately different.
 
 ## 1. Identity
 
@@ -109,11 +116,13 @@ ssh nas-direct '
 **Cutover (operator decides timing):**
 
 1. **Quiesce** the source agent on ywata-note-win (`sac agents stop proj-scitex-hub`).
-2. **Rsync state** — summary (see `sync-manifest.yaml` in agent-private state for full list):
+2. **Rsync agent-private state** — `~/.scitex/hub/` on host follows the
+   SciTeX slug convention. The full sac runtime root is also synced
+   under its identity-keyed path:
    ```bash
    rsync -aHAX --delete \
-     /state/proj-scitex-hub/home/.scitex/proj-scitex-hub/ \
-     nas-direct:/state/proj-scitex-hub/home/.scitex/proj-scitex-hub/
+     /state/proj-scitex-hub/home/.scitex/hub/ \
+     nas-direct:/state/proj-scitex-hub/home/.scitex/hub/
    rsync -aHAX --delete \
      /state/proj-scitex-hub/home/.claude-code-telegrammer-scitex-hub/ \
      nas-direct:/state/proj-scitex-hub/home/.claude-code-telegrammer-scitex-hub/
@@ -123,7 +132,7 @@ ssh nas-direct '
 4. **Copy secret** — `scp -p /run/hub-secrets/bot-token nas-direct:/run/hub-secrets/bot-token`, chmod `0600`.
 5. **Start** — `ssh nas-direct 'sac agents start proj-scitex-hub'`.
 6. **Verify** — agent sends `[REPORT] proj-scitex-hub back online (account ywatanabe-scitex-ai).` to Telegram chat `8379369979` within 30 s.
-7. **Record** the cutover in `decisions.md` on the now-active host.
+7. **Record** the cutover in `~/.scitex/hub/decisions.md` on the now-active host.
 
 ## 7. What the agent itself MUST do on first boot after migration
 
@@ -132,7 +141,7 @@ host operators.)
 
 1. Read last 7 Telegram messages via `mcp__claude-code-telegrammer__get_context` (chat_id `8379369979`).
 2. Reply once with `[REPORT] proj-scitex-hub back online (account ywatanabe-scitex-ai).`
-3. Read `~/.scitex/proj-scitex-hub/handoff.md` then `state.md` then `decisions.md`.
+3. Read `~/.scitex/hub/handoff.md` then `state.md` then `decisions.md`.
 4. Emit `DONE proj-scitex-hub-oriented`.
 
 ## 8. Rollback
@@ -140,9 +149,14 @@ host operators.)
 If NAS host fails post-cutover:
 
 1. Stop NAS agent: `ssh nas-direct 'sac agents stop proj-scitex-hub'`.
-2. Reverse-rsync persistent state back to ywata-note-win.
+2. Reverse-rsync persistent state back to ywata-note-win:
+   ```bash
+   rsync -aHAX --delete \
+     nas-direct:/state/proj-scitex-hub/home/.scitex/hub/ \
+     /state/proj-scitex-hub/home/.scitex/hub/
+   ```
 3. Restart on ywata-note-win: `sac agents start proj-scitex-hub`.
-4. Announce rollback over Telegram and add to `decisions.md`.
+4. Announce rollback over Telegram and add to `~/.scitex/hub/decisions.md`.
 
 Rollback is safe because state is single-writer (only one host runs the
 agent at a time) and the entire identity is captured in
@@ -150,9 +164,9 @@ agent at a time) and the entire identity is captured in
 
 ## 9. Files to consult (in order) when something is unclear
 
-1. This file.
-2. `~/.scitex/proj-scitex-hub/state.md` — current HOLDs + in-flight.
-3. `~/.scitex/proj-scitex-hub/decisions.md` — history of why things are the way they are.
-4. `~/.scitex/proj-scitex-hub/sync-manifest.yaml` — exact byte-level migration recipe.
+1. This file (`<repo>/.scitex/hub/HANDOFF.md`).
+2. `~/.scitex/hub/state.md` — current HOLDs + in-flight.
+3. `~/.scitex/hub/decisions.md` — history of why things are the way they are.
+4. `~/.scitex/hub/sync-manifest.yaml` — exact byte-level migration recipe.
 5. Telegram history (`mcp__claude-code-telegrammer__get_history`).
 6. `/work/CLAUDE.md` — project rules. Never edit it.
