@@ -135,10 +135,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/scitex_hub.html">scitex_hub Package</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/scitex_hub.html#main-package">Main Package</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/scitex_hub.html">scitex_hub Package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/index.html#package-overview">Package Overview</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../api/_autosummary/scitex_hub.html">scitex_hub</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.get_version"><code class="docutils literal notranslate"><span class="pre">get_version()</span></code></a></li>
@@ -202,12 +199,12 @@
 
 
 <div class="viewcode-block" id="DockerManager">
-<a class="viewcode-back" href="../../../api/scitex_hub.html#scitex_hub.DockerManager">[docs]</a>
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.DockerManager">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DockerManager</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Manage Docker containers for SciTeX Hub.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="DockerManager.__init__">
-<a class="viewcode-back" href="../../../api/scitex_hub.html#scitex_hub.DockerManager.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.DockerManager.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Environment</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">project_root</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">):</span>
@@ -216,7 +213,7 @@
 
 
 <div class="viewcode-block" id="DockerManager._find_project_root">
-<a class="viewcode-back" href="../../../api/scitex_hub.html#scitex_hub.DockerManager._find_project_root">[docs]</a>
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.DockerManager._find_project_root">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_find_project_root</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Find project root by looking for pyproject.toml.&quot;&quot;&quot;</span>
         <span class="n">current</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
@@ -227,7 +224,7 @@
 
 
 <div class="viewcode-block" id="DockerManager._run_compose">
-<a class="viewcode-back" href="../../../api/scitex_hub.html#scitex_hub.DockerManager._run_compose">[docs]</a>
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.DockerManager._run_compose">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_run_compose</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">capture</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CompletedProcess</span><span class="p">:</span>
@@ -249,7 +246,7 @@
 
 
 <div class="viewcode-block" id="DockerManager.build">
-<a class="viewcode-back" href="../../../api/scitex_hub.html#scitex_hub.DockerManager.build">[docs]</a>
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.DockerManager.build">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">no_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Build Docker containers.&quot;&quot;&quot;</span>
         <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;build&quot;</span><span class="p">]</span>
@@ -260,7 +257,7 @@
 
 
 <div class="viewcode-block" id="DockerManager.up">
-<a class="viewcode-back" href="../../../api/scitex_hub.html#scitex_hub.DockerManager.up">[docs]</a>
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.DockerManager.up">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">up</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detach</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Start Docker containers.&quot;&quot;&quot;</span>
         <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;up&quot;</span><span class="p">]</span>
@@ -271,7 +268,7 @@
 
 
 <div class="viewcode-block" id="DockerManager.down">
-<a class="viewcode-back" href="../../../api/scitex_hub.html#scitex_hub.DockerManager.down">[docs]</a>
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.DockerManager.down">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">down</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volumes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop Docker containers.&quot;&quot;&quot;</span>
         <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;down&quot;</span><span class="p">]</span>
@@ -282,7 +279,7 @@
 
 
 <div class="viewcode-block" id="DockerManager.restart">
-<a class="viewcode-back" href="../../../api/scitex_hub.html#scitex_hub.DockerManager.restart">[docs]</a>
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.DockerManager.restart">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">restart</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Restart Docker containers.&quot;&quot;&quot;</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run_compose</span><span class="p">([</span><span class="s2">&quot;restart&quot;</span><span class="p">])</span>
@@ -290,7 +287,7 @@
 
 
 <div class="viewcode-block" id="DockerManager.logs">
-<a class="viewcode-back" href="../../../api/scitex_hub.html#scitex_hub.DockerManager.logs">[docs]</a>
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.DockerManager.logs">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">logs</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">follow</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -310,7 +307,7 @@
 
 
 <div class="viewcode-block" id="DockerManager.ps">
-<a class="viewcode-back" href="../../../api/scitex_hub.html#scitex_hub.DockerManager.ps">[docs]</a>
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.DockerManager.ps">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">ps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Show container status.&quot;&quot;&quot;</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run_compose</span><span class="p">([</span><span class="s2">&quot;ps&quot;</span><span class="p">])</span>
@@ -318,7 +315,7 @@
 
 
 <div class="viewcode-block" id="DockerManager.status">
-<a class="viewcode-back" href="../../../api/scitex_hub.html#scitex_hub.DockerManager.status">[docs]</a>
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.DockerManager.status">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get detailed container status.&quot;&quot;&quot;</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run_compose</span><span class="p">([</span><span class="s2">&quot;ps&quot;</span><span class="p">,</span> <span class="s2">&quot;--format&quot;</span><span class="p">,</span> <span class="s2">&quot;json&quot;</span><span class="p">],</span> <span class="n">capture</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>

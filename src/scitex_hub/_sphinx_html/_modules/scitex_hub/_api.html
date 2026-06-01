@@ -135,10 +135,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../api/scitex_hub.html">scitex_hub Package</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../api/scitex_hub.html#main-package">Main Package</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/scitex_hub.html">scitex_hub Package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/index.html#package-overview">Package Overview</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../api/_autosummary/scitex_hub.html">scitex_hub</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../api/_autosummary/scitex_hub.html#scitex_hub.get_version"><code class="docutils literal notranslate"><span class="pre">get_version()</span></code></a></li>
@@ -210,7 +207,7 @@
 
 
 <div class="viewcode-block" id="CloudClient">
-<a class="viewcode-back" href="../../api/scitex_hub.html#scitex_hub.CloudClient">[docs]</a>
+<a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CloudClient</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Python client for SciTeX Hub API.</span>
 
@@ -229,7 +226,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="CloudClient.__init__">
-<a class="viewcode-back" href="../../api/scitex_hub.html#scitex_hub.CloudClient.__init__">[docs]</a>
+<a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">api_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -242,7 +239,7 @@
 
 
 <div class="viewcode-block" id="CloudClient._request">
-<a class="viewcode-back" href="../../api/scitex_hub.html#scitex_hub.CloudClient._request">[docs]</a>
+<a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient._request">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_request</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -285,7 +282,7 @@
 
 
 <div class="viewcode-block" id="CloudClient.scholar_search">
-<a class="viewcode-back" href="../../api/scitex_hub.html#scitex_hub.CloudClient.scholar_search">[docs]</a>
+<a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.scholar_search">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">scholar_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Search papers via SciTeX Hub (public, no auth required).</span>
 
@@ -310,7 +307,7 @@
 
 
 <div class="viewcode-block" id="CloudClient.crossref_search">
-<a class="viewcode-back" href="../../api/scitex_hub.html#scitex_hub.CloudClient.crossref_search">[docs]</a>
+<a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.crossref_search">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">crossref_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rows</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Search CrossRef database via cloud proxy.</span>
 
@@ -336,7 +333,7 @@
 
 
 <div class="viewcode-block" id="CloudClient.crossref_by_doi">
-<a class="viewcode-back" href="../../api/scitex_hub.html#scitex_hub.CloudClient.crossref_by_doi">[docs]</a>
+<a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.crossref_by_doi">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">crossref_by_doi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doi</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get CrossRef metadata by DOI.</span>
 
@@ -358,7 +355,7 @@
 
 
 <div class="viewcode-block" id="CloudClient.enrich_bibtex">
-<a class="viewcode-back" href="../../api/scitex_hub.html#scitex_hub.CloudClient.enrich_bibtex">[docs]</a>
+<a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.enrich_bibtex">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">enrich_bibtex</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">bibtex_content</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -439,7 +436,7 @@
 
 
 <div class="viewcode-block" id="CloudClient.writer_compile">
-<a class="viewcode-back" href="../../api/scitex_hub.html#scitex_hub.CloudClient.writer_compile">[docs]</a>
+<a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.writer_compile">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">writer_compile</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">project_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -467,7 +464,7 @@
 
 
 <div class="viewcode-block" id="CloudClient.project_list_files">
-<a class="viewcode-back" href="../../api/scitex_hub.html#scitex_hub.CloudClient.project_list_files">[docs]</a>
+<a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.project_list_files">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">project_list_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;List files in a cloud project.</span>
 
@@ -491,7 +488,7 @@
 
 
 <div class="viewcode-block" id="CloudClient.get_context">
-<a class="viewcode-back" href="../../api/scitex_hub.html#scitex_hub.CloudClient.get_context">[docs]</a>
+<a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.get_context">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get web app context for AI agents.</span>
 
@@ -510,7 +507,7 @@
 
 
 <div class="viewcode-block" id="CloudClient.eval_js">
-<a class="viewcode-back" href="../../api/scitex_hub.html#scitex_hub.CloudClient.eval_js">[docs]</a>
+<a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.eval_js">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">eval_js</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate JavaScript in the user&#39;s browser.</span>
 
@@ -534,7 +531,7 @@
 
 
 <div class="viewcode-block" id="CloudClient.ui_action">
-<a class="viewcode-back" href="../../api/scitex_hub.html#scitex_hub.CloudClient.ui_action">[docs]</a>
+<a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.ui_action">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">ui_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">steps</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">delay_ms</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">900</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Drive browser UI actions via WebSocket relay.</span>
 
@@ -558,7 +555,7 @@
 
 
 <div class="viewcode-block" id="CloudClient.status">
-<a class="viewcode-back" href="../../api/scitex_hub.html#scitex_hub.CloudClient.status">[docs]</a>
+<a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.status">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Check cloud service status.</span>
 
