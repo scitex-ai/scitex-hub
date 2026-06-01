@@ -112,6 +112,9 @@ data/ssh_keys/
 **/*.pdf
 **/*.pkl
 **/*.png
+# README logo (PS-112) and other docs assets must be tracked.
+!docs/assets/images/*.png
+!static/shared/images/scitex_logos/**/*.png
 **/*.pth
 **/*.pt
 **/*.chk
