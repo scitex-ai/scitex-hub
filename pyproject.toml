@@ -27,7 +27,12 @@ dependencies = [
     # so the import works in any install graph.
     "scitex-session>=0.1.6",
     "scitex-writer>=2.17.2",
-    "scitex-dev>=0.15.0",
+    # 0.16.1 is the first release where `audit_all_for_package`
+    # honours the HYPHENATED rule-id format that tests/develop/
+    # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
+    # Pinning to <0.16.1 silently lets every entry in `skip_rules`
+    # leak through — the gate fails on rules we explicitly deferred.
+    "scitex-dev>=0.16.1",
     "gitpython>=3.1",
 ]
 
@@ -154,7 +159,12 @@ dev = [
     "fastmcp>=2.0.0",
     "scitex>=2.29.3",
     # scitex-dev provides the `audit-all` corpus the release gate runs.
-    "scitex-dev>=0.15.0",
+    # 0.16.1 is the first release where `audit_all_for_package`
+    # honours the HYPHENATED rule-id format that tests/develop/
+    # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
+    # Pinning to <0.16.1 silently lets every entry in `skip_rules`
+    # leak through — the gate fails on rules we explicitly deferred.
+    "scitex-dev>=0.16.1",
 ]
 
 [project.scripts]
