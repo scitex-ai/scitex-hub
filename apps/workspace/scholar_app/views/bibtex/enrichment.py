@@ -27,7 +27,7 @@ def bibtex_enrich_sync(request):
     Requires API key authentication.
 
     Usage:
-        curl https://scitex.cloud/scholar/api/bibtex/enrich/ \
+        curl https://scitex.ai/scholar/api/bibtex/enrich/ \
           -H "Authorization: Bearer YOUR_API_KEY" \
           -F "bibtex_file=@original.bib" \
           -o enriched.bib

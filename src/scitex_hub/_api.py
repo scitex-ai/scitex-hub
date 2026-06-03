@@ -27,7 +27,7 @@ class CloudClient:
     api_key : str, optional
         API key for authenticated endpoints. Falls back to SCITEX_HUB_API_KEY env var.
     base_url : str, optional
-        Cloud server URL. Falls back to SCITEX_HUB_URL env var or https://scitex.cloud.
+        Cloud server URL. Falls back to SCITEX_HUB_URL env var or https://scitex.ai.
 
     Examples
     --------
@@ -43,7 +43,7 @@ class CloudClient:
     ):
         self.api_key = api_key or os.environ.get("SCITEX_HUB_API_KEY")
         self.base_url = (
-            base_url or os.environ.get("SCITEX_HUB_URL") or "https://scitex.cloud"
+            base_url or os.environ.get("SCITEX_HUB_URL") or "https://scitex.ai"
         )
 
     def _request(
