@@ -55,7 +55,7 @@ def _candidate_paths(explicit: Optional[str]) -> list[Path]:
     if env_path:
         paths.append(Path(env_path).expanduser())
     paths.append(Path.cwd() / ".scitex" / "scitex-hub.yaml")
-    paths.append(local_state.path("cloud", "config.yaml"))
+    paths.append(local_state.path("hub", "config.yaml"))
     return paths
 
 
