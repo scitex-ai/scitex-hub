@@ -134,6 +134,12 @@ sed -i.bak-$(date -u +%Y%m%dT%H%M%SZ) \
   's/^SCITEX_CLOUD_/SCITEX_HUB_/g' \
   deployment/docker/envs/.env.prod
 
+# (b.5) Q2 user-data path migration (~/.scitex/cloud/ -> ~/.scitex/hub/ + symlink)
+#       Runs HERE because django is already down (a) so no FDs are open
+#       against the old path. Full runbook in appendix §A.2.1.
+#       Pre-condition: sac agents stop proj-scitex-hub (lead, NAS-side).
+# See: docs/adr/0003-appendix-rename-audit-and-runbook.md  §A.2.1
+
 # (c) Clone each named volume from old project to new project
 for V in postgres_data redis_data gitea_data static_volume media_volume; do
   docker volume create "scitex-hub-prod_${V}"
@@ -298,177 +304,26 @@ env:
 
 `/work` (the container-side bind name) does NOT change — that's the agent's stable workdir reference. Only the host-side source path needs the rename.
 
-## 13. Repo-content rename audit — comprehensive findings
+## 13. Repo-content rename audit + operator decisions — see appendix
 
-The §2 table above reflects what `scitex-dev rename-symbols --dry-run` reports for four exact-match axes. A broader case-insensitive grep across the repo found additional references in five categories. After excluding the legitimate-keep paths (§2 categories 1-4 plus legacy-token compat code), the remaining substantive surface breaks down as follows.
+Background reference material for this ADR was extracted to a sibling file to keep the main runbook focused:
 
-### Categories of remaining `scitex-cloud`-family references
+- [**ADR-0003 Appendix — Rename audit, operator decisions, and GitHub-rename runbook**](0003-appendix-rename-audit-and-runbook.md)
 
-1. **Historical / shim / compat — KEEP AS-IS** (covered by §2): CHANGELOG, ADR-0001, scripts/migrate, src/scitex_cloud/* shim package, config/_env.py, config/settings/settings_shared.py (comments only — describe the alias contract), tests/scitex_hub/test_scitex_cloud_shim.py, tests/config/test_env_legacy_alias.py, apps/infra/public_app/config/api_docs.py LEGACY_CAMPAIGN_TOKEN_PATTERN, docs/adr/0002 (cross-ref).
-2. **Different spoke package — KEEP AS-IS**: `src/scitex_hub/_skills/scitex-hub-cloud/*.md` documents the standalone `scitex-cloud` PyPI package at `~/proj/scitex-code/cloud` (a separate artifact from this Django web app).
-3. **`scitex cloud` CLI subcommand — KEEP AS-IS**: the umbrella `scitex` CLI has a `cloud` subcommand (`scitex cloud push`, `scitex cloud pull`, `scitex cloud sync-to`, etc.) that lives in `src/scitex_hub/_cli/sync.py`, `src/scitex_hub/_cli/_gitea_utils.py`, and the matching skill doc `src/scitex_hub/_skills/scitex-hub/10_sync-architecture.md`. The subcommand is named after the OPERATION (push to the cloud server), not after the legacy project name. Renaming it would change the user-facing CLI vocabulary, which is out of scope for this ADR.
-4. **`scitex.cloud` as a DNS domain** — see §13.1 (Q1 investigation + target options).
-5. **`~/.scitex/cloud/apps/prefs.json` on-disk path** — see §13.2 (Q2 = KEEP).
-6. **Substantive `SciTeX-Cloud` display-text + GitHub-URL references** — see §13.3 (Q3 = DONE in this PR).
+The appendix contains:
 
-### 13.1 Q1 — `scitex.cloud` audit (operator answer: "b" = move OFF this domain; concrete target TBD)
+- **§A** — 5-category rename audit (KEEP vs RENAME vs DECISION) + Q1 `scitex.cloud` DNS investigation with 3 target options + **§A.2 Q2 `~/.scitex/cloud/` MIGRATION runbook** (operator answered "b" = migrate with compat symlink; ordering folds into §5.4 between (b) and (c) of this ADR) + §A.3 Cat-6 HTML batch table (DONE in this PR) + §A.4 the four earlier unambiguous content edits.
+- **§B** — Idempotent GitHub repo rename runbook (verify-first commands for `gh repo rename`, git remote set-url across clones + worktrees, README badges, RTD project, CI workflows, other agents' workdir refs, CF/DNS confirmation).
 
-**Audit result (grep across repo + deployment):** `scitex.cloud` is **NOT** a deployed service.
+**Cross-references back into this main ADR:** §A.2.1 Q2-migration is slotted between §5.4(b) `sed .env.prod` and §5.4(c) volume clone — see the note added in §5 below.
 
-| surface | grep result | implication |
-| --- | --- | --- |
-| `deployment/` (nginx, cloudflared, docker-compose) | 0 matches | no DNS / no TLS cert SAN / no proxy upstream |
-| `config/settings/` (`ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`) | 0 matches | Django doesn't recognize it as an inbound origin |
-| live curl `https://scitex.cloud/` (would-be probe) | not deployed | no live A record served by our infra |
+## 14. GitHub repo rename runbook — see appendix
 
-What `scitex.cloud` actually IS in the repo today:
+Idempotent checklist for verifying / completing the GitHub-side rename and its downstream effects (git remotes, worktrees, README badges, RTD, CI workflows, agents) lives in the appendix §B:
 
-| usage | locations | purpose |
-| --- | --- | --- |
-| **SDK default base URL** (hardcoded) | `src/scitex_hub/_api.py:30,46`, `src/scitex_hub/_cli/mcp.py:148`, `src/scitex_hub/_cli/_gitea_collab.py:182`, `src/scitex_hub/_mcp_server.py:70` (docstring) | what `CloudClient(base_url=None)` falls back to when `SCITEX_HUB_URL` is unset |
-| **advertised URL in user-facing docs** | `apps/infra/public_app/templates/public_app/pages/api_keys.html:64` (curl example), `landing_partials/landing_ecosystem.html:66` (display chip), `src/scitex_hub/_skills/scitex-hub/06_python-api.md:17,92,103`, `30_infrastructure.md:92` | marketing/example URL |
-| **git-author email domain inside workspace containers** | `apps/workspace/console_app/views/terminal/dotfiles.py:147,308,310` (`{username}@scitex.cloud`), `tests/apps/console_app/views/terminal/test_dotfiles.py:116` | the email address used in git commits generated by users inside the workspace |
-| **example URLs in product docs** | `apps/infra/project_app/implementation/security_features_implementation.md:498,501,504,507,510,637` | placeholder URLs in security-feature docs |
-| **API endpoint docstring** | `apps/workspace/scholar_app/views/bibtex/enrichment.py:30` | curl example in module docstring |
-| **diagram data** | `scripts/assets/workflow.py:117` (`content=["scitex.cloud", "https://scitex.ai", "self-host"]`) | string in a workflow diagram |
-| **commented-out TS** | `tests/ts/console_app/workspace/editor/ScratchManager.test.ts:100` (`// const sshHost = ... "scitex.cloud";`) | dead code |
-
-NOT counted: `import scitex.cloud` (Python module syntax — `cloud` submodule of the `scitex` umbrella; different concept from the DNS domain) and `~/.scitex/cloud/` on-disk path (§13.2).
-
-**Three concrete target options:**
-
-| option | target | infra changes | code changes | pros / cons |
-| --- | --- | --- | --- | --- |
-| **A. Drop `scitex.cloud` entirely; canonical → `https://scitex.ai`** | `https://scitex.ai` | none (already deployed) | SDK default `base_url`, advertised URLs in HTML/skill docs, git email domain `@scitex.cloud` → `@scitex.ai`. ~15 file edits. | **Pros**: zero infra work; one canonical domain. **Cons**: if operator ever wants a dedicated API subdomain later, this commits to mixing landing+app on the same host. |
-| **B. Migrate to subdomain `https://hub.scitex.ai`** | `https://hub.scitex.ai` | (1) Cloudflare DNS: add A/CNAME `hub.scitex.ai` → tunnel. (2) Cloudflare tunnel ingress: add `hostname: hub.scitex.ai` → `service: http://django:8000`. (3) TLS: CF auto-provisions. (4) `settings_prod.py` `ALLOWED_HOSTS += ["hub.scitex.ai"]`. (5) `CSRF_TRUSTED_ORIGINS += ["https://hub.scitex.ai"]`. | Same ~15 file edits as A, but target `https://hub.scitex.ai`. | **Pros**: semantic split landing (`scitex.ai`) vs app/API (`hub.scitex.ai`). **Cons**: ~30 min of infra setup; both domains need to stay healthy during transition; users with `SCITEX_HUB_URL` unset get broken default until the DNS lands. |
-| **C. Migrate to subdomain `https://app.scitex.ai`** | `https://app.scitex.ai` | identical to B with `app` instead of `hub` | identical to B | **Pros**: `app` is the conventional name for a web application; `hub` collides semantically with GitHub/Docker Hub. **Cons**: same as B. |
-
-**Recommendation (drafter):** Option **A** (drop entirely) for simplicity unless operator has a strategic reason to want a dedicated subdomain. Option B is the safe long-term split if hub-on-its-own-subdomain matters for branding. Option C if "app" reads better than "hub" for end-users.
-
-**Lead, take to operator.** Once they pick, the SDK + docs + email + ALLOWED_HOSTS edits are a follow-up commit on this branch.
-
-### 13.2 Q2 — `~/.scitex/cloud/apps/prefs.json` on-disk path (operator answer: "a" = KEEP)
-
-KEEP as-is. The docstring at `src/scitex_hub/appmaker/_prefs.py:1` stays unchanged. Renaming would orphan existing user data; the path name `cloud` is an internal-storage detail that users do not interact with directly. No follow-up work needed.
-
-If we want to make the keep-decision explicit in code (so a future agent doesn't "fix" it), we can add a brief comment near the path constant. Drafter recommends doing that in the same follow-up commit as Q1's resolution to keep this PR focused.
-
-### 13.3 Q3 — Cat-6 HTML / GitHub URL batch (operator answer: "a" = canonical = `ywatanabe1989/scitex-hub`; DONE in this PR)
-
-Eight templates updated. The legacy `SciTex-AI/SciTeX-Cloud` GitHub URLs were rewritten to the canonical `ywatanabe1989/scitex-hub`. Display text `SciTeX-Cloud` → `SciTeX-Hub` everywhere except the historical record (CHANGELOG, ADR-0001).
-
-| file | line(s) | before | after |
-| --- | --- | --- | --- |
-| `apps/infra/public_app/templates/public_app/products/hub.html` | 28 | `<code>~/proj/SciTeX-Cloud</code>` | `<code>~/proj/scitex-hub</code>` (matches on-disk after §11) |
-| `apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html` | 213 | `github_url='https://github.com/ywatanabe1989/SciTeX-Cloud'` | `github_url='https://github.com/ywatanabe1989/scitex-hub'` |
-| `apps/infra/public_app/templates/public_app/pages/_windows.html` | 201-202 | `git clone https://github.com/SciTex-AI/SciTeX-Cloud.git` + `cd SciTeX-Cloud` | `git clone https://github.com/ywatanabe1989/scitex-hub.git` + `cd scitex-hub` |
-| `apps/infra/public_app/templates/public_app/pages/_windows.html` | 462 | `href="https://github.com/SciTex-AI/SciTeX-Cloud"` | `href="https://github.com/ywatanabe1989/scitex-hub"` |
-| `apps/infra/public_app/templates/public_app/pages/_concept.html` | 91 | `A[SciTeX-Cloud]` (Mermaid node) | `A[SciTeX-Hub]` |
-| `apps/infra/public_app/templates/public_app/pages/_concept.html` | 152 | `<h3>SciTeX-Cloud</h3>` | `<h3>SciTeX-Hub</h3>` |
-| `apps/infra/public_app/templates/public_app/pages/vision.html` | 282 | `<h4>SciTeX-Viz & SciTeX-Cloud Integration</h4>` | `<h4>SciTeX-Viz & SciTeX-Hub Integration</h4>` |
-| `apps/infra/public_app/templates/public_app/pages/_roadmap.html` | 153 | `SciTeX-Cloud Web Interface :done, cloud1, ...` (Mermaid gantt task + id) | `SciTeX-Hub Web Interface :done, hub1, ...` |
-| `apps/infra/public_app/templates/public_app/pages/_roadmap.html` | 175 | `<h3>SciTeX-Cloud Beta Release</h3>` | `<h3>SciTeX-Hub Beta Release</h3>` |
-| `apps/infra/public_app/templates/public_app/pages/_roadmap.html` | 430 | `<option>SciTeX-Cloud (Web Interface)</option>` | `<option>SciTeX-Hub (Web Interface)</option>` |
-| `apps/infra/public_app/templates/public_app/pages/feature_request.html` | 365 | `SciTeX-Cloud Web Interface :done, cloud1, ...` (Mermaid gantt) | `SciTeX-Hub Web Interface :done, hub1, ...` |
-| `apps/infra/public_app/templates/public_app/pages/_repositories.html` | 215-216 | `<h3>SciTeX-Cloud</h3>` + p | `<h3>SciTeX-Hub</h3>` + p (unchanged) |
-| `apps/infra/public_app/templates/public_app/pages/_repositories.html` | 229 | `href="https://github.com/SciTex-AI/SciTeX-Cloud"` | `href="https://github.com/ywatanabe1989/scitex-hub"` |
-| `apps/infra/public_app/templates/public_app/pages/_repositories.html` | 317 | `<td>SciTeX-Cloud</td>` (table row) | `<td>SciTeX-Hub</td>` |
-| `apps/infra/public_app/templates/public_app/pages/_repositories.html` | 321 | `href="https://github.com/SciTex-AI/SciTeX-Cloud/issues/12"` | `href="https://github.com/ywatanabe1989/scitex-hub/issues/12"` |
-
-Verification: `grep -r 'SciTeX-Cloud\|SciTex-AI/SciTeX-Cloud' apps/ src/ scripts/ deployment/ config/ docs/ tests/ --exclude-dir={.archive,_sphinx_html,_docs,releases}` returns zero hits.
-
-### Earlier this PR — four unambiguous content edits
-
-| file | before | after |
-| --- | --- | --- |
-| `.gitignore:38` | `SCITEX_CLOUD_DJANGO_SETTINGS_MODULE` | `SCITEX_HUB_DJANGO_SETTINGS_MODULE` |
-| `config/logger.py:4` (file header) | `/home/ywatanabe/proj/SciTeX-Cloud/config/logger.py` | `/home/ywatanabe/proj/scitex-cloud/config/logger.py` (becomes `scitex-hub` after §11) |
-| `deployment/host-setup/scripts/make-completion.bash:6,10` | `scitex-cloud Makefile` / `/path/to/scitex-cloud/` | `scitex-hub Makefile` / `/path/to/scitex-hub/` |
-| `apps/infra/public_app/models.py:14` (comment) | `# Models for SciTeX-Cloud services` | `# Models for SciTeX-Hub services` |
-
-## 14. GitHub repo rename runbook (lead-executed)
-
-The GitHub repo was renamed `ywatanabe1989/scitex-cloud` → `ywatanabe1989/scitex-hub` on 2026-05-31 (per `~/.scitex/hub/handoff.md`). This section captures the **complete checklist** so any side-effects of that rename can be verified and any environment still pointing at the old name can be migrated. Steps are idempotent — re-running `gh repo rename` against an already-renamed repo is a no-op.
-
-### 14.1 GitHub-side rename (no-op if already done)
-
-```bash
-# Verify current GitHub repo name
-gh repo view ywatanabe1989/scitex-hub --json name,sshUrl,url 2>&1
-# If output shows name="scitex-hub", you're done. Skip 14.1 entirely.
-
-# If for some reason it still shows "scitex-cloud":
-gh repo rename --repo ywatanabe1989/scitex-cloud scitex-hub --yes
-# GitHub auto-installs a redirect from the old name; existing clones with
-# the old URL continue to work via that redirect.
-```
-
-### 14.2 Local git remotes (every machine that has the repo cloned)
-
-```bash
-# On NAS (host-side)
-cd ~/proj/scitex-cloud   # or ~/proj/scitex-hub after §11
-git remote -v
-# If output still shows `scitex-cloud.git`:
-git remote set-url origin git@github.com:ywatanabe1989/scitex-hub.git
-git remote -v   # verify
-
-# Same on operator's laptop (ywata-note-win):
-#   cd ~/proj/scitex-cloud && git remote set-url origin git@github.com:ywatanabe1989/scitex-hub.git
-```
-
-### 14.3 Worktrees (`.git/config` per worktree)
-
-Each `git worktree` keeps its own `gitdir` pointer. The `git remote set-url` in §14.2 updates only the main checkout's `.git/config`. For each worktree:
-
-```bash
-git -C /home/ywatanabe/proj/scitex-cloud worktree list
-# For each listed worktree (the path on the left of each line):
-for WT in $(git -C ~/proj/scitex-cloud worktree list --porcelain | awk '/^worktree/ {print $2}'); do
-  git -C "$WT" remote -v
-  # If old URL: git -C "$WT" remote set-url origin git@github.com:ywatanabe1989/scitex-hub.git
-done
-```
-
-### 14.4 README badges (already point at the new repo)
-
-Already correct — `README.md:25-29` reference `ywatanabe1989/scitex-hub` (verified). No edit needed.
-
-### 14.5 Read the Docs project
-
-If the RTD project slug is still `scitex-cloud`, rename it in the RTD dashboard:
-1. RTD dashboard → Projects → `scitex-cloud` → Admin → Settings.
-2. Change "Repository URL" to `https://github.com/ywatanabe1989/scitex-hub` (auto-redirect works but explicit is better).
-3. Optionally rename project slug from `scitex-cloud` → `scitex-hub` (this changes `https://scitex-cloud.readthedocs.io/` URLs; RTD auto-redirects from old slug).
-
-Verify: `curl -sSI https://scitex-hub.readthedocs.io/en/latest/` (or whichever slug) returns 200.
-
-### 14.6 GitHub Actions workflows + CI badges
-
-Already updated as part of ADR-0001 (commits `c3c2df40` ... `d38d6894`). Sanity check:
-
-```bash
-grep -rn 'scitex-cloud' .github/ 2>&1 | grep -v 'README\|CHANGELOG' || echo "OK no leftover scitex-cloud refs in .github/"
-```
-
-### 14.7 Agent workdir references
-
-- proj-scitex-hub agent's sac spec: covered by §12 (host-side, lead-executed).
-- Any other agent (`proj-grant`, `proj-sac`, `proj-scitex-orochi`, `proj-scitex-todo`) that has `~/proj/scitex-cloud` in its spec: lead enumerates and updates symmetrically with §12. After §11 the host-side symlink (`ln -s ~/proj/scitex-hub ~/proj/scitex-cloud`) keeps them working unchanged, but the explicit fix is cleaner.
-
-### 14.8 Cloudflare + DNS
-
-No CF/DNS step needed for the GitHub rename itself. The site at `scitex.ai` doesn't reference the GitHub repo name.
-
-### 14.9 Open external references
-
-The legacy `SciTex-AI/SciTeX-Cloud` org URL appeared in our HTML templates (now fixed in §13.3). If that org actually exists and hosts a stale copy of the repo, lead may want to archive it on GitHub to prevent fork-confusion. Out of scope for this ADR.
+- [`0003-appendix-rename-audit-and-runbook.md`](0003-appendix-rename-audit-and-runbook.md#b-github-repo-rename-runbook-lead-executed)
 
 ## 15. Drafter notes
 
-- proj-scitex-hub does NOT have docker.sock in its sac container; cannot execute §5.x, §11, §12, or §14. Drafter role only.
-- This document is intentionally heavy on commands rather than prose. The executor (lead) needs runnable copy-paste, not generalities.
-
-- proj-scitex-hub does NOT have docker.sock in its sac container; cannot execute §5.x, §11, or §12. Drafter role only.
-- a2a→lead is currently 403 ACL-deny on NAS sac state.db; relay is via the Claude conversation chain. Lead, please add `grant_send(sender='proj-scitex-hub', target='lead')` so future plan-revisions can come back via a2a without manual relay.
-- This document is intentionally heavy on commands rather than prose. The executor (lead) needs runnable copy-paste, not generalities.
+- proj-scitex-hub does NOT have docker.sock in its sac container; cannot execute §5.x, §11, §12, or appendix §A.2.1 / §B. Drafter role only.
+- This document (and appendix) is intentionally heavy on commands rather than prose. The executor (lead) needs runnable copy-paste, not generalities.
