@@ -12,6 +12,8 @@ references.bib
 !.scitex/dev/
 .scitex/dev/*
 !.scitex/dev/config.yaml
+# Project-tracked agent operational state (HOLDs, candidates, in-flight tasks)
+!.scitex/todo/
 
 ### Source: /home/ywatanabe/.git-templates/.gitignore-templates/Custom/Claude.gitignore ###
 .claude
