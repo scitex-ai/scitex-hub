@@ -35,7 +35,7 @@ deployment/ssl/
 tmp.sh
 tmp/*.sh
 rename_without_duplication.sh
-SCITEX_CLOUD_DJANGO_SETTINGS_MODULE
+SCITEX_HUB_DJANGO_SETTINGS_MODULE
 
 # Code workspace temporary files
 .scratch_temp.py

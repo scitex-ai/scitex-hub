@@ -244,8 +244,92 @@ done
 4. **Cleanup window**: 30 days OK, or shorter/longer? Drives the storage commitment for kept-old volumes.
 5. **Communication**: operator-facing maintenance announcement (Telegram only? Status page?).
 
-## 11. Drafter notes
+## 11. Repo directory rename (lead-executed, post-cutover)
 
-- proj-scitex-hub does NOT have docker.sock in its sac container; cannot execute §5.x. Drafter role only.
+The repo directory itself stays `~/proj/scitex-cloud` until lead does the host-side rename. This is intentional and falls under lead's guardrail because proj-scitex-hub runs FROM `/work` (== `~/proj/scitex-cloud`) and renaming the directory mid-flight breaks the agent's bind-mount and workdir.
+
+Recommended order (lead executes):
+
+```bash
+# Pre-conditions
+# - Prod cutover (§5) complete and stable
+# - proj-scitex-hub agent stopped (sac agents stop proj-scitex-hub)
+# - No other process has the directory open
+
+# A. Rename on disk
+mv ~/proj/scitex-cloud ~/proj/scitex-hub
+
+# B. Update sac spec for proj-scitex-hub so bind-mounts point at new path
+#    (edit ~/.scitex/agent-container/agents/proj-scitex-hub/spec.yaml:
+#     - replace /home/ywatanabe/proj/scitex-cloud → /home/ywatanabe/proj/scitex-hub
+#       in binds, workdir, env, anywhere it appears)
+
+# C. Update the symlink (if any) so callers that still type "scitex-cloud" keep working
+ln -s ~/proj/scitex-hub ~/proj/scitex-cloud
+
+# D. Restart the agent
+sac agents start proj-scitex-hub
+# Agent will [REPORT] back online on Telegram within ~30s.
+```
+
+The symlink in step C is the safety net: any external tooling, shell aliases, IDE workspaces, or other agents that hardcode `~/proj/scitex-cloud` keep working unchanged. The symlink can be removed after a deprecation window.
+
+## 12. Agent sac-spec update (lead-executed, post-directory-rename)
+
+When step 11.B runs, the diff in `~/.scitex/agent-container/agents/proj-scitex-hub/spec.yaml` is approximately:
+
+```yaml
+# Before
+binds:
+  - /home/ywatanabe/proj/scitex-cloud:/work
+  - /home/ywatanabe/proj:/home/ywatanabe/proj:ro
+workdir: /work     # unchanged — /work is the bind target name, not the source
+env:
+  PROJECT_ROOT: /home/ywatanabe/proj/scitex-cloud   # update if present
+
+# After
+binds:
+  - /home/ywatanabe/proj/scitex-hub:/work
+  - /home/ywatanabe/proj:/home/ywatanabe/proj:ro
+workdir: /work
+env:
+  PROJECT_ROOT: /home/ywatanabe/proj/scitex-hub
+```
+
+`/work` (the container-side bind name) does NOT change — that's the agent's stable workdir reference. Only the host-side source path needs the rename.
+
+## 13. Repo-content rename audit — comprehensive findings
+
+The §2 table above reflects what `scitex-dev rename-symbols --dry-run` reports for four exact-match axes. A broader case-insensitive grep across the repo found additional references in five categories. After excluding the legitimate-keep paths (§2 categories 1-4 plus legacy-token compat code), the remaining substantive surface breaks down as follows.
+
+### Categories of remaining `scitex-cloud`-family references
+
+1. **Historical / shim / compat — KEEP AS-IS** (covered by §2): CHANGELOG, ADR-0001, scripts/migrate, src/scitex_cloud/* shim package, config/_env.py, config/settings/settings_shared.py (comments only — describe the alias contract), tests/scitex_hub/test_scitex_cloud_shim.py, tests/config/test_env_legacy_alias.py, apps/infra/public_app/config/api_docs.py LEGACY_CAMPAIGN_TOKEN_PATTERN, docs/adr/0002 (cross-ref).
+2. **Different spoke package — KEEP AS-IS**: `src/scitex_hub/_skills/scitex-hub-cloud/*.md` documents the standalone `scitex-cloud` PyPI package at `~/proj/scitex-code/cloud` (a separate artifact from this Django web app).
+3. **`scitex cloud` CLI subcommand — KEEP AS-IS**: the umbrella `scitex` CLI has a `cloud` subcommand (`scitex cloud push`, `scitex cloud pull`, `scitex cloud sync-to`, etc.) that lives in `src/scitex_hub/_cli/sync.py`, `src/scitex_hub/_cli/_gitea_utils.py`, and the matching skill doc `src/scitex_hub/_skills/scitex-hub/10_sync-architecture.md`. The subcommand is named after the OPERATION (push to the cloud server), not after the legacy project name. Renaming it would change the user-facing CLI vocabulary, which is out of scope for this ADR.
+4. **`scitex.cloud` as a DNS domain — DECISION NEEDED**: appears in `src/scitex_hub/_api.py`, `src/scitex_hub/_cli/mcp.py`, `src/scitex_hub/_cli/_gitea_collab.py`, `src/scitex_hub/_mcp_server.py`, `src/scitex_hub/_skills/scitex-hub/06_python-api.md`, `apps/infra/public_app/templates/public_app/landing_partials/landing_ecosystem.html`, `apps/infra/public_app/templates/public_app/pages/api_keys.html`, `scripts/assets/workflow.py`. The site canonical domain is `scitex.ai`; `scitex.cloud` looks like a secondary/legacy domain. **Open Q for operator: keep `scitex.cloud` (alt domain) or migrate everything to `scitex.ai`?**
+5. **`~/.scitex/cloud/apps/prefs.json` on-disk path — DECISION NEEDED**: `src/scitex_hub/appmaker/_prefs.py:1` docstring. Renaming this path would orphan existing user data. **Open Q: migrate user data with a one-time copy + symlink, or keep `~/.scitex/cloud/` indefinitely as the storage path?**
+6. **Substantive `SciTeX-Cloud` display-text + GitHub-URL references — IN SCOPE for follow-up batch**: HTML templates in `apps/infra/public_app/templates/public_app/` (vision.html, _concept.html, _repositories.html, _roadmap.html, _windows.html, feature_request.html, products/hub.html, landing_partials/landing_demos.html). These are user-facing display text and several embed `https://github.com/{SciTex-AI,ywatanabe1989}/SciTeX-Cloud` URLs. The GitHub org `SciTex-AI` may not have a `scitex-hub` repo; lead/operator must confirm canonical org+repo before sed-batching.
+
+### Edits applied in THIS PR (commit alongside the plan doc)
+
+Four unambiguous renames where category is unambiguous and no semantic risk:
+
+| file | before | after |
+| --- | --- | --- |
+| `.gitignore:38` | `SCITEX_CLOUD_DJANGO_SETTINGS_MODULE` | `SCITEX_HUB_DJANGO_SETTINGS_MODULE` |
+| `config/logger.py:4` (file header) | `/home/ywatanabe/proj/SciTeX-Cloud/config/logger.py` | `/home/ywatanabe/proj/scitex-cloud/config/logger.py` (lowercase matches current on-disk reality; becomes `scitex-hub` after §11 dir rename) |
+| `deployment/host-setup/scripts/make-completion.bash:6,10` | `scitex-cloud Makefile` / `/path/to/scitex-cloud/` | `scitex-hub Makefile` / `/path/to/scitex-hub/` |
+| `apps/infra/public_app/models.py:14` (comment) | `# Models for SciTeX-Cloud services` | `# Models for SciTeX-Hub services` |
+
+### Out of scope for THIS PR (awaiting lead green-light)
+
+- Category 4 (DNS domain): needs operator decision on `scitex.cloud` vs `scitex.ai`.
+- Category 5 (on-disk path): needs operator decision on user-data migration policy.
+- Category 6 (display-text + GitHub URLs in templates): needs lead confirmation on canonical GitHub org+repo before sed-batching ~10 HTML files. Once confirmed, ~30-40 line edits across the HTML template set; mechanical.
+
+## 14. Drafter notes
+
+- proj-scitex-hub does NOT have docker.sock in its sac container; cannot execute §5.x, §11, or §12. Drafter role only.
 - a2a→lead is currently 403 ACL-deny on NAS sac state.db; relay is via the Claude conversation chain. Lead, please add `grant_send(sender='proj-scitex-hub', target='lead')` so future plan-revisions can come back via a2a without manual relay.
 - This document is intentionally heavy on commands rather than prose. The executor (lead) needs runnable copy-paste, not generalities.

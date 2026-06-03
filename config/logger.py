@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-05-22 05:15:38 (ywatanabe)"
-# File: /home/ywatanabe/proj/SciTeX-Cloud/config/logger.py
+# File: /home/ywatanabe/proj/scitex-cloud/config/logger.py
 # ----------------------------------------
 """
 Logger utilities for SciTeX Hub project.

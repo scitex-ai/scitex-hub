@@ -3,11 +3,11 @@
 # Timestamp: 2026-03-21
 # File: deployment/host-setup/scripts/make-completion.bash
 # ---
-# Tab completion for scitex-cloud Makefile.
+# Tab completion for scitex-hub Makefile.
 # Completes target names and ENV= values.
 #
 # Installation (add to ~/.bashrc):
-#   source /path/to/scitex-cloud/deployment/host-setup/scripts/make-completion.bash
+#   source /path/to/scitex-hub/deployment/host-setup/scripts/make-completion.bash
 #
 # Or install via: make install-completion
 
