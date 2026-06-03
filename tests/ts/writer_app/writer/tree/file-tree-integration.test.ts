@@ -29,11 +29,11 @@ describe('file-tree-integration', () => {
 //  * File Tree Integration Module
 //  * Handles integration between WorkspaceFilesTree and writer components
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/writer/tree/file-tree-integration.ts loaded"
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/writer/tree/file-tree-integration.ts loaded"
 // );
-// 
+//
 // import {
 //   doctypeToDirectory,
 //   doctypeDirs,
@@ -42,16 +42,16 @@ describe('file-tree-integration', () => {
 //   getDoctypeFromPath,
 // } from "../config/index";
 // import { getSectionsForDoctype, Section } from "../sections/section-extraction";
-// 
+//
 // // State
 // let currentDoctype = "manuscript";
 // let currentSectionIndex = 0;
-// 
+//
 // /**
 //  * Get current doctype
 //  */
 // export const getCurrentDoctype = (): string => currentDoctype;
-// 
+//
 // /**
 //  * Set current doctype
 //  */
@@ -59,46 +59,46 @@ describe('file-tree-integration', () => {
 //   currentDoctype = doctype;
 //   console.log("[Writer] Doctype changed to:", doctype);
 // };
-// 
+//
 // /**
 //  * Get current section index
 //  */
 // export const getCurrentSectionIndex = (): number => currentSectionIndex;
-// 
+//
 // /**
 //  * Set current section index
 //  */
 // export const setCurrentSectionIndex = (index: number): void => {
 //   currentSectionIndex = index;
 // };
-// 
+//
 // /**
 //  * Filter the file tree DOM to show only the current doctype's directory
 //  */
 // export const filterFileTreeDOM = (doctype: string): void => {
 //   const dirPath = doctypeToDirectory[doctype];
 //   if (!dirPath) return;
-// 
+//
 //   const treeContainer = document.getElementById("writer-file-tree");
 //   if (!treeContainer) return;
-// 
+//
 //   const targetDirName = dirPath.split("/").pop();
 //   const allItems = treeContainer.querySelectorAll(".wft-item");
-// 
+//
 //   allItems.forEach((item) => {
 //     const path = item.getAttribute("data-path") || "";
 //     const pathParts = path.split("/");
 //     const folderName = pathParts[pathParts.length - 1];
-// 
+//
 //     // Check if this is a top-level doctype or system folder
 //     const isTopLevelDoctypeDir = doctypeDirs.includes(folderName);
 //     const isSystemDir = systemDirs.includes(folderName);
-// 
+//
 //     if (isTopLevelDoctypeDir) {
 //       const element = item as HTMLElement;
 //       const childrenContainer = item.nextElementSibling as HTMLElement | null;
 //       const shouldShow = folderName === targetDirName;
-// 
+//
 //       element.style.display = shouldShow ? "" : "none";
 //       if (childrenContainer?.classList?.contains("wft-children")) {
 //         childrenContainer.style.display = shouldShow ? "" : "none";
@@ -113,10 +113,10 @@ describe('file-tree-integration', () => {
 //       }
 //     }
 //   });
-// 
+//
 //   console.log("[Writer] File tree filtered to show only:", doctype);
 // };
-// 
+//
 // /**
 //  * Synchronize all components (doctype dropdown, section dropdown, tree) from a file path
 //  */
@@ -130,18 +130,18 @@ describe('file-tree-integration', () => {
 // ): void => {
 //   // Detect doctype from path
 //   let detectedDoctype = getDoctypeFromPath(path);
-// 
+//
 //   if (detectedDoctype && detectedDoctype !== currentDoctype) {
 //     currentDoctype = detectedDoctype;
 //     callbacks.onDoctypeChange?.(detectedDoctype);
 //     filterFileTreeDOM(detectedDoctype);
 //   }
-// 
+//
 //   // Find matching section
 //   const sections = getSectionsForDoctype(currentDoctype);
 //   const fileName = path.split("/").pop();
 //   let foundSection = false;
-// 
+//
 //   for (let i = 0; i < sections.length; i++) {
 //     if (sections[i].path === path || sections[i].file.endsWith(fileName || "")) {
 //       currentSectionIndex = i;
@@ -150,13 +150,13 @@ describe('file-tree-integration', () => {
 //       break;
 //     }
 //   }
-// 
+//
 //   // Select in tree if needed
 //   if (callbacks.onTreeSelect) {
 //     callbacks.onTreeSelect(path);
 //   }
 // };
-// 
+//
 // /**
 //  * Handle doctype change from dropdown
 //  */
@@ -173,7 +173,7 @@ describe('file-tree-integration', () => {
 //   callbacks.onUpdateSectionOptions?.(doctype);
 //   callbacks.onSelectDefaultSection?.();
 // };
-// 
+//
 // /**
 //  * Determine file type and dispatch appropriate event
 //  */
@@ -190,51 +190,51 @@ describe('file-tree-integration', () => {
 //   const fileName = path.split("/").pop()?.toLowerCase() || "";
 //   const extension = fileName.split(".").pop() || "";
 //   const readOnly = isNonEditableFile(path);
-// 
+//
 //   // PDF files
 //   if (extension === "pdf") {
 //     callbacks.onShowPdf?.(path);
 //     return;
 //   }
-// 
+//
 //   // Image files
 //   if (["png", "jpg", "jpeg", "gif", "svg", "webp"].includes(extension)) {
 //     callbacks.onShowFigure?.(path);
 //     return;
 //   }
-// 
+//
 //   // Table/data files
 //   if (["csv", "xlsx", "xls", "tsv"].includes(extension)) {
 //     callbacks.onShowTable?.(path);
 //     return;
 //   }
-// 
+//
 //   // BibTeX files
 //   if (["bib", "bbl", "bst"].includes(extension)) {
 //     callbacks.onShowData?.(path);
 //     return;
 //   }
-// 
+//
 //   // Text/TeX files - load into editor
 //   callbacks.onLoadFile?.(path, readOnly);
 // };
-// 
+//
 // /**
 //  * Setup mutation observer to auto-filter tree when it updates
 //  */
 // export const setupTreeFilterObserver = (filterDebounceMs: number = 100): void => {
 //   const treeContainer = document.getElementById("writer-file-tree");
 //   if (!treeContainer) return;
-// 
+//
 //   let filterDebounce: ReturnType<typeof setTimeout>;
-// 
+//
 //   const observer = new MutationObserver(() => {
 //     clearTimeout(filterDebounce);
 //     filterDebounce = setTimeout(() => {
 //       filterFileTreeDOM(currentDoctype);
 //     }, filterDebounceMs);
 //   });
-// 
+//
 //   observer.observe(treeContainer, {
 //     childList: true,
 //     subtree: true,

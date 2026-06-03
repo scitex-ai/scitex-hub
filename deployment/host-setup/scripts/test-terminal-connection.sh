@@ -60,7 +60,7 @@ fi
 # Test 3: Check if Docker container is running
 echo ""
 echo -e "${BLUE}Test 3: Checking if Django container is running...${NC}"
-CONTAINER_NAME="scitex-cloud-${ENV}-django-1"
+CONTAINER_NAME="scitex-hub-${ENV}-django-1"
 if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
     echo -e "${GREEN}✓ Container ${CONTAINER_NAME} is running${NC}"
 else

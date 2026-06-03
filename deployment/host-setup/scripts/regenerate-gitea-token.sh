@@ -54,22 +54,22 @@ if ! $COMPOSE_CMD ps gitea 2>/dev/null | grep -q "running\|Up"; then
 fi
 
 # Read admin credentials from env file
-ADMIN_USER=$(grep "SCITEX_CLOUD_GITEA_ADMIN_USERNAME" "$ENV_FILE" | tail -1 | cut -d= -f2)
-ADMIN_PASSWORD=$(grep "SCITEX_CLOUD_GITEA_ADMIN_PASSWORD" "$ENV_FILE" | tail -1 | cut -d= -f2)
-ADMIN_EMAIL=$(grep "SCITEX_CLOUD_GITEA_ADMIN_EMAIL" "$ENV_FILE" | tail -1 | cut -d= -f2)
+ADMIN_USER=$(grep "SCITEX_HUB_GITEA_ADMIN_USERNAME" "$ENV_FILE" | tail -1 | cut -d= -f2)
+ADMIN_PASSWORD=$(grep "SCITEX_HUB_GITEA_ADMIN_PASSWORD" "$ENV_FILE" | tail -1 | cut -d= -f2)
+ADMIN_EMAIL=$(grep "SCITEX_HUB_GITEA_ADMIN_EMAIL" "$ENV_FILE" | tail -1 | cut -d= -f2)
 
 if [ -z "$ADMIN_USER" ]; then
-    echo -e "${RED}ERROR: SCITEX_CLOUD_GITEA_ADMIN_USERNAME not found in $ENV_FILE${NC}" >&2
+    echo -e "${RED}ERROR: SCITEX_HUB_GITEA_ADMIN_USERNAME not found in $ENV_FILE${NC}" >&2
     exit 1
 fi
 
 if [ -z "$ADMIN_PASSWORD" ]; then
-    echo -e "${RED}ERROR: SCITEX_CLOUD_GITEA_ADMIN_PASSWORD not found in $ENV_FILE${NC}" >&2
+    echo -e "${RED}ERROR: SCITEX_HUB_GITEA_ADMIN_PASSWORD not found in $ENV_FILE${NC}" >&2
     exit 1
 fi
 
 if [ -z "$ADMIN_EMAIL" ]; then
-    echo -e "${RED}ERROR: SCITEX_CLOUD_GITEA_ADMIN_EMAIL not found in $ENV_FILE${NC}" >&2
+    echo -e "${RED}ERROR: SCITEX_HUB_GITEA_ADMIN_EMAIL not found in $ENV_FILE${NC}" >&2
     exit 1
 fi
 
@@ -154,7 +154,7 @@ fi
 UPDATED=0
 for TARGET_FILE in "${ENV_FILES[@]}"; do
     echo -e "${CYAN}  4. Updating $TARGET_FILE...${NC}"
-    OLD_TOKENS=$(grep "SCITEX_CLOUD_GITEA_TOKEN" "$TARGET_FILE" | sed 's/.*=//' | sort -u)
+    OLD_TOKENS=$(grep "SCITEX_HUB_GITEA_TOKEN" "$TARGET_FILE" | sed 's/.*=//' | sort -u)
     for OLD_TOKEN in $OLD_TOKENS; do
         if [ -n "$OLD_TOKEN" ] && [ "$OLD_TOKEN" != "$NEW_TOKEN" ]; then
             sed -i "s|${OLD_TOKEN}|${NEW_TOKEN}|g" "$TARGET_FILE"

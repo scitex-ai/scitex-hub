@@ -35,7 +35,7 @@ _PLATFORM_APPS = frozenset(
         "scholar_app",
         "public_app",
         "accounts_app",
-        "hub_app",
+        "repo_app",
         "clew_app",
         "social_app",
         "docs_app",
@@ -352,8 +352,16 @@ def _entry_to_ts_path(entry_name: str) -> str:
             pkg_dir = Path(mod.__file__).parent
             ts_path = pkg_dir / "static" / app_name / "ts" / f"{rest}.ts"
             if ts_path.exists():
-                return str(ts_path.relative_to(Path(settings.BASE_DIR).parent))
-        except (ImportError, ValueError, TypeError):
+                # Return the absolute resolved path to the package's TS source.
+                # Pip/editable installs can live anywhere (a .venv, site-packages,
+                # or a sibling source checkout), so there is no reliable
+                # repo-root-relative form. An absolute path always points at the
+                # real file on disk and is a no-op when a caller joins it onto a
+                # base dir (vs. the broken "{entry}.ts" last resort). Production
+                # asset resolution matches external packages via the manifest
+                # name index, not this on-disk path, so absolute is safe there.
+                return str(ts_path.resolve())
+        except (ImportError, TypeError):
             pass
 
     # Last resort

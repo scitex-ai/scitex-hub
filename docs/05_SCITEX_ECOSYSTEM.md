@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2026-02-02 04:00:08
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/docs/05_SCITEX_ECOSYSTEM.md
+!-- File: /home/ywatanabe/proj/scitex-hub/docs/05_SCITEX_ECOSYSTEM.md
 !-- --- -->
 
 # SciTeX Ecosystem
@@ -16,7 +16,7 @@ Use develop and editable installation
 
 ```
 ~/proj/scitex-python
-~/proj/scitex-cloud
+~/proj/scitex-hub
 ~/proj/scitex-writer
 ~/proj/scitex-dataset
 ~/proj/figrecipe
@@ -26,7 +26,7 @@ Use develop and editable installation
 
 origin
 git@github.com:ywatanabe1989/scitex-python.git
-git@github.com:ywatanabe1989/scitex-cloud.git
+git@github.com:ywatanabe1989/scitex-hub.git
 git@github.com:ywatanabe1989/scitex-writer.git
 git@github.com:ywatanabe1989/figrecipe.git
 git@github.com:ywatanabe1989/crossref-local.git
@@ -34,7 +34,7 @@ git@github.com:ywatanabe1989/openalex-local.git
 
 scitex
 git remote add scitex git@github.com:scitex-ai/scitex-python.git
-git remote add scitex git@github.com:scitex-ai/scitex-cloud.git
+git remote add scitex git@github.com:scitex-ai/scitex-hub.git
 git remote add scitex git@github.com:scitex-ai/scitex-writer.git
 git remote add scitex git@github.com:scitex-ai/figrecipe.git
 git remote add scitex git@github.com:scitex-ai/crossref-local.git
@@ -97,7 +97,7 @@ SciTeX uses `3129X` (sa-i-te-ku-su = 3-1-2-9):
 
 | Port  | Service        |
 |-------|----------------|
-| 31290 | scitex-cloud   |
+| 31290 | scitex-hub   |
 | 31291 | crossref-local |
 | 31292 | openalex-local |
 | 31293 | scitex-audio   |
@@ -200,7 +200,7 @@ SciTeX uses `3129X` (sa-i-te-ku-su = 3-1-2-9):
 
 | Port  | Service        |
 |-------|----------------|
-| 31290 | scitex-cloud   |
+| 31290 | scitex-hub   |
 | 31291 | crossref-local |
 | 31292 | openalex-local |
 | 31293 | scitex-audio   |

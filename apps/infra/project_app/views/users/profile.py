@@ -46,7 +46,7 @@ def user_profile(request, username):
 
     # Authenticated users see profile inside Hub workspace (rendered at /<username>/)
     if request.user.is_authenticated:
-        from apps.workspace.hub_app.views.index import (
+        from apps.workspace.repo_app.views.index import (
             _build_profile_context,
             build_hub_context,
         )
@@ -55,7 +55,7 @@ def user_profile(request, username):
         context["hub_view_mode"] = "profile"
         context["hub_profile_username"] = username
         context.update(_build_profile_context(request, username))
-        return render(request, "hub_app/index.html", context)
+        return render(request, "repo_app/index.html", context)
 
     # Unauthenticated: try to find a user with this username
     try:

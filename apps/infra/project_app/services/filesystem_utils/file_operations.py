@@ -1,5 +1,5 @@
 """
-SciTeX Cloud - File Operations
+SciTeX Hub - File Operations
 
 Basic file operations for reading, writing, and getting file information.
 """

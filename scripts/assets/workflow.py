@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2026-02-16 12:00:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/scripts/assets/workflow.py
+# File: /home/ywatanabe/proj/scitex-hub/scripts/assets/workflow.py
 
 
 """Generate SciTeX ecosystem diagram (transparent SVG) using figrecipe.diagram."""
@@ -114,7 +114,7 @@ def _add_output_boxes(d):
         "cloud_box",
         "Cloud",
         subtitle="Web Interface and collaboration",
-        content=["scitex.cloud", "https://scitex.ai", "self-host"],
+        content=["scitex.ai", "self-host"],
         bullet="circle",
         shape="stadium",
         emphasis="muted",

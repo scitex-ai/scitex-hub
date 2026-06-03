@@ -10,8 +10,11 @@ import pytest
 class TestPlaceholder:
     """Placeholder test class - replace with actual tests."""
 
-    def test_placeholder(self):
+    def test_placeholder_pending_implementation(self):
         """Placeholder test - implement actual tests."""
+        # Arrange
+        # Act
+        # Assert
         pytest.skip("Not implemented yet")
 
 
@@ -123,7 +126,7 @@ if __name__ == "__main__":
 #     --cleanenv \\
 #     --bind {hpc_workspace}:/workspace \\
 #     --pwd /workspace \\
-#     /data/projects/scitex/containers/scitex-cloud-shared-v0.1.0.sif \\
+#     /data/projects/scitex/containers/scitex-hub-shared-v0.1.0.sif \\
 #     python {script_path}
 # """
 #

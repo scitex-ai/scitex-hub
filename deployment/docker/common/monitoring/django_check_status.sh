@@ -79,7 +79,7 @@ check_django_status() {
 
     # Web server test
     echo_info "Web Server:"
-    HTTP_PORT="${SCITEX_CLOUD_HTTP_PORT_DEV:-8000}"
+    HTTP_PORT="${SCITEX_HUB_HTTP_PORT_DEV:-8000}"
 
     if curl -f -s "http://localhost:$HTTP_PORT" > /dev/null 2>&1; then
         echo_success "  ✓ Django accessible at http://localhost:$HTTP_PORT"
@@ -98,7 +98,7 @@ check_django_status() {
     # Django settings
     echo_info "Django Configuration:"
     SETTINGS_MODULE=$(docker-compose -f docker-compose.dev.yml exec -T web \
-        python -c "import os; print(os.getenv('SCITEX_CLOUD_DJANGO_SETTINGS_MODULE', 'Not set'))" 2> /dev/null)
+        python -c "import os; print(os.getenv('SCITEX_HUB_DJANGO_SETTINGS_MODULE', 'Not set'))" 2> /dev/null)
     echo_info "  Settings module: $SETTINGS_MODULE"
 
     DEBUG_MODE=$(docker-compose -f docker-compose.dev.yml exec -T web \

@@ -5,7 +5,7 @@ Pre-allocated visitor accounts for visitor users.
 Each visitor gets a default project that can be claimed on signup.
 
 Architecture:
-- Configurable pool size via SCITEX_CLOUD_VISITOR_POOL_SIZE env var (default: 4)
+- Configurable pool size via SCITEX_HUB_VISITOR_POOL_SIZE env var (default: 4)
 - Allocation: Session-based with security token (1h lifetime)
 - Signup: Transfer project ownership (visitor → real user)
 - Reset: Clear workspace, free slot back to pool
@@ -40,7 +40,7 @@ class VisitorPool:
     VISITOR_USER_PREFIX = "visitor-"
     DEFAULT_PROJECT_PREFIX = "default-project-"
     READONLY_VISITOR_USERNAME = "readonly-visitor"
-    POOL_SIZE = int(os.environ.get("SCITEX_CLOUD_VISITOR_POOL_SIZE", 4))
+    POOL_SIZE = int(os.environ.get("SCITEX_HUB_VISITOR_POOL_SIZE", 4))
     SESSION_LIFETIME_HOURS = 1
     SESSION_KEY_PROJECT_ID = "visitor_project_id"
     SESSION_KEY_VISITOR_ID = "visitor_user_id"

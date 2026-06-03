@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Custom middleware for SciTeX Cloud.
+Custom middleware for SciTeX Hub.
 """
 
 from django.conf import settings

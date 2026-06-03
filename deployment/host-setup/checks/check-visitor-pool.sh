@@ -19,7 +19,7 @@ source "${SCRIPT_DIR}/../scripts/lib/colors.sh" 2>/dev/null || {
 echo "👥 Visitors:"
 
 # Find running django container
-CONTAINER=$(docker ps --format '{{.Names}}' 2>/dev/null | grep -E 'scitex-cloud-(dev|prod)-django' | head -1 || echo "")
+CONTAINER=$(docker ps --format '{{.Names}}' 2>/dev/null | grep -E 'scitex-hub-(dev|prod)-django' | head -1 || echo "")
 
 if [ -z "$CONTAINER" ]; then
     echo -e "  ${YELLOW}[WARN] No Django container running${NC}"
@@ -34,7 +34,7 @@ from apps.project_app.models import Project, VisitorAllocation
 from django.utils import timezone
 
 # Get pool size from settings
-pool_size = int(os.environ.get('SCITEX_CLOUD_VISITOR_POOL_SIZE', getattr(settings, 'SCITEX_CLOUD_VISITOR_POOL_SIZE', 4)))
+pool_size = int(os.environ.get('SCITEX_HUB_VISITOR_POOL_SIZE', getattr(settings, 'SCITEX_HUB_VISITOR_POOL_SIZE', 4)))
 
 # Check visitor users
 missing_users = []

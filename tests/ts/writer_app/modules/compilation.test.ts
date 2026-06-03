@@ -30,7 +30,7 @@ describe('compilation', () => {
 //  * Handles LaTeX compilation and PDF generation
 //  * Coordinates between API, State, UI, Queue, Preview, and Full compilation modules
 //  */
-// 
+//
 // import { ApiClient } from "@/utils/api";
 // import { CompilationAPI } from "./compilation/compilation-api";
 // import { CompilationState } from "./compilation/compilation-state";
@@ -43,14 +43,14 @@ describe('compilation', () => {
 //   CompilationJob,
 //   CompilationCallbacks,
 // } from "./compilation/types";
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/compilation.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/modules/compilation.ts loaded",
 // );
-// 
+//
 // // Re-export types for backward compatibility
 // export type { CompilationOptions };
-// 
+//
 // /**
 //  * CompilationManager - Orchestrator
 //  * Coordinates all compilation operations through specialized modules
@@ -63,10 +63,10 @@ describe('compilation', () => {
 //   private queue: CompilationQueue;
 //   private preview: CompilationPreview;
 //   private full: CompilationFull;
-// 
+//
 //   constructor(apiBaseUrl: string = "") {
 //     this.apiClient = new ApiClient(apiBaseUrl);
-// 
+//
 //     // Initialize modules
 //     this.api = new CompilationAPI();
 //     this.state = new CompilationState();
@@ -75,7 +75,7 @@ describe('compilation', () => {
 //     this.preview = new CompilationPreview(this.api, this.state, this.ui);
 //     this.full = new CompilationFull(this.api, this.state, this.ui, this.queue);
 //   }
-// 
+//
 //   /**
 //    * Compile preview (live editing with content)
 //    */
@@ -84,7 +84,7 @@ describe('compilation', () => {
 //   ): Promise<CompilationJob | null> {
 //     return this.preview.compile(options);
 //   }
-// 
+//
 //   /**
 //    * Compile full manuscript from workspace (no content)
 //    */
@@ -93,7 +93,7 @@ describe('compilation', () => {
 //   ): Promise<CompilationJob | null> {
 //     return this.full.compile(options);
 //   }
-// 
+//
 //   /**
 //    * @deprecated Use compilePreview() or compileFull() instead
 //    */
@@ -107,7 +107,7 @@ describe('compilation', () => {
 //       return this.compileFull(options);
 //     }
 //   }
-// 
+//
 //   /**
 //    * Get current job status
 //    */
@@ -117,7 +117,7 @@ describe('compilation', () => {
 //         // Local synchronous job
 //         return this.state.getCurrentJob();
 //       }
-// 
+//
 //       // This would be for async job polling (not currently used)
 //       return null;
 //     } catch (error) {
@@ -125,42 +125,42 @@ describe('compilation', () => {
 //       return null;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Cancel compilation
 //    */
 //   async cancel(jobId: string): Promise<boolean> {
 //     return this.api.cancel(jobId);
 //   }
-// 
+//
 //   /**
 //    * Check if currently compiling
 //    */
 //   getIsCompiling(): boolean {
 //     return this.state.getIsCompiling();
 //   }
-// 
+//
 //   /**
 //    * Set progress callback
 //    */
 //   onProgress(callback: (progress: number, status: string) => void): void {
 //     this.state.setCallbacks({ onProgress: callback });
 //   }
-// 
+//
 //   /**
 //    * Set completion callback
 //    */
 //   onComplete(callback: (jobId: string, pdfUrl: string) => void): void {
 //     this.state.setCallbacks({ onComplete: callback });
 //   }
-// 
+//
 //   /**
 //    * Set error callback
 //    */
 //   onError(callback: (error: string) => void): void {
 //     this.state.setCallbacks({ onError: callback });
 //   }
-// 
+//
 //   /**
 //    * Check for existing PDF
 //    */

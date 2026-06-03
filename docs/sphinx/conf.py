@@ -1,4 +1,4 @@
-"""Sphinx configuration for SciTeX Cloud documentation."""
+"""Sphinx configuration for SciTeX Hub documentation."""
 
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath("../../src"))
 
 # -- Project information -----------------------------------------------------
 
-project = "SciTeX Cloud"
+project = "SciTeX Hub"
 copyright = "2025-2026, SciTeX Team"
 author = "SciTeX Team"
 try:
@@ -70,7 +70,18 @@ napoleon_include_special_with_doc = True
 napoleon_use_admonition_for_examples = True
 napoleon_use_admonition_for_notes = True
 napoleon_use_admonition_for_references = True
-napoleon_use_ivar = False
+# napoleon_use_ivar=True makes Napoleon render `Attributes` sections in
+# class docstrings as `:ivar:` field-list entries (info-field-list,
+# scoped to the class) instead of `.. attribute::` directives (named,
+# globally-registered objects). The `.. attribute::` form clashed with
+# autodoc's automodule registration of dataclass fields, producing
+# `duplicate object description of scitex_hub.module.ModuleManifest.<f>`
+# warnings (8 of them, one per ModuleManifest field) which then failed
+# `sphinx-build -W` on PR docs builds. `:ivar:` registers no global
+# object, so the duplicate vanishes — and ModuleManifest's Attributes
+# section still renders, just as part of the class signature rather
+# than as separate doc entries. See sphinxcontrib-napoleon docs.
+napoleon_use_ivar = True
 napoleon_use_param = True
 napoleon_use_rtype = True
 napoleon_preprocess_types = False
@@ -118,7 +129,7 @@ html_favicon = None  # Add path to favicon if available
 html_context = {
     "display_github": True,
     "github_user": "ywatanabe1989",
-    "github_repo": "scitex-cloud",
+    "github_repo": "scitex-hub",
     "github_version": "main",
     "conf_py_path": "/docs/sphinx/",
 }

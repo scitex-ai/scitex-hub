@@ -7,7 +7,7 @@ Standalone FastAPI microservice for citation network analysis.
 ### Files Created
 
 ```
-/home/ywatanabe/proj/scitex-cloud/deployment/docker/citation_graph/
+/home/ywatanabe/proj/scitex-hub/deployment/docker/citation_graph/
 ├── server.py           ✅ FastAPI application (main entry point)
 ├── service.py          ✅ Business logic with caching
 ├── models.py           ✅ Pydantic models for API
@@ -19,7 +19,7 @@ Standalone FastAPI microservice for citation network analysis.
 
 ### Dependencies Added to Project
 
-Updated `/home/ywatanabe/proj/scitex-cloud/requirements.txt`:
+Updated `/home/ywatanabe/proj/scitex-hub/requirements.txt`:
 - `fastapi>=0.109.0`
 - `uvicorn[standard]>=0.27.0`
 - `python-multipart>=0.0.6`
@@ -42,7 +42,7 @@ Updated `/home/ywatanabe/proj/scitex-cloud/requirements.txt`:
 In your Docker environment or .venv:
 
 ```bash
-cd ~/proj/scitex-cloud
+cd ~/proj/scitex-hub
 pip install fastapi uvicorn[standard] python-multipart
 ```
 
@@ -64,7 +64,7 @@ pip install -e .
 ### 3. Start the Service
 
 ```bash
-cd ~/proj/scitex-cloud/deployment/docker/citation_graph
+cd ~/proj/scitex-hub/deployment/docker/citation_graph
 python3 server.py
 ```
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-12-02 16:00:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/views/status/chart_generator.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/public_app/views/status/chart_generator.py
 
 """
 Chart Generator - Creates metric charts for server status page.
@@ -116,7 +116,7 @@ CHART_CONFIGS = {
     },
     "visitor_pool": {
         "color": "#C9CBCF",
-        "y_max": int(getattr(settings, "SCITEX_CLOUD_VISITOR_POOL_SIZE", 4) * 1.1),
+        "y_max": int(getattr(settings, "SCITEX_HUB_VISITOR_POOL_SIZE", 4) * 1.1),
         "fill": True,
         "field": "visitor_pool_allocated",
         "ylabel": "Slots (n)",

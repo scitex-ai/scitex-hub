@@ -4,7 +4,7 @@
 # File: ./apps/gitea_app/services/gitea_sync_service.py
 
 """
-Gitea synchronization utilities for SciTeX Cloud
+Gitea synchronization utilities for SciTeX Hub
 
 Canonical module for syncing Django users, SSH keys, and projects with Gitea.
 """
@@ -179,7 +179,7 @@ def sync_ssh_key_to_gitea(user: User) -> Tuple[bool, Optional[str]]:
                     )
                     return True, None
 
-        title = f"SciTeX Cloud Key ({user.username})"
+        title = f"SciTeX Hub Key ({user.username})"
         client.add_ssh_key(
             title=title, key=profile.ssh_public_key, username=user.username
         )

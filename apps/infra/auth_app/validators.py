@@ -1,4 +1,4 @@
-"""Username validation for SciTeX Cloud"""
+"""Username validation for SciTeX Hub"""
 
 
 def get_reserved_usernames():

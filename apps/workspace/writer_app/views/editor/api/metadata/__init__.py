@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: /home/ywatanabe/proj/scitex-cloud/apps/writer_app/views/editor/api/metadata/__init__.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/writer_app/views/editor/api/metadata/__init__.py
 """Metadata API endpoints - sections config, citations, bibliography, file tree.
 
 This module has been refactored into separate files for better maintainability:

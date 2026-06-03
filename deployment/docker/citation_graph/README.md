@@ -28,7 +28,7 @@ cd ~/proj/scitex-code
 pip install -e .
 
 # Install API dependencies
-cd ~/proj/scitex-cloud/deployment/docker/citation_graph
+cd ~/proj/scitex-hub/deployment/docker/citation_graph
 pip install -r requirements.txt
 ```
 

@@ -1,12 +1,12 @@
 <!-- ---
 !-- Timestamp: 2026-02-01 04:32:52
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/docs/ISSUES_PAGE.md
+!-- File: /home/ywatanabe/proj/scitex-hub/docs/ISSUES_PAGE.md
 !-- --- -->
 
-# SciTeX Cloud - GitHub for Researchers
+# SciTeX Hub - GitHub for Researchers
 
-SciTeX Cloud aims to be a complete GitHub-like platform for researchers, with all
+SciTeX Hub aims to be a complete GitHub-like platform for researchers, with all
 issue tracking, discussions, and collaboration hosted internally (not on GitHub).
 
 ## Architecture
@@ -24,7 +24,7 @@ issue tracking, discussions, and collaboration hosted internally (not on GitHub)
 │  └── Git hosting backend (clone, push, pull)                    │
 ├─────────────────────────────────────────────────────────────────┤
 │  scitex cloud CLI                                               │
-│  └── Thin wrapper calling scitex-cloud Django APIs              │
+│  └── Thin wrapper calling scitex-hub Django APIs              │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -65,22 +65,22 @@ issue tracking, discussions, and collaboration hosted internally (not on GitHub)
 - [ ] Discussion categories (General, Q&A, Ideas, etc.)
 
 ### TODO - Phase 4: CLI Migration
-- [ ] Move `scitex cloud` logic from scitex-code to scitex-cloud
+- [ ] Move `scitex cloud` logic from scitex-code to scitex-hub
 - [ ] Create Django management commands for CLI operations
 - [ ] Keep scitex CLI as thin wrapper calling Django APIs
 
 ## Internal Links
 
 These are the target URLs for community feedback:
-- Bug Reports: `/scitex-ai/scitex-cloud/issues/new?labels=bug`
-- Feature Requests: `/scitex-ai/scitex-cloud/issues/new?labels=enhancement`
-- Discussions: `/scitex-ai/scitex-cloud/discussions`
+- Bug Reports: `/scitex-ai/scitex-hub/issues/new?labels=bug`
+- Feature Requests: `/scitex-ai/scitex-hub/issues/new?labels=enhancement`
+- Discussions: `/scitex-ai/scitex-hub/discussions`
 - Organization Page: `/scitex-ai/`
 
 ## Setup Required
 
 1. **Create `scitex-ai` organization** in Django admin or via CLI
-2. **Create `scitex-cloud` repository** under the organization
+2. **Create `scitex-hub` repository** under the organization
 3. **Wire up issue URLs** in project_app
 
 <!-- EOF -->

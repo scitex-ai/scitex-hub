@@ -10,8 +10,11 @@ import pytest
 class TestPlaceholder:
     """Placeholder test class - replace with actual tests."""
 
-    def test_placeholder(self):
+    def test_placeholder_pending_implementation(self):
         """Placeholder test - implement actual tests."""
+        # Arrange
+        # Act
+        # Assert
         pytest.skip("Not implemented yet")
 
 
@@ -38,8 +41,8 @@ if __name__ == "__main__":
 # def version_context(request):
 #     """Add SciTeX version to all templates."""
 #     return {
-#         "SCITEX_CLOUD_VERSION": getattr(
-#             settings, "SCITEX_CLOUD_VERSION", "0.1.0-alpha"
+#         "SCITEX_HUB_VERSION": getattr(
+#             settings, "SCITEX_HUB_VERSION", "0.1.0-alpha"
 #         ),
 #     }
 #

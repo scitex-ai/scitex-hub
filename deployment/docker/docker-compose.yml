@@ -1,5 +1,5 @@
 # ============================================
-# SciTeX Cloud - Base Docker Compose
+# SciTeX Hub - Base Docker Compose
 # ============================================
 # Common services shared across all environments
 #
@@ -24,7 +24,7 @@ x-healthcheck-redis: &healthcheck-redis
   retries: 5
 
 x-healthcheck-postgres: &healthcheck-postgres
-  test: ["CMD-SHELL", "pg_isready -U ${SCITEX_CLOUD_POSTGRES_USER} -d ${SCITEX_CLOUD_POSTGRES_DB}"]
+  test: ["CMD-SHELL", "pg_isready -U ${SCITEX_HUB_POSTGRES_USER} -d ${SCITEX_HUB_POSTGRES_DB}"]
   interval: 10s
   timeout: 3s
   retries: 5
@@ -42,9 +42,9 @@ services:
     env_file:
       - ./envs/.env.${SCITEX_ENV:-dev}
     environment:
-      POSTGRES_DB: ${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud}
-      POSTGRES_USER: ${SCITEX_CLOUD_POSTGRES_USER:-scitex}
-      POSTGRES_PASSWORD: ${SCITEX_CLOUD_POSTGRES_PASSWORD:-scitex_2025}
+      POSTGRES_DB: ${SCITEX_HUB_POSTGRES_DB:-scitex_hub}
+      POSTGRES_USER: ${SCITEX_HUB_POSTGRES_USER:-scitex}
+      POSTGRES_PASSWORD: ${SCITEX_HUB_POSTGRES_PASSWORD:-scitex_2025}
     restart: unless-stopped
     healthcheck: *healthcheck-postgres
     networks:
@@ -61,7 +61,7 @@ services:
     env_file:
       - ./envs/.env.${SCITEX_ENV:-dev}
     environment:
-      DATABASE_URL: postgresql://${SCITEX_CLOUD_POSTGRES_USER:-scitex}:${SCITEX_CLOUD_POSTGRES_PASSWORD:-scitex_2025}@postgres:5432/${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud}
+      DATABASE_URL: postgresql://${SCITEX_HUB_POSTGRES_USER:-scitex}:${SCITEX_HUB_POSTGRES_PASSWORD:-scitex_2025}@postgres:5432/${SCITEX_HUB_POSTGRES_DB:-scitex_hub}
     depends_on:
       postgres:
         condition: service_healthy
@@ -102,9 +102,9 @@ services:
       USER_GID: 1000
       GITEA__database__DB_TYPE: postgres
       GITEA__database__HOST: postgres:5432
-      GITEA__database__NAME: ${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud}
-      GITEA__database__USER: ${SCITEX_CLOUD_POSTGRES_USER:-scitex}
-      GITEA__database__PASSWD: ${SCITEX_CLOUD_POSTGRES_PASSWORD:-scitex_2025}
+      GITEA__database__NAME: ${SCITEX_HUB_POSTGRES_DB:-scitex_hub}
+      GITEA__database__USER: ${SCITEX_HUB_POSTGRES_USER:-scitex}
+      GITEA__database__PASSWD: ${SCITEX_HUB_POSTGRES_PASSWORD:-scitex_2025}
       GITEA__security__INSTALL_LOCK: "true"
     depends_on:
       postgres:
@@ -127,12 +127,12 @@ services:
     env_file:
       - ./envs/.env.${SCITEX_ENV:-dev}
     environment:
-      DATABASE_URL: postgresql://${SCITEX_CLOUD_POSTGRES_USER:-scitex}:${SCITEX_CLOUD_POSTGRES_PASSWORD:-scitex_2025}@postgres:5432/umami
+      DATABASE_URL: postgresql://${SCITEX_HUB_POSTGRES_USER:-scitex}:${SCITEX_HUB_POSTGRES_PASSWORD:-scitex_2025}@postgres:5432/umami
       DATABASE_TYPE: postgresql
-      APP_SECRET: ${SCITEX_CLOUD_UMAMI_APP_SECRET:-scitex-umami-secret-2026}
+      APP_SECRET: ${SCITEX_HUB_UMAMI_APP_SECRET:-scitex-umami-secret-2026}
       DISABLE_TELEMETRY: 1
       CLIENT_IP_HEADER: X-Forwarded-For
-      IGNORE_IP: ${SCITEX_CLOUD_UMAMI_IGNORE_IP:-}
+      IGNORE_IP: ${SCITEX_HUB_UMAMI_IGNORE_IP:-}
     depends_on:
       postgres:
         condition: service_healthy

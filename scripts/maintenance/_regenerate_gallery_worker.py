@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-12-10 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/scripts/maintenance/_regenerate_gallery_worker.py
+# File: /home/ywatanabe/proj/scitex-hub/scripts/maintenance/_regenerate_gallery_worker.py
 #
 # Worker script for gallery regeneration.
 # Called by regenerate_gallery.sh

@@ -8,7 +8,7 @@ Forward ports from Windows LAN to WSL so iPhones on the same WiFi can access the
 2. Run:
 
 ```powershell
-cd \\wsl$\Ubuntu\home\ywatanabe\proj\scitex-cloud\deployment\wsl
+cd \\wsl$\Ubuntu\home\ywatanabe\proj\scitex-hub\deployment\wsl
 .\install_startup_task.ps1
 ```
 
@@ -40,7 +40,7 @@ If ports stop working (e.g., after WSL restart):
 
 ```powershell
 # PowerShell (Admin)
-cd \\wsl$\Ubuntu\home\ywatanabe\proj\scitex-cloud\deployment\wsl
+cd \\wsl$\Ubuntu\home\ywatanabe\proj\scitex-hub\deployment\wsl
 .\setup_port_forwarding.ps1
 ```
 

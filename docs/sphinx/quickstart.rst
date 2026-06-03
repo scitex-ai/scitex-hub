@@ -1,15 +1,15 @@
 Quick Start
 ===========
 
-Get SciTeX Cloud running in three commands.
+Get SciTeX Hub running in three commands.
 
 Deployment
 ----------
 
 .. code-block:: bash
 
-   git clone https://github.com/ywatanabe1989/scitex-cloud.git
-   cd scitex-cloud
+   git clone https://github.com/ywatanabe1989/scitex-hub.git
+   cd scitex-hub
    make start
 
 This pulls Docker images, builds containers, runs migrations, and creates a test user.
@@ -27,16 +27,16 @@ Use the CLI and MCP server without Docker:
 
 .. code-block:: bash
 
-   pip install scitex-cloud           # CLI only
-   pip install scitex-cloud[mcp]      # CLI + MCP server
-   pip install scitex-cloud[all]      # Everything
+   pip install scitex-hub           # CLI only
+   pip install scitex-hub[mcp]      # CLI + MCP server
+   pip install scitex-hub[all]      # Everything
 
 Verify:
 
 .. code-block:: bash
 
-   scitex-cloud --version
-   scitex-cloud --help
+   scitex-hub --version
+   scitex-hub --help
 
 Common Operations
 -----------------

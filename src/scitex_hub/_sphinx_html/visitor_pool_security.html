@@ -1,0 +1,327 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visitor Pool Security &mdash; SciTeX Hub v0.18.1</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=1e56ff10"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference" href="api/index.html" />
+    <link rel="prev" title="App Platform" href="app_platform.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            SciTeX Hub
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#install-from-pypi">Install from PyPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#install-from-source">Install from Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#verify-installation">Verify Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Setup Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#what-you-get">What You Get</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#quick-start-development">Quick Start (Development)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#step-by-step-development-setup">Step-by-Step Development Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#production-setup">Production Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#cli-only-install">CLI-Only Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#configuration-reference">Configuration Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#common-commands">Common Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#deployment">Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#cli-only-install">CLI-Only Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#common-operations">Common Operations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#global-options">Global Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#project-management">Project Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#three-way-sync">Three-Way Sync</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#git-hosting-gitea">Git Hosting (Gitea)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#app-management">App Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#cloud-sdk">Cloud SDK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#infrastructure">Infrastructure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#mcp-server">MCP Server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#utilities">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sync.html">Three-Way Sync</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#commands">Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#conflict-handling">Conflict Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#state-tracking">State Tracking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#typical-workflows">Typical Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mcp.html">MCP Server</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#available-tools">Available Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#setup-for-claude-desktop">Setup for Claude Desktop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#setup-for-claude-code">Setup for Claude Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#environment-source-file-env-src">Environment Source File (<code class="docutils literal notranslate"><span class="pre">ENV_SRC</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#cli-commands">CLI Commands</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="app_platform.html">App Platform</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#workspace-layout">Workspace Layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#platform-services">Platform Services</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#datastore">DataStore</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#filevault">FileVault</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#jobqueue">JobQueue</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#scitexbridge">ScitexBridge</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#externalapi">ExternalAPI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#realtimehub">RealtimeHub</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#frontendkit">FrontendKit</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#app-registration">App Registration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#built-in-apps">Built-in Apps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#external-pip-installed-apps">External (pip-installed) Apps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#context-bootstrap">Context Bootstrap</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#dev-install-workflow">Dev Install Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#app-submission-and-review">App Submission and Review</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#separation-of-concerns">Separation of Concerns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Visitor Pool Security</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#background-the-fix">Background: the fix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#layer-1-reset-workspace-after">Layer 1 — <code class="docutils literal notranslate"><span class="pre">&#64;reset_workspace_after</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#layer-2-ensure-clean-workspace">Layer 2 — <code class="docutils literal notranslate"><span class="pre">&#64;ensure_clean_workspace</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#layer-3-reset-visitor-pool-on-container-restart">Layer 3 — <code class="docutils literal notranslate"><span class="pre">reset_visitor_pool</span></code> on container restart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-gets-cleared">What gets cleared</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pool-lifecycle-diagram">Pool lifecycle diagram</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#operations">Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#further-reading">Further reading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_hub.html">scitex_hub Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/index.html#package-overview">Package Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/_autosummary/scitex_hub.html">scitex_hub</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.get_version"><code class="docutils literal notranslate"><span class="pre">get_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.health_check"><code class="docutils literal notranslate"><span class="pre">health_check()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.get_context"><code class="docutils literal notranslate"><span class="pre">get_context()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.eval_js"><code class="docutils literal notranslate"><span class="pre">eval_js()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.ui_action"><code class="docutils literal notranslate"><span class="pre">ui_action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.CloudClient"><code class="docutils literal notranslate"><span class="pre">CloudClient</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.Environment"><code class="docutils literal notranslate"><span class="pre">Environment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.get_environment"><code class="docutils literal notranslate"><span class="pre">get_environment()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.DockerManager"><code class="docutils literal notranslate"><span class="pre">DockerManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.appmaker.html">scitex_hub.appmaker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.module.html">scitex_hub.module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.project.html">scitex_hub.project</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.sdk.html">scitex_hub.sdk</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SciTeX Hub</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Visitor Pool Security</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/sphinx/visitor_pool_security.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="visitor-pool-security">
+<h1>Visitor Pool Security<a class="headerlink" href="#visitor-pool-security" title="Link to this heading"></a></h1>
+<p>The visitor pool provides anonymous, sandboxed access to SciTeX Hub
+for users who have not signed up. Four pre-allocated accounts
+(<code class="docutils literal notranslate"><span class="pre">visitor-001</span></code> to <code class="docutils literal notranslate"><span class="pre">visitor-004</span></code>) are shared in rotation.</p>
+<p>This page covers the security measures added on 2026-03-24 to prevent
+chat history and project files from leaking between consecutive visitors
+on the same slot.</p>
+<section id="background-the-fix">
+<h2>Background: the fix<a class="headerlink" href="#background-the-fix" title="Link to this heading"></a></h2>
+<p>Before the fix, a visitor who reused a recycled slot could see the
+previous visitor’s chat sessions in the UI. The root cause was that
+<code class="docutils literal notranslate"><span class="pre">ChatSession</span></code> records were not deleted on deallocation.</p>
+<p>Three layers of protection were added.</p>
+</section>
+<section id="layer-1-reset-workspace-after">
+<h2>Layer 1 — <code class="docutils literal notranslate"><span class="pre">&#64;reset_workspace_after</span></code><a class="headerlink" href="#layer-1-reset-workspace-after" title="Link to this heading"></a></h2>
+<p>Applied to <code class="docutils literal notranslate"><span class="pre">PoolAllocator.deallocate_visitor()</span></code>.</p>
+<p>After the slot is marked inactive the decorator calls
+<code class="docutils literal notranslate"><span class="pre">WorkspaceManager.reset_visitor_workspace(user)</span></code> immediately.
+This is the primary cleanup path for normal session endings (expiry,
+sign-up, or explicit logout).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># apps/infra/project_app/services/visitor_pool/decorators.py</span>
+
+<span class="nd">@reset_workspace_after</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">deallocate_visitor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span> <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="layer-2-ensure-clean-workspace">
+<h2>Layer 2 — <code class="docutils literal notranslate"><span class="pre">&#64;ensure_clean_workspace</span></code><a class="headerlink" href="#layer-2-ensure-clean-workspace" title="Link to this heading"></a></h2>
+<p>Applied to <code class="docutils literal notranslate"><span class="pre">PoolAllocator._try_allocate_slot()</span></code>.</p>
+<p>Before handing a slot to a new visitor the decorator checks whether the
+slot was previously used and, if so, calls the same workspace reset.
+This catches edge cases where Layer 1 did not run: server crash, Docker
+restart, idle-timeout expiry, or NAS reboot.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># apps/infra/project_app/services/visitor_pool/decorators.py</span>
+
+<span class="nd">@ensure_clean_workspace</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_try_allocate_slot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">visitor_num</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">pool_size</span><span class="p">):</span> <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="layer-3-reset-visitor-pool-on-container-restart">
+<h2>Layer 3 — <code class="docutils literal notranslate"><span class="pre">reset_visitor_pool</span></code> on container restart<a class="headerlink" href="#layer-3-reset-visitor-pool-on-container-restart" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">deployment/docker/docker_prod/entrypoint.sh</span></code> runs the management
+command in the background immediately after <code class="docutils literal notranslate"><span class="pre">gunicorn</span></code> binds:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>manage.py<span class="w"> </span>reset_visitor_pool<span class="w">   </span><span class="c1"># wipe all slots</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>create_visitor_pool<span class="w">  </span><span class="c1"># ensure accounts exist</span>
+</pre></div>
+</div>
+<p>No state survives a container bounce.</p>
+</section>
+<section id="what-gets-cleared">
+<h2>What gets cleared<a class="headerlink" href="#what-gets-cleared" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">WorkspaceManager.reset_visitor_workspace(user)</span></code> deletes and
+re-creates the following for each visitor account:</p>
+<ul class="simple">
+<li><p><strong>Project</strong> DB row — deleted then re-created from the
+<code class="docutils literal notranslate"><span class="pre">scitex_minimal</span></code> template via <code class="docutils literal notranslate"><span class="pre">scitex.template.clone_template()</span></code>.</p></li>
+<li><p><strong>Project filesystem</strong> — <code class="docutils literal notranslate"><span class="pre">shutil.rmtree</span></code> + fresh template clone.</p></li>
+<li><p><strong>ChatSession / ChatMessage</strong> — deleted by <code class="docutils literal notranslate"><span class="pre">_clear_visitor_data()</span></code>.</p></li>
+<li><p><strong>LLMUsageLog</strong> — deleted by <code class="docutils literal notranslate"><span class="pre">_clear_visitor_data()</span></code>.</p></li>
+<li><p><strong>VisitorAllocation</strong> — marked <code class="docutils literal notranslate"><span class="pre">is_active=False</span></code>.</p></li>
+</ul>
+</section>
+<section id="pool-lifecycle-diagram">
+<h2>Pool lifecycle diagram<a class="headerlink" href="#pool-lifecycle-diagram" title="Link to this heading"></a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Container start
+    → reset_visitor_pool        # hard reset all 4 slots
+    → create_visitor_pool       # ensure accounts/projects exist
+
+Visitor arrives
+    → @ensure_clean_workspace   # layer 2 safety net
+    → allocate_visitor()        # DB lock prevents race conditions
+
+Visitor uses platform (~1 hour)
+
+Session ends
+    → deallocate_visitor()
+    → @reset_workspace_after    # layer 1 immediate cleanup
+</pre></div>
+</div>
+</section>
+<section id="operations">
+<h2>Operations<a class="headerlink" href="#operations" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Reset all slots (run automatically on restart)</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>reset_visitor_pool
+
+<span class="c1"># Free expired allocations only (no workspace wipe)</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>reset_visitor_pool<span class="w"> </span>--free-expired
+
+<span class="c1"># Pool health (free / total)</span>
+make<span class="w"> </span>status
+</pre></div>
+</div>
+</section>
+<section id="further-reading">
+<h2>Further reading<a class="headerlink" href="#further-reading" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Module README: <code class="docutils literal notranslate"><span class="pre">apps/infra/project_app/services/visitor_pool/README.md</span></code></p></li>
+<li><p>Architecture overview: <code class="docutils literal notranslate"><span class="pre">docs/VISITOR_POOL_ARCHITECTURE.md</span></code></p></li>
+<li><p>Decorator source: <code class="docutils literal notranslate"><span class="pre">apps/infra/project_app/services/visitor_pool/decorators.py</span></code></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="app_platform.html" class="btn btn-neutral float-left" title="App Platform" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api/index.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025-2026, SciTeX Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

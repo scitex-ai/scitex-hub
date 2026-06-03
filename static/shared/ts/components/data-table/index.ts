@@ -1,6 +1,6 @@
 /**
  * Re-export from scitex-ui — the canonical implementation.
- * scitex-cloud consumers should import from "@/components/data-table".
+ * scitex-hub consumers should import from "@/components/data-table".
  */
 
 export { DataTableManager } from "scitex-ui/ts/app/data-table/DataTableManager";

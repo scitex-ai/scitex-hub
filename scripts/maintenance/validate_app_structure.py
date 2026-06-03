@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-11-04 14:42:51 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/scripts/maintenance/validate_app_structure.py
+# File: /home/ywatanabe/proj/scitex-hub/scripts/maintenance/validate_app_structure.py
 # ----------------------------------------
 from __future__ import annotations
 import os
-__FILE__ = (
-    "./scripts/maintenance/validate_app_structure.py"
-)
+
+__FILE__ = "./scripts/maintenance/validate_app_structure.py"
 __DIR__ = os.path.dirname(__FILE__)
 # ----------------------------------------
 
@@ -59,6 +58,8 @@ SKIP_TEMPLATE_PREFIXES = {
 }
 
 """Functions & Classes"""
+
+
 class AppStructureValidator:
     """Validates Django app structure against FULLSTACK.md standards.
 
@@ -134,9 +135,7 @@ class AppStructureValidator:
         if has_frontend:
             self.validate_frontend_structure()
 
-        has_backend: bool = (
-            self.models_path.exists() or self.views_path.exists()
-        )
+        has_backend: bool = self.models_path.exists() or self.views_path.exists()
         if has_backend:
             self.validate_backend_structure()
 
@@ -161,17 +160,14 @@ class AppStructureValidator:
         """
         # Check if stem starts with underscore
         if any(
-            template_path.stem.startswith(prefix)
-            for prefix in SKIP_TEMPLATE_PREFIXES
+            template_path.stem.startswith(prefix) for prefix in SKIP_TEMPLATE_PREFIXES
         ):
             return True
 
         # Check if any part of path contains skip patterns
         path_parts = template_path.parts
         if any(
-            pattern in part
-            for part in path_parts
-            for pattern in SKIP_TEMPLATE_PATTERNS
+            pattern in part for part in path_parts for pattern in SKIP_TEMPLATE_PATTERNS
         ):
             return True
 
@@ -187,17 +183,13 @@ class AppStructureValidator:
         features: defaultdict = defaultdict(list)
         for tmpl in main_templates:
             rel_path: Path = tmpl.relative_to(self.templates_path)
-            feature: str = (
-                rel_path.parts[0] if len(rel_path.parts) > 1 else "root"
-            )
+            feature: str = rel_path.parts[0] if len(rel_path.parts) > 1 else "root"
             features[feature].append((tmpl.stem, rel_path))
 
         print(f"   • Features: {len(features)} feature directories")
 
         css_files: List[Path] = (
-            list(self.css_path.rglob("*.css"))
-            if self.css_path.exists()
-            else []
+            list(self.css_path.rglob("*.css")) if self.css_path.exists() else []
         )
         print(f"   • CSS Files: {len(css_files)}")
 
@@ -263,25 +255,27 @@ class AppStructureValidator:
 
         for tmpl_file in all_templates:
             try:
-                content = tmpl_file.read_text(encoding='utf-8')
+                content = tmpl_file.read_text(encoding="utf-8")
 
                 # Find all <script> tags
-                script_pattern = r'<script(?:\s+[^>]*)?>.*?</script>'
-                scripts = re.finditer(script_pattern, content, re.DOTALL | re.IGNORECASE)
+                script_pattern = r"<script(?:\s+[^>]*)?>.*?</script>"
+                scripts = re.finditer(
+                    script_pattern, content, re.DOTALL | re.IGNORECASE
+                )
 
                 inline_count = 0
                 for script_match in scripts:
                     script_tag = script_match.group(0)
 
                     # Skip external scripts (with src attribute)
-                    if re.search(r'src\s*=', script_tag, re.IGNORECASE):
+                    if re.search(r"src\s*=", script_tag, re.IGNORECASE):
                         continue
 
                     # Extract script content (between tags)
                     content_match = re.search(
-                        r'<script[^>]*>(.*?)</script>',
+                        r"<script[^>]*>(.*?)</script>",
                         script_tag,
-                        re.DOTALL | re.IGNORECASE
+                        re.DOTALL | re.IGNORECASE,
                     )
                     if not content_match:
                         continue
@@ -295,9 +289,15 @@ class AppStructureValidator:
                     # Check if it's a Django config script (mostly template variables)
                     # These typically start with window.XXX = and contain {% %} tags
                     is_config_only = (
-                        re.search(r'window\.\w+\s*=\s*\{', script_content) and
-                        (script_content.count('{%') > 3 or script_content.count('{{') > 5) and
-                        not re.search(r'(function|const|let|var)\s+\w+\s*=|addEventListener|document\.', script_content)
+                        re.search(r"window\.\w+\s*=\s*\{", script_content)
+                        and (
+                            script_content.count("{%") > 3
+                            or script_content.count("{{") > 5
+                        )
+                        and not re.search(
+                            r"(function|const|let|var)\s+\w+\s*=|addEventListener|document\.",
+                            script_content,
+                        )
                     )
 
                     if not is_config_only:
@@ -313,9 +313,7 @@ class AppStructureValidator:
 
         # Report results
         if not violations:
-            self.successes.append(
-                "✅ No inline JavaScript in templates"
-            )
+            self.successes.append("✅ No inline JavaScript in templates")
         else:
             total_scripts = sum(count for _, count in violations)
             self.warnings.append(
@@ -337,9 +335,7 @@ class AppStructureValidator:
                     self.warnings.append(
                         f"   • {rel_path} ({count} inline script{plural})"
                     )
-                self.warnings.append(
-                    f"   ... and {len(violations) - 10} more files"
-                )
+                self.warnings.append(f"   ... and {len(violations) - 10} more files")
 
     def validate_backend_structure(self) -> None:
         """Validates backend (models, views, services) structure."""
@@ -415,9 +411,7 @@ class AppStructureValidator:
             file
             for file in self.views_path.glob("*.py")
             if file.name != "__init__.py"
-            and not file.name.endswith(
-                "_views.py"
-            )  # Flag old monolithic views
+            and not file.name.endswith("_views.py")  # Flag old monolithic views
         ]
 
         if feature_dirs:
@@ -439,9 +433,7 @@ class AppStructureValidator:
     def _validate_urls_layer(self) -> None:
         """Validates URLs are feature-organized."""
         url_files: List[Path] = [
-            file
-            for file in self.urls_path.glob("*.py")
-            if file.name != "__init__.py"
+            file for file in self.urls_path.glob("*.py") if file.name != "__init__.py"
         ]
 
         if url_files:
@@ -464,13 +456,9 @@ class AppStructureValidator:
         if feature_dirs:
             num_dirs: int = len(feature_dirs)
             print(f"   • Services: {num_dirs} feature-organized modules")
-            self.successes.append(
-                f"✅ Services layer exists ({num_dirs} modules)"
-            )
+            self.successes.append(f"✅ Services layer exists ({num_dirs} modules)")
         else:
-            self.warnings.append(
-                "⚠️  services/ exists but no feature modules found"
-            )
+            self.warnings.append("⚠️  services/ exists but no feature modules found")
 
     def _get_main_templates(self) -> List[Path]:
         """Gets main templates (excluding partials, base, shared).
@@ -567,9 +555,7 @@ def main() -> int:
             all_passed = False
             continue
 
-        validator: AppStructureValidator = AppStructureValidator(
-            app_path, app_name
-        )
+        validator: AppStructureValidator = AppStructureValidator(app_path, app_name)
         if not validator.validate():
             all_passed = False
 

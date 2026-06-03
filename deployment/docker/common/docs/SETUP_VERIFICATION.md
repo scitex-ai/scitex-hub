@@ -13,5 +13,5 @@
 ## Verify
 
 ```bash
-docker exec scitex-cloud-dev-django-1 pip show scitex
+docker exec scitex-hub-dev-django-1 pip show scitex
 ```

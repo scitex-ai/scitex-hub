@@ -39,7 +39,7 @@
   - Added: `margin-top: 2rem` to `.readme-content h2`
 
 ### From TODO Lines 68-71 (Cleanup)
-- [ ] **"Follow this rule (/home/ywatanabe/proj/scitex-cloud/apps/README.md)"** - ❌ NOT CHECKED
+- [ ] **"Follow this rule (/home/ywatanabe/proj/scitex-hub/apps/README.md)"** - ❌ NOT CHECKED
 - [ ] **"Refactor out html components as partials"** - ❌ NOT DONE
 - [x] **"Refactor out style sheet"** - ✅ DONE (101KB external CSS)
 - [x] **"Refactor our javascript"** - ✅ DONE (46KB external JS)

@@ -19,15 +19,15 @@ source "${SCRIPT_DIR}/../scripts/lib/colors.sh" 2>/dev/null || {
 # Determine environment from argument or running containers
 ENV="${1:-}"
 if [ -z "$ENV" ]; then
-    RUNNING=$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|staging|prod)-django' | head -1 || echo "")
+    RUNNING=$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-hub-(dev|staging|prod)-django' | head -1 || echo "")
     if [ -z "$RUNNING" ]; then
         # No containers running, skip checks
         exit 0
     fi
-    ENV=$(echo "$RUNNING" | sed 's/scitex-cloud-//' | sed 's/-django.*//')
+    ENV=$(echo "$RUNNING" | sed 's/scitex-hub-//' | sed 's/-django.*//')
 fi
 
-CONTAINER="scitex-cloud-${ENV}-django-1"
+CONTAINER="scitex-hub-${ENV}-django-1"
 
 # Check if container is running
 if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER}$" 2>/dev/null; then

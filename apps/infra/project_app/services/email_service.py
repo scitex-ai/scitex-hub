@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Email services for SciTeX Cloud
+# Email services for SciTeX Hub
 # ----------------------------------------
 
 import logging
@@ -93,7 +93,7 @@ class EmailService:
                         <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted-48x48.png" alt="SciTeX" style="height: 32px; opacity: 0.6;">
                     </div>
                     <p>If you didn't request this verification, please ignore this email.</p>
-                    <p>This is an automated message from SciTeX Cloud.</p>
+                    <p>This is an automated message from SciTeX Hub.</p>
                 </div>
             </div>
             </body>
@@ -116,7 +116,7 @@ class EmailService:
 
             If you didn't request this verification, please ignore this email.
 
-            This is an automated message from SciTeX Cloud.
+            This is an automated message from SciTeX Hub.
             """
 
             # Send email
@@ -371,7 +371,7 @@ class EmailService:
                     <p>Our team will review your submission and you'll receive a notification once a decision is made. This usually takes 1-3 business days.</p>
                 </div>
                 <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; color: #666; font-size: 14px;">
-                    <p>This is an automated message from SciTeX Cloud.</p>
+                    <p>This is an automated message from SciTeX Hub.</p>
                 </div>
             </div>
             </body>
@@ -386,7 +386,7 @@ class EmailService:
             Our team will review your submission and you'll receive a notification
             once a decision is made. This usually takes 1-3 business days.
 
-            This is an automated message from SciTeX Cloud.
+            This is an automated message from SciTeX Hub.
             """
             send_mail(
                 subject=subject,
@@ -450,7 +450,7 @@ class EmailService:
                     {note_html}
                 </div>
                 <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; color: #666; font-size: 14px;">
-                    <p>This is an automated message from SciTeX Cloud.</p>
+                    <p>This is an automated message from SciTeX Hub.</p>
                 </div>
             </div>
             </body>
@@ -466,7 +466,7 @@ class EmailService:
             Status: {label}
             {description}{note_plain}
 
-            This is an automated message from SciTeX Cloud.
+            This is an automated message from SciTeX Hub.
             """
             send_mail(
                 subject=subject,

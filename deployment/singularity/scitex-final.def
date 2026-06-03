@@ -10,7 +10,7 @@ Bootstrap: localimage
 From: ./scitex-base-v1.sif
 
 %labels
-    Author SciTeX Cloud Team
+    Author SciTeX Hub Team
     Description SciTeX ecosystem packages (built on base image)
     Documentation https://github.com/ywatanabe/scitex-cloud
     # These are placeholder values — build.sh injects actual values via sed:

@@ -1,5 +1,5 @@
 # ============================================
-# SciTeX Cloud - Development Override
+# SciTeX Hub - Development Override
 # ============================================
 # Automatically loaded with docker-compose.yml when running:
 #   docker compose up
@@ -11,7 +11,7 @@
 #   - Verbose logging
 #   - FigRecipe editor
 
-name: scitex-cloud-dev
+name: scitex-hub-dev
 
 services:
   # ============================================
@@ -23,8 +23,8 @@ services:
       dockerfile: deployment/docker/Dockerfile
       args:
         BUILDKIT_INLINE_CACHE: 1
-        SLURM_VERSION: ${SCITEX_CLOUD_SLURM_VERSION:-24.05.5}
-    image: scitex-cloud-dev-django:latest
+        SLURM_VERSION: ${SCITEX_HUB_SLURM_VERSION:-24.05.5}
+    image: scitex-hub-dev-django:latest
     volumes:
       # Live code reload
       - ../..:/app:cached
@@ -74,16 +74,16 @@ services:
       - /app/.cache
       - /app/.jsbuild
     ports:
-      - "${SCITEX_CLOUD_HTTP_PORT:-8000}:8000"
-      - "${SCITEX_CLOUD_SSH_PORT:-2200}:2200"
-      - "${SCITEX_CLOUD_DEBUGPY_PORT:-5678}:5678"   # debugpy
-      - "${SCITEX_CLOUD_VITE_PORT:-5173}:5173"      # Host Vite HMR (platform)
+      - "${SCITEX_HUB_HTTP_PORT:-8000}:8000"
+      - "${SCITEX_HUB_SSH_PORT:-2200}:2200"
+      - "${SCITEX_HUB_DEBUGPY_PORT:-5678}:5678"   # debugpy
+      - "${SCITEX_HUB_VITE_PORT:-5173}:5173"      # Host Vite HMR (platform)
       - "5174:5174"                                   # Container Vite HMR (dev apps)
     env_file:
       - ./envs/.env.dev
     environment:
-      SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: config.settings.settings_dev
-      SCITEX_CLOUD_ENV: dev
+      SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_dev
+      SCITEX_HUB_ENV: dev
       DEBUG: "True"
       DJANGO_DEBUG: "True"
       PYTHONUNBUFFERED: 1
@@ -101,7 +101,7 @@ services:
     privileged: true
     extra_hosts:
       - "host.docker.internal:host-gateway"
-      - "${SCITEX_CLOUD_SLURM_HOST:-localhost}:host-gateway"
+      - "${SCITEX_HUB_SLURM_HOST:-localhost}:host-gateway"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/"]
@@ -117,7 +117,7 @@ services:
   # ============================================
   postgres:
     ports:
-      - "${SCITEX_CLOUD_POSTGRES_PORT:-5433}:5432"
+      - "${SCITEX_HUB_POSTGRES_PORT:-5433}:5432"
     command:
       - postgres
       - -c
@@ -132,7 +132,7 @@ services:
   # ============================================
   redis:
     ports:
-      - "${SCITEX_CLOUD_REDIS_PORT:-6379}:6379"
+      - "${SCITEX_HUB_REDIS_PORT:-6379}:6379"
     command: redis-server --appendonly yes --loglevel debug
 
   # ============================================
@@ -143,8 +143,8 @@ services:
       context: ../..
       dockerfile: deployment/docker/Dockerfile
       args:
-        SLURM_VERSION: ${SCITEX_CLOUD_SLURM_VERSION:-24.05.5}
-    image: scitex-cloud-dev-django:latest
+        SLURM_VERSION: ${SCITEX_HUB_SLURM_VERSION:-24.05.5}
+    image: scitex-hub-dev-django:latest
     volumes:
       - ../..:/app:cached
       - ../../../scitex-python:/scitex-python:cached
@@ -170,8 +170,8 @@ services:
     env_file:
       - ./envs/.env.dev
     environment:
-      SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: config.settings.settings_dev
-      SCITEX_CLOUD_ENV: dev
+      SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_dev
+      SCITEX_HUB_ENV: dev
       PYTHONUNBUFFERED: 1
     depends_on:
       postgres:
@@ -203,8 +203,8 @@ services:
       context: ../..
       dockerfile: deployment/docker/Dockerfile
       args:
-        SLURM_VERSION: ${SCITEX_CLOUD_SLURM_VERSION:-24.05.5}
-    image: scitex-cloud-dev-django:latest
+        SLURM_VERSION: ${SCITEX_HUB_SLURM_VERSION:-24.05.5}
+    image: scitex-hub-dev-django:latest
     volumes:
       - ../..:/app:cached
       - ../../../scitex-python:/scitex-python:cached
@@ -230,8 +230,8 @@ services:
     env_file:
       - ./envs/.env.dev
     environment:
-      SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: config.settings.settings_dev
-      SCITEX_CLOUD_ENV: dev
+      SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_dev
+      SCITEX_HUB_ENV: dev
       PYTHONUNBUFFERED: 1
     depends_on:
       postgres:
@@ -257,8 +257,8 @@ services:
   # ============================================
   gitea:
     ports:
-      - "${SCITEX_CLOUD_GITEA_HTTP_PORT:-3001}:3000"
-      - "${SCITEX_CLOUD_GITEA_SSH_PORT:-2222}:22"
+      - "${SCITEX_HUB_GITEA_HTTP_PORT:-3001}:3000"
+      - "${SCITEX_HUB_GITEA_SSH_PORT:-2222}:22"
     environment:
       GITEA__server__DOMAIN: gitea
       GITEA__server__ROOT_URL: http://gitea:3000/
@@ -271,7 +271,7 @@ services:
   # ============================================
   umami:
     ports:
-      - "${SCITEX_CLOUD_UMAMI_PORT:-3300}:3000"
+      - "${SCITEX_HUB_UMAMI_PORT:-3300}:3000"
 
   # ============================================
   # FigRecipe Editor (Dev only)
@@ -283,7 +283,7 @@ services:
     working_dir: /figrecipe
     command: ["bash", "-c", "find /figrecipe -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; pip install --no-cache-dir -q -e /figrecipe[editor] && python -c 'import figrecipe as fr; fr.edit(source=None, port=5500, host=\"0.0.0.0\", open_browser=False)'"]
     ports:
-      - "${SCITEX_CLOUD_FIGRECIPE_PORT:-5500}:5500"
+      - "${SCITEX_HUB_FIGRECIPE_PORT:-5500}:5500"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5500/ping', timeout=5)"]

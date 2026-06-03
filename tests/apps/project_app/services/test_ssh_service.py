@@ -10,8 +10,11 @@ import pytest
 class TestPlaceholder:
     """Placeholder test class - replace with actual tests."""
 
-    def test_placeholder(self):
+    def test_placeholder_pending_implementation(self):
         """Placeholder test - implement actual tests."""
+        # Arrange
+        # Act
+        # Assert
         pytest.skip("Not implemented yet")
 
 
@@ -28,10 +31,10 @@ if __name__ == "__main__":
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
 # # Timestamp: "2025-10-18 23:50:00 (ywatanabe)"
-# # File: /home/ywatanabe/proj/scitex-cloud/apps/workspace_app/ssh_manager.py
+# # File: /home/ywatanabe/proj/scitex-hub/apps/workspace_app/ssh_manager.py
 # # ----------------------------------------
 # """
-# SSH Key Management for SciTeX Cloud
+# SSH Key Management for SciTeX Hub
 #
 # Handles SSH key generation, storage, and usage for Git operations.
 # """

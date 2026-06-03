@@ -10,8 +10,11 @@ import pytest
 class TestPlaceholder:
     """Placeholder test class - replace with actual tests."""
 
-    def test_placeholder(self):
+    def test_placeholder_pending_implementation(self):
         """Placeholder test - implement actual tests."""
+        # Arrange
+        # Act
+        # Assert
         pytest.skip("Not implemented yet")
 
 
@@ -187,7 +190,7 @@ if __name__ == "__main__":
 #                 )
 #                 readme_content = readme_content.replace(
 #                     "This is an example research project",
-#                     f"{project.description or 'Research project created with SciTeX Cloud'}",
+#                     f"{project.description or 'Research project created with SciTeX Hub'}",
 #                 )
 #                 readme_path.write_text(readme_content)
 #

@@ -23,7 +23,7 @@ Enhanced the file view header in the project application to display comprehensiv
 
 ### 1. Backend Changes (views.py)
 
-**File**: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/views.py`
+**File**: `/home/ywatanabe/proj/scitex-hub/apps/project_app/views.py`
 
 #### Added Imports
 ```python
@@ -89,7 +89,7 @@ context = {
 
 ### 2. Frontend Changes (project_file_view.html)
 
-**File**: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_file_view.html`
+**File**: `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_file_view.html`
 
 #### CSS Styling (lines 22-223)
 Added comprehensive CSS for:
@@ -218,11 +218,11 @@ Note: These URLs follow GitHub's pattern. The actual commit and history view pag
 
 ## Files Modified
 
-1. `/home/ywatanabe/proj/scitex-cloud/apps/project_app/views.py`
+1. `/home/ywatanabe/proj/scitex-hub/apps/project_app/views.py`
    - Added Git information fetching (88 lines)
    - Added git_info to context
 
-2. `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_file_view.html`
+2. `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_file_view.html`
    - Added CSS styling (202 lines)
    - Added commit info bar HTML (66 lines)
    - Added JavaScript functions (25 lines)
@@ -230,7 +230,7 @@ Note: These URLs follow GitHub's pattern. The actual commit and history view pag
 ## Related Documentation
 
 - TODO.md line 45: Original requirements
-- GitHub file view design: https://github.com/SciTeX-AI/scitex-cloud/blob/develop/apps/auth_app/urls.py
+- GitHub file view design: https://github.com/SciTeX-AI/scitex-hub/blob/develop/apps/auth_app/urls.py
 
 ## Screenshots
 

@@ -10,7 +10,13 @@ import os
 from urllib.parse import urljoin
 
 import pytest
-import requests
+
+# Skip the whole ``tests/e2e/`` tree when ``requests`` isn't installed
+# (PA-303) — collection-safety on minimal envs.
+requests = pytest.importorskip(
+    "requests",
+    reason="requests not installed — e2e/ tests skipped",
+)
 
 # =============================================================================
 # Configuration

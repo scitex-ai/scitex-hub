@@ -46,6 +46,14 @@ def _make_broker():
 class TestAllocationKeyPerUser:
     """Shared allocation uses alloc_key = (username,) — one per user."""
 
+    # The patch on ...views.terminal.config.SHOW_MOTD resolves cleanly: the
+    # earlier AttributeError was test-pollution, not a moved target. A sibling
+    # file (views/terminal/test_execution.py) injects a stub `config` module
+    # into sys.modules that it leaves installed for the rest of the session;
+    # that stub now mirrors the real module's SHOW_MOTD, so this patch target
+    # exists regardless of collection order. The decorators below patch the
+    # handler's own collaborators (Allocation/Shell are module-level imports
+    # in _handlers_shared), so they are genuine boundary substitutions.
     @patch(
         "apps.workspace.console_app.services.terminal_broker._handlers_shared.Allocation"
     )

@@ -35,8 +35,8 @@ run_section() {
 check_environment() {
     local running
     running=$(docker ps --format '{{.Names}}' 2>/dev/null |
-        grep -oE 'scitex-cloud-(dev|staging|prod)-' |
-        sed 's/scitex-cloud-//' | sed 's/-//' |
+        grep -oE 'scitex-hub-(dev|staging|prod)-' |
+        sed 's/scitex-hub-//' | sed 's/-//' |
         sort -u | tr '\n' ' ' | xargs || echo "")
 
     echo "📊 Environment:"
@@ -57,7 +57,7 @@ check_environment() {
 check_docker() {
     local containers
     containers=$(docker ps --format "table {{.Names}}\t{{.Status}}" 2>/dev/null |
-        grep -E "scitex-cloud-(dev|staging|prod)-" || echo "")
+        grep -E "scitex-hub-(dev|staging|prod)-" || echo "")
 
     echo "🐳 Docker:"
     if [ -n "$containers" ]; then

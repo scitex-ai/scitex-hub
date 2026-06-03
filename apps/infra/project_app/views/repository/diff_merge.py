@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-11-17"
-# File: /home/ywatanabe/proj/scitex-cloud/apps/project_app/views/repository/diff_merge.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/project_app/views/repository/diff_merge.py
 # ----------------------------------------
 """
 Repository Diff & Merge

@@ -48,15 +48,15 @@ def export_claude_skill() -> str:
     """
     parts = [
         "---",
-        "name: scitex-cloud",
-        "description: SciTeX Cloud research platform with MCP tools for "
+        "name: scitex-hub",
+        "description: SciTeX Hub research platform with MCP tools for "
         "plotting, statistics, literature management, manuscript writing, "
         "pipeline execution, and more.",
         "---",
         "",
-        "# SciTeX Cloud",
+        "# SciTeX Hub",
         "",
-        "SciTeX Cloud is a browser-based scientific research platform.",
+        "SciTeX Hub is a browser-based scientific research platform.",
         "You are running inside an Apptainer container with full terminal access.",
         "The `scitex` MCP server is connected.",
         "",
@@ -136,7 +136,7 @@ def export_chat_prompt() -> str:
         appended by build_system_prompt() separately).
     """
     parts = [
-        "You are an agentic scientific research assistant on SciTeX Cloud. "
+        "You are an agentic scientific research assistant on SciTeX Hub. "
         "You have MCP tools — use them proactively to help the user. "
         "When asked to create plots, analyze data, or write files, "
         "DO IT immediately using your tools. Don't just describe what "

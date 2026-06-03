@@ -1,8 +1,8 @@
 """
-SciTeX Cloud - Project Filesystem Management Module
+SciTeX Hub - Project Filesystem Management Module
 
 This module provides filesystem operations for managing user and project directories
-in SciTeX Cloud. It handles project directory structures, file storage, execution
+in SciTeX Hub. It handles project directory structures, file storage, execution
 tracking, and template-based project initialization.
 
 Public API:

@@ -48,13 +48,13 @@ def project_detail(request, username, slug):
 
         is_org_context = Organization.objects.filter(slug=username).exists()
 
-        from apps.workspace.hub_app.views.index import build_hub_context
+        from apps.workspace.repo_app.views.index import build_hub_context
 
         context = build_hub_context(request, current_project=project)
         if is_org_context:
             context["is_org_context"] = True
             context["org_slug"] = username
-        return render(request, "hub_app/index.html", context)
+        return render(request, "repo_app/index.html", context)
 
     # Check for port proxy request (e.g., ?port=6006)
     port_param = request.GET.get("port")
@@ -158,9 +158,9 @@ def project_detail(request, username, slug):
     if not is_remote_type:
         from django.conf import settings
 
-        gitea_url = getattr(settings, "SCITEX_CLOUD_GITEA_URL", "http://127.0.0.1:3000")
-        gitea_ssh_domain = getattr(settings, "SCITEX_CLOUD_GIT_DOMAIN", "127.0.0.1")
-        gitea_ssh_port = getattr(settings, "SCITEX_CLOUD_GITEA_SSH_PORT", "2222")
+        gitea_url = getattr(settings, "SCITEX_HUB_GITEA_URL", "http://127.0.0.1:3000")
+        gitea_ssh_domain = getattr(settings, "SCITEX_HUB_GIT_DOMAIN", "127.0.0.1")
+        gitea_ssh_port = getattr(settings, "SCITEX_HUB_GITEA_SSH_PORT", "2222")
 
         gitea_https_url = f"{gitea_url}/{project.owner.username}/{project.slug}.git"
         gitea_ssh_url = f"ssh://git@{gitea_ssh_domain}:{gitea_ssh_port}/{project.owner.username}/{project.slug}.git"
@@ -216,13 +216,13 @@ def project_tree_or_blob(request, username, slug, branch=None, path=None):
     project = request.project
     if request.user.is_authenticated:
         from apps.infra.organizations_app.models import Organization
-        from apps.workspace.hub_app.views.index import build_hub_context
+        from apps.workspace.repo_app.views.index import build_hub_context
 
         context = build_hub_context(request, current_project=project)
         if Organization.objects.filter(slug=username).exists():
             context["is_org_context"] = True
             context["org_slug"] = username
-        return render(request, "hub_app/index.html", context)
+        return render(request, "repo_app/index.html", context)
     # Unauthenticated: fall through to standalone project detail
     return project_detail(request, username, slug)
 

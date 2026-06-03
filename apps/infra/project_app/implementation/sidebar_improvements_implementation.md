@@ -2,7 +2,7 @@
 
 **Date:** 2025-10-24
 **Author:** Claude (SourceDeveloperAgent)
-**File:** /home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_detail.html
+**File:** /home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_detail.html
 
 ## Overview
 
@@ -189,7 +189,7 @@ All colors use CSS custom properties for theme compatibility:
 
 ## Files Modified
 
-1. `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_detail.html`
+1. `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_detail.html`
    - Added CSS for sidebar states and animations
    - Added toggle button to HTML
    - Added collapsible section structure
@@ -223,9 +223,9 @@ Possible improvements for future iterations:
 
 ## Related Files
 
-- Project Detail Template: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/templates/project_app/project_detail.html`
-- TODO: `/home/ywatanabe/proj/scitex-cloud/apps/project_app/TODO.md`
-- Apps README: `/home/ywatanabe/proj/scitex-cloud/apps/README.md`
+- Project Detail Template: `/home/ywatanabe/proj/scitex-hub/apps/project_app/templates/project_app/project_detail.html`
+- TODO: `/home/ywatanabe/proj/scitex-hub/apps/project_app/TODO.md`
+- Apps README: `/home/ywatanabe/proj/scitex-hub/apps/README.md`
 
 ---
 

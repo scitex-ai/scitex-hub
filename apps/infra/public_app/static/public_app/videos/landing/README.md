@@ -8,7 +8,7 @@ This directory contains video assets used in the SciTeX public landing page.
 - **writer-demo.mp4**: SciTeX Writer module demonstration
 - **code-demo.mp4**: SciTeX Code module demonstration
 - **viz-demo.mp4**: SciTeX Viz module demonstration
-- **cloud-demo.mp4**: SciTeX Cloud module demonstration
+- **hub-demo.mp4**: SciTeX Hub module demonstration
 
 ## Thumbnails
 

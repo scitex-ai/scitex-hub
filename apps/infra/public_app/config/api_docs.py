@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-02-05 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/config/api_docs.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/public_app/config/api_docs.py
 # ----------------------------------------
 from __future__ import annotations
 
@@ -173,12 +173,22 @@ def get_all_subsection_ids() -> list[str]:
 # ============================================================
 # Campaign Token Utilities
 # ============================================================
-# Format: scitex-cloud-campaign-YYYYMMDD-YYYYMMDD-HASHTAG
-# Example: scitex-cloud-campaign-20250201-20250228-alpha
+# Format: scitex-hub-campaign-YYYYMMDD-YYYYMMDD-HASHTAG
+# Example: scitex-hub-campaign-20250201-20250228-alpha
 import re
 from datetime import datetime
 
 CAMPAIGN_TOKEN_PATTERN = re.compile(
+    r"^scitex-hub-campaign-(\d{8})-(\d{8})-([a-z0-9_-]+)$"
+)
+
+# Legacy alias — tokens issued before the scitex-cloud -> scitex-hub rename
+# kept the `scitex-cloud-campaign-` prefix. We continue to recognize them
+# so existing campaigns do not break, but we emit an explicit
+# DeprecationWarning on use (per CLAUDE.md "no silent fallback"). The
+# generator always emits the new prefix; only the parser accepts both.
+# See docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md.
+LEGACY_CAMPAIGN_TOKEN_PATTERN = re.compile(
     r"^scitex-cloud-campaign-(\d{8})-(\d{8})-([a-z0-9_-]+)$"
 )
 
@@ -190,7 +200,7 @@ def generate_campaign_token(
 ) -> str:
     """Generate a standardized campaign token.
 
-    Format: scitex-cloud-campaign-YYYYMMDD-YYYYMMDD-hashtag
+    Format: scitex-hub-campaign-YYYYMMDD-YYYYMMDD-hashtag
 
     Args:
         start_date: Campaign start date
@@ -198,11 +208,14 @@ def generate_campaign_token(
         hashtag: Campaign identifier (lowercase alphanumeric, hyphens, underscores)
 
     Returns:
-        Formatted campaign token string
+        Formatted campaign token string in the current (scitex-hub) prefix.
+        Legacy ``scitex-cloud-campaign-*`` tokens are still accepted by
+        :func:`parse_campaign_token` / :func:`is_valid_campaign_token` but
+        are never produced here.
     """
     hashtag_clean = re.sub(r"[^a-z0-9_-]", "", hashtag.lower())
     return (
-        f"scitex-cloud-campaign-"
+        f"scitex-hub-campaign-"
         f"{start_date.strftime('%Y%m%d')}-"
         f"{end_date.strftime('%Y%m%d')}-"
         f"{hashtag_clean}"
@@ -212,15 +225,35 @@ def generate_campaign_token(
 def parse_campaign_token(token: str) -> dict | None:
     """Parse a campaign token into its components.
 
+    Accepts the current ``scitex-hub-campaign-*`` format and the legacy
+    ``scitex-cloud-campaign-*`` alias kept for backward compatibility
+    (ADR-0001). Legacy hits emit a ``DeprecationWarning`` so callers see
+    them in logs — no silent fallback.
+
     Args:
         token: Campaign token string
 
     Returns:
-        Dict with start_date, end_date, hashtag, or None if invalid
+        Dict with start_date, end_date, hashtag, is_active,
+        legacy_format flag, or None if invalid.
     """
     match = CAMPAIGN_TOKEN_PATTERN.match(token)
+    legacy_format = False
     if not match:
-        return None
+        match = LEGACY_CAMPAIGN_TOKEN_PATTERN.match(token)
+        if not match:
+            return None
+        legacy_format = True
+        import warnings
+
+        warnings.warn(
+            "scitex-cloud-campaign-* tokens are accepted as a "
+            "backward-compatibility alias and will be removed in a future "
+            "major release. Re-issue tokens with the scitex-hub-campaign-* "
+            "prefix. See docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     start_str, end_str, hashtag = match.groups()
     try:
@@ -231,20 +264,24 @@ def parse_campaign_token(token: str) -> dict | None:
             "end_date": end_date,
             "hashtag": hashtag,
             "is_active": start_date <= datetime.now() <= end_date,
+            "legacy_format": legacy_format,
         }
     except ValueError:
         return None
 
 
 def is_valid_campaign_token(token: str) -> bool:
-    """Check if a token matches the campaign token format."""
-    return bool(CAMPAIGN_TOKEN_PATTERN.match(token))
+    """Check if a token matches the campaign token format (current or legacy)."""
+    return bool(
+        CAMPAIGN_TOKEN_PATTERN.match(token)
+        or LEGACY_CAMPAIGN_TOKEN_PATTERN.match(token)
+    )
 
 
 # Active campaign tokens for API docs examples
 CAMPAIGN_TOKENS = {
     "alpha": {
-        "token": "scitex-cloud-campaign-20260101-20261231-alpha",
+        "token": "scitex-hub-campaign-20260101-20261231-alpha",
         "description": "Alpha testing campaign",
         "permissions": ["read", "search"],
     },

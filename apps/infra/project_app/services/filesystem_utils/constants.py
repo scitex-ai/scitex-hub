@@ -1,5 +1,5 @@
 """
-SciTeX Cloud - Filesystem Constants
+SciTeX Hub - Filesystem Constants
 
 File type definitions and ignore patterns for filesystem operations.
 """

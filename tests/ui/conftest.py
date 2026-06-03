@@ -15,7 +15,35 @@ import sys
 from pathlib import Path
 
 import pytest
-from playwright.sync_api import BrowserContext, Page, expect
+
+# Skip every Playwright-backed ``tests/ui/*`` test when ``playwright``
+# isn't installed (PA-303). Without this guard, ``from playwright...``
+# below aborts collection and tanks the full suite on minimal envs.
+pytest.importorskip(
+    "playwright",
+    reason="scitex-hub[django] / [test] not installed — ui/ tests skipped",
+)
+
+
+def pytest_collection_modifyitems(config, items):
+    """Mark the whole ``tests/ui/`` tree as ``e2e``.
+
+    These are browser-driven Playwright tests (they use the ``page: Page``
+    fixture and a real Chromium binary). They cannot run in the headless
+    unit-test release gate (``pytest tests/ -x`` with ``-m "not e2e"`` —
+    see pyproject ``[tool.pytest.ini_options].addopts``); the browser
+    binary isn't installed there, so they error with
+    ``BrowserType.launch: Executable doesn't exist``. The dedicated E2E
+    Mobile workflow installs the browser and opts back in via
+    ``-o "addopts="``. Marking the tree here keeps new ui/ tests gated
+    automatically. Mirrors tests/e2e/conftest.py.
+    """
+    for item in items:
+        if "tests/ui/" in item.nodeid or item.nodeid.startswith("tests/ui/"):
+            item.add_marker(pytest.mark.e2e)
+
+
+from playwright.sync_api import BrowserContext, Page, expect  # noqa: E402
 
 # Project paths
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -27,8 +55,8 @@ SESSION_DIR = Path.home() / ".scitex" / "browser" / "test_session"
 SESSION_DIR.mkdir(parents=True, exist_ok=True)
 
 # Environment configuration
-TEST_USER_USERNAME = os.getenv("SCITEX_CLOUD_TEST_USER_USERNAME", "test-user")
-TEST_USER_PASSWORD = os.getenv("SCITEX_CLOUD_TEST_USER_PASSWORD", "Password123!")
+TEST_USER_USERNAME = os.getenv("SCITEX_HUB_TEST_USER_USERNAME", "test-user")
+TEST_USER_PASSWORD = os.getenv("SCITEX_HUB_TEST_USER_PASSWORD", "Password123!")
 BASE_URL = os.getenv("SCITEX_BASE_URL", "http://127.0.0.1:8000")
 
 

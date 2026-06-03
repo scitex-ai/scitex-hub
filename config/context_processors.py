@@ -72,7 +72,7 @@ def cache_buster(request):
         build_id = _cached_build_id or str(int(current_time))
     else:
         # In production, derive build_id from .build-timestamp file, then
-        # SCITEX_CLOUD_BUILD_ID env var, falling back to timestamp.
+        # SCITEX_HUB_BUILD_ID env var, falling back to timestamp.
         build_id = ""
         try:
             ts_file = Path(settings.STATIC_ROOT) / "vite" / ".build-timestamp"
@@ -81,7 +81,7 @@ def cache_buster(request):
         except Exception:
             pass
         if not build_id:
-            build_id = os.environ.get("SCITEX_CLOUD_BUILD_ID", "")
+            build_id = os.environ.get("SCITEX_HUB_BUILD_ID", "")
         if not build_id:
             import time
 
@@ -100,19 +100,19 @@ def debug_mode(request):
 
 def scitex_version(request):
     """
-    Expose SciTeX Cloud version to all templates.
-    Single source of truth: settings.SCITEX_CLOUD_VERSION
+    Expose SciTeX Hub version to all templates.
+    Single source of truth: settings.SCITEX_HUB_VERSION
     """
-    return {"SCITEX_CLOUD_VERSION": get_scitex_cloud_version()}
+    return {"SCITEX_HUB_VERSION": get_scitex_hub_version()}
 
 
-def get_scitex_cloud_version():
+def get_scitex_hub_version():
     """
     Get version from Django settings (single source of truth).
-    settings.SCITEX_CLOUD_VERSION is the scitex-cloud web app version,
+    settings.SCITEX_HUB_VERSION is the scitex-hub web app version,
     separate from pyproject.toml which is for the pypi package.
     """
-    return getattr(settings, "SCITEX_CLOUD_VERSION", "0.0.0")
+    return getattr(settings, "SCITEX_HUB_VERSION", "0.0.0")
 
 
 def umami_analytics(request):
@@ -136,7 +136,7 @@ def umami_analytics(request):
         "UMAMI_SCRIPT_URL": getattr(
             settings, "UMAMI_SCRIPT_URL", "https://cloud.umami.is/script.js"
         ),
-        "UMAMI_DOMAINS": os.environ.get("SCITEX_CLOUD_UMAMI_DOMAINS", ""),
+        "UMAMI_DOMAINS": os.environ.get("SCITEX_HUB_UMAMI_DOMAINS", ""),
     }
 
 
@@ -159,10 +159,10 @@ def site_branding(request):
 
 def scitex_env(request):
     """
-    Expose SCITEX_CLOUD_ENV to templates for environment-specific rendering.
+    Expose SCITEX_HUB_ENV to templates for environment-specific rendering.
     Values: 'development', 'staging', 'production'
     """
-    env = os.environ.get("SCITEX_CLOUD_ENV", "development").lower()
+    env = os.environ.get("SCITEX_HUB_ENV", "development").lower()
     # Normalize aliases
     if env in ("dev",):
         env = "development"

@@ -39,9 +39,9 @@ def resolve_sphinx_path(module: str) -> "Path | None":
     """Resolve the Sphinx HTML directory for a module (repo name).
 
     Uses scitex_dev.docs.get_docs() for dynamic resolution, with a
-    local-project fallback for scitex-cloud (not a pip package).
+    local-project fallback for scitex-hub (not a pip package).
     """
-    if module == "scitex-cloud":
+    if module == "scitex-hub":
         doc_path = Path(settings.BASE_DIR) / "docs" / "sphinx" / "_build" / "html"
         return doc_path if doc_path.exists() else None
 

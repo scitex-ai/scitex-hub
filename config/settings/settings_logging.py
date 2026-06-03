@@ -2,12 +2,17 @@
 # -*- coding: utf-8 -*-
 # Timestamp: 2026-02-04
 # File: config/settings/settings_logging.py
-"""Logging configuration for SciTeX Cloud."""
+"""Logging configuration for SciTeX Hub."""
 
+import os
 from pathlib import Path
 
 # Get BASE_DIR from parent - this will be set by the importing module
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+# Mirror settings_shared.LOG_DIR: GITIGNORED/logs/ by default (PS-102:
+# no runtime artifact at repo root); override with SCITEX_HUB_LOG_DIR.
+LOG_DIR = Path(os.environ.get("SCITEX_HUB_LOG_DIR", BASE_DIR / "GITIGNORED" / "logs"))
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 LOGGING = {
     "version": 1,
@@ -53,7 +58,7 @@ LOGGING = {
         # Django app logs
         "django_file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "django.log"),
+            "filename": str(LOG_DIR / "django.log"),
             "maxBytes": 5242880,  # 5MB
             "backupCount": 5,
             "formatter": "standard",
@@ -62,7 +67,7 @@ LOGGING = {
         # Celery task logs
         "celery_file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "celery.log"),
+            "filename": str(LOG_DIR / "celery.log"),
             "maxBytes": 5242880,  # 5MB
             "backupCount": 5,
             "formatter": "standard",
@@ -71,7 +76,7 @@ LOGGING = {
         # SLURM job logs
         "slurm_file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "slurm.log"),
+            "filename": str(LOG_DIR / "slurm.log"),
             "maxBytes": 5242880,  # 5MB
             "backupCount": 3,
             "formatter": "standard",
@@ -80,7 +85,7 @@ LOGGING = {
         # Git operations logs
         "git_file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "git.log"),
+            "filename": str(LOG_DIR / "git.log"),
             "maxBytes": 5242880,  # 5MB
             "backupCount": 3,
             "formatter": "standard",
@@ -89,7 +94,7 @@ LOGGING = {
         # Error logs (all errors)
         "error_file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "errors.log"),
+            "filename": str(LOG_DIR / "errors.log"),
             "maxBytes": 5242880,  # 5MB
             "backupCount": 5,
             "formatter": "standard",
@@ -98,7 +103,7 @@ LOGGING = {
         # App-specific logs
         "writer_app_file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "writer_app.log"),
+            "filename": str(LOG_DIR / "writer_app.log"),
             "maxBytes": 5242880,
             "backupCount": 3,
             "formatter": "standard",
@@ -106,7 +111,7 @@ LOGGING = {
         },
         "scholar_app_file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "scholar_app.log"),
+            "filename": str(LOG_DIR / "scholar_app.log"),
             "maxBytes": 5242880,
             "backupCount": 3,
             "formatter": "standard",
@@ -114,7 +119,7 @@ LOGGING = {
         },
         "console_app_file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "console_app.log"),
+            "filename": str(LOG_DIR / "console_app.log"),
             "maxBytes": 5242880,
             "backupCount": 3,
             "formatter": "standard",
@@ -122,7 +127,7 @@ LOGGING = {
         },
         "project_app_file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "project_app.log"),
+            "filename": str(LOG_DIR / "project_app.log"),
             "maxBytes": 5242880,
             "backupCount": 3,
             "formatter": "standard",

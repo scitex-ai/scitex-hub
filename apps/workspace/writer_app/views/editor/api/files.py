@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: /home/ywatanabe/proj/scitex-cloud/apps/writer_app/views/editor/api/files.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/writer_app/views/editor/api/files.py
 """File operations - PDF serving, thumbnails, SyncTeX reverse lookup."""
 
 from __future__ import annotations

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: 2025-11-30
-# File: /home/ywatanabe/proj/scitex-cloud/tests/api/conftest.py
+# File: /home/ywatanabe/proj/scitex-hub/tests/api/conftest.py
 
 """
 API test fixtures using requests library.
@@ -12,12 +12,46 @@ Provides:
 - JSON response utilities
 """
 
-import os
-import requests
 import pytest
 
+# Skip the whole ``tests/api/`` tree when ``requests`` isn't installed
+# (PA-303) — collection-safety on minimal envs.
+requests = pytest.importorskip(
+    "requests",
+    reason="requests not installed — api/ tests skipped",
+)
+
 # Import from parent conftest
-from tests.conftest import BASE_URL, TEST_USER_USERNAME, TEST_USER_PASSWORD
+from tests.conftest import (
+    BASE_URL,
+    TEST_USER_PASSWORD,
+    TEST_USER_USERNAME,
+)  # noqa: E402
+
+
+def _is_server_reachable(url: str, timeout: float = 1.5) -> bool:
+    try:
+        requests.head(url, timeout=timeout, allow_redirects=False)
+        return True
+    except (requests.ConnectionError, requests.Timeout):
+        return False
+
+
+# Skip the whole `tests/api/` tree when no Django dev server is running at
+# BASE_URL. These are integration tests against a live HTTP surface, not
+# unit tests; CI can't run them without spinning up the server.
+collect_ignore_marker = "scitex-hub-api-server-unreachable"
+
+
+def pytest_collection_modifyitems(config, items):  # noqa: D401
+    if _is_server_reachable(BASE_URL):
+        return
+    skip_no_server = pytest.mark.skip(
+        reason=f"requires running Django server at {BASE_URL} (set SCITEX_BASE_URL or start `manage.py runserver`)"
+    )
+    for item in items:
+        if "/tests/api/" in str(item.fspath):
+            item.add_marker(skip_no_server)
 
 
 @pytest.fixture(scope="session")
@@ -30,10 +64,12 @@ def api_base_url():
 def client():
     """Create a new requests session for each test."""
     session = requests.Session()
-    session.headers.update({
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-    })
+    session.headers.update(
+        {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+    )
     yield session
     session.close()
 
@@ -88,9 +124,9 @@ def csrf_token(client, api_base_url):
 
 def assert_json_response(response, status_code=200):
     """Assert response is valid JSON with expected status."""
-    assert response.status_code == status_code, (
-        f"Expected {status_code}, got {response.status_code}: {response.text[:200]}"
-    )
+    assert (
+        response.status_code == status_code
+    ), f"Expected {status_code}, got {response.status_code}: {response.text[:200]}"
     try:
         return response.json()
     except ValueError:
@@ -99,20 +135,24 @@ def assert_json_response(response, status_code=200):
 
 def assert_error_response(response, status_code=400):
     """Assert response is an error with expected status."""
-    assert response.status_code == status_code, (
-        f"Expected error {status_code}, got {response.status_code}"
-    )
+    assert (
+        response.status_code == status_code
+    ), f"Expected error {status_code}, got {response.status_code}"
     return response
 
 
 def assert_redirect(response, expected_path=None):
     """Assert response is a redirect."""
-    assert response.status_code in (301, 302, 303, 307, 308), (
-        f"Expected redirect, got {response.status_code}"
-    )
+    assert response.status_code in (
+        301,
+        302,
+        303,
+        307,
+        308,
+    ), f"Expected redirect, got {response.status_code}"
     if expected_path:
         location = response.headers.get("Location", "")
-        assert expected_path in location, (
-            f"Expected redirect to '{expected_path}', got '{location}'"
-        )
+        assert (
+            expected_path in location
+        ), f"Expected redirect to '{expected_path}', got '{location}'"
     return response

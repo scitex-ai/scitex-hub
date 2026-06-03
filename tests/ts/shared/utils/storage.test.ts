@@ -29,38 +29,38 @@ describe('storage', () => {
 //  * LocalStorage Utility Module
 //  * Handles persistence of application state across sessions
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/utils/storage.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/static/ts/utils/storage.ts loaded",
 // );
 // export class StorageManager {
 //   private prefix: string;
-// 
+//
 //   constructor(prefix: string = "scitex_") {
 //     this.prefix = prefix;
 //   }
-// 
+//
 //   /**
 //    * Generate storage key with prefix
 //    */
 //   private getKey(key: string): string {
 //     return `${this.prefix}${key}`;
 //   }
-// 
+//
 //   /**
 //    * Save data to localStorage (alias for setItem)
 //    */
 //   save<T>(key: string, data: T): void {
 //     this.setItem(key, data);
 //   }
-// 
+//
 //   /**
 //    * Load data from localStorage (alias for getItem)
 //    */
 //   load<T>(key: string, defaultValue?: T): T | null {
 //     return this.getItem(key, defaultValue);
 //   }
-// 
+//
 //   /**
 //    * Get item from localStorage with type safety
 //    */
@@ -74,7 +74,7 @@ describe('storage', () => {
 //       return defaultValue || null;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Set item in localStorage with type safety
 //    */
@@ -89,21 +89,21 @@ describe('storage', () => {
 //       return false;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Check if key exists in localStorage
 //    */
 //   exists(key: string): boolean {
 //     return localStorage.getItem(this.getKey(key)) !== null;
 //   }
-// 
+//
 //   /**
 //    * Check if key exists in localStorage (alias)
 //    */
 //   hasItem(key: string): boolean {
 //     return this.exists(key);
 //   }
-// 
+//
 //   /**
 //    * Remove item from localStorage
 //    */
@@ -115,7 +115,7 @@ describe('storage', () => {
 //       console.error(`[Storage] Failed to remove ${key}:`, error);
 //     }
 //   }
-// 
+//
 //   /**
 //    * Remove item from localStorage (alias)
 //    */
@@ -127,7 +127,7 @@ describe('storage', () => {
 //       return false;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Clear all items with this prefix
 //    */
@@ -144,7 +144,7 @@ describe('storage', () => {
 //       console.error("[Storage] Failed to clear storage:", error);
 //     }
 //   }
-// 
+//
 //   /**
 //    * Get all keys stored with this prefix
 //    */
@@ -159,7 +159,7 @@ describe('storage', () => {
 //     return keys;
 //   }
 // }
-// 
+//
 // // Export singleton instances for global use
 // export const globalStorage = new StorageManager("scitex_");
 // export const writerStorage = new StorageManager("writer_app_");

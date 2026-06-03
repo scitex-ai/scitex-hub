@@ -75,7 +75,7 @@
                             <code>4</code>
                         </td>
                         <td style="padding: 0.5rem;">
-                            <code>SCITEX_CLOUD_VISITOR_POOL_SIZE</code> env var
+                            <code>SCITEX_HUB_VISITOR_POOL_SIZE</code> env var
                         </td>
                     </tr>
                     <tr style="border-bottom: 1px solid var(--workspace-border-default, #252525);">
@@ -228,16 +228,16 @@ allocation_token = secrets.token_urlsafe(32)</code></pre>
     <div class="demo-box">
         <h3 class="mb-3">Management Commands</h3>
         <pre data-language="bash" style="background-color: var(--bg-surface); padding: 1rem; border-radius: 6px; overflow-x: auto;"><code class="language-bash"># Create visitor pool (default: 4 slots)
-docker exec scitex-cloud-dev-django-1 python manage.py create_visitor_pool
+docker exec scitex-hub-dev-django-1 python manage.py create_visitor_pool
 
 # Custom size
-docker exec scitex-cloud-dev-django-1 python manage.py create_visitor_pool --size 8
+docker exec scitex-hub-dev-django-1 python manage.py create_visitor_pool --size 8
 
 # Check pool status
-docker exec scitex-cloud-dev-django-1 python manage.py create_visitor_pool --status
+docker exec scitex-hub-dev-django-1 python manage.py create_visitor_pool --status
 
 # Reset pool (when stuck)
-docker exec scitex-cloud-dev-django-1 python manage.py reset_visitor_pool</code></pre>
+docker exec scitex-hub-dev-django-1 python manage.py reset_visitor_pool</code></pre>
     </div>
     <!-- Key Files -->
     <div class="demo-box">

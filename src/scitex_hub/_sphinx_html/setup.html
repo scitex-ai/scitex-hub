@@ -1,0 +1,510 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Setup Guide &mdash; SciTeX Hub v0.18.1</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=1e56ff10"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Quick Start" href="quickstart.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            SciTeX Hub
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#install-from-pypi">Install from PyPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#install-from-source">Install from Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#verify-installation">Verify Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Setup Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#what-you-get">What You Get</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-start-development">Quick Start (Development)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-by-step-development-setup">Step-by-Step Development Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#production-setup">Production Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cli-only-install">CLI-Only Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-reference">Configuration Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-commands">Common Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#deployment">Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#cli-only-install">CLI-Only Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#common-operations">Common Operations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#global-options">Global Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#project-management">Project Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#three-way-sync">Three-Way Sync</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#git-hosting-gitea">Git Hosting (Gitea)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#app-management">App Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#cloud-sdk">Cloud SDK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#infrastructure">Infrastructure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#mcp-server">MCP Server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#utilities">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sync.html">Three-Way Sync</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#commands">Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#conflict-handling">Conflict Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#state-tracking">State Tracking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#typical-workflows">Typical Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mcp.html">MCP Server</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#available-tools">Available Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#setup-for-claude-desktop">Setup for Claude Desktop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#setup-for-claude-code">Setup for Claude Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#environment-source-file-env-src">Environment Source File (<code class="docutils literal notranslate"><span class="pre">ENV_SRC</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp.html#cli-commands">CLI Commands</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="app_platform.html">App Platform</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#workspace-layout">Workspace Layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#platform-services">Platform Services</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#datastore">DataStore</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#filevault">FileVault</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#jobqueue">JobQueue</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#scitexbridge">ScitexBridge</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#externalapi">ExternalAPI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#realtimehub">RealtimeHub</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#frontendkit">FrontendKit</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#app-registration">App Registration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#built-in-apps">Built-in Apps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#external-pip-installed-apps">External (pip-installed) Apps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app_platform.html#context-bootstrap">Context Bootstrap</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#dev-install-workflow">Dev Install Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#app-submission-and-review">App Submission and Review</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#separation-of-concerns">Separation of Concerns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app_platform.html#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="visitor_pool_security.html">Visitor Pool Security</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#background-the-fix">Background: the fix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-1-reset-workspace-after">Layer 1 — <code class="docutils literal notranslate"><span class="pre">&#64;reset_workspace_after</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-2-ensure-clean-workspace">Layer 2 — <code class="docutils literal notranslate"><span class="pre">&#64;ensure_clean_workspace</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-3-reset-visitor-pool-on-container-restart">Layer 3 — <code class="docutils literal notranslate"><span class="pre">reset_visitor_pool</span></code> on container restart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#what-gets-cleared">What gets cleared</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#pool-lifecycle-diagram">Pool lifecycle diagram</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#operations">Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#further-reading">Further reading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_hub.html">scitex_hub Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/index.html#package-overview">Package Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/_autosummary/scitex_hub.html">scitex_hub</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.get_version"><code class="docutils literal notranslate"><span class="pre">get_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.health_check"><code class="docutils literal notranslate"><span class="pre">health_check()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.get_context"><code class="docutils literal notranslate"><span class="pre">get_context()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.eval_js"><code class="docutils literal notranslate"><span class="pre">eval_js()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.ui_action"><code class="docutils literal notranslate"><span class="pre">ui_action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.CloudClient"><code class="docutils literal notranslate"><span class="pre">CloudClient</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.Environment"><code class="docutils literal notranslate"><span class="pre">Environment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.get_environment"><code class="docutils literal notranslate"><span class="pre">get_environment()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.html#scitex_hub.DockerManager"><code class="docutils literal notranslate"><span class="pre">DockerManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.appmaker.html">scitex_hub.appmaker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.module.html">scitex_hub.module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.project.html">scitex_hub.project</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/_autosummary/scitex_hub.sdk.html">scitex_hub.sdk</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SciTeX Hub</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Setup Guide</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/sphinx/setup.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="setup-guide">
+<h1>Setup Guide<a class="headerlink" href="#setup-guide" title="Link to this heading"></a></h1>
+<p>Deploy SciTeX Hub anywhere: local development, home server, or cloud.</p>
+<section id="what-you-get">
+<h2>What You Get<a class="headerlink" href="#what-you-get" title="Link to this heading"></a></h2>
+<p>SciTeX Hub is a self-hostable research platform. One <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">start</span></code> gives you:</p>
+<ul class="simple">
+<li><p><strong>Scholar</strong> — Literature search across CrossRef, PubMed, arXiv, and OpenAlex. BibTeX management and citation tracking.</p></li>
+<li><p><strong>Writer</strong> — LaTeX manuscript editor with BibTeX integration, figure/table management, and IMRAD templates.</p></li>
+<li><p><strong>FigRecipe</strong> — Publication-ready data visualization and composable figure editing.</p></li>
+<li><p><strong>Console</strong> — Web-based terminal for running Python and Bash in isolated containers.</p></li>
+<li><p><strong>Hub</strong> — Project file browser with GitHub-style <code class="docutils literal notranslate"><span class="pre">/username/project/</span></code> URLs.</p></li>
+<li><p><strong>Research Tools</strong> — Statistics, PDF manipulation, citation scraping, and more.</p></li>
+<li><p><strong>MCP Server</strong> — 23 tools for AI agents (Claude, Cursor, etc.) to search literature, manage citations, generate figures, and run statistics.</p></li>
+</ul>
+<p>Optional local databases for offline paper search:</p>
+<ul class="simple">
+<li><p><strong>CrossRef Local</strong> — 167M+ papers in a local SQLite database with citation graph analysis.</p></li>
+<li><p><strong>OpenAlex Local</strong> — 284M+ scholarly works with full-text search, abstracts, and impact factors.</p></li>
+</ul>
+</section>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>OS</strong>: Linux, macOS, or Windows (WSL2)</p></li>
+<li><p><strong>Docker</strong>: 24.0+ with Docker Compose v2</p></li>
+<li><p><strong>Python</strong>: 3.11+ (for CLI-only install)</p></li>
+<li><p><strong>Git</strong>: 2.30+</p></li>
+<li><p><strong>RAM</strong>: 4 GB minimum (8 GB recommended)</p></li>
+<li><p><strong>Disk</strong>: 10 GB free</p></li>
+</ul>
+</section>
+<section id="quick-start-development">
+<h2>Quick Start (Development)<a class="headerlink" href="#quick-start-development" title="Link to this heading"></a></h2>
+<p>Three commands to get running:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ywatanabe1989/scitex-hub.git
+<span class="nb">cd</span><span class="w"> </span>scitex-hub
+make<span class="w"> </span>start
+</pre></div>
+</div>
+<p>This pulls Docker images, builds containers, runs migrations, and creates a test user.</p>
+<p>Access at:</p>
+<ul class="simple">
+<li><p><strong>Django</strong>: <a class="reference external" href="http://localhost:8000">http://localhost:8000</a></p></li>
+<li><p><strong>Gitea</strong>: <a class="reference external" href="http://localhost:3000">http://localhost:3000</a></p></li>
+<li><p><strong>Test user</strong>: <code class="docutils literal notranslate"><span class="pre">test-user</span></code> / <code class="docutils literal notranslate"><span class="pre">Password123!</span></code></p></li>
+</ul>
+</section>
+<section id="step-by-step-development-setup">
+<h2>Step-by-Step Development Setup<a class="headerlink" href="#step-by-step-development-setup" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Clone the repository</strong></p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ywatanabe1989/scitex-hub.git
+<span class="nb">cd</span><span class="w"> </span>scitex-hub
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p><strong>Create environment file</strong></p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp<span class="w"> </span>deployment/docker/envs/.env.example<span class="w"> </span>deployment/docker/envs/.env.dev
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p><strong>Configure key variables</strong></p></li>
+</ol>
+<p>Edit <code class="docutils literal notranslate"><span class="pre">.env.dev</span></code> and set at minimum:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Generate a secret key</span>
+<span class="nv">SCITEX_HUB_DJANGO_SECRET_KEY</span><span class="o">=</span><span class="k">$(</span>python3<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;import secrets; print(secrets.token_urlsafe(32))&#39;</span><span class="k">)</span>
+
+<span class="c1"># Database password (any strong password)</span>
+<span class="nv">SCITEX_HUB_POSTGRES_PASSWORD</span><span class="o">=</span>your-dev-password
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p><strong>Start services</strong></p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>start<span class="w">              </span><span class="c1"># Development environment (default)</span>
+make<span class="w"> </span>status<span class="w">             </span><span class="c1"># Verify all services are running</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="5">
+<li><p><strong>Verify</strong></p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Open in browser</span>
+open<span class="w"> </span>http://localhost:8000
+
+<span class="c1"># Or check health endpoint</span>
+curl<span class="w"> </span>http://localhost:8000/healthz/
+</pre></div>
+</div>
+</section>
+<section id="production-setup">
+<h2>Production Setup<a class="headerlink" href="#production-setup" title="Link to this heading"></a></h2>
+<p>For deploying on a home server, NAS, or VPS.</p>
+<ol class="arabic simple">
+<li><p><strong>Same prerequisites</strong> plus:</p>
+<ul class="simple">
+<li><p>A domain name (e.g., <code class="docutils literal notranslate"><span class="pre">scitex.example.com</span></code>)</p></li>
+<li><p>Cloudflare account (optional, for tunnel/CDN)</p></li>
+</ul>
+</li>
+<li><p><strong>Create production environment</strong></p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp<span class="w"> </span>deployment/docker/envs/.env.example<span class="w"> </span>deployment/docker/envs/.env.prod
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p><strong>Configure production variables</strong></p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Required changes for production</span>
+<span class="nv">SCITEX_HUB_DJANGO_SETTINGS_MODULE</span><span class="o">=</span>config.settings.settings_prod
+<span class="nv">DEBUG</span><span class="o">=</span>False
+<span class="nv">SCITEX_HUB_DOMAIN</span><span class="o">=</span>scitex.example.com
+<span class="nv">SCITEX_HUB_SITE_URL</span><span class="o">=</span>https://scitex.example.com
+<span class="nv">SCITEX_HUB_ALLOWED_HOSTS</span><span class="o">=</span>scitex.example.com
+
+<span class="c1"># Strong passwords</span>
+<span class="nv">SCITEX_HUB_DJANGO_SECRET_KEY</span><span class="o">=</span>&lt;generate-new-secret&gt;
+<span class="nv">SCITEX_HUB_POSTGRES_PASSWORD</span><span class="o">=</span>&lt;strong-db-password&gt;
+
+<span class="c1"># SSL</span>
+<span class="nv">SCITEX_HUB_ENABLE_SSL_REDIRECT</span><span class="o">=</span><span class="nb">true</span>
+<span class="nv">SCITEX_HUB_FORCE_HTTPS_COOKIES</span><span class="o">=</span><span class="nb">true</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p><strong>Start production services</strong></p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nv">ENV</span><span class="o">=</span>prod<span class="w"> </span>start
+make<span class="w"> </span><span class="nv">ENV</span><span class="o">=</span>prod<span class="w"> </span>status
+</pre></div>
+</div>
+<ol class="arabic simple" start="5">
+<li><p><strong>Expose to internet</strong> (optional)</p></li>
+</ol>
+<p>For Cloudflare Tunnel setup, see <code class="docutils literal notranslate"><span class="pre">deployment/docs/09_CLOUDFLARE_TUNNEL.md</span></code>.</p>
+</section>
+<section id="cli-only-install">
+<h2>CLI-Only Install<a class="headerlink" href="#cli-only-install" title="Link to this heading"></a></h2>
+<p>Use the CLI and MCP server without Docker:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>scitex-hub<span class="w">           </span><span class="c1"># CLI only</span>
+pip<span class="w"> </span>install<span class="w"> </span>scitex-hub<span class="o">[</span>mcp<span class="o">]</span><span class="w">      </span><span class="c1"># CLI + MCP server</span>
+pip<span class="w"> </span>install<span class="w"> </span>scitex-hub<span class="o">[</span>all<span class="o">]</span><span class="w">      </span><span class="c1"># Everything</span>
+</pre></div>
+</div>
+<p>Verify:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>--version
+scitex-hub<span class="w"> </span>--help
+</pre></div>
+</div>
+<p>MCP server for AI agents:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>mcp<span class="w"> </span>start<span class="w">             </span><span class="c1"># Start MCP server</span>
+scitex-hub<span class="w"> </span>mcp<span class="w"> </span>doctor<span class="w">            </span><span class="c1"># Diagnose setup</span>
+scitex-hub<span class="w"> </span>mcp<span class="w"> </span>installation<span class="w">      </span><span class="c1"># Client config instructions</span>
+</pre></div>
+</div>
+</section>
+<section id="configuration-reference">
+<h2>Configuration Reference<a class="headerlink" href="#configuration-reference" title="Link to this heading"></a></h2>
+<p>All environment variables use the <code class="docutils literal notranslate"><span class="pre">SCITEX_HUB_</span></code> prefix.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 35.0%" />
+<col style="width: 15.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Variable</p></th>
+<th class="head"><p>Required</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SCITEX_HUB_DJANGO_SECRET_KEY</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p>Django secret key (generate unique per deployment)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SCITEX_HUB_POSTGRES_PASSWORD</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p>PostgreSQL database password</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SCITEX_HUB_DOMAIN</span></code></p></td>
+<td><p>Prod</p></td>
+<td><p>Your domain (e.g., <code class="docutils literal notranslate"><span class="pre">scitex.example.com</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SCITEX_HUB_SITE_URL</span></code></p></td>
+<td><p>Prod</p></td>
+<td><p>Full URL (e.g., <code class="docutils literal notranslate"><span class="pre">https://scitex.example.com</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SCITEX_HUB_ALLOWED_HOSTS</span></code></p></td>
+<td><p>Prod</p></td>
+<td><p>Comma-separated allowed hostnames</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SCITEX_HUB_ENABLE_SSL_REDIRECT</span></code></p></td>
+<td><p>Prod</p></td>
+<td><p>Set <code class="docutils literal notranslate"><span class="pre">true</span></code> for HTTPS</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SCITEX_HUB_GITEA_TOKEN_DEV</span></code></p></td>
+<td><p>No</p></td>
+<td><p>Gitea API token for Git integration</p></td>
+</tr>
+</tbody>
+</table>
+<p>Full template: <code class="docutils literal notranslate"><span class="pre">deployment/docker/envs/.env.example</span></code> (268 variables).</p>
+</section>
+<section id="common-commands">
+<h2>Common Commands<a class="headerlink" href="#common-commands" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Lifecycle</span>
+make<span class="w"> </span>start<span class="w">                    </span><span class="c1"># Start development</span>
+make<span class="w"> </span>stop<span class="w">                     </span><span class="c1"># Stop all services</span>
+make<span class="w"> </span>restart<span class="w">                  </span><span class="c1"># Restart services</span>
+make<span class="w"> </span>status<span class="w">                   </span><span class="c1"># Health check</span>
+
+<span class="c1"># Database</span>
+make<span class="w"> </span>db-migrate<span class="w">               </span><span class="c1"># Run migrations</span>
+make<span class="w"> </span>db-shell<span class="w">                 </span><span class="c1"># PostgreSQL shell</span>
+make<span class="w"> </span>db-backup<span class="w">                </span><span class="c1"># Backup database</span>
+
+<span class="c1"># Logs and debugging</span>
+make<span class="w"> </span>logs<span class="w">                     </span><span class="c1"># View all logs</span>
+make<span class="w"> </span>shell<span class="w">                    </span><span class="c1"># Django shell</span>
+
+<span class="c1"># Production</span>
+make<span class="w"> </span><span class="nv">ENV</span><span class="o">=</span>prod<span class="w"> </span>start<span class="w">           </span><span class="c1"># Start production</span>
+make<span class="w"> </span><span class="nv">ENV</span><span class="o">=</span>prod<span class="w"> </span>status<span class="w">          </span><span class="c1"># Production health check</span>
+make<span class="w"> </span><span class="nv">ENV</span><span class="o">=</span>prod<span class="w"> </span>db-backup<span class="w">       </span><span class="c1"># Backup production database</span>
+
+<span class="c1"># Help</span>
+make<span class="w"> </span><span class="nb">help</span><span class="w">                     </span><span class="c1"># Available commands</span>
+</pre></div>
+</div>
+</section>
+<section id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading"></a></h2>
+<p>SciTeX Hub runs as a set of Docker containers:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">+------------------+</span>     <span class="o">+------------------+</span>
+<span class="o">|</span>   <span class="n">Django</span> <span class="p">(</span><span class="mi">8000</span><span class="p">)</span>  <span class="o">|----&gt;|</span>  <span class="n">PostgreSQL</span> <span class="p">(</span><span class="n">DB</span><span class="p">)</span>  <span class="o">|</span>
+<span class="o">+------------------+</span>     <span class="o">+------------------+</span>
+       <span class="o">|</span>
+       <span class="o">+----&gt;</span>  <span class="n">Redis</span> <span class="p">(</span><span class="n">cache</span><span class="o">/</span><span class="n">broker</span><span class="p">)</span>
+       <span class="o">|</span>
+       <span class="o">+----&gt;</span>  <span class="n">Gitea</span> <span class="p">(</span><span class="mi">3000</span><span class="p">)</span> <span class="o">-</span> <span class="n">Git</span> <span class="n">hosting</span>
+       <span class="o">|</span>
+       <span class="o">+----&gt;</span>  <span class="n">Celery</span> <span class="p">(</span><span class="n">workers</span><span class="p">)</span> <span class="o">-</span> <span class="n">Async</span> <span class="n">tasks</span>
+       <span class="o">|</span>
+       <span class="o">+----&gt;</span>  <span class="n">Umami</span> <span class="p">(</span><span class="mi">3300</span><span class="p">)</span> <span class="o">-</span> <span class="n">Privacy</span> <span class="n">analytics</span>
+</pre></div>
+</div>
+<p>Optional local databases (mounted as read-only volumes):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">+---------------------------+</span>     <span class="o">+---------------------------+</span>
+<span class="o">|</span>  <span class="n">CrossRef</span> <span class="n">Local</span> <span class="p">(</span><span class="mi">31291</span><span class="p">)</span>   <span class="o">|</span>     <span class="o">|</span>  <span class="n">OpenAlex</span> <span class="n">Local</span> <span class="p">(</span><span class="mi">8083</span><span class="p">)</span>    <span class="o">|</span>
+<span class="o">|</span>  <span class="mi">167</span><span class="n">M</span><span class="o">+</span> <span class="n">papers</span><span class="p">,</span> <span class="n">FTS5</span>       <span class="o">|</span>     <span class="o">|</span>  <span class="mi">284</span><span class="n">M</span><span class="o">+</span> <span class="n">works</span><span class="p">,</span> <span class="n">abstracts</span>   <span class="o">|</span>
+<span class="o">+---------------------------+</span>     <span class="o">+---------------------------+</span>
+</pre></div>
+</div>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<p><strong>Port already in use</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check what&#39;s using port 8000</span>
+lsof<span class="w"> </span>-i<span class="w"> </span>:8000
+<span class="c1"># Or change the port in .env</span>
+<span class="nv">SCITEX_HUB_HTTP_PORT_DEV</span><span class="o">=</span><span class="m">8080</span>
+</pre></div>
+</div>
+<p><strong>Docker permission denied</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add user to docker group</span>
+sudo<span class="w"> </span>usermod<span class="w"> </span>-aG<span class="w"> </span>docker<span class="w"> </span><span class="nv">$USER</span>
+<span class="c1"># Log out and back in</span>
+</pre></div>
+</div>
+<p><strong>Database migration errors</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>db-migrate<span class="w">               </span><span class="c1"># Re-run migrations</span>
+make<span class="w"> </span>db-reset<span class="w">                 </span><span class="c1"># Reset database (destroys data)</span>
+</pre></div>
+</div>
+<p><strong>Container won’t start</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>logs<span class="w">                     </span><span class="c1"># Check error messages</span>
+make<span class="w"> </span>rebuild<span class="w">                  </span><span class="c1"># Rebuild from scratch</span>
+</pre></div>
+</div>
+<p><strong>WSL2-specific issues</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Ensure Docker Desktop WSL integration is enabled</span>
+<span class="c1"># Settings &gt; Resources &gt; WSL Integration &gt; Enable for your distro</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="quickstart.html" class="btn btn-neutral float-right" title="Quick Start" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025-2026, SciTeX Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

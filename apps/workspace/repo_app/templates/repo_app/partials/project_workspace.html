@@ -1,0 +1,26 @@
+{% comment %}
+Hub inline project workspace — returned by /hub/api/select-project/
+Includes browse header, tabs, file browser, and readme.
+{% endcomment %}
+<div id="workspace-project-config"
+     style="display: none"
+     data-project-id="{{ project.id }}"
+     data-username="{{ project.owner.username }}"
+     data-project-slug="{{ project.slug }}"
+     data-mode="hub"></div>
+<div class="hub-browse-container">
+    {% include 'project_app/repository/browse_partials/browse_header.html' %}
+    {% include 'repo_app/partials/hub_tabs.html' %}
+    {% include 'project_app/repository/browse_partials/browse_empty_state.html' %}
+    {% include 'project_app/repository/browse_partials/browse_file_browser.html' %}
+    {% include 'project_app/repository/browse_partials/browse_readme.html' %}
+    {% if project.is_app and request.user == project.owner %}
+        {% include 'project_app/repository/browse_partials/app_submit_modal.html' %}
+    {% endif %}
+</div>
+<script>
+  window.SCITEX_PROJECT_DATA = {
+    owner: "{{ project.owner.username|escapejs }}",
+    slug: "{{ project.slug|escapejs }}",
+  };
+</script>

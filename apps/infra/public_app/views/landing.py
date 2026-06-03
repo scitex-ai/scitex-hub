@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-11-28 21:31:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/views/landing.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/public_app/views/landing.py
 # ----------------------------------------
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ import importlib.metadata
 from django.db import connection, transaction
 from django.shortcuts import render
 
-# Pip package names for ecosystem table (scitex-cloud uses SCITEX_CLOUD_VERSION from context processor)
+# Pip package names for ecosystem table (scitex-hub uses SCITEX_HUB_VERSION from context processor)
 _ECOSYSTEM_PACKAGES = [
     "scitex",
     "figrecipe",

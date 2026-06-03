@@ -1,7 +1,7 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-12-17 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/scripts/maintenance/regenerate_gallery.sh
+# File: /home/ywatanabe/proj/scitex-hub/scripts/maintenance/regenerate_gallery.sh
 #
 # Regenerates the plot gallery with correct axis metadata for alignment features.
 # Gallery is stored in static/shared/images/gallery/ as single source of truth.
@@ -37,7 +37,7 @@ if ! docker ps &>/dev/null; then
 fi
 
 # Check if the django container is running
-CONTAINER_NAME="scitex-cloud-dev-django-1"
+CONTAINER_NAME="scitex-hub-dev-django-1"
 if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
     echo_error "Container ${CONTAINER_NAME} is not running."
     echo_info "Start the development environment with: make env=dev start"

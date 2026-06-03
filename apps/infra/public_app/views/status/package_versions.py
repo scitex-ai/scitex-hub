@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2026-01-31 17:00:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/views/status/package_versions.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/public_app/views/status/package_versions.py
 # ----------------------------------------
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ def check_package_versions(status_data):
 
     Reports versions of:
     - scitex (from PyPI)
-    - scitex-cloud (this application, from git)
+    - scitex-hub (this application, from git)
     - scitex-writer (bundled with scitex)
     - figrecipe
     - crossref-local (separate service)
@@ -60,7 +60,7 @@ def check_package_versions(status_data):
             }
         )
 
-    # scitex-cloud version from git
+    # scitex-hub version from git
     try:
         result = subprocess.run(
             ["git", "describe", "--tags", "--always"],
@@ -78,8 +78,8 @@ def check_package_versions(status_data):
 
     status_data["package_versions"].append(
         {
-            "name": "SciTeX Cloud",
-            "package": "scitex-cloud",
+            "name": "SciTeX Hub",
+            "package": "scitex-hub",
             "version": cloud_version,
             "icon": "fa-cloud",
             "is_installed": True,

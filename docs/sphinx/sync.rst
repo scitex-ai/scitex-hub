@@ -1,7 +1,7 @@
 Three-Way Sync
 ==============
 
-SciTeX Cloud manages three copies of each project's repository:
+SciTeX Hub manages three copies of each project's repository:
 
 .. list-table::
    :header-rows: 1
@@ -45,15 +45,15 @@ Commands
 .. code-block:: bash
 
    # Git operations (committed changes)
-   scitex-cloud push [remote] [branch]
-   scitex-cloud pull [remote] [branch]
+   scitex-hub push [remote] [branch]
+   scitex-hub pull [remote] [branch]
 
    # File sync (working tree, Dropbox-style)
-   scitex-cloud sync-to [repo] [--dry-run]
-   scitex-cloud sync-from [repo] [--dry-run]
+   scitex-hub sync-to [repo] [--dry-run]
+   scitex-hub sync-from [repo] [--dry-run]
 
    # Status
-   scitex-cloud sync-status [repo]   # alias: ss
+   scitex-hub sync-status [repo]   # alias: ss
 
 Conflict Handling
 -----------------
@@ -96,17 +96,17 @@ Typical Workflows
 .. code-block:: bash
 
    # Edit files locally...
-   scitex-cloud sync-to          # files appear in workspace immediately
+   scitex-hub sync-to          # files appear in workspace immediately
    # Verify in browser...
-   scitex-cloud push             # commit and push to Gitea when ready
+   scitex-hub push             # commit and push to Gitea when ready
 
 **User edits in web UI, developer wants the changes:**
 
 .. code-block:: bash
 
-   scitex-cloud sync-from        # pull workspace files to local
+   scitex-hub sync-from        # pull workspace files to local
    # If conflicts: resolve .conflict-* files manually
-   scitex-cloud push             # push resolved version to Gitea
+   scitex-hub push             # push resolved version to Gitea
 
 **On the workspace server:**
 
@@ -121,7 +121,7 @@ show an error with a hint:
 Implementation
 --------------
 
-- ``src/scitex_cloud/_cli/sync.py`` — CLI commands
-- ``src/scitex_cloud/_cli/_sync_engine.py`` — Conflict-aware sync engine
+- ``src/scitex_hub/_cli/sync.py`` — CLI commands
+- ``src/scitex_hub/_cli/_sync_engine.py`` — Conflict-aware sync engine
 - Remote file listing via SSH + ``find`` + ``sha256sum``
 - Per-file transfer via ``scp``

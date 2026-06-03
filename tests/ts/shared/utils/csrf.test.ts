@@ -29,9 +29,9 @@ describe('csrf', () => {
 //  * CSRF Token Utility Module
 //  * Handles retrieval of Django CSRF token from multiple sources
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/utils/csrf.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/static/ts/utils/csrf.ts loaded",
 // );
 // export function getCsrfToken(): string {
 //   // First, try to get from window config objects
@@ -41,7 +41,7 @@ describe('csrf', () => {
 //   if ((window as any).SCHOLAR_CONFIG?.csrfToken) {
 //     return (window as any).SCHOLAR_CONFIG.csrfToken;
 //   }
-// 
+//
 //   // Try to get CSRF token from form input
 //   const tokenElement = document.querySelector(
 //     "[name=csrfmiddlewaretoken]",
@@ -49,13 +49,13 @@ describe('csrf', () => {
 //   if (tokenElement) {
 //     return tokenElement.value;
 //   }
-// 
+//
 //   // Fallback: try to get from meta tag
 //   const metaTag = document.querySelector('meta[name="csrf-token"]');
 //   if (metaTag) {
 //     return metaTag.getAttribute("content") || "";
 //   }
-// 
+//
 //   // Fallback: try to get from cookie
 //   const cookies = document.cookie.split(";");
 //   for (let cookie of cookies) {
@@ -64,12 +64,12 @@ describe('csrf', () => {
 //       return decodeURIComponent(value);
 //     }
 //   }
-// 
+//
 //   // If no CSRF token found, return empty string and let Django handle it
 //   console.warn("[CSRF] Token not found in config, form, meta, or cookies");
 //   return "";
 // }
-// 
+//
 // /**
 //  * Create headers object with CSRF token for API requests
 //  */

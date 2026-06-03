@@ -32,11 +32,11 @@ describe('sync', () => {
 //  * @version 2.0.0 (TypeScript)
 //  * @author SciTeX Development Team
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/editor/preview-panel/sync.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/editor/preview-panel/sync.ts loaded",
 // );
-// 
+//
 // import type {
 //   CompilationData,
 //   CompilationResponse,
@@ -44,14 +44,14 @@ describe('sync', () => {
 //   PreviewPanelConfig,
 // } from "./types";
 // import { PreviewRenderer } from "./rendering";
-// 
+//
 // export class PreviewSync {
 //   private config: PreviewPanelConfig;
 //   private renderer: PreviewRenderer;
 //   private compileBtn: HTMLButtonElement;
 //   private currentJobId: string | null = null;
 //   private statusCheckInterval: ReturnType<typeof setInterval> | null = null;
-// 
+//
 //   constructor(
 //     config: PreviewPanelConfig,
 //     renderer: PreviewRenderer,
@@ -61,7 +61,7 @@ describe('sync', () => {
 //     this.renderer = renderer;
 //     this.compileBtn = compileBtn;
 //   }
-// 
+//
 //   /**
 //    * Compile LaTeX document to PDF
 //    */
@@ -70,14 +70,14 @@ describe('sync', () => {
 //       alert("Please enter some LaTeX content to compile.");
 //       return;
 //     }
-// 
+//
 //     // Update UI
 //     this.compileBtn.disabled = true;
 //     this.compileBtn.innerHTML =
 //       '<i class="fas fa-spinner fa-spin me-2"></i>Compiling...';
 //     this.renderer.updateStatus("Compiling...", "text-warning");
 //     this.renderer.updateCompileStatus("Compilation started...", "running");
-// 
+//
 //     // Send compile request
 //     try {
 //       const response = await fetch(this.config.quickCompileUrl, {
@@ -91,9 +91,9 @@ describe('sync', () => {
 //           title: title,
 //         } as CompilationData),
 //       });
-// 
+//
 //       const data: CompilationResponse = await response.json();
-// 
+//
 //       if (data.success && data.job_id) {
 //         this.currentJobId = data.job_id;
 //         this.startStatusChecking();
@@ -107,7 +107,7 @@ describe('sync', () => {
 //       );
 //     }
 //   }
-// 
+//
 //   /**
 //    * Start polling compilation status
 //    */
@@ -115,10 +115,10 @@ describe('sync', () => {
 //     if (this.statusCheckInterval) {
 //       clearInterval(this.statusCheckInterval);
 //     }
-// 
+//
 //     this.statusCheckInterval = setInterval(async () => {
 //       if (!this.currentJobId) return;
-// 
+//
 //       try {
 //         const url = this.config.compilationStatusUrl.replace(
 //           "__JOB_ID__",
@@ -126,15 +126,15 @@ describe('sync', () => {
 //         );
 //         const response = await fetch(url);
 //         const data: CompilationStatus = await response.json();
-// 
+//
 //         this.renderer.updateJobStatus(data);
-// 
+//
 //         if (data.status === "completed" || data.status === "failed") {
 //           if (this.statusCheckInterval) {
 //             clearInterval(this.statusCheckInterval);
 //           }
 //           this.resetCompileUI();
-// 
+//
 //           if (data.status === "completed" && data.pdf_url) {
 //             this.renderer.showPDFPreview(data.pdf_url);
 //             this.renderer.showSuccess();
@@ -147,7 +147,7 @@ describe('sync', () => {
 //       }
 //     }, 1000);
 //   }
-// 
+//
 //   /**
 //    * Reset compile button UI
 //    */
@@ -156,7 +156,7 @@ describe('sync', () => {
 //     this.compileBtn.innerHTML = '<i class="fas fa-play me-2"></i>Compile PDF';
 //     this.currentJobId = null;
 //   }
-// 
+//
 //   /**
 //    * Handle compilation error
 //    */
@@ -164,7 +164,7 @@ describe('sync', () => {
 //     this.renderer.handleError(message);
 //     this.resetCompileUI();
 //   }
-// 
+//
 //   /**
 //    * Cleanup and stop status checking
 //    */

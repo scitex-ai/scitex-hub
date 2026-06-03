@@ -15,10 +15,10 @@ source /app/deployment/docker/common/lib/slurm.src
 echo -e "🏭 Production Environment"
 
 # ============================================
-# Set SCITEX_CLOUD_BUILD_ID for CSS/JS cache busting
+# Set SCITEX_HUB_BUILD_ID for CSS/JS cache busting
 # ============================================
-SCITEX_CLOUD_BUILD_ID=$(git -C /app rev-parse --short HEAD 2>/dev/null || date +%s)
-export SCITEX_CLOUD_BUILD_ID
+SCITEX_HUB_BUILD_ID=$(git -C /app rev-parse --short HEAD 2>/dev/null || date +%s)
+export SCITEX_HUB_BUILD_ID
 
 # ============================================
 # Sync SLURM UID with Host (Required for Terminal)

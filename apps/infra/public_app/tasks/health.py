@@ -67,12 +67,12 @@ def cleanup_expired_visitor_allocations(self):
 def _get_health_config() -> tuple[str, str, str | None, str]:
     """Get health check configuration from settings/env."""
     site_url = getattr(
-        settings, "SITE_URL", os.getenv("SCITEX_CLOUD_SITE_URL", "https://scitex.ai")
+        settings, "SITE_URL", os.getenv("SCITEX_HUB_SITE_URL", "https://scitex.ai")
     )
     health_check_url = f"{site_url}/"
-    notification_recipient = os.getenv("SCITEX_CLOUD_HEALTH_NOTIFICATION_RECIPIENT")
+    notification_recipient = os.getenv("SCITEX_HUB_HEALTH_NOTIFICATION_RECIPIENT")
     notification_sender = os.getenv(
-        "SCITEX_CLOUD_HEALTH_NOTIFICATION_SENDER", "noreply@scitex.ai"
+        "SCITEX_HUB_HEALTH_NOTIFICATION_SENDER", "noreply@scitex.ai"
     )
     return health_check_url, site_url, notification_recipient, notification_sender
 
@@ -136,8 +136,8 @@ Please check the server status.
 
 Possible actions:
 1. Check Docker containers: docker ps
-2. Check Django logs: docker logs scitex-cloud-prod-django-1
-3. Restart services: docker restart scitex-cloud-prod-django-1
+2. Check Django logs: docker logs scitex-hub-prod-django-1
+3. Restart services: docker restart scitex-hub-prod-django-1
 """,
             from_email=sender,
             recipient_list=[recipient],
@@ -169,7 +169,7 @@ def check_site_health(self):
 
         if not recipient:
             logger.debug(
-                "[HealthCheck] SCITEX_CLOUD_HEALTH_NOTIFICATION_RECIPIENT not set"
+                "[HealthCheck] SCITEX_HUB_HEALTH_NOTIFICATION_RECIPIENT not set"
             )
 
         # Perform check
@@ -260,7 +260,7 @@ def check_request_flood(self):
                 [
                     "docker",
                     "exec",
-                    "scitex-cloud-prod-nginx-1",
+                    "scitex-hub-prod-nginx-1",
                     "sh",
                     "-c",
                     """awk -v threshold=100 '
@@ -305,7 +305,7 @@ This may indicate:
 3. Aggressive crawler
 
 Recommended actions:
-1. Check nginx logs: docker logs scitex-cloud-prod-nginx-1 --tail 200
+1. Check nginx logs: docker logs scitex-hub-prod-nginx-1 --tail 200
 2. Block offending IPs if malicious
 3. Check for health check scripts in retry loops
 """,

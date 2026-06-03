@@ -17,7 +17,7 @@
             <i class="fas fa-terminal me-2"></i>SSH Access
         </h1>
         <p class="lead text-muted mb-5">
-            Connect to your SciTeX Cloud workspace via SSH for terminal access,
+            Connect to your SciTeX Hub workspace via SSH for terminal access,
             file editing, and remote development.
         </p>
         <!-- Quick Start -->
@@ -72,7 +72,7 @@ ssh-copy-id -p 2200 your-username@127.0.0.1
 # Production
 ssh-copy-id your-username@ssh.scitex.ai</code></pre>
                     <p class="text-muted small mt-2">
-                        You'll be prompted for your SciTeX Cloud password.
+                        You'll be prompted for your SciTeX Hub password.
                         The gateway registers your key automatically.
                     </p>
                 </div>
@@ -95,7 +95,7 @@ ssh -p 2200 your-username@127.0.0.1</code></pre>
                     <strong>Method 4: SciTeX CLI</strong>
                 </div>
                 <div class="card-body">
-                    <pre class="bg-dark text-light p-3 rounded"><code>scitex-cloud ssh-copy-id --env dev
+                    <pre class="bg-dark text-light p-3 rounded"><code>scitex-hub ssh-copy-id --env dev
 scitex cloud ssh-copy-id --env dev</code></pre>
                 </div>
             </div>
@@ -257,16 +257,16 @@ scontrol ping</code></pre>
             <div class="card mt-3">
                 <div class="card-body">
                     <pre class="bg-dark text-light p-3 rounded"><code># Connect via SSH
-scitex-cloud ssh --env dev
+scitex-hub ssh --env dev
 scitex cloud ssh --env dev
 
 # Register SSH key
-scitex-cloud ssh-copy-id --env dev
+scitex-hub ssh-copy-id --env dev
 scitex cloud ssh-copy-id --env dev
 
 # Options
-scitex-cloud ssh --user myuser --port 2200
-scitex-cloud ssh -- -L 8888:localhost:8888  # Port forwarding</code></pre>
+scitex-hub ssh --user myuser --port 2200
+scitex-hub ssh -- -L 8888:localhost:8888  # Port forwarding</code></pre>
                 </div>
             </div>
         </section>

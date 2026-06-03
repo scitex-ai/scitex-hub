@@ -32,22 +32,22 @@ describe('navigation', () => {
 //  * @version 2.0.0 (TypeScript)
 //  * @author SciTeX Development Team
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/editor/preview-panel/navigation.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/editor/preview-panel/navigation.ts loaded",
 // );
-// 
+//
 // export class PreviewNavigation {
 //   private previewPanel: HTMLElement;
 //   private togglePreviewBtn: HTMLButtonElement;
 //   private previewVisible: boolean = true;
-// 
+//
 //   constructor(previewPanel: HTMLElement, togglePreviewBtn: HTMLButtonElement) {
 //     this.previewPanel = previewPanel;
 //     this.togglePreviewBtn = togglePreviewBtn;
 //     this.setupEventListeners();
 //   }
-// 
+//
 //   /**
 //    * Setup event listeners
 //    */
@@ -58,7 +58,7 @@ describe('navigation', () => {
 //       });
 //     }
 //   }
-// 
+//
 //   /**
 //    * Toggle preview panel visibility
 //    */
@@ -69,14 +69,14 @@ describe('navigation', () => {
 //       ? '<i class="fas fa-eye-slash me-1"></i>Hide Preview'
 //       : '<i class="fas fa-eye me-1"></i>Show Preview';
 //   }
-// 
+//
 //   /**
 //    * Get current visibility state
 //    */
 //   isVisible(): boolean {
 //     return this.previewVisible;
 //   }
-// 
+//
 //   /**
 //    * Show preview panel
 //    */
@@ -85,7 +85,7 @@ describe('navigation', () => {
 //       this.togglePreview();
 //     }
 //   }
-// 
+//
 //   /**
 //    * Hide preview panel
 //    */

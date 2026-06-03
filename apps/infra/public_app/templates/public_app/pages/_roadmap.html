@@ -1,4 +1,4 @@
-{% extends "public_app/cloud_base.html" %}
+{% extends "public_app/hub_base.html" %}
 {% block title %}
     SciTeX Roadmap -
     Upcoming Features
@@ -150,7 +150,7 @@
             <h2>Development Timeline</h2>
             <div class="mermaid">
                 gantt title SciTeX Development Timeline dateFormat YYYY-MM-DD section
-                SciTeX-Cloud Web Interface :done, cloud1, 2025-01-01, 90d User
+                SciTeX-Hub Web Interface :done, hub1, 2025-01-01, 90d User
                 Authentication :done, cloud2, after cloud1, 60d Collaboration Features
                 :active, cloud3, after cloud2, 90d API Integration : cloud4, after cloud3,
                 120d section SciTeX-Doc LaTeX Compilation :done, doc1, 2025-01-01, 120d
@@ -172,7 +172,7 @@
                     <div class="milestone">
                         <div class="milestone-date">June 2025</div>
                         <div class="milestone-content">
-                            <h3>SciTeX-Cloud Beta Release</h3>
+                            <h3>SciTeX-Hub Beta Release</h3>
                             <p>
                                 First public beta of the web interface with basic document
                                 management and LaTeX compilation capabilities.
@@ -427,7 +427,7 @@
                 <div class="form-group mb-3">
                     <label for="featureCategory">Category</label>
                     <select class="form-control" id="featureCategory">
-                        <option>SciTeX-Cloud (Web Interface)</option>
+                        <option>SciTeX-Hub (Web Interface)</option>
                         <option>SciTeX-Doc (Document Preparation)</option>
                         <option>SciTeX-Code (Data Analysis)</option>
                         <option>SciTeX-Engine (Research Automation)</option>

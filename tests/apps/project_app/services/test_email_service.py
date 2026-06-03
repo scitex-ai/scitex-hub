@@ -10,8 +10,11 @@ import pytest
 class TestPlaceholder:
     """Placeholder test class - replace with actual tests."""
 
-    def test_placeholder(self):
+    def test_placeholder_pending_implementation(self):
         """Placeholder test - implement actual tests."""
+        # Arrange
+        # Act
+        # Assert
         pytest.skip("Not implemented yet")
 
 
@@ -27,7 +30,7 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------
 # #!/usr/bin/env python3
 # # -*- coding: utf-8 -*-
-# # Email services for SciTeX Cloud
+# # Email services for SciTeX Hub
 # # ----------------------------------------
 #
 # from django.core.mail import send_mail
@@ -119,7 +122,7 @@ if __name__ == "__main__":
 #                         <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted-48x48.png" alt="SciTeX" style="height: 32px; opacity: 0.6;">
 #                     </div>
 #                     <p>If you didn't request this verification, please ignore this email.</p>
-#                     <p>This is an automated message from SciTeX Cloud.</p>
+#                     <p>This is an automated message from SciTeX Hub.</p>
 #                 </div>
 #             </div>
 #             </body>
@@ -142,7 +145,7 @@ if __name__ == "__main__":
 #
 #             If you didn't request this verification, please ignore this email.
 #
-#             This is an automated message from SciTeX Cloud.
+#             This is an automated message from SciTeX Hub.
 #             """
 #
 #             # Send email

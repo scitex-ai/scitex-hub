@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # File: config/settings/settings_shared.py
 """
-Django settings for SciTeX Cloud project.
+Django settings for SciTeX Hub project.
 Base settings shared across all environments.
 Sub-modules: settings_celery, settings_logging, settings_auth, settings_integrations
 """
@@ -11,19 +11,26 @@ from pathlib import Path
 
 import scitex as stx
 
+from config._env import (
+    getenv_with_legacy_alias as _getenv_alias,
+)
+from config._env import (
+    require_env_with_legacy_alias as _require_env_alias,
+)
+
 
 # ---------------------------------------
 # Functions
 # ---------------------------------------
 def require_env(var_name: str) -> str:
-    """Get required environment variable or raise clear error."""
-    value = os.environ.get(var_name)
-    if value is None:
-        raise EnvironmentError(
-            f"Required environment variable '{var_name}' is not set. "
-            f"Check deployment/docker/envs/.env.{{ENV}} file."
-        )
-    return value
+    """Get required environment variable or raise clear error.
+
+    Honors the legacy ``SCITEX_CLOUD_*`` alias of ``SCITEX_HUB_*`` (ADR-0001):
+    if the canonical name is unset but the deprecated alias is set, the alias
+    value is returned and a ``DeprecationWarning`` is emitted (no silent
+    fallback). Strictly one-direction (HUB canonical, CLOUD legacy).
+    """
+    return _require_env_alias(var_name)
 
 
 def discover_local_apps():
@@ -71,9 +78,13 @@ def _get_version():
 # ---------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 ROOT_URLCONF = "config.urls"
-LOG_DIR = BASE_DIR / "logs"
+# LOG_DIR lives under GITIGNORED/ (project convention for runtime
+# artifacts) — keeps the repo root clean and satisfies PS-102 (no
+# top-level forbidden dirs). The env var SCITEX_HUB_LOG_DIR lets
+# operators redirect logs in production without code changes.
+LOG_DIR = Path(os.environ.get("SCITEX_HUB_LOG_DIR", BASE_DIR / "GITIGNORED" / "logs"))
 if not os.path.exists(LOG_DIR):
-    os.makedirs(LOG_DIR)
+    os.makedirs(LOG_DIR, exist_ok=True)
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
@@ -99,21 +110,22 @@ LOGOUT_REDIRECT_URL = "/"
 # ---------------------------------------
 # Metadata
 # ---------------------------------------
-SCITEX_CLOUD_VERSION = _get_version()
-SCITEX_CLOUD_VISITOR_POOL_SIZE = int(
-    os.environ.get("SCITEX_CLOUD_VISITOR_POOL_SIZE", 4)
+SCITEX_HUB_VERSION = _get_version()
+SCITEX_HUB_VISITOR_POOL_SIZE = int(
+    _getenv_alias("SCITEX_HUB_VISITOR_POOL_SIZE", "4") or "4"
 )
-UMAMI_WEBSITE_ID = os.environ.get("SCITEX_CLOUD_UMAMI_WEBSITE_ID", "")
-UMAMI_SCRIPT_URL = os.environ.get(
-    "SCITEX_CLOUD_UMAMI_SCRIPT_URL", "https://cloud.umami.is/script.js"
+UMAMI_WEBSITE_ID = _getenv_alias("SCITEX_HUB_UMAMI_WEBSITE_ID", "")
+UMAMI_SCRIPT_URL = _getenv_alias(
+    "SCITEX_HUB_UMAMI_SCRIPT_URL", "https://cloud.umami.is/script.js"
 )
 
 # ---------------------------------------
 # Security
 # ---------------------------------------
-SECRET_KEY = os.getenv("SCITEX_CLOUD_DJANGO_SECRET_KEY")
+# Honors SCITEX_CLOUD_DJANGO_SECRET_KEY as a deprecated alias (ADR-0001).
+SECRET_KEY = _getenv_alias("SCITEX_HUB_DJANGO_SECRET_KEY")
 if not SECRET_KEY:
-    raise ValueError("SCITEX_CLOUD_DJANGO_SECRET_KEY must be set in environment")
+    raise ValueError("SCITEX_HUB_DJANGO_SECRET_KEY must be set in environment")
 
 # ---------------------------------------
 # Applications
@@ -221,25 +233,29 @@ TEMPLATES = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "data" / "db" / "sqlite" / "scitex_cloud.db",
+        "NAME": BASE_DIR / "data" / "db" / "sqlite" / "scitex_hub.db",
     }
 }
 
 # ---------------------------------------
 # Cache + Sessions
 # ---------------------------------------
-REDIS_URL = os.getenv("SCITEX_CLOUD_REDIS_URL", "redis://127.0.0.1:6379/1")
+REDIS_URL = _getenv_alias("SCITEX_HUB_REDIS_URL", "redis://127.0.0.1:6379/1")
 
 try:
     import redis as _redis
 
-    _r = _redis.from_url(REDIS_URL)
+    # Short, explicit timeouts so an unreachable / unanswered Redis fails
+    # fast and we fall back to local cache, instead of blocking settings
+    # import (and therefore django.setup()) on a hanging TCP connect — e.g.
+    # under WSL2 where a closed port may hang rather than refuse.
+    _r = _redis.from_url(REDIS_URL, socket_connect_timeout=0.5, socket_timeout=0.5)
     _r.ping()
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.redis.RedisCache",
             "LOCATION": REDIS_URL,
-            "KEY_PREFIX": "scitex_cloud",
+            "KEY_PREFIX": "scitex_hub",
             "TIMEOUT": 3600,
         }
     }
@@ -262,8 +278,10 @@ SESSION_COOKIE_AGE = 86400
 try:
     import redis as _redis2
 
-    _redis_url2 = os.getenv("SCITEX_CLOUD_REDIS_URL", "redis://127.0.0.1:6379/2")
-    _redis2.from_url(_redis_url2).ping()
+    _redis_url2 = _getenv_alias("SCITEX_HUB_REDIS_URL", "redis://127.0.0.1:6379/2")
+    # Same fast-fail timeouts as the cache probe above — never block
+    # settings import on an unreachable Redis.
+    _redis2.from_url(_redis_url2, socket_connect_timeout=0.5, socket_timeout=0.5).ping()
     CHANNEL_LAYERS = {
         "default": {
             "BACKEND": "channels_redis.core.RedisChannelLayer",
@@ -292,24 +310,26 @@ USE_TZ = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-EMAIL_BACKEND = os.getenv("SCITEX_CLOUD_EMAIL_BACKEND")
-EMAIL_HOST = os.getenv("SCITEX_CLOUD_EMAIL_HOST")
-EMAIL_PORT = int(os.getenv("SCITEX_CLOUD_EMAIL_PORT", "587"))
-EMAIL_USE_TLS = os.getenv("SCITEX_CLOUD_EMAIL_USE_TLS", "True").lower() == "true"
-EMAIL_HOST_USER = os.getenv("SCITEX_CLOUD_EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("SCITEX_CLOUD_EMAIL_HOST_PASSWORD")
+EMAIL_BACKEND = _getenv_alias("SCITEX_HUB_EMAIL_BACKEND")
+EMAIL_HOST = _getenv_alias("SCITEX_HUB_EMAIL_HOST")
+EMAIL_PORT = int(_getenv_alias("SCITEX_HUB_EMAIL_PORT", "587") or "587")
+EMAIL_USE_TLS = (
+    _getenv_alias("SCITEX_HUB_EMAIL_USE_TLS", "True") or "True"
+).lower() == "true"
+EMAIL_HOST_USER = _getenv_alias("SCITEX_HUB_EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = _getenv_alias("SCITEX_HUB_EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
-SITE_URL = os.getenv("SCITEX_CLOUD_SITE_URL", "http://127.0.0.1:8000")
+SITE_URL = _getenv_alias("SCITEX_HUB_SITE_URL", "http://127.0.0.1:8000")
 
 # Campaign Chat Mode
-SCITEX_CLOUD_CAMPAIGN_ANTHROPIC_API_KEY = os.getenv(
-    "SCITEX_CLOUD_CAMPAIGN_ANTHROPIC_API_KEY", ""
+SCITEX_HUB_CAMPAIGN_ANTHROPIC_API_KEY = _getenv_alias(
+    "SCITEX_HUB_CAMPAIGN_ANTHROPIC_API_KEY", ""
 )
-SCITEX_CLOUD_CAMPAIGN_MODEL = os.getenv(
-    "SCITEX_CLOUD_CAMPAIGN_MODEL", "claude-haiku-4-5-20251001"
+SCITEX_HUB_CAMPAIGN_MODEL = _getenv_alias(
+    "SCITEX_HUB_CAMPAIGN_MODEL", "claude-haiku-4-5-20251001"
 )
-SCITEX_CLOUD_CAMPAIGN_DAILY_LIMIT = os.getenv("SCITEX_CLOUD_CAMPAIGN_DAILY_LIMIT", "10")
+SCITEX_HUB_CAMPAIGN_DAILY_LIMIT = _getenv_alias("SCITEX_HUB_CAMPAIGN_DAILY_LIMIT", "10")
 
 # ---------------------------------------
 # Sub-module imports (celery, logging, auth, integrations)

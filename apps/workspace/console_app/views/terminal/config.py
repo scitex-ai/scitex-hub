@@ -9,6 +9,14 @@ from pathlib import Path
 from django.conf import settings
 
 # =============================================================================
+# Terminal MOTD (Message of the Day)
+# =============================================================================
+# Defined first so that a partial module (re)load — e.g. if a later
+# environment-dependent assignment raises — never leaves this name undefined.
+SHOW_MOTD = os.environ.get("SCITEX_HUB_SHOW_MOTD", "true").lower() != "false"
+
+
+# =============================================================================
 # Container Configuration
 # =============================================================================
 
@@ -29,31 +37,31 @@ USER_DATA_ROOT = Path(getattr(settings, "USER_DATA_ROOT", None) or "/app/data/us
 # =============================================================================
 
 # SLURM settings for interactive sessions (from env vars)
-# Support both new (SCITEX_CLOUD_*) and legacy (SCITEX_CLOUD_QUOTA_*) names
+# Support both new (SCITEX_HUB_*) and legacy (SCITEX_HUB_QUOTA_*) names
 SLURM_PARTITION = os.environ.get(
-    "SCITEX_CLOUD_SLURM_INTERACTIVE_PARTITION"
-) or os.environ.get("SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_PARTITION", "express")
+    "SCITEX_HUB_SLURM_INTERACTIVE_PARTITION"
+) or os.environ.get("SCITEX_HUB_QUOTA_SLURM_INTERACTIVE_PARTITION", "express")
 SLURM_TIME_LIMIT = os.environ.get(
-    "SCITEX_CLOUD_SLURM_INTERACTIVE_TIME_LIMIT"
-) or os.environ.get("SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_TIME_LIMIT", "04:00:00")
+    "SCITEX_HUB_SLURM_INTERACTIVE_TIME_LIMIT"
+) or os.environ.get("SCITEX_HUB_QUOTA_SLURM_INTERACTIVE_TIME_LIMIT", "04:00:00")
 SLURM_CPUS = int(
-    os.environ.get("SCITEX_CLOUD_SLURM_INTERACTIVE_CPUS")
-    or os.environ.get("SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_CPUS", 2)
+    os.environ.get("SCITEX_HUB_SLURM_INTERACTIVE_CPUS")
+    or os.environ.get("SCITEX_HUB_QUOTA_SLURM_INTERACTIVE_CPUS", 2)
 )
 SLURM_MEMORY_GB = int(
-    os.environ.get("SCITEX_CLOUD_SLURM_INTERACTIVE_MEMORY_GB")
-    or os.environ.get("SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_MEMORY_GB", 4)
+    os.environ.get("SCITEX_HUB_SLURM_INTERACTIVE_MEMORY_GB")
+    or os.environ.get("SCITEX_HUB_QUOTA_SLURM_INTERACTIVE_MEMORY_GB", 4)
 )
 
 # SLURM host paths - jobs run on compute nodes, not inside Docker
 # These paths must be accessible from the SLURM compute nodes
 # Using /opt/scitex to avoid NAS ACL issues with home directories
 SLURM_CONTAINER_PATH = os.environ.get(
-    "SCITEX_CLOUD_SLURM_CONTAINER_PATH",
+    "SCITEX_HUB_SLURM_CONTAINER_PATH",
     "/opt/scitex/singularity/current-sandbox",
 )
 SLURM_USER_DATA_ROOT = Path(
-    os.environ.get("SCITEX_CLOUD_SLURM_USER_DATA_ROOT", "/opt/scitex/data/users")
+    os.environ.get("SCITEX_HUB_SLURM_USER_DATA_ROOT", "/opt/scitex/data/users")
 )
 
 # =============================================================================
@@ -64,7 +72,7 @@ SLURM_USER_DATA_ROOT = Path(
 #
 # Comma-separated entries: name:host_path:extras
 # Example: scitex-python:/home/user/proj/scitex-python:all,figrecipe:...
-DEV_REPOS_RAW = os.environ.get("SCITEX_CLOUD_DEV_REPOS", "")
+DEV_REPOS_RAW = os.environ.get("SCITEX_HUB_DEV_REPOS", "")
 
 DEV_REPOS: list[dict] = []
 if DEV_REPOS_RAW:
@@ -80,15 +88,15 @@ if DEV_REPOS_RAW:
             )
 
 # Legacy vars (kept for backward compat)
-SCITEX_DEV_SRC = os.environ.get("SCITEX_CLOUD_DEV_SCITEX_SRC", "")
-FIGRECIPE_DEV_SRC = os.environ.get("SCITEX_CLOUD_DEV_FIGRECIPE_SRC", "")
+SCITEX_DEV_SRC = os.environ.get("SCITEX_HUB_DEV_SCITEX_SRC", "")
+FIGRECIPE_DEV_SRC = os.environ.get("SCITEX_HUB_DEV_FIGRECIPE_SRC", "")
 
 
 # =============================================================================
 # Host Package Bind Mounts (shared between Apptainer and Docker)
 # =============================================================================
 # Generic host mounts: host_path:container_path:mode (comma-separated)
-HOST_MOUNTS_RAW = os.environ.get("SCITEX_CLOUD_HOST_MOUNTS", "")
+HOST_MOUNTS_RAW = os.environ.get("SCITEX_HUB_HOST_MOUNTS", "")
 
 HOST_MOUNTS: list[dict] = []
 if HOST_MOUNTS_RAW:
@@ -104,7 +112,7 @@ if HOST_MOUNTS_RAW:
             )
 
 # Texlive prefix shortcut (e.g., "/usr" → auto-mounts /usr/share/texlive, /usr/bin/pdflatex, etc.)
-HOST_TEXLIVE_PREFIX = os.environ.get("SCITEX_CLOUD_HOST_TEXLIVE_PREFIX", "")
+HOST_TEXLIVE_PREFIX = os.environ.get("SCITEX_HUB_HOST_TEXLIVE_PREFIX", "")
 
 
 # =============================================================================
@@ -123,12 +131,6 @@ def parse_time_limit_seconds(time_str: str) -> int:
 
 
 SLURM_TIME_LIMIT_SECONDS = parse_time_limit_seconds(SLURM_TIME_LIMIT)
-
-
-# =============================================================================
-# Terminal MOTD (Message of the Day)
-# =============================================================================
-SHOW_MOTD = os.environ.get("SCITEX_CLOUD_SHOW_MOTD", "true").lower() != "false"
 
 
 # EOF

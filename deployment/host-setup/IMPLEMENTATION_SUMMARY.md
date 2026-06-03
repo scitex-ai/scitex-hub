@@ -180,9 +180,9 @@ chmod +x deployment/host-setup/scripts/lib/*.sh
 2. Test SLURM: `srun --uid=1000 whoami` → should print "scitex"
 3. Test from container:
    ```bash
-   docker exec scitex-cloud-prod-django-1 su scitex -c "srun --partition=express --pty true"
+   docker exec scitex-hub-prod-django-1 su scitex -c "srun --partition=express --pty true"
    ```
-4. Check logs: `docker logs scitex-cloud-prod-django-1 --tail 50`
+4. Check logs: `docker logs scitex-hub-prod-django-1 --tail 50`
 
 ---
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""App template initialization — delegates to scitex_cloud.appmaker."""
+"""App template initialization — delegates to scitex_hub.appmaker."""
 
 from __future__ import annotations
 
@@ -12,10 +12,10 @@ logger = logging.getLogger(__name__)
 def create_app_from_template(project, app_name=None):
     """Scaffold required app files in a project directory.
 
-    Delegates to scitex_cloud.appmaker.init_app() for the actual file generation.
+    Delegates to scitex_hub.appmaker.init_app() for the actual file generation.
     Returns list of created file paths, or raises on failure.
     """
-    from scitex_cloud.appmaker import init_app
+    from scitex_hub.appmaker import init_app
 
     project_dir = _get_project_dir(project)
     name = app_name or project.slug.replace("-", "_")

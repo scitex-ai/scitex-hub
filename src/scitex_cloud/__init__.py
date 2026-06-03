@@ -2,94 +2,102 @@
 # -*- coding: utf-8 -*-
 # File: src/scitex_cloud/__init__.py
 
+"""Deprecation shim: ``scitex_cloud`` was renamed to ``scitex_hub``.
+
+``scitex-cloud`` is the OLD distribution / module name of ``scitex-hub``
+(see ``docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md``). This module is
+kept only as a transitional compatibility shim: importing it (or any of its
+submodules) re-exports the corresponding object from :mod:`scitex_hub` and
+emits a :class:`DeprecationWarning`.
+
+    >>> import scitex_cloud            # works, warns
+    >>> scitex_cloud.CloudClient is scitex_hub.CloudClient
+    True
+    >>> from scitex_cloud.sdk import *  # forwards to scitex_hub.sdk
+
+Update your imports ``scitex_cloud`` -> ``scitex_hub``; this shim will be
+removed in a future release.
 """
-SciTeX Cloud - CLI tools and APIs for SciTeX deployment and management.
 
-Usage:
-    pip install scitex-cloud
-    scitex-cloud --help
+from __future__ import annotations
 
-Python API:
-    >>> import scitex_cloud
-    >>> client = scitex_cloud.CloudClient()
-    >>> client.scholar_search("neural networks")
-    >>> client.enrich_bibtex("@article{...}")
+import importlib
+import sys
+import warnings
 
-MCP Server:
-    scitex-cloud serve              # stdio (Claude Desktop)
-    scitex-cloud serve -t sse       # SSE (remote)
-"""
+warnings.warn(
+    "The 'scitex_cloud' package has been renamed to 'scitex_hub'. "
+    "Importing 'scitex_cloud' is deprecated and the shim will be removed in "
+    "a future release; update your imports to 'scitex_hub'. "
+    "See docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+_hub = importlib.import_module("scitex_hub")
+
+# Mirror the renamed package's identity so attribute access, ``__version__``,
+# ``__all__`` and any direct ``scitex_cloud.<name>`` lookups resolve to the
+# live ``scitex_hub`` objects.
+__version__ = getattr(_hub, "__version__", "unknown")
+__author__ = getattr(_hub, "__author__", "SciTeX Team")
+__all__ = list(getattr(_hub, "__all__", []))
+
+# Make ``scitex_cloud`` resolve attributes from ``scitex_hub`` transparently.
+__path__ = list(getattr(_hub, "__path__", []))
 
 
-def _get_version() -> str:
-    """Read version from pyproject.toml (single source of truth)."""
-    from pathlib import Path
-
+def __getattr__(name: str):
+    """Forward attribute access to :mod:`scitex_hub` (PEP 562)."""
     try:
-        import tomllib
-    except ImportError:
-        import tomli as tomllib
-
-    pyproject = Path(__file__).resolve().parent.parent.parent / "pyproject.toml"
-    if pyproject.exists():
-        with open(pyproject, "rb") as f:
-            data = tomllib.load(f)
-            return data.get("project", {}).get("version", "unknown")
-    return "unknown"
-
-
-__version__ = _get_version()
-__author__ = "SciTeX Team"
-
-from ._api import CloudClient as CloudClient
-from ._config._environments import Environment as Environment
-from ._config._environments import get_environment as get_environment
-from ._utils._docker import DockerManager as DockerManager
-
-
-def get_version() -> str:
-    """Get scitex-cloud version."""
-    return __version__
-
-
-def health_check(endpoint: str | None = None) -> dict:
-    """Check scitex-cloud service health.
-
-    Parameters
-    ----------
-    endpoint : str, optional
-        HTTP endpoint to check. If None, returns local package info.
-
-    Returns
-    -------
-    dict
-        Health status with version, environment, and service status.
-    """
-    import json
-    import urllib.request
-
-    if endpoint:
+        return getattr(_hub, name)
+    except AttributeError:
+        # Fall back to importing it as a submodule (handled by the finder).
         try:
-            with urllib.request.urlopen(endpoint, timeout=5) as response:
-                return json.loads(response.read().decode())
-        except Exception as e:
-            return {"status": "error", "error": str(e), "endpoint": endpoint}
-
-    return {
-        "status": "ok",
-        "version": __version__,
-        "package": "scitex-cloud",
-    }
+            return importlib.import_module(f"scitex_cloud.{name}")
+        except ImportError as exc:  # pragma: no cover - defensive
+            raise AttributeError(
+                f"module 'scitex_cloud' has no attribute '{name}'"
+            ) from exc
 
 
-__all__ = [
-    "__version__",
-    "get_version",
-    "health_check",
-    "CloudClient",
-    "Environment",
-    "get_environment",
-    "DockerManager",
-]
+def __dir__():
+    return sorted(set(dir(_hub)) | set(globals()))
+
+
+# --- Submodule forwarding -------------------------------------------------
+# Any ``import scitex_cloud.<sub>`` (or ``from scitex_cloud.<sub> import x``)
+# is routed to the matching ``scitex_hub.<sub>`` module via a meta path
+# finder + loader, so the shim never duplicates the package layout and the
+# aliased module is the *same object* as ``scitex_hub.<sub>`` (identity holds).
+import importlib.abc
+import importlib.machinery
+
+_PREFIX = "scitex_cloud."
+
+
+class _ScitexCloudLoader(importlib.abc.Loader):
+    """Loader that returns the real ``scitex_hub.<sub>`` module object."""
+
+    def __init__(self, target: str) -> None:
+        self._target = target
+
+    def create_module(self, spec):
+        return importlib.import_module(self._target)
+
+    def exec_module(self, module):  # already executed by import_module
+        return None
+
+
+class _ScitexCloudMetaFinder(importlib.abc.MetaPathFinder):
+    def find_spec(self, fullname, path, target=None):
+        if not fullname.startswith(_PREFIX):
+            return None
+        real_target = "scitex_hub." + fullname[len(_PREFIX) :]
+        loader = _ScitexCloudLoader(real_target)
+        return importlib.machinery.ModuleSpec(fullname, loader)
+
+
+sys.meta_path.insert(0, _ScitexCloudMetaFinder())
 
 # EOF

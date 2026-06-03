@@ -4,7 +4,7 @@
 # File: apps/console_app/job_api_views.py
 
 """
-SLURM job management API views for SciTeX Cloud.
+SLURM job management API views for SciTeX Hub.
 
 Provides REST API endpoints for submitting and managing computational jobs
 through SLURM and Apptainer containers.
@@ -275,10 +275,10 @@ def api_user_jobs(request):
 
         # Filter to only show jobs belonging to the current user
         # Matches both compute jobs (scitex_{user}_*) and terminal
-        # allocations (scitex-cloud-terminal-{user})
+        # allocations (scitex-hub-terminal-{user})
         username = request.user.username
         compute_prefix = f"scitex_{username}_"
-        terminal_prefix = f"scitex-cloud-terminal-{username}"
+        terminal_prefix = f"scitex-hub-terminal-{username}"
 
         def _is_user_job(job):
             name = job.get("name", "")
@@ -290,7 +290,7 @@ def api_user_jobs(request):
         for job in user_jobs:
             name = job.get("name", "")
             job["type"] = (
-                "terminal" if name.startswith("scitex-cloud-terminal") else "compute"
+                "terminal" if name.startswith("scitex-hub-terminal") else "compute"
             )
 
         running = sum(1 for j in user_jobs if j["state"] == "RUNNING")

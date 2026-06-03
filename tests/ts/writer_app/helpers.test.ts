@@ -29,16 +29,16 @@ describe('helpers', () => {
 //  * Writer Helper Functions
 //  * Utility functions for writer initialization and configuration
 //  */
-// 
+//
 // import { WriterConfig, EditorState } from "@/types";
 // import { writerStorage } from "@/utils/storage";
-// 
+//
 // /**
 //  * Get writer configuration from global scope
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/helpers.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/helpers.ts loaded",
 // );
 // export function getWriterConfig(): WriterConfig {
 //   const config = (window as any).WRITER_CONFIG as WriterConfig;
@@ -55,7 +55,7 @@ describe('helpers', () => {
 //   }
 //   return config;
 // }
-// 
+//
 // /**
 //  * Create default editor state
 //  */
@@ -68,7 +68,7 @@ describe('helpers', () => {
 //     projectId: config?.projectId ? Number(config.projectId) : null,
 //   };
 // }
-// 
+//
 // /**
 //  * Load editor state from storage or create default
 //  */
@@ -82,7 +82,7 @@ describe('helpers', () => {
 //   }
 //   return createDefaultEditorState();
 // }
-// 
+//
 // /**
 //  * Save editor state to storage
 //  */
@@ -94,7 +94,7 @@ describe('helpers', () => {
 //       : [],
 //   });
 // }
-// 
+//
 // /**
 //  * Section hierarchy types
 //  */
@@ -105,21 +105,21 @@ describe('helpers', () => {
 //   path: string;
 //   optional?: boolean;
 // }
-// 
+//
 // export interface SectionCategory {
 //   label: string;
 //   description: string;
 //   sections: SectionConfig[];
 //   supports_crud?: boolean;
 // }
-// 
+//
 // export interface SectionHierarchy {
 //   shared: SectionCategory;
 //   manuscript: SectionCategory;
 //   supplementary: SectionCategory;
 //   revision: SectionCategory;
 // }
-// 
+//
 // /**
 //  * Load section hierarchy from API
 //  */
@@ -127,7 +127,7 @@ describe('helpers', () => {
 //   try {
 //     const response = await fetch("/writer/api/sections-config/");
 //     const data = await response.json();
-// 
+//
 //     if (data.success && data.hierarchy) {
 //       console.log("[Writer] Loaded section hierarchy:", data.hierarchy);
 //       return data.hierarchy as SectionHierarchy;
@@ -140,7 +140,7 @@ describe('helpers', () => {
 //     return null;
 //   }
 // }
-// 
+//
 // /**
 //  * Populate section dropdown with hierarchical structure
 //  */
@@ -151,7 +151,7 @@ describe('helpers', () => {
 // ): void {
 //   // Clear existing options
 //   dropdown.innerHTML = "";
-// 
+//
 //   // Add categories with optgroups
 //   const categories = [
 //     "shared",
@@ -159,15 +159,15 @@ describe('helpers', () => {
 //     "supplementary",
 //     "revision",
 //   ] as const;
-// 
+//
 //   for (const categoryKey of categories) {
 //     const category = hierarchy[categoryKey];
 //     if (!category || category.sections.length === 0) continue;
-// 
+//
 //     // Create optgroup
 //     const optgroup = document.createElement("optgroup");
 //     optgroup.label = category.label;
-// 
+//
 //     // Add sections to optgroup
 //     for (const section of category.sections) {
 //       const option = document.createElement("option");
@@ -181,7 +181,7 @@ describe('helpers', () => {
 //       }
 //       optgroup.appendChild(option);
 //     }
-// 
+//
 //     dropdown.appendChild(optgroup);
 //   }
 // }

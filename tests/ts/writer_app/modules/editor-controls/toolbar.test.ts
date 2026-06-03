@@ -29,11 +29,11 @@ describe('toolbar', () => {
 //  * Toolbar Handling Module
 //  * Manages toolbar controls for preview and auto-preview
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/editor-controls/toolbar.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/modules/editor-controls/toolbar.ts loaded",
 // );
-// 
+//
 // export class ToolbarHandler {
 //   private autoPreviewCheckbox: HTMLInputElement | null;
 //   private autoPreviewCheckboxPanel: HTMLInputElement | null;
@@ -43,7 +43,7 @@ describe('toolbar', () => {
 //   private pdfPreviewManager: any;
 //   private autoPreviewTimeout: ReturnType<typeof setTimeout> | null = null;
 //   private storageAutoPreviewKey: string = "scitex-auto-preview";
-// 
+//
 //   constructor(
 //     latexEditor: HTMLTextAreaElement | null,
 //     pdfPreviewManager: any,
@@ -63,7 +63,7 @@ describe('toolbar', () => {
 //     this.latexEditor = latexEditor;
 //     this.pdfPreviewManager = pdfPreviewManager;
 //   }
-// 
+//
 //   /**
 //    * Initialize toolbar controls
 //    */
@@ -84,7 +84,7 @@ describe('toolbar', () => {
 //         "[ToolbarHandler] Auto preview checkbox (toolbar) initialized",
 //       );
 //     }
-// 
+//
 //     // Auto preview control - panel checkbox
 //     if (this.autoPreviewCheckboxPanel) {
 //       this.loadAutoPreviewPreference(this.autoPreviewCheckboxPanel);
@@ -101,7 +101,7 @@ describe('toolbar', () => {
 //         "[ToolbarHandler] Auto preview checkbox (panel) initialized",
 //       );
 //     }
-// 
+//
 //     // Preview button - toolbar
 //     if (this.previewButton) {
 //       this.previewButton.addEventListener(
@@ -110,7 +110,7 @@ describe('toolbar', () => {
 //       );
 //       console.log("[ToolbarHandler] Preview button (toolbar) initialized");
 //     }
-// 
+//
 //     // Preview button - panel
 //     if (this.previewButtonPanel) {
 //       this.previewButtonPanel.addEventListener(
@@ -119,7 +119,7 @@ describe('toolbar', () => {
 //       );
 //       console.log("[ToolbarHandler] Preview button (panel) initialized");
 //     }
-// 
+//
 //     // Setup auto-preview trigger on editor changes
 //     const autoPreviewEnabled =
 //       (this.autoPreviewCheckbox && this.autoPreviewCheckbox.checked) ||
@@ -128,20 +128,20 @@ describe('toolbar', () => {
 //       this.setupAutoPreviewTrigger();
 //     }
 //   }
-// 
+//
 //   /**
 //    * Handle auto preview checkbox toggle
 //    */
 //   private handleAutoPreviewToggle(event: Event): void {
 //     const target = event.target as HTMLInputElement;
 //     const isEnabled = target.checked;
-// 
+//
 //     // Save preference to localStorage
 //     localStorage.setItem(
 //       this.storageAutoPreviewKey,
 //       isEnabled ? "true" : "false",
 //     );
-// 
+//
 //     if (isEnabled) {
 //       this.setupAutoPreviewTrigger();
 //       console.log("[ToolbarHandler] Auto preview enabled");
@@ -150,7 +150,7 @@ describe('toolbar', () => {
 //       console.log("[ToolbarHandler] Auto preview disabled");
 //     }
 //   }
-// 
+//
 //   /**
 //    * Load auto-preview preference from localStorage
 //    */
@@ -159,13 +159,13 @@ describe('toolbar', () => {
 //   ): void {
 //     const saved = localStorage.getItem(this.storageAutoPreviewKey);
 //     const isEnabled = saved !== "false"; // Default to true
-// 
+//
 //     if (checkbox) {
 //       checkbox.checked = isEnabled;
 //     } else if (this.autoPreviewCheckbox) {
 //       this.autoPreviewCheckbox.checked = isEnabled;
 //     }
-// 
+//
 //     // Sync both checkboxes
 //     if (this.autoPreviewCheckbox) {
 //       this.autoPreviewCheckbox.checked = isEnabled;
@@ -174,13 +174,13 @@ describe('toolbar', () => {
 //       this.autoPreviewCheckboxPanel.checked = isEnabled;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Setup auto-preview trigger on editor changes
 //    */
 //   private setupAutoPreviewTrigger(): void {
 //     if (!this.latexEditor) return;
-// 
+//
 //     this.latexEditor.addEventListener("input", () => {
 //       // Check if auto-preview is enabled (either checkbox)
 //       const isEnabled =
@@ -188,19 +188,19 @@ describe('toolbar', () => {
 //         (this.autoPreviewCheckboxPanel &&
 //           this.autoPreviewCheckboxPanel.checked);
 //       if (!isEnabled) return;
-// 
+//
 //       // Clear existing timeout
 //       this.clearAutoPreviewTimeout();
-// 
+//
 //       // Schedule auto-compile after 5 seconds of inactivity
 //       this.autoPreviewTimeout = setTimeout(() => {
 //         this.triggerPreview();
 //       }, 5000); // 5 second delay
-// 
+//
 //       console.log("[ToolbarHandler] Auto-preview scheduled for 5s");
 //     });
 //   }
-// 
+//
 //   /**
 //    * Clear auto-preview timeout
 //    */
@@ -210,7 +210,7 @@ describe('toolbar', () => {
 //       this.autoPreviewTimeout = null;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Handle preview button click
 //    */
@@ -219,7 +219,7 @@ describe('toolbar', () => {
 //     console.log("[ToolbarHandler] Preview button clicked");
 //     this.triggerPreview();
 //   }
-// 
+//
 //   /**
 //    * Trigger PDF preview compilation
 //    */
@@ -233,14 +233,14 @@ describe('toolbar', () => {
 //       }
 //     }
 //   }
-// 
+//
 //   /**
 //    * Check if auto-preview is enabled
 //    */
 //   public isAutoPreviewEnabled(): boolean {
 //     return this.autoPreviewCheckbox ? this.autoPreviewCheckbox.checked : false;
 //   }
-// 
+//
 //   /**
 //    * Set auto-preview enabled state
 //    */
@@ -251,7 +251,7 @@ describe('toolbar', () => {
 //       this.autoPreviewCheckbox.dispatchEvent(event);
 //     }
 //   }
-// 
+//
 //   /**
 //    * Set PDF preview manager reference (for dynamic initialization)
 //    */

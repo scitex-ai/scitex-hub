@@ -17,7 +17,7 @@ import time
 logger = logging.getLogger(__name__)
 
 # Job name prefix for terminal allocations
-JOB_NAME_PREFIX = "scitex-cloud-terminal"
+JOB_NAME_PREFIX = "scitex-hub-terminal"
 
 # Healthy SLURM node states
 _HEALTHY_STATES = frozenset(("idle", "mixed", "allocated", "alloc"))

@@ -2,7 +2,7 @@
 # Timestamp: "2026-02-25"
 # File: deployment/host-setup/scripts/manage-containers.sh
 # ============================================================
-# Container Version Management for SciTeX Cloud
+# Container Version Management for SciTeX Hub
 #
 # Uses scitex-container CLI for all operations.
 # Keeps last N versions (default: 5) for rollback safety.

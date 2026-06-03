@@ -1,0 +1,12 @@
+# scitex-dev project-type config
+# scitex-hub is a Django app: `apps/`, `config/`, `static/`,
+# `media/`, `staticfiles/`, `templates/` are framework-canonical at
+# repo root. `deferred` triggers the auditor's [defer] reminder
+# listing the entries that aren't Django-canonical and need future
+# review (slurm_logs/, ssh_keys/, releases/, deployment/,
+# singularity/, lib/, docs_api/, …).
+
+project-type:
+  - pip
+  - django
+  - deferred

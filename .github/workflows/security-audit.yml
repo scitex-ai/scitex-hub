@@ -76,7 +76,7 @@ jobs:
 
       - name: Run Django security checks
         env:
-          SCITEX_CLOUD_DJANGO_SECRET_KEY: 'test-secret-key-for-ci'
-          SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: 'config.settings.settings_dev'
+          SCITEX_HUB_DJANGO_SECRET_KEY: 'test-secret-key-for-ci'
+          SCITEX_HUB_DJANGO_SETTINGS_MODULE: 'config.settings.settings_dev'
         run: |
           python manage.py check --deploy || true

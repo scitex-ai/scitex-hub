@@ -1,6 +1,6 @@
 #!/bin/bash
 # SLURM Configuration Checker
-# Validates SLURM is properly configured for SciTeX Cloud
+# Validates SLURM is properly configured for SciTeX Hub
 
 set -euo pipefail
 

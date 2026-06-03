@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-11-04 20:53:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/apps/writer_app/urls/index.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/writer_app/urls/index.py
 # ----------------------------------------
 """Writer App Index URLs
 

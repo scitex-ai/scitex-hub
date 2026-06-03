@@ -1,7 +1,7 @@
 Visitor Pool Security
 =====================
 
-The visitor pool provides anonymous, sandboxed access to SciTeX Cloud
+The visitor pool provides anonymous, sandboxed access to SciTeX Hub
 for users who have not signed up. Four pre-allocated accounts
 (``visitor-001`` to ``visitor-004``) are shared in rotation.
 

@@ -10,8 +10,11 @@ import pytest
 class TestPlaceholder:
     """Placeholder test class - replace with actual tests."""
 
-    def test_placeholder(self):
+    def test_placeholder_pending_implementation(self):
         """Placeholder test - implement actual tests."""
+        # Arrange
+        # Act
+        # Assert
         pytest.skip("Not implemented yet")
 
 
@@ -192,7 +195,7 @@ if __name__ == "__main__":
 #     """
 #     Automatically delete Gitea repository when a Django Project is deleted.
 #
-#     Ensures that deleting a project from SciTeX Cloud also removes the
+#     Ensures that deleting a project from SciTeX Hub also removes the
 #     corresponding repository from Gitea to maintain consistency.
 #
 #     Args:

@@ -1,7 +1,7 @@
-{% extends "public_app/cloud_base.html" %}
+{% extends "public_app/hub_base.html" %}
 {% block title %}
     Windows
-    Compatibility - SciTeX Cloud
+    Compatibility - SciTeX Hub
 {% endblock %}
 {% block meta_description %}
     Learn
@@ -94,19 +94,19 @@
     <div class="windows-header">
         <div class="container">
             <h1 class="display-4 text-center">Windows Compatibility</h1>
-            <p class="lead text-center">Access and develop SciTeX Cloud on Windows systems</p>
+            <p class="lead text-center">Access and develop SciTeX Hub on Windows systems</p>
         </div>
     </div>
     <div class="container">
         <!-- Introduction -->
         <section class="windows-section">
             <p class="lead">
-                SciTeX Cloud is built using Django and runs best in a Linux environment,
+                SciTeX Hub is built using Django and runs best in a Linux environment,
                 but we've made it fully compatible with Windows systems through Windows
                 Subsystem for Linux (WSL).
             </p>
             <p>
-                This guide explains how to set up SciTeX Cloud for development on Windows
+                This guide explains how to set up SciTeX Hub for development on Windows
                 and how to access the development server from your Windows browsers.
             </p>
             <div class="highlight">
@@ -114,7 +114,7 @@
                     <i class="fas fa-info-circle"></i> Quick Start
                 </h4>
                 <p>
-                    If you already have WSL set up with Ubuntu and the SciTeX Cloud
+                    If you already have WSL set up with Ubuntu and the SciTeX Hub
                     repository cloned, simply run:
                 </p>
                 <pre class="code-block">./start_dev_windows.sh</pre>
@@ -150,7 +150,7 @@
                             <span class="step-number">2</span> Windows Subsystem for Linux
                         </h3>
                         <p>
-                            WSL 2 is required to run SciTeX Cloud on Windows. If you don't have
+                            WSL 2 is required to run SciTeX Hub on Windows. If you don't have
                             it installed, follow Microsoft's
                             <a href="https://docs.microsoft.com/en-us/windows/wsl/install"
                                target="_blank">official guide</a>.
@@ -189,17 +189,17 @@ sudo apt install git python3 python3-pip python3-venv</pre>
                 </div>
             </div>
         </section>
-        <!-- Setting Up SciTeX Cloud -->
+        <!-- Setting Up SciTeX Hub -->
         <section class="windows-section">
-            <h2>Setting Up SciTeX Cloud on WSL</h2>
+            <h2>Setting Up SciTeX Hub on WSL</h2>
             <div class="step-card">
                 <h3>
                     <span class="step-number">1</span> Clone the Repository
                 </h3>
-                <p>Open your WSL terminal and clone the SciTeX Cloud repository:</p>
+                <p>Open your WSL terminal and clone the SciTeX Hub repository:</p>
                 <pre class="code-block">
-git clone https://github.com/SciTex-AI/SciTeX-Cloud.git
-cd SciTeX-Cloud</pre>
+git clone https://github.com/ywatanabe1989/scitex-hub.git
+cd scitex-hub</pre>
             </div>
             <div class="step-card">
                 <h3>
@@ -236,7 +236,7 @@ chmod +x start_dev_windows.sh
                 </h3>
                 <p>
                     Copy the URL from the terminal output and paste it into Chrome on
-                    Windows. You should see the SciTeX Cloud application running.
+                    Windows. You should see the SciTeX Hub application running.
                 </p>
                 <p>
                     The development server features hot reloading, so any changes you make
@@ -319,7 +319,7 @@ Windows Host                  WSL (Ubuntu)
                                 <li>Select "Allow the connection" and click "Next"</li>
                                 <li>Check all profiles (Domain, Private, Public) and click "Next"</li>
                                 <li>
-                                    Name the rule (e.g., "SciTeX Cloud Development Server") and
+                                    Name the rule (e.g., "SciTeX Hub Development Server") and
                                     click "Finish"
                                 </li>
                             </ol>
@@ -422,7 +422,7 @@ netsh interface portproxy delete v4tov4 listenport=8000 listenaddress=0.0.0.0</p
                                target="_blank">Remote - WSL extension</a>
                         </li>
                         <li>
-                            In your WSL terminal, navigate to the SciTeX Cloud directory and
+                            In your WSL terminal, navigate to the SciTeX Hub directory and
                             run:
                         </li>
                     </ol>
@@ -457,9 +457,9 @@ netsh interface portproxy delete v4tov4 listenport=8000 listenaddress=0.0.0.0</p
     <!-- Call to Action -->
     <section class="windows-section text-center py-5">
         <h2>Ready to Develop on Windows?</h2>
-        <p class="lead">Start building with SciTeX Cloud on your Windows machine today</p>
+        <p class="lead">Start building with SciTeX Hub on your Windows machine today</p>
         <div class="mt-4">
-            <a href="https://github.com/SciTex-AI/SciTeX-Cloud"
+            <a href="https://github.com/ywatanabe1989/scitex-hub"
                class="btn btn-primary btn-lg mx-2"
                target="_blank">
                 <i class="fab fa-github"></i> Clone Repository

@@ -35,7 +35,7 @@ BLUE='\033[0;34m'
 echo_header() { echo -e "${BLUE}$1${NC}"; }
 
 # Project root
-PROJECT_ROOT="/home/ywatanabe/proj/scitex-cloud"
+PROJECT_ROOT="/home/ywatanabe/proj/scitex-hub"
 
 # Detect environment based on DEBUG setting or running process
 detect_environment() {
@@ -49,9 +49,9 @@ detect_environment() {
         fi
     else
         # Fallback: check if dev or prod service is running
-        if systemctl is-active --quiet scitex_cloud_prod 2> /dev/null; then
+        if systemctl is-active --quiet scitex_hub_prod 2> /dev/null; then
             echo "production"
-        elif systemctl is-active --quiet scitex_cloud_dev 2> /dev/null; then
+        elif systemctl is-active --quiet scitex_hub_dev 2> /dev/null; then
             echo "development"
         else
             echo "unknown"
@@ -177,9 +177,9 @@ run_django_checks() {
     echo
 
     if [ "$ENV" = "development" ]; then
-        export SCITEX_CLOUD_DJANGO_SETTINGS_MODULE="config.settings.settings_dev"
+        export SCITEX_HUB_DJANGO_SETTINGS_MODULE="config.settings.settings_dev"
     else
-        export SCITEX_CLOUD_DJANGO_SETTINGS_MODULE="config.settings.settings_prod"
+        export SCITEX_HUB_DJANGO_SETTINGS_MODULE="config.settings.settings_prod"
     fi
 
     if python3 manage.py check --deploy 2>&1; then
@@ -202,9 +202,9 @@ check_migrations() {
     ENV=$(detect_environment)
 
     if [ "$ENV" = "development" ]; then
-        export SCITEX_CLOUD_DJANGO_SETTINGS_MODULE="config.settings.settings_dev"
+        export SCITEX_HUB_DJANGO_SETTINGS_MODULE="config.settings.settings_dev"
     else
-        export SCITEX_CLOUD_DJANGO_SETTINGS_MODULE="config.settings.settings_prod"
+        export SCITEX_HUB_DJANGO_SETTINGS_MODULE="config.settings.settings_prod"
     fi
 
     # Check if there are unapplied migrations

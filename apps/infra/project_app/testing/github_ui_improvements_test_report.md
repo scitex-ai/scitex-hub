@@ -310,8 +310,8 @@ The GitHub UI improvements have been successfully implemented and tested. All ma
 ## Test Evidence
 
 All screenshots are available in:
-- `/home/ywatanabe/proj/scitex-cloud/apps/project_app/testing/`
-- `/home/ywatanabe/proj/scitex-cloud/.playwright-mcp/`
+- `/home/ywatanabe/proj/scitex-hub/apps/project_app/testing/`
+- `/home/ywatanabe/proj/scitex-hub/.playwright-mcp/`
 
 ### File List:
 - `01_root_project_page.png`

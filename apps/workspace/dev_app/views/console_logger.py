@@ -12,9 +12,18 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-# Setup dedicated console logger with rotation
-console_log_file = Path(settings.BASE_DIR) / "logs" / "console.log"
-console_error_file = Path(settings.BASE_DIR) / "logs" / "console_error.log"
+# Setup dedicated console logger with rotation. Use settings.LOG_DIR
+# (defined in config.settings.settings_shared / settings_logging) which
+# resolves to ``GITIGNORED/logs/`` by default, or honours
+# ``SCITEX_HUB_LOG_DIR``. Hard-coding ``settings.BASE_DIR / "logs"`` was
+# creating a top-level ``logs/`` directory on every Django boot — a
+# PS-102 §1 (no-top-level-forbidden-dir) violation flagged by the
+# ecosystem audit gate.
+_log_dir = Path(
+    getattr(settings, "LOG_DIR", Path(settings.BASE_DIR) / "GITIGNORED" / "logs")
+)
+console_log_file = _log_dir / "console.log"
+console_error_file = _log_dir / "console_error.log"
 console_log_file.parent.mkdir(parents=True, exist_ok=True)
 
 console_logger = logging.getLogger("browser_console")

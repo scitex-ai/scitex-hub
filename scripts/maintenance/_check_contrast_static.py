@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Timestamp: 2026-02-13
 # Author: ywatanabe (with Claude Code)
-# File: /home/ywatanabe/proj/scitex-cloud/scripts/maintenance/_check_contrast_static.py
+# File: /home/ywatanabe/proj/scitex-hub/scripts/maintenance/_check_contrast_static.py
 #
 # Static CSS analysis for WCAG AA contrast anti-patterns.
 # Parses CSS files and the color system to find text/background pairs

@@ -29,27 +29,27 @@ describe('section-extraction', () => {
 //  * Section Extraction Module
 //  * Handles extracting sections from the file tree data
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/writer/sections/section-extraction.ts loaded"
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/writer/sections/section-extraction.ts loaded"
 // );
-// 
+//
 // import { doctypeToDirectory, skipFiles } from "../config/index";
-// 
+//
 // export interface Section {
 //   id: string;
 //   label: string;
 //   file: string;
 //   path: string;
 // }
-// 
+//
 // interface TreeItem {
 //   name: string;
 //   path: string;
 //   type: "file" | "directory";
 //   children?: TreeItem[];
 // }
-// 
+//
 // /**
 //  * Find a directory in the tree by path
 //  */
@@ -63,7 +63,7 @@ describe('section-extraction', () => {
 //   }
 //   return null;
 // };
-// 
+//
 // /**
 //  * Convert filename to display label
 //  */
@@ -74,7 +74,7 @@ describe('section-extraction', () => {
 //     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
 //     .join(" ");
 // };
-// 
+//
 // /**
 //  * Extract sections from file tree data for a specific doctype
 //  */
@@ -84,11 +84,11 @@ describe('section-extraction', () => {
 // ): Section[] => {
 //   const dirPath = doctypeToDirectory[doctype];
 //   if (!dirPath || !treeData) return [];
-// 
+//
 //   const sections: Section[] = [];
 //   const doctypeDir = findDir(treeData, dirPath);
 //   if (!doctypeDir || !doctypeDir.children) return sections;
-// 
+//
 //   if (doctype === "shared") {
 //     // For shared: get .tex files directly in 00_shared (not in subdirs)
 //     for (const item of doctypeDir.children) {
@@ -110,7 +110,7 @@ describe('section-extraction', () => {
 //     const contentsDir = doctypeDir.children.find(
 //       (c) => c.name === "contents" && c.type === "directory"
 //     );
-// 
+//
 //     if (contentsDir && contentsDir.children) {
 //       for (const item of contentsDir.children) {
 //         // Direct .tex files in contents/
@@ -127,7 +127,7 @@ describe('section-extraction', () => {
 //           });
 //         }
 //       }
-// 
+//
 //       // Also check subdirectories in contents/ (like figures/, tables/)
 //       for (const subdir of contentsDir.children) {
 //         if (subdir.type === "directory" && subdir.children) {
@@ -145,10 +145,10 @@ describe('section-extraction', () => {
 //       }
 //     }
 //   }
-// 
+//
 //   return sections;
 // };
-// 
+//
 // /**
 //  * State for doctype sections - updated from tree data
 //  */
@@ -158,7 +158,7 @@ describe('section-extraction', () => {
 //   supplementary: [],
 //   revision: [],
 // };
-// 
+//
 // /**
 //  * Update doctype sections from tree data
 //  */
@@ -175,14 +175,14 @@ describe('section-extraction', () => {
 //   }
 //   console.log("[Writer] Sections populated from tree data");
 // };
-// 
+//
 // /**
 //  * Get sections for a doctype
 //  */
 // export const getSectionsForDoctype = (doctype: string): Section[] => {
 //   return doctypeSections[doctype] || [];
 // };
-// 
+//
 // /**
 //  * Set sections for a doctype (for external updates)
 //  */

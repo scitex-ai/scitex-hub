@@ -1,13 +1,13 @@
 # syntax=docker/dockerfile:1.4
 # ============================================
-# SciTeX Cloud - Development Image
+# SciTeX Hub - Development Image
 # ============================================
 # Optimized for cache efficiency and fast rebuilds
 
 FROM python:3.11-slim
 
 LABEL maintainer="ywatanabe@scitex.ai"
-LABEL description="SciTeX Cloud - Development Environment"
+LABEL description="SciTeX Hub - Development Environment"
 
 # ============================================
 # Environment Variables
@@ -252,7 +252,7 @@ RUN if [ -f /etc/ImageMagick-6/policy.xml ]; then \
 COPY pyproject.toml ./
 COPY src/ ./src/
 
-# Install SciTeX Cloud Python dependencies with cache mount
+# Install SciTeX Hub Python dependencies with cache mount
 # scitex is NOT installed here for dev — entrypoint.sh installs it in editable+upgrade
 # mode from the mounted /scitex-python volume at container startup (-eU).
 # This avoids sktime==0.8.1 build failures from PyPI while keeping deps fresh.

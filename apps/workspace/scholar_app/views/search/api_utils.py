@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: /home/ywatanabe/proj/scitex-cloud/apps/scholar_app/views/search/api_utils.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/scholar_app/views/search/api_utils.py
 # Shared utilities for search API endpoints
 # ----------------------------------------
 from __future__ import annotations

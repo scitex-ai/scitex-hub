@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2025-11-20 01:18:20
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/docs/PHILOSOPHY.md
+!-- File: /home/ywatanabe/proj/scitex-hub/docs/PHILOSOPHY.md
 !-- --- -->
 
 🚀 SciTeX Design Doctrine

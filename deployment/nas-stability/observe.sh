@@ -6,17 +6,17 @@
 # We need time-series data to identify the real trigger before the next fix.
 #
 # Run on the NAS (where docker + nginx + cgroups live), one sample/minute:
-#   * * * * * /home/ywatanabe/proj/scitex-cloud/deployment/nas-stability/observe.sh
+#   * * * * * /home/ywatanabe/proj/scitex-hub/deployment/nas-stability/observe.sh
 #
-# Appends TSV rows to ~/proj/scitex-cloud/logs/obs/YYYY-MM-DD.tsv
+# Appends TSV rows to ~/proj/scitex-hub/logs/obs/YYYY-MM-DD.tsv
 # Pure observation: no restarts, no writes outside logs/obs/.
 
 set -u
 
-CONTAINER_FILTER="scitex-cloud-prod"
-DJANGO="scitex-cloud-prod-django-1"
-NGINX="scitex-cloud-prod-nginx-1"
-LOG_ROOT="${HOME}/proj/scitex-cloud/logs/obs"
+CONTAINER_FILTER="scitex-hub-prod"
+DJANGO="scitex-hub-prod-django-1"
+NGINX="scitex-hub-prod-nginx-1"
+LOG_ROOT="${HOME}/proj/scitex-hub/logs/obs"
 DAY_FILE="${LOG_ROOT}/$(date -u +%Y-%m-%d).tsv"
 
 mkdir -p "${LOG_ROOT}"

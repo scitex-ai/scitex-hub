@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: /home/ywatanabe/proj/scitex-cloud/apps/scholar_app/views/search/api_unified.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/scholar_app/views/search/api_unified.py
 # Unified search API endpoint with command syntax support
 # ----------------------------------------
 from __future__ import annotations

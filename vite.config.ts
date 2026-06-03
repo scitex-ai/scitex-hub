@@ -183,16 +183,16 @@ export default defineConfig({
       "@": resolve(__dirname, "static/shared/ts"),
       "@types": resolve(__dirname, "static/shared/ts/types"),
       "@utils": resolve(__dirname, "static/shared/ts/utils"),
-      // Ensure monaco-editor resolves from scitex-cloud's node_modules
+      // Ensure monaco-editor resolves from scitex-hub's node_modules
       // even when imported from scitex-ui files outside this directory tree
       "monaco-editor": resolve(__dirname, "node_modules/monaco-editor"),
-      // Ensure mermaid resolves from scitex-cloud's node_modules
+      // Ensure mermaid resolves from scitex-hub's node_modules
       // even when dynamically imported from symlinked scitex-ui files
       mermaid: resolve(__dirname, "node_modules/mermaid"),
-      // Ensure zustand resolves from scitex-cloud's node_modules
+      // Ensure zustand resolves from scitex-hub's node_modules
       // even when imported from sibling repo bridges (e.g. figrecipe)
       zustand: resolve(__dirname, "node_modules/zustand"),
-      // Ensure @hpcc-js/wasm-graphviz resolves from scitex-cloud's node_modules
+      // Ensure @hpcc-js/wasm-graphviz resolves from scitex-hub's node_modules
       // even when dynamically imported from scitex-ui's GraphvizViewer
       "@hpcc-js/wasm-graphviz": resolve(
         __dirname,

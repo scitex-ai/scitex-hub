@@ -1,6 +1,6 @@
 #!/bin/bash
 # Live Status Checker with Spinners
-# Shows real-time status updates for SciTeX Cloud
+# Shows real-time status updates for SciTeX Hub
 
 set -euo pipefail
 
@@ -57,15 +57,15 @@ main() {
     local ENV="${1:-prod}"
 
     echo -e "${CYAN}╔═══════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║           SciTeX Cloud - Live Status                  ║${NC}"
+    echo -e "${CYAN}║           SciTeX Hub - Live Status                  ║${NC}"
     echo -e "${CYAN}╚═══════════════════════════════════════════════════════╝${NC}"
     echo ""
 
     # Environment Status
     echo -e "${CYAN}📊 Environment Status:${NC}"
     RUNNING=$(docker ps --format '{{.Names}}' 2>/dev/null | \
-        grep -oE 'scitex-cloud-(dev|prod)-' | \
-        sed 's/scitex-cloud-//' | sed 's/-//' | \
+        grep -oE 'scitex-hub-(dev|prod)-' | \
+        sed 's/scitex-hub-//' | sed 's/-//' | \
         sort -u | tr '\n' ' ' | xargs || true)
 
     if [ -n "$RUNNING" ]; then
@@ -77,7 +77,7 @@ main() {
 
     # Container Status
     echo -e "${CYAN}🐳 Container Status:${NC}"
-    CONTAINERS=$(docker ps --format "{{.Names}}" 2>/dev/null | grep "scitex-cloud-$ENV-" || true)
+    CONTAINERS=$(docker ps --format "{{.Names}}" 2>/dev/null | grep "scitex-hub-$ENV-" || true)
 
     if [ -z "$CONTAINERS" ]; then
         echo -e "  ${YELLOW}No containers running${NC}"
@@ -140,10 +140,10 @@ main() {
     # Terminal functionality test
     echo ""
     echo -e "${CYAN}🖥️  Terminal Functionality:${NC}"
-    if docker ps --format '{{.Names}}' | grep -q "^scitex-cloud-${ENV}-django-1$" 2>/dev/null; then
+    if docker ps --format '{{.Names}}' | grep -q "^scitex-hub-${ENV}-django-1$" 2>/dev/null; then
         echo -n -e "  ${CYAN}⏳ Testing SLURM job execution...${NC}"
 
-        if timeout 3 docker exec "scitex-cloud-${ENV}-django-1" su scitex -c "srun --partition=express true" >/dev/null 2>&1; then
+        if timeout 3 docker exec "scitex-hub-${ENV}-django-1" su scitex -c "srun --partition=express true" >/dev/null 2>&1; then
             echo -e "\r\033[K  ${GREEN}✓ Terminals ready (SLURM verified)${NC}"
         else
             echo -e "\r\033[K  ${RED}✗ Terminals NOT ready${NC}"

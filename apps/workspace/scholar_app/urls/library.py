@@ -9,6 +9,7 @@ from django.urls import path
 from ..views.annotation import views as annotation_views
 from ..views.export import views as export_views
 from ..views.library import views as library_views
+from ..views.library import zotero_import as zotero_views
 from ..views.trending import views as trending_views
 
 # Citation Export APIs
@@ -61,6 +62,12 @@ library_patterns = [
         "api/library/zotero/status/",
         library_views.api_zotero_status,
         name="api_zotero_status",
+    ),
+    # Zotero local-DB import (delegates to scitex ZoteroLocalReader)
+    path(
+        "api/library/zotero/import/",
+        zotero_views.zotero_import,
+        name="api_zotero_import",
     ),
     path(
         "api/library/connected-papers/status/",

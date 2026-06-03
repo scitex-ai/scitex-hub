@@ -8,7 +8,7 @@
 set -e
 
 # Configuration
-IMAGE_NAME="scitex-cloud-shared-v0.1.0"
+IMAGE_NAME="scitex-hub-shared-v0.1.0"
 VERSION="1.0.0"
 DOCKERFILE="deployment/docker/Dockerfile.user-workspace"
 

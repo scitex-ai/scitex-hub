@@ -1,6 +1,6 @@
 # SciTeX TypeScript Source Code
 
-This directory contains the TypeScript source code for SciTeX Cloud applications.
+This directory contains the TypeScript source code for SciTeX Hub applications.
 
 ## Directory Structure
 

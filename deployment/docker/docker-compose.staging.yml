@@ -1,5 +1,5 @@
 # ============================================
-# SciTeX Cloud - Staging Override
+# SciTeX Hub - Staging Override
 # ============================================
 # Usage:
 #   docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d
@@ -11,7 +11,7 @@
 #   - No Cloudflare tunnel (direct access)
 #   - Separate database
 
-name: scitex-cloud-staging
+name: scitex-hub-staging
 
 services:
   # ============================================
@@ -23,7 +23,7 @@ services:
       dockerfile: deployment/docker/Dockerfile.prod
       args:
         BUILDKIT_INLINE_CACHE: 1
-    image: scitex-cloud-staging-django:latest
+    image: scitex-hub-staging-django:latest
     entrypoint: ["/root-init.sh", "/entrypoint.sh"]
     command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "--access-log", "-", "--verbosity", "1", "config.asgi:application"]
     volumes:
@@ -51,14 +51,14 @@ services:
       # TypeScript output
       - /app/.jsbuild
     ports:
-      - "${SCITEX_CLOUD_HTTP_PORT:-31294}:8000"   # Staging port (3129X scheme)
-      - "${SCITEX_CLOUD_SSH_PORT:-2213}:2200"     # Staging SSH
+      - "${SCITEX_HUB_HTTP_PORT:-31294}:8000"   # Staging port (3129X scheme)
+      - "${SCITEX_HUB_SSH_PORT:-2213}:2200"     # Staging SSH
     env_file:
       - ./envs/.env.staging
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.settings_staging
-      SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
-      SCITEX_CLOUD_ENV: staging
+      SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
+      SCITEX_HUB_ENV: staging
       PYTHONPATH: /home/scitex/.local/lib/python3.11/site-packages:/app
       SCITEX_DIR: /app/.scitex
     depends_on:
@@ -68,7 +68,7 @@ services:
         condition: service_started
     extra_hosts:
       - "host.docker.internal:host-gateway"
-      - "${SCITEX_CLOUD_SLURM_HOST:-DXP480TPLUS-994}:host-gateway"
+      - "${SCITEX_HUB_SLURM_HOST:-DXP480TPLUS-994}:host-gateway"
     privileged: true
     restart: unless-stopped
     healthcheck:
@@ -102,7 +102,7 @@ services:
   # Celery Worker (Staging)
   # ============================================
   celery_worker:
-    image: scitex-cloud-staging-django:latest
+    image: scitex-hub-staging-django:latest
     entrypoint: ["/entrypoint.sh"]
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
@@ -130,8 +130,8 @@ services:
       - ./envs/.env.staging
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.settings_staging
-      SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
-      SCITEX_CLOUD_ENV: staging
+      SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
+      SCITEX_HUB_ENV: staging
       PYTHONUNBUFFERED: 1
       SCITEX_DIR: /app/.scitex
     depends_on:
@@ -141,7 +141,7 @@ services:
         condition: service_started
     extra_hosts:
       - "host.docker.internal:host-gateway"
-      - "${SCITEX_CLOUD_SLURM_HOST:-DXP480TPLUS-994}:host-gateway"
+      - "${SCITEX_HUB_SLURM_HOST:-DXP480TPLUS-994}:host-gateway"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
@@ -156,7 +156,7 @@ services:
   # Celery Beat (Staging)
   # ============================================
   celery_beat:
-    image: scitex-cloud-staging-django:latest
+    image: scitex-hub-staging-django:latest
     entrypoint: ["/entrypoint.sh"]
     command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
     volumes:
@@ -165,8 +165,8 @@ services:
       - ./envs/.env.staging
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.settings_staging
-      SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
-      SCITEX_CLOUD_ENV: staging
+      SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
+      SCITEX_HUB_ENV: staging
       PYTHONUNBUFFERED: 1
       SCITEX_DIR: /app/.scitex
     depends_on:
@@ -191,8 +191,8 @@ services:
   # ============================================
   gitea:
     ports:
-      - "${SCITEX_CLOUD_GITEA_HTTP_PORT:-3013}:3000"   # Staging gitea HTTP
-      - "${SCITEX_CLOUD_GITEA_SSH_PORT:-2232}:22"      # Staging gitea SSH
+      - "${SCITEX_HUB_GITEA_HTTP_PORT:-3013}:3000"   # Staging gitea HTTP
+      - "${SCITEX_HUB_GITEA_SSH_PORT:-2232}:22"      # Staging gitea SSH
     restart: unless-stopped
 
   # ============================================
@@ -200,7 +200,7 @@ services:
   # ============================================
   umami:
     ports:
-      - "${SCITEX_CLOUD_UMAMI_PORT:-3313}:3000"   # Staging umami port
+      - "${SCITEX_HUB_UMAMI_PORT:-3313}:3000"   # Staging umami port
     restart: unless-stopped
 
 # ============================================

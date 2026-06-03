@@ -45,7 +45,7 @@ def _build_agents_json(
     env["SCITEX_MCP_USE_CAPTURE"] = "0"
 
     # On-site auth: skip API key, authenticate via trusted header
-    from scitex_cloud._mcp_tools.api import get_on_site_env
+    from scitex_hub._mcp_tools.api import get_on_site_env
 
     env.update(get_on_site_env(username=username))
 
@@ -94,9 +94,9 @@ def _build_agents_md(project_name: str) -> str:
     """
     parts = [
         f"# {project_name}\n",
-        "SciTeX Cloud project with access to 145+ MCP tools.\n",
+        "SciTeX Hub project with access to 145+ MCP tools.\n",
         "## Platform\n",
-        "You are running inside an Apptainer container on SciTeX Cloud — a browser-based",
+        "You are running inside an Apptainer container on SciTeX Hub — a browser-based",
         "scientific research platform. Python 3.11 and the `scitex` package are pre-installed.",
         "The MCP server is connected.\n",
     ]
@@ -236,7 +236,7 @@ def _build_mcp_json(mcp_env: dict[str, str] | None = None, username: str = "") -
     env["SCITEX_MCP_USE_CAPTURE"] = "0"
 
     # On-site auth: skip API key, authenticate via trusted header
-    from scitex_cloud._mcp_tools.api import get_on_site_env
+    from scitex_hub._mcp_tools.api import get_on_site_env
 
     env.update(get_on_site_env(username=username))
 
@@ -281,7 +281,7 @@ def ensure_claude_config(
 
     Sets up:
     - <project>/.mcp.json — MCP server definition (project-level, clean)
-    - ~/.claude/skills/scitex-cloud/SKILL.md — platform skills
+    - ~/.claude/skills/scitex-hub/SKILL.md — platform skills
 
     AGENTS.md is now the single source of truth for project instructions
     (shared by Claude, Codex, Gemini). No separate CLAUDE.md is generated.
@@ -296,9 +296,9 @@ def ensure_claude_config(
     created = False
 
     try:
-        # ~/.claude/skills/scitex-cloud/SKILL.md — compiled skills
+        # ~/.claude/skills/scitex-hub/SKILL.md — compiled skills
         claude_dir = user_data_dir / ".claude"
-        skill_file = claude_dir / "skills" / "scitex-cloud" / "SKILL.md"
+        skill_file = claude_dir / "skills" / "scitex-hub" / "SKILL.md"
         if not skill_file.exists() or force:
             skill_file.parent.mkdir(parents=True, exist_ok=True)
             skill_file.write_text(_build_claude_skill())

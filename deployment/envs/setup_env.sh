@@ -113,17 +113,17 @@ setup_environment() {
     echo -e "Loading environment variables..."
     source "$ENV_FILE"
     echo -e ""
-    echo -e "SciTeX Cloud - Environment: $ENV"
-    echo -e "Django Settings: $SCITEX_CLOUD_DJANGO_SETTINGS_MODULE"
+    echo -e "SciTeX Hub - Environment: $ENV"
+    echo -e "Django Settings: $SCITEX_HUB_DJANGO_SETTINGS_MODULE"
 
     if [ "$ENV" = "dev" ]; then
-        echo -e "Database: $SCITEX_CLOUD_DB_NAME_DEV"
-        echo -e "DB User: $SCITEX_CLOUD_DB_USER_DEV"
-        echo -e "DB Host: $SCITEX_CLOUD_DB_HOST_DEV:$SCITEX_CLOUD_DB_PORT_DEV"
+        echo -e "Database: $SCITEX_HUB_DB_NAME_DEV"
+        echo -e "DB User: $SCITEX_HUB_DB_USER_DEV"
+        echo -e "DB Host: $SCITEX_HUB_DB_HOST_DEV:$SCITEX_HUB_DB_PORT_DEV"
     else
-        echo -e "Database: $SCITEX_CLOUD_DB_NAME_PROD"
-        echo -e "DB User: $SCITEX_CLOUD_DB_USER_PROD"
-        echo -e "DB Host: $SCITEX_CLOUD_DB_HOST_PROD:$SCITEX_CLOUD_DB_PORT_PROD"
+        echo -e "Database: $SCITEX_HUB_DB_NAME_PROD"
+        echo -e "DB User: $SCITEX_HUB_DB_USER_PROD"
+        echo -e "DB Host: $SCITEX_HUB_DB_HOST_PROD:$SCITEX_HUB_DB_PORT_PROD"
     fi
 
     echo -e "Logging Level: $SCITEX_LOGGING_LEVEL"
@@ -131,11 +131,11 @@ setup_environment() {
 
     if command -v pg_isready &> /dev/null; then
         if [ "$ENV" = "dev" ]; then
-            DB_HOST="$SCITEX_CLOUD_DB_HOST_DEV"
-            DB_PORT="$SCITEX_CLOUD_DB_PORT_DEV"
+            DB_HOST="$SCITEX_HUB_DB_HOST_DEV"
+            DB_PORT="$SCITEX_HUB_DB_PORT_DEV"
         else
-            DB_HOST="$SCITEX_CLOUD_DB_HOST_PROD"
-            DB_PORT="$SCITEX_CLOUD_DB_PORT_PROD"
+            DB_HOST="$SCITEX_HUB_DB_HOST_PROD"
+            DB_PORT="$SCITEX_HUB_DB_PORT_PROD"
         fi
 
         if pg_isready -h "$DB_HOST" -p "$DB_PORT" &> /dev/null; then

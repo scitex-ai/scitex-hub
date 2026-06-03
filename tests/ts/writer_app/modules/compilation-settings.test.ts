@@ -29,13 +29,13 @@ describe('compilation-settings', () => {
 //  * Compilation Settings Manager
 //  * Manages compilation preferences with localStorage persistence
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/compilation-settings.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/modules/compilation-settings.ts loaded",
 // );
-// 
+//
 // import { statePersistence } from "./state-persistence";
-// 
+//
 // export interface CompilationSettings {
 //   autoPreview: boolean;
 //   autoPreviewDelay: number; // seconds
@@ -53,7 +53,7 @@ describe('compilation-settings', () => {
 //   quiet?: boolean;
 //   force?: boolean;
 // }
-// 
+//
 // const DEFAULT_SETTINGS: CompilationSettings = {
 //   autoPreview: true,
 //   autoPreviewDelay: 5,
@@ -71,43 +71,43 @@ describe('compilation-settings', () => {
 //   quiet: false,
 //   force: false,
 // };
-// 
+//
 // const STORAGE_KEY = "scitex-compilation-settings";
-// 
+//
 // export class CompilationSettingsManager {
 //   private settings: CompilationSettings;
 //   private settingsModal: HTMLElement | null;
 //   private settingsBtn: HTMLElement | null;
-// 
+//
 //   constructor() {
 //     this.settings = this.loadSettings();
 //     this.settingsModal = document.getElementById("compilation-settings-modal");
 //     this.settingsBtn = document.getElementById("compilation-settings-btn");
-// 
+//
 //     this.initialize();
 //     console.log("[CompilationSettings] Initialized with:", this.settings);
 //   }
-// 
+//
 //   /**
 //    * Initialize settings UI and apply saved preferences
 //    */
 //   private initialize(): void {
 //     // Apply settings to UI
 //     this.applySettingsToUI();
-// 
+//
 //     // Setup settings button click handler
 //     if (this.settingsBtn) {
 //       this.settingsBtn.addEventListener("click", () => {
 //         this.openSettings();
 //       });
 //     }
-// 
+//
 //     // Setup modal form handlers
 //     this.setupModalHandlers();
-// 
+//
 //     console.log("[CompilationSettings] UI initialized");
 //   }
-// 
+//
 //   /**
 //    * Load settings from localStorage
 //    */
@@ -119,7 +119,7 @@ describe('compilation-settings', () => {
 //         console.log("[CompilationSettings] Loaded from state persistence:", persistedSettings);
 //         return { ...DEFAULT_SETTINGS, ...persistedSettings };
 //       }
-// 
+//
 //       // Fallback to old localStorage key
 //       const saved = localStorage.getItem(STORAGE_KEY);
 //       if (saved) {
@@ -131,14 +131,14 @@ describe('compilation-settings', () => {
 //     }
 //     return { ...DEFAULT_SETTINGS };
 //   }
-// 
+//
 //   /**
 //    * Save settings to localStorage
 //    */
 //   private saveSettings(): void {
 //     try {
 //       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.settings));
-// 
+//
 //       // Also save to unified state persistence
 //       statePersistence.saveCompilationSettings({
 //         autoPreview: this.settings.autoPreview,
@@ -156,13 +156,13 @@ describe('compilation-settings', () => {
 //         quiet: this.settings.quiet,
 //         force: this.settings.force,
 //       });
-// 
+//
 //       console.log("[CompilationSettings] Settings saved:", this.settings);
 //     } catch (error) {
 //       console.error("[CompilationSettings] Error saving settings:", error);
 //     }
 //   }
-// 
+//
 //   /**
 //    * Apply settings to UI elements
 //    */
@@ -174,7 +174,7 @@ describe('compilation-settings', () => {
 //     if (autoPreviewCheckbox) {
 //       autoPreviewCheckbox.checked = this.settings.autoPreview;
 //     }
-// 
+//
 //     // Auto Full Compile checkbox
 //     const autoFullCompileCheckbox = document.getElementById(
 //       "auto-fullcompile-checkbox",
@@ -182,11 +182,11 @@ describe('compilation-settings', () => {
 //     if (autoFullCompileCheckbox) {
 //       autoFullCompileCheckbox.checked = this.settings.autoFullCompile;
 //     }
-// 
+//
 //     // Update delay labels
 //     this.updateDelayLabels();
 //   }
-// 
+//
 //   /**
 //    * Update delay labels in UI
 //    */
@@ -198,7 +198,7 @@ describe('compilation-settings', () => {
 //       const iconHtml = '<i class="fas fa-magic me-1"></i>';
 //       autoPreviewLabel.innerHTML = `${iconHtml}Auto Preview (${this.settings.autoPreviewDelay}s)`;
 //     }
-// 
+//
 //     const autoFullLabel = document.querySelector(
 //       'label[for="auto-fullcompile-checkbox"]',
 //     );
@@ -207,13 +207,13 @@ describe('compilation-settings', () => {
 //       autoFullLabel.innerHTML = `${iconHtml}Auto Full (${this.settings.autoFullCompileDelay}s)`;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Setup modal form handlers
 //    */
 //   private setupModalHandlers(): void {
 //     if (!this.settingsModal) return;
-// 
+//
 //     // Save button
 //     const saveBtn = this.settingsModal.querySelector(
 //       "#save-compilation-settings",
@@ -223,7 +223,7 @@ describe('compilation-settings', () => {
 //         this.saveFromModal();
 //       });
 //     }
-// 
+//
 //     // Reset to defaults button
 //     const resetBtn = this.settingsModal.querySelector(
 //       "#reset-compilation-settings",
@@ -233,7 +233,7 @@ describe('compilation-settings', () => {
 //         this.resetToDefaults();
 //       });
 //     }
-// 
+//
 //     // Close button
 //     const closeBtn = this.settingsModal.querySelector(
 //       ".btn-close",
@@ -244,29 +244,29 @@ describe('compilation-settings', () => {
 //       });
 //     }
 //   }
-// 
+//
 //   /**
 //    * Open settings modal
 //    */
 //   public openSettings(): void {
 //     if (!this.settingsModal) return;
-// 
+//
 //     // Populate form with current settings
 //     this.populateSettingsForm();
-// 
+//
 //     // Show modal (Bootstrap 5)
 //     const modal = new (window as any).bootstrap.Modal(this.settingsModal);
 //     modal.show();
-// 
+//
 //     console.log("[CompilationSettings] Settings modal opened");
 //   }
-// 
+//
 //   /**
 //    * Close settings modal
 //    */
 //   public closeSettings(): void {
 //     if (!this.settingsModal) return;
-// 
+//
 //     const modal = (window as any).bootstrap.Modal.getInstance(
 //       this.settingsModal,
 //     );
@@ -274,13 +274,13 @@ describe('compilation-settings', () => {
 //       modal.hide();
 //     }
 //   }
-// 
+//
 //   /**
 //    * Populate settings form with current values
 //    */
 //   private populateSettingsForm(): void {
 //     if (!this.settingsModal) return;
-// 
+//
 //     // Auto Preview
 //     const autoPreviewInput = this.settingsModal.querySelector(
 //       "#setting-auto-preview",
@@ -288,14 +288,14 @@ describe('compilation-settings', () => {
 //     if (autoPreviewInput) {
 //       autoPreviewInput.checked = this.settings.autoPreview;
 //     }
-// 
+//
 //     const autoPreviewDelayInput = this.settingsModal.querySelector(
 //       "#setting-auto-preview-delay",
 //     ) as HTMLInputElement;
 //     if (autoPreviewDelayInput) {
 //       autoPreviewDelayInput.value = this.settings.autoPreviewDelay.toString();
 //     }
-// 
+//
 //     // Auto Full Compile
 //     const autoFullInput = this.settingsModal.querySelector(
 //       "#setting-auto-full",
@@ -303,7 +303,7 @@ describe('compilation-settings', () => {
 //     if (autoFullInput) {
 //       autoFullInput.checked = this.settings.autoFullCompile;
 //     }
-// 
+//
 //     const autoFullDelayInput = this.settingsModal.querySelector(
 //       "#setting-auto-full-delay",
 //     ) as HTMLInputElement;
@@ -311,7 +311,7 @@ describe('compilation-settings', () => {
 //       autoFullDelayInput.value =
 //         this.settings.autoFullCompileDelay.toString();
 //     }
-// 
+//
 //     // Compile on Save
 //     const compileOnSaveInput = this.settingsModal.querySelector(
 //       "#setting-compile-on-save",
@@ -319,7 +319,7 @@ describe('compilation-settings', () => {
 //     if (compileOnSaveInput) {
 //       compileOnSaveInput.checked = this.settings.compileOnSave;
 //     }
-// 
+//
 //     // Show Compilation Log
 //     const showLogInput = this.settingsModal.querySelector(
 //       "#setting-show-log",
@@ -328,13 +328,13 @@ describe('compilation-settings', () => {
 //       showLogInput.checked = this.settings.showCompilationLog;
 //     }
 //   }
-// 
+//
 //   /**
 //    * Save settings from modal form
 //    */
 //   private saveFromModal(): void {
 //     if (!this.settingsModal) return;
-// 
+//
 //     // Read values from form
 //     const autoPreviewInput = this.settingsModal.querySelector(
 //       "#setting-auto-preview",
@@ -354,7 +354,7 @@ describe('compilation-settings', () => {
 //     const showLogInput = this.settingsModal.querySelector(
 //       "#setting-show-log",
 //     ) as HTMLInputElement;
-// 
+//
 //     // Update settings
 //     if (autoPreviewInput) {
 //       this.settings.autoPreview = autoPreviewInput.checked;
@@ -380,25 +380,25 @@ describe('compilation-settings', () => {
 //     if (showLogInput) {
 //       this.settings.showCompilationLog = showLogInput.checked;
 //     }
-// 
+//
 //     // Save to localStorage
 //     this.saveSettings();
-// 
+//
 //     // Apply to UI
 //     this.applySettingsToUI();
-// 
+//
 //     // Close modal
 //     this.closeSettings();
-// 
+//
 //     // Show toast notification
 //     const showToast = (window as any).showToast;
 //     if (showToast) {
 //       showToast("Compilation settings saved", "success");
 //     }
-// 
+//
 //     console.log("[CompilationSettings] Settings updated and saved");
 //   }
-// 
+//
 //   /**
 //    * Reset settings to defaults
 //    */
@@ -407,22 +407,22 @@ describe('compilation-settings', () => {
 //     this.saveSettings();
 //     this.applySettingsToUI();
 //     this.populateSettingsForm();
-// 
+//
 //     const showToast = (window as any).showToast;
 //     if (showToast) {
 //       showToast("Settings reset to defaults", "info");
 //     }
-// 
+//
 //     console.log("[CompilationSettings] Reset to defaults");
 //   }
-// 
+//
 //   /**
 //    * Get current settings
 //    */
 //   public getSettings(): CompilationSettings {
 //     return { ...this.settings };
 //   }
-// 
+//
 //   /**
 //    * Update a specific setting
 //    */
@@ -435,7 +435,7 @@ describe('compilation-settings', () => {
 //     this.applySettingsToUI();
 //   }
 // }
-// 
+//
 // // Export singleton instance
 // export const compilationSettings = new CompilationSettingsManager();
 

@@ -29,7 +29,7 @@ describe('SectionDropdown', () => {
 //  * Section Dropdown Main Class
 //  * Core interface for the custom section dropdown
 //  */
-// 
+//
 // import { showToast } from "../ui";
 // import { getWriterConfig } from "../../helpers";
 // import { setupDragAndDrop } from "../../modules/index";
@@ -37,11 +37,11 @@ describe('SectionDropdown', () => {
 // import type { CompilationManager } from "../../modules/index";
 // import { renderSectionDropdown } from "./rendering";
 // import { setupSectionEvents } from "./events";
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/utils/section-dropdown/SectionDropdown.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/utils/section-dropdown/SectionDropdown.ts loaded",
 // );
-// 
+//
 // /**
 //  * Populate the custom section dropdown with sections from the API
 //  *
@@ -59,13 +59,13 @@ describe('SectionDropdown', () => {
 //   state?: any,
 // ): Promise<void> {
 //   console.log("[Writer] Populating custom section dropdown for:", docType);
-// 
+//
 //   const dropdownContainer = document.getElementById(
 //     "section-selector-dropdown",
 //   );
 //   const toggleBtn = document.getElementById("section-selector-toggle");
 //   const selectorText = document.getElementById("section-selector-text");
-// 
+//
 //   if (!dropdownContainer || !toggleBtn || !selectorText) {
 //     console.warn("[Writer] Custom section dropdown elements not found");
 //     console.log("[Writer] dropdownContainer:", dropdownContainer);
@@ -73,9 +73,9 @@ describe('SectionDropdown', () => {
 //     console.log("[Writer] selectorText:", selectorText);
 //     return;
 //   }
-// 
+//
 //   console.log("[Writer] Custom dropdown elements found, setting up...");
-// 
+//
 //   // Always setup the toggle listener first (even if fetch fails)
 //   if (!toggleBtn.dataset.listenerAttached) {
 //     toggleBtn.addEventListener("click", (e) => {
@@ -83,7 +83,7 @@ describe('SectionDropdown', () => {
 //       const isVisible = dropdownContainer.style.display !== "none";
 //       dropdownContainer.style.display = isVisible ? "none" : "flex";
 //     });
-// 
+//
 //     // Close dropdown when clicking outside
 //     document.addEventListener("click", (e) => {
 //       if (
@@ -93,19 +93,19 @@ describe('SectionDropdown', () => {
 //         dropdownContainer.style.display = "none";
 //       }
 //     });
-// 
+//
 //     toggleBtn.dataset.listenerAttached = "true";
 //     console.log("[Writer] Section selector toggle listener attached");
 //   }
-// 
+//
 //   try {
 //     const response = await fetch("/writer/api/sections-config/");
 //     const data = await response.json();
-// 
+//
 //     if (!data.success || !data.hierarchy) {
 //       console.error("[Writer] Failed to load sections hierarchy");
 //       console.error("[Writer] API response:", data);
-// 
+//
 //       // Fallback: Show error in dropdown
 //       dropdownContainer.innerHTML = `
 //                 <div style="padding: 16px; text-align: center; color: var(--color-fg-muted);">
@@ -117,13 +117,13 @@ describe('SectionDropdown', () => {
 //       selectorText.textContent = "Error loading sections";
 //       return;
 //     }
-// 
+//
 //     const hierarchy = data.hierarchy;
 //     let sections: any[] = [];
-// 
+//
 //     console.log("[Writer] Hierarchy received:", hierarchy);
 //     console.log("[Writer] Looking for docType:", docType);
-// 
+//
 //     if (docType === "shared" && hierarchy.shared) {
 //       sections = hierarchy.shared.sections;
 //     } else if (docType === "manuscript" && hierarchy.manuscript) {
@@ -133,16 +133,16 @@ describe('SectionDropdown', () => {
 //     } else if (docType === "revision" && hierarchy.revision) {
 //       sections = hierarchy.revision.sections;
 //     }
-// 
+//
 //     console.log("[Writer] Sections extracted:", sections);
 //     console.log("[Writer] Sections count:", sections.length);
-// 
+//
 //     if (sections.length === 0) {
 //       console.warn("[Writer] No sections found for document type:", docType);
 //       selectorText.textContent = "No sections found";
 //       return;
 //     }
-// 
+//
 //     // Render the dropdown HTML
 //     const html = renderSectionDropdown(sections, docType);
 //     dropdownContainer.innerHTML = html;
@@ -151,7 +151,7 @@ describe('SectionDropdown', () => {
 //       sections.length,
 //       "sections",
 //     );
-// 
+//
 //     // Setup all event listeners
 //     setupSectionEvents(
 //       dropdownContainer,
@@ -161,10 +161,10 @@ describe('SectionDropdown', () => {
 //       state,
 //       selectorText,
 //     );
-// 
+//
 //     // Setup drag and drop for section reordering
 //     setupDragAndDrop(dropdownContainer, sections);
-// 
+//
 //     // Set initial selection - restore saved section for this doctype or use first section
 //     if (sections.length > 0) {
 //       // Try to restore saved section for this specific doctype first
@@ -175,7 +175,7 @@ describe('SectionDropdown', () => {
 //       }
 //       let selectedSection = sections[0];
 //       let selectedIndex = 0;
-// 
+//
 //       if (savedSectionId) {
 //         const savedIndex = sections.findIndex((s: any) => s.id === savedSectionId);
 //         if (savedIndex >= 0) {
@@ -184,10 +184,10 @@ describe('SectionDropdown', () => {
 //           console.log("[Writer] Restored saved section for", docType + ":", savedSectionId);
 //         }
 //       }
-// 
+//
 //       const pageNum = selectedIndex + 1;
 //       selectorText.textContent = `${pageNum}. ${selectedSection.label}`;
-// 
+//
 //       // Mark the correct section as active
 //       const sectionItems = dropdownContainer.querySelectorAll(".section-item");
 //       sectionItems.forEach((item, idx) => {
@@ -195,7 +195,7 @@ describe('SectionDropdown', () => {
 //           item.classList.add("active");
 //         }
 //       });
-// 
+//
 //       // Auto-load selected section
 //       if (onFileSelectCallback) {
 //         console.log("[Writer] Auto-selecting section:", selectedSection.id);
@@ -206,7 +206,7 @@ describe('SectionDropdown', () => {
 //     console.error("[Writer] Error populating section dropdown:", error);
 //   }
 // }
-// 
+//
 // /**
 //  * Synchronize dropdown selection with current section (legacy)
 //  *
@@ -220,7 +220,7 @@ describe('SectionDropdown', () => {
 //     dropdown.value = sectionId;
 //   }
 // }
-// 
+//
 // /**
 //  * Synchronize all dropdowns from a file path
 //  * Called when user clicks on a file in the tree
@@ -229,7 +229,7 @@ describe('SectionDropdown', () => {
 //  */
 // export function syncDropdownsFromPath(path: string): void {
 //   console.log("[SectionDropdown] Syncing dropdowns from path:", path);
-// 
+//
 //   // Extract doctype from path
 //   let doctype: string | null = null;
 //   if (path.includes("01_manuscript") || path.includes("/manuscript/")) {
@@ -241,18 +241,18 @@ describe('SectionDropdown', () => {
 //   } else if (path.includes("00_shared") || path.includes("/shared/")) {
 //     doctype = "shared";
 //   }
-// 
+//
 //   // Extract section name from filename
 //   const parts = path.split("/");
 //   const fileName = parts[parts.length - 1];
 //   let sectionName: string | null = null;
-// 
+//
 //   if (fileName.endsWith(".tex")) {
 //     sectionName = fileName.replace(".tex", "").replace(/^\d+_/, "");
 //   }
-// 
+//
 //   console.log("[SectionDropdown] Extracted doctype:", doctype, "section:", sectionName);
-// 
+//
 //   // Update doctype dropdown
 //   if (doctype) {
 //     const doctypeSelector = document.getElementById("doctype-selector") as HTMLSelectElement;
@@ -262,38 +262,38 @@ describe('SectionDropdown', () => {
 //       // Note: This won't trigger the change event, so section dropdown needs manual sync
 //     }
 //   }
-// 
+//
 //   // Build section ID
 //   const sectionId = doctype && sectionName ? `${doctype}/${sectionName}` : null;
-// 
+//
 //   if (sectionId) {
 //     // Update section dropdown visually
 //     const dropdownContainer = document.getElementById("section-selector-dropdown");
 //     const selectorText = document.getElementById("section-selector-text");
-// 
+//
 //     if (dropdownContainer && selectorText) {
 //       // Find matching section item
 //       const sectionItems = dropdownContainer.querySelectorAll(".section-item");
 //       let found = false;
-// 
+//
 //       sectionItems.forEach((item, index) => {
 //         const itemSectionId = (item as HTMLElement).dataset.sectionId;
-// 
+//
 //         if (itemSectionId === sectionId) {
 //           // Mark this as active
 //           sectionItems.forEach(si => si.classList.remove("active"));
 //           item.classList.add("active");
-// 
+//
 //           // Update display text
 //           const itemName = item.querySelector(".section-item-name")?.textContent || sectionName;
 //           const pageNum = index + 1;
 //           selectorText.textContent = `${pageNum}. ${itemName}`;
-// 
+//
 //           found = true;
 //           console.log("[SectionDropdown] Selected section item:", sectionId, "index:", index);
 //         }
 //       });
-// 
+//
 //       if (!found) {
 //         console.log("[SectionDropdown] Section not found in dropdown:", sectionId);
 //         // Still update the text to show the file being edited
@@ -302,7 +302,7 @@ describe('SectionDropdown', () => {
 //         }
 //       }
 //     }
-// 
+//
 //     // Save to persistence
 //     statePersistence.saveSection(sectionId);
 //     if (doctype) {

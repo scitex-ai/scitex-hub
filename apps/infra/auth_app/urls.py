@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-10-26 19:41:52 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/apps/auth_app/urls.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/auth_app/urls.py
 # ----------------------------------------
 from __future__ import annotations
 

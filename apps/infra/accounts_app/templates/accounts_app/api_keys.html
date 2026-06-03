@@ -2,7 +2,7 @@
 
 {% load static %}
 
-{% block title %}API Keys - Settings - SciTeX Cloud{% endblock %}
+{% block title %}API Keys - Settings - SciTeX Hub{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
     <link rel="stylesheet" href="{% static 'accounts_app/css/api_keys.css' %}" />
@@ -19,7 +19,7 @@
                 <div class="settings-header">
                     <h1 class="settings-title">API Keys</h1>
                     <p class="settings-subtitle">
-                        API keys for programmatic access to SciTeX Cloud.
+                        API keys for programmatic access to SciTeX Hub.
                         Use them to call the REST API or connect external MCP clients (Claude Desktop, etc.)
                         to <strong>https://scitex.ai/mcp</strong> for AI-powered scientific tools.
                     </p>
@@ -188,7 +188,7 @@
                     {% else %}
                         <div class="empty-state-card">
                             <h3>You don't have any API keys yet.</h3>
-                            <p>Generate an API key above to access the SciTeX Cloud API programmatically.</p>
+                            <p>Generate an API key above to access the SciTeX Hub API programmatically.</p>
                         </div>
                     {% endif %}
                 </details>

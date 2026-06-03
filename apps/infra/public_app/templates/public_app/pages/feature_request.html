@@ -1,4 +1,4 @@
-{% extends "public_app/cloud_base.html" %}
+{% extends "public_app/hub_base.html" %}
 {% block title %}
     Submit a Feature
     Request - SciTeX
@@ -238,7 +238,7 @@
                                 <label for="category" class="form-label">Category</label>
                                 <select class="form-select" id="category" required>
                                     <option value="" selected disabled>Select a category</option>
-                                    <option value="cloud">SciTeX Cloud</option>
+                                    <option value="cloud">SciTeX Hub</option>
                                     <option value="code">SciTeX Code</option>
                                     <option value="doc">SciTeX Doc</option>
                                     <option value="engine">SciTeX Engine</option>
@@ -362,7 +362,7 @@
             <p class="text-center mb-4">Here's what we're working on now and planning for the future</p>
             <div class="mermaid">
                 gantt title SciTeX Development Timeline dateFormat YYYY-MM-DD section
-                SciTeX-Cloud Web Interface :done, cloud1, 2025-01-01, 90d User
+                SciTeX-Hub Web Interface :done, hub1, 2025-01-01, 90d User
                 Authentication :done, cloud2, after cloud1, 60d Collaboration Features
                 :active, cloud3, after cloud2, 90d API Integration : cloud4, after cloud3,
                 120d section SciTeX-Doc LaTeX Compilation :done, doc1, 2025-01-01, 120d

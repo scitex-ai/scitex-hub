@@ -192,12 +192,12 @@ main() {
     done
 
     # Configuration
-    GITEA_URL="${SCITEX_CLOUD_GITEA_URL_DEV:-http://127.0.0.1:3000}"
-    GITEA_TOKEN="${SCITEX_CLOUD_GITEA_TOKEN_DEV}"
+    GITEA_URL="${SCITEX_HUB_GITEA_URL_DEV:-http://127.0.0.1:3000}"
+    GITEA_TOKEN="${SCITEX_HUB_GITEA_TOKEN_DEV}"
 
     if [ -z "$GITEA_TOKEN" ]; then
         echo_error "GITEA_TOKEN not set"
-        echo_info "Set SCITEX_CLOUD_GITEA_TOKEN_DEV in .env"
+        echo_info "Set SCITEX_HUB_GITEA_TOKEN_DEV in .env"
         exit 1
     fi
 
@@ -207,7 +207,7 @@ main() {
 
     if ! echo -e "$test_response" | grep -q '"login"'; then
         echo_error "Invalid or expired token"
-        echo_info "Check SCITEX_CLOUD_GITEA_TOKEN_DEV in .env"
+        echo_info "Check SCITEX_HUB_GITEA_TOKEN_DEV in .env"
         exit 1
     fi
 

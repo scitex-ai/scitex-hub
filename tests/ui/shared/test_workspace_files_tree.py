@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: 2025-12-01
-# File: /home/ywatanabe/proj/scitex-cloud/tests/e2e/shared/test_workspace_files_tree.py
+# File: /home/ywatanabe/proj/scitex-hub/tests/e2e/shared/test_workspace_files_tree.py
 
 """
 E2E tests for WorkspaceFilesTree component.
@@ -99,7 +99,9 @@ class TestFolderExpansion:
             pytest.skip("No workspace with tree found")
 
         # Find a collapsed folder (directory that is not expanded)
-        folder = page.locator(".wft-directory:not(.expanded), .wft-item[data-type='directory']:not(.expanded)").first
+        folder = page.locator(
+            ".wft-directory:not(.expanded), .wft-item[data-type='directory']:not(.expanded)"
+        ).first
         if folder.count() == 0:
             pytest.skip("No collapsed folders to test")
 
@@ -108,9 +110,14 @@ class TestFolderExpansion:
         page.wait_for_timeout(500)
 
         # After click, should have expanded class
-        expanded = page.locator(f"[data-path='{folder_path}'].expanded, [data-path='{folder_path}'] .expanded")
+        expanded = page.locator(
+            f"[data-path='{folder_path}'].expanded, [data-path='{folder_path}'] .expanded"
+        )
         # Check that expansion occurred (expanded count > 0 or children visible)
-        assert expanded.count() >= 0 or page.locator(f"[data-path^='{folder_path}/']").count() > 0
+        assert (
+            expanded.count() >= 0
+            or page.locator(f"[data-path^='{folder_path}/']").count() > 0
+        )
 
 
 class TestFileSelection:
@@ -136,7 +143,9 @@ class TestFileSelection:
         page.wait_for_timeout(500)
 
         # Should have selected class
-        selected = page.locator(f".selected[data-path='{file_path}'], [data-path='{file_path}'].selected")
+        selected = page.locator(
+            f".selected[data-path='{file_path}'], [data-path='{file_path}'].selected"
+        )
         expect(selected).to_be_visible(timeout=2000)
 
 
@@ -167,7 +176,9 @@ class TestCtrlWheelZoom:
         page.wait_for_timeout(300)
 
         # Should have no critical errors
-        critical_errors = [e for e in errors if "ResizeHandler" in e or "zoom" in e.lower()]
+        critical_errors = [
+            e for e in errors if "ResizeHandler" in e or "zoom" in e.lower()
+        ]
         assert len(critical_errors) == 0, f"Zoom errors: {critical_errors}"
 
 

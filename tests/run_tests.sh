@@ -3,7 +3,7 @@
 
 # Set up environment
 export PYTHONPATH="$PYTHONPATH:$(pwd)/src"
-export SCITEX_CLOUD_DJANGO_SETTINGS_MODULE="config.settings.development"
+export SCITEX_HUB_DJANGO_SETTINGS_MODULE="config.settings.development"
 
 # Activate virtual environment if it exists
 if [ -d ".env" ]; then
@@ -45,15 +45,15 @@ fi
 # Run Django tests
 if [ -d "tests" ]; then
     log_message "Running Django tests..."
-    
+
     if [ "$DEBUG" = true ]; then
         python manage.py test tests --verbosity=2 2>&1 | tee -a "$LOG_FILE"
     else
         python manage.py test tests 2>&1 | tee -a "$LOG_FILE"
     fi
-    
+
     TEST_EXIT_CODE=${PIPESTATUS[0]}
-    
+
     if [ $TEST_EXIT_CODE -eq 0 ]; then
         log_message "All Django tests passed!"
     else
@@ -67,21 +67,21 @@ fi
 # Run JavaScript tests if package.json exists
 if [ -f "package.json" ]; then
     log_message "Running JavaScript tests..."
-    
+
     if [ "$DEBUG" = true ]; then
         npm test -- --verbose 2>&1 | tee -a "$LOG_FILE"
     else
         npm test 2>&1 | tee -a "$LOG_FILE"
     fi
-    
+
     JS_TEST_EXIT_CODE=${PIPESTATUS[0]}
-    
+
     if [ $JS_TEST_EXIT_CODE -eq 0 ]; then
         log_message "All JavaScript tests passed!"
     else
         log_message "JavaScript tests failed with exit code $JS_TEST_EXIT_CODE"
     fi
-    
+
     # Combine exit codes
     if [ $TEST_EXIT_CODE -eq 0 ]; then
         TEST_EXIT_CODE=$JS_TEST_EXIT_CODE

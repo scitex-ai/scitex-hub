@@ -10,8 +10,11 @@ import pytest
 class TestPlaceholder:
     """Placeholder test class - replace with actual tests."""
 
-    def test_placeholder(self):
+    def test_placeholder_pending_implementation(self):
         """Placeholder test - implement actual tests."""
+        # Arrange
+        # Act
+        # Assert
         pytest.skip("Not implemented yet")
 
 
@@ -165,7 +168,7 @@ if __name__ == "__main__":
 #
 # # Add your custom environment variables below
 # # API_KEY=your_api_key_here
-# # SCITEX_CLOUD_POSTGRES_URL=your_database_url_here
+# # SCITEX_HUB_POSTGRES_URL=your_database_url_here
 # """
 #
 #         config_path = project_path / "config"

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: /home/ywatanabe/proj/scitex-cloud/apps/scholar_app/integrations/scitex_scholar.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/scholar_app/integrations/scitex_scholar.py
 """
 Integration layer between Django and scitex.scholar package.
 
@@ -44,7 +44,7 @@ def get_user_scitex_dir(user, session_key: Optional[str] = None) -> Path:
     Get the user-specific SCITEX directory path.
 
     Resolution order:
-    1. SCITEX_CLOUD_USER_DATA_ROOT env var (for containerized per-user setups)
+    1. SCITEX_HUB_USER_DATA_ROOT env var (for containerized per-user setups)
        (falls back to legacy SCITEX_USER_DATA_ROOT)
     2. USER_DATA_ROOT Django setting
     3. Default: {BASE_DIR}/data/users/{username}/.scitex
@@ -64,8 +64,8 @@ def get_user_scitex_dir(user, session_key: Optional[str] = None) -> Path:
     base_dir = getattr(settings, "BASE_DIR", Path.cwd())
 
     # Check for containerized setup with per-user $HOME
-    # Support both new (SCITEX_CLOUD_*) and legacy (SCITEX_*) names
-    user_data_root = os.environ.get("SCITEX_CLOUD_USER_DATA_ROOT") or os.environ.get(
+    # Support both new (SCITEX_HUB_*) and legacy (SCITEX_*) names
+    user_data_root = os.environ.get("SCITEX_HUB_USER_DATA_ROOT") or os.environ.get(
         "SCITEX_USER_DATA_ROOT"
     )
     if user_data_root:

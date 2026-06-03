@@ -8,7 +8,10 @@ references.bib
 
 # SciTeX user data directory (should be in home dir, not project root)
 # This gets accidentally created when Docker uses /app/.scitex/ path
-.scitex/
+.scitex/*
+!.scitex/dev/
+.scitex/dev/*
+!.scitex/dev/config.yaml
 
 ### Source: /home/ywatanabe/.git-templates/.gitignore-templates/Custom/Claude.gitignore ###
 .claude
@@ -32,7 +35,7 @@ deployment/ssl/
 tmp.sh
 tmp/*.sh
 rename_without_duplication.sh
-SCITEX_CLOUD_DJANGO_SETTINGS_MODULE
+SCITEX_HUB_DJANGO_SETTINGS_MODULE
 
 # Code workspace temporary files
 .scratch_temp.py
@@ -109,6 +112,9 @@ data/ssh_keys/
 **/*.pdf
 **/*.pkl
 **/*.png
+# README logo (PS-112) and other docs assets must be tracked.
+!docs/assets/images/*.png
+!static/shared/images/scitex_logos/**/*.png
 **/*.pth
 **/*.pt
 **/*.chk

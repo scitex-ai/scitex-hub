@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# SLURM Host Installation for SciTeX Cloud
+# SLURM Host Installation for SciTeX Hub
 # =============================================================================
 # Builds SLURM 24.05.5 from source to match Docker container version.
 # Usage: sudo ./install-host.sh
@@ -134,7 +134,7 @@ systemd-tmpfiles --create 2>/dev/null || true
 log "Generating SLURM configuration..."
 
 cat > /etc/slurm/slurm.conf << EOF
-# SLURM Configuration for SciTeX Cloud
+# SLURM Configuration for SciTeX Hub
 # Generated: $(date)
 
 ClusterName=scitex

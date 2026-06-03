@@ -29,22 +29,22 @@ describe('theme-switcher', () => {
 //  * SciTeX Theme Switcher
 //  * Handles Light/Dark mode switching with localStorage persistence and database sync
 //  */
-// 
+//
 // import { getCsrfToken } from "./csrf";
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/utils/theme-switcher.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/static/ts/utils/theme-switcher.ts loaded",
 // );
 // type Theme = "light" | "dark";
-// 
+//
 // interface ThemeResponse {
 //   theme?: Theme;
 // }
-// 
+//
 // interface ThemeSaveResponse {
 //   success: boolean;
 // }
-// 
+//
 // interface SciTeXThemeAPI {
 //   toggle: () => void;
 //   set: (theme: Theme) => void;
@@ -52,7 +52,7 @@ describe('theme-switcher', () => {
 //   LIGHT: Theme;
 //   DARK: Theme;
 // }
-// 
+//
 // declare global {
 //   interface Window {
 //     SciTeX: {
@@ -60,17 +60,17 @@ describe('theme-switcher', () => {
 //     };
 //   }
 // }
-// 
+//
 // const STORAGE_KEY = "scitex-theme-preference";
 // const THEME_LIGHT: Theme = "light";
 // const THEME_DARK: Theme = "dark";
-// 
+//
 // /**
 //  * Get the current theme preference from localStorage
 //  */
 // function getThemePreference(): Theme {
 //   const stored = localStorage.getItem(STORAGE_KEY);
-// 
+//
 //   // Migration: Clean up old 'auto' or 'system' values from previous implementation
 //   if (stored && !["light", "dark"].includes(stored)) {
 //     console.log(
@@ -79,14 +79,14 @@ describe('theme-switcher', () => {
 //     localStorage.setItem(STORAGE_KEY, THEME_LIGHT);
 //     return THEME_LIGHT;
 //   }
-// 
+//
 //   if (stored && (stored === THEME_LIGHT || stored === THEME_DARK)) {
 //     return stored as Theme;
 //   }
-// 
+//
 //   return THEME_DARK; // Default to dark theme for new visitors
 // }
-// 
+//
 // /**
 //  * Load theme preference from database (for authenticated users)
 //  */
@@ -102,7 +102,7 @@ describe('theme-switcher', () => {
 //   }
 //   return null;
 // }
-// 
+//
 // /**
 //  * Save theme preference to database (for authenticated users)
 //  */
@@ -125,7 +125,7 @@ describe('theme-switcher', () => {
 //     console.warn("Failed to save theme to database:", error);
 //   }
 // }
-// 
+//
 // /**
 //  * Apply theme to the document
 //  */
@@ -137,10 +137,10 @@ describe('theme-switcher', () => {
 //     document.documentElement.setAttribute("data-theme", "light");
 //     document.documentElement.setAttribute("data-color-mode", "light");
 //   }
-// 
+//
 //   // Update toggle button if exists
 //   updateToggleButton();
-// 
+//
 //   // Dispatch custom event for Monaco editor and terminal to listen to
 //   const event = new CustomEvent("theme-changed", {
 //     detail: { theme },
@@ -148,7 +148,7 @@ describe('theme-switcher', () => {
 //   document.dispatchEvent(event);
 //   console.log(`[Theme] Dispatched theme-changed event: ${theme}`);
 // }
-// 
+//
 // /**
 //  * Set theme preference and apply
 //  */
@@ -158,7 +158,7 @@ describe('theme-switcher', () => {
 //   // Save to database for authenticated users (async, don't wait)
 //   saveThemeToDatabase(preference);
 // }
-// 
+//
 // /**
 //  * Toggle between themes: light <-> dark
 //  */
@@ -168,34 +168,34 @@ describe('theme-switcher', () => {
 //   console.log(`Theme toggle: ${current} → ${next}`);
 //   setThemePreference(next);
 // }
-// 
+//
 // /**
 //  * Update the toggle button appearance
 //  */
 // function updateToggleButton(): void {
 //   const toggleBtn = document.getElementById("theme-toggle");
 //   if (!toggleBtn) return;
-// 
+//
 //   const theme = getThemePreference();
-// 
+//
 //   // Update aria-label (accessibility)
 //   const labels = {
 //     light: "☀️ Light",
 //     dark: "🌙 Dark",
 //   } as const;
-// 
+//
 //   // Note: title attribute removed to avoid duplicate tooltips with data-tooltip
 //   toggleBtn.setAttribute("aria-label", `Current theme: ${labels[theme]}`);
-// 
+//
 //   // Update button content
 //   const icons = {
 //     light: "☀️",
 //     dark: "🌙",
 //   } as const;
-// 
+//
 //   toggleBtn.innerHTML = icons[theme];
 // }
-// 
+//
 // /**
 //  * Set up toggle button (call when DOM is ready)
 //  */
@@ -212,7 +212,7 @@ describe('theme-switcher', () => {
 //     console.warn("✗ Theme toggle button NOT found");
 //   }
 // }
-// 
+//
 // /**
 //  * Initialize theme on page load
 //  */
@@ -220,7 +220,7 @@ describe('theme-switcher', () => {
 //   // Try to load from database first (for authenticated users)
 //   const dbTheme = await loadThemeFromDatabase();
 //   let theme: Theme;
-// 
+//
 //   if (dbTheme) {
 //     // Use database theme and sync to localStorage
 //     theme = dbTheme;
@@ -229,10 +229,10 @@ describe('theme-switcher', () => {
 //     // Fallback to localStorage
 //     theme = getThemePreference();
 //   }
-// 
+//
 //   // Apply theme immediately to prevent flash
 //   applyTheme(theme);
-// 
+//
 //   // Set up toggle button - handle both pre-loaded and post-loaded states
 //   if (document.readyState === "loading") {
 //     document.addEventListener("DOMContentLoaded", setupToggleButton);
@@ -241,10 +241,10 @@ describe('theme-switcher', () => {
 //     setupToggleButton();
 //   }
 // }
-// 
+//
 // // Initialize immediately (before DOM loads to prevent flash)
 // initTheme();
-// 
+//
 // // Expose API for manual control and settings page
 // window.SciTeX = window.SciTeX || ({} as any);
 // window.SciTeX.theme = {

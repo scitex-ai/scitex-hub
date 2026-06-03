@@ -79,7 +79,7 @@ def handle_password_session(channel: paramiko.Channel, user):
     try:
         channel.send(
             b"\r\n"
-            b"=== SciTeX Cloud SSH Key Registration ===\r\n"
+            b"=== SciTeX Hub SSH Key Registration ===\r\n"
             b"\r\n"
             b"Password authentication grants key registration only.\r\n"
             b"To get a full shell, register your SSH public key.\r\n"

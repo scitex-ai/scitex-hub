@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 # Timestamp: 2026-02-04
 # File: config/settings/settings_celery.py
-"""Celery configuration for SciTeX Cloud async task queue."""
+"""Celery configuration for SciTeX Hub async task queue."""
 
 import os
 
 # Celery broker and result backend
-CELERY_BROKER_URL = os.getenv("SCITEX_CLOUD_REDIS_URL", "redis://localhost:6379/1")
+CELERY_BROKER_URL = os.getenv("SCITEX_HUB_REDIS_URL", "redis://localhost:6379/1")
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_CACHE_BACKEND = "django-cache"
 CELERY_ACCEPT_CONTENT = ["json"]
@@ -15,8 +15,32 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
 CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes max per task
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes hard kill (SIGKILL) per task
+# Soft limit fires SoftTimeLimitExceeded 5 minutes before hard kill so tasks
+# get a window to clean up (close cursors, release locks). Without this, a
+# stuck task burns the full 30 minutes before being killed (issue #151).
+CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60
+# Ack after task finishes so a stuck task that gets killed (worker lost,
+# OOM, SIGKILL on hard limit) is requeued instead of silently dropped.
+CELERY_TASK_ACKS_LATE = True
+# Reject tasks back to the broker when the worker process dies, so the
+# next worker picks them up rather than the message being lost (issue #151).
+CELERY_TASK_REJECT_ON_WORKER_LOST = True
 CELERY_RESULT_EXTENDED = True
+
+# Test-mode eager execution
+# ------------------------
+# The SQLite test gate (SCITEX_HUB_USE_SQLITE_DEV=1, used by pytest-matrix
+# in CI) runs without a Redis broker, so .delay() raises
+# kombu.exceptions.OperationalError. Run tasks inline instead of enqueuing.
+# EAGER_PROPAGATES=True surfaces task exceptions to the caller — per
+# project policy, errors must be loud (no silent fallback).
+# In-memory broker keeps Celery's internal probes (canvas, etc.) from
+# doing real network I/O at import time.
+if os.environ.get("SCITEX_HUB_USE_SQLITE_DEV"):
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True
+    CELERY_BROKER_URL = "memory://"
 
 # Task routing to dedicated queues
 CELERY_TASK_ROUTES = {

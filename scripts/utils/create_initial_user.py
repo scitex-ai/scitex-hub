@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 """
-Create initial user and profile for SciTeX Cloud platform.
+Create initial user and profile for SciTeX Hub platform.
 
 Reads credentials from environment variables:
-  SCITEX_CLOUD_ADMIN_USERNAME (required)
-  SCITEX_CLOUD_ADMIN_EMAIL (required)
-  SCITEX_CLOUD_ADMIN_PASSWORD (required)
-  SCITEX_CLOUD_ADMIN_FIRST_NAME (optional)
-  SCITEX_CLOUD_ADMIN_LAST_NAME (optional)
-  SCITEX_CLOUD_ADMIN_AFFILIATION (optional)
+  SCITEX_HUB_ADMIN_USERNAME (required)
+  SCITEX_HUB_ADMIN_EMAIL (required)
+  SCITEX_HUB_ADMIN_PASSWORD (required)
+  SCITEX_HUB_ADMIN_FIRST_NAME (optional)
+  SCITEX_HUB_ADMIN_LAST_NAME (optional)
+  SCITEX_HUB_ADMIN_AFFILIATION (optional)
 """
 
 import os
@@ -18,7 +18,7 @@ import django
 
 # Setup Django environment
 os.environ.setdefault(
-    "SCITEX_CLOUD_DJANGO_SETTINGS_MODULE", "config.settings.development"
+    "SCITEX_HUB_DJANGO_SETTINGS_MODULE", "config.settings.development"
 )
 django.setup()
 
@@ -29,20 +29,20 @@ from apps.infra.workspace_app.models import UserProfile
 
 def create_initial_user():
     """Create the initial user and profile"""
-    username = os.environ.get("SCITEX_CLOUD_ADMIN_USERNAME")
-    email = os.environ.get("SCITEX_CLOUD_ADMIN_EMAIL")
-    password = os.environ.get("SCITEX_CLOUD_ADMIN_PASSWORD")
+    username = os.environ.get("SCITEX_HUB_ADMIN_USERNAME")
+    email = os.environ.get("SCITEX_HUB_ADMIN_EMAIL")
+    password = os.environ.get("SCITEX_HUB_ADMIN_PASSWORD")
 
     if not all([username, email, password]):
         print("Error: Required environment variables not set:")
-        print("  SCITEX_CLOUD_ADMIN_USERNAME")
-        print("  SCITEX_CLOUD_ADMIN_EMAIL")
-        print("  SCITEX_CLOUD_ADMIN_PASSWORD")
+        print("  SCITEX_HUB_ADMIN_USERNAME")
+        print("  SCITEX_HUB_ADMIN_EMAIL")
+        print("  SCITEX_HUB_ADMIN_PASSWORD")
         sys.exit(1)
 
-    first_name = os.environ.get("SCITEX_CLOUD_ADMIN_FIRST_NAME", "")
-    last_name = os.environ.get("SCITEX_CLOUD_ADMIN_LAST_NAME", "")
-    affiliation = os.environ.get("SCITEX_CLOUD_ADMIN_AFFILIATION", "")
+    first_name = os.environ.get("SCITEX_HUB_ADMIN_FIRST_NAME", "")
+    last_name = os.environ.get("SCITEX_HUB_ADMIN_LAST_NAME", "")
+    affiliation = os.environ.get("SCITEX_HUB_ADMIN_AFFILIATION", "")
 
     # Check if user already exists
     if User.objects.filter(username=username).exists():

@@ -1,7 +1,7 @@
 <!-- ---
 !-- Timestamp: 2025-10-25 06:06:10
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/static/css/docs/CSS_REFACTORING_PLAN.md
+!-- File: /home/ywatanabe/proj/scitex-hub/static/css/docs/CSS_REFACTORING_PLAN.md
 !-- --- -->
 
 # CSS Architecture Refactoring Plan

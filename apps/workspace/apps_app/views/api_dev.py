@@ -256,11 +256,11 @@ def api_submit_dev_app(request, owner, repo):
 
     # 4. Run validation
     try:
-        from scitex_cloud.appmaker import validate
+        from scitex_hub.appmaker import validate
 
         errors = validate(str(project_dir))
     except ImportError as e:
-        logger.error("[api_dev] scitex_cloud.appmaker unavailable: %s", e)
+        logger.error("[api_dev] scitex_hub.appmaker unavailable: %s", e)
         return JsonResponse(
             {"success": False, "error": f"Validation module unavailable: {e}"},
             status=500,

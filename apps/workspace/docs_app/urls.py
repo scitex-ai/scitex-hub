@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: /home/ywatanabe/proj/scitex-cloud/apps/docs_app/urls.py
+# File: /home/ywatanabe/proj/scitex-hub/apps/docs_app/urls.py
 
 from django.urls import path
 

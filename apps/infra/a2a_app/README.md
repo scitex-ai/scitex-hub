@@ -49,7 +49,7 @@ self-describe correctly without config.
 ## Tests
 
 ```bash
-docker exec scitex-cloud-prod-django-1 \
+docker exec scitex-hub-prod-django-1 \
   python -m pytest /app/tests/apps/infra/a2a_app/ -v
 ```
 
@@ -63,7 +63,7 @@ Code changes in `apps/infra/a2a_app/` need a Django image rebuild to
 become durable across container recreates:
 
 ```bash
-cd ~/proj/scitex-cloud/deployment/docker/docker_prod
+cd ~/proj/scitex-hub/deployment/docker/docker_prod
 docker compose build django && docker compose up -d --force-recreate django
 ```
 
@@ -76,7 +76,7 @@ inode. In-place edits (`sed -i`) survive a `nginx -s reload`.
 ## Cross-references
 
 - Master nav (fleet-wide): `~/proj/scitex-orochi/GITIGNORED/A2A_PROTOCOL_SUPPORT.md`
-- Cloud-side ops: `~/proj/scitex-cloud/GITIGNORED/A2A_PROTOCOL_SUPPORT-CLOUD.md`
+- Cloud-side ops: `~/proj/scitex-hub/GITIGNORED/A2A_PROTOCOL_SUPPORT-CLOUD.md`
 - Identity sister track: `~/proj/scitex-orochi/GITIGNORED/GITEA_FORK_MODEL.md`
 - Client-side skill: `scitex-orochi/_skills/scitex-orochi/51_a2a-client.md`
 

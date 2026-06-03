@@ -29,9 +29,9 @@ describe('latex-wrapper', () => {
 //  * LaTeX Wrapper Module
 //  * Wraps section content with proper LaTeX document structure
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/latex-wrapper.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/modules/latex-wrapper.ts loaded",
 // );
 // export interface LatexWrapperOptions {
 //   documentClass?: string;
@@ -41,7 +41,7 @@ describe('latex-wrapper', () => {
 //   author?: string;
 //   includeTableOfContents?: boolean;
 // }
-// 
+//
 // export class LatexWrapper {
 //   private documentClass: string;
 //   private packages: string[];
@@ -49,7 +49,7 @@ describe('latex-wrapper', () => {
 //   private title: string;
 //   private author: string;
 //   private includeTableOfContents: boolean;
-// 
+//
 //   constructor(options?: LatexWrapperOptions) {
 //     this.documentClass = options?.documentClass || "article";
 //     this.packages = options?.packages || this.getDefaultPackages();
@@ -58,7 +58,7 @@ describe('latex-wrapper', () => {
 //     this.author = options?.author || "";
 //     this.includeTableOfContents = options?.includeTableOfContents ?? true;
 //   }
-// 
+//
 //   /**
 //    * Get default LaTeX packages
 //    */
@@ -73,13 +73,13 @@ describe('latex-wrapper', () => {
 //       "natbib",
 //     ];
 //   }
-// 
+//
 //   /**
 //    * Get LaTeX preamble
 //    */
 //   getPreamble(): string {
 //     let preamble = `\\documentclass{${this.documentClass}}\n\n`;
-// 
+//
 //     // Add packages
 //     this.packages.forEach((pkg) => {
 //       if (pkg.includes("{")) {
@@ -88,52 +88,52 @@ describe('latex-wrapper', () => {
 //         preamble += `\\usepackage{${pkg}}\n`;
 //       }
 //     });
-// 
+//
 //     preamble += "\n";
-// 
+//
 //     // Add title and author
 //     preamble += `\\title{${this.escapeLatexSpecial(this.title)}}\n`;
 //     if (this.author) {
 //       preamble += `\\author{${this.escapeLatexSpecial(this.author)}}\n`;
 //     }
-// 
+//
 //     preamble += "\\date{\\today}\n\n";
-// 
+//
 //     // Add custom preamble
 //     if (this.preamble) {
 //       preamble += this.preamble + "\n\n";
 //     }
-// 
+//
 //     return preamble;
 //   }
-// 
+//
 //   /**
 //    * Get LaTeX document begin
 //    */
 //   getDocumentBegin(): string {
 //     let doc = "\\begin{document}\n\n";
 //     doc += "\\maketitle\n";
-// 
+//
 //     if (this.includeTableOfContents) {
 //       doc += "\\tableofcontents\n\\newpage\n\n";
 //     }
-// 
+//
 //     return doc;
 //   }
-// 
+//
 //   /**
 //    * Wrap section content with LaTeX structure
 //    */
 //   wrapSection(sectionName: string, content: string, level: number = 1): string {
 //     const sectionCommands = ["section", "subsection", "subsubsection"];
 //     const command = sectionCommands[Math.min(level, 2)];
-// 
+//
 //     let wrapped = `\\${command}{${this.escapeLatexSpecial(sectionName)}}\n\n`;
 //     wrapped += content + "\n\n";
-// 
+//
 //     return wrapped;
 //   }
-// 
+//
 //   /**
 //    * Wrap multiple sections
 //    */
@@ -144,14 +144,14 @@ describe('latex-wrapper', () => {
 //     });
 //     return content;
 //   }
-// 
+//
 //   /**
 //    * Get LaTeX document end
 //    */
 //   getDocumentEnd(): string {
 //     return "\n\\end{document}\n";
 //   }
-// 
+//
 //   /**
 //    * Create complete LaTeX document
 //    */
@@ -162,7 +162,7 @@ describe('latex-wrapper', () => {
 //     doc += this.getDocumentEnd();
 //     return doc;
 //   }
-// 
+//
 //   /**
 //    * Escape LaTeX special characters
 //    */
@@ -173,7 +173,7 @@ describe('latex-wrapper', () => {
 //       .replace(/\^/g, "\\textasciicircum{}")
 //       .replace(/~/g, "\\textasciitilde{}");
 //   }
-// 
+//
 //   /**
 //    * Check if content contains citation commands
 //    */
@@ -182,7 +182,7 @@ describe('latex-wrapper', () => {
 //     const citationPattern = /\\cite[ptaA]?\s*\{[^}]+\}/;
 //     return citationPattern.test(content);
 //   }
-// 
+//
 //   /**
 //    * Create minimal LaTeX document for preview
 //    */
@@ -194,21 +194,21 @@ describe('latex-wrapper', () => {
 //       Math.min(14, Math.round(10 + (fontSize - 10) / 2.5)),
 //     );
 //     const fontSizeOption = `${latexFontSize}pt`;
-// 
+//
 //     let doc = `\\documentclass[${fontSizeOption}]{article}\n`;
 //     doc += `\\usepackage{geometry}\n`;
 //     doc += `\\usepackage[utf8]{inputenc}\n`;
 //     doc += `\\geometry{margin=1in}\n`;
-// 
+//
 //     // Define bright green color for links using xcolor package
 //     doc += `\\usepackage{xcolor}\n`;
 //     doc += `\\definecolor{linkgreen}{RGB}{0,153,0}  % Bright green for visibility\n\n`;
-// 
+//
 //     // Configure hyperref to make links visible with bright green color (alert success color)
 //     // colorlinks=true: Use colored text for links
 //     // This colors all hyperlinks green, making them clearly distinguishable from regular text
 //     doc += `\\usepackage[colorlinks=true,linkcolor=linkgreen,citecolor=linkgreen,urlcolor=linkgreen]{hyperref}\n\n`;
-// 
+//
 //     // Make all links bold for better visibility
 //     // Redefine citation command to include bold formatting
 //     doc += `\\let\\oldcite\\cite\n`;
@@ -218,10 +218,10 @@ describe('latex-wrapper', () => {
 //     doc += `\\renewcommand{\\href}[2]{\\oldhref{#1}{\\textbf{#2}}}\n`;
 //     doc += `\\let\\oldurl\\url\n`;
 //     doc += `\\renewcommand{\\url}[1]{\\textbf{\\oldurl{#1}}}\n\n`;
-// 
+//
 //     doc += `\\begin{document}\n\n`;
 //     doc += content;
-// 
+//
 //     // Only add bibliography if content contains citations
 //     // This prevents showing an empty References section
 //     if (this.hasCitations(content)) {
@@ -229,25 +229,25 @@ describe('latex-wrapper', () => {
 //       doc += `\\bibliographystyle{plain}\n`;
 //       doc += `\\bibliography{bibliography}\n`;
 //     }
-// 
+//
 //     doc += `\n\\end{document}\n`;
 //     return doc;
 //   }
-// 
+//
 //   /**
 //    * Set document title
 //    */
 //   setTitle(title: string): void {
 //     this.title = title;
 //   }
-// 
+//
 //   /**
 //    * Set document author
 //    */
 //   setAuthor(author: string): void {
 //     this.author = author;
 //   }
-// 
+//
 //   /**
 //    * Add package to preamble
 //    */
@@ -256,7 +256,7 @@ describe('latex-wrapper', () => {
 //       this.packages.push(packageName);
 //     }
 //   }
-// 
+//
 //   /**
 //    * Remove package from preamble
 //    */

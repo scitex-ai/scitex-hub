@@ -159,12 +159,18 @@ _APPS_ROOT = Path(__file__).resolve().parent.parent.parent  # project root / app
 
 # (manifest_path_relative_to_apps_root, )
 _BUILTIN_MANIFEST_PATHS: list[str] = [
-    "workspace/hub_app/manifest.json",
+    "workspace/repo_app/manifest.json",
     "workspace/writer_app/manifest.json",
     "workspace/scholar_app/manifest.json",
     "workspace/figrecipe_app/manifest.json",
     "workspace/clew_app/manifest.json",
-    "infra/public_app/manifest.json",
+    # NOTE: infra/public_app/manifest.json is intentionally NOT listed here.
+    # It declares name="tools", which collided with workspace/tools_app
+    # (also name="tools") once tools_app gained its own manifest in 20279c9e
+    # ("Fix tools 404"). tools_app is the canonical Tools workspace module
+    # (fa-wrench, full tool set, same /apps/tools/ URL); public_app is the
+    # public/landing-page infra app and must not double-register as a
+    # duplicate workspace module — that broke get_all_modules() uniqueness.
     "workspace/discovery_app/manifest.json",
     "workspace/docs_app/manifest.json",
     "workspace/apps_app/manifest.json",

@@ -2,7 +2,7 @@
 # Timestamp: 2026-02-14
 # File: apps/accounts_app/auth.py
 
-"""API Key authentication helper for SciTeX Cloud."""
+"""API Key authentication helper for SciTeX Hub."""
 
 from __future__ import annotations
 

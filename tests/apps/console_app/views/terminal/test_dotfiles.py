@@ -113,7 +113,7 @@ class TestCreateDotfilesRepoContent:
 
     def test_gitconfig_contains_username_email(self):
         content = (self.dotfiles_dir / "gitconfig").read_text()
-        assert f"{USERNAME}@scitex.cloud" in content
+        assert f"{USERNAME}@scitex.ai" in content
 
     # install.sh permissions
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Playwright E2E Tests for SciTeX Cloud
+Playwright E2E Tests for SciTeX Hub
 
 Browser-level tests with mobile device emulation.
 

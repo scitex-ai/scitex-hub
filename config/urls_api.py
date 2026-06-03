@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Timestamp: 2026-03-09
-# File: /home/ywatanabe/proj/scitex-cloud/config/urls_api.py
+# File: /home/ywatanabe/proj/scitex-hub/config/urls_api.py
 """
 Consolidated top-level API routes (/api/...).
 Extracted from config/urls.py for clarity.

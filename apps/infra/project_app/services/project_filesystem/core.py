@@ -1,5 +1,5 @@
 """
-SciTeX Cloud - Project Filesystem Core Module
+SciTeX Hub - Project Filesystem Core Module
 
 This module contains the core ProjectFilesystemManager class definition,
 initialization logic, and base path management.
@@ -16,7 +16,7 @@ from django.contrib.auth.models import User
 
 
 class ProjectFilesystemManager:
-    """Manages user-specific directory structures for SciTeX Cloud."""
+    """Manages user-specific directory structures for SciTeX Hub."""
 
     # Standardized scientific research project structure
     PROJECT_STRUCTURE = {

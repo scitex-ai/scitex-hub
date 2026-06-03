@@ -28,13 +28,13 @@ describe('dom.utils', () => {
 // /**
 //  * DOM manipulation and query utilities
 //  */
-// 
+//
 // /**
 //  * Safely query element from DOM
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/utils/dom.utils.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/apps/writer_app/static/writer_app/ts/utils/dom.utils.ts loaded",
 // );
 // export function querySelector<T extends Element = Element>(
 //   selector: string,
@@ -46,7 +46,7 @@ describe('dom.utils', () => {
 //     return null;
 //   }
 // }
-// 
+//
 // /**
 //  * Safely query all elements matching selector
 //  */
@@ -60,7 +60,7 @@ describe('dom.utils', () => {
 //     return [];
 //   }
 // }
-// 
+//
 // /**
 //  * Set element's visibility
 //  */
@@ -71,7 +71,7 @@ describe('dom.utils', () => {
 //   if (!element) return;
 //   element.style.display = visible ? "" : "none";
 // }
-// 
+//
 // /**
 //  * Toggle class on element
 //  */
@@ -87,7 +87,7 @@ describe('dom.utils', () => {
 //     element.classList.toggle(className, force);
 //   }
 // }
-// 
+//
 // /**
 //  * Add class to element
 //  */
@@ -95,7 +95,7 @@ describe('dom.utils', () => {
 //   if (!element) return;
 //   element.classList.add(className);
 // }
-// 
+//
 // /**
 //  * Remove class from element
 //  */
@@ -106,7 +106,7 @@ describe('dom.utils', () => {
 //   if (!element) return;
 //   element.classList.remove(className);
 // }
-// 
+//
 // /**
 //  * Check if element has class
 //  */
@@ -117,14 +117,14 @@ describe('dom.utils', () => {
 //   if (!element) return false;
 //   return element.classList.contains(className);
 // }
-// 
+//
 // /**
 //  * Get computed style value
 //  */
 // export function getComputedStyle(element: HTMLElement): CSSStyleDeclaration {
 //   return window.getComputedStyle(element);
 // }
-// 
+//
 // /**
 //  * Set multiple attributes on element
 //  */
@@ -137,7 +137,7 @@ describe('dom.utils', () => {
 //     element.setAttribute(key, value);
 //   });
 // }
-// 
+//
 // /**
 //  * Remove element from DOM
 //  */
@@ -146,7 +146,7 @@ describe('dom.utils', () => {
 //     element.parentNode.removeChild(element);
 //   }
 // }
-// 
+//
 // /**
 //  * Clear element's content
 //  */
@@ -154,7 +154,7 @@ describe('dom.utils', () => {
 //   if (!element) return;
 //   element.innerHTML = "";
 // }
-// 
+//
 // /**
 //  * Create element with options
 //  */
@@ -169,7 +169,7 @@ describe('dom.utils', () => {
 //   },
 // ): HTMLElement {
 //   const element = document.createElement(tag);
-// 
+//
 //   if (options?.className) {
 //     if (Array.isArray(options.className)) {
 //       element.classList.add(...options.className);
@@ -177,26 +177,26 @@ describe('dom.utils', () => {
 //       element.className = options.className;
 //     }
 //   }
-// 
+//
 //   if (options?.id) {
 //     element.id = options.id;
 //   }
-// 
+//
 //   if (options?.attributes) {
 //     setAttributes(element, options.attributes);
 //   }
-// 
+//
 //   if (options?.textContent) {
 //     element.textContent = options.textContent;
 //   }
-// 
+//
 //   if (options?.innerHTML) {
 //     element.innerHTML = options.innerHTML;
 //   }
-// 
+//
 //   return element;
 // }
-// 
+//
 // /**
 //  * Scroll element into view smoothly
 //  */
@@ -208,7 +208,7 @@ describe('dom.utils', () => {
 //     element.scrollIntoView({ behavior, block: "nearest" });
 //   }
 // }
-// 
+//
 // /**
 //  * Get scroll position
 //  */
@@ -218,7 +218,7 @@ describe('dom.utils', () => {
 //     y: window.scrollY || document.documentElement.scrollTop,
 //   };
 // }
-// 
+//
 // /**
 //  * Set scroll position
 //  */

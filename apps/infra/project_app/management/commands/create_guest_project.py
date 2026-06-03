@@ -38,9 +38,9 @@ class Command(BaseCommand):
             slug="demo-project",
             defaults={
                 "name": "Demo Project",
-                "description": "Try SciTeX Cloud features without signing up. This is a read-only demo workspace.",
+                "description": "Try SciTeX Hub features without signing up. This is a read-only demo workspace.",
                 "status": "active",
-                "hypotheses": "This is a demonstration project for exploring SciTeX Cloud capabilities.",
+                "hypotheses": "This is a demonstration project for exploring SciTeX Hub capabilities.",
             },
         )
 

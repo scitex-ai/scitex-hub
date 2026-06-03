@@ -1,5 +1,6 @@
 import json
 
+from channels.layers import get_channel_layer
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import HttpResponse, JsonResponse
@@ -115,8 +116,6 @@ def api_tts_relay(request):
     """
     import logging
 
-    from channels.layers import get_channel_layer
-
     logger = logging.getLogger(__name__)
 
     try:
@@ -132,17 +131,18 @@ def api_tts_relay(request):
     group_name = f"speech_{username}"
 
     try:
-        import asyncio
+        from asgiref.sync import async_to_sync
 
         channel_layer = get_channel_layer()
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(
-            channel_layer.group_send(
-                group_name,
-                {"type": "tts_speak", "text": text},
-            )
+        # Use async_to_sync (not a throwaway new_event_loop) so the send runs
+        # on the same event loop the in-memory/Redis channel layer is bound to.
+        # InMemoryChannelLayer keys its queues to the running loop, so sending
+        # on an isolated loop would silently drop the message for any reader on
+        # the request's loop.
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {"type": "tts_speak", "text": text},
         )
-        loop.close()
         return JsonResponse({"success": True, "relayed_to": group_name})
     except Exception as e:
         logger.error("TTS relay failed: %s", e)

@@ -45,7 +45,7 @@ class TestVideoCatalogStructure:
             "pages_data",
             os.path.join(
                 os.path.dirname(__file__),
-                "../../../../apps/public_app/views/pages_data.py",
+                "../../../../apps/infra/public_app/views/pages_data.py",
             ),
         )
         # We need to mock the pages_shortcuts import
@@ -61,7 +61,7 @@ class TestVideoCatalogStructure:
         # Now manually parse the file to extract OG_BASE_URL
         pages_data_path = os.path.join(
             os.path.dirname(__file__),
-            "../../../../apps/public_app/views/pages_data.py",
+            "../../../../apps/infra/public_app/views/pages_data.py",
         )
         pages_data_path = os.path.abspath(pages_data_path)
 
@@ -87,7 +87,7 @@ class TestVideoCatalogStructure:
         # Parse the file to extract VIDEO_CATALOG structure
         pages_data_path = os.path.join(
             os.path.dirname(__file__),
-            "../../../../apps/public_app/views/pages_data.py",
+            "../../../../apps/infra/public_app/views/pages_data.py",
         )
         pages_data_path = os.path.abspath(pages_data_path)
 
@@ -118,7 +118,7 @@ class TestVideoCatalogStructure:
         """Thumbnails should be PNG files."""
         pages_data_path = os.path.join(
             os.path.dirname(__file__),
-            "../../../../apps/public_app/views/pages_data.py",
+            "../../../../apps/infra/public_app/views/pages_data.py",
         )
         pages_data_path = os.path.abspath(pages_data_path)
 
@@ -135,8 +135,15 @@ class TestVideoCatalogStructure:
 
 
 @pytest.mark.skipif(not DJANGO_AVAILABLE, reason="Django not available")
+@pytest.mark.django_db
 class TestVideoPlayerView:
-    """Test video_player view function (requires Django)."""
+    """Test video_player view function (requires Django).
+
+    Rendering the video-player template runs the ``project_context``
+    context processor, which performs a ``User.objects.get(...)`` query.
+    Even though the view itself is called directly via RequestFactory,
+    that DB access requires the ``django_db`` mark.
+    """
 
     @pytest.fixture
     def rf(self):

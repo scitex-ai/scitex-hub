@@ -83,7 +83,7 @@ check_gitea_status() {
 
     # API connectivity
     echo_info "API Connectivity:"
-    GITEA_URL="${SCITEX_CLOUD_GITEA_URL_DEV:-http://127.0.0.1:3000}"
+    GITEA_URL="${SCITEX_HUB_GITEA_URL_DEV:-http://127.0.0.1:3000}"
 
     if curl -f -s "${GITEA_URL}/api/v1/version" > /dev/null 2>&1; then
         VERSION=$(curl -s "${GITEA_URL}/api/v1/version" | grep -o '"version":"[^"]*"' | cut -d'"' -f4)
@@ -96,7 +96,7 @@ check_gitea_status() {
 
     # Authentication test
     echo_info "Authentication:"
-    GITEA_TOKEN="${SCITEX_CLOUD_GITEA_TOKEN_DEV}"
+    GITEA_TOKEN="${SCITEX_HUB_GITEA_TOKEN_DEV}"
 
     if [ -n "$GITEA_TOKEN" ]; then
         AUTH_RESPONSE=$(curl -s -H "Authorization: token ${GITEA_TOKEN}" \
@@ -107,11 +107,11 @@ check_gitea_status() {
             echo_success "  ✓ Token valid for user: $GITEA_USER"
         else
             echo_error "  ✗ Token authentication failed"
-            echo_info "  Check: SCITEX_CLOUD_GITEA_TOKEN_DEV in .env"
+            echo_info "  Check: SCITEX_HUB_GITEA_TOKEN_DEV in .env"
         fi
     else
         echo_warning "  ⚠ No token configured"
-        echo_info "  Set: SCITEX_CLOUD_GITEA_TOKEN_DEV in .env"
+        echo_info "  Set: SCITEX_HUB_GITEA_TOKEN_DEV in .env"
     fi
     echo
 

@@ -1,7 +1,7 @@
 [project]
-name = "scitex-cloud"
-version = "0.17.4-alpha"
-description = "SciTeX Cloud - Deployment and management CLI for SciTeX"
+name = "scitex-hub"
+version = "0.18.1"
+description = "SciTeX Hub - Deployment and management CLI for SciTeX"
 readme = "README.md"
 license = "AGPL-3.0-only"
 requires-python = ">=3.11"
@@ -16,118 +16,165 @@ classifiers = [
 dependencies = [
     "rich",
     "click>=8.0",
-    "scitex-app>=0.1.0",
-    "scitex-config>=0.3.0",
-    "scitex-writer>=2.14.0",
-    "scitex-dev>=0.7.0",
+    "scitex-app>=0.2.8",
+    "scitex-config>=0.3.6",
+    # `scitex-session` is consumed via the umbrella as `scitex.session.INJECTED`
+    # (settings_shared.py / settings_auth.py / config/routing.py).
+    # scitex >= 2.29 lazy-loads `scitex_session` and raises ImportError if
+    # the sub-package is missing — but the umbrella's `[session]` extra
+    # only declares matplotlib + pyyaml, NOT scitex-session itself
+    # (upstream gap, ywatanabe1989/scitex-python). Declare it directly
+    # so the import works in any install graph.
+    "scitex-session>=0.1.6",
+    "scitex-writer>=2.17.2",
+    # 0.16.1 is the first release where `audit_all_for_package`
+    # honours the HYPHENATED rule-id format that tests/develop/
+    # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
+    # Pinning to <0.16.1 silently lets every entry in `skip_rules`
+    # leak through — the gate fails on rules we explicitly deferred.
+    "scitex-dev>=0.16.1",
     "gitpython>=3.1",
 ]
 
 [project.urls]
 Homepage = "https://scitex.ai"
-Repository = "https://github.com/ywatanabe1989/scitex-cloud"
-Documentation = "https://scitex-cloud.readthedocs.io"
-Issues = "https://github.com/ywatanabe1989/scitex-cloud/issues"
-Changelog = "https://github.com/ywatanabe1989/scitex-cloud/blob/main/CHANGELOG.md"
+Repository = "https://github.com/ywatanabe1989/scitex-hub"
+Documentation = "https://scitex-hub.readthedocs.io"
+Issues = "https://github.com/ywatanabe1989/scitex-hub/issues"
+Changelog = "https://github.com/ywatanabe1989/scitex-hub/blob/main/CHANGELOG.md"
 
 [project.entry-points."scitex_dev.docs"]
-scitex-cloud = "scitex_cloud"
+scitex-hub = "scitex_hub"
 
 [project.entry-points."scitex_dev.skills"]
-scitex-cloud = "scitex_cloud"
+scitex-hub = "scitex_hub"
 
 [project.optional-dependencies]
-django = [
+# Project rule: ONLY [all] is a user-facing install target. Sub-extras
+# like [django], [gui], [mcp], [test], [docs] used to exist and were
+# referenced recursively from [all] (`scitex-hub[django]` etc.), which
+# tripped pip's resolver when a recursively-installed dep added a
+# conflicting pin (the v0.18.0 release pipeline halted because the
+# umbrella `scitex==2.29` pin on `scitex-app==0.2.7` could not be
+# reconciled through the recursive `scitex-hub[django]` reference).
+# Flattening eliminates the recursion entirely.
+#
+# [dev] is kept separate — it covers tools needed only for development
+# (formatters, linters, dev-only test plugins) and CI installs with
+# `pip install -e ".[all,dev]"`.
+all = [
+    # --- Django stack (web framework + DRF + auth + ORM + ASGI) ---
     "Django>=5.2",
     "djangorestframework>=3.16",
+    "djangorestframework-simplejwt>=5.3",
     "django-cors-headers>=4.9",
     "django-extensions>=4.1",
     "django-browser-reload>=1.12",
-    "djangorestframework-simplejwt>=5.3",
+    "django-axes>=6.3",
+    "django-allauth[socialaccount]>=65.3",
+    "django-oauth-toolkit>=3.0",
+    "django-widget-tweaks>=1.5",
+    "django-celery-results>=2.5",
+    "django-celery-beat>=2.8",
     "psycopg2-binary>=2.9",
     "gunicorn>=21.2",
     "daphne>=4.1",
-    "fastapi>=0.109",
-    "uvicorn[standard]>=0.27",
-    "python-multipart>=0.0.6",
-    "django-axes>=6.3",
-    "python-decouple>=3.8",
-    "PyJWT>=2.8",
-    "cryptography>=42.0",
-    "django-allauth[socialaccount]>=65.3",
-    "django-oauth-toolkit>=3.0",
-    "requests>=2.31",
-    "feedparser>=6.0",
-    "playwright>=1.48",
-    "docker>=7.1",
-    "paramiko>=3.4",
-    "psutil>=5.9",
-    "python-dotenv>=1.0",
-    "whitenoise>=6.11",
     "channels>=4.3",
     "channels-redis>=4.3",
     "celery[redis]>=5.4",
-    "django-celery-results>=2.5",
-    "django-celery-beat>=2.8",
-    "django-widget-tweaks>=1.5",
-    "pygments",
+    "whitenoise>=6.11",
+    # --- HTTP / async server / API ---
+    "fastapi>=0.109",
+    "uvicorn[standard]>=0.27",
+    "python-multipart>=0.0.6",
+    "requests>=2.31",
+    "feedparser>=6.0",
+    # --- Auth / crypto ---
+    "PyJWT>=2.8",
+    "cryptography>=42.0",
+    "python-decouple>=3.8",
+    "python-dotenv>=1.0",
+    "paramiko>=3.4",
+    # --- Container / OS / runtime ---
+    "docker>=7.1",
+    "psutil>=5.9",
+    "playwright>=1.48",
+    # --- AI / LLM / domain ---
     "litellm>=1.0",
     "impact-factor>=1.1",
+    # --- Notebook / docs / rendering ---
     "nbformat>=5.9",
     "nbconvert>=7.0",
     "weasyprint>=60.0",
+    "pygments",
+    # --- Validation ---
     "pydantic<2.12",
+    # --- SciTeX umbrella (Django-settings imports `import scitex as stx`
+    # for `@stx.session` / `stx.session.INJECTED` / `@stx.module`, so
+    # this is a hard runtime requirement, not an optional sibling.) ---
+    # scitex 2.29.3 restored sane `>=` pins for sub-packages (the broken
+    # `scitex-config==0.3.3` exact-pin on 2.29.0/2.29.1 was the original
+    # ResolutionImpossible — see scitex-python#282, resolved). Floor at
+    # 2.29.3 to skip the broken 2.29.0/2.29.1 entirely.
+    "scitex>=2.29.3",
     "scitex-ui>=0.2.0",
-]
-gui = [
+    # --- GUI (dearpygui-based modules) ---
     "dearpygui>=1.11",
     "cairosvg>=2.7",
     "Pillow>=10.0",
-]
-mcp = [
+    # --- MCP server surface ---
     "fastmcp>=2.0.0",
-    "requests>=2.31",
     "pyyaml>=6.0",
-]
-test = [
+    # --- Test runtime (kept here, not [dev], because some tests run
+    # against the deployed app inside the container) ---
     "pytest>=8.4",
     "pytest-django>=4.5",
     "pytest-playwright>=0.7",
     "pytest-base-url>=2.1",
     "pytest-asyncio>=1.2",
-    "scitex[all]>=2.19",
-]
-dev = [
-    "celery",
-    "flask",
-    "joblib",
-    "pytest>=7.0",
-    "pytest-django>=4.5",
-    "pytest-playwright>=0.7",
-    "pytest-base-url>=2.1",
-    "pytest-asyncio>=1.2",
-    "scitex",
-    "figrecipe>=0.13.0",
-    "black>=23.0",
-    "ruff>=0.1.0",
-]
-docs = [
+    # pytest-matrix workflow runs `pytest --cov=src/scitex_hub
+    # --cov-report=xml --cov-report=term` and uploads to Codecov — the
+    # plugin must be in the install graph, otherwise pytest exits 4 on
+    # "unrecognized arguments: --cov".
+    "pytest-cov>=4.1",
+    # e2e-mobile.yml passes `--timeout=120` to cap individual Playwright
+    # tests — the flag is provided by pytest-timeout, not core pytest.
+    # Without this dep pytest exits 4 with "unrecognized arguments:
+    # --timeout=120".
+    "pytest-timeout>=2.0",
+    # --- Sphinx docs build (run by CI on tag) ---
     "sphinx>=7.0",
     "sphinx-rtd-theme>=2.0",
     "myst-parser>=2.0",
     "sphinx-copybutton>=0.5",
     "sphinx-autodoc-typehints>=1.25",
 ]
-all = [
-    "scitex-cloud[django]",
-    "scitex-cloud[gui]",
-    "scitex-cloud[mcp]",
-    "scitex-cloud[test]",
+dev = [
+    "black>=23.0",
+    "ruff>=0.1.0",
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "figrecipe>=0.13.0",
+    "joblib",
+    "flask",
+    # PS-210: `[all]` ships these and the test suite imports them
+    # unguarded, so a fresh `pip install -e .[dev]` must include them too
+    # to be self-sufficient (no `pytest.importorskip` dance).
+    "channels>=4.3",
+    "fastmcp>=2.0.0",
+    "scitex>=2.29.3",
+    # scitex-dev provides the `audit-all` corpus the release gate runs.
+    # 0.16.1 is the first release where `audit_all_for_package`
+    # honours the HYPHENATED rule-id format that tests/develop/
+    # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
+    # Pinning to <0.16.1 silently lets every entry in `skip_rules`
+    # leak through — the gate fails on rules we explicitly deferred.
+    "scitex-dev>=0.16.1",
 ]
 
 [project.scripts]
-scitex-cloud = "scitex_cloud._cli.main:main"
-scitex-cloud-mcp = "scitex_cloud._mcp_server:main"
+scitex-hub = "scitex_hub._cli.main:main"
+scitex-hub-mcp = "scitex_hub._mcp_server:main"
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
@@ -137,7 +184,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-scitex_cloud = ["skills/*.md", "skills/references/*.md", "_skills/**/*.md"]
+scitex_hub = ["skills/*.md", "skills/references/*.md", "_skills/**/*.md"]
 
 [tool.setuptools.package-dir]
 "" = "src"
@@ -197,16 +244,16 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 DJANGO_SETTINGS_MODULE = "config.settings.settings_dev"
 norecursedirs = ["data", "docs", "scripts", "static", "deployment", "node_modules", ".git", "__pycache__", "*.egg-info", ".dev"]
+# Global addopts intentionally exclude browser/E2E flags
+# (--browser/--headed/--slowmo/--video/--screenshot). Those launch a
+# headed Playwright browser and break the headless release gate
+# (`pytest tests/ -x`). E2E tests are marked `@pytest.mark.e2e` and the
+# browser flags are passed explicitly by the "E2E Mobile Tests" workflow.
 addopts = [
     "--verbose",
     "--strict-markers",
     "--tb=short",
     "--capture=no",
-    "--browser=chromium",
-    "--headed",
-    "--slowmo=50",
-    "--video=retain-on-failure",
-    "--screenshot=only-on-failure",
 ]
 markers = [
     "e2e: End-to-end tests using browser automation",
@@ -225,7 +272,9 @@ log_cli = true
 log_cli_level = "INFO"
 
 [tool.coverage.run]
-source = ["src/scitex_cloud"]
+parallel = true
+source = ["scitex_hub"]
+concurrency = ["multiprocessing", "thread"]
 omit = [
     "*/tests/*",
     "*/__main__.py",

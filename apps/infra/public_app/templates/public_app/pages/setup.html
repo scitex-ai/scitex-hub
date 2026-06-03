@@ -1,8 +1,8 @@
 {% extends "global_base.html" %}
 
-{% block title %}Self-Hosting Guide - Deploy SciTeX Cloud Anywhere{% endblock %}
+{% block title %}Self-Hosting Guide - Deploy SciTeX Hub Anywhere{% endblock %}
 {% block meta_description %}
-    Deploy your own SciTeX Cloud instance — a complete research platform with literature management, manuscript writing, visualization, and AI agent support.
+    Deploy your own SciTeX Hub instance — a complete research platform with literature management, manuscript writing, visualization, and AI agent support.
 {% endblock %}
 {% block extra_css %}
     {% load static %}
@@ -14,14 +14,14 @@
     <div class="about-container">
         <header class="minimal-hero">
             <h1 class="minimal-hero-title">Self-Hosting Guide</h1>
-            <p class="setup-subtitle">Run your own SciTeX Cloud — locally, on a home server, or in the cloud.</p>
+            <p class="setup-subtitle">Run your own SciTeX Hub — locally, on a home server, or in the cloud.</p>
         </header>
         <article class="about-narrative">
             <!-- What You Get -->
             <section class="about-section">
                 <h2>What You Get</h2>
                 <p>
-                    SciTeX Cloud is a self-hostable research platform.
+                    SciTeX Hub is a self-hostable research platform.
                     One <code>make start</code> gives you a full Django application with:
                 </p>
                 <ul class="setup-list">
@@ -105,8 +105,8 @@
             <section class="about-section">
                 <h2>Quick Start</h2>
                 <p>Three commands to get everything running:</p>
-                <pre><code>git clone https://github.com/ywatanabe1989/scitex-cloud.git
-cd scitex-cloud
+                <pre><code>git clone https://github.com/ywatanabe1989/scitex-hub.git
+cd scitex-hub
 make start</code></pre>
                 <p>
                     Access at <a href="http://localhost:8000">localhost:8000</a>.
@@ -129,14 +129,14 @@ make start</code></pre>
                 <ol class="setup-steps">
                     <li>
                         <strong>Clone and configure</strong>
-                        <pre><code>git clone https://github.com/ywatanabe1989/scitex-cloud.git
-cd scitex-cloud
+                        <pre><code>git clone https://github.com/ywatanabe1989/scitex-hub.git
+cd scitex-hub
 cp deployment/docker/envs/.env.example deployment/docker/envs/.env.dev</code></pre>
                     </li>
                     <li>
                         <strong>Set secret key</strong> (edit <code>.env.dev</code>)
-                        <pre><code>SCITEX_CLOUD_DJANGO_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')
-SCITEX_CLOUD_POSTGRES_PASSWORD=your-dev-password</code></pre>
+                        <pre><code>SCITEX_HUB_DJANGO_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')
+SCITEX_HUB_POSTGRES_PASSWORD=your-dev-password</code></pre>
                     </li>
                     <li>
                         <strong>Start services</strong>
@@ -157,9 +157,9 @@ make status</code></pre>
                     <li>
                         <strong>Configure for production</strong> (edit <code>.env.prod</code>)
                         <pre><code>DEBUG=False
-SCITEX_CLOUD_DOMAIN=scitex.example.com
-SCITEX_CLOUD_SITE_URL=https://scitex.example.com
-SCITEX_CLOUD_ENABLE_SSL_REDIRECT=true</code></pre>
+SCITEX_HUB_DOMAIN=scitex.example.com
+SCITEX_HUB_SITE_URL=https://scitex.example.com
+SCITEX_HUB_ENABLE_SSL_REDIRECT=true</code></pre>
                     </li>
                     <li>
                         <strong>Start production</strong>
@@ -172,20 +172,20 @@ make ENV=prod status</code></pre>
             <section class="about-section">
                 <h2>CLI-Only Install</h2>
                 <p>Use the CLI and MCP server without Docker:</p>
-                <pre><code>pip install scitex-cloud              # CLI only
-pip install scitex-cloud[mcp]         # CLI + MCP server
-pip install scitex-cloud[all]         # Everything
+                <pre><code>pip install scitex-hub              # CLI only
+pip install scitex-hub[mcp]         # CLI + MCP server
+pip install scitex-hub[all]         # Everything
 
-scitex-cloud --version
-scitex-cloud --help</code></pre>
+scitex-hub --version
+scitex-hub --help</code></pre>
             </section>
             <!-- MCP -->
             <section class="about-section">
                 <h2>MCP Server for AI Agents</h2>
                 <p>Connect AI assistants (Claude, Cursor, etc.) to your SciTeX instance:</p>
-                <pre><code>scitex-cloud mcp start                # Start MCP server
-scitex-cloud mcp doctor               # Diagnose setup
-scitex-cloud mcp installation          # Client config</code></pre>
+                <pre><code>scitex-hub mcp start                # Start MCP server
+scitex-hub mcp doctor               # Diagnose setup
+scitex-hub mcp installation          # Client config</code></pre>
             </section>
             <!-- Common Commands -->
             <section class="about-section">
@@ -203,7 +203,7 @@ make help                     # All available commands</code></pre>
                 <h2>Full Documentation</h2>
                 <p>
                     For configuration reference, troubleshooting, and architecture details, see the
-                    <a href="/apps/docs/#pkg-scitex-cloud" class="setup-external-link">full documentation</a>.
+                    <a href="/apps/docs/#pkg-scitex-hub" class="setup-external-link">full documentation</a>.
                 </p>
             </section>
         </article>

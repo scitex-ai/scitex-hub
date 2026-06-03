@@ -1,13 +1,13 @@
 # syntax=docker/dockerfile:1.4
 # ============================================
-# SciTeX Cloud - Development Image
+# SciTeX Hub - Development Image
 # ============================================
 # Optimized for cache efficiency and fast rebuilds
 
 FROM python:3.11-slim
 
 LABEL maintainer="ywatanabe@scitex.ai"
-LABEL description="SciTeX Cloud - Development Environment"
+LABEL description="SciTeX Hub - Development Environment"
 
 # ============================================
 # Environment Variables
@@ -215,7 +215,7 @@ RUN if [ -f /etc/ImageMagick-6/policy.xml ]; then \
 COPY pyproject.toml ./
 COPY src/ ./src/
 
-# Install SciTeX Cloud Python dependencies with cache mount
+# Install SciTeX Hub Python dependencies with cache mount
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system ".[django,test]"
 

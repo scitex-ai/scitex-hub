@@ -34,32 +34,32 @@ describe('code-blocks', () => {
 //  * These are false positives that occur when markdown table syntax is displayed
 //  * as examples in documentation. The HTML is properly escaped by the markdown renderer.
 //  */
-// 
+//
 // console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/code-blocks.ts loaded",
+//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/static/ts/code-blocks.ts loaded",
 // );
 // interface CodeBlockConfig {
 //   showLineNumbers: boolean;
 //   enableCopyButton: boolean;
 // }
-// 
+//
 // class CodeBlockManager {
 //   private config: CodeBlockConfig;
 //   private originalWarn: typeof console.warn;
 //   private warningKeywords = ["unescaped HTML", "security risk"];
-// 
+//
 //   constructor(config: Partial<CodeBlockConfig> = {}) {
 //     this.config = {
 //       showLineNumbers: true,
 //       enableCopyButton: true,
 //       ...config,
 //     };
-// 
+//
 //     // Store original console.warn and install global filter
 //     this.originalWarn = console.warn;
 //     this.installGlobalWarningFilter();
 //   }
-// 
+//
 //   /**
 //    * Install global filter to suppress false positive warnings from highlight.js
 //    * This is installed immediately to catch warnings from all sources
@@ -77,7 +77,7 @@ describe('code-blocks', () => {
 //       self.originalWarn.apply(console, args);
 //     };
 //   }
-// 
+//
 //   /**
 //    * Suppress highlight.js warnings during callback execution
 //    */
@@ -88,7 +88,7 @@ describe('code-blocks', () => {
 //       console.error("Error during code block highlighting:", error);
 //     }
 //   }
-// 
+//
 //   /**
 //    * Initialize code block handling
 //    */
@@ -96,7 +96,7 @@ describe('code-blocks', () => {
 //     document.addEventListener("DOMContentLoaded", () => {
 //       this.processCodeBlocks();
 //     });
-// 
+//
 //     // Also process dynamically added code blocks
 //     if ("MutationObserver" in window) {
 //       const observer = new MutationObserver((mutations) => {
@@ -113,25 +113,25 @@ describe('code-blocks', () => {
 //           }
 //         });
 //       });
-// 
+//
 //       observer.observe(document.body, {
 //         childList: true,
 //         subtree: true,
 //       });
 //     }
 //   }
-// 
+//
 //   /**
 //    * Process all code blocks on the page
 //    */
 //   private processCodeBlocks(): void {
 //     const preElements = document.querySelectorAll("pre code");
-// 
+//
 //     preElements.forEach((codeBlock) => {
 //       this.processCodeBlock(codeBlock as HTMLElement);
 //     });
 //   }
-// 
+//
 //   /**
 //    * Process a single code block
 //    */
@@ -145,7 +145,7 @@ describe('code-blocks', () => {
 //         (window as any).hljs.highlightElement(codeBlock);
 //       });
 //     }
-// 
+//
 //     // Apply line numbers if available
 //     if (
 //       this.config.showLineNumbers &&
@@ -154,24 +154,24 @@ describe('code-blocks', () => {
 //     ) {
 //       (window as any).hljs.lineNumbersBlock(codeBlock);
 //     }
-// 
+//
 //     const preElement = codeBlock.parentElement;
 //     if (!preElement) return;
-// 
+//
 //     // Skip if copy button already exists
 //     if (preElement.querySelector(".code-copy-button")) {
 //       return;
 //     }
-// 
+//
 //     // Create copy button with SVG icon
 //     if (this.config.enableCopyButton) {
 //       this.addCopyButton(codeBlock, preElement);
 //     }
-// 
+//
 //     // Handle Ctrl+A to select only code content
 //     this.setupSelectAllHandler(codeBlock, preElement);
 //   }
-// 
+//
 //   /**
 //    * Add copy button to code block
 //    */
@@ -180,7 +180,7 @@ describe('code-blocks', () => {
 //     copyButton.className = "code-copy-button";
 //     copyButton.setAttribute("aria-label", "Copy code to clipboard");
 //     copyButton.setAttribute("title", "Copy code");
-// 
+//
 //     // SVG clipboard icon
 //     const copyIcon = `
 //       <svg class="copy-icon" viewBox="0 0 16 16" fill="currentColor">
@@ -188,25 +188,25 @@ describe('code-blocks', () => {
 //         <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3z"/>
 //       </svg>
 //     `;
-// 
+//
 //     const checkIcon = `
 //       <svg class="check-icon" viewBox="0 0 16 16" fill="currentColor">
 //         <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
 //       </svg>
 //     `;
-// 
+//
 //     copyButton.innerHTML = copyIcon;
-// 
+//
 //     // Add click handler
 //     copyButton.addEventListener("click", (e) => {
 //       e.preventDefault();
 //       this.copyToClipboard(copyButton, codeBlock, copyIcon, checkIcon);
 //     });
-// 
+//
 //     // Insert button into the pre element
 //     preElement.insertBefore(copyButton, codeBlock);
 //   }
-// 
+//
 //   /**
 //    * Copy code to clipboard
 //    */
@@ -218,14 +218,14 @@ describe('code-blocks', () => {
 //   ): void {
 //     const codeText = codeBlock.textContent;
 //     if (!codeText) return;
-// 
+//
 //     navigator.clipboard
 //       .writeText(codeText)
 //       .then(() => {
 //         // Show success state
 //         button.classList.add("copied");
 //         button.innerHTML = checkIcon;
-// 
+//
 //         // Reset after 2 seconds
 //         setTimeout(() => {
 //           button.classList.remove("copied");
@@ -241,7 +241,7 @@ describe('code-blocks', () => {
 //         }, 2000);
 //       });
 //   }
-// 
+//
 //   /**
 //    * Setup Ctrl+A handler to select only code content
 //    */
@@ -254,24 +254,24 @@ describe('code-blocks', () => {
 //         // Check if cursor is inside this code block
 //         const selection = window.getSelection();
 //         const selectedNode = selection?.anchorNode;
-// 
+//
 //         // Check if selection is within the current code block
 //         if (selectedNode && preElement.contains(selectedNode)) {
 //           e.preventDefault();
-// 
+//
 //           // Select only the code element's content
 //           const range = document.createRange();
 //           range.selectNodeContents(codeBlock);
 //           selection?.removeAllRanges();
 //           selection?.addRange(range);
-// 
+//
 //           console.log("Ctrl+A: Selected code block content only");
 //         }
 //       }
 //     });
 //   }
 // }
-// 
+//
 // // Initialize when document is ready
 // if (document.readyState === "loading") {
 //   document.addEventListener("DOMContentLoaded", () => {

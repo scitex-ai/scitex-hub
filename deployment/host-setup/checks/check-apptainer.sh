@@ -22,28 +22,28 @@ echo "🔲 Apptainer:"
 
 # Auto-detect environment from running containers
 RUNNING=$(docker ps --format '{{.Names}}' 2>/dev/null |
-    grep -oE 'scitex-cloud-(dev|staging|prod)-' |
-    sed 's/scitex-cloud-//' |
+    grep -oE 'scitex-hub-(dev|staging|prod)-' |
+    sed 's/scitex-hub-//' |
     sed 's/-//' |
     sort -u |
     tr '\n' ' ' |
     xargs) || RUNNING=""
 
-DEF_FILE="${PROJECT_ROOT}/deployment/singularity/scitex-cloud-shared-v0.1.0.def"
+DEF_FILE="${PROJECT_ROOT}/deployment/singularity/scitex-hub-shared-v0.1.0.def"
 HASH_FILE="${PROJECT_ROOT}/deployment/singularity/.def-hash"
 SINGULARITY_DIR="${PROJECT_ROOT}/deployment/singularity"
 
 # Always check project-local paths first (NAS uses project dir for all envs)
 # Fall back to /opt/scitex/ system paths if project paths don't exist
 CONTAINER_PATH="${SINGULARITY_DIR}/current-sandbox"
-SIF_PATH="${SINGULARITY_DIR}/scitex-cloud-shared-v0.1.0.sif"
+SIF_PATH="${SINGULARITY_DIR}/scitex-hub-shared-v0.1.0.sif"
 DATA_PATH="${PROJECT_ROOT}/data/users"
 
 if echo "$RUNNING" | grep -q "prod"; then
     # Prod: prefer project paths, fall back to /opt/scitex/
     if [ ! -L "$CONTAINER_PATH" ] && [ ! -d "$CONTAINER_PATH" ] && [ ! -f "$SIF_PATH" ]; then
         CONTAINER_PATH="/opt/scitex/singularity/current-sandbox"
-        SIF_PATH="/opt/scitex/singularity/scitex-cloud-shared-v0.1.0.sif"
+        SIF_PATH="/opt/scitex/singularity/scitex-hub-shared-v0.1.0.sif"
     fi
     DATA_PATH="/opt/scitex/data/users"
 fi

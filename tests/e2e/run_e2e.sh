@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# E2E Test Runner for SciTeX Cloud
+# E2E Test Runner for SciTeX Hub
 #
 # Usage:
 #   ./run_e2e.sh              # Run against local dev (http://127.0.0.1:8000)
@@ -36,7 +36,7 @@ case "${1:-local}" in
     docker)
         # Run tests inside the Django container
         echo "Running E2E tests inside Docker container..."
-        docker exec scitex-cloud-prod-django-1 \
+        docker exec scitex-hub-prod-django-1 \
             python -m pytest /app/tests/e2e/ \
             -v --tb=short -x --timeout=60 \
             -o "addopts=" \

@@ -1,5 +1,5 @@
 """
-SciTeX Cloud - Native File Handler
+SciTeX Hub - Native File Handler
 
 Main file handler class that provides a unified interface for filesystem operations.
 This class aggregates functionality from other modules.

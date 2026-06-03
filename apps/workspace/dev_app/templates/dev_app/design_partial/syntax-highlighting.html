@@ -186,7 +186,7 @@ See Equation~\ref{eq:einstein} for Einstein's famous equation.
         </div>
         <pre><code class="language-json">{
   "project": {
-    "name": "SciTeX Cloud",
+    "name": "SciTeX Hub",
     "version": "1.0.0",
     "description": "Scientific document platform with collaborative features",
     "keywords": ["science", "latex", "collaboration", "cloud"],
@@ -262,7 +262,7 @@ ALLOWED_HOSTS:
 
 DATABASE:
   ENGINE: postgresql
-  NAME: scitex_cloud
+  NAME: scitex_hub
   USER: postgres
   PASSWORD: secure_password
   HOST: localhost
@@ -300,10 +300,10 @@ LOGGING:
 # Script to deploy SciTeX application
 set -e  # Exit on error
 
-PROJECT_ROOT="/home/ywatanabe/proj/scitex-cloud"
+PROJECT_ROOT="/home/ywatanabe/proj/scitex-hub"
 ENV="${1:-.env.prod}"
 
-echo "Deploying SciTeX Cloud..."
+echo "Deploying SciTeX Hub..."
 echo "Using environment: $ENV"
 
 # Load environment variables

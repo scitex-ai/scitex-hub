@@ -30,7 +30,7 @@ from django.http import JsonResponse
 
 logger = logging.getLogger(__name__)
 
-GITEA_URL = os.environ.get("SCITEX_CLOUD_GITEA_URL", "https://git.scitex.ai")
+GITEA_URL = os.environ.get("SCITEX_HUB_GITEA_URL", "https://git.scitex.ai")
 CACHE_TTL_S = 60.0
 HTTP_TIMEOUT_S = 5.0
 
