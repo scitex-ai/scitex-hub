@@ -4,14 +4,60 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
+    """Remove ``UserPreference.search_limits`` idempotently.
+
+    The original generated form used a bare ``migrations.RemoveField`` op,
+    which expanded to ``ALTER TABLE ... DROP COLUMN search_limits``. That
+    SQL is not idempotent: if the column is missing (e.g. a fresh DB where
+    something dropped it earlier, or a partial migration apply that was
+    retried), the rerun raises::
+
+        ProgrammingError: column "search_limits" of relation
+        "scholar_app_userpreference" does not exist
+
+    which crashes the whole ``migrate`` run. We hit this on a fresh staging
+    bring-up (NAS, 2026-06-06).
+
+    Fix: split into database vs state ops via ``SeparateDatabaseAndState``.
+
+    * ``database_operations`` uses raw SQL with ``DROP COLUMN IF EXISTS``
+      (PostgreSQL native idempotency) so reruns / partial-apply retries
+      are safe.
+    * ``state_operations`` carries the ``RemoveField`` so Django's
+      migration-state graph is updated identically to the old form —
+      downstream migrations that depend on this one (e.g. 0019_savedgraph)
+      see the same model.
+
+    Reverse: ``ADD COLUMN IF NOT EXISTS search_limits jsonb NOT NULL
+    DEFAULT '{}'::jsonb`` — mirrors the field def in
+    0016_add_search_limits_to_userpreference.py (``JSONField(default=dict,
+    blank=True)``) so a rollback restores the original column type.
+    """
 
     dependencies = [
         ("scholar_app", "0017_add_user_library_storage_fields"),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name="userpreference",
-            name="search_limits",
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql=(
+                        "ALTER TABLE scholar_app_userpreference "
+                        "DROP COLUMN IF EXISTS search_limits;"
+                    ),
+                    reverse_sql=(
+                        "ALTER TABLE scholar_app_userpreference "
+                        "ADD COLUMN IF NOT EXISTS search_limits jsonb "
+                        "NOT NULL DEFAULT '{}'::jsonb;"
+                    ),
+                ),
+            ],
+            state_operations=[
+                migrations.RemoveField(
+                    model_name="userpreference",
+                    name="search_limits",
+                ),
+            ],
         ),
     ]
