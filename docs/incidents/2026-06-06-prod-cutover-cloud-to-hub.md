@@ -122,9 +122,72 @@ because `/home/agent/.ssh/.control:*` is read-only in this agent container).
 6. **Use direct LAN SSH (192.168.11.21) for any tooling that may stop the cloudflared
    tunnel**, never `ssh nas` (which routes through it).
 
+## Addendum: v3 attempt #3 (2026-06-07 00:30 JST)
+
+A second cutover attempt was made on the next day with the validated image
+(`scitex-hub-prod-django:latest`, BUILD_EXIT=0 after `--no-cache` rebuild from
+develop@3c665a2b which had PR #237 + #238 + #239 merged). The dryrun on that
+image was GREEN (http 200, ct=text/html, size=44857, 82 users via pgbouncer,
+nhk2202). The live v3 attempt ROLLED BACK after the django container entered a
+restart loop (Up 8–40s, never settling, scitex.ai 503 sustained). Rollback to
+scitex-cloud-prod restored scitex.ai to 200 + 82 + nhk2202 within ~7 min.
+
+### RC-5: external volume must pre-exist for `up`
+
+The new compose declares all six prod volumes with `external: true`. After
+deleting `scitex-hub-nas_postgres_data` (the 24-user residue) in step 3 of the
+cutover, `docker compose up -d` failed with `external volume "scitex-hub-
+nas_postgres_data" not found`. Recovery was to `docker volume create
+scitex-hub-nas_postgres_data` (empty) then re-run `up -d`; postgres init then
+populated it. Caveat for v3 attempt #4: any operator who deletes an external
+volume MUST pre-create the empty replacement before the next `up`.
+
+### RC-6: stale on-disk `.env` defeats `env_file:` directive even with `--env-file` set on the compose call
+
+`docker_prod/docker-compose.yml` had `env_file: - .env` per service. On the NAS
+checkout, `docker_prod/.env` is a regular file dated 2026-04-25 (pre-rename),
+containing only `SCITEX_CLOUD_*` keys — zero `SCITEX_HUB_*` keys. The
+`--env-file envs/.env.prod` flag on the `docker compose` command line only
+affects compose-time `${VAR}` substitution (good for the cloudflared token).
+It does NOT change which file the `env_file:` directive feeds into each
+container's runtime environment. Two paths, two inputs, easy to confuse.
+
+Consequence: each v3 container received only `SCITEX_CLOUD_*` env vars at
+runtime. In the NEW image (with PR #237 alias helper), settings_prod.py reads
+`SCITEX_HUB_DB_NAME` via `getenv_with_legacy_alias` → not present → alias
+falls back to `SCITEX_CLOUD_DB_NAME=scitex_cloud_nas` (the only value in
+env). Django's `manage.py migrate` then asks pgbouncer for `scitex_cloud_nas`,
+but the v3 postgres only had `scitex_hub_nas` (restored from dump). pgbouncer
+log: `WARNING server login failed: FATAL database "scitex_cloud_nas" does not
+exist`. The entrypoint's migrate step crashes, the container exits, docker
+restarts it under `restart: unless-stopped`, the cycle repeats every 8–40
+seconds — never reaching daphne, scitex.ai stays 503.
+
+Verified by env inspection of the rolled-back live django container:
+`grep -E '^SCITEX_HUB_DB|^SCITEX_HUB_POSTGRES' env` returned nothing;
+`docker_prod/.env` contained 0 `SCITEX_HUB_*` lines while `envs/.env.prod`
+contained 80. The old prod stack continued to work because its image was the
+pre-PR-#237 build that read `SCITEX_CLOUD_DB_NAME` directly — matching the
+stale env.
+
+### Fix
+
+1. Repo: `deployment/docker/docker_prod/docker-compose.yml` — change every
+   `env_file: - .env` to `env_file: - ../envs/.env.prod`. One source of truth,
+   no ambiguous `.env` resolution. Lives in this PR.
+2. NAS-side: `mv docker_prod/.env docker_prod/.env.stale-apr25-pre-rename`
+   then `ln -sf ../envs/.env.prod docker_prod/.env`. Belt-and-suspenders so a
+   compose that still references `.env` resolves correctly. Applied 2026-06-07
+   00:54 JST.
+3. Mandatory dryrun gate before v3 attempt #4: re-run the full single-stack
+   shape (cloudflared + nginx + celery + pgbouncer-as-only-DB-path) against
+   the restored DB with the corrected env_file → must reach http 200 + 82 +
+   nhk2202 + clean entrypoint completion → only then schedule attempt #4.
+
 ## Operator-facing follow-ups
 
 * Anthropic API key visible in `.env.staging` (flagged earlier by lead, separate from this incident).
 * `make rebuild`'s Apptainer sandbox post-step still errors on read-only fs (non-blocking but noisy).
+* The new prod compose's volume `external: true` declarations require operators to pre-create any volume they wipe before the next `up` (RC-5). Consider switching to compose-managed volumes (no `external:`) once the cutover is stable, so deletes self-heal.
 
 <!-- EOF -->
