@@ -187,7 +187,11 @@ ifdef ENV
     COMPOSE_CMD := docker compose -f docker-compose.yml -f docker-compose.staging.yml
   else ifeq ($(ENV),prod)
     DOCKER_DIR := $(DOCKER_BASE_DIR)/docker_prod
-    COMPOSE_CMD := docker compose
+    # --env-file ../envs/.env.prod feeds SCITEX_HUB_*_PROD vars at compose-time
+    # (cloudflared token, ports). Symmetric with staging COMPOSE_CMD above.
+    # Closes RC-6's compose-time-substitution sibling gap surfaced in the
+    # 2026-06-06 cutover (docs/incidents/2026-06-06-prod-cutover-cloud-to-hub.md).
+    COMPOSE_CMD := docker compose --env-file ../envs/.env.prod
   endif
   # Export SCITEX_ENV for docker-compose to use in env_file selection
   export SCITEX_ENV := $(ENV)
@@ -418,18 +422,22 @@ stop-all:
 		echo -e "$(CYAN)Checking $$env...$(NC)"; \
 		if [ "$$env" = "dev" ]; then \
 			COMPOSE="docker compose"; \
+			COMPOSE_DIR="docker_dev"; \
 		elif [ "$$env" = "staging" ]; then \
 			COMPOSE="docker compose -f docker-compose.yml -f docker-compose.staging.yml"; \
+			COMPOSE_DIR="."; \
 		else \
-			COMPOSE="docker compose -f docker-compose.yml -f docker-compose.prod.yml"; \
+			COMPOSE="docker compose --env-file ../envs/.env.prod"; \
+			COMPOSE_DIR="docker_prod"; \
 		fi; \
 		export SCITEX_ENV=$$env; \
-		if $$COMPOSE ps -q 2>/dev/null | grep -q .; then \
+		( cd $$COMPOSE_DIR 2>/dev/null && \
+		  if $$COMPOSE ps -q 2>/dev/null | grep -q .; then \
 			echo -e "  $(YELLOW)Stopping $$env containers...$(NC)"; \
 			$$COMPOSE down --remove-orphans 2>/dev/null || true; \
-		else \
+		  else \
 			echo -e "  $(GREEN)✓ $$env already stopped$(NC)"; \
-		fi; \
+		  fi ); \
 	done
 	@echo -e ""
 	@echo -e "$(GREEN)✅ All environments stopped$(NC)"

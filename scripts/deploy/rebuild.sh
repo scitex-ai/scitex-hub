@@ -67,6 +67,13 @@ if [ "$ENV" = "staging" ]; then
     DOCKER_DIR="$PROJECT_ROOT/deployment/docker"
     export SCITEX_ENV=staging
     COMPOSE_CMD="docker compose --env-file ./envs/.env.staging -f docker-compose.yml -f docker-compose.staging.yml"
+elif [ "$ENV" = "prod" ]; then
+    # --env-file ../envs/.env.prod feeds SCITEX_HUB_*_PROD vars at compose-time
+    # (cloudflared token, ports). Symmetric with staging COMPOSE_CMD above.
+    # Closes RC-6's compose-time-substitution sibling gap surfaced in the
+    # 2026-06-06 cutover (docs/incidents/2026-06-06-prod-cutover-cloud-to-hub.md).
+    DOCKER_DIR="$PROJECT_ROOT/deployment/docker/docker_prod"
+    COMPOSE_CMD="docker compose --env-file ../envs/.env.prod"
 else
     DOCKER_DIR="$PROJECT_ROOT/deployment/docker/docker_${ENV}"
     COMPOSE_CMD="docker compose"
@@ -162,7 +169,16 @@ nice -n 10 $COMPOSE_CMD build
 
 # Step 4: Clear vite timestamp (forces TypeScript rebuild)
 echo -e "${CYAN}  4. Clearing vite timestamp (forces TypeScript rebuild)...${NC}"
-docker run --rm -v "scitex-hub-${ENV}_static_volume:/staticfiles" alpine \
+# Prod uses external volumes named scitex-hub-nas_* (per docker_prod/docker-compose.yml
+# `external: true, name: scitex-hub-nas_*` declarations); dev/staging use auto-created
+# project-namespaced scitex-hub-${ENV}_*. Without this branch, the prod path silently
+# no-op'd on a volume that doesn't exist — surfaced 2026-06-06 cutover postmortem.
+if [ "$ENV" = "prod" ]; then
+    STATIC_VOL="scitex-hub-nas_static_volume"
+else
+    STATIC_VOL="scitex-hub-${ENV}_static_volume"
+fi
+docker run --rm -v "${STATIC_VOL}:/staticfiles" alpine \
     rm -f /staticfiles/vite/.build-timestamp 2>/dev/null || true
 
 # Step 5: Start services
