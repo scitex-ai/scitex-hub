@@ -143,7 +143,14 @@ class BasePTY:
         env["LOGNAME"] = self.username
         env["TERM"] = "xterm-256color"
         env["SHELL"] = "/bin/bash"
-        os.chdir("/tmp")
+        # chdir to HOME so the host-side bash prompt (PS1 \w) shows the
+        # user's home rather than "tmp". For broker shells, apptainer's
+        # --pwd flag overrides this inside the container. Fall back to
+        # /tmp if HOME does not exist on the host (broker container).
+        try:
+            os.chdir(env["HOME"])
+        except OSError:
+            os.chdir("/tmp")
         return env
 
     def start_reader(self, output_callback):
