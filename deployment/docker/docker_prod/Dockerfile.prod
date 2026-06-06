@@ -370,7 +370,7 @@ COPY --chown=scitex:scitex . .
 #   (a) use the -binary variant, or
 #   (b) add build-essential to runtime apt-get (increases image size), or
 #   (c) pre-build the wheel in python-builder and copy it over.
-RUN uv pip install --system --no-cache ".[django,test]"
+RUN uv pip install --system --no-cache ".[all]"
 
 # --- Layer C0: Anchor — cache ecosystem packages (bump rarely) ---
 # Pinned versions to cache the dependency tree. Only update when
