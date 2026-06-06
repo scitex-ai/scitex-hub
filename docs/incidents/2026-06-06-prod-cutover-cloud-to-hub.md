@@ -122,9 +122,99 @@ because `/home/agent/.ssh/.control:*` is read-only in this agent container).
 6. **Use direct LAN SSH (192.168.11.21) for any tooling that may stop the cloudflared
    tunnel**, never `ssh nas` (which routes through it).
 
+## Addendum: v3 attempt #3 (2026-06-07 00:30 JST)
+
+A second cutover attempt was made on the next day with the validated image
+(`scitex-hub-prod-django:latest`, BUILD_EXIT=0 after `--no-cache` rebuild from
+develop@3c665a2b which had PR #237 + #238 + #239 merged). The dryrun on that
+image was GREEN (http 200, ct=text/html, size=44857, 82 users via pgbouncer,
+nhk2202). The live v3 attempt ROLLED BACK after the django container entered a
+restart loop (Up 8–40s, never settling, scitex.ai 503 sustained). Rollback to
+scitex-cloud-prod restored scitex.ai to 200 + 82 + nhk2202 within ~7 min.
+
+### RC-5: external volume must pre-exist for `up`
+
+The new compose declares all six prod volumes with `external: true`. After
+deleting `scitex-hub-nas_postgres_data` (the 24-user residue) in step 3 of the
+cutover, `docker compose up -d` failed with `external volume "scitex-hub-
+nas_postgres_data" not found`. Recovery was to `docker volume create
+scitex-hub-nas_postgres_data` (empty) then re-run `up -d`; postgres init then
+populated it. Caveat for v3 attempt #4: any operator who deletes an external
+volume MUST pre-create the empty replacement before the next `up`.
+
+### RC-6: stale on-disk `.env` defeats `env_file:` directive even with `--env-file` set on the compose call
+
+`docker_prod/docker-compose.yml` had `env_file: - .env` per service. On the NAS
+checkout, `docker_prod/.env` is a regular file dated 2026-04-25 (pre-rename),
+containing only `SCITEX_CLOUD_*` keys — zero `SCITEX_HUB_*` keys. The
+`--env-file envs/.env.prod` flag on the `docker compose` command line only
+affects compose-time `${VAR}` substitution (good for the cloudflared token).
+It does NOT change which file the `env_file:` directive feeds into each
+container's runtime environment. Two paths, two inputs, easy to confuse.
+
+Consequence: each v3 container received only `SCITEX_CLOUD_*` env vars at
+runtime. In the NEW image (with PR #237 alias helper), settings_prod.py reads
+`SCITEX_HUB_DB_NAME` via `getenv_with_legacy_alias` → not present → alias
+falls back to `SCITEX_CLOUD_DB_NAME=scitex_cloud_nas` (the only value in
+env). Django's `manage.py migrate` then asks pgbouncer for `scitex_cloud_nas`,
+but the v3 postgres only had `scitex_hub_nas` (restored from dump). pgbouncer
+log: `WARNING server login failed: FATAL database "scitex_cloud_nas" does not
+exist`. The entrypoint's migrate step crashes, the container exits, docker
+restarts it under `restart: unless-stopped`, the cycle repeats every 8–40
+seconds — never reaching daphne, scitex.ai stays 503.
+
+Verified by env inspection of the rolled-back live django container:
+`grep -E '^SCITEX_HUB_DB|^SCITEX_HUB_POSTGRES' env` returned nothing;
+`docker_prod/.env` contained 0 `SCITEX_HUB_*` lines while `envs/.env.prod`
+contained 80. The old prod stack continued to work because its image was the
+pre-PR-#237 build that read `SCITEX_CLOUD_DB_NAME` directly — matching the
+stale env.
+
+### Fix — per-stack env separation (NOT a global symlink)
+
+The HUB and ROLLBACK stacks need DIFFERENT env files: the hub stack must read
+`SCITEX_HUB_*` (new naming + new DB `scitex_hub_nas`), the rollback stack must
+read `SCITEX_CLOUD_*` (legacy naming + old DB `scitex_cloud_nas`). A global
+symlink `docker_prod/.env → ../envs/.env.prod` would point BOTH stacks at the
+hub env file — which would convert the rollback stack into a landmine on its
+next container recreate (host reboot, `restart: always` respawn, OOM, manual
+restart): rollback django would read `SCITEX_HUB_DB_NAME=scitex_hub_nas`, ask
+pgbouncer for a DB the rollback postgres doesn't have, and enter the same
+restart loop — but this time inside our safety floor. An initial attempt at
+this symlink (2026-06-07 00:54 JST) was reverted ~5 min later (01:01 JST) on
+review.
+
+The correct fix is per-stack separation, scoped to each compose file:
+
+1. **HUB compose** (`docker_prod/docker-compose.yml`, in repo, this PR):
+   change every `env_file: - .env` to `env_file: - ../envs/.env.prod`. Hub
+   stack now reads the canonical `SCITEX_HUB_*` source directly with no
+   `.env` dependency.
+2. **ROLLBACK compose** (`docker_prod/docker-compose.rollback.yml`, NAS-local
+   recovery artifact, not in repo): keep `env_file: - .env` as-is. `.env` is
+   the regular file with `SCITEX_CLOUD_*` only — exactly what rollback needs.
+3. The shared `docker_prod/.env` regular file is left UNTOUCHED — same Apr 25
+   content (`SCITEX_CLOUD_*` only). After this PR merges and the next NAS
+   pull, the hub stack no longer reads it; only rollback does.
+
+Verification (post-revert, pre-#241-merge):
+* `ls -la docker_prod/.env` → regular file, 15260 bytes, Apr 25 (not a symlink).
+* `grep -c '^SCITEX_HUB_' docker_prod/.env` → 0.
+* `docker compose -f docker-compose.rollback.yml config | grep DB_NAME` →
+  `SCITEX_CLOUD_DB_NAME: scitex_cloud_nas`, no `SCITEX_HUB_DB_NAME` resolved.
+
+4. **Mandatory dryrun gate before v3 attempt #4** (lead-mandated): re-run the
+   single-stack-shape dryrun (postgres + pgbouncer + redis + celery +
+   nginx + django; cloudflared dropped because two tunnels with the same
+   token can't coexist with live, and the migrate crash is orthogonal to the
+   cloudflared header path) with the corrected env_file from this PR → must
+   reach http 200 + 82 + nhk2202 with `migrate` completing cleanly → only
+   then schedule attempt #4.
+
 ## Operator-facing follow-ups
 
 * Anthropic API key visible in `.env.staging` (flagged earlier by lead, separate from this incident).
 * `make rebuild`'s Apptainer sandbox post-step still errors on read-only fs (non-blocking but noisy).
+* The new prod compose's volume `external: true` declarations require operators to pre-create any volume they wipe before the next `up` (RC-5). Consider switching to compose-managed volumes (no `external:`) once the cutover is stable, so deletes self-heal.
 
 <!-- EOF -->
