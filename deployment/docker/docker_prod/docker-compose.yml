@@ -67,7 +67,7 @@ services:
     expose:
       - "8000"
     env_file:
-      - .env
+      - ../envs/.env.prod
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.settings_prod
       - SCITEX_OROCHI_AGENTS_DIR=/app/agents-orochi
@@ -118,7 +118,7 @@ services:
     shm_size: 256mb
 
     env_file:
-      - .env
+      - ../envs/.env.prod
     environment:
       # PostgreSQL expects POSTGRES_* variables (not SCITEX_HUB_POSTGRES_*)
       - POSTGRES_DB=${SCITEX_HUB_POSTGRES_DB}
@@ -142,7 +142,7 @@ services:
       - ../common/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
       - ../common/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt
     env_file:
-      - .env
+      - ../envs/.env.prod
     environment:
       - DATABASE_URL=postgresql://${SCITEX_HUB_POSTGRES_USER}:${SCITEX_HUB_POSTGRES_PASSWORD}@postgres:5432/${SCITEX_HUB_POSTGRES_DB}
     depends_on:
@@ -197,7 +197,7 @@ services:
       - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
 
     env_file:
-      - .env
+      - ../envs/.env.prod
 
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.settings_prod
@@ -238,7 +238,7 @@ services:
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
 
     env_file:
-      - .env
+      - ../envs/.env.prod
 
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.settings_prod
@@ -325,7 +325,7 @@ services:
       - "${SCITEX_HUB_GITEA_HTTP_PORT_PROD:-3000}:3000"  # HTTP (configurable via .env)
       - "${SCITEX_HUB_GITEA_SSH_PORT_PROD}:22"           # SSH - requires .env
     env_file:
-      - .env
+      - ../envs/.env.prod
     environment:
       - USER_UID=1000
       - USER_GID=1000
@@ -376,7 +376,7 @@ services:
     image: cloudflare/cloudflared:latest
     command: tunnel --no-autoupdate run --token ${SCITEX_HUB_CLOUDFLARE_TUNNEL_TOKEN_PROD}
     env_file:
-      - .env
+      - ../envs/.env.prod
     restart: always
     networks:
       - scitex-network
