@@ -167,7 +167,15 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
 # This installs PyTorch, scipy, scikit-learn, etc. as transitive deps.
 # The version is intentionally old and frozen. Only update when scitex
 # changes its major dependency versions (e.g., PyTorch 2.x → 3.x).
-RUN uv pip install --system --no-cache "scitex[all]==2.26.0"
+#
+# 2026-06-07: bumped 2.26.0 → 2.30.1 so the [all] anchor resolves at a
+# scitex version whose [all] extra includes scitex-template + scitex-audit.
+# Previously, Layer 0 at 2.26.0 anchored the [all] extras to a version
+# that pre-dated those submodules; the later `.[all]` install on hub
+# source upgrades scitex itself but uv does NOT re-resolve [all] extras
+# on upgrade, so scitex-template / scitex-audit never landed.
+# See visitor_pool ImportError in v3 #4 cutover postmortem.
+RUN uv pip install --system --no-cache "scitex[all]==2.30.1"
 
 # --- Layer A: Latest scitex (bump freely on every publish) ---
 # PyTorch etc. are already satisfied from Layer 0. uv skips them and
@@ -175,6 +183,13 @@ RUN uv pip install --system --no-cache "scitex[all]==2.26.0"
 # No --no-cache here: we want uv to recognize existing packages.
 # 2026-06-07: bumped 2.26.0 → 2.30.1 (operator dogfooding refresh).
 RUN uv pip install --system "scitex[all]==2.30.1"
+
+# --- Smoke gate: scitex umbrella extras must be importable ---
+# Guards against future regressions where a Layer 0 / Layer A pin drifts
+# to a scitex version whose [all] omits one of these submodules. If
+# either import fails the build fails immediately rather than producing
+# an image that crash-loops on cold-boot.
+RUN python -c "import scitex.template; import scitex.audit; print('scitex extras OK:', scitex.template.__name__, scitex.audit.__name__)"
 
 # Playwright browsers (cached separately via BuildKit cache mount)
 RUN --mount=type=cache,target=/root/.cache/ms-playwright \
