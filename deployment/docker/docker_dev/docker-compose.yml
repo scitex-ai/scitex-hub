@@ -51,6 +51,16 @@ services:
       - ../../../../scitex-notification:/scitex-notification:cached
       - ../../../../scitex-db:/scitex-db:cached
 
+      # Grant-material live-paper demo source (read-only).
+      # paper-scitex-clew sibling repo holds the real research project
+      # (claims.json + DAG + manuscript) exposed under
+      # GITIGNORED/grant-materials/live-paper-demo/project/ — we mount the
+      # whole repo read-only so the Writer + /viewer-v2/ surfaces can render
+      # the real clew data without copying it into the dev data tree.
+      # Used by writer_app's `register_livepaper_demo` management command
+      # to register a Django Project pointing at this path.
+      - ../../../../paper-scitex-clew:/paper-scitex-clew:ro,cached
+
       # Centralized logging - all container logs go here
       - ../../../logs:/app/logs
 
