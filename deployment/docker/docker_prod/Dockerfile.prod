@@ -391,12 +391,19 @@ RUN uv pip install --system --no-cache ".[all]"
 # --- Layer C0: Anchor — cache ecosystem packages (bump rarely) ---
 # Pinned versions to cache the dependency tree. Only update when
 # you want to reset the cache baseline.
+#
+# 2026-06-10: scitex-writer 2.10.1 → 2.17.5 (aggregate release of
+#   G2 atomic .preview write (#124), G3 flock per-name serialisation
+#   (#125), G1 CompilationResult schema unification (#126)). The
+#   release-level fixes for the prod preview-compile race that this
+#   image needs to ship live here; Django consumer updated below to
+#   convert the new dataclass response to a JSON-serialisable dict.
 RUN uv pip install --system --no-cache \
     "figrecipe==0.27.0" \
     "scitex-io==0.2.3" \
     "scitex-stats==0.2.6" \
     "scitex-plt==0.24.0" \
-    "scitex-writer==2.10.1" \
+    "scitex-writer==2.17.5" \
     "scitex-linter==0.3.1" \
     "scitex-ui==0.4.2" \
     "openalex-local==0.6.0" \
