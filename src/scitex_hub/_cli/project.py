@@ -74,16 +74,105 @@ def project_list(as_json):
 @click.argument("name")
 @click.option("-d", "--description", default="", help="Project description")
 @click.option("-t", "--template", default="scitex_minimal", help="Template ID")
-def project_create(name, description, template):
-    """Create a new project."""
+@click.option(
+    "-c",
+    "--category",
+    type=click.Choice(["project", "app"], case_sensitive=False),
+    default="project",
+    show_default=True,
+    help=(
+        "Top-level project category. 'app' marks the project as an app "
+        "plugin (is_app=True) and auto-suffixes the name with '_app' if "
+        "missing — does NOT submit it to the registry."
+    ),
+)
+@click.option(
+    "--app",
+    "app_shorthand",
+    is_flag=True,
+    help="Shorthand for --category app. Mutually exclusive with --category=app already-set.",
+)
+@click.option(
+    "--app-category",
+    "app_category",
+    type=click.Choice(
+        [
+            "writing",
+            "visualization",
+            "data",
+            "analysis",
+            "reference",
+            "utility",
+            "other",
+        ],
+        case_sensitive=False,
+    ),
+    default=None,
+    help=(
+        "App sub-category for marketplace listing. Only valid with "
+        "--category app (or --app). Optional at create time — can also be "
+        "filled in at `app submit`."
+    ),
+)
+def project_create(name, description, template, category, app_shorthand, app_category):
+    """Create a new project.
+
+    \b
+    Examples:
+        # Research project (default)
+        scitex-hub project create my-research --description "..."
+
+        # App project — auto-suffixes to my-tool_app
+        scitex-hub project create my-tool --category app
+        scitex-hub project create my-tool --app          # shorthand
+
+        # App project with pre-set sub-category
+        scitex-hub project create my-tool --app --app-category writing
+    """
     from scitex_hub.project import project_create as _create
 
+    # Resolve --app shorthand and reject the conflicting combo.
+    if app_shorthand:
+        if category != "project":
+            console.print(
+                "[red]error: --app conflicts with --category=app; pass one or the other[/red]"
+            )
+            raise SystemExit(2)
+        category = "app"
+
+    if app_category and category != "app":
+        console.print(
+            "[red]error: --app-category is only valid with --category app (or --app)[/red]"
+        )
+        raise SystemExit(2)
+
     try:
-        result = _create(name, description=description, template=template)
-        console.print(f"[green]Created project: {result.get('message', name)}[/green]")
+        result = _create(
+            name,
+            description=description,
+            template=template,
+            category=category,
+            app_category=app_category,
+        )
+    except ValueError as e:
+        console.print(f"[red]Error: {e}[/red]")
+        raise SystemExit(2)
     except RuntimeError as e:
         console.print(f"[red]Error: {e}[/red]")
         raise SystemExit(1)
+
+    msg = result.get("message", name)
+    final_slug = result.get("slug", "")
+    if result.get("is_app"):
+        console.print(f"[green]Created app project: {msg}[/green]")
+        if final_slug:
+            console.print(f"  slug:         [cyan]{final_slug}[/cyan]")
+        sub_cat = result.get("app_category") or "<unset>"
+        console.print(f"  app_category: [cyan]{sub_cat}[/cyan]")
+    else:
+        console.print(f"[green]Created project: {msg}[/green]")
+        if final_slug:
+            console.print(f"  slug: [cyan]{final_slug}[/cyan]")
 
 
 @project.command("delete")
