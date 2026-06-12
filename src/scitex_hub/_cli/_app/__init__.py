@@ -12,6 +12,7 @@ all verbs onto the group (each submodule registers on import).
 # module decorates a different verb; we import all of them so ``app`` is fully
 # populated by the time callers (e.g. main.py) reach for it.
 from . import (
+    _create,  # noqa: F401
     _deps,  # noqa: F401
     _inventory,  # noqa: F401
     _prefs,  # noqa: F401
