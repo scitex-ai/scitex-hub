@@ -8,7 +8,11 @@ so the workspace registration is uniform.
 
 from __future__ import annotations
 
+import logging
+
 from django.apps import AppConfig
+
+_logger = logging.getLogger(__name__)
 
 
 class AgenticJournalAppConfig(AppConfig):
@@ -20,20 +24,28 @@ class AgenticJournalAppConfig(AppConfig):
     verbose_name = "Agentic Journal"
 
     def ready(self) -> None:
-        """Eagerly validate the upstream manifest at process start.
+        """Probe the upstream manifest and warn (not raise) if missing.
 
-        If `scitex_agentic_journal` isn't installed (e.g. a hub deploy
-        that doesn't host journal traffic) we fail **loud** at boot,
-        not silently when an operator opens the page. No silent
-        fallback to "the app exists but the dashboard is blank".
+        Earlier this method raised on a missing upstream, but Django's
+        ``populate(INSTALLED_APPS)`` runs even in CI where the upstream
+        package may not be installed (it isn't yet a hard dep of
+        scitex-hub since `scitex-agentic-journal` is pre-alpha and not
+        on PyPI). Raising there crashes every Django startup including
+        the unrelated pytest matrix.
+
+        The "fail loud" doctrine still holds — the **request path**
+        raises clearly (see ``urls.py`` lazy include + ``manifest`` view)
+        if a user hits the dashboard with no upstream installed. Boot
+        is permissive; runtime is strict.
         """
         try:
             from scitex_agentic_journal._django import load_manifest
-        except ImportError as exc:
-            raise RuntimeError(
-                "agentic_journal_app requires `scitex-agentic-journal` to be "
-                "installed. Run `pip install scitex-agentic-journal` or remove "
-                "this app from INSTALLED_APPS for hub deployments that don't "
-                "host the journal surface."
-            ) from exc
+        except ImportError:
+            _logger.warning(
+                "agentic_journal_app: `scitex-agentic-journal` is not "
+                "installed. Dashboard URLs will return 500 with a typed "
+                "error until you `pip install scitex-agentic-journal` or "
+                "remove this app from INSTALLED_APPS."
+            )
+            return
         load_manifest()
