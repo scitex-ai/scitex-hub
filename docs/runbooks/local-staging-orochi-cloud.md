@@ -142,6 +142,79 @@ ssh -L 31294:localhost:31294 your-workstation-host
 container healthcheck — that's a good first URL to hit to confirm the
 stack reached the ready state.
 
+## Mounting upstream plugin apps
+
+The hub mounts standalone upstream packages as thin-wrapper plugin
+apps (the `_django` pattern). The first wrapper landed is:
+
+| Hub mount | Wrapper package | Upstream Python package |
+|-----------|-----------------|-------------------------|
+| `/apps/agentic-journal/` | `apps.workspace.agentic_journal_app` | `scitex-agentic-journal` |
+
+A follow-up PR adds the `live_paper_app` wrapper (mount
+`/apps/live-paper/`, upstream `scitex-live-paper`); the registration
+mechanism documented below applies to it as well.
+
+### Wrapper registration mechanism (recap)
+
+Three pieces, all required:
+
+1. **AppConfig** in `apps/workspace/<x>_app/apps.py` (`name =
+   "apps.workspace.<x>_app"`). Auto-discovered into `INSTALLED_APPS`
+   by `discover_local_apps()` in `config/settings/settings_shared.py`.
+2. **URL include** in `config/urls.py` — explicit
+   `path("apps/<mount>/", include((..., "<x>_app")))` entry. **NOT
+   auto-discovered.**
+3. **Manifest** at `apps/workspace/<x>_app/manifest.json`
+   (`scitex-app-manifest` schema v2.0.0).
+
+The upstream package must provide, under `<pkg>/_django/`: `apps.py`,
+`urls.py`, `manifest.json`, plus any handlers/views/templates the
+dashboard renders. The wrapper's `urls.py` then `include()`s the
+upstream URL conf, preserving namespace so reverses
+(`reverse("<x>_app:submission-detail", args=[id])`) match across
+deployments.
+
+### Bring-up — agentic-journal
+
+> **STOP** before each numbered step. The lead must approve a `pip
+> install` into the staging image; running it without confirmation
+> mutates the image's site-packages.
+
+1. **Install `scitex-agentic-journal` into the staging Django image.**
+   Two paths (`scitex-agentic-journal` is pre-alpha, not on PyPI yet):
+
+   - **Editable bind-mount** — extend
+     `deployment/docker/docker-compose.staging.yml` `django.volumes`
+     with a read-only mount of
+     `~/proj/scitex-agentic-journal/src/scitex_agentic_journal` into
+     the container's site-packages.
+   - **`pip install -e`** inside a rebuilt image (`make ENV=staging
+     build`).
+
+2. **Confirm boot.** Either path missing its upstream will log a
+   warning at boot (the wrapper's `apps.ready()` warns instead of
+   raises) and 500 the dashboard URL on first request:
+
+   ```bash
+   make ENV=staging logs-web | grep agentic_journal_app
+   curl -sS http://localhost:31294/apps/agentic-journal/
+   ```
+
+3. **Hub app-store.** `/apps/store/` reads the wrapper's
+   `manifest.json` and lists the app as `default_enabled: false`
+   (alpha). Toggle to enable per project once the operator wants it
+   surfaced in the workspace nav.
+
+### What this section does NOT do
+
+- It does **not** stand the upstream package up against the **NAS**
+  staging instance — that path lives in a separate runbook owned by
+  proj-scitex-orochi.
+- It does **not** add the upstream package as a **hard** dependency
+  of scitex-hub. It's an optional `[staging]` extra; hub deploys
+  that don't host the journal surface simply skip the install.
+
 ## Verifying functionality
 
 Once the page loads, the smoke checks in priority order:

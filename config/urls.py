@@ -101,6 +101,15 @@ urlpatterns = [
     ),
     path("apps/llm/", include(("apps.infra.llm_app.urls", "llm_app"))),
     path("apps/clew/", include(("apps.workspace.clew_app.urls", "clew_app"))),
+    path(
+        "apps/agentic-journal/",
+        include(
+            (
+                "apps.workspace.agentic_journal_app.urls",
+                "agentic_journal_app",
+            )
+        ),
+    ),
     path("apps/store/", include(("apps.workspace.apps_app.urls", "apps_app"))),
     path("apps/comms/", include(("apps.workspace.comms_app.urls", "comms_app"))),
     # --- Dev-installed app modules (/apps/dev__<owner>__<repo>/) ---
