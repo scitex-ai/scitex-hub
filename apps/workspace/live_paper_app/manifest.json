@@ -1,0 +1,36 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "2.0.0",
+  "name": "live-paper",
+  "label": "Live Paper",
+  "app_name": "live_paper_app",
+  "icon": "",
+  "icon_svg": true,
+  "description": "Interactive scientific paper viewer: claim verification, provenance graph, reproducible figures. Plugin-mounted into SciTeX Hub via the standalone scitex-live-paper package.",
+  "version": "0.1.0-alpha",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "L",
+  "order": 65,
+  "default_enabled": false,
+  "accent_color": "live-paper",
+  "body_class": "live-paper-page",
+  "partial_template": "live_paper_app/index_partial.html",
+  "context_builder": "",
+  "docs_slug": "live-paper",
+  "ai_hint": "View an interactive scientific paper with claim verification + provenance graph + reproducible figures.",
+  "allowed_extensions": [],
+  "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+  "privileges": [
+    {"type": "filesystem", "scope": "project", "reason": "Read bundled live-paper artifacts (manuscript + claims + DAG + assets)"},
+    {"type": "network", "scope": "outbound", "reason": "Persistent-ID resolver (DOI / sandbox) lookups"}
+  ],
+  "builtin": false,
+  "dependencies": {
+    "python": ["scitex-live-paper>=0.1.0a0"],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}
