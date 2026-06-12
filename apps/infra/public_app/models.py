@@ -11,7 +11,7 @@ from apps.infra.auth_app.models import EmailVerification  # noqa
 # EmailVerification model definition moved to apps.infra.auth_app.models
 # Import statement above provides backwards compatibility
 
-# Models for SciTeX-Cloud services
+# Models for SciTeX Hub services
 
 
 class SubscriptionPlan(models.Model):
