@@ -33,10 +33,13 @@ class AgenticJournalAppConfig(AppConfig):
         on PyPI). Raising there crashes every Django startup including
         the unrelated pytest matrix.
 
-        The "fail loud" doctrine still holds — the **request path**
-        raises clearly (see ``urls.py`` lazy include + ``manifest`` view)
-        if a user hits the dashboard with no upstream installed. Boot
-        is permissive; runtime is strict.
+        The "fail loud" doctrine still holds — the **request path** dies
+        loudly when a user hits the dashboard with no upstream installed:
+        ``urls.py`` calls ``django.urls.include("scitex_agentic_journal.
+        _django.urls")``, which Django resolves lazily on the first URL
+        match. With the upstream absent that resolve raises
+        ``ImportError`` and Django renders a 500 — not a silent stub
+        page. Boot is permissive; runtime is strict.
         """
         try:
             from scitex_agentic_journal._django import load_manifest
