@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import importlib.util
 import json
 from pathlib import Path
+
+import pytest
 
 _MANIFEST_PATH = (
     Path(__file__).resolve().parents[3]
@@ -12,6 +15,9 @@ _MANIFEST_PATH = (
     / "agentic_journal_app"
     / "manifest.json"
 )
+
+
+_UPSTREAM_AVAILABLE = importlib.util.find_spec("scitex_agentic_journal") is not None
 
 
 def test_manifest_file_exists() -> None:
@@ -61,6 +67,14 @@ def test_wrapper_apps_module_imports() -> None:
     assert wrapper_apps.AgenticJournalAppConfig.label == "agentic_journal_app"
 
 
+@pytest.mark.skipif(
+    not _UPSTREAM_AVAILABLE,
+    reason=(
+        "scitex-agentic-journal is not installed in this environment; "
+        "wrapper urls.py eagerly include()s its URL conf and would "
+        "ImportError. Skip — covered by upstream's own _django URL tests."
+    ),
+)
 def test_wrapper_urls_module_imports() -> None:
     # Arrange
     # Act
