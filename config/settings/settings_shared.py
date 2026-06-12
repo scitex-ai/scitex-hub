@@ -176,6 +176,12 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # Resolve Authorization: Bearer <jwt> → request.user for plain Django
+    # views. Browser cookie-sessions short-circuit before this runs
+    # (request.user already authenticated), so the middleware is a pure
+    # addition that opens the JWT door to existing endpoints without
+    # touching any view. See apps/infra/accounts_app/middleware.py.
+    "apps.infra.accounts_app.middleware.JWTBearerToSessionMiddleware",
     "apps.infra.project_app.middleware.OnSiteAuthMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "apps.infra.project_app.middleware.VisitorAutoLoginMiddleware",
