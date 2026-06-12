@@ -12,7 +12,8 @@ import asyncio
 import logging
 import tempfile
 from pathlib import Path
-from django.http import JsonResponse, FileResponse
+
+from django.http import FileResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 
 logger = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ def bibtex_enrich_sync(request):
     Requires API key authentication.
 
     Usage:
-        curl https://scitex.cloud/scholar/api/bibtex/enrich/ \
+        curl https://scitex.ai/scholar/api/bibtex/enrich/ \
           -H "Authorization: Bearer YOUR_API_KEY" \
           -F "bibtex_file=@original.bib" \
           -o enriched.bib
