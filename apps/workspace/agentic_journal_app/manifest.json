@@ -1,0 +1,37 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "2.0.0",
+  "name": "agentic-journal",
+  "label": "Agentic Journal",
+  "app_name": "agentic_journal_app",
+  "icon": "",
+  "icon_svg": true,
+  "description": "ARA-native AI-reviewed open publishing on top of Clew. Reviewer dashboard + submission gate UI delegated to the standalone scitex-agentic-journal package.",
+  "version": "0.1.0-alpha",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "J",
+  "order": 60,
+  "default_enabled": false,
+  "accent_color": "agentic-journal",
+  "body_class": "agentic-journal-page",
+  "partial_template": "agentic_journal_app/index_partial.html",
+  "context_builder": "",
+  "docs_slug": "agentic-journal",
+  "ai_hint": "Submit manuscript bundle + run AI gate-1/2/3/4 + hand off to Live Paper.",
+  "allowed_extensions": [],
+  "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+  "privileges": [
+    {"type": "filesystem", "scope": "project", "reason": "Read submission bundles (manuscript + claims + DAG)"},
+    {"type": "compute", "scope": "celery", "reason": "Enqueue reviewer-agent jobs"},
+    {"type": "network", "scope": "outbound", "reason": "ORCID + git ls-remote + Zenodo / JaLC DOI minting"}
+  ],
+  "builtin": false,
+  "dependencies": {
+    "python": ["scitex-agentic-journal>=0.1.0a0"],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}
