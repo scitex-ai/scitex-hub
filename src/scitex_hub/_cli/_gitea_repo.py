@@ -9,6 +9,15 @@ from pathlib import Path
 
 import click
 
+from ._flags import (
+    confirm_or_abort,
+    dry_run_flag,
+    emit_json,
+    json_flag,
+    mutating_flags,
+    print_dry_run,
+    yes_flag,
+)
 from ._gitea_utils import get_gitea_http_url, get_tea_config, run_tea
 
 
@@ -16,8 +25,22 @@ from ._gitea_utils import get_gitea_http_url, get_tea_config, run_tea
 @click.argument("repository")
 @click.argument("destination", required=False)
 @click.option("--login", "-l", default="scitex-dev", help="Tea login to use")
-def clone(repository, destination, login):
-    """Clone a repository from SciTeX Hub"""
+@mutating_flags()
+def clone(repository, destination, login, dry_run, yes):
+    """Clone a repository from SciTeX Hub.
+
+    \b
+    Example:
+      $ scitex-hub gitea clone scitex-hub
+      $ scitex-hub gitea clone scitex-dev/scitex-hub ./hub --yes
+    """
+    if dry_run:
+        target = destination or "<basename of repo>"
+        print_dry_run(
+            f"clone repository '{repository}' into '{target}' via tea login '{login}'"
+        )
+        return
+    confirm_or_abort(f"Clone repository '{repository}'?", yes=yes, dry_run=dry_run)
     if "/" not in repository:
         try:
             result = subprocess.run(
@@ -61,12 +84,26 @@ def clone(repository, destination, login):
 @click.option("--login", "-l", default="scitex-dev", help="Tea login to use")
 @click.option("--push", "do_push", is_flag=True, help="Do initial push after creating")
 @click.option("--remote", default="scitex", help="Remote name to add (default: scitex)")
-def create(name, description, private, login, do_push, remote):
+@mutating_flags()
+def create(name, description, private, login, do_push, remote, dry_run, yes):
     """Create a new repository on Gitea.
 
     Also adds a Gitea remote to the current git repo (if in one) and
     prints the clone URL.  Use --push to immediately push the current branch.
+
+    \b
+    Example:
+      $ scitex-hub gitea create my-new-repo --description "demo" --yes
+      $ scitex-hub gitea create my-new-repo --private --push
     """
+    if dry_run:
+        visibility = "private" if private else "public"
+        print_dry_run(
+            f"create {visibility} Gitea repository '{name}' via tea login '{login}'"
+            + (f" then push current branch to remote '{remote}'" if do_push else "")
+        )
+        return
+    confirm_or_abort(f"Create repository '{name}'?", yes=yes, dry_run=dry_run)
     args = ["repo", "create", "--name", name, "--login", login]
     if description:
         args.extend(["--description", description])
@@ -124,15 +161,45 @@ def _in_git_repo():
 @click.option("--login", "-l", default="scitex-dev", help="Tea login to use")
 @click.option("--starred", "-s", is_flag=True, help="List starred repos")
 @click.option("--watched", "-w", is_flag=True, help="List watched repos")
-def list_repos(user, login, starred, watched):
-    """List repositories"""
-    args = ["repos", "--login", login, "--output", "table"]
+@json_flag()
+def list_repos(user, login, starred, watched, json_output):
+    """List repositories.
+
+    \b
+    Example:
+      $ scitex-hub gitea list
+      $ scitex-hub gitea list --user scitex-dev --json
+    """
+    args = ["repos", "--login", login]
+    if json_output:
+        args.extend(["--output", "json"])
+    else:
+        args.extend(["--output", "table"])
     if starred:
         args.append("--starred")
     if watched:
         args.append("--watched")
     if user:
         args.append(user)
+    if json_output:
+        # Capture tea output and re-emit as canonical JSON so callers don't
+        # have to trust tea's raw text formatting.
+        try:
+            tea_bin = str(Path.home() / ".local" / "bin" / "tea")
+            result = subprocess.run(
+                [tea_bin, *args], capture_output=True, text=True, check=True
+            )
+            import json as _json
+
+            try:
+                payload = _json.loads(result.stdout or "[]")
+            except _json.JSONDecodeError:
+                payload = {"raw": result.stdout}
+            emit_json(payload)
+        except subprocess.CalledProcessError as e:
+            emit_json({"error": str(e), "stderr": e.stderr})
+            sys.exit(1)
+        return
     run_tea(*args)
 
 
@@ -140,9 +207,37 @@ def list_repos(user, login, starred, watched):
 @click.argument("query")
 @click.option("--login", "-l", default="scitex-dev", help="Tea login to use")
 @click.option("--limit", type=int, default=10, help="Maximum results")
-def search(query, login, limit):
-    """Search for repositories"""
-    run_tea("repos", "search", "--login", login, "--limit", str(limit), query)
+@json_flag()
+def search(query, login, limit, json_output):
+    """Search for repositories.
+
+    \b
+    Example:
+      $ scitex-hub gitea search scholar
+      $ scitex-hub gitea search scholar --limit 5 --json
+    """
+    args = ["repos", "search", "--login", login, "--limit", str(limit), query]
+    if json_output:
+        try:
+            tea_bin = str(Path.home() / ".local" / "bin" / "tea")
+            result = subprocess.run(
+                [tea_bin, *args, "--output", "json"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            import json as _json
+
+            try:
+                payload = _json.loads(result.stdout or "[]")
+            except _json.JSONDecodeError:
+                payload = {"raw": result.stdout}
+            emit_json(payload)
+        except subprocess.CalledProcessError as e:
+            emit_json({"error": str(e), "stderr": e.stderr})
+            sys.exit(1)
+        return
+    run_tea(*args)
 
 
 @click.command()
@@ -154,8 +249,20 @@ def search(query, login, limit):
     is_flag=True,
     help="Confirm destructive action (required for non-interactive use)",
 )
-def delete(repository, login, yes):
-    """Delete a repository (DANGEROUS!). Requires --yes/-y (no prompt)."""
+@dry_run_flag()
+def delete(repository, login, yes, dry_run):
+    """Delete a repository (DANGEROUS!). Requires --yes/-y (no prompt).
+
+    \b
+    Example:
+      $ scitex-hub gitea delete scitex-dev/old-repo --yes
+      $ scitex-hub gitea delete scitex-dev/old-repo --dry-run
+    """
+    if dry_run:
+        print_dry_run(
+            f"delete repository '{repository}' via Gitea API (login '{login}')"
+        )
+        return
     if not yes:
         click.echo(
             f"error: pass --yes/-y to confirm destructive action: "
@@ -209,7 +316,12 @@ def delete(repository, login, yes):
 @click.command()
 @click.argument("repository")
 def fork(repository):
-    """Fork a repository"""
+    """Fork a repository.
+
+    \b
+    Example:
+      $ scitex-hub gitea fork scitex-dev/scitex-hub
+    """
     run_tea("repo", "fork", repository)
 
 
