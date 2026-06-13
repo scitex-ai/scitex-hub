@@ -39,71 +39,97 @@ def api_submit_jwt(request):
 
     Accepts: {"project_name": "...", "manifest": {...}}
     Creates AppsModule + ModuleSubmission + opens cross-repo PR.
+
+    Loud-failure logging: the entire body is wrapped so any unhandled
+    exception is logged at ERROR level with the full traceback BEFORE
+    DRF's generic 500-handler converts the response to a no-frame HTML
+    page (or a no-traceback DRF response, depending on settings). This
+    is the diagnostic enabler for fixing the registry-submission path —
+    surfaced during the operator-12834 demo when an indirect
+    paramiko-SSH banner error produced a 500 with no frames in
+    DEBUG=False prod logs. Re-raises so the response surface is
+    unchanged.
     """
-    project_name = request.data.get("project_name", "").strip()
-    manifest = request.data.get("manifest", {})
+    try:
+        project_name = request.data.get("project_name", "").strip()
+        manifest = request.data.get("manifest", {})
 
-    if not project_name:
-        return Response(
-            {"success": False, "error": "project_name is required"}, status=400
+        if not project_name:
+            return Response(
+                {"success": False, "error": "project_name is required"}, status=400
+            )
+
+        from apps.infra.project_app.models import Project
+
+        project = Project.objects.filter(name=project_name, owner=request.user).first()
+        if not project:
+            return Response(
+                {"success": False, "error": f"Project '{project_name}' not found"},
+                status=404,
+            )
+
+        module_name = manifest.get("name", project.slug)
+        version = manifest.get("version", "0.1.0")
+
+        # Fetch HEAD commit SHA from author's Gitea repo
+        pinned_commit = _fetch_head_commit(request.user.username, project.slug)
+
+        # Create or update AppsModule
+        app_module, _created = AppsModule.objects.update_or_create(
+            module_name=module_name,
+            defaults={
+                "author": request.user,
+                "project": project,
+                "short_description": manifest.get("description", ""),
+                "category": manifest.get("category", "other"),
+                "visibility": "private",
+                "pinned_commit": pinned_commit,
+            },
         )
 
-    from apps.infra.project_app.models import Project
+        # Reject if already pending
+        if ModuleSubmission.objects.filter(
+            module=app_module, status="pending"
+        ).exists():
+            return Response(
+                {
+                    "success": False,
+                    "error": "A submission is already pending review.",
+                },
+                status=400,
+            )
 
-    project = Project.objects.filter(name=project_name, owner=request.user).first()
-    if not project:
-        return Response(
-            {"success": False, "error": f"Project '{project_name}' not found"},
-            status=404,
+        # Open cross-repo PR: user/<app> -> scitex-apps/<app>
+        pr_url = _submit_app_pr(
+            app_module=app_module,
+            version=version,
         )
 
-    module_name = manifest.get("name", project.slug)
-    version = manifest.get("version", "0.1.0")
-
-    # Fetch HEAD commit SHA from author's Gitea repo
-    pinned_commit = _fetch_head_commit(request.user.username, project.slug)
-
-    # Create or update AppsModule
-    app_module, _created = AppsModule.objects.update_or_create(
-        module_name=module_name,
-        defaults={
-            "author": request.user,
-            "project": project,
-            "short_description": manifest.get("description", ""),
-            "category": manifest.get("category", "other"),
-            "visibility": "private",
-            "pinned_commit": pinned_commit,
-        },
-    )
-
-    # Reject if already pending
-    if ModuleSubmission.objects.filter(module=app_module, status="pending").exists():
-        return Response(
-            {"success": False, "error": "A submission is already pending review."},
-            status=400,
+        submission = ModuleSubmission.objects.create(
+            module=app_module,
+            submitted_by=request.user,
+            pr_url=pr_url,
         )
 
-    # Open cross-repo PR: user/<app> -> scitex-apps/<app>
-    pr_url = _submit_app_pr(
-        app_module=app_module,
-        version=version,
-    )
-
-    submission = ModuleSubmission.objects.create(
-        module=app_module,
-        submitted_by=request.user,
-        pr_url=pr_url,
-    )
-
-    return Response(
-        {
-            "success": True,
-            "message": f"Submitted {module_name} for review.",
-            "pr_url": pr_url,
-            "submission_id": submission.pk,
-        },
-        status=201,
-    )
+        return Response(
+            {
+                "success": True,
+                "message": f"Submitted {module_name} for review.",
+                "pr_url": pr_url,
+                "submission_id": submission.pk,
+            },
+            status=201,
+        )
+    except Exception:
+        # crash-loud: log the full traceback BEFORE DRF wraps the
+        # response. The HTTP surface is unchanged — we re-raise so
+        # callers still get the same 500. The point is the log line.
+        logger.exception(
+            "api_submit_jwt failed for user=%s project_name=%r",
+            getattr(request.user, "username", "<anon>"),
+            request.data.get("project_name", "") if hasattr(request, "data") else "",
+        )
+        raise
 
 
 # ---------------------------------------------------------------------------
