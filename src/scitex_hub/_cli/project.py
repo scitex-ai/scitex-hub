@@ -9,17 +9,15 @@ import click
 from rich.console import Console
 from rich.table import Table
 
+from ._flags import (
+    confirm_or_abort,
+    emit_json,
+    json_flag,
+    mutating_flags,
+    print_dry_run,
+)
+
 console = Console()
-
-
-def _require_yes(yes, action):
-    """Fail fast with exit 2 if destructive action lacks --yes (spec §2)."""
-    if not yes:
-        click.echo(
-            f"error: pass --yes/-y to confirm destructive action: {action}",
-            err=True,
-        )
-        sys.exit(2)
 
 
 @click.group()
@@ -27,30 +25,39 @@ def project():
     """Manage SciTeX Hub projects.
 
     \b
-    Examples:
+    Example:
         scitex-hub project list
+        scitex-hub project list --json
         scitex-hub project create my-research --description "Paper on X"
+        scitex-hub project create my-research --dry-run
         scitex-hub project delete my-research --yes
-        scitex-hub project rename my-research new-name
+        scitex-hub project rename my-research new-name --yes
     """
 
 
 @project.command("list")
-@click.option("--json", "as_json", is_flag=True, help="Output as JSON")
-def project_list(as_json):
-    """List all your projects."""
+@json_flag()
+def project_list(json_output):
+    """List all your projects.
+
+    \b
+    Example:
+        scitex-hub project list
+        scitex-hub project list --json
+    """
     from scitex_hub.project import project_list as _list
 
     try:
         projects = _list()
     except RuntimeError as e:
+        if json_output:
+            emit_json({"success": False, "error": str(e)})
+            raise SystemExit(1)
         console.print(f"[red]Error: {e}[/red]")
         raise SystemExit(1)
 
-    if as_json:
-        import json
-
-        click.echo(json.dumps(projects, indent=2, default=str))
+    if json_output:
+        emit_json({"success": True, "projects": projects})
         return
 
     if not projects:
@@ -74,118 +81,66 @@ def project_list(as_json):
 @click.argument("name")
 @click.option("-d", "--description", default="", help="Project description")
 @click.option("-t", "--template", default="scitex_minimal", help="Template ID")
-@click.option(
-    "-c",
-    "--category",
-    type=click.Choice(["project", "app"], case_sensitive=False),
-    default="project",
-    show_default=True,
-    help=(
-        "Top-level project category. 'app' marks the project as an app "
-        "plugin (is_app=True) and auto-suffixes the name with '_app' if "
-        "missing — does NOT submit it to the registry."
-    ),
-)
-@click.option(
-    "--app",
-    "app_shorthand",
-    is_flag=True,
-    help="Shorthand for --category app. Mutually exclusive with --category=app already-set.",
-)
-@click.option(
-    "--app-category",
-    "app_category",
-    type=click.Choice(
-        [
-            "writing",
-            "visualization",
-            "data",
-            "analysis",
-            "reference",
-            "utility",
-            "other",
-        ],
-        case_sensitive=False,
-    ),
-    default=None,
-    help=(
-        "App sub-category for marketplace listing. Only valid with "
-        "--category app (or --app). Optional at create time — can also be "
-        "filled in at `app submit`."
-    ),
-)
-def project_create(name, description, template, category, app_shorthand, app_category):
+@mutating_flags()
+def project_create(name, description, template, dry_run, yes):
     """Create a new project.
 
     \b
-    Examples:
-        # Research project (default)
-        scitex-hub project create my-research --description "..."
-
-        # App project — auto-suffixes to my-tool_app
-        scitex-hub project create my-tool --category app
-        scitex-hub project create my-tool --app          # shorthand
-
-        # App project with pre-set sub-category
-        scitex-hub project create my-tool --app --app-category writing
+    Example:
+        scitex-hub project create my-research
+        scitex-hub project create my-research --description "Paper on X"
+        scitex-hub project create my-research --template scitex_minimal
+        scitex-hub project create my-research --dry-run
+        scitex-hub project create my-research --yes
     """
+    if dry_run:
+        print_dry_run(
+            f"create project '{name}' (template={template}, description={description!r})"
+        )
+        return
+
+    confirm_or_abort(f"Create project '{name}'?", yes=yes, dry_run=dry_run)
+
     from scitex_hub.project import project_create as _create
 
-    # Resolve --app shorthand and reject the conflicting combo.
-    if app_shorthand:
-        if category != "project":
-            console.print(
-                "[red]error: --app conflicts with --category=app; pass one or the other[/red]"
-            )
-            raise SystemExit(2)
-        category = "app"
-
-    if app_category and category != "app":
-        console.print(
-            "[red]error: --app-category is only valid with --category app (or --app)[/red]"
-        )
-        raise SystemExit(2)
-
     try:
-        result = _create(
-            name,
-            description=description,
-            template=template,
-            category=category,
-            app_category=app_category,
-        )
-    except ValueError as e:
-        console.print(f"[red]Error: {e}[/red]")
-        raise SystemExit(2)
+        result = _create(name, description=description, template=template)
+        console.print(f"[green]Created project: {result.get('message', name)}[/green]")
     except RuntimeError as e:
         console.print(f"[red]Error: {e}[/red]")
         raise SystemExit(1)
 
-    msg = result.get("message", name)
-    final_slug = result.get("slug", "")
-    if result.get("is_app"):
-        console.print(f"[green]Created app project: {msg}[/green]")
-        if final_slug:
-            console.print(f"  slug:         [cyan]{final_slug}[/cyan]")
-        sub_cat = result.get("app_category") or "<unset>"
-        console.print(f"  app_category: [cyan]{sub_cat}[/cyan]")
-    else:
-        console.print(f"[green]Created project: {msg}[/green]")
-        if final_slug:
-            console.print(f"  slug: [cyan]{final_slug}[/cyan]")
-
 
 @project.command("delete")
 @click.argument("slug")
-@click.option(
-    "--yes",
-    "-y",
-    is_flag=True,
-    help="Confirm destructive action (required for non-interactive use)",
-)
-def project_delete(slug, yes):
-    """Delete a project by slug. Requires --yes/-y (no interactive prompt)."""
-    _require_yes(yes, f"delete project '{slug}'")
+@mutating_flags()
+def project_delete(slug, dry_run, yes):
+    """Delete a project by slug.
+
+    Destructive — requires --yes/-y in non-interactive contexts (no TTY)
+    and prompts otherwise.
+
+    \b
+    Example:
+        scitex-hub project delete my-research --yes
+        scitex-hub project delete my-research --dry-run
+    """
+    if dry_run:
+        print_dry_run(f"delete project '{slug}'")
+        return
+
+    if not yes and not sys.stdin.isatty():
+        click.echo(
+            f"error: pass --yes/-y to confirm destructive action: delete project '{slug}'",
+            err=True,
+        )
+        sys.exit(2)
+
+    confirm_or_abort(
+        f"Delete project '{slug}'? This is irreversible.",
+        yes=yes,
+        dry_run=dry_run,
+    )
 
     from scitex_hub.project import project_delete as _delete
 
@@ -200,12 +155,30 @@ def project_delete(slug, yes):
 @project.command("rename")
 @click.argument("slug")
 @click.argument("new_name")
-def project_rename(slug, new_name):
-    """Rename a project."""
+@mutating_flags()
+def project_rename(slug, new_name, dry_run, yes):
+    """Rename a project.
+
+    \b
+    Example:
+        scitex-hub project rename my-research new-research-name
+        scitex-hub project rename my-research new-name --yes
+        scitex-hub project rename my-research new-name --dry-run
+    """
+    if dry_run:
+        print_dry_run(f"rename project '{slug}' -> '{new_name}'")
+        return
+
+    confirm_or_abort(
+        f"Rename project '{slug}' to '{new_name}'?",
+        yes=yes,
+        dry_run=dry_run,
+    )
+
     from scitex_hub.project import project_rename as _rename
 
     try:
-        result = _rename(slug, new_name)
+        _rename(slug, new_name)
         console.print(f"[green]Renamed '{slug}' to '{new_name}'[/green]")
     except RuntimeError as e:
         console.print(f"[red]Error: {e}[/red]")

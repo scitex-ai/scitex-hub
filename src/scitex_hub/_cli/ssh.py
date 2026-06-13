@@ -11,6 +11,7 @@ import sys
 import click
 
 from .._config._environments import ENVIRONMENTS, get_environment
+from ._flags import confirm_or_abort, mutating_flags, print_dry_run
 
 # SSH port per environment (maps to Docker-exposed port 2200)
 SSH_PORTS = {
@@ -48,16 +49,19 @@ SSH_HOSTS = {
     help="SSH port (default: env-specific)",
 )
 @click.argument("ssh_args", nargs=-1, type=click.UNPROCESSED)
-def ssh(env_name, username, port, ssh_args):
+@mutating_flags()
+def ssh(env_name, username, port, ssh_args, dry_run, yes):
     """SSH into a SciTeX Hub instance.
 
     \b
-    Examples:
-        scitex-hub ssh                    # SSH to default env
-        scitex-hub ssh --env dev          # SSH to dev (127.0.0.1:2200)
-        scitex-hub ssh --env prod         # SSH to production
-        scitex-hub ssh -u myuser          # SSH as specific user
-        scitex-hub ssh -- -L 8888:localhost:8888  # With port forwarding
+    Example:
+        scitex-hub ssh                                # SSH to default env
+        scitex-hub ssh --env dev                      # SSH to dev (127.0.0.1:2200)
+        scitex-hub ssh --env prod                     # SSH to production
+        scitex-hub ssh -u myuser                      # SSH as specific user
+        scitex-hub ssh -- -L 8888:localhost:8888      # With port forwarding
+        scitex-hub ssh --env dev --dry-run            # Show the ssh command
+        scitex-hub ssh --env dev --yes                # Skip confirmation
     """
     env = get_environment(env_name)
     host = SSH_HOSTS.get(env.name, "127.0.0.1")
@@ -72,6 +76,12 @@ def ssh(env_name, username, port, ssh_args):
     # Add extra args passed after --
     cmd.extend(ssh_args)
     cmd.append(f"{user}@{host}")
+
+    if dry_run:
+        print_dry_run(f"exec: {' '.join(cmd)}")
+        return
+
+    confirm_or_abort(f"SSH to {user}@{host}:{ssh_port}?", yes=yes, dry_run=dry_run)
 
     click.echo(f"Connecting to {host}:{ssh_port} as {user}...")
     os.execvp("ssh", cmd)
@@ -107,14 +117,17 @@ def ssh(env_name, username, port, ssh_args):
     default=None,
     help="Identity file to copy (default: ssh-copy-id default)",
 )
-def ssh_copy_id(env_name, username, port, identity_file):
+@mutating_flags()
+def ssh_copy_id(env_name, username, port, identity_file, dry_run, yes):
     """Register your SSH key with a SciTeX Hub instance.
 
     \b
-    Examples:
-        scitex-hub ssh-copy-id                    # Register default key
-        scitex-hub ssh-copy-id --env dev          # Register with dev instance
-        scitex-hub ssh-copy-id -i ~/.ssh/id_ed25519.pub  # Specific key
+    Example:
+        scitex-hub ssh-copy-id                                  # Register default key
+        scitex-hub ssh-copy-id --env dev                        # Register with dev instance
+        scitex-hub ssh-copy-id -i ~/.ssh/id_ed25519.pub         # Specific key
+        scitex-hub ssh-copy-id --env dev --dry-run              # Show the ssh-copy-id command
+        scitex-hub ssh-copy-id --env dev --yes                  # Skip confirmation
     """
     env = get_environment(env_name)
     host = SSH_HOSTS.get(env.name, "127.0.0.1")
@@ -129,6 +142,16 @@ def ssh_copy_id(env_name, username, port, identity_file):
     if identity_file:
         cmd.extend(["-i", identity_file])
     cmd.append(f"{user}@{host}")
+
+    if dry_run:
+        print_dry_run(f"exec: {' '.join(cmd)}")
+        return
+
+    confirm_or_abort(
+        f"Register SSH key with {user}@{host}:{ssh_port}?",
+        yes=yes,
+        dry_run=dry_run,
+    )
 
     click.echo(f"Registering SSH key with {host}:{ssh_port} as {user}...")
     sys.exit(subprocess.call(cmd))
