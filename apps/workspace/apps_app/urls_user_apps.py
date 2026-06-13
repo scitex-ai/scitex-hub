@@ -48,6 +48,11 @@ import logging
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.urls import URLResolver, path, re_path
 from django.urls.resolvers import RegexPattern
+from scitex_live_paper import (
+    BundleAccessDenied,
+    BundleNotFound,
+    BundleResolverError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -99,26 +104,19 @@ def _invoke(view, request, args, kwargs, module_name: str) -> HttpResponse:
     a misbehaving user-app can't be probed for internals via crafted
     requests. Per CodeQL py/stack-trace-exposure fix on PR #290 v2.
     """
-    # Resolver-side exception hierarchy per the contract pin
-    # (live-paper PR #47 merged; importing lazily still so hosts without
-    # live-paper installed don't break test collection on hub-only deploys).
+    # Resolver-side exception hierarchy per the contract pin (live-paper
+    # PR #47 merged + on develop; the import is now hard at module level
+    # — fail-loud at Django startup if scitex-live-paper isn't installed
+    # rather than silently misrouting exceptions to a generic 500 at
+    # request time).
     try:
         return view(request, *args, **kwargs)
     except Exception as exc:  # noqa: BLE001 - mapped to a real HTTP surface
-        try:
-            from scitex_live_paper import (
-                BundleAccessDenied,
-                BundleNotFound,
-                BundleResolverError,
-            )
-        except Exception:
-            BundleNotFound = BundleAccessDenied = BundleResolverError = None
-
-        if BundleNotFound is not None and isinstance(exc, BundleNotFound):
+        if isinstance(exc, BundleNotFound):
             return JsonResponse({"error": "not found", "kind": "not_found"}, status=404)
-        if BundleAccessDenied is not None and isinstance(exc, BundleAccessDenied):
+        if isinstance(exc, BundleAccessDenied):
             return JsonResponse({"error": "forbidden", "kind": "forbidden"}, status=403)
-        if BundleResolverError is not None and isinstance(exc, BundleResolverError):
+        if isinstance(exc, BundleResolverError):
             logger.exception(
                 "[urls_user_apps] resolver error from user-app %r", module_name
             )
