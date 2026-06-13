@@ -34,6 +34,12 @@ def whoami(server, as_json):
     Same identity probe the demo's middleware-verification step used —
     handy for "is my token still valid?" without a separate health
     endpoint.
+
+    \b
+    Example:
+        scitex-hub account whoami
+        scitex-hub account whoami --json
+        scitex-hub account whoami --server https://scitex.ai
     """
     server_url = _resolve_server(server)
     cached = _read_cached_token() or {}

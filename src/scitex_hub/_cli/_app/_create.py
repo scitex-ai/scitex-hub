@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import click
 
+from .._flags import confirm_or_abort, mutating_flags, print_dry_run
 from ._group import app, console
 
 
@@ -47,7 +48,8 @@ from ._group import app, console
         "time — can also be filled in at `app submit`."
     ),
 )
-def app_create(name, description, template, app_category):
+@mutating_flags()
+def app_create(name, description, template, app_category, dry_run, yes):
     """Create a new SciTeX Hub app project.
 
     Equivalent to ``scitex-hub project create <name> --category app``.
@@ -56,11 +58,25 @@ def app_create(name, description, template, app_category):
     separate ``scitex-hub app submit`` call once the source is ready.
 
     \b
-    Examples:
+    Example:
         scitex-hub app create my-tool
         scitex-hub app create my-tool --description "..."
-        scitex-hub app create my-tool --app-category writing
+        scitex-hub app create my-tool --app-category writing --yes
+        scitex-hub app create my-tool --dry-run
     """
+    if dry_run:
+        print_dry_run(
+            f"create app project name='{name}' template={template} "
+            f"app_category={app_category or '<unset>'}"
+        )
+        return
+
+    confirm_or_abort(
+        f"Create app project '{name}' from template '{template}'?",
+        yes=yes,
+        dry_run=dry_run,
+    )
+
     from scitex_hub.project import project_create as _create
 
     try:

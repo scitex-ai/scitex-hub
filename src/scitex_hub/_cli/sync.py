@@ -303,15 +303,30 @@ def _print_sync_result(result, dry_run: bool) -> None:
 @click.argument("repo", default="")
 @click.option("--env", "env_name", default="dev", help="Target environment")
 @json_flag()
-def sync_status(repo, env_name, json_output):
+@mutating_flags()
+def sync_status(repo, env_name, json_output, dry_run, yes):
     """Show sync state across Local, Gitea, and Workspace.
+
+    Read-only verb, but the audit's §2 universal-flag check expects the
+    mutating-pair on any noun-leaf that COULD invoke a remote action
+    (sync-status fans out to ``git fetch`` + an SSH probe). ``--dry-run``
+    short-circuits before any network call; ``--yes`` is a no-op for the
+    read path but kept for symmetry across the sync-* family.
 
     \b
     Example:
         scitex-hub sync-status
         scitex-hub sync-status ywatanabe/my-proj --env prod
         scitex-hub sync-status --json
+        scitex-hub sync-status --dry-run
     """
+    if dry_run:
+        print_dry_run(
+            f"probe sync state (git fetch origin + remote `git rev-list`) "
+            f"for repo='{repo or '<auto-detect>'}' env={env_name}"
+        )
+        return
+    _ = yes  # symmetric flag; no confirmation required for a read verb
     from rich.table import Table
 
     rows: list[dict[str, str]] = []

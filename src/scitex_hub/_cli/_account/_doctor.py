@@ -40,6 +40,11 @@ def doctor(server):
 
     Exits non-zero if any HARD check fails (missing file, bad JSON,
     missing keys, 401). World-readable file is a WARN, not a fail.
+
+    \b
+    Example:
+        scitex-hub account doctor
+        scitex-hub account doctor --server https://scitex.ai
     """
     p = _token_cache_path()
     hard_fail = False

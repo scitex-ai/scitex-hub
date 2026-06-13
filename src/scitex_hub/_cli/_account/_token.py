@@ -18,6 +18,7 @@ from typing import Any
 import click
 import requests
 
+from .._flags import confirm_or_abort, mutating_flags, print_dry_run
 from ._group import console, token
 
 #: Default scopes for a CLI-issued token. Mirrors
@@ -107,7 +108,8 @@ def _resolve_server(server: str | None) -> str:
     show_default=True,
     help="Cache the minted token to ~/.scitex/cloud/runtime/token.json.",
 )
-def token_create(user, password, scopes, name, server, save):
+@mutating_flags()
+def token_create(user, password, scopes, name, server, save, dry_run, yes):
     """Mint a new ``scitex_xxxx`` API token from your username+password.
 
     Posts to ``/api/me/token/`` on the server. Server-side validates
@@ -116,10 +118,25 @@ def token_create(user, password, scopes, name, server, save):
     password is indistinguishable from an unknown user.
 
     \b
-    Examples:
+    Example:
         scitex-hub account token create --user ywatanabe
         scitex-hub account token create -u ywatanabe -n "from-laptop"
+        scitex-hub account token create -u ywatanabe --dry-run
+        scitex-hub account token create -u ywatanabe --yes
     """
+    if dry_run:
+        print_dry_run(
+            f"POST /api/me/token/ user={user} name={name} "
+            f"scopes={','.join(scopes)} save={save}"
+        )
+        return
+
+    confirm_or_abort(
+        f"Mint API token name='{name}' for user='{user}'?",
+        yes=yes,
+        dry_run=dry_run,
+    )
+
     server_url = _resolve_server(server)
     body = {
         "username": user,
@@ -185,7 +202,14 @@ def token_create(user, password, scopes, name, server, save):
 )
 @click.option("--json", "as_json", is_flag=True, help="Emit JSON instead of a table.")
 def token_list(server, as_json):
-    """List your existing API tokens (never re-shows the secret value)."""
+    """List your existing API tokens (never re-shows the secret value).
+
+    \b
+    Example:
+        scitex-hub account token list
+        scitex-hub account token list --json
+        scitex-hub account token list --server https://scitex.ai
+    """
     server_url = _resolve_server(server)
     cached = _read_cached_token() or {}
     bearer = cached.get("access")
@@ -259,8 +283,28 @@ def token_list(server, as_json):
     is_flag=True,
     help="Confirm destructive action (required for non-interactive use).",
 )
-def token_revoke(token_id, server, yes):
-    """Revoke a single API token by id. Requires ``--yes``."""
+@click.option(
+    "--dry-run/--no-dry-run",
+    default=False,
+    help="Show what would happen without executing.",
+)
+def token_revoke(token_id, server, yes, dry_run):
+    """Revoke a single API token by id. Requires ``--yes``.
+
+    \b
+    Example:
+        scitex-hub account token revoke 42 --yes
+        scitex-hub account token revoke 42 --dry-run
+        scitex-hub account token revoke 42 -s https://scitex.ai --yes
+    """
+    if dry_run:
+        server_url = _resolve_server(server)
+        click.echo(
+            f"[dry-run] DELETE {server_url}/api/me/token/{token_id}/ "
+            f"(would revoke token id={token_id})"
+        )
+        return
+
     if not yes:
         console.print(
             f"[red]error[/red]: pass --yes/-y to confirm: revoke token id={token_id}"

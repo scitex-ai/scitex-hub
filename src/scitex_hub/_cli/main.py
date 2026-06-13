@@ -156,7 +156,15 @@ register_sync_commands(main)
 @click.option("-d", "--max-depth", type=int, default=5, help="Max recursion depth")
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON")
 def list_python_apis(verbose, max_depth, as_json):
-    """List Python APIs (alias for: scitex introspect api scitex_hub)."""
+    """List Python APIs (alias for: scitex introspect api scitex_hub).
+
+    \b
+    Example:
+        scitex-hub list-python-apis
+        scitex-hub list-python-apis -v
+        scitex-hub list-python-apis --json
+        scitex-hub list-python-apis -d 3 -vv
+    """
     try:
         from scitex.cli.introspect import api
 
