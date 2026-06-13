@@ -1,0 +1,54 @@
+{
+  "_hub_derive_note": "Hand-stamped per derive_wrapper_manifest mapping (proj-scitex-hub a2a msg 2a286d5d) pending venv refresh post-journal-PR-#35. On post-refresh follow-up, regenerate via: `from scitex_agentic_journal import derive_wrapper_manifest; m = derive_wrapper_manifest(label='Agentic Journal')`. Source HUB_APP_MANIFEST: journal PR #34 _hub_app_publisher/.",
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "2.0.0",
+  "name": "scitex_agentic_journal_hub_app",
+  "slug": "scitex-agentic-journal-hub-app",
+  "label": "Agentic Journal",
+  "app_name": "scitex_agentic_journal_hub_app",
+  "version": "0.1.0",
+  "icon": "fas fa-book",
+  "subtitle": "ARA-native open publishing with AI review.",
+  "about": "ARA-native open publishing with AI review on top of Clew. Hub-side wrapper around the upstream scitex_agentic_journal package; exposes the submission-log endpoint that backs the live-paper ReReviewBadge (M4) and the agentic-journal UI tab.",
+  "description": "ARA-native open publishing with AI review on top of Clew. Hub-side wrapper around the upstream scitex_agentic_journal package; exposes the submission-log endpoint that backs the live-paper ReReviewBadge (M4) and the agentic-journal UI tab.",
+  "author": "ywatanabe",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "",
+  "order": 50,
+  "accent_color": "",
+  "body_class": "scitex-agentic-journal-hub-app-page",
+  "partial_template": "scitex_agentic_journal_hub_app/index_partial.html",
+  "context_builder": "",
+  "ai_hint": "Use to view AI-review decision logs for a paper and to open the agentic-journal UI inside the hub.",
+  "capabilities": [],
+  "allowed_extensions": [],
+  "hidden_patterns": [
+    "__pycache__",
+    "node_modules",
+    ".git",
+    ".venv"
+  ],
+  "privileges": [
+    "submitter",
+    "reviewer-agent",
+    "editor",
+    "admin"
+  ],
+  "wip": true,
+  "standalone": false,
+  "standalone_command": "",
+  "standalone_port": 0,
+  "frontend_type": "html",
+  "dependencies": {
+    "python": [
+      "python>=3.10",
+      "scitex-agentic-journal",
+      "scitex-live-paper"
+    ],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}
