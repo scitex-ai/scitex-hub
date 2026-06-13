@@ -16,7 +16,15 @@ classifiers = [
 dependencies = [
     "rich",
     "click>=8.0",
-    "scitex-app>=0.2.8",
+    # 0.2.10 is the first release where `scitex_app.appmaker.init_app`
+    # emits the nested-package layout + `[tool.hatch.build.targets.wheel]
+    # packages=["<name>"]` block in the generated pyproject (scitex-app
+    # PR #35, scitex-cloud PR #293 done-gate). Pre-0.2.10 the canonical
+    # CLI path `scitex-hub app init` shadowed our local _scaffold fix
+    # with the upstream flat-layout generator, breaking
+    # `pip_install_user_app` at install time. (0.2.9 was claimed by an
+    # orphan tag for an unrelated earlier release — jumping to 0.2.10.)
+    "scitex-app>=0.2.10",
     "scitex-config>=0.3.6",
     # `scitex-session` is consumed via the umbrella as `scitex.session.INJECTED`
     # (settings_shared.py / settings_auth.py / config/routing.py).
