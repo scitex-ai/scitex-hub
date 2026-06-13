@@ -17,6 +17,7 @@ from pathlib import Path
 from apps.workspace.console_app.views.terminal.config import SLURM_TIME_LIMIT_SECONDS
 
 from ._handler_utils import respawn_pty, send_state
+from ._paths import broker_user_data_root
 from .allocation import Allocation, AllocationState
 from .session import SessionState
 from .shell import MAX_RESPAWNS as SHELL_MAX_RESPAWNS
@@ -201,9 +202,7 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
     # 3. Spawn shell inside allocation. Resolve broker-visible project_dir so
     # BasePTY chdirs to the project root before fork (falls back to HOME → /tmp
     # if the path is missing, e.g. first-time user — no silent swallow).
-    from apps.workspace.console_app.views.terminal.config import USER_DATA_ROOT
-
-    broker_project_dir = USER_DATA_ROOT / username / "proj" / project_slug
+    broker_project_dir = broker_user_data_root() / username / "proj" / project_slug
     shell_id = str(uuid.uuid4())
     shell = Shell(
         shell_id=shell_id,
