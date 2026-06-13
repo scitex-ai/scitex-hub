@@ -102,6 +102,15 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        # APIKeyAuthentication adapts the existing `scitex_xxxx` UI-PAT
+        # (apps.infra.accounts_app.models.api_key.APIKey) to DRF's
+        # authentication contract so a UI-generated PAT works on every
+        # DRF endpoint — /api/project/create/, /api/apps/submit/, and the
+        # project-scoped <u>/<slug>/api/* family (which already accepts
+        # Bearer-anything via the JWT middleware from PR #268). The class
+        # ONLY recognises tokens that start with `Bearer scitex_` so the
+        # JWT path above is unaffected.
+        "apps.infra.accounts_app.authentication.APIKeyAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
