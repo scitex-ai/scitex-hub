@@ -47,6 +47,7 @@ import sys
 from pathlib import Path
 
 from django.conf import settings
+from django.utils._os import safe_join
 
 logger = logging.getLogger(__name__)
 
@@ -158,25 +159,17 @@ def pip_install_user_app(app_module) -> Path:
     install_dir = _user_apps_dir()
     install_dir.mkdir(parents=True, exist_ok=True)
 
-    # INLINE sanitization at the path-construction sink (lead msg
-    # d9cc8441 path-A): resolve() + is_relative_to() + raise-on-escape
-    # at each call site is the canonical CodeQL-recognized form. A
-    # helper function hides the sanitization from interprocedural taint
-    # analysis (proven on PR #290 v3 — _safe_join helper kept the
-    # alerts). The 4× repetition is a deliberate, justified cost:
-    # security-critical sinks earn the verbosity.
-    install_dir_abs = install_dir.resolve()
-    pkg_dir = (install_dir_abs / module_name).resolve()
-    if not pkg_dir.is_relative_to(install_dir_abs):
-        raise ValueError(
-            f"path traversal blocked: {module_name!r} resolved outside "
-            f"{install_dir_abs!s}"
-        )
-    sentinel = (pkg_dir / ".scitex_hub_pinned_at").resolve()
-    if not sentinel.is_relative_to(pkg_dir):
-        raise ValueError(
-            f"path traversal blocked: sentinel resolved outside {pkg_dir!s}"
-        )
+    # SANITIZATION via Django's `safe_join` (lead msg e40711ed path
+    # β+γ): Django's safe-path-join is the FileSystemStorage primitive
+    # — joins base+segment, raises SuspiciousFileOperation if the
+    # result escapes base, returns the sanitized path STRING. Because
+    # `pkg_dir` and `sentinel` come OUT of `safe_join`, CodeQL sees
+    # them as sanitized AT THE SOURCE; all downstream uses inherit
+    # the clean flow (which the v3 helper + v4 inline-is_relative_to
+    # patterns failed to propagate, see PR #290 v3/v4 CodeQL re-runs).
+    # `_safe_identifier` regex still runs first as defense-in-depth.
+    pkg_dir = Path(safe_join(str(install_dir), module_name))
+    sentinel = Path(safe_join(str(pkg_dir), ".scitex_hub_pinned_at"))
     if sentinel.is_file() and sentinel.read_text(encoding="utf-8").strip() == commit:
         logger.debug(
             "[user_app_install] %r already at pinned %s — skipping pip",
