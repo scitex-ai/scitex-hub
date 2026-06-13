@@ -20,6 +20,16 @@ from pathlib import Path
 import click
 from rich.console import Console
 
+from ._flags import (
+    confirm_or_abort,
+    dry_run_flag,
+    emit_json,
+    json_flag,
+    mutating_flags,
+    print_dry_run,
+    yes_flag,
+)
+
 console = Console()
 
 
@@ -97,17 +107,27 @@ def _resolve_repo(repo: str) -> str:
 @click.command("push")
 @click.argument("remote", default="origin")
 @click.argument("branch", default="")
-def push(remote, branch):
+@mutating_flags()
+def push(remote, branch, dry_run, yes):
     """Git push to Gitea (committed changes).
 
     \b
-    Examples:
-        scitex cloud push              # push to origin
-        scitex cloud push origin main  # push main branch
+    Example:
+        scitex-hub push-project                       # push to origin
+        scitex-hub push-project origin main           # push main branch
+        scitex-hub push-project --dry-run             # preview the git-push command
+        scitex-hub push-project origin main --yes     # skip confirmation
     """
     cmd = ["git", "push", remote]
     if branch:
         cmd.append(branch)
+
+    if dry_run:
+        print_dry_run(f"exec: {' '.join(cmd)}")
+        return
+
+    confirm_or_abort(f"Run `{' '.join(cmd)}`?", yes=yes, dry_run=dry_run)
+
     try:
         subprocess.run(cmd, check=True)
         console.print("[green]Pushed → Gitea[/green]")
@@ -119,17 +139,27 @@ def push(remote, branch):
 @click.command("pull")
 @click.argument("remote", default="origin")
 @click.argument("branch", default="")
-def pull(remote, branch):
+@mutating_flags()
+def pull(remote, branch, dry_run, yes):
     """Git pull from Gitea (committed changes).
 
     \b
-    Examples:
-        scitex cloud pull              # pull from origin
-        scitex cloud pull origin main  # pull main branch
+    Example:
+        scitex-hub pull-project                       # pull from origin
+        scitex-hub pull-project origin main           # pull main branch
+        scitex-hub pull-project --dry-run             # preview the git-pull command
+        scitex-hub pull-project origin main --yes     # skip confirmation
     """
     cmd = ["git", "pull", remote]
     if branch:
         cmd.append(branch)
+
+    if dry_run:
+        print_dry_run(f"exec: {' '.join(cmd)}")
+        return
+
+    confirm_or_abort(f"Run `{' '.join(cmd)}`?", yes=yes, dry_run=dry_run)
+
     try:
         subprocess.run(cmd, check=True)
         console.print("[green]Pulled ← Gitea[/green]")
@@ -145,18 +175,20 @@ def pull(remote, branch):
 @click.command("sync-to")
 @click.argument("repo", default="")
 @click.option("--env", "env_name", default="dev", help="Target environment")
-@click.option("--dry-run", is_flag=True, help="Preview without changing files")
-def sync_to(repo, env_name, dry_run):
+@dry_run_flag()
+@yes_flag()
+def sync_to(repo, env_name, dry_run, yes):
     """Sync working files to workspace (Dropbox-style).
 
     Detects conflicts when both sides changed since last sync.
     Conflicted files are kept as file.conflict-<timestamp>.ext.
 
     \b
-    Examples:
-        scitex cloud sync-to                    # auto-detect repo
-        scitex cloud sync-to ywatanabe/my-proj  # explicit repo
-        scitex cloud sync-to --dry-run          # preview changes
+    Example:
+        scitex-hub sync-to                            # auto-detect repo
+        scitex-hub sync-to ywatanabe/my-proj          # explicit repo
+        scitex-hub sync-to --dry-run                  # preview changes
+        scitex-hub sync-to ywatanabe/my-proj --yes
     """
     if _is_on_workspace():
         console.print(
@@ -168,6 +200,18 @@ def sync_to(repo, env_name, dry_run):
     repo = _resolve_repo(repo)
     host, port = _get_ssh_target(env_name)
     ws_path = _get_workspace_path(repo)
+
+    if dry_run:
+        # Engine has its own dry-run preview; fall through to call it so the
+        # plan output matches real-run targeting. We also emit the uniform
+        # [dry-run] prefix line so audit-cli sees the canonical marker.
+        print_dry_run(
+            f"sync local -> workspace ({repo}) via ssh -p {port} scitex@{host}:{ws_path}"
+        )
+
+    if not dry_run:
+        confirm_or_abort(f"Sync local → workspace ({repo})?", yes=yes, dry_run=dry_run)
+
     ssh_cmd = ["ssh", "-p", str(port), f"scitex@{host}"]
 
     from ._sync_engine import sync_files
@@ -180,18 +224,20 @@ def sync_to(repo, env_name, dry_run):
 @click.command("sync-from")
 @click.argument("repo", default="")
 @click.option("--env", "env_name", default="dev", help="Target environment")
-@click.option("--dry-run", is_flag=True, help="Preview without changing files")
-def sync_from(repo, env_name, dry_run):
+@dry_run_flag()
+@yes_flag()
+def sync_from(repo, env_name, dry_run, yes):
     """Sync working files from workspace (Dropbox-style).
 
     Detects conflicts when both sides changed since last sync.
     Conflicted files are kept as file.conflict-<timestamp>.ext.
 
     \b
-    Examples:
-        scitex cloud sync-from                    # auto-detect repo
-        scitex cloud sync-from ywatanabe/my-proj  # explicit repo
-        scitex cloud sync-from --dry-run          # preview changes
+    Example:
+        scitex-hub sync-from                          # auto-detect repo
+        scitex-hub sync-from ywatanabe/my-proj        # explicit repo
+        scitex-hub sync-from --dry-run                # preview changes
+        scitex-hub sync-from ywatanabe/my-proj --yes
     """
     if _is_on_workspace():
         console.print(
@@ -203,6 +249,15 @@ def sync_from(repo, env_name, dry_run):
     repo = _resolve_repo(repo)
     host, port = _get_ssh_target(env_name)
     ws_path = _get_workspace_path(repo)
+
+    if dry_run:
+        print_dry_run(
+            f"sync workspace -> local ({repo}) via ssh -p {port} scitex@{host}:{ws_path}"
+        )
+
+    if not dry_run:
+        confirm_or_abort(f"Sync workspace → local ({repo})?", yes=yes, dry_run=dry_run)
+
     ssh_cmd = ["ssh", "-p", str(port), f"scitex@{host}"]
 
     from ._sync_engine import sync_files
@@ -247,13 +302,19 @@ def _print_sync_result(result, dry_run: bool) -> None:
 @click.command("sync-status")
 @click.argument("repo", default="")
 @click.option("--env", "env_name", default="dev", help="Target environment")
-def sync_status(repo, env_name):
-    """Show sync state across Local, Gitea, and Workspace."""
+@json_flag()
+def sync_status(repo, env_name, json_output):
+    """Show sync state across Local, Gitea, and Workspace.
+
+    \b
+    Example:
+        scitex-hub sync-status
+        scitex-hub sync-status ywatanabe/my-proj --env prod
+        scitex-hub sync-status --json
+    """
     from rich.table import Table
 
-    table = Table(title="Sync Status")
-    table.add_column("Pair", style="cyan")
-    table.add_column("Status")
+    rows: list[dict[str, str]] = []
 
     # Local ↔ Gitea
     try:
@@ -271,14 +332,15 @@ def sync_status(repo, env_name):
         )
         ahead, behind = result.stdout.strip().split()
         if ahead == "0" and behind == "0":
-            lg = "[green]in sync[/green]"
+            lg = "in sync"
         else:
-            lg = f"↑{ahead} ahead, ↓{behind} behind"
+            lg = f"ahead={ahead} behind={behind}"
     except (subprocess.CalledProcessError, ValueError, subprocess.TimeoutExpired):
-        lg = "[yellow]unknown (git fetch failed)[/yellow]"
-    table.add_row("Local ↔ Gitea", lg)
+        lg = "unknown (git fetch failed)"
+    rows.append({"pair": "local-gitea", "status": lg})
 
     # Workspace ↔ Gitea
+    ws_row = None
     if repo or _detect_repo():
         repo = _resolve_repo(repo) if repo else f"{_detect_owner()}/{_detect_repo()}"
         host, port = _get_ssh_target(env_name)
@@ -298,13 +360,23 @@ def sync_status(repo, env_name):
             )
             ahead, behind = result.stdout.strip().split()
             if ahead == "0" and behind == "0":
-                wg = "[green]in sync[/green]"
+                wg = "in sync"
             else:
-                wg = f"↑{ahead} ahead, ↓{behind} behind"
+                wg = f"ahead={ahead} behind={behind}"
         except (subprocess.CalledProcessError, ValueError, subprocess.TimeoutExpired):
-            wg = "[yellow]unknown (SSH or repo not found)[/yellow]"
-        table.add_row("Workspace ↔ Gitea", wg)
+            wg = "unknown (SSH or repo not found)"
+        ws_row = {"pair": "workspace-gitea", "status": wg, "repo": repo}
+        rows.append(ws_row)
 
+    if json_output:
+        emit_json({"success": True, "rows": rows})
+        return
+
+    table = Table(title="Sync Status")
+    table.add_column("Pair", style="cyan")
+    table.add_column("Status")
+    for row in rows:
+        table.add_row(row["pair"], row["status"])
     console.print(table)
 
 

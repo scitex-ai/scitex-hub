@@ -12,6 +12,7 @@ import click
 
 from .._config import load_config
 from .._config._environments import ENVIRONMENTS, get_environment
+from ._flags import confirm_or_abort, mutating_flags, print_dry_run
 
 
 @click.command()
@@ -23,7 +24,8 @@ from .._config._environments import ENVIRONMENTS, get_environment
     help="Target environment — dev, prod (env: SCITEX_HUB_ENV)",
 )
 @click.option("--force", is_flag=True, help="Overwrite existing configuration")
-def setup(env, force):
+@mutating_flags()
+def setup(env, force, dry_run, yes):
     """Setup SciTeX Hub environment.
 
     \b
@@ -32,10 +34,12 @@ def setup(env, force):
     Missing value fails fast with exit code 2 — no prompt.
 
     \b
-    Examples:
-        scitex-hub setup --env dev    # Setup development environment
-        scitex-hub setup --env prod   # Setup production environment
-        SCITEX_HUB_ENV=dev scitex-hub setup
+    Example:
+        scitex-hub setup-environment --env dev          # Setup development environment
+        scitex-hub setup-environment --env prod         # Setup production environment
+        SCITEX_HUB_ENV=dev scitex-hub setup-environment
+        scitex-hub setup-environment --env dev --dry-run
+        scitex-hub setup-environment --env prod --yes
     """
     click.echo(click.style("SciTeX Hub Setup", fg="cyan", bold=True))
     click.echo()
@@ -61,6 +65,17 @@ def setup(env, force):
         sys.exit(2)
 
     environment = get_environment(env)
+
+    if dry_run:
+        print_dry_run(f"setup environment '{environment.description}' (force={force})")
+        return
+
+    confirm_or_abort(
+        f"Setup environment '{environment.description}' (force={force})?",
+        yes=yes,
+        dry_run=dry_run,
+    )
+
     click.echo(f"Setting up: {click.style(environment.description, fg='green')}")
     click.echo()
 
