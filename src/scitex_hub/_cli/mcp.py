@@ -7,6 +7,14 @@ import sys
 
 import click
 
+from ._flags import (
+    confirm_or_abort,
+    emit_json,
+    json_flag,
+    mutating_flags,
+    print_dry_run,
+)
+
 CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 
 
@@ -78,13 +86,23 @@ def mcp_start(transport: str, host: str, port: int):
           }
         }
       }
+
+    \b
+    Example:
+        scitex-hub mcp start
+        scitex-hub mcp start -t http --host 0.0.0.0 --port 8086
     """
     run_mcp_server(transport, host, port)
 
 
 @mcp.command("doctor", context_settings=CONTEXT_SETTINGS)
 def mcp_doctor():
-    """Diagnose MCP server setup and dependencies."""
+    """Diagnose MCP server setup and dependencies.
+
+    \b
+    Example:
+        scitex-hub mcp doctor
+    """
     click.echo("MCP Server Diagnostics")
     click.echo("=" * 50)
     click.echo()
@@ -203,6 +221,10 @@ def mcp_install():
     """Show MCP client installation instructions.
 
     (rename of show-installation)
+
+    \b
+    Example:
+        scitex-hub mcp install
     """
     click.echo("MCP Client Configuration")
     click.echo("=" * 50)
@@ -269,8 +291,8 @@ def _format_signature(tool_obj, indent: str = "  ") -> str:
 @click.option(
     "-v", "--verbose", count=True, help="Verbosity: -v sig, -vv +desc, -vvv full"
 )
-@click.option("--json", "as_json", is_flag=True, help="Output as JSON")
-def mcp_list_tools(verbose: int, as_json: bool):
+@json_flag()
+def mcp_list_tools(verbose: int, json_output: bool):
     """List available MCP tools.
 
     \b
@@ -279,7 +301,14 @@ def mcp_list_tools(verbose: int, as_json: bool):
       -v      - Signatures
       -vv     - Signatures + one-line description
       -vvv    - Signatures + full description
+
+    \b
+    Example:
+        scitex-hub mcp list-tools
+        scitex-hub mcp list-tools -v
+        scitex-hub mcp list-tools --json
     """
+    as_json = json_output
     try:
         from .._mcp_server import FASTMCP_AVAILABLE
         from .._mcp_server import mcp as mcp_server
@@ -305,8 +334,6 @@ def mcp_list_tools(verbose: int, as_json: bool):
         modules[prefix].append(name)
 
     if as_json:
-        import json
-
         output = {
             "name": "scitex-hub",
             "total": len(tools_dict),
@@ -326,7 +353,7 @@ def mcp_list_tools(verbose: int, as_json: bool):
                 for mod, tool_list in modules.items()
             },
         }
-        click.echo(json.dumps(output, indent=2))
+        emit_json(output)
         return
 
     total = len(tools_dict)
@@ -360,8 +387,7 @@ def run_mcp_server(transport: str, host: str, port: int):
         from .._mcp_server import run_server
     except ImportError:
         click.echo(
-            "MCP server requires fastmcp. Install with:\n"
-            "  pip install scitex-hub[mcp]",
+            "MCP server requires fastmcp. Install with:\n  pip install scitex-hub[mcp]",
             err=True,
         )
         sys.exit(1)
