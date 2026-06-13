@@ -101,7 +101,6 @@ CROSSREF_DB_PATH = os.getenv(
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
         # APIKeyAuthentication adapts the existing `scitex_xxxx` UI-PAT
         # (apps.infra.accounts_app.models.api_key.APIKey) to DRF's
         # authentication contract so a UI-generated PAT works on every
@@ -109,8 +108,15 @@ REST_FRAMEWORK = {
         # project-scoped <u>/<slug>/api/* family (which already accepts
         # Bearer-anything via the JWT middleware from PR #268). The class
         # ONLY recognises tokens that start with `Bearer scitex_` so the
-        # JWT path above is unaffected.
+        # JWT path below is unaffected.
+        #
+        # Order matters: this MUST run before JWTAuthentication so a
+        # `Bearer scitex_xxxx` request lands here first. JWTAuthentication
+        # would otherwise raise AuthenticationFailed on a non-JWT-shaped
+        # token and short-circuit the chain (DRF doesn't fall through on
+        # raised auth failures — only on None returns).
         "apps.infra.accounts_app.authentication.APIKeyAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
