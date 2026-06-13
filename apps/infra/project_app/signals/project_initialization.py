@@ -61,9 +61,24 @@ def _clone_gitea_repo_to_data_dir(project):
 
             shutil.rmtree(project_dir)
 
-        # Clone from Gitea using HTTP with embedded token for authentication
-        # Format: http://{token}@gitea:3000/{owner}/{repo}.git
-        clone_url = project.gitea_clone_url
+        # Clone from Gitea using HTTP with embedded token for authentication.
+        #
+        # Build the clone URL from the in-container Gitea service hostname
+        # (``settings.GITEA_URL``, defaults to ``http://gitea:3000`` in
+        # docker-compose deployments) rather than trusting
+        # ``project.gitea_clone_url``. Gitea's API reports ``clone_url`` from
+        # its own ``ROOT_URL`` config, which is set to the host-visible URL
+        # (e.g. ``http://localhost:3000`` in prod, ``https://git.scitex.ai``
+        # publicly). Neither of those resolves the same way from inside the
+        # django container, so trusting the API value cloned to an
+        # unreachable host and the broad ``except`` below swallowed the
+        # subprocess failure — surfaced during operator-12834 publish demo.
+        # ``settings.GITEA_URL`` is the URL Django ALREADY uses to talk to
+        # Gitea (see GiteaClient), so it's the right source of truth.
+        clone_url = (
+            f"{settings.GITEA_URL.rstrip('/')}"
+            f"/{project.owner.username}/{project.slug}.git"
+        )
 
         # Inject Gitea admin token into URL for authentication
         # Clone URL format from Gitea: http://gitea:3000/owner/repo.git
