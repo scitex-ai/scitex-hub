@@ -10,6 +10,7 @@ import click
 
 from .._config._environments import ENVIRONMENTS, get_environment
 from .._utils._docker import DockerManager
+from ._flags import confirm_or_abort, mutating_flags, print_dry_run
 
 
 @click.command()
@@ -21,8 +22,8 @@ from .._utils._docker import DockerManager
 )
 @click.option("--build", is_flag=True, help="Rebuild containers before deploying")
 @click.option("--no-cache", is_flag=True, help="Build without cache")
-@click.pass_context
-def deploy(ctx, env, build, no_cache):
+@mutating_flags()
+def deploy(env, build, no_cache, dry_run, yes):
     """Deploy SciTeX Hub.
 
     \b
@@ -30,12 +31,29 @@ def deploy(ctx, env, build, no_cache):
     Automatically handles configuration and container orchestration.
 
     \b
-    Examples:
-        scitex-hub deploy              # Deploy with current settings
-        scitex-hub deploy --env prod   # Deploy to production environment
-        scitex-hub deploy --build      # Rebuild and deploy
+    Example:
+        scitex-hub deploy-project              # Deploy with current settings
+        scitex-hub deploy-project --env prod   # Deploy to production environment
+        scitex-hub deploy-project --build      # Rebuild and deploy
+        scitex-hub deploy-project --dry-run    # Show what would be deployed
+        scitex-hub deploy-project --env prod --yes
     """
     environment = get_environment(env)
+
+    if dry_run:
+        action = (
+            f"deploy SciTeX Hub to '{environment.description}' "
+            f"(build={build}, no_cache={no_cache})"
+        )
+        print_dry_run(action)
+        return
+
+    confirm_or_abort(
+        f"Deploy SciTeX Hub to '{environment.description}'?",
+        yes=yes,
+        dry_run=dry_run,
+    )
+
     click.echo(
         click.style(f"Deploying: {environment.description}", fg="cyan", bold=True)
     )
