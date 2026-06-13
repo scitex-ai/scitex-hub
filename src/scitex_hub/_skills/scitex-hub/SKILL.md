@@ -86,6 +86,9 @@ rule and empirical verification table.
 - [31_development-environment.md](31_development-environment.md) — Docker dev setup, hot reload, access URLs
 - [32_vite-frontend.md](32_vite-frontend.md) — Vite HMR, entry points, template tags
 
+### User runbooks (40–49)
+- [40_user-publish-runbook.md](40_user-publish-runbook.md) — End-to-end USER walkthrough: PAT login → `project create --category app` → `app submit` → hub listing (agent-flow lives in a separate skill)
+
 # EOF
 
 
