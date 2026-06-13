@@ -32,9 +32,17 @@ def _read_function_source(func) -> str:
 
 def test_api_submit_jwt_body_is_wrapped_in_try_except_logger_exception():
     # Arrange
+    # NOTE: we read the on-disk file rather than inspect.getsource() on the
+    # imported view. ``api_submit_jwt`` is wrapped by DRF's ``@api_view``
+    # decorator, which returns a ``WrappedAPIView`` callable. On Python 3.11+
+    # ``inspect.getsource`` of that wrapped object returns only the decorator
+    # wrapper body (no ``try:`` / ``except Exception:`` lines), so the
+    # ``in src`` guards never see the wrap that IS in the file. Reading the
+    # file via ``_read_function_source`` (already defined above for exactly
+    # this purpose) preserves the source-text-guard intent.
     from apps.workspace.apps_app.views.api_registry import api_submit_jwt
 
-    src = inspect.getsource(api_submit_jwt)
+    src = _read_function_source(api_submit_jwt)
 
     # Act
     has_try_block = "    try:" in src
@@ -51,10 +59,10 @@ def test_api_submit_jwt_body_is_wrapped_in_try_except_logger_exception():
 
 
 def test_api_submit_jwt_logs_at_least_username_and_project_name():
-    # Arrange
+    # Arrange — same DRF-wrapper bypass as above: read the file directly.
     from apps.workspace.apps_app.views.api_registry import api_submit_jwt
 
-    src = inspect.getsource(api_submit_jwt)
+    src = _read_function_source(api_submit_jwt)
 
     # Act
     # The log call must include enough context to correlate a 500 with
