@@ -18,3 +18,6 @@ dev = ["pytest>=7.0.0"]
 
 [project.entry-points."scitex_modules"]
 scitex_agentic_journal_hub_app = "scitex_agentic_journal_hub_app:get_module_config"
+
+[tool.hatch.build.targets.wheel]
+packages = ["scitex_agentic_journal_hub_app"]

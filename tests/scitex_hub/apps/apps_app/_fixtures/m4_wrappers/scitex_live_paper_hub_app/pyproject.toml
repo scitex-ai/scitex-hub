@@ -18,3 +18,6 @@ dev = ["pytest>=7.0.0"]
 
 [project.entry-points."scitex_modules"]
 scitex_live_paper_hub_app = "scitex_live_paper_hub_app:get_module_config"
+
+[tool.hatch.build.targets.wheel]
+packages = ["scitex_live_paper_hub_app"]

@@ -111,65 +111,62 @@ def _build_all_files(
     *,
     frontend_type: str = "html",
 ):
-    """Build dict of relpath -> content for all scaffold files."""
+    """Build dict of relpath -> content for all scaffold files.
+
+    LAYOUT (M4 done-gate, lead msg 711b5d90 + a2b21da8):
+
+    Wrapper-root files (build config + project metadata that the
+    operator and downstream tooling read directly):
+
+      <wrapper>/pyproject.toml
+      <wrapper>/README.md
+      <wrapper>/LICENSE
+      <wrapper>/AGENTS.md
+      <wrapper>/.gitignore
+
+    Python-package files (nested under ``<name>/`` so pip + hatchling
+    can build the wheel — the package directory MUST match the
+    normalized project name, otherwise ``hatchling.build`` errors with
+    "Unable to determine which files to ship inside the wheel"):
+
+      <wrapper>/<name>/__init__.py
+      <wrapper>/<name>/apps.py
+      <wrapper>/<name>/views.py
+      <wrapper>/<name>/urls.py
+      <wrapper>/<name>/tests.py
+      <wrapper>/<name>/skill.py
+      <wrapper>/<name>/manifest.json
+      <wrapper>/<name>/templates/<name>/...
+      <wrapper>/<name>/static/<name>/...
+      <wrapper>/<name>/.agents/agents.json
+      <wrapper>/<name>/docs/PLATFORM.md
+
+    The hub's ``pip_install_user_app`` runs ``pip install --no-deps
+    --target=<install_dir> <gitea-archive-url>`` against this shape;
+    hatchling auto-detects ``<name>/`` as the package directory (via
+    the ``[tool.hatch.build.targets.wheel] packages = ["<name>"]``
+    declaration in the emitted pyproject) and lands the wheel cleanly
+    on ``sys.path``.
+    """
     use_react = frontend_type == "react"
     files = {}
 
-    # __init__.py
-    files["__init__.py"] = f'"""SciTeX Hub App: {label}."""\n'
+    # -----------------------------------------------------------------
+    # Wrapper-root files (build system + project metadata)
+    # -----------------------------------------------------------------
 
-    # apps.py
-    files["apps.py"] = _apps_py(name, label, class_name)
-
-    # views.py
-    files["views.py"] = _views_py(name, label, description)
-
-    # urls.py
-    files["urls.py"] = _urls_py(name)
-
-    # tests.py
-    files["tests.py"] = _tests_py(name, label)
-
-    # skill.py
-    files["skill.py"] = _skill_py(name, label, description)
-
-    # manifest.json
-    files["manifest.json"] = _manifest_json(
-        name, label, icon, description, manifest, license_id, frontend_type
-    )
-
-    # Templates
-    files[f"templates/{name}/index.html"] = _index_html(
-        name, label, include_js_bundle=use_react
-    )
-    files[f"templates/{name}/index_partial.html"] = _index_partial_html(
-        name, label, icon, react_mount=use_react
-    )
-
-    # Static CSS
-    files[f"static/{name}/css/{name}.css"] = _app_css(name, label)
-
-    # Agents config
-    files[".agents/agents.json"] = _agents_json(name, label)
-    files["AGENTS.md"] = _agents_md(name, label, icon, description)
-
-    # Platform docs for agents
-    from ._scaffold_docs import _platform_docs_md
-
-    files["docs/PLATFORM.md"] = _platform_docs_md(name)
-
-    # README
+    files["pyproject.toml"] = _pyproject_toml(name, label, description, license_id)
     files["README.md"] = _readme_md(
         name, label, description, license_id, frontend_type=frontend_type
     )
 
-    # LICENSE
     license_text = generate_license_text(license_id)
     if license_text is None:
         license_text = generate_license_text("AGPL-3.0")
     files["LICENSE"] = license_text
 
-    # .gitignore
+    files["AGENTS.md"] = _agents_md(name, label, icon, description)
+
     files[".gitignore"] = "\n".join(
         [
             "# Runtime data (created by platform, not app source)",
@@ -199,18 +196,50 @@ def _build_all_files(
         ]
     )
 
-    # pyproject.toml for dual-mode (standalone + extension)
-    files["pyproject.toml"] = _pyproject_toml(name, label, description, license_id)
+    # -----------------------------------------------------------------
+    # Python-package files (nested under <name>/)
+    # -----------------------------------------------------------------
 
-    # React frontend files
+    files[f"{name}/__init__.py"] = f'"""SciTeX Hub App: {label}."""\n'
+    files[f"{name}/apps.py"] = _apps_py(name, label, class_name)
+    files[f"{name}/views.py"] = _views_py(name, label, description)
+    files[f"{name}/urls.py"] = _urls_py(name)
+    files[f"{name}/tests.py"] = _tests_py(name, label)
+    files[f"{name}/skill.py"] = _skill_py(name, label, description)
+    files[f"{name}/manifest.json"] = _manifest_json(
+        name, label, icon, description, manifest, license_id, frontend_type
+    )
+    files[f"{name}/templates/{name}/index.html"] = _index_html(
+        name, label, include_js_bundle=use_react
+    )
+    files[f"{name}/templates/{name}/index_partial.html"] = _index_partial_html(
+        name, label, icon, react_mount=use_react
+    )
+    files[f"{name}/static/{name}/css/{name}.css"] = _app_css(name, label)
+    files[f"{name}/.agents/agents.json"] = _agents_json(name, label)
+
+    from ._scaffold_docs import _platform_docs_md
+
+    files[f"{name}/docs/PLATFORM.md"] = _platform_docs_md(name)
+
+    # React frontend files (mount under the package directory too)
     if use_react:
-        files.update(build_react_files(name, label, icon))
+        for relpath, content in build_react_files(name, label, icon).items():
+            files[f"{name}/{relpath}"] = content
 
     return files
 
 
 def _pyproject_toml(name, label, description, license_id):
-    """Generate pyproject.toml for dual-mode app (standalone + scitex-hub extension)."""
+    """Generate pyproject.toml for dual-mode app (standalone + scitex-hub extension).
+
+    Includes ``[tool.hatch.build.targets.wheel] packages = ["<name>"]``
+    so the wheel build works against the nested-package layout that
+    ``_build_all_files`` emits — without this, hatchling errors
+    "Unable to determine which files to ship inside the wheel using
+    the following heuristics" and ``pip_install_user_app`` fails at
+    install time.
+    """
     slug = name.replace("_", "-")
     desc = description or f"{label} — a SciTeX Hub app."
     return f"""[build-system]
@@ -233,6 +262,9 @@ dev = ["pytest>=7.0.0"]
 
 [project.entry-points."scitex_modules"]
 {name} = "{name}:get_module_config"
+
+[tool.hatch.build.targets.wheel]
+packages = ["{name}"]
 """
 
 

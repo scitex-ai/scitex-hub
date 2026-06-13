@@ -29,7 +29,6 @@ shell-injection rejection.
 from __future__ import annotations
 
 import http.server
-import shutil
 import socket
 import socketserver
 import sys
@@ -57,9 +56,16 @@ _WRAPPER_NAMES = (
 def _build_tarball(src_dir: Path, dest_tar: Path, arcname: str) -> Path:
     """Tar ``src_dir`` into ``dest_tar`` with the top-level rename ``arcname``.
 
-    Matches the layout pip expects when installing from an archive:
-    one top-level directory containing ``pyproject.toml`` + the
-    package source.
+    The fixture wrappers (copies of the real ``scitex-hub app init``
+    generator output) are already in the proper pip-installable layout:
+    ``pyproject.toml`` + ``README.md`` + ``LICENSE`` at the wrapper root,
+    the Python package itself nested under ``<module_name>/`` (so
+    hatchling auto-detects the package via its
+    ``[tool.hatch.build.targets.wheel] packages = ["<module>"]``
+    declaration). This function ships that shape into the archive
+    verbatim — no restructuring. If pip-install fails on this fixture,
+    the SAME failure happens to the operator's real submit because the
+    fixture IS the generator's output.
     """
     with tarfile.open(dest_tar, "w:gz") as tar:
         tar.add(src_dir, arcname=arcname)
@@ -111,35 +117,61 @@ def local_gitea_server(tmp_path: Path):
 
 
 @pytest.mark.parametrize("wrapper_name", _WRAPPER_NAMES)
-def test_fixture_wrappers_match_operator_handoff_shape(wrapper_name: str) -> None:
-    """Each fixture wrapper carries the canonical ``scitex-hub app init`` layout.
+def test_fixture_wrapper_root_carries_build_and_project_metadata(
+    wrapper_name: str,
+) -> None:
+    """Each fixture wrapper root carries the build config + project metadata files.
 
-    Proves the operator-submitted scaffolds (the ones the M4 integration
-    is built around) ship the right top-level files — manifest, pyproject,
-    urls, views, apps — so the registry's ``app submit`` payload can
-    read them. Cross-check the hand-stamped manifest before the
-    end-to-end install gate.
+    The nested-package layout the generator emits keeps ``pyproject.toml``,
+    ``README.md``, and ``LICENSE`` at the wrapper root so pip + hatchling
+    can find the build system + project metadata before recursing into
+    the nested ``<name>/`` package directory. If these go missing, the
+    operator's submit would never reach the install gate.
     """
     # Arrange
     wrapper = _FIXTURE_ROOT / wrapper_name
 
     # Act
-    files = {p.name for p in wrapper.iterdir() if p.is_file()}
+    root_files = {p.name for p in wrapper.iterdir() if p.is_file()}
 
     # Assert
-    required = {
-        "manifest.json",
-        "pyproject.toml",
-        "urls.py",
-        "views.py",
-        "apps.py",
+    required_root = {"pyproject.toml", "README.md", "LICENSE"}
+    assert required_root.issubset(
+        root_files
+    ), f"fixture {wrapper_name!r} root missing: {required_root - root_files!r}"
+
+
+@pytest.mark.parametrize("wrapper_name", _WRAPPER_NAMES)
+def test_fixture_wrapper_nested_package_carries_django_module_and_manifest(
+    wrapper_name: str,
+) -> None:
+    """Each fixture nested ``<name>/`` dir carries the Django module + manifest.
+
+    The nested-package layout means the actual Python module files
+    (``__init__.py``, ``apps.py``, ``views.py``, ``urls.py``) and the
+    hand-stamped ``manifest.json`` live under ``<wrapper>/<name>/`` so
+    hatchling builds them into the wheel. If any go missing, the
+    registry's ``app submit`` payload reader (which fetches manifest
+    + urls) AND the installed Django app would both break.
+    """
+    # Arrange
+    pkg = _FIXTURE_ROOT / wrapper_name / wrapper_name
+
+    # Act
+    pkg_files = {p.name for p in pkg.iterdir() if p.is_file()}
+
+    # Assert
+    required_pkg = {
         "__init__.py",
-        "README.md",
-        "LICENSE",
+        "apps.py",
+        "views.py",
+        "urls.py",
+        "manifest.json",
     }
-    assert required.issubset(
-        files
-    ), f"fixture {wrapper_name!r} missing: {required - files!r}"
+    assert required_pkg.issubset(pkg_files), (
+        f"fixture {wrapper_name!r}/{wrapper_name}/ missing: "
+        f"{required_pkg - pkg_files!r}"
+    )
 
 
 @pytest.mark.parametrize("wrapper_name", _WRAPPER_NAMES)
@@ -154,7 +186,7 @@ def test_fixture_manifest_carries_canonical_v2_schema(wrapper_name: str) -> None
     # Arrange
     import json
 
-    manifest_path = _FIXTURE_ROOT / wrapper_name / "manifest.json"
+    manifest_path = _FIXTURE_ROOT / wrapper_name / wrapper_name / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
     # Act
@@ -173,7 +205,7 @@ def test_fixture_manifest_carries_required_registry_fields(wrapper_name: str) ->
     # Arrange
     import json
 
-    manifest_path = _FIXTURE_ROOT / wrapper_name / "manifest.json"
+    manifest_path = _FIXTURE_ROOT / wrapper_name / wrapper_name / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
     # Act
