@@ -1,0 +1,139 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""URL dispatcher for published user-apps mounted under ``/apps/u/<module>/``.
+
+F0+F1 (lead msg 5b5fbbce / operator-A pick): published user-apps need to
+expose their own URL routes for cases like the M4 ReReviewBadge that
+mounts ``scitex_live_paper.mount(resolver=...)`` from inside the user-
+published ``scitex_live_paper_hub_app/urls.py``. The existing
+``apps_app/urls.py`` is server-owned (catch-all on ``<str:module_name>/``)
+so user-apps can't hang off it; this file is the orthogonal
+URL-include dispatcher.
+
+Flow per request to ``/apps/u/<module_name>/<sub_path>``:
+
+  1. ``config/urls.py`` includes this module under
+     ``path("apps/u/<str:module_name>/", include("apps.workspace.apps_app.urls_user_apps"))``.
+  2. ``user_app_dispatch`` resolves ``module_name`` against the
+     ``apps.workspace.apps_app.services.app_loader._URL_PATTERNS_CACHE``
+     populated when ``load_single_app`` activated the app.
+  3. The dispatcher rewrites the URL by stripping the
+     ``/apps/u/<module_name>/`` prefix + dispatches into the user-app's
+     own ``urlpatterns`` (loaded via ``entry_points["scitex_hub.apps"]``
+     → ``<HUB_APP_NAME>.urls:urlpatterns``).
+  4. Bundle / paper / project resolution happens inside the user-app's
+     view callable (per the journal ``build_hub_resolver`` + live-paper
+     ``mount`` contract).
+
+Per the live-paper ``mount(resolver=...)`` exception-hierarchy contract
+agreed in proj-scitex-hub msg b450c456:
+
+  - ``BundleNotFound``        → 404
+  - ``BundleAccessDenied``    → 403
+  - ``BundleResolverError``   → 500
+  - any other Exception       → 500 + log (no silent swallow, no leak)
+
+The translation layer is small (one ``try / except``) and lives here
+rather than each user-app re-implementing the same try-blocks.
+
+Tests live at ``tests/scitex_hub/apps/apps_app/test_urls_user_apps.py``
++ exercise the real Django ``Client`` against a fixture user-app —
+no mocks per STX-NM.
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import Any
+
+from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
+from django.urls import URLResolver, get_resolver, path, re_path
+from django.urls.resolvers import RegexPattern
+
+logger = logging.getLogger(__name__)
+
+
+def _dispatch(
+    request: HttpRequest, module_name: str, sub_path: str = ""
+) -> HttpResponse:
+    """Look up ``module_name``'s urlpatterns + dispatch ``sub_path``."""
+    from .services.app_loader import _URL_PATTERNS_CACHE
+
+    patterns = _URL_PATTERNS_CACHE.get(module_name)
+    if patterns is None:
+        logger.info(
+            "[urls_user_apps] No urlpatterns cached for '%s' — app not "
+            "activated or never declared scitex_hub.apps entry-point",
+            module_name,
+        )
+        raise Http404(
+            f"user-app '{module_name}' is not active (no URL routes registered)"
+        )
+
+    # Build a one-shot URLResolver over the user-app's urlpatterns + try
+    # to match the sub_path. Django's resolver consumes the leading "/"
+    # internally; sub_path here is post-``<module_name>/`` (no leading
+    # slash) so we restore it for the resolver.
+    pseudo_resolver = URLResolver(
+        RegexPattern(r"^"),
+        patterns,
+    )
+    try:
+        match = pseudo_resolver.resolve("/" + sub_path)
+    except Exception:
+        logger.info(
+            "[urls_user_apps] No match for '/%s' in '%s' patterns",
+            sub_path,
+            module_name,
+        )
+        raise Http404(f"no route '/{sub_path}' in user-app '{module_name}'")
+
+    return _invoke(match.func, request, match.args, match.kwargs)
+
+
+def _invoke(view, request, args, kwargs) -> HttpResponse:
+    """Call the user-app view; translate live-paper exception hierarchy."""
+    # Resolver-side exception hierarchy per the contract pin
+    # (live-paper PR-46 in flight; importing lazily so missing-installed
+    # live-paper doesn't break test collection on hosts that don't have it).
+    try:
+        return view(request, *args, **kwargs)
+    except Exception as exc:  # noqa: BLE001 - mapped to a real HTTP surface
+        try:
+            from scitex_live_paper import (
+                BundleAccessDenied,
+                BundleNotFound,
+                BundleResolverError,
+            )
+        except Exception:
+            BundleNotFound = BundleAccessDenied = BundleResolverError = None
+
+        if BundleNotFound is not None and isinstance(exc, BundleNotFound):
+            return JsonResponse({"error": str(exc), "kind": "not_found"}, status=404)
+        if BundleAccessDenied is not None and isinstance(exc, BundleAccessDenied):
+            return JsonResponse({"error": str(exc), "kind": "forbidden"}, status=403)
+        if BundleResolverError is not None and isinstance(exc, BundleResolverError):
+            logger.exception("[urls_user_apps] resolver error from user-app view")
+            return JsonResponse(
+                {"error": str(exc), "kind": "resolver_error"}, status=500
+            )
+
+        # Unmapped exception — no silent swallow, surface the type + reraise
+        # so Django's default 500 handler logs + serves the user-app's
+        # debug page (production hides traceback via DEBUG=False).
+        logger.exception(
+            "[urls_user_apps] unmapped exception from user-app '%s' view",
+            kwargs.get("module_name", "?"),
+        )
+        raise
+
+
+urlpatterns = [
+    # Bare /apps/u/<module_name>/ -> sub_path = ""
+    path("", _dispatch, {"sub_path": ""}, name="user_app_root"),
+    # /apps/u/<module_name>/anything/here/...
+    re_path(r"^(?P<sub_path>.+)$", _dispatch, name="user_app_path"),
+]
+
+
+# EOF
