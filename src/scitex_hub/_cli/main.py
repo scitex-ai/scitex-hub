@@ -138,9 +138,11 @@ main.add_command(completion)
 main.add_command(workspace)
 main.add_command(sdk)
 
+from ._account import account  # noqa: E402
 from .project import project  # noqa: E402
 from .sync import register_sync_commands  # noqa: E402
 
+main.add_command(account)
 main.add_command(project)
 register_sync_commands(main)
 
