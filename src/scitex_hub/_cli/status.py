@@ -74,22 +74,37 @@ def status(env, json_output):
 @click.option("-f", "--follow", is_flag=True, help="Follow log output")
 @click.option("--tail", type=int, default=None, help="Number of lines to show")
 @click.argument("service", required=False)
-def logs(env, follow, tail, service):
+@json_flag()
+def logs(env, follow, tail, service, json_output):
     """Show container logs.
 
     \b
-    Display logs from SciTeX Hub containers. This is a streaming read
-    of stdout/stderr — no `--json` flag because the underlying source
-    is unstructured log text, not a query result.
+    Display logs from SciTeX Hub containers. Default streams the raw
+    unstructured log text from `docker logs`. With ``--json`` a single
+    envelope describing the query is emitted instead — useful for
+    scripts that just want to record what was requested, since the
+    underlying stream is not itself structured.
 
     \b
     Example:
-        scitex-hub logs                  # Show all logs
-        scitex-hub logs -f               # Follow logs
-        scitex-hub logs --tail 100       # Show last 100 lines
-        scitex-hub logs web              # Show web container logs
+        scitex-hub show-logs                  # Show all logs
+        scitex-hub show-logs -f               # Follow logs
+        scitex-hub show-logs --tail 100       # Show last 100 lines
+        scitex-hub show-logs web              # Show web container logs
+        scitex-hub show-logs --json           # Emit machine-readable envelope
     """
     environment = get_environment(env)
+    if json_output:
+        emit_json(
+            {
+                "success": True,
+                "environment": environment.name,
+                "service": service,
+                "follow": bool(follow),
+                "tail": tail,
+            }
+        )
+        return
     docker = DockerManager(environment)
     docker.logs(follow=follow, tail=tail, service=service)
 

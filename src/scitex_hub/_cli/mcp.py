@@ -53,7 +53,8 @@ def mcp():
     envvar="SCITEX_HUB_MCP_PORT",
     help="Port for HTTP/SSE transport",
 )
-def mcp_start(transport: str, host: str, port: int):
+@mutating_flags()
+def mcp_start(transport: str, host: str, port: int, dry_run: bool, yes: bool):
     """Start the MCP server.
 
     \b
@@ -91,7 +92,19 @@ def mcp_start(transport: str, host: str, port: int):
     Example:
         scitex-hub mcp start
         scitex-hub mcp start -t http --host 0.0.0.0 --port 8086
+        scitex-hub mcp start --dry-run
+        scitex-hub mcp start -t http --yes
     """
+    if dry_run:
+        print_dry_run(f"start MCP server transport={transport} host={host} port={port}")
+        return
+
+    confirm_or_abort(
+        f"Start MCP server (transport={transport}, host={host}, port={port})?",
+        yes=yes,
+        dry_run=dry_run,
+    )
+
     run_mcp_server(transport, host, port)
 
 
@@ -217,7 +230,8 @@ def mcp_show_installation_deprecated(ctx):
 
 
 @mcp.command("install", context_settings=CONTEXT_SETTINGS)
-def mcp_install():
+@mutating_flags()
+def mcp_install(dry_run: bool, yes: bool):
     """Show MCP client installation instructions.
 
     (rename of show-installation)
@@ -225,7 +239,17 @@ def mcp_install():
     \b
     Example:
         scitex-hub mcp install
+        scitex-hub mcp install --dry-run
+        scitex-hub mcp install --yes
     """
+    if dry_run:
+        print_dry_run("print MCP client installation instructions to stdout")
+        return
+
+    confirm_or_abort(
+        "Print MCP client installation instructions?", yes=yes, dry_run=dry_run
+    )
+
     click.echo("MCP Client Configuration")
     click.echo("=" * 50)
     click.echo()
