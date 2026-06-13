@@ -1,0 +1,18 @@
+# scitex-hub project-level CLI audit dictionary.
+#
+# Adds nouns and verbs that aren't in the bundled English catalog or Moby
+# POS list but are legitimate domain terms in this package's CLI.
+#
+# Merged with `~/.scitex/dev/cli-audit-dict.yaml` (user-level) at audit
+# time. Project entries take precedence on collision.
+
+nouns:
+  # `scitex-hub account whoami` — polysemous-leaf identity check that
+  # follows the convention doctrine's "show-me-X" carve-out
+  # (_skills/general/03_interface/02_cli/02_subcommand-structure-noun-verb.md
+  # §"polysemous show-me-X"). Standard *nix utility name (POSIX-derived
+  # via `who am i`), but not in the bundled English catalog or Moby POS.
+  - whoami
+
+transitive_verbs: []
+intransitive_verbs: []
