@@ -1,0 +1,49 @@
+{
+  "_hub_derive_note": "Hand-stamped — live-paper upstream does not yet ship its own HUB_APP_MANIFEST (flagged in proj-scitex-hub a2a msg 56b80799 + journal a2a msg 084100ae for upstream-owner routing). Once live-paper publishes the manifest + a derive_wrapper_manifest helper, regenerate this file accordingly.",
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "2.0.0",
+  "name": "scitex_live_paper_hub_app",
+  "slug": "scitex-live-paper-hub-app",
+  "label": "Live Paper",
+  "app_name": "scitex_live_paper_hub_app",
+  "version": "0.1.0",
+  "icon": "fas fa-file-alt",
+  "subtitle": "Interactive paper viewer with the M4 re-review chip.",
+  "about": "Interactive paper viewer (scitex_live_paper renderer) mounted with the agentic-journal ReReviewBadge resolver injected via scitex_agentic_journal._hub_app_publisher.build_hub_resolver. Lands the M4 last-mile end-to-end visibility per lead msg b3a51bec + operator path-B pick.",
+  "description": "Interactive paper viewer (scitex_live_paper renderer) mounted with the agentic-journal ReReviewBadge resolver injected via scitex_agentic_journal._hub_app_publisher.build_hub_resolver. Lands the M4 last-mile end-to-end visibility per lead msg b3a51bec + operator path-B pick.",
+  "author": "ywatanabe",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "",
+  "order": 50,
+  "accent_color": "",
+  "body_class": "scitex-live-paper-hub-app-page",
+  "partial_template": "scitex_live_paper_hub_app/index_partial.html",
+  "context_builder": "",
+  "ai_hint": "Use to open a paper view with the live-paper renderer and the M4 re-review chip in one surface.",
+  "capabilities": [],
+  "allowed_extensions": [],
+  "hidden_patterns": [
+    "__pycache__",
+    "node_modules",
+    ".git",
+    ".venv"
+  ],
+  "privileges": [],
+  "wip": true,
+  "standalone": false,
+  "standalone_command": "",
+  "standalone_port": 0,
+  "frontend_type": "html",
+  "dependencies": {
+    "python": [
+      "python>=3.10",
+      "scitex-live-paper",
+      "scitex-agentic-journal"
+    ],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}

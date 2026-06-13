@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "scitex-live-paper-hub-app"
+version = "0.1.0"
+description = "Interactive paper viewer with M4 re-review chip"
+requires-python = ">=3.10"
+license = "AGPL-3.0"
+
+[project.scripts]
+scitex-live-paper-hub-app = "scitex_live_paper_hub_app._cli:main"
+
+[project.optional-dependencies]
+scitex = ["scitex-app>=0.1.0", "scitex-ui>=0.1.0"]
+dev = ["pytest>=7.0.0"]
+
+[project.entry-points."scitex_modules"]
+scitex_live_paper_hub_app = "scitex_live_paper_hub_app:get_module_config"
