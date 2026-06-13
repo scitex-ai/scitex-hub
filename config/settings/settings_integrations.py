@@ -100,7 +100,6 @@ CROSSREF_DB_PATH = os.getenv(
 # ---------------------------------------
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.SessionAuthentication",
         # APIKeyAuthentication adapts the existing `scitex_xxxx` UI-PAT
         # (apps.infra.accounts_app.models.api_key.APIKey) to DRF's
         # authentication contract so a UI-generated PAT works on every
@@ -110,13 +109,30 @@ REST_FRAMEWORK = {
         # ONLY recognises tokens that start with `Bearer scitex_` so the
         # JWT path below is unaffected.
         #
-        # Order matters: this MUST run before JWTAuthentication so a
-        # `Bearer scitex_xxxx` request lands here first. JWTAuthentication
-        # would otherwise raise AuthenticationFailed on a non-JWT-shaped
-        # token and short-circuit the chain (DRF doesn't fall through on
-        # raised auth failures — only on None returns).
+        # Order matters at TWO levels:
+        #
+        # 1. AUTHENTICATION CHAIN — APIKeyAuthentication runs before
+        #    JWTAuthentication so a `Bearer scitex_xxxx` request lands
+        #    here first. JWTAuthentication would otherwise raise
+        #    AuthenticationFailed on a non-JWT-shaped token and short-
+        #    circuit the chain (DRF doesn't fall through on raised auth
+        #    failures — only on None returns).
+        #
+        # 2. STATUS-CODE LOOKUP — when ALL auth classes return None or
+        #    one raises AuthenticationFailed, DRF reads the FIRST class's
+        #    `authenticate_header()` to decide 401-vs-403. SessionAuth
+        #    returns None (no WWW-Authenticate scheme makes sense for
+        #    cookies), which makes DRF respond 403. Placing APIKeyAuth
+        #    first puts its `Bearer realm="api"` header at the head of
+        #    the list, so failed-auth responses are correctly 401 for
+        #    the bad-credentials contract the tests in
+        #    `tests/apps/accounts_app/test_apikey_authentication.py`
+        #    pin (see lead 2026-06-13 msg 9c96b9d5 + PR #274 root-cause).
         "apps.infra.accounts_app.authentication.APIKeyAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        # Session last — still needed for browser-cookie auth on the UI
+        # AJAX surface but contributes nothing for the API token path.
+        "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
