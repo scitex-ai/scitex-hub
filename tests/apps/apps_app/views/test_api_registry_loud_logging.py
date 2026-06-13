@@ -27,28 +27,27 @@ from pathlib import Path
 def _read_api_submit_jwt_source() -> str:
     """Read the on-disk source of the ``api_submit_jwt`` view.
 
-    ``@api_view`` (DRF) wraps the function so ``inspect.getsource`` on the
-    bound name returns DRF's wrapper, not the user function. The
-    ``__wrapped__`` chain walks back through every decorator, including
-    ``functools.wraps``-marked layers, until we reach the underlying
-    function whose source carries the actual ``try / except`` body.
+    ``@api_view`` (DRF) and ``@permission_classes`` wrap the function
+    in DRF's ``WrappedAPIView`` callable. ``inspect.getsource`` on the
+    bound name returns DRF's wrapper source (without the user's
+    ``try/except``) and the ``__wrapped__`` chain isn't reliably set
+    across all DRF versions pinned in CI — both surfaced as false-
+    failures in pytest-matrix-on-ubuntu-py3.{11,12,13} (the f2875dcf0
+    walker attempt landed an ``IndexError`` instead).
+
+    Read the module file directly and slice from the
+    ``def api_submit_jwt(`` marker to EOF. The source-text guard only
+    cares about the lexical body of the user function, which is exactly
+    what this returns. No inspect-machinery dependency, no DRF-version
+    dependency.
     """
     from apps.workspace.apps_app.views import api_registry
 
-    func = api_registry.api_submit_jwt
-    while hasattr(func, "__wrapped__"):
-        func = func.__wrapped__
-    try:
-        return inspect.getsource(func)
-    except (OSError, TypeError):
-        # Fall back to reading the whole module + slicing — covers the
-        # case where the decorator chain hides the underlying function
-        # behind a class whose source isn't directly inspectable.
-        src_path = Path(inspect.getsourcefile(api_registry))
-        full = src_path.read_text()
-        marker = "def api_submit_jwt("
-        start = full.index(marker)
-        return full[start:]
+    src_path = Path(inspect.getsourcefile(api_registry))
+    full = src_path.read_text()
+    marker = "def api_submit_jwt("
+    start = full.index(marker)
+    return full[start:]
 
 
 def test_api_submit_jwt_body_is_wrapped_in_try_except_logger_exception():
