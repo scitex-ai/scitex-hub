@@ -79,6 +79,15 @@ class JWTBearerToSessionMiddleware:
         if not auth_header.startswith("Bearer "):
             return
 
+        # `Bearer scitex_xxxx` is the UI-PAT shape — routed by
+        # `APIKeyAuthentication` (DRF auth class), NOT JWTAuthentication.
+        # Calling JWTAuthentication on it would emit a misleading
+        # "rejected token" INFO log and leave the request anonymous; DRF
+        # then resolves identity via APIKeyAuthentication anyway. Skip
+        # the wasted decode + log noise.
+        if auth_header.startswith("Bearer scitex_"):
+            return
+
         # Local imports keep this middleware importable even in test setups
         # that don't have DRF wired (e.g. minimal `manage.py check`).
         from rest_framework.exceptions import AuthenticationFailed
