@@ -4,11 +4,82 @@
 
 from __future__ import annotations
 
+import importlib.metadata as _metadata
 import logging
+from typing import Any
 
 from apps.infra.workspace_app.registry import ModuleConfig, get_module, register_module
 
 logger = logging.getLogger(__name__)
+
+#: F1 — module_name -> list[URLPattern] cache populated at activation
+#: time + consumed by ``apps.workspace.apps_app.urls_user_apps._dispatch``
+#: at request time. Pre-import-time caching keeps the request path free
+#: of importlib overhead + lets ``urls_user_apps`` raise a clear 404
+#: when a user-app isn't activated rather than silently 500-ing.
+_URL_PATTERNS_CACHE: dict[str, list[Any]] = {}
+
+
+def _load_entry_point_urlpatterns(module_name: str) -> list[Any] | None:
+    """Look up ``module_name``'s ``scitex_hub.apps`` EP + import urlpatterns.
+
+    Returns the urlpatterns list on success, None when the EP is
+    absent or the import fails. Per the F0+F1 contract: the EP value
+    is a dotted path of the form ``<HUB_APP_NAME>.urls:urlpatterns``
+    (matches journal PR #34 + live-paper PR #44).
+    """
+    try:
+        eps = _metadata.entry_points(group="scitex_hub.apps")
+    except Exception:
+        logger.exception("[app_loader] importlib.metadata.entry_points lookup failed")
+        return None
+
+    for ep in eps:
+        if ep.name == module_name:
+            try:
+                return ep.load()
+            except Exception:
+                logger.exception(
+                    "[app_loader] failed to load urlpatterns for %r via entry_point %r",
+                    module_name,
+                    ep.value,
+                )
+                return None
+    return None
+
+
+def _load_entry_point_app_config(module_name: str) -> None:
+    """Look up + import ``scitex_hub.app_config`` EP (AppConfig).
+
+    Hub doesn't formally register the AppConfig into ``INSTALLED_APPS``
+    at runtime today (the autoloader walks ``apps/{infra,workspace}/``
+    at startup), but the orthogonal EP key (journal PR #37, live-paper
+    PR #44) lets a user-app expose model registration / ready() hooks.
+    Pulling the import here gives those hooks a chance to fire. Failed
+    import is logged but not fatal — the user-app may not need an
+    AppConfig.
+    """
+    try:
+        eps = _metadata.entry_points(group="scitex_hub.app_config")
+    except Exception:
+        return
+
+    for ep in eps:
+        if ep.name == module_name:
+            try:
+                ep.load()
+                logger.info(
+                    "[app_loader] Loaded AppConfig for %r via %r",
+                    module_name,
+                    ep.value,
+                )
+            except Exception:
+                logger.exception(
+                    "[app_loader] failed to load AppConfig for %r "
+                    "via entry_point %r — continuing (URLs still routed)",
+                    module_name,
+                    ep.value,
+                )
 
 
 def load_single_app(app_module):
@@ -16,6 +87,14 @@ def load_single_app(app_module):
 
     Builds a ModuleConfig from the apps module metadata and project info,
     then calls register_module() to make it available in the tab bar.
+
+    F1 extension (operator-A pick, lead msg 34a4b271): after registering
+    the partial-template tab, also look up the user-app's
+    ``scitex_hub.apps`` entry-point + cache its urlpatterns so
+    ``/apps/u/<module_name>/...`` can dispatch into the user-app's
+    own URL routes (the M4 ``mount(resolver=...)`` path needs this).
+    The orthogonal ``scitex_hub.app_config`` EP is also imported to fire
+    any ready() hooks the user-app declared.
     """
     if get_module(app_module.module_name):
         logger.debug(
@@ -43,7 +122,34 @@ def load_single_app(app_module):
         license=_get_license(app_module),
     )
     register_module(config)
-    logger.info("[app_loader] Loaded approved app: %s", app_module.module_name)
+    logger.info("[app_loader] Loaded approved app: %r", app_module.module_name)
+
+    # F1 — cache the user-app's urlpatterns + fire its AppConfig hooks.
+    # Both are best-effort: a user-app that only ships the partial-
+    # template surface (no URL routes, no AppConfig) still works as
+    # before via the apps_app/urls.py catch-all. Real URL routing
+    # (e.g. the M4 mount(resolver=...) path) kicks in only for apps
+    # that DID declare the scitex_hub.apps entry-point.
+    urlpatterns = _load_entry_point_urlpatterns(app_module.module_name)
+    if urlpatterns is not None:
+        _URL_PATTERNS_CACHE[app_module.module_name] = urlpatterns
+        logger.info(
+            "[app_loader] Cached %d urlpattern(s) for %r (/apps/u/<module>/...)",
+            len(urlpatterns),
+            app_module.module_name,
+        )
+    _load_entry_point_app_config(app_module.module_name)
+
+
+def unload_single_app(module_name: str) -> None:
+    """Drop ``module_name``'s cached urlpatterns (called on deactivation).
+
+    Symmetric to :func:`load_single_app`'s F1 cache-populate step.
+    Idempotent: cache-miss is a no-op.
+    """
+    if module_name in _URL_PATTERNS_CACHE:
+        del _URL_PATTERNS_CACHE[module_name]
+        logger.info("[app_loader] Dropped cached urlpatterns for %r", module_name)
 
 
 def load_approved_apps():
@@ -86,13 +192,13 @@ def pin_commit(app_module):
             app_module.pinned_at = timezone.now()
             app_module.save(update_fields=["pinned_commit", "pinned_at"])
             logger.info(
-                "[app_loader] Pinned commit %s for %s",
+                "[app_loader] Pinned commit %s for %r",
                 app_module.pinned_commit[:8],
                 app_module.module_name,
             )
     except Exception:
         logger.exception(
-            "[app_loader] Failed to pin commit for %s", app_module.module_name
+            "[app_loader] Failed to pin commit for %r", app_module.module_name
         )
 
 

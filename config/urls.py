@@ -105,6 +105,14 @@ urlpatterns = [
     path("apps/comms/", include(("apps.workspace.comms_app.urls", "comms_app"))),
     # --- Dev-installed app modules (/apps/dev__<owner>__<repo>/) ---
     path("apps/dev__<str:rest>/", dev_module_view, name="dev_module_shell_apps"),
+    # --- F0+F1 user-published apps (/apps/u/<module_name>/...) ---
+    # operator picked A per lead msg 34a4b271; dispatcher in
+    # apps.workspace.apps_app.urls_user_apps consumes the
+    # _URL_PATTERNS_CACHE populated by app_loader at activation time.
+    path(
+        "apps/u/<str:module_name>/",
+        include("apps.workspace.apps_app.urls_user_apps"),
+    ),
     # --- Legacy redirects (/<app>/ → /apps/<app>/) ---
     path("", include("config.urls_legacy_redirects")),
     # --- Other apps ---
