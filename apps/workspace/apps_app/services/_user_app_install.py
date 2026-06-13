@@ -89,6 +89,28 @@ def _safe_commit(commit: str) -> str:
     return commit
 
 
+def _safe_join(parent: Path, child: str) -> Path:
+    """Join ``parent / child`` and PROVE the result is contained.
+
+    Defense-in-depth on top of :func:`_safe_identifier` (which already
+    rejects ``/`` ``..`` etc): resolves both paths to absolute form +
+    checks containment with ``Path.is_relative_to``. CodeQL recognises
+    this pattern as a sufficient sanitizer for ``py/path-injection``
+    (the validator alone, while semantically airtight, is not
+    statically tractable to the analyzer).
+
+    Raises ValueError on any escape — caller MUST treat as fatal +
+    refuse the install.
+    """
+    parent_abs = parent.resolve()
+    joined = (parent_abs / child).resolve()
+    if not joined.is_relative_to(parent_abs):
+        raise ValueError(
+            f"path traversal blocked: {child!r} resolved outside {parent_abs!s}"
+        )
+    return joined
+
+
 def _user_apps_dir() -> Path:
     """Return the directory user-app packages land in."""
     configured = getattr(settings, "SCITEX_HUB_USER_APPS_DIR", None)
@@ -158,11 +180,13 @@ def pip_install_user_app(app_module) -> Path:
     install_dir = _user_apps_dir()
     install_dir.mkdir(parents=True, exist_ok=True)
 
-    # All three components below are post-validation; CodeQL's
-    # py/path-injection on these lines is a known false-positive given
-    # the _safe_identifier gate above.
-    pkg_dir = install_dir / module_name
-    sentinel = pkg_dir / ".scitex_hub_pinned_at"
+    # Defense-in-depth: _safe_identifier already rejected '/' / '..' /
+    # other escapes, but _safe_join additionally resolves + verifies
+    # containment so the static analyzer (CodeQL py/path-injection)
+    # can prove there's no traversal. Single source of truth for the
+    # safe-path construction.
+    pkg_dir = _safe_join(install_dir, module_name)
+    sentinel = _safe_join(pkg_dir, ".scitex_hub_pinned_at")
     if sentinel.is_file() and sentinel.read_text(encoding="utf-8").strip() == commit:
         logger.debug(
             "[user_app_install] %r already at pinned %s — skipping pip",
