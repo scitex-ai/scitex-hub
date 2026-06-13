@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scitex_hub.sdk &mdash; SciTeX Hub v0.18.1</title>
+  <title>scitex_hub.account &mdash; SciTeX Hub v0.18.1</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -22,7 +22,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="prev" title="scitex_hub.project" href="scitex_hub.project.html" /> 
+    <link rel="next" title="scitex_hub.account.token" href="scitex_hub.account.token.html" />
+    <link rel="prev" title="scitex_hub" href="scitex_hub.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -149,11 +150,11 @@
 <li class="toctree-l4"><a class="reference internal" href="scitex_hub.html#scitex_hub.Environment"><code class="docutils literal notranslate"><span class="pre">Environment</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scitex_hub.html#scitex_hub.get_environment"><code class="docutils literal notranslate"><span class="pre">get_environment()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scitex_hub.html#scitex_hub.DockerManager"><code class="docutils literal notranslate"><span class="pre">DockerManager</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="scitex_hub.account.html">scitex_hub.account</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">scitex_hub.account</a></li>
 <li class="toctree-l4"><a class="reference internal" href="scitex_hub.appmaker.html">scitex_hub.appmaker</a></li>
 <li class="toctree-l4"><a class="reference internal" href="scitex_hub.module.html">scitex_hub.module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="scitex_hub.project.html">scitex_hub.project</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">scitex_hub.sdk</a></li>
+<li class="toctree-l4"><a class="reference internal" href="scitex_hub.sdk.html">scitex_hub.sdk</a></li>
 </ul>
 </li>
 </ul>
@@ -178,9 +179,9 @@
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../index.html">API Reference</a></li>
           <li class="breadcrumb-item"><a href="scitex_hub.html">scitex_hub</a></li>
-      <li class="breadcrumb-item active">scitex_hub.sdk</li>
+      <li class="breadcrumb-item active">scitex_hub.account</li>
       <li class="wy-breadcrumbs-aside">
-              <a href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/sphinx/api/_autosummary/scitex_hub.sdk.rst" class="fa fa-github"> Edit on GitHub</a>
+              <a href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/sphinx/api/_autosummary/scitex_hub.account.rst" class="fa fa-github"> Edit on GitHub</a>
       </li>
   </ul>
   <hr/>
@@ -188,57 +189,44 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-scitex_hub.sdk">
-<span id="scitex-hub-sdk"></span><h1>scitex_hub.sdk<a class="headerlink" href="#module-scitex_hub.sdk" title="Link to this heading"></a></h1>
-<p>SciTeX SDK — backward-compatible re-export from scitex-app.</p>
-<p>All SDK code now lives in the standalone scitex-app package.
-This module re-exports for backward compatibility.</p>
-<dl>
-<dt>Usage (preferred):</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scitex_app.sdk</span><span class="w"> </span><span class="kn">import</span> <span class="n">data</span><span class="p">,</span> <span class="n">files</span><span class="p">,</span> <span class="n">jobs</span><span class="p">,</span> <span class="n">scitex</span><span class="p">,</span> <span class="n">external</span>
+  <section id="module-scitex_hub.account">
+<span id="scitex-hub-account"></span><h1>scitex_hub.account<a class="headerlink" href="#module-scitex_hub.account" title="Link to this heading"></a></h1>
+<p>SciTeX Hub account namespace — Python parity for the <code class="docutils literal notranslate"><span class="pre">account</span></code> CLI tree.</p>
+<p>Mirrors the <code class="docutils literal notranslate"><span class="pre">scitex-hub</span> <span class="pre">account</span></code> CLI verbs as a thin importable surface so
+agent-programmatic callers don’t have to shell out:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">scitex_hub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scitex_hub</span><span class="o">.</span><span class="n">account</span><span class="o">.</span><span class="n">whoami</span><span class="o">.</span><span class="n">whoami</span><span class="p">()</span>
+<span class="go">{&#39;username&#39;: &#39;ywatanabe&#39;, &#39;email&#39;: &#39;ywatanabe@scitex.ai&#39;}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scitex_hub</span><span class="o">.</span><span class="n">account</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;cli&quot;</span><span class="p">,</span> <span class="n">scopes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;publish&quot;</span><span class="p">])</span>
+<span class="go">{&#39;token&#39;: &#39;scitex_...&#39;, &#39;prefix&#39;: &#39;...&#39;, &#39;scopes&#39;: [&#39;publish&#39;]}</span>
 </pre></div>
 </div>
-</dd>
-<dt>Usage (legacy, still works):</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scitex_hub.sdk</span><span class="w"> </span><span class="kn">import</span> <span class="n">data</span><span class="p">,</span> <span class="n">files</span><span class="p">,</span> <span class="n">jobs</span><span class="p">,</span> <span class="n">scitex</span><span class="p">,</span> <span class="n">external</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="py class">
-<dt class="sig sig-object py" id="scitex_hub.sdk.PlatformClient">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">scitex_hub.sdk.</span></span><span class="sig-name descname"><span class="pre">PlatformClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/scitex_app/sdk/_client.html#PlatformClient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.sdk.PlatformClient" title="Link to this definition"></a></dt>
-<dd><p>Low-level HTTP client for Platform REST APIs.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="scitex_hub.sdk.PlatformClient.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/scitex_app/sdk/_client.html#PlatformClient.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.sdk.PlatformClient.__init__" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="scitex_hub.sdk.PlatformClient.request">
-<span class="sig-name descname"><span class="pre">request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../../_modules/scitex_app/sdk/_client.html#PlatformClient.request"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.sdk.PlatformClient.request" title="Link to this definition"></a></dt>
-<dd><p>Make authenticated HTTP request to Platform API.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="scitex_hub.sdk.get_client">
-<span class="sig-prename descclassname"><span class="pre">scitex_hub.sdk.</span></span><span class="sig-name descname"><span class="pre">get_client</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#scitex_hub.sdk.PlatformClient" title="scitex_app.sdk._client.PlatformClient"><span class="pre">PlatformClient</span></a></span></span><a class="reference internal" href="../../_modules/scitex_app/sdk/_client.html#get_client"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.sdk.get_client" title="Link to this definition"></a></dt>
-<dd><p>Get or create the default PlatformClient singleton.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="scitex_hub.sdk.reset_client">
-<span class="sig-prename descclassname"><span class="pre">scitex_hub.sdk.</span></span><span class="sig-name descname"><span class="pre">reset_client</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/scitex_app/sdk/_client.html#reset_client"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.sdk.reset_client" title="Link to this definition"></a></dt>
-<dd><p>Reset the default client (useful after env var changes).</p>
-</dd></dl>
-
+<p>Card #3 chunk 1 (PR <code class="docutils literal notranslate"><span class="pre">feat/hub-python-api-parity</span></code>): only <code class="docutils literal notranslate"><span class="pre">token</span></code> and
+<code class="docutils literal notranslate"><span class="pre">whoami</span></code> ship in this slot. The remaining sub-trees (<code class="docutils literal notranslate"><span class="pre">gitea</span></code>,
+<code class="docutils literal notranslate"><span class="pre">docker</span></code>, <code class="docutils literal notranslate"><span class="pre">mcp</span></code>) follow in later chunks.</p>
+<p>Each function thin-wraps the HTTP call to <code class="docutils literal notranslate"><span class="pre">/api/me/...</span></code> and reuses the
+<code class="xref py py-func docutils literal notranslate"><span class="pre">scitex_hub._mcp_tools.api._make_request()</span></code> transport so the
+<code class="docutils literal notranslate"><span class="pre">SCITEX_HUB_URL</span></code> / <code class="docutils literal notranslate"><span class="pre">SCITEX_HUB_IS_ON_SITE</span></code> resolution stays
+single-sourced.</p>
+<p class="rubric">Modules</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="scitex_hub.account.token.html#module-scitex_hub.account.token" title="scitex_hub.account.token"><code class="xref py py-obj docutils literal notranslate"><span class="pre">token</span></code></a></p></td>
+<td><p>Python parity for <code class="docutils literal notranslate"><span class="pre">scitex-hub</span> <span class="pre">account</span> <span class="pre">token</span> <span class="pre">{create,list,revoke}</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="scitex_hub.account.whoami.html#module-scitex_hub.account.whoami" title="scitex_hub.account.whoami"><code class="xref py py-obj docutils literal notranslate"><span class="pre">whoami</span></code></a></p></td>
+<td><p>Python parity for <code class="docutils literal notranslate"><span class="pre">scitex-hub</span> <span class="pre">account</span> <span class="pre">whoami</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="scitex_hub.project.html" class="btn btn-neutral float-left" title="scitex_hub.project" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="scitex_hub.html" class="btn btn-neutral float-left" title="scitex_hub" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="scitex_hub.account.token.html" class="btn btn-neutral float-right" title="scitex_hub.account.token" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

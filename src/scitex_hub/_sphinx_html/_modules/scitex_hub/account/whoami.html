@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scitex_hub.module._output &mdash; SciTeX Hub v0.18.1</title>
+  <title>scitex_hub.account.whoami &mdash; SciTeX Hub v0.18.1</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
@@ -176,7 +176,7 @@
       <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
           <li class="breadcrumb-item"><a href="../../scitex_hub.html">scitex_hub</a></li>
-      <li class="breadcrumb-item active">scitex_hub.module._output</li>
+      <li class="breadcrumb-item active">scitex_hub.account.whoami</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -185,136 +185,80 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for scitex_hub.module._output</h1><div class="highlight"><pre>
+  <h1>Source code for scitex_hub.account.whoami</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python3</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="sd">&quot;&quot;&quot;Thread-local output collection for SciTeX module execution.&quot;&quot;&quot;</span>
+<span class="c1"># File: src/scitex_hub/account/whoami.py</span>
+<span class="sd">&quot;&quot;&quot;Python parity for ``scitex-hub account whoami``.</span>
+
+<span class="sd">Same identity probe the CLI ``whoami`` verb hits — ``GET /api/me/`` —</span>
+<span class="sd">so an agent-programmatic caller can confirm &quot;is my cached token still</span>
+<span class="sd">valid?&quot; without shelling out.</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._auth</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_bearer</span><span class="p">,</span> <span class="n">resolve_server</span>
 
 
-<span class="k">class</span><span class="w"> </span><span class="nc">_SafeHtml</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrapper marking a string as pre-sanitized HTML.</span>
+<div class="viewcode-block" id="whoami">
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.account.whoami.html#scitex_hub.account.whoami.whoami">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">whoami</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">server</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">request_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the username + email the cached bearer authenticates as.</span>
 
-<span class="sd">    The renderer will emit this content as-is without escaping.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        server: Override server URL. Defaults to</span>
+<span class="sd">            :func:`._auth.resolve_server` (env / cache / scitex.ai).</span>
+<span class="sd">        request_fn: Dependency-injection seam for the HTTP GET. When</span>
+<span class="sd">            ``None``, uses ``requests.get``. Tests inject a fake that</span>
+<span class="sd">            returns the same ``{status_code, json, text}`` dict shape</span>
+<span class="sd">            the real transport produces.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dict with at least ``username`` and ``email`` (server may add</span>
+<span class="sd">        more fields like ``id`` or ``is_staff``).</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        RuntimeError: No bearer token resolved (not logged in), token</span>
+<span class="sd">            expired (401), or server returned non-200.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from scitex_hub.account.whoami import whoami</span>
+<span class="sd">        &gt;&gt;&gt; whoami()</span>
+<span class="sd">        {&#39;username&#39;: &#39;ywatanabe&#39;, &#39;email&#39;: &#39;ywatanabe@scitex.ai&#39;}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_content</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">content</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_content</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_content</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="n">truncated</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_content</span><span class="p">[:</span><span class="mi">60</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;...&quot;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_content</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">60</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_content</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;_SafeHtml(</span><span class="si">{</span><span class="n">truncated</span><span class="si">!r}</span><span class="s2">)&quot;</span>
-
-
-<span class="n">_OUTPUT_TYPE_AUTO</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-
-
-<div class="viewcode-block" id="ModuleOutput">
-<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.module.html#scitex_hub.module.ModuleOutput">[docs]</a>
-<span class="nd">@dataclass</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">ModuleOutput</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Single output item produced by a module function.&quot;&quot;&quot;</span>
-
-    <span class="n">value</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-    <span class="n">output_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">_OUTPUT_TYPE_AUTO</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_type</span> <span class="o">==</span> <span class="n">_OUTPUT_TYPE_AUTO</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">output_type</span> <span class="o">=</span> <span class="n">_detect_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
+    <span class="n">bearer</span> <span class="o">=</span> <span class="n">resolve_bearer</span><span class="p">()</span>
+    <span class="n">server_url</span> <span class="o">=</span> <span class="n">resolve_server</span><span class="p">(</span><span class="n">server</span><span class="p">)</span>
+    <span class="n">do_request</span> <span class="o">=</span> <span class="n">request_fn</span> <span class="k">if</span> <span class="n">request_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_default_get</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">do_request</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">server_url</span><span class="si">}</span><span class="s2">/api/me/&quot;</span><span class="p">,</span>
+        <span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">bearer</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">resp</span><span class="p">[</span><span class="s2">&quot;status_code&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="mi">401</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Token expired or invalid&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">status</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;HTTP </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">resp</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">][:</span><span class="mi">200</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">resp</span><span class="p">[</span><span class="s2">&quot;json&quot;</span><span class="p">])</span></div>
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_detect_type</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Infer a human-readable output type from value.&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">_SafeHtml</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;html&quot;</span>
+<div class="viewcode-block" id="_default_get">
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.account.whoami.html#scitex_hub.account.whoami._default_get">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_default_get</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">headers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Default GET transport — wraps ``requests`` into the dict shape.&quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
 
-    <span class="n">type_name</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
-    <span class="n">module_name</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="vm">__module__</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
-    <span class="k">if</span> <span class="s2">&quot;matplotlib&quot;</span> <span class="ow">in</span> <span class="n">module_name</span> <span class="ow">and</span> <span class="n">type_name</span> <span class="o">==</span> <span class="s2">&quot;Figure&quot;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;figure&quot;</span>
-
-    <span class="k">if</span> <span class="s2">&quot;pandas&quot;</span> <span class="ow">in</span> <span class="n">module_name</span> <span class="ow">and</span> <span class="n">type_name</span> <span class="o">==</span> <span class="s2">&quot;DataFrame&quot;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;table&quot;</span>
-
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;json&quot;</span>
-
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;text&quot;</span>
-
-    <span class="k">return</span> <span class="s2">&quot;text&quot;</span>
-
-
-<div class="viewcode-block" id="ModuleOutputCollector">
-<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.module.html#scitex_hub.module.ModuleOutputCollector">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">ModuleOutputCollector</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Thread-local collector that accumulates outputs during module execution.&quot;&quot;&quot;</span>
-
-    <span class="n">_local</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
-
-<div class="viewcode-block" id="ModuleOutputCollector.get_current">
-<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.module.html#scitex_hub.module.ModuleOutputCollector.get_current">[docs]</a>
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_current</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ModuleOutput</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the output list for the current thread.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_local</span><span class="p">,</span> <span class="s2">&quot;outputs&quot;</span><span class="p">):</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">outputs</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="ModuleOutputCollector.add">
-<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.module.html#scitex_hub.module.ModuleOutputCollector.add">[docs]</a>
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Append an output item for the current thread.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_local</span><span class="p">,</span> <span class="s2">&quot;outputs&quot;</span><span class="p">):</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ModuleOutput</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">))</span></div>
-
-
-<div class="viewcode-block" id="ModuleOutputCollector.clear">
-<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.module.html#scitex_hub.module.ModuleOutputCollector.clear">[docs]</a>
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">clear</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Discard all collected outputs for the current thread.&quot;&quot;&quot;</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span></div>
-</div>
-
-
-
-<div class="viewcode-block" id="output">
-<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.module.html#scitex_hub.module.output">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">output</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add an output to the current module execution.</span>
-
-<span class="sd">    This is the primary API researchers call inside their module function</span>
-<span class="sd">    to register figures, tables, text, or HTML for display.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ModuleOutputCollector</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="html">
-<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.module.html#scitex_hub.module.html">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">html</span><span class="p">(</span><span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_SafeHtml</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mark a string as safe HTML so the renderer emits it without escaping.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">_SafeHtml</span><span class="p">(</span><span class="n">content</span><span class="p">)</span></div>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;status_code&quot;</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span>
+        <span class="s2">&quot;json&quot;</span><span class="p">:</span> <span class="n">body</span><span class="p">,</span>
+        <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+    <span class="p">}</span></div>
 
 
 
