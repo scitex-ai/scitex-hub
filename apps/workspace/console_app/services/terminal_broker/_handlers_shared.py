@@ -198,7 +198,12 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
                 "error": "Environment startup timed out, please retry",
             }
 
-    # 3. Spawn shell inside allocation
+    # 3. Spawn shell inside allocation. Resolve broker-visible project_dir so
+    # BasePTY chdirs to the project root before fork (falls back to HOME → /tmp
+    # if the path is missing, e.g. first-time user — no silent swallow).
+    from apps.workspace.console_app.views.terminal.config import USER_DATA_ROOT
+
+    broker_project_dir = USER_DATA_ROOT / username / "proj" / project_slug
     shell_id = str(uuid.uuid4())
     shell = Shell(
         shell_id=shell_id,
@@ -206,6 +211,7 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
         username=username,
         screen_session=screen_session,
         command=alloc.get_shell_command(project_slug=project_slug),
+        project_dir=broker_project_dir,
     )
 
     if not shell.spawn():
