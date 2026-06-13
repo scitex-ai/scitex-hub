@@ -5,11 +5,50 @@
 
 import json
 import os
+from pathlib import Path
 from typing import Optional
 
 
 def _json(data: dict) -> str:
     return json.dumps(data, indent=2, default=str)
+
+
+def _resolve_user_token() -> Optional[str]:
+    """Resolve the caller's personal `scitex_xxxx` PAT.
+
+    Resolution order (Phase-1 card #5 — MCP tools authenticate as the
+    user, not as the server's TOOL_TOKEN):
+
+    1. ``SCITEX_HUB_TOKEN`` env var (explicit, dev-friendly).
+    2. ``~/.scitex/cloud/runtime/token.json`` cache produced by
+       ``scitex-hub account token create`` (PR #274). Looks at the
+       ``access`` key — same shape the CLI writes.
+
+    Returns ``None`` if neither source yields a token. Caller is
+    responsible for the back-compat fall-through to TOOL_TOKEN
+    (``SCITEX_HUB_API_KEY``).
+    """
+    env_tok = os.environ.get("SCITEX_HUB_TOKEN")
+    if env_tok:
+        return env_tok
+
+    # File cache — same canonical path the CLI writes (PR #274).
+    try:
+        from scitex_config._ecosystem import local_state
+
+        cache = local_state.runtime_path("cloud", "token.json")
+    except Exception:
+        cache = Path.home() / ".scitex" / "cloud" / "runtime" / "token.json"
+
+    try:
+        if cache.exists():
+            data = json.loads(cache.read_text())
+            tok = data.get("access")
+            if tok:
+                return str(tok)
+    except (json.JSONDecodeError, OSError):
+        pass
+    return None
 
 
 def get_on_site_env(username: str = "", site_url: str = "") -> dict[str, str]:
@@ -41,6 +80,41 @@ def _get_config() -> dict:
     }
 
 
+def _build_auth_headers(config: dict, auth_required: bool) -> dict[str, str]:
+    """Compute the headers ``_make_request`` sends for one call.
+
+    Pulled out as a pure function (config-in / headers-out) so it is
+    directly testable without rewiring the HTTP transport — the test
+    asserts the chosen ``Authorization`` value, not the network call.
+
+    Auth precedence (card #5):
+      1. On-site trusted-header (untouched, dev/cluster path).
+      2. User PAT — SCITEX_HUB_TOKEN env, then ~/.scitex/cloud/runtime/token.json.
+      3. Back-compat: server-side TOOL_TOKEN exposed as SCITEX_HUB_API_KEY.
+    If none of the above resolve, raise — never send anonymous when
+    ``auth_required`` is True.
+    """
+    headers = {"X-Requested-With": "XMLHttpRequest"}
+    if not auth_required:
+        return headers
+    if config["is_on_site"] and config["username"]:
+        # On-site: authenticate via trusted header (no API key needed).
+        headers["X-SciTeX-OnSite"] = config["username"]
+        return headers
+    user_token = _resolve_user_token()
+    if user_token:
+        headers["Authorization"] = f"Bearer {user_token}"
+        return headers
+    if config["api_key"]:
+        headers["Authorization"] = f"Bearer {config['api_key']}"
+        return headers
+    raise RuntimeError(
+        "no hub credential available — set SCITEX_HUB_TOKEN, "
+        "run `scitex-hub account token create`, or set "
+        "SCITEX_HUB_API_KEY (back-compat TOOL_TOKEN)."
+    )
+
+
 def _make_request(
     method: str,
     endpoint: str,
@@ -54,19 +128,7 @@ def _make_request(
     config = _get_config()
     url = f"{config['base_url']}{endpoint}"
 
-    headers = {"X-Requested-With": "XMLHttpRequest"}
-    if auth_required:
-        if config["is_on_site"] and config["username"]:
-            # On-site: authenticate via trusted header (no API key needed)
-            headers["X-SciTeX-OnSite"] = config["username"]
-        elif config["api_key"]:
-            headers["Authorization"] = f"Bearer {config['api_key']}"
-        else:
-            return {
-                "success": False,
-                "error": "API key required",
-                "hint": "Set SCITEX_HUB_API_KEY or SCITEX_HUB_IS_ON_SITE=1",
-            }
+    headers = _build_auth_headers(config, auth_required)
 
     try:
         if method.upper() == "GET":
@@ -227,10 +289,15 @@ def register_api_tools(mcp) -> None:
         import requests
 
         headers = {"X-Requested-With": "XMLHttpRequest"}
+        # Same precedence as _make_request (card #5).
         if config["is_on_site"] and config["username"]:
             headers["X-SciTeX-OnSite"] = config["username"]
-        elif config["api_key"]:
-            headers["Authorization"] = f"Bearer {config['api_key']}"
+        else:
+            user_token = _resolve_user_token()
+            if user_token:
+                headers["Authorization"] = f"Bearer {user_token}"
+            elif config["api_key"]:
+                headers["Authorization"] = f"Bearer {config['api_key']}"
 
         max_attempts = 60
         for _ in range(max_attempts):
