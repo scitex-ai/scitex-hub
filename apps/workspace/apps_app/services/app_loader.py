@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-import importlib
 import importlib.metadata as _metadata
 import logging
 from typing import Any
@@ -41,8 +40,7 @@ def _load_entry_point_urlpatterns(module_name: str) -> list[Any] | None:
                 return ep.load()
             except Exception:
                 logger.exception(
-                    "[app_loader] failed to load urlpatterns for '%s' via "
-                    "entry_point %s",
+                    "[app_loader] failed to load urlpatterns for %r via entry_point %r",
                     module_name,
                     ep.value,
                 )
@@ -71,14 +69,14 @@ def _load_entry_point_app_config(module_name: str) -> None:
             try:
                 ep.load()
                 logger.info(
-                    "[app_loader] Loaded AppConfig for '%s' via %s",
+                    "[app_loader] Loaded AppConfig for %r via %r",
                     module_name,
                     ep.value,
                 )
             except Exception:
                 logger.exception(
-                    "[app_loader] failed to load AppConfig for '%s' "
-                    "via entry_point %s — continuing (URLs still routed)",
+                    "[app_loader] failed to load AppConfig for %r "
+                    "via entry_point %r — continuing (URLs still routed)",
                     module_name,
                     ep.value,
                 )
@@ -124,7 +122,7 @@ def load_single_app(app_module):
         license=_get_license(app_module),
     )
     register_module(config)
-    logger.info("[app_loader] Loaded approved app: %s", app_module.module_name)
+    logger.info("[app_loader] Loaded approved app: %r", app_module.module_name)
 
     # F1 — cache the user-app's urlpatterns + fire its AppConfig hooks.
     # Both are best-effort: a user-app that only ships the partial-
@@ -136,9 +134,8 @@ def load_single_app(app_module):
     if urlpatterns is not None:
         _URL_PATTERNS_CACHE[app_module.module_name] = urlpatterns
         logger.info(
-            "[app_loader] Cached %d urlpattern(s) for '%s' (/apps/u/%s/...)",
+            "[app_loader] Cached %d urlpattern(s) for %r (/apps/u/<module>/...)",
             len(urlpatterns),
-            app_module.module_name,
             app_module.module_name,
         )
     _load_entry_point_app_config(app_module.module_name)
@@ -152,7 +149,7 @@ def unload_single_app(module_name: str) -> None:
     """
     if module_name in _URL_PATTERNS_CACHE:
         del _URL_PATTERNS_CACHE[module_name]
-        logger.info("[app_loader] Dropped cached urlpatterns for '%s'", module_name)
+        logger.info("[app_loader] Dropped cached urlpatterns for %r", module_name)
 
 
 def load_approved_apps():
@@ -195,13 +192,13 @@ def pin_commit(app_module):
             app_module.pinned_at = timezone.now()
             app_module.save(update_fields=["pinned_commit", "pinned_at"])
             logger.info(
-                "[app_loader] Pinned commit %s for %s",
+                "[app_loader] Pinned commit %s for %r",
                 app_module.pinned_commit[:8],
                 app_module.module_name,
             )
     except Exception:
         logger.exception(
-            "[app_loader] Failed to pin commit for %s", app_module.module_name
+            "[app_loader] Failed to pin commit for %r", app_module.module_name
         )
 
 

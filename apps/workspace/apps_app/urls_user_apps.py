@@ -44,10 +44,9 @@ no mocks per STX-NM.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
-from django.urls import URLResolver, get_resolver, path, re_path
+from django.urls import URLResolver, path, re_path
 from django.urls.resolvers import RegexPattern
 
 logger = logging.getLogger(__name__)
@@ -82,20 +81,27 @@ def _dispatch(
         match = pseudo_resolver.resolve("/" + sub_path)
     except Exception:
         logger.info(
-            "[urls_user_apps] No match for '/%s' in '%s' patterns",
-            sub_path,
+            "[urls_user_apps] No match for %r in %r patterns",
+            "/" + sub_path,
             module_name,
         )
-        raise Http404(f"no route '/{sub_path}' in user-app '{module_name}'")
+        raise Http404("no route in user-app")
 
-    return _invoke(match.func, request, match.args, match.kwargs)
+    return _invoke(match.func, request, match.args, match.kwargs, module_name)
 
 
-def _invoke(view, request, args, kwargs) -> HttpResponse:
-    """Call the user-app view; translate live-paper exception hierarchy."""
+def _invoke(view, request, args, kwargs, module_name: str) -> HttpResponse:
+    """Call the user-app view; translate live-paper exception hierarchy.
+
+    SECURITY: never re-raises with a body — always returns a JsonResponse
+    with a fixed-shape error payload. Stack-trace details live in the
+    server logs only (logger.exception), never in the HTTP response, so
+    a misbehaving user-app can't be probed for internals via crafted
+    requests. Per CodeQL py/stack-trace-exposure fix on PR #290 v2.
+    """
     # Resolver-side exception hierarchy per the contract pin
-    # (live-paper PR-46 in flight; importing lazily so missing-installed
-    # live-paper doesn't break test collection on hosts that don't have it).
+    # (live-paper PR #47 merged; importing lazily still so hosts without
+    # live-paper installed don't break test collection on hub-only deploys).
     try:
         return view(request, *args, **kwargs)
     except Exception as exc:  # noqa: BLE001 - mapped to a real HTTP surface
@@ -109,23 +115,25 @@ def _invoke(view, request, args, kwargs) -> HttpResponse:
             BundleNotFound = BundleAccessDenied = BundleResolverError = None
 
         if BundleNotFound is not None and isinstance(exc, BundleNotFound):
-            return JsonResponse({"error": str(exc), "kind": "not_found"}, status=404)
+            return JsonResponse({"error": "not found", "kind": "not_found"}, status=404)
         if BundleAccessDenied is not None and isinstance(exc, BundleAccessDenied):
-            return JsonResponse({"error": str(exc), "kind": "forbidden"}, status=403)
+            return JsonResponse({"error": "forbidden", "kind": "forbidden"}, status=403)
         if BundleResolverError is not None and isinstance(exc, BundleResolverError):
-            logger.exception("[urls_user_apps] resolver error from user-app view")
+            logger.exception(
+                "[urls_user_apps] resolver error from user-app %r", module_name
+            )
             return JsonResponse(
-                {"error": str(exc), "kind": "resolver_error"}, status=500
+                {"error": "resolver error", "kind": "resolver_error"}, status=500
             )
 
-        # Unmapped exception — no silent swallow, surface the type + reraise
-        # so Django's default 500 handler logs + serves the user-app's
-        # debug page (production hides traceback via DEBUG=False).
+        # Unmapped exception — log full trace server-side + return a
+        # generic 500 to the caller (no body leak). Trace stays in
+        # observability layer only.
         logger.exception(
-            "[urls_user_apps] unmapped exception from user-app '%s' view",
-            kwargs.get("module_name", "?"),
+            "[urls_user_apps] unmapped exception from user-app %r view",
+            module_name,
         )
-        raise
+        return JsonResponse({"error": "internal error", "kind": "internal"}, status=500)
 
 
 urlpatterns = [

@@ -13,29 +13,34 @@ Design choices:
 
   - Install via ``pip install --no-deps --target=<hub-managed-dir>``
     so the user-app's transitive deps do NOT pollute the hub venv.
-    Deps the user-app declares in its pyproject get checked at
-    activation time (PS-210 pattern); missing → loud error.
   - Target dir is ``<settings.SCITEX_HUB_USER_APPS_DIR>`` (defaults to
     ``<BASE_DIR>/data/user_apps/``) — added to ``sys.path`` at first
     activation so subsequent imports succeed.
-  - The Gitea mirror's wheel URL is derived from the pinned commit
-    (post-merge auto-pin in ``app_loader.pin_commit``) so installs
-    are reproducible.
+  - The Gitea mirror's tarball URL is derived from the pinned commit
+    so installs are reproducible.
   - Fail-loud: any ``subprocess.run`` non-zero exits get raised
     rather than swallowed; ``_activate_approved_app`` MUST roll
     back the registration on install failure (caller's
     responsibility, this module just surfaces the error).
 
-No skip_rules, no silent fallback. The default-dir fallback is a
-documented production-image convention (mirrors how the
-``settings.USER_DATA_ROOT`` default works in
-``views/terminal/config``).
+SECURITY (per lead msg 37b38d69 + CodeQL HIGH alerts on PR #290 v1):
+every user-controlled string that feeds a filesystem path OR a
+subprocess argument goes through a STRICT regex validator
+(``_safe_identifier`` / ``_safe_commit``) FIRST. Module name,
+Gitea owner, Gitea repo, commit SHA all rejected hard if they
+contain ``/`` ``..`` or any non-allowlisted character. No silent
+fallback, no path normalization that could be bypassed.
+
+Log statements use ``%r`` (repr) on user-string args so control
+chars / newlines from a malicious submission can't inject fake
+log lines.
 """
 
 from __future__ import annotations
 
 import logging
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -48,6 +53,40 @@ logger = logging.getLogger(__name__)
 #: Default install root if ``settings.SCITEX_HUB_USER_APPS_DIR`` is
 #: unset; mirrors the production Docker image convention.
 _DEFAULT_USER_APPS_DIR = Path("/app/data/user_apps")
+
+#: Python-identifier-shaped regex. Matches the python-module-name
+#: convention + rejects every char that could escape a filesystem
+#: path or smuggle into a subprocess arg. ``a/b`` ``../evil`` ``..``
+#: ``a;rm -rf /`` all fail.
+_IDENT_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]{0,63}$")
+
+#: Git SHA — hex digits, length 7-64 (short-SHA through full SHA-256).
+_COMMIT_RE = re.compile(r"^[0-9a-fA-F]{7,64}$")
+
+
+def _safe_identifier(name: str, field: str) -> str:
+    """Validate ``name`` against ``_IDENT_RE``; raise ValueError if not.
+
+    Used for module_name, Gitea owner, Gitea repo — anything that gets
+    interpolated into a filesystem path or subprocess argv.
+    """
+    if not isinstance(name, str) or not _IDENT_RE.match(name):
+        raise ValueError(
+            f"unsafe value for {field}: {name!r} — must match "
+            f"{_IDENT_RE.pattern} (Python-identifier shape; no '/' '..' or "
+            f"shell metachars)"
+        )
+    return name
+
+
+def _safe_commit(commit: str) -> str:
+    """Validate Git SHA; raise ValueError if not."""
+    if not isinstance(commit, str) or not _COMMIT_RE.match(commit):
+        raise ValueError(
+            f"unsafe value for commit: {commit!r} — must match "
+            f"{_COMMIT_RE.pattern} (hex SHA, 7-64 chars)"
+        )
+    return commit
 
 
 def _user_apps_dir() -> Path:
@@ -67,14 +106,14 @@ def _ensure_on_path(install_dir: Path) -> None:
     if install_dir_str in sys.path:
         return
     sys.path.insert(0, install_dir_str)
-    logger.info("[user_app_install] Added %s to sys.path", install_dir_str)
+    logger.info("[user_app_install] Added %r to sys.path", install_dir_str)
 
 
 def _gitea_wheel_url(owner: str, repo: str, commit: str) -> str:
     """Return the Gitea archive URL for ``owner/repo`` at ``commit``.
 
-    Pip can install from a tarball URL via ``pip install <url>``; this
-    is simpler than uploading a built wheel to a registry.
+    Inputs assumed pre-validated by the caller (raises in
+    :func:`pip_install_user_app` before this is reached).
     """
     base = getattr(settings, "GITEA_URL", None) or "http://gitea:3000"
     return f"{base.rstrip('/')}/{owner}/{repo}/archive/{commit}.tar.gz"
@@ -83,39 +122,51 @@ def _gitea_wheel_url(owner: str, repo: str, commit: str) -> str:
 def pip_install_user_app(app_module) -> Path:
     """Install ``app_module``'s package into the user-apps dir.
 
+    SECURITY: ``module_name``, Gitea ``owner``, ``repo``, and the
+    pinned ``commit`` SHA are validated against strict regexes BEFORE
+    any filesystem path or subprocess call sees them. A malicious
+    submission with ``module_name='../evil'`` (or any other traversal
+    shape) raises ValueError immediately and nothing is touched.
+
     Idempotent: if the pinned commit is already installed (sentinel
     file ``<install_dir>/<module>/.scitex_hub_pinned_at`` matches), this
     is a no-op + just returns the install dir.
 
-    Raises ``RuntimeError`` on any pip non-zero exit; the caller MUST
-    roll back the app activation in that case (no half-state).
+    Raises ``RuntimeError`` on any pip non-zero exit; ``ValueError``
+    on validation failure. The caller MUST roll back the app
+    activation in either case (no half-state).
     """
     if not app_module.pinned_commit:
         raise RuntimeError(
-            f"app_module '{app_module.module_name}' has no pinned_commit; "
+            f"app_module {app_module.module_name!r} has no pinned_commit; "
             f"cannot install (call pin_commit() first)"
         )
 
     project = app_module.project
     if project is None:
         raise RuntimeError(
-            f"app_module '{app_module.module_name}' has no project; "
+            f"app_module {app_module.module_name!r} has no project; "
             f"cannot derive the Gitea owner/repo for install"
         )
 
-    owner = project.owner.username
-    repo = project.slug
-    commit = app_module.pinned_commit
+    # STRICT VALIDATION — every user-controlled string before path/subprocess.
+    module_name = _safe_identifier(app_module.module_name, "module_name")
+    owner = _safe_identifier(project.owner.username, "gitea_owner")
+    repo = _safe_identifier(project.slug, "gitea_repo")
+    commit = _safe_commit(app_module.pinned_commit)
 
     install_dir = _user_apps_dir()
     install_dir.mkdir(parents=True, exist_ok=True)
 
-    pkg_dir = install_dir / app_module.module_name
+    # All three components below are post-validation; CodeQL's
+    # py/path-injection on these lines is a known false-positive given
+    # the _safe_identifier gate above.
+    pkg_dir = install_dir / module_name
     sentinel = pkg_dir / ".scitex_hub_pinned_at"
     if sentinel.is_file() and sentinel.read_text(encoding="utf-8").strip() == commit:
         logger.debug(
-            "[user_app_install] '%s' already at pinned %s — skipping pip",
-            app_module.module_name,
+            "[user_app_install] %r already at pinned %s — skipping pip",
+            module_name,
             commit[:8],
         )
         _ensure_on_path(install_dir)
@@ -123,10 +174,10 @@ def pip_install_user_app(app_module) -> Path:
 
     url = _gitea_wheel_url(owner, repo, commit)
     logger.info(
-        "[user_app_install] pip-installing %s from %s into %s",
-        app_module.module_name,
+        "[user_app_install] pip-installing %r from %r into %r",
+        module_name,
         url,
-        install_dir,
+        str(install_dir),
     )
 
     # Clean any previous version so --target doesn't get a stale tree.
@@ -135,7 +186,7 @@ def pip_install_user_app(app_module) -> Path:
 
     env = os.environ.copy()
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-    result = subprocess.run(
+    result = subprocess.run(  # noqa: S603 - argv is list, no shell; url validated
         [
             sys.executable,
             "-m",
@@ -154,7 +205,7 @@ def pip_install_user_app(app_module) -> Path:
     )
     if result.returncode != 0:
         raise RuntimeError(
-            f"pip install of '{app_module.module_name}' (commit {commit[:8]}) "
+            f"pip install of {module_name!r} (commit {commit[:8]}) "
             f"failed with exit {result.returncode}:\n"
             f"--- stderr ---\n{result.stderr}\n"
             f"--- stdout ---\n{result.stdout}"
@@ -166,9 +217,9 @@ def pip_install_user_app(app_module) -> Path:
 
     _ensure_on_path(install_dir)
     logger.info(
-        "[user_app_install] Installed %s at %s (pinned %s)",
-        app_module.module_name,
-        pkg_dir,
+        "[user_app_install] Installed %r at %r (pinned %s)",
+        module_name,
+        str(pkg_dir),
         commit[:8],
     )
     return install_dir
