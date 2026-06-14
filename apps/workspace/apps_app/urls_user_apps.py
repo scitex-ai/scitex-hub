@@ -48,13 +48,45 @@ import logging
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.urls import URLResolver, path, re_path
 from django.urls.resolvers import RegexPattern
-from scitex_live_paper import (
-    BundleAccessDenied,
-    BundleNotFound,
-    BundleResolverError,
-)
 
+# scitex-live-paper exception hierarchy — kept LAZY (top-level
+# try/except + None fallback) because the package is not yet on PyPI
+# and is therefore NOT declarable as a hard runtime dep in
+# scitex-hub's pyproject.toml. PR #292 promoted this to a hard
+# top-level import on the assumption that live-paper PR #47 had
+# landed and the dep would be added — but the dep was never added,
+# so every CI run (and any hub install without live-paper on the
+# PYTHONPATH) broke Django startup at config/urls.py import time.
+#
+# Restoring the lazy guard. The dispatch logic below ``and`` checks
+# `is not None` before isinstance(), so when live-paper IS installed
+# the user-app exception-hierarchy translation works exactly as it
+# did under #292; when it ISN'T installed, an unmapped exception just
+# flows through the generic 500-with-logged-trace path (no live-paper
+# user-app would be running anyway in that case).
+#
+# REVERT this back to a hard import (and drop the None checks below)
+# once scitex-live-paper is published to PyPI AND declared as a
+# scitex-hub runtime dep in pyproject.toml.
 logger = logging.getLogger(__name__)
+
+try:
+    from scitex_live_paper import (
+        BundleAccessDenied,
+        BundleNotFound,
+        BundleResolverError,
+    )
+except (
+    Exception
+) as _live_paper_import_err:  # noqa: BLE001 — STX-EH001: catch runtime-init too
+    logger.debug(
+        "[urls_user_apps] scitex_live_paper import failed (%s) — "
+        "exception-hierarchy translation will skip via None checks",
+        _live_paper_import_err,
+    )
+    BundleNotFound = None  # type: ignore[assignment]
+    BundleAccessDenied = None  # type: ignore[assignment]
+    BundleResolverError = None  # type: ignore[assignment]
 
 
 def _dispatch(
@@ -104,19 +136,19 @@ def _invoke(view, request, args, kwargs, module_name: str) -> HttpResponse:
     a misbehaving user-app can't be probed for internals via crafted
     requests. Per CodeQL py/stack-trace-exposure fix on PR #290 v2.
     """
-    # Resolver-side exception hierarchy per the contract pin (live-paper
-    # PR #47 merged + on develop; the import is now hard at module level
-    # — fail-loud at Django startup if scitex-live-paper isn't installed
-    # rather than silently misrouting exceptions to a generic 500 at
-    # request time).
+    # Resolver-side exception hierarchy per the contract pin
+    # (live-paper PR #47). Lazy-imported at module top (None fallback
+    # when scitex-live-paper isn't installed); the isinstance() checks
+    # below short-circuit safely via the `is not None` guard so hub
+    # boots clean without live-paper.
     try:
         return view(request, *args, **kwargs)
     except Exception as exc:  # noqa: BLE001 - mapped to a real HTTP surface
-        if isinstance(exc, BundleNotFound):
+        if BundleNotFound is not None and isinstance(exc, BundleNotFound):
             return JsonResponse({"error": "not found", "kind": "not_found"}, status=404)
-        if isinstance(exc, BundleAccessDenied):
+        if BundleAccessDenied is not None and isinstance(exc, BundleAccessDenied):
             return JsonResponse({"error": "forbidden", "kind": "forbidden"}, status=403)
-        if isinstance(exc, BundleResolverError):
+        if BundleResolverError is not None and isinstance(exc, BundleResolverError):
             logger.exception(
                 "[urls_user_apps] resolver error from user-app %r", module_name
             )
