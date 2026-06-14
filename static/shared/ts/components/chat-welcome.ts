@@ -20,25 +20,47 @@ function initChatWelcome(): void {
 
   if (!welcomeInput || !welcomePane) return;
 
-  // Auto-focus welcome input on load
-  setTimeout(() => welcomeInput.focus(), 200);
+  // Auto-focus welcome input on load — but ONLY if no other element
+  // already holds focus. Without this guard, an SPA-like re-init or a
+  // delayed boot of this component would steal focus FROM whatever
+  // textarea the user is actively typing in (operator-reported bug:
+  // "textarea activation/focus repeatedly stolen mid-type").
+  // `document.body` / `null` represent "no real focus" — safe to grab.
+  setTimeout(() => {
+    if (
+      document.activeElement === null ||
+      document.activeElement === document.body
+    ) {
+      welcomeInput.focus();
+    }
+  }, 200);
 
-  // Auto-focus when switching to chat pane
+  // Auto-focus when switching to chat pane — same guard. Pane-changed
+  // events can fire during workspace shell layout adjustments while
+  // the user is typing elsewhere; respect the user's focus.
   document.addEventListener("workspace-pane-changed", (e: Event) => {
     const detail = (e as CustomEvent).detail;
-    if (detail?.pane === "chat") {
-      setTimeout(() => {
-        if (!welcomePane.classList.contains("has-messages")) {
-          welcomeInput.focus();
-        } else {
-          // Focus the AI chat input when session has messages
-          const aiInput = document.getElementById(
-            "stx-shell-ai-input",
-          ) as HTMLTextAreaElement | null;
-          aiInput?.focus();
-        }
-      }, 100);
-    }
+    if (detail?.pane !== "chat") return;
+    setTimeout(() => {
+      // Skip if user is already focused on a real input/textarea
+      // (anywhere in the document — they're typing, don't steal it).
+      const active = document.activeElement;
+      const userIsTyping =
+        active instanceof HTMLInputElement ||
+        active instanceof HTMLTextAreaElement ||
+        (active instanceof HTMLElement && active.isContentEditable);
+      if (userIsTyping) return;
+
+      if (!welcomePane.classList.contains("has-messages")) {
+        welcomeInput.focus();
+      } else {
+        // Focus the AI chat input when session has messages
+        const aiInput = document.getElementById(
+          "stx-shell-ai-input",
+        ) as HTMLTextAreaElement | null;
+        aiInput?.focus();
+      }
+    }, 100);
   });
 
   // Check if messages already exist (session was restored)
