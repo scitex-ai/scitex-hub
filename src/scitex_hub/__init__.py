@@ -20,30 +20,23 @@ MCP Server:
     scitex-hub serve -t sse       # SSE (remote)
 """
 
+from __future__ import annotations
 
-def _get_version() -> str:
-    """Read installed package version via ``importlib.metadata``.
+from importlib.metadata import PackageNotFoundError, version
 
-    PEP 566 / 621 publishes the distribution version in the package
-    metadata. ``importlib.metadata.version`` reads that without
-    re-parsing pyproject.toml — which (a) works the same on editable
-    installs and on built wheels, (b) doesn't break when pyproject.toml
-    isn't shipped (wheel / sdist install), and (c) matches the rule
-    PA-202 §2 (version-not-from-metadata) the ecosystem audit enforces.
+# PEP 566 / 621 publishes the distribution version in the package
+# metadata. ``importlib.metadata.version`` reads that without re-parsing
+# pyproject.toml — it works the same on editable installs and built
+# wheels, doesn't break when pyproject.toml isn't shipped (wheel / sdist
+# install), and matches the ecosystem audit rule PA-202 §2
+# (version-not-from-metadata). Falls back to the PEP 440 local segment
+# when the dist isn't installed (e.g. a checkout without `pip install -e .`)
+# so import never raises.
+try:
+    __version__ = version("scitex-hub")
+except PackageNotFoundError:
+    __version__ = "0.0.0+local"
 
-    Falls back to ``"unknown"`` when the dist isn't installed (e.g.
-    running directly from a checkout without ``pip install -e .``),
-    so import never raises.
-    """
-    from importlib.metadata import PackageNotFoundError, version
-
-    try:
-        return version("scitex-hub")
-    except PackageNotFoundError:
-        return "unknown"
-
-
-__version__ = _get_version()
 __author__ = "SciTeX Team"
 
 from . import account as account
