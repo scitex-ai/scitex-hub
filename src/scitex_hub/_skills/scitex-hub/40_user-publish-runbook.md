@@ -4,7 +4,7 @@ description: |
   [DETAILS] Human-facing walkthrough for publishing an App to the scitex-hub
   app store. Covers one-time PAT setup, project scaffold, local iteration,
   cross-repo submit, and on-hub verification. Audience: a USER (not an agent).
-tags: [scitex-hub-user-publish, scitex-hub-runbook]
+tags: [scitex-hub-user-publish-runbook, scitex-hub-user-publish, scitex-hub-runbook]
 audience: user
 ---
 
