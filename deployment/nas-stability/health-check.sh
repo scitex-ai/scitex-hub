@@ -13,10 +13,15 @@ CURL_TIMEOUT=15
 SSH_HOSTS="${NAS_SSH_HOSTS:-nas-direct nas}"
 SSH_TIMEOUT=10
 STATE_FILE="/tmp/nas-health-check.state"
-# Notification commands (scitex notification system)
-NOTIFY_TELEGRAM="scitex notification send"
-NOTIFY_SMS="scitex notification sms"
-NOTIFY_CALL="scitex notification call"
+# Notification commands (scitex notification system).
+# Cron runs with a minimal PATH (/usr/bin:/bin) and scitex lives in a venv —
+# resolve it absolutely or every alert fails silently. Incident 2026-07-06:
+# 106 consecutive detected failures, zero notifications delivered, because
+# bare `scitex` was not on cron's PATH.
+SCITEX_BIN="${SCITEX_BIN:-$(command -v scitex || echo "$HOME/.env-3.11/bin/scitex")}"
+NOTIFY_TELEGRAM="$SCITEX_BIN notification send"
+NOTIFY_SMS="$SCITEX_BIN notification sms"
+NOTIFY_CALL="$SCITEX_BIN notification call"
 
 SSH_OPTS=(-o ConnectTimeout="$SSH_TIMEOUT" -o BatchMode=yes
     -o ControlMaster=no -o ControlPath=none -o ForwardX11=no)
