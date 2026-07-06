@@ -13,6 +13,13 @@ import logging
 from pathlib import Path
 
 from django.conf import settings
+from scitex_app.paths import (
+    find_partial_template,
+    parse_dev_module_name,
+    resolve_manifest,
+    resolve_user_project_dir,
+    validate_project_structure,
+)
 
 from apps.infra.workspace_app.registry import ModuleConfig
 
