@@ -4,7 +4,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SSH_HOST="nas"
+# Try LAN-direct first; the bastion route (`nas`) is dead whenever the
+# Cloudflare tunnel is down (see health-check.sh).
+SSH_HOSTS="${NAS_SSH_HOSTS:-nas-direct nas}"
+SSH_HOST=""
 SSH_TIMEOUT=10
 CRON_SCHEDULE="*/5 * * * *"
 HEALTH_CHECK="${SCRIPT_DIR}/health-check.sh"
@@ -18,15 +21,18 @@ section() {
 }
 
 check_ssh() {
-    echo "Checking SSH connectivity to ${SSH_HOST}..."
-    if ssh -o ConnectTimeout="$SSH_TIMEOUT" -o BatchMode=yes "$SSH_HOST" "echo ok" >/dev/null 2>&1; then
-        echo "  SSH: OK"
-        return 0
-    else
-        echo "  SSH: FAILED"
-        echo "  Run 'nw-nas' first to establish network route."
-        return 1
-    fi
+    local host
+    for host in $SSH_HOSTS; do
+        echo "Checking SSH connectivity to ${host}..."
+        if ssh -o ConnectTimeout="$SSH_TIMEOUT" -o BatchMode=yes "$host" "echo ok" >/dev/null 2>&1; then
+            echo "  SSH: OK (${host})"
+            SSH_HOST="$host"
+            return 0
+        fi
+        echo "  SSH: FAILED (${host})"
+    done
+    echo "  Run 'nw-nas' first to establish network route."
+    return 1
 }
 
 # --- Step 1: Verify SSH ---

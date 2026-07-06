@@ -7,13 +7,19 @@ set -euo pipefail
 # --- Configuration ---
 SITE_URL="https://scitex.ai"
 CURL_TIMEOUT=15
-SSH_HOST="nas"
+# Try LAN-direct first: the bastion route (`nas`) rides the same Cloudflare
+# tunnel this script guards, so it is dead exactly when we need SSH most
+# (incident 2026-07-06: tunnel down -> `ssh nas` down with it).
+SSH_HOSTS="${NAS_SSH_HOSTS:-nas-direct nas}"
 SSH_TIMEOUT=10
 STATE_FILE="/tmp/nas-health-check.state"
 # Notification commands (scitex notification system)
 NOTIFY_TELEGRAM="scitex notification send"
 NOTIFY_SMS="scitex notification sms"
 NOTIFY_CALL="scitex notification call"
+
+SSH_OPTS=(-o ConnectTimeout="$SSH_TIMEOUT" -o BatchMode=yes
+    -o ControlMaster=no -o ControlPath=none -o ForwardX11=no)
 
 timestamp() {
     date "+%Y-%m-%d %H:%M:%S"
@@ -35,12 +41,28 @@ set_failure_count() {
     echo "$1" >"$STATE_FILE"
 }
 
+site_up() {
+    local code
+    code=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout "$CURL_TIMEOUT" --max-time "$((CURL_TIMEOUT * 2))" "$SITE_URL" 2>/dev/null || echo "000")
+    HTTP_CODE="$code"
+    [ "$code" -ge 200 ] && [ "$code" -lt 400 ]
+}
+
+pick_ssh_host() {
+    local host
+    for host in $SSH_HOSTS; do
+        if ssh "${SSH_OPTS[@]}" "$host" "echo ok" >/dev/null 2>&1; then
+            echo "$host"
+            return 0
+        fi
+    done
+    return 1
+}
+
 # --- Step 1: Check if site is reachable ---
 log "Checking ${SITE_URL}..."
 
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout "$CURL_TIMEOUT" --max-time "$((CURL_TIMEOUT * 2))" "$SITE_URL" 2>/dev/null || echo "000")
-
-if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 400 ]; then
+if site_up; then
     log "OK: ${SITE_URL} returned HTTP ${HTTP_CODE}"
     set_failure_count 0
     exit 0
@@ -51,24 +73,45 @@ FAILURES=$(get_failure_count)
 FAILURES=$((FAILURES + 1))
 set_failure_count "$FAILURES"
 
-# --- Step 2 (Tier 1): Try SSH + Docker restart ---
+# --- Step 2 (Tier 1): SSH self-heal ---
 log "Tier 1: Attempting SSH recovery (failure count: ${FAILURES})..."
 
-if ssh -o ConnectTimeout="$SSH_TIMEOUT" -o BatchMode=yes "$SSH_HOST" "docker restart \$(docker ps -q)" 2>/dev/null; then
-    log "Tier 1: Docker containers restarted via SSH. Waiting 30s for services..."
-    sleep 30
+if SSH_HOST=$(pick_ssh_host); then
+    log "Tier 1: NAS reachable via '${SSH_HOST}'"
 
-    # Verify recovery
-    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout "$CURL_TIMEOUT" --max-time "$((CURL_TIMEOUT * 2))" "$SITE_URL" 2>/dev/null || echo "000")
-    if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 400 ]; then
-        log "Tier 1: RECOVERED. Site is back (HTTP ${HTTP_CODE})"
-        set_failure_count 0
-
-        # Still notify about the incident
-        ${NOTIFY_TELEGRAM} "NAS auto-recovered. Site was down, Docker containers restarted automatically." 2>/dev/null || true
-        exit 0
+    # 1a: start EXITED prod containers. A manually-stopped container
+    # (e.g. cloudflared, incident 2026-07-06) has restart:always disabled
+    # and is invisible to `docker restart $(docker ps -q)`.
+    STARTED=$(ssh "${SSH_OPTS[@]}" "$SSH_HOST" \
+        "docker ps -a --filter status=exited --filter name=scitex-hub-prod --format '{{.Names}}' | xargs -r docker start" 2>/dev/null || true)
+    if [ -n "$STARTED" ]; then
+        log "Tier 1a: Started exited prod container(s): ${STARTED}. Waiting 30s..."
+        sleep 30
+        if site_up; then
+            log "Tier 1a: RECOVERED. Site is back (HTTP ${HTTP_CODE})"
+            set_failure_count 0
+            ${NOTIFY_TELEGRAM} "NAS auto-recovered: started stopped container(s) ${STARTED}. Site is back." 2>/dev/null || true
+            exit 0
+        fi
+        log "Tier 1a: Starting stopped containers did not fix the issue (HTTP ${HTTP_CODE})"
+    else
+        log "Tier 1a: No exited prod containers to start"
     fi
-    log "Tier 1: Docker restart did not fix the issue (HTTP ${HTTP_CODE})"
+
+    # 1b: restart running containers (original blanket recovery)
+    if ssh "${SSH_OPTS[@]}" "$SSH_HOST" "docker restart \$(docker ps -q)" >/dev/null 2>&1; then
+        log "Tier 1b: Docker containers restarted via SSH. Waiting 30s for services..."
+        sleep 30
+        if site_up; then
+            log "Tier 1b: RECOVERED. Site is back (HTTP ${HTTP_CODE})"
+            set_failure_count 0
+            ${NOTIFY_TELEGRAM} "NAS auto-recovered. Site was down, Docker containers restarted automatically." 2>/dev/null || true
+            exit 0
+        fi
+        log "Tier 1b: Docker restart did not fix the issue (HTTP ${HTTP_CODE})"
+    fi
+else
+    log "Tier 1: NAS unreachable on all SSH routes (${SSH_HOSTS})"
 fi
 
 # --- Step 3 (Tier 2): SSH failed or restart did not help -- Telegram ---
