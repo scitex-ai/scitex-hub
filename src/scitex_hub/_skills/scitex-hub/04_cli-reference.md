@@ -1,7 +1,7 @@
 ---
 description: |
   [TOPIC] scitex-hub CLI Reference
-  [DETAILS] Top-level subcommands of `scitex-hub` — project, push/pull, sync-to/from, deploy, docker, gitea, sdk, app, mcp, etc.
+  [DETAILS] Top-level subcommands of `scitex-hub` — project, push/pull, workspace push/pull/status, deploy, docker, gitea, sdk, app, mcp, etc.
 tags: [scitex-hub-cli-reference]
 ---
 
@@ -28,24 +28,26 @@ tags: [scitex-hub-cli-reference]
 
 ## Sync (workspace, Dropbox-style)
 
-| Command        | Purpose                                                |
-|----------------|--------------------------------------------------------|
-| `sync-to`      | Sync working files to workspace                        |
-| `sync-from`    | Sync working files from workspace                      |
-| `sync-status`  | Show sync state across Local / Gitea / Workspace       |
-| `ss`           | Alias for `sync-status`                                |
-| `workspace`    | Workspace operations (upload, sync, list projects)     |
+| Command            | Purpose                                                |
+|--------------------|--------------------------------------------------------|
+| `workspace push`   | Sync working files to workspace                        |
+| `workspace pull`   | Sync working files from workspace                      |
+| `workspace status` | Show sync state across Local / Gitea / Workspace       |
+| `workspace`        | Workspace operations (upload, push/pull, list, sync)   |
 
-## Deploy / containers / setup
+The old spellings `sync-to` / `sync-from` / `sync-status` / `ss` are
+deprecated warn-phase aliases (removed in v0.20).
 
-| Command              | Purpose                                            |
-|----------------------|----------------------------------------------------|
-| `deploy-project`     | Deploy SciTeX Hub                                |
-| `setup-environment`  | Setup SciTeX Hub environment                     |
-| `docker`             | Docker container management                        |
-| `show-status`        | Show deployment status                             |
-| `show-logs`          | Show container logs                                |
-| `context`            | Web app context for AI agents                      |
+## Deploy / containers / init
+
+| Command   | Purpose                                                       |
+|-----------|---------------------------------------------------------------|
+| `deploy`  | Deploy SciTeX Hub (was `deploy-project`, deprecated)          |
+| `init`    | Initialize the environment (was `setup-environment`)          |
+| `docker`  | Docker container management                                   |
+| `status`  | Show deployment status (was `show-status`, deprecated)        |
+| `logs`    | Show container logs (was `show-logs`, deprecated)             |
+| `context` | Web app context for AI agents                                 |
 
 ## SDK / app plugins / MCP
 
@@ -61,10 +63,10 @@ tags: [scitex-hub-cli-reference]
 ## Examples
 
 ```bash
-scitex-hub setup-environment --env dev
+scitex-hub init --env dev
 scitex-hub project create my-paper
 scitex-hub push-project
-scitex-hub sync-to
+scitex-hub workspace push
 scitex-hub docker up
 scitex-hub mcp start
 ```

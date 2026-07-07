@@ -12,10 +12,34 @@ import click
 
 from .._config import load_config
 from .._config._environments import ENVIRONMENTS, get_environment
+from ._click_compat import spec_command_kwargs
 from ._flags import confirm_or_abort, mutating_flags, print_dry_run
 
 
-@click.command()
+# Doctrine §1d: `setup` is banned; this leaf creates a brand-new
+# environment-config skeleton (.env from template + compose check),
+# which is exactly the `init` verb ("create a brand-new project/config
+# skeleton where nothing existed"), not `install`.
+@click.command(
+    "init",
+    **spec_command_kwargs(
+        summary="Initialize the SciTeX Hub environment configuration.",
+        description=(
+            "Non-interactive init wizard: checks prerequisites, "
+            "creates the environment file from the template, and "
+            "validates the docker-compose file. Environment "
+            "resolution: --env flag > SCITEX_HUB_ENV env var > config "
+            "file `env` key; a missing value fails fast with exit "
+            "code 2 (no prompt).",
+        ),
+        examples=(
+            ("{prog} init --env dev", "Initialize the dev environment"),
+            ("{prog} init --env prod", "Initialize the prod environment"),
+            ("{prog} init --env dev --dry-run", "Preview without writing"),
+            ("{prog} init --env prod --yes", "Skip confirmation"),
+        ),
+    ),
+)
 @click.option(
     "--env",
     type=click.Choice(list(ENVIRONMENTS.keys())),
@@ -26,22 +50,22 @@ from ._flags import confirm_or_abort, mutating_flags, print_dry_run
 @click.option("--force", is_flag=True, help="Overwrite existing configuration")
 @mutating_flags()
 def setup(env, force, dry_run, yes):
-    """Setup SciTeX Hub environment.
+    """Initialize the SciTeX Hub environment configuration.
 
     \b
-    Non-interactive setup wizard. Environment resolution (spec §6b):
+    Non-interactive init wizard. Environment resolution (spec §6b):
     --env flag > SCITEX_HUB_ENV env var > config file `env` key.
     Missing value fails fast with exit code 2 — no prompt.
 
     \b
     Example:
-        scitex-hub setup-environment --env dev          # Setup development environment
-        scitex-hub setup-environment --env prod         # Setup production environment
-        SCITEX_HUB_ENV=dev scitex-hub setup-environment
-        scitex-hub setup-environment --env dev --dry-run
-        scitex-hub setup-environment --env prod --yes
+        scitex-hub init --env dev          # Initialize development environment
+        scitex-hub init --env prod         # Initialize production environment
+        SCITEX_HUB_ENV=dev scitex-hub init
+        scitex-hub init --env dev --dry-run
+        scitex-hub init --env prod --yes
     """
-    click.echo(click.style("SciTeX Hub Setup", fg="cyan", bold=True))
+    click.echo(click.style("SciTeX Hub Init", fg="cyan", bold=True))
     click.echo()
 
     if env is None:
@@ -67,16 +91,18 @@ def setup(env, force, dry_run, yes):
     environment = get_environment(env)
 
     if dry_run:
-        print_dry_run(f"setup environment '{environment.description}' (force={force})")
+        print_dry_run(
+            f"initialize environment '{environment.description}' (force={force})"
+        )
         return
 
     confirm_or_abort(
-        f"Setup environment '{environment.description}' (force={force})?",
+        f"Initialize environment '{environment.description}' (force={force})?",
         yes=yes,
         dry_run=dry_run,
     )
 
-    click.echo(f"Setting up: {click.style(environment.description, fg='green')}")
+    click.echo(f"Initializing: {click.style(environment.description, fg='green')}")
     click.echo()
 
     # Check prerequisites
@@ -91,7 +117,7 @@ def setup(env, force, dry_run, yes):
     _check_compose_file(environment)
 
     click.echo()
-    click.echo(click.style("Setup complete!", fg="green", bold=True))
+    click.echo(click.style("Init complete!", fg="green", bold=True))
     click.echo()
     click.echo("Next steps:")
     click.echo(f"  1. Edit {environment.env_path} with your settings")
