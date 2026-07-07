@@ -13,6 +13,11 @@ CURL_TIMEOUT=15
 SSH_HOSTS="${NAS_SSH_HOSTS:-nas-direct nas}"
 SSH_TIMEOUT=10
 STATE_FILE="/tmp/nas-health-check.state"
+# Boot grace: django boot (migrations + visitor pool + app installs) can take
+# ~8-10 min on the loaded NAS; restarting mid-boot creates a restart loop
+# (incident 2026-07-07). Cooldown: never blanket-restart twice in a row fast.
+BOOT_GRACE_SECONDS="${NAS_BOOT_GRACE_SECONDS:-720}"
+RESTART_COOLDOWN_SECONDS="${NAS_RESTART_COOLDOWN_SECONDS:-1800}"
 # Notification commands (scitex notification system).
 # Cron runs with a minimal PATH (/usr/bin:/bin) and scitex lives in a venv —
 # resolve it absolutely or every alert fails silently. Incident 2026-07-06:
@@ -103,8 +108,32 @@ if SSH_HOST=$(pick_ssh_host); then
         log "Tier 1a: No exited prod containers to start"
     fi
 
-    # 1b: restart running containers (original blanket recovery)
-    if ssh "${SSH_OPTS[@]}" "$SSH_HOST" "docker restart \$(docker ps -q)" >/dev/null 2>&1; then
+    # 1b: restart running containers (original blanket recovery).
+    #
+    # BOOT-GRACE GUARD (incident 2026-07-07): django's boot (migrations +
+    # visitor pool + workspace-app pip installs) takes LONGER than the
+    # 5-minute cron interval. Restarting while containers are still
+    # booting guarantees the next check also fails -> restart loop that
+    # kept prod down for ~90 min. Skip 1b while any prod container is
+    # younger than BOOT_GRACE_SECONDS, and never restart twice within
+    # RESTART_COOLDOWN_SECONDS.
+    YOUNGEST_AGE=$(ssh "${SSH_OPTS[@]}" "$SSH_HOST" '
+        now=$(date +%s); min=999999
+        for id in $(docker ps -q --filter name=scitex-hub-prod); do
+            started=$(docker inspect -f "{{.State.StartedAt}}" "$id")
+            age=$((now - $(date -d "$started" +%s)))
+            [ "$age" -lt "$min" ] && min=$age
+        done
+        echo "$min"' 2>/dev/null || echo 999999)
+    LAST_RESTART_FILE="/tmp/nas-health-check.last-restart"
+    LAST_RESTART=$(cat "$LAST_RESTART_FILE" 2>/dev/null || echo 0)
+    SINCE_RESTART=$(($(date +%s) - LAST_RESTART))
+    if [ "$YOUNGEST_AGE" -lt "$BOOT_GRACE_SECONDS" ]; then
+        log "Tier 1b: SKIPPED — containers still booting (youngest ${YOUNGEST_AGE}s < grace ${BOOT_GRACE_SECONDS}s)"
+    elif [ "$SINCE_RESTART" -lt "$RESTART_COOLDOWN_SECONDS" ]; then
+        log "Tier 1b: SKIPPED — last restart ${SINCE_RESTART}s ago (< cooldown ${RESTART_COOLDOWN_SECONDS}s)"
+    elif ssh "${SSH_OPTS[@]}" "$SSH_HOST" "docker restart \$(docker ps -q)" >/dev/null 2>&1; then
+        date +%s >"$LAST_RESTART_FILE"
         log "Tier 1b: Docker containers restarted via SSH. Waiting 30s for services..."
         sleep 30
         if site_up; then
