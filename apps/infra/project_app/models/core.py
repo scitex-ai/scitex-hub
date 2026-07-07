@@ -65,8 +65,22 @@ class VisitorAllocation(models.Model):
     )
     workspace_ready = models.BooleanField(
         default=False,
-        help_text="Whether async workspace initialization (template clone) has completed",
+        help_text=(
+            "Whether the slot's workspace has been wiped, re-cloned and "
+            "VERIFIED clean. Allocation only serves slots with "
+            "workspace_ready=True (security gate — see visitor_pool README)."
+        ),
     )
+    quarantined = models.BooleanField(
+        default=False,
+        help_text=(
+            "Slot failed wipe/verify (or was in an unknown state at boot) "
+            "and must NEVER be allocated until re-verified clean via "
+            "`manage.py reconcile_visitor_slots`."
+        ),
+    )
+    quarantined_at = models.DateTimeField(null=True, blank=True)
+    quarantine_reason = models.TextField(blank=True, default="")
 
     class Meta:
         ordering = ["visitor_number"]
@@ -77,5 +91,10 @@ class VisitorAllocation(models.Model):
         ]
 
     def __str__(self):
-        status = "active" if self.is_active else "expired"
+        if self.quarantined:
+            status = "quarantined"
+        elif self.is_active:
+            status = "active"
+        else:
+            status = "expired"
         return f"visitor-{self.visitor_number:03d} ({status})"
