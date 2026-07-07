@@ -17,12 +17,13 @@
         {% block extra_css %}{% endblock %}
     </head>
     <body data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
-          data-user-type="{% if user.is_authenticated and user.username == 'readonly-visitor' %}read-only{% elif user.is_authenticated and user.username|slice:':8' == 'visitor-' %}visitor{% elif user.is_authenticated %}registered{% else %}anonymous{% endif %}"
+          data-session-role="{{ session_role|default:'anonymous' }}"
+          data-user-type="{% if session_role == 'readonly_visitor' %}read-only{% elif session_role == 'visitor' %}visitor{% elif user.is_authenticated %}registered{% else %}anonymous{% endif %}"
           {% if user.is_authenticated %}data-current-username="{{ user.username }}"{% endif %}
           data-track-module="{% if active_module %}{{ active_module.get_track_module }}{% elif '/server-status' in request.path %}server_status{% elif '/explore/' in request.path %}explore{% elif '/workspace/' in request.path %}files{% endif %}"
           {% if request.initial_pane %}data-initial-pane="{{ request.initial_pane }}"{% endif %}
           {% if request.chat_session_token %}data-chat-session-token="{{ request.chat_session_token }}"{% endif %}
-          class="{% if request.path == '/' or request.path == '/landing/' %}workspace-page{% if not user.is_authenticated or user.username|slice:':8' == 'visitor-' or user.username == 'readonly-visitor' %} landing-page{% endif %}{% if user.is_authenticated %} no-transition{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
+          class="{% if request.path == '/' or request.path == '/landing/' %}workspace-page{% if not user.is_authenticated %} landing-page{% endif %}{% if user.is_authenticated %} no-transition{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
         <!-- Loading screen — hides FOUC until CSS/JS adds body.app-ready -->
         <!-- hook-bypass: inline-script -->
         <div id="app-loading-screen">
@@ -64,6 +65,8 @@
                 {% endfor %}
             </div>
         {% endif %}
+        <!-- Fail-loud readonly-visitor downgrade explanation (one-shot) -->
+        {% include 'global_base_partials/readonly_visitor_banner.html' %}
         {% if workspace_has_panes and user.is_authenticated %}
             <!-- ═══ Workspace Layout: Sidebar + Single Active Pane ═══ -->
             <div id="workspace-layout" class="workspace-layout">

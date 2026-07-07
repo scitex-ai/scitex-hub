@@ -140,6 +140,10 @@ class VisitorAutoLoginMiddleware:
             else:
                 # Pool full — fall back to shared readonly-visitor
                 try:
+                    from apps.infra.project_app.services.visitor_pool import (
+                        SESSION_KEY_READONLY_NOTICE,
+                    )
+
                     readonly_user = User.objects.get(
                         username=VisitorPool.READONLY_VISITOR_USERNAME
                     )
@@ -149,6 +153,10 @@ class VisitorAutoLoginMiddleware:
                         backend="django.contrib.auth.backends.ModelBackend",
                     )
                     request.session["is_readonly_visitor"] = True
+                    # Fail-loud UX (card hub-visitor-ux-allapps): the next
+                    # rendered page explains WHY the session is read-only.
+                    # Popped once by visitor_expiration_context.
+                    request.session[SESSION_KEY_READONLY_NOTICE] = "pool-full"
                     logger.info(
                         f"[Middleware] Pool full, logged in as readonly-visitor for {path}"
                     )
@@ -220,8 +228,14 @@ class VisitorExpirationMiddleware:
         if not request.user.is_authenticated:
             return None
 
-        # Skip if not a visitor user (readonly-visitor also skipped here)
-        if not request.user.username.startswith("visitor-"):
+        # Skip if not a writable pool visitor (canonical session-role model;
+        # readonly-visitor has no allocation to expire, so it is skipped too)
+        from apps.infra.project_app.services.visitor_pool import (
+            ROLE_VISITOR,
+            get_session_role,
+        )
+
+        if get_session_role(request) != ROLE_VISITOR:
             return None
 
         # Skip certain paths to avoid redirect loops and allow access to essential pages

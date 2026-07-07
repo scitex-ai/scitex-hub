@@ -34,6 +34,23 @@ MAX_PINNED_MODULES = 5
 NEW_BADGE_DAYS = 14
 
 
+def is_guest_launcher_user(user) -> bool:
+    """True for pool visitors (visitor-*) and the shared readonly-visitor.
+
+    Guest-mode launcher (card hub-visitor-ux-allapps): visitors keep the
+    app grid but get a prominent Sign in / Sign up call-to-action instead
+    of a personalized greeting. Role mapping is delegated to the canonical
+    session-role model (no scattered username checks).
+    """
+    from apps.infra.project_app.services.visitor_pool import (
+        ROLE_READONLY_VISITOR,
+        ROLE_VISITOR,
+        get_user_role,
+    )
+
+    return get_user_role(user) in (ROLE_VISITOR, ROLE_READONLY_VISITOR)
+
+
 def get_pinned_module_names(user) -> list[str]:
     """Names of modules the user pinned to the sidebar (stable order)."""
     if not user.is_authenticated:
@@ -148,6 +165,8 @@ def launcher_context(request) -> dict:
         "installed_count": sum(1 for t in tiles if t["is_installed"]),
         "greeting": _greeting_for_hour(timezone.localtime().hour),
         "max_pins": MAX_PINNED_MODULES,
+        # Guest mode: visitors see tiles + a prominent Sign in / Sign up CTA.
+        "is_guest_launcher": is_guest_launcher_user(request.user),
     }
 
 

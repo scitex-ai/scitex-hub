@@ -1,0 +1,15 @@
+{# Fail-loud read-only downgrade explanation (card hub-visitor-ux-allapps). #}
+{# Rendered once: VisitorAutoLoginMiddleware sets the session flag on the #}
+{# pool-full downgrade; visitor_expiration_context pops it for this render. #}
+{% if readonly_visitor_notice %}
+    <div class="container django-messages-container" id="readonly-visitor-banner">
+        <div class="django-alert alert alert-warning" role="alert">
+            <strong>Visitor pool is full — you are browsing read-only.</strong>
+            You can view everything; sign up or log in to make changes, or retry later for a writable visitor slot.
+            <a href="/auth/signup/" class="alert-link">Sign up</a>
+            &middot;
+            <a href="/auth/login/?next={{ request.path }}" class="alert-link">Log in</a>
+            <button type="button" class="alert-close-btn" aria-label="Close">&times;</button>
+        </div>
+    </div>
+{% endif %}

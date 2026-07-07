@@ -1,0 +1,132 @@
+/* ============================================================
+   App Launcher — mobile dock + responsive breakpoints
+   ============================================================ */
+
+/* ---------- Mobile dock ---------- */
+.launcher-dock {
+  display: none;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 960px) {
+  .launcher-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* Mobile nav unification (operator msgs 608-610): on mobile the
+   launcher page navigates via launcher + bottom dock ONLY — the left
+   sidebar icon rail is hidden and content takes the full width.
+   767px matches the workspace-sidebar mobile breakpoint so no width
+   range mixes rail + dock. Desktop keeps the sidebar as-is. */
+@media (max-width: 767px) {
+  body:has(.launcher) .workspace-sidebar,
+  body:has(.launcher) .sidebar-backdrop {
+    display: none !important;
+  }
+
+  /* Dock fixed to the bottom of the VIEWPORT. launcher.ts re-parents
+     the dock to <body> on init so no transformed/zoomed ancestor can
+     hijack the containing block (the iOS "dock floats mid-screen"
+     failure). iOS safe-area padding keeps it above the home bar. */
+  .launcher-dock {
+    display: flex;
+    position: fixed;
+    left: 50%;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    gap: 6px;
+    padding: 8px 10px;
+    z-index: 1100;
+    background: var(--workspace-bg-elevated, var(--workspace-bg-tertiary));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--workspace-border-default);
+    border-radius: 22px;
+    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5);
+  }
+
+  .launcher-dock-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    width: 62px;
+    padding: 5px 0;
+    border-radius: 14px;
+    cursor: pointer;
+    color: var(--workspace-text-muted, var(--text-muted));
+    text-decoration: none;
+    font-size: 9.5px;
+  }
+
+  .launcher-dock-item i {
+    font-size: 18px;
+  }
+
+  .launcher-dock-item.active {
+    color: var(--app-accent-hub, #6a5a8a);
+    background: var(--app-accent-hub-tint, rgba(106, 90, 138, 0.12));
+  }
+
+  /* Keep the last tile row above the fixed dock */
+  .launcher {
+    padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (max-width: 640px) {
+  .launcher {
+    padding: 22px 14px calc(110px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .launcher-greeting h1 {
+    font-size: 19px;
+  }
+
+  .launcher-kbd {
+    display: none;
+  }
+
+  .launcher-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+  }
+
+  .launcher-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .launcher-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px 8px;
+  }
+
+  .launcher-tile-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .launcher-tile-icon i {
+    font-size: 24px;
+  }
+
+  .launcher-tile-name {
+    font-size: 11px;
+    max-width: 80px;
+  }
+
+  .launcher-badge {
+    transform: translateX(40px);
+  }
+
+  .launcher-dot-installed {
+    transform: translateX(34px);
+    bottom: 32px;
+  }
+}
+
+/* EOF */

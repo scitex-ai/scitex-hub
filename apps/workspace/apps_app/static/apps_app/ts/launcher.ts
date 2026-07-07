@@ -250,7 +250,23 @@ class AppLauncher {
   }
 }
 
+/**
+ * Re-parent the mobile dock to <body>. position:fixed resolves against
+ * the nearest transformed/zoomed ancestor, and the dock is rendered
+ * inside the workspace pane stack — a transform or CSS zoom anywhere up
+ * that chain (e.g. context-zoom) makes the "fixed" dock float mid-screen
+ * (operator's live iOS screenshot, msgs 608-610). <body> has no such
+ * ancestor, so the dock reliably pins to the viewport bottom.
+ */
+function anchorDockToViewport(): void {
+  const dock = document.querySelector<HTMLElement>(".launcher-dock");
+  if (dock && dock.parentElement !== document.body) {
+    document.body.appendChild(dock);
+  }
+}
+
 function initLauncher(): void {
+  anchorDockToViewport();
   const grid = document.getElementById("launcher-grid");
   if (!grid) return;
   new AppLauncher(grid).init();
