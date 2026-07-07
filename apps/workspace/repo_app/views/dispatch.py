@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Root dispatcher — authenticated users see Hub, visitors see landing."""
+"""Root dispatcher — authenticated users see the app launcher, visitors landing."""
 
 from __future__ import annotations
 
 from django.shortcuts import redirect
 
-from .index import index_view
-
 
 def root_dispatch(request, pane=None, session_token=None):
-    """Route / to hub workspace (auth) or landing page (anon/visitor).
+    """Route / to the app-launcher home (auth) or landing page (anon/visitor).
 
     Authenticated regular users:
-      - / (no pane) → Hub index (Gitea-style project view)
+      - / (no pane) → app-launcher workspace home (approved 2026-07-07 design).
+        The previous home (Hub index / Gitea-style project view) stays
+        reachable at /apps/home/.
       - /console/, /chat/, /files/ → workspace shell with that module active
     Visitor users (visitor-* and readonly-visitor) → landing page.
     Anonymous → landing page.
@@ -35,7 +35,9 @@ def root_dispatch(request, pane=None, session_token=None):
             return redirect("workspace_app:shell_module", module=pane)
         if session_token is not None:
             request.chat_session_token = str(session_token)
-        return index_view(request)
+        from apps.workspace.apps_app.views.launcher import launcher
+
+        return launcher(request)
     return redirect("public_app:landing")
 
 

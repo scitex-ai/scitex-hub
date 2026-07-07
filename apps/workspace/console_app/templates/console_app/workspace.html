@@ -79,7 +79,7 @@
           href="{% static 'shared/css/components/data-table/data-table.css' %}" />
     <!-- Monaco CSS bundled locally via Vite (imported by monaco-init.ts) -->
     <!-- xterm.js for real PTY terminal -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.css" />
 {% endblock %}
 {% block extra_js %}
     {% tree_preseed_script current_project %}
@@ -541,9 +541,9 @@
         </div>
     </div>
     <!-- xterm.js for real PTY terminal with addons -->
-    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-image@0.6.0/lib/xterm-addon-image.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-image@0.8.0/lib/addon-image.js"></script>
     <!-- Vite HMR client (only in dev when Vite server is running) -->
     {% vite_hmr_client %}
     <!-- Load workspace module via Vite (HMR in dev, bundled in prod) -->
