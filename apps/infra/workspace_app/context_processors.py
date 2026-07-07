@@ -98,6 +98,7 @@ def workspace_context(request):
         "is_workspace_page": is_ws,
         "workspace_has_panes": has_panes,
         "workspace_modules": modules,
+        "workspace_pinned_modules": _pinned_modules_for_user(request, modules),
         "workspace_module_names_csv": ",".join(m.name for m in modules),
         "active_module_name": active_name,
         "active_module": active_mod,
@@ -242,6 +243,25 @@ def _filter_modules_for_user(request, modules):
     visible = _append_dev_apps(request.user, visible)
     visible.sort(key=lambda m: m.order)
     return visible
+
+
+def _pinned_modules_for_user(request, modules):
+    """Modules the user pinned to the sidebar (launcher 'Pin to sidebar').
+
+    The reduced sidebar shows only Home + pinned favourites + All apps;
+    pins persist per user in ModuleInstallation.config["pinned"].
+    """
+    if not request.user.is_authenticated:
+        return []
+    try:
+        from apps.workspace.apps_app.views.launcher import get_pinned_module_names
+
+        pinned_names = get_pinned_module_names(request.user)
+    except Exception:
+        # apps_app not migrated yet or other DB issue
+        return []
+    by_name = {m.name: m for m in modules}
+    return [by_name[name] for name in pinned_names if name in by_name]
 
 
 def _append_dev_apps(user, modules):

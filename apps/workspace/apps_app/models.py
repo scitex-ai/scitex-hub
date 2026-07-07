@@ -20,6 +20,9 @@ CATEGORY_CHOICES = [
     ("analysis", "Analysis"),
     ("reference", "Reference"),
     ("utility", "Utility"),
+    # "social" was already assigned by seed_apps (discovery) but missing
+    # from the enum — added so the Store/launcher chips cover it.
+    ("social", "Social"),
     ("other", "Other"),
 ]
 

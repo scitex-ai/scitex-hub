@@ -113,9 +113,15 @@
                 </button>
             </div>
             <hr class="sidebar-divider" />
-            <!-- Group 2: SciTeX Modules (scrollable) -->
+            <!-- Group 2: Home + pinned favorites + All apps (launcher design) -->
             <div class="sidebar-group sidebar-modules-scroll">
-                {% for mod in workspace_modules %}
+                <a href="/"
+                   class="sidebar-item sidebar-home-item{% if request.path == '/' %} active{% endif %}"
+                   title="Home">
+                    <i class="fas fa-house"></i>
+                    <span class="sidebar-label">Home</span>
+                </a>
+                {% for mod in workspace_pinned_modules %}
                     <a href="{{ mod.get_url }}"
                        class="sidebar-item{% if mod.is_active %} active{% endif %}"
                        data-pane="module"
@@ -126,6 +132,12 @@
                         <span class="sidebar-label">{{ mod.label }}</span>
                     </a>
                 {% endfor %}
+                <a href="/"
+                   class="sidebar-item sidebar-allapps-item"
+                   title="All apps">
+                    <i class="fas fa-border-all"></i>
+                    <span class="sidebar-label">All apps</span>
+                </a>
             </div>
             <!-- Bottom section: Search + AI Setup + User -->
             <div class="sidebar-bottom">
