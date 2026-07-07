@@ -18,3 +18,53 @@
   background-color: var(--status-warning-bg);
   border-color: var(--status-warning-border);
 }
+
+/* Pool occupancy ("visitor slots N/M in use") next to the Read-Only badge */
+.header-visitor-slots {
+  margin-left: 6px;
+  font-size: 0.85em;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Tappable visitor badge popover: occupancy + Sign up / Log in prompt.
+   Fixed position: the badge lives in the compact mobile header bar and
+   must not depend on an ancestor positioning context. */
+.header-visitor-badge-popover {
+  display: none;
+  position: fixed;
+  top: 52px;
+  left: 8px;
+  z-index: 10001;
+  max-width: 300px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--bg-page);
+  border: 1px solid var(--border-default);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.header-visitor-badge-popover.open {
+  display: block;
+}
+
+.header-visitor-badge-popover-muted {
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.header-visitor-badge-popover-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* The mobile badge is a <button> now (tappable) — keep the badge look */
+button.header-visitor-badge-mobile {
+  cursor: pointer;
+  font-family: inherit;
+}

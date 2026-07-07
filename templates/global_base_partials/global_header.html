@@ -384,10 +384,14 @@
                 </div>
             </div>
         </div>
-        <!-- Mobile-only Read-Only / Visitor badge (visible in compact mobile header bar) -->
+        <!-- Mobile-only Read-Only / Visitor badge (tappable: occupancy + sign-in prompt) -->
         {% if is_visitor %}
-            <span class="header-visitor-badge-mobile"
-                  {% if visitor_expires_at %}data-expires-at="{{ visitor_expires_at.isoformat }}"{% endif %}>
+            <button type="button"
+                    class="header-visitor-badge-mobile"
+                    id="header-visitor-badge-mobile"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    {% if visitor_expires_at %}data-expires-at="{{ visitor_expires_at.isoformat }}"{% endif %}>
                 {% if is_readonly %}
                     <i class="fas fa-lock header-visitor-badge-mobile-icon"></i>Read-Only
                 {% elif visitor_username %}
@@ -395,11 +399,55 @@
                 {% else %}
                     <i class="fas fa-user-clock header-visitor-badge-mobile-icon"></i>Visitor
                 {% endif %}
+                {% if is_readonly and visitor_pool_status %}
+                    <span class="header-visitor-slots">{{ visitor_pool_status.allocated }}/{{ visitor_pool_status.total }}</span>
+                {% endif %}
                 {% if visitor_expires_at %}
                     <span class="header-visitor-badge-mobile-countdown"
                           id="mobile-header-visitor-countdown">⏰ --:--</span>
                 {% endif %}
-            </span>
+            </button>
+            <div class="header-visitor-badge-popover"
+                 id="header-visitor-badge-popover"
+                 role="dialog"
+                 aria-label="Visitor session details">
+                {% if is_readonly %}
+                    <strong>Read-only session</strong>
+                    <div>Visitor pool is full — you are browsing read-only.</div>
+                {% else %}
+                    <strong>Visitor session</strong>
+                    <div>Your work lasts only for this session.</div>
+                {% endif %}
+                {% if visitor_pool_status %}
+                    <div class="header-visitor-badge-popover-muted">
+                        visitor slots {{ visitor_pool_status.allocated }}/{{ visitor_pool_status.total }} in use
+                    </div>
+                {% endif %}
+                <div class="header-visitor-badge-popover-actions">
+                    <a href="/auth/signup/" class="header-btn header-btn-primary">Sign up</a>
+                    <a href="/auth/login/?next={{ request.path }}" class="header-btn">Log in</a>
+                </div>
+            </div>
+            <!-- Inline handler: badge popover must work even if the JS bundle fails -->
+            <!-- hook-bypass: inline-script — visitor fail-loud UX must not depend on Vite -->
+            <script>
+            (function() {
+                var badge = document.getElementById('header-visitor-badge-mobile');
+                var pop = document.getElementById('header-visitor-badge-popover');
+                if (!badge || !pop) return;
+                badge.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var open = pop.classList.toggle('open');
+                    badge.setAttribute('aria-expanded', open ? 'true' : 'false');
+                });
+                document.addEventListener('click', function(e) {
+                    if (!badge.contains(e.target) && !pop.contains(e.target)) {
+                        pop.classList.remove('open');
+                        badge.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            })();
+            </script>
         {% endif %}
         <!-- Mobile Hamburger Button (visible only on mobile via CSS) -->
         <button class="mobile-hamburger" id="mobile-hamburger-btn" aria-label="Menu">
@@ -489,6 +537,9 @@
                                 Visitor Mode
                             {% endif %}
                         </span>
+                        {% if is_readonly and visitor_pool_status %}
+                            <span class="header-visitor-slots" id="visitor-pool-occupancy">visitor slots {{ visitor_pool_status.allocated }}/{{ visitor_pool_status.total }} in use</span>
+                        {% endif %}
                         {% if visitor_expires_at %}
                             <span id="visitor-countdown"
                                   style="margin-left: 6px;
@@ -530,7 +581,12 @@
                                 <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z" />
                             </svg>
                             {% if is_readonly %}
-                                Read-only mode. You can browse and navigate but editing is disabled. Sign up for full access.
+                                Visitor pool is full — you are browsing read-only. You can view everything; sign up or log in to make changes, or retry later for a writable slot.
+                                {% if visitor_pool_status %}
+                                    <div class="header-visitor-badge-popover-muted">
+                                        visitor slots {{ visitor_pool_status.allocated }}/{{ visitor_pool_status.total }} in use
+                                    </div>
+                                {% endif %}
                             {% else %}
                                 Your work will be kept only during this session. To save to disk for future sessions, create an account.
                             {% endif %}
@@ -831,6 +887,19 @@
                 </div>
             {% endif %}
             <div class="mobile-menu-divider"></div>
+            {% if is_visitor %}
+                <!-- Visitor sessions: Sign In / Sign Up FIRST (operator-confirmed 2026-07-07:
+                     visitors must always see the login path, not account-holder items) -->
+                <a href="/auth/signin/" class="mobile-menu-item">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Sign In</span>
+                </a>
+                <a href="/auth/signup/" class="mobile-menu-item">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Sign Up</span>
+                </a>
+                <div class="mobile-menu-divider"></div>
+            {% endif %}
             <a href="/workspace/" class="mobile-menu-item">
                 <i class="fas fa-th-large"></i>
                 <span>Workspace</span>
@@ -847,25 +916,19 @@
                 <i class="fas fa-folder"></i>
                 <span>Files</span>
             </a>
-            <a href="/accounts/profile/" class="mobile-menu-item">
-                <i class="fas fa-user"></i>
-                <span>Profile</span>
-            </a>
-            <a href="/accounts/settings/" class="mobile-menu-item">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-            </a>
+            {% if not is_visitor %}
+                <!-- Account-holder items: hidden for visitor sessions -->
+                <a href="/accounts/profile/" class="mobile-menu-item">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="/accounts/settings/" class="mobile-menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            {% endif %}
             <div class="mobile-menu-divider"></div>
-            {% if user.username|slice:":8" == "visitor-" %}
-                <a href="/auth/signin/" class="mobile-menu-item">
-                    <i class="fas fa-sign-in-alt"></i>
-                    <span>Sign In</span>
-                </a>
-                <a href="/auth/signup/" class="mobile-menu-item">
-                    <i class="fas fa-user-plus"></i>
-                    <span>Sign Up</span>
-                </a>
-                <div class="mobile-menu-divider"></div>
+            {% if is_visitor %}
                 <a href="/auth/logout/" class="mobile-menu-item">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>End Visitor Session</span>

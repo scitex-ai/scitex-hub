@@ -156,26 +156,46 @@
                     </a>
                 </div>
                 <div class="sidebar-footer">
-                    <a href="{% if user.username|slice:':8' == 'visitor-' or user.username == 'readonly-visitor' %}/auth/signin/{% else %}/accounts/settings/{% endif %}"
-                       class="sidebar-user"
-                       title="{{ user.username }}">
-                        <span class="sidebar-user-avatar">
-                            <i class="fas fa-user"></i>
-                        </span>
-                        <span class="sidebar-label sidebar-username">{{ user.username }}</span>
-                    </a>
-                    <a href="/auth/logout/"
-                       class="sidebar-action-btn sidebar-logout-btn"
-                       title="{% if user.username|slice:':8' == 'visitor-' or user.username == 'readonly-visitor' %}End Session{% else %}Sign Out{% endif %}">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span class="sidebar-label">
-                            {% if user.username|slice:':8' == 'visitor-' or user.username == 'readonly-visitor' %}
-                                End Session
-                            {% else %}
-                                Sign Out
-                            {% endif %}
-                        </span>
-                    </a>
+                    {% if is_visitor %}
+                        <!-- Visitor sessions: explicit Sign in / Sign up affordance
+                             (operator-confirmed 2026-07-07 — the login path must
+                             never be hidden behind the visitor username) -->
+                        <a href="/auth/signin/"
+                           class="sidebar-user"
+                           title="Sign in to your account">
+                            <span class="sidebar-user-avatar">
+                                <i class="fas fa-sign-in-alt"></i>
+                            </span>
+                            <span class="sidebar-label sidebar-username">Sign in</span>
+                        </a>
+                        <a href="/auth/signup/"
+                           class="sidebar-action-btn"
+                           title="Create a free account">
+                            <i class="fas fa-user-plus"></i>
+                            <span class="sidebar-label">Sign up</span>
+                        </a>
+                        <a href="/auth/logout/"
+                           class="sidebar-action-btn sidebar-logout-btn"
+                           title="End Session">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span class="sidebar-label">End Session</span>
+                        </a>
+                    {% else %}
+                        <a href="/accounts/settings/"
+                           class="sidebar-user"
+                           title="{{ user.username }}">
+                            <span class="sidebar-user-avatar">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <span class="sidebar-label sidebar-username">{{ user.username }}</span>
+                        </a>
+                        <a href="/auth/logout/"
+                           class="sidebar-action-btn sidebar-logout-btn"
+                           title="Sign Out">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span class="sidebar-label">Sign Out</span>
+                        </a>
+                    {% endif %}
                 </div>
             </div>
             <!-- /sidebar-bottom -->
