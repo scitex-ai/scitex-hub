@@ -1,0 +1,185 @@
+/* ============================================================
+   App Launcher — workspace home (approved design 2026-07-07)
+   iPhone-style app grid: search + category chips + tile grid.
+   Mock: GITIGNORED/launcher-mock/launcher.html
+   ============================================================ */
+
+.launcher {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+/* ---------- Guest-mode CTA (visitor sessions) ---------- */
+.launcher-guest-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 4px 0 10px;
+  padding: 14px 18px;
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 12px;
+}
+
+.launcher-guest-cta-text {
+  color: var(--workspace-text-primary);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.launcher-guest-cta-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.launcher-guest-btn {
+  display: inline-block;
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--workspace-border-default);
+  color: var(--workspace-text-primary);
+}
+
+.launcher-guest-btn-signup {
+  background: var(--app-accent-hub, #6a5a8a);
+  border-color: var(--app-accent-hub, #6a5a8a);
+  color: #fff;
+}
+
+.launcher-guest-btn:hover {
+  filter: brightness(1.08);
+  text-decoration: none;
+}
+
+/* ---------- Greeting ---------- */
+.launcher-greeting {
+  text-align: center;
+  margin: 18px 0 6px;
+}
+
+.launcher-greeting h1 {
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: 0.2px;
+  color: var(--workspace-text-primary);
+}
+
+.launcher-greeting p {
+  color: var(--workspace-text-muted, var(--text-muted));
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+/* ---------- Search ---------- */
+.launcher-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 560px;
+  margin: 22px auto 18px;
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 12px;
+  padding: 11px 14px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+.launcher-search:focus-within,
+.launcher-search:hover {
+  border-color: var(--workspace-border-hover, var(--workspace-border-default));
+}
+
+.launcher-search i {
+  color: var(--workspace-text-muted, var(--text-muted));
+  font-size: 14px;
+}
+
+.launcher-search-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--workspace-text-primary);
+  font-size: 13.5px;
+}
+
+.launcher-kbd {
+  display: flex;
+  gap: 4px;
+}
+
+.launcher-kbd span {
+  font-size: 10.5px;
+  color: var(--workspace-text-muted, var(--text-muted));
+  background: var(--workspace-bg-elevated, var(--workspace-bg-tertiary));
+  border: 1px solid var(--workspace-border-default);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  padding: 2px 6px;
+}
+
+/* ---------- Category chips ---------- */
+.launcher-chips {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 0 auto 34px;
+  max-width: 720px;
+}
+
+.launcher-chip {
+  font-size: 12.5px;
+  color: var(--workspace-text-muted, var(--text-muted));
+  padding: 5px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--workspace-border-subtle);
+  background: var(--workspace-bg-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.launcher-chip:hover {
+  color: var(--workspace-text-primary);
+  border-color: var(--workspace-border-hover, var(--workspace-border-default));
+}
+
+.launcher-chip.active {
+  background: var(--app-accent-hub, #6a5a8a);
+  border-color: var(--app-accent-hub, #6a5a8a);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ---------- Section head ---------- */
+.launcher-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 4px 14px;
+}
+
+.launcher-section-head h2 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--workspace-text-muted, var(--text-muted));
+  font-weight: 600;
+}
+
+.launcher-count {
+  font-size: 11px;
+  color: var(--workspace-text-muted, var(--text-muted));
+  opacity: 0.7;
+}
+
