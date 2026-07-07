@@ -66,29 +66,34 @@ class Command(BaseCommand):
             self.style.WARNING("Resetting ALL visitor allocations and workspaces...")
         )
 
-        # Deactivate all allocations
+        # Deactivate all allocations and take them out of circulation
+        # until each one re-verifies clean below (security: a slot with
+        # an unverified workspace must never be redistributed).
         from apps.infra.project_app.models import VisitorAllocation
 
         deactivated_count = VisitorAllocation.objects.filter(is_active=True).update(
             is_active=False
         )
+        VisitorAllocation.objects.update(workspace_ready=False)
 
-        # Reset all workspaces to clean template state (security: prevent
-        # data leakage from previous visitor sessions after restart)
-        from django.contrib.auth.models import User
-
-        from apps.infra.project_app.services.visitor_pool.workspace_manager import (
-            WorkspaceManager,
+        # Wipe + verify each slot through the canonical pipeline; a
+        # failed reset quarantines the slot (never redistributed).
+        from apps.infra.project_app.services.visitor_pool.slot_lifecycle import (
+            get_or_create_allocation,
+            reset_and_verify_slot,
         )
 
         reset_count = 0
-        for user in User.objects.filter(username__startswith="visitor-"):
-            try:
-                WorkspaceManager.reset_visitor_workspace(user)
+        for visitor_num in range(1, VisitorPool.POOL_SIZE + 1):
+            allocation = get_or_create_allocation(visitor_num)
+            if reset_and_verify_slot(allocation):
                 reset_count += 1
-            except Exception as e:
+            else:
                 self.stdout.write(
-                    self.style.ERROR(f"  Failed to reset {user.username}: {e}")
+                    self.style.ERROR(
+                        f"  Failed to reset visitor-{visitor_num:03d} — slot "
+                        f"QUARANTINED (see logs; reconcile_visitor_slots re-cleans)"
+                    )
                 )
 
         self.stdout.write(

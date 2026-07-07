@@ -43,7 +43,10 @@ collect_static_files
 # ============================================
 echo_info "Initializing visitor pool..."
 python manage.py create_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" || true
-echo_success "Visitor pool ready"
+# Boot fail-safe: quarantine every slot as unverified, wipe+verify each;
+# only verified-clean slots return to circulation (visitor-slot isolation).
+python manage.py reconcile_visitor_slots 2>&1 | grep -v "ERRO\|WARN" || true
+echo_success "Visitor pool ready (only verified-clean slots distributable)"
 
 # ============================================
 # Install Workspace Apps (bridge resolution)

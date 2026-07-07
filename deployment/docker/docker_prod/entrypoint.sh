@@ -69,12 +69,14 @@ if [[ ! "$*" =~ "celery" ]]; then
     echo_info "Visitor pool will initialize in background after server starts..."
     _init_visitor_pool() {
         sleep 5 # Let gunicorn bind first
-        # Reset all allocations and workspaces on startup (security: prevent
-        # data leakage from previous container's visitor sessions)
-        echo_info "Background: resetting visitor pool (clean slate on restart)..."
-        python manage.py reset_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" || true
+        # Boot fail-safe (security: prevent data leakage from previous
+        # container's visitor sessions): create pool accounts, then
+        # reconcile — every slot is quarantined as unverified and only
+        # returns to circulation after the wipe+verify pipeline passes.
+        echo_info "Background: reconciling visitor pool (quarantine + wipe+verify)..."
         python manage.py create_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" || true
-        echo_success "Background: visitor pool ready (all slots clean)"
+        python manage.py reconcile_visitor_slots 2>&1 | grep -v "ERRO\|WARN" || true
+        echo_success "Background: visitor pool reconciled (only verified-clean slots distributable)"
     }
     _init_visitor_pool &
 fi
