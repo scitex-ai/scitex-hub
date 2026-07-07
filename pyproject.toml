@@ -32,6 +32,12 @@ dependencies = [
     # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
     # Pinning to <0.16.1 silently lets every entry in `skip_rules`
     # leak through — the gate fails on rules we explicitly deferred.
+    # NOTE (CLI-standardization slice 6a): the deprecated-alias ladder
+    # and spec-built help come from scitex-dev's click_compat/help_spec
+    # (scitex-dev#307/#308) which are on develop but NOT in a release
+    # yet (latest v0.28.0 predates them). scitex_hub._cli._click_compat
+    # guard-imports them (scitex-python#352 pattern); bump this floor to
+    # the first release that ships them and drop the fallbacks there.
     "scitex-dev>=0.16.1",
     "gitpython>=3.1",
 ]
