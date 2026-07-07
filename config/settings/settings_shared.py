@@ -166,6 +166,19 @@ try:
 except ImportError:
     pass
 
+# Optional: upstream scitex-writer app (contract-compliant _django app;
+# URL-mounted under /writer/ in config/urls.py). The explicit AppConfig
+# path is required: writer's apps.py holds two AppConfig candidates (the
+# imported ScitexAppConfig base + WriterEditorConfig, no default=True),
+# so a bare module entry falls back to label "_django" and collides with
+# figrecipe._django's identical fallback.
+try:
+    import scitex_writer  # noqa: F401
+
+    THIRD_PARTY_APPS.append("scitex_writer._django.apps.WriterEditorConfig")
+except ImportError:
+    pass
+
 LOCAL_APPS = discover_local_apps()
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 

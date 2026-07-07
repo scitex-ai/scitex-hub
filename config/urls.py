@@ -28,6 +28,18 @@ from apps.workspace.repo_app.views.dispatch import root_dispatch
 from apps.workspace.repo_app.views.index import current_project_view
 from config.urls_helpers import RESERVED_PATHS, dev_module_view  # noqa: F401
 
+
+def _scitex_writer_installed() -> bool:
+    """True when the upstream scitex-writer package is importable.
+
+    Mirrors the guarded THIRD_PARTY_APPS import in settings_shared.py so
+    the /writer/ mount and the installed app always agree.
+    """
+    from importlib.util import find_spec
+
+    return find_spec("scitex_writer") is not None
+
+
 urlpatterns = [
     # A2A protocol surface — canonical host: a2a.scitex.ai
     path("", include("apps.infra.a2a_app.urls")),
@@ -96,6 +108,14 @@ urlpatterns = [
         include(("apps.workspace.figrecipe_app.urls", "figrecipe_app")),
     ),
     path("apps/writer/", include(("apps.workspace.writer_app.urls", "writer_app"))),
+    # Upstream scitex-writer's own contract-compliant Django app (card
+    # hub-mount-writer-django-app-20260707). Only mounted when the package
+    # is importable — mirror of the settings_shared.py guarded import.
+    *(
+        [path("writer/", include("scitex_writer._django.urls"))]
+        if _scitex_writer_installed()
+        else []
+    ),
     path(
         "apps/workspace/", include(("apps.infra.workspace_app.urls", "workspace_app"))
     ),
