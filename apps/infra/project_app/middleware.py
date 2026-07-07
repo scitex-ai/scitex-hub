@@ -274,7 +274,18 @@ class VisitorExpirationMiddleware:
                     f"[Middleware] Visitor {request.user.username} expired, auto-reallocating..."
                 )
 
-                # Clear visitor allocation from session
+                # Release the slot through the SAME pipeline as every
+                # other path (audit fix #3): marks the allocation
+                # inactive + workspace_ready=False, enqueues the async
+                # wipe+verify reset, and pops the session keys. The slot
+                # is NOT reusable until the reset verifies clean —
+                # previously this block only popped session keys, so the
+                # expired visitor's files stayed in place for the next
+                # allocation.
+                VisitorPool.deallocate_visitor(request.session)
+
+                # Defensive: ensure session keys are gone even if no
+                # allocation row matched the token.
                 request.session.pop(VisitorPool.SESSION_KEY_PROJECT_ID, None)
                 request.session.pop(VisitorPool.SESSION_KEY_VISITOR_ID, None)
                 request.session.pop(VisitorPool.SESSION_KEY_ALLOCATION_TOKEN, None)
