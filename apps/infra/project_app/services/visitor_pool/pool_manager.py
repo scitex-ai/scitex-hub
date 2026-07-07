@@ -4,10 +4,14 @@ Visitor Pool Allocation and Deallocation Management
 Handles allocation of visitor slots from the pre-allocated pool and
 deallocation when sessions expire or users sign up.
 
-Allocation uses a 2-phase approach:
-  Phase 1 (synchronous, fast): DB slot allocation + set expires_at + login
-  Phase 2 (async, Celery):     clone_template + workspace setup
-This prevents clone_template() (5-30s) from blocking the HTTP request.
+Security model (visitor-slot isolation audit 2026-07-07): the wipe
+happens on RELEASE, asynchronously; allocation only ever hands out
+slots whose workspace has been wiped + VERIFIED clean since the last
+visitor (``workspace_ready=True``, ``quarantined=False``) and which
+pass a synchronous template-marker check. A slot in any other state is
+refused — with no ready slot the caller falls back to the shared
+readonly-visitor (reason flag in the session). This holds even with
+Celery down: unreset slots simply stay out of circulation.
 """
 
 import logging
@@ -21,7 +25,7 @@ from django.utils import timezone
 
 from apps.infra.project_app.models import Project, VisitorAllocation
 
-from .decorators import reset_workspace_after
+from .slot_lifecycle import quarantine_slot, release_slot
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +41,7 @@ class PoolAllocator:
     SESSION_KEY_PROJECT_ID = "visitor_project_id"
     SESSION_KEY_VISITOR_ID = "visitor_user_id"
     SESSION_KEY_ALLOCATION_TOKEN = "visitor_allocation_token"
+    SESSION_KEY_READONLY_REASON = "visitor_readonly_reason"
 
     @classmethod
     def _check_table_exists(cls) -> bool:
@@ -96,8 +101,26 @@ class PoolAllocator:
             if result[0] is not None:
                 return result
 
-        # Pool exhausted
-        logger.warning(f"[VisitorPool] Pool exhausted - all {pool_size} slots in use")
+        # No slot served. Distinguish "all busy" from "free slots exist
+        # but none is verified clean yet" so the readonly-visitor
+        # fallback can fail loud with the right reason.
+        busy = VisitorAllocation.objects.filter(
+            is_active=True, expires_at__gt=timezone.now()
+        ).count()
+        if busy >= pool_size:
+            reason = "pool_full"
+            logger.warning(
+                f"[VisitorPool] Pool exhausted - all {pool_size} slots in use"
+            )
+        else:
+            reason = "no_ready_slot"
+            logger.warning(
+                f"[VisitorPool] No verified-clean slot available "
+                f"({busy}/{pool_size} busy; rest awaiting reset or quarantined) "
+                f"- falling back to readonly-visitor"
+            )
+        session[cls.SESSION_KEY_READONLY_REASON] = reason
+        session.save()
         return None, None
 
     @classmethod
@@ -134,14 +157,39 @@ class PoolAllocator:
             return None, None
 
     @classmethod
+    def _verify_slot_clean(cls, user: User, project: Project) -> bool:
+        """Synchronous safety net: cheap filesystem check before handoff.
+
+        Verifies the slot's workspace still looks like a freshly cloned
+        template (marker present). This runs inline in the request so a
+        dirty/broken slot is refused even if the async pipeline lied.
+        """
+        from pathlib import Path
+
+        from apps.infra.project_app.services.project_filesystem import (
+            get_project_filesystem_manager,
+        )
+
+        from .workspace_manager import verify_template_marker
+
+        manager = get_project_filesystem_manager(user)
+        project_path = Path(manager.base_path) / project.slug
+        return verify_template_marker(project_path)
+
+    @classmethod
     def _try_allocate_slot(
         cls, visitor_num: int, session, pool_size: int
     ) -> Tuple[Optional[Project], Optional[User]]:
         """
-        Phase 1 (synchronous): allocate DB slot and set expires_at.
+        Allocate one slot — ONLY if it is verified clean.
 
-        Workspace initialization (clone_template) is deferred to a Celery
-        task (Phase 2) so the HTTP request returns immediately.
+        Gate (audit fix #2): a slot is distributable only when its
+        allocation row says ``workspace_ready=True`` (wiped + verified
+        since the last visitor) and ``quarantined=False``, AND the
+        synchronous template-marker check passes. The wipe itself runs
+        at RELEASE time (async); nothing is cleaned inline here, so a
+        Celery outage can never let a dirty slot through — it just
+        keeps the slot out of circulation.
         """
         from django.db import IntegrityError
 
@@ -165,70 +213,87 @@ class PoolAllocator:
             .first()
         )
 
-        # Slot is free if: no allocation, expired, or inactive
-        if (
-            allocation is None
-            or not allocation.is_active
-            or allocation.expires_at < timezone.now()
-        ):
-            allocation_token = secrets.token_hex(32)
-            expires_at = timezone.now() + timedelta(hours=cls.SESSION_LIFETIME_HOURS)
+        if allocation is None:
+            # Never reconciled → unverified. Boot reconciliation
+            # (manage.py reconcile_visitor_slots) creates verified rows;
+            # a rowless slot must not be served.
+            logger.warning(
+                f"[VisitorPool] Slot {visitor_num} has no allocation row "
+                f"(unverified) — run reconcile_visitor_slots"
+            )
+            return None, None
 
-            try:
-                if allocation:
-                    # Update existing allocation atomically (no delete/create race)
-                    allocation.session_key = session.session_key or ""
-                    allocation.allocation_token = allocation_token
-                    allocation.expires_at = expires_at
-                    allocation.is_active = True
-                    allocation.workspace_ready = False
-                    allocation.save()
-                else:
-                    # Create new allocation
-                    allocation = VisitorAllocation.objects.create(
-                        visitor_number=visitor_num,
-                        session_key=session.session_key or "",
-                        allocation_token=allocation_token,
-                        expires_at=expires_at,
-                        is_active=True,
-                        workspace_ready=False,
-                    )
+        if allocation.quarantined:
+            # NEVER serve a quarantined slot.
+            return None, None
 
-                # Store in session
-                session[cls.SESSION_KEY_PROJECT_ID] = project.id
-                session[cls.SESSION_KEY_VISITOR_ID] = user.id
-                session[cls.SESSION_KEY_ALLOCATION_TOKEN] = allocation_token
-                session.save()
+        now = timezone.now()
 
-                logger.info(
-                    f"[VisitorPool] Phase 1 complete: allocated visitor-{visitor_num:03d} "
-                    f"(expires_at={expires_at.isoformat()}), queuing workspace init"
-                )
+        if allocation.is_active and allocation.expires_at >= now:
+            # Slot busy.
+            return None, None
 
-                # Phase 2: queue async workspace initialization
-                from apps.infra.project_app.tasks import initialize_visitor_workspace
+        if allocation.is_active and allocation.expires_at < now:
+            # Expired but never released (visitor walked away, sweep has
+            # not run yet). The workspace is DIRTY — trigger the release
+            # pipeline and refuse to serve it this request.
+            release_slot(allocation, reason="expired-lazy")
+            return None, None
 
-                initialize_visitor_workspace.delay(allocation.id)
+        if not allocation.workspace_ready:
+            # Released but the wipe+verify has not completed (or Celery
+            # is down). Not distributable.
+            return None, None
 
-                return project, user
+        # Synchronous safety net before handoff.
+        if not cls._verify_slot_clean(user, project):
+            quarantine_slot(
+                allocation,
+                "sync pre-handoff check failed: template marker missing",
+            )
+            return None, None
 
-            except IntegrityError:
-                # Race condition - another request allocated this slot
-                logger.debug(
-                    f"[VisitorPool] Slot {visitor_num} taken by concurrent request"
-                )
-                return None, None
+        allocation_token = secrets.token_hex(32)
+        expires_at = now + timedelta(hours=cls.SESSION_LIFETIME_HOURS)
 
-        return None, None
+        try:
+            allocation.session_key = session.session_key or ""
+            allocation.allocation_token = allocation_token
+            allocation.expires_at = expires_at
+            allocation.is_active = True
+            # workspace_ready stays True: it was verified clean at
+            # release time and is now in use by exactly one visitor.
+            allocation.save()
+
+            # Store in session
+            session[cls.SESSION_KEY_PROJECT_ID] = project.id
+            session[cls.SESSION_KEY_VISITOR_ID] = user.id
+            session[cls.SESSION_KEY_ALLOCATION_TOKEN] = allocation_token
+            session.pop(cls.SESSION_KEY_READONLY_REASON, None)
+            session.save()
+
+            logger.info(
+                f"[VisitorPool] Allocated verified-clean visitor-{visitor_num:03d} "
+                f"(expires_at={expires_at.isoformat()})"
+            )
+            return project, user
+
+        except IntegrityError:
+            # Race condition - another request allocated this slot
+            logger.debug(
+                f"[VisitorPool] Slot {visitor_num} taken by concurrent request"
+            )
+            return None, None
 
     @classmethod
-    @reset_workspace_after
     def deallocate_visitor(cls, session):
         """
         Free visitor slot (called when session expires or user signs up).
 
-        Decorated with @reset_workspace_after to clean workspace immediately
-        so the slot is ready for the next visitor with no data leakage.
+        Runs the release pipeline: the slot is marked not-ready and an
+        async wipe+verify reset is enqueued; it is not reusable until
+        the reset verifies clean (audit fix #3 — the expiry middleware
+        calls this too, instead of just popping session keys).
 
         Args:
             session: Django session object
@@ -241,8 +306,7 @@ class PoolAllocator:
             allocation = VisitorAllocation.objects.get(
                 allocation_token=allocation_token
             )
-            allocation.is_active = False
-            allocation.save()
+            release_slot(allocation, reason="deallocated")
 
             # Clear session
             session.pop(cls.SESSION_KEY_PROJECT_ID, None)
@@ -279,9 +343,16 @@ class PoolAllocator:
             is_active=True, expires_at__lte=timezone.now()
         ).count()
 
+        quarantined = VisitorAllocation.objects.filter(quarantined=True).count()
+        ready = VisitorAllocation.objects.filter(
+            quarantined=False, is_active=False, workspace_ready=True
+        ).count()
+
         return {
             "total": total,
             "allocated": active_allocations,
             "free": total - active_allocations,
             "expired": expired,
+            "quarantined": quarantined,
+            "ready": ready,
         }

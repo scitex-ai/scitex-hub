@@ -35,13 +35,18 @@ class PoolCleanup:
         1. Session has expired (past expires_at)
         2. No activity for IDLE_TIMEOUT_MINUTES (idle timeout)
 
-        Deletes all projects owned by freed visitors and resets to clean state.
+        Each freed slot goes through the release pipeline: it is marked
+        not-ready immediately and an async wipe+verify reset (which
+        deletes ALL the visitor's projects, files, Gitea repos, and
+        user-scoped rows) is enqueued. The slot is not reusable until
+        the reset verifies clean; a failed reset quarantines it.
 
         Returns:
             int: Number of slots freed
         """
         from datetime import timedelta
-        from .workspace_manager import WorkspaceManager
+
+        from .slot_lifecycle import release_slot
 
         now = timezone.now()
         idle_cutoff = now - timedelta(minutes=cls.IDLE_TIMEOUT_MINUTES)
@@ -65,36 +70,9 @@ class PoolCleanup:
             visitor_username = (
                 f"{cls.VISITOR_USER_PREFIX}{allocation.visitor_number:03d}"
             )
-
-            try:
-                visitor_user = User.objects.get(username=visitor_username)
-
-                # Delete ALL projects owned by this visitor (not just default-project)
-                visitor_projects = Project.objects.filter(owner=visitor_user)
-                project_count = visitor_projects.count()
-                if project_count > 0:
-                    visitor_projects.delete()
-                    logger.info(
-                        f"[VisitorPool] Deleted {project_count} projects for {visitor_username}"
-                    )
-
-                # Reset workspace to clean state with fresh default-project
-                WorkspaceManager.reset_visitor_workspace(visitor_user)
-
-            except User.DoesNotExist:
-                logger.warning(f"[VisitorPool] User {visitor_username} not found")
-            except Exception as e:
-                logger.error(
-                    f"[VisitorPool] Error cleaning up {visitor_username}: {e}",
-                    exc_info=True,
-                )
-
-            allocation.is_active = False
-            allocation.save()
-            count += 1
-
-            # Log with reason
             reason = "expired" if allocation.expires_at < now else "idle"
+            release_slot(allocation, reason=reason)
+            count += 1
             logger.info(f"[VisitorPool] Freed {reason} slot: {visitor_username}")
 
         return count
@@ -144,13 +122,10 @@ class PoolCleanup:
             # Update filesystem ownership
             cls._move_project_files(old_owner, new_user, project)
 
-            # Deallocate visitor slot
+            # Deallocate visitor slot. This runs the release pipeline:
+            # the slot is marked not-ready and an async wipe+verify
+            # reset is enqueued — it is not reusable until re-verified.
             PoolAllocator.deallocate_visitor(session)
-
-            # Reset visitor workspace for next user
-            from .workspace_manager import WorkspaceManager
-
-            WorkspaceManager.reset_visitor_workspace(old_owner)
 
             logger.info(
                 f"[VisitorPool] Claimed project {project.slug} for user {new_user.username}"
