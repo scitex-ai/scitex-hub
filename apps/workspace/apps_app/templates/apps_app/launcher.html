@@ -8,8 +8,24 @@
 {% endblock %}
 {% block content %}
     <div class="launcher" id="app-launcher" data-max-pins="{{ max_pins }}">
+        {% if is_guest_launcher %}
+            <div class="launcher-guest-cta" id="launcher-guest-cta" role="region" aria-label="Guest session">
+                <div class="launcher-guest-cta-text">
+                    <strong>You're browsing as a guest.</strong>
+                    Sign in to keep your work and unlock editing.
+                </div>
+                <div class="launcher-guest-cta-actions">
+                    <a href="/auth/login/?next={{ request.path }}" class="launcher-guest-btn launcher-guest-btn-signin">Sign in</a>
+                    <a href="/auth/signup/" class="launcher-guest-btn launcher-guest-btn-signup">Sign up</a>
+                </div>
+            </div>
+        {% endif %}
         <div class="launcher-greeting">
-            <h1>{{ greeting }}, {{ user.username }}</h1>
+            {% if is_guest_launcher %}
+                <h1>{{ greeting }} — welcome to SciTeX</h1>
+            {% else %}
+                <h1>{{ greeting }}, {{ user.username }}</h1>
+            {% endif %}
             <p>
                 {% if current_project %}
                     {{ current_project.owner.username }}/{{ current_project.slug }} &mdash;

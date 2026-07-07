@@ -24,8 +24,9 @@ def workspace_context(request):
     if path == "/landing/":
         is_ws = False
 
-    # Root "/" is workspace for all authenticated users (including visitors).
-    # readonly-visitor is already redirected to landing in dispatch.py.
+    # Root "/" is workspace for all authenticated users — including visitor
+    # sessions (visitor-* and readonly-visitor get the guest-mode launcher,
+    # card hub-visitor-ux-allapps). Only true anonymous stays non-workspace.
     if path == "/" and not request.user.is_authenticated:
         is_ws = False
 

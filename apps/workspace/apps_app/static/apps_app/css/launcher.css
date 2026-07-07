@@ -11,6 +11,54 @@
   padding: 32px 24px 64px;
 }
 
+/* ---------- Guest-mode CTA (visitor sessions) ---------- */
+.launcher-guest-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 4px 0 10px;
+  padding: 14px 18px;
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 12px;
+}
+
+.launcher-guest-cta-text {
+  color: var(--workspace-text-primary);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.launcher-guest-cta-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.launcher-guest-btn {
+  display: inline-block;
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--workspace-border-default);
+  color: var(--workspace-text-primary);
+}
+
+.launcher-guest-btn-signup {
+  background: var(--app-accent-hub, #6a5a8a);
+  border-color: var(--app-accent-hub, #6a5a8a);
+  color: #fff;
+}
+
+.launcher-guest-btn:hover {
+  filter: brightness(1.08);
+  text-decoration: none;
+}
+
 /* ---------- Greeting ---------- */
 .launcher-greeting {
   text-align: center;
