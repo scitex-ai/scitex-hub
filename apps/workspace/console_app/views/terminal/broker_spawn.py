@@ -169,6 +169,7 @@ async def spawn_via_broker(consumer):
             container_path=SLURM_CONTAINER_PATH,
             project_slug=project_slug,
             tmux_session=consumer.screen_session,
+            provider=getattr(consumer, "provider", ""),
         )
 
         if not session_id:
@@ -200,6 +201,24 @@ async def spawn_direct(consumer):
     Args:
         consumer: TerminalConsumer instance.
     """
+    from apps.workspace.console_app.services.terminal_provider import (
+        DEFAULT_PROVIDER,
+    )
+
+    if getattr(consumer, "provider", DEFAULT_PROVIDER) != DEFAULT_PROVIDER:
+        # Provider env injection is broker-only (the broker resolves the
+        # user's key server-side). No silent fallback to the default
+        # backend in deprecated direct mode.
+        await consumer.send(
+            text_data=(
+                "\x1b[1;31m❌ Model-provider sessions need the terminal "
+                "broker, which is currently unavailable. Retry shortly or "
+                "open a default terminal.\x1b[0m\r\n"
+            )
+        )
+        await consumer.close(code=4010)
+        return
+
     username = consumer.project.owner.username
     project_slug = consumer.project.slug
     user_data_dir = USER_DATA_ROOT / username

@@ -6,11 +6,14 @@
 import { PTYTerminal } from "../../_pty-terminal";
 import type { EditorConfig } from "../core/types";
 import { modalManager } from "../ui/ModalManager";
+import { TerminalProviderPicker } from "./TerminalProviderPicker";
 
 interface TerminalTab {
   id: string;
   name: string;
   tmuxSession: string;
+  /** Model-provider id the session was created with ("" = default). */
+  provider: string;
   terminal: PTYTerminal;
   containerElement: HTMLElement;
 }
@@ -18,7 +21,7 @@ interface TerminalTab {
 const SESSION_STORAGE_KEY = "scitex-terminal-tabs";
 
 interface SavedTabState {
-  tabs: Array<{ name: string; tmuxSession: string }>;
+  tabs: Array<{ name: string; tmuxSession: string; provider?: string }>;
   activeSession: string;
   counter: number;
 }
@@ -30,6 +33,7 @@ export class TerminalTabManager {
   private terminalCounter: number = 1;
   private mainContainer: HTMLElement | null = null;
   private draggedTerminalId: string | null = null;
+  private providerPicker: TerminalProviderPicker = new TerminalProviderPicker();
 
   constructor(config: EditorConfig) {
     this.config = config;
@@ -45,12 +49,21 @@ export class TerminalTabManager {
       return;
     }
 
+    await this.providerPicker.load();
+
     const saved = this.loadTabState();
     if (saved && saved.tabs.length > 0) {
       // Restore tabs from previous session (Ctrl+Shift+R)
       this.terminalCounter = saved.counter;
       for (const tab of saved.tabs) {
-        await this.createTerminal(tab.name, tab.tmuxSession);
+        // Old saved state has no provider field — restore as the server
+        // default ("") rather than the current picker selection, so a
+        // reattach never silently requests a different provider.
+        await this.createTerminal(
+          tab.name,
+          tab.tmuxSession,
+          tab.provider ?? "",
+        );
       }
       // Switch to previously active tab
       const activeTab = Array.from(this.terminals.values()).find(
@@ -73,8 +86,14 @@ export class TerminalTabManager {
    * Create a new terminal tab
    * @param name Display name for the tab
    * @param tmuxSession tmux session name (e.g., "scitex-0"). Auto-generated if omitted.
+   * @param provider Model-provider id ("" = default). New tabs pick up the
+   *                 picker selection; restored tabs pass their saved value.
    */
-  async createTerminal(name?: string, tmuxSession?: string): Promise<string> {
+  async createTerminal(
+    name?: string,
+    tmuxSession?: string,
+    provider?: string,
+  ): Promise<string> {
     if (!this.mainContainer || !this.config.currentProject) {
       throw new Error("Container or project not found");
     }
@@ -83,6 +102,8 @@ export class TerminalTabManager {
     const tabIndex = this.terminalCounter++;
     const terminalName = name || `T${tabIndex}`;
     const sessionName = tmuxSession || `scitex-${tabIndex - 1}`;
+    const sessionProvider =
+      provider ?? this.providerPicker.getSelectedProvider();
 
     // Create container for this terminal
     const containerElement = document.createElement("div");
@@ -98,6 +119,7 @@ export class TerminalTabManager {
       containerElement,
       this.config.currentProject.id,
       sessionName,
+      sessionProvider,
     );
 
     await terminal.waitForReady();
@@ -107,6 +129,7 @@ export class TerminalTabManager {
       id: terminalId,
       name: terminalName,
       tmuxSession: sessionName,
+      provider: sessionProvider,
       terminal,
       containerElement,
     });
@@ -389,6 +412,11 @@ export class TerminalTabManager {
       this.createTerminal();
     };
     tabsContainer.appendChild(newTabBtn);
+
+    // Model-provider picker for NEW sessions (Option A). Disabled with an
+    // explanatory tooltip for readonly visitors; hidden when the registry
+    // endpoint was unreachable.
+    this.providerPicker.render(tabsContainer);
   }
 
   /**
@@ -446,6 +474,7 @@ export class TerminalTabManager {
       tabs: Array.from(this.terminals.values()).map((t) => ({
         name: t.name,
         tmuxSession: t.tmuxSession,
+        provider: t.provider,
       })),
       activeSession: activeTab?.tmuxSession || "scitex-0",
       counter: this.terminalCounter,
