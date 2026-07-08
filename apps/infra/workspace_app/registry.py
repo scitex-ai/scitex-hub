@@ -179,6 +179,18 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
     "workspace/comms_app/manifest.json",
 ]
 
+# scitex-todo board tile (upstream embedded package mounted at /todo/).
+# Appended CONDITIONALLY so the launcher never shows a dead tile on a
+# host where the scitex-todo package is not installed — mirror of the
+# guarded import in settings_shared.py / the URL guard in config/urls.py.
+try:
+    from importlib.util import find_spec as _find_spec
+
+    if _find_spec("scitex_todo") is not None:
+        _BUILTIN_MANIFEST_PATHS.append("workspace/todo_app/manifest.json")
+except Exception:
+    logger.exception("[registry] scitex_todo tile probe failed")
+
 
 _SUPPORTED_SCHEMA_VERSIONS = {"1.0.0", "2.0.0"}
 

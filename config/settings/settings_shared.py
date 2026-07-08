@@ -179,6 +179,28 @@ try:
 except ImportError:
     pass
 
+# Optional: upstream scitex-todo board app (contract-compliant _django app;
+# URL-mounted under /todo/ in config/urls.py). The explicit AppConfig
+# path mirrors the writer entry above: todo's apps.py holds two AppConfig
+# candidates (the imported ScitexAppConfig base + ScitexTodoConfig, no
+# default=True), so a bare module entry falls back to label "_django"
+# and collides with figrecipe._django's identical fallback.
+try:
+    import scitex_todo  # noqa: F401
+
+    THIRD_PARTY_APPS.append("scitex_todo._django.apps.ScitexTodoConfig")
+
+    # Tenancy: the board's service layer (scitex_todo._django.services)
+    # unions host-side per-project lanes (default glob
+    # ~/proj/*/.scitex/todo/tasks.yaml) into every board load. On the hub
+    # each request must see ONLY the requesting user's workspace store
+    # (injected by apps.workspace.todo_app.middleware), so lane discovery
+    # is explicitly disabled — an empty glob list is the documented
+    # opt-out seam in that module.
+    os.environ["SCITEX_TODO_LANE_GLOBS"] = ""
+except ImportError:
+    pass
+
 LOCAL_APPS = discover_local_apps()
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -203,6 +225,12 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.infra.project_app.middleware.GuestSessionMiddleware",
+    # Scope the mounted scitex-todo board (/todo/) to the requesting
+    # user's workspace store + enforce the phase-1 read-only gate. Must
+    # run AFTER Authentication + VisitorAutoLogin so request.user is
+    # final; no-ops in one prefix check for every other path (and when
+    # the scitex_todo package is not installed).
+    "apps.workspace.todo_app.middleware.TodoBoardTenancyMiddleware",
 ]
 
 AUTHENTICATION_BACKENDS = [

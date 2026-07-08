@@ -40,6 +40,17 @@ def _scitex_writer_installed() -> bool:
     return find_spec("scitex_writer") is not None
 
 
+def _scitex_todo_installed() -> bool:
+    """True when the upstream scitex-todo package is importable.
+
+    Mirrors the guarded THIRD_PARTY_APPS import in settings_shared.py so
+    the /todo/ mount and the installed app always agree.
+    """
+    from importlib.util import find_spec
+
+    return find_spec("scitex_todo") is not None
+
+
 urlpatterns = [
     # A2A protocol surface — canonical host: a2a.scitex.ai
     path("", include("apps.infra.a2a_app.urls")),
@@ -114,6 +125,16 @@ urlpatterns = [
     *(
         [path("writer/", include("scitex_writer._django.urls"))]
         if _scitex_writer_installed()
+        else []
+    ),
+    # Upstream scitex-todo's own contract-compliant Django board app
+    # (phase 1: read-only). Only mounted when the package is importable —
+    # mirror of the settings_shared.py guarded import. Per-request
+    # workspace tenancy + the read-only gate are enforced by
+    # apps.workspace.todo_app.middleware.TodoBoardTenancyMiddleware.
+    *(
+        [path("todo/", include("scitex_todo._django.urls"))]
+        if _scitex_todo_installed()
         else []
     ),
     path(

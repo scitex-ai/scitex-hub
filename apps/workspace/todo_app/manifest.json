@@ -1,0 +1,32 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "2.0.0",
+  "name": "todo",
+  "label": "Todo",
+  "app_name": "todo_app",
+  "icon": "fas fa-diagram-project",
+  "description": "Read-only board view of your project's scitex-todo task store: kanban columns, dependency graph, and status colors.",
+  "version": "0.1.0",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "",
+  "order": 85,
+  "default_enabled": false,
+  "accent_color": "",
+  "body_class": "",
+  "partial_template": "",
+  "context_builder": "",
+  "url": "/todo/",
+  "ai_hint": "Read-only board of the project's scitex-todo task store (phase 1).",
+  "allowed_extensions": [".yaml", ".yml"],
+  "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+  "privileges": [],
+  "builtin": true,
+  "dependencies": {
+    "python": ["scitex-todo"],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}
