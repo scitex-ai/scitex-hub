@@ -204,12 +204,22 @@ if [ -d "$SANDBOX_DIR" ]; then
         # Skip /proc, /sys, /dev — kernel pseudo-filesystems that apptainer
         # auto-mounts inside the namespace and whose perms cannot be changed.
         # -xdev also prevents crossing into any nested mount.
+        # Skip symlinks (-not -type l): chmod dereferences, so a dangling
+        # symlink (e.g. /etc/alternatives/nawk.1.gz) hard-fails the whole
+        # step; symlink permissions are ignored on Linux anyway.
+        # Skip /.singularity.d — apptainer's own runtime dir is mounted
+        # read-only ('/.singularity.d/libs: Read-only file system') and
+        # is never read by the scitex user.
+        # (2026-07-08 prod rebuild: those two benign cases aborted this
+        # step with exit 1, which killed the remaining deploy steps.)
         if ! apptainer exec \
             --fakeroot --writable \
             --contain --no-home --no-mount home,tmp,cwd \
             "$CURRENT_SANDBOX" \
             find / -xdev \
             -not -path '/proc*' -not -path '/sys*' -not -path '/dev*' \
+            -not -path '/.singularity.d*' \
+            -not -type l \
             -exec chmod a+rX {} + 2>&1; then
             echo -e "${RED}   ❌ Sandbox permission fix failed (apptainer --fakeroot find/chmod).${NC}" >&2
             exit 1

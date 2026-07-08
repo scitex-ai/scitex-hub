@@ -30,14 +30,14 @@ sync_slurm_uid || echo_warning "SLURM UID sync skipped - terminal may have issue
 # ============================================
 verify_scitex_package
 
-# ============================================
-# TEMPORARY FIX: Upgrade scitex-writer to 2.6.5+
-# Needed because Docker layer cache has older version
-# TODO: Remove after next full rebuild with --no-cache
-# ============================================
-echo_info "Upgrading scitex-writer (temporary fix for scripts directory)..."
-pip install --quiet --upgrade "scitex-writer>=2.6.5" 2>/dev/null || true
-echo_success "scitex-writer upgraded"
+# NOTE: no runtime `pip install --upgrade scitex-writer` here.
+# The former "TEMPORARY FIX" unpinned upgrade silently replaced the
+# image-pinned scitex-writer with whatever PyPI served at boot — a
+# hidden fallback that shipped the broken 2.18.0–2.26.0 wheels
+# (missing scitex_writer._dataclasses.config) into production and
+# quarantined every visitor slot (2026-07-08). Versions are pinned
+# and smoke-tested at image build; the running container must be
+# reproducible from the image alone.
 
 # Ensure we're NOT using editable install
 if [ -d "/scitex-code" ]; then

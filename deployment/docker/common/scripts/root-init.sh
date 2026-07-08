@@ -112,6 +112,27 @@ if [ -d "/app/node_modules" ] && [ "$(stat -c '%U' /app/node_modules 2>/dev/null
 fi
 
 # ============================================
+# Fix staticfiles volume ownership
+# ============================================
+# The static volume can accumulate files owned by other UIDs (e.g.
+# root-owned figrecipe/index.html from an earlier root-context write).
+# collectstatic (running as scitex) then dies with PermissionError on
+# delete and — because the entrypoint runs `set -e` — the container
+# crash-loops before the visitor-pool reconcile ever runs
+# (observed 2026-07-08: 11 restarts on
+# '/app/staticfiles/figrecipe/index.html').
+if [ -d "/app/staticfiles" ]; then
+    FOREIGN_STATIC=$(find /app/staticfiles ! -user scitex -print -quit 2>/dev/null)
+    if [ -n "$FOREIGN_STATIC" ]; then
+        echo "🔧 Fixing staticfiles ownership (found non-scitex file: $FOREIGN_STATIC)..."
+        chown -R scitex:scitex /app/staticfiles
+        echo "✅ staticfiles ownership fixed"
+    else
+        echo "✅ staticfiles ownership OK"
+    fi
+fi
+
+# ============================================
 # Fix Vite staticfiles permissions
 # ============================================
 # Clean stale vite output so the scitex user can rebuild fresh.
