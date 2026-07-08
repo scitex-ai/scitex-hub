@@ -3,7 +3,8 @@
 """
 Django settings for SciTeX Hub project.
 Base settings shared across all environments.
-Sub-modules: settings_celery, settings_logging, settings_auth, settings_integrations
+Sub-modules: settings_celery, settings_logging, settings_auth,
+settings_integrations, settings_commerce
 """
 
 import os
@@ -208,6 +209,11 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    # i18n rails (F: tokushoho/commerce pages). Locale resolution must sit
+    # after SessionMiddleware and before CommonMiddleware per Django docs.
+    # Scope decision: only legal/landing surfaces are authored in Japanese
+    # for now — the app interior stays untranslated.
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -355,6 +361,17 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
+# i18n rails — English default, Japanese for legal/landing pages
+# (特定商取引法に基づく表記 etc.). Message catalogs live in locale/;
+# regenerate with:
+#   python manage.py makemessages -l ja
+#   python manage.py compilemessages
+LANGUAGES = [
+    ("en", "English"),
+    ("ja", "日本語"),
+]
+LOCALE_PATHS = [BASE_DIR / "locale"]
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 EMAIL_BACKEND = _getenv_alias("SCITEX_HUB_EMAIL_BACKEND")
@@ -383,6 +400,7 @@ SCITEX_HUB_CAMPAIGN_DAILY_LIMIT = _getenv_alias("SCITEX_HUB_CAMPAIGN_DAILY_LIMIT
 # ---------------------------------------
 from .settings_auth import *  # noqa: E402, F401, F403
 from .settings_celery import *  # noqa: E402, F401, F403
+from .settings_commerce import *  # noqa: E402, F401, F403
 from .settings_integrations import *  # noqa: E402, F401, F403
 from .settings_logging import *  # noqa: E402, F401, F403
 

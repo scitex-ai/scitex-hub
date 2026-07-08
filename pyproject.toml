@@ -105,6 +105,9 @@ all = [
     "docker>=7.1",
     "psutil>=5.9",
     "playwright>=1.48",
+    # --- Billing (Stripe scaffold; endpoints stay 503 until
+    # SCITEX_HUB_STRIPE_* env keys are configured) ---
+    "stripe>=10.0",
     # --- AI / LLM / domain ---
     "litellm>=1.0",
     "impact-factor>=1.1",
