@@ -25,6 +25,11 @@ from django.utils import timezone
 
 from apps.infra.project_app.models import Project, VisitorAllocation
 
+from .session_role import (
+    READONLY_REASON_NO_READY_SLOT,
+    READONLY_REASON_POOL_FULL,
+    SESSION_KEY_READONLY_REASON,
+)
 from .slot_lifecycle import quarantine_slot, release_slot
 
 logger = logging.getLogger(__name__)
@@ -41,7 +46,9 @@ class PoolAllocator:
     SESSION_KEY_PROJECT_ID = "visitor_project_id"
     SESSION_KEY_VISITOR_ID = "visitor_user_id"
     SESSION_KEY_ALLOCATION_TOKEN = "visitor_allocation_token"
-    SESSION_KEY_READONLY_REASON = "visitor_readonly_reason"
+    # Canonical key + codes live in session_role (single source of truth
+    # for the reason model); re-exposed here for existing callers/tests.
+    SESSION_KEY_READONLY_REASON = SESSION_KEY_READONLY_REASON
 
     @classmethod
     def _check_table_exists(cls) -> bool:
@@ -108,12 +115,12 @@ class PoolAllocator:
             is_active=True, expires_at__gt=timezone.now()
         ).count()
         if busy >= pool_size:
-            reason = "pool_full"
+            reason = READONLY_REASON_POOL_FULL
             logger.warning(
                 f"[VisitorPool] Pool exhausted - all {pool_size} slots in use"
             )
         else:
-            reason = "no_ready_slot"
+            reason = READONLY_REASON_NO_READY_SLOT
             logger.warning(
                 f"[VisitorPool] No verified-clean slot available "
                 f"({busy}/{pool_size} busy; rest awaiting reset or quarantined) "

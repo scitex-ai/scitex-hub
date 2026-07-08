@@ -37,7 +37,52 @@ READONLY_REJECTION_REASON = "readonly-visitor"
 
 #: Session key set when a session is downgraded to readonly-visitor,
 #: consumed (popped) by the context processor to fail-loud exactly once.
+#: Its value is a downgrade-reason code (see READONLY_REASON_* below).
 SESSION_KEY_READONLY_NOTICE = "readonly_visitor_notice"
+
+#: Session key recording WHY allocation refused a writable slot.
+#: Written by PoolAllocator.allocate_visitor at allocation time and kept
+#: for the whole readonly session (banner is one-shot; the header
+#: popover/dropdown keep explaining the persistent state truthfully).
+SESSION_KEY_READONLY_REASON = "visitor_readonly_reason"
+
+#: Structured downgrade-reason codes (recorded at allocation time).
+#: ``pool_full``    — every slot is busy serving another visitor.
+#: ``no_ready_slot``— free slots exist but none is wiped + verified
+#:                    clean yet (post-rebuild boot fail-safe, Celery
+#:                    outage, or quarantine) — slots are being prepared.
+#: ``unknown``      — the session carries no recorded reason (e.g. a
+#:                    legacy session from before this release).
+READONLY_REASON_POOL_FULL = "pool_full"
+READONLY_REASON_NO_READY_SLOT = "no_ready_slot"
+READONLY_REASON_UNKNOWN = "unknown"
+
+#: Reason code → truthful user-facing explanation. NO silent fallback to
+#: a specific claim: an unrecognized code gets the generic-but-true copy,
+#: never the wrong specific one.
+_READONLY_REASON_DETAILS = {
+    READONLY_REASON_POOL_FULL: (
+        "All visitor slots are in use — you are browsing read-only."
+    ),
+    READONLY_REASON_NO_READY_SLOT: (
+        "Visitor slots are being prepared — you are browsing read-only. "
+        "Retry in a few minutes for a writable slot."
+    ),
+}
+_READONLY_REASON_DETAIL_GENERIC = (
+    "No writable visitor slot is available right now — "
+    "you are browsing read-only."
+)
+
+
+def readonly_reason_detail(reason: str | None) -> str:
+    """Truthful copy for a downgrade-reason code (generic when unknown)."""
+    return _READONLY_REASON_DETAILS.get(reason or "", _READONLY_REASON_DETAIL_GENERIC)
+
+
+def get_readonly_reason(session) -> str:
+    """The recorded downgrade-reason code for this session (or unknown)."""
+    return session.get(SESSION_KEY_READONLY_REASON, READONLY_REASON_UNKNOWN)
 
 
 def get_user_role(user) -> str:
@@ -70,19 +115,29 @@ def is_readonly_visitor(request) -> bool:
     return get_session_role(request) == ROLE_READONLY_VISITOR
 
 
-def readonly_write_rejection(action: str = "make changes") -> JsonResponse:
+def readonly_write_rejection(
+    action: str = "make changes", request=None
+) -> JsonResponse:
     """Structured 403 for a write attempted by a readonly visitor.
 
     The shared frontend fetch layer (static/shared/ts/utils/
     readonly-visitor-guard.ts) matches ``reason == "readonly-visitor"``
     and renders a toast with Sign up / Log in / retry-later actions.
     Never use this to block page rendering — reads always succeed.
+
+    Pass ``request`` so ``detail`` explains the ACTUAL downgrade reason
+    recorded at allocation time (pool full vs slots being prepared);
+    without it the detail stays truthfully generic.
     """
+    downgrade_reason = READONLY_REASON_UNKNOWN
+    if request is not None and hasattr(request, "session"):
+        downgrade_reason = get_readonly_reason(request.session)
     return JsonResponse(
         {
             "error": f"Read-only mode — sign up or log in to {action}.",
             "reason": READONLY_REJECTION_REASON,
-            "detail": "Visitor pool is full — you are browsing read-only.",
+            "downgrade_reason": downgrade_reason,
+            "detail": readonly_reason_detail(downgrade_reason),
             "actions": ["signup", "login", "retry-later"],
             "signup_url": "/auth/signup/",
             "login_url": "/auth/login/",

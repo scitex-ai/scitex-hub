@@ -24,7 +24,7 @@ def api_save_file(request):
         # Read-only visitors: reads always work, writes get the canonical
         # structured 403 (frontend renders Sign up / Log in / retry toast).
         if is_readonly_visitor(request):
-            return readonly_write_rejection("save files")
+            return readonly_write_rejection("save files", request)
 
         data = json.loads(request.body)
         project_id = data.get("project_id")

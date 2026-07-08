@@ -413,7 +413,7 @@
                  aria-label="Visitor session details">
                 {% if is_readonly %}
                     <strong>Read-only session</strong>
-                    <div>Visitor pool is full — you are browsing read-only.</div>
+                    <div>{{ readonly_visitor_reason_detail }}</div>
                 {% else %}
                     <strong>Visitor session</strong>
                     <div>Your work lasts only for this session.</div>
@@ -435,10 +435,35 @@
                 var badge = document.getElementById('header-visitor-badge-mobile');
                 var pop = document.getElementById('header-visitor-badge-popover');
                 if (!badge || !pop) return;
+                // Escape the header's stacking context: .global-header is
+                // z-index:1000, BELOW the mobile sidebar rail (1010) and
+                // drawer (1100), so the popover rendered inside it was
+                // painted under the sidebar regardless of its own z-index.
+                // As a direct <body> child its z-index:10001 wins (same
+                // re-parenting fix as the launcher dock).
+                if (pop.parentElement !== document.body) {
+                    document.body.appendChild(pop);
+                }
+                function placePopover() {
+                    var rect = badge.getBoundingClientRect();
+                    var margin = 8;
+                    pop.style.top = (rect.bottom + 6) + 'px';
+                    // Shift horizontally to stay fully inside the viewport
+                    // on narrow screens (<=767px).
+                    var left = Math.max(
+                        margin,
+                        Math.min(rect.left, window.innerWidth - pop.offsetWidth - margin)
+                    );
+                    pop.style.left = left + 'px';
+                }
                 badge.addEventListener('click', function(e) {
                     e.stopPropagation();
                     var open = pop.classList.toggle('open');
                     badge.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    if (open) placePopover();
+                });
+                window.addEventListener('resize', function() {
+                    if (pop.classList.contains('open')) placePopover();
                 });
                 document.addEventListener('click', function(e) {
                     if (!badge.contains(e.target) && !pop.contains(e.target)) {
@@ -581,7 +606,7 @@
                                 <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z" />
                             </svg>
                             {% if is_readonly %}
-                                Visitor pool is full — you are browsing read-only. You can view everything; sign up or log in to make changes, or retry later for a writable slot.
+                                {{ readonly_visitor_reason_detail }} You can view everything; sign up or log in to make changes.
                                 {% if visitor_pool_status %}
                                     <div class="header-visitor-badge-popover-muted">
                                         visitor slots {{ visitor_pool_status.allocated }}/{{ visitor_pool_status.total }} in use

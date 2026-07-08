@@ -138,10 +138,11 @@ class VisitorAutoLoginMiddleware:
                     f"[Middleware] Auto-logged in visitor: {visitor_user.username} for {path}"
                 )
             else:
-                # Pool full — fall back to shared readonly-visitor
+                # No writable slot — fall back to shared readonly-visitor
                 try:
                     from apps.infra.project_app.services.visitor_pool import (
                         SESSION_KEY_READONLY_NOTICE,
+                        get_readonly_reason,
                     )
 
                     readonly_user = User.objects.get(
@@ -154,11 +155,15 @@ class VisitorAutoLoginMiddleware:
                     )
                     request.session["is_readonly_visitor"] = True
                     # Fail-loud UX (card hub-visitor-ux-allapps): the next
-                    # rendered page explains WHY the session is read-only.
+                    # rendered page explains WHY the session is read-only,
+                    # using the structured reason allocate_visitor recorded
+                    # (pool_full vs no_ready_slot — NOT hardcoded pool-full).
                     # Popped once by visitor_expiration_context.
-                    request.session[SESSION_KEY_READONLY_NOTICE] = "pool-full"
+                    downgrade_reason = get_readonly_reason(request.session)
+                    request.session[SESSION_KEY_READONLY_NOTICE] = downgrade_reason
                     logger.info(
-                        f"[Middleware] Pool full, logged in as readonly-visitor for {path}"
+                        f"[Middleware] No writable slot ({downgrade_reason}), "
+                        f"logged in as readonly-visitor for {path}"
                     )
                 except User.DoesNotExist:
                     logger.error(

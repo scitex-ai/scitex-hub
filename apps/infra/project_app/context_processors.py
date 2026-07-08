@@ -60,7 +60,10 @@ def visitor_expiration_context(request):
     Returns:
         dict: session_role, visitor_expires_at, visitor_username,
               is_visitor, is_readonly, visitor_cpus, visitor_memory_gb,
-              readonly_visitor_notice (one-shot downgrade explanation),
+              readonly_visitor_notice (one-shot downgrade reason code),
+              readonly_visitor_notice_detail (its user-facing copy),
+              readonly_visitor_reason (persistent downgrade reason code),
+              readonly_visitor_reason_detail (its user-facing copy),
               visitor_pool_status ({total, allocated} — readonly sessions)
     """
     from django.contrib.auth.models import User
@@ -72,7 +75,9 @@ def visitor_expiration_context(request):
         ROLE_VISITOR,
         SESSION_KEY_READONLY_NOTICE,
         VisitorPool,
+        get_readonly_reason,
         get_session_role,
+        readonly_reason_detail,
     )
     from config.settings.quotas import SLURM_QUOTAS
 
@@ -86,17 +91,27 @@ def visitor_expiration_context(request):
         "visitor_cpus": SLURM_QUOTAS.get("interactive_cpus", 2),
         "visitor_memory_gb": SLURM_QUOTAS.get("interactive_memory_gb", 4),
         "readonly_visitor_notice": "",
+        "readonly_visitor_notice_detail": "",
+        "readonly_visitor_reason": "",
+        "readonly_visitor_reason_detail": "",
         "visitor_pool_status": None,
     }
 
-    # Shared read-only visitor (pool overflow / allocation failure)
+    # Shared read-only visitor (no writable slot at allocation time)
     if role == ROLE_READONLY_VISITOR:
         context["visitor_username"] = request.user.username
         # Fail-loud: one-shot explanation of WHY this session is read-only
-        # (set by VisitorAutoLoginMiddleware on downgrade, shown once).
-        context["readonly_visitor_notice"] = request.session.pop(
-            SESSION_KEY_READONLY_NOTICE, ""
-        )
+        # (reason code set by VisitorAutoLoginMiddleware on downgrade,
+        # shown once by the banner).
+        notice = request.session.pop(SESSION_KEY_READONLY_NOTICE, "")
+        context["readonly_visitor_notice"] = notice
+        if notice:
+            context["readonly_visitor_notice_detail"] = readonly_reason_detail(notice)
+        # Persistent reason for the header badge popover/dropdown — the
+        # state (and its truthful explanation) outlives the one-shot banner.
+        reason = get_readonly_reason(request.session)
+        context["readonly_visitor_reason"] = reason
+        context["readonly_visitor_reason_detail"] = readonly_reason_detail(reason)
         context["visitor_pool_status"] = _visitor_pool_status_cached()
         return context
 

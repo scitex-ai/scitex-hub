@@ -6,6 +6,9 @@ Covers the operator-confirmed 2026-07-07 spec:
 - canonical session-role model (anonymous | readonly_visitor | visitor | user)
 - readonly downgrade sets the one-shot explanation flag and the next
   rendered page shows the banner
+- the downgrade reason is STRUCTURED (pool_full | no_ready_slot |
+  unknown) and threads through banner / popover / write-rejection copy
+  (2026-07-08 iPhone report: popover claimed "pool is full" at 0/16)
 - write attempts by readonly visitors get the structured 403
   ({"reason": "readonly-visitor", ...})
 - pool occupancy is exposed to templates for the Read-Only badge
@@ -15,17 +18,25 @@ One assertion per test (STX-TQ007), AAA markers (STX-TQ002).
 """
 
 import json
+from datetime import timedelta
 
 from django.contrib.auth.models import AnonymousUser, User
 from django.core.cache import cache
 from django.test import TestCase
+from django.utils import timezone
 
+from apps.infra.project_app.models import VisitorAllocation
 from apps.infra.project_app.services.visitor_pool import (
+    READONLY_REASON_NO_READY_SLOT,
+    READONLY_REASON_POOL_FULL,
+    READONLY_REASON_UNKNOWN,
     ROLE_ANONYMOUS,
     ROLE_READONLY_VISITOR,
     ROLE_USER,
     ROLE_VISITOR,
     SESSION_KEY_READONLY_NOTICE,
+    SESSION_KEY_READONLY_REASON,
+    VisitorPool,
     get_user_role,
 )
 
@@ -95,12 +106,21 @@ class ReadonlyDowngradeExplanationTest(TestCase):
         # Assert
         assert b"readonly-visitor-banner" in resp.content
 
-    def test_downgraded_page_explains_pool_full_reason(self):
-        # Arrange — anonymous browser request with an exhausted pool
+    def test_downgraded_page_explains_slots_preparing_reason(self):
+        # Arrange — free slots exist but none is verified clean (this
+        # fixture has no visitor-NNN slots at all → no_ready_slot), so
+        # the banner must NOT claim the pool is full.
         # Act
         resp = self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
         # Assert
-        assert b"Visitor pool is full" in resp.content
+        assert b"Visitor slots are being prepared" in resp.content
+
+    def test_downgraded_page_does_not_claim_pool_full(self):
+        # Arrange — 0 busy slots: "pool is full" would be a lie
+        # Act
+        resp = self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        # Assert
+        assert b"All visitor slots are in use" not in resp.content
 
     def test_explanation_flag_is_one_shot(self):
         # Arrange — first request consumes the downgrade notice
@@ -118,6 +138,83 @@ class ReadonlyDowngradeExplanationTest(TestCase):
         assert self.client.session.get("is_readonly_visitor") is True
 
 
+class ReadonlyDowngradeReasonThreadingTest(TestCase):
+    """The structured downgrade reason threads through session + copy."""
+
+    @classmethod
+    def setUpTestData(cls):
+        User.objects.create_user(
+            username="readonly-visitor",
+            password="TestPass123!",  # pragma: allowlist secret
+        )
+
+    def _fill_pool(self):
+        """Every slot busy → allocation must record pool_full."""
+        expires = timezone.now() + timedelta(hours=1)
+        for num in range(1, VisitorPool.POOL_SIZE + 1):
+            VisitorAllocation.objects.create(
+                visitor_number=num,
+                allocation_token=f"tok-{num:03d}",
+                expires_at=expires,
+                is_active=True,
+            )
+
+    def test_no_ready_slot_reason_recorded_in_session(self):
+        # Arrange — slots exist in no verified-clean state (none at all)
+        # Act
+        self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        # Assert
+        assert (
+            self.client.session.get(SESSION_KEY_READONLY_REASON)
+            == READONLY_REASON_NO_READY_SLOT
+        )
+
+    def test_pool_full_reason_recorded_when_all_slots_busy(self):
+        # Arrange
+        self._fill_pool()
+        # Act
+        self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        # Assert
+        assert (
+            self.client.session.get(SESSION_KEY_READONLY_REASON)
+            == READONLY_REASON_POOL_FULL
+        )
+
+    def test_pool_full_banner_says_slots_in_use(self):
+        # Arrange
+        self._fill_pool()
+        # Act
+        resp = self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        # Assert
+        assert b"All visitor slots are in use" in resp.content
+
+    def test_reason_detail_persists_after_one_shot_banner(self):
+        # Arrange — first request consumes the banner notice
+        self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        # Act — the header popover still explains the persistent state
+        resp = self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        # Assert
+        assert b"Visitor slots are being prepared" in resp.content
+
+    def test_unrecorded_reason_renders_generic_truthful_copy(self):
+        # Arrange — readonly session with NO recorded downgrade reason
+        readonly = User.objects.get(username="readonly-visitor")
+        self.client.force_login(readonly)
+        # Act
+        resp = self.client.get("/")
+        # Assert — generic truth, never the wrong specific claim
+        assert b"No writable visitor slot is available" in resp.content
+
+    def test_unrecorded_reason_never_claims_pool_full(self):
+        # Arrange
+        readonly = User.objects.get(username="readonly-visitor")
+        self.client.force_login(readonly)
+        # Act
+        resp = self.client.get("/")
+        # Assert
+        assert b"All visitor slots are in use" not in resp.content
+
+
 class ReadonlyStructuredWriteRejectionTest(TestCase):
     """Write attempts by readonly visitors get the structured 403."""
 
@@ -128,8 +225,12 @@ class ReadonlyStructuredWriteRejectionTest(TestCase):
             password="TestPass123!",  # pragma: allowlist secret
         )
 
-    def _post_save_file(self):
+    def _post_save_file(self, downgrade_reason=None):
         self.client.force_login(self.readonly_visitor)
+        if downgrade_reason is not None:
+            session = self.client.session
+            session[SESSION_KEY_READONLY_REASON] = downgrade_reason
+            session.save()
         return self.client.post(
             "/api/workspace/save-file/",
             data=json.dumps({"project_id": 1, "path": "a.txt", "content": "x"}),
@@ -156,6 +257,41 @@ class ReadonlyStructuredWriteRejectionTest(TestCase):
         resp = self._post_save_file()
         # Assert
         assert resp.json()["actions"] == ["signup", "login", "retry-later"]
+
+    def test_write_rejection_detail_reflects_preparing_reason(self):
+        # Arrange — session recorded no_ready_slot at allocation time
+        # Act
+        resp = self._post_save_file(downgrade_reason=READONLY_REASON_NO_READY_SLOT)
+        # Assert
+        assert "Visitor slots are being prepared" in resp.json()["detail"]
+
+    def test_write_rejection_detail_reflects_pool_full_reason(self):
+        # Arrange — session recorded pool_full at allocation time
+        # Act
+        resp = self._post_save_file(downgrade_reason=READONLY_REASON_POOL_FULL)
+        # Assert
+        assert "All visitor slots are in use" in resp.json()["detail"]
+
+    def test_write_rejection_carries_downgrade_reason_code(self):
+        # Arrange
+        # Act
+        resp = self._post_save_file(downgrade_reason=READONLY_REASON_POOL_FULL)
+        # Assert
+        assert resp.json()["downgrade_reason"] == READONLY_REASON_POOL_FULL
+
+    def test_write_rejection_without_recorded_reason_is_generic(self):
+        # Arrange — no downgrade reason in the session
+        # Act
+        resp = self._post_save_file()
+        # Assert — truthful generic copy, never the wrong specific one
+        assert "No writable visitor slot is available" in resp.json()["detail"]
+
+    def test_write_rejection_without_recorded_reason_codes_unknown(self):
+        # Arrange
+        # Act
+        resp = self._post_save_file()
+        # Assert
+        assert resp.json()["downgrade_reason"] == READONLY_REASON_UNKNOWN
 
 
 class PoolOccupancyContextTest(TestCase):

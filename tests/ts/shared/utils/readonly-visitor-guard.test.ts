@@ -39,6 +39,24 @@ describe("readonly-visitor-guard", () => {
     expect(toast?.textContent).toContain("Retry later");
   });
 
+  it("renders the backend-provided reason detail verbatim", () => {
+    showReadonlyVisitorToast({
+      detail:
+        "Visitor slots are being prepared — you are browsing read-only. " +
+        "Retry in a few minutes for a writable slot.",
+    });
+    const toast = document.getElementById("readonly-visitor-toast");
+    expect(toast?.textContent).toContain("Visitor slots are being prepared");
+  });
+
+  it("falls back to generic copy, never claiming the pool is full", () => {
+    showReadonlyVisitorToast({});
+    const toast = document.getElementById("readonly-visitor-toast");
+    expect(toast?.textContent).toContain(
+      "No writable visitor slot is available",
+    );
+  });
+
   it("does not stack a second toast while one is visible", () => {
     showReadonlyVisitorToast({});
     showReadonlyVisitorToast({});
