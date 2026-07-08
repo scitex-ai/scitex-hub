@@ -62,15 +62,18 @@ def test_todo_lane_globs_disabled_for_tenancy():
 
 @pytest.mark.skipif(_TODO_INSTALLED, reason="scitex-todo is installed")
 def test_todo_url_absent_when_package_missing():
-    # Arrange
+    # Arrange — with the package absent the /todo/ mount must not exist.
+    # NOTE: resolve("/todo/") still MATCHES something (the GitHub-style
+    # "<str:username>/" catch-all swallows every unmounted top-level
+    # path — same as /writer/), so the contract to assert is "does not
+    # resolve into the scitex_todo namespace", not Resolver404.
     from django.urls import Resolver404, resolve
 
     # Act
     try:
-        resolve("/todo/")
-        resolved = True
+        view_name = resolve("/todo/").view_name
     except Resolver404:
-        resolved = False
+        view_name = ""
 
     # Assert
-    assert resolved is False
+    assert not view_name.startswith("scitex_todo:")
