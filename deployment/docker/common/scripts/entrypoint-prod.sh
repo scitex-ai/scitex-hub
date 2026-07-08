@@ -36,17 +36,37 @@ fi
 # ============================================
 wait_for_database
 run_migrations
-collect_static_files
+# collectstatic ONLY in the web container. The celery services reuse this
+# entrypoint but run AS ROOT (compose overrides the entrypoint without
+# root-init.sh/gosu) and celery_worker mounts the shared static_volume —
+# a root collectstatic there poisons the volume with root-owned files
+# (e.g. figrecipe/index.html, 2026-07-08) that the scitex-user
+# collectstatic in django-1 cannot delete, crash-looping the web
+# container before the visitor-pool reconcile ever runs.
+if [[ ! "$*" =~ "celery" ]]; then
+    collect_static_files
+else
+    echo_info "Skipping collectstatic (celery service)"
+fi
 
 # ============================================
-# Initialize Visitor Pool
+# Initialize Visitor Pool (web container ONLY)
 # ============================================
-echo_info "Initializing visitor pool..."
-python manage.py create_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" || true
-# Boot fail-safe: quarantine every slot as unverified, wipe+verify each;
-# only verified-clean slots return to circulation (visitor-slot isolation).
-python manage.py reconcile_visitor_slots 2>&1 | grep -v "ERRO\|WARN" || true
-echo_success "Visitor pool ready (only verified-clean slots distributable)"
+# NEVER in celery services: they run this entrypoint as root, and a
+# root-run reconcile wipes + re-clones visitor workspaces as root,
+# leaving root-owned files under /app/data/users that the scitex-user
+# wipe cannot remove later (the original PermissionError('revision.tex')
+# failure mode the quarantine fail-safe was built against).
+if [[ ! "$*" =~ "celery" ]]; then
+    echo_info "Initializing visitor pool..."
+    python manage.py create_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" || true
+    # Boot fail-safe: quarantine every slot as unverified, wipe+verify each;
+    # only verified-clean slots return to circulation (visitor-slot isolation).
+    python manage.py reconcile_visitor_slots 2>&1 | grep -v "ERRO\|WARN" || true
+    echo_success "Visitor pool ready (only verified-clean slots distributable)"
+else
+    echo_info "Skipping visitor pool init (celery service)"
+fi
 
 # ============================================
 # Install Workspace Apps (bridge resolution)

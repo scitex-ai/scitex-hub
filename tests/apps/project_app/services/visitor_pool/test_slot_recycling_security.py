@@ -97,6 +97,14 @@ def failing_clone(template_id, dest, git_strategy=None):
     raise RuntimeError("template clone exploded")
 
 
+def falsy_clone(template_id, dest, git_strategy=None):
+    """Clone that returns False WITHOUT raising — the exact 2026-07-08
+    production failure mode (scitex_template swallows the underlying
+    ModuleNotFoundError from a broken scitex-writer wheel and returns
+    False)."""
+    return False
+
+
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -219,6 +227,17 @@ def clone_failure_reset(visitor_slot):
 
 
 @pytest.fixture
+def falsy_clone_reset(visitor_slot):
+    """Reset over the 2026-07-08 prod failure: clone returns falsy."""
+    user, allocation = visitor_slot
+    ok = reset_and_verify_slot(
+        allocation, gitea_client=FakeGiteaClient(), clone_fn=falsy_clone
+    )
+    allocation.refresh_from_db()
+    return ok, allocation
+
+
+@pytest.fixture
 def gitea_delete_failure_reset(visitor_slot):
     user, allocation = visitor_slot
     client = FailingDeleteGiteaClient({"visitor-001": ["default-project"]})
@@ -265,6 +284,38 @@ class TestQuarantineOnFailure:
     def test_clone_failure_records_reason(self, clone_failure_reset):
         # Arrange
         ok, allocation = clone_failure_reset
+        # Act
+        reason = allocation.quarantine_reason.lower()
+        # Assert
+        assert "clone" in reason
+
+    def test_falsy_clone_reset_reports_failure(self, falsy_clone_reset):
+        # Arrange
+        ok, allocation = falsy_clone_reset
+        # Act
+        outcome = ok
+        # Assert
+        assert outcome is False
+
+    def test_falsy_clone_quarantines_slot(self, falsy_clone_reset):
+        # Arrange
+        ok, allocation = falsy_clone_reset
+        # Act
+        quarantined = allocation.quarantined
+        # Assert
+        assert quarantined is True
+
+    def test_falsy_clone_keeps_slot_not_ready(self, falsy_clone_reset):
+        # Arrange
+        ok, allocation = falsy_clone_reset
+        # Act
+        ready = allocation.workspace_ready
+        # Assert
+        assert ready is False
+
+    def test_falsy_clone_records_clone_reason(self, falsy_clone_reset):
+        # Arrange
+        ok, allocation = falsy_clone_reset
         # Act
         reason = allocation.quarantine_reason.lower()
         # Assert
