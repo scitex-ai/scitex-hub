@@ -20,9 +20,37 @@
    767px matches the workspace-sidebar mobile breakpoint so no width
    range mixes rail + dock. Desktop keeps the sidebar as-is. */
 @media (max-width: 767px) {
+  /* Single source of truth for the scroll clearance the fixed dock
+     needs (operator iPhone report 2026-07-08: the last tile row must
+     scroll fully ABOVE the dock): dock box (~62px) + its 14px bottom
+     offset + a breathing gap + the iOS home-bar inset. */
+  :root {
+    --launcher-dock-height: 64px;
+    --launcher-dock-clearance: calc(
+      var(--launcher-dock-height) + 14px + 24px +
+        env(safe-area-inset-bottom, 0px)
+    );
+  }
+
+  /* global-base.css sizes body.workspace-page with 100vh — on iOS
+     Safari that is the LARGE viewport, so the shell's bottom edge
+     (and any clearance inside it) hides under the dynamic toolbar
+     while the fixed dock floats above it. dvh tracks the VISUAL
+     viewport; browsers without dvh keep the 100vh fallback. */
+  body.workspace-page:has(.launcher) {
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+
   body:has(.launcher) .workspace-sidebar,
   body:has(.launcher) .sidebar-backdrop {
     display: none !important;
+  }
+
+  /* The launcher scrolls inside #main-content (workspace-shell.css);
+     keep programmatic scrolls/anchors clear of the dock too. */
+  body:has(.launcher) #main-content {
+    scroll-padding-bottom: var(--launcher-dock-clearance);
   }
 
   /* Dock fixed to the bottom of the VIEWPORT. launcher.ts re-parents
@@ -71,13 +99,13 @@
 
   /* Keep the last tile row above the fixed dock */
   .launcher {
-    padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: var(--launcher-dock-clearance);
   }
 }
 
 @media (max-width: 640px) {
   .launcher {
-    padding: 22px 14px calc(110px + env(safe-area-inset-bottom, 0px));
+    padding: 22px 14px var(--launcher-dock-clearance);
   }
 
   .launcher-greeting h1 {
