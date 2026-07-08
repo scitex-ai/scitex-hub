@@ -37,6 +37,52 @@ export function hideTerminalOverlay(containerEl: HTMLElement): void {
   containerEl.querySelector(".terminal-restart-overlay")?.remove();
 }
 
+/** Build an <i> icon element with the given Font Awesome classes. */
+function icon(faClasses: string): HTMLElement {
+  const el = document.createElement("i");
+  el.className = faClasses;
+  return el;
+}
+
+/** Build a button with an icon and a text label (no HTML injection). */
+function overlayButton(
+  className: string,
+  faClasses: string,
+  label: string,
+  onClick: () => void,
+): HTMLButtonElement {
+  const btn = document.createElement("button");
+  btn.className = className;
+  btn.appendChild(icon(faClasses));
+  btn.appendChild(document.createTextNode(` ${label}`));
+  btn.addEventListener("click", onClick);
+  return btn;
+}
+
+/** Build the shared overlay scaffold. `reason` may include text derived
+ * from server/WebSocket messages, so it is set via textContent — never
+ * interpolated into markup (CodeQL js/xss). */
+function buildOverlay(
+  containerEl: HTMLElement,
+  faClasses: string,
+  reason: string,
+  buttons: HTMLButtonElement[],
+): void {
+  hideTerminalOverlay(containerEl);
+  const overlay = document.createElement("div");
+  overlay.className = "terminal-restart-overlay";
+  const content = document.createElement("div");
+  content.className = "terminal-restart-content";
+  content.appendChild(icon(faClasses));
+  const message = document.createElement("p");
+  message.textContent = reason;
+  content.appendChild(message);
+  for (const btn of buttons) content.appendChild(btn);
+  overlay.appendChild(content);
+  containerEl.style.position = "relative";
+  containerEl.appendChild(overlay);
+}
+
 /** Show a prominent restart overlay over the terminal. */
 export function showTerminalRestartOverlay(
   containerEl: HTMLElement,
@@ -44,28 +90,21 @@ export function showTerminalRestartOverlay(
   onRestart: () => void,
   onNewTerminal: () => void,
 ): void {
-  hideTerminalOverlay(containerEl);
-  const overlay = document.createElement("div");
-  overlay.className = "terminal-restart-overlay";
-  overlay.innerHTML =
-    `<div class="terminal-restart-content">` +
-    `<i class="fas fa-exclamation-triangle"></i>` +
-    `<p>${reason}</p>` +
-    `<button class="terminal-restart-btn"><i class="fas fa-redo"></i> Restart Terminal</button>` +
-    `<button class="terminal-new-btn"><i class="fas fa-plus"></i> New Terminal</button>` +
-    `</div>`;
-  overlay
-    .querySelector(".terminal-restart-btn")
-    ?.addEventListener("click", () => {
+  buildOverlay(containerEl, "fas fa-exclamation-triangle", reason, [
+    overlayButton(
+      "terminal-restart-btn",
+      "fas fa-redo",
+      "Restart Terminal",
+      () => {
+        hideTerminalOverlay(containerEl);
+        onRestart();
+      },
+    ),
+    overlayButton("terminal-new-btn", "fas fa-plus", "New Terminal", () => {
       hideTerminalOverlay(containerEl);
-      onRestart();
-    });
-  overlay.querySelector(".terminal-new-btn")?.addEventListener("click", () => {
-    hideTerminalOverlay(containerEl);
-    onNewTerminal();
-  });
-  containerEl.style.position = "relative";
-  containerEl.appendChild(overlay);
+      onNewTerminal();
+    }),
+  ]);
 }
 
 /** Show a click-to-reconnect overlay over the terminal. */
@@ -74,21 +113,15 @@ export function showTerminalReconnectPrompt(
   reason: string,
   onReconnect: () => void,
 ): void {
-  hideTerminalOverlay(containerEl);
-  const overlay = document.createElement("div");
-  overlay.className = "terminal-restart-overlay";
-  overlay.innerHTML =
-    `<div class="terminal-restart-content">` +
-    `<i class="fas fa-plug"></i>` +
-    `<p>${reason}</p>` +
-    `<button class="terminal-reconnect-btn">` +
-    `<i class="fas fa-wifi"></i> Click to Reconnect</button></div>`;
-  overlay
-    .querySelector(".terminal-reconnect-btn")
-    ?.addEventListener("click", () => {
-      hideTerminalOverlay(containerEl);
-      onReconnect();
-    });
-  containerEl.style.position = "relative";
-  containerEl.appendChild(overlay);
+  buildOverlay(containerEl, "fas fa-plug", reason, [
+    overlayButton(
+      "terminal-reconnect-btn",
+      "fas fa-wifi",
+      "Click to Reconnect",
+      () => {
+        hideTerminalOverlay(containerEl);
+        onReconnect();
+      },
+    ),
+  ]);
 }

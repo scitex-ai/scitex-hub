@@ -101,6 +101,7 @@ class TerminalBroker:
     def _handle_client(self, client: socket.socket):
         """Handle a client connection."""
         session_id = None
+        msg: Optional[dict] = None
         try:
             while True:
                 length_data = client.recv(4)
@@ -131,7 +132,16 @@ class TerminalBroker:
                     session_id = response.get("session_id")
 
         except Exception as e:
-            logger.error(f"Client handler error: {e}", exc_info=True)
+            # Log the exception TYPE + message action only. Spawn handling
+            # composes provider env containing the user's API key, so no
+            # raw message payload or exception interpolation may reach the
+            # log (CodeQL py/clear-text-logging-sensitive-data).
+            action = msg.get("action", "?") if isinstance(msg, dict) else "?"
+            logger.error(
+                "Client handler error during action=%r: %s",
+                action,
+                type(e).__name__,
+            )
             try:
                 self._send_message(
                     client,

@@ -24,12 +24,7 @@ from apps.workspace.console_app.views.terminal.config import SLURM_TIME_LIMIT_SE
 from ._alloc_cooldown import _get_cooldown, _hard_fail_info
 from ._handler_utils import send_state
 from ._paths import broker_user_data_root
-from ._shell_recovery import (  # noqa: F401 — re-exported for broker.py/tests
-    _auto_recover_allocation,
-    _make_shell_exit_cb,
-    _respawn_shell,
-    handle_restart_shared,
-)
+from ._shell_recovery import _make_shell_exit_cb, handle_restart_shared
 from .allocation import Allocation, AllocationState
 from .session import SessionState
 from .shell import Shell

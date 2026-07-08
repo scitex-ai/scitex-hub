@@ -20,4 +20,7 @@ def _get_cooldown(fail_count: int) -> int:
     return min(_HARD_FAIL_COOLDOWN_BASE * (2**fail_count), _HARD_FAIL_COOLDOWN_MAX)
 
 
+# Shared state consumed by _handlers_shared and _shell_recovery.
+__all__ = ["_hard_fail_info", "_get_cooldown"]
+
 # EOF

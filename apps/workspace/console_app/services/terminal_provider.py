@@ -252,11 +252,14 @@ def resolve_provider_env(
         # must hit a model alias the gateway actually serves.
         env["ANTHROPIC_MODEL"] = entry["model"]
         env["ANTHROPIC_SMALL_FAST_MODEL"] = entry["model"]
+    # Log NOTHING derived from ``env`` — it contains the API key, and any
+    # expression over it is a clear-text-logging sink (CodeQL
+    # py/clear-text-logging-sensitive-data). Provider id + username fully
+    # identify what was injected via the registry.
     logger.info(
-        "Terminal provider env composed: provider=%s user=%s vars=%s",
+        "Terminal provider env composed: provider=%s user=%s",
         provider_id,
         username,
-        sorted(env),  # names only — values (the key) are never logged
     )
     return env
 
