@@ -24,6 +24,7 @@ _CATEGORY_MAP = {
     "store": "utility",
     "discovery": "social",
     "docs": "reference",
+    "todo": "utility",
 }
 
 # Module descriptions
@@ -38,6 +39,7 @@ _DESCRIPTIONS = {
     "store": "Browse, install, and manage workspace modules.",
     "discovery": "Discover public repositories, researchers, and organizations across the SciTeX community.",
     "docs": "Documentation hub — Python packages, MCP tools, API reference, and self-hosting guide.",
+    "todo": "Read-only board view of your project's scitex-todo task store — kanban columns, dependency graph, and status colors.",
 }
 
 # Modules under active development
