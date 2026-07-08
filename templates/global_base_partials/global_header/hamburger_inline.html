@@ -1,0 +1,50 @@
+<!-- Inline handler: the mobile hamburger must work even if the Vite JS
+     bundle fails to load (2026-07-08 iPhone field report: hamburger dead on
+     the cookie-consent page). Same failure mode the visitor-menu and
+     badge-popover inline fallbacks in global_header.html already guard
+     against. header.ts checks data-inline-handler and skips its own wiring,
+     so a healthy bundle never double-toggles the menu. -->
+<!-- hook-bypass: inline-script — primary mobile nav must not depend on Vite -->
+<script>
+(function() {
+    var btn = document.getElementById('mobile-hamburger-btn');
+    var menu = document.getElementById('mobile-header-menu');
+    if (!btn || !menu) return;
+    btn.setAttribute('data-inline-handler', 'true');
+    function setIcon(open) {
+        var icon = btn.querySelector('i');
+        if (icon) icon.className = open ? 'fas fa-times' : 'fas fa-bars';
+    }
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation(); // keep header collapse handlers out of it
+        // This inline listener registers during HTML parse, BEFORE any
+        // (deferred) module bundle runs. Stop later-registered listeners:
+        // a STALE deployed header.js (predating the data-inline-handler
+        // guard) would otherwise toggle the menu a second time per tap,
+        // closing it again instantly — the exact dead-UI failure this
+        // fallback exists to prevent.
+        e.stopImmediatePropagation();
+        setIcon(menu.classList.toggle('open'));
+    });
+    // Close the menu when a navigation link is tapped
+    menu.querySelectorAll('a.mobile-menu-item').forEach(function(link) {
+        link.addEventListener('click', function() {
+            menu.classList.remove('open');
+            setIcon(false);
+        });
+    });
+    // Theme toggle inside the menu delegates to the desktop toggle
+    var themeBtn = document.getElementById('mobile-theme-toggle-btn');
+    if (themeBtn) {
+        themeBtn.addEventListener('click', function(e) {
+            // Suppress a stale bundle's duplicate listener (which would
+            // toggle the theme a second time, visually a no-op).
+            e.stopImmediatePropagation();
+            var desktopToggle = document.getElementById('theme-toggle');
+            if (desktopToggle) desktopToggle.click();
+            menu.classList.remove('open');
+            setIcon(false);
+        });
+    }
+})();
+</script>

@@ -14,6 +14,12 @@ function initializeMobileHamburger(): void {
   const menu = document.getElementById("mobile-header-menu");
   if (!btn || !menu) return;
 
+  // Skip if the inline fallback already wired the toggle
+  // (global_header/hamburger_inline.html sets data-inline-handler="true"
+  // so the hamburger works even when this bundle fails to load; adding a
+  // second listener here would toggle the menu twice per tap = dead UI).
+  if (btn.hasAttribute("data-inline-handler")) return;
+
   btn.addEventListener("click", (e) => {
     e.stopPropagation(); // Prevent header collapse handlers from firing
     const isOpen = menu.classList.toggle("open");
@@ -221,116 +227,119 @@ function initializeHeader(): void {
   if (expiresAtSource) {
     const expiresAt = new Date(expiresAtSource);
     if (isNaN(expiresAt.getTime())) {
-      console.error("[header] Invalid visitor expiration date:", expiresAtSource);
+      console.error(
+        "[header] Invalid visitor expiration date:",
+        expiresAtSource,
+      );
       // Skip timer setup — date is unparseable
     } else if (visitorMenuToggle?.hasAttribute("data-inline-countdown")) {
       // Inline fallback countdown already running — skip to avoid duplicate timers
     } else {
-    const countdownSpan = document.getElementById("visitor-countdown");
-    const mobileCountdownSpan = document.getElementById(
-      "mobile-visitor-countdown",
-    );
-    const mobileHeaderCountdownSpan = document.getElementById(
-      "mobile-header-visitor-countdown",
-    );
+      const countdownSpan = document.getElementById("visitor-countdown");
+      const mobileCountdownSpan = document.getElementById(
+        "mobile-visitor-countdown",
+      );
+      const mobileHeaderCountdownSpan = document.getElementById(
+        "mobile-header-visitor-countdown",
+      );
 
-    function updateCountdown(): void {
-      const now = new Date();
-      const timeLeft = expiresAt.getTime() - now.getTime();
+      function updateCountdown(): void {
+        const now = new Date();
+        const timeLeft = expiresAt.getTime() - now.getTime();
 
-      if (timeLeft <= 0) {
-        // Session expired - show expired indicator
+        if (timeLeft <= 0) {
+          // Session expired - show expired indicator
+          if (countdownSpan) {
+            countdownSpan.textContent = "⏰ EXPIRED";
+            countdownSpan.style.color = "#f44336";
+          }
+          if (mobileCountdownSpan) {
+            mobileCountdownSpan.textContent = "EXPIRED";
+            mobileCountdownSpan.style.color = "#f44336";
+          }
+          if (mobileHeaderCountdownSpan) {
+            mobileHeaderCountdownSpan.textContent = "⏰ EXPIRED";
+            mobileHeaderCountdownSpan.style.color = "#f44336";
+          }
+
+          // Don't redirect if already on visitor management or auth pages
+          // This prevents redirect loops when user tries to sign in/up
+          const currentPath = window.location.pathname;
+          const noRedirectPaths = [
+            NAV_URLS.visitorExpired,
+            "/visitor-restart/",
+            "/visitor-pool-full/",
+            "/auth/", // All auth pages (signin, signup, etc.)
+          ];
+
+          const shouldSkipRedirect = noRedirectPaths.some((path) =>
+            currentPath.startsWith(path),
+          );
+
+          if (!shouldSkipRedirect) {
+            setTimeout(() => {
+              window.location.href = NAV_URLS.visitorExpired;
+            }, 2000);
+          }
+          return;
+        }
+
+        const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+        // Format: MM:SS or HH:MM:SS
+        let timeString: string;
+        if (hours > 0) {
+          timeString = `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        } else {
+          timeString = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        }
+
         if (countdownSpan) {
-          countdownSpan.textContent = "⏰ EXPIRED";
-          countdownSpan.style.color = "#f44336";
+          countdownSpan.textContent = `⏰ ${timeString}`;
+
+          // Color coding based on time remaining
+          if (timeLeft < 5 * 60 * 1000) {
+            // < 5 minutes: Red (urgent)
+            countdownSpan.style.color = "#f44336";
+          } else if (timeLeft < 15 * 60 * 1000) {
+            // < 15 minutes: Orange (warning)
+            countdownSpan.style.color = "#ff9800";
+          } else {
+            // > 15 minutes: Default color
+            countdownSpan.style.color = "inherit";
+          }
         }
+
+        // Update mobile hamburger menu countdown
         if (mobileCountdownSpan) {
-          mobileCountdownSpan.textContent = "EXPIRED";
-          mobileCountdownSpan.style.color = "#f44336";
+          mobileCountdownSpan.textContent = timeString;
+          if (timeLeft < 5 * 60 * 1000) {
+            mobileCountdownSpan.style.color = "#f44336";
+          } else if (timeLeft < 15 * 60 * 1000) {
+            mobileCountdownSpan.style.color = "#ff9800";
+          } else {
+            mobileCountdownSpan.style.color = "inherit";
+          }
         }
+
+        // Update mobile header bar countdown
         if (mobileHeaderCountdownSpan) {
-          mobileHeaderCountdownSpan.textContent = "⏰ EXPIRED";
-          mobileHeaderCountdownSpan.style.color = "#f44336";
-        }
-
-        // Don't redirect if already on visitor management or auth pages
-        // This prevents redirect loops when user tries to sign in/up
-        const currentPath = window.location.pathname;
-        const noRedirectPaths = [
-          NAV_URLS.visitorExpired,
-          "/visitor-restart/",
-          "/visitor-pool-full/",
-          "/auth/", // All auth pages (signin, signup, etc.)
-        ];
-
-        const shouldSkipRedirect = noRedirectPaths.some((path) =>
-          currentPath.startsWith(path),
-        );
-
-        if (!shouldSkipRedirect) {
-          setTimeout(() => {
-            window.location.href = NAV_URLS.visitorExpired;
-          }, 2000);
-        }
-        return;
-      }
-
-      const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-
-      // Format: MM:SS or HH:MM:SS
-      let timeString: string;
-      if (hours > 0) {
-        timeString = `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-      } else {
-        timeString = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-      }
-
-      if (countdownSpan) {
-        countdownSpan.textContent = `⏰ ${timeString}`;
-
-        // Color coding based on time remaining
-        if (timeLeft < 5 * 60 * 1000) {
-          // < 5 minutes: Red (urgent)
-          countdownSpan.style.color = "#f44336";
-        } else if (timeLeft < 15 * 60 * 1000) {
-          // < 15 minutes: Orange (warning)
-          countdownSpan.style.color = "#ff9800";
-        } else {
-          // > 15 minutes: Default color
-          countdownSpan.style.color = "inherit";
+          mobileHeaderCountdownSpan.textContent = `⏰ ${timeString}`;
+          if (timeLeft < 5 * 60 * 1000) {
+            mobileHeaderCountdownSpan.style.color = "#f44336";
+          } else if (timeLeft < 15 * 60 * 1000) {
+            mobileHeaderCountdownSpan.style.color = "#ff9800";
+          } else {
+            mobileHeaderCountdownSpan.style.color = "inherit";
+          }
         }
       }
 
-      // Update mobile hamburger menu countdown
-      if (mobileCountdownSpan) {
-        mobileCountdownSpan.textContent = timeString;
-        if (timeLeft < 5 * 60 * 1000) {
-          mobileCountdownSpan.style.color = "#f44336";
-        } else if (timeLeft < 15 * 60 * 1000) {
-          mobileCountdownSpan.style.color = "#ff9800";
-        } else {
-          mobileCountdownSpan.style.color = "inherit";
-        }
-      }
-
-      // Update mobile header bar countdown
-      if (mobileHeaderCountdownSpan) {
-        mobileHeaderCountdownSpan.textContent = `⏰ ${timeString}`;
-        if (timeLeft < 5 * 60 * 1000) {
-          mobileHeaderCountdownSpan.style.color = "#f44336";
-        } else if (timeLeft < 15 * 60 * 1000) {
-          mobileHeaderCountdownSpan.style.color = "#ff9800";
-        } else {
-          mobileHeaderCountdownSpan.style.color = "inherit";
-        }
-      }
-    }
-
-    // Update immediately and then every second
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
+      // Update immediately and then every second
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
     } // end else (valid date)
   }
 
