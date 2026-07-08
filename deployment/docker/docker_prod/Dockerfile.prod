@@ -398,12 +398,23 @@ RUN uv pip install --system --no-cache ".[all]"
 #   release-level fixes for the prod preview-compile race that this
 #   image needs to ship live here; Django consumer updated below to
 #   convert the new dataclass response to a JSON-serialisable dict.
+# 2026-07-08: scitex-writer 2.17.5 → 2.26.1 (repaired wheel — the
+#   2.18.0–2.26.0 wheels dropped src/scitex_writer/_dataclasses/config/
+#   from the sdist; 2.26.1 ships intact and the smoke test below
+#   verifies the import chain). Both 2.17.5 and 2.26.1 create the
+#   dot-prefixed {project}/.scitex/writer layout the visitor-pool
+#   marker verification checks (TEMPLATE_MARKER_RELPATH).
+# 2026-07-08: scitex-template>=0.6.8 pinned EXPLICITLY (previously only
+#   pulled transitively via scitex[all]) — 0.6.8 pairs with the
+#   .scitex/writer + .scitex/scholar dot-prefixed layout that the
+#   visitor-slot reset verification expects.
 RUN uv pip install --system --no-cache \
     "figrecipe==0.27.0" \
     "scitex-io==0.2.3" \
     "scitex-stats==0.2.6" \
     "scitex-plt==0.24.0" \
-    "scitex-writer==2.17.5" \
+    "scitex-writer==2.26.1" \
+    "scitex-template>=0.6.8" \
     "scitex-linter==0.3.1" \
     "scitex-ui==0.4.2" \
     "openalex-local==0.6.0" \
@@ -422,9 +433,10 @@ RUN uv pip install --system --no-cache \
 # `import scitex_writer.writer`. That broke ensure_workspace() →
 # scitex.template clone_scitex_minimal → EVERY visitor-slot
 # wipe+verify reset (all 16 slots quarantined, zero writable slots).
-# scitex-writer stays on the C0 pin (last verified-intact wheel);
-# bump the C0 pin deliberately once a repaired release ships, and the
-# smoke test below will fail the build if the wheel is broken again.
+# scitex-writer stays on the C0 pin (now 2.26.1, the repaired wheel);
+# bump the C0 pin deliberately per release, and the smoke test below
+# will fail the build if the wheel is broken again. scitex-template is
+# likewise excluded — it stays on the deliberate C0 pin (>=0.6.8).
 RUN uv pip install --system --no-cache --upgrade \
     "figrecipe" \
     "scitex-io" \
@@ -462,8 +474,16 @@ RUN pdflatex --version && \
 # _dataclasses → config). A wheel missing a subpackage (the
 # 2.18.0–2.26.0 PyPI breakage) fails the BUILD here instead of
 # quarantining all 16 slots at runtime.
+# NOTE: a REAL clone_scitex_minimal is deliberately NOT run here — the
+# writer workspace clone is a `git clone` of
+# github.com/ywatanabe1989/scitex-writer at call time, so it would make
+# the build depend on GitHub availability. The marker-layout contract
+# (.scitex/writer, TEMPLATE_MARKER_RELPATH) is instead reality-locked in
+# tests/apps/project_app/services/visitor_pool/
+# test_template_marker_reality.py.
 RUN python -c "import scitex_writer.writer" && \
     python -c "from scitex.template import clone_template" && \
+    python -c "from scitex_template import clone_scitex_minimal" && \
     echo "✅ scitex-writer + template import chain verified"
 
 # Back to root — root-init.sh handles UID fixup then drops to scitex

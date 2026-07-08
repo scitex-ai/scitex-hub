@@ -38,6 +38,16 @@ from .workspace_wipe import WorkspaceWipeError, wipe_directory_contents
 
 logger = logging.getLogger(__name__)
 
+# Single source of truth for the template marker layout (2026-07-08
+# incident: this was ``scitex/writer`` — no dot — while the REAL
+# ``scitex_template.clone_scitex_minimal`` / ``scitex_writer
+# .ensure_workspace`` create dot-prefixed ``.scitex/writer`` +
+# ``.scitex/scholar``, so verification never passed and every slot was
+# quarantined). Verified against scitex-writer 2.17.5 and 2.26.1.
+# tests/apps/project_app/services/visitor_pool/
+# test_template_marker_reality.py locks this against the real packages.
+TEMPLATE_MARKER_RELPATH = ".scitex/writer"
+
 
 class WorkspaceResetError(Exception):
     """A visitor workspace reset failed — the slot MUST be quarantined."""
@@ -46,10 +56,11 @@ class WorkspaceResetError(Exception):
 def verify_template_marker(project_path: Path) -> bool:
     """True if the cloned template's marker content is present.
 
-    Marker = ``scitex/writer/`` exists and is non-empty (same check the
-    pool initializer uses for readiness).
+    Marker = ``.scitex/writer/`` (:data:`TEMPLATE_MARKER_RELPATH`)
+    exists and is non-empty (same check the pool initializer uses for
+    readiness).
     """
-    writer_dir = Path(project_path) / "scitex" / "writer"
+    writer_dir = Path(project_path) / TEMPLATE_MARKER_RELPATH
     try:
         return writer_dir.is_dir() and any(writer_dir.iterdir())
     except OSError:
@@ -68,14 +79,14 @@ class WorkspaceManager:
         Ensure Manuscript DB record exists for a visitor project.
 
         Called after scitex_minimal template clone which already creates
-        scitex/writer/ with the full writer workspace.
+        .scitex/writer/ with the full writer workspace.
 
         Args:
             project: Project model instance
             project_path: Path to project root directory
         """
         try:
-            writer_dir = Path(project_path) / "scitex" / "writer"
+            writer_dir = Path(project_path) / TEMPLATE_MARKER_RELPATH
             manuscript_dir = writer_dir / "01_manuscript"
 
             if manuscript_dir.exists():
@@ -335,7 +346,8 @@ class WorkspaceManager:
         # VERIFY: template marker must exist after the clone.
         if not verify_template_marker(project_path):
             raise WorkspaceResetError(
-                f"Template marker missing after clone: {project_path}/scitex/writer"
+                f"Template marker missing after clone: "
+                f"{project_path}/{TEMPLATE_MARKER_RELPATH}"
             )
 
         from .pool_initialization import PoolInitializer

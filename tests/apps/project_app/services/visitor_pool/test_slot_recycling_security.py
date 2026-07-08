@@ -35,6 +35,7 @@ from apps.infra.project_app.services.visitor_pool.slot_lifecycle import (
     reset_and_verify_slot,
 )
 from apps.infra.project_app.services.visitor_pool.workspace_manager import (
+    TEMPLATE_MARKER_RELPATH,
     WorkspaceManager,
     WorkspaceResetError,
     verify_template_marker,
@@ -86,8 +87,16 @@ class UnreachableGiteaClient:
 
 
 def fake_clone(template_id, dest, git_strategy=None):
-    """Real (tiny) template clone: creates the marker the verifier checks."""
-    manuscript = Path(dest) / "scitex" / "writer" / "01_manuscript"
+    """Real (tiny) template clone mirroring the REAL layout.
+
+    The real ``clone_scitex_minimal`` creates dot-prefixed
+    ``.scitex/writer/`` (2026-07-08 incident: this fake created
+    ``scitex/writer`` — no dot — so the suite stayed green while
+    production verification failed on every slot). It MUST build the
+    marker path from TEMPLATE_MARKER_RELPATH, which
+    test_template_marker_reality.py locks against the real packages.
+    """
+    manuscript = Path(dest) / TEMPLATE_MARKER_RELPATH / "01_manuscript"
     manuscript.mkdir(parents=True, exist_ok=True)
     (manuscript / "main.tex").write_text("% fresh template\n")
     return True
@@ -369,7 +378,7 @@ class TestQuarantineOnFailure:
 def sabotaged_marker_allocation(ready_slot, clean_session):
     """DB says ready but the workspace marker was destroyed behind its back."""
     user, allocation = ready_slot
-    shutil.rmtree(_base_path_for(user.username) / "default-project" / "scitex")
+    shutil.rmtree(_base_path_for(user.username) / "default-project" / ".scitex")
     result = PoolAllocator._try_allocate_slot(1, clean_session, 1)
     allocation.refresh_from_db()
     return result, allocation
