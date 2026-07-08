@@ -70,6 +70,14 @@
   color: var(--text-primary, #f0f6fc);
   flex: 1;
   letter-spacing: -0.01em;
+  /* The brand is an <a> to the workspace home — keep the brand look */
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.sidebar-brand:hover {
+  color: var(--text-primary, #f0f6fc);
+  text-decoration: none;
 }
 
 .sidebar-brand-version {

@@ -11,6 +11,8 @@ REST API endpoints:
 
 from django.urls import path
 
+from apps.infra.workspace_app.views import workspace_shell
+
 from .views import (
     AgentSendMessageView,
     ChannelDetailView,
@@ -22,6 +24,11 @@ from .views import (
 app_name = "comms_app"
 
 urlpatterns = [
+    # Comms index — workspace shell with the comms module active (same
+    # pattern as discovery_app). Without this, the registry URL
+    # /apps/comms/ (launcher "Chat" tile) was a 404: the app only
+    # exposed API endpoints (nav-404 batch #3).
+    path("", workspace_shell, {"module": "comms"}, name="index"),
     # Channel endpoints
     path("api/channels/", ChannelListCreateView.as_view(), name="channel-list-create"),
     path(
