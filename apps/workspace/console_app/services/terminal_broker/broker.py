@@ -107,7 +107,9 @@ class TerminalBroker:
 
     def _handle_client(self, client: socket.socket):
         """Handle a client connection."""
-        session_id = None
+        # The broker-generated PTY id of the shell this client spawned —
+        # NOT an auth/session token (uuid4 from the spawn handlers).
+        spawned_pty_id = ""
         msg: Optional[dict] = None
         try:
             while True:
@@ -139,7 +141,7 @@ class TerminalBroker:
                     # uuid-shape validation breaks payload taint so the
                     # detach log below stays credential-free.
                     sid = str(response.get("session_id") or "")
-                    session_id = sid if _SESSION_ID_RE.fullmatch(sid) else ""
+                    spawned_pty_id = sid if _SESSION_ID_RE.fullmatch(sid) else ""
 
         except Exception as e:
             # Log the exception TYPE + message action only. Spawn handling
@@ -160,8 +162,10 @@ class TerminalBroker:
             except Exception:
                 pass
         finally:
-            if session_id:
-                logger.info(f"Session {session_id}: client detached")
+            if spawned_pty_id:
+                # Truncated PTY id, matching the "PTY xxxxxxxx:" style the
+                # rest of the broker logs use.
+                logger.info(f"PTY {spawned_pty_id[:8]}: client detached")
             try:
                 client.close()
             except Exception:
