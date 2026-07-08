@@ -125,8 +125,24 @@ def fundraising(request):
 
 
 def pricing(request):
-    """SciTeX pricing page - subscription plans and feature comparison."""
-    return render(request, "public_app/pages/pricing.html")
+    """SciTeX pricing page - subscription plans and feature comparison.
+
+    The rendered public state stays the truthful alpha-free framing.
+    Underneath, the page is Stripe-ready: paid plans come from
+    ``SCITEX_HUB_BILLING_PLANS`` (settings_commerce; prices are
+    tax-inclusive 税込 per 総額表示義務) and are shown to staff only
+    while billing is in testing (operator directive 2026-07-08).
+    """
+    from django.conf import settings
+
+    return render(
+        request,
+        "public_app/pages/pricing.html",
+        {
+            "billing_plans": settings.BILLING_PLANS,
+            "stripe_configured": bool(settings.STRIPE_SECRET_KEY),
+        },
+    )
 
 
 def keyboard_shortcuts(request):

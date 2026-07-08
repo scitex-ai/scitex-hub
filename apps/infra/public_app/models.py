@@ -419,3 +419,26 @@ class ServerMetrics(models.Model):
 
     def __str__(self):
         return f"Metrics at {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
+
+
+class BillingEvent(models.Model):
+    """Minimal record of signature-verified Stripe webhook events.
+
+    Scaffold only — entitlement logic (mapping events to subscriptions)
+    is a separate card (hub-billing-entitlement-minimal). ``event_id``
+    is the Stripe event id (``evt_...``) and is unique so webhook
+    retries stay idempotent.
+    """
+
+    event_id = models.CharField(max_length=255, unique=True)
+    event_type = models.CharField(max_length=255)
+    payload = models.JSONField()
+    received_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-received_at"]
+        verbose_name = "Billing Event"
+        verbose_name_plural = "Billing Events"
+
+    def __str__(self):
+        return f"{self.event_type} ({self.event_id})"

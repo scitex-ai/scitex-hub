@@ -1,0 +1,140 @@
+{% extends "global_base.html" %}
+
+{% load static %}
+{% load i18n %}
+
+{% block title %}
+    特定商取引法に基づく表記
+    - SciTeX
+{% endblock %}
+{% block meta_description %}
+    株式会社SciTeXの特定商取引法に基づく表記(販売業者、運営統括責任者、所在地、支払方法、返品・キャンセル等)。
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/tokushoho.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container py-4">
+        <header class="minimal-hero">
+            <h1 class="minimal-hero-title">{% trans "特定商取引法に基づく表記" %}</h1>
+        </header>
+    </div>
+    <section class="policy-section">
+        <div class="container">
+            <div class="policy-container">
+                <div class="policy-content">
+                    <table class="tokushoho-table">
+                        <tr>
+                            <th>{% trans "販売業者" %}</th>
+                            <td>{{ company_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "運営統括責任者" %}</th>
+                            <td>{{ company_representative }}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "所在地" %}</th>
+                            <td>
+                                {% if company_address %}
+                                    {{ company_address }}
+                                {% else %}
+                                    <span class="tokushoho-pending">{% trans "準備中 — 法人設立手続き中のため、確定後に掲載します。" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "電話番号" %}</th>
+                            <td>
+                                {% if company_phone %}
+                                    {{ company_phone }}
+                                {% else %}
+                                    <span class="tokushoho-pending">{% trans "準備中 — 確定後に掲載します。それまでのお問い合わせはメールにてお願いいたします。" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "メールアドレス" %}</th>
+                            <td>
+                                {% if company_contact_email %}
+                                    <a href="mailto:{{ company_contact_email }}">{{ company_contact_email }}</a>
+                                {% else %}
+                                    <span class="tokushoho-pending">{% trans "準備中 — 確定後に掲載します。" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "販売価格・対価" %}</th>
+                            <td>
+                                {% if billing_plans %}
+                                    <ul>
+                                        {% for plan in billing_plans %}
+                                            <li>
+                                                {{ plan.name }}: ¥{{ plan.price_tax_included }}{% trans "(税込)" %}
+                                                {% if plan.interval == "month" %}
+                                                    {% trans "/ 月" %}
+                                                {% elif plan.interval == "year" %}
+                                                    {% trans "/ 年" %}
+                                                {% endif %}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                    <p>
+                                        {% trans "最新の価格は" %}<a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "をご確認ください。価格はすべて税込(総額)表示です。" %}
+                                    </p>
+                                {% else %}
+                                    {% trans "有料プランは現在準備中です。提供開始時に、本ページおよび" %}<a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "に税込(総額)価格を掲載します。現在提供中の機能は無料でご利用いただけます。" %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "商品代金以外の必要料金" %}</th>
+                            <td>
+                                {% trans "消費税(表示価格はすべて税込です)。本サービスの利用に必要なインターネット接続料金・通信費はお客様のご負担となります。" %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "支払方法" %}</th>
+                            <td>{% trans "クレジットカード決済(Stripe)" %}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "支払時期" %}</th>
+                            <td>
+                                {% trans "都度払い: ご購入手続き完了時にお支払いが確定します。サブスクリプション(定期課金): 初回はお申し込み時、以降は各更新日に課金されます。" %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "サービス提供時期" %}</th>
+                            <td>{% trans "決済完了後、直ちにご利用いただけます。" %}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "返品・キャンセル" %}</th>
+                            <td>
+                                {# 返品・キャンセル特約 — draft by the business/legal owner (grant repo: business/scitex-kk/tokushoho-pricing-notes.md). Final operator/legal review required before live charging. #}
+                                <p>
+                                    {% trans "本サービスはデジタルコンテンツおよびオンラインサービスの性質上、提供開始後のお客様都合による返品・返金はお受けいたしません。" %}
+                                </p>
+                                <p>
+                                    {% trans "サブスクリプション(定期課金)はマイページからいつでも解約でき、解約手続き後は次回更新分の課金が停止します。既にお支払いいただいた利用期間分の日割り返金は行いません。" %}
+                                </p>
+                                <p>{% trans "無料トライアル期間中に解約された場合、料金は発生しません。" %}</p>
+                                <p>
+                                    {% trans "当社の責めに帰すべき事由によりサービスを提供できなかった場合は、法令に従い対応いたします。" %}
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "動作環境" %}</th>
+                            <td>
+                                {% trans "モダンブラウザの最新版(Google Chrome、Mozilla Firefox、Apple Safari、Microsoft Edge)およびインターネット接続環境。" %}
+                            </td>
+                        </tr>
+                    </table>
+                    <p class="tokushoho-note">
+                        {% trans "「準備中」の項目は、法人設立・オフィス確定等の手続き完了後、速やかに掲載します。" %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
