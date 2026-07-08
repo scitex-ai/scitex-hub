@@ -4,6 +4,8 @@
  * Only #ws-module-pane is replaced on tab click.
  */
 
+import { initNewPanels } from "@/components/workspace-panel-resizer";
+
 const STORAGE_KEY = "ws-active-module";
 const DEFAULT_MODULE = "home";
 const CONTENT_BASE = "/apps/workspace/content/";
@@ -45,6 +47,19 @@ async function switchModule(name: string): Promise<void> {
     pane.innerHTML = html;
     reLoadStyles(pane);
     reExecScripts(pane);
+    // Wire up resize handles inside the injected partial. Auto-init
+    // ran on DOMContentLoaded, long before this content existed —
+    // without the late init, injected [data-panel-resizer] /
+    // [data-v-resizer] handles show the resize cursor (CSS) but have
+    // no drag listeners (nav-404 batch #10). Same dance as
+    // module-tab-switcher.ts.
+    document.dispatchEvent(
+      new CustomEvent("workspace:module-injected", {
+        detail: { module: name },
+      }),
+    );
+    (window as any).initNewResizers?.();
+    initNewPanels();
     updateActiveTab(name);
     window._appNav?.push({ module: name });
     localStorage.setItem(STORAGE_KEY, name);
@@ -118,14 +133,30 @@ function initTabBar(): void {
   });
 }
 
+// Pane hints routed through /chat/ and /files/ — they select a shell
+// pane, not a registry module, so they must not be fetched as module
+// content (there is no /apps/workspace/content/chat/).
+const PANE_HINTS = ["chat", "editor"];
+
 function getInitialModule(): string {
-  // 1. From URL path: /apps/workspace/<module>/ or /workspace/<module>/
+  // 1. Server-rendered active module — set from the URL by the view.
+  //    Module index routes like /apps/discovery/ render the shell
+  //    directly and do NOT match the /workspace/<module>/ pattern
+  //    below; without this the shell fell through to localStorage and
+  //    loaded whatever module the user last used (usually "home"),
+  //    so the Discovery tile appeared to navigate to /apps/home/
+  //    (nav-404 batch #2).
+  const served = document
+    .getElementById("workspace-shell")
+    ?.getAttribute("data-active-module");
+  if (served && !PANE_HINTS.includes(served)) return served;
+  // 2. From URL path: /apps/workspace/<module>/ or /workspace/<module>/
   const pathMatch = location.pathname.match(/\/workspace\/([a-z0-9_-]+)\/?$/i);
-  if (pathMatch) return pathMatch[1];
-  // 2. From localStorage
+  if (pathMatch && !PANE_HINTS.includes(pathMatch[1])) return pathMatch[1];
+  // 3. From localStorage
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) return saved;
-  // 3. Default
+  // 4. Default
   return DEFAULT_MODULE;
 }
 
