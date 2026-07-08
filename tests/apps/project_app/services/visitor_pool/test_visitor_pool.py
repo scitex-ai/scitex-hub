@@ -3,20 +3,35 @@
 """Tests for visitor pool management.
 
 Tests cover:
-- Pool initialization and status
+- Pool status reporting
 - Visitor allocation and deallocation
 - Session reuse and expiration handling
+
+Security model (visitor-slot isolation audit 2026-07-07): allocation
+only serves slots that are verified clean (``workspace_ready=True``,
+``quarantined=False``) — so these tests bring slot 1 to that state via
+the real reset pipeline, with the Gitea client and template clone
+injected as tiny fakes through their seams. An expired allocation is
+NOT immediately reusable anymore: it is lazily released into the reset
+pipeline and only serves again after a verified re-clean.
 """
 
+import shutil
 from datetime import timedelta
+from pathlib import Path
 
 import pytest
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone
 
 from apps.infra.project_app.models import Project, VisitorAllocation
 from apps.infra.project_app.services.visitor_pool import VisitorPool
+from apps.infra.project_app.services.visitor_pool.slot_lifecycle import (
+    get_or_create_allocation,
+    reset_and_verify_slot,
+)
 
 
 class MockSession(dict):
@@ -34,198 +49,305 @@ class MockSession(dict):
         pass
 
 
+class FakeGiteaClient:
+    """In-memory Gitea client (no repos) for the reset pipeline."""
+
+    def list_repositories(self, username):
+        return []
+
+    def delete_repository(self, owner, repo):
+        return True
+
+
+def fake_clone(template_id, dest, git_strategy=None):
+    """Tiny real template clone: creates the marker the verifier checks."""
+    manuscript = Path(dest) / "scitex" / "writer" / "01_manuscript"
+    manuscript.mkdir(parents=True, exist_ok=True)
+    (manuscript / "main.tex").write_text("% fresh template\n")
+    return True
+
+
+def _make_slot_ready(visitor_number: int) -> VisitorAllocation:
+    """Bring a slot to the verified-clean, distributable state."""
+    allocation = get_or_create_allocation(visitor_number)
+    ok = reset_and_verify_slot(
+        allocation, gitea_client=FakeGiteaClient(), clone_fn=fake_clone
+    )
+    if not ok:
+        raise RuntimeError("test setup: slot reset must succeed")
+    allocation.refresh_from_db()
+    return allocation
+
+
+def _cleanup_workspace(username: str) -> None:
+    base = Path(settings.BASE_DIR) / "data" / "users" / username
+    if base.exists():
+        shutil.rmtree(base, ignore_errors=True)
+
+
+def _create_visitor_user_and_project():
+    """Ensure the visitor-001 user and its default project exist."""
+    user, _ = User.objects.get_or_create(
+        username="visitor-001",
+        defaults={"email": "visitor001@example.com"},
+    )
+    if not user.has_usable_password():
+        user.set_password("testpass123")
+        user.save()
+    project, _ = Project.objects.get_or_create(
+        slug="default-project",
+        owner=user,
+        defaults={"name": "Default Project"},
+    )
+    return user, project
+
+
 class TestVisitorPoolStatus(TestCase):
     """Test pool status reporting."""
 
-    def test_get_pool_status_returns_dict(self):
-        """Pool status returns expected keys."""
+    def test_get_pool_status_contains_expected_keys(self):
+        # Arrange
+        expected_keys = {"total", "allocated", "free", "expired"}
+        # Act
         status = VisitorPool.get_pool_status()
-
-        assert "total" in status
-        assert "allocated" in status
-        assert "free" in status
-        assert "expired" in status
+        # Assert
+        assert expected_keys <= set(status)
 
     def test_get_pool_status_total_matches_pool_size(self):
-        """Pool total matches configured pool size."""
+        # Arrange
+        expected_total = VisitorPool.POOL_SIZE
+        # Act
         status = VisitorPool.get_pool_status()
-        assert status["total"] == VisitorPool.POOL_SIZE
+        # Assert
+        assert status["total"] == expected_total
 
-    def test_get_pool_status_free_plus_allocated_equals_total(self):
-        """Free + allocated slots should approximately equal total."""
+    def test_get_pool_status_free_count_is_non_negative(self):
+        # Arrange
+        # (fresh test database: no allocations)
+        # Act
         status = VisitorPool.get_pool_status()
-        # Note: expired allocations can skew this, so we just check sanity
+        # Assert
         assert status["free"] >= 0
+
+    def test_get_pool_status_allocated_count_is_non_negative(self):
+        # Arrange
+        # (fresh test database: no allocations)
+        # Act
+        status = VisitorPool.get_pool_status()
+        # Assert
         assert status["allocated"] >= 0
 
 
 class TestVisitorAllocation(TestCase):
-    """Test visitor slot allocation."""
+    """Test visitor slot allocation (verified-clean slots only)."""
 
     def setUp(self):
-        """Ensure visitor-001 user and project exist."""
-        self.visitor_user, _ = User.objects.get_or_create(
-            username="visitor-001",
-            defaults={
-                "email": "visitor001@example.com",
-            },
-        )
-        if not self.visitor_user.has_usable_password():
-            self.visitor_user.set_password("testpass123")
-            self.visitor_user.save()
-
-        self.visitor_project, _ = Project.objects.get_or_create(
-            slug="default-project",
-            owner=self.visitor_user,
-            defaults={"name": "Default Project"},
-        )
-
-        # Clear any existing allocations for visitor-001
+        """Slot 1 exists and is verified clean (ready gate satisfied)."""
+        self.visitor_user, self.visitor_project = _create_visitor_user_and_project()
         VisitorAllocation.objects.filter(visitor_number=1).delete()
+        self.allocation = _make_slot_ready(1)
 
-    def test_allocate_visitor_success(self):
-        """Successfully allocate visitor slot."""
+    def tearDown(self):
+        _cleanup_workspace("visitor-001")
+
+    def test_allocate_verified_ready_slot_returns_project(self):
+        # Arrange
         session = MockSession("test-alloc-success")
-
+        # Act
         project, user = VisitorPool.allocate_visitor(session)
-
+        # Assert
         assert project is not None
-        assert user is not None
+
+    def test_allocate_verified_ready_slot_returns_visitor_user(self):
+        # Arrange
+        session = MockSession("test-alloc-success")
+        # Act
+        project, user = VisitorPool.allocate_visitor(session)
+        # Assert
+        assert user == self.visitor_user
+
+    def test_allocate_stores_allocation_token_in_session(self):
+        # Arrange
+        session = MockSession("test-session-data")
+        # Act
+        VisitorPool.allocate_visitor(session)
+        # Assert
         assert VisitorPool.SESSION_KEY_ALLOCATION_TOKEN in session
 
-    def test_allocate_visitor_stores_session_data(self):
-        """Allocation stores required data in session."""
+    def test_allocate_stores_project_id_in_session(self):
+        # Arrange
         session = MockSession("test-session-data")
-
-        project, user = VisitorPool.allocate_visitor(session)
-
-        if project:  # Only if allocation succeeded
-            assert VisitorPool.SESSION_KEY_PROJECT_ID in session
-            assert VisitorPool.SESSION_KEY_VISITOR_ID in session
-            assert VisitorPool.SESSION_KEY_ALLOCATION_TOKEN in session
-
-    def test_allocate_visitor_reuses_existing(self):
-        """Reuse existing allocation if still valid."""
-        session = MockSession("test-reuse")
-
-        # First allocation
-        project1, user1 = VisitorPool.allocate_visitor(session)
-
-        if project1:  # Only if allocation succeeded
-            token1 = session.get(VisitorPool.SESSION_KEY_ALLOCATION_TOKEN)
-
-            # Second allocation should reuse
-            project2, user2 = VisitorPool.allocate_visitor(session)
-
-            token2 = session.get(VisitorPool.SESSION_KEY_ALLOCATION_TOKEN)
-            assert token1 == token2  # Same allocation reused
-
-    def test_deallocate_visitor_clears_session(self):
-        """Deallocate visitor slot clears session data."""
-        session = MockSession("test-dealloc")
-
-        # Allocate first
+        # Act
         VisitorPool.allocate_visitor(session)
+        # Assert
+        assert VisitorPool.SESSION_KEY_PROJECT_ID in session
 
-        # Deallocate
+    def test_allocate_stores_visitor_id_in_session(self):
+        # Arrange
+        session = MockSession("test-session-data")
+        # Act
+        VisitorPool.allocate_visitor(session)
+        # Assert
+        assert VisitorPool.SESSION_KEY_VISITOR_ID in session
+
+    def test_allocate_visitor_reuses_existing_valid_allocation(self):
+        # Arrange
+        session = MockSession("test-reuse")
+        VisitorPool.allocate_visitor(session)
+        token_first = session.get(VisitorPool.SESSION_KEY_ALLOCATION_TOKEN)
+        # Act
+        VisitorPool.allocate_visitor(session)
+        token_second = session.get(VisitorPool.SESSION_KEY_ALLOCATION_TOKEN)
+        # Assert
+        assert token_first == token_second
+
+    def test_deallocate_visitor_removes_allocation_token(self):
+        # Arrange
+        session = MockSession("test-dealloc")
+        VisitorPool.allocate_visitor(session)
+        # Act
         VisitorPool.deallocate_visitor(session)
-
+        # Assert
         assert VisitorPool.SESSION_KEY_ALLOCATION_TOKEN not in session
+
+    def test_deallocate_visitor_removes_project_id(self):
+        # Arrange
+        session = MockSession("test-dealloc")
+        VisitorPool.allocate_visitor(session)
+        # Act
+        VisitorPool.deallocate_visitor(session)
+        # Assert
         assert VisitorPool.SESSION_KEY_PROJECT_ID not in session
+
+    def test_deallocate_visitor_removes_visitor_id(self):
+        # Arrange
+        session = MockSession("test-dealloc")
+        VisitorPool.allocate_visitor(session)
+        # Act
+        VisitorPool.deallocate_visitor(session)
+        # Assert
         assert VisitorPool.SESSION_KEY_VISITOR_ID not in session
 
 
 class TestVisitorAllocationExpiration(TestCase):
-    """Test handling of expired allocations."""
+    """Expired allocations enter the reset pipeline before reuse."""
 
     def setUp(self):
-        """Ensure visitor-001 user and project exist."""
-        self.visitor_user, _ = User.objects.get_or_create(
-            username="visitor-001",
-            defaults={"email": "visitor001@example.com"},
-        )
-        self.visitor_project, _ = Project.objects.get_or_create(
-            slug="default-project",
-            owner=self.visitor_user,
-            defaults={"name": "Default Project"},
-        )
-        # Clear existing allocations
+        """Slot 1 is ready, then made active-but-expired (dirty)."""
+        self.visitor_user, self.visitor_project = _create_visitor_user_and_project()
         VisitorAllocation.objects.filter(visitor_number=1).delete()
+        self.allocation = _make_slot_ready(1)
+        self.allocation.session_key = "old-session"
+        self.allocation.allocation_token = "expired-token"
+        self.allocation.expires_at = timezone.now() - timedelta(hours=1)
+        self.allocation.is_active = True
+        self.allocation.save()
 
-    def test_expired_allocation_allows_new_allocation(self):
-        """Expired allocation allows new allocation to same slot."""
-        # Create expired allocation
-        VisitorAllocation.objects.create(
-            visitor_number=1,
-            session_key="old-session",
-            allocation_token="expired-token",
-            expires_at=timezone.now() - timedelta(hours=1),
-            is_active=True,
+    def tearDown(self):
+        _cleanup_workspace("visitor-001")
+
+    def test_expired_allocation_is_not_served_before_reverify(self):
+        # Arrange
+        session = MockSession("new-session")
+        # Act: the expired slot is dirty — allocation must refuse it
+        project, user = VisitorPool.allocate_visitor(session)
+        # Assert
+        assert project is None
+
+    def test_expired_allocation_is_released_lazily_on_allocation_attempt(self):
+        # Arrange
+        session = MockSession("new-session")
+        # Act
+        VisitorPool.allocate_visitor(session)
+        self.allocation.refresh_from_db()
+        # Assert
+        assert (self.allocation.is_active, self.allocation.workspace_ready) == (
+            False,
+            False,
         )
 
-        # New session should be able to allocate
+    def test_expired_slot_serves_again_after_verified_reclean(self):
+        # Arrange: first attempt lazily releases the expired slot
         session = MockSession("new-session")
+        VisitorPool.allocate_visitor(session)
+        self.allocation.refresh_from_db()
+        # Act: the reset pipeline verifies the slot clean, then reallocate
+        reset_and_verify_slot(
+            self.allocation, gitea_client=FakeGiteaClient(), clone_fn=fake_clone
+        )
         project, user = VisitorPool.allocate_visitor(session)
-
+        # Assert
         assert project is not None
 
     def test_cleanup_expired_allocations_deactivates(self):
-        """Cleanup marks expired allocations as inactive."""
-        # Create expired allocation
-        VisitorAllocation.objects.filter(visitor_number=1).delete()
-        allocation = VisitorAllocation.objects.create(
-            visitor_number=1,
-            session_key="old-session",
-            allocation_token="expired-token",
-            expires_at=timezone.now() - timedelta(hours=1),
-            is_active=True,
-        )
-
+        # Arrange
+        # (setUp created an active, expired allocation)
+        # Act
         VisitorPool.cleanup_expired_allocations()
-
-        allocation.refresh_from_db()
-        assert not allocation.is_active
+        self.allocation.refresh_from_db()
+        # Assert
+        assert not self.allocation.is_active
 
 
 class TestPoolAllocatorEdgeCases(TestCase):
     """Test edge cases in pool allocation."""
 
-    def test_deallocate_without_allocation_is_safe(self):
-        """Deallocation is safe when no allocation exists."""
+    def test_deallocate_without_allocation_leaves_session_empty(self):
+        # Arrange
         session = MockSession("no-alloc")
-
-        # Should not raise
+        # Act: must not raise
         VisitorPool.deallocate_visitor(session)
+        # Assert
+        assert VisitorPool.SESSION_KEY_ALLOCATION_TOKEN not in session
 
-    def test_deallocate_with_invalid_token_is_safe(self):
-        """Deallocation handles invalid token gracefully."""
+    def test_deallocate_with_invalid_token_does_not_raise(self):
+        # Arrange
         session = MockSession("invalid-token-session")
         session[VisitorPool.SESSION_KEY_ALLOCATION_TOKEN] = "invalid-token-xyz"
-
-        # Should not raise
-        VisitorPool.deallocate_visitor(session)
+        # Act: must not raise (unknown token is logged, not fatal)
+        result = VisitorPool.deallocate_visitor(session)
+        # Assert
+        assert result is None
 
 
 class TestVisitorPoolConstants(TestCase):
     """Test visitor pool constants and configuration."""
 
-    def test_visitor_user_prefix(self):
-        """Visitor user prefix is correct."""
-        assert VisitorPool.VISITOR_USER_PREFIX == "visitor-"
+    def test_visitor_user_prefix_matches_convention(self):
+        # Arrange
+        expected_prefix = "visitor-"
+        # Act
+        prefix = VisitorPool.VISITOR_USER_PREFIX
+        # Assert
+        assert prefix == expected_prefix
 
-    def test_session_lifetime(self):
-        """Session lifetime is 1 hour."""
-        assert VisitorPool.SESSION_LIFETIME_HOURS == 1
+    def test_session_lifetime_is_one_hour(self):
+        # Arrange
+        expected_hours = 1
+        # Act
+        lifetime = VisitorPool.SESSION_LIFETIME_HOURS
+        # Assert
+        assert lifetime == expected_hours
 
-    def test_pool_size_positive(self):
-        """Pool size is at least 1."""
-        assert VisitorPool.POOL_SIZE >= 1
+    def test_pool_size_is_at_least_one(self):
+        # Arrange
+        minimum = 1
+        # Act
+        pool_size = VisitorPool.POOL_SIZE
+        # Assert
+        assert pool_size >= minimum
 
-    def test_session_keys_defined(self):
-        """All required session keys are defined."""
-        assert hasattr(VisitorPool, "SESSION_KEY_PROJECT_ID")
-        assert hasattr(VisitorPool, "SESSION_KEY_VISITOR_ID")
-        assert hasattr(VisitorPool, "SESSION_KEY_ALLOCATION_TOKEN")
+    def test_required_session_keys_are_defined(self):
+        # Arrange
+        key_names = (
+            "SESSION_KEY_PROJECT_ID",
+            "SESSION_KEY_VISITOR_ID",
+            "SESSION_KEY_ALLOCATION_TOKEN",
+        )
+        # Act
+        defined = tuple(hasattr(VisitorPool, name) for name in key_names)
+        # Assert
+        assert defined == (True, True, True)
 
 
 if __name__ == "__main__":
