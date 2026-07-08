@@ -40,7 +40,11 @@
                              class="sidebar-logo-icon" />
                     {% endif %}
                 </a>
-                <span class="sidebar-brand sidebar-label">SciT<span class="brand-e">e</span>X <small class="sidebar-brand-version">v{{ SCITEX_HUB_VERSION }}</small></span>
+                {# Brand text is a link: the logo <a> above is display:none in #}
+                {# this header (brand text replaces it), so the visible brand + #}
+                {# version must itself navigate to the workspace home (nav-404 #}
+                {# batch #7). #}
+                <a href="/" class="sidebar-brand sidebar-label" title="Workspace home">SciT<span class="brand-e">e</span>X <small class="sidebar-brand-version">v{{ SCITEX_HUB_VERSION }}</small></a>
                 <button class="sidebar-toggle-btn" id="sidebar-toggle" title="Toggle sidebar">
                     <svg class="sidebar-toggle-icon"
                          width="18"
@@ -132,12 +136,11 @@
                         <span class="sidebar-label">{{ mod.label }}</span>
                     </a>
                 {% endfor %}
-                <a href="/"
-                   class="sidebar-item sidebar-allapps-item"
-                   title="All apps">
-                    <i class="fas fa-border-all"></i>
-                    <span class="sidebar-label">All apps</span>
-                </a>
+                {# "All apps" removed (nav-404 batch #11): it pointed at "/" — #}
+                {# the exact same launcher the "Home" item above opens — so the #}
+                {# two items were indistinguishable duplicates. The launcher IS #}
+                {# the all-apps grid; visitors still stay inside the workspace #}
+                {# via Home (card hub-visitor-ux-allapps). #}
             </div>
             <!-- Bottom section: Search + AI Setup + User -->
             <div class="sidebar-bottom">
@@ -160,13 +163,14 @@
                         <!-- Visitor sessions: explicit Sign in / Sign up affordance
                              (operator-confirmed 2026-07-07 — the login path must
                              never be hidden behind the visitor username) -->
+                        {# Same structure as the sibling Sign up / End Session #}
+                        {# items — the old avatar-circle + 13px username style #}
+                        {# looked inconsistent next to them (nav-404 batch #8). #}
                         <a href="/auth/signin/"
-                           class="sidebar-user"
+                           class="sidebar-action-btn"
                            title="Sign in to your account">
-                            <span class="sidebar-user-avatar">
-                                <i class="fas fa-sign-in-alt"></i>
-                            </span>
-                            <span class="sidebar-label sidebar-username">Sign in</span>
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span class="sidebar-label">Sign in</span>
                         </a>
                         <a href="/auth/signup/"
                            class="sidebar-action-btn"
