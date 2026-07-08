@@ -163,9 +163,18 @@ class TerminalBroker:
                 pass
         finally:
             if spawned_pty_id:
-                # Truncated PTY id, matching the "PTY xxxxxxxx:" style the
-                # rest of the broker logs use.
-                logger.info(f"PTY {spawned_pty_id[:8]}: client detached")
+                # Re-derive the logged id from broker-OWNED state (the
+                # PTY object's own attribute), never from the client
+                # message/response path — provably untainted for CodeQL
+                # py/clear-text-logging-sensitive-data.
+                with self.lock:
+                    owned = self.sessions.get(spawned_pty_id) or self.shells.get(
+                        spawned_pty_id
+                    )
+                if owned is not None:
+                    logger.info(f"PTY {owned.pty_id[:8]}: client detached")
+                else:
+                    logger.info("Terminal client detached (PTY already closed)")
             try:
                 client.close()
             except Exception:
