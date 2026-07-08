@@ -108,6 +108,12 @@ def _build_tiles(request) -> list[dict]:
         seen.add(mod.name)
 
     # 2. Published store apps not in the registry (community apps).
+    # Apps in this branch were NOT loaded into the workspace registry
+    # (load_approved_apps registers every public app with a project at
+    # startup), so there is no route that can render them —
+    # /apps/<module_name>/ is not mounted and 404'd for installed apps
+    # (nav-404 batch #5). The store detail page is the only truthful
+    # navigation target until the app is registered.
     published = AppsModule.objects.filter(visibility="public").exclude(
         module_name__in=seen
     )
@@ -118,11 +124,7 @@ def _build_tiles(request) -> list[dict]:
                 "name": row.module_name,
                 "label": row.module_name,
                 "icon_fa": "fas fa-puzzle-piece",
-                "launch_url": (
-                    f"/apps/{row.module_name}/"
-                    if installed
-                    else f"/apps/store/{row.module_name}/"
-                ),
+                "launch_url": f"/apps/store/{row.module_name}/",
                 "category": row.category,
                 "description": row.short_description,
                 "is_installed": installed,

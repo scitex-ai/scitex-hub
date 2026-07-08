@@ -120,6 +120,14 @@ def load_single_app(app_module):
         default_enabled=False,  # User must install from app catalog
         ai_hint=app_module.short_description or "",
         license=_get_license(app_module),
+        # Explicit navigation URL. Without it ModuleConfig.get_url()
+        # defaults to /apps/<module_name>/, which is NOT a mounted
+        # route for user-published apps (only /apps/u/<module>/ and
+        # /apps/workspace/<module>/ exist) — so every launcher tile /
+        # sidebar link for a pip-installed user app 404'd (nav-404
+        # batch #5). The workspace shell serves ANY registered module
+        # via its partial_template, so it is the reliable target.
+        url=f"/apps/workspace/{app_module.module_name}/",
     )
     register_module(config)
     logger.info("[app_loader] Loaded approved app: %r", app_module.module_name)
