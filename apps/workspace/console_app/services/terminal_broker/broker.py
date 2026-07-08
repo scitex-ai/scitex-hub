@@ -12,6 +12,7 @@ import base64
 import json
 import logging
 import os
+import re
 import signal
 import socket
 import struct
@@ -24,6 +25,12 @@ from .session import TerminalSession
 logger = logging.getLogger(__name__)
 
 SOCKET_PATH = "/tmp/scitex-terminal-broker.sock"
+
+# Broker session ids are uuid4 strings — validate the shape before any
+# id reaches a log line so nothing tainted by message payloads (which may
+# route provider credentials) can be logged (CodeQL
+# py/clear-text-logging-sensitive-data).
+_SESSION_ID_RE = re.compile(r"\A[0-9a-fA-F-]{1,64}\Z")
 
 # Feature flag: when True, use shared sbatch allocation per (user, project)
 SHARED_ALLOCATION = os.environ.get(
@@ -129,7 +136,10 @@ class TerminalBroker:
                     self._send_message(client, response)
 
                 if msg.get("action") == "spawn" and response.get("status") == "ok":
-                    session_id = response.get("session_id")
+                    # uuid-shape validation breaks payload taint so the
+                    # detach log below stays credential-free.
+                    sid = str(response.get("session_id") or "")
+                    session_id = sid if _SESSION_ID_RE.fullmatch(sid) else ""
 
         except Exception as e:
             # Log the exception TYPE + message action only. Spawn handling
