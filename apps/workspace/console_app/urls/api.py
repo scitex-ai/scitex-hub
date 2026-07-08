@@ -15,8 +15,15 @@ from django.views.generic import RedirectView
 
 from .. import workspace_api as workspace_api_views
 from ..views import api as api_views
+from ..views.terminal.providers_api import api_terminal_providers
 
 urlpatterns = [
+    # Terminal model-provider picker (Option A model-agnostic sessions)
+    path(
+        "api/terminal/providers/",
+        api_terminal_providers,
+        name="api_terminal_providers",
+    ),
     # Workspace API endpoints (file-content redirects to shared workspace_api app)
     path(
         "api/file-content/<path:file_path>",

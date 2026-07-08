@@ -11,12 +11,20 @@ import {
 } from "./_pty-input-handlers";
 import { handleCaptureRequest } from "./_on-site-capture";
 import { classifyCloseCode } from "./_close-codes";
+import {
+  getTerminalThemeFromCSS,
+  hideTerminalOverlay,
+  showTerminalReconnectPrompt,
+  showTerminalRestartOverlay,
+} from "./_pty-ui-helpers";
 
 export class PTYTerminal {
   private term: any;
   private ws: WebSocket | null = null;
   private projectId: number;
   private tmuxSession: string;
+  /** Model-provider id for this session (server-validated; "" = default). */
+  private provider: string;
   private containerEl: HTMLElement;
   private imageContainer: HTMLElement | null = null;
   private readyPromise: Promise<void>;
@@ -30,9 +38,11 @@ export class PTYTerminal {
     containerEl: HTMLElement,
     projectId: number,
     tmuxSession: string = "scitex-0",
+    provider: string = "",
   ) {
     this.projectId = projectId;
     this.tmuxSession = tmuxSession;
+    this.provider = provider;
     this.containerEl = containerEl;
 
     this.readyPromise = new Promise<void>((resolve) => {
@@ -66,7 +76,7 @@ export class PTYTerminal {
       cursorBlink: true,
       fontSize: 14,
       fontFamily: "'JetBrains Mono', 'Monaco', 'Menlo', monospace",
-      theme: this.getThemeFromCSS(),
+      theme: getTerminalThemeFromCSS(),
       allowProposedApi: true,
       scrollback: 10000,
     });
@@ -271,57 +281,26 @@ export class PTYTerminal {
       : "terminal-status-badge";
   }
 
-  /** Show/hide a prominent restart overlay over the terminal */
+  /** Show a prominent restart overlay over the terminal */
   private showRestartOverlay(reason: string): void {
-    this.hideRestartOverlay();
-    const overlay = document.createElement("div");
-    overlay.className = "terminal-restart-overlay";
-    overlay.innerHTML =
-      `<div class="terminal-restart-content">` +
-      `<i class="fas fa-exclamation-triangle"></i>` +
-      `<p>${reason}</p>` +
-      `<button class="terminal-restart-btn"><i class="fas fa-redo"></i> Restart Terminal</button>` +
-      `<button class="terminal-new-btn"><i class="fas fa-plus"></i> New Terminal</button>` +
-      `</div>`;
-    overlay
-      .querySelector(".terminal-restart-btn")
-      ?.addEventListener("click", () => {
-        this.hideRestartOverlay();
-        this.restart();
-      });
-    overlay
-      .querySelector(".terminal-new-btn")
-      ?.addEventListener("click", () => {
-        this.hideRestartOverlay();
-        document.querySelector<HTMLButtonElement>(".terminal-tab-new")?.click();
-      });
-    this.containerEl.style.position = "relative";
-    this.containerEl.appendChild(overlay);
+    showTerminalRestartOverlay(
+      this.containerEl,
+      reason,
+      () => this.restart(),
+      () =>
+        document.querySelector<HTMLButtonElement>(".terminal-tab-new")?.click(),
+    );
   }
 
   private hideRestartOverlay(): void {
-    this.containerEl.querySelector(".terminal-restart-overlay")?.remove();
+    hideTerminalOverlay(this.containerEl);
   }
 
   private showReconnectPrompt(reason: string): void {
-    this.hideRestartOverlay();
-    const overlay = document.createElement("div");
-    overlay.className = "terminal-restart-overlay";
-    overlay.innerHTML =
-      `<div class="terminal-restart-content">` +
-      `<i class="fas fa-plug"></i>` +
-      `<p>${reason}</p>` +
-      `<button class="terminal-reconnect-btn">` +
-      `<i class="fas fa-wifi"></i> Click to Reconnect</button></div>`;
-    overlay
-      .querySelector(".terminal-reconnect-btn")
-      ?.addEventListener("click", () => {
-        this._reconnectAttempt = 0;
-        this.hideRestartOverlay();
-        this.connect();
-      });
-    this.containerEl.style.position = "relative";
-    this.containerEl.appendChild(overlay);
+    showTerminalReconnectPrompt(this.containerEl, reason, () => {
+      this._reconnectAttempt = 0;
+      this.connect();
+    });
   }
 
   /** Send browser notification for background tab awareness */
@@ -337,7 +316,10 @@ export class PTYTerminal {
 
   private connect(): void {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws/console/terminal/?project_id=${this.projectId}&tmux_session=${this.tmuxSession}`;
+    const providerParam = this.provider
+      ? `&provider=${encodeURIComponent(this.provider)}`
+      : "";
+    const wsUrl = `${protocol}//${window.location.host}/ws/console/terminal/?project_id=${this.projectId}&tmux_session=${this.tmuxSession}${providerParam}`;
 
     console.log("[PTY] Connecting to:", wsUrl);
     this.startSpinner();
@@ -454,36 +436,9 @@ export class PTYTerminal {
     }
   }
 
-  private getThemeFromCSS(): any {
-    const style = getComputedStyle(document.documentElement);
-    const g = (name: string) => style.getPropertyValue(name).trim();
-    return {
-      background: g("--terminal-bg"),
-      foreground: g("--terminal-fg"),
-      cursor: g("--terminal-cursor"),
-      cursorAccent: g("--terminal-cursor-accent"),
-      black: g("--terminal-black"),
-      red: g("--terminal-red"),
-      green: g("--terminal-green"),
-      yellow: g("--terminal-yellow"),
-      blue: g("--terminal-blue"),
-      magenta: g("--terminal-magenta"),
-      cyan: g("--terminal-cyan"),
-      white: g("--terminal-white"),
-      brightBlack: g("--terminal-bright-black"),
-      brightRed: g("--terminal-bright-red"),
-      brightGreen: g("--terminal-bright-green"),
-      brightYellow: g("--terminal-bright-yellow"),
-      brightBlue: g("--terminal-bright-blue"),
-      brightMagenta: g("--terminal-bright-magenta"),
-      brightCyan: g("--terminal-bright-cyan"),
-      brightWhite: g("--terminal-bright-white"),
-    };
-  }
-
   public updateTheme(): void {
     if (!this.term) return;
-    this.term.options.theme = this.getThemeFromCSS();
+    this.term.options.theme = getTerminalThemeFromCSS();
   }
 
   public executeCommand(command: string): void {

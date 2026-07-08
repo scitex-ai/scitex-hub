@@ -75,6 +75,15 @@ LLM_PROVIDERS: dict[str, dict] = {
             "deepseek-reasoner",
         ],
     },
+    "mimo": {
+        # Xiaomi MiMo token plan — consumed by the terminal model-provider
+        # picker (Anthropic-compatible endpoint; the gateway serves its
+        # default model, hence no curated chat models here yet).
+        "display": "Xiaomi MiMo",
+        "needs_key": True,
+        "model_prefix": "",
+        "curated_models": [],
+    },
     "openrouter": {
         "display": "OpenRouter",
         "needs_key": True,
@@ -97,7 +106,7 @@ ALL_LLM_SERVICE_IDS: set[str] = set(LLM_PROVIDERS) | set(_LEGACY_ALIASES)
 
 # Cache key includes litellm version + curated list revision so changes invalidate cache.
 _LITELLM_VERSION = importlib.metadata.version("litellm")
-_CURATED_REVISION = "2"  # bump when curated_models lists change
+_CURATED_REVISION = "3"  # bump when curated_models lists change
 _CACHE_KEY = f"llm_providers_v{_LITELLM_VERSION.replace('.', '_')}_r{_CURATED_REVISION}"
 
 
