@@ -903,3 +903,4 @@ singularity/
 deployment/docker/docker_prod/bin/
 
 .claude/
+.worktrees/
