@@ -29,15 +29,18 @@
 }
 
 /* Tappable visitor badge popover: occupancy + Sign up / Log in prompt.
-   Fixed position: the badge lives in the compact mobile header bar and
-   must not depend on an ancestor positioning context. */
+   Fixed position + re-parented to <body> by the inline header script:
+   inside .global-header (z-index:1000) it stacked BELOW the mobile
+   sidebar rail (1010) / drawer (1100); as a <body> child its own
+   z-index applies globally. top/left here are defaults only — the
+   script clamps them to the badge + viewport on open. */
 .header-visitor-badge-popover {
   display: none;
   position: fixed;
   top: 52px;
   left: 8px;
   z-index: 10001;
-  max-width: 300px;
+  max-width: min(300px, calc(100vw - 16px));
   padding: 12px 14px;
   border-radius: 10px;
   background: var(--bg-page);

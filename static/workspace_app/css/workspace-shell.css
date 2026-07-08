@@ -193,11 +193,21 @@
 }
 
 /* ── Module pane: full width for app content ──── */
+/* overflow-y:auto is load-bearing: `body.workspace-page #main-content`
+   (global-base.css) sets overflow:hidden, and it beats the generic
+   `.workspace-pane #main-content { overflow:auto }` on specificity —
+   leaving document-style module pages (the launcher home) with their
+   content trapped in a non-scrolling box. Taps worked but touch
+   swipes/wheel did nothing (operator's iPhone report 2026-07-08).
+   Full-height modules are unaffected: their inner flex containers are
+   height-constrained, so #main-content never overflows there. */
 #pane-module #main-content {
   width: 100%;
   max-width: none;
   margin: 0;
   padding: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ── Mobile: stack editor split vertically ─────────────────── */

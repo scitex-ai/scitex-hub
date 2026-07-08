@@ -33,8 +33,11 @@ export function showReadonlyVisitorToast(
   const loginUrl =
     payload.login_url ||
     `/auth/login/?next=${encodeURIComponent(window.location.pathname)}`;
+  // Truthful generic fallback only — the specific reason (pool full vs
+  // slots being prepared) always comes from the backend's `detail`.
   const detail =
-    payload.detail || "Visitor pool is full — you are browsing read-only.";
+    payload.detail ||
+    "No writable visitor slot is available right now — you are browsing read-only.";
 
   const toast = document.createElement("div");
   toast.id = TOAST_ID;
