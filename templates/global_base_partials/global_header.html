@@ -407,8 +407,14 @@
                           id="mobile-header-visitor-countdown">⏰ --:--</span>
                 {% endif %}
             </button>
+            {# Inline hidden attr is load-bearing: the popover is re-parented #}
+            {# to <body> by the script below, and its default-hidden state must #}
+            {# NOT depend on the external stylesheet — with a stale/failed CSS #}
+            {# bundle the popover otherwise renders as a raw text blob over the #}
+            {# header on every page (nav-404 batch #6, double-banner report). #}
             <div class="header-visitor-badge-popover"
                  id="header-visitor-badge-popover"
+                 hidden
                  role="dialog"
                  aria-label="Visitor session details">
                 {% if is_readonly %}
@@ -456,9 +462,14 @@
                     );
                     pop.style.left = left + 'px';
                 }
+                // The hidden attribute (set in the markup) is the CSS-free
+                // safety net: keep it in sync with .open so the popover can
+                // never sit visible-but-unstyled when the stylesheet is
+                // stale or fails to load.
                 badge.addEventListener('click', function(e) {
                     e.stopPropagation();
                     var open = pop.classList.toggle('open');
+                    if (open) { pop.removeAttribute('hidden'); } else { pop.setAttribute('hidden', ''); }
                     badge.setAttribute('aria-expanded', open ? 'true' : 'false');
                     if (open) placePopover();
                 });
@@ -468,6 +479,7 @@
                 document.addEventListener('click', function(e) {
                     if (!badge.contains(e.target) && !pop.contains(e.target)) {
                         pop.classList.remove('open');
+                        pop.setAttribute('hidden', '');
                         badge.setAttribute('aria-expanded', 'false');
                     }
                 });
