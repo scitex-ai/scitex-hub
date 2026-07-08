@@ -28,7 +28,16 @@ function getKnownModules(): string[] {
 
 let KNOWN_MODULES: string[] = [];
 
+// Module names are slugs (registry names, dev__owner__repo). The name can
+// arrive from DOM attributes / localStorage, so gate it before it reaches
+// the fetch URL or any DOM sink (CodeQL js/xss-through-dom).
+const MODULE_NAME_RE = /^[a-z0-9_-]+$/i;
+
 async function switchModule(name: string): Promise<void> {
+  if (!MODULE_NAME_RE.test(name)) {
+    console.error("[workspace-shell] Refusing invalid module name:", name);
+    return;
+  }
   const pane = document.getElementById("ws-module-pane");
   const loading = document.getElementById("ws-module-loading");
   if (!pane) return;
@@ -71,9 +80,17 @@ async function switchModule(name: string): Promise<void> {
     if (mainEl) mainEl.setAttribute("data-app-accent", name);
   } catch (err) {
     console.error("[workspace-shell] Failed to load module:", name, err);
-    pane.innerHTML = `<div style="padding:2rem;color:var(--text-muted)">
-      <i class="fas fa-exclamation-triangle"></i> Failed to load ${name}.
-    </div>`;
+    // Build the error message via DOM APIs — `name` is DOM/localStorage
+    // derived, so it must never be interpolated into an HTML string
+    // (CodeQL js/xss-through-dom).
+    const errorBox = document.createElement("div");
+    errorBox.style.cssText = "padding:2rem;color:var(--text-muted)";
+    const icon = document.createElement("i");
+    icon.className = "fas fa-exclamation-triangle";
+    icon.setAttribute("aria-hidden", "true");
+    errorBox.appendChild(icon);
+    errorBox.appendChild(document.createTextNode(` Failed to load ${name}.`));
+    pane.replaceChildren(errorBox);
   } finally {
     if (loading) loading.style.display = "none";
     pane.style.opacity = "";
