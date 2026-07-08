@@ -23,7 +23,11 @@
         <!-- Left: Logo + Main Navigation -->
         <div class="header-left">
             <!-- Logo (matches favicon: green=dev, orange=staging, standard=prod) -->
-            <a href="/" class="header-logo" title="Home">
+            {# header_logo_href: pages stuck BEFORE a session exists (e.g. the #}
+            {# cookie-consent / pool-full page) override this to a page that #}
+            {# always renders (/landing/) — tapping the logo must never bounce #}
+            {# back to the same page and read as a dead touch target. #}
+            <a href="{{ header_logo_href|default:'/' }}" class="header-logo" title="Home">
                 {% if DEBUG %}
                     <img src="{% static 'shared/images/favicons/favicon-dev.svg' %}"
                          alt="SciTeX (Dev)"
@@ -486,7 +490,9 @@
             })();
             </script>
         {% endif %}
-        <!-- Mobile Hamburger Button (visible only on mobile via CSS) -->
+        <!-- Mobile Hamburger Button (visible only on mobile via CSS).
+             Inline fail-safe wiring lives in global_header/hamburger_inline.html
+             (included after the menu markup below). -->
         <button class="mobile-hamburger" id="mobile-hamburger-btn" aria-label="Menu">
             <i class="fas fa-bars"></i>
         </button>
@@ -987,6 +993,7 @@
             </a>
         {% endif %}
     </div>
+    {% include 'global_base_partials/global_header/hamburger_inline.html' %}
 </header>
 <!-- JavaScript for dropdown menu -->
 {% comment %} JavaScript functionality extracted to separate partial {% endcomment %}

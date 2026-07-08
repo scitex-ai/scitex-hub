@@ -132,6 +132,13 @@ def visitor_pool_full(request):
         "has_cookie_consent": has_cookie_consent,
     }
 
+    if reason == "no_cookies":
+        # Pre-consent visitors have no session: the header logo's default
+        # "/" would bounce straight back to this page (2026-07-08 iPhone
+        # field report: logo read as a dead touch target). Point it at the
+        # landing page, which always renders without a session.
+        context["header_logo_href"] = "/landing/"
+
     return render(request, "public_app/visitor_pool_full.html", context)
 
 
