@@ -60,10 +60,16 @@ fi
 if [[ ! "$*" =~ "celery" ]]; then
     echo_info "Initializing visitor pool..."
     python manage.py create_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" || true
-    # Boot fail-safe: quarantine every slot as unverified, wipe+verify each;
-    # only verified-clean slots return to circulation (visitor-slot isolation).
-    python manage.py reconcile_visitor_slots 2>&1 | grep -v "ERRO\|WARN" || true
-    echo_success "Visitor pool ready (only verified-clean slots distributable)"
+    # Boot fail-safe: quarantine every slot as unverified (synchronous,
+    # DB-only), then ENQUEUE the per-slot wipe+verify re-clean to Celery via
+    # --async. This takes the multi-minute clone loop OFF the web-serving
+    # startup path so Django serves immediately (the old inline reconcile left
+    # django-1 "Up (unhealthy)" for minutes after a deploy). Slots stay
+    # quarantined (not allocatable) until a worker verifies each clean —
+    # visitors get the readonly-visitor fallback during the async window, so
+    # visitor-slot isolation is unchanged.
+    python manage.py reconcile_visitor_slots --async 2>&1 | grep -v "ERRO\|WARN" || true
+    echo_success "Visitor pool ready (re-clean dispatched async; only verified-clean slots distributable)"
 else
     echo_info "Skipping visitor pool init (celery service)"
 fi
