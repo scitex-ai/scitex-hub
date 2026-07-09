@@ -2,14 +2,12 @@
 # -*- coding: utf-8 -*-
 """Workspace home launcher — app-grid home page (approved design 2026-07-07).
 
-Serves the iPhone-style app grid at the workspace root ("/"):
-search bar + category chips + responsive tile grid, with per-user
-pin-to-sidebar persistence (capped at MAX_PINNED_MODULES).
+Serves the iPhone-style app grid at the workspace root ("/"): a
+responsive tile grid IS the home, with per-user pin-to-sidebar
+persistence (capped at MAX_PINNED_MODULES).
 
 Django stays thin here: this module only assembles registry data
 (workspace module registry + published store apps) for the template.
-Category chips reuse the same CATEGORY_CHOICES the Store uses —
-no second hardcoded list.
 """
 
 from __future__ import annotations
@@ -24,7 +22,7 @@ from django.views.decorators.http import require_http_methods
 
 from apps.infra.workspace_app.registry import get_all_modules
 
-from ..models import CATEGORY_CHOICES, AppsModule, ModuleInstallation
+from ..models import AppsModule, ModuleInstallation
 from .helpers import ensure_builtin_modules
 
 # Sidebar pin cap — keeps the reduced sidebar scannable.
@@ -60,15 +58,6 @@ def get_pinned_module_names(user) -> list[str]:
         .order_by("tab_order", "id")
         .values_list("module__module_name", flat=True)[:MAX_PINNED_MODULES]
     )
-
-
-def _greeting_for_hour(hour: int) -> str:
-    """Time-of-day greeting shown above the launcher grid."""
-    if 5 <= hour < 12:
-        return "Good morning"
-    if 12 <= hour < 18:
-        return "Good afternoon"
-    return "Good evening"
 
 
 def _build_tiles(request) -> list[dict]:
@@ -162,10 +151,7 @@ def launcher_context(request) -> dict:
     tiles = _build_tiles(request)
     return {
         "tiles": tiles,
-        # Same registry categories the Store uses (single source of truth).
-        "categories": CATEGORY_CHOICES,
         "installed_count": sum(1 for t in tiles if t["is_installed"]),
-        "greeting": _greeting_for_hour(timezone.localtime().hour),
         "max_pins": MAX_PINNED_MODULES,
         # Guest mode: visitors see tiles + a prominent Sign in / Sign up CTA.
         "is_guest_launcher": is_guest_launcher_user(request.user),

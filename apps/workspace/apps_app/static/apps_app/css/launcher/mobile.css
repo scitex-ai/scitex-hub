@@ -108,26 +108,6 @@
     padding: 22px 14px var(--launcher-dock-clearance);
   }
 
-  .launcher-greeting h1 {
-    font-size: 19px;
-  }
-
-  .launcher-kbd {
-    display: none;
-  }
-
-  .launcher-chips {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    justify-content: flex-start;
-    padding-bottom: 6px;
-    scrollbar-width: none;
-  }
-
-  .launcher-chips::-webkit-scrollbar {
-    display: none;
-  }
-
   .launcher-grid {
     grid-template-columns: repeat(4, 1fr);
     gap: 22px 8px;

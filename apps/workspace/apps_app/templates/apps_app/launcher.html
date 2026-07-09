@@ -20,35 +20,6 @@
                 </div>
             </div>
         {% endif %}
-        <div class="launcher-greeting">
-            {% if is_guest_launcher %}
-                <h1>{{ greeting }} — welcome to SciTeX</h1>
-            {% else %}
-                <h1>{{ greeting }}, {{ user.username }}</h1>
-            {% endif %}
-            <p>
-                {% if current_project %}
-                    {{ current_project.owner.username }}/{{ current_project.slug }} &mdash;
-                {% endif %}
-                tap an app to start working
-            </p>
-        </div>
-        <div class="launcher-search">
-            <i class="fas fa-search" aria-hidden="true"></i>
-            <input type="text"
-                   id="launcher-search-input"
-                   class="launcher-search-input"
-                   placeholder="Search apps..."
-                   aria-label="Search apps"
-                   autocomplete="off" />
-            <span class="launcher-kbd" aria-hidden="true"><span>Ctrl</span><span>K</span></span>
-        </div>
-        <nav class="launcher-chips" aria-label="App categories">
-            <button type="button" class="launcher-chip active" data-filter-category="">All</button>
-            {% for cat_key, cat_label in categories %}
-                <button type="button" class="launcher-chip" data-filter-category="{{ cat_key }}">{{ cat_label }}</button>
-            {% endfor %}
-        </nav>
         <div class="launcher-section-head">
             <h2>All apps</h2>
             <span class="launcher-count">{{ installed_count }} installed</span>
@@ -72,10 +43,6 @@
                     <span class="launcher-tile-name">{{ tile.label }}</span>
                 </a>
             {% endfor %}
-        </div>
-        <div class="launcher-empty" id="launcher-empty" hidden>
-            <i class="fas fa-search" aria-hidden="true"></i>
-            <p>No apps match your search.</p>
         </div>
     </div>
     <!-- Mobile dock (fixed bottom, < 640px only) -->

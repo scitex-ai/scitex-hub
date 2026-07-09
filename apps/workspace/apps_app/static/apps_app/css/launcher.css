@@ -1,11 +1,11 @@
 /* ============================================================
    App Launcher — workspace home (approved design 2026-07-07)
-   iPhone-style app grid: search + category chips + tile grid.
+   iPhone-style app grid: the all-apps tile grid IS the home.
    Mock: GITIGNORED/launcher-mock/launcher.html
 
    Thin orchestrator (same @import pattern as shared/css/common.css):
-   - launcher/core.css   container, guest CTA, greeting, search, chips
-   - launcher/grid.css   tile grid, badges, gradients, popover, empty
+   - launcher/core.css   container, guest CTA, section head
+   - launcher/grid.css   tile grid, badges, gradients, popover
    - launcher/mobile.css mobile dock + responsive breakpoints
    ============================================================ */
 

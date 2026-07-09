@@ -130,19 +130,6 @@
   background: linear-gradient(135deg, #e4b34a, #b8862b);
 }
 
-/* ---------- Empty state ---------- */
-.launcher-empty {
-  text-align: center;
-  color: var(--workspace-text-muted, var(--text-muted));
-  padding: 48px 0;
-}
-
-.launcher-empty i {
-  font-size: 28px;
-  opacity: 0.5;
-  margin-bottom: 12px;
-}
-
 /* ---------- Context popover (flip/shift-aware, built by TS) ---------- */
 .launcher-popover {
   position: fixed;

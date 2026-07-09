@@ -11,7 +11,6 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 
 from apps.workspace.apps_app.models import (
-    CATEGORY_CHOICES,
     AppsModule,
     ModuleInstallation,
 )
@@ -60,14 +59,6 @@ class LauncherHomeTest(TestCase):
         tile_names = {t["name"] for t in resp.context["tiles"]}
         # Assert
         assert registry_names <= tile_names
-
-    def test_launcher_categories_match_store_categories(self):
-        # Arrange
-        url = "/"
-        # Act
-        resp = self.client.get(url)
-        # Assert
-        assert list(resp.context["categories"]) == list(CATEGORY_CHOICES)
 
     def test_launcher_anonymous_redirects_away(self):
         # Arrange
