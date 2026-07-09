@@ -27,8 +27,11 @@
 {% vite_script 'shared/code-blocks' %}
 {% vite_script 'shared/utils/django-messages' %}
 {% vite_script 'shared/components/confirm-modal' %}
-<!-- Development Tools (only in DEBUG mode) -->
-{% if DEBUG %}
+<!-- Element inspector (Alt+I): available in dev AND staging across every hub GUI
+     app. Loaded here (global_body_scripts, included by global_base) so it reaches
+     every page, not just DEBUG ones. IS_STAGING comes from config.context_processors
+     .scitex_env (SCITEX_HUB_ENV=staging); prod stays off. -->
+{% if DEBUG or IS_STAGING %}
     {% vite_script 'shared/utils/element-inspector' %}
 {% endif %}
 <!-- Click-to-expand for collapsed panels (global) -->
