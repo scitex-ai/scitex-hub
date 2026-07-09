@@ -205,6 +205,22 @@ except ImportError:
 LOCAL_APPS = discover_local_apps()
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
+# Mirrors config.context_processors.scitex_env's alias normalization.
+# Duplicated (not imported) because that module is only safe to import
+# once Django app-loading has finished; settings modules must not
+# depend on it. scitex-ui>=0.6.1 is required — 0.6.0 never shipped
+# middleware.py (merged after that release was cut), and anything
+# older than 0.6.1 is sync-only and deadlocks daphne under ASGI (see
+# scitex-ui PR #59).
+_scitex_hub_env = os.environ.get("SCITEX_HUB_ENV", "development").lower()
+if _scitex_hub_env in ("dev",):
+    _scitex_hub_env = "development"
+elif _scitex_hub_env in ("stag",):
+    _scitex_hub_env = "staging"
+elif _scitex_hub_env in ("prod",):
+    _scitex_hub_env = "production"
+SCITEX_UI_ELEMENT_INSPECTOR = _scitex_hub_env in ("development", "staging")
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -237,6 +253,10 @@ MIDDLEWARE = [
     # final; no-ops in one prefix check for every other path (and when
     # the scitex_todo package is not installed).
     "apps.workspace.todo_app.middleware.TodoBoardTenancyMiddleware",
+    # Injects the Alt+I element inspector into HTML responses when
+    # SCITEX_UI_ELEMENT_INSPECTOR is on (see above). Async-capable as
+    # of scitex-ui 0.6.1 — do not downgrade below that pin.
+    "scitex_ui.middleware.ElementInspectorMiddleware",
 ]
 
 AUTHENTICATION_BACKENDS = [
