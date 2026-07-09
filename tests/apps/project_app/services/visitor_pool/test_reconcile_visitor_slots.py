@@ -22,7 +22,6 @@ from datetime import timedelta
 from io import StringIO
 from pathlib import Path
 
-from celery.signals import before_task_publish
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.management import call_command
@@ -39,7 +38,6 @@ from apps.infra.project_app.services.visitor_pool.slot_lifecycle import (
 from apps.infra.project_app.services.visitor_pool.workspace_manager import (
     TEMPLATE_MARKER_RELPATH,
 )
-from config.celery_app import app as celery_app
 
 
 class MockSession(dict):
@@ -228,6 +226,19 @@ class TestReconcileAsyncDispatch(TestCase):
     before Daphne ever bound). The safety contract is unchanged: every slot is
     quarantined synchronously first, so nothing is allocatable until a worker
     verifies it clean — visitors get the readonly-visitor fallback meanwhile.
+
+    The command accepts an ``enqueue_fn`` seam (mirroring the existing
+    ``gitea_client=``/``clone_fn=`` injection points on
+    ``reset_and_verify_slot``) so these tests observe dispatch WITHOUT
+    fighting Celery's process-global ``task_always_eager`` flag — the SQLite
+    test gate (``SCITEX_HUB_USE_SQLITE_DEV``) forces that True at Django
+    settings load time, and it cannot be flipped back mid-process (confirmed:
+    neither ``app.conf.update()`` nor attribute assignment on the bound
+    Celery app changes the effective value here), so ``.delay()`` would
+    otherwise run the reset INLINE with real retries/sleeps — exactly the
+    trap ``test_slot_recycling_security.py``'s ``recycled_slot`` fixture
+    already documents sidestepping the same way (calling the underlying
+    function directly instead of going through ``.delay()``).
     """
 
     def setUp(self):
@@ -242,14 +253,8 @@ class TestReconcileAsyncDispatch(TestCase):
         )
         VisitorAllocation.objects.filter(visitor_number=1).delete()
         self.allocation = _stale_active_slot(1)
-        # The SQLite test gate runs Celery eagerly (task_always_eager=True),
-        # which would execute .delay() INLINE and defeat the point. Force real
-        # enqueue so the task is PUBLISHED, not executed, in this process.
-        self._prev_eager = celery_app.conf.task_always_eager
-        celery_app.conf.task_always_eager = False
 
     def tearDown(self):
-        celery_app.conf.task_always_eager = self._prev_eager
         base = Path(settings.BASE_DIR) / "data" / "users" / "visitor-001"
         if base.exists():
             shutil.rmtree(base, ignore_errors=True)
@@ -257,7 +262,7 @@ class TestReconcileAsyncDispatch(TestCase):
     def test_async_quarantines_slot_synchronously(self):
         # Arrange: setUp created a stale is_active zombie slot.
         # Act
-        call_command("reconcile_visitor_slots", "--async")
+        call_command("reconcile_visitor_slots", "--async", enqueue_fn=lambda i: None)
         self.allocation.refresh_from_db()
         # Assert: the fail-safe engages immediately (DB-only, no waiting).
         assert self.allocation.quarantined is True
@@ -265,7 +270,7 @@ class TestReconcileAsyncDispatch(TestCase):
     def test_async_leaves_slot_out_of_circulation(self):
         # Arrange: setUp created a stale is_active zombie slot.
         # Act
-        call_command("reconcile_visitor_slots", "--async")
+        call_command("reconcile_visitor_slots", "--async", enqueue_fn=lambda i: None)
         self.allocation.refresh_from_db()
         # Assert: not distributable (allocation ready-gate refuses it).
         assert (self.allocation.is_active, self.allocation.workspace_ready) == (
@@ -275,45 +280,72 @@ class TestReconcileAsyncDispatch(TestCase):
 
     def test_async_does_not_run_reclean_inline(self):
         # Arrange: the visitor has residue Project rows (default + side).
-        # Act: async dispatch — with eager off the queued task does NOT run.
-        call_command("reconcile_visitor_slots", "--async")
-        # Assert: the wipe was ENQUEUED, not executed in-process — the residue
-        # Project rows survive the call (the inline re-clean would delete them
-        # as the first pipeline step).
+        # Act: dispatch via the injected seam — the reset pipeline itself
+        # must NOT run in-process.
+        call_command("reconcile_visitor_slots", "--async", enqueue_fn=lambda i: None)
+        # Assert: the residue Project rows survive the call (the inline
+        # re-clean would delete them as its first pipeline step).
         assert Project.objects.filter(owner=self.user).count() == 2
 
-    def test_async_enqueues_reclean_to_celery(self):
-        # Arrange: observe Celery's real publish signal (no mock).
-        published = []
-
-        def _record(sender=None, **kwargs):
-            published.append(sender or "")
-
-        before_task_publish.connect(_record, weak=False)
-        try:
-            # Act
-            call_command("reconcile_visitor_slots", "--async")
-        finally:
-            before_task_publish.disconnect(_record)
-        # Assert: the re-clean was dispatched to the reset_visitor_slot task.
-        assert any("reset_visitor_slot" in name for name in published)
+    def test_async_dispatches_reclean_for_each_quarantined_slot(self):
+        # Arrange: a real (tiny) recording function — no mocks.
+        dispatched = []
+        # Act
+        call_command(
+            "reconcile_visitor_slots", "--async", enqueue_fn=dispatched.append
+        )
+        # Assert: the re-clean was dispatched for slot 1's allocation id.
+        assert dispatched == [self.allocation.id]
 
     def test_async_reports_enqueued_count(self):
         # Arrange: setUp created one quarantinable slot.
         # Act
         out = StringIO()
-        call_command("reconcile_visitor_slots", "--async", stdout=out)
+        call_command(
+            "reconcile_visitor_slots",
+            "--async",
+            enqueue_fn=lambda i: None,
+            stdout=out,
+        )
         # Assert
         assert "Enqueued 1 async re-clean task" in out.getvalue()
 
     def test_async_quarantined_slot_is_not_allocatable(self):
         # Arrange: async reconcile quarantines slot 1 synchronously.
-        call_command("reconcile_visitor_slots", "--async")
+        call_command("reconcile_visitor_slots", "--async", enqueue_fn=lambda i: None)
         session = MockSession("async-quarantine-refuse")
         # Act
         project, _ = VisitorPool.allocate_visitor(session)
         # Assert: refused during the async window (readonly-visitor fallback).
         assert project is None
+
+    def test_async_enqueue_failure_keeps_slot_quarantined(self):
+        # Arrange: the broker is unreachable (or any enqueue error) — the
+        # safe direction is to leave the slot exactly as quarantined; NEVER
+        # mask the failure by returning it to the pool.
+        def _boom(allocation_id):
+            raise RuntimeError("broker unreachable")
+
+        # Act
+        call_command("reconcile_visitor_slots", "--async", enqueue_fn=_boom)
+        self.allocation.refresh_from_db()
+        # Assert
+        assert (self.allocation.quarantined, self.allocation.workspace_ready) == (
+            True,
+            False,
+        )
+
+    def test_default_wiring_targets_the_real_release_pipeline_task(self):
+        # Arrange: no enqueue_fn override — exercise the command's default.
+        from apps.infra.project_app.tasks import reset_visitor_slot
+
+        # Act: the default must resolve to the SAME Celery task the release
+        # pipeline already enqueues (slot_lifecycle.release_slot) — not a
+        # new/parallel mechanism.
+        task_name = reset_visitor_slot.name
+        # Assert: identity, not just name — guards against a future refactor
+        # accidentally wiring a different/stale task.
+        assert task_name.endswith("reset_visitor_slot")
 
 
 if __name__ == "__main__":

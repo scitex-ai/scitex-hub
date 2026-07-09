@@ -49,6 +49,12 @@ class Command(BaseCommand):
         "and re-clean quarantined slots; only verified-clean slots return to "
         "the distributable pool"
     )
+    # Kwarg-only test seam (never a CLI flag): lets tests inject a tiny real
+    # recording function for the Phase-2 dispatch instead of fighting
+    # Celery's process-global task_always_eager flag. Must be declared here
+    # or Django's call_command() rejects it with
+    # "Unknown option(s) for reconcile_visitor_slots command: enqueue_fn".
+    stealth_options = ("enqueue_fn",)
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -119,7 +125,19 @@ class Command(BaseCommand):
         # clean (identical guarantee to the release path, which enqueues the
         # same task).
         if options["async_dispatch"]:
-            from apps.infra.project_app.tasks import reset_visitor_slot
+            # Real wiring: reset_visitor_slot.delay (the SAME task the
+            # release pipeline already enqueues — slot_lifecycle.release_slot
+            # / apps.infra.project_app.tasks.reset_visitor_slot). Tests may
+            # inject a tiny real recording function here (mirroring the
+            # existing gitea_client=/clone_fn= seams on reset_and_verify_slot)
+            # instead of fighting Celery's process-global eager-mode flag,
+            # which the SQLite/CI gate forces True and does not allow
+            # overriding mid-process.
+            enqueue_fn = options.get("enqueue_fn")
+            if enqueue_fn is None:
+                from apps.infra.project_app.tasks import reset_visitor_slot
+
+                enqueue_fn = reset_visitor_slot.delay
 
             enqueued = 0
             enqueue_failed = []
@@ -128,7 +146,7 @@ class Command(BaseCommand):
                 if not allocation.quarantined:
                     continue
                 try:
-                    reset_visitor_slot.delay(allocation.id)
+                    enqueue_fn(allocation.id)
                     enqueued += 1
                 except Exception as exc:
                     # Broker unreachable at boot, etc. Safe direction: the
