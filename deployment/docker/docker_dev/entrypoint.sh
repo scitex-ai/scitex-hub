@@ -268,12 +268,14 @@ else
 fi
 
 # Boot fail-safe (runs on EVERY container start, including restarts after
-# an unclean shutdown): quarantine every slot as unverified, wipe+verify
-# each; only verified-clean slots return to circulation. Until at least
-# one slot verifies, allocation serves readonly-visitor (fail-loud).
-echo_info "Reconciling visitor slots (quarantine + wipe+verify)..."
-python manage.py reconcile_visitor_slots 2>&1 | grep -v "ERRO\|WARN" || true
-echo_success "Visitor slots reconciled (only verified-clean slots distributable)"
+# an unclean shutdown): quarantine every slot as unverified (synchronous,
+# DB-only), then ENQUEUE the per-slot wipe+verify re-clean to Celery via
+# --async so Django serves immediately instead of blocking on the clone
+# loop. Slots stay quarantined until a worker verifies each clean; until
+# then allocation serves readonly-visitor (fail-loud).
+echo_info "Reconciling visitor slots (quarantine now, re-clean dispatched async)..."
+python manage.py reconcile_visitor_slots --async 2>&1 | grep -v "ERRO\|WARN" || true
+echo_success "Visitor slots reconciled (re-clean dispatched async; only verified-clean slots distributable)"
 
 # ============================================
 # Initialize Test User (Development Only - First Start Only)
