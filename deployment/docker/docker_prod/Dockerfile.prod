@@ -404,22 +404,23 @@ RUN uv pip install --system --no-cache ".[all]"
 #   verifies the import chain). Both 2.17.5 and 2.26.1 create the
 #   dot-prefixed {project}/.scitex/writer layout the visitor-pool
 #   marker verification checks (TEMPLATE_MARKER_RELPATH).
-# 2026-07-09: scitex-template pinned EXPLICITLY to the latest PUBLISHED
-#   release (0.6.7). The earlier >=0.6.8 pin broke the build outright —
-#   0.6.8 was never published to PyPI nor tagged (uv: "only
-#   scitex-template<=0.6.7 is available"), taking prod down. 0.6.7
-#   already creates the .scitex/writer + .scitex/scholar dot-prefixed
-#   layout the visitor-slot marker verification (TEMPLATE_MARKER_RELPATH)
-#   checks — verified by a real clone_scitex_minimal run. The hub-side
-#   marker-path fix (#319) is the actual visitor-slot fix; this pin only
-#   needs to resolve to a working published template.
+# 2026-07-09: scitex-template pinned EXPLICITLY to 0.6.8. Two bugs bit here:
+#   (1) the earlier >=0.6.8 pin broke the build — 0.6.8 was not yet on PyPI
+#       (uv: "only scitex-template<=0.6.7 is available"), taking prod down;
+#   (2) 0.6.7's clone_scitex_minimal does `from scitex_scholar import
+#       ensure_workspace`, which on scitex-scholar >=1.4 binds the SUBMODULE
+#       (not callable) → "'module' object is not callable" → clone returns
+#       falsy → every visitor slot quarantined (proven on staging).
+#   0.6.8 (published via the v0.6.8 tag) imports the callable from the
+#   scitex_scholar.ensure_workspace submodule. Together with the hub-side
+#   marker-path fix (#319) and scitex-writer 2.26.1, visitor slots re-clean.
 RUN uv pip install --system --no-cache \
     "figrecipe==0.27.0" \
     "scitex-io==0.2.3" \
     "scitex-stats==0.2.6" \
     "scitex-plt==0.24.0" \
     "scitex-writer==2.26.1" \
-    "scitex-template==0.6.7" \
+    "scitex-template==0.6.8" \
     "scitex-linter==0.3.1" \
     "scitex-ui==0.4.2" \
     "openalex-local==0.6.0" \
@@ -441,7 +442,7 @@ RUN uv pip install --system --no-cache \
 # scitex-writer stays on the C0 pin (now 2.26.1, the repaired wheel);
 # bump the C0 pin deliberately per release, and the smoke test below
 # will fail the build if the wheel is broken again. scitex-template is
-# likewise excluded — it stays on the deliberate C0 pin (==0.6.7).
+# likewise excluded — it stays on the deliberate C0 pin (==0.6.8).
 RUN uv pip install --system --no-cache --upgrade \
     "figrecipe" \
     "scitex-io" \
