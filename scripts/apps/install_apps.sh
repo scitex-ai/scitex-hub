@@ -47,6 +47,18 @@ for i in $(seq 0 $((APP_COUNT - 1))); do
     PIP_PKG=$(jq -r ".apps[$i].pip_package // \"\"" "$REGISTRY")
 
     SIBLING_DIR="$PARENT_DIR/$NAME"
+    # Computed up front (not after the clone block) so the pip-fallback
+    # below always probes the CURRENT app's package name. Previously this
+    # was assigned after the clone attempt, so when clone failed for an
+    # app it would reuse whatever $PKG_NAME the PREVIOUS loop iteration
+    # had left behind — silently symlinking the sibling dir to a
+    # different, unrelated installed package (observed: a private-repo
+    # app's clone failed and the fallback matched the prior public app's
+    # package instead, since find_spec() for that stale name still
+    # resolved). Once wrong, the symlink resolves as a valid directory,
+    # so `[[ ! -d "$SIBLING_DIR" ]]` never retries the clone on later
+    # runs either — the bad state is sticky across restarts.
+    PKG_NAME="${NAME//-/_}"
 
     echo ""
     echo "--- $NAME ---"
@@ -60,7 +72,7 @@ for i in $(seq 0 $((APP_COUNT - 1))); do
             if ! git clone --depth 1 --branch "$GIT_REF" "$GIT_URL" "$SIBLING_DIR" 2>&1; then
                 echo "WARNING: Clone failed for $NAME — checking pip-installed package..."
                 # Fall back to pip-installed package location
-                PIP_STATIC=$(python3 -c "import importlib.util; spec = importlib.util.find_spec('${PKG_NAME:-${NAME//-/_}}'); print(spec.submodule_search_locations[0] if spec else '')" 2>/dev/null || echo "")
+                PIP_STATIC=$(python3 -c "import importlib.util; spec = importlib.util.find_spec('${PKG_NAME}'); print(spec.submodule_search_locations[0] if spec else '')" 2>/dev/null || echo "")
                 if [[ -n "$PIP_STATIC" ]] && [[ -d "$PIP_STATIC" ]]; then
                     echo "Found pip-installed $NAME at $PIP_STATIC — symlinking"
                     ln -sf "$(dirname "$(dirname "$PIP_STATIC")")" "$SIBLING_DIR"
@@ -74,7 +86,6 @@ for i in $(seq 0 $((APP_COUNT - 1))); do
     fi
 
     # Validate manifest exists
-    PKG_NAME="${NAME//-/_}"
     MANIFEST="$SIBLING_DIR/src/$PKG_NAME/_django/manifest.json"
     if [[ ! -f "$MANIFEST" ]]; then
         # Try repo root manifest
