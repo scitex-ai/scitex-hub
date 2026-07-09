@@ -49,16 +49,45 @@ class LauncherHomeTest(TestCase):
         # Assert
         assert b'data-module="writer"' in resp.content
 
-    def test_launcher_tile_names_cover_all_registry_modules(self):
-        # Arrange
+    def test_launcher_tiles_cover_launcher_visible_registry_modules(self):
+        # Arrange — every registry module that opts INTO the launcher
+        # (show_in_launcher, the default) must render a tile.
         from apps.infra.workspace_app.registry import get_all_modules
 
-        registry_names = {m.name for m in get_all_modules()}
+        visible_names = {m.name for m in get_all_modules() if m.show_in_launcher}
         # Act
         resp = self.client.get("/")
         tile_names = {t["name"] for t in resp.context["tiles"]}
         # Assert
-        assert registry_names <= tile_names
+        assert visible_names <= tile_names
+
+    def test_clew_is_not_a_launcher_tile(self):
+        # Arrange — Clew opens within a manuscript, not as a standalone
+        # launcher app; it opts out via manifest show_in_launcher=false
+        # (launcher pass 2).
+        # Act
+        resp = self.client.get("/")
+        tile_names = {t["name"] for t in resp.context["tiles"]}
+        # Assert
+        assert "clew" not in tile_names
+
+    def test_chat_comms_is_not_a_launcher_tile(self):
+        # Arrange — Chat lives in the left sidebar (/chat/), so the grid
+        # tile is redundant; comms opts out via manifest
+        # show_in_launcher=false (launcher pass 2).
+        # Act
+        resp = self.client.get("/")
+        tile_names = {t["name"] for t in resp.context["tiles"]}
+        # Assert
+        assert "comms" not in tile_names
+
+    def test_store_tile_label_is_app_store(self):
+        # Arrange — the Store tile is relabelled "App Store" (launcher pass 2).
+        # Act
+        resp = self.client.get("/")
+        store_tile = next(t for t in resp.context["tiles"] if t["name"] == "store")
+        # Assert
+        assert store_tile["label"] == "App Store"
 
     def test_launcher_anonymous_redirects_away(self):
         # Arrange

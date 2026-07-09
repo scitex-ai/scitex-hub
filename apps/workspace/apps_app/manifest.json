@@ -2,7 +2,7 @@
   "$schema": "scitex-app-manifest",
   "$schema_version": "2.0.0",
   "name": "store",
-  "label": "Store",
+  "label": "App Store",
   "app_name": "apps_app",
   "icon": "fas fa-store",
   "description": "Browse, install, and publish community modules.",

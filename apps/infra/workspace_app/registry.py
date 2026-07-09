@@ -56,6 +56,13 @@ class ModuleConfig:
     # Visibility defaults
     default_enabled: bool = True  # Show in tab bar for new users (no installations)
 
+    # Launcher-grid visibility. Some registered modules are workspace
+    # panes / nav items, not standalone launcher apps — e.g. Clew (opens
+    # within a manuscript) and Chat/comms (lives in the left sidebar at
+    # /chat/). They stay fully registered (routes, tab bar, sidebar) but
+    # are suppressed as launcher tiles. Default True = every module tiles.
+    show_in_launcher: bool = True
+
     # Runtime state (set by context processor, not persisted)
     is_active: bool = False
     is_dev: bool = False  # True for private (non-published) apps
@@ -224,6 +231,7 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         keyboard_shortcut=data.get("keyboard_shortcut", ""),
         order=data.get("order", 50),
         default_enabled=data.get("default_enabled", True),
+        show_in_launcher=data.get("show_in_launcher", True),
         ai_hint=data.get("ai_hint", ""),
         accent_color=data.get("accent_color", ""),
         docs_slug=data.get("docs_slug", ""),

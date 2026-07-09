@@ -70,12 +70,15 @@ class LauncherTileUrlTest(TestCase):
         # load (nav-404 batch #2: shell fell back to "home")
         assert b'data-active-module="discovery"' in resp.content
 
-    def test_comms_tile_url_resolves(self):
-        # Arrange
-        tile = self._tile("comms")
+    def test_comms_index_still_resolves(self):
+        # Arrange — the launcher "Chat" tile was dropped (launcher pass 2,
+        # redundant with the sidebar /chat/), but the /apps/comms/ route
+        # is still reachable from the module tab bar + direct nav, so it
+        # must keep resolving (nav-404 batch #3 wired the workspace shell).
+        url = "/apps/comms/"
         # Act
-        resp = self.client.get(tile["launch_url"])
-        # Assert — /apps/comms/ was a 404 (nav-404 batch #3)
+        resp = self.client.get(url)
+        # Assert
         assert resp.status_code == 200
 
     def test_every_registry_tile_url_resolves(self):
