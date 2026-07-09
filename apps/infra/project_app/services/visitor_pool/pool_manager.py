@@ -30,7 +30,12 @@ from .session_role import (
     READONLY_REASON_POOL_FULL,
     SESSION_KEY_READONLY_REASON,
 )
-from .slot_lifecycle import quarantine_slot, release_slot
+from .slot_lifecycle import (
+    is_allocation_stale,
+    quarantine_slot,
+    release_slot,
+    stale_allocation_q,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -236,15 +241,21 @@ class PoolAllocator:
 
         now = timezone.now()
 
-        if allocation.is_active and allocation.expires_at >= now:
-            # Slot busy.
-            return None, None
-
-        if allocation.is_active and allocation.expires_at < now:
-            # Expired but never released (visitor walked away, sweep has
-            # not run yet). The workspace is DIRTY — trigger the release
-            # pipeline and refuse to serve it this request.
-            release_slot(allocation, reason="expired-lazy")
+        if allocation.is_active:
+            if is_allocation_stale(allocation, now):
+                # Expired OR idle (visitor walked away without logging
+                # out). The workspace is DIRTY — trigger the release
+                # pipeline and refuse to serve it this request. Reclaiming
+                # IDLE rows here (not just expired ones) means the pool
+                # self-heals from serving traffic alone, so the periodic
+                # celery reaper is no longer a single point of failure —
+                # the failure mode that wedged prod at free=0 (2026-07-09).
+                reason = (
+                    "expired-lazy" if allocation.expires_at < now else "idle-lazy"
+                )
+                release_slot(allocation, reason=reason)
+                return None, None
+            # Genuinely live session — slot busy.
             return None, None
 
         if not allocation.workspace_ready:
@@ -341,13 +352,24 @@ class PoolAllocator:
         Returns:
             dict: {total, allocated, free, expired}
         """
+        now = timezone.now()
         total = pool_size
-        active_allocations = VisitorAllocation.objects.filter(
-            is_active=True, expires_at__gt=timezone.now()
-        ).count()
+
+        # "Occupied" = a genuinely LIVE visitor session: ``is_active`` AND
+        # neither expired nor idle. A stale row (``is_active`` with a
+        # future ``expires_at`` but a weeks-old ``last_activity``) is NOT
+        # occupied — it is reclaimable, so it counts as free. Counting only
+        # ``expires_at`` (the old behaviour) let such zombie rows wedge the
+        # pool at free=0 (prod 2026-07-09): nothing had extended
+        # ``expires_at``, yet the idle dimension was ignored.
+        occupied = (
+            VisitorAllocation.objects.filter(is_active=True)
+            .exclude(stale_allocation_q(now))
+            .count()
+        )
 
         expired = VisitorAllocation.objects.filter(
-            is_active=True, expires_at__lte=timezone.now()
+            is_active=True, expires_at__lte=now
         ).count()
 
         quarantined = VisitorAllocation.objects.filter(quarantined=True).count()
@@ -357,8 +379,8 @@ class PoolAllocator:
 
         return {
             "total": total,
-            "allocated": active_allocations,
-            "free": total - active_allocations,
+            "allocated": occupied,
+            "free": max(0, total - occupied),
             "expired": expired,
             "quarantined": quarantined,
             "ready": ready,
