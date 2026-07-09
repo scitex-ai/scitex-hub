@@ -18,8 +18,10 @@ Security state machine (visitor-slot isolation audit 2026-07-07):
 
 import logging
 import secrets
+from datetime import timedelta
 
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from apps.infra.project_app.models import VisitorAllocation
@@ -28,9 +30,61 @@ logger = logging.getLogger(__name__)
 
 VISITOR_USER_PREFIX = "visitor-"
 
+# Idle timeout: an ``is_active`` slot with no activity for this many
+# minutes is reclaimable even if its hard ``expires_at`` has not passed.
+# Single source of truth — the reaper (pool_cleanup), the allocator
+# (pool_manager) and get_pool_status all derive "stale" from the helpers
+# below so the three can never disagree. That disagreement is exactly
+# what let zombie ``is_active`` rows wedge the pool at free=0 in prod
+# (2026-07-09): nothing had extended ``expires_at``, yet the weeks-old
+# ``last_activity`` (idle) dimension was ignored by the expiry-only
+# checks, so the slots were neither counted free nor reclaimed.
+IDLE_TIMEOUT_MINUTES = 30
+
 
 def visitor_username(visitor_number: int) -> str:
     return f"{VISITOR_USER_PREFIX}{visitor_number:03d}"
+
+
+def stale_allocation_q(now=None) -> Q:
+    """Q selecting *reclaimable* rows among ``is_active=True`` allocations.
+
+    A live visitor session is over — and its slot must be freed — when any
+    of these hold:
+
+    * ``expires_at`` is in the past (hard 1-hour session expiry), OR
+    * ``last_activity`` is older than :data:`IDLE_TIMEOUT_MINUTES` (the
+      visitor walked away without logging out), OR
+    * it never sent a heartbeat (``last_activity`` is NULL) and was
+      allocated longer ago than the idle timeout.
+
+    Combine with ``is_active=True``; a row NOT matching this is a genuinely
+    live session. A zombie row (``is_active`` with a *future* ``expires_at``
+    but a weeks-old ``last_activity``) matches via the idle clause — the
+    case the expiry-only checks missed.
+    """
+    if now is None:
+        now = timezone.now()
+    idle_cutoff = now - timedelta(minutes=IDLE_TIMEOUT_MINUTES)
+    return (
+        Q(expires_at__lt=now)
+        | Q(last_activity__lt=idle_cutoff)
+        | Q(last_activity__isnull=True, allocated_at__lt=idle_cutoff)
+    )
+
+
+def is_allocation_stale(allocation, now=None) -> bool:
+    """Row-level mirror of :func:`stale_allocation_q` (expired OR idle)."""
+    if now is None:
+        now = timezone.now()
+    idle_cutoff = now - timedelta(minutes=IDLE_TIMEOUT_MINUTES)
+    if allocation.expires_at is not None and allocation.expires_at < now:
+        return True
+    if allocation.last_activity is not None:
+        return allocation.last_activity < idle_cutoff
+    return (
+        allocation.allocated_at is not None and allocation.allocated_at < idle_cutoff
+    )
 
 
 def quarantine_slot(allocation: VisitorAllocation, reason: str) -> None:
