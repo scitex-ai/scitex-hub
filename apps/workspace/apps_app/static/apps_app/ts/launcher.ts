@@ -2,9 +2,6 @@
  * App Launcher — workspace home grid (approved design 2026-07-07).
  *
  * Behaviour:
- * - Instant search filter + category chips (client-side, same data
- *   attributes as the Store grid).
- * - Ctrl+K focuses the search input.
  * - Context popover (right-click / long-press) with Open, Pin to
  *   sidebar, and Details. The popover flips above the tile when it
  *   would overflow the viewport bottom, shifts horizontally to stay
@@ -29,10 +26,6 @@ function getCsrf(): string {
 class AppLauncher {
   private grid: HTMLElement;
   private tiles: HTMLElement[];
-  private searchInput: HTMLInputElement | null;
-  private emptyEl: HTMLElement | null;
-  private chips: HTMLElement[];
-  private activeCategory = "";
   private popover: HTMLElement | null = null;
   private longPressTimer: number | null = null;
 
@@ -41,33 +34,10 @@ class AppLauncher {
     this.tiles = Array.from(
       grid.querySelectorAll<HTMLElement>(".launcher-tile"),
     );
-    this.searchInput = document.getElementById(
-      "launcher-search-input",
-    ) as HTMLInputElement | null;
-    this.emptyEl = document.getElementById("launcher-empty");
-    this.chips = Array.from(
-      document.querySelectorAll<HTMLElement>(".launcher-chip"),
-    );
   }
 
   init(): void {
-    this.searchInput?.addEventListener("input", () => this.applyFilters());
-
-    this.chips.forEach((chip) => {
-      chip.addEventListener("click", () => {
-        this.chips.forEach((c) => c.classList.remove("active"));
-        chip.classList.add("active");
-        this.activeCategory = chip.dataset.filterCategory || "";
-        this.applyFilters();
-      });
-    });
-
     document.addEventListener("keydown", (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "k" && this.searchInput) {
-        e.preventDefault();
-        this.searchInput.focus();
-        this.searchInput.select();
-      }
       if (e.key === "Escape") this.closePopover();
     });
 
@@ -80,25 +50,6 @@ class AppLauncher {
     });
     window.addEventListener("resize", () => this.closePopover());
     window.addEventListener("scroll", () => this.closePopover(), true);
-  }
-
-  /* ── Filtering ──────────────────────────────────────────── */
-
-  private applyFilters(): void {
-    const query = (this.searchInput?.value || "").toLowerCase().trim();
-    let visible = 0;
-
-    this.tiles.forEach((tile) => {
-      const catMatch =
-        !this.activeCategory || tile.dataset.category === this.activeCategory;
-      const text = `${tile.dataset.label} ${tile.dataset.module}`.toLowerCase();
-      const textMatch = !query || text.indexOf(query) !== -1;
-      const show = catMatch && textMatch;
-      tile.hidden = !show;
-      if (show) visible++;
-    });
-
-    if (this.emptyEl) this.emptyEl.hidden = visible !== 0;
   }
 
   /* ── Context popover ────────────────────────────────────── */
