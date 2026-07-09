@@ -3,8 +3,19 @@
 <meta charset="UTF-8" />
 <meta name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<!-- NOTE: {% block meta_description %} below is NOT overridable from a page
+     template that only {% extends global_base.html %} — global_base.html
+     reaches this file via {% include %}, and Django's block/extends
+     inheritance does not cross an {% include %} boundary (each included
+     template gets its own fresh render-context frame, so a BlockContext
+     built by the outer extends chain isn't visible here). Regular context
+     variables DO cross that boundary though, so a per-page override must
+     go through a context variable — set `page_meta_description` in the
+     view's context (see apps/infra/public_app/views/legal.py::tokushoho
+     for an example) rather than a {% block meta_description %} in the
+     page template, which would silently never apply. -->
 <meta name="description"
-      content="{% block meta_description %}{{ META_DESCRIPTION_DEFAULT }}{% endblock %}" />
+      content="{% block meta_description %}{{ page_meta_description|default:META_DESCRIPTION_DEFAULT }}{% endblock %}" />
 <!-- Inline theme application - Prevents flash of unstyled content -->
 <script>
     (function() {

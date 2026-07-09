@@ -1,5 +1,12 @@
 {# Central page title generator - enforces consistency across all pages #}
-{% if "/scholar/" in request.path %}
+{# NOTE: {% block title %} in a page template is NOT overridable here —
+   this partial is reached via {% include %} from global_base.html, and
+   Django's block/extends inheritance does not cross an {% include %}
+   boundary. Set `page_title_override` in the view's context instead
+   (see apps/infra/public_app/views/legal.py::tokushoho for an example). #}
+{% if page_title_override %}
+    {{ page_title_override }}
+{% elif "/scholar/" in request.path %}
     Scholar
     {% if current_project %}- {{ current_project.slug }}{% endif %}
 {% elif "/figrecipe/" in request.path %}

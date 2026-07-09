@@ -3,13 +3,12 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}
-    特定商取引法に基づく表記
-    - SciTeX
-{% endblock %}
-{% block meta_description %}
-    {{ company_name }}の特定商取引法に基づく表記(販売業者、運営統括責任者、所在地、支払方法、返品・キャンセル等)。
-{% endblock %}
+{# title / meta description are NOT set via {% block %} here — global_base.html
+   reaches page_title.html / global_head_meta.html via {% include %}, which is
+   outside the {% extends %} block-override chain, so a {% block title %} /
+   {% block meta_description %} defined in this file would silently never
+   apply. They are instead passed as page_title_override / page_meta_description
+   context variables by the tokushoho view (apps/infra/public_app/views/legal.py). #}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/tokushoho.css' %}" />

@@ -54,7 +54,21 @@ def tokushoho(request):
     env keys SCITEX_HUB_COMPANY_*). Unfinalized values (address, phone,
     public email) stay empty in the environment and the template renders
     an explicit 準備中 notice — never a fake value.
+
+    ``page_title_override`` / ``page_meta_description`` are consumed by
+    global_base_partials/page_title.html and global_head_meta.html.
+    These MUST be plain context variables, not template {% block %}
+    overrides in tokushoho.html: global_base.html reaches both partials
+    via {% include %}, and Django's block/extends inheritance does not
+    cross an {% include %} boundary, so a {% block title %} /
+    {% block meta_description %} in the page template would silently
+    never take effect (caught by
+    tests/apps/public_app/views/test_commerce.py::TestTokushohoRealDefaults).
     """
+    page_meta_description = (
+        f"{settings.COMPANY_NAME}の特定商取引法に基づく表記"
+        "(販売業者、運営統括責任者、所在地、支払方法、返品・キャンセル等)。"
+    )
     context = {
         "company_name": settings.COMPANY_NAME,
         "company_representative": settings.COMPANY_REPRESENTATIVE,
@@ -62,6 +76,8 @@ def tokushoho(request):
         "company_phone": settings.COMPANY_PHONE,
         "company_contact_email": settings.COMPANY_CONTACT_EMAIL,
         "billing_plans": settings.BILLING_PLANS,
+        "page_title_override": "特定商取引法に基づく表記 - SciTeX",
+        "page_meta_description": page_meta_description,
     }
     return render(request, "public_app/legal/tokushoho.html", context)
 

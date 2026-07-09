@@ -215,6 +215,18 @@ class TestTokushohoRealDefaults:
         # Assert
         assert f"{settings.COMPANY_NAME}の特定商取引法に基づく表記" in content
 
+    def test_default_title_overrides_generic_scitex_fallback(self, client):
+        # Arrange: global_base_partials/page_title.html falls back to the
+        # bare "SciTeX" for any request.path it doesn't special-case —
+        # /tokushoho/ needs an explicit page_title_override in the view's
+        # context, since a {% block title %} in tokushoho.html can't reach
+        # through global_base.html's {% include %} of that partial.
+        url = reverse("public_app:tokushoho")
+        # Act
+        content = client.get(url).content.decode("utf-8")
+        # Assert
+        assert "特定商取引法に基づく表記 - SciTeX" in content
+
 
 @pytest.mark.django_db
 class TestPricingPage:
