@@ -253,6 +253,14 @@ class TestReconcileAsyncDispatch(TestCase):
         )
         VisitorAllocation.objects.filter(visitor_number=1).delete()
         self.allocation = _stale_active_slot(1)
+        # Snapshot the slug SET rather than hardcoding a count: user creation
+        # also auto-provisions a "dotfiles" project via a signal, so the real
+        # baseline is {"default-project", "side-project", "dotfiles"} — the
+        # exact number is a signal-chain implementation detail; what this
+        # test actually cares about is that the async path leaves it UNCHANGED.
+        self.projects_before = set(
+            Project.objects.filter(owner=self.user).values_list("slug", flat=True)
+        )
 
     def tearDown(self):
         base = Path(settings.BASE_DIR) / "data" / "users" / "visitor-001"
@@ -262,7 +270,9 @@ class TestReconcileAsyncDispatch(TestCase):
     def test_async_quarantines_slot_synchronously(self):
         # Arrange: setUp created a stale is_active zombie slot.
         # Act
-        call_command("reconcile_visitor_slots", "--async", enqueue_fn=lambda i: None)
+        call_command(
+            "reconcile_visitor_slots", "--async", visitor=1, enqueue_fn=lambda i: None
+        )
         self.allocation.refresh_from_db()
         # Assert: the fail-safe engages immediately (DB-only, no waiting).
         assert self.allocation.quarantined is True
@@ -270,7 +280,9 @@ class TestReconcileAsyncDispatch(TestCase):
     def test_async_leaves_slot_out_of_circulation(self):
         # Arrange: setUp created a stale is_active zombie slot.
         # Act
-        call_command("reconcile_visitor_slots", "--async", enqueue_fn=lambda i: None)
+        call_command(
+            "reconcile_visitor_slots", "--async", visitor=1, enqueue_fn=lambda i: None
+        )
         self.allocation.refresh_from_db()
         # Assert: not distributable (allocation ready-gate refuses it).
         assert (self.allocation.is_active, self.allocation.workspace_ready) == (
@@ -279,31 +291,47 @@ class TestReconcileAsyncDispatch(TestCase):
         )
 
     def test_async_does_not_run_reclean_inline(self):
-        # Arrange: the visitor has residue Project rows (default + side).
+        # Arrange: setUp snapshotted the visitor's residue Project slugs
+        # (default + side + auto-provisioned dotfiles). Scoped to slot 1
+        # (--visitor 1) — the pool is POOL_SIZE=4 by default and Phase 2
+        # would otherwise also touch slots 2-4's (unrelated) rows.
         # Act: dispatch via the injected seam — the reset pipeline itself
         # must NOT run in-process.
-        call_command("reconcile_visitor_slots", "--async", enqueue_fn=lambda i: None)
-        # Assert: the residue Project rows survive the call (the inline
-        # re-clean would delete them as its first pipeline step).
-        assert Project.objects.filter(owner=self.user).count() == 2
+        call_command(
+            "reconcile_visitor_slots", "--async", visitor=1, enqueue_fn=lambda i: None
+        )
+        # Assert: the residue Project rows survive UNCHANGED (the inline
+        # re-clean would delete them all as its first pipeline step).
+        projects_after = set(
+            Project.objects.filter(owner=self.user).values_list("slug", flat=True)
+        )
+        assert projects_after == self.projects_before
 
     def test_async_dispatches_reclean_for_each_quarantined_slot(self):
-        # Arrange: a real (tiny) recording function — no mocks.
+        # Arrange: a real (tiny) recording function — no mocks. Scoped to
+        # slot 1 so exactly one dispatch is expected (POOL_SIZE=4 by
+        # default; an unscoped call would also dispatch for slots 2-4).
         dispatched = []
         # Act
         call_command(
-            "reconcile_visitor_slots", "--async", enqueue_fn=dispatched.append
+            "reconcile_visitor_slots",
+            "--async",
+            visitor=1,
+            enqueue_fn=dispatched.append,
         )
         # Assert: the re-clean was dispatched for slot 1's allocation id.
         assert dispatched == [self.allocation.id]
 
     def test_async_reports_enqueued_count(self):
-        # Arrange: setUp created one quarantinable slot.
-        # Act
+        # Arrange: setUp created one quarantinable slot; scope the command
+        # to it (--visitor 1) so the reported count is deterministic
+        # regardless of the pool's configured size.
         out = StringIO()
+        # Act
         call_command(
             "reconcile_visitor_slots",
             "--async",
+            visitor=1,
             enqueue_fn=lambda i: None,
             stdout=out,
         )
@@ -312,7 +340,9 @@ class TestReconcileAsyncDispatch(TestCase):
 
     def test_async_quarantined_slot_is_not_allocatable(self):
         # Arrange: async reconcile quarantines slot 1 synchronously.
-        call_command("reconcile_visitor_slots", "--async", enqueue_fn=lambda i: None)
+        call_command(
+            "reconcile_visitor_slots", "--async", visitor=1, enqueue_fn=lambda i: None
+        )
         session = MockSession("async-quarantine-refuse")
         # Act
         project, _ = VisitorPool.allocate_visitor(session)
@@ -327,7 +357,9 @@ class TestReconcileAsyncDispatch(TestCase):
             raise RuntimeError("broker unreachable")
 
         # Act
-        call_command("reconcile_visitor_slots", "--async", enqueue_fn=_boom)
+        call_command(
+            "reconcile_visitor_slots", "--async", visitor=1, enqueue_fn=_boom
+        )
         self.allocation.refresh_from_db()
         # Assert
         assert (self.allocation.quarantined, self.allocation.workspace_ready) == (
