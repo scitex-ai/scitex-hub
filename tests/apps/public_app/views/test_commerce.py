@@ -176,6 +176,47 @@ class TestTokushohoPage:
 
 
 @pytest.mark.django_db
+class TestTokushohoRealDefaults:
+    """Locks in the actual configured defaults (settings_commerce.py),
+    with no per-test override — this is what a real visitor sees today.
+
+    legal@scitex.ai is the operator's confirmed company email (already
+    public on Terms of Use/Privacy Policy) and resolves
+    hub-tokushoho-legal-email-wire. Address and phone stay unresolved:
+    特定商取引法 requires room/apartment-number precision that has not
+    been determined yet, so both must keep rendering the 準備中 notice
+    until the operator supplies them — no fabricated placeholder value.
+    """
+
+    def test_default_contact_email_is_wired_to_legal_scitex_ai(self, client):
+        # Arrange
+        url = reverse("public_app:tokushoho")
+        # Act
+        content = client.get(url).content.decode("utf-8")
+        # Assert
+        assert 'mailto:legal@scitex.ai">legal@scitex.ai' in content
+
+    def test_default_address_and_phone_still_render_pending_notice(self, client):
+        # Arrange: no settings override — real deployed defaults
+        url = reverse("public_app:tokushoho")
+        # Act
+        content = client.get(url).content.decode("utf-8")
+        # Assert: exactly address + phone are still unresolved (email is not)
+        assert content.count("tokushoho-pending") == 2
+
+    def test_default_meta_description_matches_configured_company_name(
+        self, client, settings
+    ):
+        # Arrange: meta description must stay config-driven, never a
+        # hardcoded literal that can drift from the rendered company name
+        url = reverse("public_app:tokushoho")
+        # Act
+        content = client.get(url).content.decode("utf-8")
+        # Assert
+        assert f"{settings.COMPANY_NAME}の特定商取引法に基づく表記" in content
+
+
+@pytest.mark.django_db
 class TestPricingPage:
     """Pricing page — alpha-free framing + config-driven paid plans."""
 

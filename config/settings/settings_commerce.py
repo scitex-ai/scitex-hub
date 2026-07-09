@@ -26,12 +26,47 @@ Single source of truth for:
 Environment keys (document in SECRET/.env.nas when finalized):
 
 - ``SCITEX_HUB_COMPANY_NAME``            販売業者 (default: 株式会社 SciTeX)
-- ``SCITEX_HUB_COMPANY_REPRESENTATIVE``  運営統括責任者 (default: 渡邉 裕亮)
-- ``SCITEX_HUB_COMPANY_ADDRESS``         所在地 — full address incl. room
-                                         number (unset until office is
-                                         finalized → 準備中)
-- ``SCITEX_HUB_COMPANY_PHONE``           電話番号 (unset → 準備中)
-- ``SCITEX_HUB_COMPANY_CONTACT_EMAIL``   公開メールアドレス (unset → 準備中)
+- ``SCITEX_HUB_COMPANY_REPRESENTATIVE``  運営統括責任者 (default: 渡邉 裕亮 —
+                                         operator: please confirm this is
+                                         the legally correct kanji for
+                                         your name before this page is
+                                         relied on for real filings; a
+                                         different rendering, 渡邊裕亮, has
+                                         also been used elsewhere)
+- ``SCITEX_HUB_COMPANY_ADDRESS``         所在地 — NOT YET DETERMINED (blocked
+                                         on operator input; see cards
+                                         s2sell-hub-tokushoho-page /
+                                         hub-tokushoho-legal-email-wire).
+                                         特定商取引法 requires the
+                                         registered place of business
+                                         precise to room/apartment number
+                                         — stricter than what corporate
+                                         registration (登記) requires, and
+                                         a DIFFERENT value than any
+                                         residential address used
+                                         elsewhere (e.g. Terms of
+                                         Use/Privacy Policy contact
+                                         address). Never fabricate or
+                                         reuse an unrelated address here
+                                         — unset until the operator
+                                         supplies the exact registered
+                                         address → template renders 準備中.
+- ``SCITEX_HUB_COMPANY_PHONE``           電話番号 — NOT YET DETERMINED. A
+                                         personal candidate number was
+                                         floated in
+                                         hub-tokushoho-legal-email-wire
+                                         but explicitly marked pending
+                                         operator confirmation (personal
+                                         vs. company line) — deliberately
+                                         NOT wired here. Unset → 準備中.
+- ``SCITEX_HUB_COMPANY_CONTACT_EMAIL``   公開メールアドレス (default:
+                                         legal@scitex.ai — the operator's
+                                         confirmed company email, already
+                                         live on the Terms of Use /
+                                         Privacy Policy pages; resolves
+                                         hub-tokushoho-legal-email-wire).
+                                         Override via env if it ever
+                                         changes.
 - ``SCITEX_HUB_BILLING_PLANS``           JSON list of plan objects, each:
                                          {"name": str,
                                           "price_tax_included": int,
@@ -55,11 +90,28 @@ COMPANY_NAME = _getenv_alias("SCITEX_HUB_COMPANY_NAME", "株式会社 SciTeX") o
 COMPANY_REPRESENTATIVE = (
     _getenv_alias("SCITEX_HUB_COMPANY_REPRESENTATIVE", "渡邉 裕亮") or ""
 )
-# NOT finalized — leave empty until the office / phone / public email are
-# decided. The tokushoho page renders 準備中 for empty values.
+# PLACEHOLDER — office address not yet determined by the operator.
+# 特定商取引法 requires room/apartment-number precision (stricter than
+# 登記/corporate registration) and this MUST NOT be guessed, invented,
+# or backfilled from an unrelated address (e.g. a personal residence
+# used elsewhere for Terms of Use/Privacy Policy contact purposes).
+# Leave unset until the operator supplies the exact registered address
+# — the tokushoho page then renders an explicit 準備中 notice instead
+# of a fake value (no-fake-data principle). See cards:
+# s2sell-hub-tokushoho-page, hub-tokushoho-legal-email-wire.
 COMPANY_ADDRESS = _getenv_alias("SCITEX_HUB_COMPANY_ADDRESS", "") or ""
+# PLACEHOLDER — phone number not yet determined. A personal number was
+# floated as a candidate in hub-tokushoho-legal-email-wire but marked
+# explicitly pending (personal vs. company line undecided) — do not
+# wire it here without operator confirmation. Leave unset → 準備中.
 COMPANY_PHONE = _getenv_alias("SCITEX_HUB_COMPANY_PHONE", "") or ""
-COMPANY_CONTACT_EMAIL = _getenv_alias("SCITEX_HUB_COMPANY_CONTACT_EMAIL", "") or ""
+# RESOLVED — legal@scitex.ai is the operator's confirmed company email
+# (freee 会社設立 account; already public on Terms of Use/Privacy
+# Policy). Resolves hub-tokushoho-legal-email-wire. Override via env
+# if this ever changes.
+COMPANY_CONTACT_EMAIL = (
+    _getenv_alias("SCITEX_HUB_COMPANY_CONTACT_EMAIL", "legal@scitex.ai") or ""
+)
 
 # ---------------------------------------
 # Billing plans (config-driven; empty = 準備中)
