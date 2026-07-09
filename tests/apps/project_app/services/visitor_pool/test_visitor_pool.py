@@ -32,6 +32,9 @@ from apps.infra.project_app.services.visitor_pool.slot_lifecycle import (
     get_or_create_allocation,
     reset_and_verify_slot,
 )
+from apps.infra.project_app.services.visitor_pool.workspace_manager import (
+    TEMPLATE_MARKER_RELPATH,
+)
 
 
 class MockSession(dict):
@@ -60,8 +63,10 @@ class FakeGiteaClient:
 
 
 def fake_clone(template_id, dest, git_strategy=None):
-    """Tiny real template clone: creates the marker the verifier checks."""
-    manuscript = Path(dest) / "scitex" / "writer" / "01_manuscript"
+    """Tiny real template clone mirroring the REAL ``.scitex/writer``
+    layout (built from TEMPLATE_MARKER_RELPATH so fakes cannot diverge
+    from the path production verifies — 2026-07-08 incident)."""
+    manuscript = Path(dest) / TEMPLATE_MARKER_RELPATH / "01_manuscript"
     manuscript.mkdir(parents=True, exist_ok=True)
     (manuscript / "main.tex").write_text("% fresh template\n")
     return True
