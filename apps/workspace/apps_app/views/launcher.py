@@ -83,7 +83,11 @@ def _build_tiles(request) -> list[dict]:
         # standalone launcher apps (Clew opens within a manuscript; Chat
         # lives in the left sidebar at /chat/). They opt out of the grid
         # via the manifest `show_in_launcher` flag but stay in the tab bar.
+        # Mark them seen BEFORE skipping: step 2 below re-adds any public
+        # AppsModule row not in `seen`, which would put the tile straight
+        # back on the grid.
         if not mod.show_in_launcher:
+            seen.add(mod.name)
             continue
         row = catalog.get(mod.name)
         tiles.append(
