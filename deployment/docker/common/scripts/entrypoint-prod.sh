@@ -99,6 +99,18 @@ elif [ "vite.config.ts" -nt "staticfiles/vite/.build-timestamp" ]; then
 elif [ -n "$(find static apps -name '*.ts' -newer staticfiles/vite/.build-timestamp 2>/dev/null | head -1)" ]; then
     # Check if any TS source file is newer than the build (in static/ and apps/)
     VITE_REBUILD_NEEDED=true
+elif [ -n "$(find .apps -name node_modules -prune -o -name '.git' -prune -o -path '*/_django/frontend/src/*' -name '*.ts' -newer staticfiles/vite/.build-timestamp -print 2>/dev/null | head -1)" ]; then
+    # Sibling app bridges (vite.config.ts's discoverAppBridges() scans
+    # .apps/*/src/*/_django/frontend/src for a manifest "bridge" entry —
+    # see scitex-todo's manifest.json). install_apps.sh clones these
+    # OUTSIDE static/ and apps/, so the check above never sees them; a
+    # freshly-cloned sibling's bridge silently never got Vite-bundled on
+    # a plain container restart (only a full deploy via
+    # scripts/deploy/rebuild.sh caught it, since that script
+    # unconditionally clears .build-timestamp). Pruned to node_modules/
+    # .git and the _django/frontend/src bridge path so this stays cheap
+    # instead of walking every sibling's full checkout.
+    VITE_REBUILD_NEEDED=true
 fi
 
 if [ "$VITE_REBUILD_NEEDED" = true ]; then
