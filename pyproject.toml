@@ -126,7 +126,10 @@ all = [
     # ResolutionImpossible — see scitex-python#282, resolved). Floor at
     # 2.29.3 to skip the broken 2.29.0/2.29.1 entirely.
     "scitex>=2.29.3",
-    "scitex-ui>=0.2.0",
+    # >=0.6.1: 0.6.0 never shipped middleware.py (merged after that release
+    # was cut) and anything older is sync-only, deadlocking daphne under
+    # ASGI. See scitex-ui PR #59 and settings_shared.py's MIDDLEWARE entry.
+    "scitex-ui>=0.6.1",
     # --- GUI (dearpygui-based modules) ---
     "dearpygui>=1.11",
     "cairosvg>=2.7",
