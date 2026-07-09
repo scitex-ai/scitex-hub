@@ -7,19 +7,30 @@
 #
 # REBUILD_STEPS (single source of truth - used by 'make help-commands'):
 #   1. slurm-clean   - Cancel ALL SLURM jobs and reset node state
-#   2. down          - Stop services (docker compose down)
-#   3. build         - Build Docker images (code COPIED into image)
-#   4. clear-vite    - Clear vite timestamp (forces TypeScript rebuild)
-#   5. up            - Start services (docker compose up -d)
-#   6. apptainer     - Fix Apptainer sandbox permissions
-#   7. cache-purge   - Purge Cloudflare cache
+#   2. build         - Build new images while the OLD stack keeps serving
+#   3. clear-vite    - Clear vite timestamp (forces TypeScript rebuild)
+#   4. up            - Swap in new containers (recreate only changed services)
+#   5. apptainer     - Fix Apptainer sandbox permissions
+#   6. cache-purge   - Purge Cloudflare cache
+#
+# Zero-downtime design (constitution §2 "no surprises"):
+#   Images are built FIRST, while the currently-running containers keep
+#   serving traffic. Only after the build succeeds does 'up -d' swap the app
+#   containers (django + celery). Compose recreates ONLY the services whose
+#   image/config changed and leaves nginx / postgres / redis / gitea /
+#   cloudflared running, so the site stays reachable across the ~10-min build.
+#   During the brief app-container swap, nginx serves its 502/503 maintenance
+#   page (common/nginx/error-pages/502.html) instead of a hard error.
+#   The old "down before build" took the ENTIRE stack (incl. nginx +
+#   cloudflared) offline for the whole build -> 530 on prod, connection-
+#   refused on staging. Removing that down is the fix.
 #
 # No manual steps needed after running this script.
 # ==============================================================================
 
 # Print steps and exit (used by Makefile help-commands)
 if [ "$1" = "--steps" ]; then
-    grep -A5 "^# REBUILD_STEPS" "$0" | grep "^#   [0-9]" | sed 's/^#   //'
+    grep -A8 "^# REBUILD_STEPS" "$0" | grep "^#   [0-9]" | sed 's/^#   //'
     exit 0
 fi
 
@@ -85,7 +96,7 @@ if [ ! -d "$DOCKER_DIR" ]; then
     exit 1
 fi
 
-# Preflight: Apptainer + fakeroot (needed by Step 6 to chmod sandbox files
+# Preflight: Apptainer + fakeroot (needed by Step 5 to chmod sandbox files
 # owned by sub-UIDs from prior --fakeroot sessions). Fail fast here rather
 # than masking a silent chmod failure later.
 SANDBOX_DIR_PREFLIGHT="$PROJECT_ROOT/deployment/singularity"
@@ -114,7 +125,9 @@ if [ "$ENV" = "prod" ] && [ "$AUTO_YES" = false ]; then
     fi
     echo ""
     echo -e "${RED}⚠️  WARNING: Production rebuild!${NC}"
-    echo -e "${YELLOW}   This will cause downtime.${NC}"
+    echo -e "${YELLOW}   Images build with the site still serving; the app${NC}"
+    echo -e "${YELLOW}   containers then swap in briefly. nginx serves a${NC}"
+    echo -e "${YELLOW}   maintenance page during the short (~1-2 min) django recreate.${NC}"
     echo ""
     printf "Type 'yes' to confirm: "
     read -r confirm
@@ -127,7 +140,7 @@ fi
 echo ""
 echo -e "${CYAN}🔄 Rebuilding ${ENV} environment...${NC}"
 
-# Step 1: Clean SLURM state (before stopping containers)
+# Step 1: Clean SLURM state (before swapping containers)
 echo -e "${CYAN}  1. Cleaning SLURM state...${NC}"
 cd "$DOCKER_DIR"
 DJANGO_CONTAINER="scitex-hub-${ENV}-django-1"
@@ -152,23 +165,23 @@ else
     echo -e "${YELLOW}   Django container not running — SLURM cleanup skipped${NC}"
 fi
 
-# Step 2: Stop and remove services
-echo -e "${CYAN}  2. Stopping ${ENV}...${NC}"
-$COMPOSE_CMD down --remove-orphans --volumes=false 2>/dev/null || true
-
-# Remove any leftover containers (handles edge cases like "Created" state)
-echo -e "${CYAN}  2b. Cleaning up leftover containers...${NC}"
-docker ps -a --format '{{.Names}}' | grep "^scitex-hub-${ENV}-" | xargs -r docker rm -f 2>/dev/null || true
-
-# Step 3: Build images (with resource limits to keep SSH responsive)
-echo -e "${CYAN}  3. Building Docker images (CPU-limited to keep SSH alive)...${NC}"
+# Step 2: Build images WHILE THE OLD STACK KEEPS SERVING.
+# CRITICAL (constitution §2 "no surprises"): we deliberately do NOT
+# 'docker compose down' before building. The previous containers — nginx,
+# cloudflared, django, postgres, redis, gitea — stay UP and keep serving
+# traffic for the entire ~10-min build. Only after the build succeeds does
+# Step 4 ('up -d') swap the app containers, so the site stays reachable during
+# a rebuild (prod: no more 530; staging: no connection-refused for the whole
+# build). 'docker compose build' touches images only, never the running
+# containers, so serving is unaffected here.
+echo -e "${CYAN}  2. Building Docker images (old stack still serving; CPU-limited to keep SSH alive)...${NC}"
 export DOCKER_BUILDKIT=1
 # nice -n 10: lower priority so SSH/system processes win CPU contention
 # shellcheck disable=SC2086  # COMPOSE_CMD intentionally word-splits (e.g. "docker compose")
 nice -n 10 $COMPOSE_CMD build
 
-# Step 4: Clear vite timestamp (forces TypeScript rebuild)
-echo -e "${CYAN}  4. Clearing vite timestamp (forces TypeScript rebuild)...${NC}"
+# Step 3: Clear vite timestamp (forces TypeScript rebuild on the new container)
+echo -e "${CYAN}  3. Clearing vite timestamp (forces TypeScript rebuild)...${NC}"
 # Prod uses external volumes named scitex-hub-nas_* (per docker_prod/docker-compose.yml
 # `external: true, name: scitex-hub-nas_*` declarations); dev/staging use auto-created
 # project-namespaced scitex-hub-${ENV}_*. Without this branch, the prod path silently
@@ -181,12 +194,31 @@ fi
 docker run --rm -v "${STATIC_VOL}:/staticfiles" alpine \
     rm -f /staticfiles/vite/.build-timestamp 2>/dev/null || true
 
-# Step 5: Start services
-echo -e "${CYAN}  5. Starting services...${NC}"
-$COMPOSE_CMD up -d
+# Step 4: Swap in the new containers ("swap-last" half of build-first/swap-last).
+# 'up -d' recreates ONLY the services whose image or config changed — i.e. the
+# freshly-built app image (django + celery_worker + celery_beat, which share
+# scitex-hub-${ENV}-django:latest). Pulled/unchanged services (nginx, postgres,
+# redis, gitea, cloudflared, umami, pgbouncer) are left running untouched, so
+# on prod nginx + the Cloudflare tunnel never drop. Migrations run in the
+# django entrypoint on recreate.
+#   - prod: while the new django boots, nginx has no healthy upstream and
+#     serves its 502/503 maintenance page (common/nginx/error-pages/502.html,
+#     a dark "Service is starting up" page) instead of a hard error. nginx
+#     re-resolves django's IP via Docker DNS (resolver 127.0.0.11), so it
+#     picks up the recreated container automatically.
+#   - staging: django is exposed directly (no nginx/reverse proxy, by design),
+#     so it shows a brief connection-refused ONLY for the seconds the new
+#     django boots — not for the whole build as before.
+# --remove-orphans preserves the orphan cleanup the old 'down --remove-orphans'
+# used to do. If a container is ever genuinely wedged, recover with a targeted
+#   $COMPOSE_CMD up -d --force-recreate <service>
+# rather than a blanket 'down' (which would reintroduce full downtime).
+echo -e "${CYAN}  4. Swapping in new containers (only changed services recreated)...${NC}"
+# shellcheck disable=SC2086  # COMPOSE_CMD intentionally word-splits
+$COMPOSE_CMD up -d --remove-orphans
 
-# Step 6: Fix Apptainer sandbox permissions (must be readable by scitex user)
-echo -e "${CYAN}  6. Fixing Apptainer sandbox permissions...${NC}"
+# Step 5: Fix Apptainer sandbox permissions (must be readable by scitex user)
+echo -e "${CYAN}  5. Fixing Apptainer sandbox permissions...${NC}"
 SANDBOX_DIR="$PROJECT_ROOT/deployment/singularity"
 if [ -d "$SANDBOX_DIR" ]; then
     # Find current sandbox directory
@@ -232,8 +264,8 @@ else
     echo -e "${YELLOW}   Singularity directory not found${NC}"
 fi
 
-# Step 7: Purge Cloudflare cache
-echo -e "${CYAN}  7. Purging Cloudflare cache...${NC}"
+# Step 6: Purge Cloudflare cache
+echo -e "${CYAN}  6. Purging Cloudflare cache...${NC}"
 CACHE_PURGE_SCRIPT="$PROJECT_ROOT/deployment/docker/common/scripts/cloudflare_cache_purge.sh"
 if [ -x "$CACHE_PURGE_SCRIPT" ]; then
     "$CACHE_PURGE_SCRIPT" all 2>/dev/null || echo -e "${YELLOW}   ⚠️ Cache purge skipped (no API credentials)${NC}"
