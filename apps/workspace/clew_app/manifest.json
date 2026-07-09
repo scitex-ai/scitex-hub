@@ -12,6 +12,7 @@
   "keyboard_shortcut": "R",
   "order": 50,
   "default_enabled": false,
+  "show_in_launcher": false,
   "accent_color": "clew",
   "body_class": "clew-page",
   "partial_template": "clew_app/index_partial.html",

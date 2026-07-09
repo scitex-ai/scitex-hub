@@ -79,6 +79,12 @@ def _build_tiles(request) -> list[dict]:
 
     # 1. Workspace module registry — same source that builds the sidebar.
     for mod in get_all_modules():
+        # Some registered modules are workspace panes / nav items, not
+        # standalone launcher apps (Clew opens within a manuscript; Chat
+        # lives in the left sidebar at /chat/). They opt out of the grid
+        # via the manifest `show_in_launcher` flag but stay in the tab bar.
+        if not mod.show_in_launcher:
+            continue
         row = catalog.get(mod.name)
         tiles.append(
             {
