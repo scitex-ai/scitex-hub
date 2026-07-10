@@ -244,6 +244,14 @@ MIDDLEWARE = [
     "apps.infra.project_app.middleware.VisitorAutoLoginMiddleware",
     "apps.infra.project_app.middleware.VisitorExpirationMiddleware",
     "apps.infra.project_app.middleware.VisitorAppRedirectMiddleware",
+    # Default-deny site-wide write guard for the shared readonly-visitor
+    # role (card hub-visitor-slot-isolation-audit — closes the exact gap
+    # that produced the field-found "Plaque" leak: per-view opt-in guards
+    # had missed project creation entirely). Must run AFTER
+    # VisitorAutoLoginMiddleware so request.user/session-role is final.
+    # Per-view guards (file_save.py, todo_app middleware below) still
+    # apply first for their richer error copy; this is the safety net.
+    "apps.infra.project_app.middleware_readonly_write_guard.ReadonlyVisitorWriteGuardMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.infra.project_app.middleware.GuestSessionMiddleware",
