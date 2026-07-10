@@ -73,22 +73,12 @@ if [[ ! "$ENV" =~ ^(dev|staging|prod)$ ]]; then
     exit 1
 fi
 
-# Set docker directory and compose command based on environment
-if [ "$ENV" = "staging" ]; then
-    DOCKER_DIR="$PROJECT_ROOT/deployment/docker"
-    export SCITEX_ENV=staging
-    COMPOSE_CMD="docker compose --env-file ./envs/.env.staging -f docker-compose.yml -f docker-compose.staging.yml"
-elif [ "$ENV" = "prod" ]; then
-    # --env-file ../envs/.env.prod feeds SCITEX_HUB_*_PROD vars at compose-time
-    # (cloudflared token, ports). Symmetric with staging COMPOSE_CMD above.
-    # Closes RC-6's compose-time-substitution sibling gap surfaced in the
-    # 2026-06-06 cutover (docs/incidents/2026-06-06-prod-cutover-cloud-to-hub.md).
-    DOCKER_DIR="$PROJECT_ROOT/deployment/docker/docker_prod"
-    COMPOSE_CMD="docker compose --env-file ../envs/.env.prod"
-else
-    DOCKER_DIR="$PROJECT_ROOT/deployment/docker/docker_${ENV}"
-    COMPOSE_CMD="docker compose"
-fi
+# Set docker directory and compose command based on environment.
+# The mapping itself lives in compose_env.sh so that manual operations
+# (scripts/deploy/compose.sh) and this script cannot drift apart.
+# shellcheck source=./compose_env.sh
+source "$SCRIPT_DIR/compose_env.sh"
+resolve_compose_env "$ENV" "$PROJECT_ROOT"
 
 # Check docker directory exists
 if [ ! -d "$DOCKER_DIR" ]; then
