@@ -22,6 +22,18 @@ services:
       - media_volume:/app/media
       - scitex_config_volume:/app/.scitex
 
+      # Sibling dev-install checkouts (scitex-ui, figrecipe, scitex-writer,
+      # scitex-todo — see .scitex-apps.json). Persisting this across a
+      # rebuild/recreate lets install_apps.sh skip re-cloning when nothing
+      # changed (hub-postboot-warmup-window, 2026-07-10). Previously
+      # missing here entirely, so every container recreate re-cloned all
+      # siblings from GitHub regardless of whether anything changed.
+      - apps_volume:/app/.apps
+      # uv/npm download caches — reused even when a (re)install genuinely
+      # is needed, so it doesn't re-fetch from the network every time.
+      - uv_cache_volume:/app/.cache/uv
+      - npm_cache_volume:/app/.cache/npm
+
       # scitex-code for citation_graph module (until published to PyPI)
       - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
 
@@ -80,6 +92,10 @@ services:
       - OPENALEX_LOCAL_MODE=db
       - SCITEX_DIR=/app/.scitex
       - SCITEX_HUB_BUILD_ID=b0a2a30c
+      # install_apps.sh sibling dev-installs: reuse downloaded packages
+      # across boots instead of re-fetching from the network every time.
+      - UV_CACHE_DIR=/app/.cache/uv
+      - NPM_CONFIG_CACHE=/app/.cache/npm
     depends_on:
       pgbouncer:
         condition: service_healthy
@@ -185,6 +201,9 @@ services:
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
+      - apps_volume:/app/.apps
+      - uv_cache_volume:/app/.cache/uv
+      - npm_cache_volume:/app/.cache/npm
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
       - ../../../deployment/singularity:/app/singularity:ro
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
@@ -206,6 +225,8 @@ services:
       - PYTHONUNBUFFERED=1
       - SCITEX_DIR=/app/.scitex
       - SCITEX_HUB_BUILD_ID=b0a2a30c
+      - UV_CACHE_DIR=/app/.cache/uv
+      - NPM_CONFIG_CACHE=/app/.cache/npm
 
     depends_on:
       pgbouncer:
@@ -235,6 +256,9 @@ services:
     command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
 
     volumes:
+      - apps_volume:/app/.apps
+      - uv_cache_volume:/app/.cache/uv
+      - npm_cache_volume:/app/.cache/npm
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
 
     env_file:
@@ -247,6 +271,8 @@ services:
       - PYTHONUNBUFFERED=1
       - SCITEX_DIR=/app/.scitex
       - SCITEX_HUB_BUILD_ID=b0a2a30c
+      - UV_CACHE_DIR=/app/.cache/uv
+      - NPM_CONFIG_CACHE=/app/.cache/npm
 
     depends_on:
       pgbouncer:
@@ -411,6 +437,16 @@ volumes:
   scitex_config_volume:
     external: true
     name: scitex-hub-nas_scitex_config_volume
+  # New volumes (2026-07-10, hub-postboot-warmup-window) — brand new, no
+  # prior data to migrate, so plain auto-created volumes rather than
+  # `external: true` (which would require them to be pre-created by hand
+  # before the next `up`, hard-failing the deploy otherwise).
+  apps_volume:
+    driver: local
+  uv_cache_volume:
+    driver: local
+  npm_cache_volume:
+    driver: local
 
 networks:
   scitex-network:

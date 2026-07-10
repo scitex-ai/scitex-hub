@@ -112,6 +112,59 @@ if [ -d "/app/node_modules" ] && [ "$(stat -c '%U' /app/node_modules 2>/dev/null
 fi
 
 # ============================================
+# Fix /app/.apps volume ownership (sibling dev-installs)
+# ============================================
+# apps_volume may be created fresh (new deploy, or first time added to an
+# environment) — a brand-new named volume's mount point defaults to
+# root:root before anything has written to it. install_apps.sh runs as
+# the scitex user (after this script gosu's down) and needs to clone into
+# and create subdirectories here (2026-07-10, hub-postboot-warmup-window).
+mkdir -p /app/.apps
+if [ "$(stat -c '%U' /app/.apps 2>/dev/null)" != "scitex" ]; then
+    echo "🔧 Fixing /app/.apps ownership (root -> scitex)..."
+    chown -R scitex:scitex /app/.apps
+    echo "✅ /app/.apps ownership fixed"
+else
+    echo "✅ /app/.apps ownership OK"
+fi
+
+# ============================================
+# Fix uv/npm runtime cache volume ownership
+# ============================================
+# Persistent cache volumes for install_apps.sh's `uv pip install` / `npm
+# install` calls, so a re-install (fresh clone, or a genuine dependency
+# bump) reuses previously-downloaded packages instead of re-fetching from
+# the network every time (operator directive, 2026-07-08).
+mkdir -p /app/.cache/uv /app/.cache/npm
+for cache_dir in /app/.cache/uv /app/.cache/npm; do
+    if [ "$(stat -c '%U' "$cache_dir" 2>/dev/null)" != "scitex" ]; then
+        echo "🔧 Fixing $cache_dir ownership (root -> scitex)..."
+        chown -R scitex:scitex "$cache_dir"
+    fi
+done
+echo "✅ uv/npm cache directories ready"
+
+# ============================================
+# Fix system site-packages top-level ownership (uv --system editable installs)
+# ============================================
+# install_apps.sh (running as scitex) uses `uv pip install --system -e ...`
+# to replace the image's pinned PyPI siblings (scitex-ui, figrecipe,
+# scitex-writer, ...) with live-tracking editable checkouts. Creating or
+# replacing a package's dist-info entry only needs WRITE access to the
+# site-packages DIRECTORY itself — POSIX create/delete permission is
+# governed by the containing directory, not the target file's own
+# ownership — so this is a single non-recursive chown, not a slow walk of
+# the (large, torch/scipy-sized) existing tree.
+SITE_PACKAGES="/usr/local/lib/python3.11/site-packages"
+if [ -d "$SITE_PACKAGES" ] && [ "$(stat -c '%U' "$SITE_PACKAGES" 2>/dev/null)" != "scitex" ]; then
+    echo "🔧 Fixing site-packages ownership for uv --system editable installs..."
+    chown scitex:scitex "$SITE_PACKAGES"
+    echo "✅ site-packages ownership fixed (top-level only, non-recursive)"
+else
+    echo "✅ site-packages ownership OK"
+fi
+
+# ============================================
 # Fix staticfiles volume ownership
 # ============================================
 # The static volume can accumulate files owned by other UIDs (e.g.
