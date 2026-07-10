@@ -79,13 +79,14 @@ def _get_version():
 # ---------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 ROOT_URLCONF = "config.urls"
-# LOG_DIR lives under GITIGNORED/ (project convention for runtime
-# artifacts) — keeps the repo root clean and satisfies PS-102 (no
-# top-level forbidden dirs). The env var SCITEX_HUB_LOG_DIR lets
-# operators redirect logs in production without code changes.
-LOG_DIR = Path(os.environ.get("SCITEX_HUB_LOG_DIR", BASE_DIR / "GITIGNORED" / "logs"))
-if not os.path.exists(LOG_DIR):
-    os.makedirs(LOG_DIR, exist_ok=True)
+# NOTE: LOG_DIR is deliberately NOT computed here. It is owned by
+# settings_logging.py (the module that actually builds the
+# RotatingFileHandlers) and reaches this module's namespace via
+# `from .settings_logging import *` below. A duplicate computation used
+# to live here too; it was dead code (silently overwritten by that
+# import) that also created an unused GITIGNORED/logs directory on every
+# boot. Removed together with the GITIGNORED/logs fallback itself -- see
+# incident hub-prod-outage-celery-log-permission (2026-07-09/10).
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"

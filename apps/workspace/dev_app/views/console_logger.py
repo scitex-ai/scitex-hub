@@ -13,15 +13,17 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 # Setup dedicated console logger with rotation. Use settings.LOG_DIR
-# (defined in config.settings.settings_shared / settings_logging) which
-# resolves to ``GITIGNORED/logs/`` by default, or honours
-# ``SCITEX_HUB_LOG_DIR``. Hard-coding ``settings.BASE_DIR / "logs"`` was
+# (owned by config.settings.settings_logging, resolved via the
+# runtime-state-db-layout convention -- see that module's docstring and
+# incident hub-prod-outage-celery-log-permission). LOG_DIR is always
+# defined by the time any settings module finishes loading, so no
+# fallback default is needed here -- per project policy, a silent
+# fallback would just mask a misconfigured settings module instead of
+# failing loudly. Hard-coding ``settings.BASE_DIR / "logs"`` was
 # creating a top-level ``logs/`` directory on every Django boot — a
 # PS-102 §1 (no-top-level-forbidden-dir) violation flagged by the
 # ecosystem audit gate.
-_log_dir = Path(
-    getattr(settings, "LOG_DIR", Path(settings.BASE_DIR) / "GITIGNORED" / "logs")
-)
+_log_dir = Path(settings.LOG_DIR)
 console_log_file = _log_dir / "console.log"
 console_error_file = _log_dir / "console_error.log"
 console_log_file.parent.mkdir(parents=True, exist_ok=True)
