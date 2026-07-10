@@ -10,17 +10,33 @@ silently ignored (that was audit gap #1: an unguarded ``rmtree`` aborted
 on ``PermissionError('revision.tex')`` AFTER the new Project row was
 created, leaving the previous visitor's files for the next one).
 
-Pipeline order (wipe FIRST, create only after verified-clean):
+Pipeline order (teardown + wipe FIRST, create only after verified-clean):
+  0. Tear down container state + VERIFY gone (audit gap #6): stop the
+     visitor's apptainer instance inside its SLURM job, scancel the
+     job(s), verify neither survives. Runs BEFORE any wipe — a live
+     instance holds the ``--home`` bind of the visitor home open and
+     its processes keep writing, defeating rmtree + re-clone.
   1. Delete ALL Project rows owned by the visitor (post_delete signal
      best-effort deletes their Gitea repos).
-  2. Wipe the visitor's entire filesystem base dir + VERIFY empty.
+  2. Wipe the visitor's ENTIRE home root + VERIFY empty. The home root
+     (``data/users/<username>``) is what apptainer binds as ``--home``,
+     so ``~/.bash_history``, ``~/.local``, ``~/.cache``, AI-tool
+     configs AND ``~/.singularity/default.sif`` (which
+     ``select_container`` would hand to the next visitor as their
+     container image) are all covered — not just ``proj/``.
+     Also remove the visitor's user_containers build dir.
   3. Hard-delete every Gitea repo still owned by the visitor + VERIFY
      zero repos remain (audit gap #4: a surviving repo at the stable
      path gets adopted by the next visitor's project).
   4. Clear user-scoped DB rows (chat, LLM logs, app installs/stars/
      reviews, dev installs — audit gap #5).
-  5. Create the fresh default Project row.
+  5. Recreate the home skeleton (proj/ + dotfiles) through the same
+     ``ensure_workspace_sync`` the terminal spawn path uses, then
+     create the fresh default Project row.
   6. Clone the template + VERIFY the template marker exists.
+  7. FINAL GATE: no SLURM job, no instance, home contents exactly the
+     fresh skeleton, ``~/.singularity`` empty, user_containers gone.
+     Any miss quarantines — an unverified slot is never served.
 
 Uses scitex.template.clone_template() as single source of truth for
 templates.
@@ -34,6 +50,17 @@ from django.contrib.auth.models import User
 
 from apps.infra.project_app.models import Project
 
+from .container_teardown import (
+    ContainerTeardownError,
+    teardown_container_state,
+    verify_container_state_gone,
+)
+from .home_state import (
+    HomeStateError,
+    recreate_workspace_skeleton,
+    verify_recycled_home,
+    wipe_user_container_dir,
+)
 from .workspace_wipe import WorkspaceWipeError, wipe_directory_contents
 
 logger = logging.getLogger(__name__)
@@ -114,14 +141,15 @@ class WorkspaceManager:
 
     @classmethod
     def reset_visitor_workspace(
-        cls, visitor_user: User, *, gitea_client=None, clone_fn=None
+        cls, visitor_user: User, *, gitea_client=None, clone_fn=None, run_cmd=None
     ):
         """
         Reset a visitor's workspace to a verified-clean template state.
 
         Clears ALL user-generated data to prevent leakage between
-        visitors: projects + filesystem, Gitea repos, chat sessions,
-        LLM logs, and user-scoped app rows.
+        visitors: container state (SLURM job + apptainer instance),
+        the entire home directory (not just ``proj/``), Gitea repos,
+        chat sessions, LLM logs, and user-scoped app rows.
 
         Args:
             visitor_user: The pool visitor whose slot is being recycled.
@@ -132,12 +160,18 @@ class WorkspaceManager:
             clone_fn: Injectable template clone callable with the
                 ``scitex.template.clone_template`` signature. ``None``
                 uses the real one.
+            run_cmd: Injectable subprocess boundary for the SLURM /
+                apptainer teardown commands (``callable(argv, timeout)``
+                returning a CompletedProcess-alike). ``None`` runs the
+                real commands.
 
         Raises:
-            WorkspaceResetError: on ANY wipe/verify/clone failure. The
-                caller must quarantine the slot — never serve it.
+            WorkspaceResetError: on ANY teardown/wipe/verify/clone
+                failure. The caller must quarantine the slot — never
+                serve it.
         """
         project_slug = cls.DEFAULT_PROJECT_SLUG
+        username = visitor_user.username
 
         from apps.infra.project_app.services.project_filesystem import (
             get_project_filesystem_manager,
@@ -145,6 +179,19 @@ class WorkspaceManager:
 
         manager = get_project_filesystem_manager(visitor_user)
         base_path = Path(manager.base_path)
+        # Apptainer binds the PARENT of proj/ as the container home
+        # (scitex_container --home <home_root>:/home/<username>), so the
+        # wipe must cover the whole home root, not just proj/.
+        home_root = base_path.parent
+
+        # 0. Container teardown FIRST — before any wipe. A live
+        #    instance holds the home bind open and keeps writing.
+        try:
+            teardown_container_state(username, run_cmd=run_cmd)
+        except ContainerTeardownError as exc:
+            raise WorkspaceResetError(
+                f"Container teardown failed for {username}: {exc}"
+            ) from exc
 
         # 1. Delete ALL projects owned by the visitor (not just the
         #    default one — visitors can create more). post_delete signal
@@ -154,17 +201,26 @@ class WorkspaceManager:
         if project_count:
             visitor_projects.delete()
             logger.info(
-                f"[VisitorPool] Deleted {project_count} project rows for "
-                f"{visitor_user.username}"
+                f"[VisitorPool] Deleted {project_count} project rows for {username}"
             )
 
-        # 2. Wipe FIRST and verify empty (before any create).
+        # 2. Wipe the ENTIRE home root FIRST and verify empty (before
+        #    any create). Covers ~/.bash_history, ~/.local, ~/.cache,
+        #    AI-tool configs and ~/.singularity/default.sif — the
+        #    home-level container image select_container would hand to
+        #    the next visitor.
         try:
-            wipe_directory_contents(base_path)
+            wipe_directory_contents(home_root, run_cmd=run_cmd)
         except WorkspaceWipeError as exc:
             raise WorkspaceResetError(
-                f"Filesystem wipe failed for {visitor_user.username}: {exc}"
+                f"Filesystem wipe failed for {username}: {exc}"
             ) from exc
+
+        # 2b. Visitor-built container storage outside the home root.
+        try:
+            wipe_user_container_dir(visitor_user)
+        except HomeStateError as exc:
+            raise WorkspaceResetError(str(exc)) from exc
 
         # 3. Gitea: hard-delete every repo the visitor still owns and
         #    verify zero remain (stable-path repos survive best-effort
@@ -174,26 +230,45 @@ class WorkspaceManager:
         # 4. Clear user-scoped DB rows (chat, LLM logs, app rows).
         cls._clear_visitor_data(visitor_user)
 
-        # NOTE (container state): Apptainer/container overlay state for
-        # visitor users is NOT yet wiped here — scitex-container
-        # integration is a follow-up. Tracked on card
-        # hub-visitor-slot-isolation-audit (audit gap #6). Do not treat
-        # this reset as covering container state.
-
-        # 5.–6. Only now create the fresh Project row + clone template.
+        # 5. Recreate the home skeleton (proj/ + dotfiles), then the
+        #    fresh Project row.
+        try:
+            recreate_workspace_skeleton(visitor_user, project_slug)
+        except HomeStateError as exc:
+            raise WorkspaceResetError(str(exc)) from exc
         project = Project.objects.create(
             name=project_slug,
             slug=project_slug,
             description="Try SciTeX features - sign up to save permanently!",
             owner=visitor_user,
             visibility="private",
-            data_location=f"{visitor_user.username}/{project_slug}",
+            data_location=f"{username}/{project_slug}",
         )
+
+        # 6. Clone the template + verify the marker.
         cls._initialize_reset_directory(
             visitor_user, project, project_slug, clone_fn=clone_fn
         )
+
+        # 7. FINAL GATE — never serve an unverified slot: (a) no SLURM
+        #    job, (b) no instance, (c) home is exactly the fresh
+        #    skeleton with an empty ~/.singularity, (d) no stored
+        #    visitor-built container image.
+        try:
+            verify_container_state_gone(username, run_cmd=run_cmd)
+        except ContainerTeardownError as exc:
+            raise WorkspaceResetError(
+                f"Final gate: container state survived reset for {username}: {exc}"
+            ) from exc
+        try:
+            verify_recycled_home(visitor_user, home_root)
+        except HomeStateError as exc:
+            raise WorkspaceResetError(
+                f"Final gate failed for {username}: {exc}"
+            ) from exc
+
         logger.info(
-            f"[VisitorPool] Verified-clean reset complete for {visitor_user.username}"
+            f"[VisitorPool] Verified-clean reset complete for {username}"
         )
 
     @classmethod

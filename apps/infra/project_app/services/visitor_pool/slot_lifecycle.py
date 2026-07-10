@@ -170,13 +170,17 @@ def release_slot(allocation: VisitorAllocation, reason: str = "released") -> Non
 
 
 def reset_and_verify_slot(
-    allocation: VisitorAllocation, *, gitea_client=None, clone_fn=None
+    allocation: VisitorAllocation, *, gitea_client=None, clone_fn=None, run_cmd=None
 ) -> bool:
-    """Run the full wipe+verify pipeline for one slot.
+    """Run the full teardown+wipe+verify pipeline for one slot.
 
     On success the slot returns to the distributable pool
     (``workspace_ready=True``, quarantine cleared). On ANY failure the
     slot is quarantined and ``False`` is returned.
+
+    ``run_cmd`` is the injectable subprocess boundary for the SLURM /
+    apptainer container teardown (see ``container_teardown``); ``None``
+    runs the real commands.
 
     Never resets a slot that is actively allocated (would wipe files
     under a live visitor).
@@ -202,7 +206,7 @@ def reset_and_verify_slot(
 
     try:
         WorkspaceManager.reset_visitor_workspace(
-            user, gitea_client=gitea_client, clone_fn=clone_fn
+            user, gitea_client=gitea_client, clone_fn=clone_fn, run_cmd=run_cmd
         )
     except Exception as exc:
         quarantine_slot(allocation, f"reset failed: {exc}")

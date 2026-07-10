@@ -72,11 +72,29 @@ def fake_clone(template_id, dest, git_strategy=None):
     return True
 
 
+class NoContainerToolchain:
+    """run_cmd fake: a host with no SLURM/apptainer binaries installed.
+
+    The container-teardown step treats a missing binary as "nothing to
+    tear down" (the dev/CI baseline). Injected through the reset
+    pipeline's ``run_cmd`` seam so tests never touch a real cluster.
+    """
+
+    def __call__(self, argv, timeout=None):
+        raise FileNotFoundError(argv[0])
+
+
+NO_CONTAINER_HOST = NoContainerToolchain()
+
+
 def _make_slot_ready(visitor_number: int) -> VisitorAllocation:
     """Bring a slot to the verified-clean, distributable state."""
     allocation = get_or_create_allocation(visitor_number)
     ok = reset_and_verify_slot(
-        allocation, gitea_client=FakeGiteaClient(), clone_fn=fake_clone
+        allocation,
+        gitea_client=FakeGiteaClient(),
+        clone_fn=fake_clone,
+        run_cmd=NO_CONTAINER_HOST,
     )
     if not ok:
         raise RuntimeError("test setup: slot reset must succeed")
@@ -278,7 +296,10 @@ class TestVisitorAllocationExpiration(TestCase):
         self.allocation.refresh_from_db()
         # Act: the reset pipeline verifies the slot clean, then reallocate
         reset_and_verify_slot(
-            self.allocation, gitea_client=FakeGiteaClient(), clone_fn=fake_clone
+            self.allocation,
+            gitea_client=FakeGiteaClient(),
+            clone_fn=fake_clone,
+            run_cmd=NO_CONTAINER_HOST,
         )
         project, user = VisitorPool.allocate_visitor(session)
         # Assert
