@@ -14,6 +14,18 @@ references.bib
 !.scitex/dev/config.yaml
 !.scitex/dev/cli-audit-dict.yaml
 
+# scitex-hub's own project-scope runtime state (runtime-state-db-layout
+# convention, scitex-dev skill general/01_ecosystem/13_*.md): only the
+# runtime/ seed files are tracked -- everything else regenerates per-host
+# (Django/Celery logs; see config/settings/settings_logging.py LOG_DIR
+# and incident hub-prod-outage-celery-log-permission).
+!.scitex/hub/
+.scitex/hub/*
+!.scitex/hub/runtime/
+.scitex/hub/runtime/*
+!.scitex/hub/runtime/.gitkeep
+!.scitex/hub/runtime/README.md
+
 ### Source: /home/ywatanabe/.git-templates/.gitignore-templates/Custom/Claude.gitignore ###
 .claude
 docs/to_claude/
