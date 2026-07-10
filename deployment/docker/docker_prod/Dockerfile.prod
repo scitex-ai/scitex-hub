@@ -350,7 +350,8 @@ RUN useradd -m -u 1000 scitex && \
     # Match host docker socket GID
     groupmod -g 121 docker && \
     usermod -aG docker scitex && \
-    mkdir -p /app/staticfiles /app/media /app/logs /app/run /app/.cache/containers && \
+    mkdir -p /app/staticfiles /app/media /app/logs /app/run /app/.cache/containers \
+        /app/.cache/uv /app/.cache/npm /app/.apps && \
     chown -R scitex:scitex /app && \
     # Apptainer fakeroot requires subuid/subgid mappings
     echo "scitex:100000:65536" >> /etc/subuid && \
