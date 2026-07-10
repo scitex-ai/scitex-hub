@@ -78,6 +78,13 @@ chmod -R 755 /app/data/slurm 2>/dev/null || true
 # ============================================
 # Always create .scitex/logs directory (required by scitex package)
 mkdir -p /app/.scitex/logs
+# Always create .scitex/hub/runtime directory (LOG_DIR default for the
+# Django/Celery app itself -- config/settings/settings_logging.py resolves
+# LOG_DIR here via scitex_config's runtime-state-db-layout convention.
+# A fallback default must NEVER again point at a directory nothing
+# guarantees exists -- see incident hub-prod-outage-celery-log-permission
+# (2026-07-09/10, ~90min prod outage from celery_file PermissionError).
+mkdir -p /app/.scitex/hub/runtime
 chown -R scitex:scitex /app/.scitex 2>/dev/null || true
 chmod -R 755 /app/.scitex 2>/dev/null || true
 echo "✅ .scitex directory permissions fixed"
