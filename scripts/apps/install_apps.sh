@@ -85,7 +85,15 @@ fi
 # ------------------------------------------------------------------
 LOCK_FILE="$PARENT_DIR/.install_apps.lock"
 if command -v flock &>/dev/null; then
-    if exec 200>"$LOCK_FILE" 2>/dev/null; then
+    # Braces are LOAD-BEARING: `exec 200>f 2>/dev/null` (no braces) would
+    # make BOTH redirections permanent for the rest of the script — i.e.
+    # discard every subsequent stderr line (uv/pip/git errors, the fatal
+    # ERROR messages below...). With the brace group, fd 200 (opened by
+    # exec) persists as intended while the 2>/dev/null applies only to
+    # the group itself. This exact bug shipped in the first version of
+    # this section and made PR #331's CI failure near-undiagnosable
+    # (uv's "command not found" never appeared in the job log).
+    if { exec 200>"$LOCK_FILE"; } 2>/dev/null; then
         if ! flock -w 600 200; then
             echo "WARNING: could not acquire $LOCK_FILE within 600s — proceeding without lock (risk of concurrent-boot race)" >&2
         fi
@@ -269,21 +277,69 @@ elif spec and spec.origin:
             if [[ "$ALREADY_SATISFIED" == true ]]; then
                 echo "$PIP_PKG already installed in editable mode from $SIBLING_DIR — skipping pip install"
             else
-                echo "Installing: uv pip install -e $SIBLING_DIR"
-                # --system: this image has no venv (see Dockerfile.prod);
-                #   site-packages' top-level dir is chowned to scitex in
-                #   root-init.sh specifically so this can create/replace
-                #   package entries there without running as root.
-                # --break-system-packages: defensive only — the real
-                #   python:3.11-slim-bookworm runtime has no PEP 668
-                #   marker (unlike some OS-managed pythons), so this
-                #   should never actually trigger; costs nothing to pass.
-                # --link-mode=copy: site-packages and the uv cache volume
-                #   are on different mounts, so hardlinks aren't possible
-                #   anyway — avoid uv probing/falling back at every call.
-                uv pip install --system --break-system-packages \
-                    -e "$SIBLING_DIR" --link-mode=copy -q ||
-                    echo "WARNING: pip install failed for $NAME (non-fatal)"
+                # uv is the fast path (Docker/NAS: Dockerfile.prod installs
+                # it explicitly, system site-packages is chowned to scitex
+                # in root-init.sh specifically so --system can create/
+                # replace package entries there). It is NOT guaranteed to
+                # exist everywhere this script runs — e.g. GitHub-hosted CI
+                # runners, which don't ship uv by default and this repo's
+                # workflows don't install it. Silently no-op'ing there
+                # (as an earlier version of this fix did) leaves the
+                # PREVIOUSLY installed non-editable PyPI version resolvable
+                # instead — vite.entries.ts's discoverPipEntries() has no
+                # sibling-checkout fallback (unlike vite.config.ts's
+                # discoverScitexUiStatic()) and just imports whatever
+                # `scitex_ui` currently resolves to, so a stale wheel silently
+                # becomes what gets bundled. Always fall back to plain pip
+                # (always available wherever python is set up) so the
+                # editable install genuinely happens either way; only the
+                # SPEED differs, never correctness (2026-07-10, PR #331 CI
+                # failure — pdfjs-dist unresolvable from the stale scitex-ui
+                # 0.6.1 wheel because the editable install silently never
+                # ran).
+                PIP_INSTALL_OK=false
+                if command -v uv &>/dev/null; then
+                    echo "Installing: uv pip install -e $SIBLING_DIR"
+                    # --system: see above (no venv in the Docker/NAS image).
+                    # --break-system-packages: defensive only — the real
+                    #   python:3.11-slim-bookworm runtime has no PEP 668
+                    #   marker (unlike some OS-managed pythons), so this
+                    #   should never actually trigger; costs nothing to pass.
+                    # --link-mode=copy: site-packages and the uv cache volume
+                    #   are on different mounts, so hardlinks aren't possible
+                    #   anyway — avoid uv probing/falling back at every call.
+                    if uv pip install --system --break-system-packages \
+                        -e "$SIBLING_DIR" --link-mode=copy -q; then
+                        PIP_INSTALL_OK=true
+                    else
+                        echo "WARNING: uv pip install failed for $NAME — falling back to plain pip"
+                    fi
+                else
+                    echo "uv not found — using plain pip for $NAME"
+                fi
+                if [[ "$PIP_INSTALL_OK" != true ]]; then
+                    # python3 -m pip (not bare `pip`): guarantees the install
+                    # targets the SAME interpreter the find_spec gates above
+                    # query, so the artifact check and the installer can never
+                    # disagree about which environment they're talking about.
+                    echo "Installing: python3 -m pip install -e $SIBLING_DIR"
+                    if ! python3 -m pip install -e "$SIBLING_DIR" -q; then
+                        # LOUD, fatal — no-silent-fallback. If the editable
+                        # install cannot happen at all, whatever non-editable
+                        # ${PKG_NAME} is already installed (e.g. the PyPI wheel
+                        # pinned in Dockerfile.prod, or CI's own pip step)
+                        # would silently become what vite bundles — exactly the
+                        # confusing at-a-distance failure PR #331's first CI
+                        # run produced. Fail here, at the true cause. Boot
+                        # resilience is unchanged: entrypoint-prod.sh wraps
+                        # this script in `|| echo_warning`, so a container
+                        # still boots (with a visible warning); CI fails the
+                        # step immediately.
+                        echo "ERROR: editable install failed for $NAME (uv and pip both failed/unavailable)." >&2
+                        echo "ERROR: refusing to continue silently — a stale non-editable ${PKG_NAME} would be used instead." >&2
+                        exit 1
+                    fi
+                fi
             fi
         fi
     fi
