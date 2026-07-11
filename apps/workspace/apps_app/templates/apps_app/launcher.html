@@ -34,13 +34,15 @@
                    data-installed="{% if tile.is_installed %}1{% else %}0{% endif %}"
                    data-pinned="{% if tile.is_pinned %}1{% else %}0{% endif %}"
                    data-detail-url="{{ tile.detail_url }}"
-                   title="{{ tile.description|default:tile.label }}">
+                   data-version="{{ tile.version }}"
+                   title="{{ tile.label }}{% if tile.version_label %} {{ tile.version_label }}{% endif %}{% if tile.description %} — {{ tile.description }}{% endif %}">
                     {% if tile.is_new %}<span class="launcher-badge launcher-badge-new">NEW</span>{% endif %}
                     {% if tile.is_installed %}<span class="launcher-dot-installed" title="Installed"></span>{% endif %}
                     <span class="launcher-tile-icon" data-tile-category="{{ tile.category }}">
                         <i class="{{ tile.icon_fa }}" aria-hidden="true"></i>
                     </span>
                     <span class="launcher-tile-name">{{ tile.label }}</span>
+                    {% if tile.version_label %}<span class="launcher-tile-version">{{ tile.version_label }}</span>{% endif %}
                 </a>
             {% endfor %}
         </div>

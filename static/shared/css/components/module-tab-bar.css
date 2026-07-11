@@ -78,6 +78,16 @@
   color: #a371f7;
 }
 
+/* Deployed version next to the active app's name (dev-loop aid). Muted and
+   monospace-aligned so it reads as metadata, never competing with the label. */
+.tab-version {
+  font-size: 10px;
+  font-weight: 400;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+  color: var(--workspace-text-secondary, #8b949e);
+}
+
 /* ==========================================================================
    Tab Drag-to-Reorder — visual feedback during tab reordering
    ========================================================================== */
