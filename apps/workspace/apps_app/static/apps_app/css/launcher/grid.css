@@ -34,11 +34,19 @@
   box-shadow:
     0 6px 18px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transition: transform 0.12s ease;
+  /* Springy pop — the overshoot on settle gives icons an iOS "bounce". */
+  transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .launcher-tile:hover .launcher-tile-icon {
-  transform: translateY(-2px) scale(1.03);
+  transform: translateY(-3px) scale(1.05);
+}
+
+/* Press-in bounce: quick scale-down on tap; springs back on release via
+   the base transition's overshoot. Makes every tap feel physical. */
+.launcher-tile:active .launcher-tile-icon {
+  transform: scale(0.9);
+  transition: transform 0.09s ease-out;
 }
 
 .launcher-tile-icon i {
@@ -208,4 +216,89 @@
 .launcher-tile.popover-anchor .launcher-tile-icon {
   outline: 2px solid var(--app-accent-hub, #6a5a8a);
   outline-offset: 3px;
+}
+
+/* ---------- Edit / rearrange mode (iPhone-home jiggle + drag) ----------
+   Long-press (touch) or the right-click "Rearrange" action toggles
+   .edit-mode on the grid: every tile wiggles and can be dragged to a new
+   slot. Order persists via POST api/reorder/ on exit (see launcher.ts). */
+@keyframes launcher-jiggle {
+  0% {
+    transform: rotate(-1.15deg);
+  }
+  50% {
+    transform: rotate(1.15deg);
+  }
+  100% {
+    transform: rotate(-1.15deg);
+  }
+}
+
+.launcher-grid.edit-mode .launcher-tile {
+  animation: launcher-jiggle 0.24s ease-in-out infinite;
+  cursor: grab;
+  /* A press that starts on a tile drags it — never scrolls the page. */
+  touch-action: none;
+}
+
+/* Stagger the phase so tiles don't wiggle in lockstep (more organic). */
+.launcher-grid.edit-mode .launcher-tile:nth-child(2n) {
+  animation-duration: 0.26s;
+  animation-delay: -0.13s;
+}
+
+.launcher-grid.edit-mode .launcher-tile:nth-child(3n) {
+  animation-duration: 0.22s;
+  animation-delay: -0.07s;
+}
+
+/* The hover lift fights the jiggle — suppress it while editing. */
+.launcher-grid.edit-mode .launcher-tile:hover .launcher-tile-icon {
+  transform: none;
+}
+
+/* The tile being dragged: no wiggle, floats above, scales up. */
+.launcher-grid.edit-mode .launcher-tile.dragging {
+  animation: none;
+  z-index: 5;
+  cursor: grabbing;
+  opacity: 0.96;
+  /* Let elementFromPoint see the tile beneath the one being dragged. */
+  pointer-events: none;
+}
+
+.launcher-grid.edit-mode .launcher-tile.dragging .launcher-tile-icon {
+  transform: scale(1.14);
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Floating Done pill (built by launcher.ts, appended to <body>). */
+.launcher-edit-done {
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  right: 16px;
+  z-index: 1300;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--app-accent-hub, #6a5a8a);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+}
+
+.launcher-edit-done:hover {
+  filter: brightness(1.08);
+}
+
+/* Respect reduced-motion: keep drag-reorder, drop the wiggle. */
+@media (prefers-reduced-motion: reduce) {
+  .launcher-grid.edit-mode .launcher-tile {
+    animation: none;
+  }
 }
