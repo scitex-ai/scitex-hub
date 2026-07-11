@@ -11,11 +11,16 @@
     <a href="{% if mod_item.is_dev %}/{{ mod_item.dev_owner }}/{{ mod_item.dev_repo }}/{% else %}/apps/{{ mod_item.app.module_name }}/{% endif %}"
        class="ap-card-link"
        aria-label="View {{ mod_item.app.module_name }}">
+        {# Version = the installed pip package's version (mod_item.reg.version,
+           resolved via importlib.metadata in the registry) for built-in apps;
+           fall back to the store-submitted DB version for user apps; blank ⇒
+           the label is omitted (never a placeholder like 0.1.0). #}
+        {% with app_ver=mod_item.reg.version|default:mod_item.app.latest_version %}
         <div class="ap-card-icon">
             {% load module_icons %}
 
             {% if mod_item.reg %}
-                {% module_icon mod_item.reg.name "tab" mod_item.app.latest_version mod_item.reg.icon_fa mod_item.is_dev %}
+                {% module_icon mod_item.reg.name "tab" app_ver mod_item.reg.icon_fa mod_item.is_dev %}
             {% else %}
                 <i class="fas fa-puzzle-piece" aria-hidden="true"></i>
             {% endif %}
@@ -29,7 +34,7 @@
                         {{ mod_item.app.module_name }}
                     {% endif %}
                 </h3>
-                <span class="ap-card-version">v{{ mod_item.app.latest_version|default:"0.1.0" }}</span>
+                {% if app_ver %}<span class="ap-card-version">v{{ app_ver }}</span>{% endif %}
                 <div class="ap-card-badges">
                     <span class="ap-category-badge ap-category-{{ mod_item.app.category }}">{{ mod_item.app.get_category_display }}</span>
                     {% if mod_item.app.is_builtin %}
@@ -46,6 +51,7 @@
                 <p class="ap-card-description">{{ mod_item.app.short_description }}</p>
             {% endif %}
         </div>
+        {% endwith %}
     </a>
     <div class="ap-card-meta">
         {% if mod_item.app.author %}

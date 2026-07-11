@@ -103,8 +103,10 @@
 }
 
 .ap-card-version {
-  font-size: 0.7rem;
+  font-size: 0.58rem;
+  font-weight: 400;
   color: var(--text-tertiary, #6a737d);
+  opacity: 0.75;
   white-space: nowrap;
 }
 

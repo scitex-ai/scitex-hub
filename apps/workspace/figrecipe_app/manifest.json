@@ -6,7 +6,7 @@
   "app_name": "figrecipe_app",
   "icon": "fas fa-palette",
   "description": "Interactive figure editor: create and edit publication-ready matplotlib plots with drag-and-drop layout, statistical annotations, and multi-panel composition.",
-  "version": "0.14.0",
+  "pip_package": "figrecipe",
   "license": "AGPL-3.0",
   "keyboard_shortcut": "F",
   "order": 45,
