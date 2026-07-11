@@ -165,7 +165,7 @@ function resolveStaticPaths(): Plugin {
   };
 }
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [
     react({
       // Exclude external app sources from Fast Refresh (avoids preamble error).
@@ -287,6 +287,11 @@ export default defineConfig({
 
   esbuild: {
     jsx: "automatic",
+    // Strip dev-trace console.debug/console.log from the PRODUCTION bundle
+    // only (browser-sweep #11). Marking them side-effect-free lets esbuild
+    // minification drop the calls; console.warn/error/info are preserved.
+    // Dev (`command === "serve"`) is untouched and keeps all logs.
+    ...(command === "build" ? { pure: ["console.log", "console.debug"] } : {}),
   },
 
   optimizeDeps: {
@@ -294,4 +299,4 @@ export default defineConfig({
     // Exclude auto-discovered app editor aliases from pre-bundling
     exclude: Object.keys(APP_BRIDGES.aliases),
   },
-});
+}));
