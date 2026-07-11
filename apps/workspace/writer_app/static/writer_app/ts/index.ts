@@ -170,9 +170,26 @@ function handleEditorInitFailure(error: unknown): void {
   const message =
     error instanceof Error ? error.message : "Unknown initialization error";
 
+  // Distinguish "the editor failed to initialize" from "the editor mounted but
+  // a content/manifest API returned an unexpected (non-JSON) response" — the
+  // latter (e.g. an HTML login/error page for a read-only visitor) is the
+  // common cause of a blank editor even though the editor libraries loaded.
+  const looksLikeContentLoad =
+    error instanceof SyntaxError ||
+    (error instanceof Error &&
+      /Unexpected token|<!DOCTYPE|not valid JSON|expected JSON|JSON/i.test(
+        error.message,
+      ));
+  const headline = looksLikeContentLoad
+    ? "Couldn't load document content"
+    : "Editor failed to load";
+  const hint = looksLikeContentLoad
+    ? "The server returned an unexpected response. Try reloading; if you are a visitor, sign in for full access."
+    : "Try reloading the page. If this persists, the editor failed to initialize.";
+
   // Visible toast (reuse existing component).
   try {
-    showToast(`Writer editor failed to load: ${message}`, "error");
+    showToast(`${headline}: ${message}`, "error");
   } catch {
     /* toast is best-effort — never mask the original failure */
   }
@@ -188,17 +205,20 @@ function handleEditorInitFailure(error: unknown): void {
            style="margin:auto;max-width:32rem;padding:1.5rem;text-align:center;color:var(--text-primary,#333);">
         <i class="fas fa-triangle-exclamation"
            style="font-size:1.5rem;color:var(--color-danger-fg,#d33);"></i>
-        <div style="margin-top:.5rem;font-weight:600;">Editor failed to load</div>
+        <div class="writer-editor-error-headline"
+             style="margin-top:.5rem;font-weight:600;"></div>
         <div class="writer-editor-error-detail"
              style="margin-top:.25rem;font-size:.85rem;color:var(--text-muted,#777);"></div>
-        <div style="margin-top:.5rem;font-size:.8rem;color:var(--text-muted,#777);">
-          Try reloading the page. If this persists, the editor libraries
-          (Monaco/CodeMirror) failed to load.
-        </div>
+        <div class="writer-editor-error-hint"
+             style="margin-top:.5rem;font-size:.8rem;color:var(--text-muted,#777);"></div>
       </div>`;
-    // Dynamic message via textContent to avoid any HTML injection.
+    // Dynamic text via textContent to avoid any HTML injection.
+    const headlineEl = container.querySelector(".writer-editor-error-headline");
+    if (headlineEl) headlineEl.textContent = headline;
     const detail = container.querySelector(".writer-editor-error-detail");
     if (detail) detail.textContent = message;
+    const hintEl = container.querySelector(".writer-editor-error-hint");
+    if (hintEl) hintEl.textContent = hint;
   }
 
   // Never let the section selector hang on "Loading...". Set a definitive

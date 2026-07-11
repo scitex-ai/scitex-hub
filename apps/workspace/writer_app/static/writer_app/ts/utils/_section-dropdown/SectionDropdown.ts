@@ -23,8 +23,7 @@ import { setupSectionEvents } from "./events";
 export async function populateSectionDropdownDirect(
   docType: string = "manuscript",
   onFileSelectCallback:
-    | ((sectionId: string, sectionName: string) => void)
-    | null = null,
+    ((sectionId: string, sectionName: string) => void) | null = null,
   compilationManager?: CompilationManager,
   state?: any,
 ): Promise<void> {
@@ -81,6 +80,16 @@ export async function populateSectionDropdownDirect(
 
   try {
     const response = await fetch("/apps/writer/api/sections-config/");
+    // Guard against content APIs returning non-JSON (e.g. an HTML login/error
+    // page for a read-only visitor, or a 5xx error page). Calling .json() on
+    // HTML throws a cryptic SyntaxError ("Unexpected token '<'"); produce a
+    // readable error instead so the catch below can surface it.
+    const contentType = response.headers.get("content-type") || "";
+    if (!response.ok || !contentType.includes("application/json")) {
+      throw new Error(
+        `sections-config returned HTTP ${response.status} with content-type "${contentType || "none"}" — expected JSON (are you signed in?)`,
+      );
+    }
     const data = await response.json();
 
     if (!data.success || !data.hierarchy) {
@@ -191,6 +200,38 @@ export async function populateSectionDropdownDirect(
     }
   } catch (error) {
     console.error("[Writer] Error populating section dropdown:", error);
+    // Fail loud: never leave the selector hanging on "Loading...". When the
+    // sections API returns non-JSON (an HTML login/error page for a read-only
+    // visitor, or a 5xx error page), surface a readable message instead of a
+    // silent hang.
+    const looksLikeHtml =
+      error instanceof SyntaxError ||
+      (error instanceof Error &&
+        /Unexpected token|<!DOCTYPE|not valid JSON|expected JSON/i.test(
+          error.message,
+        ));
+    if (selectorText.textContent?.trim() === "Loading...") {
+      selectorText.textContent = looksLikeHtml
+        ? "Content unavailable"
+        : "Failed to load";
+    }
+    dropdownContainer.innerHTML = `
+                <div style="padding: 16px; text-align: center; color: var(--color-fg-muted);">
+                    <i class="fas fa-exclamation-triangle" style="margin-bottom: 8px; font-size: 24px;"></i>
+                    <div>${looksLikeHtml ? "Couldn't load sections" : "Failed to load sections"}</div>
+                    <div style="font-size: 0.75rem; margin-top: 4px;">${
+                      looksLikeHtml
+                        ? "The server returned an unexpected response. Try reloading; sign in for full access."
+                        : "Check console for details"
+                    }</div>
+                </div>
+            `;
+    showToast(
+      looksLikeHtml
+        ? "Couldn't load document sections — the server returned an unexpected response (are you signed in?)"
+        : "Couldn't load document sections",
+      "error",
+    );
   }
 }
 
