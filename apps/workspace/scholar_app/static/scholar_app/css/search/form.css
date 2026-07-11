@@ -160,6 +160,11 @@
 /* Override for search input specifically */
 .search-container-full-width .input-group-lg .search-input {
   min-height: 1rem !important;
+  /* Reserve right-edge space for the elements overlaid on the input's
+     right side (Ctrl+K badge at right:11rem, help "?" button, and the
+     Search button) so long placeholder/query text never slides under
+     them and renders as garbled overlap (browser-sweep #10). */
+  padding-right: 8rem !important;
 }
 
 /* Fix header button focus states to follow SciTeX design */
