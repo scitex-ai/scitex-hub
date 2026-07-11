@@ -54,6 +54,17 @@ CELERY_TASK_ROUTES = {
     "apps.workspace.writer_app.tasks.*": {"queue": "ai_queue"},
     "apps.workspace.scholar_app.tasks.*": {"queue": "search_queue"},
     "apps.workspace.console_app.tasks.*": {"queue": "compute_queue"},
+    # Visitor-pool slot maintenance (reset_visitor_slot, initialize_visitor_workspace)
+    # MUST run on the dedicated, near-empty vis_queue — NOT the default "celery"
+    # queue. The default queue periodically accumulates a large backlog of expired
+    # beat tasks (check_site_health / warm_public_status_cache / generate_status_charts,
+    # ~40k deep in the 2026-07-11 incident). A boot-time `reconcile_visitor_slots
+    # --async` re-clean enqueued behind that backlog never runs, so every idle slot
+    # stays QUARANTINED and every visitor is downgraded to the read-only fallback —
+    # the root cause of the pool-wide readonly outage. The worker already consumes
+    # vis_queue (compose `--queues=...,vis_queue`), so routing here makes the async
+    # re-clean process within seconds of boot regardless of default-queue depth.
+    "apps.infra.project_app.tasks.visitor_workspace_tasks.*": {"queue": "vis_queue"},
 }
 
 # Fair scheduling: Rate limits per task
