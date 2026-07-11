@@ -11,8 +11,13 @@
         {% if is_guest_launcher %}
             <div class="launcher-guest-cta" id="launcher-guest-cta" role="region" aria-label="Guest session">
                 <div class="launcher-guest-cta-text">
-                    <strong>You're browsing as a guest.</strong>
-                    Sign in to keep your work and unlock editing.
+                    {% if guest_role == "visitor" %}
+                        <strong>You have a full workspace for this session.</strong>
+                        Edit and run anything — sign up to keep your work.
+                    {% else %}
+                        <strong>You're browsing read-only.</strong>
+                        Sign in to edit, run code, and keep your work.
+                    {% endif %}
                 </div>
                 <div class="launcher-guest-cta-actions">
                     <a href="/auth/login/?next={{ request.path }}" class="launcher-guest-btn launcher-guest-btn-signin">Sign in</a>
@@ -28,6 +33,7 @@
             {% for tile in tiles %}
                 <a href="{{ tile.launch_url }}"
                    class="launcher-tile"
+                   draggable="false"
                    data-module="{{ tile.name }}"
                    data-category="{{ tile.category }}"
                    data-label="{{ tile.label }}"
