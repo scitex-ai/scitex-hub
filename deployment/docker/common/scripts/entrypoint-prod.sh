@@ -77,8 +77,37 @@ fi
 # ============================================
 # Install Workspace Apps (bridge resolution)
 # ============================================
+# install_apps.sh clones the sibling app repos into /app/.apps (the Vite
+# bridge build below scans them — see the .apps/*/_django/frontend/src check
+# in VITE_REBUILD_NEEDED) and editable-installs them. It sits on the CRITICAL
+# PATH to `exec daphne`, so it must never be able to block boot indefinitely.
+# Failure modes that leave daphne unbound and the container un-healthy forever
+# (the 2026-07 prod outage + staging crash-loop): a hung git clone / ls-remote,
+# a slow plain-pip editable fallback, a stalled npm install, or — because
+# django + celery_{worker,beat} share the /app/.apps volume — a peer wedged
+# under install_apps.sh's own `flock -w 600` (a 10-min wait).
+#
+# Two independent guards make daphne start regardless of outcome:
+#   * `|| echo_warning`  — a FAILED install is non-fatal (already present).
+#   * `timeout`          — a HUNG install is converted into a (caught) non-zero
+#                          exit, so the entrypoint always proceeds to daphne.
+# Killing the wrapper also closes fd 200, releasing install_apps.sh's flock so
+# a shared-volume peer is never left blocked on a dead lock holder.
+#
+# The bound (default 300s) is env-overridable (APP_INSTALL_TIMEOUT_SECONDS —
+# mirrors the BOOT_GRACE_SECONDS / RESTART_COOLDOWN_SECONDS pattern in
+# deployment/nas-stability/health-check.sh) and is deliberately well under the
+# watchdog boot-grace (BOOT_GRACE_SECONDS=720), so even a full timeout still
+# lets daphne bind and pass its health check on the SAME boot instead of being
+# blanket-restarted mid-install. --kill-after SIGKILLs a child that ignores the
+# initial SIGTERM. NOTE: the uv-cache / site-packages / .apps volume perms that
+# used to force the slow plain-pip fallback are fixed separately in
+# root-init.sh; this guard is the structural backstop for ANY residual hang.
 echo_info "Installing workspace apps for Vite bridge resolution..."
-bash /app/scripts/apps/install_apps.sh 2>&1 || echo_warning "App installation had issues — Vite build may fail"
+APP_INSTALL_TIMEOUT="${APP_INSTALL_TIMEOUT_SECONDS:-300}"
+timeout --kill-after=10s "${APP_INSTALL_TIMEOUT}" \
+    bash /app/scripts/apps/install_apps.sh 2>&1 \
+    || echo_warning "App install failed or exceeded ${APP_INSTALL_TIMEOUT}s — continuing to daphne (Vite build may miss some app bridges)"
 
 # ============================================
 # Conditional NPM Install & TypeScript Build
