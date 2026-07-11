@@ -16,6 +16,13 @@
   cursor: pointer;
   padding: 10px 4px 8px;
   border-radius: 14px;
+  /* Tiles are <a> elements. Without this the browser's native link-drag
+     hijacks a press-and-move and swallows pointermove, so drag-to-reorder
+     silently does nothing. Belt-and-braces with preventDefault on dragstart
+     in launcher.ts; also stops the iOS long-press callout. */
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 .launcher-tile:hover {

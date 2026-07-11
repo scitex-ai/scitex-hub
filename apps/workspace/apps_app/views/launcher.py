@@ -102,6 +102,28 @@ def is_guest_launcher_user(user) -> bool:
     return get_user_role(user) in (ROLE_VISITOR, ROLE_READONLY_VISITOR)
 
 
+def guest_role_for(user) -> str:
+    """Which KIND of guest this is — the two are very different experiences.
+
+    A pool ``visitor`` gets a real writable workspace for the session; the
+    shared ``readonly-visitor`` fallback can only look. Telling both "sign in
+    to unlock editing" misleads the visitor, who can already edit. Returns
+    "visitor" | "readonly_visitor" | "" (not a guest).
+    """
+    from apps.infra.project_app.services.visitor_pool import (
+        ROLE_READONLY_VISITOR,
+        ROLE_VISITOR,
+        get_user_role,
+    )
+
+    role = get_user_role(user)
+    if role == ROLE_VISITOR:
+        return "visitor"
+    if role == ROLE_READONLY_VISITOR:
+        return "readonly_visitor"
+    return ""
+
+
 def get_pinned_module_names(user) -> list[str]:
     """Names of modules the user pinned to the sidebar (stable order)."""
     if not user.is_authenticated:
@@ -251,6 +273,9 @@ def launcher_context(request) -> dict:
         "max_pins": MAX_PINNED_MODULES,
         # Guest mode: visitors see tiles + a prominent Sign in / Sign up CTA.
         "is_guest_launcher": is_guest_launcher_user(request.user),
+        # ...but a writable pool visitor and a read-only fallback are NOT the
+        # same experience, so the copy must differ (operator, 2026-07-12).
+        "guest_role": guest_role_for(request.user),
     }
 
 

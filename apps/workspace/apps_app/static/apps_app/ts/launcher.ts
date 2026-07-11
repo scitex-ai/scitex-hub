@@ -73,6 +73,14 @@ class AppLauncher {
   }
 
   private bindTile(tile: HTMLElement): void {
+    // A tile is an <a>, and links are natively draggable. The moment the
+    // pointer MOVES while held, the browser starts an HTML5 link-drag and
+    // takes over the gesture: pointermove stops reaching us, so the reorder
+    // never runs and the tile looks stuck. (The long-press still worked,
+    // which is why edit mode engaged but nothing could be moved.) Kill the
+    // native drag so our pointer-driven reorder owns the gesture.
+    tile.addEventListener("dragstart", (e) => e.preventDefault());
+
     // Right-click → context popover (desktop).
     tile.addEventListener("contextmenu", (e) => {
       e.preventDefault();
