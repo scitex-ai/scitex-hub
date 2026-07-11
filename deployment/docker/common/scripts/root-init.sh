@@ -200,6 +200,24 @@ if [ -d "$SITE_PACKAGES" ] && [ "$(stat -c '%U' "$SITE_PACKAGES" 2>/dev/null)" !
 else
     echo "✅ site-packages ownership OK"
 fi
+# The top-level chown above lets scitex CREATE new entries, but REPLACING an
+# already-baked pinned sibling is different: the installer must first DELETE
+# that sibling's root-owned package dir + *.dist-info. Unlinking a file INSIDE
+# dist-info/ (INSTALLER, METADATA, RECORD, ...) needs WRITE on THAT dir — which
+# is baked root-owned — so the top-level chown is NOT enough. uv/pip then die
+# with "failed to remove .../scitex_ui-0.6.1.dist-info/INSTALLER: Permission
+# denied", the editable install aborts, and the STALE (often partial) baked
+# wheel is used → the boot Vite build fails on missing sibling sources (e.g.
+# scitex_ui .../media-viewer/_BinaryPlaceholder) → daphne never binds → 503.
+# So recursively chown EXACTLY the editable-installed siblings (per
+# .scitex-apps.json). Fast — only these trees, not the torch/scipy bulk — and
+# the targeted complement to the two non-recursive chowns (site-packages top +
+# /usr/local/bin). Belt: the editable install regenerates these anyway.
+for _pkg in scitex_ui figrecipe scitex_writer; do
+    for _tree in "$SITE_PACKAGES/$_pkg" "$SITE_PACKAGES/$_pkg"-*.dist-info; do
+        [ -e "$_tree" ] && chown -R scitex:scitex "$_tree" 2>/dev/null || true
+    done
+done
 
 # ============================================
 # Fix /usr/local/bin ownership (editable-install console scripts)
