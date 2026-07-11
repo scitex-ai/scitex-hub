@@ -75,6 +75,32 @@ else
 fi
 
 # ============================================
+# Workspace apps + npm/Vite build — web container ONLY
+# ============================================
+# Skip BOTH the workspace-app editable install AND the npm/Vite frontend
+# build in the celery services. One guard, two payoffs:
+#   1. Celery never serves the frontend, so the Vite bridge build + npm
+#      install are pure wasted work in celery_{worker,beat}.
+#   2. It removes the uv-cache CONTAMINATION AT ITS SOURCE. celery_{worker,
+#      beat} override the compose entrypoint to run THIS script directly
+#      (no /root-init.sh, hence no gosu drop) — i.e. AS ROOT. A root-run
+#      install_apps.sh `uv pip install` seeds the SHARED uv_cache_volume
+#      (UV_CACHE_DIR=/app/.cache/uv, mounted by django AND celery) with
+#      ROOT-OWNED files like .cache/uv/sdists-v9/.git. django runs as the
+#      scitex user, so its own boot-time `uv pip install -e scitex-ui`
+#      then dies with "Failed to initialize cache ... Permission denied",
+#      falls back to slow pip, exceeds the timeout, and the Vite build
+#      (now missing scitex_ui) fails → daphne never binds. root-init.sh
+#      chowns the cache at django boot, but celery re-seeds it CONCURRENTLY
+#      (shared volume + restart:always), so that point-in-time chown can
+#      never win the race — this is exactly why PR #346's chown alone did
+#      not fix it. Not running uv in celery at all makes django the cache's
+#      ONLY writer (as scitex), which is what lets uv initialize the cache
+#      cleanly. Same guard idiom as collectstatic / visitor-pool above and
+#      terminal-broker / SSH below.
+if [[ ! "$*" =~ "celery" ]]; then
+
+# ============================================
 # Install Workspace Apps (bridge resolution)
 # ============================================
 # install_apps.sh clones the sibling app repos into /app/.apps (the Vite
@@ -166,6 +192,14 @@ if [ "$VITE_REBUILD_NEEDED" = true ]; then
     echo_success "Static files collected"
 else
     echo_info "TypeScript build already up to date"
+fi
+
+# Close the web-container-only guard opened before "Install Workspace Apps"
+# above. celery_{worker,beat} land here and skip the whole frontend build +
+# uv/npm editable install (which, run as root, would seed the shared uv
+# cache with root-owned files that django's scitex-user uv can't read).
+else
+    echo_info "Skipping workspace app install + npm/Vite build (celery service — no frontend; keeps the shared uv cache single-owner so django's editable install succeeds)"
 fi
 
 # ============================================

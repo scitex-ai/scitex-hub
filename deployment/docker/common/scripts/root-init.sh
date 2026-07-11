@@ -160,6 +160,17 @@ fi
 # 503 crash-loop). So probe RECURSIVELY for any non-scitex file (cheap:
 # `find -print -quit` stops at the first hit) and chown -R only when
 # contamination is actually found — same idiom as the staticfiles block below.
+#
+# NOTE (2026-07-11): this chown is now the BELT, not the fix. The DEFINITIVE
+# fix is the celery guard in entrypoint-prod.sh, which stops celery_{worker,
+# beat} from ever running install_apps.sh's `uv pip install`. With that guard,
+# django (the scitex user) is the ONLY writer of this cache, so nothing
+# re-contaminates it concurrently and this one-time sweep decisively cleans
+# any LEGACY root-owned files a pre-fix celery boot already left in the shared
+# volume (and covers a brand-new volume whose mountpoint first appears
+# root-owned). Before that guard, celery re-seeded the cache in parallel with
+# this chown every boot (shared volume + restart:always), so the chown kept
+# losing the race — which is why PR #346's chown alone never made uv succeed.
 mkdir -p /app/.cache/uv /app/.cache/npm
 for cache_dir in /app/.cache/uv /app/.cache/npm; do
     FOREIGN_CACHE=$(find "$cache_dir" ! -user scitex -print -quit 2>/dev/null)
