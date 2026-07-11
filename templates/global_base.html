@@ -65,8 +65,6 @@
                 {% endfor %}
             </div>
         {% endif %}
-        <!-- Fail-loud readonly-visitor downgrade explanation (one-shot) -->
-        {% include 'global_base_partials/readonly_visitor_banner.html' %}
         {% if workspace_has_panes and user.is_authenticated %}
             <!-- ═══ Workspace Layout: Sidebar + Single Active Pane ═══ -->
             <div id="workspace-layout" class="workspace-layout">
