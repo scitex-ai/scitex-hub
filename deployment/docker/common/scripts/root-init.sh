@@ -142,10 +142,29 @@ fi
 # install` calls, so a re-install (fresh clone, or a genuine dependency
 # bump) reuses previously-downloaded packages instead of re-fetching from
 # the network every time (operator directive, 2026-07-08).
+#
+# uv_cache_volume / npm_cache_volume are SHARED (UV_CACHE_DIR=/app/.cache/uv)
+# across django AND the celery_{worker,beat} services. The celery services
+# override the compose `entrypoint:` to skip root-init.sh, i.e. they run this
+# image's entrypoint — and its install_apps.sh — AS ROOT. A root-run
+# `uv pip install` therefore seeds the shared cache with ROOT-OWNED subpaths
+# (e.g. .cache/uv/sdists-v9/.git). A plain `stat` of the TOP-LEVEL
+# /app/.cache/uv still reads "scitex" (fixed on an earlier boot) while those
+# root-owned files sit DEEPER in the tree, so a top-level-only guard skips the
+# chown; django's scitex-user `uv` then dies with
+#   "Failed to initialize cache ... /app/.cache/uv/sdists-v9/.git:
+#    Permission denied (os error 13)"
+# and install_apps.sh falls back to pip (which then also fails — see the
+# /usr/local/bin fix below), aborting the editable install and leaving the
+# stale baked wheel to break the boot-time vite build (daphne never binds ->
+# 503 crash-loop). So probe RECURSIVELY for any non-scitex file (cheap:
+# `find -print -quit` stops at the first hit) and chown -R only when
+# contamination is actually found — same idiom as the staticfiles block below.
 mkdir -p /app/.cache/uv /app/.cache/npm
 for cache_dir in /app/.cache/uv /app/.cache/npm; do
-    if [ "$(stat -c '%U' "$cache_dir" 2>/dev/null)" != "scitex" ]; then
-        echo "🔧 Fixing $cache_dir ownership (root -> scitex)..."
+    FOREIGN_CACHE=$(find "$cache_dir" ! -user scitex -print -quit 2>/dev/null)
+    if [ -n "$FOREIGN_CACHE" ]; then
+        echo "🔧 Fixing $cache_dir ownership (found non-scitex file: $FOREIGN_CACHE)..."
         chown -R scitex:scitex "$cache_dir"
     fi
 done
@@ -169,6 +188,32 @@ if [ -d "$SITE_PACKAGES" ] && [ "$(stat -c '%U' "$SITE_PACKAGES" 2>/dev/null)" !
     echo "✅ site-packages ownership fixed (top-level only, non-recursive)"
 else
     echo "✅ site-packages ownership OK"
+fi
+
+# ============================================
+# Fix /usr/local/bin ownership (editable-install console scripts)
+# ============================================
+# Editable-installing the sibling apps also (re)writes their console-script
+# entry points under /usr/local/bin (scitex-ui, scitex-todo, ...). Those
+# scripts — and /usr/local/bin itself — are baked ROOT-OWNED into the image
+# (Dockerfile.prod installs the pinned PyPI siblings as root). The scitex user
+# can then neither overwrite nor unlink+recreate them, so the install dies with
+# e.g. "Permission denied: '/usr/local/bin/scitex-ui'". This hits BOTH uv and
+# the pip fallback (uv/pip uninstall-then-reinstall, rewriting the script) —
+# it is the second half of the same boot-blocking cascade as the uv-cache
+# failure above. As with site-packages, creating/replacing an entry only needs
+# WRITE on the CONTAINING directory (POSIX create/unlink/rename is governed by
+# the directory, not the target file's own mode), so a single NON-recursive
+# chown of /usr/local/bin suffices: the binaries inside stay root-owned and
+# world-executable; scitex just gains the ability to swap the app entry points
+# (which are re-generated on every editable install, so they stay functional).
+BIN_DIR="/usr/local/bin"
+if [ -d "$BIN_DIR" ] && [ "$(stat -c '%U' "$BIN_DIR" 2>/dev/null)" != "scitex" ]; then
+    echo "🔧 Fixing $BIN_DIR ownership for editable-install console scripts..."
+    chown scitex:scitex "$BIN_DIR"
+    echo "✅ /usr/local/bin ownership fixed (top-level only, non-recursive)"
+else
+    echo "✅ /usr/local/bin ownership OK"
 fi
 
 # ============================================
