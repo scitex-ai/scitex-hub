@@ -6,8 +6,25 @@
 
 import os
 
-# Celery broker and result backend
-CELERY_BROKER_URL = os.getenv("SCITEX_HUB_REDIS_URL", "redis://localhost:6379/1")
+# Celery broker and result backend.
+#
+# The broker MUST be a DEDICATED redis DB, NOT the shared
+# SCITEX_HUB_REDIS_URL (which the cache + channel layer also read).
+# Reusing that shared var caused a silent producer/consumer DB mismatch:
+# SCITEX_HUB_REDIS_URL was set to redis://redis:6379/0 for the cache, which
+# moved the celery PRODUCER (this Django app, via .delay()) onto DB 0 --
+# while the celery_worker / celery_beat containers consume DB 1 (their
+# compose command hardcodes --broker=redis://redis:6379/1). Every enqueued
+# task (visitor-slot re-clean resets, etc.) landed in DB 0 where nothing
+# consumed it and piled up unrun (861 stranded on staging), leaving the
+# whole visitor pool permanently quarantined. Pinning celery to its own
+# DB 1 -- matching the worker/beat -- is what makes .delay() actually run.
+# See incident hub-visitor-pool-celery-broker-db-mismatch (2026-07-11).
+#
+# Dedicated override var; default DB 1 matches the worker/beat --broker.
+CELERY_BROKER_URL = os.getenv(
+    "SCITEX_HUB_CELERY_BROKER_URL", "redis://redis:6379/1"
+)
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_CACHE_BACKEND = "django-cache"
 CELERY_ACCEPT_CONTENT = ["json"]
