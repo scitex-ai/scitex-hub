@@ -9,12 +9,20 @@ User workspace views
 Provides web interface for managing user containers.
 """
 
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 
 from .services import UserContainerManager
+
+logger = logging.getLogger(__name__)
+
+# Prefix of the synthesized per-app partial declared for installed user
+# apps (see apps.workspace.apps_app.services.app_loader.load_single_app).
+_USER_APP_TEMPLATE_PREFIX = "apps_app/user_apps/"
 
 
 @login_required
@@ -189,7 +197,45 @@ def workspace_module_content(request, module):
     )
 
     ctx = mod_config.build_context(request, current_project)
-    return render(request, mod_config.partial_template, ctx)
+    return _render_module_content(request, mod_config, module, ctx)
+
+
+def _render_module_content(request, mod_config, module, ctx):
+    """Render a module's partial, embedding installed user apps generically.
+
+    Built-in modules ship a real partial template in their own app's
+    ``templates/`` dir. Installed user apps get a synthesized
+    ``apps_app/user_apps/<module>_partial.html`` path that only resolves
+    when the app shipped a hub-side partial (the old Gitea-checkout
+    model). Apps published via the pip-install path (the
+    ``scitex_hub.apps`` entry-point, PR #290) render through their OWN
+    mounted route at ``/apps/u/<module>/`` and ship no hub-side partial,
+    so their synthesized path raises ``TemplateDoesNotExist``. For those,
+    fall back to a generic partial that embeds the app's mounted route —
+    works for ANY installed app with no per-app hub template.
+
+    A missing BUILT-IN partial is a real bug and is re-raised (surfaced
+    as a 500), never masked by the generic embed.
+    """
+    from django.template import TemplateDoesNotExist
+
+    try:
+        return render(request, mod_config.partial_template, ctx)
+    except TemplateDoesNotExist:
+        if not mod_config.partial_template.startswith(_USER_APP_TEMPLATE_PREFIX):
+            # Not a user app — a genuinely missing built-in template.
+            # Surface it (do not mask a real error behind the embed).
+            raise
+        logger.info(
+            "[workspace] No hub-side partial for user app %r — embedding "
+            "its mounted route /apps/u/%s/ via the generic partial",
+            module,
+            module,
+        )
+        embed_ctx = dict(ctx)
+        embed_ctx["module_name"] = module
+        embed_ctx["module_label"] = mod_config.label
+        return render(request, "apps_app/user_app_embed.html", embed_ctx)
 
 
 def _serve_dev_module(request, module):

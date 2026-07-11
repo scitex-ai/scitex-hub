@@ -1,0 +1,30 @@
+{% comment %}
+Generic embed for installed user apps.
+
+Apps published via the pip-install path (the ``scitex_hub.apps``
+entry-point, F0+F1 / PR #290) render through their OWN mounted route at
+``/apps/u/<module>/`` and ship NO hub-side partial template. Their
+synthesized partial path (``apps_app/user_apps/<module>_partial.html``)
+therefore does not resolve on disk.
+
+This shared partial embeds the app's mounted route in an iframe so ANY
+installed app renders inside the workspace shell without a per-app hub
+template. It is rendered by
+``apps.infra.workspace_app.views._render_module_content`` as the
+fallback when the synthesized per-app partial raises
+``TemplateDoesNotExist``.
+
+Styling lives in static/workspace_app/css/workspace-shell.css
+(.ws-user-app-embed / .ws-user-app-embed__frame), already loaded on the
+shell page.
+
+Context:
+  module_name  — the registry module slug (e.g. "scitex-live-paper-app")
+  module_label — human-readable label used as the iframe title
+{% endcomment %}
+<div class="ws-user-app-embed" data-user-app="{{ module_name }}">
+  <iframe src="/apps/u/{{ module_name }}/"
+          title="{{ module_label|default:module_name }}"
+          class="ws-user-app-embed__frame"
+          referrerpolicy="same-origin"></iframe>
+</div>
