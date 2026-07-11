@@ -39,15 +39,38 @@ export class EditorLoader {
     console.log("[EditorLoader] Starting editor initialization");
 
     try {
-      // Monaco is already loaded via import — just verify
-      if (!(window as any).monaco) {
-        console.error("[EditorLoader] Monaco not available from local bundle");
-      } else {
+      // Monaco is bundled locally and assigned to window at import time.
+      // Assert it is actually present instead of assuming — a missing global
+      // means the local bundle failed and the editor cannot mount Monaco.
+      const monacoAvailable = !!(window as any).monaco;
+      if (monacoAvailable) {
         console.log("[EditorLoader] Monaco available from local bundle");
+      } else {
+        console.error("[EditorLoader] Monaco NOT available from local bundle");
       }
 
-      await this.loadCodeMirror();
-      console.log("[EditorLoader] All editors loaded successfully");
+      // CodeMirror is a supplemental/fallback editor loaded from a CDN.
+      const codeMirrorAvailable = await this.loadCodeMirror();
+
+      // Honest success reporting: only claim success once the libraries are
+      // actually defined on window. A swallowed CDN failure must NOT be logged
+      // as success — that misleading "loaded successfully" is exactly what
+      // contradicted the visibly blank editor during QA.
+      if (monacoAvailable && codeMirrorAvailable) {
+        console.log("[EditorLoader] All editors loaded successfully");
+      } else if (monacoAvailable) {
+        console.warn(
+          "[EditorLoader] Editors partially loaded: Monaco OK, CodeMirror unavailable (CDN blocked?) — editor will use Monaco only",
+        );
+      } else if (codeMirrorAvailable) {
+        console.warn(
+          "[EditorLoader] Editors partially loaded: CodeMirror OK, Monaco unavailable — editor will use CodeMirror only",
+        );
+      } else {
+        console.error(
+          "[EditorLoader] No editor library available: both Monaco (local bundle) and CodeMirror (CDN) failed to load",
+        );
+      }
     } catch (error) {
       console.error("[EditorLoader] Failed to load editors:", error);
       throw error;
@@ -56,10 +79,19 @@ export class EditorLoader {
 
   /**
    * Load CodeMirror scripts without AMD conflicts.
+   *
+   * Returns whether CodeMirror is actually available on `window` afterwards.
+   * `loadScriptsSequentially` deliberately swallows per-script CDN failures,
+   * so a resolved load does NOT prove the library is present — the caller must
+   * treat the returned flag, not mere completion, as "loaded".
    */
-  private async loadCodeMirror(): Promise<void> {
+  private async loadCodeMirror(): Promise<boolean> {
     console.log("[EditorLoader] Loading CodeMirror...");
 
+    // NOTE: CodeMirror is sourced from a CDN (cdnjs). On networks that block
+    // outbound CDN access these loads fail silently. Moving CodeMirror to a
+    // local bundle (as Monaco already is) is tracked as separate CDN-self-host
+    // work and is intentionally left as-is in this fail-loud PR.
     const scripts = [
       `https://cdnjs.cloudflare.com/ajax/libs/codemirror/${this.CODEMIRROR_VERSION}/codemirror.min.js`,
       `https://cdnjs.cloudflare.com/ajax/libs/codemirror/${this.CODEMIRROR_VERSION}/mode/stex/stex.min.js`,
@@ -79,7 +111,18 @@ export class EditorLoader {
     try {
       await this.loadScriptsSequentially(scripts);
       await new Promise((resolve) => setTimeout(resolve, 50));
-      console.log("[EditorLoader] CodeMirror loaded successfully");
+
+      // Assert the global actually exists — swallowed CDN failures leave it
+      // undefined even though the loop resolved.
+      const available = !!(window as any).CodeMirror;
+      if (available) {
+        console.log("[EditorLoader] CodeMirror loaded successfully");
+      } else {
+        console.error(
+          "[EditorLoader] CodeMirror scripts settled but window.CodeMirror is undefined (CDN blocked or failed)",
+        );
+      }
+      return available;
     } finally {
       window.define = savedDefine;
       window.require = savedRequire;
