@@ -4,8 +4,9 @@
 
 Covers the operator-confirmed 2026-07-07 spec:
 - canonical session-role model (anonymous | readonly_visitor | visitor | user)
-- readonly downgrade sets the one-shot explanation flag and the next
-  rendered page shows the banner
+- readonly downgrade is explained on the next rendered page via the
+  header badge/popover — the intrusive downgrade banner was removed
+  2026-07-11 (operator 960-965: it dominated the screen, worst on mobile)
 - the downgrade reason is STRUCTURED (pool_full | no_ready_slot |
   unknown) and threads through banner / popover / write-rejection copy
   (2026-07-08 iPhone report: popover claimed "pool is full" at 0/16)
@@ -99,12 +100,15 @@ class ReadonlyDowngradeExplanationTest(TestCase):
         # Assert
         assert resp.wsgi_request.user.username == "readonly-visitor"
 
-    def test_downgraded_page_renders_failloud_banner(self):
-        # Arrange — anonymous browser request with an exhausted pool
+    def test_downgraded_page_omits_intrusive_readonly_banner(self):
+        # Arrange — the big readonly downgrade banner was removed (operator
+        # 960-965, 2026-07-11): it dominated the screen — worst on mobile —
+        # and hurt onboarding. Readonly state stays discoverable via the
+        # header badge/popover (see the reason-threading tests), not a banner.
         # Act — the downgrade request itself is the next rendered page
         resp = self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
-        # Assert
-        assert b"readonly-visitor-banner" in resp.content
+        # Assert — the intrusive banner element must stay gone
+        assert b"readonly-visitor-banner" not in resp.content
 
     def test_downgraded_page_explains_slots_preparing_reason(self):
         # Arrange — free slots exist but none is verified clean (this
