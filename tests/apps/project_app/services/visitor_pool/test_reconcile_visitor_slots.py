@@ -77,6 +77,21 @@ def _boom_clone(template_id, dest, git_strategy=None):
     raise RuntimeError("simulated clone failure")
 
 
+class NoContainerToolchain:
+    """run_cmd fake: a host with no SLURM/apptainer binaries installed.
+
+    The container-teardown step treats a missing binary as "nothing to
+    tear down" (the dev/CI baseline). Injected through the reset
+    pipeline's ``run_cmd`` seam so tests never touch a real cluster.
+    """
+
+    def __call__(self, argv, timeout=None):
+        raise FileNotFoundError(argv[0])
+
+
+NO_CONTAINER_HOST = NoContainerToolchain()
+
+
 def _create_visitor_user_and_project():
     user, _ = User.objects.get_or_create(
         username="visitor-001", defaults={"email": "v001@example.com"}
@@ -144,7 +159,9 @@ class TestReconcileRecleanReturnsSlot(TestCase):
         # Arrange: setUp created a stale is_active zombie + its user/project.
         # Act
         reset_and_verify_slot(
-            self.allocation, gitea_client=FakeGiteaClient(), clone_fn=fake_clone
+            self.allocation, gitea_client=FakeGiteaClient(),
+            clone_fn=fake_clone,
+            run_cmd=NO_CONTAINER_HOST,
         )
         self.allocation.refresh_from_db()
         # Assert
@@ -154,7 +171,9 @@ class TestReconcileRecleanReturnsSlot(TestCase):
         # Arrange: setUp created a stale is_active zombie + its user/project.
         # Act
         reset_and_verify_slot(
-            self.allocation, gitea_client=FakeGiteaClient(), clone_fn=fake_clone
+            self.allocation, gitea_client=FakeGiteaClient(),
+            clone_fn=fake_clone,
+            run_cmd=NO_CONTAINER_HOST,
         )
         self.allocation.refresh_from_db()
         # Assert: distributable again (workspace_ready, not quarantined).
@@ -181,7 +200,9 @@ class TestReconcileFailedRecleanQuarantines(TestCase):
         # Arrange: setUp created a stale is_active zombie + its user/project.
         # Act: the clone blows up mid-reset.
         ok = reset_and_verify_slot(
-            self.allocation, gitea_client=FakeGiteaClient(), clone_fn=_boom_clone
+            self.allocation, gitea_client=FakeGiteaClient(),
+            clone_fn=_boom_clone,
+            run_cmd=NO_CONTAINER_HOST,
         )
         self.allocation.refresh_from_db()
         # Assert
@@ -191,7 +212,9 @@ class TestReconcileFailedRecleanQuarantines(TestCase):
         # Arrange: setUp created a stale is_active zombie + its user/project.
         # Act
         reset_and_verify_slot(
-            self.allocation, gitea_client=FakeGiteaClient(), clone_fn=_boom_clone
+            self.allocation, gitea_client=FakeGiteaClient(),
+            clone_fn=_boom_clone,
+            run_cmd=NO_CONTAINER_HOST,
         )
         status = VisitorPool.get_pool_status()
         # Assert: a quarantined slot is never distributable.
