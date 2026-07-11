@@ -198,6 +198,12 @@ export default defineConfig(({ command }) => ({
         __dirname,
         "node_modules/@hpcc-js/wasm-graphviz",
       ),
+      // Ensure pdfjs-dist resolves from scitex-hub's node_modules even when
+      // dynamically imported from scitex-ui's pdf-viewer (@scitex/ui/pdf-viewer
+      // does `await import("pdfjs-dist")` plus a
+      // `new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url)` worker
+      // reference — both must resolve at build time or Rollup aborts the build).
+      "pdfjs-dist": resolve(__dirname, "node_modules/pdfjs-dist"),
       // scitex-ui: shared component library (auto-discovered)
       ...(SCITEX_UI_STATIC
         ? {
