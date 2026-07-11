@@ -242,6 +242,7 @@ def load_dev_apps(app_dirs):
                 default_enabled=True,
                 status="wip",
                 ai_hint=data.get("description", ""),
+                version=data.get("version", ""),
             )
             register_module(config)
             logger.info("[app_loader] Loaded dev app: %s from %s", name, app_dir)

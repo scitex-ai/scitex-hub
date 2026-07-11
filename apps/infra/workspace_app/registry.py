@@ -81,6 +81,12 @@ class ModuleConfig:
     # Legal
     license: str = "AGPL-3.0"  # SPDX identifier, default matches SciTeX project license
 
+    # Version — read from the app's manifest.json "version" key. This is the
+    # single source of truth for the deployed/code version surfaced on the
+    # launcher tiles and the app header (dev-loop aid). Empty when a manifest
+    # omits it — callers degrade gracefully (hide the label, never break).
+    version: str = ""  # e.g. "0.14.0"
+
     # URL override — empty means default to /apps/{name}/
     url: str = ""  # e.g. "/hub/" for top-level exceptions
 
@@ -236,6 +242,7 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         accent_color=data.get("accent_color", ""),
         docs_slug=data.get("docs_slug", ""),
         license=data.get("license", "AGPL-3.0"),
+        version=data.get("version", ""),
         url=data.get("url", ""),
         privileges=data.get("privileges", []),
         allowed_extensions=data.get("allowed_extensions", []),

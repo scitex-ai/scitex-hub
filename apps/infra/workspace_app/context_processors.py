@@ -210,7 +210,11 @@ def _filter_modules_for_user(request, modules):
             .values_list("module_name", "latest_version")
         )
         for mod in modules:
-            mod.version = mp_data.get(mod.name, "0.1.0") or "0.1.0"
+            # A published DB store version wins; otherwise fall back to the
+            # manifest version already on the ModuleConfig (the SSOT), never
+            # the old hardcoded "0.1.0" which mislabelled every built-in app
+            # (e.g. Writer showed 0.1.0 instead of its manifest 0.14.0).
+            mod.version = mp_data.get(mod.name) or getattr(mod, "version", "") or ""
     except Exception:
         # apps_app not migrated yet or other DB issue
         for mod in modules:
