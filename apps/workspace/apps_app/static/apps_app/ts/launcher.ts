@@ -220,11 +220,67 @@ class AppLauncher {
     );
     const from = order.indexOf(this.dragTile);
     const to = order.indexOf(over);
-    if (from < to) {
-      this.grid.insertBefore(this.dragTile, over.nextSibling);
-    } else {
-      this.grid.insertBefore(this.dragTile, over);
-    }
+    const dragged = this.dragTile;
+    this.reorderWithTravel(() => {
+      if (from < to) {
+        this.grid.insertBefore(dragged, over.nextSibling);
+      } else {
+        this.grid.insertBefore(dragged, over);
+      }
+    });
+  }
+
+  /**
+   * Reorder the DOM and let the affected tiles VISIBLY travel to their new
+   * slots, instead of teleporting.
+   *
+   * A bare insertBefore makes every displaced tile jump instantly, which reads
+   * as a glitch — you cannot see what moved where, and it startles people.
+   * FLIP: measure each tile, mutate the DOM, measure again, then animate each
+   * from where it *was* to where it now *is*.
+   *
+   * composite: "add" is load-bearing. In edit mode the tiles carry a jiggle
+   * (a rotate animation), and a plain transform keyframe would overwrite it —
+   * the tile would stop wobbling mid-drag. Compositing ADDS our translate on
+   * top of whatever rotation is running, so both survive.
+   *
+   * The travel is kept even under prefers-reduced-motion — it is not
+   * decoration, it is the feedback that tells you where the tile went; hiding
+   * it is what causes the startle. We only shorten it.
+   */
+  private reorderWithTravel(mutate: () => void): void {
+    const tiles = Array.from(
+      this.grid.querySelectorAll<HTMLElement>(".launcher-tile"),
+    );
+    const before = new Map<HTMLElement, DOMRect>();
+    tiles.forEach((t) => before.set(t, t.getBoundingClientRect()));
+
+    mutate();
+
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const duration = reduced ? 120 : 200;
+
+    tiles.forEach((tile) => {
+      const start = before.get(tile);
+      if (!start) return;
+      const end = tile.getBoundingClientRect();
+      const dx = start.left - end.left;
+      const dy = start.top - end.top;
+      if (dx === 0 && dy === 0) return;
+      tile.animate(
+        [
+          { transform: `translate(${dx}px, ${dy}px)` },
+          { transform: "translate(0px, 0px)" },
+        ],
+        {
+          duration,
+          easing: "cubic-bezier(0.2, 0, 0, 1)",
+          composite: "add",
+        },
+      );
+    });
   }
 
   private handleDragEnd(e: PointerEvent): void {
