@@ -39,6 +39,15 @@ class HomeStateError(Exception):
 # recreate. The final gate requires the recycled home to match this set
 # EXACTLY — an extra entry is potentially leaked visitor state, a
 # missing entry means the skeleton step silently failed. Both quarantine.
+#
+# DRIFT GUARD: these two sets are hardcoded, so if the skeleton builder
+# (recreate_workspace_skeleton -> ensure_workspace_sync + the dotfiles
+# setup + the project_filesystem manager) ever changes what it creates,
+# a stale set here would false-quarantine EVERY slot (the
+# "all-16-slots-quarantined" failure mode). tests/apps/project_app/
+# services/visitor_pool/test_home_skeleton_reality.py runs the REAL
+# builder and asserts it still equals these sets, so drift breaks that
+# TEST in CI instead of silently bricking prod. Keep them in sync there.
 EXPECTED_HOME_ENTRIES = frozenset(
     {
         "proj",
