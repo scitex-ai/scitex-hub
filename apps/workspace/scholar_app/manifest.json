@@ -6,7 +6,7 @@
   "app_name": "scholar_app",
   "icon": "fas fa-graduation-cap",
   "description": "Literature management: search papers (CrossRef/OpenAlex/Semantic Scholar), manage bibliography, explore citation graphs, download PDFs.",
-  "version": "0.14.0",
+  "pip_package": "scitex-scholar",
   "license": "AGPL-3.0",
   "keyboard_shortcut": "S",
   "order": 30,

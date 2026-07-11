@@ -32,6 +32,21 @@ MAX_PINNED_MODULES = 5
 NEW_BADGE_DAYS = 14
 
 
+def _version_label(version: str) -> str:
+    """Format a manifest version for tile display.
+
+    "0.14.0" -> "v0.14.0"; "dev" -> "dev" (dev-installed apps carry no
+    manifest version); "" -> "" (degrade gracefully — the tile hides the
+    label rather than showing a fake version). Never raises.
+    """
+    v = (version or "").strip()
+    if not v:
+        return ""
+    if v == "dev":
+        return "dev"
+    return v if v.lower().startswith("v") else f"v{v}"
+
+
 def is_guest_launcher_user(user) -> bool:
     """True for pool visitors (visitor-*) and the shared readonly-visitor.
 
@@ -98,6 +113,10 @@ def _build_tiles(request) -> list[dict]:
                 "launch_url": mod.get_url(),
                 "category": row.category if row else "other",
                 "description": row.short_description if row else mod.ai_hint,
+                # Deployed version from the app manifest (SSOT). Empty when the
+                # manifest omits it — the tile hides the label, never breaks.
+                "version": mod.version,
+                "version_label": _version_label(mod.version),
                 "is_installed": True,  # registry modules are built in
                 "is_pinned": mod.name in pinned_names,
                 "is_new": False,
@@ -126,6 +145,10 @@ def _build_tiles(request) -> list[dict]:
                 "launch_url": f"/apps/store/{row.module_name}/",
                 "category": row.category,
                 "description": row.short_description,
+                # Community store apps are not in the registry (no manifest
+                # here); omit the version rather than invent one.
+                "version": "",
+                "version_label": "",
                 "is_installed": installed,
                 "is_pinned": row.module_name in pinned_names,
                 "is_new": row.created_at is not None and row.created_at >= new_cutoff,
@@ -146,6 +169,9 @@ def _build_tiles(request) -> list[dict]:
                     "launch_url": f"/apps/{dev.module_name}/",
                     "category": "other",
                     "description": dev.description,
+                    # Dev-installed apps carry no manifest version — mark "dev".
+                    "version": "dev",
+                    "version_label": "dev",
                     "is_installed": True,
                     "is_pinned": False,
                     "is_new": False,

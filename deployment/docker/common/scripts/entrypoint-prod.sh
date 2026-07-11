@@ -75,10 +75,65 @@ else
 fi
 
 # ============================================
+# Workspace apps + npm/Vite build — web container ONLY
+# ============================================
+# Skip BOTH the workspace-app editable install AND the npm/Vite frontend
+# build in the celery services. One guard, two payoffs:
+#   1. Celery never serves the frontend, so the Vite bridge build + npm
+#      install are pure wasted work in celery_{worker,beat}.
+#   2. It removes the uv-cache CONTAMINATION AT ITS SOURCE. celery_{worker,
+#      beat} override the compose entrypoint to run THIS script directly
+#      (no /root-init.sh, hence no gosu drop) — i.e. AS ROOT. A root-run
+#      install_apps.sh `uv pip install` seeds the SHARED uv_cache_volume
+#      (UV_CACHE_DIR=/app/.cache/uv, mounted by django AND celery) with
+#      ROOT-OWNED files like .cache/uv/sdists-v9/.git. django runs as the
+#      scitex user, so its own boot-time `uv pip install -e scitex-ui`
+#      then dies with "Failed to initialize cache ... Permission denied",
+#      falls back to slow pip, exceeds the timeout, and the Vite build
+#      (now missing scitex_ui) fails → daphne never binds. root-init.sh
+#      chowns the cache at django boot, but celery re-seeds it CONCURRENTLY
+#      (shared volume + restart:always), so that point-in-time chown can
+#      never win the race — this is exactly why PR #346's chown alone did
+#      not fix it. Not running uv in celery at all makes django the cache's
+#      ONLY writer (as scitex), which is what lets uv initialize the cache
+#      cleanly. Same guard idiom as collectstatic / visitor-pool above and
+#      terminal-broker / SSH below.
+if [[ ! "$*" =~ "celery" ]]; then
+
+# ============================================
 # Install Workspace Apps (bridge resolution)
 # ============================================
+# install_apps.sh clones the sibling app repos into /app/.apps (the Vite
+# bridge build below scans them — see the .apps/*/_django/frontend/src check
+# in VITE_REBUILD_NEEDED) and editable-installs them. It sits on the CRITICAL
+# PATH to `exec daphne`, so it must never be able to block boot indefinitely.
+# Failure modes that leave daphne unbound and the container un-healthy forever
+# (the 2026-07 prod outage + staging crash-loop): a hung git clone / ls-remote,
+# a slow plain-pip editable fallback, a stalled npm install, or — because
+# django + celery_{worker,beat} share the /app/.apps volume — a peer wedged
+# under install_apps.sh's own `flock -w 600` (a 10-min wait).
+#
+# Two independent guards make daphne start regardless of outcome:
+#   * `|| echo_warning`  — a FAILED install is non-fatal (already present).
+#   * `timeout`          — a HUNG install is converted into a (caught) non-zero
+#                          exit, so the entrypoint always proceeds to daphne.
+# Killing the wrapper also closes fd 200, releasing install_apps.sh's flock so
+# a shared-volume peer is never left blocked on a dead lock holder.
+#
+# The bound (default 300s) is env-overridable (APP_INSTALL_TIMEOUT_SECONDS —
+# mirrors the BOOT_GRACE_SECONDS / RESTART_COOLDOWN_SECONDS pattern in
+# deployment/nas-stability/health-check.sh) and is deliberately well under the
+# watchdog boot-grace (BOOT_GRACE_SECONDS=720), so even a full timeout still
+# lets daphne bind and pass its health check on the SAME boot instead of being
+# blanket-restarted mid-install. --kill-after SIGKILLs a child that ignores the
+# initial SIGTERM. NOTE: the uv-cache / site-packages / .apps volume perms that
+# used to force the slow plain-pip fallback are fixed separately in
+# root-init.sh; this guard is the structural backstop for ANY residual hang.
 echo_info "Installing workspace apps for Vite bridge resolution..."
-bash /app/scripts/apps/install_apps.sh 2>&1 || echo_warning "App installation had issues — Vite build may fail"
+APP_INSTALL_TIMEOUT="${APP_INSTALL_TIMEOUT_SECONDS:-300}"
+timeout --kill-after=10s "${APP_INSTALL_TIMEOUT}" \
+    bash /app/scripts/apps/install_apps.sh 2>&1 \
+    || echo_warning "App install failed or exceeded ${APP_INSTALL_TIMEOUT}s — continuing to daphne (Vite build may miss some app bridges)"
 
 # ============================================
 # Conditional NPM Install & TypeScript Build
@@ -137,6 +192,14 @@ if [ "$VITE_REBUILD_NEEDED" = true ]; then
     echo_success "Static files collected"
 else
     echo_info "TypeScript build already up to date"
+fi
+
+# Close the web-container-only guard opened before "Install Workspace Apps"
+# above. celery_{worker,beat} land here and skip the whole frontend build +
+# uv/npm editable install (which, run as root, would seed the shared uv
+# cache with root-owned files that django's scitex-user uv can't read).
+else
+    echo_info "Skipping workspace app install + npm/Vite build (celery service — no frontend; keeps the shared uv cache single-owner so django's editable install succeeds)"
 fi
 
 # ============================================

@@ -6,7 +6,7 @@
   "app_name": "todo_app",
   "icon": "fas fa-diagram-project",
   "description": "Read-only board view of your project's scitex-todo task store: kanban columns, dependency graph, and status colors.",
-  "version": "0.1.0",
+  "pip_package": "scitex-todo",
   "license": "AGPL-3.0",
   "keyboard_shortcut": "",
   "order": 85,

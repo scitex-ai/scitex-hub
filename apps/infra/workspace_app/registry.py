@@ -81,6 +81,12 @@ class ModuleConfig:
     # Legal
     license: str = "AGPL-3.0"  # SPDX identifier, default matches SciTeX project license
 
+    # Version — read from the app's manifest.json "version" key. This is the
+    # single source of truth for the deployed/code version surfaced on the
+    # launcher tiles and the app header (dev-loop aid). Empty when a manifest
+    # omits it — callers degrade gracefully (hide the label, never break).
+    version: str = ""  # e.g. "0.14.0"
+
     # URL override — empty means default to /apps/{name}/
     url: str = ""  # e.g. "/hub/" for top-level exceptions
 
@@ -213,6 +219,36 @@ def _load_manifest(manifest_path: Path) -> dict:
     return data
 
 
+def _resolve_version(data: dict) -> str:
+    """Resolve an app's version from its INSTALLED pip package — the single
+    source of truth, so the standalone package and the hub-embedded app always
+    report the same version and cannot drift. ``pip_package`` names the
+    distribution; the version is read at runtime via ``importlib.metadata``.
+
+    Apps with no backing package (hub-internal panes like Home/Docs/Tools)
+    report "" and the launcher simply omits the label — the hub's own version
+    is shown once in the header, not per built-in pane. Never raises: a missing
+    dist degrades to blank, never a launcher 500. A literal ``version`` in a
+    manifest is IGNORED on purpose — hand-written versions ARE the drift we are
+    removing (the scitex-app validator rejects them).
+    """
+    pkg = data.get("pip_package", "")
+    if not pkg:
+        return ""
+    try:
+        from importlib.metadata import version as _pkg_version
+
+        return _pkg_version(pkg)
+    except Exception:
+        logger.warning(
+            "[registry] app %r declares pip_package=%r which is not installed; "
+            "version label omitted",
+            data.get("name"),
+            pkg,
+        )
+        return ""
+
+
 def _manifest_to_module_config(data: dict) -> ModuleConfig:
     """Convert a manifest dict to a ModuleConfig dataclass."""
     name = data["name"]
@@ -236,6 +272,7 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         accent_color=data.get("accent_color", ""),
         docs_slug=data.get("docs_slug", ""),
         license=data.get("license", "AGPL-3.0"),
+        version=_resolve_version(data),
         url=data.get("url", ""),
         privileges=data.get("privileges", []),
         allowed_extensions=data.get("allowed_extensions", []),

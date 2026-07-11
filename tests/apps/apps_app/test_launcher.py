@@ -89,6 +89,39 @@ class LauncherHomeTest(TestCase):
         # Assert
         assert store_tile["label"] == "App Store"
 
+    def _writer_tile(self):
+        resp = self.client.get("/")
+        return next(t for t in resp.context["tiles"] if t["name"] == "writer")
+
+    def test_writer_tile_version_matches_manifest_ssot(self):
+        # Arrange — tile version is sourced from the manifest (SSOT), not
+        # hardcoded; compare against the registry value (also the manifest).
+        from apps.infra.workspace_app.registry import get_module
+
+        manifest_version = get_module("writer").version
+        # Act
+        writer_tile = self._writer_tile()
+        # Assert
+        assert writer_tile["version"] == manifest_version
+
+    def test_writer_tile_version_label_is_v_prefixed(self):
+        # Arrange
+        from apps.infra.workspace_app.registry import get_module
+
+        manifest_version = get_module("writer").version
+        # Act
+        writer_tile = self._writer_tile()
+        # Assert
+        assert writer_tile["version_label"] == f"v{manifest_version}"
+
+    def test_launcher_renders_version_label_span(self):
+        # Arrange
+        url = "/"
+        # Act
+        resp = self.client.get(url)
+        # Assert
+        assert b"launcher-tile-version" in resp.content
+
     def test_launcher_anonymous_redirects_away(self):
         # Arrange
         self.client.logout()
@@ -202,6 +235,55 @@ class LauncherPinTest(TestCase):
         pinned = get_pinned_module_names(self.user)
         # Assert
         assert "t-pin-0" in pinned
+
+
+class VersionLabelHelperTest(TestCase):
+    """_version_label formats manifest versions and degrades gracefully."""
+
+    def test_semver_gets_v_prefix(self):
+        # Arrange
+        from apps.workspace.apps_app.views.launcher import _version_label
+
+        # Act
+        label = _version_label("0.14.0")
+        # Assert
+        assert label == "v0.14.0"
+
+    def test_empty_string_degrades_to_blank(self):
+        # Arrange
+        from apps.workspace.apps_app.views.launcher import _version_label
+
+        # Act
+        label = _version_label("")
+        # Assert
+        assert label == ""
+
+    def test_none_degrades_to_blank(self):
+        # Arrange
+        from apps.workspace.apps_app.views.launcher import _version_label
+
+        # Act
+        label = _version_label(None)
+        # Assert
+        assert label == ""
+
+    def test_dev_marker_passes_through_without_v(self):
+        # Arrange
+        from apps.workspace.apps_app.views.launcher import _version_label
+
+        # Act
+        label = _version_label("dev")
+        # Assert
+        assert label == "dev"
+
+    def test_already_v_prefixed_not_doubled(self):
+        # Arrange
+        from apps.workspace.apps_app.views.launcher import _version_label
+
+        # Act
+        label = _version_label("v1.2")
+        # Assert
+        assert label == "v1.2"
 
 
 # EOF

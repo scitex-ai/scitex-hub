@@ -49,8 +49,13 @@ export class WriterEditor {
 
       this.setupEditor();
     } else {
-      console.warn(
-        "[Editor] CodeMirror not found. Editor will not be initialized.",
+      // Fail loud: this is the last-resort fallback editor. Silently leaving
+      // `this.editor` undefined returns a hollow (but truthy) instance that
+      // would defeat the fail-loud path. Throw so
+      // ComponentInitializer.initializeEditor's catch fires the
+      // "Failed to initialize editor" toast and returns null.
+      throw new Error(
+        "[Editor] CodeMirror not available — writer editor cannot be initialized",
       );
     }
   }

@@ -133,7 +133,7 @@
                        data-app-accent="{{ mod.name }}"
                        title="{{ mod.label }}">
                         {% module_icon mod.name "nav" mod.version mod.icon_fa mod.is_dev %}
-                        <span class="sidebar-label">{{ mod.label }}</span>
+                        <span class="sidebar-label">{{ mod.label }}{% if mod.is_active and mod.version %} <small class="sidebar-item-version">v{{ mod.version }}</small>{% endif %}</span>
                     </a>
                 {% endfor %}
                 {# "All apps" removed (nav-404 batch #11): it pointed at "/" — #}

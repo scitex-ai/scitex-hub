@@ -125,6 +125,14 @@ def test_audit_all_clean():
             "§5",
             "§6",
             "§6b",
+            # §1f (non-canonical verb synonyms, e.g. check→validate) and
+            # §4b (free-form help vs CliHelp) are finer-grained sub-rules
+            # the newer audit corpus split out of the SAME noun-verb /
+            # help-format campaign the §-rules above already defer. The
+            # matcher is exact ("§4" does not substring-cover "§4b"), so
+            # they need their own entries. Same Group-C deferral + tracking.
+            "§1f",
+            "§4b",
             # The `deferred` project-type emits an informational
             # `[defer] … PS-103 finding(s) suppressed` notice on
             # stdout. It is not a violation, but the gate's line
