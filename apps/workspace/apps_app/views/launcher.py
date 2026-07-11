@@ -31,6 +31,44 @@ MAX_PINNED_MODULES = 5
 # Store apps published within this window get a NEW badge.
 NEW_BADGE_DAYS = 14
 
+# Curated default tile order. The raw registry order read "weird" to the
+# operator (Telegram 992/997, 2026-07-12); this gives the research apps a
+# natural first-screen order. Modules not listed sort after these by label.
+# A per-user drag-reorder (api_reorder) overrides this entirely.
+DEFAULT_LAUNCHER_ORDER = [
+    "home",
+    "writer",
+    "scholar",
+    "figrecipe",
+    "console",
+    "discovery",
+    "clew",
+    "tools",
+    "docs",
+    "todo",
+    "store",
+]
+_DEFAULT_ORDER_INDEX = {name: i for i, name in enumerate(DEFAULT_LAUNCHER_ORDER)}
+
+# Model defaults for the tab_order columns. A row still holding the default
+# was created incidentally (e.g. by pinning), not by an explicit launcher
+# reorder — so it keeps the curated position rather than jumping the tile.
+_MI_DEFAULT_TAB_ORDER = 50
+_DEV_DEFAULT_TAB_ORDER = 95
+
+
+def _default_order_value(name: str) -> int:
+    """Curated launcher position (lower sorts earlier).
+
+    Curated apps occupy 10..110; anything uncurated sorts after them (by
+    label). Reorder positions written by api_reorder live at 1000+, well
+    clear of both, so an explicit user choice always wins.
+    """
+    idx = _DEFAULT_ORDER_INDEX.get(name)
+    if idx is not None:
+        return (idx + 1) * 10
+    return 500_000
+
 
 def _version_label(version: str) -> str:
     """Format a manifest version for tile display.
@@ -88,6 +126,17 @@ def _build_tiles(request) -> list[dict]:
         )
     pinned_names = set(get_pinned_module_names(request.user))
     new_cutoff = timezone.now() - timedelta(days=NEW_BADGE_DAYS)
+
+    # Per-user launcher order set by drag-reorder (api_reorder). Only rows
+    # whose tab_order differs from the model default count as an explicit
+    # user choice; default-valued rows are incidental (e.g. pins).
+    user_orders: dict[str, int] = {}
+    if request.user.is_authenticated:
+        for _name, _order in ModuleInstallation.objects.filter(
+            user=request.user
+        ).values_list("module__module_name", "tab_order"):
+            if _order != _MI_DEFAULT_TAB_ORDER:
+                user_orders[_name] = _order
 
     tiles: list[dict] = []
     seen: set[str] = set()
@@ -161,6 +210,8 @@ def _build_tiles(request) -> list[dict]:
         from ..models import DevInstallation
 
         for dev in DevInstallation.objects.filter(user=request.user, is_enabled=True):
+            if dev.tab_order != _DEV_DEFAULT_TAB_ORDER:
+                user_orders[dev.module_name] = dev.tab_order
             tiles.append(
                 {
                     "name": dev.module_name,
@@ -178,6 +229,15 @@ def _build_tiles(request) -> list[dict]:
                     "detail_url": f"/apps/{dev.module_name}/",
                 }
             )
+
+    # Apply order: explicit per-user positions win; otherwise the curated
+    # default. Ties break by label so the grid render is deterministic.
+    tiles.sort(
+        key=lambda t: (
+            user_orders.get(t["name"], _default_order_value(t["name"])),
+            t["label"].lower(),
+        )
+    )
     return tiles
 
 

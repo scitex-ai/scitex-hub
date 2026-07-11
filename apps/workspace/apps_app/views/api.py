@@ -236,7 +236,10 @@ def api_reorder(request):
     all_modules = {m.module_name: m for m in AppsModule.objects.all()}
 
     for idx, name in enumerate(order):
-        tab_order = (idx + 1) * 10
+        # 1000+ keeps explicit reorders clear of the curated launcher
+        # positions (10..110) and the incidental defaults (50/95), so a
+        # user's chosen order always wins in the launcher's _build_tiles.
+        tab_order = 1000 + idx
         if name in installations:
             inst = installations[name]
             inst.tab_order = tab_order
