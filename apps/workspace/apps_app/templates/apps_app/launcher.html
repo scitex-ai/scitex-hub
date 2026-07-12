@@ -52,6 +52,10 @@
                 </a>
             {% endfor %}
         </div>
+        {# Page dots for the mobile pager (launcher/pager.ts fills these in and #}
+        {# unhides them once there is more than one page). Rendered empty and   #}
+        {# hidden so a no-JS / desktop launcher shows nothing at all.           #}
+        <div class="launcher-dots" id="launcher-dots" role="tablist" aria-label="App pages" hidden></div>
     </div>
     <!-- Mobile dock (fixed bottom, < 640px only) -->
     <nav class="launcher-dock" aria-label="Quick access">
