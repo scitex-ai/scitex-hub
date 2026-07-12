@@ -61,7 +61,14 @@ def _scitex_storage_installed() -> bool:
     """
     from importlib.util import find_spec
 
-    return find_spec("scitex_storage._django") is not None
+    # find_spec of a SUBMODULE raises ModuleNotFoundError (rather than
+    # returning None) when the PARENT package scitex_storage is absent
+    # entirely — the state pytest CI hits (no install_apps, no package).
+    # Treat that as not-installed instead of exploding the urlconf import.
+    try:
+        return find_spec("scitex_storage._django") is not None
+    except ModuleNotFoundError:
+        return False
 
 
 urlpatterns = [
