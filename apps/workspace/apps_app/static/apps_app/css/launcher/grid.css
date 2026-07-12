@@ -264,9 +264,13 @@
   transform: none;
 }
 
-/* The tile being dragged: no wiggle, floats above, scales up. */
+/* The tile being dragged: KEEPS wiggling (iOS does — the icon under your
+   finger goes on jiggling), floats above, scales up. It inherits the
+   launcher-jiggle animation from the .edit-mode rule above; do NOT set
+   `animation: none` here (that froze the very tile you are moving). The
+   jiggle rotates the TILE while the scale/shadow below lift the ICON, so
+   the two transforms never fight. */
 .launcher-grid.edit-mode .launcher-tile.dragging {
-  animation: none;
   z-index: 5;
   cursor: grabbing;
   opacity: 0.96;
@@ -281,27 +285,9 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
-/* Floating Done pill (built by launcher.ts, appended to <body>). */
-.launcher-edit-done {
-  position: fixed;
-  top: calc(14px + env(safe-area-inset-top, 0px));
-  right: 16px;
-  z-index: 1300;
-  padding: 8px 20px;
-  border: none;
-  border-radius: 999px;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  color: #fff;
-  background: var(--app-accent-hub, #6a5a8a);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  cursor: pointer;
-}
-
-.launcher-edit-done:hover {
-  filter: brightness(1.08);
-}
+/* NOTE: the floating "Done" pill was REMOVED (operator, 2026-07-13: it read
+   as meaningless). Edit mode now exits by tapping anywhere OUTSIDE a tile,
+   or Escape — see launcher.ts. Do not reintroduce a Done button. */
 
 /* Reduced motion: drop the wobble, but NEVER leave edit mode invisible.
    A bare `animation: none` here removed the only signal that the grid had
