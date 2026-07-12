@@ -51,6 +51,26 @@ def _scitex_todo_installed() -> bool:
     return find_spec("scitex_todo") is not None
 
 
+def _scitex_storage_installed() -> bool:
+    """True when scitex-storage's _django app is importable.
+
+    Mirrors the guarded THIRD_PARTY_APPS import in settings_shared.py so
+    the /storage/ mount and the installed app always agree. Gates on the
+    _django submodule (the include target), so a scitex_storage present
+    without its _django app doesn't mount a broken include.
+    """
+    from importlib.util import find_spec
+
+    # find_spec of a SUBMODULE raises ModuleNotFoundError (rather than
+    # returning None) when the PARENT package scitex_storage is absent
+    # entirely — the state pytest CI hits (no install_apps, no package).
+    # Treat that as not-installed instead of exploding the urlconf import.
+    try:
+        return find_spec("scitex_storage._django") is not None
+    except ModuleNotFoundError:
+        return False
+
+
 urlpatterns = [
     # A2A protocol surface — canonical host: a2a.scitex.ai
     path("", include("apps.infra.a2a_app.urls")),
@@ -135,6 +155,14 @@ urlpatterns = [
     *(
         [path("todo/", include("scitex_todo._django.urls"))]
         if _scitex_todo_installed()
+        else []
+    ),
+    # Upstream scitex-storage's own contract-compliant Django app. Only
+    # mounted when the package is importable — mirror of the
+    # settings_shared.py guarded import.
+    *(
+        [path("storage/", include("scitex_storage._django.urls"))]
+        if _scitex_storage_installed()
         else []
     ),
     path(
