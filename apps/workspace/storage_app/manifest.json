@@ -1,0 +1,33 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "2.0.0",
+  "name": "storage",
+  "label": "Storage",
+  "app_name": "storage_app",
+  "icon": "fas fa-hard-drive",
+  "description": "Browse your storage across the machines you can reach.",
+  "pip_package": "scitex-storage",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "",
+  "order": 80,
+  "category": "data",
+  "default_enabled": false,
+  "accent_color": "",
+  "body_class": "",
+  "partial_template": "",
+  "context_builder": "",
+  "url": "/apps/storage/",
+  "ai_hint": "Browse the user's storage across the machines they can reach.",
+  "allowed_extensions": [],
+  "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+  "privileges": [],
+  "builtin": true,
+  "dependencies": {
+    "python": ["scitex-storage"],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}

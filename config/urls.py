@@ -44,7 +44,7 @@ def _scitex_todo_installed() -> bool:
     """True when the upstream scitex-todo package is importable.
 
     Mirrors the guarded THIRD_PARTY_APPS import in settings_shared.py so
-    the /todo/ mount and the installed app always agree.
+    the /apps/todo/ mount and the installed app always agree.
     """
     from importlib.util import find_spec
 
@@ -55,7 +55,7 @@ def _scitex_storage_installed() -> bool:
     """True when scitex-storage's _django app is importable.
 
     Mirrors the guarded THIRD_PARTY_APPS import in settings_shared.py so
-    the /storage/ mount and the installed app always agree. Gates on the
+    the /apps/storage/ mount and the installed app always agree. Gates on the
     _django submodule (the include target), so a scitex_storage present
     without its _django app doesn't mount a broken include.
     """
@@ -147,13 +147,22 @@ urlpatterns = [
         if _scitex_writer_installed()
         else []
     ),
+    # Upstream plugin apps live under /apps/<name>/, exactly like every other
+    # app on the launcher (operator, 2026-07-13: "他のアプリと同じようにして
+    # ください"). They used to be mounted at the bare root (/todo/, /storage/)
+    # because that is where an upstream package's _django app "naturally" lands,
+    # but that leaked an internal distinction — hub-native vs plugin — into the
+    # URL a user reads. To a user these are simply apps. It also kept them out
+    # of hub's own namespace, where a future top-level route could collide.
+    #
     # Upstream scitex-todo's own contract-compliant Django board app
     # (phase 1: read-only). Only mounted when the package is importable —
     # mirror of the settings_shared.py guarded import. Per-request
     # workspace tenancy + the read-only gate are enforced by
-    # apps.workspace.todo_app.middleware.TodoBoardTenancyMiddleware.
+    # apps.workspace.todo_app.middleware.TodoBoardTenancyMiddleware (whose
+    # path prefix tracks this mount).
     *(
-        [path("todo/", include("scitex_todo._django.urls"))]
+        [path("apps/todo/", include("scitex_todo._django.urls"))]
         if _scitex_todo_installed()
         else []
     ),
@@ -161,7 +170,7 @@ urlpatterns = [
     # mounted when the package is importable — mirror of the
     # settings_shared.py guarded import.
     *(
-        [path("storage/", include("scitex_storage._django.urls"))]
+        [path("apps/storage/", include("scitex_storage._django.urls"))]
         if _scitex_storage_installed()
         else []
     ),

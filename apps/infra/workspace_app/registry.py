@@ -53,6 +53,14 @@ class ModuleConfig:
     # Sort order in tab bar (lower = leftmost)
     order: int = 50
 
+    # Launcher-tile category. Drives the tile's icon gradient (see
+    # launcher/grid.css [data-tile-category]). The manifest is the SSOT: an app
+    # declares what it IS. Previously the launcher took this from the AppsModule
+    # DB row only, so any module without a seeded row fell back to "other" and
+    # rendered with the generic yellow puzzle gradient — which is exactly the
+    # look the operator flagged on the custom-app tiles.
+    category: str = ""
+
     # Visibility defaults
     default_enabled: bool = True  # Show in tab bar for new users (no installations)
 
@@ -192,17 +200,22 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
     "workspace/comms_app/manifest.json",
 ]
 
-# scitex-todo board tile (upstream embedded package mounted at /todo/).
-# Appended CONDITIONALLY so the launcher never shows a dead tile on a
-# host where the scitex-todo package is not installed — mirror of the
-# guarded import in settings_shared.py / the URL guard in config/urls.py.
-try:
-    from importlib.util import find_spec as _find_spec
+# Upstream plugin-app tiles (the package ships its own Django app; hub mounts
+# it and carries only a manifest + any tenancy glue). Appended CONDITIONALLY so
+# the launcher never shows a dead tile on a host where the package is not
+# installed — mirror of the guarded imports in settings_shared.py and the URL
+# guards in config/urls.py.
+for _pkg, _tile_manifest in (
+    ("scitex_todo", "workspace/todo_app/manifest.json"),
+    ("scitex_storage", "workspace/storage_app/manifest.json"),
+):
+    try:
+        from importlib.util import find_spec as _find_spec
 
-    if _find_spec("scitex_todo") is not None:
-        _BUILTIN_MANIFEST_PATHS.append("workspace/todo_app/manifest.json")
-except Exception:
-    logger.exception("[registry] scitex_todo tile probe failed")
+        if _find_spec(_pkg) is not None:
+            _BUILTIN_MANIFEST_PATHS.append(_tile_manifest)
+    except Exception:
+        logger.exception("[registry] %s tile probe failed", _pkg)
 
 
 _SUPPORTED_SCHEMA_VERSIONS = {"1.0.0", "2.0.0"}
@@ -266,6 +279,7 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         body_class=data.get("body_class", ""),
         keyboard_shortcut=data.get("keyboard_shortcut", ""),
         order=data.get("order", 50),
+        category=data.get("category", ""),
         default_enabled=data.get("default_enabled", True),
         show_in_launcher=data.get("show_in_launcher", True),
         ai_hint=data.get("ai_hint", ""),

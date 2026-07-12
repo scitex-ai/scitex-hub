@@ -15,7 +15,7 @@
   "body_class": "",
   "partial_template": "",
   "context_builder": "",
-  "url": "/todo/",
+  "url": "/apps/todo/",
   "ai_hint": "Read-only board of the project's scitex-todo task store (phase 1).",
   "allowed_extensions": [".yaml", ".yml"],
   "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
