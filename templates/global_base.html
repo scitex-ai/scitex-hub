@@ -1,9 +1,10 @@
-{% load static vite %}
+{% load static vite branding_tags %}
 
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>{% include 'global_base_partials/page_title.html' %}</title>
+        {# Single source of truth for tab titles: config/branding.py #}
+        <title>{% page_title %}</title>
         {% include 'global_base_partials/global_head_meta.html' %}
         {% include 'global_base_partials/global_head_styles.html' %}
         <!-- Umami Analytics (privacy-focused, no cookies) -->

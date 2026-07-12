@@ -12,6 +12,7 @@ from pathlib import Path
 
 import scitex as stx
 
+from config import branding
 from config._env import (
     getenv_with_legacy_alias as _getenv_alias,
 )
@@ -73,6 +74,24 @@ def _get_version():
             return tomllib.load(f).get("project", {}).get("version", "unknown")
     return "unknown"
 
+
+# ---------------------------------------
+# Environment identity
+# ---------------------------------------
+# Drives the tab title marker AND the favicon colour, so an operator can tell
+# prod / staging / dev apart from the browser tab alone.
+#
+# Declared here so there is ALWAYS a value; each concrete settings module
+# (settings_dev / settings_staging / settings_prod) then OVERRIDES it with its
+# literal environment -- that override, not this env-var default, is the
+# source of truth. `normalize_env` raises on an unknown value, so a typo fails
+# fast at boot instead of silently serving the wrong environment's favicon.
+SCITEX_ENV = branding.normalize_env(os.environ.get("SCITEX_HUB_ENV", "development"))
+
+# The hub always renders apps EMBEDDED. A standalone SciTeX app (e.g.
+# `scitex-writer gui` on its own port) sets this to branding.MODE_STANDALONE
+# so its tab reads "Writer — SciTeX (standalone)" instead of "Writer — SciTeX".
+SCITEX_APP_MODE = branding.MODE_HUB
 
 # ---------------------------------------
 # Paths

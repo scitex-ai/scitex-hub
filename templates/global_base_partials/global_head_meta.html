@@ -22,29 +22,20 @@
 {% vite_script 'shared/utils/console-interceptor' %}
 <!-- PWA service worker registration -->
 {% vite_script 'shared/utils/pwa-register' %}
-<!-- Favicon (green camo for dev, orange camo for staging, standard for prod) -->
-{% if DEBUG %}
-    <link rel="icon"
-          type="image/svg+xml"
-          href="{% static 'shared/images/favicons/favicon-dev.svg' %}?v=7" />
-    <link rel="shortcut icon"
-          type="image/svg+xml"
-          href="{% static 'shared/images/favicons/favicon-dev.svg' %}?v=7" />
-{% elif IS_STAGING %}
-    <link rel="icon"
-          type="image/svg+xml"
-          href="{% static 'shared/images/favicons/favicon-staging.svg' %}?v=1" />
-    <link rel="shortcut icon"
-          type="image/svg+xml"
-          href="{% static 'shared/images/favicons/favicon-staging.svg' %}?v=1" />
-{% else %}
-    <link rel="icon"
-          type="image/png"
-          href="{% static 'shared/images/favicons/favicon.png' %}?v=2" />
-    <link rel="shortcut icon"
-          type="image/png"
-          href="{% static 'shared/images/favicons/favicon.png' %}?v=2" />
-{% endif %}
+<!--
+  Favicon: the SAME SciTeX brand mark in a per-ENVIRONMENT colour, so prod /
+  staging / dev are distinguishable from the tab icon alone.
+      production  -> white snake on NAVY   (official product look)
+      staging     -> NAVY snake on WHITE   (heavy / high-contrast)
+      development -> white snake on GREEN
+  Resolved from settings.SCITEX_ENV in config/branding.py (NOT from DEBUG,
+  which is a debug flag, not an environment) and published as SCITEX_FAVICON
+  by config.context_processors.scitex_env. This is the ONLY place the tab icon
+  is declared -- see global_head_styles.html.
+-->
+<link rel="icon" type="image/svg+xml" href="{% static SCITEX_FAVICON %}" />
+<link rel="shortcut icon" type="image/svg+xml" href="{% static SCITEX_FAVICON %}" />
+<link rel="alternate icon" type="image/svg+xml" href="{% static SCITEX_FAVICON %}" />
 <!-- PWA -->
 <link rel="manifest" href="/manifest.json" />
 <meta name="theme-color" content="#0d1117" />

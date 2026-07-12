@@ -18,6 +18,7 @@ Uses daphne (ASGI) but without SSL/Cloudflare.
 
 from dotenv import load_dotenv
 
+from config import branding
 from config._env import (
     getenv_with_legacy_alias as _getenv_alias,
 )
@@ -26,6 +27,10 @@ from config._env import (
 )
 
 from .settings_shared import *
+
+# Environment identity -- drives the tab title marker "(staging)" and the
+# NAVY-ON-WHITE favicon. Literal: running settings_staging IS staging.
+SCITEX_ENV = branding.ENV_STAGING
 
 # ---------------------------------------
 # Env

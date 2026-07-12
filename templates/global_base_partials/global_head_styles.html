@@ -47,14 +47,13 @@
         pointer-events: none
     }
 </style>
-<!-- Favicon alternate icon (conditional based on DEBUG) -->
-{% if DEBUG %}
-    <link rel="alternate icon"
-          href="{% static 'shared/images/favicons/favicon-dev.svg' %}?v=7" />
-{% else %}
-    <link rel="alternate icon"
-          href="{% static 'shared/images/favicons/favicon.png' %}?v=2" />
-{% endif %}
+<!--
+  The favicon (including `rel="alternate icon"`) is declared ONCE, in
+  global_head_meta.html, driven by settings.SCITEX_ENV. A second DEBUG-keyed
+  block used to live here and disagreed with that one: it had no staging
+  branch, so staging served PRODUCTION's alternate icon while its primary icon
+  was the staging one. Do not reintroduce a second favicon declaration.
+-->
 <!-- Preconnect to external resources for faster loading -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
