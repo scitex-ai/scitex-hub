@@ -4,35 +4,39 @@
  * Behaviour:
  * - Tap a tile to open the app.
  * - Right-click (desktop) opens a context popover: Open, Pin to sidebar,
- *   Rearrange apps, Details. The popover flips above the tile when it
- *   would overflow the viewport bottom and shifts to stay on screen.
+ *   Rearrange apps, Details (see _launcher/popover.ts).
  * - Long-press (touch or mouse) enters iPhone-style EDIT MODE: every tile
  *   jiggles — including the one you are dragging — and can be dragged to a
  *   new slot. Tapping anywhere OUTSIDE a tile (or Escape) exits; there is
  *   deliberately no "Done" pill. The order persists via POST api/reorder/.
+ * - On mobile the tiles are laid out in horizontal PAGES that fit above the
+ *   dock (see _launcher/pager.ts). Drag a tile to the left/right edge and hold
+ *   to carry it to the next page.
  * - Pin to sidebar persists via POST /apps/store/api/<module>/pin/.
+ *
+ * The drag code is deliberately page-AGNOSTIC: it inserts relative to the tile
+ * you are over, into THAT tile's parent, and reads the resulting order straight
+ * off the DOM. So the same path serves the flat desktop grid and the paged
+ * mobile grid, and there is no second ordering model to keep in sync.
  */
 
 import { showToast } from "@utils/ui";
 
+import { getCsrf } from "./_launcher/csrf";
+import { LauncherPager } from "./_launcher/pager";
+import { LauncherPopover } from "./_launcher/popover";
+
 // Hold this long before the grid enters jiggle/edit mode.
 const LONG_PRESS_MS = 420;
 // Finger travel (px) that reads as a scroll and cancels the long-press.
+// On a paged grid this is also what lets a horizontal SWIPE turn the page
+// instead of picking a tile up.
 const MOVE_CANCEL_PX = 10;
-
-function getCsrf(): string {
-  const input = document.querySelector(
-    "[name=csrfmiddlewaretoken]",
-  ) as HTMLInputElement | null;
-  if (input) return input.value;
-  const match = document.cookie.match(/csrftoken=([^;]+)/);
-  return match ? match[1] : "";
-}
 
 class AppLauncher {
   private grid: HTMLElement;
-  private tiles: HTMLElement[];
-  private popover: HTMLElement | null = null;
+  private pager: LauncherPager;
+  private popover: LauncherPopover;
 
   // Edit / drag state
   private editMode = false;
@@ -46,80 +50,83 @@ class AppLauncher {
   private onDragMove = (e: PointerEvent) => this.handleDragMove(e);
   private onDragEnd = (e: PointerEvent) => this.handleDragEnd(e);
 
-  constructor(grid: HTMLElement) {
+  constructor(grid: HTMLElement, pager: LauncherPager) {
     this.grid = grid;
-    this.tiles = Array.from(
-      grid.querySelectorAll<HTMLElement>(".launcher-tile"),
-    );
+    this.pager = pager;
+    this.popover = new LauncherPopover(grid, {
+      onRearrange: () => this.enterEditMode(),
+    });
   }
 
   init(): void {
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
-        this.closePopover();
+        this.popover.close();
         this.exitEditMode();
       }
     });
 
-    this.tiles.forEach((tile) => this.bindTile(tile));
+    // Bound on the grid, not per tile: the pager re-parents tiles into pages
+    // on every relayout, and per-tile listeners would have to be re-attached
+    // each time (and would leak if we forgot). Delegation survives re-chunking.
+    this.grid.addEventListener("dragstart", (e) => {
+      // Tiles are <a>. The native link-drag hijacks a press-and-move and
+      // swallows pointermove, so our reorder would silently do nothing.
+      if ((e.target as HTMLElement).closest(".launcher-tile")) {
+        e.preventDefault();
+      }
+    });
+    this.grid.addEventListener("contextmenu", (e) => {
+      const tile = (e.target as HTMLElement).closest<HTMLElement>(
+        ".launcher-tile",
+      );
+      if (!tile) return;
+      e.preventDefault();
+      this.popover.open(tile);
+    });
+    this.grid.addEventListener("pointerdown", (e) => {
+      const tile = (e.target as HTMLElement).closest<HTMLElement>(
+        ".launcher-tile",
+      );
+      if (tile) this.handlePointerDown(e, tile);
+    });
+    this.grid.addEventListener("click", (e) => {
+      if (!(e.target as HTMLElement).closest(".launcher-tile")) return;
+      if (this.editMode || this.suppressClick) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
 
     document.addEventListener("click", (e) => {
       const target = e.target as HTMLElement | null;
-      if (this.popover && target && !this.popover.contains(target)) {
-        this.closePopover();
+      if (this.popover.isOpen && target && !this.popover.contains(target)) {
+        this.popover.close();
       }
       // There is no "Done" pill any more: tapping anywhere OUTSIDE a tile
       // leaves edit mode (the iOS-home gesture the operator asked for).
-      // Ignore taps on the dock (those navigate) and the trailing click of
-      // a drag we have only just finished.
+      // Ignore taps on the dock (those navigate), the page dots, and the
+      // trailing click of a drag we have only just finished.
       if (
         this.editMode &&
         !this.dragTile &&
         !this.suppressClick &&
         target &&
         !target.closest(".launcher-tile") &&
+        !target.closest(".launcher-dots") &&
         !target.closest(".launcher-dock")
       ) {
         this.exitEditMode();
       }
     });
-    window.addEventListener("resize", () => this.closePopover());
-    window.addEventListener("scroll", () => this.closePopover(), true);
-  }
-
-  private bindTile(tile: HTMLElement): void {
-    // A tile is an <a>, and links are natively draggable. The moment the
-    // pointer MOVES while held, the browser starts an HTML5 link-drag and
-    // takes over the gesture: pointermove stops reaching us, so the reorder
-    // never runs and the tile looks stuck. (The long-press still worked,
-    // which is why edit mode engaged but nothing could be moved.) Kill the
-    // native drag so our pointer-driven reorder owns the gesture.
-    tile.addEventListener("dragstart", (e) => e.preventDefault());
-
-    // Right-click → context popover (desktop).
-    tile.addEventListener("contextmenu", (e) => {
-      e.preventDefault();
-      this.openPopover(tile);
-    });
-
-    // Pointer down starts a long-press (or, in edit mode, a drag).
-    tile.addEventListener("pointerdown", (e) =>
-      this.handlePointerDown(e, tile),
-    );
-
-    // Suppress the click that a drag/long-press would otherwise fire.
-    tile.addEventListener("click", (e) => {
-      if (this.editMode || this.suppressClick) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    });
+    window.addEventListener("resize", () => this.popover.close());
+    window.addEventListener("scroll", () => this.popover.close(), true);
   }
 
   /* ── Long-press detection ───────────────────────────────── */
 
   private handlePointerDown(e: PointerEvent, tile: HTMLElement): void {
-    if (this.popover) this.closePopover();
+    if (this.popover.isOpen) this.popover.close();
     if (e.pointerType === "mouse" && e.button !== 0) return;
 
     // Already editing: a press begins a drag straight away.
@@ -180,6 +187,7 @@ class AppLauncher {
     if (!this.editMode) return;
     this.editMode = false;
     this.grid.classList.remove("edit-mode");
+    this.pager.cancelEdgeTurn();
     this.persistOrder();
   }
 
@@ -204,27 +212,35 @@ class AppLauncher {
     e.preventDefault();
     this.suppressClick = true; // movement means this was a drag, not a tap
 
+    // Hold against an edge to carry the tile to the next/previous page.
+    this.pager.edgeTurn(e.clientX);
+
     const under = document.elementFromPoint(
       e.clientX,
       e.clientY,
     ) as HTMLElement | null;
     const over = under?.closest<HTMLElement>(".launcher-tile") || null;
-    if (!over || over === this.dragTile || over.parentElement !== this.grid) {
+    if (!over || over === this.dragTile || !this.grid.contains(over)) {
       return;
     }
 
-    // Insert in the direction of travel so tiles push out of the way.
+    // Insert in the direction of travel so tiles push out of the way. The
+    // parent is the tile we are OVER — on a paged grid that is its page, which
+    // is what lets a tile move between pages at all.
     const order = Array.from(
       this.grid.querySelectorAll<HTMLElement>(".launcher-tile"),
     );
     const from = order.indexOf(this.dragTile);
     const to = order.indexOf(over);
     const dragged = this.dragTile;
+    const host = over.parentElement;
+    if (!host) return;
+
     this.reorderWithTravel(() => {
       if (from < to) {
-        this.grid.insertBefore(dragged, over.nextSibling);
+        host.insertBefore(dragged, over.nextSibling);
       } else {
-        this.grid.insertBefore(dragged, over);
+        host.insertBefore(dragged, over);
       }
     });
   }
@@ -290,11 +306,15 @@ class AppLauncher {
     this.dragTile.classList.remove("dragging");
     this.dragTile = null;
     this.dragPointerId = null;
+    this.pager.cancelEdgeTurn();
     document.removeEventListener("pointermove", this.onDragMove);
     document.removeEventListener("pointerup", this.onDragEnd);
     document.removeEventListener("pointercancel", this.onDragEnd);
 
     if (this.suppressClick) {
+      // A tile dropped onto a full page leaves that page one over capacity;
+      // re-chunk so the overflow pushes right (iOS does the same).
+      this.pager.rebalance();
       this.persistOrder();
       // Let the click that trails pointerup be swallowed, then reset.
       window.setTimeout(() => {
@@ -325,135 +345,6 @@ class AppLauncher {
       showToast("Could not save order — network error.", "error");
     }
   }
-
-  /* ── Context popover (right-click) ──────────────────────── */
-
-  private openPopover(tile: HTMLElement): void {
-    this.closePopover();
-
-    const moduleName = tile.dataset.module || "";
-    const pinned = tile.dataset.pinned === "1";
-    const pop = document.createElement("div");
-    pop.className = "launcher-popover";
-    pop.setAttribute("role", "menu");
-
-    pop.appendChild(
-      this.popItem(
-        "fas fa-arrow-right",
-        "Open",
-        () => {
-          window.location.href = tile.getAttribute("href") || "/";
-        },
-        true,
-      ),
-    );
-    pop.appendChild(
-      this.popItem(
-        "fas fa-thumbtack",
-        pinned ? "Unpin from sidebar" : "Pin to sidebar",
-        () => this.togglePin(moduleName),
-      ),
-    );
-    pop.appendChild(
-      this.popItem("fas fa-up-down-left-right", "Rearrange apps", () =>
-        this.enterEditMode(),
-      ),
-    );
-    const sep = document.createElement("div");
-    sep.className = "launcher-pop-sep";
-    pop.appendChild(sep);
-    pop.appendChild(
-      this.popItem("fas fa-circle-info", "Details", () => {
-        window.location.href = tile.dataset.detailUrl || "/apps/store/";
-      }),
-    );
-
-    document.body.appendChild(pop);
-    this.popover = pop;
-    this.positionPopover(tile, pop);
-
-    this.grid.classList.add("popover-open");
-    tile.classList.add("popover-anchor");
-  }
-
-  /**
-   * Place the popover under the tile; flip above when it would overflow
-   * the viewport bottom, and shift horizontally to stay on screen.
-   */
-  private positionPopover(tile: HTMLElement, pop: HTMLElement): void {
-    const rect = tile.getBoundingClientRect();
-    const popRect = pop.getBoundingClientRect();
-    const margin = 8;
-
-    let top = rect.bottom + 4;
-    if (top + popRect.height > window.innerHeight - margin) {
-      top = rect.top - popRect.height - 4; // flip above
-    }
-    if (top < margin) top = margin;
-
-    let left = rect.left + rect.width / 2 - popRect.width / 2;
-    left = Math.max(
-      margin,
-      Math.min(left, window.innerWidth - popRect.width - margin),
-    );
-
-    pop.style.top = `${top}px`;
-    pop.style.left = `${left}px`;
-  }
-
-  private popItem(
-    icon: string,
-    label: string,
-    onClick: () => void,
-    primary = false,
-  ): HTMLElement {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = `launcher-pop-item${primary ? " primary" : ""}`;
-    btn.setAttribute("role", "menuitem");
-    const i = document.createElement("i");
-    i.className = icon;
-    i.setAttribute("aria-hidden", "true");
-    btn.appendChild(i);
-    btn.appendChild(document.createTextNode(` ${label}`));
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      this.closePopover();
-      onClick();
-    });
-    return btn;
-  }
-
-  private closePopover(): void {
-    this.popover?.remove();
-    this.popover = null;
-    this.grid.classList.remove("popover-open");
-    this.grid
-      .querySelectorAll(".popover-anchor")
-      .forEach((t) => t.classList.remove("popover-anchor"));
-  }
-
-  /* ── Pin persistence ────────────────────────────────────── */
-
-  private async togglePin(moduleName: string): Promise<void> {
-    try {
-      const resp = await fetch(`/apps/store/api/${moduleName}/pin/`, {
-        method: "POST",
-        headers: { "X-CSRFToken": getCsrf() },
-        credentials: "same-origin",
-      });
-      const data = await resp.json();
-      if (!resp.ok || !data.success) {
-        showToast(data.error || "Could not update pin.", "warning");
-        return;
-      }
-      // Sidebar pins are server-rendered — reload to reflect the change.
-      window.location.reload();
-    } catch {
-      showToast("Could not update pin — network error.", "error");
-    }
-  }
 }
 
 /**
@@ -472,10 +363,17 @@ function anchorDockToViewport(): void {
 }
 
 function initLauncher(): void {
+  // Must run BEFORE the pager measures: the pager sizes its pages against the
+  // dock's rect, and the dock only sits at the viewport bottom once re-parented.
   anchorDockToViewport();
+
   const grid = document.getElementById("launcher-grid");
-  if (!grid) return;
-  new AppLauncher(grid).init();
+  const dots = document.getElementById("launcher-dots");
+  if (!grid || !dots) return;
+
+  const pager = new LauncherPager(grid, dots);
+  pager.init();
+  new AppLauncher(grid, pager).init();
 }
 
 if (document.readyState === "loading") {
