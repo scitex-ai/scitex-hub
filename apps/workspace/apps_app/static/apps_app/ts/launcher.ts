@@ -7,8 +7,9 @@
  *   Rearrange apps, Details. The popover flips above the tile when it
  *   would overflow the viewport bottom and shifts to stay on screen.
  * - Long-press (touch or mouse) enters iPhone-style EDIT MODE: every tile
- *   jiggles and can be dragged to a new slot; a floating "Done" pill (or
- *   Escape) exits. The order persists per-user via POST api/reorder/.
+ *   jiggles — including the one you are dragging — and can be dragged to a
+ *   new slot. Tapping anywhere OUTSIDE a tile (or Escape) exits; there is
+ *   deliberately no "Done" pill. The order persists via POST api/reorder/.
  * - Pin to sidebar persists via POST /apps/store/api/<module>/pin/.
  */
 
@@ -35,7 +36,6 @@ class AppLauncher {
 
   // Edit / drag state
   private editMode = false;
-  private doneBtn: HTMLElement | null = null;
   private pressTimer: number | null = null;
   private pressStart: { x: number; y: number } | null = null;
   private dragTile: HTMLElement | null = null;
@@ -64,8 +64,23 @@ class AppLauncher {
     this.tiles.forEach((tile) => this.bindTile(tile));
 
     document.addEventListener("click", (e) => {
-      if (this.popover && !this.popover.contains(e.target as Node)) {
+      const target = e.target as HTMLElement | null;
+      if (this.popover && target && !this.popover.contains(target)) {
         this.closePopover();
+      }
+      // There is no "Done" pill any more: tapping anywhere OUTSIDE a tile
+      // leaves edit mode (the iOS-home gesture the operator asked for).
+      // Ignore taps on the dock (those navigate) and the trailing click of
+      // a drag we have only just finished.
+      if (
+        this.editMode &&
+        !this.dragTile &&
+        !this.suppressClick &&
+        target &&
+        !target.closest(".launcher-tile") &&
+        !target.closest(".launcher-dock")
+      ) {
+        this.exitEditMode();
       }
     });
     window.addEventListener("resize", () => this.closePopover());
@@ -159,29 +174,13 @@ class AppLauncher {
     if (this.editMode) return;
     this.editMode = true;
     this.grid.classList.add("edit-mode");
-    this.showDoneButton();
   }
 
   private exitEditMode(): void {
     if (!this.editMode) return;
     this.editMode = false;
     this.grid.classList.remove("edit-mode");
-    this.doneBtn?.remove();
-    this.doneBtn = null;
     this.persistOrder();
-  }
-
-  private showDoneButton(): void {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "launcher-edit-done";
-    btn.textContent = "Done";
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      this.exitEditMode();
-    });
-    document.body.appendChild(btn);
-    this.doneBtn = btn;
   }
 
   /* ── Drag to reorder ────────────────────────────────────── */
