@@ -200,6 +200,18 @@ try:
 except ImportError:
     pass
 
+# Optional: upstream scitex-storage app (contract-compliant _django app;
+# URL-mounted under /storage/ in config/urls.py). StorageConfig sets
+# default=True and a unique label ("scitex_storage_django"), so the mount
+# is collision-free; the explicit AppConfig path mirrors the writer/todo
+# entries above for consistency.
+try:
+    import scitex_storage  # noqa: F401
+
+    THIRD_PARTY_APPS.append("scitex_storage._django.apps.StorageConfig")
+except ImportError:
+    pass
+
 # Optional: upstream scitex-todo board app (contract-compliant _django app;
 # URL-mounted under /todo/ in config/urls.py). The explicit AppConfig
 # path mirrors the writer entry above: todo's apps.py holds two AppConfig
