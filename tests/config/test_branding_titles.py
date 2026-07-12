@@ -60,7 +60,9 @@ def test_every_app_the_operator_named_has_a_title():
         "FigRecipe",
         "Console",
         "Clew",
-        "Discovery",
+        "Explore",
+        "Projects",
+        "Storage",
         "Store",
         "Docs",
         "Tools",
@@ -73,12 +75,47 @@ def test_every_app_the_operator_named_has_a_title():
     assert expected <= configured, f"missing: {expected - configured}"
 
 
+# The upstream scitex-writer package's own Django app. It is the ONE app still
+# mounted at the root, because hub's native writer_app currently occupies
+# /apps/writer/; retiring the native one is tracked separately. Every other app
+# lives under /apps/<name>/.
+_ROOT_MOUNTED_APPS = {"/writer/"}
+
+
+def test_every_app_prefix_is_a_path_that_actually_exists():
+    """A title prefix that matches no real route silently names nothing.
+
+    app_for_path() matches with str.startswith. The map used to be keyed on bare
+    names ("/scholar/", "/figrecipe/", ...) while the real routes are
+    /apps/scholar/, /apps/figrecipe/ — so NONE of those entries ever matched a
+    request, and every one of those apps rendered a tab titled just "SciTeX".
+    The old tests missed it because they asserted app_for_path("/figrecipe/...")
+    — a URL that 404s — instead of the URL a user is actually on.
+
+    So assert the invariant, not the examples: an app prefix is /apps/<name>/,
+    with the root mounts named explicitly above.
+    """
+    # Arrange
+    prefixes = set(branding.APP_NAMES)
+
+    # Act
+    off_pattern = {
+        p for p in prefixes if not p.startswith("/apps/") and p not in _ROOT_MOUNTED_APPS
+    }
+
+    # Assert
+    assert not off_pattern, (
+        f"{off_pattern} match no /apps/ route and are not declared root mounts — "
+        "they would silently produce no tab title"
+    )
+
+
 @pytest.mark.parametrize(
     ("path", "expected"),
     [
         ("/writer/", "Writer"),
-        ("/todo/", "Todo"),
-        ("/figrecipe/some/deep/page", "FigRecipe"),
+        ("/apps/todo/", "Todo"),
+        ("/apps/figrecipe/some/deep/page", "FigRecipe"),
         ("/social/explore/", "Explore"),  # longest prefix wins over /explore/
         ("/browse/", "Files"),
         ("/", None),
@@ -233,7 +270,7 @@ def test_page_title_requires_an_explicit_environment():
 @override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_HUB)
 def test_template_tag_builds_the_title_from_the_request_path():
     # Arrange
-    context = {"request": FakeRequest("/scholar/")}
+    context = {"request": FakeRequest("/apps/scholar/")}
 
     # Act
     title = branding_tags.page_title(context)
@@ -245,7 +282,7 @@ def test_template_tag_builds_the_title_from_the_request_path():
 @override_settings(SCITEX_ENV="development", SCITEX_APP_MODE=branding.MODE_HUB)
 def test_template_tag_marks_the_development_environment():
     # Arrange
-    context = {"request": FakeRequest("/todo/")}
+    context = {"request": FakeRequest("/apps/todo/")}
 
     # Act
     title = branding_tags.page_title(context)
@@ -300,7 +337,7 @@ def test_template_tag_uses_the_profile_username_as_detail():
 def test_template_tag_honours_an_explicit_page_title_detail():
     """A view supplies the detail; the brand suffix is still appended once."""
     # Arrange
-    context = {"request": FakeRequest("/scholar/"), "page_title_detail": "Library"}
+    context = {"request": FakeRequest("/apps/scholar/"), "page_title_detail": "Library"}
 
     # Act
     title = branding_tags.page_title(context)
@@ -316,7 +353,7 @@ def test_explicit_page_title_detail_wins_over_the_project_slug():
         slug = "my-proj"
 
     context = {
-        "request": FakeRequest("/scholar/"),
+        "request": FakeRequest("/apps/scholar/"),
         "current_project": _Project(),
         "page_title_detail": "Library",
     }
