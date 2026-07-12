@@ -19,7 +19,13 @@ import socket
 
 from dotenv import load_dotenv
 
+from config import branding
+
 from .settings_shared import *
+
+# Environment identity -- drives the tab title marker "(dev)" and the GREEN
+# favicon. Literal, not env-var derived: running settings_dev IS development.
+SCITEX_ENV = branding.ENV_DEVELOPMENT
 
 
 # ---------------------------------------

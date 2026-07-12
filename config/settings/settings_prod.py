@@ -17,6 +17,7 @@ Optimized for deployment with Cloudflare Tunnel.
 
 from dotenv import load_dotenv
 
+from config import branding
 from config._env import (
     getenv_with_legacy_alias as _getenv_alias,
 )
@@ -25,6 +26,10 @@ from config._env import (
 )
 
 from .settings_shared import *
+
+# Environment identity -- unmarked tab title ("<App> — SciTeX") and the NAVY
+# favicon: the official product look. Literal: settings_prod IS production.
+SCITEX_ENV = branding.ENV_PRODUCTION
 
 # ---------------------------------------
 # Env
