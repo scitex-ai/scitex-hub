@@ -204,9 +204,16 @@ except ImportError:
 # URL-mounted under /storage/ in config/urls.py). StorageConfig sets
 # default=True and a unique label ("scitex_storage_django"), so the mount
 # is collision-free; the explicit AppConfig path mirrors the writer/todo
-# entries above for consistency.
+# entries above.
+#
+# Gate on the _django SUBMODULE (not just the top-level package): the
+# AppConfig we append lives in scitex_storage._django.apps, so a
+# scitex_storage installed WITHOUT its _django app (an older published
+# wheel, or a checkout from before its _django app merged) must skip
+# cleanly here rather than crash Django app-loading with
+# "ModuleNotFoundError: No module named 'scitex_storage._django'".
 try:
-    import scitex_storage  # noqa: F401
+    import scitex_storage._django  # noqa: F401
 
     THIRD_PARTY_APPS.append("scitex_storage._django.apps.StorageConfig")
 except ImportError:

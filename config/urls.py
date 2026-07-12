@@ -52,14 +52,16 @@ def _scitex_todo_installed() -> bool:
 
 
 def _scitex_storage_installed() -> bool:
-    """True when the upstream scitex-storage package is importable.
+    """True when scitex-storage's _django app is importable.
 
     Mirrors the guarded THIRD_PARTY_APPS import in settings_shared.py so
-    the /storage/ mount and the installed app always agree.
+    the /storage/ mount and the installed app always agree. Gates on the
+    _django submodule (the include target), so a scitex_storage present
+    without its _django app doesn't mount a broken include.
     """
     from importlib.util import find_spec
 
-    return find_spec("scitex_storage") is not None
+    return find_spec("scitex_storage._django") is not None
 
 
 urlpatterns = [
