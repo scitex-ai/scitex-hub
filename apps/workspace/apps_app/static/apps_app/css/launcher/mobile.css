@@ -97,9 +97,101 @@
     background: var(--app-accent-hub-tint, rgba(106, 90, 138, 0.12));
   }
 
-  /* Keep the last tile row above the fixed dock */
+  /* Keep the last tile row above the fixed dock. Only needed while the grid
+     still scrolls vertically (no-JS, or a viewport too short to page): once
+     paged, the pager has already sized the pages to end above the dock, and
+     this padding would push the whole launcher past the viewport and bring the
+     vertical scrollbar — and the overlap — straight back. */
   .launcher {
     padding-bottom: var(--launcher-dock-clearance);
+  }
+
+  .launcher:has(.launcher-grid--paged) {
+    padding-bottom: 0;
+  }
+
+  /* ---------- Horizontal pages (iPhone home) ----------
+     The grid used to scroll VERTICALLY and ran under the fixed dock — the
+     last row of icons sat behind it (measured: 56px of overlap on an iPhone
+     13). Padding alone cannot fix that: it has to be re-tuned for every dock
+     height / safe-area / dynamic-toolbar state, and one more installed app
+     hides a row again.
+
+     So the grid becomes a horizontal PAGER. launcher/pager.ts sizes each page
+     to the space actually free ABOVE the dock (it measures the dock's rect)
+     and chunks the tiles into pages, so a tile can never land under the dock
+     for ANY number of apps. Overflow goes sideways — swipe right for more.
+     Desktop keeps the plain vertical grid; the dock is mobile-only. */
+  .launcher-grid--paged {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0;
+    margin-bottom: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .launcher-grid--paged::-webkit-scrollbar {
+    display: none;
+  }
+
+  .launcher-page {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    /* Never leave a page straddling the fold on a fast flick. */
+    scroll-snap-stop: always;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: min-content;
+    gap: 26px 14px;
+    align-content: start;
+  }
+
+  /* Page dots. Hidden (via [hidden]) when there is only one page — a lone dot
+     communicates nothing and just eats vertical space we need for icons. */
+  .launcher-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 0 2px;
+    flex: 0 0 auto;
+  }
+
+  .launcher-dots[hidden] {
+    display: none;
+  }
+
+  .launcher-dot {
+    width: 7px;
+    height: 7px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--workspace-text-muted, var(--text-muted));
+    opacity: 0.28;
+    cursor: pointer;
+    transition: opacity 0.18s ease;
+  }
+
+  .launcher-dot.active {
+    opacity: 0.95;
+  }
+
+  /* One read-only notice, not two. The launcher already shows a full
+     "You're browsing read-only — sign in" card with the actions on it; the
+     header's mobile Read-Only badge on the SAME screen is a second copy of the
+     same message stacked right above it (operator, 2026-07-13: "ワーニングの上
+     のやつが重なっててうざいです、下に隠れている一つでいいのでは？"). Keep the
+     card (it carries the Sign in / Sign up buttons), drop the badge — but only
+     where the card is actually present, so every OTHER page keeps the badge as
+     its only session indicator. */
+  body:has(.launcher-guest-cta) .header-visitor-badge-mobile {
+    display: none;
   }
 }
 
@@ -108,8 +200,18 @@
     padding: 22px 14px var(--launcher-dock-clearance);
   }
 
+  .launcher:has(.launcher-grid--paged) {
+    padding-bottom: 0;
+  }
+
   .launcher-grid {
     grid-template-columns: repeat(4, 1fr);
+    gap: 22px 8px;
+  }
+
+  /* Phone-tight spacing for the paged layout (the pager's rows-per-page maths
+     reads this row-gap back off the computed style, so the two cannot drift). */
+  .launcher-page {
     gap: 22px 8px;
   }
 

@@ -20,6 +20,10 @@ export default defineConfig({
       // under vitest.
       "@": path.resolve(__dirname, "static/shared/ts"),
       // App aliases for imports
+      "@apps_app": path.resolve(
+        __dirname,
+        "apps/workspace/apps_app/static/apps_app/ts",
+      ),
       "@figrecipe_app": path.resolve(
         __dirname,
         "apps/workspace/figrecipe_app/static/figrecipe_app/ts",
