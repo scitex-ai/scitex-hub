@@ -263,7 +263,14 @@ def _pinned_modules_for_user(request, modules):
 
         pinned_names = get_pinned_module_names(request.user)
     except Exception:
-        # apps_app not migrated yet or other DB issue
+        # Degrade to an empty pin list — a context processor that raises would
+        # 500 every page — but never silently: an empty sidebar looks exactly
+        # like this failure from the outside, so the cause must reach the logs.
+        logger.exception(
+            "[workspace] Could not resolve pinned modules for %s — sidebar will "
+            "render with no app entries. Is apps_app migrated?",
+            request.user,
+        )
         return []
     by_name = {m.name: m for m in modules}
     return [by_name[name] for name in pinned_names if name in by_name]

@@ -56,6 +56,9 @@ _DEFAULT_ORDER_INDEX = {name: i for i, name in enumerate(DEFAULT_LAUNCHER_ORDER)
 _MI_DEFAULT_TAB_ORDER = 50
 _DEV_DEFAULT_TAB_ORDER = 95
 
+# The sidebar renders its own Home entry, so pinning "home" would double it.
+_SIDEBAR_HOME_MODULE = "home"
+
 
 def _default_order_value(name: str) -> int:
     """Curated launcher position (lower sorts earlier).
@@ -124,15 +127,78 @@ def guest_role_for(user) -> str:
     return ""
 
 
+def default_pinned_module_names() -> list[str]:
+    """The pin set a user starts with, before they pin anything themselves.
+
+    Reuses DEFAULT_LAUNCHER_ORDER so the sidebar and the launcher grid agree
+    on which apps lead — no second curated list to drift. "home" is excluded
+    because the sidebar renders its own Home entry above the pinned loop.
+    """
+    registered = {mod.name for mod in get_all_modules()}
+    return [
+        name
+        for name in DEFAULT_LAUNCHER_ORDER
+        if name != _SIDEBAR_HOME_MODULE and name in registered
+    ][:MAX_PINNED_MODULES]
+
+
+def seed_default_pins(user) -> bool:
+    """Give a user their starting pins. Idempotent; True if it created any row.
+
+    Pins only ever on row CREATION, so a module the user deliberately unpinned
+    keeps its row (without the "pinned" key) and is never resurrected. Rows are
+    real (not virtual) because api_pin reads the flag straight off the row — a
+    virtual default would make the first unpin click *pin* instead.
+
+    Seeded rows keep the model-default tab_order, which marks them incidental,
+    so they never masquerade as an explicit drag-reorder.
+    """
+    ensure_builtin_modules()
+    names = default_pinned_module_names()
+    catalog = {
+        app.module_name: app
+        for app in AppsModule.objects.filter(module_name__in=names)
+    }
+    created_any = False
+    # Created in curated order, so ascending ids give the sidebar that order.
+    for name in names:
+        app_module = catalog.get(name)
+        if app_module is None:
+            continue
+        _, created = ModuleInstallation.objects.get_or_create(
+            user=user,
+            module=app_module,
+            defaults={
+                "is_enabled": True,
+                "tab_order": _MI_DEFAULT_TAB_ORDER,
+                "config": {"pinned": True},
+            },
+        )
+        created_any = created_any or created
+    return created_any
+
+
 def get_pinned_module_names(user) -> list[str]:
-    """Names of modules the user pinned to the sidebar (stable order)."""
+    """Names of modules the user pinned to the sidebar (stable order).
+
+    No pins at all means the user has either never been seeded or unpinned
+    everything. Seeding is idempotent, so the second case stays empty — an
+    empty sidebar the user chose is respected.
+    """
     if not user.is_authenticated:
         return []
-    return list(
-        ModuleInstallation.objects.filter(user=user, config__pinned=True)
-        .order_by("tab_order", "id")
-        .values_list("module__module_name", flat=True)[:MAX_PINNED_MODULES]
-    )
+
+    def _query() -> list[str]:
+        return list(
+            ModuleInstallation.objects.filter(user=user, config__pinned=True)
+            .order_by("tab_order", "id")
+            .values_list("module__module_name", flat=True)[:MAX_PINNED_MODULES]
+        )
+
+    names = _query()
+    if not names and seed_default_pins(user):
+        names = _query()
+    return names
 
 
 def _build_tiles(request) -> list[dict]:
