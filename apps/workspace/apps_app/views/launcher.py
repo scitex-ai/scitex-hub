@@ -12,9 +12,11 @@ Django stays thin here: this module only assembles registry data
 
 from __future__ import annotations
 
+import logging
 from datetime import timedelta
 
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
@@ -24,6 +26,8 @@ from apps.infra.workspace_app.registry import get_all_modules
 
 from ..models import AppsModule, ModuleInstallation
 from .helpers import ensure_builtin_modules
+
+logger = logging.getLogger(__name__)
 
 # Sidebar pin cap — keeps the reduced sidebar scannable.
 MAX_PINNED_MODULES = 5
@@ -142,6 +146,14 @@ def default_pinned_module_names() -> list[str]:
     ][:MAX_PINNED_MODULES]
 
 
+def _appsmodule_catalog(names: list[str]) -> dict[str, AppsModule]:
+    """AppsModule rows for the given module names, keyed by name."""
+    return {
+        app.module_name: app
+        for app in AppsModule.objects.filter(module_name__in=names)
+    }
+
+
 def seed_default_pins(user) -> bool:
     """Give a user their starting pins. Idempotent; True if it created any row.
 
@@ -155,10 +167,29 @@ def seed_default_pins(user) -> bool:
     """
     ensure_builtin_modules()
     names = default_pinned_module_names()
-    catalog = {
-        app.module_name: app
-        for app in AppsModule.objects.filter(module_name__in=names)
-    }
+    catalog = _appsmodule_catalog(names)
+
+    if len(catalog) < len(names):
+        # ensure_builtin_modules() memoises on a PROCESS-GLOBAL flag and returns
+        # before it ever looks at the DB, so it can report "already seeded" while
+        # the rows are in fact gone (a test-transaction rollback, or a DB reset
+        # against a warm process). Pinning nothing here would silently reinstate
+        # the empty sidebar this function exists to prevent — so seed for real.
+        from ..management.commands.seed_apps import (
+            ensure_builtin_modules as seed_builtins,
+        )
+
+        with transaction.atomic():
+            seed_builtins()
+        catalog = _appsmodule_catalog(names)
+        missing = [name for name in names if name not in catalog]
+        if missing:
+            logger.warning(
+                "[launcher] No AppsModule row for default pins %s even after "
+                "seeding — those apps will be absent from the sidebar.",
+                missing,
+            )
+
     created_any = False
     # Created in curated order, so ascending ids give the sidebar that order.
     for name in names:
