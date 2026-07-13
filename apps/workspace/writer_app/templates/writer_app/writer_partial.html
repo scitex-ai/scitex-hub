@@ -1,4 +1,4 @@
-{% load static vite tree_preseed %}
+{% load vite tree_preseed %}
 
 {% include "writer_app/index_partials/_writer_css.html" %}
 {% if needs_project_creation %}
@@ -80,24 +80,6 @@
         },
         csrfToken: '{{ csrf_token }}'
     };
-    </script>
-    <!-- Import map for module resolution -->
-    <script type="importmap">
-    {
-        "imports": {
-            "@/types": "{% static 'shared/js/types/index.js' %}",
-            "@/types/": "{% static 'shared/js/types/' %}",
-            "@/utils/csrf": "{% static 'shared/js/utils/csrf.js' %}",
-            "@/utils/storage": "{% static 'shared/js/utils/storage.js' %}",
-            "@/utils/api": "{% static 'shared/js/utils/api.js' %}",
-            "@/utils/": "{% static 'shared/js/utils/' %}",
-            "@/utils": "{% static 'shared/js/utils/index.js' %}",
-            "@/writer/utils": "{% static 'writer_app/js/utils/index.js' %}",
-            "@/writer/utils/": "{% static 'writer_app/js/utils/' %}",
-            "@/writer/": "{% static 'writer_app/js/' %}",
-            "@/": "{% static 'shared/js/' %}"
-        }
-    }
     </script>
     <!-- Fallback panel switcher -->
     {% if project %}
