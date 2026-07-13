@@ -158,11 +158,16 @@ NC := \033[0m
 # ============================================
 # Command Definitions (Single Source of Truth)
 # ============================================
-# restart/build: defined here
+# restart/build: the commands `make help-commands` PRINTS. Derived from
+# $(COMPOSE_CMD) so the help shows the ENV-correct invocation — for prod that
+# includes `--env-file ../envs/.env.prod`. A bare `docker compose restart` here
+# would advertise the one form that silently interpolates every ${...} secret in
+# docker_prod/docker-compose.yml to an empty string. Never print it.
+# `=` not `:=`: COMPOSE_CMD is defined below, in the ifdef ENV block.
 # rebuild: steps defined in scripts/deploy/rebuild.sh (use --steps to extract)
 
-CMD_RESTART := docker compose restart
-CMD_BUILD := docker compose build
+CMD_RESTART = $(if $(COMPOSE_CMD),$(COMPOSE_CMD) restart,make ENV=<env> restart)
+CMD_BUILD = $(if $(COMPOSE_CMD),$(COMPOSE_CMD) build,make ENV=<env> build)
 
 # ============================================
 # Environment Validation - NO DEFAULTS!
