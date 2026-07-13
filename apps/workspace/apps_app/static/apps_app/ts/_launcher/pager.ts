@@ -32,6 +32,10 @@ export class LauncherPager {
   private mq: MediaQueryList;
   private edgeTimer: number | null = null;
   private edgeDir: -1 | 1 | 0 = 0;
+  // Last computed page capacity, so a re-measure that changes nothing does not
+  // rebuild the DOM (the ResizeObserver below can fire often).
+  private lastPerPage = 0;
+  private lastPageCount = 0;
 
   constructor(grid: HTMLElement, dots: HTMLElement) {
     this.grid = grid;
@@ -41,6 +45,30 @@ export class LauncherPager {
 
   init(): void {
     this.apply();
+
+    // MEASURE LATE, NOT EARLY. How much room a page gets is the gap between the
+    // TOP OF THE GRID and the dock — and the grid's top depends on everything
+    // stacked above it: the guest banner, the section head, the web fonts. At
+    // DOMContentLoaded none of that has settled, so the grid still reports a top
+    // near the header and the pager concludes it has ~430px of room when it
+    // really has ~200px. That is precisely how the first version put THREE rows
+    // into a two-row gap and pushed the icons straight back under the dock
+    // (measured on live prod: dock top 586, deepest tile 642 — the same 56px
+    // overlap it was supposed to remove).
+    //
+    // So re-measure once the layout has actually happened, and then keep
+    // watching. apply() is idempotent — it only rebuilds when the page capacity
+    // genuinely changed — so firing it often costs nothing.
+    requestAnimationFrame(() => this.apply());
+    window.addEventListener("load", () => this.apply());
+
+    if ("ResizeObserver" in window) {
+      // Observe the CONTAINER, never the grid itself: apply() sets the grid's
+      // height, which would feed straight back into the observer.
+      const host = this.grid.parentElement;
+      if (host) new ResizeObserver(() => this.apply()).observe(host);
+    }
+
     // Re-chunk when the viewport changes: a rotation or a dynamic-toolbar
     // resize changes how many rows fit, which changes the page count.
     const relayout = () => this.apply();
@@ -85,6 +113,8 @@ export class LauncherPager {
     this.grid.style.removeProperty("height");
     this.dots.hidden = true;
     this.dots.replaceChildren();
+    this.lastPerPage = 0;
+    this.lastPageCount = 0;
   }
 
   /**
@@ -93,17 +123,37 @@ export class LauncherPager {
    * Height is MEASURED, not assumed: we take the gap between the top of the
    * grid and the top of the (fixed) dock. That self-corrects for the guest
    * banner, the safe-area inset and iOS's dynamic toolbar — the three things
-   * that made a hard-coded padding wrong on a real device.
+   * that made a hard-coded padding wrong on a real device. It is re-run
+   * whenever anything above the grid changes size (see init()), because the
+   * measurement is only as good as the layout it is taken from.
+   *
+   * `force` re-chunks even when the capacity is unchanged — rebalance() needs
+   * that after a drop moved a tile between pages.
    */
-  private page(): void {
+  private page(force = false): void {
     const tiles = this.tiles();
     if (!tiles.length) return;
 
+    // Always refresh the height (cheap, and it is what keeps the page inside
+    // the gap above the dock) — but only rebuild the DOM when the capacity
+    // actually changed, so the ResizeObserver can fire as often as it likes.
     const perPage = COLS * this.rowsThatFit(tiles[0]);
     const pageCount = Math.max(1, Math.ceil(tiles.length / perPage));
     const scrollLeft = this.grid.scrollLeft;
 
     this.grid.classList.add("launcher-grid--paged");
+
+    if (
+      !force &&
+      perPage === this.lastPerPage &&
+      pageCount === this.lastPageCount &&
+      this.grid.querySelector(".launcher-page")
+    ) {
+      return;
+    }
+    this.lastPerPage = perPage;
+    this.lastPageCount = pageCount;
+
     this.grid
       .querySelectorAll(".launcher-page")
       .forEach((page) => page.remove());
@@ -231,6 +281,8 @@ export class LauncherPager {
    */
   rebalance(): void {
     if (!this.paged) return;
-    this.page();
+    // force: the page CAPACITY has not changed, only which page a tile sits on,
+    // so the "nothing changed, skip the rebuild" short-circuit must not apply.
+    this.page(true);
   }
 }
