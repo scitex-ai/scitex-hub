@@ -126,9 +126,33 @@ fi
 # root:root before anything has written to it. install_apps.sh runs as
 # the scitex user (after this script gosu's down) and needs to clone into
 # and create subdirectories here (2026-07-10, hub-postboot-warmup-window).
+#
+# PROBE RECURSIVELY, not by the top-level owner (2026-07-13). This block used to
+# `stat` /app/.apps itself and skip the chown when that came back "scitex". But
+# the volume PERSISTS across rebuilds, and a root-context boot (celery ran
+# install_apps.sh as root before the entrypoint's celery guard landed) left
+# root-owned files INSIDE an already-scitex-owned directory:
+#     drwxr-xr-x root root  .install-state/
+#     -rw-r--r-- root root  .install_apps.lock
+#     drwxr-xr-x root root  figrecipe/  scitex-todo/  scitex-ui/  scitex-writer/
+# The top-level stat passed, the chown was skipped, and install_apps.sh then died
+# as the scitex user:
+#     could not open /app/.apps/.install_apps.lock for locking
+#     /app/.apps/.install-state/scitex-storage.sha: Permission denied
+# which (under `set -euo pipefail`) aborted the whole install — so the workspace
+# apps never installed and /apps/storage/ 404'd. Measured on live prod: 26,487
+# root-owned files under a scitex-owned /app/.apps.
+#
+# This is the SAME defect as the site-packages block below: "the directory is
+# owned by X" does not imply "its contents are". Probe for any foreign file and
+# repair recursively — the identical idiom the uv-cache and staticfiles blocks
+# already use. `find -print -quit` stops at the first hit, so the clean case is
+# cheap. (No -xdev needed: /app/.apps is a plain named volume with no read-only
+# sub-mounts, unlike site-packages.)
 mkdir -p /app/.apps
-if [ "$(stat -c '%U' /app/.apps 2>/dev/null)" != "scitex" ]; then
-    echo "🔧 Fixing /app/.apps ownership (root -> scitex)..."
+FOREIGN_APPS=$(find /app/.apps ! -user scitex -print -quit 2>/dev/null)
+if [ -n "$FOREIGN_APPS" ]; then
+    echo "🔧 Fixing /app/.apps ownership (found non-scitex file: $FOREIGN_APPS)..."
     chown -R scitex:scitex /app/.apps
     echo "✅ /app/.apps ownership fixed"
 else
