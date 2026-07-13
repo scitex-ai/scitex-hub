@@ -2,7 +2,7 @@
   "$schema": "scitex-app-manifest",
   "$schema_version": "2.0.0",
   "name": "home",
-  "label": "Home",
+  "label": "Projects",
   "app_name": "repo_app",
   "icon": "fas fa-home",
   "description": "User dashboard: profile, projects, and current project workspace.",

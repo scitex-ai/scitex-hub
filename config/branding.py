@@ -138,17 +138,28 @@ DETAIL_SEPARATOR = " · "  # middle dot, between the detail and the app
 # URL prefix -> Capitalized app name. The single source of truth for how a
 # SciTeX app is spelled in a tab. Capitalization here is the contract:
 # "Todo", never "todo"; "FigRecipe", never "figrecipe".
+#
+# The prefixes must be the REAL mounted paths: app_for_path() matches with
+# str.startswith, so a bare "/scholar/" never matched the actual /apps/scholar/
+# route and every one of these apps silently fell through to no tab name. They
+# are the /apps/<name>/ paths from config/urls.py; keep the two in step.
 APP_NAMES = {
-    "/scholar/": "Scholar",
+    "/apps/scholar/": "Scholar",
+    "/apps/writer/": "Writer",
+    # Upstream scitex-writer's own app, still mounted at the root because hub's
+    # native writer_app currently occupies /apps/writer/. Retiring the native
+    # one in favour of the package is tracked separately.
     "/writer/": "Writer",
-    "/figrecipe/": "FigRecipe",
-    "/console/": "Console",
-    "/todo/": "Todo",
-    "/clew/": "Clew",
-    "/discovery/": "Discovery",
-    "/store/": "Store",
-    "/docs/": "Docs",
-    "/tools/": "Tools",
+    "/apps/figrecipe/": "FigRecipe",
+    "/apps/console/": "Console",
+    "/apps/todo/": "Todo",
+    "/apps/storage/": "Storage",
+    "/apps/clew/": "Clew",
+    "/apps/discovery/": "Explore",
+    "/apps/store/": "Store",
+    "/apps/docs/": "Docs",
+    "/apps/tools/": "Tools",
+    "/apps/home/": "Projects",
 }
 
 # Hub sections that are not products, but still need a stable tab label.
