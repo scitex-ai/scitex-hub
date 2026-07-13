@@ -21,25 +21,37 @@ So: fail here, in CI, where it is free.
 import tempfile
 from pathlib import Path
 
+from django.conf import settings
 from django.core.management import call_command
 from django.test import override_settings
+
+from config.settings.settings_static import hashed_storages
 
 
 def test_collectstatic_succeeds_with_hashed_urls():
     # Arrange: collect into a throwaway root so the test never touches the real
     # staticfiles/ (which the dev server and the Vite build both read).
+    #
+    # This test opts INTO the hashing backend explicitly. It is not the global
+    # default: the manifest backend reads staticfiles.json, which only exists
+    # after collectstatic has run, so making it global would make every OTHER
+    # test's page render raise "Missing staticfiles manifest entry". Only
+    # prod/staging — whose entrypoint runs collectstatic at boot — enable it.
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
 
-        # Act: the real management command, the real storage backend. If any
+        # Act: the real management command against the real prod backend. If any
         # CSS url()/@import points at a file that does not exist, this raises
         # ValueError and the test fails — which is the entire point.
-        with override_settings(STATIC_ROOT=str(root)):
+        with override_settings(
+            STATIC_ROOT=str(root),
+            STORAGES=hashed_storages(settings.STORAGES),
+        ):
             call_command("collectstatic", interactive=False, verbosity=0)
 
         # Assert: the manifest exists, which is the artefact {% static %} reads
         # at render time to turn a name into its hashed URL. No manifest means
-        # every template render would 500.
+        # every template render would 500 in production.
         assert (root / "staticfiles.json").exists()
 
 

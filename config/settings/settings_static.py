@@ -55,14 +55,40 @@ STATICFILES_FINDERS = [
 # CSS-@import/url() and {% static %} references had to be fixed first. Do NOT
 # reach for `manifest_strict = False` to quieten it — that re-introduces exactly
 # the silent 404s this exists to surface. Fix the reference instead.
+# ...but ONLY in the environments that actually run collectstatic.
+#
+# The manifest backend resolves {% static %} through staticfiles.json, and that
+# file only exists AFTER collectstatic has run. The test suite never runs it, so
+# making this the global default made EVERY page render raise "Missing
+# staticfiles manifest entry" — the base template's favicon is simply the first
+# {% static %} it reaches. (CI caught exactly this; the gate below earned its
+# keep on its first run.) Dev does not want it either: hashed URLs would kill
+# CSS hot-reload.
+#
+# So the default stays Django's plain storage, and settings_prod /
+# settings_staging opt IN — they are the two environments whose entrypoint runs
+# collectstatic at boot.
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
+
+# The hashing backend, named once here so prod/staging/the CI gate cannot drift.
+HASHED_STATICFILES_BACKEND = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+
+def hashed_storages(current: dict) -> dict:
+    """Return ``current`` with staticfiles switched to the hashing backend.
+
+    Returns a NEW dict rather than mutating: ``STORAGES`` arrives in prod/staging
+    by ``from .settings_shared import *``, so it is the *same object* as the
+    shared module's — an in-place edit would reach across settings modules.
+    """
+    return {**current, "staticfiles": {"BACKEND": HASHED_STATICFILES_BACKEND}}
 
 
 def configure(base_dir: Path) -> dict:

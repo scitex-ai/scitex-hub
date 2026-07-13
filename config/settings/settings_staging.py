@@ -206,3 +206,18 @@ LOGGING.update(
 )
 
 # EOF
+
+
+# ---------------------------------------------------------------------------
+# Content-hashed static URLs (opt-in, prod/staging only)
+# ---------------------------------------------------------------------------
+# Only the environments whose entrypoint runs collectstatic may use the manifest
+# backend — it resolves {% static %} through staticfiles.json, which does not
+# exist until collectstatic has run. See config/settings/settings_static.py for
+# why the hashing is load-bearing (stale CSS + fresh JS rendered the launcher as
+# two columns of stacked icons on a real phone).
+from .settings_static import hashed_storages  # noqa: E402
+
+STORAGES = hashed_storages(STORAGES)  # noqa: F405
+
+# EOF
