@@ -7,10 +7,10 @@
     {% if current_project %}- {{ current_project.name }}{% endif %}
 {% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/stx-shell-sidebar.css' %}" />
+    <!-- Shell CSS: stx-shell-sidebar, workspace-files-tree — now loaded
+         globally from scitex-ui via Vite (see global_head_styles.html and
+         static/shared/ts/shell-css-imports.ts); do not reintroduce the
+         standalone <link> tags here. -->
     {% if app_mount_css %}
         <link rel="stylesheet" href="{% static app_mount_css %}" />
     {% endif %}
