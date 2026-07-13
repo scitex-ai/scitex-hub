@@ -78,7 +78,14 @@ STORAGES = {
 }
 
 # The hashing backend, named once here so prod/staging/the CI gate cannot drift.
-HASHED_STATICFILES_BACKEND = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+#
+# config.storage.HashedStaticFilesStorage is whitenoise's backend with ONE rule
+# removed: it does not rewrite `sourceMappingURL` comments. Vendored bundles ship
+# minified code without their maps (scitex-ui vendors Monaco's vs/ but no
+# min-maps/), so Django was failing collectstatic over a debug pointer to a file
+# that was deliberately never distributed. Everything user-facing — CSS url(),
+# @import, {% static %} — stays STRICT. See config/storage.py.
+HASHED_STATICFILES_BACKEND = "config.storage.HashedStaticFilesStorage"
 
 
 def hashed_storages(current: dict) -> dict:
