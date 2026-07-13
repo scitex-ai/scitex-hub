@@ -1,5 +1,5 @@
 /* User overview page styles */
-@import url("shared/variables.css");
+@import url("../shared/variables.css");
 
 .user-overview-container {
   padding: 2rem;
