@@ -107,16 +107,13 @@ ROOT_URLCONF = "config.urls"
 # boot. Removed together with the GITIGNORED/logs fallback itself -- see
 # incident hub-prod-outage-celery-log-permission (2026-07-09/10).
 
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static", BASE_DIR / ".jsbuild"]
-STATICFILES_FINDERS = [
-    "django.contrib.staticfiles.finders.FileSystemFinder",
-    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "apps.workspace.apps_app.finders.DevAppStaticFinder",
-]
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+# Static/media config (incl. the content-hashing storage backend) lives in
+# settings_static.py — see the long note there on why the hashing is
+# load-bearing, not cosmetic.
+from .settings_static import *  # noqa: F401,F403,E402
+from .settings_static import configure as _configure_static  # noqa: E402
+
+globals().update(_configure_static(BASE_DIR))
 
 # Vite dev server port for dev app TypeScript (container Vite)
 VITE_DEV_APP_PORT = 5174
