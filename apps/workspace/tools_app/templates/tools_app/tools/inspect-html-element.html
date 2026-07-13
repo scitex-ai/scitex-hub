@@ -5,19 +5,8 @@
     Visual debugging tool for web developers. Inspect any element on any website with keyboard shortcuts (Alt+I). Click elements to copy debug info for AI assistants.
 {% endblock %}
 {% block head_extra %}
-    {% load static %}
+    {% load vite %}
 
-    <!-- Override favicon for bookmarklet icon -->
-    <link rel="icon"
-          type="image/png"
-          sizes="192x192"
-          href="{% static 'images/scitex-icon/scitex-icon-navy-inverted-192x192.png' %}?v=3" />
-    <link rel="icon"
-          type="image/png"
-          sizes="48x48"
-          href="{% static 'images/scitex-icon/scitex-icon-navy-inverted-48x48.png' %}?v=3" />
-    <link rel="shortcut icon"
-          href="{% static 'images/scitex-icon/scitex-icon-navy.ico' %}?v=3" />
 {% endblock %}
 {% block extra_css %}
     <style>
@@ -220,7 +209,7 @@
                 <!-- Installation -->
                 <div class="bookmarklet-install">
                     <h2 class="bookmarklet-install-title">Drag to Bookmarks Bar</h2>
-                    <a href="javascript:(function(){if(window.elementInspector){window.elementInspector.toggle();}else{const s=document.createElement('script');s.type='module';s.src='https://{{ request.get_host }}{% static 'shared/js/utils/element-inspector.js' %}';s.onload=()=>{if(window.elementInspector){window.elementInspector.activate();}};document.body.appendChild(s);}})();"
+                    <a href="javascript:(function(){if(window.elementInspector){window.elementInspector.toggle();}else{const s=document.createElement('script');s.type='module';s.src='{% vite_asset_url 'shared/utils/element-inspector' %}';s.onload=()=>{if(window.elementInspector){window.elementInspector.activate();}};document.body.appendChild(s);}})();"
                        class="bookmarklet-link">SciTeX: Element Inspector</a>
                     <p class="install-hint">Drag the button above to your bookmarks bar, then click it on any website</p>
                 </div>

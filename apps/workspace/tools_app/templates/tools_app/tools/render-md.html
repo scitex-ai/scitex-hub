@@ -8,12 +8,7 @@
     Real-time Markdown preview with syntax highlighting. Write and preview Markdown documents instantly.
 {% endblock %}
 {% block head_extra %}
-    {% load static %}
 
-    <link rel="icon"
-          type="image/png"
-          sizes="192x192"
-          href="{% static 'images/scitex-icon/scitex-icon-navy-inverted-192x192.png' %}?v=3" />
     <!-- Marked.js for markdown parsing -->
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
     <!-- Highlight.js for syntax highlighting -->
