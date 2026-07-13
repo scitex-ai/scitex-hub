@@ -116,6 +116,53 @@ describe("LauncherPager", () => {
     setMobile(true);
   });
 
+  it("re-measures after a LATE layout instead of trusting the first reading", () => {
+    // THE BUG THIS PINS (shipped to prod, 2026-07-13, and it put the icons
+    // straight back under the dock):
+    //
+    // Page capacity is the gap between the top of the grid and the dock. But
+    // the grid's top depends on everything above it — the guest banner, the
+    // section head, the web fonts — and at DOMContentLoaded none of that has
+    // laid out. So the first measurement saw the grid near the header, thought
+    // it had ~430px of room instead of ~200px, and packed THREE rows into a
+    // two-row gap. Live prod after that deploy: dock top 586, deepest tile 642
+    // — the exact 56px overlap the pager existed to remove.
+    //
+    // The pager must therefore converge on the SETTLED layout, not the first
+    // reading it happens to get.
+    // NOTE this drives init(), not apply(). apply() always re-measures — it
+    // did in the broken version too. The defect was that nothing ever CALLED it
+    // again once the layout settled, so init() has to subscribe to that. Firing
+    // the real `load` event is what makes this test fail against the old code.
+    const { grid, pager } = build(12);
+    styleGap(grid);
+
+    let gridTop = 120; // pre-layout: the banner has not rendered yet
+    grid.getBoundingClientRect = () => ({ top: gridTop }) as DOMRect;
+
+    const perPage = () =>
+      grid
+        .querySelectorAll(".launcher-page")[0]
+        .querySelectorAll(".launcher-tile").length;
+
+    pager.init(); // measures the pre-layout geometry, as the browser would
+    const early = perPage();
+
+    gridTop = GRID_TOP; // the banner lays out; the grid is pushed down the page
+    window.dispatchEvent(new Event("load")); // ...and the browser says so
+
+    const late = perPage();
+
+    // Less room => fewer tiles per page. In the shipped-and-broken version the
+    // pager never heard about the settled layout, so this stayed at `early` and
+    // the extra row rendered under the dock.
+    expect(late).toBeLessThan(early);
+    // And the settled page really does clear the dock.
+    expect(GRID_TOP + parseFloat(grid.style.height)).toBeLessThanOrEqual(
+      DOCK_TOP,
+    );
+  });
+
   it("keeps EVERY tile above the dock, for any number of apps", () => {
     // The operator's ask was "任意の数のアプリに対応" — so sweep app counts
     // rather than pinning the one that happened to be installed that day.
