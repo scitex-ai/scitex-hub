@@ -185,7 +185,7 @@ def _filter_modules_for_user(request, modules):
         return modules
 
     try:
-        from apps.workspace.apps_app.models import AppsModule, ModuleInstallation
+        from apps.workspace.apps_app.models import ModuleInstallation
 
         installations = {
             inst.module.module_name: inst
@@ -194,27 +194,27 @@ def _filter_modules_for_user(request, modules):
             ).select_related("module")
         }
 
-        # Populate version from AppsModule (latest version per module)
-        from django.db.models import OuterRef, Subquery
-
-        from apps.workspace.apps_app.models import ModuleVersion
-
-        latest_ver_sq = (
-            ModuleVersion.objects.filter(module=OuterRef("pk"))
-            .order_by("-released_at")
-            .values("version")[:1]
-        )
-        mp_data = dict(
-            AppsModule.objects.filter(module_name__in=[m.name for m in modules])
-            .annotate(latest_version=Subquery(latest_ver_sq))
-            .values_list("module_name", "latest_version")
-        )
-        for mod in modules:
-            # A published DB store version wins; otherwise fall back to the
-            # manifest version already on the ModuleConfig (the SSOT), never
-            # the old hardcoded "0.1.0" which mislabelled every built-in app
-            # (e.g. Writer showed 0.1.0 instead of its manifest 0.14.0).
-            mod.version = mp_data.get(mod.name) or getattr(mod, "version", "") or ""
+        # A module's version is NOT set here, deliberately.
+        #
+        # There used to be a per-request query that overwrote mod.version from
+        # the AppsModule/ModuleVersion tables. It was wrong twice over:
+        #
+        # 1. It INVERTED the source of truth. registry._resolve_version already
+        #    reads the version from the app's INSTALLED pip distribution (and
+        #    returns "" for hub-internal panes, so the launcher omits the label).
+        #    That is the SSOT — it is what makes the standalone package and the
+        #    hub-embedded app unable to drift. The DB carries a seed_apps row of
+        #    "0.1.0" for every built-in, and `db_version or manifest_version`
+        #    let that placeholder WIN. Every tile read "v0.1.0" — Writer showed
+        #    0.1.0 instead of its real 2.26.1.
+        #
+        # 2. It MUTATED PROCESS-GLOBAL STATE. `modules` are the shared
+        #    ModuleConfig objects from the registry, not per-request copies. So
+        #    one authenticated request clobbered them for the whole process, and
+        #    the "0.1.0" then leaked into renders that never run this code at
+        #    all — which is why anonymous/guest launchers showed it too.
+        #
+        # The registry value is already correct. Leave it alone.
     except Exception:
         # apps_app not migrated yet or other DB issue
         for mod in modules:
