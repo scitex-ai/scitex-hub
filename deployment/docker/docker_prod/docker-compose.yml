@@ -206,7 +206,12 @@ services:
   # Celery Worker (Async Task Processing)
   celery_worker:
     image: scitex-hub-prod-django:latest
-    entrypoint: ["/entrypoint.sh"]
+    # tini, exactly as Dockerfile.prod's ENTRYPOINT intends ("tini as PID 1:
+    # ensures proper signal forwarding and zombie reaping"). Overriding
+    # `entrypoint:` REPLACES the image's ENTRYPOINT wholesale, so every service
+    # that overrides it silently drops tini — which left celery running as PID 1
+    # with no init and no reaper. See the header note above `celery_worker_vis`.
+    entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
     # NOTE: vis_queue is deliberately NOT here — it has its own worker below.
     # This worker's `celery` queue is a firehose (generate_status_charts alone
     # fans out 48 subtasks every 60s on a 4-core N100), and it starved the
@@ -290,9 +295,23 @@ services:
   # workspace under /app/data/users, and container_teardown shells out to
   # squeue/scancel (slurm.conf + munge) to cancel the visitor's SLURM job and
   # VERIFY their apptainer instance is gone before the slot may be reused.
+  # WHY tini (2026-07-14): Dockerfile.prod sets
+  #   ENTRYPOINT ["/usr/bin/tini", "--", "/root-init.sh", "/entrypoint.sh"]
+  #   # tini as PID 1: ensures proper signal forwarding and zombie reaping
+  # but a compose `entrypoint:` override REPLACES the image ENTRYPOINT outright,
+  # so every service here was silently discarding it. celery therefore ran as
+  # PID 1 with no init: no zombie reaping, and non-default signal semantics.
+  #
+  # Observed consequence: this worker forked its 3 ForkPoolWorker children, ran
+  # three slot resets, and then the children VANISHED — `ps` in the container
+  # showed the celery parent alone, RestartCount=0, container still "healthy"
+  # (the healthcheck only pings redis), 0% CPU, 43 tasks queued, forever. The
+  # same signature killed the shared worker and an ad-hoc one. Without an init
+  # the parent never reaps/replaces them, so the visitor pool cannot self-heal.
+  # tini is the reaper the image already ships and the compose override threw away.
   celery_worker_vis:
     image: scitex-hub-prod-django:latest
-    entrypoint: ["/entrypoint.sh"]
+    entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
       --loglevel=info
@@ -351,7 +370,9 @@ services:
   # Celery Beat (Periodic Task Scheduler)
   celery_beat:
     image: scitex-hub-prod-django:latest
-    entrypoint: ["/entrypoint.sh"]
+    # tini — same reason as the workers above (the compose entrypoint override
+    # otherwise discards the image's tini and leaves celery as PID 1).
+    entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
     command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
 
     volumes:
