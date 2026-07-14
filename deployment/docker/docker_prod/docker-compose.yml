@@ -432,6 +432,47 @@ services:
       retries: 3
       start_period: 10s
 
+
+  # ============================================
+  # OpenAlex Local API (Prod only)
+  # ============================================
+  # Build context is ../openalex_local because THIS file lives in docker_prod/.
+  # (docker-compose.prod.yml used ./openalex_local -- it sits one level up.
+  # That file is NOT the one prod runs; see the Makefile prod target.)
+  openalex:
+    build:
+      context: ../openalex_local
+      dockerfile: Dockerfile
+    image: scitex-openalex-prod:latest
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+    ports:
+      - "${SCITEX_HUB_OPENALEX_PORT_PROD:-31292}:31292"
+    volumes:
+      # data/openalex.db in the repo is a SYMLINK into openalex-local.bak/data and
+      # does not resolve inside the container -- mount the REAL directory (the live
+      # ~1.43 TB DB + WAL sidecars). READ-ONLY: this DB must never be container-writable.
+      # The entrypoint additionally REFUSES to start on a non-empty -wal, because a
+      # read-only reader cannot apply pending frames and would serve stale data silently.
+      - ${OPENALEX_LOCAL_DB_DIR:-/home/ywatanabe/proj/openalex-local.bak/data}:/data:ro
+    environment:
+      - OPENALEX_LOCAL_DB=/data/openalex.db
+      - OPENALEX_LOCAL_PORT=31292
+      - OPENALEX_LOCAL_HOST=0.0.0.0
+      - LOG_LEVEL=info
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "--max-time", "25", "http://localhost:31292/health"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 120s
+    networks:
+      - scitex-network
+
 volumes:
   # Use existing nas volumes to preserve all data (including Umami analytics)
   # This migrates data from scitex-hub-nas to scitex-hub-prod containers
