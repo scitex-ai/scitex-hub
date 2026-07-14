@@ -39,4 +39,9 @@ EXPOSE 31292
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
     CMD curl -f http://localhost:31292/health || exit 1
 
-CMD ["openalex-local", "relay", "--host", "0.0.0.0", "--port", "31292"]
+# Entrypoint enforces the read-only WAL guard, then execs the relay. It refuses
+# to start (loud, non-zero exit) if the :ro DB has pending WAL frames a
+# read-only reader cannot safely apply — see entrypoint.sh.
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
