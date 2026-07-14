@@ -305,43 +305,6 @@ services:
       - scitex-network
 
   # ============================================
-  # OpenAlex Local API (Prod only)
-  # ============================================
-  openalex:
-    build:
-      context: ./openalex_local
-      dockerfile: Dockerfile
-    image: scitex-openalex-prod:latest
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '1.0'
-    ports:
-      - "31292:31292"
-    volumes:
-      # The host data/openalex.db is a symlink into openalex-local.bak/data,
-      # which would not resolve inside the container, so mount the REAL DB
-      # directory (the live ~1.43 TB DB + its WAL sidecars). READ-ONLY: this
-      # DB must never be writable by the container. Override the host path via
-      # OPENALEX_LOCAL_DB_DIR in the env file rather than editing compose.
-      - ${OPENALEX_LOCAL_DB_DIR:-/home/ywatanabe/proj/openalex-local.bak/data}:/data:ro
-    environment:
-      OPENALEX_LOCAL_DB: /data/openalex.db
-      OPENALEX_LOCAL_PORT: "31292"
-      OPENALEX_LOCAL_HOST: 0.0.0.0
-      LOG_LEVEL: info
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "--max-time", "25", "http://localhost:31292/health"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
-      start_period: 120s
-    networks:
-      - scitex-network
-
-  # ============================================
   # WebSocket SSH Proxy (Prod only)
   # ============================================
   ws_ssh_proxy:
