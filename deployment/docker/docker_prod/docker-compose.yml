@@ -207,10 +207,17 @@ services:
   celery_worker:
     image: scitex-hub-prod-django:latest
     entrypoint: ["/entrypoint.sh"]
+    # NOTE: vis_queue is deliberately NOT here — it has its own worker below.
+    # This worker's `celery` queue is a firehose (generate_status_charts alone
+    # fans out 48 subtasks every 60s on a 4-core N100), and it starved the
+    # visitor-slot re-cleans out of existence: vis_queue sat at 16-36 messages,
+    # untouched for hours, while this queue drained. Slot re-cleans are a
+    # SECURITY gate — a slot is not distributable until it is wiped and
+    # verified — so they must never wait behind chart rendering.
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
       --loglevel=info
-      --queues=celery,ai_queue,search_queue,compute_queue,vis_queue
+      --queues=celery,ai_queue,search_queue,compute_queue
       --concurrency=8
       --prefetch-multiplier=1
 
@@ -241,6 +248,82 @@ services:
       - PYTHONUNBUFFERED=1
       - SCITEX_DIR=/app/.scitex
       - SCITEX_HUB_BUILD_ID=b0a2a30c
+      - UV_CACHE_DIR=/app/.cache/uv
+      - NPM_CONFIG_CACHE=/app/.cache/npm
+
+    depends_on:
+      pgbouncer:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "${SCITEX_HUB_SLURM_HOST:-DXP480TPLUS-994}:host-gateway"
+
+    restart: always
+    networks:
+      - scitex-network
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+  # Celery worker DEDICATED to the visitor-slot re-clean queue.
+  #
+  # INCIDENT 2026-07-13/14: the boot path runs `reconcile_visitor_slots --async`,
+  # which enqueues the per-slot wipe+verify onto vis_queue. Sharing a worker with
+  # the `celery` queue meant those tasks never ran — vis_queue sat static at
+  # 16/27/33/36 messages for HOURS while the shared worker chewed through the
+  # chart/metrics firehose. So after a restart the pool stayed quarantined and
+  # EVERY visitor silently fell back to the read-only user until a human ran the
+  # re-clean by hand. Its own queue means it cannot be starved.
+  #
+  # Concurrency 3, not 8: each reset is ~35s of disk I/O (wipe + re-clone +
+  # verify) on a 4-core N100, and 3 clears all 16 slots in ~3 min without
+  # fighting the web container for CPU.
+  #
+  # It needs the SAME mounts as celery_worker: the wipe rewrites the visitor's
+  # workspace under /app/data/users, and container_teardown shells out to
+  # squeue/scancel (slurm.conf + munge) to cancel the visitor's SLURM job and
+  # VERIFY their apptainer instance is gone before the slot may be reused.
+  celery_worker_vis:
+    image: scitex-hub-prod-django:latest
+    entrypoint: ["/entrypoint.sh"]
+    command: >
+      celery -A config --broker=redis://redis:6379/1 worker
+      --loglevel=info
+      --queues=vis_queue
+      --hostname=vis@%h
+      --concurrency=3
+      --prefetch-multiplier=1
+
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - apps_volume:/app/.apps
+      - uv_cache_volume:/app/.cache/uv
+      - npm_cache_volume:/app/.cache/npm
+      - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
+      - ../../../deployment/singularity:/app/singularity:ro
+      - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
+      - /etc/munge:/etc/munge:ro
+      - /run/munge:/run/munge
+      - /var/log/slurm:/var/log/slurm
+      - /etc/passwd:/host/etc/passwd:ro
+
+    env_file:
+      - ../envs/.env.prod
+
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.settings_prod
+      - SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
+      - SCITEX_HUB_ENV=prod
+      - PYTHONUNBUFFERED=1
+      - SCITEX_DIR=/app/.scitex
       - UV_CACHE_DIR=/app/.cache/uv
       - NPM_CONFIG_CACHE=/app/.cache/npm
 
