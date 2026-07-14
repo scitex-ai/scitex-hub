@@ -279,6 +279,18 @@ class PoolAllocator:
             allocation.allocation_token = allocation_token
             allocation.expires_at = expires_at
             allocation.is_active = True
+            # Start the idle clock NOW. is_allocation_stale() reclaims any
+            # ACTIVE slot whose last_activity is older than
+            # IDLE_TIMEOUT_MINUTES, so handing a visitor a slot without
+            # resetting it hands them one that is ALREADY idle-stale: the
+            # very next request sees is_active + an ancient last_activity
+            # and evicts them with reason="idle-lazy". On prod every row
+            # carried a last_activity days old (and an allocated_at from
+            # February, auto_now_add so never refreshed), which made the
+            # predicate permanently true — every slot was released within
+            # seconds of being allocated, the pool sat at 0 allocatable,
+            # and EVERY visitor fell through to readonly-visitor.
+            allocation.last_activity = now
             # workspace_ready stays True: it was verified clean at
             # release time and is now in use by exactly one visitor.
             allocation.save()
