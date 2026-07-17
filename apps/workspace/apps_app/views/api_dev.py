@@ -20,6 +20,7 @@ from ..services.dev_app_loader import (
     resolve_dev_project_dir,
     validate_dev_repo,
 )
+from ..services.manifest_display import manifest_display_fields
 
 logger = logging.getLogger(__name__)
 
@@ -311,6 +312,9 @@ def api_submit_dev_app(request, owner, repo):
                 "category": manifest.get("category", "other"),
                 "visibility": requested_visibility,
                 "repository_url": project.gitea_repo_url or "",
+                # Display metadata from the manifest (SSoT); missing keys
+                # stay blank — the launcher's prettified fallback applies.
+                **manifest_display_fields(manifest),
             },
         )
     except Exception as e:

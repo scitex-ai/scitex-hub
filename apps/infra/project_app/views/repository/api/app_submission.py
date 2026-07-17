@@ -145,7 +145,14 @@ def api_app_submit(request, username, slug):
         ]
     )
 
-    # Create or update AppsModule
+    # Create or update AppsModule. Display metadata (label/icon) comes from
+    # the project's own manifest.json — the SSoT; missing keys leave the
+    # columns blank and the launcher's prettified fallback applies.
+    from apps.workspace.apps_app.services.manifest_display import (
+        project_manifest_display_fields,
+    )
+
+    display = project_manifest_display_fields(project)
     module_name = f"user_{project.owner.username}_{project.slug}".replace("-", "_")
     app_module, _created = AppsModule.objects.get_or_create(
         module_name=module_name,
@@ -156,6 +163,7 @@ def api_app_submit(request, username, slug):
             "repository_url": project.gitea_repo_url or "",
             "project": project,
             "visibility": visibility,
+            **display,
         },
     )
     if not _created:
@@ -163,8 +171,21 @@ def api_app_submit(request, username, slug):
         app_module.category = category or app_module.category
         app_module.project = project
         app_module.visibility = visibility
+        # Same keep-when-blank pattern as category above: a manifest that
+        # declares nothing does not wipe a previously-populated column
+        # (e.g. a resubmit routed through the Gitea fallback with no
+        # local clone to read the manifest from).
+        app_module.label = display["label"] or app_module.label
+        app_module.icon = display["icon"] or app_module.icon
         app_module.save(
-            update_fields=["short_description", "category", "project", "visibility"]
+            update_fields=[
+                "short_description",
+                "category",
+                "project",
+                "visibility",
+                "label",
+                "icon",
+            ]
         )
 
     # Open cross-repo PR: user/<app> -> scitex-apps/<app>

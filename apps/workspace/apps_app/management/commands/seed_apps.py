@@ -66,6 +66,12 @@ def ensure_builtin_modules(author_username="ywatanabe"):
                 mod.name, f"{mod.label} workspace module."
             ),
             "category": _CATEGORY_MAP.get(mod.name, "other"),
+            # Display metadata straight from the app's manifest.json (the
+            # registry builds ModuleConfig from the manifests — SSoT). A
+            # manifest without an icon leaves the column blank; readers
+            # fall back to the generic puzzle icon.
+            "label": mod.label,
+            "icon": mod.icon_fa,
             "is_builtin": True,
             "is_verified": True,
             "visibility": "public",
