@@ -36,15 +36,18 @@ def test_todo_app_installed_via_explicit_appconfig_path():
 
 
 @pytest.mark.skipif(not _TODO_INSTALLED, reason="scitex-todo not installed")
-def test_cards_root_url_resolves_to_todo_namespace():
-    # Arrange
+def test_cards_root_url_resolves_to_board_namespace():
+    # Arrange — upstream is mid-rebrand: older scitex-todo releases
+    # namespace their URLs "scitex_todo", newer ones "scitex_cards".
+    # The module path (scitex_todo._django.urls) is unchanged either
+    # way; accept both so the guard tracks the mount, not the version.
     from django.urls import resolve
 
     # Act
     match = resolve("/apps/cards/")
 
     # Assert
-    assert match.view_name.startswith("scitex_todo:")
+    assert match.view_name.startswith(("scitex_todo:", "scitex_cards:"))
 
 
 @pytest.mark.skipif(not _TODO_INSTALLED, reason="scitex-todo not installed")
@@ -93,4 +96,4 @@ def test_cards_url_absent_when_package_missing():
         view_name = ""
 
     # Assert
-    assert not view_name.startswith("scitex_todo:")
+    assert not view_name.startswith(("scitex_todo:", "scitex_cards:"))
