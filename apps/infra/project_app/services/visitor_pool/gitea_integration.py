@@ -5,6 +5,7 @@ Manages creation and synchronization of visitor users in Gitea.
 """
 
 import logging
+import os
 import secrets
 
 logger = logging.getLogger(__name__)
@@ -14,6 +15,21 @@ class GiteaIntegration:
     """Handles Gitea integration for visitor accounts."""
 
     VISITOR_USER_PREFIX = "visitor-"
+
+    @staticmethod
+    def _gitea_enabled() -> bool:
+        """Whether visitor Gitea provisioning is enabled.
+
+        Defaults to True (prod/staging). Set
+        ``SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED=false`` on environments with no
+        Gitea backend (e.g. the dev preview stack) so the visitor pool can
+        allocate slots without Gitea — visitors then get a workspace but no git
+        SSH access, which is correct for a browse-only demo. This is an explicit,
+        logged opt-out, not a silent fallback: when disabled we WARN and skip.
+        """
+        return os.environ.get(
+            "SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED", "true"
+        ).strip().lower() in ("1", "true", "yes", "on")
 
     @classmethod
     def ensure_gitea_users_exist(cls, pool_size: int):
@@ -29,6 +45,14 @@ class GiteaIntegration:
             GiteaConnectionError: If Gitea client cannot be initialized
             GiteaAPIError: If user creation fails
         """
+        if not cls._gitea_enabled():
+            logger.warning(
+                "[VisitorPool] Gitea provisioning disabled "
+                "(SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED=false); skipping visitor "
+                "Gitea user creation — visitors get no git SSH access (dev/no-Gitea)."
+            )
+            return
+
         from apps.infra.gitea_app.api_client import GiteaClient
 
         client = GiteaClient()
@@ -52,6 +76,13 @@ class GiteaIntegration:
             GiteaConnectionError: If Gitea client cannot be initialized
             GiteaAPIError: If user check or creation fails
         """
+        if not cls._gitea_enabled():
+            logger.warning(
+                "[VisitorPool] Gitea provisioning disabled; skipping Gitea user "
+                f"for {username} (dev/no-Gitea)."
+            )
+            return
+
         if client is None:
             from apps.infra.gitea_app.api_client import GiteaClient
 
