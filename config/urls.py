@@ -162,7 +162,18 @@ urlpatterns = [
     # apps.workspace.todo_app.middleware.TodoBoardTenancyMiddleware (whose
     # path prefix tracks this mount).
     *(
-        [path("apps/todo/", include("scitex_todo._django.urls"))]
+        [
+            path("apps/cards/", include("scitex_todo._django.urls")),
+            # Legacy mount: the board lived at /apps/todo/ before the Cards
+            # rebrand (operator live review 2026-07-17). Permanent-redirect
+            # the whole subtree so old links and pinned tiles keep working.
+            re_path(
+                r"^apps/todo/(?P<rest>.*)$",
+                RedirectView.as_view(
+                    url="/apps/cards/%(rest)s", permanent=True, query_string=True
+                ),
+            ),
+        ]
         if _scitex_todo_installed()
         else []
     ),
