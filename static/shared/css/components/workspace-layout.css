@@ -98,6 +98,14 @@
     height: 100dvh;
   }
 
+  /* The left workspace sidebar is redundant on mobile: the global header
+     (project switcher + menu) and the bottom module tab-bar already provide
+     navigation, and the rail left apps only ~95px of width (see below). Hide
+     it so every app page gets the full viewport width. Operator, 2026-07-17. */
+  .workspace-sidebar {
+    display: none;
+  }
+
   .workspace-content {
     flex: 1;
     min-height: 0;
