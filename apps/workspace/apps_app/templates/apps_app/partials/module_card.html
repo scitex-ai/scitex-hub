@@ -11,10 +11,17 @@
     <a href="{% if mod_item.is_dev %}/{{ mod_item.dev_owner }}/{{ mod_item.dev_repo }}/{% else %}/apps/{{ mod_item.app.module_name }}/{% endif %}"
        class="ap-card-link"
        aria-label="View {{ mod_item.app.module_name }}">
-        {# Version = the installed pip package's version (mod_item.reg.version,
+        {% comment %}
+           Version = the installed pip package's version (mod_item.reg.version,
            resolved via importlib.metadata in the registry) for built-in apps;
-           fall back to the store-submitted DB version for user apps; blank ⇒
-           the label is omitted (never a placeholder like 0.1.0). #}
+           fall back to the store-submitted DB version for user apps; blank means
+           the label is omitted (never a placeholder like 0.1.0).
+
+           This MUST be a comment block, not a hash comment: Django's hash-comment
+           form is single-line only — its lexer regex does not span newlines, so a
+           multi-line one renders verbatim. As a multi-line hash comment this text
+           printed on every store card in prod (2026-07-17).
+        {% endcomment %}
         {% with app_ver=mod_item.reg.version|default:mod_item.app.latest_version %}
         <div class="ap-card-icon">
             {% load module_icons %}
