@@ -40,7 +40,8 @@
           href="{% static 'scholar_app/css/library/library-details.css' %}" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css"
           rel="stylesheet" />
-    <!-- Scholar unified styles in 08-scholar-unified.css -->
+    <!-- Tab layout/visibility lives in common/07-stx-shell-layout.css;
+         the former 08-scholar-unified.css was never linked and has been removed -->
 {% endblock %}
 {% block content %}
     {% if needs_scholar_init %}
