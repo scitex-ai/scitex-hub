@@ -11,7 +11,7 @@
 .workspace-layout {
   display: flex;
   flex-direction: row;
-  height: calc(100vh - 64px);
+  height: calc(100vh - 64px - env(safe-area-inset-top, 0px));
   overflow: hidden;
   background: var(--bg-primary, #0d1117);
 }
@@ -114,8 +114,8 @@
 @media (max-width: 767px) {
   .workspace-layout {
     flex-direction: row;
-    height: calc(100vh - 44px);
-    height: calc(100dvh - 44px);
+    height: calc(100vh - 44px - env(safe-area-inset-top, 0px));
+    height: calc(100dvh - 44px - env(safe-area-inset-top, 0px));
   }
 
   .workspace-content {
