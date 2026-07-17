@@ -20,7 +20,7 @@ from django.test import TestCase
 from apps.workspace.apps_app.models import AppsModule
 from apps.workspace.apps_app.services.app_loader import load_single_app
 from apps.workspace.apps_app.services.manifest_display import prettify_module_name
-from apps.infra.workspace_app.registry import get_module
+from apps.infra.workspace_app.registry import get_module, unregister_module
 
 
 class RegistryLoaderLabelTest(TestCase):
@@ -32,6 +32,12 @@ class RegistryLoaderLabelTest(TestCase):
     used project.name (the repo slug) as the label. The catalog columns
     win; blank columns get the prettified fallback.
     """
+
+    def tearDown(self):
+        # The registry is process-global: leave it exactly as found, or
+        # every registry-enumerating test after this one sees the fake
+        # module (count/template assertions across the suite).
+        unregister_module("scitex-registry-labeltest-app")
 
     def test_loader_prefers_catalog_label_over_project_name(self):
         # Arrange — blank label column, no project (keeps the test off the
