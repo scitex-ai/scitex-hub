@@ -31,6 +31,7 @@ from apps.infra.project_app.services.project_filesystem import (
     get_project_filesystem_manager,
 )
 from apps.infra.project_app.services.visitor_pool import VisitorPool
+from apps.infra.project_app.services.visitor_pool.pool_manager import PoolAllocator
 from apps.infra.project_app.services.visitor_pool.slot_lifecycle import (
     is_allocation_stale,
 )
@@ -274,6 +275,138 @@ class TestAllocationStartsTheIdleClock(TestCase):
         # Assert: the bogus eviction also flipped workspace_ready off, which
         # is what drained the pool to 0 allocatable and read-only'd everyone.
         assert self.allocation.workspace_ready is True
+
+
+class TestProbationLease(TestCase):
+    """A slot is provisional until a heartbeat proves a real browser.
+
+    Regression for prod 2026-07-14 (second half of the read-only saga):
+    allocation used to grant the full 1-hour session to ANY cookie-less
+    request. A crawler walked the site and squatted all 16 slots
+    sequentially in ~10 minutes — none of those sessions ever hit
+    /api/visitor/heartbeat/ (1 hit in 5000 nginx lines) — so the pool sat
+    at 0 allocatable and every human got readonly-visitor.
+
+    Now allocation grants only PROBATION_SECONDS; the first heartbeat
+    (fired ~1s after page load by visitor-heartbeat.ts) promotes to the
+    full session, and later beats keep extending it. A client that never
+    executes JS never beats, so its lease lapses and the slot returns to
+    the pool in minutes instead of an hour.
+    """
+
+    def setUp(self):
+        self.user, _ = User.objects.get_or_create(
+            username="visitor-001", defaults={"email": "v001@example.com"}
+        )
+        self.project, _ = Project.objects.get_or_create(
+            slug="default-project",
+            owner=self.user,
+            defaults={"name": "Default Project"},
+        )
+        VisitorAllocation.objects.filter(visitor_number=1).delete()
+        self.allocation = _mk(
+            1,
+            is_active=False,
+            expires_in_minutes=-60,
+            last_activity_minutes_ago=60 * 24 * 3,
+            workspace_ready=True,
+        )
+        manager = get_project_filesystem_manager(self.user)
+        marker = Path(manager.base_path) / self.project.slug / TEMPLATE_MARKER_RELPATH
+        marker.mkdir(parents=True, exist_ok=True)
+        (marker / "config.yaml").write_text("template: true\n")
+
+    def tearDown(self):
+        base = Path(settings.BASE_DIR) / "data" / "users" / "visitor-001"
+        if base.exists():
+            shutil.rmtree(base, ignore_errors=True)
+
+    def _allocate(self):
+        VisitorPool.allocate_visitor(MockSession("visitor-a"))
+        self.allocation.refresh_from_db()
+
+    def test_allocation_grants_probation_not_the_full_session(self):
+        # Arrange
+        session = MockSession("visitor-a")
+        # Act
+        VisitorPool.allocate_visitor(session)
+        self.allocation.refresh_from_db()
+        lease = (self.allocation.expires_at - timezone.now()).total_seconds()
+        # Assert: minutes, not the 1-hour session a crawler used to squat.
+        assert lease <= PoolAllocator.PROBATION_SECONDS + 30
+
+    def test_allocation_lease_is_in_the_future(self):
+        # Arrange
+        session = MockSession("visitor-a")
+        # Act
+        VisitorPool.allocate_visitor(session)
+        self.allocation.refresh_from_db()
+        # Assert: probation is a real window, not an instant expiry.
+        assert self.allocation.expires_at > timezone.now()
+
+    def test_unbeaten_lease_is_stale_after_probation(self):
+        # Arrange: allocated, never heartbeats (a crawler).
+        self._allocate()
+        after_probation = timezone.now() + timedelta(
+            seconds=PoolAllocator.PROBATION_SECONDS + 60
+        )
+        # Act
+        stale = is_allocation_stale(self.allocation, now=after_probation)
+        # Assert: reclaimable minutes after the squat, not an hour.
+        assert stale is True
+
+    def test_heartbeat_within_probation_keeps_the_slot(self):
+        # Arrange: allocated, then the browser's first heartbeat lands.
+        self._allocate()
+        VisitorPool.extend_session_on_activity(self.allocation)
+        after_probation = timezone.now() + timedelta(
+            seconds=PoolAllocator.PROBATION_SECONDS + 60
+        )
+        # Act
+        stale = is_allocation_stale(self.allocation, now=after_probation)
+        # Assert: a confirmed browser is NOT reclaimed at probation end.
+        assert stale is False
+
+    def test_first_heartbeat_promotes_to_the_full_session(self):
+        # Arrange
+        self._allocate()
+        # Act
+        VisitorPool.extend_session_on_activity(self.allocation)
+        runway = (self.allocation.expires_at - timezone.now()).total_seconds()
+        # Assert: promoted to ~SESSION_LIFETIME_HOURS of runway.
+        assert runway >= (PoolAllocator.SESSION_LIFETIME_HOURS * 3600) - 60
+
+    def test_heartbeat_never_shortens_a_longer_lease(self):
+        # Arrange: lease already longer than one full session.
+        self._allocate()
+        far = timezone.now() + timedelta(hours=2)
+        self.allocation.expires_at = far
+        self.allocation.save(update_fields=["expires_at"])
+        # Act
+        VisitorPool.extend_session_on_activity(self.allocation)
+        # Assert: max() semantics — extension is one-way.
+        assert self.allocation.expires_at >= far
+
+    def test_heartbeat_stamps_last_activity(self):
+        # Arrange
+        self._allocate()
+        self.allocation.last_activity = timezone.now() - timedelta(minutes=20)
+        self.allocation.save(update_fields=["last_activity"])
+        # Act
+        VisitorPool.extend_session_on_activity(self.allocation)
+        # Assert: the idle clock restarts on every beat.
+        assert self.allocation.last_activity > timezone.now() - timedelta(minutes=1)
+
+    def test_allocation_stamps_allocated_at(self):
+        # Arrange: the row predates this visitor by days (rows are reused;
+        # auto_now_add meant prod rows still read February).
+        VisitorAllocation.objects.filter(pk=self.allocation.pk).update(
+            allocated_at=timezone.now() - timedelta(days=90)
+        )
+        # Act
+        self._allocate()
+        # Assert: allocated_at records THIS handoff, not row creation.
+        assert self.allocation.allocated_at > timezone.now() - timedelta(minutes=1)
 
 
 if __name__ == "__main__":

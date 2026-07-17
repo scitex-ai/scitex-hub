@@ -48,6 +48,18 @@ class PoolAllocator:
     SESSION_LIFETIME_HOURS = 1  # Base session time (extended on activity)
     SESSION_EXTENSION_MINUTES = 30  # Extend by this much on activity
     IDLE_TIMEOUT_MINUTES = 30  # Release slot if idle longer than this
+    # Probation: a fresh allocation is a SHORT provisional lease, promoted
+    # to the full session by the first heartbeat (extend_session_on_activity).
+    # The heartbeat client fires within ~1s of page load, so any JS-executing
+    # browser confirms comfortably inside this window — while a plain HTTP
+    # client (crawler) never does and simply expires. Without this, every
+    # cookie-less bot request held a slot for the full session: on prod
+    # 2026-07-14 a crawler walked the site and squatted all 16 slots
+    # (sequentially, ~10 min; 1 heartbeat in 5000 nginx lines), so humans
+    # got readonly-visitor while the pool was "healthy". Wide enough for a
+    # slow phone on a heavy page; a JS-disabled human falls back to
+    # readonly-visitor, unchanged from before.
+    PROBATION_SECONDS = 120
     SESSION_KEY_PROJECT_ID = "visitor_project_id"
     SESSION_KEY_VISITOR_ID = "visitor_user_id"
     SESSION_KEY_ALLOCATION_TOKEN = "visitor_allocation_token"
@@ -169,6 +181,27 @@ class PoolAllocator:
             return None, None
 
     @classmethod
+    def extend_session_on_activity(cls, allocation: VisitorAllocation) -> None:
+        """Heartbeat handler: keep a live session alive, promote a probation one.
+
+        Allocation grants only a PROBATION_SECONDS provisional lease; the
+        first heartbeat proves a JS-executing browser is attached and
+        promotes it to the full session. Every later heartbeat re-extends,
+        so an active visitor always has at least SESSION_LIFETIME_HOURS of
+        runway — the "extended on activity" behavior the constants always
+        documented but nothing implemented. max() semantics: never shortens
+        an existing lease. Idle eviction is unaffected — it keys on
+        ``last_activity`` (IDLE_TIMEOUT_MINUTES), which the heartbeat client
+        stops feeding ~60s after the user goes inactive.
+        """
+        now = timezone.now()
+        full_session = now + timedelta(hours=cls.SESSION_LIFETIME_HOURS)
+        if allocation.expires_at is None or allocation.expires_at < full_session:
+            allocation.expires_at = full_session
+        allocation.last_activity = now
+        allocation.save(update_fields=["expires_at", "last_activity"])
+
+    @classmethod
     def _verify_slot_clean(cls, user: User, project: Project) -> bool:
         """Synchronous safety net: cheap filesystem check before handoff.
 
@@ -272,13 +305,23 @@ class PoolAllocator:
             return None, None
 
         allocation_token = secrets.token_hex(32)
-        expires_at = now + timedelta(hours=cls.SESSION_LIFETIME_HOURS)
+        # PROBATION lease, not the full session. The first heartbeat
+        # promotes it to SESSION_LIFETIME_HOURS (extend_session_on_activity);
+        # a client that never runs JS never beats, so it expires here and
+        # the slot returns to the pool in minutes instead of an hour.
+        expires_at = now + timedelta(seconds=cls.PROBATION_SECONDS)
 
         try:
             allocation.session_key = session.session_key or ""
             allocation.allocation_token = allocation_token
             allocation.expires_at = expires_at
             allocation.is_active = True
+            # Record when THIS visitor got the slot. The field default only
+            # fires on row creation, and slot rows are created once and
+            # reused forever — on prod every row still read February, which
+            # is why allocation age was unreadable during the 2026-07-14
+            # incident.
+            allocation.allocated_at = now
             # Start the idle clock NOW. is_allocation_stale() reclaims any
             # ACTIVE slot whose last_activity is older than
             # IDLE_TIMEOUT_MINUTES, so handing a visitor a slot without
