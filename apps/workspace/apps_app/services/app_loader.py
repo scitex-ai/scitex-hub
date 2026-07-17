@@ -103,10 +103,15 @@ def load_single_app(app_module):
         return
 
     project = app_module.project
-    label = app_module.module_name.replace("user_", "").replace("_", " ").title()
-    icon = "fas fa-puzzle-piece"
+    # Display metadata: the manifest-fed catalog columns win; the visible
+    # prettified fallback covers rows published before the columns existed.
+    # NEVER project.name — that is the raw repo slug (the exact string the
+    # operator saw on the grid three times: "scitex-agentic-journal-app").
+    from .manifest_display import prettify_module_name
+
+    label = app_module.label or prettify_module_name(app_module.module_name)
+    icon = app_module.icon or "fas fa-puzzle-piece"
     if project:
-        label = project.name
         icon = _read_manifest_icon(project) or icon
 
     config = ModuleConfig(

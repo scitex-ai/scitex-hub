@@ -18,17 +18,45 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 
 from apps.workspace.apps_app.models import AppsModule
-from apps.workspace.apps_app.views.launcher import _prettify_module_name
+from apps.workspace.apps_app.services.app_loader import load_single_app
+from apps.workspace.apps_app.services.manifest_display import prettify_module_name
+from apps.infra.workspace_app.registry import get_module
+
+
+class RegistryLoaderLabelTest(TestCase):
+    """load_single_app must never surface project.name as the tile label.
+
+    The REGISTRY path (approved apps with a project) is how the two
+    operator-reported tiles actually render — the prod screenshot after
+    the store-branch fix still showed the raw slugs because the loader
+    used project.name (the repo slug) as the label. The catalog columns
+    win; blank columns get the prettified fallback.
+    """
+
+    def test_loader_prefers_catalog_label_over_project_name(self):
+        # Arrange — blank label column, no project (keeps the test off the
+        # registry's project/manifest file I/O); a distinct name so the
+        # module-global registry cannot collide across tests.
+        row = AppsModule.objects.create(
+            module_name="scitex-registry-labeltest-app",
+            category="other",
+            visibility="public",
+        )
+        # Act
+        load_single_app(row)
+        registered = get_module("scitex-registry-labeltest-app")
+        # Assert — the prettified fallback, never the raw slug.
+        assert registered is not None and registered.label == "Registry Labeltest"
 
 
 class PrettifyModuleNameHelperTest(TestCase):
-    """_prettify_module_name strips packaging noise and title-cases."""
+    """prettify_module_name strips packaging noise and title-cases."""
 
     def test_agentic_journal_slug_prettifies(self):
         # Arrange — one of the exact slugs the operator saw on the grid
         raw = "scitex-agentic-journal-app"
         # Act
-        label = _prettify_module_name(raw)
+        label = prettify_module_name(raw)
         # Assert
         assert label == "Agentic Journal"
 
@@ -36,7 +64,7 @@ class PrettifyModuleNameHelperTest(TestCase):
         # Arrange — the other slug from the operator's report
         raw = "scitex-live-paper-app"
         # Act
-        label = _prettify_module_name(raw)
+        label = prettify_module_name(raw)
         # Assert
         assert label == "Live Paper"
 
@@ -44,7 +72,7 @@ class PrettifyModuleNameHelperTest(TestCase):
         # Arrange — no scitex-/-app packaging noise to strip
         raw = "mytool"
         # Act
-        label = _prettify_module_name(raw)
+        label = prettify_module_name(raw)
         # Assert
         assert label == "Mytool"
 
@@ -52,7 +80,7 @@ class PrettifyModuleNameHelperTest(TestCase):
         # Arrange
         raw = "scitex_live_paper_app"
         # Act
-        label = _prettify_module_name(raw)
+        label = prettify_module_name(raw)
         # Assert
         assert label == "Live Paper"
 
@@ -61,7 +89,7 @@ class PrettifyModuleNameHelperTest(TestCase):
         # honest than an empty tile
         raw = "scitex-"
         # Act
-        label = _prettify_module_name(raw)
+        label = prettify_module_name(raw)
         # Assert
         assert label == "scitex-"
 
