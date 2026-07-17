@@ -231,6 +231,12 @@ services:
     # is never re-dispatched, which matches exactly. `-O fair` hands a task
     # only to a child that is actually free; max-tasks-per-child recycles
     # children so a slow leak cannot accumulate.
+    # --without-gossip/mingle/heartbeat: the community-standard mitigation for
+    # the redis stops-consuming family (celery#8091/#8030) — these features
+    # each hold extra broker connections inside the kombu async hub and are
+    # pure overhead for our fixed two-worker deployment. Applied together
+    # with the celery<5.6 pin (pyproject.toml) after prod workers stalled
+    # after ~2 prefetch windows on celery 5.6.3/kombu 5.6.2.
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
       --loglevel=info
@@ -239,6 +245,9 @@ services:
       --prefetch-multiplier=1
       -O fair
       --max-tasks-per-child=50
+      --without-gossip
+      --without-mingle
+      --without-heartbeat
 
     volumes:
       - static_volume:/app/staticfiles
@@ -339,6 +348,9 @@ services:
       --prefetch-multiplier=1
       -O fair
       --max-tasks-per-child=8
+      --without-gossip
+      --without-mingle
+      --without-heartbeat
 
     volumes:
       - static_volume:/app/staticfiles
