@@ -198,7 +198,8 @@
                 </button>
             {% endif %}
         {% else %}
-            <a href="/accounts/login/?next=/apps/" class="ap-btn-install ap-btn-login">
+            {# /auth/login/ is the real login route — /accounts/login/ 404s. #}
+            <a href="/auth/login/?next=/apps/store/" class="ap-btn-install ap-btn-login">
                 <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Login to install
             </a>
         {% endif %}
