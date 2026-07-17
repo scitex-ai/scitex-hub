@@ -219,12 +219,26 @@ services:
     # untouched for hours, while this queue drained. Slot re-cleans are a
     # SECURITY gate — a slot is not distributable until it is wiped and
     # verified — so they must never wait behind chart rendering.
+    # -O fair + --max-tasks-per-child: measured wedge signature on prod
+    # (2026-07-14 and again 2026-07-17, after tini was restored, so it is
+    # NOT an init/reaping problem): each worker processes roughly one
+    # prefetch window and then dispatch dies — `inspect reserved` shows a
+    # FULL window (time_start=None, worker_pid=None), `inspect active` is
+    # empty, the fork children exist and idle, the control channel still
+    # answers, and a container restart reproduces the wedge after the next
+    # burst. Default (non-fair) scheduling writes reserved tasks into a
+    # specific child's pipe; a task parked in a dead/replaced child's pipe
+    # is never re-dispatched, which matches exactly. `-O fair` hands a task
+    # only to a child that is actually free; max-tasks-per-child recycles
+    # children so a slow leak cannot accumulate.
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
       --loglevel=info
       --queues=celery,ai_queue,search_queue,compute_queue
       --concurrency=8
       --prefetch-multiplier=1
+      -O fair
+      --max-tasks-per-child=50
 
     volumes:
       - static_volume:/app/staticfiles
@@ -302,13 +316,17 @@ services:
   # so every service here was silently discarding it. celery therefore ran as
   # PID 1 with no init: no zombie reaping, and non-default signal semantics.
   #
-  # Observed consequence: this worker forked its 3 ForkPoolWorker children, ran
-  # three slot resets, and then the children VANISHED — `ps` in the container
-  # showed the celery parent alone, RestartCount=0, container still "healthy"
-  # (the healthcheck only pings redis), 0% CPU, 43 tasks queued, forever. The
-  # same signature killed the shared worker and an ad-hoc one. Without an init
-  # the parent never reaps/replaces them, so the visitor pool cannot self-heal.
-  # tini is the reaper the image already ships and the compose override threw away.
+  # CORRECTION (2026-07-17): the "children VANISHED" claim that originally
+  # motivated tini was a measurement artifact — /proc inside this container
+  # shows all 3 ForkPoolWorker children alive while `ps`/`docker top` render
+  # none. tini stays (the image installs it deliberately and PID-1-without-
+  # init is a real defect), but it did NOT fix the wedge: with tini as PID 1
+  # the worker still stalled. The REAL signature (measured 2026-07-14 and
+  # re-measured post-tini 2026-07-17): the worker processes ~one prefetch
+  # window, then dispatch dies — `inspect reserved` shows a FULL window
+  # (time_start=None, worker_pid=None), `inspect active` is empty, children
+  # idle, control channel answers, and a restart re-wedges after the next
+  # burst. See -O fair rationale on celery_worker above.
   celery_worker_vis:
     image: scitex-hub-prod-django:latest
     entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
@@ -319,6 +337,8 @@ services:
       --hostname=vis@%h
       --concurrency=3
       --prefetch-multiplier=1
+      -O fair
+      --max-tasks-per-child=8
 
     volumes:
       - static_volume:/app/staticfiles
