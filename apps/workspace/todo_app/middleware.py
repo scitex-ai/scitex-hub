@@ -44,11 +44,13 @@ from django.shortcuts import redirect
 logger = logging.getLogger(__name__)
 
 # Must track the mount in config/urls.py. The board moved from the bare /todo/
-# to /apps/todo/ so plugin apps read like every other app; if these drift, the
+# to /apps/todo/ and then to /apps/cards/ (Cards rebrand); if these drift, the
 # tenancy injection silently stops firing and the board would fall back to the
 # HOST store — i.e. one user seeing another's tasks. Keep them in lockstep.
-_TODO_ROOT = "/apps/todo"
-_TODO_PREFIX = "/apps/todo/"
+# The /apps/todo/ legacy path needs no entry here: urls.py 301-redirects it
+# to /apps/cards/ before any board view runs.
+_TODO_ROOT = "/apps/cards"
+_TODO_PREFIX = "/apps/cards/"
 _READ_METHODS = ("GET", "HEAD", "OPTIONS")
 
 # Mirror of the guarded import in settings_shared.py / the URL guard in
