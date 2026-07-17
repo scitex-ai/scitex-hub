@@ -206,6 +206,14 @@ services:
   # Celery Worker (Async Task Processing)
   celery_worker:
     image: scitex-hub-prod-django:latest
+    # autoheal=true: the #382 liveness healthcheck marks this worker unhealthy
+    # when its queue beacon goes stale (the prefork pool is known to wedge on
+    # this host — see celery_worker_vis header), and the autoheal service
+    # below is what acts on that: docker itself never restarts unhealthy
+    # containers. Verified live 2026-07-17: worker sat "unhealthy" for 40+
+    # minutes with no autoheal running.
+    labels:
+      - autoheal=true
     # tini, exactly as Dockerfile.prod's ENTRYPOINT intends ("tini as PID 1:
     # ensures proper signal forwarding and zombie reaping"). Overriding
     # `entrypoint:` REPLACES the image's ENTRYPOINT wholesale, so every service
@@ -359,6 +367,8 @@ services:
   # it if it wedges.
   celery_worker_vis:
     image: scitex-hub-prod-django:latest
+    labels:
+      - autoheal=true
     entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
@@ -430,6 +440,8 @@ services:
   # Celery Beat (Periodic Task Scheduler)
   celery_beat:
     image: scitex-hub-prod-django:latest
+    labels:
+      - autoheal=true
     # tini — same reason as the workers above (the compose entrypoint override
     # otherwise discards the image's tini and leaves celery as PID 1).
     entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
@@ -634,6 +646,28 @@ services:
       timeout: 30s
       retries: 3
       start_period: 120s
+    networks:
+      - scitex-network
+
+  # Acts on health. Docker itself only LABELS a container unhealthy — nothing
+  # restarts it. The #382 liveness watchdog therefore needs this: autoheal
+  # polls docker's health status and restarts any container labeled
+  # autoheal=true that goes unhealthy (the three celery services). Scoped by
+  # label, NOT "all": django's recovery belongs to the host-level watchdog
+  # with its boot-grace/cooldown guards (#304) — a second blind restarter
+  # fighting it caused the 2026-07-12 restart loops. Verified need
+  # 2026-07-17: the shared worker sat "unhealthy" 40+ min because the
+  # previously hand-run autoheal container did not survive the power-off
+  # reboot; defining it here with restart:always makes it boot-persistent.
+  autoheal:
+    image: willfarrell/autoheal:latest
+    restart: always
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=autoheal
+      - AUTOHEAL_INTERVAL=30
+      - AUTOHEAL_START_PERIOD=300
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - scitex-network
 
