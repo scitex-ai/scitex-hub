@@ -390,6 +390,24 @@ def register_module(config: ModuleConfig) -> None:
     logger.info(f"[registry] Registered external module: {config.name}")
 
 
+def unregister_module(name: str) -> None:
+    """Remove a runtime-registered module. No-op when absent.
+
+    The symmetric partner of register_module — the registry is
+    process-global, so anything that registers transiently (a
+    deactivated dev-install, a test fixture) must be able to leave the
+    registry exactly as it found it.
+    """
+    config = _registry_by_name.pop(name, None)
+    if config is None:
+        return
+    try:
+        _registry.remove(config)
+    except ValueError:
+        pass
+    logger.info(f"[registry] Unregistered module: {name}")
+
+
 def discover_external_modules() -> None:
     """Discover and register modules from pip-installed packages."""
     try:
