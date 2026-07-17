@@ -45,6 +45,8 @@ def main():
     ap.add_argument("--out", default="/tmp/qa_shots")
     ap.add_argument("--only", default="", help="comma list of label substrings")
     ap.add_argument("--viewports", default="mobile", help="mobile,desktop")
+    ap.add_argument("--settle-ms", type=int, default=3000,
+                    help="post-commit settle before screenshot (dev's unminified JS needs ~12000)")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     only = [s.strip().lower() for s in args.only.split(",") if s.strip()]
@@ -73,7 +75,7 @@ def main():
                 try:
                     resp = pg.goto(full, wait_until="commit", timeout=30000)
                     status = str(resp.status) if resp else "no-resp"
-                    pg.wait_for_timeout(3000)
+                    pg.wait_for_timeout(args.settle_ms)
                     safe = "".join(c if c.isalnum() else "_" for c in label)[:32]
                     fn = os.path.join(args.out, f"{vpname}__{safe}.png")
                     pg.screenshot(path=fn)
