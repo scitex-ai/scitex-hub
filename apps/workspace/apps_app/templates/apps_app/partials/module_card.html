@@ -11,10 +11,14 @@
     <a href="{% if mod_item.is_dev %}/{{ mod_item.dev_owner }}/{{ mod_item.dev_repo }}/{% else %}/apps/{{ mod_item.app.module_name }}/{% endif %}"
        class="ap-card-link"
        aria-label="View {{ mod_item.app.module_name }}">
-        {# Version = the installed pip package's version (mod_item.reg.version,
-           resolved via importlib.metadata in the registry) for built-in apps;
-           fall back to the store-submitted DB version for user apps; blank ⇒
-           the label is omitted (never a placeholder like 0.1.0). #}
+        {% comment %}
+            Version = the installed pip package's version (mod_item.reg.version,
+            resolved via importlib.metadata in the registry) for built-in apps;
+            fall back to the store-submitted DB version for user apps; blank =>
+            the label is omitted (never a placeholder like 0.1.0).
+            NOTE: {# #} comments are single-line only in Django — a multi-line
+            one renders as literal page text (live incident 2026-07-17).
+        {% endcomment %}
         {% with app_ver=mod_item.reg.version|default:mod_item.app.latest_version %}
         <div class="ap-card-icon">
             {% load module_icons %}
