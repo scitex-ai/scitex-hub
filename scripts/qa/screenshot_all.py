@@ -18,8 +18,12 @@ VIEWPORTS = {"mobile": (390, 844, 2), "desktop": (1440, 900, 1)}
 
 
 def collect_app_links(page, base):
-    page.goto(base + "/", wait_until="domcontentloaded", timeout=30000)
-    page.wait_for_timeout(2000)
+    # "commit" not "domcontentloaded": on dev, media elements (landing
+    # video) loop range-requests against daphne runserver and DCL never
+    # fires even though the page is fully rendered. Commit + settle is
+    # what a screenshot actually needs.
+    page.goto(base + "/", wait_until="commit", timeout=30000)
+    page.wait_for_timeout(3000)
     # launcher tiles are <a> inside #launcher-grid with an href to the app
     hrefs = page.eval_on_selector_all(
         "#launcher-grid a[href], .launcher-grid a[href]",
@@ -41,6 +45,8 @@ def main():
     ap.add_argument("--out", default="/tmp/qa_shots")
     ap.add_argument("--only", default="", help="comma list of label substrings")
     ap.add_argument("--viewports", default="mobile", help="mobile,desktop")
+    ap.add_argument("--settle-ms", type=int, default=3000,
+                    help="post-commit settle before screenshot (dev's unminified JS needs ~12000)")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     only = [s.strip().lower() for s in args.only.split(",") if s.strip()]
@@ -67,9 +73,9 @@ def main():
                 status = "?"
                 full = url if url.startswith("http") else (args.base.rstrip("/") + "/" + url.lstrip("/"))
                 try:
-                    resp = pg.goto(full, wait_until="domcontentloaded", timeout=30000)
+                    resp = pg.goto(full, wait_until="commit", timeout=30000)
                     status = str(resp.status) if resp else "no-resp"
-                    pg.wait_for_timeout(2500)
+                    pg.wait_for_timeout(args.settle_ms)
                     safe = "".join(c if c.isalnum() else "_" for c in label)[:32]
                     fn = os.path.join(args.out, f"{vpname}__{safe}.png")
                     pg.screenshot(path=fn)
