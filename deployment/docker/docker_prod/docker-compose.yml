@@ -341,17 +341,22 @@ services:
   # so every service here was silently discarding it. celery therefore ran as
   # PID 1 with no init: no zombie reaping, and non-default signal semantics.
   #
-  # CORRECTION (2026-07-17): the "children VANISHED" claim that originally
-  # motivated tini was a measurement artifact — /proc inside this container
-  # shows all 3 ForkPoolWorker children alive while `ps`/`docker top` render
-  # none. tini stays (the image installs it deliberately and PID-1-without-
-  # init is a real defect), but it did NOT fix the wedge: with tini as PID 1
-  # the worker still stalled. The REAL signature (measured 2026-07-14 and
-  # re-measured post-tini 2026-07-17): the worker processes ~one prefetch
-  # window, then dispatch dies — `inspect reserved` shows a FULL window
-  # (time_start=None, worker_pid=None), `inspect active` is empty, children
-  # idle, control channel answers, and a restart re-wedges after the next
-  # burst. See -O fair rationale on celery_worker above.
+  # POOL=THREADS (2026-07-17): the prefork pool wedges on this host — after
+  # one boot burst the parent stops ACKing completed tasks, its QoS window
+  # jams full, and it never fetches again (11 permanently-unacked messages
+  # accumulated in the broker across restarts). Children stay alive and
+  # idle, zero errors logged. Reproduced IDENTICALLY on celery 5.6.3 and
+  # 5.5.3, with tini (#379), -O fair + max-tasks-per-child (#381), the
+  # celery<5.6 pin + --without-gossip/mingle/heartbeat (#384) — five fixes,
+  # same wedge. The differential experiment that settled it: an ad-hoc
+  # worker in the SAME container / code / broker with --pool=threads
+  # drained 48 tasks in 200s where prefork never exceeded 6 total.
+  # Slot resets are I/O-bound (git/ssh/squeue subprocesses, Gitea HTTP,
+  # file ops), so threads lose nothing to the GIL. Prefork-only flags
+  # (-O fair, --max-tasks-per-child) dropped — meaningless for threads.
+  # The shared celery_worker stays prefork (matplotlib chart rendering is
+  # not thread-safe) under the #382 liveness watchdog, which auto-restarts
+  # it if it wedges.
   celery_worker_vis:
     image: scitex-hub-prod-django:latest
     entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
@@ -360,10 +365,9 @@ services:
       --loglevel=info
       --queues=vis_queue
       --hostname=vis@%h
+      --pool=threads
       --concurrency=3
       --prefetch-multiplier=1
-      -O fair
-      --max-tasks-per-child=8
       --without-gossip
       --without-mingle
       --without-heartbeat
