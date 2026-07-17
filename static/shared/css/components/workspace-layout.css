@@ -4,12 +4,32 @@
    ============================================================ */
 
 /* ── Layout container ──────────────────────────────────────── */
+/* Height leaves room for the sticky global header above (64px desktop,
+   44px mobile — static/shared/css/components/header/01-container.css and
+   header/14-responsive.css). The header is the only chrome now that the
+   left nav rail is retired. */
 .workspace-layout {
   display: flex;
   flex-direction: row;
-  height: 100vh;
+  height: calc(100vh - 64px);
   overflow: hidden;
   background: var(--bg-primary, #0d1117);
+}
+
+/* ── Workspace nav rail: retired ───────────────────────────── */
+/* The left sidebar is hidden at EVERY viewport (operator directive
+   2026-07-17: the rail appeared on every page and is redundant — the
+   global header carries project switcher / search / user menu, the
+   app-launcher home grid carries app navigation, and /chat/ /console/
+   /files/ remain routable). The aside stays in the DOM for now: its
+   component JS owns core-pane routing (activateInitialPane) and the
+   keyboard shortcuts; structural removal rides with the scitex-ui
+   shell migration (card hub-apps-missing-scitex-ui-shell). */
+.workspace-sidebar {
+  display: none !important;
+}
+.mobile-top-bar {
+  display: none !important;
 }
 
 /* ── Content area ──────────────────────────────────────────── */
@@ -94,16 +114,8 @@
 @media (max-width: 767px) {
   .workspace-layout {
     flex-direction: row;
-    height: 100vh;
-    height: 100dvh;
-  }
-
-  /* The left workspace sidebar is redundant on mobile: the global header
-     (project switcher + menu) and the bottom module tab-bar already provide
-     navigation, and the rail left apps only ~95px of width (see below). Hide
-     it so every app page gets the full viewport width. Operator, 2026-07-17. */
-  .workspace-sidebar {
-    display: none;
+    height: calc(100vh - 44px);
+    height: calc(100dvh - 44px);
   }
 
   .workspace-content {
@@ -121,13 +133,6 @@
   .workspace-pane[data-pane="module"] {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-  }
-}
-
-/* ── Hide header on workspace pages (desktop only) ──────────── */
-@media (min-width: 768px) {
-  body.workspace-page:not(.landing-page) .global-header {
-    display: none;
   }
 }
 
