@@ -248,6 +248,53 @@ describe("LauncherPager", () => {
     expect(dots.hidden).toBe(true);
   });
 
+  it("scrolls by the REAL page width when pages peek (flex-basis < 100%)", () => {
+    // The peek affordance (mobile.css) narrows every page to 88% when there
+    // are 2+ pages so the next page's edge shows — the visible hint that the
+    // grid scrolls sideways (operator: the paging was invisible). Scroll
+    // positions are then multiples of the PAGE width, not the container's;
+    // the old pageWidth (clientWidth) would drift one-eighth of a page per
+    // page and land the dots on the wrong index.
+    const { grid, pager } = build(12);
+    styleGap(grid);
+    pager.apply();
+
+    // Supply the peeked page geometry jsdom cannot compute: 88% of 390.
+    const firstPage = grid.querySelector<HTMLElement>(".launcher-page");
+    expect(firstPage).not.toBeNull();
+    Object.defineProperty(firstPage as HTMLElement, "offsetWidth", {
+      value: 343,
+    });
+
+    // Recording stand-in for the scroller jsdom does not implement.
+    let scrolledTo = -1;
+    grid.scrollTo = ((opts: ScrollToOptions) => {
+      scrolledTo = opts.left ?? -1;
+    }) as typeof grid.scrollTo;
+
+    pager.goTo(2);
+
+    // 2 pages x 343px, NOT 2 x 390 (the container width).
+    expect(scrolledTo).toBe(686);
+  });
+
+  it("falls back to the container width when page geometry is unmeasured", () => {
+    // jsdom (and a not-yet-laid-out browser frame) reports offsetWidth 0;
+    // the scroller must then behave exactly as before the peek existed.
+    const { grid, pager } = build(12);
+    styleGap(grid);
+    pager.apply();
+
+    let scrolledTo = -1;
+    grid.scrollTo = ((opts: ScrollToOptions) => {
+      scrolledTo = opts.left ?? -1;
+    }) as typeof grid.scrollTo;
+
+    pager.goTo(1);
+
+    expect(scrolledTo).toBe(390); // build() pins clientWidth at 390
+  });
+
   it("re-chunks after a drop so an over-full page pushes tiles right", () => {
     const { grid, pager } = build(12);
     styleGap(grid);
