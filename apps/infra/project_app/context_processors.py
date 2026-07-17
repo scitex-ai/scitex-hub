@@ -60,6 +60,8 @@ def visitor_expiration_context(request):
     Returns:
         dict: session_role, visitor_expires_at, visitor_username,
               is_visitor, is_readonly, visitor_cpus, visitor_memory_gb,
+              visitor_idle_timeout_minutes (idle-reaper threshold — banner
+              copy quotes the enforced constant, never hardcoded prose),
               readonly_visitor_notice (one-shot downgrade reason code),
               readonly_visitor_notice_detail (its user-facing copy),
               readonly_visitor_reason (persistent downgrade reason code),
@@ -79,6 +81,9 @@ def visitor_expiration_context(request):
         get_session_role,
         readonly_reason_detail,
     )
+    from apps.infra.project_app.services.visitor_pool.pool_manager import (
+        PoolAllocator,
+    )
     from config.settings.quotas import SLURM_QUOTAS
 
     role = get_session_role(request)
@@ -90,6 +95,10 @@ def visitor_expiration_context(request):
         "is_readonly": role == ROLE_READONLY_VISITOR,
         "visitor_cpus": SLURM_QUOTAS.get("interactive_cpus", 2),
         "visitor_memory_gb": SLURM_QUOTAS.get("interactive_memory_gb", 4),
+        # A visitor session is NOT a fixed lifetime: activity heartbeats
+        # keep extending it; the idle reaper reclaims after this many
+        # minutes of inactivity (see PoolAllocator.extend_session_on_activity).
+        "visitor_idle_timeout_minutes": PoolAllocator.IDLE_TIMEOUT_MINUTES,
         "readonly_visitor_notice": "",
         "readonly_visitor_notice_detail": "",
         "readonly_visitor_reason": "",

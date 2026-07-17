@@ -12,8 +12,14 @@
             <div class="launcher-guest-cta" id="launcher-guest-cta" role="region" aria-label="Guest session">
                 <div class="launcher-guest-cta-text">
                     {% if guest_role == "visitor" %}
-                        <strong>You have a full workspace for this session.</strong>
-                        Edit and run anything — sign up to keep your work.
+                        {# Identity slice matches the header badge (Visitor #NNN); the #}
+                        {# idle timeout is the enforced PoolAllocator constant, so the #}
+                        {# lifetime claim can never drift from the actual reaper.      #}
+                        <strong>You're working as visitor #{{ visitor_username|slice:"8:" }}
+                        in a temporary workspace.</strong>
+                        Edit and run anything — it stays yours while you're active and is
+                        reclaimed after ~{{ visitor_idle_timeout_minutes }} minutes of inactivity.
+                        Sign up to keep your work.
                     {% else %}
                         <strong>You're browsing read-only.</strong>
                         Sign in to edit, run code, and keep your work.
