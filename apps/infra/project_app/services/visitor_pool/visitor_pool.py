@@ -42,6 +42,11 @@ class VisitorPool:
     READONLY_VISITOR_USERNAME = "readonly-visitor"
     POOL_SIZE = int(os.environ.get("SCITEX_HUB_VISITOR_POOL_SIZE", 4))
     SESSION_LIFETIME_HOURS = 1
+    # Idle-based lifetime (aliased, NOT duplicated — PoolAllocator is the
+    # single source): a session extends while the visitor is active and the
+    # slot is reclaimed after this much inactivity. User-facing copy must
+    # read this constant, never hardcode a duration.
+    IDLE_TIMEOUT_MINUTES = PoolAllocator.IDLE_TIMEOUT_MINUTES
     SESSION_KEY_PROJECT_ID = "visitor_project_id"
     SESSION_KEY_VISITOR_ID = "visitor_user_id"
     SESSION_KEY_ALLOCATION_TOKEN = "visitor_allocation_token"
