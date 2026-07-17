@@ -142,6 +142,7 @@
   .launcher-page {
     flex: 0 0 100%;
     scroll-snap-align: start;
+    /* (peek override below narrows this when there are 2+ pages) */
     /* Never leave a page straddling the fold on a fast flick. */
     scroll-snap-stop: always;
     display: grid;
@@ -151,15 +152,36 @@
     align-content: start;
   }
 
+  /* Horizontal-scroll affordance (operator, Telegram 1402: the paging was
+     invisible — "せっかくよこすくろーるなのにわからない"): with 2+ pages every
+     page leaves a sliver of the next one peeking at the right edge. A single
+     page keeps the full width (nothing to hint at). pager.ts reads the real
+     page width back (offsetWidth), so the dot/scroll math tracks whatever
+     basis is set here — change one and the other follows. */
+  .launcher-grid--paged:has(.launcher-page:nth-child(2)) .launcher-page {
+    flex-basis: 88%;
+  }
+
   /* Page dots. Hidden (via [hidden]) when there is only one page — a lone dot
-     communicates nothing and just eats vertical space we need for icons. */
+     communicates nothing and just eats vertical space we need for icons.
+     PINNED just above the dock (operator: the dots overlapped the dock when
+     left in flow — flow bottom vs the fixed dock depends on content height,
+     fixed-above-fixed does not). rowsThatFit() already reserves this band
+     (dotsRoom) when sizing pages, so the dots never sit on a tile row. */
   .launcher-dots {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 7px;
-    padding: 10px 0 2px;
-    flex: 0 0 auto;
+    padding: 0;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(
+      var(--launcher-dock-height) + 14px + 8px +
+        env(safe-area-inset-bottom, 0px)
+    );
+    z-index: 1100;
   }
 
   .launcher-dots[hidden] {
