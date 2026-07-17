@@ -154,6 +154,19 @@ def _appsmodule_catalog(names: list[str]) -> dict[str, AppsModule]:
     }
 
 
+def _is_pool_account(user) -> bool:
+    """Visitor-pool accounts: the rotating visitor-NNN slots + the shared
+    read-only fallback. These are shared, recycled identities — seeding pins
+    for them populates the sidebar for EVERY future visitor of that slot
+    (operator report 2026-07-17: "the sidebar came back"), and their pin
+    state is meaningless across the slot wipe anyway."""
+    from apps.infra.project_app.services.visitor_pool import VisitorPool
+
+    return user.username.startswith(VisitorPool.VISITOR_USER_PREFIX) or (
+        user.username == VisitorPool.READONLY_VISITOR_USERNAME
+    )
+
+
 def seed_default_pins(user) -> bool:
     """Give a user their starting pins. Idempotent; True if it created any row.
 
@@ -164,7 +177,12 @@ def seed_default_pins(user) -> bool:
 
     Seeded rows keep the model-default tab_order, which marks them incidental,
     so they never masquerade as an explicit drag-reorder.
+
+    Pool accounts (visitor-NNN, readonly-visitor) are never seeded: visitors
+    get the minimal sidebar and discover apps through the launcher grid.
     """
+    if _is_pool_account(user):
+        return False
     ensure_builtin_modules()
     names = default_pinned_module_names()
     catalog = _appsmodule_catalog(names)
