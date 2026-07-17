@@ -293,12 +293,28 @@ services:
     networks:
       - scitex-network
 
+    # END-TO-END liveness, not a broker ping. The old redis-ping check
+    # stayed green through every measured wedge (see -O fair note above):
+    # dispatch dies while redis, the control channel and the children all
+    # answer. Beat enqueues queue_liveness_beacon("celery") onto THIS
+    # worker's `celery` queue every 120s; the task stamps
+    # scitex:liveness:celery at EXECUTION time; the check fails LOUD when
+    # the stamp is missing or older than 600s — i.e. the worker has not
+    # actually run anything from the queue for 10 minutes.
+    # start_period 300s: after a deploy the stamp usually survives in the
+    # long-running redis container (fresh enough), but on a cold/flushed
+    # redis it exists only once beat's next 120s tick fires AND this worker
+    # executes it — give the whole beat→broker→worker chain 5 minutes
+    # before failures count. retries 10 × interval 60s: ~10 more minutes of
+    # consecutive staleness before docker marks unhealthy, so a busy-but-
+    # draining worker is never flagged. Docker only MARKS unhealthy; the
+    # host's autoheal container is what restarts unhealthy containers.
     healthcheck:
-      test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
-      interval: 30s
+      test: ["CMD", "bash", "/app/deployment/docker/common/scripts/check_queue_liveness.sh", "celery", "600"]
+      interval: 60s
       timeout: 10s
-      retries: 3
-      start_period: 120s
+      retries: 10
+      start_period: 300s
 
   # Celery worker DEDICATED to the visitor-slot re-clean queue.
   #
@@ -392,12 +408,20 @@ services:
     networks:
       - scitex-network
 
+    # END-TO-END liveness for vis_queue — the queue whose silent stall
+    # quarantined the whole visitor pool. Same design as celery_worker's
+    # check above: beat routes queue_liveness_beacon("vis_queue") onto
+    # vis_queue every 120s, the beacon stamps scitex:liveness:vis_queue at
+    # EXECUTION time, and this fails LOUD when the stamp is missing or
+    # older than 600s. A redis ping cannot see the measured wedge
+    # (reserved-full / active-empty / control channel answering). Docker
+    # only MARKS unhealthy; the host's autoheal container does the restart.
     healthcheck:
-      test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
-      interval: 30s
+      test: ["CMD", "bash", "/app/deployment/docker/common/scripts/check_queue_liveness.sh", "vis_queue", "600"]
+      interval: 60s
       timeout: 10s
-      retries: 3
-      start_period: 120s
+      retries: 10
+      start_period: 300s
 
   # Celery Beat (Periodic Task Scheduler)
   celery_beat:
