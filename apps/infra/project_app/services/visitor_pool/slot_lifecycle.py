@@ -52,7 +52,9 @@ def stale_allocation_q(now=None) -> Q:
     A live visitor session is over — and its slot must be freed — when any
     of these hold:
 
-    * ``expires_at`` is in the past (hard 1-hour session expiry), OR
+    * ``expires_at`` is in the past — the probation window for a session
+      that never sent a heartbeat, or the (activity-extended) full session
+      for one that did, OR
     * ``last_activity`` is older than :data:`IDLE_TIMEOUT_MINUTES` (the
       visitor walked away without logging out), OR
     * it never sent a heartbeat (``last_activity`` is NULL) and was
