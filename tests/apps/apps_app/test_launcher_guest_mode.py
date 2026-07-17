@@ -150,6 +150,10 @@ class VisitorBannerCopyTest(TestCase):
     the visitor (same slice as the header's "Visitor #NNN" badge) and
     quote the enforced constant, never hardcoded prose. The readonly
     branch's copy stays as-is.
+
+    Copy shortened to a two-liner on the operator's mobile review
+    (Telegram 1400, card hub-mobile-launcher-ux-polish) — identity,
+    constant-quoted lifetime, and signup CTA all survive the cut.
     """
 
     @classmethod
@@ -169,7 +173,7 @@ class VisitorBannerCopyTest(TestCase):
         # Act
         resp = self.client.get("/")
         # Assert
-        assert b"visitor #001" in resp.content
+        assert b"Visitor #001" in resp.content
 
     def test_visitor_banner_quotes_idle_timeout_constant(self):
         # Arrange
@@ -178,7 +182,7 @@ class VisitorBannerCopyTest(TestCase):
         resp = self.client.get("/")
         # Assert
         assert (
-            f"~{PoolAllocator.IDLE_TIMEOUT_MINUTES} minutes of inactivity".encode()
+            f"~{PoolAllocator.IDLE_TIMEOUT_MINUTES} min idle".encode()
             in resp.content
         )
 
@@ -193,13 +197,13 @@ class VisitorBannerCopyTest(TestCase):
             == PoolAllocator.IDLE_TIMEOUT_MINUTES
         )
 
-    def test_visitor_banner_says_workspace_stays_while_active(self):
+    def test_visitor_banner_marks_workspace_temporary(self):
         # Arrange
         self.client.force_login(self.pool_visitor)
         # Act
         resp = self.client.get("/")
         # Assert
-        assert b"stays yours while" in resp.content
+        assert b"temporary workspace" in resp.content
 
     def test_visitor_banner_drops_fixed_session_claim(self):
         # Arrange
@@ -215,7 +219,7 @@ class VisitorBannerCopyTest(TestCase):
         # Act
         resp = self.client.get("/")
         # Assert
-        assert b"Sign up to keep your work" in resp.content
+        assert b"sign up to keep your work" in resp.content
 
     def test_readonly_banner_copy_unchanged(self):
         # Arrange
@@ -231,7 +235,7 @@ class VisitorBannerCopyTest(TestCase):
         # Act
         resp = self.client.get("/")
         # Assert
-        assert b"minutes of inactivity" not in resp.content
+        assert b"min idle" not in resp.content
 
 
 if __name__ == "__main__":
