@@ -55,6 +55,46 @@ class RegistryLoaderLabelTest(TestCase):
         assert registered is not None and registered.label == "Registry Labeltest"
 
 
+class SeedSkipsRuntimeRegistrationsTest(TestCase):
+    """ensure_builtin_modules must not seed runtime-registered user apps.
+
+    Seeding them stamped is_builtin/verified AND copied the registry's
+    raw-slug label into the catalog columns, which then fed back into
+    the registry on the next boot — the self-perpetuating garbage label
+    the operator kept seeing (fixed alongside migration 0016).
+    """
+
+    def tearDown(self):
+        # Process-global registry: leave it exactly as found.
+        unregister_module("scitex-seedskip-labeltest-app")
+
+    def test_seed_ignores_user_app_registrations(self):
+        # Arrange — a runtime registration exactly as load_single_app
+        # produces it (the partial_template prefix is the signature).
+        from apps.infra.workspace_app.registry import ModuleConfig, register_module
+        from apps.workspace.apps_app.management.commands.seed_apps import (
+            ensure_builtin_modules,
+        )
+
+        register_module(
+            ModuleConfig(
+                name="scitex-seedskip-labeltest-app",
+                label="scitex-seedskip-labeltest-app",
+                app_name="apps_app",
+                partial_template=(
+                    "apps_app/user_apps/scitex-seedskip-labeltest-app_partial.html"
+                ),
+            )
+        )
+        # Act
+        ensure_builtin_modules()
+        # Assert — no catalog row was fabricated for the user app.
+        exists = AppsModule.objects.filter(
+            module_name="scitex-seedskip-labeltest-app"
+        ).exists()
+        assert exists is False
+
+
 class PrettifyModuleNameHelperTest(TestCase):
     """prettify_module_name strips packaging noise and title-cases."""
 
