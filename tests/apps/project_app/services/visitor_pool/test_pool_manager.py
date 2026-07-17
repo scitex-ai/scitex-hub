@@ -409,6 +409,26 @@ class TestProbationLease(TestCase):
         assert self.allocation.allocated_at > timezone.now() - timedelta(minutes=1)
 
 
+class IdleTimeoutConstantAliasTest(TestCase):
+    """PoolAllocator.IDLE_TIMEOUT_MINUTES aliases the reaper's constant.
+
+    User-facing copy (visitor banner) quotes the class attr, while the
+    idle reaper enforces slot_lifecycle.IDLE_TIMEOUT_MINUTES — the two
+    must be the same object so the promise can never drift from the
+    eviction actually enforced (card hub-visitor-banner-identity-and-
+    lifetime).
+    """
+
+    def test_pool_allocator_idle_timeout_aliases_slot_lifecycle(self):
+        # Arrange
+        from apps.infra.project_app.services.visitor_pool import slot_lifecycle
+
+        # Act
+        quoted = PoolAllocator.IDLE_TIMEOUT_MINUTES
+        # Assert
+        assert quoted == slot_lifecycle.IDLE_TIMEOUT_MINUTES
+
+
 if __name__ == "__main__":
     import os
 

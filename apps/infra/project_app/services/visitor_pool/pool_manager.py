@@ -31,6 +31,7 @@ from .session_role import (
     SESSION_KEY_READONLY_REASON,
 )
 from .slot_lifecycle import (
+    IDLE_TIMEOUT_MINUTES,
     is_allocation_stale,
     quarantine_slot,
     release_slot,
@@ -47,7 +48,11 @@ class PoolAllocator:
     POOL_SIZE = None  # Will be set by VisitorPool
     SESSION_LIFETIME_HOURS = 1  # Base session time (extended on activity)
     SESSION_EXTENSION_MINUTES = 30  # Extend by this much on activity
-    IDLE_TIMEOUT_MINUTES = 30  # Release slot if idle longer than this
+    # Release slot if idle longer than this. Aliases the operative reaper
+    # constant (slot_lifecycle — same pattern as PoolCleanup) so anything
+    # quoting this class attr (e.g. the visitor banner) can never drift
+    # from the eviction behavior actually enforced.
+    IDLE_TIMEOUT_MINUTES = IDLE_TIMEOUT_MINUTES
     # Probation: a fresh allocation is a SHORT provisional lease, promoted
     # to the full session by the first heartbeat (extend_session_on_activity).
     # The heartbeat client fires within ~1s of page load, so any JS-executing

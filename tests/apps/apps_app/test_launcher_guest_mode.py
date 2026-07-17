@@ -13,6 +13,8 @@ All tests use the real Django test DB via django.test.TestCase — no mocks
 from django.contrib.auth.models import User
 from django.test import TestCase
 
+from apps.infra.project_app.services.visitor_pool.pool_manager import PoolAllocator
+
 
 class GuestModeLauncherTest(TestCase):
     """Visitor sessions at / get the launcher, not the landing redirect."""
@@ -134,6 +136,102 @@ class GuestModeLauncherTest(TestCase):
         resp = self.client.get("/")
         # Assert
         assert b"launcher-guest-cta" not in resp.content
+
+
+class VisitorBannerCopyTest(TestCase):
+    """Writable-visitor banner: identity + honest activity-based lifetime.
+
+    Operator report (Telegram 1301, card hub-visitor-banner-identity-and-
+    lifetime): "You have a full workspace for this session" said neither
+    WHO the session is nor how long it lasts. Post-#380 a visitor session
+    is not a fixed hour — heartbeats extend it while the user is active,
+    and the idle reaper reclaims it after
+    PoolAllocator.IDLE_TIMEOUT_MINUTES of inactivity. The banner must name
+    the visitor (same slice as the header's "Visitor #NNN" badge) and
+    quote the enforced constant, never hardcoded prose. The readonly
+    branch's copy stays as-is.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.pool_visitor = User.objects.create_user(
+            username="visitor-001",
+            password="TestPass123!",  # pragma: allowlist secret
+        )
+        cls.readonly_visitor = User.objects.create_user(
+            username="readonly-visitor",
+            password="TestPass123!",  # pragma: allowlist secret
+        )
+
+    def test_visitor_banner_names_the_visitor(self):
+        # Arrange
+        self.client.force_login(self.pool_visitor)
+        # Act
+        resp = self.client.get("/")
+        # Assert
+        assert b"visitor #001" in resp.content
+
+    def test_visitor_banner_quotes_idle_timeout_constant(self):
+        # Arrange
+        self.client.force_login(self.pool_visitor)
+        # Act
+        resp = self.client.get("/")
+        # Assert
+        assert (
+            f"~{PoolAllocator.IDLE_TIMEOUT_MINUTES} minutes of inactivity".encode()
+            in resp.content
+        )
+
+    def test_visitor_launcher_context_exposes_idle_timeout(self):
+        # Arrange
+        self.client.force_login(self.pool_visitor)
+        # Act
+        resp = self.client.get("/")
+        # Assert
+        assert (
+            resp.context["visitor_idle_timeout_minutes"]
+            == PoolAllocator.IDLE_TIMEOUT_MINUTES
+        )
+
+    def test_visitor_banner_says_workspace_stays_while_active(self):
+        # Arrange
+        self.client.force_login(self.pool_visitor)
+        # Act
+        resp = self.client.get("/")
+        # Assert
+        assert b"stays yours while" in resp.content
+
+    def test_visitor_banner_drops_fixed_session_claim(self):
+        # Arrange
+        self.client.force_login(self.pool_visitor)
+        # Act
+        resp = self.client.get("/")
+        # Assert
+        assert b"full workspace for this session" not in resp.content
+
+    def test_visitor_banner_keeps_signup_cta(self):
+        # Arrange
+        self.client.force_login(self.pool_visitor)
+        # Act
+        resp = self.client.get("/")
+        # Assert
+        assert b"Sign up to keep your work" in resp.content
+
+    def test_readonly_banner_copy_unchanged(self):
+        # Arrange
+        self.client.force_login(self.readonly_visitor)
+        # Act
+        resp = self.client.get("/")
+        # Assert
+        assert b"browsing read-only" in resp.content
+
+    def test_readonly_banner_makes_no_idle_timeout_claim(self):
+        # Arrange
+        self.client.force_login(self.readonly_visitor)
+        # Act
+        resp = self.client.get("/")
+        # Assert
+        assert b"minutes of inactivity" not in resp.content
 
 
 if __name__ == "__main__":
