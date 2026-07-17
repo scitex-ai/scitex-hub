@@ -61,6 +61,19 @@ class AppsModule(models.Model):
     )
     short_description = models.CharField(max_length=200, blank=True)
     long_description = models.TextField(blank=True)
+    # Display metadata — populated from the app's manifest.json (SSoT).
+    # Blank means the manifest declared none; readers fall back to a
+    # prettified module_name / generic icon rather than inventing data.
+    label = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Human-readable display name (manifest.json 'label')",
+    )
+    icon = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="FontAwesome class string (manifest.json 'icon')",
+    )
     category = models.CharField(
         max_length=30, choices=CATEGORY_CHOICES, default="other"
     )

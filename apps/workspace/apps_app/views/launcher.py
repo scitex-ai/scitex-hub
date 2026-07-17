@@ -77,6 +77,31 @@ def _default_order_value(name: str) -> int:
     return 500_000
 
 
+def _prettify_module_name(module_name: str) -> str:
+    """Human-readable fallback label for a store app with no manifest label.
+
+    "scitex-agentic-journal-app" -> "Agentic Journal": strip the
+    packaging noise (leading "scitex-"/"scitex_", trailing "-app"/"_app"),
+    replace separators with spaces, and title-case. A plain name just
+    title-cases ("mytool" -> "Mytool"). Pure and total: any string in, a
+    display string out; if stripping leaves nothing, the raw name is
+    returned rather than an empty tile. Never raises.
+    """
+    name = (module_name or "").strip()
+    for prefix in ("scitex-", "scitex_"):
+        if name.startswith(prefix):
+            name = name[len(prefix) :]
+            break
+    for suffix in ("-app", "_app"):
+        if name.endswith(suffix):
+            name = name[: -len(suffix)]
+            break
+    name = name.replace("-", " ").replace("_", " ").strip()
+    if not name:
+        return module_name
+    return name.title()
+
+
 def _version_label(version: str) -> str:
     """Format a manifest version for tile display.
 
@@ -332,8 +357,13 @@ def _build_tiles(request) -> list[dict]:
         tiles.append(
             {
                 "name": row.module_name,
-                "label": row.module_name,
-                "icon_fa": "fas fa-puzzle-piece",
+                # The MANIFEST-fed columns win (populated at publish/seed
+                # time — the manifest is the SSoT, mirroring the tile
+                # category fix). A blank column means the manifest declared
+                # nothing: fall back to a prettified slug / the generic
+                # puzzle icon — visible and honest, never fabricated.
+                "label": row.label or _prettify_module_name(row.module_name),
+                "icon_fa": row.icon or "fas fa-puzzle-piece",
                 "launch_url": f"/apps/store/{row.module_name}/",
                 "category": row.category,
                 "description": row.short_description,

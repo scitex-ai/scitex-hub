@@ -74,7 +74,11 @@ def api_submit_jwt(request):
         # Fetch HEAD commit SHA from author's Gitea repo
         pinned_commit = _fetch_head_commit(request.user.username, project.slug)
 
-        # Create or update AppsModule
+        # Create or update AppsModule. Display metadata (label/icon) comes
+        # from the manifest — the SSoT; missing keys leave the columns
+        # blank and the launcher's prettified fallback applies.
+        from ..services.manifest_display import manifest_display_fields
+
         app_module, _created = AppsModule.objects.update_or_create(
             module_name=module_name,
             defaults={
@@ -84,6 +88,7 @@ def api_submit_jwt(request):
                 "category": manifest.get("category", "other"),
                 "visibility": "private",
                 "pinned_commit": pinned_commit,
+                **manifest_display_fields(manifest),
             },
         )
 
