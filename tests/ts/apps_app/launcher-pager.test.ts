@@ -43,11 +43,14 @@ function build(tileCount: number, dockTop = DOCK_TOP): Harness {
 
   const dock = document.createElement("nav");
   dock.className = "launcher-dock";
-  dock.getBoundingClientRect = () => ({ top: dockTop }) as DOMRect;
-  // offsetParent is null for display:none in a real browser; jsdom always
-  // reports null, so force a truthy value — the pager uses it to tell a
-  // present dock (mobile) from an absent one (desktop).
-  Object.defineProperty(dock, "offsetParent", { value: document.body });
+  // The rect carries PRESENCE, not just position: the pager reads a
+  // non-zero height as "dock is rendered" (a display:none dock measures
+  // 0x0). It must NOT read offsetParent — that is null BY SPEC for
+  // position:fixed elements, which is exactly what the real dock is; the
+  // old offsetParent check (and the old test that force-defined
+  // offsetParent to make it pass) shipped a pager that never saw the dock
+  // in any real browser.
+  dock.getBoundingClientRect = () => ({ top: dockTop, height: 64 }) as DOMRect;
   document.body.appendChild(dock);
 
   const grid = document.createElement("div");
@@ -188,6 +191,43 @@ describe("LauncherPager", () => {
       expect(tileOrder(grid)).toHaveLength(count);
       void dots;
     }
+  });
+
+  it("sees a fixed dock whose offsetParent is null (the real-browser case)", () => {
+    // THE BUG THIS PINS (shipped in the pager from day one): dock presence
+    // was read off `offsetParent !== null`, but offsetParent is null BY SPEC
+    // for position:fixed elements — i.e. for the real dock, always. So in
+    // every real browser the pager floored at the viewport bottom, not the
+    // dock, and packed one extra row that rendered under it (prod 390x664:
+    // grid height 406 where 328 fit). jsdom leaves offsetParent null by
+    // default, which is exactly the honest fixture; the old suite only
+    // passed because it force-defined offsetParent truthy.
+    const { grid, pager } = build(12);
+    styleGap(grid);
+    const dock = document.querySelector<HTMLElement>(".launcher-dock");
+    expect(dock!.offsetParent).toBeNull(); // fixture matches the real browser
+
+    pager.apply();
+
+    // The floor must be the dock's rect top, not window.innerHeight.
+    expect(GRID_TOP + parseFloat(grid.style.height)).toBeLessThanOrEqual(
+      DOCK_TOP,
+    );
+  });
+
+  it("treats a zero-size dock as absent and floors at the viewport", () => {
+    // display:none (desktop, or dock removed) measures 0x0 — the pager must
+    // then use the viewport bottom, not a stale dock position.
+    const { grid, pager } = build(8);
+    styleGap(grid);
+    const dock = document.querySelector<HTMLElement>(".launcher-dock")!;
+    dock.getBoundingClientRect = () => ({ top: 0, height: 0 }) as DOMRect;
+
+    pager.apply();
+
+    const height = parseFloat(grid.style.height);
+    expect(GRID_TOP + height).toBeLessThanOrEqual(VIEWPORT_H);
+    expect(height).toBeGreaterThan(DOCK_TOP - GRID_TOP); // more room than the docked case
   });
 
   it("chunks tiles into pages without reordering them", () => {

@@ -180,14 +180,21 @@ export class LauncherPager {
    * only honest measure of where the usable area ends. Falling back to the
    * viewport bottom keeps this working on the (desktop-width) pages that have
    * no dock at all.
+   *
+   * Presence comes from the dock's RECT, never offsetParent: a position:fixed
+   * element reports offsetParent === null BY SPEC, so the old offsetParent
+   * check read the dock as absent in every real browser — pages were sized to
+   * the full viewport and the last row rendered under the dock (measured at
+   * 390x664 on prod: grid height 406 where 328 fit; the 844-tall case only
+   * looked right because the last row ended 1px above the dock). A
+   * display:none dock measures 0x0, which is exactly the absent case.
    */
   private rowsThatFit(sample: HTMLElement): number {
     const gridTop = this.grid.getBoundingClientRect().top;
     const dock = document.querySelector<HTMLElement>(".launcher-dock");
+    const dockRect = dock?.getBoundingClientRect();
     const floor =
-      dock && dock.offsetParent !== null
-        ? dock.getBoundingClientRect().top
-        : window.innerHeight;
+      dockRect && dockRect.height > 0 ? dockRect.top : window.innerHeight;
     const dotsRoom = this.dots.offsetHeight || 26;
 
     const available = Math.max(MIN_PAGE_HEIGHT, floor - gridTop - dotsRoom - 8);
