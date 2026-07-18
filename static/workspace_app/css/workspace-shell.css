@@ -261,9 +261,13 @@
     min-height: 0;
   }
 
-  /* Chat & Console live in the AI panel, not the module pane. */
-  .workspace-shell[data-active-module="chat"] .ws-ai-pane,
-  .workspace-shell[data-active-module="console"] .ws-ai-pane {
+  /* Only Chat lives in the AI panel. Console (xterm terminal + Monaco IDE
+     via console_partial.html) and Files/editor (the tree + viewer split that
+     already stacks vertically on mobile) render their REAL surface in the
+     MODULE pane, so they must fall through to the default above. Do NOT map
+     them to .ws-ai-pane / .ws-worktree-pane — that regression (PR #415)
+     showed the robot AI box on /console/ and an empty file tree on /files/. */
+  .workspace-shell[data-active-module="chat"] .ws-ai-pane {
     display: block !important;
     width: 100% !important;
     height: 100% !important;
@@ -271,21 +275,7 @@
     min-height: 0;
   }
 
-  .workspace-shell[data-active-module="chat"] .ws-module-pane,
-  .workspace-shell[data-active-module="console"] .ws-module-pane {
-    display: none !important;
-  }
-
-  /* Files / editor lives in the worktree file-tree pane. */
-  .workspace-shell[data-active-module="editor"] .ws-worktree-pane {
-    display: block !important;
-    width: 100% !important;
-    height: 100% !important;
-    flex: 1 1 auto;
-    min-height: 0;
-  }
-
-  .workspace-shell[data-active-module="editor"] .ws-module-pane {
+  .workspace-shell[data-active-module="chat"] .ws-module-pane {
     display: none !important;
   }
 }
