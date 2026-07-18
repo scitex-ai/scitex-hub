@@ -47,6 +47,14 @@
     display: none !important;
   }
 
+  /* No "ALL APPS" head on a phone (operator, Telegram 1474: "見たらわかる
+     じゃんスペースもったいない") — the grid is self-evident and every
+     vertical pixel belongs to the icons. Desktop keeps the head: with
+     search + category chips above the grid it labels which set you see. */
+  .launcher-section-head {
+    display: none;
+  }
+
   /* The launcher scrolls inside #main-content (workspace-shell.css);
      keep programmatic scrolls/anchors clear of the dock too. */
   body:has(.launcher) #main-content {
