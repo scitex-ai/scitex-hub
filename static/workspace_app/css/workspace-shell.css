@@ -231,6 +231,65 @@
   }
 }
 
+/* ── Mobile: collapse the 3-pane shell to a single active pane ── */
+/* shell.html renders three persistent panes side by side — AI (chat /
+   console), worktree (file tree) and module. On phones there is no room
+   for three columns, so show ONLY the pane carrying the active route's
+   content and hide the rest. Mirrors the single-active-pane model
+   workspace-layout.css uses for the .workspace-pane system (its ~114-137
+   @media block); the 767px breakpoint matches that file. Every selector is
+   scoped to .workspace-shell — which only shell.html renders — so the
+   identically named .ws-*-pane partials in the other pane system are
+   untouched. Routes (config/urls.py): /chat/→chat, /console/→console,
+   /files/→editor. */
+@media (max-width: 767px) {
+  .workspace-shell {
+    flex-direction: column;
+  }
+
+  /* Default (module routes): the module pane is the single content pane. */
+  .workspace-shell .ws-ai-pane,
+  .workspace-shell .ws-worktree-pane {
+    display: none !important;
+  }
+
+  .workspace-shell .ws-module-pane {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  /* Chat & Console live in the AI panel, not the module pane. */
+  .workspace-shell[data-active-module="chat"] .ws-ai-pane,
+  .workspace-shell[data-active-module="console"] .ws-ai-pane {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .workspace-shell[data-active-module="chat"] .ws-module-pane,
+  .workspace-shell[data-active-module="console"] .ws-module-pane {
+    display: none !important;
+  }
+
+  /* Files / editor lives in the worktree file-tree pane. */
+  .workspace-shell[data-active-module="editor"] .ws-worktree-pane {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .workspace-shell[data-active-module="editor"] .ws-module-pane {
+    display: none !important;
+  }
+}
+
 /* ── Prevent body margin-left from global AI panel rules ──── */
 body.scitex-ai-present #main-content {
   margin-left: 0 !important;
