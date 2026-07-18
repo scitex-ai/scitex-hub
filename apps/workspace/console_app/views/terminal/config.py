@@ -65,6 +65,33 @@ SLURM_USER_DATA_ROOT = Path(
 )
 
 # =============================================================================
+# Apptainer Persistent Overlay (SIF+overlay migration — DEFAULT OFF)
+# =============================================================================
+# Flag-gated, reversible foundation for the SIF+overlay migration.
+# When ENABLED, each user's terminal session mounts a persistent
+# per-user ``--overlay`` image (with ``--fakeroot``) in place of the
+# ephemeral ``--writable-tmpfs`` write layer, so their container state
+# persists across sessions.
+#
+# DEFAULT OFF: when disabled, the emitted apptainer command is
+# byte-identical to today's ``--writable-tmpfs`` behavior (see
+# ``resolve_overlay_kwargs`` in ``_command_builder.py`` — disabled
+# yields an empty kwargs dict, so nothing extra is passed through to
+# the scitex_container builders).
+#
+# Do NOT enable this without also provisioning the per-user overlay
+# images under ``OVERLAY_ROOT`` on the SLURM compute nodes.
+APPTAINER_OVERLAY_ENABLED = (
+    os.environ.get("SCITEX_HUB_APPTAINER_OVERLAY_ENABLED", "false").lower() == "true"
+)
+
+# Host directory (on the SLURM compute nodes) holding per-user overlay
+# images. Sibling of ``SLURM_USER_DATA_ROOT`` (/opt/scitex/data/users).
+OVERLAY_ROOT = os.environ.get(
+    "SCITEX_HUB_OVERLAY_ROOT", "/opt/scitex/data/overlays"
+)
+
+# =============================================================================
 # Dev Mode: Editable repo mounts
 # =============================================================================
 # In dev, bind-mount full repos into the container for editable install.

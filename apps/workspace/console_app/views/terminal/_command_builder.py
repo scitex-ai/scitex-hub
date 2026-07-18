@@ -23,9 +23,11 @@ from scitex_container.apptainer import (
 )
 
 from .config import (
+    APPTAINER_OVERLAY_ENABLED,
     DEV_REPOS,
     HOST_MOUNTS,
     HOST_TEXLIVE_PREFIX,
+    OVERLAY_ROOT,
     SLURM_CPUS,
     SLURM_MEMORY_GB,
     SLURM_PARTITION,
@@ -37,12 +39,51 @@ __all__ = [
     "is_sandbox",
     "build_dev_pythonpath",
     "build_host_mount_binds",
+    "resolve_overlay_kwargs",
     "build_apptainer_args",
     "build_srun_command",
     "build_instance_start_script_cmd",
     "build_sbatch_cmd",
     "build_shell_in_allocation_cmd",
 ]
+
+
+def resolve_overlay_kwargs(
+    username: str,
+    *,
+    enabled: bool,
+    overlay_root: str,
+) -> dict:
+    """Resolve the persistent-overlay kwargs for the scitex_container builders.
+
+    Pure decision helper for the SIF+overlay migration (DEFAULT OFF).
+
+    Parameters
+    ----------
+    username : str
+        Session username; selects the per-user overlay image.
+    enabled : bool
+        Whether persistent overlays are enabled (the
+        ``APPTAINER_OVERLAY_ENABLED`` flag).
+    overlay_root : str
+        Host directory holding per-user overlay images
+        (the ``OVERLAY_ROOT`` config value).
+
+    Returns
+    -------
+    dict
+        When ``enabled`` is True: ``{"overlay_path": "<root>/<user>.img",
+        "fakeroot": True}``. When False: an EMPTY dict, so splatting it
+        into a builder call (``build_exec_args(..., **kwargs)``) passes
+        nothing extra and the emitted command is byte-identical to the
+        ephemeral ``--writable-tmpfs`` behavior.
+    """
+    if not enabled:
+        return {}
+    return {
+        "overlay_path": f"{overlay_root}/{username}.img",
+        "fakeroot": True,
+    }
 
 
 def build_apptainer_args(
@@ -53,6 +94,11 @@ def build_apptainer_args(
     project_slug: str,
 ) -> list[str]:
     """Build ``apptainer exec`` args, injecting Django config automatically."""
+    overlay_kwargs = resolve_overlay_kwargs(
+        username,
+        enabled=APPTAINER_OVERLAY_ENABLED,
+        overlay_root=OVERLAY_ROOT,
+    )
     return build_exec_args(
         container_path=container_path,
         username=username,
@@ -62,6 +108,7 @@ def build_apptainer_args(
         dev_repos=DEV_REPOS or None,
         host_mounts=HOST_MOUNTS or None,
         texlive_prefix=HOST_TEXLIVE_PREFIX,
+        **overlay_kwargs,
     )
 
 
@@ -74,6 +121,11 @@ def build_srun_cmd(
     screen_session: str = "scitex-0",
 ) -> list[str]:
     """Build ``srun`` + ``apptainer`` command, injecting Django config automatically."""
+    overlay_kwargs = resolve_overlay_kwargs(
+        username,
+        enabled=APPTAINER_OVERLAY_ENABLED,
+        overlay_root=OVERLAY_ROOT,
+    )
     return build_srun_command(
         container_path=container_path,
         username=username,
@@ -88,6 +140,7 @@ def build_srun_cmd(
         slurm_cpus=SLURM_CPUS,
         slurm_memory_gb=SLURM_MEMORY_GB,
         screen_session=screen_session,
+        **overlay_kwargs,
     )
 
 
@@ -106,6 +159,11 @@ def build_instance_start_script_cmd(
     """
     import shlex
 
+    overlay_kwargs = resolve_overlay_kwargs(
+        username,
+        enabled=APPTAINER_OVERLAY_ENABLED,
+        overlay_root=OVERLAY_ROOT,
+    )
     script = build_instance_start_script(
         container_path=container_path,
         username=username,
@@ -116,6 +174,7 @@ def build_instance_start_script_cmd(
         dev_repos=DEV_REPOS or None,
         host_mounts=HOST_MOUNTS or None,
         texlive_prefix=HOST_TEXLIVE_PREFIX,
+        **overlay_kwargs,
     )
 
     # Inject stale-instance cleanup before "apptainer instance start"
