@@ -292,12 +292,25 @@ def _build_tiles(request) -> list[dict]:
             seen.add(mod.name)
             continue
         row = catalog.get(mod.name)
+        # Availability: manifest declaration wins (ships with the app);
+        # the catalog row carries it for store-published registrations
+        # (their manifest lives in another repo — migration 0017 seeds
+        # the operator-named coming_soon rows). Same precedence rule as
+        # category below.
+        availability = mod.availability or (
+            row.availability if row else "available"
+        )
         tiles.append(
             {
                 "name": mod.name,
                 "label": mod.label,
                 "icon_fa": mod.icon_fa or "fas fa-puzzle-piece",
                 "launch_url": mod.get_url(),
+                "availability": availability,
+                # Coming-soon tiles must never navigate (operator: a tap
+                # effect is fine, navigation is not). The template drops
+                # the href from this single flag.
+                "is_launchable": availability != "coming_soon",
                 # The MANIFEST wins: an app declares what it is, and that
                 # declaration ships with the app. The AppsModule row is a
                 # per-deployment catalogue entry that a freshly-mounted plugin
@@ -342,6 +355,9 @@ def _build_tiles(request) -> list[dict]:
                 "icon_fa": row.icon or "fas fa-puzzle-piece",
                 "launch_url": f"/apps/store/{row.module_name}/",
                 "category": row.category,
+                # No registry entry here, so the catalog row IS the SSoT.
+                "availability": row.availability,
+                "is_launchable": row.availability != "coming_soon",
                 "description": row.short_description,
                 # Community store apps are not in the registry (no manifest
                 # here); omit the version rather than invent one.
@@ -368,6 +384,10 @@ def _build_tiles(request) -> list[dict]:
                     "icon_fa": dev.icon or "fas fa-puzzle-piece",
                     "launch_url": f"/apps/{dev.module_name}/",
                     "category": "other",
+                    # Dev installs are the developer's own work-in-progress;
+                    # gating their launch would block the dev loop itself.
+                    "availability": "available",
+                    "is_launchable": True,
                     "description": dev.description,
                     # Dev-installed apps carry no manifest version — mark "dev".
                     "version": "dev",

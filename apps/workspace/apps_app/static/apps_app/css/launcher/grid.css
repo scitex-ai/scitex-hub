@@ -115,6 +115,51 @@
   color: #fff;
 }
 
+/* ---------- Availability (registry/catalog field, honest can/cannot
+   signalling at the icon — operator, Telegram 1483) ---------- */
+
+/* Coming Soon: badged and visibly not-ready everywhere. The tile keeps
+   the press-in tap effect (an explicit operator allowance) but carries
+   no href, so nothing navigates. */
+.launcher-badge-coming-soon {
+  background: var(--workspace-bg-elevated, var(--workspace-bg-tertiary));
+  color: var(--workspace-text-secondary);
+  border: 1px solid var(--workspace-border-default);
+  white-space: nowrap;
+}
+
+.launcher-tile[data-availability="coming_soon"] {
+  cursor: default;
+}
+
+.launcher-tile[data-availability="coming_soon"] .launcher-tile-icon {
+  opacity: 0.45;
+  filter: saturate(0.35);
+}
+
+.launcher-tile[data-availability="coming_soon"] .launcher-tile-name {
+  opacity: 0.6;
+}
+
+/* Not-ready tiles do not pretend: no hover lift, no hover highlight. */
+.launcher-tile[data-availability="coming_soon"]:hover {
+  background: transparent;
+}
+
+.launcher-tile[data-availability="coming_soon"]:hover .launcher-tile-icon {
+  transform: none;
+}
+
+/* Desktop-only: fully usable here, so the desktop grid shows nothing.
+   The badge + dimming appear under the mobile breakpoint (mobile.css). */
+.launcher-badge-desktop-only {
+  display: none;
+  background: var(--workspace-bg-elevated, var(--workspace-bg-tertiary));
+  color: var(--workspace-text-secondary);
+  border: 1px solid var(--workspace-border-default);
+  white-space: nowrap;
+}
+
 .launcher-dot-installed {
   position: absolute;
   bottom: 34px;
