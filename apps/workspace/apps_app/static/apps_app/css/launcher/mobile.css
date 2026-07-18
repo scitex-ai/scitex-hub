@@ -1,0 +1,267 @@
+/* ============================================================
+   App Launcher — mobile dock + responsive breakpoints
+   ============================================================ */
+
+/* ---------- Mobile dock ---------- */
+.launcher-dock {
+  display: none;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 960px) {
+  .launcher-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* Mobile nav unification (operator msgs 608-610): on mobile the
+   launcher page navigates via launcher + bottom dock ONLY — the left
+   sidebar icon rail is hidden and content takes the full width.
+   767px matches the workspace-sidebar mobile breakpoint so no width
+   range mixes rail + dock. Desktop keeps the sidebar as-is. */
+@media (max-width: 767px) {
+  /* Single source of truth for the scroll clearance the fixed dock
+     needs (operator iPhone report 2026-07-08: the last tile row must
+     scroll fully ABOVE the dock): dock box (~62px) + its 14px bottom
+     offset + a breathing gap + the iOS home-bar inset. */
+  :root {
+    --launcher-dock-height: 64px;
+    --launcher-dock-clearance: calc(
+      var(--launcher-dock-height) + 14px + 24px +
+        env(safe-area-inset-bottom, 0px)
+    );
+  }
+
+  /* global-base.css sizes body.workspace-page with 100vh — on iOS
+     Safari that is the LARGE viewport, so the shell's bottom edge
+     (and any clearance inside it) hides under the dynamic toolbar
+     while the fixed dock floats above it. dvh tracks the VISUAL
+     viewport; browsers without dvh keep the 100vh fallback. */
+  body.workspace-page:has(.launcher) {
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+
+  body:has(.launcher) .workspace-sidebar,
+  body:has(.launcher) .sidebar-backdrop {
+    display: none !important;
+  }
+
+  /* No "ALL APPS" head on a phone (operator, Telegram 1474: "見たらわかる
+     じゃんスペースもったいない") — the grid is self-evident and every
+     vertical pixel belongs to the icons. Desktop keeps the head: with
+     search + category chips above the grid it labels which set you see. */
+  .launcher-section-head {
+    display: none;
+  }
+
+  /* The launcher scrolls inside #main-content (workspace-shell.css);
+     keep programmatic scrolls/anchors clear of the dock too. */
+  body:has(.launcher) #main-content {
+    scroll-padding-bottom: var(--launcher-dock-clearance);
+  }
+
+  /* Dock fixed to the bottom of the VIEWPORT. launcher.ts re-parents
+     the dock to <body> on init so no transformed/zoomed ancestor can
+     hijack the containing block (the iOS "dock floats mid-screen"
+     failure). iOS safe-area padding keeps it above the home bar. */
+  .launcher-dock {
+    display: flex;
+    position: fixed;
+    left: 50%;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    gap: 6px;
+    padding: 8px 10px;
+    z-index: 1100;
+    background: var(--workspace-bg-elevated, var(--workspace-bg-tertiary));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--workspace-border-default);
+    border-radius: 22px;
+    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5);
+  }
+
+  .launcher-dock-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    width: 62px;
+    padding: 5px 0;
+    border-radius: 14px;
+    cursor: pointer;
+    color: var(--workspace-text-muted, var(--text-muted));
+    text-decoration: none;
+    font-size: 9.5px;
+  }
+
+  .launcher-dock-item i {
+    font-size: 18px;
+  }
+
+  .launcher-dock-item.active {
+    color: var(--app-accent-hub, #6a5a8a);
+    background: var(--app-accent-hub-tint, rgba(106, 90, 138, 0.12));
+  }
+
+  /* Keep the last tile row above the fixed dock. Only needed while the grid
+     still scrolls vertically (no-JS, or a viewport too short to page): once
+     paged, the pager has already sized the pages to end above the dock, and
+     this padding would push the whole launcher past the viewport and bring the
+     vertical scrollbar — and the overlap — straight back. */
+  .launcher {
+    padding-bottom: var(--launcher-dock-clearance);
+  }
+
+  .launcher:has(.launcher-grid--paged) {
+    padding-bottom: 0;
+  }
+
+  /* ---------- Horizontal pages (iPhone home) ----------
+     The grid used to scroll VERTICALLY and ran under the fixed dock — the
+     last row of icons sat behind it (measured: 56px of overlap on an iPhone
+     13). Padding alone cannot fix that: it has to be re-tuned for every dock
+     height / safe-area / dynamic-toolbar state, and one more installed app
+     hides a row again.
+
+     So the grid becomes a horizontal PAGER. launcher/pager.ts sizes each page
+     to the space actually free ABOVE the dock (it measures the dock's rect)
+     and chunks the tiles into pages, so a tile can never land under the dock
+     for ANY number of apps. Overflow goes sideways — swipe right for more.
+     Desktop keeps the plain vertical grid; the dock is mobile-only. */
+  .launcher-grid--paged {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0;
+    margin-bottom: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .launcher-grid--paged::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Pages are FULL-width — a page never shows a sliver of its neighbour.
+     The 88% "peek" affordance tried here first (Telegram 1402) clipped the
+     rightmost column mid-icon, which reads as a rendering bug, not a hint
+     (operator, Telegram 1453: "みきれてるとカッコ悪いのでiPhoneみたいに
+     きれいにして"). The dots pinned above the dock are the paging
+     affordance, exactly as on the iOS home screen. */
+  .launcher-page {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    /* Never leave a page straddling the fold on a fast flick. */
+    scroll-snap-stop: always;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: min-content;
+    gap: 26px 14px;
+    align-content: start;
+  }
+
+  /* Page dots. Hidden (via [hidden]) when there is only one page — a lone dot
+     communicates nothing and just eats vertical space we need for icons.
+     PINNED just above the dock (operator: the dots overlapped the dock when
+     left in flow — flow bottom vs the fixed dock depends on content height,
+     fixed-above-fixed does not). rowsThatFit() already reserves this band
+     (dotsRoom) when sizing pages, so the dots never sit on a tile row. */
+  .launcher-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    padding: 0;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(
+      var(--launcher-dock-height) + 14px + 8px +
+        env(safe-area-inset-bottom, 0px)
+    );
+    z-index: 1100;
+  }
+
+  .launcher-dots[hidden] {
+    display: none;
+  }
+
+  .launcher-dot {
+    width: 7px;
+    height: 7px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--workspace-text-muted, var(--text-muted));
+    opacity: 0.28;
+    cursor: pointer;
+    transition: opacity 0.18s ease;
+  }
+
+  .launcher-dot.active {
+    opacity: 0.95;
+  }
+
+  /* One read-only notice, not two. The launcher already shows a full
+     "You're browsing read-only — sign in" card with the actions on it; the
+     header's mobile Read-Only badge on the SAME screen is a second copy of the
+     same message stacked right above it (operator, 2026-07-13: "ワーニングの上
+     のやつが重なっててうざいです、下に隠れている一つでいいのでは？"). Keep the
+     card (it carries the Sign in / Sign up buttons), drop the badge — but only
+     where the card is actually present, so every OTHER page keeps the badge as
+     its only session indicator. */
+  body:has(.launcher-guest-cta) .header-visitor-badge-mobile {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .launcher {
+    padding: 22px 14px var(--launcher-dock-clearance);
+  }
+
+  .launcher:has(.launcher-grid--paged) {
+    padding-bottom: 0;
+  }
+
+  .launcher-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px 8px;
+  }
+
+  /* Phone-tight spacing for the paged layout (the pager's rows-per-page maths
+     reads this row-gap back off the computed style, so the two cannot drift). */
+  .launcher-page {
+    gap: 22px 8px;
+  }
+
+  .launcher-tile-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .launcher-tile-icon i {
+    font-size: 24px;
+  }
+
+  .launcher-tile-name {
+    font-size: 11px;
+    max-width: 80px;
+  }
+
+  .launcher-badge {
+    transform: translateX(40px);
+  }
+
+  .launcher-dot-installed {
+    transform: translateX(34px);
+    bottom: 32px;
+  }
+}
+
+/* EOF */

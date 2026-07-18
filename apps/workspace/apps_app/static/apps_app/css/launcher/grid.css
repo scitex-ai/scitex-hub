@@ -1,0 +1,317 @@
+/* ---------- App grid ---------- */
+.launcher-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 26px 14px;
+  margin-bottom: 40px;
+}
+
+.launcher-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 10px 4px 8px;
+  border-radius: 14px;
+  /* Tiles are <a> elements. Without this the browser's native link-drag
+     hijacks a press-and-move and swallows pointermove, so drag-to-reorder
+     silently does nothing. Belt-and-braces with preventDefault on dragstart
+     in launcher.ts; also stops the iOS long-press callout. */
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.launcher-tile:hover {
+  background: rgba(128, 128, 128, 0.08);
+  text-decoration: none;
+}
+
+.launcher-tile-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  /* Springy pop — the overshoot on settle gives icons an iOS "bounce". */
+  transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.launcher-tile:hover .launcher-tile-icon {
+  transform: translateY(-3px) scale(1.05);
+}
+
+/* Press-in bounce: quick scale-down on tap; springs back on release via
+   the base transition's overshoot. Makes every tap feel physical. */
+.launcher-tile:active .launcher-tile-icon {
+  transform: scale(0.9);
+  transition: transform 0.09s ease-out;
+}
+
+.launcher-tile-icon i {
+  font-size: 26px;
+  color: #fff;
+}
+
+.launcher-tile-name {
+  font-size: 12.5px;
+  color: var(--workspace-text-secondary);
+  text-align: center;
+  max-width: 104px;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.launcher-tile:hover .launcher-tile-name {
+  color: var(--workspace-text-primary);
+}
+
+/* Deployed version (from the app manifest) — subtle line under the name.
+   Muted so it never competes with the app name; brightens slightly on hover.
+   Reuses the launcher text token so it tracks light/dark automatically. */
+.launcher-tile-version {
+  margin-top: -4px;
+  font-size: 8px;
+  line-height: 1;
+  opacity: 0.7;
+  color: var(--workspace-text-secondary);
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.launcher-tile:hover .launcher-tile-version {
+  opacity: 0.85;
+}
+
+/* ---------- Badges + installed dot ---------- */
+.launcher-badge {
+  position: absolute;
+  top: 4px;
+  right: 50%;
+  transform: translateX(46px);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 999px;
+  z-index: 2;
+}
+
+.launcher-badge-new {
+  background: var(--app-accent-hub, #6a5a8a);
+  color: #fff;
+}
+
+.launcher-dot-installed {
+  position: absolute;
+  bottom: 34px;
+  right: 50%;
+  transform: translateX(38px);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success-color, #6ba89a);
+  border: 2px solid var(--workspace-bg-primary);
+  z-index: 2;
+}
+
+/* ---------- Icon gradients (palette keyed by category) ----------
+   Follow-up: replace with manifest-driven per-app branding. */
+.launcher-tile-icon[data-tile-category="writing"] {
+  background: linear-gradient(135deg, #4c8dff, #2f5fd0);
+}
+
+.launcher-tile-icon[data-tile-category="reference"] {
+  background: linear-gradient(135deg, #9d7bff, #6b46c1);
+}
+
+.launcher-tile-icon[data-tile-category="visualization"] {
+  background: linear-gradient(135deg, #ff8a5c, #d95f2b);
+}
+
+.launcher-tile-icon[data-tile-category="data"] {
+  background: linear-gradient(135deg, #39c6c0, #1f8a8a);
+}
+
+.launcher-tile-icon[data-tile-category="analysis"] {
+  background: linear-gradient(135deg, #ffb454, #e08c1a);
+}
+
+.launcher-tile-icon[data-tile-category="utility"] {
+  background: linear-gradient(135deg, #8b98a9, #5b6572);
+}
+
+.launcher-tile-icon[data-tile-category="social"] {
+  background: linear-gradient(135deg, #63d489, #2f9e5f);
+}
+
+.launcher-tile-icon[data-tile-category="other"],
+.launcher-tile-icon:not([data-tile-category]) {
+  background: linear-gradient(135deg, #e4b34a, #b8862b);
+}
+
+/* ---------- Context popover (flip/shift-aware, built by TS) ---------- */
+.launcher-popover {
+  position: fixed;
+  width: 176px;
+  z-index: 1200;
+  background: var(--workspace-bg-elevated, var(--workspace-bg-tertiary));
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+}
+
+.launcher-pop-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 9px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--workspace-text-secondary);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-family: inherit;
+  text-decoration: none;
+}
+
+.launcher-pop-item i {
+  width: 14px;
+  text-align: center;
+}
+
+.launcher-pop-item:hover {
+  background: var(--workspace-bg-tertiary);
+  color: var(--workspace-text-primary);
+  text-decoration: none;
+}
+
+.launcher-pop-item.primary {
+  background: var(--app-accent-hub, #6a5a8a);
+  color: #fff;
+  font-weight: 600;
+}
+
+.launcher-pop-sep {
+  height: 1px;
+  background: var(--workspace-border-subtle);
+  margin: 5px 4px;
+}
+
+/* Dim the grid while a popover is open so the active tile stands out */
+.launcher-grid.popover-open .launcher-tile:not(.popover-anchor) {
+  opacity: 0.45;
+}
+
+.launcher-tile.popover-anchor .launcher-tile-icon {
+  outline: 2px solid var(--app-accent-hub, #6a5a8a);
+  outline-offset: 3px;
+}
+
+/* ---------- Edit / rearrange mode (iPhone-home jiggle + drag) ----------
+   Long-press (touch) or the right-click "Rearrange" action toggles
+   .edit-mode on the grid: every tile wiggles and can be dragged to a new
+   slot. Order persists via POST api/reorder/ on exit (see launcher.ts). */
+@keyframes launcher-jiggle {
+  0% {
+    transform: rotate(-1.15deg);
+  }
+  50% {
+    transform: rotate(1.15deg);
+  }
+  100% {
+    transform: rotate(-1.15deg);
+  }
+}
+
+.launcher-grid.edit-mode .launcher-tile {
+  animation: launcher-jiggle 0.24s ease-in-out infinite;
+  cursor: grab;
+  /* A press that starts on a tile drags it — never scrolls the page. */
+  touch-action: none;
+}
+
+/* Stagger the phase so tiles don't wiggle in lockstep (more organic). */
+.launcher-grid.edit-mode .launcher-tile:nth-child(2n) {
+  animation-duration: 0.26s;
+  animation-delay: -0.13s;
+}
+
+.launcher-grid.edit-mode .launcher-tile:nth-child(3n) {
+  animation-duration: 0.22s;
+  animation-delay: -0.07s;
+}
+
+/* The hover lift fights the jiggle — suppress it while editing. */
+.launcher-grid.edit-mode .launcher-tile:hover .launcher-tile-icon {
+  transform: none;
+}
+
+/* The tile being dragged: KEEPS wiggling (iOS does — the icon under your
+   finger goes on jiggling), floats above, scales up. It inherits the
+   launcher-jiggle animation from the .edit-mode rule above; do NOT set
+   `animation: none` here (that froze the very tile you are moving). The
+   jiggle rotates the TILE while the scale/shadow below lift the ICON, so
+   the two transforms never fight. */
+.launcher-grid.edit-mode .launcher-tile.dragging {
+  z-index: 5;
+  cursor: grabbing;
+  opacity: 0.96;
+  /* Let elementFromPoint see the tile beneath the one being dragged. */
+  pointer-events: none;
+}
+
+.launcher-grid.edit-mode .launcher-tile.dragging .launcher-tile-icon {
+  transform: scale(1.14);
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* NOTE: the floating "Done" pill was REMOVED (operator, 2026-07-13: it read
+   as meaningless). Edit mode now exits by tapping anywhere OUTSIDE a tile,
+   or Escape — see launcher.ts. Do not reintroduce a Done button. */
+
+/* Reduced motion: drop the wobble, but NEVER leave edit mode invisible.
+   A bare `animation: none` here removed the only signal that the grid had
+   become editable — a user with "reduce motion" on (a very common setting)
+   long-pressed and saw nothing happen. Keep the affordance, lose the motion:
+   a frozen alternating tilt plus a dashed ring reads as "these are pick-up-able"
+   without anything moving. Drag-to-reorder is unaffected either way. */
+@media (prefers-reduced-motion: reduce) {
+  .launcher-grid.edit-mode .launcher-tile {
+    animation: none;
+    transform: rotate(-1.2deg);
+  }
+
+  .launcher-grid.edit-mode .launcher-tile:nth-child(2n) {
+    transform: rotate(1.2deg);
+  }
+
+  .launcher-grid.edit-mode .launcher-tile .launcher-tile-icon {
+    outline: 2px dashed var(--app-accent-hub, #6a5a8a);
+    outline-offset: 3px;
+  }
+
+  /* The lifted tile stays upright so it reads as "held". */
+  .launcher-grid.edit-mode .launcher-tile.dragging {
+    transform: none;
+  }
+}
