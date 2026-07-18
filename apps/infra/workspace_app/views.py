@@ -149,6 +149,15 @@ def workspace_shell(request, module="chat"):
     if not request.user.is_authenticated:
         return redirect("public_app:landing")
 
+    # The legacy 3-pane robot-icon chat shell is RETIRED: the chat module now
+    # renders as the snake-logo pane in the unified workspace layout. Redirect
+    # any direct hit on the chat shell (/apps/workspace/chat/, and the bare
+    # /apps/workspace/ which defaults to module="chat") to the canonical /chat/
+    # route so the robot chat can never be reached again. Other modules
+    # (console, editor) keep the shell — they are separate lanes.
+    if module == "chat":
+        return redirect("pane-chat")
+
     from apps.infra.project_app.services.project_utils import get_current_project
 
     current_project = get_current_project(request)

@@ -38,9 +38,13 @@ def workspace_context(request):
     if path.rstrip("/") == "/new" and request.user.is_authenticated:
         is_ws = True
 
-    # Core pane paths (/chat/, /console/, /files/) → workspace with panes
+    # Core pane paths (/chat/, /console/, /files/) → workspace with panes.
+    # /chat/ also covers the session deep-link /chat/<uuid>/, so match the
+    # whole /chat/ subtree — the chat pane must render there too, not just on
+    # the bare /chat/ path.
     _CORE_PANE_PATHS = {"/chat/", "/console/", "/files/"}
-    if path in _CORE_PANE_PATHS and request.user.is_authenticated:
+    is_core_pane_path = path in _CORE_PANE_PATHS or path.startswith("/chat/")
+    if is_core_pane_path and request.user.is_authenticated:
         is_ws = True
 
     # /ai-setup/ and /search/ paths → workspace with panes
@@ -59,7 +63,7 @@ def workspace_context(request):
         if request.user.is_authenticated and (
             _is_user_profile_path(path)
             or path.rstrip("/") == "/new"
-            or path in _CORE_PANE_PATHS
+            or is_core_pane_path
             or path.startswith("/accounts/")
         ):
             has_panes = True
