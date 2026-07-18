@@ -189,14 +189,22 @@ ifdef ENV
     endif
   else ifeq ($(ENV),staging)
     DOCKER_DIR := $(DOCKER_BASE_DIR)
-    COMPOSE_CMD := docker compose -f docker-compose.yml -f docker-compose.staging.yml
+    # --env-file (ABSOLUTE) feeds SCITEX_HUB_*_STAGING vars at compose-time.
+    # Was silently omitted here, so staging targets (e.g. rebuild-no-cache)
+    # ran compose with every ${...} blank — the staging sibling of the prod
+    # env-file drop. Kept in sync with scripts/deploy/compose_env.sh.
+    COMPOSE_CMD := docker compose --env-file $(CURDIR)/$(DOCKER_BASE_DIR)/envs/.env.staging -f docker-compose.yml -f docker-compose.staging.yml
   else ifeq ($(ENV),prod)
     DOCKER_DIR := $(DOCKER_BASE_DIR)/docker_prod
-    # --env-file ../envs/.env.prod feeds SCITEX_HUB_*_PROD vars at compose-time
+    # --env-file (ABSOLUTE) feeds SCITEX_HUB_*_PROD vars at compose-time
     # (cloudflared token, ports). Symmetric with staging COMPOSE_CMD above.
     # Closes RC-6's compose-time-substitution sibling gap surfaced in the
     # 2026-06-06 cutover (docs/incidents/2026-06-06-prod-cutover-cloud-to-hub.md).
-    COMPOSE_CMD := docker compose --env-file ../envs/.env.prod
+    # ABSOLUTE (not cwd-relative ../envs/.env.prod): compose resolves --env-file
+    # from the caller's cwd, so a relative path silently loads nothing whenever
+    # a target does not cd into DOCKER_DIR first. Mirrors compose_env.sh
+    # (card hub-make-rebuild-drops-env-file).
+    COMPOSE_CMD := docker compose --env-file $(CURDIR)/$(DOCKER_BASE_DIR)/envs/.env.prod
   endif
   # Export SCITEX_ENV for docker-compose to use in env_file selection
   export SCITEX_ENV := $(ENV)

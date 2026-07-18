@@ -31,15 +31,25 @@ resolve_compose_env() {
     staging)
         DOCKER_DIR="$project_root/deployment/docker"
         export SCITEX_ENV=staging
-        COMPOSE_CMD="docker compose --env-file ./envs/.env.staging -f docker-compose.yml -f docker-compose.staging.yml"
+        COMPOSE_CMD="docker compose --env-file $project_root/deployment/docker/envs/.env.staging -f docker-compose.yml -f docker-compose.staging.yml"
         ;;
     prod)
-        # --env-file ../envs/.env.prod feeds SCITEX_HUB_*_PROD vars at
-        # compose-time (cloudflared token, ports). Symmetric with staging.
-        # Closes RC-6's compose-time-substitution sibling gap surfaced in the
-        # 2026-06-06 cutover (docs/incidents/2026-06-06-prod-cutover-cloud-to-hub.md).
+        # --env-file feeds SCITEX_HUB_*_PROD vars at compose-time (cloudflared
+        # token, ports). Symmetric with staging. Closes RC-6's compose-time-
+        # substitution sibling gap surfaced in the 2026-06-06 cutover
+        # (docs/incidents/2026-06-06-prod-cutover-cloud-to-hub.md).
+        #
+        # ABSOLUTE path (not the old cwd-relative ../envs/.env.prod): compose
+        # resolves --env-file relative to the CALLER's cwd, so a relative path
+        # only works when every caller happens to cd into DOCKER_DIR first. When
+        # it does NOT, --env-file silently loads nothing and every ${VAR:?}
+        # guard in docker_prod/docker-compose.yml aborts the build (e.g.
+        # `make ENV=prod rebuild` failing on SCITEX_HUB_POSTGRES_PASSWORD while
+        # `rebuild.sh` run by hand worked — card hub-make-rebuild-drops-env-file).
+        # An absolute path is cwd-independent, so the sanctioned deploy path and
+        # any manual `compose.sh` call resolve the same env-file every time.
         DOCKER_DIR="$project_root/deployment/docker/docker_prod"
-        COMPOSE_CMD="docker compose --env-file ../envs/.env.prod"
+        COMPOSE_CMD="docker compose --env-file $project_root/deployment/docker/envs/.env.prod"
         ;;
     dev)
         DOCKER_DIR="$project_root/deployment/docker/docker_dev"
