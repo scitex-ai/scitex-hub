@@ -8,7 +8,12 @@ import importlib.metadata as _metadata
 import logging
 from typing import Any
 
-from apps.infra.workspace_app.registry import ModuleConfig, get_module, register_module
+from apps.infra.workspace_app.registry import (
+    AVAILABILITY_STATES,
+    ModuleConfig,
+    get_module,
+    register_module,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +129,12 @@ def load_single_app(app_module):
         order=90,  # After built-in modules
         default_enabled=False,  # User must install from app catalog
         ai_hint=app_module.short_description or "",
+        # availability is deliberately NOT baked in here: store-published
+        # apps have no local manifest, so their catalog row IS the SSoT
+        # (e.g. Live Paper / Agentic Journal marked coming_soon by
+        # migration 0017). The launcher reads the row live whenever the
+        # config declares nothing — an admin flip takes effect without a
+        # process restart, and there is exactly one read path.
         license=_get_license(app_module),
         # Explicit navigation URL. Without it ModuleConfig.get_url()
         # defaults to /apps/<module_name>/, which is NOT a mounted
@@ -236,6 +247,14 @@ def load_dev_apps(app_dirs):
             name = data.get("name", app_path.name)
             if get_module(name):
                 continue
+            availability = data.get("availability", "")
+            if availability and availability not in AVAILABILITY_STATES:
+                # Fail THIS app loudly (logged below) rather than render a
+                # typo'd state as a normal launchable tile.
+                raise ValueError(
+                    f"Unknown availability {availability!r} in {manifest}; "
+                    f"expected one of {AVAILABILITY_STATES}"
+                )
             config = ModuleConfig(
                 name=name,
                 label=data.get("label", name.replace("_", " ").title()),
@@ -246,6 +265,7 @@ def load_dev_apps(app_dirs):
                 order=90,
                 default_enabled=True,
                 status="wip",
+                availability=availability,
                 ai_hint=data.get("description", ""),
                 version=data.get("version", ""),
             )

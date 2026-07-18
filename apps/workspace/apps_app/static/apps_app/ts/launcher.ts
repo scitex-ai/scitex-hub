@@ -32,6 +32,36 @@ const LONG_PRESS_MS = 420;
 // On a paged grid this is also what lets a horizontal SWIPE turn the page
 // instead of picking a tile up.
 const MOVE_CANCEL_PX = 10;
+// Must match the launcher mobile breakpoint (launcher/mobile.css): the
+// same width that swaps the sidebar for the dock also decides where
+// "desktop-only" starts to matter, so badge and behaviour cannot disagree.
+const MOBILE_BREAKPOINT_QUERY = "(max-width: 767px)";
+
+/**
+ * Availability gate — the tile state is a registry/catalog FIELD rendered
+ * into data-availability (operator, Telegram 1483: communicate can/cannot
+ * AT the icon). Coming-soon tiles already carry no href (server-side);
+ * blocking here is defence in depth. Desktop-only tiles keep their href,
+ * but a phone tap gets an explanatory toast instead of a dead-end app.
+ * Returns true when the launch was blocked.
+ */
+function blockUnavailableLaunch(e: Event, tile: HTMLElement): boolean {
+  const availability = tile.dataset.availability || "available";
+  if (availability === "coming_soon") {
+    e.preventDefault();
+    return true;
+  }
+  if (
+    availability === "desktop_only" &&
+    window.matchMedia(MOBILE_BREAKPOINT_QUERY).matches
+  ) {
+    e.preventDefault();
+    const label = tile.dataset.label || "This app";
+    showToast(`${label} is desktop-only — open it on a larger screen.`, "info");
+    return true;
+  }
+  return false;
+}
 
 class AppLauncher {
   private grid: HTMLElement;
@@ -91,11 +121,16 @@ class AppLauncher {
       if (tile) this.handlePointerDown(e, tile);
     });
     this.grid.addEventListener("click", (e) => {
-      if (!(e.target as HTMLElement).closest(".launcher-tile")) return;
+      const tile = (e.target as HTMLElement).closest<HTMLElement>(
+        ".launcher-tile",
+      );
+      if (!tile) return;
       if (this.editMode || this.suppressClick) {
         e.preventDefault();
         e.stopPropagation();
+        return;
       }
+      blockUnavailableLaunch(e, tile);
     });
 
     document.addEventListener("click", (e) => {

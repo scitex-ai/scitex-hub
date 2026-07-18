@@ -83,6 +83,9 @@ def ensure_builtin_modules(author_username="ywatanabe"):
             # fall back to the generic puzzle icon.
             "label": mod.label,
             "icon": mod.icon_fa,
+            # Availability comes from the manifest too (SSoT for builtins).
+            # A manifest that declares nothing means fully available.
+            "availability": mod.availability or "available",
             "is_builtin": True,
             "is_verified": True,
             "visibility": "public",

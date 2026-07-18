@@ -207,6 +207,31 @@
     opacity: 0.95;
   }
 
+  /* ---------- Desktop-only apps on a phone (availability field) ----------
+     Same breakpoint as the dock/sidebar swap above, and as the
+     MOBILE_BREAKPOINT_QUERY matchMedia in launcher.ts that blocks the
+     launch — badge and behaviour can never disagree on where "mobile"
+     starts. The tile stays tappable: launcher.ts answers the tap with an
+     explanatory toast instead of a dead-end navigation. */
+  .launcher-badge-desktop-only {
+    display: inline-block;
+  }
+
+  /* Both badges would stack in the one badge slot; on a phone the
+     desktop-only warning outranks NEW (which stays desktop-visible). */
+  .launcher-badge-desktop-only + .launcher-badge-new {
+    display: none;
+  }
+
+  .launcher-tile[data-availability="desktop_only"] .launcher-tile-icon {
+    opacity: 0.55;
+    filter: saturate(0.5);
+  }
+
+  .launcher-tile[data-availability="desktop_only"] .launcher-tile-name {
+    opacity: 0.7;
+  }
+
   /* One read-only notice, not two. The launcher already shows a full
      "You're browsing read-only — sign in" card with the actions on it; the
      header's mobile Read-Only badge on the SAME screen is a second copy of the

@@ -39,6 +39,18 @@ VISIBILITY_CHOICES = [
     ("public", "Public"),
 ]
 
+# Launcher-tile availability (card hub-launcher-tile-availability-states).
+# Honest can/cannot signalling AT the home icon (operator, Telegram 1483):
+# "coming_soon" tiles badge + never navigate; "desktop_only" tiles badge +
+# block launch on a phone. Mirrors registry.AVAILABILITY_STATES — the
+# manifest wins for registry modules, this column carries the state for
+# store-published apps (which have no manifest on this host).
+AVAILABILITY_CHOICES = [
+    ("available", "Available"),
+    ("coming_soon", "Coming Soon"),
+    ("desktop_only", "Desktop-only"),
+]
+
 
 class AppsModule(models.Model):
     """Catalog entry for a workspace module."""
@@ -103,6 +115,19 @@ class AppsModule(models.Model):
         max_length=10,
         choices=VISIBILITY_CHOICES,
         default="private",
+    )
+    # Launcher-tile availability — the launcher renders badges and gates
+    # navigation from this single field (never hardcoded per-template).
+    # For registry modules the manifest declaration wins; this column is
+    # the SSoT for store-published apps without a local manifest.
+    availability = models.CharField(
+        max_length=15,
+        choices=AVAILABILITY_CHOICES,
+        default="available",
+        help_text=(
+            "Launcher-tile state: available, coming_soon (badge, not "
+            "launchable), desktop_only (badge + no launch on mobile)."
+        ),
     )
 
     # Source project link (for user-submitted apps)

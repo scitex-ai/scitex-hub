@@ -33,18 +33,33 @@
         </div>
         <div class="launcher-grid" id="launcher-grid">
             {% for tile in tiles %}
-                <a href="{{ tile.launch_url }}"
+                {# Availability is a registry/catalog FIELD (operator, Telegram #}
+                {# 1483) — the template only renders it. Coming-soon tiles get #}
+                {# no href at all: an <a> without href neither navigates nor   #}
+                {# focuses as a link, while the press-in tap effect survives.  #}
+                <a {% if tile.is_launchable %}href="{{ tile.launch_url }}"{% else %}aria-disabled="true"{% endif %}
                    class="launcher-tile"
                    draggable="false"
                    data-module="{{ tile.name }}"
                    data-category="{{ tile.category }}"
                    data-label="{{ tile.label }}"
+                   data-availability="{{ tile.availability }}"
                    data-installed="{% if tile.is_installed %}1{% else %}0{% endif %}"
                    data-pinned="{% if tile.is_pinned %}1{% else %}0{% endif %}"
                    data-detail-url="{{ tile.detail_url }}"
                    data-version="{{ tile.version }}"
-                   title="{{ tile.label }}{% if tile.version_label %} {{ tile.version_label }}{% endif %}{% if tile.description %} — {{ tile.description }}{% endif %}">
-                    {% if tile.is_new %}<span class="launcher-badge launcher-badge-new">NEW</span>{% endif %}
+                   title="{{ tile.label }}{% if tile.version_label %} {{ tile.version_label }}{% endif %}{% if tile.availability == 'coming_soon' %} — Coming Soon{% endif %}{% if tile.description %} — {{ tile.description }}{% endif %}">
+                    {# One badge slot: the availability badge outranks NEW — #}
+                    {# "you cannot use this yet" is the message that matters. #}
+                    {% if tile.availability == 'coming_soon' %}
+                        <span class="launcher-badge launcher-badge-coming-soon">Coming Soon</span>
+                    {% elif tile.availability == 'desktop_only' %}
+                        {# Visible on mobile only (launcher/mobile.css). #}
+                        <span class="launcher-badge launcher-badge-desktop-only">Desktop-only</span>
+                        {% if tile.is_new %}<span class="launcher-badge launcher-badge-new">NEW</span>{% endif %}
+                    {% elif tile.is_new %}
+                        <span class="launcher-badge launcher-badge-new">NEW</span>
+                    {% endif %}
                     {% if tile.is_installed %}<span class="launcher-dot-installed" title="Installed"></span>{% endif %}
                     <span class="launcher-tile-icon" data-tile-category="{{ tile.category }}">
                         <i class="{{ tile.icon_fa }}" aria-hidden="true"></i>
