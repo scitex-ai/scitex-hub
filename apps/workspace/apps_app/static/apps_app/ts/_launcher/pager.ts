@@ -215,11 +215,11 @@ export class LauncherPager {
   }
 
   private get pageWidth(): number {
-    // The REAL page width, not the container's: with the peek affordance
-    // (mobile.css sets flex-basis < 100% when there are 2+ pages so the
-    // next page's edge shows) a page is narrower than the grid, and
-    // scroll positions are multiples of the page width, not the
-    // viewport. jsdom reports offsetWidth 0 — fall back to clientWidth.
+    // The REAL page width, measured off a page, not assumed from the
+    // container: scroll positions are multiples of whatever flex-basis
+    // mobile.css gives a page (100% today; the retired 88% "peek" proved
+    // the two can drift), so measuring keeps the dot/scroll math correct
+    // under any CSS. jsdom reports offsetWidth 0 — fall back to clientWidth.
     const page = this.grid.querySelector<HTMLElement>(".launcher-page");
     return page?.offsetWidth || this.grid.clientWidth || 1;
   }

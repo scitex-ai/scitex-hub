@@ -139,10 +139,15 @@
     display: none;
   }
 
+  /* Pages are FULL-width — a page never shows a sliver of its neighbour.
+     The 88% "peek" affordance tried here first (Telegram 1402) clipped the
+     rightmost column mid-icon, which reads as a rendering bug, not a hint
+     (operator, Telegram 1453: "みきれてるとカッコ悪いのでiPhoneみたいに
+     きれいにして"). The dots pinned above the dock are the paging
+     affordance, exactly as on the iOS home screen. */
   .launcher-page {
     flex: 0 0 100%;
     scroll-snap-align: start;
-    /* (peek override below narrows this when there are 2+ pages) */
     /* Never leave a page straddling the fold on a fast flick. */
     scroll-snap-stop: always;
     display: grid;
@@ -150,16 +155,6 @@
     grid-auto-rows: min-content;
     gap: 26px 14px;
     align-content: start;
-  }
-
-  /* Horizontal-scroll affordance (operator, Telegram 1402: the paging was
-     invisible — "せっかくよこすくろーるなのにわからない"): with 2+ pages every
-     page leaves a sliver of the next one peeking at the right edge. A single
-     page keeps the full width (nothing to hint at). pager.ts reads the real
-     page width back (offsetWidth), so the dot/scroll math tracks whatever
-     basis is set here — change one and the other follows. */
-  .launcher-grid--paged:has(.launcher-page:nth-child(2)) .launcher-page {
-    flex-basis: 88%;
   }
 
   /* Page dots. Hidden (via [hidden]) when there is only one page — a lone dot

@@ -248,18 +248,20 @@ describe("LauncherPager", () => {
     expect(dots.hidden).toBe(true);
   });
 
-  it("scrolls by the REAL page width when pages peek (flex-basis < 100%)", () => {
-    // The peek affordance (mobile.css) narrows every page to 88% when there
-    // are 2+ pages so the next page's edge shows — the visible hint that the
-    // grid scrolls sideways (operator: the paging was invisible). Scroll
-    // positions are then multiples of the PAGE width, not the container's;
-    // the old pageWidth (clientWidth) would drift one-eighth of a page per
-    // page and land the dots on the wrong index.
+  it("scrolls by the MEASURED page width, not the container's", () => {
+    // Pages are full-width today, but the scroller must key off the page's
+    // real offsetWidth, never assume the container width: the retired 88%
+    // "peek" basis (removed 2026-07-18 — it clipped the rightmost column
+    // mid-icon) proved the two can drift, and when they did the old
+    // clientWidth maths drifted one-eighth of a page per page and landed
+    // the dots on the wrong index. Measuring keeps the pager correct under
+    // ANY future flex-basis change.
     const { grid, pager } = build(12);
     styleGap(grid);
     pager.apply();
 
-    // Supply the peeked page geometry jsdom cannot compute: 88% of 390.
+    // Supply a page geometry narrower than the container (the drift case
+    // jsdom cannot compute itself): 88% of 390.
     const firstPage = grid.querySelector<HTMLElement>(".launcher-page");
     expect(firstPage).not.toBeNull();
     Object.defineProperty(firstPage as HTMLElement, "offsetWidth", {
@@ -280,7 +282,7 @@ describe("LauncherPager", () => {
 
   it("falls back to the container width when page geometry is unmeasured", () => {
     // jsdom (and a not-yet-laid-out browser frame) reports offsetWidth 0;
-    // the scroller must then behave exactly as before the peek existed.
+    // the scroller must then fall back to the container width.
     const { grid, pager } = build(12);
     styleGap(grid);
     pager.apply();
