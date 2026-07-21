@@ -162,6 +162,13 @@ def test_audit_all_clean():
             # they need their own entries. Same Group-C deferral + tracking.
             "§1f",
             "§4b",
+            # §13 (self-maintenance commands nest under `dev`, e.g.
+            # `scitex-hub skills` → `scitex-hub dev skills`) — new rule in
+            # the ~2026-07-21 corpus; same CLI-restructure campaign as the
+            # noun-verb Group-C deferrals above. Moving `skills` under a
+            # `dev` group (or registering a deprecated_alias) is a CLI
+            # contract MIGRATION, not a one-liner — do it with Group C.
+            "§13",
             # The `deferred` project-type emits an informational
             # `[defer] … PS-103 finding(s) suppressed` notice on
             # stdout. It is not a violation, but the gate's line
