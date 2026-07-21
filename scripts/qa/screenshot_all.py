@@ -85,6 +85,18 @@ def main():
                     resp = pg.goto(full, wait_until="commit", timeout=30000)
                     status = str(resp.status) if resp else "no-resp"
                     pg.wait_for_timeout(args.settle_ms)
+                    # Workspace-shell pages fill #ws-module-pane client-side;
+                    # a fixed settle can grade a mid-boot frame as blank.
+                    # Best-effort wait for real content OR the fail-loud
+                    # error box (anything beyond the loader). Non-fatal:
+                    # on timeout, screenshot whatever is there.
+                    try:
+                        if pg.query_selector("#ws-module-pane"):
+                            pg.wait_for_selector(
+                                "#ws-module-pane > :not(.ws-module-loading)",
+                                timeout=12000)
+                    except Exception:
+                        pass
                     safe = "".join(c if c.isalnum() else "_" for c in label)[:32]
                     fn = os.path.join(args.out, f"{vpname}__{safe}.png")
                     pg.screenshot(path=fn)
