@@ -174,6 +174,24 @@ def _is_dev_app_entry(entry_name: str) -> bool:
     return app_prefix not in _PLATFORM_APPS
 
 
+def _manifest_miss(msg: str, entry_name: str) -> str:
+    """Fail LOUD on a manifest-lookup miss — never silently ship a page
+    with a missing script (the module pane would stay blank with zero
+    errors anywhere; observed as "Explore renders zero body").
+
+    DEBUG: raise so the dev sees the failure immediately.
+    Production: emit a console.error script tag so browser/QA console
+    capture records the miss (server-side log alone is invisible to QA).
+    """
+    import logging
+
+    logging.getLogger(__name__).error(msg)
+    if settings.DEBUG:
+        raise template.TemplateSyntaxError(msg)
+    payload = json.dumps(f"[vite] missing entry: {entry_name}")
+    return mark_safe(f"<script>console.error({payload});</script>")
+
+
 @register.simple_tag
 def vite_script(entry_name: str):
     """
@@ -239,12 +257,11 @@ def vite_script(entry_name: str):
             tags += f'<script type="module" src="{settings.STATIC_URL}vite/{js_file}"></script>'
             return mark_safe(tags)
         else:
-            import logging
-
-            logging.getLogger(__name__).error(
-                f"Vite entry '{entry_name}' not found in manifest (tried ts_path='{ts_path}' and name='{entry_name}')"
+            return _manifest_miss(
+                f"Vite entry '{entry_name}' not found in manifest "
+                f"(tried ts_path='{ts_path}' and name='{entry_name}')",
+                entry_name,
             )
-            return ""
 
 
 @register.simple_tag(takes_context=True)
@@ -315,12 +332,9 @@ def vite_preload(entry_name: str):
             f'<link rel="modulepreload" href="{settings.STATIC_URL}vite/{js_file}" />'
         )
 
-    import logging
-
-    logging.getLogger(__name__).error(
-        f"Vite preload entry '{entry_name}' not found in manifest"
+    return _manifest_miss(
+        f"Vite preload entry '{entry_name}' not found in manifest", entry_name
     )
-    return ""
 
 
 @register.simple_tag
