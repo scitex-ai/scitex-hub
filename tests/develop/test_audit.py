@@ -86,6 +86,35 @@ def test_audit_all_clean():
             # discovery, CI workflow paths, and editor config. Tracked
             # as a dedicated structural PR.
             "PS-302",
+            # PS-221 — public extra [dev] not a subset of [all]. New rule
+            # in the scitex-dev release of ~2026-07-19 (audit went red on
+            # main 07-19 with no hub change). Both suggested fixes are
+            # wrong here: (a) folding [dev] into [all] ships black/ruff/
+            # scitex-dev to user installs and self-referencing
+            # `scitex-hub[dev]` from [all] reintroduces the recursive-
+            # extra resolution that halted the v0.18.0 release (see the
+            # [project.optional-dependencies] header); (b) the `_dev`
+            # rename produces an extra name with a leading underscore,
+            # which fails PEP 685 / packaging name normalization (must
+            # start alphanumeric) on current setuptools. [dev] is
+            # documented as internal-only in the pyproject header.
+            # Raised with scitex-dev (DM 2026-07-21) — lift this skip
+            # when the auditor gains a sanctioned way to declare an
+            # extra internal.
+            "PS-221",
+            # "defer" — NOT a rule: the auditor's own notice line
+            # `[defer] scitex-hub: 18 PS-103 finding(s) suppressed by
+            # 'project-type: deferred'` starts with a bracketed token, so
+            # audit_all_for_package's classifier (scitex-dev 0.33.0,
+            # _audit_conformance: payload.startswith("[")) counts it as a
+            # violation that matches no skip rule. Result: once ANY
+            # E-level rule makes the CLI exit non-zero, the re-classify
+            # path can never conclude "all skipped" — skip_rules is dead
+            # for every project-type:deferred repo. This entry matches
+            # the notice via the same `f"[{r}]" in line` mechanism.
+            # Remove when scitex-dev excludes notice lines from
+            # classification (reported upstream 2026-07-21).
+            "defer",
             # ============================================================
             # Python-API deferrals (audit-python-apis)
             # ============================================================
@@ -133,6 +162,13 @@ def test_audit_all_clean():
             # they need their own entries. Same Group-C deferral + tracking.
             "§1f",
             "§4b",
+            # §13 (self-maintenance commands nest under `dev`, e.g.
+            # `scitex-hub skills` → `scitex-hub dev skills`) — new rule in
+            # the ~2026-07-21 corpus; same CLI-restructure campaign as the
+            # noun-verb Group-C deferrals above. Moving `skills` under a
+            # `dev` group (or registering a deprecated_alias) is a CLI
+            # contract MIGRATION, not a one-liner — do it with Group C.
+            "§13",
             # The `deferred` project-type emits an informational
             # `[defer] … PS-103 finding(s) suppressed` notice on
             # stdout. It is not a violation, but the gate's line
