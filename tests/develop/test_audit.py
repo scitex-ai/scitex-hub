@@ -86,6 +86,22 @@ def test_audit_all_clean():
             # discovery, CI workflow paths, and editor config. Tracked
             # as a dedicated structural PR.
             "PS-302",
+            # PS-221 — public extra [dev] not a subset of [all]. New rule
+            # in the scitex-dev release of ~2026-07-19 (audit went red on
+            # main 07-19 with no hub change). Both suggested fixes are
+            # wrong here: (a) folding [dev] into [all] ships black/ruff/
+            # scitex-dev to user installs and self-referencing
+            # `scitex-hub[dev]` from [all] reintroduces the recursive-
+            # extra resolution that halted the v0.18.0 release (see the
+            # [project.optional-dependencies] header); (b) the `_dev`
+            # rename produces an extra name with a leading underscore,
+            # which fails PEP 685 / packaging name normalization (must
+            # start alphanumeric) on current setuptools. [dev] is
+            # documented as internal-only in the pyproject header.
+            # Raised with scitex-dev (DM 2026-07-21) — lift this skip
+            # when the auditor gains a sanctioned way to declare an
+            # extra internal.
+            "PS-221",
             # ============================================================
             # Python-API deferrals (audit-python-apis)
             # ============================================================
