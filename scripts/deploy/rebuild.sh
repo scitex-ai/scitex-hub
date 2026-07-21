@@ -234,7 +234,14 @@ if [ -d "$SANDBOX_DIR" ]; then
         # is never read by the scitex user.
         # (2026-07-08 prod rebuild: those two benign cases aborted this
         # step with exit 1, which killed the remaining deploy steps.)
-        if ! apptainer exec \
+        #
+        # chmod's exit code is NOT the gate: apptainer bind-targets it
+        # cannot touch (/etc/hosts, /usr/share/zoneinfo/... — 2026-07-22
+        # prod rebuild) fail chmod with EPERM while already being a+rX,
+        # which is a false-negative. The gate below verifies the actual
+        # invariant instead: no file in the sandbox lacks world-read
+        # (files also need world-x when owner-x). chmod stays best-effort.
+        apptainer exec \
             --fakeroot --writable \
             --contain --no-home --no-mount home,tmp,cwd \
             "$CURRENT_SANDBOX" \
@@ -242,11 +249,23 @@ if [ -d "$SANDBOX_DIR" ]; then
             -not -path '/proc*' -not -path '/sys*' -not -path '/dev*' \
             -not -path '/.singularity.d*' \
             -not -type l \
-            -exec chmod a+rX {} + 2>&1; then
-            echo -e "${RED}   ❌ Sandbox permission fix failed (apptainer --fakeroot find/chmod).${NC}" >&2
+            -exec chmod a+rX {} + 2>&1 \
+            || echo -e "${YELLOW}   ⚠️ chmod reported errors; verifying the readability invariant directly...${NC}"
+        UNREADABLE=$(apptainer exec \
+            --contain --no-home --no-mount home,tmp,cwd \
+            "$CURRENT_SANDBOX" \
+            find / -xdev \
+            -not -path '/proc*' -not -path '/sys*' -not -path '/dev*' \
+            -not -path '/.singularity.d*' \
+            -not -type l \
+            '(' -not -perm -o=r -o '(' -perm -u=x -not -perm -o=x ')' ')' \
+            -print 2>/dev/null | head -20)
+        if [ -n "$UNREADABLE" ]; then
+            echo -e "${RED}   ❌ Sandbox has files the scitex user cannot read (first 20):${NC}" >&2
+            echo "$UNREADABLE" >&2
             exit 1
         fi
-        echo "   Sandbox permissions fixed"
+        echo "   Sandbox permissions verified (world-readable)"
     else
         echo -e "${YELLOW}   No sandbox directory found${NC}"
     fi
