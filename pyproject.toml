@@ -170,6 +170,19 @@ all = [
     "myst-parser>=2.0",
     "sphinx-copybutton>=0.5",
     "sphinx-autodoc-typehints>=1.25",
+    # --- Dev-tooling closure (PS-221: every PUBLIC extra must be a
+    # subset of [all], so `pip install scitex-hub[all]` pulls everything
+    # public. Kept FLAT rather than referencing `scitex-hub[dev]` —
+    # recursive self-references are exactly what the v0.18.0 release
+    # halt removed, see the note at the top of this table. Pins mirror
+    # [dev]; `scitex-dev` is also a core dependency, restated here so
+    # the closure is explicit.) ---
+    "black>=23.0",
+    "ruff>=0.1.0",
+    "figrecipe>=0.13.0",
+    "joblib",
+    "flask",
+    "scitex-dev>=0.16.1",
 ]
 dev = [
     "black>=23.0",
@@ -183,6 +196,7 @@ dev = [
     # unguarded, so a fresh `pip install -e .[dev]` must include them too
     # to be self-sufficient (no `pytest.importorskip` dance).
     "channels>=4.3",
+    "django-celery-beat>=2.8",
     "fastmcp>=2.0.0",
     "scitex>=2.29.3",
     # scitex-dev provides the `audit-all` corpus the release gate runs.

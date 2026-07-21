@@ -58,8 +58,10 @@ def test_audit_all_clean():
             # `scitex._mcp_tools` and friends. Splitting the umbrella into
             # peer-only requires verifying which peer packages export
             # each submodule (currently scitex-cli and scitex._mcp_tools
-            # live INSIDE the umbrella, not in dedicated peers). Tracked
-            # under the umbrella-thinning campaign (ADR-0002 §5).
+            # live INSIDE the umbrella, not in dedicated peers).
+            # Umbrella->standalone swap tracked on card
+            # hub-drop-umbrella-dep (umbrella-thinning campaign,
+            # ADR-0002 §5).
             "PS-139",
             # PS-202 / PS-207 — src/scitex_hub/{appmaker, module, _utils,
             # _config, project/_mcp} have no matching test mirror dir
@@ -83,8 +85,8 @@ def test_audit_all_clean():
             # use legacy top-level subdirs. The auditor wants
             # tests/scitex_hub/{...}. This is hundreds of files; the
             # move must be coordinated with pytest config, conftest
-            # discovery, CI workflow paths, and editor config. Tracked
-            # as a dedicated structural PR.
+            # discovery, CI workflow paths, and editor config.
+            # Test-tree relayout tracked on card hub-tests-dir-relayout.
             "PS-302",
             # ============================================================
             # Python-API deferrals (audit-python-apis)
@@ -133,6 +135,13 @@ def test_audit_all_clean():
             # they need their own entries. Same Group-C deferral + tracking.
             "§1f",
             "§4b",
+            # §13 (self-maintenance commands nest under a `dev` group,
+            # e.g. `scitex-hub skills` -> `scitex-hub dev skills`) is a
+            # newer corpus rule covering the same CLI-shape territory:
+            # moving `skills` is a top-level CLI restructuring with a
+            # deprecation ladder, so it lands with the Group-C noun-verb
+            # migration above, not piecemeal.
+            "§13",
             # The `deferred` project-type emits an informational
             # `[defer] … PS-103 finding(s) suppressed` notice on
             # stdout. It is not a violation, but the gate's line
