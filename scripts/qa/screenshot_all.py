@@ -17,17 +17,26 @@ from playwright.sync_api import sync_playwright
 VIEWPORTS = {"mobile": (390, 844, 2), "desktop": (1440, 900, 1)}
 
 
-def collect_app_links(page, base):
+def collect_app_links(page, base, settle_ms):
     # "commit" not "domcontentloaded": on dev, media elements (landing
     # video) loop range-requests against daphne runserver and DCL never
     # fires even though the page is fully rendered. Commit + settle is
     # what a screenshot actually needs.
     page.goto(base + "/", wait_until="commit", timeout=30000)
-    page.wait_for_timeout(3000)
+    # the launcher grid is JS-rendered after a loading state; give it the
+    # same settle the capture pass gets, or discovery sees 0 tiles
+    try:
+        page.wait_for_selector("#launcher-grid a[href], .launcher-grid a[href]",
+                               timeout=max(settle_ms, 3000))
+    except Exception:
+        pass  # fall through: eval below returns [] and the caller reports 0
+    page.wait_for_timeout(1000)
     # launcher tiles are <a> inside #launcher-grid with an href to the app
+    # data-label is the app name; textContent's first line can be an
+    # availability chip ("Desktop-only"), which collides filenames
     hrefs = page.eval_on_selector_all(
         "#launcher-grid a[href], .launcher-grid a[href]",
-        "els => els.map(e => ({href: e.getAttribute('href'), label: (e.textContent||'').trim().split('\\n')[0].trim()}))",
+        "els => els.map(e => ({href: e.getAttribute('href'), label: e.getAttribute('data-label') || (e.textContent||'').trim().split('\\n')[0].trim()}))",
     )
     seen, out = set(), []
     for h in hrefs:
@@ -58,7 +67,7 @@ def main():
         w, h, dsf = VIEWPORTS["mobile"]
         disc = b.new_context(viewport={"width": w, "height": h}, device_scale_factor=dsf)
         dp = disc.new_page()
-        links = collect_app_links(dp, args.base)
+        links = collect_app_links(dp, args.base, args.settle_ms)
         disc.close()
         # always include the home itself
         targets = [("home", args.base + "/")] + links
