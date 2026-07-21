@@ -178,12 +178,20 @@ for i in $(seq 0 $((APP_COUNT - 1))); do
             # Deliberately narrow (only known pip/npm side effects): a
             # genuinely new user-created file is NOT excluded here and
             # still correctly counts as dirty.
+            # Pathspecs here are fnmatch WITHOUT FNM_PATHNAME (no :(glob)
+            # magic), so `*` crosses `/` — `*node_modules*` matches the
+            # byproduct at ANY depth. The previous root-anchored forms
+            # (`node_modules/**`) missed nested copies (e.g. a renamed
+            # package leaving src/<old>/_django/frontend/node_modules/),
+            # which marked the checkout dirty and silently wedged
+            # auto-sync forever — prod served a weeks-old scitex-cards
+            # because of exactly this (2026-07-22).
             DIRTY=$(git -C "$SIBLING_DIR" status --porcelain \
                 -- . \
-                ':(exclude)*.egg-info' ':(exclude)*.egg-info/**' \
-                ':(exclude)node_modules' ':(exclude)node_modules/**' \
-                ':(exclude)package-lock.json' \
-                ':(exclude)__pycache__' ':(exclude)__pycache__/**' \
+                ':(exclude)*.egg-info*' \
+                ':(exclude)*node_modules*' \
+                ':(exclude)*package-lock.json' \
+                ':(exclude)*__pycache__*' \
                 ':(exclude)*.pyc' \
                 2>/dev/null || echo "dirty-unknown")
             NO_BASELINE=true
