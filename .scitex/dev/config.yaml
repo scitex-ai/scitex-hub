@@ -10,3 +10,68 @@ project-type:
   - pip
   - django
   - deferred
+
+audit:
+  # §6 declared MCP surface (finer-grained than mcp_parity_exempt):
+  # scitex-hub intentionally ships a CURATED MCP tool set for AI-driven
+  # hub operations (Gitea/tea wrappers, Django API calls, onsite browser
+  # context, SDK passthroughs) rather than mirroring its Python API —
+  # most tools wrap subprocess/HTTP surfaces that have no 1:1 public
+  # Python function. The auditor verifies registered tools == this list
+  # (hub_skills_list / hub_skills_get are always permitted implicitly).
+  mcp-tools-allowlist:
+    - api_crossref_by_doi
+    - api_crossref_search
+    - api_enrich_bibtex
+    - api_project_commit
+    - api_project_list_files
+    - api_scholar_search
+    - api_status
+    - api_writer_compile
+    - api_writer_list_sections
+    - app_check_deps
+    - app_get_current
+    - app_get_info
+    - app_get_prefs
+    - app_list_all
+    - app_set_prefs
+    - app_switch_to
+    - cloud_sdk_data_create
+    - cloud_sdk_data_delete
+    - cloud_sdk_data_get
+    - cloud_sdk_data_list
+    - cloud_sdk_data_search
+    - cloud_sdk_data_update
+    - cloud_sdk_files_delete
+    - cloud_sdk_files_download
+    - cloud_sdk_files_list
+    - cloud_sdk_files_upload
+    - cloud_sdk_jobs_cancel
+    - cloud_sdk_jobs_list
+    - cloud_sdk_jobs_status
+    - cloud_sdk_jobs_submit
+    - onsite_capture_page
+    - onsite_check_permission
+    - onsite_eval_js
+    - onsite_get_context
+    - onsite_get_dev_app_url
+    - onsite_ui_action
+    - project_create
+    - project_delete
+    - project_list
+    - project_rename
+    - project_switch
+    - repo_clone
+    - repo_create
+    - repo_delete
+    - repo_fork
+    - repo_issue_create
+    - repo_issue_list
+    - repo_list
+    - repo_login
+    - repo_pr_create
+    - repo_pr_list
+    - repo_pull
+    - repo_push
+    - repo_search
+    - repo_status
