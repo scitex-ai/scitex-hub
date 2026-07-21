@@ -102,6 +102,19 @@ def test_audit_all_clean():
             # when the auditor gains a sanctioned way to declare an
             # extra internal.
             "PS-221",
+            # "defer" — NOT a rule: the auditor's own notice line
+            # `[defer] scitex-hub: 18 PS-103 finding(s) suppressed by
+            # 'project-type: deferred'` starts with a bracketed token, so
+            # audit_all_for_package's classifier (scitex-dev 0.33.0,
+            # _audit_conformance: payload.startswith("[")) counts it as a
+            # violation that matches no skip rule. Result: once ANY
+            # E-level rule makes the CLI exit non-zero, the re-classify
+            # path can never conclude "all skipped" — skip_rules is dead
+            # for every project-type:deferred repo. This entry matches
+            # the notice via the same `f"[{r}]" in line` mechanism.
+            # Remove when scitex-dev excludes notice lines from
+            # classification (reported upstream 2026-07-21).
+            "defer",
             # ============================================================
             # Python-API deferrals (audit-python-apis)
             # ============================================================
