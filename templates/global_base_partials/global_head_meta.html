@@ -8,7 +8,13 @@
 <!-- Inline theme application - Prevents flash of unstyled content -->
 <script>
     (function() {
-        const theme = localStorage.getItem("scitex-theme-preference") || "light";
+        // Canonical key "stx-theme" (converged with scitex-ui); legacy
+        // key read as fallback for one release cycle. Default dark —
+        // matches theme-switcher.ts's new-visitor default (the old
+        // "light" here contradicted it and flashed light on first paint).
+        const theme = localStorage.getItem("stx-theme")
+            || localStorage.getItem("scitex-theme-preference")
+            || "dark";
         if (theme === "dark") {
             document.documentElement.setAttribute("data-theme", "dark");
             document.documentElement.setAttribute("data-color-mode", "dark");
