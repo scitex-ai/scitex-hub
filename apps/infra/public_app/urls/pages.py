@@ -33,6 +33,7 @@ urlpatterns = [
     # path("vision/", views.vision, name="vision"),
     path("publications/", views.publications, name="publications"),
     path("contributors/", views.contributors, name="contributors"),
+    path("recruit/", views.recruit, name="recruit"),
     path("pricing/", views.pricing, name="pricing"),
     # Reference pages
     path("keyboard-shortcuts/", views.keyboard_shortcuts, name="keyboard_shortcuts"),

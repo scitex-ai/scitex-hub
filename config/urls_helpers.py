@@ -63,6 +63,7 @@ def get_reserved_paths():
             "login",
             "logout",
             "signup",
+            "recruit",
             "register",
             "reset",
             "verify",
