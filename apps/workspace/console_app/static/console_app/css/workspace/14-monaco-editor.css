@@ -5,6 +5,10 @@
   position: relative;
   padding: 8px 0;
   border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+  /* Defense in depth: if an ancestor's height chain ever collapses
+     again (probe 2026-07-22: #monaco-editor measured 5px), keep a
+     usable editor body so toolbars never float over a zero-height box. */
+  min-height: 120px;
 }
 
 #monaco-editor {
@@ -35,5 +39,8 @@
   line-height: normal; /* xterm.js computes its own line-height; overriding breaks cursor alignment */
   cursor: text;
   user-select: text; /* Allow text selection */
-  min-height: 0; /* Allow proper flex sizing */
+  /* Defense in depth: was 0 (flex shrink); 80px keeps the terminal body
+     visible even if the pane height chain collapses (still shrinkable
+     for flex layout above this floor). */
+  min-height: 80px;
 }

@@ -88,12 +88,20 @@ def main():
                     # Workspace-shell pages fill #ws-module-pane client-side;
                     # a fixed settle can grade a mid-boot frame as blank.
                     # Best-effort wait for real content OR the fail-loud
-                    # error box (anything beyond the loader). Non-fatal:
-                    # on timeout, screenshot whatever is there.
+                    # error box (anything beyond the loader). Injected
+                    # partials start with invisible <style>/<link>/<script>
+                    # children, which the plain :not(.ws-module-loading)
+                    # selector matched first — the visible-state wait then
+                    # ALWAYS timed out. Exclude them so the wait detects
+                    # real rendered content. Non-fatal: on timeout,
+                    # screenshot whatever is there.
                     try:
                         if pg.query_selector("#ws-module-pane"):
                             pg.wait_for_selector(
-                                "#ws-module-pane > :not(.ws-module-loading)",
+                                "#ws-module-pane > :not(.ws-module-loading)"
+                                ":not(style):not(link):not(script)"
+                                ":not(template)",
+                                state="visible",
                                 timeout=12000)
                     except Exception:
                         pass
