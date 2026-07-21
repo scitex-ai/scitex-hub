@@ -27,6 +27,7 @@ __all__ = [
     "pricing",
     "keyboard_shortcuts",
     "contributors",
+    "recruit",
 ]
 
 
@@ -43,6 +44,17 @@ def about(request):
 def open_source(request):
     """Why open source matters for SciTeX and scientific research."""
     return render(request, "public_app/pages/open_source.html")
+
+
+def recruit(request):
+    """Recruit page - open-source contributor recruitment (students welcome).
+
+    Copy is legally reviewed (voluntary OSS contribution only; no
+    direction/supervision by the company — never phrased as unpaid work).
+    University-credit internships and paid roles appear only as future
+    items under "Coming next".
+    """
+    return render(request, "public_app/pages/recruit.html")
 
 
 def demos(request):
