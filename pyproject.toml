@@ -44,10 +44,10 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://scitex.ai"
-Repository = "https://github.com/ywatanabe1989/scitex-hub"
+Repository = "https://github.com/scitex-ai/scitex-hub"
 Documentation = "https://scitex-hub.readthedocs.io"
-Issues = "https://github.com/ywatanabe1989/scitex-hub/issues"
-Changelog = "https://github.com/ywatanabe1989/scitex-hub/blob/main/CHANGELOG.md"
+Issues = "https://github.com/scitex-ai/scitex-hub/issues"
+Changelog = "https://github.com/scitex-ai/scitex-hub/blob/main/CHANGELOG.md"
 
 [project.entry-points."scitex_dev.docs"]
 scitex-hub = "scitex_hub"

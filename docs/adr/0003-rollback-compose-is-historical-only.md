@@ -17,7 +17,7 @@ During the v3 #4 prod cutover (2026-06-06 → 2026-06-07), where the entire `sci
 
 That file lived ONLY on the NAS (`/home/ywatanabe/proj/scitex-cloud/deployment/docker/docker_prod/docker-compose.rollback.yml`). It was never committed to git during the cutover — and it was nearly lost when `git pull develop` swept it into a stash; it had to be restored from `stash@{0}^3`.
 
-Issue [#243](https://github.com/ywatanabe1989/scitex-hub/issues/243) was filed to "canonicalize the rollback compose into the repo so a NAS-rebuild doesn't lose the rollback floor".
+Issue [#243](https://github.com/scitex-ai/scitex-hub/issues/243) was filed to "canonicalize the rollback compose into the repo so a NAS-rebuild doesn't lose the rollback floor".
 
 ## Decision
 
